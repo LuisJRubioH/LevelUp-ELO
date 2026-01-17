@@ -56,8 +56,18 @@ Sigue estos pasos para probar el prototipo localmente:
 
 1. **Clonar el repositorio:**
    ```bash
-   git clone [https://github.com/TU_USUARIO/LevelUp-ELO.git](https://github.com/TU_USUARIO/LevelUp-ELO.git)
+   git clone [https://github.com/LuisJRubioH/LevelUp-ELO.git](https://github.com/LuisJRubioH/LevelUp-ELO.git)
    cd LevelUp-ELO  
+    ```
 
+2. **Instalar dependencias:**
+   ```bash
+   pip install -r requirements.txt
+    ```
+
+3. **Lanzar el Dashboard:**
+   ```bash
+   streamlit run app.py
+    ```
 
 ---
