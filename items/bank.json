@@ -1,0 +1,7 @@
+[
+    {"id": "q1", "content": "¿Cuál es la derivada de x^2?", "difficulty": 800, "topic": "Cálculo"},
+    {"id": "q2", "content": "Resuelve la integral de 1/x dx", "difficulty": 1100, "topic": "Cálculo"},
+    {"id": "q3", "content": "Si 2x + 5 = 13, ¿cuánto vale x?", "difficulty": 700, "topic": "Álgebra"},
+    {"id": "q4", "content": "Calcula el determinante de una matriz identidad 3x3", "difficulty": 1200, "topic": "Álgebra Lineal"},
+    {"id": "q5", "content": "Defina el concepto de espacio vectorial", "difficulty": 1400, "topic": "Álgebra Lineal"}
+]
