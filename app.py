@@ -1,87 +1,193 @@
 import streamlit as st
 import json
-import random
-import pandas as pd
 import matplotlib.pyplot as plt
 from elo.vector_elo import VectorELO, aggregate_global_elo
 from selector.item_selector import AdaptiveItemSelector
 from elo.model import Item
 
-# Configuración de página para Responsive Design
-st.set_page_config(page_title="MVP ELO Dashboard", layout="wide")
+# ==================================================
+# 1. CONFIGURACIÓN
+# ==================================================
+st.set_page_config(page_title="LevelUp-ELO", layout="wide")
 
-# Estilos CSS básicos para mejorar el look profesional
-st.markdown("""
-    <style>
-    .main { background-color: #f5f7f9; }
-    .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #007bff; color: white; }
-    .elo-card { padding: 20px; border-radius: 10px; background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
-    </style>
-    """, unsafe_allow_html=True)
+# HEADER
+logo_col, title_col = st.columns([1, 4])
+with logo_col:
+    st.image("logo.png", width=160)
+with title_col:
+    st.markdown(
+        """
+        <h1 style="margin-bottom: 0;">
+            <span style="color: white;">LevelUp -</span>
+            <span style="color: #5DA25F;">ELO</span>
+        </h1>
+        """,
+        unsafe_allow_html=True
+    )
 
-# --- INICIALIZACIÓN DE SESIÓN ---
+
+# ==================================================
+# 2. INICIALIZACIÓN DE SESIÓN
+# ==================================================
 if 'vector' not in st.session_state:
     st.session_state.vector = VectorELO()
-    st.session_state.history = [1000]
-    st.session_state.current_step = 0
-    with open('items/bank.json', 'r') as f:
+    st.session_state.history = [1000.0]
+    st.session_state.correct_count = 0
+    st.session_state.incorrect_count = 0
+    st.session_state.last_elo_diff = 0.0
+    st.session_state.answered = False
+    st.session_state.last_result = None
+    st.session_state.current_item = None
+    st.session_state.last_item_id = None
+
+    # NUEVO: preguntas respondidas correctamente
+    st.session_state.answered_correctly_ids = set()
+
+    with open('items/bank.json', 'r', encoding='utf-8') as f:
         st.session_state.bank = json.load(f)
 
-# --- LÓGICA ---
-def handle_answer(is_correct, item_difficulty):
-    # Actualizar ELO
-    st.session_state.vector.update('global', item_difficulty, is_correct, k_factor=32)
+# ==================================================
+# 3. FUNCIÓN DE PROCESAMIENTO
+# ==================================================
+def procesar_envio(eleccion, correcta, dificultad):
+    es_correcta = (eleccion == correcta)
+
+    old_elo = aggregate_global_elo(st.session_state.vector)
+    st.session_state.vector.update('global', dificultad, es_correcta, k_factor=32)
     new_elo = aggregate_global_elo(st.session_state.vector)
+
+    st.session_state.last_elo_diff = new_elo - old_elo
     st.session_state.history.append(new_elo)
-    st.session_state.current_step += 1
 
-# --- INTERFAZ ---
-st.title("🚀 Sistema de Aprendizaje Adaptativo (MVP)")
+    if es_correcta:
+        st.session_state.correct_count += 1
+        # Registrar pregunta como definitivamente resuelta
+        st.session_state.answered_correctly_ids.add(
+            st.session_state.current_item['id']
+        )
+    else:
+        st.session_state.incorrect_count += 1
 
+    st.session_state.last_item_id = st.session_state.current_item['id']
+    st.session_state.answered = True
+    st.session_state.last_result = es_correcta
+
+# ==================================================
+# 4. MÉTRICAS
+# ==================================================
+current_elo = aggregate_global_elo(st.session_state.vector)
+total_retos = st.session_state.correct_count + st.session_state.incorrect_count
+precision_real = (st.session_state.correct_count / total_retos * 100) if total_retos > 0 else 0.0
+diff_inicial = current_elo - 1000
+
+m1, m2, m3 = st.columns(3)
+
+with m1:
+    st.metric(
+        "ELO Actual",
+        f"{current_elo:.2f}",
+        f"Desde inicio: {diff_inicial:+.2f} | Último: {st.session_state.last_elo_diff:+.2f}"
+    )
+
+with m2:
+    st.metric("Precisión Real", f"{precision_real:.1f}%")
+
+with m3:
+    st.metric(
+        "Retos Totales",
+        total_retos,
+        f"✅ {st.session_state.correct_count} | ❌ {st.session_state.incorrect_count}"
+    )
+
+st.markdown("---")
+
+# ==================================================
+# 5. LAYOUT
+# ==================================================
 col1, col2 = st.columns([1, 2])
 
+# ------------------ GRÁFICO -----------------------
 with col1:
-    current_elo = aggregate_global_elo(st.session_state.vector)
-    st.markdown(f"""
-        <div class="elo-card">
-            <h3>Tu Nivel Actual (ELO)</h3>
-            <h1 style="color: #007bff;">{current_elo:.2f}</h1>
-            <p>Retos completados: {st.session_state.current_step}</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # Gráfico de progreso
-    st.subheader("Evolución")
-    fig, ax = plt.subplots()
-    ax.plot(st.session_state.history, marker='o', color='#007bff')
-    ax.set_ylabel("ELO Score")
-    ax.set_xlabel("Pasos")
+    st.subheader("Evolución de Nivel")
+
+    color = "#5DA25F" if st.session_state.last_elo_diff >= 0 else "red"
+    fig, ax = plt.subplots(figsize=(5, 4))
+    ax.plot(st.session_state.history, marker='o', color=color, linewidth=2)
+
+    ax.set_facecolor('#0e1117')
+    fig.patch.set_facecolor('#0e1117')
+    ax.tick_params(colors='white')
+    ax.grid(alpha=0.2)
+
     st.pyplot(fig)
 
-with col2:
-    st.subheader("Próximo Reto")
-    
-    # Seleccionar ítem basado en ELO
-    selector = AdaptiveItemSelector()
-    # Convertimos el JSON a objetos Item para el selector
-    items_objs = [Item(difficulty=i['difficulty']) for i in st.session_state.bank]
-    target_item_obj = selector.select(current_elo, items_objs)
-    
-    # Buscar el contenido real del item seleccionado
-    item_data = next(i for i in st.session_state.bank if i['difficulty'] == target_item_obj.difficulty)
-    
-    st.info(f"**Tópico:** {item_data['topic']}")
-    st.write(f"### {item_data['content']}")
-    
-    c_btn1, c_btn2 = st.columns(2)
-    if c_btn1.button("✅ Lo sé / Correcto"):
-        handle_answer(True, item_data['difficulty'])
-        st.rerun()
-    
-    if c_btn2.button("❌ No lo sé / Incorrecto"):
-        handle_answer(False, item_data['difficulty'])
+    if st.button("Resetear Progreso"):
+        st.session_state.clear()
         st.rerun()
 
-if st.button("Resetear Simulación"):
-    st.session_state.clear()
-    st.rerun()
+# ------------------ RETO --------------------------
+with col2:
+    selector = AdaptiveItemSelector()
+    items_objs = [Item(difficulty=i['difficulty']) for i in st.session_state.bank]
+    target_item = selector.select(current_elo, items_objs)
+
+    # CANDIDATOS: excluir preguntas ya respondidas correctamente
+    candidatos = [
+        i for i in st.session_state.bank
+        if i['id'] not in st.session_state.answered_correctly_ids
+    ]
+
+    if not candidatos:
+        st.success("🎉 Has resuelto correctamente todas las preguntas disponibles.")
+        st.stop()
+
+    if st.session_state.current_item is None:
+        st.session_state.current_item = min(
+            candidatos,
+            key=lambda x: abs(x['difficulty'] - target_item.difficulty)
+        )
+
+    item = st.session_state.current_item
+
+    if not st.session_state.answered:
+        st.subheader("Próximo Reto")
+        st.info(f"**Tópico:** {item['topic']} | **Dificultad:** {item['difficulty']}")
+        st.write(f"### {item['content']}")
+
+        opcion = st.radio(
+            "Selecciona la respuesta correcta:",
+            item['options'],
+            index=None,
+            key="respuesta_actual"
+        )
+
+        c1, c2 = st.columns(2)
+
+        with c1:
+            if st.button("Enviar Respuesta", type="primary", disabled=opcion is None):
+                procesar_envio(opcion, item['correct_answer'], item['difficulty'])
+                st.rerun()
+
+        with c2:
+            if st.button("No lo sé / Salir"):
+                procesar_envio(None, "SKIP", item['difficulty'])
+                st.session_state.last_result = "skip"
+                st.rerun()
+
+    else:
+        st.subheader("Resultado")
+
+        if st.session_state.last_result is True:
+            st.success(f"Correcto. +{st.session_state.last_elo_diff:.2f} puntos.")
+            st.balloons()
+        elif st.session_state.last_result is False:
+            st.error(f"Incorrecto. {st.session_state.last_elo_diff:.2f} puntos.")
+        else:
+            st.warning("Reto saltado.")
+
+        if st.button("Siguiente Reto"):
+            st.session_state.answered = False
+            st.session_state.last_result = None
+            st.session_state.current_item = None
+            st.session_state.pop("respuesta_actual", None)
+            st.rerun()

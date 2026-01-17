@@ -12,10 +12,10 @@ class VectorELO:
     def get(self, concept: str) -> float:
         return self.ratings.get(concept, 1000.0)
 
-    def update(self, concept: str, difficulty: float, result: float, K: float):
+    def update(self, concept: str, difficulty: float, result: float, k_factor: float):
         r = self.get(concept)
         p = expected_score(r, difficulty)
-        self.ratings[concept] = r + K * (result - p)
+        self.ratings[concept] = r + k_factor * (result - p)
 
 
 def aggregate_global_elo(vector: VectorELO) -> float:

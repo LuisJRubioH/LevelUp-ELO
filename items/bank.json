@@ -1,7 +1,82 @@
 [
-    {"id": "q1", "content": "¿Cuál es la derivada de x^2?", "difficulty": 800, "topic": "Cálculo"},
-    {"id": "q2", "content": "Resuelve la integral de 1/x dx", "difficulty": 1100, "topic": "Cálculo"},
-    {"id": "q3", "content": "Si 2x + 5 = 13, ¿cuánto vale x?", "difficulty": 700, "topic": "Álgebra"},
-    {"id": "q4", "content": "Calcula el determinante de una matriz identidad 3x3", "difficulty": 1200, "topic": "Álgebra Lineal"},
-    {"id": "q5", "content": "Defina el concepto de espacio vectorial", "difficulty": 1400, "topic": "Álgebra Lineal"}
+    {
+        "id": "q3",
+        "content": "¿Cuál es el límite de (sin(x)/x) cuando x tiende a 0?",
+        "difficulty": 900,
+        "topic": "Cálculo",
+        "options": ["0", "1", "∞", "No existe"],
+        "correct_answer": "1"
+    },
+    {
+        "id": "q4",
+        "content": "Encuentra la derivada de f(x) = e^(3x)",
+        "difficulty": 950,
+        "topic": "Cálculo",
+        "options": ["3e^(3x)", "e^(3x)", "3e^(x)", "e^(3)"],
+        "correct_answer": "3e^(3x)"
+    },
+    {
+        "id": "q5",
+        "content": "Calcula la integral definida ∫₀¹ (3x² + 2) dx",
+        "difficulty": 1050,
+        "topic": "Cálculo",
+        "options": ["3", "4", "2", "5"],
+        "correct_answer": "3"
+    },
+    {
+        "id": "q6",
+        "content": "¿Cuál es la derivada de ln(x² + 1)?",
+        "difficulty": 1150,
+        "topic": "Cálculo",
+        "options": ["2x/(x² + 1)", "1/(x² + 1)", "2x", "x/(x² + 1)"],
+        "correct_answer": "2x/(x² + 1)"
+    },
+    {
+        "id": "q7",
+        "content": "Resuelve la integral ∫ x·cos(x) dx",
+        "difficulty": 1250,
+        "topic": "Cálculo",
+        "options": ["x·sin(x) + cos(x) + C", "x·sin(x) - cos(x) + C", "x·cos(x) + sin(x) + C", "cos(x) - x·sin(x) + C"],
+        "correct_answer": "x·sin(x) + cos(x) + C"
+    },
+    {
+        "id": "q8",
+        "content": "¿Para qué valor de 'a' la función f(x) = { x² si x≤2; ax+1 si x>2 } es continua en x=2?",
+        "difficulty": 1350,
+        "topic": "Cálculo",
+        "options": ["3/2", "2", "1", "5/2"],
+        "correct_answer": "3/2"
+    },
+    {
+        "id": "q9",
+        "content": "Calcula el área encerrada entre las curvas y = x² e y = 2x - x²",
+        "difficulty": 1450,
+        "topic": "Cálculo",
+        "options": ["1/3", "2/3", "1", "4/3"],
+        "correct_answer": "1/3"
+    },
+    {
+        "id": "q10",
+        "content": "Encuentra la serie de Maclaurin de e^x hasta el término de grado 3",
+        "difficulty": 1550,
+        "topic": "Cálculo",
+        "options": ["1 + x + x²/2 + x³/6", "1 + x + x² + x³", "x + x²/2 + x³/6", "1 + x + x²/2! + x³/3!"],
+        "correct_answer": "1 + x + x²/2 + x³/6"
+    },
+    {
+        "id": "q11",
+        "content": "Calcula el volumen del sólido generado al rotar la región acotada por y = √x, x=4, y=0 alrededor del eje x",
+        "difficulty": 1650,
+        "topic": "Cálculo",
+        "options": ["4π", "6π", "8π", "12π"],
+        "correct_answer": "8π"
+    },
+    {
+        "id": "q12",
+        "content": "Resuelve la ecuación diferencial dy/dx = y·cos(x) con condición inicial y(0)=2",
+        "difficulty": 1750,
+        "topic": "Cálculo",
+        "options": ["y = 2e^(sin(x))", "y = e^(sin(x)) + 1", "y = 2cos(x)", "y = 2e^(cos(x))"],
+        "correct_answer": "y = 2e^(sin(x))"
+    }
 ]
