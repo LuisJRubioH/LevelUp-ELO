@@ -1,0 +1,1302 @@
+[
+    {
+        "id": "q1",
+        "content": "¿Cuál es la dimensión del espacio vectorial R^3 sobre R?",
+        "difficulty": 600,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "1",
+            "2",
+            "3",
+            "4"
+        ],
+        "correct_option": "3"
+    },
+    {
+        "id": "q2",
+        "content": "¿Son linealmente independientes los vectores (1,0) y (0,1) en R^2?",
+        "difficulty": 650,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Sí",
+            "No",
+            "Depende del campo",
+            "No hay suficiente información"
+        ],
+        "correct_option": "Sí"
+    },
+    {
+        "id": "q3",
+        "content": "¿Cuál es el rango de la matriz identidad de 3x3?",
+        "difficulty": 700,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "0",
+            "1",
+            "2",
+            "3"
+        ],
+        "correct_option": "3"
+    },
+    {
+        "id": "q4",
+        "content": "Calcula el determinante de [[2,0],[0,3]].",
+        "difficulty": 750,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "6",
+            "5",
+            "0",
+            "1"
+        ],
+        "correct_option": "6"
+    },
+    {
+        "id": "q5",
+        "content": "¿Cuál de los siguientes conjuntos es un subespacio de R^2?",
+        "difficulty": 800,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "{(x,y): x=0}",
+            "{(x,y): x=1}",
+            "{(x,y): x^2+y^2=1}",
+            "{(x,y): x>0}"
+        ],
+        "correct_option": "{(x,y): x=0}"
+    },
+    {
+        "id": "q6",
+        "content": "¿Cuáles son los valores propios (eigenvalores) de [[2,0],[0,3]]?",
+        "difficulty": 850,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "2 y 3",
+            "0 y 5",
+            "2 y 2",
+            "3 y 3"
+        ],
+        "correct_option": "2 y 3"
+    },
+    {
+        "id": "q7",
+        "content": "¿Cuál es la nulidad de una matriz 4x4 con rango 3?",
+        "difficulty": 900,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "0",
+            "1",
+            "2",
+            "3"
+        ],
+        "correct_option": "1"
+    },
+    {
+        "id": "q8",
+        "content": "El espacio columna de una matriz m×n es un subespacio de:",
+        "difficulty": 950,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "R^m",
+            "R^n",
+            "R^{m+n}",
+            "R^{mn}"
+        ],
+        "correct_option": "R^m"
+    },
+    {
+        "id": "q9",
+        "content": "¿El conjunto de todas las matrices simétricas de 2x2 forma un espacio vectorial sobre R?",
+        "difficulty": 1000,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Sí",
+            "No",
+            "Solo si el campo es real",
+            "Solo si la dimensión es 3"
+        ],
+        "correct_option": "Sí"
+    },
+    {
+        "id": "q10",
+        "content": "El polinomio característico de una matriz 2x2 con traza 5 y determinante 6 es:",
+        "difficulty": 1050,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "λ^2 - 5λ + 6",
+            "λ^2 + 5λ + 6",
+            "λ^2 - 5λ - 6",
+            "λ^2 + 5λ - 6"
+        ],
+        "correct_option": "λ^2 - 5λ + 6"
+    },
+    {
+        "id": "q11",
+        "content": "¿Cuál es el polinomio mínimo de una matriz diagonalizable con valores propios 2,2,3?",
+        "difficulty": 1100,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "(x-2)(x-3)",
+            "(x-2)^2(x-3)",
+            "(x-2)(x-3)^2",
+            "(x-2)^2(x-3)^2"
+        ],
+        "correct_option": "(x-2)(x-3)"
+    },
+    {
+        "id": "q12",
+        "content": "Para una matriz ortogonal Q, ¿cuál es el valor de Q^T Q?",
+        "difficulty": 1150,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "I",
+            "Q",
+            "Q^2",
+            "0"
+        ],
+        "correct_option": "I"
+    },
+    {
+        "id": "q13",
+        "content": "¿A qué tipo de matrices se aplica el teorema espectral (para matrices reales)?",
+        "difficulty": 1200,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Simétricas",
+            "Cualquier matriz cuadrada",
+            "Antisimétricas",
+            "Diagonalizables"
+        ],
+        "correct_option": "Simétricas"
+    },
+    {
+        "id": "q14",
+        "content": "¿Cuál es la dimensión del espacio vectorial de las matrices antisimétricas de 3x3 sobre R?",
+        "difficulty": 1250,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "3",
+            "6",
+            "9",
+            "0"
+        ],
+        "correct_option": "3"
+    },
+    {
+        "id": "q15",
+        "content": "¿Cuál de las siguientes es una transformación lineal?",
+        "difficulty": 1300,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "T(x)=Ax",
+            "T(x)=x^2",
+            "T(x)=x+1",
+            "T(x)=||x||"
+        ],
+        "correct_option": "T(x)=Ax"
+    },
+    {
+        "id": "q16",
+        "content": "Los valores singulares de una matriz son las raíces cuadradas de los valores propios de:",
+        "difficulty": 1350,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "A^T A",
+            "A A^T",
+            "A",
+            "A^{-1}"
+        ],
+        "correct_option": "A^T A"
+    },
+    {
+        "id": "q17",
+        "content": "Si A es una matriz n×n con valores propios λ_i, entonces la traza de A es igual a:",
+        "difficulty": 1400,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "∑ λ_i",
+            "∏ λ_i",
+            "∑ λ_i^2",
+            "Ninguna de las anteriores"
+        ],
+        "correct_option": "∑ λ_i"
+    },
+    {
+        "id": "q18",
+        "content": "La dimensión del núcleo (kernel) de una transformación lineal de R^5 a R^3 con rango 2 es:",
+        "difficulty": 1450,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "1",
+            "2",
+            "3",
+            "4"
+        ],
+        "correct_option": "3"
+    },
+    {
+        "id": "q19",
+        "content": "Para una matriz definida positiva, todos sus valores propios son:",
+        "difficulty": 1500,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Positivos",
+            "No negativos",
+            "Reales",
+            "Complejos"
+        ],
+        "correct_option": "Positivos"
+    },
+    {
+        "id": "q20",
+        "content": "¿Cuál es la forma canónica de Jordan de una matriz nilpotente 3x3 de índice 2 con nulidad 2?",
+        "difficulty": 1550,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "J2 ⊕ J1",
+            "J1 ⊕ J1 ⊕ J1",
+            "J3",
+            "J2 ⊕ J2"
+        ],
+        "correct_option": "J2 ⊕ J1"
+    },
+    {
+        "id": "q21",
+        "content": "Derivada de x^3.",
+        "difficulty": 600,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "3x^2",
+            "x^2",
+            "3x",
+            "0"
+        ],
+        "correct_option": "3x^2"
+    },
+    {
+        "id": "q22",
+        "content": "Derivada de sin(x).",
+        "difficulty": 650,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "cos(x)",
+            "-cos(x)",
+            "sin(x)",
+            "-sin(x)"
+        ],
+        "correct_option": "cos(x)"
+    },
+    {
+        "id": "q23",
+        "content": "Derivada de e^x.",
+        "difficulty": 700,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "e^x",
+            "e^x+1",
+            "xe^{x-1}",
+            "ln(x)"
+        ],
+        "correct_option": "e^x"
+    },
+    {
+        "id": "q24",
+        "content": "Derivada de ln(x).",
+        "difficulty": 750,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "1/x",
+            "ln(x)",
+            "1/x^2",
+            "x"
+        ],
+        "correct_option": "1/x"
+    },
+    {
+        "id": "q25",
+        "content": "La derivada de f(x)g(x) es:",
+        "difficulty": 800,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "f' g + f g'",
+            "f' g'",
+            "f g' + f' g",
+            "f' g'"
+        ],
+        "correct_option": "f' g + f g'"
+    },
+    {
+        "id": "q26",
+        "content": "Derivada de tan(x).",
+        "difficulty": 850,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "sec^2(x)",
+            "csc^2(x)",
+            "sec(x)tan(x)",
+            "1+tan^2(x)"
+        ],
+        "correct_option": "sec^2(x)"
+    },
+    {
+        "id": "q27",
+        "content": "Derivada de arcsin(x).",
+        "difficulty": 900,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "1/sqrt(1-x^2)",
+            "1/(1+x^2)",
+            "1/√(1-x^2)",
+            "-1/sqrt(1-x^2)"
+        ],
+        "correct_option": "1/sqrt(1-x^2)"
+    },
+    {
+        "id": "q28",
+        "content": "Si y = x^x, encuentra dy/dx.",
+        "difficulty": 950,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "x^x(1+ln x)",
+            "x^x ln x",
+            "x^x(1+ln x)",
+            "x^{x-1} x"
+        ],
+        "correct_option": "x^x(1+ln x)"
+    },
+    {
+        "id": "q29",
+        "content": "Usando la definición de derivada, f'(a)=lim_{h→0} (f(a+h)-f(a))/h, para f(x)=x^2, el límite es igual a:",
+        "difficulty": 1000,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "2a",
+            "a^2",
+            "2a+h",
+            "a"
+        ],
+        "correct_option": "2a"
+    },
+    {
+        "id": "q30",
+        "content": "Halla la ecuación de la recta tangente a y=x^2 en x=1.",
+        "difficulty": 1050,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "y=2x-1",
+            "y=2x+1",
+            "y=x-1",
+            "y=2x"
+        ],
+        "correct_option": "y=2x-1"
+    },
+    {
+        "id": "q31",
+        "content": "Usa diferenciación implícita: x^2+y^2=1, encuentra dy/dx.",
+        "difficulty": 1100,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "-x/y",
+            "x/y",
+            "y/x",
+            "-y/x"
+        ],
+        "correct_option": "-x/y"
+    },
+    {
+        "id": "q32",
+        "content": "Determina los puntos críticos de f(x)=x^3-3x.",
+        "difficulty": 1150,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "x=1 y x=-1",
+            "x=0 y x=1",
+            "x=0 y x=-1",
+            "x=1 y x=0"
+        ],
+        "correct_option": "x=1 y x=-1"
+    },
+    {
+        "id": "q33",
+        "content": "Teorema del valor medio: Si f es continua en [a,b] y diferenciable en (a,b), entonces existe c en (a,b) tal que:",
+        "difficulty": 1200,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "f'(c) = (f(b)-f(a))/(b-a)",
+            "f(c) = (f(b)-f(a))/(b-a)",
+            "f'(c) = f(b)-f(a)",
+            "f(c) = f'(c)"
+        ],
+        "correct_option": "f'(c) = (f(b)-f(a))/(b-a)"
+    },
+    {
+        "id": "q34",
+        "content": "Expansión en serie de Taylor de e^x alrededor de x=0.",
+        "difficulty": 1250,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "∑ x^n/n!",
+            "∑ x^n",
+            "∑ x^n/n",
+            "∑ n! x^n"
+        ],
+        "correct_option": "∑ x^n/n!"
+    },
+    {
+        "id": "q35",
+        "content": "Para f(x)=x^2, la segunda derivada es:",
+        "difficulty": 1300,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "2",
+            "2x",
+            "0",
+            "1"
+        ],
+        "correct_option": "2"
+    },
+    {
+        "id": "q36",
+        "content": "Regla de L'Hôpital: límite cuando x→0 de sin(x)/x.",
+        "difficulty": 1350,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "1",
+            "0",
+            "∞",
+            "No existe"
+        ],
+        "correct_option": "1"
+    },
+    {
+        "id": "q37",
+        "content": "Halla el valor máximo de f(x)=-x^2+4x en el intervalo [0,3].",
+        "difficulty": 1400,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "4",
+            "3",
+            "0",
+            "5"
+        ],
+        "correct_option": "4"
+    },
+    {
+        "id": "q38",
+        "content": "Si g es la función inversa de f, entonces g'(x) es igual a:",
+        "difficulty": 1450,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "1/f'(g(x))",
+            "f'(g(x))",
+            "1/f'(x)",
+            "f'(x)"
+        ],
+        "correct_option": "1/f'(g(x))"
+    },
+    {
+        "id": "q39",
+        "content": "¿Es f(x)=|x| diferenciable en x=0?",
+        "difficulty": 1500,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "No",
+            "Sí",
+            "Solo la derivada por la izquierda existe",
+            "Solo la derivada por la derecha existe"
+        ],
+        "correct_option": "No"
+    },
+    {
+        "id": "q40",
+        "content": "Derivada de orden n de x^n (para n entero) es:",
+        "difficulty": 1550,
+        "topic": "Cálculo Diferencial",
+        "options": [
+            "n!",
+            "n",
+            "n! * x",
+            "0"
+        ],
+        "correct_option": "n!"
+    },
+    {
+        "id": "q41",
+        "content": "∫ 1 dx.",
+        "difficulty": 600,
+        "topic": "Cálculo Integral",
+        "options": [
+            "x + C",
+            "0 + C",
+            "1 + C",
+            "x^2/2 + C"
+        ],
+        "correct_option": "x + C"
+    },
+    {
+        "id": "q42",
+        "content": "∫ x dx.",
+        "difficulty": 650,
+        "topic": "Cálculo Integral",
+        "options": [
+            "x^2/2 + C",
+            "x^2 + C",
+            "2x + C",
+            "1 + C"
+        ],
+        "correct_option": "x^2/2 + C"
+    },
+    {
+        "id": "q43",
+        "content": "∫ e^x dx.",
+        "difficulty": 700,
+        "topic": "Cálculo Integral",
+        "options": [
+            "e^x + C",
+            "e^x + 1 + C",
+            "ln x + C",
+            "1 + C"
+        ],
+        "correct_option": "e^x + C"
+    },
+    {
+        "id": "q44",
+        "content": "∫ cos(x) dx.",
+        "difficulty": 750,
+        "topic": "Cálculo Integral",
+        "options": [
+            "sin(x) + C",
+            "-sin(x) + C",
+            "cos(x) + C",
+            "-cos(x) + C"
+        ],
+        "correct_option": "sin(x) + C"
+    },
+    {
+        "id": "q45",
+        "content": "∫ 1/x dx.",
+        "difficulty": 800,
+        "topic": "Cálculo Integral",
+        "options": [
+            "ln|x| + C",
+            "1/x^2 + C",
+            "x + C",
+            "e^x + C"
+        ],
+        "correct_option": "ln|x| + C"
+    },
+    {
+        "id": "q46",
+        "content": "∫_0^1 x^2 dx.",
+        "difficulty": 850,
+        "topic": "Cálculo Integral",
+        "options": [
+            "1/3",
+            "1/2",
+            "1",
+            "0"
+        ],
+        "correct_option": "1/3"
+    },
+    {
+        "id": "q47",
+        "content": "Fórmula de integración por partes: ∫ u dv = ?",
+        "difficulty": 900,
+        "topic": "Cálculo Integral",
+        "options": [
+            "uv - ∫ v du",
+            "uv + ∫ v du",
+            "∫ uv - ∫ vu",
+            "u v - ∫ v du"
+        ],
+        "correct_option": "uv - ∫ v du"
+    },
+    {
+        "id": "q48",
+        "content": "∫ sin^2(x) dx.",
+        "difficulty": 950,
+        "topic": "Cálculo Integral",
+        "options": [
+            "x/2 - sin(2x)/4 + C",
+            "x/2 + sin(2x)/4 + C",
+            "cos^2(x) + C",
+            "-cos(2x)/2 + C"
+        ],
+        "correct_option": "x/2 - sin(2x)/4 + C"
+    },
+    {
+        "id": "q49",
+        "content": "∫ sec^2(x) dx.",
+        "difficulty": 1000,
+        "topic": "Cálculo Integral",
+        "options": [
+            "tan(x) + C",
+            "cot(x) + C",
+            "sec(x)tan(x) + C",
+            "csc^2(x) + C"
+        ],
+        "correct_option": "tan(x) + C"
+    },
+    {
+        "id": "q50",
+        "content": "∫ 1/(1+x^2) dx.",
+        "difficulty": 1050,
+        "topic": "Cálculo Integral",
+        "options": [
+            "arctan(x) + C",
+            "arcsin(x) + C",
+            "ln(1+x^2) + C",
+            "1/x + C"
+        ],
+        "correct_option": "arctan(x) + C"
+    },
+    {
+        "id": "q51",
+        "content": "∫ x e^x dx.",
+        "difficulty": 1100,
+        "topic": "Cálculo Integral",
+        "options": [
+            "e^x(x-1) + C",
+            "e^x(x+1) + C",
+            "e^x + C",
+            "x e^x + C"
+        ],
+        "correct_option": "e^x(x-1) + C"
+    },
+    {
+        "id": "q52",
+        "content": "∫ dx/√(1-x^2).",
+        "difficulty": 1150,
+        "topic": "Cálculo Integral",
+        "options": [
+            "arcsin(x) + C",
+            "arctan(x) + C",
+            "arcsec(x) + C",
+            "ln|x+√(1-x^2)| + C"
+        ],
+        "correct_option": "arcsin(x) + C"
+    },
+    {
+        "id": "q53",
+        "content": "∫ dx/(x^2-1).",
+        "difficulty": 1200,
+        "topic": "Cálculo Integral",
+        "options": [
+            "1/2 ln|(x-1)/(x+1)| + C",
+            "ln|x^2-1| + C",
+            "arctanh(x) + C",
+            "1/2 ln|(x+1)/(x-1)| + C"
+        ],
+        "correct_option": "1/2 ln|(x-1)/(x+1)| + C"
+    },
+    {
+        "id": "q54",
+        "content": "∫_1^∞ 1/x^2 dx.",
+        "difficulty": 1250,
+        "topic": "Cálculo Integral",
+        "options": [
+            "1",
+            "Divergente",
+            "0",
+            "2"
+        ],
+        "correct_option": "1"
+    },
+    {
+        "id": "q55",
+        "content": "∫ ln(x) dx.",
+        "difficulty": 1300,
+        "topic": "Cálculo Integral",
+        "options": [
+            "x ln x - x + C",
+            "x ln x + C",
+            "ln x - x + C",
+            "x ln x + x + C"
+        ],
+        "correct_option": "x ln x - x + C"
+    },
+    {
+        "id": "q56",
+        "content": "∫ tan(x) dx.",
+        "difficulty": 1350,
+        "topic": "Cálculo Integral",
+        "options": [
+            "-ln|cos(x)| + C",
+            "ln|sec(x)| + C",
+            "ln|sin(x)| + C",
+            "-ln|csc(x)| + C"
+        ],
+        "correct_option": "-ln|cos(x)| + C"
+    },
+    {
+        "id": "q57",
+        "content": "∫_0^1 √(1-x^2) dx.",
+        "difficulty": 1400,
+        "topic": "Cálculo Integral",
+        "options": [
+            "π/4",
+            "π/2",
+            "1",
+            "0"
+        ],
+        "correct_option": "π/4"
+    },
+    {
+        "id": "q58",
+        "content": "∫ sin^3(x) dx.",
+        "difficulty": 1450,
+        "topic": "Cálculo Integral",
+        "options": [
+            "-cos(x) + cos^3(x)/3 + C",
+            "cos(x) - cos^3(x)/3 + C",
+            "-sin(x) + sin^3(x)/3 + C",
+            "sin(x) - sin^3(x)/3 + C"
+        ],
+        "correct_option": "-cos(x) + cos^3(x)/3 + C"
+    },
+    {
+        "id": "q59",
+        "content": "∫ e^x sin x dx.",
+        "difficulty": 1500,
+        "topic": "Cálculo Integral",
+        "options": [
+            "e^x(sin x - cos x)/2 + C",
+            "e^x(sin x + cos x)/2 + C",
+            "e^x cos x + C",
+            "e^x sin x + C"
+        ],
+        "correct_option": "e^x(sin x - cos x)/2 + C"
+    },
+    {
+        "id": "q60",
+        "content": "Γ(n+1) para n entero positivo es igual a:",
+        "difficulty": 1550,
+        "topic": "Cálculo Integral",
+        "options": [
+            "n!",
+            "nΓ(n)",
+            "(n-1)!",
+            "n"
+        ],
+        "correct_option": "n!"
+    },
+    {
+        "id": "q61",
+        "content": "Derivada parcial de f(x,y)=x^2+y^2 con respecto a x.",
+        "difficulty": 600,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "2x",
+            "2y",
+            "x^2",
+            "y^2"
+        ],
+        "correct_option": "2x"
+    },
+    {
+        "id": "q62",
+        "content": "Gradiente de f(x,y)=x^2y.",
+        "difficulty": 650,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "(2xy, x^2)",
+            "(2x, y)",
+            "(x^2, 2xy)",
+            "(2xy, y^2)"
+        ],
+        "correct_option": "(2xy, x^2)"
+    },
+    {
+        "id": "q63",
+        "content": "Calcula la derivada direccional de f(x,y)=x+y en el punto (1,1) en la dirección de (1,0).",
+        "difficulty": 700,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "1",
+            "√2",
+            "0",
+            "2"
+        ],
+        "correct_option": "1"
+    },
+    {
+        "id": "q64",
+        "content": "Puntos críticos de f(x,y)=x^2+y^2.",
+        "difficulty": 750,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "(0,0)",
+            "(1,1)",
+            "(0,1)",
+            "(1,0)"
+        ],
+        "correct_option": "(0,0)"
+    },
+    {
+        "id": "q65",
+        "content": "El punto (0,0) para f(x,y)=x^2-y^2 es un:",
+        "difficulty": 800,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "Punto silla",
+            "Mínimo local",
+            "Máximo local",
+            "No es punto crítico"
+        ],
+        "correct_option": "Punto silla"
+    },
+    {
+        "id": "q66",
+        "content": "En el criterio de la segunda derivada, D = f_xx f_yy - (f_xy)^2. Si D > 0 y f_xx > 0 en un punto crítico, entonces es:",
+        "difficulty": 850,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "Mínimo local",
+            "Máximo local",
+            "Punto silla",
+            "Inconcluso"
+        ],
+        "correct_option": "Mínimo local"
+    },
+    {
+        "id": "q67",
+        "content": "Regla de la cadena: Si z = f(x,y) y x=g(t), y=h(t), entonces dz/dt = ?",
+        "difficulty": 900,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "∂z/∂x dx/dt + ∂z/∂y dy/dt",
+            "∂z/∂x + ∂z/∂y",
+            "dz/dx dx/dt + dz/dy dy/dt",
+            "∂z/∂x dt/dx + ∂z/∂y dt/dy"
+        ],
+        "correct_option": "∂z/∂x dx/dt + ∂z/∂y dy/dt"
+    },
+    {
+        "id": "q68",
+        "content": "∬_R 1 dA sobre el rectángulo [0,1]×[0,2].",
+        "difficulty": 950,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "2",
+            "1",
+            "0",
+            "3"
+        ],
+        "correct_option": "2"
+    },
+    {
+        "id": "q69",
+        "content": "∬_R x dA sobre el rectángulo [0,1]×[0,1].",
+        "difficulty": 1000,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "1/2",
+            "1/3",
+            "1",
+            "0"
+        ],
+        "correct_option": "1/2"
+    },
+    {
+        "id": "q70",
+        "content": "Cambia el orden de integración: ∫_0^1 ∫_0^x f(x,y) dy dx.",
+        "difficulty": 1050,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "∫_0^1 ∫_y^1 f(x,y) dx dy",
+            "∫_0^1 ∫_0^y f(x,y) dx dy",
+            "∫_0^1 ∫_x^1 f(x,y) dy dx",
+            "∫_0^1 ∫_0^x f(x,y) dx dy"
+        ],
+        "correct_option": "∫_0^1 ∫_y^1 f(x,y) dx dy"
+    },
+    {
+        "id": "q71",
+        "content": "Divergencia del campo vectorial F = (x, y, z).",
+        "difficulty": 1100,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "3",
+            "1",
+            "0",
+            "x+y+z"
+        ],
+        "correct_option": "3"
+    },
+    {
+        "id": "q72",
+        "content": "Rotacional (curl) de F = (y, -x, 0).",
+        "difficulty": 1150,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "(0,0,-2)",
+            "(0,0,2)",
+            "(0,0,0)",
+            "(1,1,0)"
+        ],
+        "correct_option": "(0,0,-2)"
+    },
+    {
+        "id": "q73",
+        "content": "Teorema de Green: ∮_C P dx + Q dy = ∬_R (?) dA.",
+        "difficulty": 1200,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "∂Q/∂x - ∂P/∂y",
+            "∂P/∂x - ∂Q/∂y",
+            "∂Q/∂y - ∂P/∂x",
+            "∂P/∂y - ∂Q/∂x"
+        ],
+        "correct_option": "∂Q/∂x - ∂P/∂y"
+    },
+    {
+        "id": "q74",
+        "content": "Área de la superficie z = f(x,y) sobre una región R es:",
+        "difficulty": 1250,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "∬_R √(1+f_x^2+f_y^2) dA",
+            "∬_R √(f_x^2+f_y^2) dA",
+            "∬_R (1+f_x^2+f_y^2) dA",
+            "∬_R (f_x+f_y) dA"
+        ],
+        "correct_option": "∬_R √(1+f_x^2+f_y^2) dA"
+    },
+    {
+        "id": "q75",
+        "content": "Volumen de una esfera de radio R.",
+        "difficulty": 1300,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "4/3 π R^3",
+            "2πR^3",
+            "πR^3",
+            "4πR^2"
+        ],
+        "correct_option": "4/3 π R^3"
+    },
+    {
+        "id": "q76",
+        "content": "Jacobiano de la transformación a coordenadas polares: x = r cos θ, y = r sin θ.",
+        "difficulty": 1350,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "r",
+            "r^2",
+            "1/r",
+            "1"
+        ],
+        "correct_option": "r"
+    },
+    {
+        "id": "q77",
+        "content": "Multiplicadores de Lagrange: maximizar f(x,y)=xy sujeto a x+y=1.",
+        "difficulty": 1400,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "(1/2,1/2)",
+            "(0,1)",
+            "(1,0)",
+            "(1/4,3/4)"
+        ],
+        "correct_option": "(1/2,1/2)"
+    },
+    {
+        "id": "q78",
+        "content": "Teorema de la divergencia: ∫∫∫_V div F dV = ?",
+        "difficulty": 1450,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "∮_S F·n dS",
+            "∮_C F·dr",
+            "∫∫_S F·dS",
+            "∮_S F·dS"
+        ],
+        "correct_option": "∮_S F·n dS"
+    },
+    {
+        "id": "q79",
+        "content": "Teorema de Stokes: ∫∫_S (∇×F)·dS = ?",
+        "difficulty": 1500,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "∮_C F·dr",
+            "∮_C F·n ds",
+            "∫∫_S F·dS",
+            "∫∫∫_V div F dV"
+        ],
+        "correct_option": "∮_C F·dr"
+    },
+    {
+        "id": "q80",
+        "content": "Determinante de la matriz hessiana de f(x,y)=x^2+2xy+y^2.",
+        "difficulty": 1550,
+        "topic": "Cálculo de Varias Variables",
+        "options": [
+            "0",
+            "2",
+            "4",
+            "-2"
+        ],
+        "correct_option": "0"
+    },
+    {
+        "id": "q81",
+        "content": "Solución general de y' = 0.",
+        "difficulty": 600,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "y = C",
+            "y = x + C",
+            "y = 0",
+            "y = Cx"
+        ],
+        "correct_option": "y = C"
+    },
+    {
+        "id": "q82",
+        "content": "Resolver y' = y.",
+        "difficulty": 650,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "y = Ce^x",
+            "y = Ce^{-x}",
+            "y = C e^x + D",
+            "y = Cx"
+        ],
+        "correct_option": "y = Ce^x"
+    },
+    {
+        "id": "q83",
+        "content": "Resolver y'' = 0.",
+        "difficulty": 700,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "y = C1 x + C2",
+            "y = C1 + C2",
+            "y = C1 e^x + C2",
+            "y = C1 sin x + C2 cos x"
+        ],
+        "correct_option": "y = C1 x + C2"
+    },
+    {
+        "id": "q84",
+        "content": "Orden de la ecuación diferencial y''' + 2y'' - y = 0.",
+        "difficulty": 750,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "3",
+            "2",
+            "1",
+            "4"
+        ],
+        "correct_option": "3"
+    },
+    {
+        "id": "q85",
+        "content": "¿Cuál de las siguientes es una EDO lineal?",
+        "difficulty": 800,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "y' + y = 0",
+            "y' + y^2 = 0",
+            "y' + sin y = 0",
+            "y y' = 0"
+        ],
+        "correct_option": "y' + y = 0"
+    },
+    {
+        "id": "q86",
+        "content": "Resolver la EDO separable: dy/dx = x/y.",
+        "difficulty": 850,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "y^2 = x^2 + C",
+            "y = x + C",
+            "y = Ce^x",
+            "y = Cx"
+        ],
+        "correct_option": "y^2 = x^2 + C"
+    },
+    {
+        "id": "q87",
+        "content": "Factor integrante para la EDO lineal de primer orden: y' + P(x)y = Q(x).",
+        "difficulty": 900,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "e^{∫P dx}",
+            "e^{∫Q dx}",
+            "∫P dx",
+            "∫Q dx"
+        ],
+        "correct_option": "e^{∫P dx}"
+    },
+    {
+        "id": "q88",
+        "content": "Resolver y' + 2y = e^{-x}.",
+        "difficulty": 950,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "y = e^{-x} + Ce^{-2x}",
+            "y = e^{-2x} + Ce^{-x}",
+            "y = e^{-x} + C",
+            "y = Ce^{-2x}"
+        ],
+        "correct_option": "y = e^{-x} + Ce^{-2x}"
+    },
+    {
+        "id": "q89",
+        "content": "Ecuación característica de y'' - 3y' + 2y = 0.",
+        "difficulty": 1000,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "r^2 - 3r + 2 = 0",
+            "r^2 + 3r + 2 = 0",
+            "r^2 - 3r - 2 = 0",
+            "r^2 - 3 = 0"
+        ],
+        "correct_option": "r^2 - 3r + 2 = 0"
+    },
+    {
+        "id": "q90",
+        "content": "Solución general de y'' + y = 0.",
+        "difficulty": 1050,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "y = C1 cos x + C2 sin x",
+            "y = C1 e^x + C2 e^{-x}",
+            "y = C1 e^{ix} + C2 e^{-ix}",
+            "y = C1 cosh x + C2 sinh x"
+        ],
+        "correct_option": "y = C1 cos x + C2 sin x"
+    },
+    {
+        "id": "q91",
+        "content": "Resolver y'' - 2y' + y = 0.",
+        "difficulty": 1100,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "y = (C1 + C2 x)e^x",
+            "y = C1 e^x + C2 e^{-x}",
+            "y = C1 e^{2x} + C2 e^{-2x}",
+            "y = C1 cos x + C2 sin x"
+        ],
+        "correct_option": "y = (C1 + C2 x)e^x"
+    },
+    {
+        "id": "q92",
+        "content": "Método de coeficientes indeterminados: solución particular para y'' + y = sin x.",
+        "difficulty": 1150,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "y_p = - (x/2) cos x",
+            "y_p = A sin x",
+            "y_p = A cos x",
+            "y_p = A sin x + B cos x"
+        ],
+        "correct_option": "y_p = - (x/2) cos x"
+    },
+    {
+        "id": "q93",
+        "content": "Wronskiano de y1 = e^x, y2 = e^{2x}.",
+        "difficulty": 1200,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "e^{3x}",
+            "e^{2x}",
+            "e^x",
+            "0"
+        ],
+        "correct_option": "e^{3x}"
+    },
+    {
+        "id": "q94",
+        "content": "Sistema de EDOs: x' = Ax. Si A tiene valores propios complejos λ = a ± bi, la solución involucra:",
+        "difficulty": 1250,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "e^{at}(cos bt, sin bt)",
+            "e^{at}",
+            "e^{bt}",
+            "cos at, sin bt"
+        ],
+        "correct_option": "e^{at}(cos bt, sin bt)"
+    },
+    {
+        "id": "q95",
+        "content": "Transformada de Laplace de t.",
+        "difficulty": 1300,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "1/s^2",
+            "1/s",
+            "s",
+            "1"
+        ],
+        "correct_option": "1/s^2"
+    },
+    {
+        "id": "q96",
+        "content": "Transformada de Laplace de e^{at}.",
+        "difficulty": 1350,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "1/(s-a)",
+            "1/(s+a)",
+            "s/(s^2+a^2)",
+            "a/(s^2+a^2)"
+        ],
+        "correct_option": "1/(s-a)"
+    },
+    {
+        "id": "q97",
+        "content": "Resolver usando Laplace: y' + y = 0, y(0)=1.",
+        "difficulty": 1400,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "y = e^{-t}",
+            "y = e^t",
+            "y = 1",
+            "y = cos t"
+        ],
+        "correct_option": "y = e^{-t}"
+    },
+    {
+        "id": "q98",
+        "content": "Encuentra la ecuación indicial para la ecuación de Euler-Cauchy: x^2 y'' + x y' + y = 0.",
+        "difficulty": 1450,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "r^2 + 1 = 0",
+            "r^2 - 1 = 0",
+            "r^2 + r + 1 = 0",
+            "r^2 - r + 1 = 0"
+        ],
+        "correct_option": "r^2 + 1 = 0"
+    },
+    {
+        "id": "q99",
+        "content": "Plano fase: Para el sistema dx/dt = y, dy/dt = -x, las trayectorias son:",
+        "difficulty": 1500,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "Círculos",
+            "Elipses",
+            "Hipérbolas",
+            "Rectas"
+        ],
+        "correct_option": "Círculos"
+    },
+    {
+        "id": "q100",
+        "content": "Estabilidad: Para y' = y(1-y), el equilibrio en y=1 es:",
+        "difficulty": 1550,
+        "topic": "Ecuaciones Diferenciales Ordinarias",
+        "options": [
+            "Asintóticamente estable",
+            "Inestable",
+            "Semiestable",
+            "Estable pero no asintóticamente"
+        ],
+        "correct_option": "Asintóticamente estable"
+    }
+]
