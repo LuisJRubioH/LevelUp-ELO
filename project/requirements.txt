@@ -1,5 +1,4 @@
-Packages
-----------
 streamlit
 pandas
 matplotlib
+passlib[argon2]
