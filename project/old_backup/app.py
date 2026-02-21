@@ -4,12 +4,14 @@ import matplotlib.pyplot as plt
 import requests
 import json
 import random
-from elo.vector_elo import VectorELO, aggregate_global_elo
-from elo.model import expected_score
+from elo.vector_elo import VectorRating, aggregate_global_elo, aggregate_global_rd
+from elo.model import expected_score, calculate_dynamic_k
 from selector.item_selector import AdaptiveItemSelector
 from elo.model import Item
 from database import DatabaseManager
-from ai_analysis import analyze_performance_local
+from ai_analysis import analyze_performance_local, get_active_models, get_socratic_guidance, get_pedagogical_analysis
+from elo.cognitive import CognitiveAnalyzer
+import time
 
 # Configuración de página
 st.set_page_config(page_title="ELO Learning — Evaluación Adaptativa", layout="wide", page_icon="🎓")
@@ -17,6 +19,42 @@ st.set_page_config(page_title="ELO Learning — Evaluación Adaptativa", layout=
 # Inicializar Base de Datos
 if 'db' not in st.session_state:
     st.session_state.db = DatabaseManager()
+
+# Inicializar Configuración de IA
+if 'ai_mode' not in st.session_state:
+    st.session_state.ai_mode = "Rápido (Flash)"
+
+if 'model_cog' not in st.session_state:
+    st.session_state.model_cog = "google/gemma-3-4b"
+
+if 'model_analysis' not in st.session_state:
+    st.session_state.model_analysis = "mistralai/mistral-7b-instruct-v0.3"
+
+# Mapeo de modelos por modo (Valores predeterminados que el usuario puede sobreescribir)
+AI_DEFAULTS = {
+    "Rápido (Flash)": {
+        "cognitive": "google/gemma-3-4b",
+        "analysis": "mistralai/mistral-7b-instruct-v0.3"
+    },
+    "Profundo (Razonamiento)": {
+        "cognitive": "deepseek-r1-0528-qwen3-8b",
+        "analysis": "deepseek-r1-0528-qwen3-8b"
+    }
+}
+
+if 'analyzer' not in st.session_state:
+    st.session_state.analyzer = CognitiveAnalyzer(model_name=st.session_state.model_cog)
+
+if 'question_start_time' not in st.session_state:
+    st.session_state.question_start_time = None
+
+# Sincronizar banco de ítems con la DB al inicio
+try:
+    with open('items/bank.json', 'r', encoding='utf-8') as f:
+        initial_bank = json.load(f)
+        st.session_state.db.sync_items_from_json(initial_bank)
+except Exception as e:
+    st.error(f"Error sincronizando banco de ítems: {e}")
 
 # --- NIVELES DE DESEMPEÑO ACADÉMICO ---
 def get_rank(elo):
@@ -318,7 +356,7 @@ else:
                 allow_null = st.checkbox("Permitir dejar sin grupo", value=False, help="Si se marca, permite asignar '[ Ningún Grupo ]'.")
                 
                 st.write("")
-                if st.button("🚀 Aplicar Cambio de Grupo", type="primary", use_container_width=True):
+                if st.button("🚀 Aplicar Cambio de Grupo", type="primary", width='stretch'):
                     student_id = student_options[sel_student_name]
                     new_group_id = group_options[sel_group_label]
                     
@@ -357,7 +395,7 @@ else:
                 new_group_name = st.text_input("Nombre del nuevo grupo", placeholder="Ej: Cálculo I - 2024")
             with col_b:
                 st.write(" ") # Espaciado
-                if st.button("➕ Crear Grupo", use_container_width=True):
+                if st.button("➕ Crear Grupo", width='stretch'):
                     if new_group_name:
                         st.session_state.db.create_group(new_group_name, st.session_state.user_id)
                         st.success(f"Grupo '{new_group_name}' creado.")
@@ -399,15 +437,32 @@ else:
             summary_rows = []
             for s in students:
                 elo_by_topic = st.session_state.db.get_latest_elo_by_topic(s['id'])
-                global_elo = sum(elo_by_topic.values()) / len(elo_by_topic) if elo_by_topic else 1000.0
+                # elo_by_topic es {topic: (elo, rd)}
+                if elo_by_topic:
+                    global_elo = sum(e for e, r in elo_by_topic.values()) / len(elo_by_topic)
+                else:
+                    global_elo = 1000.0
+                
                 rank_name, _ = get_rank(global_elo)
-                row = {"Estudiante": s['username'], "Grupo": s.get('group_name', selected_group_name), "ELO Global": round(global_elo, 1), "Rango": rank_name}
-                row.update({topic: round(elo, 1) for topic, elo in elo_by_topic.items()})
+                row = {
+                    "Estudiante": s['username'], 
+                    "Grupo": s.get('group_name', selected_group_name), 
+                    "ELO Global": round(global_elo, 1), 
+                    "Rango": rank_name
+                }
+                # Añadir cada tópico a la fila (solo el valor de elo para la tabla resumen)
+                row.update({topic: round(val[0], 1) for topic, val in elo_by_topic.items()})
                 summary_rows.append(row)
 
 
-            df_summary = pd.DataFrame(summary_rows).fillna("—")
-            st.dataframe(df_summary, use_container_width=True)
+            df_summary = pd.DataFrame(summary_rows)
+            # Asegurar que las columnas de tópicos sean numéricas para evitar error de Arrow
+            # Llenar con 1000.0 (ELO base) en lugar de un string "—"
+            for col in df_summary.columns:
+                if col not in ["Estudiante", "Grupo", "Rango"]:
+                    df_summary[col] = pd.to_numeric(df_summary[col], errors='coerce').fillna(1000.0)
+            
+            st.dataframe(df_summary, width='stretch')
 
             st.markdown("---")
 
@@ -449,6 +504,36 @@ else:
                         text.set_color("white")
                     plt.tight_layout()
                     st.pyplot(fig_elo)
+
+                    # --- Botón de Análisis Pedagógico para el Profesor ---
+                    st.markdown("---")
+                    if st.button("🧠 Generar Análisis Pedagógico con IA", key=f"ai_anal_{selected_student['id']}", width='stretch'):
+                        with st.spinner("Analizando trayectoria del estudiante..."):
+                            # Preparar datos para el análisis
+                            incorrect_topics = [a['topic'] for a in attempts if not a['is_correct']]
+                            topics_unique = list(set([a['topic'] for a in attempts]))
+                            recent_attempts = attempts[-10:]
+                            recent_acc = sum(1 for a in recent_attempts if a['is_correct']) / len(recent_attempts) if recent_attempts else 0
+                            
+                            student_data = {
+                                "elo_global": global_elo,
+                                "attempts_count": len(attempts),
+                                "topics": topics_unique,
+                                "recent_accuracy": recent_acc
+                            }
+                            
+                            analysis = get_pedagogical_analysis(
+                                student_data, 
+                                model_name=st.session_state.model_analysis
+                            )
+                            st.markdown(f"""
+                            <div class="elo-card" style="text-align: left; background: rgba(0, 201, 255, 0.05); border-color: rgba(0, 201, 255, 0.3);">
+                                <h4>📋 Análisis de la IA para el Docente</h4>
+                                <div style="font-size: 0.95rem; color: #e0e0e0;">
+                                {analysis}
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
 
                 with tab_prob:
                     st.markdown(f"**Probabilidad de acierto de {selected_name} en cada pregunta**")
@@ -498,7 +583,7 @@ else:
                             'resultado': 'Resultado', 'elo_after': 'ELO después',
                             'prob_failure': 'Prob. Fallo', 'timestamp': 'Fecha'
                         }),
-                        use_container_width=True
+                        width='stretch'
                     )
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -508,9 +593,9 @@ else:
         # 1. Recuperar Estado Inicial de DB para VectorELO
         if 'vector_initialized' not in st.session_state:
             latest_elos = st.session_state.db.get_latest_elo_by_topic(st.session_state.user_id)
-            st.session_state.vector = VectorELO()
-            for topic, elo in latest_elos.items():
-                st.session_state.vector.ratings[topic] = elo
+            st.session_state.vector = VectorRating()
+            for topic, (elo, rd) in latest_elos.items():
+                st.session_state.vector.ratings[topic] = (elo, rd)
             st.session_state.vector_initialized = True
 
         # Sidebar Estilizado
@@ -520,48 +605,121 @@ else:
             mode = st.radio("Modo", ["📝 Practicar", "📊 Estadísticas"], label_visibility="collapsed")
             st.caption("Navegación Principal")
             st.markdown("---")
-            st.caption("Sesión")
+            st.caption("Configuración de IA")
+            ai_mode = st.selectbox(
+                "Modo de IA", 
+                ["Rápido (Flash)", "Profundo (Razonamiento)"],
+                index=0 if st.session_state.ai_mode == "Rápido (Flash)" else 1,
+                help="El modo rápido usa modelos ligeros para feedback instantáneo. El modo profundo usa razonamiento complejo pero es más lento."
+            )
+            
+            # Si cambia el modo, actualizamos los inputs de texto con los defaults
+            if ai_mode != st.session_state.ai_mode:
+                st.session_state.ai_mode = ai_mode
+                defaults = AI_DEFAULTS[ai_mode]
+                st.session_state.model_cog = defaults['cognitive']
+                st.session_state.model_analysis = defaults['analysis']
+                st.session_state.analyzer = CognitiveAnalyzer(model_name=st.session_state.model_cog)
+                st.rerun()
+
+            with st.expander("⚙️ ID de Modelos (LM Studio)"):
+                if st.button("🔄 Sincronizar con LM Studio"):
+                    active_models = get_active_models(st.session_state.get('lm_url', "http://192.168.40.66:1234/v1"))
+                    if active_models:
+                        selected_model = active_models[0]
+                        st.session_state.model_cog = selected_model
+                        st.session_state.model_analysis = selected_model
+                        st.session_state.analyzer = CognitiveAnalyzer(model_name=selected_model)
+                        st.success(f"Detectado: {selected_model}")
+                    else:
+                        st.error("No se detectaron modelos activos. Verifica la URL e IP.")
+
+                new_cog = st.text_input("ID Análisis Cognitivo", value=st.session_state.model_cog, key="cog_model_input")
+                new_analysis = st.text_input("ID Recomendaciones", value=st.session_state.model_analysis, key="analysis_model_input")
+                
+                if new_cog != st.session_state.model_cog or new_analysis != st.session_state.model_analysis:
+                    st.session_state.model_cog = new_cog
+                    st.session_state.model_analysis = new_analysis
+                    st.session_state.analyzer = CognitiveAnalyzer(model_name=new_cog)
+                    st.info("Configuración de modelos actualizada.")
+
             if st.button("Cerrar Sesión"):
                 logout()
 
         # --- LÓGICA DE ACTUALIZACIÓN ---
-        def handle_answer_topic(is_correct, item_data):
+        def handle_answer_topic(is_correct, item_data, reasoning=""):
             st.session_state['last_was_correct'] = is_correct
-            # Calcular prob_failure ANTES de actualizar el ELO
+            
+            # --- Cálculo de Modificadores Cognitivos ---
+            time_taken = 0.0
+            if st.session_state.question_start_time:
+                time_taken = time.time() - st.session_state.question_start_time
+            
+            cognition = st.session_state.analyzer.analyze_cognition(reasoning, is_correct, time_taken)
+            impact_mod = cognition['impact_modifier']
+
+            # Calcular métricas ANTES de actualizar el ELO
             current_elo = st.session_state.vector.get(item_data['topic'])
             p_success = expected_score(current_elo, item_data['difficulty'])
             prob_failure = 1.0 - p_success
 
-            # Actualizar ELO del Tópico Específico
-            st.session_state.vector.update(item_data['topic'], item_data['difficulty'], 1.0 if is_correct else 0.0, 32)
-            new_elo_val = st.session_state.vector.get(item_data['topic'])
+            # --- Cálculo de Factor K Dinámico ---
+            attempts_count = st.session_state.db.get_total_attempts_count(st.session_state.user_id)
+            latest_history = st.session_state.db.get_latest_attempts(st.session_state.user_id, limit=20)
+            recent_results = [(h['actual'], h['expected']) for h in latest_history]
+            
+            k_val = calculate_dynamic_k(attempts_count, current_elo, recent_results)
 
-            # Guardar en BD
+            # Actualizar Rating con Modificador Cognitivo (Incertidumbre gestionada internamente)
+            new_r, new_rd = st.session_state.vector.update(
+                item_data['topic'], 
+                item_data['difficulty'], 
+                1.0 if is_correct else 0.0, 
+                impact_modifier=impact_mod
+            )
+
+            # --- Actualización Simétrica del Ítem (Dificultad Dinámica) ---
+            st.session_state.db.update_item_rating(
+                item_data['id'],
+                current_elo,
+                1.0 if is_correct else 0.0
+            )
+
+            # Guardar en BD con todas las métricas nuevas incluyendo RD
             st.session_state.db.save_attempt(
                 st.session_state.user_id,
                 item_data['id'],
                 is_correct,
                 item_data['difficulty'],
                 item_data['topic'],
-                new_elo_val,
-                prob_failure
+                new_r,
+                prob_failure,
+                p_success,
+                time_taken=time_taken,
+                confidence_score=cognition['confidence_score'],
+                error_type=cognition['error_type'],
+                rating_deviation=new_rd
             )
+            # Resetear timer para la próxima pregunta
+            st.session_state.question_start_time = None
             st.rerun()
 
         # --- VISTAS ---
         if mode == "📝 Practicar":
-            with open('items/bank.json', 'r', encoding='utf-8') as f:
-                bank_data = json.load(f)
-                topics = list(set([i['topic'] for i in bank_data]))
+            # Cargar ítems desde la base de datos para usar dificultad dinámica
+            bank_data = st.session_state.db.get_items_from_db()
+            topics = list(set([i['topic'] for i in bank_data]))
 
             st.sidebar.markdown("### Configuración de Estudio")
             selected_topic = st.sidebar.selectbox("¿Qué quieres estudiar hoy?", ["Todos"] + topics)
 
             if selected_topic == "Todos":
                 current_elo_display = aggregate_global_elo(st.session_state.vector)
+                current_rd_display = aggregate_global_rd(st.session_state.vector)
                 topic_display_name = "Global"
             else:
                 current_elo_display = st.session_state.vector.get(selected_topic)
+                current_rd_display = st.session_state.vector.get_rd(selected_topic)
                 topic_display_name = selected_topic
 
             rank_name, rank_color = get_rank(current_elo_display)
@@ -575,8 +733,8 @@ else:
                     <div class="elo-card">
                         <p style="color: #aaa; margin-bottom: 5px; font-weight: 600;">NIVEL ACTUAL</p>
                         <h2 style="color: {rank_color}; margin: 0; text-shadow: 0 0 10px {rank_color};">{rank_name}</h2>
-                        <h1 style="font-size: 3.5rem; margin: 10px 0; color: white;">{current_elo_display:.0f}</h1>
-                        <p style="color: #aaa; font-size: 0.9rem;">Puntos ELO en {topic_display_name}</p>
+                        <h1 style="font-size: 3.5rem; margin: 10px 0; color: white;">{current_elo_display:.0f} <span style="font-size: 1.2rem; color: #888;">± {current_rd_display:.0f}</span></h1>
+                        <p style="color: #aaa; font-size: 0.9rem;">Puntos ELO en {topic_display_name} (± RD)</p>
                     </div>
                 """, unsafe_allow_html=True)
                 st.info("💡 **Consejo:** La constancia es clave. Practica diariamente para consolidar tu aprendizaje.")
@@ -606,13 +764,18 @@ else:
                     selector = AdaptiveItemSelector()
                     items_objs = [Item(difficulty=i['difficulty']) for i in filtered_items]
                     
-                    # Bug 1: Adaptar nivel de dificultad bajando el ELO de selección si falló
-                    selection_elo = current_elo_display
-                    if not st.session_state.get('last_was_correct', True):
-                        selection_elo -= 200 # Buscar preguntas significativamente más fáciles
+                    # El nuevo selector probabilístico no necesita que bajemos el ELO manualmente
+                    # ya que busca el rango de probabilidad óptimo (0.4 a 0.75).
+                    target_item_obj = selector.select_optimal_item(current_elo_display, items_objs)
                     
-                    target_item_obj = selector.select(selection_elo, items_objs)
-                    item_data = next(i for i in filtered_items if i['difficulty'] == target_item_obj.difficulty)
+                    if target_item_obj:
+                        item_data = next(i for i in filtered_items if i['difficulty'] == target_item_obj.difficulty)
+                    else:
+                        item_data = random.choice(filtered_items) if filtered_items else None
+
+                    # Iniciar cronómetro si es una nueva pregunta
+                    if st.session_state.question_start_time is None:
+                        st.session_state.question_start_time = time.time()
 
                     with st.container(border=True):
                         diff_color = "#28a745" if item_data['difficulty'] < 1000 else "#ffc107" if item_data['difficulty'] < 1400 else "#dc3545"
@@ -627,6 +790,9 @@ else:
                             
                             with st.form(key=f"form_{item_data['id']}"):
                                 selected_option = st.radio("Selecciona tu respuesta:", shuffled_options, key=f"radio_{item_data['id']}")
+                                reasoning = st.text_area("🧠 Justifica tu razonamiento (opcional para análisis IA):", 
+                                                        placeholder="Explica brevemente por qué crees que esta es la respuesta...",
+                                                        help="Tu explicación ayuda a la IA a entender si tu acierto fue seguro o si tu error fue conceptual.")
                                 st.write("")
                                 submit_button = st.form_submit_button(label="📝 Enviar Respuesta")
 
@@ -636,10 +802,30 @@ else:
                                     st.success("¡Respuesta correcta! Excelente análisis. 🎓")
                                 else:
                                     st.error(f"Respuesta incorrecta. La opción correcta era: **{item_data['correct_option']}**")
-                                import time
+                                
                                 time.sleep(1.5)
-                                handle_answer_topic(is_correct, item_data)
-                        else:
+                                handle_answer_topic(is_correct, item_data, reasoning=reasoning)
+
+                        # --- Ayuda Socrática si falló la última vez ---
+                        if not st.session_state.get('last_was_correct', True):
+                            st.info("💡 ¿Te gustaría una pista para la próxima? No te daré la respuesta, pero te ayudaré a pensar.")
+                            if st.button("🙋 Pedir Ayuda Socrática", key=f"socratic_{item_data['id']}"):
+                                with st.spinner("El tutor socrático está pensando una pregunta para ti..."):
+                                    # Obtener la última respuesta del usuario (si está en session_state o aproximar)
+                                    last_ans = st.session_state.get(f"radio_{item_data['id']}", "Respuesta previa")
+                                    guidance = get_socratic_guidance(
+                                        current_elo_display, 
+                                        item_data['topic'], 
+                                        item_data['content'], 
+                                        last_ans,
+                                        model_name=st.session_state.model_cog
+                                    )
+                                    st.markdown(f"""
+                                    <div style="padding: 15px; border-radius: 10px; background: #262730; border-left: 5px solid #FFC107; margin-top: 10px;">
+                                        <strong>🎓 Tutor Socrático:</strong><br>{guidance}
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                        elif 'options' not in item_data:
                             st.warning("Pregunta sin opciones configuradas.")
 
         elif mode == "📊 Estadísticas":
@@ -669,14 +855,27 @@ else:
 
             if current_elos:
                 try:
+                    # Extraer nombres de tópicos y sus valores (elo, rd)
                     topics_list = list(current_elos.keys())
-                    elos_list = list(current_elos.values())
-                    df_elo = pd.DataFrame({'Tema': topics_list, 'ELO': elos_list}).sort_values('ELO', ascending=False)
+                    elos_list = [val[0] for val in current_elos.values()]
+                    rds_list = [val[1] for val in current_elos.values()]
+                    
+                    # Crear DataFrame para ordenar
+                    df_elo = pd.DataFrame({
+                        'Tema': topics_list, 
+                        'ELO': elos_list,
+                        'RD': rds_list
+                    }).sort_values('ELO', ascending=False)
 
                     fig_bar, ax_bar = plt.subplots(figsize=(10, 5))
                     fig_bar.patch.set_alpha(0)
                     ax_bar.set_facecolor('#1E1E1E')
-                    ax_bar.bar(df_elo['Tema'], df_elo['ELO'], color='#00C9FF')
+                    
+                    # Graficar barras
+                    bars = ax_bar.bar(df_elo['Tema'], df_elo['ELO'], color='#00C9FF', alpha=0.8)
+                    
+                    # Añadir error bars (RD) si se desea, o solo el texto
+                    ax_bar.errorbar(df_elo['Tema'], df_elo['ELO'], yerr=df_elo['RD'], fmt='none', ecolor='#FFC107', capsize=5, alpha=0.6)
                     ax_bar.set_ylabel("ELO", color="white")
                     ax_bar.set_xlabel("Materia", color="white")
                     ax_bar.tick_params(axis='x', colors='white', rotation=45)
@@ -722,20 +921,34 @@ else:
             st.subheader("🧠 Asistente Virtual Inteligente")
             st.write("Generando recomendaciones personalizadas basadas en tu desempeño reciente.")
 
-            lm_studio_url_dash = st.text_input("Servidor de IA (URL)", value="http://localhost:1234/v1", key="lm_dash")
+            lm_studio_url_dash = st.text_input("Servidor de IA (URL)", value="http://192.168.40.66:1234/v1", key="lm_dash")
 
             if st.button("✨ Generar Recomendaciones de Estudio"):
                 try:
                     with st.spinner("Analizando patrones de aprendizaje..."):
                         recent_attempts = st.session_state.db.get_attempts_for_ai(st.session_state.user_id)
                         current_elo_val = aggregate_global_elo(st.session_state.vector)
-                        recommendations = analyze_performance_local(recent_attempts, current_elo_val, base_url=lm_studio_url_dash)
+                        
+                        # Usar el modelo de análisis configurado
+                        recommendations = analyze_performance_local(
+                            recent_attempts, 
+                            current_elo_val, 
+                            base_url=lm_studio_url_dash,
+                            model_name=st.session_state.model_analysis
+                        )
 
                         if isinstance(recommendations, list) and len(recommendations) > 0:
                             for idx, rec in enumerate(recommendations):
                                 with st.container(border=True):
-                                    st.markdown(f"#### 💡 Consejo #{idx+1}")
-                                    st.info(rec)
+                                    st.markdown(f"### 🎯 Recomendación #{idx+1}")
+                                    if isinstance(rec, dict):
+                                        st.markdown(f"**🔍 Diagnóstico:** {rec.get('diagnostico', 'N/A')}")
+                                        st.success(f"**📝 Acción:** {rec.get('recomendación', 'N/A')}")
+                                        st.info(f"**💡 Justificación:** {rec.get('justificación', 'N/A')}")
+                                        st.markdown(f"**🔢 Meta Sugerida:** {rec.get('ejercicios', 0)} ejercicios")
+                                    else:
+                                        # Manejo de mensajes de error o formatos antiguos
+                                        st.info(str(rec))
                         elif isinstance(recommendations, list) and len(recommendations) == 0:
                             st.warning("No hay suficientes datos para generar recomendaciones aún.")
                         else:

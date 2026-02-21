@@ -1,7 +1,7 @@
 [
     {
         "id": "q1",
-        "content": "¿Cuál es la dimensión del espacio vectorial R^3 sobre R?",
+        "content": "¿Cuál es la dimensión del espacio vectorial $\\mathbb{R}^{3}$ sobre R?",
         "difficulty": 600,
         "topic": "Álgebra Lineal",
         "options": [
@@ -14,7 +14,7 @@
     },
     {
         "id": "q2",
-        "content": "¿Son linealmente independientes los vectores (1,0) y (0,1) en R^2?",
+        "content": "¿Son linealmente independientes los vectores (1,0) y (0,1) en $\\mathbb{R}^{2}$?",
         "difficulty": 650,
         "topic": "Álgebra Lineal",
         "options": [
@@ -40,7 +40,7 @@
     },
     {
         "id": "q4",
-        "content": "Calcula el determinante de [[2,0],[0,3]].",
+        "content": "Calcula el determinante de $\\begin{pmatrix}2 & 0\\\\0 & 3\\end{pmatrix}$.",
         "difficulty": 750,
         "topic": "Álgebra Lineal",
         "options": [
@@ -53,20 +53,20 @@
     },
     {
         "id": "q5",
-        "content": "¿Cuál de los siguientes conjuntos es un subespacio de R^2?",
+        "content": "¿Cuál de los siguientes conjuntos es un subespacio de $\\mathbb{R}^{2}$?",
         "difficulty": 800,
         "topic": "Álgebra Lineal",
         "options": [
             "{(x,y): x=0}",
             "{(x,y): x=1}",
-            "{(x,y): x^2+y^2=1}",
+            "{(x,y): $x^{2}$+$y^{2}$=1}",
             "{(x,y): x>0}"
         ],
         "correct_option": "{(x,y): x=0}"
     },
     {
         "id": "q6",
-        "content": "¿Cuáles son los valores propios (eigenvalores) de [[2,0],[0,3]]?",
+        "content": "¿Cuáles son los valores propios (eigenvalores) de $\\begin{pmatrix}2 & 0\\\\0 & 3\\end{pmatrix}$?",
         "difficulty": 850,
         "topic": "Álgebra Lineal",
         "options": [
@@ -96,12 +96,12 @@
         "difficulty": 950,
         "topic": "Álgebra Lineal",
         "options": [
-            "R^m",
-            "R^n",
+            "$\\mathbb{R}^{m}$",
+            "$\\mathbb{R}^{n}$",
             "R^{m+n}",
             "R^{mn}"
         ],
-        "correct_option": "R^m"
+        "correct_option": "$\\mathbb{R}^{m}$"
     },
     {
         "id": "q9",
@@ -122,12 +122,12 @@
         "difficulty": 1050,
         "topic": "Álgebra Lineal",
         "options": [
-            "λ^2 - 5λ + 6",
-            "λ^2 + 5λ + 6",
-            "λ^2 - 5λ - 6",
-            "λ^2 + 5λ - 6"
+            "$λ^{2}$ - 5λ + 6",
+            "$λ^{2}$ + 5λ + 6",
+            "$λ^{2}$ - 5λ - 6",
+            "$λ^{2}$ + 5λ - 6"
         ],
-        "correct_option": "λ^2 - 5λ + 6"
+        "correct_option": "$λ^{2}$ - 5λ + 6"
     },
     {
         "id": "q11",
@@ -144,13 +144,13 @@
     },
     {
         "id": "q12",
-        "content": "Para una matriz ortogonal Q, ¿cuál es el valor de Q^T Q?",
+        "content": "Para una matriz ortogonal Q, ¿cuál es el valor de $Q^{T}$ Q?",
         "difficulty": 1150,
         "topic": "Álgebra Lineal",
         "options": [
             "I",
             "Q",
-            "Q^2",
+            "$Q^{2}$",
             "0"
         ],
         "correct_option": "I"
@@ -188,7 +188,7 @@
         "topic": "Álgebra Lineal",
         "options": [
             "T(x)=Ax",
-            "T(x)=x^2",
+            "T(x)=$x^{2}$",
             "T(x)=x+1",
             "T(x)=||x||"
         ],
@@ -200,29 +200,29 @@
         "difficulty": 1350,
         "topic": "Álgebra Lineal",
         "options": [
-            "A^T A",
-            "A A^T",
+            "$A^{T}$ A",
+            "A $A^{T}$",
             "A",
             "A^{-1}"
         ],
-        "correct_option": "A^T A"
+        "correct_option": "$A^{T}$ A"
     },
     {
         "id": "q17",
-        "content": "Si A es una matriz n×n con valores propios λ_i, entonces la traza de A es igual a:",
+        "content": "Si $A$ es una matriz $n \\times n$ con valores propios $\\lambda_i$, entonces la traza de $A$ es igual a:",
         "difficulty": 1400,
         "topic": "Álgebra Lineal",
         "options": [
-            "∑ λ_i",
-            "∏ λ_i",
-            "∑ λ_i^2",
+            "$\\sum \\lambda_i$",
+            "$\\prod \\lambda_i$",
+            "$\\sum \\lambda_i^2$",
             "Ninguna de las anteriores"
         ],
-        "correct_option": "∑ λ_i"
+        "correct_option": "$\\sum \\lambda_i$"
     },
     {
         "id": "q18",
-        "content": "La dimensión del núcleo (kernel) de una transformación lineal de R^5 a R^3 con rango 2 es:",
+        "content": "La dimensión del núcleo (kernel) de una transformación lineal de $\\mathbb{R}^{5}$ a $\\mathbb{R}^{3}$ con rango 2 es:",
         "difficulty": 1450,
         "topic": "Álgebra Lineal",
         "options": [
@@ -261,150 +261,150 @@
     },
     {
         "id": "q21",
-        "content": "Derivada de x^3.",
+        "content": "Derivada de $x^3$.",
         "difficulty": 600,
         "topic": "Cálculo Diferencial",
         "options": [
-            "3x^2",
-            "x^2",
-            "3x",
-            "0"
+            "$3x^2$",
+            "$x^2$",
+            "$3x$",
+            "$0$"
         ],
-        "correct_option": "3x^2"
+        "correct_option": "$3x^2$"
     },
     {
         "id": "q22",
-        "content": "Derivada de sin(x).",
+        "content": "Derivada de $\\sin(x)$.",
         "difficulty": 650,
         "topic": "Cálculo Diferencial",
         "options": [
-            "cos(x)",
-            "-cos(x)",
-            "sin(x)",
-            "-sin(x)"
+            "$\\cos(x)$",
+            "-$\\cos(x)$",
+            "$\\sin(x)$",
+            "-$\\sin(x)$"
         ],
-        "correct_option": "cos(x)"
+        "correct_option": "$\\cos(x)$"
     },
     {
         "id": "q23",
-        "content": "Derivada de e^x.",
+        "content": "Derivada de $e^x$.",
         "difficulty": 700,
         "topic": "Cálculo Diferencial",
         "options": [
-            "e^x",
-            "e^x+1",
-            "xe^{x-1}",
-            "ln(x)"
+            "$e^x$",
+            "$e^x+1$",
+            "$x e^{x-1}$",
+            "$\\ln(x)$"
         ],
-        "correct_option": "e^x"
+        "correct_option": "$e^x$"
     },
     {
         "id": "q24",
-        "content": "Derivada de ln(x).",
+        "content": "Derivada de $\\ln(x)$.",
         "difficulty": 750,
         "topic": "Cálculo Diferencial",
         "options": [
-            "1/x",
-            "ln(x)",
-            "1/x^2",
-            "x"
+            "$\\frac{1}{x}$",
+            "$\\ln(x)$",
+            "$\\frac{1}{x^2}$",
+            "$x$"
         ],
-        "correct_option": "1/x"
+        "correct_option": "$\\frac{1}{x}$"
     },
     {
         "id": "q25",
-        "content": "La derivada de f(x)g(x) es:",
+        "content": "La derivada de $f(x)g(x)$ es:",
         "difficulty": 800,
         "topic": "Cálculo Diferencial",
         "options": [
-            "f' g + f g'",
-            "f' g'",
-            "f g' + f' g",
-            "f' g'"
+            "$f' g + f g'$",
+            "$f' g'$",
+            "$f g' + f' g$",
+            "$f' g'$"
         ],
-        "correct_option": "f' g + f g'"
+        "correct_option": "$f' g + f g'$"
     },
     {
         "id": "q26",
-        "content": "Derivada de tan(x).",
+        "content": "Derivada de $\\tan(x)$.",
         "difficulty": 850,
         "topic": "Cálculo Diferencial",
         "options": [
-            "sec^2(x)",
-            "csc^2(x)",
-            "sec(x)tan(x)",
-            "1+tan^2(x)"
+            "$\\sec^2(x)$",
+            "$\\csc^2(x)$",
+            "$\\sec(x)\\tan(x)$",
+            "$1+\\tan^2(x)$"
         ],
-        "correct_option": "sec^2(x)"
+        "correct_option": "$\\sec^2(x)$"
     },
     {
         "id": "q27",
-        "content": "Derivada de arcsin(x).",
+        "content": "Derivada de $\\arcsin(x)$.",
         "difficulty": 900,
         "topic": "Cálculo Diferencial",
         "options": [
-            "1/sqrt(1-x^2)",
-            "1/(1+x^2)",
-            "1/√(1-x^2)",
-            "-1/sqrt(1-x^2)"
+            "$\\frac{1}{\\sqrt{1-x^2}}$",
+            "$\\frac{1}{1+x^2}$",
+            "$\\frac{1}{\\sqrt{1+x^2}}$",
+            "$-\\frac{1}{\\sqrt{1-x^2}}$"
         ],
-        "correct_option": "1/sqrt(1-x^2)"
+        "correct_option": "$\\frac{1}{\\sqrt{1-x^2}}$"
     },
     {
         "id": "q28",
-        "content": "Si y = x^x, encuentra dy/dx.",
+        "content": "Si $y = x^x$, encuentra $\\frac{dy}{dx}$.",
         "difficulty": 950,
         "topic": "Cálculo Diferencial",
         "options": [
-            "x^x(1+ln x)",
-            "x^x ln x",
-            "x^x(1+ln x)",
-            "x^{x-1} x"
+            "$x^x(1+\\ln x)$",
+            "$x^x \\ln x$",
+            "$x^x(x-1)$",
+            "$x^{x-1}$"
         ],
-        "correct_option": "x^x(1+ln x)"
+        "correct_option": "$x^x(1+\\ln x)$"
     },
     {
         "id": "q29",
-        "content": "Usando la definición de derivada, f'(a)=lim_{h→0} (f(a+h)-f(a))/h, para f(x)=x^2, el límite es igual a:",
+        "content": "Usando la definición de derivada, $f'(a) = \\lim_{h \\to 0} \\frac{f(a+h)-f(a)}{h}$, para $f(x)=x^2$, el límite es igual a:",
         "difficulty": 1000,
         "topic": "Cálculo Diferencial",
         "options": [
-            "2a",
-            "a^2",
-            "2a+h",
-            "a"
+            "$2a$",
+            "$a^2$",
+            "$2a+h$",
+            "$a$"
         ],
-        "correct_option": "2a"
+        "correct_option": "$2a$"
     },
     {
         "id": "q30",
-        "content": "Halla la ecuación de la recta tangente a y=x^2 en x=1.",
+        "content": "Halla la ecuación de la recta tangente a $y=x^2$ en $x=1$.",
         "difficulty": 1050,
         "topic": "Cálculo Diferencial",
         "options": [
-            "y=2x-1",
-            "y=2x+1",
-            "y=x-1",
-            "y=2x"
+            "$y=2x-1$",
+            "$y=2x+1$",
+            "$y=x-1$",
+            "$y=2x$"
         ],
-        "correct_option": "y=2x-1"
+        "correct_option": "$y=2x-1$"
     },
     {
         "id": "q31",
-        "content": "Usa diferenciación implícita: x^2+y^2=1, encuentra dy/dx.",
+        "content": "Usa diferenciación implícita: $x^2+y^2=1$, encuentra $\\frac{dy}{dx}$.",
         "difficulty": 1100,
         "topic": "Cálculo Diferencial",
         "options": [
-            "-x/y",
-            "x/y",
-            "y/x",
-            "-y/x"
+            "$-\\frac{x}{y}$",
+            "$\\frac{x}{y}$",
+            "$\\frac{y}{x}$",
+            "$-\\frac{y}{x}$"
         ],
-        "correct_option": "-x/y"
+        "correct_option": "$-\\frac{x}{y}$"
     },
     {
         "id": "q32",
-        "content": "Determina los puntos críticos de f(x)=x^3-3x.",
+        "content": "Determina los puntos críticos de f(x)=$x^{3}$-3x.",
         "difficulty": 1150,
         "topic": "Cálculo Diferencial",
         "options": [
@@ -430,20 +430,20 @@
     },
     {
         "id": "q34",
-        "content": "Expansión en serie de Taylor de e^x alrededor de x=0.",
+        "content": "Expansión en serie de Taylor de $e^{x}$ alrededor de x=0.",
         "difficulty": 1250,
         "topic": "Cálculo Diferencial",
         "options": [
-            "∑ x^n/n!",
-            "∑ x^n",
-            "∑ x^n/n",
-            "∑ n! x^n"
+            "∑ $x^{n}$/n!",
+            "∑ $x^{n}$",
+            "∑ $x^{n}$/n",
+            "∑ n! $x^{n}$"
         ],
-        "correct_option": "∑ x^n/n!"
+        "correct_option": "∑ $x^{n}$/n!"
     },
     {
         "id": "q35",
-        "content": "Para f(x)=x^2, la segunda derivada es:",
+        "content": "Para f(x)=$x^{2}$, la segunda derivada es:",
         "difficulty": 1300,
         "topic": "Cálculo Diferencial",
         "options": [
@@ -456,7 +456,7 @@
     },
     {
         "id": "q36",
-        "content": "Regla de L'Hôpital: límite cuando x→0 de sin(x)/x.",
+        "content": "Regla de L'Hôpital: límite cuando x→0 de $\\sin(x)$/x.",
         "difficulty": 1350,
         "topic": "Cálculo Diferencial",
         "options": [
@@ -469,7 +469,7 @@
     },
     {
         "id": "q37",
-        "content": "Halla el valor máximo de f(x)=-x^2+4x en el intervalo [0,3].",
+        "content": "Halla el valor máximo de f(x)=-$x^{2}$+4x en el intervalo [0,3].",
         "difficulty": 1400,
         "topic": "Cálculo Diferencial",
         "options": [
@@ -508,7 +508,7 @@
     },
     {
         "id": "q40",
-        "content": "Derivada de orden n de x^n (para n entero) es:",
+        "content": "Derivada de orden n de $x^{n}$ (para n entero) es:",
         "difficulty": 1550,
         "topic": "Cálculo Diferencial",
         "options": [
@@ -521,176 +521,176 @@
     },
     {
         "id": "q41",
-        "content": "∫ 1 dx.",
+        "content": "$\\int 1 \\, dx$.",
         "difficulty": 600,
         "topic": "Cálculo Integral",
         "options": [
-            "x + C",
-            "0 + C",
-            "1 + C",
-            "x^2/2 + C"
+            "$x + C$",
+            "$0 + C$",
+            "$1 + C$",
+            "$\\frac{x^2}{2} + C$"
         ],
-        "correct_option": "x + C"
+        "correct_option": "$x + C$"
     },
     {
         "id": "q42",
-        "content": "∫ x dx.",
+        "content": "$\\int x \\, dx$.",
         "difficulty": 650,
         "topic": "Cálculo Integral",
         "options": [
-            "x^2/2 + C",
-            "x^2 + C",
-            "2x + C",
-            "1 + C"
+            "$\\frac{x^2}{2} + C$",
+            "$x^2 + C$",
+            "$2x + C$",
+            "$1 + C$"
         ],
-        "correct_option": "x^2/2 + C"
+        "correct_option": "$\\frac{x^2}{2} + C$"
     },
     {
         "id": "q43",
-        "content": "∫ e^x dx.",
+        "content": "$\\int e^x \\, dx$.",
         "difficulty": 700,
         "topic": "Cálculo Integral",
         "options": [
-            "e^x + C",
-            "e^x + 1 + C",
-            "ln x + C",
-            "1 + C"
+            "$e^x + C$",
+            "$e^x + 1 + C$",
+            "$\\ln(x) + C$",
+            "$1 + C$"
         ],
-        "correct_option": "e^x + C"
+        "correct_option": "$e^x + C$"
     },
     {
         "id": "q44",
-        "content": "∫ cos(x) dx.",
+        "content": "$\\int \\cos(x) \\, dx$.",
         "difficulty": 750,
         "topic": "Cálculo Integral",
         "options": [
-            "sin(x) + C",
-            "-sin(x) + C",
-            "cos(x) + C",
-            "-cos(x) + C"
+            "$\\sin(x) + C$",
+            "$-\\sin(x) + C$",
+            "$\\cos(x) + C$",
+            "$-\\cos(x) + C$"
         ],
-        "correct_option": "sin(x) + C"
+        "correct_option": "$\\sin(x) + C$"
     },
     {
         "id": "q45",
-        "content": "∫ 1/x dx.",
+        "content": "$\\int \\frac{1}{x} \\, dx$.",
         "difficulty": 800,
         "topic": "Cálculo Integral",
         "options": [
-            "ln|x| + C",
-            "1/x^2 + C",
-            "x + C",
-            "e^x + C"
+            "$\\ln|x| + C$",
+            "$\\frac{1}{x^2} + C$",
+            "$x + C$",
+            "$e^x + C$"
         ],
-        "correct_option": "ln|x| + C"
+        "correct_option": "$\\ln|x| + C$"
     },
     {
         "id": "q46",
-        "content": "∫_0^1 x^2 dx.",
+        "content": "$\\int_{0}^{1} x^2 \\, dx$.",
         "difficulty": 850,
         "topic": "Cálculo Integral",
         "options": [
-            "1/3",
-            "1/2",
+            "$\\frac{1}{3}$",
+            "$\\frac{1}{2}$",
             "1",
             "0"
         ],
-        "correct_option": "1/3"
+        "correct_option": "$\\frac{1}{3}$"
     },
     {
         "id": "q47",
-        "content": "Fórmula de integración por partes: ∫ u dv = ?",
+        "content": "Fórmula de integración por partes: $\\int u \\, dv = ?$",
         "difficulty": 900,
         "topic": "Cálculo Integral",
         "options": [
-            "uv - ∫ v du",
-            "uv + ∫ v du",
-            "∫ uv - ∫ vu",
-            "u v - ∫ v du"
+            "$uv - \\int v \\, du$",
+            "$uv + \\int v \\, du$",
+            "$\\int uv - \\int vu$",
+            "$u v - \\int v \\, du$"
         ],
-        "correct_option": "uv - ∫ v du"
+        "correct_option": "$uv - \\int v \\, du$"
     },
     {
         "id": "q48",
-        "content": "∫ sin^2(x) dx.",
+        "content": "$\\int si$n^{2}$(x) \\, dx$.",
         "difficulty": 950,
         "topic": "Cálculo Integral",
         "options": [
-            "x/2 - sin(2x)/4 + C",
-            "x/2 + sin(2x)/4 + C",
-            "cos^2(x) + C",
-            "-cos(2x)/2 + C"
+            "x/2 - $\\sin(2x)$/4 + C",
+            "x/2 + $\\sin(2x)$/4 + C",
+            "co$s^{2}$(x) + C",
+            "-$\\cos(2x)$/2 + C"
         ],
-        "correct_option": "x/2 - sin(2x)/4 + C"
+        "correct_option": "x/2 - $\\sin(2x)$/4 + C"
     },
     {
         "id": "q49",
-        "content": "∫ sec^2(x) dx.",
+        "content": "$\\int se$c^{2}$(x) \\, dx$.",
         "difficulty": 1000,
         "topic": "Cálculo Integral",
         "options": [
-            "tan(x) + C",
+            "$\\tan(x)$ + C",
             "cot(x) + C",
-            "sec(x)tan(x) + C",
-            "csc^2(x) + C"
+            "sec(x)$\\tan(x)$ + C",
+            "cs$c^{2}$(x) + C"
         ],
-        "correct_option": "tan(x) + C"
+        "correct_option": "$\\tan(x)$ + C"
     },
     {
         "id": "q50",
-        "content": "∫ 1/(1+x^2) dx.",
+        "content": "$\\int 1/(1+$x^{2}$) \\, dx$.",
         "difficulty": 1050,
         "topic": "Cálculo Integral",
         "options": [
             "arctan(x) + C",
             "arcsin(x) + C",
-            "ln(1+x^2) + C",
+            "$\\ln(1+$x^{2}$)$ + C",
             "1/x + C"
         ],
         "correct_option": "arctan(x) + C"
     },
     {
         "id": "q51",
-        "content": "∫ x e^x dx.",
+        "content": "$\\int x e^x \\, dx$.",
         "difficulty": 1100,
         "topic": "Cálculo Integral",
         "options": [
-            "e^x(x-1) + C",
-            "e^x(x+1) + C",
-            "e^x + C",
-            "x e^x + C"
+            "$e^x(x-1) + C$",
+            "$e^x(x+1) + C$",
+            "$e^x + C$",
+            "$x e^x + C$"
         ],
-        "correct_option": "e^x(x-1) + C"
+        "correct_option": "$e^x(x-1) + C$"
     },
     {
         "id": "q52",
-        "content": "∫ dx/√(1-x^2).",
+        "content": "$\\int \\frac{dx}{\\sqrt{1-x^2}}$.",
         "difficulty": 1150,
         "topic": "Cálculo Integral",
         "options": [
-            "arcsin(x) + C",
-            "arctan(x) + C",
-            "arcsec(x) + C",
-            "ln|x+√(1-x^2)| + C"
+            "$\\arcsin(x) + C$",
+            "$\\arctan(x) + C$",
+            "$\\text{arcsec}(x) + C$",
+            "$\\ln|x+\\sqrt{1-x^2}| + C$"
         ],
-        "correct_option": "arcsin(x) + C"
+        "correct_option": "$\\arcsin(x) + C$"
     },
     {
         "id": "q53",
-        "content": "∫ dx/(x^2-1).",
+        "content": "$\\int \\frac{dx}{x^2-1}$.",
         "difficulty": 1200,
         "topic": "Cálculo Integral",
         "options": [
-            "1/2 ln|(x-1)/(x+1)| + C",
-            "ln|x^2-1| + C",
-            "arctanh(x) + C",
-            "1/2 ln|(x+1)/(x-1)| + C"
+            "$\\frac{1}{2} \\ln|\\frac{x-1}{x+1}| + C$",
+            "$\\ln|x^2-1| + C$",
+            "$\\text{arctanh}(x) + C$",
+            "$\\frac{1}{2} \\ln|\\frac{x+1}{x-1}| + C$"
         ],
-        "correct_option": "1/2 ln|(x-1)/(x+1)| + C"
+        "correct_option": "$\\frac{1}{2} \\ln|\\frac{x-1}{x+1}| + C$"
     },
     {
         "id": "q54",
-        "content": "∫_1^∞ 1/x^2 dx.",
+        "content": "$\\int_1^\\infty \\frac{1}{x^2} \\, dx$.",
         "difficulty": 1250,
         "topic": "Cálculo Integral",
         "options": [
@@ -703,7 +703,7 @@
     },
     {
         "id": "q55",
-        "content": "∫ ln(x) dx.",
+        "content": "$\\int $\\ln(x)$ \\, dx$.",
         "difficulty": 1300,
         "topic": "Cálculo Integral",
         "options": [
@@ -716,55 +716,55 @@
     },
     {
         "id": "q56",
-        "content": "∫ tan(x) dx.",
+        "content": "$\\int $\\tan(x)$ \\, dx$.",
         "difficulty": 1350,
         "topic": "Cálculo Integral",
         "options": [
-            "-ln|cos(x)| + C",
+            "-ln|$\\cos(x)$| + C",
             "ln|sec(x)| + C",
-            "ln|sin(x)| + C",
+            "ln|$\\sin(x)$| + C",
             "-ln|csc(x)| + C"
         ],
-        "correct_option": "-ln|cos(x)| + C"
+        "correct_option": "-ln|$\\cos(x)$| + C"
     },
     {
         "id": "q57",
-        "content": "∫_0^1 √(1-x^2) dx.",
+        "content": "$\\int_0^1 \\sqrt{1-x^2} \\, dx$.",
         "difficulty": 1400,
         "topic": "Cálculo Integral",
         "options": [
-            "π/4",
-            "π/2",
+            "$\\pi/4$",
+            "$\\pi/2$",
             "1",
             "0"
         ],
-        "correct_option": "π/4"
+        "correct_option": "$\\pi/4$"
     },
     {
         "id": "q58",
-        "content": "∫ sin^3(x) dx.",
+        "content": "$\\int \\sin^3(x) \\, dx$.",
         "difficulty": 1450,
         "topic": "Cálculo Integral",
         "options": [
-            "-cos(x) + cos^3(x)/3 + C",
-            "cos(x) - cos^3(x)/3 + C",
-            "-sin(x) + sin^3(x)/3 + C",
-            "sin(x) - sin^3(x)/3 + C"
+            "$-\\cos(x) + \\frac{\\cos^3(x)}{3} + C$",
+            "$\\cos(x) - \\frac{\\cos^3(x)}{3} + C$",
+            "$-\\sin(x) + \\frac{\\sin^3(x)}{3} + C$",
+            "$\\sin(x) - \\frac{\\sin^3(x)}{3} + C$"
         ],
-        "correct_option": "-cos(x) + cos^3(x)/3 + C"
+        "correct_option": "$-\\cos(x) + \\frac{\\cos^3(x)}{3} + C$"
     },
     {
         "id": "q59",
-        "content": "∫ e^x sin x dx.",
+        "content": "$\\int e^x \\sin(x) \\, dx$.",
         "difficulty": 1500,
         "topic": "Cálculo Integral",
         "options": [
-            "e^x(sin x - cos x)/2 + C",
-            "e^x(sin x + cos x)/2 + C",
-            "e^x cos x + C",
-            "e^x sin x + C"
+            "$\\frac{e^x(\\sin x - \\cos x)}{2} + C$",
+            "$\\frac{e^x(\\sin x + \\cos x)}{2} + C$",
+            "$e^x \\cos x + C$",
+            "$e^x \\sin x + C$"
         ],
-        "correct_option": "e^x(sin x - cos x)/2 + C"
+        "correct_option": "$\\frac{e^x(\\sin x - \\cos x)}{2} + C$"
     },
     {
         "id": "q60",
@@ -781,29 +781,29 @@
     },
     {
         "id": "q61",
-        "content": "Derivada parcial de f(x,y)=x^2+y^2 con respecto a x.",
+        "content": "Derivada parcial de f(x,y)=$x^{2}$+$y^{2}$ con respecto a x.",
         "difficulty": 600,
         "topic": "Cálculo de Varias Variables",
         "options": [
             "2x",
             "2y",
-            "x^2",
-            "y^2"
+            "$x^{2}$",
+            "$y^{2}$"
         ],
         "correct_option": "2x"
     },
     {
         "id": "q62",
-        "content": "Gradiente de f(x,y)=x^2y.",
+        "content": "Gradiente de $f(x,y) = x^{2y}$.",
         "difficulty": 650,
         "topic": "Cálculo de Varias Variables",
         "options": [
-            "(2xy, x^2)",
-            "(2x, y)",
-            "(x^2, 2xy)",
-            "(2xy, y^2)"
+            "$(2xy, x^{2})$",
+            "$(2x, y)$",
+            "$(x^{2}, 2xy)$",
+            "$(2xy, y^{2})$"
         ],
-        "correct_option": "(2xy, x^2)"
+        "correct_option": "$(2xy, x^{2})$"
     },
     {
         "id": "q63",
@@ -820,7 +820,7 @@
     },
     {
         "id": "q64",
-        "content": "Puntos críticos de f(x,y)=x^2+y^2.",
+        "content": "Puntos críticos de f(x,y)=$x^{2}$+$y^{2}$.",
         "difficulty": 750,
         "topic": "Cálculo de Varias Variables",
         "options": [
@@ -833,7 +833,7 @@
     },
     {
         "id": "q65",
-        "content": "El punto (0,0) para f(x,y)=x^2-y^2 es un:",
+        "content": "El punto (0,0) para f(x,y)=$x^{2}$-$y^{2}$ es un:",
         "difficulty": 800,
         "topic": "Cálculo de Varias Variables",
         "options": [
@@ -846,7 +846,7 @@
     },
     {
         "id": "q66",
-        "content": "En el criterio de la segunda derivada, D = f_xx f_yy - (f_xy)^2. Si D > 0 y f_xx > 0 en un punto crítico, entonces es:",
+        "content": "En el criterio de la segunda derivada, $D = f_{xx} f_{yy} - (f_{xy})^2$. Si $D > 0$ y $f_{xx} > 0$ en un punto crítico, entonces es:",
         "difficulty": 850,
         "topic": "Cálculo de Varias Variables",
         "options": [
@@ -859,20 +859,20 @@
     },
     {
         "id": "q67",
-        "content": "Regla de la cadena: Si z = f(x,y) y x=g(t), y=h(t), entonces dz/dt = ?",
+        "content": "Regla de la cadena: Si $z = f(x,y)$ y $x=g(t)$, $y=h(t)$, entonces $\\frac{dz}{dt} = ?$",
         "difficulty": 900,
         "topic": "Cálculo de Varias Variables",
         "options": [
-            "∂z/∂x dx/dt + ∂z/∂y dy/dt",
-            "∂z/∂x + ∂z/∂y",
-            "dz/dx dx/dt + dz/dy dy/dt",
-            "∂z/∂x dt/dx + ∂z/∂y dt/dy"
+            "$\\frac{\\partial z}{\\partial x} \\frac{dx}{dt} + \\frac{\\partial z}{\\partial y} \\frac{dy}{dt}$",
+            "$\\frac{\\partial z}{\\partial x} + \\frac{\\partial z}{\\partial y}$",
+            "$\\frac{dz}{dx} \\frac{dx}{dt} + \\frac{dz}{dy} \\frac{dy}{dt}$",
+            "$\\frac{\\partial z}{\\partial x} \\frac{dt}{dx} + \\frac{\\partial z}{\\partial y} \\frac{dt}{dy}$"
         ],
-        "correct_option": "∂z/∂x dx/dt + ∂z/∂y dy/dt"
+        "correct_option": "$\\frac{\\partial z}{\\partial x} \\frac{dx}{dt} + \\frac{\\partial z}{\\partial y} \\frac{dy}{dt}$"
     },
     {
         "id": "q68",
-        "content": "∬_R 1 dA sobre el rectángulo [0,1]×[0,2].",
+        "content": "$\\iint_R 1 \\, dA$ sobre el rectángulo $[0,1] \\times [0,2]$.",
         "difficulty": 950,
         "topic": "Cálculo de Varias Variables",
         "options": [
@@ -885,29 +885,29 @@
     },
     {
         "id": "q69",
-        "content": "∬_R x dA sobre el rectángulo [0,1]×[0,1].",
+        "content": "$\\iint_R x \\, dA$ sobre el rectángulo $[0,1] \\times [0,1]$.",
         "difficulty": 1000,
         "topic": "Cálculo de Varias Variables",
         "options": [
-            "1/2",
-            "1/3",
+            "$\\frac{1}{2}$",
+            "$\\frac{1}{3}$",
             "1",
             "0"
         ],
-        "correct_option": "1/2"
+        "correct_option": "$\\frac{1}{2}$"
     },
     {
         "id": "q70",
-        "content": "Cambia el orden de integración: ∫_0^1 ∫_0^x f(x,y) dy dx.",
+        "content": "Cambia el orden de integración: $\\int_{0}^{1} \\int_{0}^{x} f(x,y) \\, dy \\, dx$.",
         "difficulty": 1050,
         "topic": "Cálculo de Varias Variables",
         "options": [
-            "∫_0^1 ∫_y^1 f(x,y) dx dy",
-            "∫_0^1 ∫_0^y f(x,y) dx dy",
-            "∫_0^1 ∫_x^1 f(x,y) dy dx",
-            "∫_0^1 ∫_0^x f(x,y) dx dy"
+            "$\\int_{0}^{1} \\int_{y}^{1} f(x,y) \\, dx \\, dy$",
+            "$\\int_{0}^{1} \\int_{0}^{y} f(x,y) \\, dx \\, dy$",
+            "$\\int_{0}^{1} \\int_{x}^{1} f(x,y) \\, dy \\, dx$",
+            "$\\int_{0}^{1} \\int_{0}^{x} f(x,y) \\, dx \\, dy$"
         ],
-        "correct_option": "∫_0^1 ∫_y^1 f(x,y) dx dy"
+        "correct_option": "$\\int_{0}^{1} \\int_{y}^{1} f(x,y) \\, dx \\, dy$"
     },
     {
         "id": "q71",
@@ -937,16 +937,16 @@
     },
     {
         "id": "q73",
-        "content": "Teorema de Green: ∮_C P dx + Q dy = ∬_R (?) dA.",
+        "content": "Teorema de Green: $\\oint_C P \\, dx + Q \\, dy = \\iint_R (?) \\, dA$.",
         "difficulty": 1200,
         "topic": "Cálculo de Varias Variables",
         "options": [
-            "∂Q/∂x - ∂P/∂y",
-            "∂P/∂x - ∂Q/∂y",
-            "∂Q/∂y - ∂P/∂x",
-            "∂P/∂y - ∂Q/∂x"
+            "$\\frac{\\partial Q}{\\partial x} - \\frac{\\partial P}{\\partial y}$",
+            "$\\frac{\\partial P}{\\partial x} - \\frac{\\partial Q}{\\partial y}$",
+            "$\\frac{\\partial Q}{\\partial y} - \\frac{\\partial P}{\\partial x}$",
+            "$\\frac{\\partial P}{\\partial y} - \\frac{\\partial Q}{\\partial x}$"
         ],
-        "correct_option": "∂Q/∂x - ∂P/∂y"
+        "correct_option": "$\\frac{\\partial Q}{\\partial x} - \\frac{\\partial P}{\\partial y}$"
     },
     {
         "id": "q74",
@@ -954,12 +954,12 @@
         "difficulty": 1250,
         "topic": "Cálculo de Varias Variables",
         "options": [
-            "∬_R √(1+f_x^2+f_y^2) dA",
-            "∬_R √(f_x^2+f_y^2) dA",
-            "∬_R (1+f_x^2+f_y^2) dA",
+            "∬_R √(1+f_$x^{2}$+f_$y^{2}$) dA",
+            "∬_R √(f_$x^{2}$+f_$y^{2}$) dA",
+            "∬_R (1+f_$x^{2}$+f_$y^{2}$) dA",
             "∬_R (f_x+f_y) dA"
         ],
-        "correct_option": "∬_R √(1+f_x^2+f_y^2) dA"
+        "correct_option": "∬_R √(1+f_$x^{2}$+f_$y^{2}$) dA"
     },
     {
         "id": "q75",
@@ -967,12 +967,12 @@
         "difficulty": 1300,
         "topic": "Cálculo de Varias Variables",
         "options": [
-            "4/3 π R^3",
-            "2πR^3",
-            "πR^3",
-            "4πR^2"
+            "$\\frac{4}{3}$ π $\\mathbb{R}^{3}$",
+            "2π$R^{3}$",
+            "π$R^{3}$",
+            "4π$R^{2}$"
         ],
-        "correct_option": "4/3 π R^3"
+        "correct_option": "$\\frac{4}{3}$ π $\\mathbb{R}^{3}$"
     },
     {
         "id": "q76",
@@ -981,7 +981,7 @@
         "topic": "Cálculo de Varias Variables",
         "options": [
             "r",
-            "r^2",
+            "$r^{2}$",
             "1/r",
             "1"
         ],
@@ -993,12 +993,12 @@
         "difficulty": 1400,
         "topic": "Cálculo de Varias Variables",
         "options": [
-            "(1/2,1/2)",
+            "($\\frac{1}{2}$,$\\frac{1}{2}$)",
             "(0,1)",
             "(1,0)",
-            "(1/4,3/4)"
+            "($\\frac{1}{4}$,$\\frac{3}{4}$)"
         ],
-        "correct_option": "(1/2,1/2)"
+        "correct_option": "($\\frac{1}{2}$,$\\frac{1}{2}$)"
     },
     {
         "id": "q78",
@@ -1028,7 +1028,7 @@
     },
     {
         "id": "q80",
-        "content": "Determinante de la matriz hessiana de f(x,y)=x^2+2xy+y^2.",
+        "content": "Determinante de la matriz hessiana de f(x,y)=$x^{2}$+2xy+$y^{2}$.",
         "difficulty": 1550,
         "topic": "Cálculo de Varias Variables",
         "options": [
@@ -1041,46 +1041,46 @@
     },
     {
         "id": "q81",
-        "content": "Solución general de y' = 0.",
+        "content": "Solución general de $y' = 0$.",
         "difficulty": 600,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
-            "y = C",
-            "y = x + C",
-            "y = 0",
-            "y = Cx"
+            "$y = C$",
+            "$y = x + C$",
+            "$y = 0$",
+            "$y = Cx$"
         ],
-        "correct_option": "y = C"
+        "correct_option": "$y = C$"
     },
     {
         "id": "q82",
-        "content": "Resolver y' = y.",
+        "content": "Resolver $y' = y$.",
         "difficulty": 650,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
-            "y = Ce^x",
-            "y = Ce^{-x}",
-            "y = C e^x + D",
-            "y = Cx"
+            "$y = C e^x$",
+            "$y = C e^{-x}$",
+            "$y = C e^x + D$",
+            "$y = Cx$"
         ],
-        "correct_option": "y = Ce^x"
+        "correct_option": "$y = C e^x$"
     },
     {
         "id": "q83",
-        "content": "Resolver y'' = 0.",
+        "content": "Resolver $y'' = 0$.",
         "difficulty": 700,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
-            "y = C1 x + C2",
-            "y = C1 + C2",
-            "y = C1 e^x + C2",
-            "y = C1 sin x + C2 cos x"
+            "$y = C_1 x + C_2$",
+            "$y = C_1 + C_2$",
+            "$y = C_1 e^x + C_2$",
+            "$y = C_1 \\sin x + C_2 \\cos x$"
         ],
-        "correct_option": "y = C1 x + C2"
+        "correct_option": "$y = C_1 x + C_2$"
     },
     {
         "id": "q84",
-        "content": "Orden de la ecuación diferencial y''' + 2y'' - y = 0.",
+        "content": "Orden de la ecuación diferencial $y''' + 2y'' - y = 0$.",
         "difficulty": 750,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
@@ -1097,12 +1097,12 @@
         "difficulty": 800,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
-            "y' + y = 0",
-            "y' + y^2 = 0",
-            "y' + sin y = 0",
-            "y y' = 0"
+            "$y' + y = 0$",
+            "$y' + y^2 = 0$",
+            "$y' + \\sin y = 0$",
+            "$y y' = 0$"
         ],
-        "correct_option": "y' + y = 0"
+        "correct_option": "$y' + y = 0$"
     },
     {
         "id": "q86",
@@ -1110,100 +1110,100 @@
         "difficulty": 850,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
-            "y^2 = x^2 + C",
+            "$y^{2}$ = $x^{2}$ + C",
             "y = x + C",
-            "y = Ce^x",
+            "y = C$e^{x}$",
             "y = Cx"
         ],
-        "correct_option": "y^2 = x^2 + C"
+        "correct_option": "$y^{2}$ = $x^{2}$ + C"
     },
     {
         "id": "q87",
-        "content": "Factor integrante para la EDO lineal de primer orden: y' + P(x)y = Q(x).",
+        "content": "Factor integrante para la EDO lineal de primer orden: $y' + P(x)y = Q(x)$.",
         "difficulty": 900,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
-            "e^{∫P dx}",
-            "e^{∫Q dx}",
-            "∫P dx",
-            "∫Q dx"
+            "$e^{\\int P \\, dx}$",
+            "$e^{\\int Q \\, dx}$",
+            "$\\int P \\, dx$",
+            "$\\int Q \\, dx$"
         ],
-        "correct_option": "e^{∫P dx}"
+        "correct_option": "$e^{\\int P \\, dx}$"
     },
     {
         "id": "q88",
-        "content": "Resolver y' + 2y = e^{-x}.",
+        "content": "Resolver $y' + 2y = e^{-x}$.",
         "difficulty": 950,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
-            "y = e^{-x} + Ce^{-2x}",
-            "y = e^{-2x} + Ce^{-x}",
-            "y = e^{-x} + C",
-            "y = Ce^{-2x}"
+            "$y = e^{-x} + Ce^{-2x}$",
+            "$y = e^{-2x} + Ce^{-x}$",
+            "$y = e^{-x} + C$",
+            "$y = Ce^{-2x}$"
         ],
-        "correct_option": "y = e^{-x} + Ce^{-2x}"
+        "correct_option": "$y = e^{-x} + Ce^{-2x}$"
     },
     {
         "id": "q89",
-        "content": "Ecuación característica de y'' - 3y' + 2y = 0.",
+        "content": "Ecuación característica de $y'' - 3y' + 2y = 0$.",
         "difficulty": 1000,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
-            "r^2 - 3r + 2 = 0",
-            "r^2 + 3r + 2 = 0",
-            "r^2 - 3r - 2 = 0",
-            "r^2 - 3 = 0"
+            "$r^2 - 3r + 2 = 0$",
+            "$r^2 + 3r + 2 = 0$",
+            "$r^2 - 3r - 2 = 0$",
+            "$r^2 - 3 = 0$"
         ],
-        "correct_option": "r^2 - 3r + 2 = 0"
+        "correct_option": "$r^2 - 3r + 2 = 0$"
     },
     {
         "id": "q90",
-        "content": "Solución general de y'' + y = 0.",
+        "content": "Solución general de $y'' + y = 0$.",
         "difficulty": 1050,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
-            "y = C1 cos x + C2 sin x",
-            "y = C1 e^x + C2 e^{-x}",
-            "y = C1 e^{ix} + C2 e^{-ix}",
-            "y = C1 cosh x + C2 sinh x"
+            "$y = C_1 \\cos x + C_2 \\sin x$",
+            "$y = C_1 e^x + C_2 e^{-x}$",
+            "$y = C_1 e^{ix} + C_2 e^{-ix}$",
+            "$y = C_1 \\cosh x + C_2 \\sinh x$"
         ],
-        "correct_option": "y = C1 cos x + C2 sin x"
+        "correct_option": "$y = C_1 \\cos x + C_2 \\sin x$"
     },
     {
         "id": "q91",
-        "content": "Resolver y'' - 2y' + y = 0.",
+        "content": "Resolver $y'' - 2y' + y = 0$.",
         "difficulty": 1100,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
-            "y = (C1 + C2 x)e^x",
-            "y = C1 e^x + C2 e^{-x}",
-            "y = C1 e^{2x} + C2 e^{-2x}",
-            "y = C1 cos x + C2 sin x"
+            "$y = (C_1 + C_2 x)e^x$",
+            "$y = C_1 e^x + C_2 e^{-x}$",
+            "$y = C_1 e^{2x} + C_2 e^{-2x}$",
+            "$y = C_1 \\cos x + C_2 \\sin x$"
         ],
-        "correct_option": "y = (C1 + C2 x)e^x"
+        "correct_option": "$y = (C_1 + C_2 x)e^x$"
     },
     {
         "id": "q92",
-        "content": "Método de coeficientes indeterminados: solución particular para y'' + y = sin x.",
+        "content": "Método de coeficientes indeterminados: solución particular para $y'' + y = \\sin x$.",
         "difficulty": 1150,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
-            "y_p = - (x/2) cos x",
-            "y_p = A sin x",
-            "y_p = A cos x",
-            "y_p = A sin x + B cos x"
+            "$y_p = -\\frac{x}{2} \\cos x$",
+            "$y_p = A \\sin x$",
+            "$y_p = A \\cos x$",
+            "$y_p = A \\sin x + B \\cos x$"
         ],
-        "correct_option": "y_p = - (x/2) cos x"
+        "correct_option": "$y_p = -\\frac{x}{2} \\cos x$"
     },
     {
         "id": "q93",
-        "content": "Wronskiano de y1 = e^x, y2 = e^{2x}.",
+        "content": "Wronskiano de y1 = $e^{x}$, y2 = e^{2x}.",
         "difficulty": 1200,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
             "e^{3x}",
             "e^{2x}",
-            "e^x",
+            "$e^{x}$",
             "0"
         ],
         "correct_option": "e^{3x}"
@@ -1227,12 +1227,12 @@
         "difficulty": 1300,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
-            "1/s^2",
+            "1/$s^{2}$",
             "1/s",
             "s",
             "1"
         ],
-        "correct_option": "1/s^2"
+        "correct_option": "1/$s^{2}$"
     },
     {
         "id": "q96",
@@ -1242,8 +1242,8 @@
         "options": [
             "1/(s-a)",
             "1/(s+a)",
-            "s/(s^2+a^2)",
-            "a/(s^2+a^2)"
+            "s/($s^{2}$+$a^{2}$)",
+            "a/($s^{2}$+$a^{2}$)"
         ],
         "correct_option": "1/(s-a)"
     },
@@ -1254,7 +1254,7 @@
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
             "y = e^{-t}",
-            "y = e^t",
+            "y = $e^{t}$",
             "y = 1",
             "y = cos t"
         ],
@@ -1262,16 +1262,16 @@
     },
     {
         "id": "q98",
-        "content": "Encuentra la ecuación indicial para la ecuación de Euler-Cauchy: x^2 y'' + x y' + y = 0.",
+        "content": "Encuentra la ecuación indicial para la ecuación de Euler-Cauchy: $x^{2}$ y'' + x y' + y = 0.",
         "difficulty": 1450,
         "topic": "Ecuaciones Diferenciales Ordinarias",
         "options": [
-            "r^2 + 1 = 0",
-            "r^2 - 1 = 0",
-            "r^2 + r + 1 = 0",
-            "r^2 - r + 1 = 0"
+            "$r^{2}$ + 1 = 0",
+            "$r^{2}$ - 1 = 0",
+            "$r^{2}$ + r + 1 = 0",
+            "$r^{2}$ - r + 1 = 0"
         ],
-        "correct_option": "r^2 + 1 = 0"
+        "correct_option": "$r^{2}$ + 1 = 0"
     },
     {
         "id": "q99",
