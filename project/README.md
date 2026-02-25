@@ -4,57 +4,59 @@ Plataforma de **aprendizaje adaptativo gamificada**, construida con **Python + S
 
 ---
 
+## 🏗️ Arquitectura del Proyecto
+
+El proyecto sigue una arquitectura limpia (Clean Architecture) organizada por capas dentro del directorio `src/`:
+
+- **Domain**: Contiene la lógica central de negocio (modelos ELO, algoritmos de selección).
+- **Application**: Servicios que orquestan el flujo de datos entre la infraestructura y el dominio.
+- **Infrastructure**: Implementaciones de persistencia (SQLite), seguridad (hashing) y clientes externos (IA).
+- **Interface**: El punto de entrada de la aplicación mediante Streamlit.
+
+---
+
 ## 🧩 Componentes principales
 
-| Módulo | Archivo | Qué hace |
+| Módulo | Directorio/Archivo | Qué hace |
 |---|---|---|
-| **App principal** | `app.py` | Interfaz Streamlit con login, práctica y dashboard |
-| **Base de datos** | `database.py` | SQLite — usuarios, intentos y progreso |
-| **Motor ELO** | `elo/model.py` + `elo/vector_elo.py` | Calcula y actualiza ratings ELO por materia |
-| **Selector adaptativo** | `selector/item_selector.py` | Elige preguntas óptimas según tu nivel |
-| **IA** | `ai_analysis.py` | Genera recomendaciones de estudio via LM Studio |
-| **Banco de preguntas** | `items/bank.json` | Preguntas clasificadas por tema y dificultad |
+| **App Streamlit** | `src/interface/streamlit/app.py` | Interfaz de usuario, login y paneles. |
+| **Servicios Estudiante/Profesor** | `src/application/services/` | Orquestación de lógica para cada rol. |
+| **Motor ELO** | `src/domain/elo/` | Cálculo y actualización de ratings ELO competitivos. |
+| **Selector Adaptativo** | `src/domain/selector/` | Elige la siguiente pregunta óptima para el estudiante. |
+| **Repositorio SQLite** | `src/infrastructure/persistence/` | Gestión de base de datos local y sincronización. |
+| **Cliente IA** | `src/infrastructure/external_api/` | Conexión con modelos locales (LM Studio) para feedback. |
+| **Seguridad** | `src/infrastructure/security/` | Hashing de contraseñas y validación de sesiones. |
+| **Banco de preguntas** | `items/bank.json` | Preguntas clasificadas por tema y dificultad base. |
 
 ---
 
 ## ⚙️ ¿Cómo funciona?
 
-1. **Login/Registro** — El usuario crea una cuenta o inicia sesión (contraseñas hasheadas con SHA-256).
-
-2. **Modo Práctica** — El sistema selecciona preguntas de forma inteligente:
-   - Calcula tu **ELO actual** por materia (empieza en 1000).
-   - Usa el `AdaptiveItemSelector` para elegir preguntas dentro de un rango de dificultad óptimo (zona de desarrollo próximo).
-   - Si respondes bien → **tu ELO sube**; si fallas → **baja**.
-   - Las preguntas ya respondidas no se repiten.
-
-3. **Sistema de rangos** — Tu ELO determina tu "rango":
-
-   `🌱 Novato` → `🔨 Aprendiz` → `⚔️ Competente` → `🛡️ Avanzado` → `🔥 Experto` → `👑 Maestro` → `🦄 Gran Maestro`
-
-4. **Dashboard** — Visualiza:
-   - Ejercicios resueltos y precisión promedio
-   - Gráfico de **dominio por materia** (barras)
-   - Gráfico de **progreso en el tiempo** (líneas por tema)
-
-5. **Asistente IA** — Se conecta a un modelo local vía **LM Studio** (API compatible con OpenAI) para generar 3 recomendaciones personalizadas de estudio basadas en tus errores recientes. Si no hay conexión, usa un fallback offline.
-
----
-
-## 🧠 El algoritmo ELO adaptativo
-
-En lugar de un solo rating global, se mantiene un **vector de ratings independiente por materia** (ej: `{"Álgebra": 1150, "Cálculo": 980}`). El ELO global es el promedio de todos.
-
-La fórmula de actualización es la estándar de ELO:
-
-```
-nuevo_elo = elo_actual + K × (resultado - probabilidad_esperada)
-```
+1. **Login/Registro** — El usuario crea una cuenta. Las contraseñas se almacenan de forma segura con Argon2.
+2. **Modo Práctica** — El sistema selecciona preguntas inteligentes usando el `AdaptiveItemSelector`.
+    - Si respondes bien → **tu ELO sube**; si fallas → **baja**.
+    - El sistema detecta "zona de desarrollo próximo" para no aburrir ni frustrar.
+3. **Análisis con IA** — Si tienes configurado **LM Studio**, un tutor socrático y un analista pedagógico te brindarán retroalimentación personalizada.
+4. **Dashboard Docente** — Los profesores pueden monitorear el progreso de sus grupos, ver probabilidades de fallo y generar reportes con IA.
 
 ---
 
 ## 🚀 Cómo ejecutar
 
-```bash
-pip install -r requirements.txt
-streamlit run app.py
-```
+Asegúrate de tener Python 3.10+ instalado.
+
+1. **Instalar dependencias**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Ejecutar la aplicación**:
+   ```bash
+   streamlit run src/interface/streamlit/app.py
+   ```
+
+---
+
+## 📊 Algoritmo ELO Adaptativo
+
+Utilizamos un sistema de **Vector ELO**, donde cada materia tiene su propio rating independiente. La probabilidad de acierto se calcula basándose en la diferencia entre el ELO del estudiante y la dificultad del ítem, ajustando el rating mediante una constante *K* dinámica que considera la incertidumbre (RD).
