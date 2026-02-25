@@ -1,0 +1,7 @@
+
+matplotlib
+streamlit
+pandas
+matplotlib
+passlib[argon2]
+openai
