@@ -1,73 +1,62 @@
+# 🎓 LevelUp-ELO
 
-# 🎮 LevelUp-ELO | Adaptive Learning & Skill Engine
-
-<p align="center">
-  <img src="logo.png" alt="LevelUp-Algo Logo" width="200">
-</p>
-
-**LevelUp-ELO** es un motor de aprendizaje adaptativo diseñado para estimar con precisión la habilidad de un estudiante mediante el algoritmo **ELO Vectorial**. El sistema no solo evalúa, sino que selecciona dinámicamente retos dentro de la **Zona de Desarrollo Próximo (ZDP)** del usuario para maximizar la eficiencia del aprendizaje.
-
-
-
-## 🚀 Características Destacadas
-
-* **📈 Evaluación Dinámica:** Actualización instantánea del ELO tras cada respuesta (Correcta, Incorrecta o Salto).
-* **🎯 Algoritmo de Selección:** Selector inteligente que busca ítems en el banco de preguntas cuya dificultad coincida con el nivel actual del usuario.
-* **📊 Dashboard de Analítica:** Visualización en tiempo real de la curva de aprendizaje y métricas de precisión.
-* **🎨 UI Responsive:** Interfaz moderna y oscura (Dark Mode) adaptada para dispositivos móviles y escritorio utilizando Streamlit.
-* **📉 Retroalimentación Visual:** Gráficos de evolución que cambian de color (Verde/Rojo) según la tendencia de rendimiento inmediata.
-
-
-## 🛠️ Tecnologías Utilizadas
-
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
-![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)
-![Pandas](https://img.shields.io/badge/pandas-%23150458.svg?style=for-the-badge&logo=pandas&logoColor=white)
-![Matplotlib](https://img.shields.io/badge/Matplotlib-%23ffffff.svg?style=for-the-badge&logo=Matplotlib&logoColor=black)
-
-
-
-## 📐 Arquitectura del Proyecto
-
-El sistema se divide en módulos lógicos para separar la matemática de la interfaz:
-
-
-
-* **`elo/`**: Contiene la lógica del **ELO Vectorial** y los modelos de datos de los ítems.
-* **`selector/`**: Implementa el `AdaptiveItemSelector` para la búsqueda de retos óptimos.
-* **`items/`**: Almacena el `bank.json`, la fuente de verdad de los contenidos educativos.
-* **`app.py`**: El orquestador de la interfaz y gestor del estado de la sesión.
-
-
-
-## 🧠 Lógica de Convergencia
-
-El motor utiliza un ciclo de retroalimentación continua:
-1.  **Estimación Inicial:** Se asigna un ELO base de 1000 puntos.
-2.  **Desafío Adaptativo:** El selector elige una pregunta que represente un reto justo (probabilidad de éxito cercana al 50%).
-3.  **Actualización de Estado:** El motor ELO procesa el resultado y ajusta la habilidad mediante un factor K dinámico.
-4.  **Visualización de Métricas:** Se calculan deltas (diferencias) respecto al paso anterior y al inicio de la sesión para mostrar el progreso real.
-
-
-
-## 🚀 Instalación y Ejecución
-
-Sigue estos pasos para probar el prototipo localmente:
-
-1. **Clonar el repositorio:**
-   ```bash
-   git clone [https://github.com/LuisJRubioH/LevelUp-ELO.git](https://github.com/LuisJRubioH/LevelUp-ELO.git)
-   cd LevelUp-ELO  
-    ```
-
-2. **Instalar dependencias:**
-   ```bash
-   pip install -r requirements.txt
-    ```
-
-3. **Lanzar el Dashboard:**
-   ```bash
-   streamlit run app.py
-    ```
+Plataforma de **aprendizaje adaptativo gamificada**, construida con **Python + Streamlit**, que usa el **sistema de rating ELO** (el mismo usado en ajedrez) para medir y mejorar el nivel académico de los estudiantes.
 
 ---
+
+## 🏗️ Arquitectura del Proyecto
+
+El proyecto sigue una arquitectura limpia (Clean Architecture) organizada por capas dentro del directorio `src/`:
+
+- **Domain**: Contiene la lógica central de negocio (modelos ELO, algoritmos de selección).
+- **Application**: Servicios que orquestan el flujo de datos entre la infraestructura y el dominio.
+- **Infrastructure**: Implementaciones de persistencia (SQLite), seguridad (hashing) y clientes externos (IA).
+- **Interface**: El punto de entrada de la aplicación mediante Streamlit.
+
+---
+
+## 🧩 Componentes principales
+
+| Módulo | Directorio/Archivo | Qué hace |
+|---|---|---|
+| **App Streamlit** | `src/interface/streamlit/app.py` | Interfaz de usuario, login y paneles. |
+| **Servicios Estudiante/Profesor** | `src/application/services/` | Orquestación de lógica para cada rol. |
+| **Motor ELO** | `src/domain/elo/` | Cálculo y actualización de ratings ELO competitivos. |
+| **Selector Adaptativo** | `src/domain/selector/` | Elige la siguiente pregunta óptima para el estudiante. |
+| **Repositorio SQLite** | `src/infrastructure/persistence/` | Gestión de base de datos local y sincronización. |
+| **Cliente IA** | `src/infrastructure/external_api/` | Conexión con modelos locales (LM Studio) para feedback. |
+| **Seguridad** | `src/infrastructure/security/` | Hashing de contraseñas y validación de sesiones. |
+| **Banco de preguntas** | `items/bank.json` | Preguntas clasificadas por tema y dificultad base. |
+
+---
+
+## ⚙️ ¿Cómo funciona?
+
+1. **Login/Registro** — El usuario crea una cuenta. Las contraseñas se almacenan de forma segura con Argon2.
+2. **Modo Práctica** — El sistema selecciona preguntas inteligentes usando el `AdaptiveItemSelector`.
+    - Si respondes bien → **tu ELO sube**; si fallas → **baja**.
+    - El sistema detecta "zona de desarrollo próximo" para no aburrir ni frustrar.
+3. **Análisis con IA** — Si tienes configurado **LM Studio**, un tutor socrático y un analista pedagógico te brindarán retroalimentación personalizada.
+4. **Dashboard Docente** — Los profesores pueden monitorear el progreso de sus grupos, ver probabilidades de fallo y generar reportes con IA.
+
+---
+
+## 🚀 Cómo ejecutar
+
+Asegúrate de tener Python 3.10+ instalado.
+
+1. **Instalar dependencias**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Ejecutar la aplicación**:
+   ```bash
+   streamlit run src/interface/streamlit/app.py
+   ```
+
+---
+
+## 📊 Algoritmo ELO Adaptativo
+
+Utilizamos un sistema de **Vector ELO**, donde cada materia tiene su propio rating independiente. La probabilidad de acierto se calcula basándose en la diferencia entre el ELO del estudiante y la dificultad del ítem, ajustando el rating mediante una constante *K* dinámica que considera la incertidumbre (RD).
