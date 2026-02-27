@@ -59,7 +59,26 @@ if 'ai_url' not in st.session_state:
     st.session_state.ai_url = "http://192.168.40.66:1234/v1"
 
 if 'ai_available' not in st.session_state:
-    st.session_state.ai_available = bool(get_active_models(st.session_state.ai_url))
+    if bool(get_active_models(st.session_state.ai_url)):
+        st.session_state.ai_available = True
+        st.session_state.ai_provider = 'lmstudio'
+        st.session_state.groq_api_key = None
+    else:
+        try:
+            groq_key = os.environ.get('GROQ_API_KEY') or st.secrets.get('GROQ_API_KEY', None)
+        except Exception:
+            groq_key = os.environ.get('GROQ_API_KEY')
+        if groq_key:
+            st.session_state.ai_available = True
+            st.session_state.ai_provider = 'groq'
+            st.session_state.groq_api_key = groq_key
+            # Modelos por defecto para Groq
+            st.session_state.model_cog = 'llama-3.1-8b-instant'
+            st.session_state.model_analysis = 'llama-3.3-70b-versatile'
+        else:
+            st.session_state.ai_available = False
+            st.session_state.ai_provider = None
+            st.session_state.groq_api_key = None
 
 # Mapeo de modelos por modo (Valores predeterminados que el usuario puede sobreescribir)
 AI_DEFAULTS = {
@@ -440,6 +459,13 @@ else:
             st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=80)
             st.write(f"### 🏫 Profesor: **{st.session_state.username}**")
             st.markdown("---")
+            _provider = st.session_state.get('ai_provider')
+            if _provider == 'groq':
+                st.caption("☁️ IA: Groq Cloud")
+            elif _provider == 'lmstudio':
+                st.caption("🖥️ IA: LM Studio Local")
+            else:
+                st.caption("⚠️ IA no disponible")
             if st.button("Cerrar Sesión"):
                 logout()
 
@@ -566,7 +592,8 @@ else:
                             try:
                                 with st.spinner("Analizando trayectoria del estudiante..."):
                                     analysis = st.session_state.teacher_service.generate_ai_analysis(
-                                        selected_student['id'], global_elo
+                                        selected_student['id'], global_elo,
+                                        api_key=st.session_state.groq_api_key
                                     )
                                     st.markdown(f"""
                                     <div class="elo-card" style="text-align: left; background: rgba(0, 201, 255, 0.05); border-color: rgba(0, 201, 255, 0.3);">
@@ -699,6 +726,13 @@ else:
                         st.session_state.student_service.cognitive_analyzer.model_name = new_cog
                         st.info("Configuración de modelos actualizada.")
 
+            _provider = st.session_state.get('ai_provider')
+            if _provider == 'groq':
+                st.caption("☁️ IA: Groq Cloud")
+            elif _provider == 'lmstudio':
+                st.caption("🖥️ IA: LM Studio Local")
+            else:
+                st.caption("⚠️ IA no disponible")
             if st.button("Cerrar Sesión"):
                 logout()
 
@@ -857,6 +891,7 @@ else:
                                         all_options=item_data['options'],
                                         base_url=st.session_state.ai_url,
                                         model_name=st.session_state.model_cog,
+                                        api_key=st.session_state.groq_api_key,
                                     ))
                             except (ConnectionError, TimeoutError):
                                 st.info("IA no disponible en este momento. Inténtalo más tarde.")
@@ -959,10 +994,11 @@ else:
                         
                         # Usar el modelo de análisis configurado
                         recommendations = analyze_performance_local(
-                            recent_attempts, 
-                            current_elo_val, 
+                            recent_attempts,
+                            current_elo_val,
                             base_url=lm_studio_url_dash,
-                            model_name=st.session_state.model_analysis
+                            model_name=st.session_state.model_analysis,
+                            api_key=st.session_state.groq_api_key,
                         )
 
                         if isinstance(recommendations, list) and len(recommendations) > 0:

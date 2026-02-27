@@ -13,8 +13,8 @@ def get_active_models(base_url="http://192.168.40.66:1234/v1"):
         pass
     return []
 
-def _call_ai_api(prompt, model_name, base_url, json_mode=False):
-    """Función de utilidad para llamar a la API de LM Studio."""
+def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None):
+    """Función de utilidad para llamar a LM Studio o Groq (api_key != None → Groq)."""
     system_instr = "Responde EXCLUSIVAMENTE con el contenido solicitado. "
     if json_mode:
         system_instr += "Formato: JSON puro, sin explicaciones externas."
@@ -22,73 +22,103 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False):
         system_instr += "Formato: Texto conversacional directo. REGLA CRÍTICA: Usa SIEMPRE notación LaTeX para matemáticas ($...$ para línea, $$...$$ para bloque)."
 
     full_prompt = f"SISTEMA: {system_instr}\n\nUSUARIO: {prompt}"
-    
-    payload = {
-        "model": model_name,
-        "messages": [{"role": "user", "content": full_prompt}],
-        "temperature": 0.3 if not json_mode else 0.1,
-        "max_tokens": 4096,
-        "stream": False
-    }
+    messages = [{"role": "user", "content": full_prompt}]
+    temperature = 0.3 if not json_mode else 0.1
 
-    try:
-        response = requests.post(f"{base_url.rstrip('/')}/chat/completions", json=payload, headers={"Content-Type": "application/json"}, timeout=180)
-        if response.status_code == 200:
-            content = response.json()['choices'][0]['message']['content']
-            # Limpiar razonamientos internos de DeepSeek u otros modelos
+    if api_key:
+        # ── Groq Cloud ──────────────────────────────────────────────────────
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
+            response = client.chat.completions.create(
+                model=model_name, messages=messages,
+                temperature=temperature, max_tokens=4096,
+            )
+            content = response.choices[0].message.content
             content = re.sub(r'<thought>.*?</thought>', '', content, flags=re.DOTALL)
             return content.strip()
-        return f"Error HTTP {response.status_code}"
-    except Exception as e:
-        return f"Error de conexión: {str(e)}"
+        except Exception as e:
+            return f"Error Groq: {str(e)}"
+    else:
+        # ── LM Studio local ─────────────────────────────────────────────────
+        payload = {
+            "model": model_name, "messages": messages,
+            "temperature": temperature, "max_tokens": 4096, "stream": False,
+        }
+        try:
+            response = requests.post(
+                f"{base_url.rstrip('/')}/chat/completions",
+                json=payload, headers={"Content-Type": "application/json"}, timeout=180,
+            )
+            if response.status_code == 200:
+                content = response.json()['choices'][0]['message']['content']
+                content = re.sub(r'<thought>.*?</thought>', '', content, flags=re.DOTALL)
+                return content.strip()
+            return f"Error HTTP {response.status_code}"
+        except Exception as e:
+            return f"Error de conexión: {str(e)}"
 
-def stream_ai_response(prompt, model_name, base_url="http://192.168.40.66:1234/v1"):
-    """Genera respuesta de IA en streaming. Retorna generador de chunks de texto."""
+def stream_ai_response(prompt, model_name, base_url="http://192.168.40.66:1234/v1", api_key=None):
+    """Genera respuesta de IA en streaming. api_key != None → Groq, sino LM Studio."""
     system_instr = (
         "Responde EXCLUSIVAMENTE con el contenido solicitado. "
         "Formato: Texto conversacional directo. "
         "REGLA CRÍTICA: Usa SIEMPRE notación LaTeX para matemáticas ($...$ para línea, $$...$$ para bloque)."
     )
     full_prompt = f"SISTEMA: {system_instr}\n\nUSUARIO: {prompt}"
-    payload = {
-        "model": model_name,
-        "messages": [{"role": "user", "content": full_prompt}],
-        "temperature": 0.3,
-        "max_tokens": 4096,
-        "stream": True,
-    }
-    try:
-        response = requests.post(
-            f"{base_url.rstrip('/')}/chat/completions",
-            json=payload,
-            headers={"Content-Type": "application/json"},
-            timeout=180,
-            stream=True,
-        )
-        response.raise_for_status()
-        for line in response.iter_lines():
-            if not line:
-                continue
-            decoded = line.decode("utf-8") if isinstance(line, bytes) else line
-            if not decoded.startswith("data: "):
-                continue
-            data = decoded[6:]
-            if data == "[DONE]":
-                return
-            try:
-                chunk = json.loads(data)
-                delta = chunk["choices"][0]["delta"].get("content", "")
+    messages = [{"role": "user", "content": full_prompt}]
+
+    if api_key:
+        # ── Groq Cloud streaming ─────────────────────────────────────────────
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
+            stream = client.chat.completions.create(
+                model=model_name, messages=messages,
+                temperature=0.3, max_tokens=4096, stream=True,
+            )
+            for chunk in stream:
+                delta = chunk.choices[0].delta.content
                 if delta:
                     yield delta
-            except (json.JSONDecodeError, KeyError):
-                continue
-    except requests.exceptions.ConnectionError as e:
-        raise ConnectionError(f"LM Studio no disponible: {e}") from e
-    except requests.exceptions.Timeout as e:
-        raise TimeoutError(f"Tiempo de espera agotado: {e}") from e
+        except Exception as e:
+            raise ConnectionError(f"Error Groq streaming: {e}") from e
+    else:
+        # ── LM Studio local streaming (SSE) ──────────────────────────────────
+        payload = {
+            "model": model_name, "messages": messages,
+            "temperature": 0.3, "max_tokens": 4096, "stream": True,
+        }
+        try:
+            response = requests.post(
+                f"{base_url.rstrip('/')}/chat/completions",
+                json=payload, headers={"Content-Type": "application/json"},
+                timeout=180, stream=True,
+            )
+            response.raise_for_status()
+            for line in response.iter_lines():
+                if not line:
+                    continue
+                decoded = line.decode("utf-8") if isinstance(line, bytes) else line
+                if not decoded.startswith("data: "):
+                    continue
+                data = decoded[6:]
+                if data == "[DONE]":
+                    return
+                try:
+                    chunk = json.loads(data)
+                    delta = chunk["choices"][0]["delta"].get("content", "")
+                    if delta:
+                        yield delta
+                except (json.JSONDecodeError, KeyError):
+                    continue
+        except requests.exceptions.ConnectionError as e:
+            raise ConnectionError(f"LM Studio no disponible: {e}") from e
+        except requests.exceptions.Timeout as e:
+            raise TimeoutError(f"Tiempo de espera agotado: {e}") from e
 
 
-def get_socratic_guidance(student_rating, topic, content, student_answer, correct_answer, all_options, base_url="http://192.168.40.66:1234/v1", model_name="google/gemma-3-4b"):
+def get_socratic_guidance(student_rating, topic, content, student_answer, correct_answer, all_options, base_url="http://192.168.40.66:1234/v1", model_name="google/gemma-3-4b", api_key=None):
     """Genera una guía socrática adaptativa y altamente alineada para el estudiante."""
     
     options_str = "\n".join([f"- {opt}" for opt in all_options])
@@ -116,10 +146,10 @@ def get_socratic_guidance(student_rating, topic, content, student_answer, correc
     6. Sé breve, motivador y puramente socrático (guía mediante preguntas).
     7. REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática (integrales, raíces, potencias, etc.) exclusivamente en LaTeX usando $...$ o $$...$$.
     """
-    return _call_ai_api(prompt, model_name, base_url)
+    return _call_ai_api(prompt, model_name, base_url, api_key=api_key)
 
 
-def get_socratic_guidance_stream(student_rating, topic, content, student_answer, correct_answer, all_options, base_url="http://192.168.40.66:1234/v1", model_name="google/gemma-3-4b"):
+def get_socratic_guidance_stream(student_rating, topic, content, student_answer, correct_answer, all_options, base_url="http://192.168.40.66:1234/v1", model_name="google/gemma-3-4b", api_key=None):
     """Versión streaming de get_socratic_guidance. Retorna generador de chunks."""
     options_str = "\n".join([f"- {opt}" for opt in all_options])
     prompt = f"""
@@ -145,10 +175,10 @@ def get_socratic_guidance_stream(student_rating, topic, content, student_answer,
     6. Sé breve, motivador y puramente socrático (guía mediante preguntas).
     7. REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática en LaTeX usando $...$ o $$...$$.
     """
-    yield from stream_ai_response(prompt, model_name, base_url)
+    yield from stream_ai_response(prompt, model_name, base_url, api_key=api_key)
 
 
-def get_pedagogical_analysis(student_data, base_url="http://192.168.40.66:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3"):
+def get_pedagogical_analysis(student_data, base_url="http://192.168.40.66:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3", api_key=None):
     """Genera un análisis pedagógico detallado para el profesor."""
     prompt = f"""
     Actúa como analista pedagógico experto. 
@@ -169,9 +199,9 @@ def get_pedagogical_analysis(student_data, base_url="http://192.168.40.66:1234/v
     IMPORTANTE: No expliques teoría básica. Sé directo y profesional. Usa bullet points.
     REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática en LaTeX usando $...$ o $$...$$.
     """
-    return _call_ai_api(prompt, model_name, base_url)
+    return _call_ai_api(prompt, model_name, base_url, api_key=api_key)
 
-def analyze_performance_local(history_data, current_elo, base_url="http://192.168.40.66:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3"):
+def analyze_performance_local(history_data, current_elo, base_url="http://192.168.40.66:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3", api_key=None):
     """
     Analiza el rendimiento del estudiante (versión JSON para el dashboard de estadísticas).
     """
@@ -193,7 +223,7 @@ def analyze_performance_local(history_data, current_elo, base_url="http://192.16
     ]
     """
     
-    content = _call_ai_api(prompt, model_name, base_url, json_mode=True)
+    content = _call_ai_api(prompt, model_name, base_url, json_mode=True, api_key=api_key)
     
     # Intento de extracción de JSON
     try:
