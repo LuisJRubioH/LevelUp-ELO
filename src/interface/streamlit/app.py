@@ -69,48 +69,30 @@ if 'lmstudio_models' not in st.session_state:
 if 'cloud_api_key' not in st.session_state:
     st.session_state.cloud_api_key = None
 
+@st.cache_resource
+def _get_cached_ai_client(lmstudio_url: str):
+    """Detecta el backend de IA UNA SOLA VEZ por URL para toda la instancia de la app.
+    @st.cache_resource evita repetir la llamada de red en cada rerun o nueva sesión.
+    """
+    return ai_mod.get_ai_client(lmstudio_url)
+
 if 'ai_available' not in st.session_state:
-    _detection = ai_mod.detect_lmstudio(st.session_state.ai_url)
-    if _detection['available']:
-        st.session_state.ai_available = True
-        st.session_state.ai_provider = 'lmstudio'
-        st.session_state.cloud_api_key = None
-        st.session_state.lmstudio_models = _detection['models']
-        _best = ai_mod.select_best_model(_detection['models'])
+    _client = _get_cached_ai_client(st.session_state.ai_url)
+    st.session_state.ai_available = _client.is_available
+    st.session_state.ai_provider = _client.provider
+    st.session_state.cloud_api_key = _client.api_key
+    if _client.provider == 'lmstudio':
+        st.session_state.lmstudio_models = _client.models
+        _best = ai_mod.select_best_model(_client.models)
         if _best:
             st.session_state.model_cog = _best
             st.session_state.model_analysis = _best
-    else:
-        # Buscar API key en variables de entorno / secrets (varios proveedores)
-        _cloud_key = None
-        _cloud_provider = None
-        _env_vars = [
-            ('GROQ_API_KEY', 'groq'),
-            ('OPENAI_API_KEY', 'openai'),
-            ('ANTHROPIC_API_KEY', 'anthropic'),
-            ('GOOGLE_API_KEY', 'gemini'),
-            ('HF_TOKEN', 'huggingface'),
-        ]
-        for _env_name, _env_provider in _env_vars:
-            try:
-                _val = os.environ.get(_env_name) or st.secrets.get(_env_name, None)
-            except Exception:
-                _val = os.environ.get(_env_name)
-            if _val:
-                _cloud_key = _val
-                _cloud_provider = _env_provider
-                break
-        if _cloud_key:
-            _pinfo = ai_mod.PROVIDERS.get(_cloud_provider, {})
-            st.session_state.ai_available = True
-            st.session_state.ai_provider = _cloud_provider
-            st.session_state.cloud_api_key = _cloud_key
-            st.session_state.model_cog = _pinfo.get('model_cog', 'llama-3.1-8b-instant')
-            st.session_state.model_analysis = _pinfo.get('model_analysis', 'llama-3.3-70b-versatile')
-        else:
-            st.session_state.ai_available = False
-            st.session_state.ai_provider = None
-            st.session_state.cloud_api_key = None
+    elif _client.provider:
+        _pinfo = ai_mod.PROVIDERS.get(_client.provider, {})
+        if _pinfo.get('model_cog'):
+            st.session_state.model_cog = _pinfo['model_cog']
+        if _pinfo.get('model_analysis'):
+            st.session_state.model_analysis = _pinfo['model_analysis']
 
 # Mapeo de modelos por modo (Valores predeterminados que el usuario puede sobreescribir)
 AI_DEFAULTS = {
@@ -491,76 +473,83 @@ else:
             st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=80)
             st.write(f"### 🏫 Profesor: **{st.session_state.username}**")
             st.markdown("---")
-            st.caption("🔧 **Proveedor de IA**")
-            _t_mode = st.radio(
-                "Modo IA",
-                ["🤖 Auto", "☁️ API Key", "🖥️ Local"],
-                index=["auto", "cloud", "local"].index(st.session_state.get('ai_provider_mode', 'auto')),
-                key="provider_radio_teacher",
-                label_visibility="collapsed",
-                horizontal=True,
-            )
-            st.session_state.ai_provider_mode = {"🤖 Auto": "auto", "☁️ API Key": "cloud", "🖥️ Local": "local"}[_t_mode]
-
-            if _t_mode == "🤖 Auto":
-                if st.button("🔄 Reconectar", key="btn_reconnect_teacher"):
-                    for _k in ('ai_available', 'lmstudio_models'):
-                        st.session_state.pop(_k, None)
-                    st.rerun()
-            elif _t_mode == "☁️ API Key":
-                _key_in = st.text_input(
-                    "API Key", type="password",
-                    value=st.session_state.cloud_api_key or "",
-                    placeholder="sk-ant-… / gsk_… / sk-… / AIzaSy…",
-                    key="cloud_key_teacher",
+            # ── Badge de estado de IA (siempre visible) ───────────────────────
+            _badge_p = st.session_state.get('ai_provider')
+            _badge_ok = st.session_state.get('ai_available', False)
+            if not _badge_ok or not _badge_p:
+                st.markdown("⚠️ **Sin backend de IA**")
+            elif _badge_p == 'lmstudio':
+                st.markdown("🟢 **Local Conectada**")
+            else:
+                _badge_label = ai_mod.PROVIDERS.get(_badge_p, {}).get('label', _badge_p)
+                _badge_name = _badge_label.split(' ', 1)[-1] if _badge_label else _badge_p
+                st.markdown(f"🔵 **{_badge_name} Activo**")
+            with st.expander("⚙️ Configuración de IA"):
+                st.caption("🔧 **Proveedor de IA**")
+                _t_mode = st.radio(
+                    "Modo IA",
+                    ["🤖 Auto", "☁️ API Key", "🖥️ Local"],
+                    index=["auto", "cloud", "local"].index(st.session_state.get('ai_provider_mode', 'auto')),
+                    key="provider_radio_teacher",
+                    label_visibility="collapsed",
+                    horizontal=True,
                 )
-                if _key_in:
-                    _detected = ai_mod.detect_provider_from_key(_key_in)
-                    st.session_state.cloud_api_key = _key_in
-                    st.session_state.ai_provider = _detected or 'groq'
-                    _pinfo = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {})
-                    st.session_state.model_cog = _pinfo.get('model_cog') or st.session_state.model_cog
-                    st.session_state.model_analysis = _pinfo.get('model_analysis') or st.session_state.model_analysis
-                    st.session_state.ai_available = True
-                    _plabel = _pinfo.get('label', st.session_state.ai_provider)
-                    st.success(f"{_plabel} detectado")
-                else:
-                    st.caption("Soporta: Groq, OpenAI, Anthropic, Gemini, HuggingFace")
-            elif _t_mode == "🖥️ Local":
-                _local_url = st.text_input("URL servidor local", value=st.session_state.ai_url, key="lm_url_teacher")
-                st.session_state.ai_url = _local_url
-                if st.button("🔍 Detectar modelos", key="btn_detect_teacher"):
-                    _det = ai_mod.detect_lmstudio(st.session_state.ai_url)
-                    st.session_state.lmstudio_models = _det['models']
-                    if _det['available']:
+                st.session_state.ai_provider_mode = {"🤖 Auto": "auto", "☁️ API Key": "cloud", "🖥️ Local": "local"}[_t_mode]
+
+                if _t_mode == "🤖 Auto":
+                    if st.button("🔄 Reconectar", key="btn_reconnect_teacher"):
+                        for _k in ('ai_available', 'lmstudio_models'):
+                            st.session_state.pop(_k, None)
+                        st.rerun()
+                elif _t_mode == "☁️ API Key":
+                    _key_in = st.text_input(
+                        "API Key", type="password",
+                        value=st.session_state.cloud_api_key or "",
+                        placeholder="sk-ant-… / gsk_… / sk-… / AIzaSy…",
+                        key="cloud_key_teacher",
+                    )
+                    st.caption("🔒 Tus credenciales son seguras y no se almacenan en ninguna base de datos.")
+                    if _key_in:
+                        _detected = ai_mod.detect_provider_from_key(_key_in)
+                        st.session_state.cloud_api_key = _key_in
+                        st.session_state.ai_provider = _detected or 'groq'
+                        _pinfo = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {})
+                        st.session_state.model_cog = _pinfo.get('model_cog') or st.session_state.model_cog
+                        st.session_state.model_analysis = _pinfo.get('model_analysis') or st.session_state.model_analysis
+                        st.session_state.ai_available = True
+                        _plabel = _pinfo.get('label', st.session_state.ai_provider)
+                        st.success(f"{_plabel} detectado")
+                    else:
+                        st.caption("Soporta: Groq, OpenAI, Anthropic, Gemini, HuggingFace")
+                elif _t_mode == "🖥️ Local":
+                    _local_url = st.text_input("URL servidor local", value=st.session_state.ai_url, key="lm_url_teacher")
+                    st.session_state.ai_url = _local_url
+                    if st.button("🔍 Detectar modelos", key="btn_detect_teacher"):
+                        _det = ai_mod.detect_lmstudio(st.session_state.ai_url)
+                        st.session_state.lmstudio_models = _det['models']
+                        if _det['available']:
+                            st.session_state.ai_available = True
+                            st.session_state.ai_provider = 'lmstudio'
+                            st.session_state.cloud_api_key = None
+                            _best = ai_mod.select_best_model(_det['models'])
+                            if _best:
+                                st.session_state.model_cog = _best
+                                st.session_state.model_analysis = _best
+                            st.rerun()
+                        else:
+                            st.error("Servidor no detectado en esa URL")
+                    _models = st.session_state.get('lmstudio_models', [])
+                    if _models:
+                        _sel_idx = _models.index(st.session_state.model_cog) if st.session_state.model_cog in _models else 0
+                        _sel = st.selectbox("Modelo activo", _models, index=_sel_idx, key="lm_model_teacher")
+                        if _sel != st.session_state.model_cog:
+                            st.session_state.model_cog = _sel
+                            st.session_state.model_analysis = _sel
                         st.session_state.ai_available = True
                         st.session_state.ai_provider = 'lmstudio'
-                        st.session_state.cloud_api_key = None
-                        _best = ai_mod.select_best_model(_det['models'])
-                        if _best:
-                            st.session_state.model_cog = _best
-                            st.session_state.model_analysis = _best
-                        st.rerun()
                     else:
-                        st.error("Servidor no detectado en esa URL")
-                _models = st.session_state.get('lmstudio_models', [])
-                if _models:
-                    _sel_idx = _models.index(st.session_state.model_cog) if st.session_state.model_cog in _models else 0
-                    _sel = st.selectbox("Modelo activo", _models, index=_sel_idx, key="lm_model_teacher")
-                    if _sel != st.session_state.model_cog:
-                        st.session_state.model_cog = _sel
-                        st.session_state.model_analysis = _sel
-                    st.session_state.ai_available = True
-                    st.session_state.ai_provider = 'lmstudio'
-                else:
-                    st.caption("Pulsa 'Detectar modelos' para listar los disponibles")
+                        st.caption("Pulsa 'Detectar modelos' para listar los disponibles")
 
-            _p = st.session_state.get('ai_provider')
-            _pinfo_label = ai_mod.PROVIDERS.get(_p, {}).get('label', _p) if _p else None
-            if _p and st.session_state.get('ai_available'):
-                st.caption(f"✅ {_pinfo_label}")
-            else:
-                st.caption("⚠️ IA no disponible")
             if st.button("Cerrar Sesión"):
                 logout()
 
@@ -595,20 +584,30 @@ else:
                         st.caption(f"Pregunta: {_sub['item_content'][:120]}{'…' if len(_sub['item_content']) > 120 else ''}")
                         _c_img, _c_fb = st.columns([1, 1])
                         with _c_img:
-                            st.image(
-                                bytes(_sub['image_data']),
-                                caption="Procedimiento del estudiante",
-                                use_container_width=True,
-                            )
+                            # Mostrar imagen desde archivo si existe, si no desde BLOB
+                            _img_path = _sub.get('procedure_image_path')
+                            if _img_path and os.path.exists(_img_path):
+                                st.image(_img_path, caption="Procedimiento del estudiante", use_container_width=True)
+                            elif _sub.get('image_data'):
+                                st.image(bytes(_sub['image_data']), caption="Procedimiento del estudiante", use_container_width=True)
+                            else:
+                                st.warning("Imagen no disponible.")
                         with _c_fb:
+                            _proc_score = st.number_input(
+                                "📊 Calidad del procedimiento (0.0 – 5.0)",
+                                min_value=0.0, max_value=5.0, value=3.0, step=0.1,
+                                format="%.1f",
+                                key=f"score_{_sub['id']}",
+                                help="Evalúa la calidad del desarrollo matemático del estudiante.",
+                            )
                             _fb_text = st.text_area(
-                                "Retroalimentación escrita:",
+                                "📝 Retroalimentación escrita:",
                                 key=f"fb_text_{_sub['id']}",
                                 placeholder="Escribe tu retroalimentación aquí…",
-                                height=150,
+                                height=120,
                             )
                             _fb_img = st.file_uploader(
-                                "O sube el procedimiento calificado (opcional):",
+                                "🖼️ Sube el procedimiento corregido (opcional):",
                                 type=["jpg", "jpeg", "png", "webp"],
                                 key=f"fb_img_{_sub['id']}",
                             )
@@ -628,9 +627,10 @@ else:
                                         'png': 'image/png', 'webp': 'image/webp',
                                     }.get(_fext, 'image/jpeg')
                                 st.session_state.db.save_teacher_feedback(
-                                    _sub['id'], _fb_text, _fb_img_data, _fb_mime
+                                    _sub['id'], _fb_text, _fb_img_data, _fb_mime,
+                                    procedure_score=_proc_score,
                                 )
-                                st.success(f"Retroalimentación enviada a {_sub['student_name']}.")
+                                st.success(f"Retroalimentación enviada a {_sub['student_name']} (nota: {_proc_score}/5.0).")
                                 st.rerun()
 
         # ── Gestión de Grupos ──────────────────────────────────────────────────
@@ -686,13 +686,23 @@ else:
                     global_elo = sum(e for e, r in elo_by_topic.values()) / len(elo_by_topic)
                 else:
                     global_elo = 1000.0
-                
+
                 rank_name, _ = get_rank(global_elo)
+
+                # Calcular promedio de calidad de procedimientos
+                _s_proc = st.session_state.db.get_student_procedure_scores(s['id'])
+                if _s_proc:
+                    _s_avg = sum(p['score'] for p in _s_proc) / len(_s_proc)
+                    proc_display = f"{_s_avg:.1f}/5.0 ({len(_s_proc)})"
+                else:
+                    proc_display = "Sin envíos"
+
                 row = {
-                    "Estudiante": s['username'], 
-                    "Grupo": s.get('group_name', selected_group_name), 
-                    "ELO Global": round(global_elo, 1), 
-                    "Rango": rank_name
+                    "Estudiante": s['username'],
+                    "Grupo": s.get('group_name', selected_group_name),
+                    "ELO Global": round(global_elo, 1),
+                    "Rango": rank_name,
+                    "Procedimientos": proc_display,
                 }
                 # Añadir cada tópico a la fila (solo el valor de elo para la tabla resumen)
                 row.update({topic: round(val[0], 1) for topic, val in elo_by_topic.items()})
@@ -702,8 +712,9 @@ else:
             df_summary = pd.DataFrame(summary_rows)
             # Asegurar que las columnas de tópicos sean numéricas para evitar error de Arrow
             # Llenar con 1000.0 (ELO base) en lugar de un string "—"
+            _str_cols = {"Estudiante", "Grupo", "Rango", "Procedimientos"}
             for col in df_summary.columns:
-                if col not in ["Estudiante", "Grupo", "Rango"]:
+                if col not in _str_cols:
                     df_summary[col] = pd.to_numeric(df_summary[col], errors='coerce').fillna(1000.0)
             
             st.dataframe(df_summary, width='stretch')
@@ -753,10 +764,17 @@ else:
                         if st.button("🧠 Generar Análisis Pedagógico con IA", key=f"ai_anal_{selected_student['id']}", width='stretch', disabled=not st.session_state.ai_available, help=_ai_help):
                             try:
                                 with st.spinner("Analizando trayectoria del estudiante..."):
+                                    _sel_proc = st.session_state.db.get_student_procedure_scores(selected_student['id'])
+                                    _sel_proc_stats = {
+                                        'count': len(_sel_proc),
+                                        'avg_score': (sum(p['score'] for p in _sel_proc) / len(_sel_proc)) if _sel_proc else None,
+                                        'scores': [p['score'] for p in _sel_proc],
+                                    }
                                     analysis = st.session_state.teacher_service.generate_ai_analysis(
                                         selected_student['id'], global_elo,
                                         api_key=st.session_state.cloud_api_key,
                                         provider=st.session_state.get('ai_provider'),
+                                        procedure_stats=_sel_proc_stats,
                                     )
                                 with st.container(border=True):
                                     st.markdown("#### 📋 Análisis Pedagógico con IA")
@@ -844,79 +862,85 @@ else:
                 selected_topic = st.selectbox("¿Qué quieres estudiar hoy?", ["Todos"] + topics)
 
             st.markdown("---")
-            st.caption("🔧 **Proveedor de IA**")
-            _s_mode = st.radio(
-                "Modo IA",
-                ["🤖 Auto", "☁️ API Key", "🖥️ Local"],
-                index=["auto", "cloud", "local"].index(st.session_state.get('ai_provider_mode', 'auto')),
-                key="provider_radio_st",
-                label_visibility="collapsed",
-                horizontal=True,
-            )
-            st.session_state.ai_provider_mode = {"🤖 Auto": "auto", "☁️ API Key": "cloud", "🖥️ Local": "local"}[_s_mode]
-
-            if _s_mode == "🤖 Auto":
-                if st.button("🔄 Reconectar", key="btn_reconnect_ai"):
-                    for _k in ('ai_available', 'lmstudio_models'):
-                        st.session_state.pop(_k, None)
-                    st.rerun()
-            elif _s_mode == "☁️ API Key":
-                _key_in_st = st.text_input(
-                    "API Key", type="password",
-                    value=st.session_state.cloud_api_key or "",
-                    placeholder="sk-ant-… / gsk_… / sk-… / AIzaSy…",
-                    key="cloud_key_st",
+            # ── Badge de estado de IA (siempre visible) ───────────────────────
+            _badge_p = st.session_state.get('ai_provider')
+            _badge_ok = st.session_state.get('ai_available', False)
+            if not _badge_ok or not _badge_p:
+                st.markdown("⚠️ **Sin backend de IA**")
+            elif _badge_p == 'lmstudio':
+                st.markdown("🟢 **Local Conectada**")
+            else:
+                _badge_label = ai_mod.PROVIDERS.get(_badge_p, {}).get('label', _badge_p)
+                _badge_name = _badge_label.split(' ', 1)[-1] if _badge_label else _badge_p
+                st.markdown(f"🔵 **{_badge_name} Activo**")
+            with st.expander("⚙️ Configuración de IA"):
+                st.caption("🔧 **Proveedor de IA**")
+                _s_mode = st.radio(
+                    "Modo IA",
+                    ["🤖 Auto", "☁️ API Key", "🖥️ Local"],
+                    index=["auto", "cloud", "local"].index(st.session_state.get('ai_provider_mode', 'auto')),
+                    key="provider_radio_st",
+                    label_visibility="collapsed",
+                    horizontal=True,
                 )
-                if _key_in_st:
-                    _detected_st = ai_mod.detect_provider_from_key(_key_in_st)
-                    st.session_state.cloud_api_key = _key_in_st
-                    st.session_state.ai_provider = _detected_st or 'groq'
-                    _pinfo_st = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {})
-                    st.session_state.model_cog = _pinfo_st.get('model_cog') or st.session_state.model_cog
-                    st.session_state.model_analysis = _pinfo_st.get('model_analysis') or st.session_state.model_analysis
-                    st.session_state.student_service.cognitive_analyzer.model_name = st.session_state.model_cog
-                    st.session_state.ai_available = True
-                    _plabel_st = _pinfo_st.get('label', st.session_state.ai_provider)
-                    st.success(f"{_plabel_st} detectado")
-                else:
-                    st.caption("Soporta: Groq, OpenAI, Anthropic, Gemini, HuggingFace")
-            elif _s_mode == "🖥️ Local":
-                _local_url_st = st.text_input("URL servidor local", value=st.session_state.ai_url, key="lm_url_st")
-                st.session_state.ai_url = _local_url_st
-                if st.button("🔍 Detectar modelos", key="btn_detect_lm"):
-                    _det = ai_mod.detect_lmstudio(st.session_state.ai_url)
-                    st.session_state.lmstudio_models = _det['models']
-                    if _det['available']:
+                st.session_state.ai_provider_mode = {"🤖 Auto": "auto", "☁️ API Key": "cloud", "🖥️ Local": "local"}[_s_mode]
+
+                if _s_mode == "🤖 Auto":
+                    if st.button("🔄 Reconectar", key="btn_reconnect_ai"):
+                        for _k in ('ai_available', 'lmstudio_models'):
+                            st.session_state.pop(_k, None)
+                        st.rerun()
+                elif _s_mode == "☁️ API Key":
+                    _key_in_st = st.text_input(
+                        "API Key", type="password",
+                        value=st.session_state.cloud_api_key or "",
+                        placeholder="sk-ant-… / gsk_… / sk-… / AIzaSy…",
+                        key="cloud_key_st",
+                    )
+                    st.caption("🔒 Tus credenciales son seguras y no se almacenan en ninguna base de datos.")
+                    if _key_in_st:
+                        _detected_st = ai_mod.detect_provider_from_key(_key_in_st)
+                        st.session_state.cloud_api_key = _key_in_st
+                        st.session_state.ai_provider = _detected_st or 'groq'
+                        _pinfo_st = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {})
+                        st.session_state.model_cog = _pinfo_st.get('model_cog') or st.session_state.model_cog
+                        st.session_state.model_analysis = _pinfo_st.get('model_analysis') or st.session_state.model_analysis
+                        st.session_state.student_service.cognitive_analyzer.model_name = st.session_state.model_cog
+                        st.session_state.ai_available = True
+                        _plabel_st = _pinfo_st.get('label', st.session_state.ai_provider)
+                        st.success(f"{_plabel_st} detectado")
+                    else:
+                        st.caption("Soporta: Groq, OpenAI, Anthropic, Gemini, HuggingFace")
+                elif _s_mode == "🖥️ Local":
+                    _local_url_st = st.text_input("URL servidor local", value=st.session_state.ai_url, key="lm_url_st")
+                    st.session_state.ai_url = _local_url_st
+                    if st.button("🔍 Detectar modelos", key="btn_detect_lm"):
+                        _det = ai_mod.detect_lmstudio(st.session_state.ai_url)
+                        st.session_state.lmstudio_models = _det['models']
+                        if _det['available']:
+                            st.session_state.ai_available = True
+                            st.session_state.ai_provider = 'lmstudio'
+                            st.session_state.cloud_api_key = None
+                            _best = ai_mod.select_best_model(_det['models'])
+                            if _best:
+                                st.session_state.model_cog = _best
+                                st.session_state.model_analysis = _best
+                                st.session_state.student_service.cognitive_analyzer.model_name = _best
+                            st.rerun()
+                        else:
+                            st.error("Servidor no detectado en esa URL")
+                    _models = st.session_state.get('lmstudio_models', [])
+                    if _models:
+                        _sel_idx = _models.index(st.session_state.model_cog) if st.session_state.model_cog in _models else 0
+                        _sel = st.selectbox("Modelo activo", _models, index=_sel_idx, key="lm_model_sel")
+                        if _sel != st.session_state.model_cog:
+                            st.session_state.model_cog = _sel
+                            st.session_state.model_analysis = _sel
+                            st.session_state.student_service.cognitive_analyzer.model_name = _sel
                         st.session_state.ai_available = True
                         st.session_state.ai_provider = 'lmstudio'
-                        st.session_state.cloud_api_key = None
-                        _best = ai_mod.select_best_model(_det['models'])
-                        if _best:
-                            st.session_state.model_cog = _best
-                            st.session_state.model_analysis = _best
-                            st.session_state.student_service.cognitive_analyzer.model_name = _best
-                        st.rerun()
                     else:
-                        st.error("Servidor no detectado en esa URL")
-                _models = st.session_state.get('lmstudio_models', [])
-                if _models:
-                    _sel_idx = _models.index(st.session_state.model_cog) if st.session_state.model_cog in _models else 0
-                    _sel = st.selectbox("Modelo activo", _models, index=_sel_idx, key="lm_model_sel")
-                    if _sel != st.session_state.model_cog:
-                        st.session_state.model_cog = _sel
-                        st.session_state.model_analysis = _sel
-                        st.session_state.student_service.cognitive_analyzer.model_name = _sel
-                    st.session_state.ai_available = True
-                    st.session_state.ai_provider = 'lmstudio'
-                else:
-                    st.caption("Pulsa 'Detectar modelos' para listar los disponibles")
-
-            _p = st.session_state.get('ai_provider')
-            _pinfo_label = ai_mod.PROVIDERS.get(_p, {}).get('label', _p) if _p else None
-            if _p and st.session_state.get('ai_available'):
-                st.caption(f"✅ {_pinfo_label}")
-            else:
-                st.caption("⚠️ IA no disponible")
+                        st.caption("Pulsa 'Detectar modelos' para listar los disponibles")
 
             if st.button("Cerrar Sesión"):
                 logout()
@@ -1119,19 +1143,24 @@ else:
                                     disabled=not st.session_state.ai_available,
                                 ):
                                     with st.spinner("Analizando procedimiento..."):
-                                        result = analyze_procedure_image(
-                                            uploaded_file.getvalue(), _mime,
-                                            item_data['content'],
-                                            model_name=st.session_state.model_analysis,
-                                            base_url=st.session_state.ai_url,
-                                            api_key=st.session_state.cloud_api_key,
-                                            provider=st.session_state.get('ai_provider'),
-                                        )
-                                    if result == "VISION_NOT_SUPPORTED":
-                                        # El modelo respondió que no soporta visión → escalar al docente
-                                        st.session_state[f'proc_no_vision_{_iid}'] = True
-                                    else:
-                                        st.session_state[f'proc_fb_{_iid}'] = result
+                                        try:
+                                            result = analyze_procedure_image(
+                                                uploaded_file.getvalue(), _mime,
+                                                item_data['content'],
+                                                model_name=st.session_state.model_analysis,
+                                                base_url=st.session_state.ai_url,
+                                                api_key=st.session_state.cloud_api_key,
+                                                provider=st.session_state.get('ai_provider'),
+                                            )
+                                            if result == "VISION_NOT_SUPPORTED":
+                                                st.session_state[f'proc_no_vision_{_iid}'] = True
+                                            else:
+                                                st.session_state[f'proc_fb_{_iid}'] = result
+                                        except Exception:
+                                            st.session_state[f'proc_no_vision_{_iid}'] = True
+
+                                if st.session_state.get(f'proc_no_vision_{_iid}'):
+                                    st.info("El profesor revisará el archivo y proporcionará la retroalimentación.")
 
                                 _ai_fb = st.session_state.get(f'proc_fb_{_iid}')
                                 if _ai_fb:
@@ -1145,10 +1174,7 @@ else:
                             if _no_vision:
                                 _sub = st.session_state.db.get_student_submission(_uid, _iid)
                                 if _sub is None:
-                                    st.caption(
-                                        "El modelo activo no analiza imágenes. "
-                                        "Tu procedimiento puede ser revisado por tu profesor."
-                                    )
+                                    st.info("El profesor revisará el archivo y proporcionará la retroalimentación.")
                                     if st.button(
                                         "📤 Enviar al profesor para revisión",
                                         key=f"send_teacher_{_iid}",
@@ -1164,22 +1190,26 @@ else:
                                 elif _sub['status'] == 'reviewed':
                                     with st.container(border=True):
                                         st.markdown("##### ✅ Retroalimentación del Profesor")
+                                        if _sub.get('procedure_score') is not None:
+                                            st.metric("📊 Nota del procedimiento", f"{_sub['procedure_score']:.1f} / 5.0")
                                         if _sub.get('teacher_feedback'):
                                             st.markdown(_sub['teacher_feedback'])
-                                        if _sub.get('feedback_image'):
-                                            st.image(
-                                                bytes(_sub['feedback_image']),
-                                                caption="Procedimiento calificado",
-                                                use_container_width=True,
-                                            )
+                                        # Mostrar imagen desde archivo si existe, si no desde BLOB
+                                        _fb_path = _sub.get('feedback_image_path')
+                                        if _fb_path and os.path.exists(_fb_path):
+                                            st.image(_fb_path, caption="Procedimiento calificado", use_container_width=True)
+                                        elif _sub.get('feedback_image'):
+                                            st.image(bytes(_sub['feedback_image']), caption="Procedimiento calificado", use_container_width=True)
 
         elif mode == "📊 Estadísticas":
             st.title("📊 Estadísticas de Aprendizaje")
 
             history_full = st.session_state.db.get_user_history_full(st.session_state.user_id)
             attempts_data = st.session_state.db.get_attempts_for_ai(st.session_state.user_id, limit=1000)
+            # Cargar scores de procedimientos una sola vez para toda la sección
+            _proc_scores = st.session_state.db.get_student_procedure_scores(st.session_state.user_id)
 
-            m1, m2, m3 = st.columns(3)
+            m1, m2, m3, m4 = st.columns(4)
             with m1:
                 st.metric("Ejercicios Resueltos", len(history_full), delta=f"+{len(attempts_data)} recientes")
             with m2:
@@ -1192,6 +1222,20 @@ else:
                 global_elo = aggregate_global_elo(st.session_state.vector)
                 rank_n, rank_c = get_rank(global_elo)
                 st.metric("Nivel Global", f"{global_elo:.0f}", delta=rank_n)
+            with m4:
+                if _proc_scores:
+                    avg_proc = sum(s['score'] for s in _proc_scores) / len(_proc_scores)
+                    st.metric("📝 Calidad de Procedimientos", f"{avg_proc:.1f} / 5.0",
+                              delta=f"{len(_proc_scores)} evaluado(s)")
+                else:
+                    st.metric("📝 Calidad de Procedimientos", "Sin datos")
+
+            if not _proc_scores:
+                st.info(
+                    "No has subido procedimientos manuales. Te recomendamos subir fotos de tu "
+                    "desarrollo paso a paso para que el profesor pueda evaluarte y la IA pueda "
+                    "darte mejores recomendaciones."
+                )
 
             st.markdown("---")
 
@@ -1270,6 +1314,11 @@ else:
                     with st.spinner("Analizando patrones de aprendizaje..."):
                         recent_attempts = st.session_state.db.get_attempts_for_ai(st.session_state.user_id)
                         current_elo_val = aggregate_global_elo(st.session_state.vector)
+                        _proc_stats = {
+                            'count': len(_proc_scores),
+                            'avg_score': (sum(s['score'] for s in _proc_scores) / len(_proc_scores)) if _proc_scores else None,
+                            'scores': [s['score'] for s in _proc_scores],
+                        }
                         recs = analyze_performance_local(
                             recent_attempts,
                             current_elo_val,
@@ -1277,6 +1326,7 @@ else:
                             model_name=st.session_state.model_analysis,
                             api_key=st.session_state.cloud_api_key,
                             provider=st.session_state.get('ai_provider'),
+                            procedure_stats=_proc_stats,
                         )
                     # Guardar en session_state y renderizar FUERA del spinner
                     st.session_state['study_recs'] = recs if isinstance(recs, list) else []

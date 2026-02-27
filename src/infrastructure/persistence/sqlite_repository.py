@@ -93,6 +93,20 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    def get_student_procedure_scores(self, student_id):
+        """Retorna lista de notas de procedimientos evaluados por el docente para el estudiante."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT procedure_score, submitted_at
+            FROM procedure_submissions
+            WHERE student_id = ? AND procedure_score IS NOT NULL
+            ORDER BY submitted_at DESC
+        ''', (student_id,))
+        rows = cursor.fetchall()
+        conn.close()
+        return [{'score': row[0], 'submitted_at': row[1]} for row in rows]
+
 
     def _migrate_db(self):
         """Agrega columnas nuevas de forma segura si no existen (migración)."""
@@ -160,6 +174,16 @@ class SQLiteRepository:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+
+        # Migración de procedure_submissions: columnas añadidas en v2
+        cursor.execute("PRAGMA table_info(procedure_submissions)")
+        _proc_cols = [row[1] for row in cursor.fetchall()]
+        if 'procedure_score' not in _proc_cols:
+            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN procedure_score REAL")
+        if 'procedure_image_path' not in _proc_cols:
+            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN procedure_image_path TEXT")
+        if 'feedback_image_path' not in _proc_cols:
+            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN feedback_image_path TEXT")
 
         # Tabla de procedimientos enviados por estudiantes para revisión del docente
         cursor.execute('''
@@ -794,7 +818,17 @@ class SQLiteRepository:
     # ── Procedimientos para revisión del docente ──────────────────────────────
 
     def save_procedure_submission(self, student_id, item_id, item_content, image_data, mime_type='image/jpeg'):
-        """Guarda o reemplaza el procedimiento enviado por el estudiante."""
+        """Guarda o reemplaza el procedimiento enviado por el estudiante.
+        La imagen se persiste en data/uploads/procedures/ y la ruta se almacena en la DB.
+        """
+        import time as _time
+        ext = {'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp'}.get(mime_type, 'jpg')
+        os.makedirs(os.path.join('data', 'uploads', 'procedures'), exist_ok=True)
+        img_filename = f"{student_id}_{item_id}_{int(_time.time())}.{ext}"
+        img_path = os.path.join('data', 'uploads', 'procedures', img_filename)
+        with open(img_path, 'wb') as _f:
+            _f.write(image_data)
+
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
@@ -805,17 +839,19 @@ class SQLiteRepository:
         if existing:
             cursor.execute('''
                 UPDATE procedure_submissions
-                SET image_data=?, mime_type=?, status='pending',
-                    teacher_feedback=NULL, feedback_image=NULL,
+                SET image_data=?, mime_type=?, procedure_image_path=?,
+                    status='pending', teacher_feedback=NULL,
+                    feedback_image=NULL, feedback_image_path=NULL,
+                    procedure_score=NULL,
                     submitted_at=CURRENT_TIMESTAMP, reviewed_at=NULL
                 WHERE student_id=? AND item_id=?
-            ''', (image_data, mime_type, student_id, item_id))
+            ''', (image_data, mime_type, img_path, student_id, item_id))
         else:
             cursor.execute('''
                 INSERT INTO procedure_submissions
-                    (student_id, item_id, item_content, image_data, mime_type)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (student_id, item_id, item_content, image_data, mime_type))
+                    (student_id, item_id, item_content, image_data, mime_type, procedure_image_path)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (student_id, item_id, item_content, image_data, mime_type, img_path))
         conn.commit()
         conn.close()
 
@@ -825,7 +861,8 @@ class SQLiteRepository:
         cursor = conn.cursor()
         cursor.execute('''
             SELECT id, status, teacher_feedback, feedback_image,
-                   feedback_mime_type, submitted_at, reviewed_at
+                   feedback_mime_type, submitted_at, reviewed_at,
+                   procedure_score, feedback_image_path
             FROM procedure_submissions
             WHERE student_id=? AND item_id=?
         ''', (student_id, item_id))
@@ -833,7 +870,8 @@ class SQLiteRepository:
         conn.close()
         if row:
             cols = ['id', 'status', 'teacher_feedback', 'feedback_image',
-                    'feedback_mime_type', 'submitted_at', 'reviewed_at']
+                    'feedback_mime_type', 'submitted_at', 'reviewed_at',
+                    'procedure_score', 'feedback_image_path']
             return dict(zip(cols, row))
         return None
 
@@ -858,7 +896,7 @@ class SQLiteRepository:
         cursor.execute('''
             SELECT ps.id, ps.student_id, u.username AS student_name,
                    ps.item_id, ps.item_content, ps.image_data, ps.mime_type,
-                   ps.submitted_at
+                   ps.submitted_at, ps.procedure_image_path
             FROM procedure_submissions ps
             JOIN users u ON ps.student_id = u.id
             JOIN groups g ON u.group_id = g.id
@@ -871,15 +909,30 @@ class SQLiteRepository:
         return rows
 
     def save_teacher_feedback(self, submission_id, feedback_text,
-                              feedback_image=None, feedback_mime_type=None):
-        """Guarda la retroalimentación del docente y marca la entrega como revisada."""
+                              feedback_image=None, feedback_mime_type=None,
+                              procedure_score=None):
+        """Guarda la retroalimentación del docente y marca la entrega como revisada.
+        Si se adjunta imagen de corrección, se persiste en data/uploads/feedback/.
+        """
+        feedback_image_path = None
+        if feedback_image:
+            import time as _time
+            ext = {'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp'}.get(feedback_mime_type, 'jpg')
+            os.makedirs(os.path.join('data', 'uploads', 'feedback'), exist_ok=True)
+            fb_filename = f"feedback_{submission_id}_{int(_time.time())}.{ext}"
+            feedback_image_path = os.path.join('data', 'uploads', 'feedback', fb_filename)
+            with open(feedback_image_path, 'wb') as _f:
+                _f.write(feedback_image)
+
         conn = self.get_connection()
         conn.execute('''
             UPDATE procedure_submissions
             SET teacher_feedback=?, feedback_image=?, feedback_mime_type=?,
+                procedure_score=?, feedback_image_path=?,
                 status='reviewed', reviewed_at=CURRENT_TIMESTAMP
             WHERE id=?
-        ''', (feedback_text, feedback_image, feedback_mime_type, submission_id))
+        ''', (feedback_text, feedback_image, feedback_mime_type,
+              procedure_score, feedback_image_path, submission_id))
         conn.commit()
         conn.close()
 

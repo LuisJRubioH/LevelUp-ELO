@@ -323,10 +323,34 @@ def get_socratic_guidance_stream(student_rating, topic, content, student_answer,
     yield from stream_ai_response(prompt, model_name, base_url, api_key=api_key, provider=provider)
 
 
-def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None):
-    """Genera un análisis pedagógico detallado para el profesor."""
+def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None, procedure_stats=None):
+    """Genera un análisis pedagógico detallado para el profesor.
+    procedure_stats (opcional): dict con 'count', 'avg_score', 'scores'.
+    """
+    # Construir línea e instrucción de procedimientos
+    if procedure_stats and procedure_stats.get('count', 0) > 0:
+        _pc = procedure_stats['count']
+        _pavg = procedure_stats['avg_score']
+        _pscores = procedure_stats.get('scores', [])
+        _proc_line = (
+            f"{_pc} procedimiento(s) evaluado(s), nota promedio {_pavg:.1f}/5.0. "
+            f"Notas individuales: {', '.join(f'{s:.1f}' for s in _pscores[:5])}"
+        )
+        _proc_instruction = (
+            "Evalua la calidad del procedimiento manuscrito basandote en las notas recibidas. "
+            "Si el promedio es menor a 3.0, indica que debe mejorar su desarrollo escrito. "
+            "Si es mayor o igual a 4.0, felicita el habito y propone como mantenerlo."
+        )
+    else:
+        _proc_line = "No ha subido ningun procedimiento escrito."
+        _proc_instruction = (
+            "ADVERTENCIA CRITICA: el estudiante NO documenta su desarrollo matematico paso a paso. "
+            "Esto es un habito esencial que el docente debe exigir corregir de inmediato, "
+            "ya que impide detectar errores de proceso aunque la respuesta final sea correcta."
+        )
+
     prompt = f"""
-    Actúa como analista pedagógico experto.
+    Actua como analista pedagogico experto.
     Analiza los siguientes datos de rendimiento de un estudiante:
 
     DATOS:
@@ -334,15 +358,18 @@ def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", 
     - Intentos totales: {student_data['attempts_count']}
     - Temas recorridos: {', '.join(student_data['topics'])}
     - Tasa de acierto reciente: {student_data['recent_accuracy']:.1%}
+    - Habito de procedimientos escritos: {_proc_line}
 
-    OBJETIVOS DEL ANÁLISIS:
-    1. Identificar debilidades conceptuales específicas basadas en los temas con menor rendimiento.
-    2. Recomendar tipos de ejercicios o áreas de refuerzo concretas.
-    3. Sugerir ajustes en la estrategia de enseñanza o dificultad.
-    4. Proponer una estrategia pedagógica personalizada y accionable.
+    OBJETIVOS DEL ANALISIS:
+    1. Identificar debilidades conceptuales especificas basadas en los temas con menor rendimiento.
+    2. Recomendar tipos de ejercicios o areas de refuerzo concretas.
+    3. Sugerir ajustes en la estrategia de ensenanza o dificultad.
+    4. Proponer una estrategia pedagogica personalizada y accionable.
+    5. SECCION OBLIGATORIA — Calidad del procedimiento y desarrollo manual: {_proc_instruction}
 
-    IMPORTANTE: No expliques teoría básica. Sé directo y profesional. Usa bullet points.
-    REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática en LaTeX usando $...$ o $$...$$.
+    IMPORTANTE: No expliques teoria basica. Se directo y profesional. Usa bullet points.
+    Incluye siempre la seccion "Calidad del procedimiento" como ultimo punto del analisis.
+    REGLA ESTRICTA DE FORMATO: Escribe TODA expresion matematica en LaTeX usando $...$ o $$...$$.
     """
     return _call_ai_api(prompt, model_name, base_url, api_key=api_key, provider=provider)
 
@@ -369,10 +396,12 @@ _FALLBACK_RECOMMENDATIONS = [
 ]
 
 
-def analyze_performance_local(history_data, current_elo, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None):
+def analyze_performance_local(history_data, current_elo, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None, procedure_stats=None):
     """
     Analiza el rendimiento del estudiante y devuelve EXACTAMENTE 3 recomendaciones
     con estructura fija: [fortalezas, áreas regulares, áreas críticas].
+    procedure_stats (opcional): dict con 'count', 'avg_score', 'scores' del historial
+    de procedimientos evaluados por el docente.
     """
     if not history_data:
         return _FALLBACK_RECOMMENDATIONS
@@ -384,6 +413,18 @@ def analyze_performance_local(history_data, current_elo, base_url="http://localh
     incorrect_topics = sorted({h['topic'] for h in history_data if not h['is_correct']})
     avg_difficulty = sum(h['difficulty'] for h in history_data) / total
 
+    # Construir línea de hábito de procedimientos
+    if procedure_stats and procedure_stats.get('count', 0) > 0:
+        _pc = procedure_stats['count']
+        _pavg = procedure_stats['avg_score']
+        _pscores = procedure_stats.get('scores', [])
+        _pline = (
+            f"{_pc} procedimiento(s) evaluado(s), nota promedio {_pavg:.1f}/5.0. "
+            f"Notas individuales: {', '.join(f'{s:.1f}' for s in _pscores[:5])}"
+        )
+    else:
+        _pline = "No ha subido ningun procedimiento escrito. No documenta su desarrollo matematico paso a paso."
+
     prompt = f"""Eres un tutor académico experto. Analiza el rendimiento de un estudiante y genera exactamente 3 recomendaciones estructuradas.
 
 DATOS DEL ESTUDIANTE:
@@ -393,6 +434,7 @@ DATOS DEL ESTUDIANTE:
 - Temas donde acierta: {', '.join(correct_topics) if correct_topics else 'Ninguno registrado aun'}
 - Temas donde falla: {', '.join(incorrect_topics) if incorrect_topics else 'Ninguno'}
 - Dificultad media de las preguntas: {avg_difficulty:.0f}
+- Habito de procedimientos escritos: {_pline}
 
 INSTRUCCION CRITICA: Responde UNICAMENTE con el siguiente JSON, sin ningun texto antes ni despues, sin bloques de codigo markdown:
 [
@@ -569,3 +611,97 @@ def analyze_procedure_image(
             if any(kw in err for kw in ('vision', 'image', 'multimodal', 'unsupported', 'does not support')):
                 return "VISION_NOT_SUPPORTED"
             return f"Error al analizar la imagen: {str(e)}"
+
+
+# ── AIClient Strategy Pattern ─────────────────────────────────────────────────
+
+class AIClient:
+    """Cliente de IA con auto-detección y fallback entre proveedores.
+
+    Orden de prioridad:
+    1. LM Studio local (si detectado)
+    2. Groq Cloud (si GROQ_API_KEY disponible)
+    3. Otros proveedores cloud via variables de entorno
+    4. Sin backend (degradación graciosa)
+    """
+
+    _ENV_PROVIDERS = [
+        ('GROQ_API_KEY',      'groq'),
+        ('OPENAI_API_KEY',    'openai'),
+        ('ANTHROPIC_API_KEY', 'anthropic'),
+        ('GOOGLE_API_KEY',    'gemini'),
+        ('HF_TOKEN',          'huggingface'),
+    ]
+
+    def __init__(self, lmstudio_url: str = "http://192.168.40.66:1234/v1"):
+        self._provider = None
+        self._api_key = None
+        self._base_url = lmstudio_url
+        self._models = []
+
+        # 1. Intentar LM Studio local
+        detection = detect_lmstudio(lmstudio_url)
+        if detection['available']:
+            self._provider = 'lmstudio'
+            self._base_url = lmstudio_url
+            self._models = detection['models']
+            return
+
+        # 2. Buscar API key en variables de entorno
+        import os
+        _secrets = {}
+        try:
+            import streamlit as _st
+            _secrets = _st.secrets
+        except Exception:
+            pass
+
+        for env_name, provider in self._ENV_PROVIDERS:
+            key = os.environ.get(env_name)
+            if not key:
+                try:
+                    key = _secrets.get(env_name)
+                except Exception:
+                    pass
+            if key:
+                self._provider = provider
+                self._api_key = key
+                pinfo = PROVIDERS.get(provider, {})
+                self._base_url = pinfo.get('base_url') or lmstudio_url
+                return
+
+        # 3. Sin backend
+        self._provider = None
+
+    @property
+    def active_backend_name(self) -> str:
+        if self._provider == 'lmstudio':
+            return "🖥️ LM Studio Local"
+        if self._provider:
+            return PROVIDERS.get(self._provider, {}).get('label', self._provider)
+        return "Ninguno"
+
+    @property
+    def provider(self):
+        return self._provider
+
+    @property
+    def api_key(self):
+        return self._api_key
+
+    @property
+    def base_url(self) -> str:
+        return self._base_url
+
+    @property
+    def models(self) -> list:
+        return self._models
+
+    @property
+    def is_available(self) -> bool:
+        return self._provider is not None
+
+
+def get_ai_client(lmstudio_url: str = "http://192.168.40.66:1234/v1") -> AIClient:
+    """Factory que crea y retorna un AIClient con auto-detección de backend."""
+    return AIClient(lmstudio_url)
