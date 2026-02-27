@@ -24,6 +24,7 @@ from src.domain.elo.model import expected_score, calculate_dynamic_k, Item
 SQLiteRepository = db_mod.SQLiteRepository
 analyze_performance_local = ai_mod.analyze_performance_local
 get_active_models = ai_mod.get_active_models
+get_socratic_guidance_stream = ai_mod.get_socratic_guidance_stream
 import time
 import extra_streamlit_components as stx
 
@@ -56,6 +57,9 @@ if 'model_analysis' not in st.session_state:
 
 if 'ai_url' not in st.session_state:
     st.session_state.ai_url = "http://192.168.40.66:1234/v1"
+
+if 'ai_available' not in st.session_state:
+    st.session_state.ai_available = bool(get_active_models(st.session_state.ai_url))
 
 # Mapeo de modelos por modo (Valores predeterminados que el usuario puede sobreescribir)
 AI_DEFAULTS = {
@@ -557,20 +561,23 @@ else:
 
                         # --- Botón de Análisis Pedagógico para el Profesor ---
                         st.markdown("---")
-                        if st.button("🧠 Generar Análisis Pedagógico con IA", key=f"ai_anal_{selected_student['id']}", width='stretch'):
-                            with st.spinner("Analizando trayectoria del estudiante..."):
-                                # Delegar análisis al servicio
-                                analysis = st.session_state.teacher_service.generate_ai_analysis(
-                                    selected_student['id'], global_elo
-                                )
-                                st.markdown(f"""
-                                <div class="elo-card" style="text-align: left; background: rgba(0, 201, 255, 0.05); border-color: rgba(0, 201, 255, 0.3);">
-                                    <h4>📋 Análisis de la IA para el Docente</h4>
-                                    <div style="font-size: 0.95rem; color: #e0e0e0;">
-                                    {analysis}
+                        _ai_help = None if st.session_state.ai_available else "IA no disponible en este entorno demo"
+                        if st.button("🧠 Generar Análisis Pedagógico con IA", key=f"ai_anal_{selected_student['id']}", width='stretch', disabled=not st.session_state.ai_available, help=_ai_help):
+                            try:
+                                with st.spinner("Analizando trayectoria del estudiante..."):
+                                    analysis = st.session_state.teacher_service.generate_ai_analysis(
+                                        selected_student['id'], global_elo
+                                    )
+                                    st.markdown(f"""
+                                    <div class="elo-card" style="text-align: left; background: rgba(0, 201, 255, 0.05); border-color: rgba(0, 201, 255, 0.3);">
+                                        <h4>📋 Análisis de la IA para el Docente</h4>
+                                        <div style="font-size: 0.95rem; color: #e0e0e0;">
+                                        {analysis}
+                                        </div>
                                     </div>
-                                </div>
-                                """, unsafe_allow_html=True)
+                                    """, unsafe_allow_html=True)
+                            except (ConnectionError, TimeoutError):
+                                st.info("IA no disponible en este momento. Inténtalo más tarde.")
 
                     with tab_prob:
                         st.markdown(f"**Probabilidad de acierto de {selected_name} en cada pregunta**")
@@ -836,23 +843,23 @@ else:
                         # --- Ayuda del Tutor Socrático (Siempre disponible) ---
                         st.markdown("---")
                         st.info("💡 Si te sientes bloqueado, puedes pedir orientación. El tutor socrático no te dará la respuesta, pero te ayudará a razonar.")
-                        if st.button("🙋 Preguntar al Tutor Socrático", key=f"socratic_{item_data['id']}", width='stretch'):
-                            with st.spinner("El tutor socrático está pensando una pregunta para ti..."):
-                                # Obtener la respuesta actual seleccionada o indicar que no hay ninguna
+                        _soc_help = None if st.session_state.ai_available else "IA no disponible en este entorno demo"
+                        if st.button("🙋 Preguntar al Tutor Socrático", key=f"socratic_{item_data['id']}", width='stretch', disabled=not st.session_state.ai_available, help=_soc_help):
+                            try:
                                 current_ans = st.session_state.get(f"answer_text_{item_data['id']}", "Aún no ha seleccionado una opción")
-                                guidance = st.session_state.student_service.get_socratic_help(
-                                    current_elo_display, 
-                                    item_data['topic'], 
-                                    item_data['content'], 
-                                    current_ans,
-                                    correct_answer=item_data['correct_option'],
-                                    all_options=item_data['options'],
-                                    model_name=st.session_state.model_cog,
-                                    ai_url=st.session_state.ai_url
-                                )
-                                # Usar st.chat_message o markdown limpio para no romper LaTeX
                                 with st.chat_message("assistant", avatar="🎓"):
-                                    st.markdown(f"**Tutor Socrático:**\n\n{guidance}")
+                                    st.write_stream(get_socratic_guidance_stream(
+                                        current_elo_display,
+                                        item_data['topic'],
+                                        item_data['content'],
+                                        current_ans,
+                                        correct_answer=item_data['correct_option'],
+                                        all_options=item_data['options'],
+                                        base_url=st.session_state.ai_url,
+                                        model_name=st.session_state.model_cog,
+                                    ))
+                            except (ConnectionError, TimeoutError):
+                                st.info("IA no disponible en este momento. Inténtalo más tarde.")
                         elif 'options' not in item_data:
                             st.warning("Pregunta sin opciones configuradas.")
 
@@ -943,7 +950,8 @@ else:
 
             lm_studio_url_dash = st.text_input("Servidor de IA (URL)", value="http://192.168.40.66:1234/v1", key="lm_dash")
 
-            if st.button("✨ Generar Recomendaciones de Estudio"):
+            _rec_help = None if st.session_state.ai_available else "IA no disponible en este entorno demo"
+            if st.button("✨ Generar Recomendaciones de Estudio", disabled=not st.session_state.ai_available, help=_rec_help):
                 try:
                     with st.spinner("Analizando patrones de aprendizaje..."):
                         recent_attempts = st.session_state.db.get_attempts_for_ai(st.session_state.user_id)
@@ -973,5 +981,7 @@ else:
                             st.warning("No hay suficientes datos para generar recomendaciones aún.")
                         else:
                             st.error(f"Respuesta inesperada de IA: {recommendations}")
+                except (ConnectionError, TimeoutError):
+                    st.info("IA no disponible en este momento. Inténtalo más tarde.")
                 except Exception as e:
                     st.error(f"Error crítico en interfaz: {str(e)}")

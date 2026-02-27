@@ -3,6 +3,6 @@ matplotlib
 streamlit
 pandas
 passlib[argon2]
-openai
+openai>=1.0.0
 extra-streamlit-components
 plotly
