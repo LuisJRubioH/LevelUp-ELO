@@ -645,21 +645,30 @@ else:
         if 'session_questions_count' not in st.session_state:
             st.session_state.session_questions_count = 0
 
+        # Cargar temas antes del sidebar para el selectbox
+        bank_data = st.session_state.db.get_items_from_db()
+        topics = list(set([i['topic'] for i in bank_data]))
+
         # Sidebar Estilizado
         with st.sidebar:
             st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=80)
             st.write(f"### Hola, **{st.session_state.username}**")
             mode = st.radio("Modo", ["📝 Practicar", "📊 Estadísticas"], label_visibility="collapsed")
             st.caption("Navegación Principal")
+
+            if mode == "📝 Practicar":
+                st.markdown("### Configuración de Estudio")
+                selected_topic = st.selectbox("¿Qué quieres estudiar hoy?", ["Todos"] + topics)
+
             st.markdown("---")
             st.caption("Configuración de IA")
             ai_mode = st.selectbox(
-                "Modo de IA", 
+                "Modo de IA",
                 ["Rápido (Flash)", "Profundo (Razonamiento)"],
                 index=0 if st.session_state.ai_mode == "Rápido (Flash)" else 1,
                 help="El modo rápido usa modelos ligeros para feedback instantáneo. El modo profundo usa razonamiento complejo pero es más lento."
             )
-            
+
             # Si cambia el modo, actualizamos los inputs de texto con los defaults
             if ai_mode != st.session_state.ai_mode:
                 st.session_state.ai_mode = ai_mode
@@ -669,27 +678,28 @@ else:
                 st.session_state.student_service.cognitive_analyzer.model_name = defaults['cognitive']
                 st.rerun()
 
-            with st.expander("⚙️ ID de Modelos (LM Studio)"):
-                st.session_state.ai_url = st.text_input("URL de LM Studio", value=st.session_state.ai_url)
-                if st.button("🔄 Sincronizar con LM Studio"):
-                    active_models = get_active_models(st.session_state.ai_url)
-                    if active_models:
-                        selected_model = active_models[0]
-                        st.session_state.model_cog = selected_model
-                        st.session_state.model_analysis = selected_model
-                        st.session_state.student_service.cognitive_analyzer.model_name = selected_model
-                        st.success(f"Detectado: {selected_model}")
-                    else:
-                        st.error("No se detectaron modelos activos. Verifica la URL e IP.")
+            if st.session_state.role == 'admin':
+                with st.expander("⚙️ ID de Modelos (LM Studio)"):
+                    st.session_state.ai_url = st.text_input("URL de LM Studio", value=st.session_state.ai_url)
+                    if st.button("🔄 Sincronizar con LM Studio"):
+                        active_models = get_active_models(st.session_state.ai_url)
+                        if active_models:
+                            selected_model = active_models[0]
+                            st.session_state.model_cog = selected_model
+                            st.session_state.model_analysis = selected_model
+                            st.session_state.student_service.cognitive_analyzer.model_name = selected_model
+                            st.success(f"Detectado: {selected_model}")
+                        else:
+                            st.error("No se detectaron modelos activos. Verifica la URL e IP.")
 
-                new_cog = st.text_input("ID Análisis Cognitivo", value=st.session_state.model_cog, key="cog_model_input")
-                new_analysis = st.text_input("ID Recomendaciones", value=st.session_state.model_analysis, key="analysis_model_input")
-                
-                if new_cog != st.session_state.model_cog or new_analysis != st.session_state.model_analysis:
-                    st.session_state.model_cog = new_cog
-                    st.session_state.model_analysis = new_analysis
-                    st.session_state.student_service.cognitive_analyzer.model_name = new_cog
-                    st.info("Configuración de modelos actualizada.")
+                    new_cog = st.text_input("ID Análisis Cognitivo", value=st.session_state.model_cog, key="cog_model_input")
+                    new_analysis = st.text_input("ID Recomendaciones", value=st.session_state.model_analysis, key="analysis_model_input")
+
+                    if new_cog != st.session_state.model_cog or new_analysis != st.session_state.model_analysis:
+                        st.session_state.model_cog = new_cog
+                        st.session_state.model_analysis = new_analysis
+                        st.session_state.student_service.cognitive_analyzer.model_name = new_cog
+                        st.info("Configuración de modelos actualizada.")
 
             if st.button("Cerrar Sesión"):
                 logout()
@@ -726,13 +736,6 @@ else:
 
         # --- VISTAS ---
         if mode == "📝 Practicar":
-            # Cargar ítems desde la base de datos para usar dificultad dinámica
-            bank_data = st.session_state.db.get_items_from_db()
-            topics = list(set([i['topic'] for i in bank_data]))
-
-            st.sidebar.markdown("### Configuración de Estudio")
-            selected_topic = st.sidebar.selectbox("¿Qué quieres estudiar hoy?", ["Todos"] + topics)
-
             if selected_topic == "Todos":
                 current_elo_display = aggregate_global_elo(st.session_state.vector)
                 current_rd_display = aggregate_global_rd(st.session_state.vector)
