@@ -1,12 +1,14 @@
+import os
 from src.infrastructure.security.hashing_service import HashingService
 
+# TODO: reemplazar SQLite por DB externa (PostgreSQL, etc.) en producción
 class SQLiteRepository:
-    def __init__(self, db_name="elo_project.db"):
-        self.db_name = db_name
+    def __init__(self, db_name=None):
+        self.db_name = db_name or os.environ.get('DB_PATH', 'elo_project.db')
         self.hashing = HashingService()
         self.init_db()
         self._migrate_db()
-        self._seed_admin()
+        self._seed_demo_data()
         self._backfill_prob_failure()
 
     def get_connection(self):
@@ -199,18 +201,54 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
-    def _seed_admin(self):
-        """Crea el super admin si no existe."""
+    def _seed_demo_data(self):
+        """Crea usuarios y grupo demo si no existen (idempotente)."""
         conn = self.get_connection()
         cursor = conn.cursor()
+
+        # Admin
         cursor.execute("SELECT id FROM users WHERE username = 'admin'")
         if not cursor.fetchone():
-            password_hash = self.hashing.hash_password("admin123")
             cursor.execute(
                 "INSERT INTO users (username, password_hash, role, approved) VALUES (?, ?, 'admin', 1)",
-                ("admin", password_hash)
+                ("admin", self.hashing.hash_password("admin1234"))
+            )
+
+        # Profesor demo
+        cursor.execute("SELECT id FROM users WHERE username = 'profesor1'")
+        if not cursor.fetchone():
+            cursor.execute(
+                "INSERT INTO users (username, password_hash, role, approved) VALUES (?, ?, 'teacher', 1)",
+                ("profesor1", self.hashing.hash_password("demo1234"))
+            )
+
+        conn.commit()
+
+        # Grupo Demo (necesita el id del profesor)
+        cursor.execute("SELECT id FROM users WHERE username = 'profesor1'")
+        profesor_id = cursor.fetchone()[0]
+
+        cursor.execute("SELECT id FROM groups WHERE name = 'Grupo Demo' AND teacher_id = ?", (profesor_id,))
+        if not cursor.fetchone():
+            cursor.execute(
+                "INSERT INTO groups (name, teacher_id) VALUES (?, ?)",
+                ("Grupo Demo", profesor_id)
             )
             conn.commit()
+
+        cursor.execute("SELECT id FROM groups WHERE name = 'Grupo Demo' AND teacher_id = ?", (profesor_id,))
+        group_id = cursor.fetchone()[0]
+
+        # Estudiantes demo
+        for username in ("estudiante1", "estudiante2"):
+            cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+            if not cursor.fetchone():
+                cursor.execute(
+                    "INSERT INTO users (username, password_hash, role, approved, group_id) VALUES (?, ?, 'student', 1, ?)",
+                    (username, self.hashing.hash_password("demo1234"), group_id)
+                )
+
+        conn.commit()
         conn.close()
 
     def _update_password_hash(self, user_id, password):
