@@ -13,6 +13,29 @@ def get_active_models(base_url="http://192.168.40.66:1234/v1"):
         pass
     return []
 
+
+def detect_lmstudio(base_url="http://192.168.40.66:1234/v1"):
+    """Detecta si LM Studio está activo y retorna sus modelos disponibles."""
+    models = get_active_models(base_url)
+    return {'available': bool(models), 'models': models}
+
+
+def select_best_model(models):
+    """Selecciona el modelo más adecuado de la lista.
+    Prioriza modelos de 7b-9b (balance rendimiento/velocidad).
+    Si solo hay uno, lo retorna directamente.
+    """
+    if not models:
+        return None
+    if len(models) == 1:
+        return models[0]
+    preferred_sizes = ['8b', '7b', '9b', '4b', '3b', '12b', '13b', '14b', '72b', '70b']
+    for size in preferred_sizes:
+        for model in models:
+            if size in model.lower():
+                return model
+    return models[0]
+
 def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None):
     """Función de utilidad para llamar a LM Studio o Groq (api_key != None → Groq)."""
     system_instr = "Responde EXCLUSIVAMENTE con el contenido solicitado. "
