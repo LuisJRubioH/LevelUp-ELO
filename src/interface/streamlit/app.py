@@ -24,6 +24,7 @@ SQLiteRepository = db_mod.SQLiteRepository
 analyze_performance_local = ai_mod.analyze_performance_local
 get_active_models = ai_mod.get_active_models
 import time
+import extra_streamlit_components as stx
 
 # Configuración de página
 st.set_page_config(page_title="ELO Learning — Evaluación Adaptativa", layout="wide", page_icon="🎓")
@@ -31,6 +32,8 @@ st.set_page_config(page_title="ELO Learning — Evaluación Adaptativa", layout=
 # Inicializar Base de Datos
 if 'db' not in st.session_state:
     st.session_state.db = SQLiteRepository()
+repo = st.session_state.db
+cookie_manager = stx.CookieManager()
 # Inicializar Servicios (Re-instanciar en cada recarga para capturar cambios en código)
 import src.application.services.student_service as ss_mod
 import src.application.services.teacher_service as ts_mod
@@ -156,6 +159,10 @@ def login():
     st.session_state.logged_in = True
 
 def logout():
+    token = cookie_manager.get("elo_auth_token")
+    if token:
+        repo.delete_session(token)
+        cookie_manager.delete("elo_auth_token")
     st.session_state.logged_in = False
     st.session_state.user_id = None
     st.session_state.username = None
@@ -164,6 +171,18 @@ def logout():
 
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
+
+if not st.session_state.logged_in:
+    token = cookie_manager.get("elo_auth_token")
+    if token:
+        user = repo.validate_session(token)
+        if user:
+            st.session_state.logged_in = True
+            st.session_state.user_id = user[0]
+            st.session_state.username = user[1]
+            st.session_state.role = user[3]
+        else:
+            cookie_manager.delete("elo_auth_token")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PÁGINA DE LOGIN / REGISTRO
@@ -221,6 +240,8 @@ if not st.session_state.logged_in:
                             st.session_state.user_id = user_id
                             st.session_state.username = uname
                             st.session_state.role = role
+                            token = repo.create_session(user_id)
+                            cookie_manager.set("elo_auth_token", token)
                             login()
                             st.rerun()
                     else:

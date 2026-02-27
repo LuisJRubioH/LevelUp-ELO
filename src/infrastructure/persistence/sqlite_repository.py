@@ -11,7 +11,7 @@ class SQLiteRepository:
 
     def get_connection(self):
         import sqlite3
-        return sqlite3.connect(self.db_name)
+        return sqlite3.connect(self.db_name, timeout=10.0)
 
     def init_db(self):
         conn = self.get_connection()
@@ -76,6 +76,15 @@ class SQLiteRepository:
                 difficulty REAL NOT NULL,
                 rating_deviation REAL DEFAULT 350.0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS sessions (
+                token TEXT PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                expires_at TIMESTAMP NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id)
             )
         ''')
 
@@ -683,4 +692,40 @@ class SQLiteRepository:
         cursor.execute("UPDATE items SET difficulty = ? WHERE id = ?", (new_diff, item_id))
         conn.commit()
         conn.close()
+
+    def create_session(self, user_id):
+        import secrets
+        from datetime import datetime, timedelta, timezone
+        token = secrets.token_hex(32)
+        expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+        with self.get_connection() as conn:
+            conn.execute(
+                "INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)",
+                (token, user_id, expires_at.isoformat())
+            )
+            conn.commit()
+        return token
+
+    def validate_session(self, token):
+        from datetime import datetime, timezone
+        with self.get_connection() as conn:
+            cursor = conn.execute(
+                "SELECT user_id, expires_at FROM sessions WHERE token = ?",
+                (token,)
+            )
+            row = cursor.fetchone()
+            if not row:
+                return None
+            user_id, expires_at = row
+            if datetime.fromisoformat(expires_at) < datetime.now(timezone.utc):
+                conn.execute("DELETE FROM sessions WHERE token = ?", (token,))
+                conn.commit()
+                return None
+            cursor = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+            return cursor.fetchone()
+
+    def delete_session(self, token):
+        with self.get_connection() as conn:
+            conn.execute("DELETE FROM sessions WHERE token = ?", (token,))
+            conn.commit()
 
