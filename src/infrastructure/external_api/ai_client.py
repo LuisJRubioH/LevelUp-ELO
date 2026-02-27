@@ -2,20 +2,93 @@ import requests
 import json
 import re
 
-def get_active_models(base_url="http://192.168.40.66:1234/v1"):
-    """Consulta LM Studio para obtener la lista de IDs de modelos disponibles."""
+# ── Provider registry ────────────────────────────────────────────────────────
+PROVIDERS = {
+    "groq": {
+        "base_url": "https://api.groq.com/openai/v1",
+        "model_cog": "llama-3.1-8b-instant",
+        "model_analysis": "llama-3.3-70b-versatile",
+        "label": "☁️ Groq Cloud",
+        "openai_compat": True,
+    },
+    "openai": {
+        "base_url": "https://api.openai.com/v1",
+        "model_cog": "gpt-4o-mini",
+        "model_analysis": "gpt-4o",
+        "label": "☁️ OpenAI",
+        "openai_compat": True,
+    },
+    "anthropic": {
+        "base_url": None,
+        "model_cog": "claude-haiku-4-5-20251001",
+        "model_analysis": "claude-sonnet-4-6",
+        "label": "☁️ Anthropic Claude",
+        "openai_compat": False,
+    },
+    "gemini": {
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+        "model_cog": "gemini-2.0-flash",
+        "model_analysis": "gemini-2.0-flash",
+        "label": "☁️ Google Gemini",
+        "openai_compat": True,
+    },
+    "huggingface": {
+        "base_url": "https://api-inference.huggingface.co/v1",
+        "model_cog": "meta-llama/Llama-3.1-8B-Instruct",
+        "model_analysis": "meta-llama/Llama-3.3-70B-Instruct",
+        "label": "☁️ HuggingFace",
+        "openai_compat": True,
+    },
+    "lmstudio": {
+        "base_url": "http://localhost:1234/v1",
+        "model_cog": None,
+        "model_analysis": None,
+        "label": "🖥️ LM Studio",
+        "openai_compat": True,
+    },
+    "ollama": {
+        "base_url": "http://localhost:11434/v1",
+        "model_cog": None,
+        "model_analysis": None,
+        "label": "🖥️ Ollama",
+        "openai_compat": True,
+    },
+}
+
+_KEY_PREFIXES = [
+    ("sk-ant-", "anthropic"),
+    ("gsk_",    "groq"),
+    ("AIzaSy",  "gemini"),
+    ("hf_",     "huggingface"),
+    ("sk-proj-","openai"),
+    ("sk-",     "openai"),
+]
+
+
+def detect_provider_from_key(api_key: str):
+    """Infiere el proveedor a partir del prefijo de la API key."""
+    if not api_key:
+        return None
+    for prefix, provider in _KEY_PREFIXES:
+        if api_key.startswith(prefix):
+            return provider
+    return None
+
+
+def get_active_models(base_url="http://localhost:1234/v1"):
+    """Consulta un servidor compatible con OpenAI /models para obtener IDs disponibles."""
     try:
         response = requests.get(f"{base_url.rstrip('/')}/models", timeout=5)
         if response.status_code == 200:
             data = response.json()
             return [m['id'] for m in data.get('data', [])]
-    except:
+    except Exception:
         pass
     return []
 
 
-def detect_lmstudio(base_url="http://192.168.40.66:1234/v1"):
-    """Detecta si LM Studio está activo y retorna sus modelos disponibles."""
+def detect_lmstudio(base_url="http://localhost:1234/v1"):
+    """Detecta si LM Studio (u Ollama) está activo y retorna sus modelos disponibles."""
     models = get_active_models(base_url)
     return {'available': bool(models), 'models': models}
 
@@ -23,7 +96,6 @@ def detect_lmstudio(base_url="http://192.168.40.66:1234/v1"):
 def select_best_model(models):
     """Selecciona el modelo más adecuado de la lista.
     Prioriza modelos de 7b-9b (balance rendimiento/velocidad).
-    Si solo hay uno, lo retorna directamente.
     """
     if not models:
         return None
@@ -36,8 +108,15 @@ def select_best_model(models):
                 return model
     return models[0]
 
-def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None):
-    """Función de utilidad para llamar a LM Studio o Groq (api_key != None → Groq)."""
+
+def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, provider=None):
+    """Llama a cualquier proveedor de IA.
+
+    Routing:
+    - provider='anthropic' → Anthropic SDK
+    - api_key != None → OpenAI-compatible cloud (Groq, OpenAI, Gemini, HF, …)
+    - api_key == None  → LM Studio / Ollama local
+    """
     system_instr = "Responde EXCLUSIVAMENTE con el contenido solicitado. "
     if json_mode:
         system_instr += "Formato: JSON puro, sin explicaciones externas."
@@ -48,11 +127,33 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None):
     messages = [{"role": "user", "content": full_prompt}]
     temperature = 0.3 if not json_mode else 0.1
 
-    if api_key:
-        # ── Groq Cloud ──────────────────────────────────────────────────────
+    if provider is None and api_key:
+        provider = detect_provider_from_key(api_key)
+
+    if provider == "anthropic":
+        # ── Anthropic Claude SDK ─────────────────────────────────────────────
+        try:
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+            resp = client.messages.create(
+                model=model_name,
+                max_tokens=4096,
+                messages=[{"role": "user", "content": full_prompt}],
+            )
+            content = resp.content[0].text
+            content = re.sub(r'<thought>.*?</thought>', '', content, flags=re.DOTALL)
+            return content.strip()
+        except Exception as e:
+            return f"Error Anthropic: {str(e)}"
+
+    elif api_key:
+        # ── OpenAI-compatible cloud (Groq, OpenAI, Gemini, HuggingFace, …) ──
+        _base = PROVIDERS.get(provider, {}).get("base_url") if provider else None
+        if not _base:
+            _base = base_url
         try:
             from openai import OpenAI
-            client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
+            client = OpenAI(api_key=api_key, base_url=_base)
             response = client.chat.completions.create(
                 model=model_name, messages=messages,
                 temperature=temperature, max_tokens=4096,
@@ -61,9 +162,9 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None):
             content = re.sub(r'<thought>.*?</thought>', '', content, flags=re.DOTALL)
             return content.strip()
         except Exception as e:
-            return f"Error Groq: {str(e)}"
+            return f"Error {provider or 'cloud'}: {str(e)}"
     else:
-        # ── LM Studio local ─────────────────────────────────────────────────
+        # ── LM Studio / Ollama local ─────────────────────────────────────────
         payload = {
             "model": model_name, "messages": messages,
             "temperature": temperature, "max_tokens": 4096, "stream": False,
@@ -81,8 +182,9 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None):
         except Exception as e:
             return f"Error de conexión: {str(e)}"
 
-def stream_ai_response(prompt, model_name, base_url="http://192.168.40.66:1234/v1", api_key=None):
-    """Genera respuesta de IA en streaming. api_key != None → Groq, sino LM Studio."""
+
+def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", api_key=None, provider=None):
+    """Genera respuesta de IA en streaming. Soporta todos los proveedores."""
     system_instr = (
         "Responde EXCLUSIVAMENTE con el contenido solicitado. "
         "Formato: Texto conversacional directo. "
@@ -91,11 +193,32 @@ def stream_ai_response(prompt, model_name, base_url="http://192.168.40.66:1234/v
     full_prompt = f"SISTEMA: {system_instr}\n\nUSUARIO: {prompt}"
     messages = [{"role": "user", "content": full_prompt}]
 
-    if api_key:
-        # ── Groq Cloud streaming ─────────────────────────────────────────────
+    if provider is None and api_key:
+        provider = detect_provider_from_key(api_key)
+
+    if provider == "anthropic":
+        # ── Anthropic SDK streaming ──────────────────────────────────────────
+        try:
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+            with client.messages.stream(
+                model=model_name,
+                max_tokens=4096,
+                messages=[{"role": "user", "content": full_prompt}],
+            ) as stream:
+                for text in stream.text_stream:
+                    yield text
+        except Exception as e:
+            raise ConnectionError(f"Error Anthropic streaming: {e}") from e
+
+    elif api_key:
+        # ── OpenAI-compatible cloud streaming ────────────────────────────────
+        _base = PROVIDERS.get(provider, {}).get("base_url") if provider else None
+        if not _base:
+            _base = base_url
         try:
             from openai import OpenAI
-            client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
+            client = OpenAI(api_key=api_key, base_url=_base)
             stream = client.chat.completions.create(
                 model=model_name, messages=messages,
                 temperature=0.3, max_tokens=4096, stream=True,
@@ -105,9 +228,9 @@ def stream_ai_response(prompt, model_name, base_url="http://192.168.40.66:1234/v
                 if delta:
                     yield delta
         except Exception as e:
-            raise ConnectionError(f"Error Groq streaming: {e}") from e
+            raise ConnectionError(f"Error {provider or 'cloud'} streaming: {e}") from e
     else:
-        # ── LM Studio local streaming (SSE) ──────────────────────────────────
+        # ── LM Studio / Ollama local streaming (SSE) ─────────────────────────
         payload = {
             "model": model_name, "messages": messages,
             "temperature": 0.3, "max_tokens": 4096, "stream": True,
@@ -136,25 +259,23 @@ def stream_ai_response(prompt, model_name, base_url="http://192.168.40.66:1234/v
                 except (json.JSONDecodeError, KeyError):
                     continue
         except requests.exceptions.ConnectionError as e:
-            raise ConnectionError(f"LM Studio no disponible: {e}") from e
+            raise ConnectionError(f"Servidor local no disponible: {e}") from e
         except requests.exceptions.Timeout as e:
             raise TimeoutError(f"Tiempo de espera agotado: {e}") from e
 
 
-def get_socratic_guidance(student_rating, topic, content, student_answer, correct_answer, all_options, base_url="http://192.168.40.66:1234/v1", model_name="google/gemma-3-4b", api_key=None):
+def get_socratic_guidance(student_rating, topic, content, student_answer, correct_answer, all_options, base_url="http://localhost:1234/v1", model_name="google/gemma-3-4b", api_key=None, provider=None):
     """Genera una guía socrática adaptativa y altamente alineada para el estudiante."""
-    
     options_str = "\n".join([f"- {opt}" for opt in all_options])
-    
     prompt = f"""
     Actúa como un Tutor Socrático altamente preciso y adaptativo.
-    
+
     CONTEXTO DE LA PREGUNTA:
     - Tema: {topic}
     - Enunciado: {content}
     - Opciones disponibles:
 {options_str}
-    
+
     ESTADO DEL ESTUDIANTE:
     - Nivel ELO (Capacidad): {student_rating:.0f}
     - Opción que el estudiante TIENE SELECCIONADA actualmente: "{student_answer}"
@@ -167,12 +288,12 @@ def get_socratic_guidance(student_rating, topic, content, student_answer, correc
     4. Prohibido mencionar opciones que el alumno NO ha seleccionado a menos que sea para contrastar.
     5. NUNCA reveles que la respuesta correcta es "{correct_answer}".
     6. Sé breve, motivador y puramente socrático (guía mediante preguntas).
-    7. REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática (integrales, raíces, potencias, etc.) exclusivamente en LaTeX usando $...$ o $$...$$.
+    7. REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática exclusivamente en LaTeX usando $...$ o $$...$$.
     """
-    return _call_ai_api(prompt, model_name, base_url, api_key=api_key)
+    return _call_ai_api(prompt, model_name, base_url, api_key=api_key, provider=provider)
 
 
-def get_socratic_guidance_stream(student_rating, topic, content, student_answer, correct_answer, all_options, base_url="http://192.168.40.66:1234/v1", model_name="google/gemma-3-4b", api_key=None):
+def get_socratic_guidance_stream(student_rating, topic, content, student_answer, correct_answer, all_options, base_url="http://localhost:1234/v1", model_name="google/gemma-3-4b", api_key=None, provider=None):
     """Versión streaming de get_socratic_guidance. Retorna generador de chunks."""
     options_str = "\n".join([f"- {opt}" for opt in all_options])
     prompt = f"""
@@ -198,13 +319,13 @@ def get_socratic_guidance_stream(student_rating, topic, content, student_answer,
     6. Sé breve, motivador y puramente socrático (guía mediante preguntas).
     7. REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática en LaTeX usando $...$ o $$...$$.
     """
-    yield from stream_ai_response(prompt, model_name, base_url, api_key=api_key)
+    yield from stream_ai_response(prompt, model_name, base_url, api_key=api_key, provider=provider)
 
 
-def get_pedagogical_analysis(student_data, base_url="http://192.168.40.66:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3", api_key=None):
+def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3", api_key=None, provider=None):
     """Genera un análisis pedagógico detallado para el profesor."""
     prompt = f"""
-    Actúa como analista pedagógico experto. 
+    Actúa como analista pedagógico experto.
     Analiza los siguientes datos de rendimiento de un estudiante:
 
     DATOS:
@@ -212,7 +333,7 @@ def get_pedagogical_analysis(student_data, base_url="http://192.168.40.66:1234/v
     - Intentos totales: {student_data['attempts_count']}
     - Temas recorridos: {', '.join(student_data['topics'])}
     - Tasa de acierto reciente: {student_data['recent_accuracy']:.1%}
-    
+
     OBJETIVOS DEL ANÁLISIS:
     1. Identificar debilidades conceptuales específicas basadas en los temas con menor rendimiento.
     2. Recomendar tipos de ejercicios o áreas de refuerzo concretas.
@@ -222,9 +343,10 @@ def get_pedagogical_analysis(student_data, base_url="http://192.168.40.66:1234/v
     IMPORTANTE: No expliques teoría básica. Sé directo y profesional. Usa bullet points.
     REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática en LaTeX usando $...$ o $$...$$.
     """
-    return _call_ai_api(prompt, model_name, base_url, api_key=api_key)
+    return _call_ai_api(prompt, model_name, base_url, api_key=api_key, provider=provider)
 
-def analyze_performance_local(history_data, current_elo, base_url="http://192.168.40.66:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3", api_key=None):
+
+def analyze_performance_local(history_data, current_elo, base_url="http://localhost:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3", api_key=None, provider=None):
     """
     Analiza el rendimiento del estudiante (versión JSON para el dashboard de estadísticas).
     """
@@ -234,21 +356,20 @@ def analyze_performance_local(history_data, current_elo, base_url="http://192.16
     incorrect_topics = [h['topic'] for h in history_data if not h['is_correct']]
     recent_difficulty = [h['difficulty'] for h in history_data]
     avg_difficulty = sum(recent_difficulty) / len(recent_difficulty) if recent_difficulty else 0
-    
+
     prompt = f"""
     Actúa como tutor experto. Analiza:
     - ELO: {current_elo:.2f}, Dificultad media: {avg_difficulty:.0f}
     - Fallos en: {', '.join(set(incorrect_topics)) if incorrect_topics else 'Ninguno'}
-    
+
     Genera 3 recomendaciones en JSON. REGLA DE FORMATO: Usa LaTeX ($...$) para cualquier símbolo matemático dentro del texto.
     [
       {{"diagnostico": "...", "recomendación": "...", "justificación": "...", "ejercicios": 10}}
     ]
     """
-    
-    content = _call_ai_api(prompt, model_name, base_url, json_mode=True, api_key=api_key)
-    
-    # Intento de extracción de JSON
+
+    content = _call_ai_api(prompt, model_name, base_url, json_mode=True, api_key=api_key, provider=provider)
+
     try:
         content = re.sub(r'```json\s*', '', content)
         content = re.sub(r'```\s*', '', content)
@@ -257,5 +378,5 @@ def analyze_performance_local(history_data, current_elo, base_url="http://192.16
         if start != -1 and end != -1:
             return json.loads(content[start:end+1])
         return json.loads(content)
-    except:
+    except Exception:
         return [{"diagnostico": "Análisis no disponible", "recomendación": "Continuar practicando", "justificación": "La IA no pudo formatear el JSON correctamente.", "ejercicios": 0}]

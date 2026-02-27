@@ -19,7 +19,7 @@ class TeacherService:
         # Aquí se podrían añadir cálculos adicionales de dominio
         return attempts
 
-    def generate_ai_analysis(self, student_id, global_elo, api_key=None):
+    def generate_ai_analysis(self, student_id, global_elo, api_key=None, provider=None):
         """Orquesta la generación del análisis pedagógico con IA."""
         attempts = self.repository.get_student_attempts_detail(student_id)
         if not attempts:
@@ -36,4 +36,4 @@ class TeacherService:
             "recent_accuracy": recent_acc
         }
 
-        return get_pedagogical_analysis(student_data, api_key=api_key)
+        return get_pedagogical_analysis(student_data, api_key=api_key, provider=provider)

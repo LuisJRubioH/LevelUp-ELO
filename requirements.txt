@@ -4,5 +4,6 @@ streamlit
 pandas
 passlib[argon2]
 openai>=1.0.0
+anthropic>=0.40.0
 extra-streamlit-components
 plotly

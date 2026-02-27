@@ -64,32 +64,51 @@ if 'ai_provider_mode' not in st.session_state:
 if 'lmstudio_models' not in st.session_state:
     st.session_state.lmstudio_models = []
 
+if 'cloud_api_key' not in st.session_state:
+    st.session_state.cloud_api_key = None
+
 if 'ai_available' not in st.session_state:
     _detection = ai_mod.detect_lmstudio(st.session_state.ai_url)
     if _detection['available']:
         st.session_state.ai_available = True
         st.session_state.ai_provider = 'lmstudio'
-        st.session_state.groq_api_key = None
+        st.session_state.cloud_api_key = None
         st.session_state.lmstudio_models = _detection['models']
         _best = ai_mod.select_best_model(_detection['models'])
         if _best:
             st.session_state.model_cog = _best
             st.session_state.model_analysis = _best
     else:
-        try:
-            groq_key = os.environ.get('GROQ_API_KEY') or st.secrets.get('GROQ_API_KEY', None)
-        except Exception:
-            groq_key = os.environ.get('GROQ_API_KEY')
-        if groq_key:
+        # Buscar API key en variables de entorno / secrets (varios proveedores)
+        _cloud_key = None
+        _cloud_provider = None
+        _env_vars = [
+            ('GROQ_API_KEY', 'groq'),
+            ('OPENAI_API_KEY', 'openai'),
+            ('ANTHROPIC_API_KEY', 'anthropic'),
+            ('GOOGLE_API_KEY', 'gemini'),
+            ('HF_TOKEN', 'huggingface'),
+        ]
+        for _env_name, _env_provider in _env_vars:
+            try:
+                _val = os.environ.get(_env_name) or st.secrets.get(_env_name, None)
+            except Exception:
+                _val = os.environ.get(_env_name)
+            if _val:
+                _cloud_key = _val
+                _cloud_provider = _env_provider
+                break
+        if _cloud_key:
+            _pinfo = ai_mod.PROVIDERS.get(_cloud_provider, {})
             st.session_state.ai_available = True
-            st.session_state.ai_provider = 'groq'
-            st.session_state.groq_api_key = groq_key
-            st.session_state.model_cog = 'llama-3.1-8b-instant'
-            st.session_state.model_analysis = 'llama-3.3-70b-versatile'
+            st.session_state.ai_provider = _cloud_provider
+            st.session_state.cloud_api_key = _cloud_key
+            st.session_state.model_cog = _pinfo.get('model_cog', 'llama-3.1-8b-instant')
+            st.session_state.model_analysis = _pinfo.get('model_analysis', 'llama-3.3-70b-versatile')
         else:
             st.session_state.ai_available = False
             st.session_state.ai_provider = None
-            st.session_state.groq_api_key = None
+            st.session_state.cloud_api_key = None
 
 # Mapeo de modelos por modo (Valores predeterminados que el usuario puede sobreescribir)
 AI_DEFAULTS = {
@@ -470,61 +489,74 @@ else:
             st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=80)
             st.write(f"### 🏫 Profesor: **{st.session_state.username}**")
             st.markdown("---")
-            with st.expander("🔧 Proveedor de IA", expanded=False):
-                _mode_labels = ["🤖 Auto", "🖥️ LM Studio", "☁️ Groq"]
-                _mode_keys   = {"🤖 Auto": "auto", "🖥️ LM Studio": "lmstudio", "☁️ Groq": "groq"}
-                _cur_idx = ["auto", "lmstudio", "groq"].index(st.session_state.get('ai_provider_mode', 'auto'))
-                _choice = st.radio("Modo", _mode_labels, index=_cur_idx, key="provider_radio_teacher", label_visibility="collapsed")
-                st.session_state.ai_provider_mode = _mode_keys[_choice]
+            st.caption("🔧 **Proveedor de IA**")
+            _t_mode = st.radio(
+                "Modo IA",
+                ["🤖 Auto", "☁️ API Key", "🖥️ Local"],
+                index=["auto", "cloud", "local"].index(st.session_state.get('ai_provider_mode', 'auto')),
+                key="provider_radio_teacher",
+                label_visibility="collapsed",
+                horizontal=True,
+            )
+            st.session_state.ai_provider_mode = {"🤖 Auto": "auto", "☁️ API Key": "cloud", "🖥️ Local": "local"}[_t_mode]
 
-                if _choice == "🤖 Auto":
-                    if st.button("🔄 Reconectar", key="btn_reconnect_teacher"):
-                        for _k in ('ai_available', 'lmstudio_models'):
-                            st.session_state.pop(_k, None)
-                        st.rerun()
-                elif _choice == "🖥️ LM Studio":
-                    st.session_state.ai_url = st.text_input("URL LM Studio", value=st.session_state.ai_url, key="lm_url_teacher")
-                    if st.button("🔍 Detectar modelos", key="btn_detect_teacher"):
-                        _det = ai_mod.detect_lmstudio(st.session_state.ai_url)
-                        st.session_state.lmstudio_models = _det['models']
-                        if _det['available']:
-                            st.session_state.ai_available = True
-                            st.session_state.ai_provider = 'lmstudio'
-                            st.session_state.groq_api_key = None
-                            _best = ai_mod.select_best_model(_det['models'])
-                            if _best:
-                                st.session_state.model_cog = _best
-                                st.session_state.model_analysis = _best
-                            st.rerun()
-                        else:
-                            st.error("LM Studio no detectado")
-                    _models = st.session_state.get('lmstudio_models', [])
-                    if _models:
-                        _sel_idx = _models.index(st.session_state.model_cog) if st.session_state.model_cog in _models else 0
-                        _sel = st.selectbox("Modelo activo", _models, index=_sel_idx, key="lm_model_teacher")
-                        if _sel != st.session_state.model_cog:
-                            st.session_state.model_cog = _sel
-                            st.session_state.model_analysis = _sel
+            if _t_mode == "🤖 Auto":
+                if st.button("🔄 Reconectar", key="btn_reconnect_teacher"):
+                    for _k in ('ai_available', 'lmstudio_models'):
+                        st.session_state.pop(_k, None)
+                    st.rerun()
+            elif _t_mode == "☁️ API Key":
+                _key_in = st.text_input(
+                    "API Key", type="password",
+                    value=st.session_state.cloud_api_key or "",
+                    placeholder="sk-ant-… / gsk_… / sk-… / AIzaSy…",
+                    key="cloud_key_teacher",
+                )
+                if _key_in:
+                    _detected = ai_mod.detect_provider_from_key(_key_in)
+                    st.session_state.cloud_api_key = _key_in
+                    st.session_state.ai_provider = _detected or 'groq'
+                    _pinfo = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {})
+                    st.session_state.model_cog = _pinfo.get('model_cog') or st.session_state.model_cog
+                    st.session_state.model_analysis = _pinfo.get('model_analysis') or st.session_state.model_analysis
+                    st.session_state.ai_available = True
+                    _plabel = _pinfo.get('label', st.session_state.ai_provider)
+                    st.success(f"{_plabel} detectado")
+                else:
+                    st.caption("Soporta: Groq, OpenAI, Anthropic, Gemini, HuggingFace")
+            elif _t_mode == "🖥️ Local":
+                _local_url = st.text_input("URL servidor local", value=st.session_state.ai_url, key="lm_url_teacher")
+                st.session_state.ai_url = _local_url
+                if st.button("🔍 Detectar modelos", key="btn_detect_teacher"):
+                    _det = ai_mod.detect_lmstudio(st.session_state.ai_url)
+                    st.session_state.lmstudio_models = _det['models']
+                    if _det['available']:
                         st.session_state.ai_available = True
                         st.session_state.ai_provider = 'lmstudio'
-                elif _choice == "☁️ Groq":
-                    _groq_in = st.text_input("API Key Groq", value=st.session_state.groq_api_key or "",
-                                             type="password", key="groq_key_teacher")
-                    if _groq_in:
-                        st.session_state.groq_api_key = _groq_in
-                        st.session_state.ai_available = True
-                        st.session_state.ai_provider = 'groq'
-                        st.session_state.model_cog = 'llama-3.1-8b-instant'
-                        st.session_state.model_analysis = 'llama-3.3-70b-versatile'
-                        st.success("☁️ Groq activo")
+                        st.session_state.cloud_api_key = None
+                        _best = ai_mod.select_best_model(_det['models'])
+                        if _best:
+                            st.session_state.model_cog = _best
+                            st.session_state.model_analysis = _best
+                        st.rerun()
                     else:
-                        st.caption("Ingresa tu API Key de Groq para activarlo")
+                        st.error("Servidor no detectado en esa URL")
+                _models = st.session_state.get('lmstudio_models', [])
+                if _models:
+                    _sel_idx = _models.index(st.session_state.model_cog) if st.session_state.model_cog in _models else 0
+                    _sel = st.selectbox("Modelo activo", _models, index=_sel_idx, key="lm_model_teacher")
+                    if _sel != st.session_state.model_cog:
+                        st.session_state.model_cog = _sel
+                        st.session_state.model_analysis = _sel
+                    st.session_state.ai_available = True
+                    st.session_state.ai_provider = 'lmstudio'
+                else:
+                    st.caption("Pulsa 'Detectar modelos' para listar los disponibles")
 
             _p = st.session_state.get('ai_provider')
-            if _p == 'groq':
-                st.caption("☁️ IA: Groq Cloud")
-            elif _p == 'lmstudio':
-                st.caption(f"🖥️ {st.session_state.model_cog}")
+            _pinfo_label = ai_mod.PROVIDERS.get(_p, {}).get('label', _p) if _p else None
+            if _p and st.session_state.get('ai_available'):
+                st.caption(f"✅ {_pinfo_label}")
             else:
                 st.caption("⚠️ IA no disponible")
             if st.button("Cerrar Sesión"):
@@ -654,7 +686,8 @@ else:
                                 with st.spinner("Analizando trayectoria del estudiante..."):
                                     analysis = st.session_state.teacher_service.generate_ai_analysis(
                                         selected_student['id'], global_elo,
-                                        api_key=st.session_state.groq_api_key
+                                        api_key=st.session_state.cloud_api_key,
+                                        provider=st.session_state.get('ai_provider'),
                                     )
                                     st.markdown(f"""
                                     <div class="elo-card" style="text-align: left; background: rgba(0, 201, 255, 0.05); border-color: rgba(0, 201, 255, 0.3);">
@@ -747,78 +780,77 @@ else:
                 selected_topic = st.selectbox("¿Qué quieres estudiar hoy?", ["Todos"] + topics)
 
             st.markdown("---")
-            with st.expander("🔧 Proveedor de IA", expanded=False):
-                _mode_labels = ["🤖 Auto", "🖥️ LM Studio", "☁️ Groq"]
-                _mode_keys   = {"🤖 Auto": "auto", "🖥️ LM Studio": "lmstudio", "☁️ Groq": "groq"}
-                _cur_idx = ["auto", "lmstudio", "groq"].index(st.session_state.get('ai_provider_mode', 'auto'))
-                _choice = st.radio("Modo", _mode_labels, index=_cur_idx, key="provider_radio_st", label_visibility="collapsed")
-                st.session_state.ai_provider_mode = _mode_keys[_choice]
+            st.caption("🔧 **Proveedor de IA**")
+            _s_mode = st.radio(
+                "Modo IA",
+                ["🤖 Auto", "☁️ API Key", "🖥️ Local"],
+                index=["auto", "cloud", "local"].index(st.session_state.get('ai_provider_mode', 'auto')),
+                key="provider_radio_st",
+                label_visibility="collapsed",
+                horizontal=True,
+            )
+            st.session_state.ai_provider_mode = {"🤖 Auto": "auto", "☁️ API Key": "cloud", "🖥️ Local": "local"}[_s_mode]
 
-                if _choice == "🤖 Auto":
-                    if st.button("🔄 Reconectar", key="btn_reconnect_ai"):
-                        for _k in ('ai_available', 'lmstudio_models'):
-                            st.session_state.pop(_k, None)
-                        st.rerun()
-                    _p = st.session_state.get('ai_provider')
-                    if _p == 'lmstudio':
-                        st.success(f"🖥️ {st.session_state.model_cog}")
-                    elif _p == 'groq':
-                        st.success("☁️ Groq Cloud activo")
-                    else:
-                        st.warning("Sin IA disponible")
-
-                elif _choice == "🖥️ LM Studio":
-                    st.session_state.ai_url = st.text_input("URL LM Studio", value=st.session_state.ai_url, key="lm_url_st")
-                    if st.button("🔍 Detectar modelos", key="btn_detect_lm"):
-                        _det = ai_mod.detect_lmstudio(st.session_state.ai_url)
-                        st.session_state.lmstudio_models = _det['models']
-                        if _det['available']:
-                            st.session_state.ai_available = True
-                            st.session_state.ai_provider = 'lmstudio'
-                            st.session_state.groq_api_key = None
-                            _best = ai_mod.select_best_model(_det['models'])
-                            if _best:
-                                st.session_state.model_cog = _best
-                                st.session_state.model_analysis = _best
-                                st.session_state.student_service.cognitive_analyzer.model_name = _best
-                            st.rerun()
-                        else:
-                            st.error("LM Studio no detectado en esa URL")
-                    _models = st.session_state.get('lmstudio_models', [])
-                    if _models:
-                        _sel_idx = _models.index(st.session_state.model_cog) if st.session_state.model_cog in _models else 0
-                        _sel = st.selectbox("Modelo activo", _models, index=_sel_idx, key="lm_model_sel")
-                        if _sel != st.session_state.model_cog:
-                            st.session_state.model_cog = _sel
-                            st.session_state.model_analysis = _sel
-                            st.session_state.student_service.cognitive_analyzer.model_name = _sel
+            if _s_mode == "🤖 Auto":
+                if st.button("🔄 Reconectar", key="btn_reconnect_ai"):
+                    for _k in ('ai_available', 'lmstudio_models'):
+                        st.session_state.pop(_k, None)
+                    st.rerun()
+            elif _s_mode == "☁️ API Key":
+                _key_in_st = st.text_input(
+                    "API Key", type="password",
+                    value=st.session_state.cloud_api_key or "",
+                    placeholder="sk-ant-… / gsk_… / sk-… / AIzaSy…",
+                    key="cloud_key_st",
+                )
+                if _key_in_st:
+                    _detected_st = ai_mod.detect_provider_from_key(_key_in_st)
+                    st.session_state.cloud_api_key = _key_in_st
+                    st.session_state.ai_provider = _detected_st or 'groq'
+                    _pinfo_st = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {})
+                    st.session_state.model_cog = _pinfo_st.get('model_cog') or st.session_state.model_cog
+                    st.session_state.model_analysis = _pinfo_st.get('model_analysis') or st.session_state.model_analysis
+                    st.session_state.student_service.cognitive_analyzer.model_name = st.session_state.model_cog
+                    st.session_state.ai_available = True
+                    _plabel_st = _pinfo_st.get('label', st.session_state.ai_provider)
+                    st.success(f"{_plabel_st} detectado")
+                else:
+                    st.caption("Soporta: Groq, OpenAI, Anthropic, Gemini, HuggingFace")
+            elif _s_mode == "🖥️ Local":
+                _local_url_st = st.text_input("URL servidor local", value=st.session_state.ai_url, key="lm_url_st")
+                st.session_state.ai_url = _local_url_st
+                if st.button("🔍 Detectar modelos", key="btn_detect_lm"):
+                    _det = ai_mod.detect_lmstudio(st.session_state.ai_url)
+                    st.session_state.lmstudio_models = _det['models']
+                    if _det['available']:
                         st.session_state.ai_available = True
                         st.session_state.ai_provider = 'lmstudio'
+                        st.session_state.cloud_api_key = None
+                        _best = ai_mod.select_best_model(_det['models'])
+                        if _best:
+                            st.session_state.model_cog = _best
+                            st.session_state.model_analysis = _best
+                            st.session_state.student_service.cognitive_analyzer.model_name = _best
+                        st.rerun()
                     else:
-                        st.caption("Pulsa 'Detectar modelos' para ver los disponibles")
+                        st.error("Servidor no detectado en esa URL")
+                _models = st.session_state.get('lmstudio_models', [])
+                if _models:
+                    _sel_idx = _models.index(st.session_state.model_cog) if st.session_state.model_cog in _models else 0
+                    _sel = st.selectbox("Modelo activo", _models, index=_sel_idx, key="lm_model_sel")
+                    if _sel != st.session_state.model_cog:
+                        st.session_state.model_cog = _sel
+                        st.session_state.model_analysis = _sel
+                        st.session_state.student_service.cognitive_analyzer.model_name = _sel
+                    st.session_state.ai_available = True
+                    st.session_state.ai_provider = 'lmstudio'
+                else:
+                    st.caption("Pulsa 'Detectar modelos' para listar los disponibles")
 
-                elif _choice == "☁️ Groq":
-                    _groq_in = st.text_input("API Key Groq", value=st.session_state.groq_api_key or "",
-                                             type="password", key="groq_key_st")
-                    if _groq_in:
-                        st.session_state.groq_api_key = _groq_in
-                        st.session_state.ai_available = True
-                        st.session_state.ai_provider = 'groq'
-                        st.session_state.model_cog = 'llama-3.1-8b-instant'
-                        st.session_state.model_analysis = 'llama-3.3-70b-versatile'
-                        st.success("☁️ Groq activo")
-                    else:
-                        st.caption("Ingresa tu API Key de Groq para activarlo")
-                        if st.session_state.get('ai_provider') == 'groq':
-                            st.session_state.ai_available = False
-                            st.session_state.ai_provider = None
-
-            # Estado del proveedor activo (siempre visible)
             _p = st.session_state.get('ai_provider')
-            if _p == 'groq':
-                st.caption("☁️ IA: Groq Cloud")
-            elif _p == 'lmstudio':
-                st.caption(f"🖥️ {st.session_state.model_cog}")
+            _pinfo_label = ai_mod.PROVIDERS.get(_p, {}).get('label', _p) if _p else None
+            if _p and st.session_state.get('ai_available'):
+                st.caption(f"✅ {_pinfo_label}")
             else:
                 st.caption("⚠️ IA no disponible")
 
@@ -980,7 +1012,8 @@ else:
                                         all_options=item_data['options'],
                                         base_url=st.session_state.ai_url,
                                         model_name=st.session_state.model_cog,
-                                        api_key=st.session_state.groq_api_key,
+                                        api_key=st.session_state.cloud_api_key,
+                                        provider=st.session_state.get('ai_provider'),
                                     ))
                             except (ConnectionError, TimeoutError):
                                 st.info("IA no disponible en este momento. Inténtalo más tarde.")
@@ -1072,22 +1105,21 @@ else:
             st.subheader("🧠 Asistente Virtual Inteligente")
             st.write("Generando recomendaciones personalizadas basadas en tu desempeño reciente.")
 
-            lm_studio_url_dash = st.text_input("Servidor de IA (URL)", value="http://192.168.40.66:1234/v1", key="lm_dash")
-
             _rec_help = None if st.session_state.ai_available else "IA no disponible en este entorno demo"
             if st.button("✨ Generar Recomendaciones de Estudio", disabled=not st.session_state.ai_available, help=_rec_help):
                 try:
                     with st.spinner("Analizando patrones de aprendizaje..."):
                         recent_attempts = st.session_state.db.get_attempts_for_ai(st.session_state.user_id)
                         current_elo_val = aggregate_global_elo(st.session_state.vector)
-                        
-                        # Usar el modelo de análisis configurado
+
+                        # Usar el proveedor activo en lugar de URL hardcodeada
                         recommendations = analyze_performance_local(
                             recent_attempts,
                             current_elo_val,
-                            base_url=lm_studio_url_dash,
+                            base_url=st.session_state.ai_url,
                             model_name=st.session_state.model_analysis,
-                            api_key=st.session_state.groq_api_key,
+                            api_key=st.session_state.cloud_api_key,
+                            provider=st.session_state.get('ai_provider'),
                         )
 
                         if isinstance(recommendations, list) and len(recommendations) > 0:
