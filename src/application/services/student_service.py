@@ -12,28 +12,54 @@ class StudentService:
         self.ai_client = ai_client
         self.cognitive_analyzer = CognitiveAnalyzer()
 
-    def get_next_question(self, student_id, topic, vector_rating):
+    def get_next_question(self, student_id, topic, vector_rating,
+                          session_correct_ids=None, session_wrong_timestamps=None,
+                          session_questions_count=0):
         """Orquesta la selección de la siguiente pregunta."""
-        # 1. Obtener pool de preguntas
+        session_correct_ids = session_correct_ids or set()
+        session_wrong_timestamps = session_wrong_timestamps or {}
+
         pool = self.repository.get_items_from_db(topic)
-        answered_ids = self.repository.get_answered_item_ids(student_id)
-        
-        filtered = [i for i in pool if i['id'] not in answered_ids]
-        
-        # 2. Si no hay preguntas, decidir si reiniciar o terminar
+        answered_ids = set(self.repository.get_answered_item_ids(student_id))
         current_elo = vector_rating.get(topic)
+
+        # Excluir siempre las respondidas correctamente en esta sesión
+        eligible = [i for i in pool if i['id'] not in session_correct_ids]
+
+        # Prioridad 1: no vistas (no en DB histórica ni en sesión fallida)
+        unseen = [
+            i for i in eligible
+            if i['id'] not in answered_ids and i['id'] not in session_wrong_timestamps
+        ]
+
+        # Prioridad 2: falladas en sesión con intervalo ≥ 3 preguntas
+        wrong_available = [
+            i for i in eligible
+            if i['id'] in session_wrong_timestamps
+            and session_questions_count - session_wrong_timestamps[i['id']] >= 3
+        ]
+
+        # Prioridad 3: históricas no de esta sesión (ni en cooldown)
+        historical = [
+            i for i in eligible
+            if i['id'] in answered_ids and i['id'] not in session_wrong_timestamps
+        ]
+
+        filtered = unseen or wrong_available or historical
+
+        # Si no hay candidatos, reiniciar o declarar maestría
         if not filtered:
             if current_elo < 1800:
-                filtered = pool # Reiniciar
+                filtered = eligible or pool
             else:
                 return None, "mastery"
-        
-        # 3. Seleccionar óptima
+
+        # Seleccionar óptima
         from src.domain.elo.model import Item
         selector = AdaptiveItemSelector()
         items_objs = [Item(difficulty=i['difficulty']) for i in filtered]
         target_item_obj = selector.select_optimal_item(current_elo, items_objs)
-        
+
         if target_item_obj:
             item_data = next(i for i in filtered if i['difficulty'] == target_item_obj.difficulty)
             return item_data, "ok"

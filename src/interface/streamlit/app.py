@@ -638,6 +638,13 @@ else:
                 st.session_state.vector.ratings[topic] = (elo, rd)
             st.session_state.vector_initialized = True
 
+        if 'session_correct_ids' not in st.session_state:
+            st.session_state.session_correct_ids = set()
+        if 'session_wrong_timestamps' not in st.session_state:
+            st.session_state.session_wrong_timestamps = {}
+        if 'session_questions_count' not in st.session_state:
+            st.session_state.session_questions_count = 0
+
         # Sidebar Estilizado
         with st.sidebar:
             st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=80)
@@ -702,12 +709,18 @@ else:
             
             # Delegar procesamiento al servicio
             is_correct, cog_data = st.session_state.student_service.process_answer(
-                st.session_state.user_id, item_data, 
+                st.session_state.user_id, item_data,
                 # La opción seleccionada se recupera del estado del radio
-                st.session_state.get(f"radio_{item_data['id']}"), 
+                st.session_state.get(f"radio_{item_data['id']}"),
                 reasoning, time_taken, st.session_state.vector
             )
-            
+
+            st.session_state.session_questions_count += 1
+            if is_correct:
+                st.session_state.session_correct_ids.add(item_data['id'])
+            else:
+                st.session_state.session_wrong_timestamps[item_data['id']] = float(st.session_state.session_questions_count)
+
             st.session_state.question_start_time = None
             st.rerun()
 
@@ -751,7 +764,10 @@ else:
 
                 # Delegar obtención de pregunta al servicio
                 item_data, status = st.session_state.student_service.get_next_question(
-                    st.session_state.user_id, selected_topic, st.session_state.vector
+                    st.session_state.user_id, selected_topic, st.session_state.vector,
+                    session_correct_ids=st.session_state.session_correct_ids,
+                    session_wrong_timestamps=st.session_state.session_wrong_timestamps,
+                    session_questions_count=st.session_state.session_questions_count,
                 )
 
                 if status == "mastery":
