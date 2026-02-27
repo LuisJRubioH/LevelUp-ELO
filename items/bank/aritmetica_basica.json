@@ -1,0 +1,26 @@
+[
+    {
+        "id": "ab1",
+        "content": "¿Cuánto es $15 \\times 4$?",
+        "difficulty": 600,
+        "topic": "Aritmética Básica",
+        "options": ["55", "60", "45", "70"],
+        "correct_option": "60"
+    },
+    {
+        "id": "ab2",
+        "content": "¿Cuál es el mínimo común múltiplo (MCM) de 4 y 6?",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": ["8", "12", "24", "6"],
+        "correct_option": "12"
+    },
+    {
+        "id": "ab3",
+        "content": "Si una tienda aplica un descuento del 20% a un artículo de $\\$50$, ¿cuál es el precio final?",
+        "difficulty": 800,
+        "topic": "Aritmética Básica",
+        "options": ["$\\$30$", "$\\$40$", "$\\$45$", "$\\$35$"],
+        "correct_option": "$\\$40$"
+    }
+]

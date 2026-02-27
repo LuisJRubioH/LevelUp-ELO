@@ -3,7 +3,7 @@
 # ======================================================
 import math
 import statistics
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 # Constantes configurables para el motor ELO
 INITIAL_K = 40.0
@@ -25,6 +25,25 @@ class Item:
 @dataclass
 class StudentELO:
     rating: float = 1000.0
+
+
+@dataclass
+class User:
+    """Modelo de dominio para un usuario del sistema LMS."""
+    id: int
+    username: str
+    role: str                               # 'student' | 'teacher' | 'admin'
+    education_level: str = 'universidad'    # 'universidad' | 'colegio'
+    enrolled_courses: list = field(default_factory=list)  # lista de course_id
+
+
+@dataclass
+class Course:
+    """Representa un curso (unidad de contenido del LMS)."""
+    id: str           # slug derivado del nombre de archivo, ej: 'algebra_lineal'
+    name: str         # nombre legible, ej: 'Álgebra Lineal'
+    block: str        # 'Universidad' | 'Colegio'
+    description: str = ''
 
 
 def expected_score(rating_a: float, rating_b: float) -> float:

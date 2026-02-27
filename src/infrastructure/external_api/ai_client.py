@@ -1,7 +1,18 @@
+import os
 import requests
 import json
 import re
 import base64
+
+# Cargar variables de entorno desde .env si python-dotenv está instalado
+try:
+    from dotenv import load_dotenv as _load_dotenv
+    _load_dotenv()
+except ImportError:
+    pass
+
+# Variable de módulo que registra el último error 401 detectado
+_AI_KEY_ERROR: str | None = None
 
 # ── Provider registry ────────────────────────────────────────────────────────
 PROVIDERS = {
@@ -64,6 +75,16 @@ _KEY_PREFIXES = [
     ("sk-proj-","openai"),
     ("sk-",     "openai"),
 ]
+
+
+def _proc_quality_label(avg_score: float) -> str:
+    """Convierte un promedio de procedimiento (0-5) en etiqueta cualitativa."""
+    if avg_score < 3.0:
+        return f"Deficiente ({avg_score:.1f}/5.0) — Falta de rigor técnico en el desarrollo"
+    elif avg_score <= 4.0:
+        return f"Regular ({avg_score:.1f}/5.0) — Procedimiento incompleto o poco claro"
+    else:
+        return f"Excelente ({avg_score:.1f}/5.0) — Dominio total del desarrollo"
 
 
 def detect_provider_from_key(api_key: str):
@@ -163,7 +184,15 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
             content = re.sub(r'<thought>.*?</thought>', '', content, flags=re.DOTALL)
             return content.strip()
         except Exception as e:
-            return f"Error {provider or 'cloud'}: {str(e)}"
+            global _AI_KEY_ERROR
+            err_str = str(e)
+            if "401" in err_str or "invalid_api_key" in err_str.lower() or "authentication" in err_str.lower():
+                _AI_KEY_ERROR = (
+                    f"❌ API Key inválida para {provider or 'proveedor cloud'}. "
+                    "Verifica tu clave en el panel lateral (⚙️ Configuración IA)."
+                )
+                return f"ERROR_401: {_AI_KEY_ERROR}"
+            return f"Error {provider or 'cloud'}: {err_str}"
     else:
         # ── LM Studio / Ollama local ─────────────────────────────────────────
         payload = {
@@ -323,30 +352,58 @@ def get_socratic_guidance_stream(student_rating, topic, content, student_answer,
     yield from stream_ai_response(prompt, model_name, base_url, api_key=api_key, provider=provider)
 
 
-def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None, procedure_stats=None):
+def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None, procedure_stats=None, procedure_stats_by_course=None):
     """Genera un análisis pedagógico detallado para el profesor.
     procedure_stats (opcional): dict con 'count', 'avg_score', 'scores'.
+    procedure_stats_by_course (opcional): dict {course_id: {course_name, avg_score, count}}.
     """
-    # Construir línea e instrucción de procedimientos
+    # Construir línea e instrucción de procedimientos con etiquetas cualitativas
     if procedure_stats and procedure_stats.get('count', 0) > 0:
         _pc = procedure_stats['count']
         _pavg = procedure_stats['avg_score']
         _pscores = procedure_stats.get('scores', [])
+        _quality = _proc_quality_label(_pavg)
         _proc_line = (
-            f"{_pc} procedimiento(s) evaluado(s), nota promedio {_pavg:.1f}/5.0. "
+            f"{_pc} procedimiento(s) evaluado(s). Calidad global: {_quality}. "
             f"Notas individuales: {', '.join(f'{s:.1f}' for s in _pscores[:5])}"
         )
-        _proc_instruction = (
-            "Evalua la calidad del procedimiento manuscrito basandote en las notas recibidas. "
-            "Si el promedio es menor a 3.0, indica que debe mejorar su desarrollo escrito. "
-            "Si es mayor o igual a 4.0, felicita el habito y propone como mantenerlo."
-        )
+        if _pavg < 3.0:
+            _proc_instruction = (
+                "Calidad DEFICIENTE. El estudiante carece de rigor tecnico en el desarrollo escrito. "
+                "Exigir que rehaga los ejercicios mostrando todos los pasos intermedios."
+            )
+        elif _pavg <= 4.0:
+            _proc_instruction = (
+                "Calidad REGULAR. El procedimiento esta incompleto o poco claro. "
+                "Indicar al estudiante que justifique cada paso y use notacion correcta."
+            )
+        else:
+            _proc_instruction = (
+                "Calidad EXCELENTE. El estudiante domina el desarrollo matematico escrito. "
+                "Felicitar este habito y proponer ejercicios de mayor complejidad procedimental."
+            )
     else:
         _proc_line = "No ha subido ningun procedimiento escrito."
         _proc_instruction = (
             "ADVERTENCIA CRITICA: el estudiante NO documenta su desarrollo matematico paso a paso. "
             "Esto es un habito esencial que el docente debe exigir corregir de inmediato, "
             "ya que impide detectar errores de proceso aunque la respuesta final sea correcta."
+        )
+
+    # Bloque de análisis comparativo por curso (detecta adivinanza si ELO alto + procedimiento bajo)
+    _course_proc_section = ""
+    if procedure_stats_by_course:
+        lines = []
+        for cid, cdata in procedure_stats_by_course.items():
+            lines.append(
+                f"  - {cdata['course_name']}: {_proc_quality_label(cdata['avg_score'])} "
+                f"({cdata['count']} envío(s))"
+            )
+        _course_proc_section = (
+            "\n- Calidad de procedimientos por curso:\n" + "\n".join(lines) +
+            "\n  ANALISIS COMPARATIVO: Si el ELO es alto en un curso pero el procedimiento es "
+            "Deficiente o Regular, podria indicar que el alumno adivina respuestas en lugar de "
+            "razonar. Señalarlo explicitamente si es el caso."
         )
 
     prompt = f"""
@@ -358,7 +415,7 @@ def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", 
     - Intentos totales: {student_data['attempts_count']}
     - Temas recorridos: {', '.join(student_data['topics'])}
     - Tasa de acierto reciente: {student_data['recent_accuracy']:.1%}
-    - Habito de procedimientos escritos: {_proc_line}
+    - Habito de procedimientos escritos: {_proc_line}{_course_proc_section}
 
     OBJETIVOS DEL ANALISIS:
     1. Identificar debilidades conceptuales especificas basadas en los temas con menor rendimiento.
@@ -366,6 +423,9 @@ def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", 
     3. Sugerir ajustes en la estrategia de ensenanza o dificultad.
     4. Proponer una estrategia pedagogica personalizada y accionable.
     5. SECCION OBLIGATORIA — Calidad del procedimiento y desarrollo manual: {_proc_instruction}
+    6. Si hay datos por curso, detecta si existe discrepancia entre ELO alto y procedimiento bajo
+       (posible patron de adivinanza) o ELO bajo con procedimiento alto (comprende el proceso
+       pero falla en la seleccion final). Reporta cualquier patron anomalo encontrado.
 
     IMPORTANTE: No expliques teoria basica. Se directo y profesional. Usa bullet points.
     Incluye siempre la seccion "Calidad del procedimiento" como ultimo punto del analisis.
@@ -396,12 +456,13 @@ _FALLBACK_RECOMMENDATIONS = [
 ]
 
 
-def analyze_performance_local(history_data, current_elo, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None, procedure_stats=None):
+def analyze_performance_local(history_data, current_elo, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None, procedure_stats=None, procedure_stats_by_course=None):
     """
     Analiza el rendimiento del estudiante y devuelve EXACTAMENTE 3 recomendaciones
     con estructura fija: [fortalezas, áreas regulares, áreas críticas].
-    procedure_stats (opcional): dict con 'count', 'avg_score', 'scores' del historial
-    de procedimientos evaluados por el docente.
+    Umbral mínimo: 3 intentos. Con menos datos devuelve recomendaciones genéricas.
+    procedure_stats (opcional): dict con 'count', 'avg_score', 'scores'.
+    procedure_stats_by_course (opcional): dict {course_id: {course_name, avg_score, count}}.
     """
     if not history_data:
         return _FALLBACK_RECOMMENDATIONS
@@ -413,17 +474,27 @@ def analyze_performance_local(history_data, current_elo, base_url="http://localh
     incorrect_topics = sorted({h['topic'] for h in history_data if not h['is_correct']})
     avg_difficulty = sum(h['difficulty'] for h in history_data) / total
 
-    # Construir línea de hábito de procedimientos
+    # Construir línea de hábito de procedimientos con etiquetas cualitativas
     if procedure_stats and procedure_stats.get('count', 0) > 0:
         _pc = procedure_stats['count']
         _pavg = procedure_stats['avg_score']
         _pscores = procedure_stats.get('scores', [])
+        _quality = _proc_quality_label(_pavg)
         _pline = (
-            f"{_pc} procedimiento(s) evaluado(s), nota promedio {_pavg:.1f}/5.0. "
-            f"Notas individuales: {', '.join(f'{s:.1f}' for s in _pscores[:5])}"
+            f"{_pc} procedimiento(s) evaluado(s). Calidad: {_quality}. "
+            f"Notas: {', '.join(f'{s:.1f}' for s in _pscores[:5])}"
         )
     else:
         _pline = "No ha subido ningun procedimiento escrito. No documenta su desarrollo matematico paso a paso."
+
+    # Bloque por curso (para detectar discrepancias ELO vs procedimiento)
+    _course_breakdown = ""
+    if procedure_stats_by_course:
+        lines = [
+            f"  - {d['course_name']}: {_proc_quality_label(d['avg_score'])} ({d['count']} envío(s))"
+            for d in procedure_stats_by_course.values()
+        ]
+        _course_breakdown = "\n- Por curso:\n" + "\n".join(lines)
 
     prompt = f"""Eres un tutor académico experto. Analiza el rendimiento de un estudiante y genera exactamente 3 recomendaciones estructuradas.
 
@@ -434,7 +505,7 @@ DATOS DEL ESTUDIANTE:
 - Temas donde acierta: {', '.join(correct_topics) if correct_topics else 'Ninguno registrado aun'}
 - Temas donde falla: {', '.join(incorrect_topics) if incorrect_topics else 'Ninguno'}
 - Dificultad media de las preguntas: {avg_difficulty:.0f}
-- Habito de procedimientos escritos: {_pline}
+- Habito de procedimientos escritos: {_pline}{_course_breakdown}
 
 INSTRUCCION CRITICA: Responde UNICAMENTE con el siguiente JSON, sin ningun texto antes ni despues, sin bloques de codigo markdown:
 [
@@ -647,8 +718,7 @@ class AIClient:
             self._models = detection['models']
             return
 
-        # 2. Buscar API key en variables de entorno
-        import os
+        # 2. Buscar API key en variables de entorno (load_dotenv ya fue llamado al importar)
         _secrets = {}
         try:
             import streamlit as _st
@@ -700,6 +770,11 @@ class AIClient:
     @property
     def is_available(self) -> bool:
         return self._provider is not None
+
+    @property
+    def key_error(self) -> str | None:
+        """Retorna el mensaje del último error 401 detectado, o None si no hubo error."""
+        return _AI_KEY_ERROR
 
 
 def get_ai_client(lmstudio_url: str = "http://192.168.40.66:1234/v1") -> AIClient:

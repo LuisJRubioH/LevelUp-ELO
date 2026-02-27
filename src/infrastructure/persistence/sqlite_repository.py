@@ -10,6 +10,7 @@ class SQLiteRepository:
         self._migrate_db()
         self._seed_demo_data()
         self._backfill_prob_failure()
+        self.sync_items_from_bank_folder()
 
     def get_connection(self):
         import sqlite3
@@ -107,6 +108,54 @@ class SQLiteRepository:
         conn.close()
         return [{'score': row[0], 'submitted_at': row[1]} for row in rows]
 
+    def get_procedure_stats_by_course(self, student_id):
+        """Retorna dict {course_id: {'course_name', 'avg_score', 'count'}} con el
+        promedio de notas de procedimiento agrupadas por curso del estudiante."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT i.course_id, c.name, AVG(ps.procedure_score), COUNT(ps.id)
+            FROM procedure_submissions ps
+            JOIN items i ON ps.item_id = i.id
+            LEFT JOIN courses c ON i.course_id = c.id
+            WHERE ps.student_id = ? AND ps.procedure_score IS NOT NULL
+            GROUP BY i.course_id
+        ''', (student_id,))
+        rows = cursor.fetchall()
+        conn.close()
+        return {
+            row[0]: {
+                'course_name': row[1] or row[0],
+                'avg_score': round(row[2], 2),
+                'count': row[3]
+            }
+            for row in rows if row[0]
+        }
+
+    def get_students_procedure_summary_table(self, teacher_id):
+        """Para el panel docente: lista de dicts con promedio de procedimiento
+        por estudiante y curso, filtrado por los grupos del profesor."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT u.id, u.username, i.course_id, c.name,
+                   AVG(ps.procedure_score), COUNT(ps.id)
+            FROM procedure_submissions ps
+            JOIN users u ON ps.student_id = u.id
+            JOIN items i ON ps.item_id = i.id
+            LEFT JOIN courses c ON i.course_id = c.id
+            JOIN groups g ON u.group_id = g.id
+            WHERE g.teacher_id = ? AND ps.procedure_score IS NOT NULL
+            GROUP BY u.id, i.course_id
+            ORDER BY u.username, i.course_id
+        ''', (teacher_id,))
+        cols = ['student_id', 'student', 'course_id', 'course_name', 'avg_score', 'count']
+        rows = [dict(zip(cols, r)) for r in cursor.fetchall()]
+        conn.close()
+        for row in rows:
+            row['avg_score'] = round(row['avg_score'], 2)
+        return rows
+
 
     def _migrate_db(self):
         """Agrega columnas nuevas de forma segura si no existen (migración)."""
@@ -126,6 +175,9 @@ class SQLiteRepository:
             cursor.execute("ALTER TABLE users ADD COLUMN group_id INTEGER")
         if 'rating_deviation' not in user_cols:
             cursor.execute("ALTER TABLE users ADD COLUMN rating_deviation REAL DEFAULT 350.0")
+        if 'education_level' not in user_cols:
+            # Sin DEFAULT: los usuarios existentes quedan NULL → pasan por onboarding la primera vez
+            cursor.execute("ALTER TABLE users ADD COLUMN education_level TEXT")
 
         # Asegurar índices si no existen
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
@@ -203,6 +255,36 @@ class SQLiteRepository:
                 FOREIGN KEY(student_id) REFERENCES users(id)
             )
         ''')
+
+        # ── LMS: Cursos y Matrículas ─────────────────────────────────────────────
+
+        # Catálogo de cursos (uno por archivo JSON en items/bank/)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS courses (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio')),
+                description TEXT DEFAULT ''
+            )
+        ''')
+
+        # Matrículas: relación N-N entre estudiantes y cursos
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS enrollments (
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, course_id),
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY(course_id) REFERENCES courses(id) ON DELETE CASCADE
+            )
+        ''')
+
+        # Vincular ítems a su curso (migración aditiva)
+        cursor.execute("PRAGMA table_info(items)")
+        item_cols = [row[1] for row in cursor.fetchall()]
+        if 'course_id' not in item_cols:
+            cursor.execute("ALTER TABLE items ADD COLUMN course_id TEXT REFERENCES courses(id)")
 
         conn.commit()
         conn.close()
@@ -680,6 +762,167 @@ class SQLiteRepository:
         finally:
             conn.close()
 
+    # ─── Gestión de CURSOS y MATRÍCULAS ─────────────────────────────────────────
+
+    # Bloque al que pertenece cada curso (por slug del archivo).
+    # Ampliar aquí cuando se agreguen cursos de Colegio.
+    _COURSE_BLOCK_MAP = {
+        # ── Bloque Universidad ────────────────────────────────────────────────
+        'algebra_lineal':          'Universidad',
+        'calculo_diferencial':     'Universidad',
+        'calculo_integral':        'Universidad',
+        'calculo_varias_variables':'Universidad',
+        'ecuaciones_diferenciales':'Universidad',
+        # ── Bloque Colegio ────────────────────────────────────────────────────
+        'algebra_basica':          'Colegio',
+        'aritmetica':              'Colegio',
+        'aritmetica_basica':       'Colegio',
+        'trigonometria':           'Colegio',
+        'geometria':               'Colegio',
+    }
+
+    def sync_items_from_bank_folder(self, bank_dir='items/bank'):
+        """Escanea items/bank/*.json, registra cada archivo como curso y sincroniza
+        sus ítems sin sobreescribir ratings ELO ya calculados."""
+        import json
+        import glob as _glob
+
+        if not os.path.isdir(bank_dir):
+            return
+
+        json_files = sorted(_glob.glob(os.path.join(bank_dir, '*.json')))
+        if not json_files:
+            return
+
+        conn = self.get_connection()
+        cursor = conn.cursor()
+
+        for filepath in json_files:
+            # course_id = nombre del archivo sin extensión (ej: 'algebra_lineal')
+            course_id = os.path.splitext(os.path.basename(filepath))[0]
+
+            with open(filepath, 'r', encoding='utf-8') as f:
+                items_list = json.load(f)
+
+            if not items_list:
+                continue
+
+            # Nombre legible tomado del campo 'topic' del primer ítem
+            course_name = items_list[0].get('topic', course_id)
+            block = self._COURSE_BLOCK_MAP.get(course_id, 'Universidad')
+
+            # Upsert del curso (nunca sobreescribe si ya existe)
+            cursor.execute("SELECT id FROM courses WHERE id = ?", (course_id,))
+            if not cursor.fetchone():
+                cursor.execute(
+                    "INSERT INTO courses (id, name, block, description) VALUES (?, ?, ?, ?)",
+                    (course_id, course_name, block, f"Curso de {course_name}")
+                )
+
+            # Sincronizar cada ítem vinculándolo al curso
+            for item in items_list:
+                cursor.execute("SELECT id FROM items WHERE id = ?", (item['id'],))
+                if not cursor.fetchone():
+                    cursor.execute('''
+                        INSERT INTO items
+                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id)
+                        VALUES (?, ?, ?, ?, ?, ?, 350.0, ?)
+                    ''', (
+                        item['id'],
+                        item['topic'],
+                        item['content'],
+                        json.dumps(item['options']),
+                        item['correct_option'],
+                        item['difficulty'],
+                        course_id,
+                    ))
+                else:
+                    # Actualizar contenido/metadatos sin tocar el rating ELO
+                    cursor.execute('''
+                        UPDATE items
+                        SET content = ?, options = ?, correct_option = ?, topic = ?, course_id = ?
+                        WHERE id = ?
+                    ''', (
+                        item['content'],
+                        json.dumps(item['options']),
+                        item['correct_option'],
+                        item['topic'],
+                        course_id,
+                        item['id'],
+                    ))
+
+        conn.commit()
+        conn.close()
+
+    def get_courses(self, block=None):
+        """Devuelve todos los cursos, opcionalmente filtrados por bloque."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        if block:
+            cursor.execute(
+                "SELECT id, name, block, description FROM courses WHERE block = ? ORDER BY name ASC",
+                (block,)
+            )
+        else:
+            cursor.execute("SELECT id, name, block, description FROM courses ORDER BY block ASC, name ASC")
+        rows = cursor.fetchall()
+        conn.close()
+        return [{'id': r[0], 'name': r[1], 'block': r[2], 'description': r[3]} for r in rows]
+
+    def enroll_user(self, user_id, course_id):
+        """Matricula a un usuario en un curso. Idempotente."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT OR IGNORE INTO enrollments (user_id, course_id) VALUES (?, ?)",
+            (user_id, course_id)
+        )
+        conn.commit()
+        conn.close()
+
+    def unenroll_user(self, user_id, course_id):
+        """Elimina la matrícula de un usuario en un curso."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM enrollments WHERE user_id = ? AND course_id = ?",
+            (user_id, course_id)
+        )
+        conn.commit()
+        conn.close()
+
+    def get_user_enrollments(self, user_id):
+        """Devuelve los cursos en los que está matriculado el usuario."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT c.id, c.name, c.block, c.description
+            FROM enrollments e
+            JOIN courses c ON e.course_id = c.id
+            WHERE e.user_id = ?
+            ORDER BY c.name ASC
+        ''', (user_id,))
+        rows = cursor.fetchall()
+        conn.close()
+        return [{'id': r[0], 'name': r[1], 'block': r[2], 'description': r[3]} for r in rows]
+
+    def set_education_level(self, user_id, level):
+        """Guarda el nivel educativo del usuario ('universidad' | 'colegio')."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET education_level = ? WHERE id = ?", (level, user_id))
+        conn.commit()
+        conn.close()
+
+    def get_education_level(self, user_id):
+        """Retorna el education_level del usuario, o None si no existe."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT education_level FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        conn.close()
+        return row[0] if row else None
+
     # ─── Gestión de ÍTEMS (ELO Dinámico) ────────────────────────────────────────
 
     def sync_items_from_json(self, items_list):
@@ -718,20 +961,31 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
-    def get_items_from_db(self, topic=None):
-        """Obtiene ítems desde la base de datos."""
+    def get_items_from_db(self, topic=None, course_id=None):
+        """Obtiene ítems desde la base de datos.
+        Prioridad de filtro: course_id > topic > sin filtro."""
         conn = self.get_connection()
         cursor = conn.cursor()
         import json
-        
-        if topic and topic != "Todos":
-            cursor.execute("SELECT id, topic, content, options, correct_option, difficulty, rating_deviation FROM items WHERE topic = ?", (topic,))
+
+        if course_id:
+            cursor.execute(
+                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation FROM items WHERE course_id = ?",
+                (course_id,)
+            )
+        elif topic and topic != "Todos":
+            cursor.execute(
+                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation FROM items WHERE topic = ?",
+                (topic,)
+            )
         else:
-            cursor.execute("SELECT id, topic, content, options, correct_option, difficulty, rating_deviation FROM items")
-        
+            cursor.execute(
+                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation FROM items"
+            )
+
         rows = cursor.fetchall()
         conn.close()
-        
+
         items = []
         for r in rows:
             items.append({
@@ -741,7 +995,7 @@ class SQLiteRepository:
                 'options': json.loads(r[3]),
                 'correct_option': r[4],
                 'difficulty': r[5],
-                'rating_deviation': r[6]
+                'rating_deviation': r[6],
             })
         return items
 

@@ -1,0 +1,26 @@
+[
+    {
+        "id": "trig1",
+        "content": "Un triángulo rectángulo tiene catetos de longitud $3$ y $4$. ¿Cuánto mide su hipotenusa?",
+        "difficulty": 650,
+        "topic": "Trigonometría",
+        "options": ["$5$", "$6$", "$7$", "$\\sqrt{7}$"],
+        "correct_option": "$5$"
+    },
+    {
+        "id": "trig2",
+        "content": "¿Cuál es el valor exacto de $\\sin(30°)$?",
+        "difficulty": 700,
+        "topic": "Trigonometría",
+        "options": ["$\\dfrac{\\sqrt{3}}{2}$", "$\\dfrac{1}{2}$", "$1$", "$\\dfrac{\\sqrt{2}}{2}$"],
+        "correct_option": "$\\dfrac{1}{2}$"
+    },
+    {
+        "id": "trig3",
+        "content": "En un triángulo rectángulo, la hipotenusa mide $10$ y uno de los catetos mide $6$. ¿Cuánto mide el otro cateto?",
+        "difficulty": 800,
+        "topic": "Trigonometría",
+        "options": ["$4$", "$6$", "$8$", "$\\sqrt{64}$"],
+        "correct_option": "$8$"
+    }
+]

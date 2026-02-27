@@ -1,0 +1,26 @@
+[
+    {
+        "id": "alb1",
+        "content": "Resuelve para $x$: $2x + 3 = 11$",
+        "difficulty": 600,
+        "topic": "Álgebra Básica",
+        "options": ["$x = 3$", "$x = 4$", "$x = 5$", "$x = 7$"],
+        "correct_option": "$x = 4$"
+    },
+    {
+        "id": "alb2",
+        "content": "Simplifica la expresión: $3x + 5y - x + 2y$",
+        "difficulty": 700,
+        "topic": "Álgebra Básica",
+        "options": ["$4x + 7y$", "$2x + 7y$", "$3x + 3y$", "$4x + 3y$"],
+        "correct_option": "$2x + 7y$"
+    },
+    {
+        "id": "alb3",
+        "content": "Resuelve para $x$: $3(x - 2) = 9$",
+        "difficulty": 800,
+        "topic": "Álgebra Básica",
+        "options": ["$x = 3$", "$x = 4$", "$x = 5$", "$x = 6$"],
+        "correct_option": "$x = 5$"
+    }
+]

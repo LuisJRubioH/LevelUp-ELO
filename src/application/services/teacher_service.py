@@ -19,11 +19,17 @@ class TeacherService:
         # Aquí se podrían añadir cálculos adicionales de dominio
         return attempts
 
-    def generate_ai_analysis(self, student_id, global_elo, api_key=None, provider=None, procedure_stats=None):
-        """Orquesta la generación del análisis pedagógico con IA."""
+    def generate_ai_analysis(self, student_id, global_elo, api_key=None, provider=None,
+                             procedure_stats=None, procedure_stats_by_course=None):
+        """Orquesta la generación del análisis pedagógico con IA.
+        Requiere un mínimo de 3 intentos para producir un análisis significativo.
+        """
         attempts = self.repository.get_student_attempts_detail(student_id)
-        if not attempts:
-            return "No hay suficientes datos para analizar."
+        if len(attempts) < 3:
+            return (
+                "ℹ️ El estudiante necesita completar al menos **3 ejercicios** para generar "
+                "un análisis pedagógico significativo."
+            )
 
         recent_attempts = attempts[-10:]
         recent_acc = sum(1 for a in recent_attempts if a['is_correct']) / len(recent_attempts) if recent_attempts else 0
@@ -36,4 +42,8 @@ class TeacherService:
             "recent_accuracy": recent_acc
         }
 
-        return get_pedagogical_analysis(student_data, api_key=api_key, provider=provider, procedure_stats=procedure_stats)
+        return get_pedagogical_analysis(
+            student_data, api_key=api_key, provider=provider,
+            procedure_stats=procedure_stats,
+            procedure_stats_by_course=procedure_stats_by_course,
+        )

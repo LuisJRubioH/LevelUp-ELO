@@ -1,0 +1,26 @@
+[
+    {
+        "id": "geo1",
+        "content": "¿Cuál es el área de un triángulo con base $6$ cm y altura $4$ cm?",
+        "difficulty": 600,
+        "topic": "Geometría",
+        "options": ["$10 \\text{ cm}^2$", "$12 \\text{ cm}^2$", "$24 \\text{ cm}^2$", "$8 \\text{ cm}^2$"],
+        "correct_option": "$12 \\text{ cm}^2$"
+    },
+    {
+        "id": "geo2",
+        "content": "¿Cuál es el área de un círculo de radio $5$ cm? (Usa $\\pi \\approx 3.14$)",
+        "difficulty": 750,
+        "topic": "Geometría",
+        "options": ["$15.70 \\text{ cm}^2$", "$31.40 \\text{ cm}^2$", "$78.50 \\text{ cm}^2$", "$25.00 \\text{ cm}^2$"],
+        "correct_option": "$78.50 \\text{ cm}^2$"
+    },
+    {
+        "id": "geo3",
+        "content": "Un triángulo tiene base $b = 8$ cm y altura $h = 5$ cm. ¿Cuál es su área?",
+        "difficulty": 650,
+        "topic": "Geometría",
+        "options": ["$13 \\text{ cm}^2$", "$40 \\text{ cm}^2$", "$20 \\text{ cm}^2$", "$16 \\text{ cm}^2$"],
+        "correct_option": "$20 \\text{ cm}^2$"
+    }
+]

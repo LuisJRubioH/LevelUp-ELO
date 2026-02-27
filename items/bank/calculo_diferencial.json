@@ -1,0 +1,162 @@
+[
+    {
+        "id": "q21",
+        "content": "Derivada de $x^3$.",
+        "difficulty": 600,
+        "topic": "Cálculo Diferencial",
+        "options": ["$3x^2$", "$x^2$", "$3x$", "$0$"],
+        "correct_option": "$3x^2$"
+    },
+    {
+        "id": "q22",
+        "content": "Derivada de $\\sin(x)$.",
+        "difficulty": 650,
+        "topic": "Cálculo Diferencial",
+        "options": ["$\\cos(x)$", "-$\\cos(x)$", "$\\sin(x)$", "-$\\sin(x)$"],
+        "correct_option": "$\\cos(x)$"
+    },
+    {
+        "id": "q23",
+        "content": "Derivada de $e^x$.",
+        "difficulty": 700,
+        "topic": "Cálculo Diferencial",
+        "options": ["$e^x$", "$e^x+1$", "$x e^{x-1}$", "$\\ln(x)$"],
+        "correct_option": "$e^x$"
+    },
+    {
+        "id": "q24",
+        "content": "Derivada de $\\ln(x)$.",
+        "difficulty": 750,
+        "topic": "Cálculo Diferencial",
+        "options": ["$\\frac{1}{x}$", "$\\ln(x)$", "$\\frac{1}{x^2}$", "$x$"],
+        "correct_option": "$\\frac{1}{x}$"
+    },
+    {
+        "id": "q25",
+        "content": "La derivada de $f(x)g(x)$ es:",
+        "difficulty": 800,
+        "topic": "Cálculo Diferencial",
+        "options": ["$f' g + f g'$", "$f' g'$", "$f g' + f' g$", "$f' g'$"],
+        "correct_option": "$f' g + f g'$"
+    },
+    {
+        "id": "q26",
+        "content": "Derivada de $\\tan(x)$.",
+        "difficulty": 850,
+        "topic": "Cálculo Diferencial",
+        "options": ["$\\sec^2(x)$", "$\\csc^2(x)$", "$\\sec(x)\\tan(x)$", "$1+\\tan^2(x)$"],
+        "correct_option": "$\\sec^2(x)$"
+    },
+    {
+        "id": "q27",
+        "content": "Derivada de $\\arcsin(x)$.",
+        "difficulty": 900,
+        "topic": "Cálculo Diferencial",
+        "options": ["$\\frac{1}{\\sqrt{1-x^2}}$", "$\\frac{1}{1+x^2}$", "$\\frac{1}{\\sqrt{1+x^2}}$", "$-\\frac{1}{\\sqrt{1-x^2}}$"],
+        "correct_option": "$\\frac{1}{\\sqrt{1-x^2}}$"
+    },
+    {
+        "id": "q28",
+        "content": "Si $y = x^x$, encuentra $\\frac{dy}{dx}$.",
+        "difficulty": 950,
+        "topic": "Cálculo Diferencial",
+        "options": ["$x^x(1+\\ln x)$", "$x^x \\ln x$", "$x^x(x-1)$", "$x^{x-1}$"],
+        "correct_option": "$x^x(1+\\ln x)$"
+    },
+    {
+        "id": "q29",
+        "content": "Usando la definición de derivada, $f'(a) = \\lim_{h \\to 0} \\frac{f(a+h)-f(a)}{h}$, para $f(x)=x^2$, el límite es igual a:",
+        "difficulty": 1000,
+        "topic": "Cálculo Diferencial",
+        "options": ["$2a$", "$a^2$", "$2a+h$", "$a$"],
+        "correct_option": "$2a$"
+    },
+    {
+        "id": "q30",
+        "content": "Halla la ecuación de la recta tangente a $y=x^2$ en $x=1$.",
+        "difficulty": 1050,
+        "topic": "Cálculo Diferencial",
+        "options": ["$y=2x-1$", "$y=2x+1$", "$y=x-1$", "$y=2x$"],
+        "correct_option": "$y=2x-1$"
+    },
+    {
+        "id": "q31",
+        "content": "Usa diferenciación implícita: $x^2+y^2=1$, encuentra $\\frac{dy}{dx}$.",
+        "difficulty": 1100,
+        "topic": "Cálculo Diferencial",
+        "options": ["$-\\frac{x}{y}$", "$\\frac{x}{y}$", "$\\frac{y}{x}$", "$-\\frac{y}{x}$"],
+        "correct_option": "$-\\frac{x}{y}$"
+    },
+    {
+        "id": "q32",
+        "content": "Determina los puntos críticos de f(x)=$x^{3}$-3x.",
+        "difficulty": 1150,
+        "topic": "Cálculo Diferencial",
+        "options": ["x=1 y x=-1", "x=0 y x=1", "x=0 y x=-1", "x=1 y x=0"],
+        "correct_option": "x=1 y x=-1"
+    },
+    {
+        "id": "q33",
+        "content": "Teorema del valor medio: Si f es continua en [a,b] y diferenciable en (a,b), entonces existe c en (a,b) tal que:",
+        "difficulty": 1200,
+        "topic": "Cálculo Diferencial",
+        "options": ["f'(c) = (f(b)-f(a))/(b-a)", "f(c) = (f(b)-f(a))/(b-a)", "f'(c) = f(b)-f(a)", "f(c) = f'(c)"],
+        "correct_option": "f'(c) = (f(b)-f(a))/(b-a)"
+    },
+    {
+        "id": "q34",
+        "content": "Expansión en serie de Taylor de $e^{x}$ alrededor de x=0.",
+        "difficulty": 1250,
+        "topic": "Cálculo Diferencial",
+        "options": ["∑ $x^{n}$/n!", "∑ $x^{n}$", "∑ $x^{n}$/n", "∑ n! $x^{n}$"],
+        "correct_option": "∑ $x^{n}$/n!"
+    },
+    {
+        "id": "q35",
+        "content": "Para f(x)=$x^{2}$, la segunda derivada es:",
+        "difficulty": 1300,
+        "topic": "Cálculo Diferencial",
+        "options": ["2", "2x", "0", "1"],
+        "correct_option": "2"
+    },
+    {
+        "id": "q36",
+        "content": "Regla de L'Hôpital: límite cuando x→0 de $\\sin(x)$/x.",
+        "difficulty": 1350,
+        "topic": "Cálculo Diferencial",
+        "options": ["1", "0", "∞", "No existe"],
+        "correct_option": "1"
+    },
+    {
+        "id": "q37",
+        "content": "Halla el valor máximo de f(x)=-$x^{2}$+4x en el intervalo [0,3].",
+        "difficulty": 1400,
+        "topic": "Cálculo Diferencial",
+        "options": ["4", "3", "0", "5"],
+        "correct_option": "4"
+    },
+    {
+        "id": "q38",
+        "content": "Si g es la función inversa de f, entonces g'(x) es igual a:",
+        "difficulty": 1450,
+        "topic": "Cálculo Diferencial",
+        "options": ["1/f'(g(x))", "f'(g(x))", "1/f'(x)", "f'(x)"],
+        "correct_option": "1/f'(g(x))"
+    },
+    {
+        "id": "q39",
+        "content": "¿Es f(x)=|x| diferenciable en x=0?",
+        "difficulty": 1500,
+        "topic": "Cálculo Diferencial",
+        "options": ["No", "Sí", "Solo la derivada por la izquierda existe", "Solo la derivada por la derecha existe"],
+        "correct_option": "No"
+    },
+    {
+        "id": "q40",
+        "content": "Derivada de orden n de $x^{n}$ (para n entero) es:",
+        "difficulty": 1550,
+        "topic": "Cálculo Diferencial",
+        "options": ["n!", "n", "n! * x", "0"],
+        "correct_option": "n!"
+    }
+]

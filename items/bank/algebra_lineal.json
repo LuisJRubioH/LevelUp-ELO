@@ -1,0 +1,162 @@
+[
+    {
+        "id": "q1",
+        "content": "¿Cuál es la dimensión del espacio vectorial $\\mathbb{R}^{3}$ sobre R?",
+        "difficulty": 600,
+        "topic": "Álgebra Lineal",
+        "options": ["1", "2", "3", "4"],
+        "correct_option": "3"
+    },
+    {
+        "id": "q2",
+        "content": "¿Son linealmente independientes los vectores (1,0) y (0,1) en $\\mathbb{R}^{2}$?",
+        "difficulty": 650,
+        "topic": "Álgebra Lineal",
+        "options": ["Sí", "No", "Depende del campo", "No hay suficiente información"],
+        "correct_option": "Sí"
+    },
+    {
+        "id": "q3",
+        "content": "¿Cuál es el rango de la matriz identidad de 3x3?",
+        "difficulty": 700,
+        "topic": "Álgebra Lineal",
+        "options": ["0", "1", "2", "3"],
+        "correct_option": "3"
+    },
+    {
+        "id": "q4",
+        "content": "Calcula el determinante de $\\begin{pmatrix}2 & 0\\\\0 & 3\\end{pmatrix}$.",
+        "difficulty": 750,
+        "topic": "Álgebra Lineal",
+        "options": ["6", "5", "0", "1"],
+        "correct_option": "6"
+    },
+    {
+        "id": "q5",
+        "content": "¿Cuál de los siguientes conjuntos es un subespacio de $\\mathbb{R}^{2}$?",
+        "difficulty": 800,
+        "topic": "Álgebra Lineal",
+        "options": ["{(x,y): x=0}", "{(x,y): x=1}", "{(x,y): $x^{2}$+$y^{2}$=1}", "{(x,y): x>0}"],
+        "correct_option": "{(x,y): x=0}"
+    },
+    {
+        "id": "q6",
+        "content": "¿Cuáles son los valores propios (eigenvalores) de $\\begin{pmatrix}2 & 0\\\\0 & 3\\end{pmatrix}$?",
+        "difficulty": 850,
+        "topic": "Álgebra Lineal",
+        "options": ["2 y 3", "0 y 5", "2 y 2", "3 y 3"],
+        "correct_option": "2 y 3"
+    },
+    {
+        "id": "q7",
+        "content": "¿Cuál es la nulidad de una matriz 4x4 con rango 3?",
+        "difficulty": 900,
+        "topic": "Álgebra Lineal",
+        "options": ["0", "1", "2", "3"],
+        "correct_option": "1"
+    },
+    {
+        "id": "q8",
+        "content": "El espacio columna de una matriz m×n es un subespacio de:",
+        "difficulty": 950,
+        "topic": "Álgebra Lineal",
+        "options": ["$\\mathbb{R}^{m}$", "$\\mathbb{R}^{n}$", "R^{m+n}", "R^{mn}"],
+        "correct_option": "$\\mathbb{R}^{m}$"
+    },
+    {
+        "id": "q9",
+        "content": "¿El conjunto de todas las matrices simétricas de 2x2 forma un espacio vectorial sobre R?",
+        "difficulty": 1000,
+        "topic": "Álgebra Lineal",
+        "options": ["Sí", "No", "Solo si el campo es real", "Solo si la dimensión es 3"],
+        "correct_option": "Sí"
+    },
+    {
+        "id": "q10",
+        "content": "El polinomio característico de una matriz 2x2 con traza 5 y determinante 6 es:",
+        "difficulty": 1050,
+        "topic": "Álgebra Lineal",
+        "options": ["$λ^{2}$ - 5λ + 6", "$λ^{2}$ + 5λ + 6", "$λ^{2}$ - 5λ - 6", "$λ^{2}$ + 5λ - 6"],
+        "correct_option": "$λ^{2}$ - 5λ + 6"
+    },
+    {
+        "id": "q11",
+        "content": "¿Cuál es el polinomio mínimo de una matriz diagonalizable con valores propios 2,2,3?",
+        "difficulty": 1100,
+        "topic": "Álgebra Lineal",
+        "options": ["(x-2)(x-3)", "(x-2)^2(x-3)", "(x-2)(x-3)^2", "(x-2)^2(x-3)^2"],
+        "correct_option": "(x-2)(x-3)"
+    },
+    {
+        "id": "q12",
+        "content": "Para una matriz ortogonal Q, ¿cuál es el valor de $Q^{T}$ Q?",
+        "difficulty": 1150,
+        "topic": "Álgebra Lineal",
+        "options": ["I", "Q", "$Q^{2}$", "0"],
+        "correct_option": "I"
+    },
+    {
+        "id": "q13",
+        "content": "¿A qué tipo de matrices se aplica el teorema espectral (para matrices reales)?",
+        "difficulty": 1200,
+        "topic": "Álgebra Lineal",
+        "options": ["Simétricas", "Cualquier matriz cuadrada", "Antisimétricas", "Diagonalizables"],
+        "correct_option": "Simétricas"
+    },
+    {
+        "id": "q14",
+        "content": "¿Cuál es la dimensión del espacio vectorial de las matrices antisimétricas de 3x3 sobre R?",
+        "difficulty": 1250,
+        "topic": "Álgebra Lineal",
+        "options": ["3", "6", "9", "0"],
+        "correct_option": "3"
+    },
+    {
+        "id": "q15",
+        "content": "¿Cuál de las siguientes es una transformación lineal?",
+        "difficulty": 1300,
+        "topic": "Álgebra Lineal",
+        "options": ["T(x)=Ax", "T(x)=$x^{2}$", "T(x)=x+1", "T(x)=||x||"],
+        "correct_option": "T(x)=Ax"
+    },
+    {
+        "id": "q16",
+        "content": "Los valores singulares de una matriz son las raíces cuadradas de los valores propios de:",
+        "difficulty": 1350,
+        "topic": "Álgebra Lineal",
+        "options": ["$A^{T}$ A", "A $A^{T}$", "A", "A^{-1}"],
+        "correct_option": "$A^{T}$ A"
+    },
+    {
+        "id": "q17",
+        "content": "Si $A$ es una matriz $n \\times n$ con valores propios $\\lambda_i$, entonces la traza de $A$ es igual a:",
+        "difficulty": 1400,
+        "topic": "Álgebra Lineal",
+        "options": ["$\\sum \\lambda_i$", "$\\prod \\lambda_i$", "$\\sum \\lambda_i^2$", "Ninguna de las anteriores"],
+        "correct_option": "$\\sum \\lambda_i$"
+    },
+    {
+        "id": "q18",
+        "content": "La dimensión del núcleo (kernel) de una transformación lineal de $\\mathbb{R}^{5}$ a $\\mathbb{R}^{3}$ con rango 2 es:",
+        "difficulty": 1450,
+        "topic": "Álgebra Lineal",
+        "options": ["1", "2", "3", "4"],
+        "correct_option": "3"
+    },
+    {
+        "id": "q19",
+        "content": "Para una matriz definida positiva, todos sus valores propios son:",
+        "difficulty": 1500,
+        "topic": "Álgebra Lineal",
+        "options": ["Positivos", "No negativos", "Reales", "Complejos"],
+        "correct_option": "Positivos"
+    },
+    {
+        "id": "q20",
+        "content": "¿Cuál es la forma canónica de Jordan de una matriz nilpotente 3x3 de índice 2 con nulidad 2?",
+        "difficulty": 1550,
+        "topic": "Álgebra Lineal",
+        "options": ["J2 ⊕ J1", "J1 ⊕ J1 ⊕ J1", "J3", "J2 ⊕ J2"],
+        "correct_option": "J2 ⊕ J1"
+    }
+]

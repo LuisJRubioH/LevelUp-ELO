@@ -14,12 +14,21 @@ class StudentService:
 
     def get_next_question(self, student_id, topic, vector_rating,
                           session_correct_ids=None, session_wrong_timestamps=None,
-                          session_questions_count=0):
-        """Orquesta la selección de la siguiente pregunta."""
+                          session_questions_count=0, course_id=None):
+        """Orquesta la selección de la siguiente pregunta.
+
+        Si se proporciona course_id, el pool de ítems se restringe EXCLUSIVAMENTE
+        al curso activo. El motor ZDP (AdaptiveItemSelector) solo evalúa ese subconjunto.
+        """
         session_correct_ids = session_correct_ids or set()
         session_wrong_timestamps = session_wrong_timestamps or {}
 
-        pool = self.repository.get_items_from_db(topic)
+        # Filtrado por curso (Tarea F) — prioritario sobre filtro por topic
+        if course_id:
+            pool = self.repository.get_items_from_db(course_id=course_id)
+        else:
+            pool = self.repository.get_items_from_db(topic)
+
         answered_ids = set(self.repository.get_answered_item_ids(student_id))
         current_elo = vector_rating.get(topic)
 

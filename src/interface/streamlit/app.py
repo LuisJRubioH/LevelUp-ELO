@@ -110,15 +110,10 @@ AI_DEFAULTS = {
 if 'question_start_time' not in st.session_state:
     st.session_state.question_start_time = None
 
-# Sincronizar banco de ítems con la DB al inicio
-try:
-    if 'bank_synced_v11' not in st.session_state:
-        with open("items/bank.json", "r", encoding="utf-8") as f:
-            bank_data = json.load(f)
-        st.session_state.db.sync_items_from_json(bank_data)
-        st.session_state['bank_synced_v11'] = True
-except Exception as e:
-    st.error(f"Error sincronizando banco de ítems: {e}")
+# Sincronizar banco de ítems — la carga modular ocurre automáticamente
+# en SQLiteRepository.__init__() → sync_items_from_bank_folder()
+if 'bank_synced_v12' not in st.session_state:
+    st.session_state['bank_synced_v12'] = True
 
 # --- NIVELES DE DESEMPEÑO ACADÉMICO ---
 def get_rank(elo):
@@ -675,49 +670,69 @@ else:
                 students = [s for s in students if s['group_id'] == selected_group_id]
             # else: students already contains all students for the teacher
 
-            # ── Tabla resumen de ELO por estudiante ───────────────────────────
-            st.subheader(f"📋 Resumen de Estudiantes - {selected_group_name}")
+            # ── Sección 1: Rendimiento ELO (Aciertos) ─────────────────────────
+            st.subheader(f"📈 Rendimiento ELO (Aciertos) — {selected_group_name}")
 
             summary_rows = []
             for s in students:
                 elo_by_topic = st.session_state.db.get_latest_elo_by_topic(s['id'])
-                # elo_by_topic es {topic: (elo, rd)}
                 if elo_by_topic:
                     global_elo = sum(e for e, r in elo_by_topic.values()) / len(elo_by_topic)
                 else:
                     global_elo = 1000.0
-
                 rank_name, _ = get_rank(global_elo)
-
-                # Calcular promedio de calidad de procedimientos
-                _s_proc = st.session_state.db.get_student_procedure_scores(s['id'])
-                if _s_proc:
-                    _s_avg = sum(p['score'] for p in _s_proc) / len(_s_proc)
-                    proc_display = f"{_s_avg:.1f}/5.0 ({len(_s_proc)})"
-                else:
-                    proc_display = "Sin envíos"
-
                 row = {
                     "Estudiante": s['username'],
                     "Grupo": s.get('group_name', selected_group_name),
                     "ELO Global": round(global_elo, 1),
                     "Rango": rank_name,
-                    "Procedimientos": proc_display,
                 }
-                # Añadir cada tópico a la fila (solo el valor de elo para la tabla resumen)
                 row.update({topic: round(val[0], 1) for topic, val in elo_by_topic.items()})
                 summary_rows.append(row)
 
-
             df_summary = pd.DataFrame(summary_rows)
-            # Asegurar que las columnas de tópicos sean numéricas para evitar error de Arrow
-            # Llenar con 1000.0 (ELO base) en lugar de un string "—"
-            _str_cols = {"Estudiante", "Grupo", "Rango", "Procedimientos"}
+            _str_cols_elo = {"Estudiante", "Grupo", "Rango"}
             for col in df_summary.columns:
-                if col not in _str_cols:
+                if col not in _str_cols_elo:
                     df_summary[col] = pd.to_numeric(df_summary[col], errors='coerce').fillna(1000.0)
-            
             st.dataframe(df_summary, width='stretch')
+
+            st.markdown("---")
+
+            # ── Sección 2: Calidad de Procedimientos (Desarrollo) ─────────────
+            st.subheader("📝 Calidad de Procedimientos (Desarrollo)")
+            st.caption(
+                "Promedio de notas de desarrollos manuales enviados y calificados, agrupado por "
+                "estudiante y curso.  🔴 < 3.0 Deficiente · 🟡 3.0–4.0 Regular · 🟢 > 4.0 Excelente"
+            )
+            _proc_table_rows = st.session_state.db.get_students_procedure_summary_table(
+                st.session_state.user_id
+            )
+            if _proc_table_rows:
+                df_proc_teacher = pd.DataFrame(_proc_table_rows)[
+                    ['student', 'course_name', 'avg_score', 'count']
+                ].rename(columns={
+                    'student':     'Estudiante',
+                    'course_name': 'Curso',
+                    'avg_score':   'Promedio (0-5)',
+                    'count':       'Envíos',
+                })
+
+                def _score_color(val):
+                    if not isinstance(val, (int, float)):
+                        return ''
+                    if val < 3.0:
+                        return 'color: #ef5350'
+                    elif val <= 4.0:
+                        return 'color: #FFC107'
+                    return 'color: #66BB6A'
+
+                st.dataframe(
+                    df_proc_teacher.style.map(_score_color, subset=['Promedio (0-5)']),
+                    width='stretch',
+                )
+            else:
+                st.info("Ningún estudiante ha enviado procedimientos evaluados aún.")
 
             st.markdown("---")
 
@@ -758,7 +773,7 @@ else:
                         )
                         st.plotly_chart(fig_elo, width='stretch')
 
-                        # --- Botón de Análisis Pedagógico para el Profesor ---
+                        # --- Botón de Análisis Comparativo ELO + Procedimientos ---
                         st.markdown("---")
                         _ai_help = None if st.session_state.ai_available else "IA no disponible en este entorno demo"
                         if st.button("🧠 Generar Análisis Pedagógico con IA", key=f"ai_anal_{selected_student['id']}", width='stretch', disabled=not st.session_state.ai_available, help=_ai_help):
@@ -770,15 +785,20 @@ else:
                                         'avg_score': (sum(p['score'] for p in _sel_proc) / len(_sel_proc)) if _sel_proc else None,
                                         'scores': [p['score'] for p in _sel_proc],
                                     }
+                                    _sel_proc_by_course = st.session_state.db.get_procedure_stats_by_course(selected_student['id'])
                                     analysis = st.session_state.teacher_service.generate_ai_analysis(
                                         selected_student['id'], global_elo,
                                         api_key=st.session_state.cloud_api_key,
                                         provider=st.session_state.get('ai_provider'),
                                         procedure_stats=_sel_proc_stats,
+                                        procedure_stats_by_course=_sel_proc_by_course,
                                     )
-                                with st.container(border=True):
-                                    st.markdown("#### 📋 Análisis Pedagógico con IA")
-                                    st.markdown(analysis)
+                                if analysis and analysis.startswith("ERROR_401:"):
+                                    st.error(analysis.replace("ERROR_401: ", ""))
+                                else:
+                                    with st.container(border=True):
+                                        st.markdown("#### 📋 Análisis Pedagógico con IA")
+                                        st.markdown(analysis)
                             except (ConnectionError, TimeoutError):
                                 st.info("IA no disponible en este momento. Inténtalo más tarde.")
 
@@ -846,20 +866,64 @@ else:
         if 'session_questions_count' not in st.session_state:
             st.session_state.session_questions_count = 0
 
-        # Cargar temas antes del sidebar para el selectbox
-        bank_data = st.session_state.db.get_items_from_db()
-        topics = list(set([i['topic'] for i in bank_data]))
+        # ── Onboarding: nivel educativo ──────────────────────────────────────
+        if 'education_level' not in st.session_state:
+            st.session_state.education_level = repo.get_education_level(st.session_state.user_id)
+
+        if not st.session_state.education_level:
+            st.title("🎓 Bienvenido a ELO Learning")
+            st.markdown("### ¿En qué nivel educativo estás?")
+            st.markdown("Esto nos permite mostrarte los cursos adecuados para ti.")
+            st.write("")
+            col_uni, col_col = st.columns(2)
+            with col_uni:
+                with st.container(border=True):
+                    st.markdown("#### 🎓 Universidad")
+                    st.write("Cálculo, Álgebra Lineal, EDO, Probabilidad, Estadística")
+                    st.write("")
+                    if st.button("Soy universitario", use_container_width=True, type="primary", key="onb_uni"):
+                        repo.set_education_level(st.session_state.user_id, 'universidad')
+                        st.session_state.education_level = 'universidad'
+                        st.rerun()
+            with col_col:
+                with st.container(border=True):
+                    st.markdown("#### 🏫 Colegio")
+                    st.write("Álgebra Básica, Aritmética, Trigonometría, Geometría")
+                    st.write("")
+                    if st.button("Soy de colegio", use_container_width=True, key="onb_col"):
+                        repo.set_education_level(st.session_state.user_id, 'colegio')
+                        st.session_state.education_level = 'colegio'
+                        st.rerun()
+            st.stop()
+
+        # Cargar cursos matriculados (disponible para todo el flujo del estudiante)
+        _enrolled = repo.get_user_enrollments(st.session_state.user_id)
+
+        # Defaults para variables usadas en las vistas
+        selected_course_id = None
+        selected_topic = None
 
         # Sidebar Estilizado
         with st.sidebar:
             st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=80)
             st.write(f"### Hola, **{st.session_state.username}**")
-            mode = st.radio("Modo", ["📝 Practicar", "📊 Estadísticas"], label_visibility="collapsed")
+            mode = st.radio(
+                "Modo",
+                ["📝 Practicar", "📊 Estadísticas", "🎓 Mis Cursos"],
+                label_visibility="collapsed",
+            )
             st.caption("Navegación Principal")
 
             if mode == "📝 Practicar":
-                st.markdown("### Configuración de Estudio")
-                selected_topic = st.selectbox("¿Qué quieres estudiar hoy?", ["Todos"] + topics)
+                st.markdown("### Curso Activo")
+                if _enrolled:
+                    _course_names = [c['name'] for c in _enrolled]
+                    _sel_name = st.selectbox("¿Qué quieres estudiar hoy?", _course_names)
+                    _sel_course = next(c for c in _enrolled if c['name'] == _sel_name)
+                    selected_course_id = _sel_course['id']
+                    selected_topic = _sel_course['name']
+                else:
+                    st.warning("Sin cursos inscritos. Ve a '🎓 Mis Cursos'.")
 
             st.markdown("---")
             # ── Badge de estado de IA (siempre visible) ───────────────────────
@@ -976,15 +1040,16 @@ else:
             st.rerun()
 
         # --- VISTAS ---
-        if mode == "📝 Practicar":
-            if selected_topic == "Todos":
-                current_elo_display = aggregate_global_elo(st.session_state.vector)
-                current_rd_display = aggregate_global_rd(st.session_state.vector)
-                topic_display_name = "Global"
-            else:
-                current_elo_display = st.session_state.vector.get(selected_topic)
-                current_rd_display = st.session_state.vector.get_rd(selected_topic)
-                topic_display_name = selected_topic
+        if mode == "📝 Practicar" and (not _enrolled or not selected_course_id):
+            st.title("🚀 Sala de Estudio")
+            st.info(
+                "📚 Aún no tienes cursos inscritos. "
+                "Ve a **🎓 Mis Cursos** en el menú lateral para matricularte."
+            )
+        elif mode == "📝 Practicar":
+            current_elo_display = st.session_state.vector.get(selected_topic)
+            current_rd_display = st.session_state.vector.get_rd(selected_topic)
+            topic_display_name = selected_topic
 
             rank_name, rank_color = get_rank(current_elo_display)
 
@@ -1006,12 +1071,13 @@ else:
             with col2:
                 st.subheader(f"📖 Ejercicio: {selected_topic}")
 
-                # Delegar obtención de pregunta al servicio
+                # Delegar obtención de pregunta al servicio (filtrado exclusivo por curso activo)
                 item_data, status = st.session_state.student_service.get_next_question(
                     st.session_state.user_id, selected_topic, st.session_state.vector,
                     session_correct_ids=st.session_state.session_correct_ids,
                     session_wrong_timestamps=st.session_state.session_wrong_timestamps,
                     session_questions_count=st.session_state.session_questions_count,
+                    course_id=selected_course_id,
                 )
 
                 if status == "mastery":
@@ -1236,6 +1302,23 @@ else:
                     "desarrollo paso a paso para que el profesor pueda evaluarte y la IA pueda "
                     "darte mejores recomendaciones."
                 )
+            else:
+                # Desglose de calidad por curso
+                _proc_by_course = st.session_state.db.get_procedure_stats_by_course(st.session_state.user_id)
+                if _proc_by_course:
+                    st.markdown("**📝 Calidad de procedimientos por curso:**")
+                    for _cid, _cdata in _proc_by_course.items():
+                        _avg = _cdata['avg_score']
+                        if _avg < 3.0:
+                            _icon, _lbl = "🔴", "Deficiente"
+                        elif _avg <= 4.0:
+                            _icon, _lbl = "🟡", "Regular"
+                        else:
+                            _icon, _lbl = "🟢", "Excelente"
+                        st.markdown(
+                            f"- **{_cdata['course_name']}**: {_icon} {_lbl} — "
+                            f"{_avg:.1f}/5.0 ({_cdata['count']} envío(s))"
+                        )
 
             st.markdown("---")
 
@@ -1319,6 +1402,7 @@ else:
                             'avg_score': (sum(s['score'] for s in _proc_scores) / len(_proc_scores)) if _proc_scores else None,
                             'scores': [s['score'] for s in _proc_scores],
                         }
+                        _proc_by_course_student = st.session_state.db.get_procedure_stats_by_course(st.session_state.user_id)
                         recs = analyze_performance_local(
                             recent_attempts,
                             current_elo_val,
@@ -1327,9 +1411,14 @@ else:
                             api_key=st.session_state.cloud_api_key,
                             provider=st.session_state.get('ai_provider'),
                             procedure_stats=_proc_stats,
+                            procedure_stats_by_course=_proc_by_course_student,
                         )
-                    # Guardar en session_state y renderizar FUERA del spinner
-                    st.session_state['study_recs'] = recs if isinstance(recs, list) else []
+                    # Detectar error de autenticación antes de guardar
+                    if isinstance(recs, str) and recs.startswith("ERROR_401:"):
+                        st.error(recs.replace("ERROR_401: ", ""))
+                    else:
+                        # Guardar en session_state y renderizar FUERA del spinner
+                        st.session_state['study_recs'] = recs if isinstance(recs, list) else []
                 except (ConnectionError, TimeoutError):
                     st.info("IA no disponible en este momento. Inténtalo más tarde.")
                 except Exception as e:
@@ -1353,3 +1442,64 @@ else:
                             ejercicios = rec.get('ejercicios', 0)
                             if ejercicios:
                                 st.markdown(f"**🔢 Meta sugerida:** {ejercicios} ejercicios")
+
+        elif mode == "🎓 Mis Cursos":
+            st.title("🎓 Catálogo de Cursos")
+
+            # ── Badge de nivel educativo ──────────────────────────────────────
+            _level = st.session_state.education_level or 'universidad'
+            _level_label = "🎓 Universidad" if _level == 'universidad' else "🏫 Colegio"
+            _level_block = "Universidad" if _level == 'universidad' else "Colegio"
+
+            col_lv, col_btn = st.columns([3, 1])
+            with col_lv:
+                st.markdown(f"**Nivel actual:** {_level_label}")
+                st.caption("Tus cursos disponibles se filtran según este nivel.")
+            with col_btn:
+                _alt_level  = 'colegio'      if _level == 'universidad' else 'universidad'
+                _alt_label  = "Cambiar a Colegio" if _level == 'universidad' else "Cambiar a Universidad"
+                if st.button(_alt_label, key="btn_change_level"):
+                    repo.set_education_level(st.session_state.user_id, _alt_level)
+                    st.session_state.education_level = _alt_level
+                    st.rerun()
+
+            st.markdown("---")
+
+            # ── Catálogo filtrado por bloque ──────────────────────────────────
+            _all_courses   = repo.get_courses(block=_level_block)
+            _enrolled_ids  = {c['id'] for c in _enrolled}
+
+            if not _all_courses:
+                st.info(f"No hay cursos disponibles para el nivel {_level_label} aún.")
+            else:
+                st.subheader(f"📚 Cursos disponibles — {_level_label}")
+                for _course in _all_courses:
+                    with st.container(border=True):
+                        _cc1, _cc2 = st.columns([4, 1])
+                        with _cc1:
+                            _badge = " ✅ Inscrito" if _course['id'] in _enrolled_ids else ""
+                            st.markdown(f"**{_course['name']}{_badge}**")
+                            st.caption(_course['description'])
+                        with _cc2:
+                            if _course['id'] in _enrolled_ids:
+                                if st.button(
+                                    "Desmatricular",
+                                    key=f"unenroll_{_course['id']}",
+                                ):
+                                    repo.unenroll_user(st.session_state.user_id, _course['id'])
+                                    st.rerun()
+                            else:
+                                if st.button(
+                                    "Inscribirse",
+                                    key=f"enroll_{_course['id']}",
+                                    type="primary",
+                                ):
+                                    repo.enroll_user(st.session_state.user_id, _course['id'])
+                                    st.rerun()
+
+            # ── Resumen de matrículas activas ─────────────────────────────────
+            if _enrolled:
+                st.markdown("---")
+                st.subheader("📋 Mis Cursos Inscritos")
+                for _ec in _enrolled:
+                    st.markdown(f"- **{_ec['name']}** — {_ec['block']}")
