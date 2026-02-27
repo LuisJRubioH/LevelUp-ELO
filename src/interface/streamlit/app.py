@@ -557,7 +557,7 @@ else:
                             xaxis_title="Intento #", yaxis_title="ELO",
                             legend=dict(bgcolor='rgba(38,39,48,0.8)', bordercolor='gray')
                         )
-                        st.plotly_chart(fig_elo, use_container_width=True)
+                        st.plotly_chart(fig_elo, width='stretch')
 
                         # --- Botón de Análisis Pedagógico para el Profesor ---
                         st.markdown("---")
@@ -605,7 +605,7 @@ else:
                                 xaxis_title="Intento #", yaxis_title="Prob. de Acierto",
                                 yaxis=dict(range=[0, 1])
                             )
-                            st.plotly_chart(fig_prob, use_container_width=True)
+                            st.plotly_chart(fig_prob, width='stretch')
 
                             # Métricas rápidas
                             m1, m2, m3 = st.columns(3)
@@ -828,7 +828,7 @@ else:
                                                     placeholder="Explica brevemente por qué crees que esta es la respuesta...",
                                                     help="Tu explicación ayuda a la IA a entender si tu acierto fue seguro o si tu error fue conceptual.")
                             st.write("")
-                            submit_button = st.button(label="📝 Enviar Respuesta", use_container_width=True)
+                            submit_button = st.button(label="📝 Enviar Respuesta", width='stretch')
 
                             if submit_button:
                                 is_correct = (selected_option == item_data['correct_option'])
@@ -916,7 +916,7 @@ else:
                         xaxis_title="Materia", yaxis_title="ELO",
                         yaxis=dict(range=[max(0, min(elos_list) - 50), None])
                     )
-                    st.plotly_chart(fig_bar, use_container_width=True)
+                    st.plotly_chart(fig_bar, width='stretch')
                 except Exception as e:
                     st.error(f"Error visualizando gráfica: {str(e)}")
             else:
@@ -940,7 +940,7 @@ else:
                     xaxis_title="Secuencia de Ejercicios", yaxis_title="Nivel ELO",
                     legend=dict(bgcolor='rgba(38,39,48,0.8)', bordercolor='gray')
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
             else:
                 st.write("Sin datos históricos.")
 

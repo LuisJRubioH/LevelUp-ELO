@@ -541,7 +541,7 @@ class SQLiteRepository:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT u.id, u.username, u.created_at, g.name as group_name
+            SELECT u.id, u.username, u.created_at, g.name as group_name, g.id as group_id
             FROM users u
             JOIN groups g ON u.group_id = g.id
             WHERE g.teacher_id = ? AND u.active = 1
@@ -549,7 +549,7 @@ class SQLiteRepository:
         ''', (teacher_id,))
         rows = cursor.fetchall()
         conn.close()
-        return [{'id': r[0], 'username': r[1], 'created_at': r[2], 'group_name': r[3]} for r in rows]
+        return [{'id': r[0], 'username': r[1], 'created_at': r[2], 'group_name': r[3], 'group_id': r[4]} for r in rows]
 
     def get_students_by_group(self, group_id, teacher_id):
         """Retorna estudiantes de un grupo específico, validando que sea del profesor."""
