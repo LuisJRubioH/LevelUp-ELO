@@ -203,6 +203,11 @@ class SQLiteRepository:
 
     def _seed_demo_data(self):
         """Crea usuarios y grupo demo si no existen (idempotente)."""
+        # Pre-computar hashes ANTES de abrir la conexión:
+        # Argon2 es lento por diseño; calcularlos con la DB abierta provoca "database is locked".
+        admin_hash = self.hashing.hash_password("admin1234")
+        demo_hash = self.hashing.hash_password("demo1234")
+
         conn = self.get_connection()
         cursor = conn.cursor()
 
@@ -211,7 +216,7 @@ class SQLiteRepository:
         if not cursor.fetchone():
             cursor.execute(
                 "INSERT INTO users (username, password_hash, role, approved) VALUES (?, ?, 'admin', 1)",
-                ("admin", self.hashing.hash_password("admin1234"))
+                ("admin", admin_hash)
             )
 
         # Profesor demo
@@ -219,7 +224,7 @@ class SQLiteRepository:
         if not cursor.fetchone():
             cursor.execute(
                 "INSERT INTO users (username, password_hash, role, approved) VALUES (?, ?, 'teacher', 1)",
-                ("profesor1", self.hashing.hash_password("demo1234"))
+                ("profesor1", demo_hash)
             )
 
         conn.commit()
@@ -245,7 +250,7 @@ class SQLiteRepository:
             if not cursor.fetchone():
                 cursor.execute(
                     "INSERT INTO users (username, password_hash, role, approved, group_id) VALUES (?, ?, 'student', 1, ?)",
-                    (username, self.hashing.hash_password("demo1234"), group_id)
+                    (username, demo_hash, group_id)
                 )
 
         conn.commit()
