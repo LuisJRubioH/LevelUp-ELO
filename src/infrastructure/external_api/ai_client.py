@@ -1,6 +1,7 @@
 import requests
 import json
 import re
+import base64
 
 # ── Provider registry ────────────────────────────────────────────────────────
 PROVIDERS = {
@@ -322,7 +323,7 @@ def get_socratic_guidance_stream(student_rating, topic, content, student_answer,
     yield from stream_ai_response(prompt, model_name, base_url, api_key=api_key, provider=provider)
 
 
-def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3", api_key=None, provider=None):
+def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None):
     """Genera un análisis pedagógico detallado para el profesor."""
     prompt = f"""
     Actúa como analista pedagógico experto.
@@ -346,37 +347,225 @@ def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", 
     return _call_ai_api(prompt, model_name, base_url, api_key=api_key, provider=provider)
 
 
-def analyze_performance_local(history_data, current_elo, base_url="http://localhost:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3", api_key=None, provider=None):
+_FALLBACK_RECOMMENDATIONS = [
+    {
+        "diagnostico": "Sin datos suficientes para evaluar fortalezas.",
+        "accion": "Continúa practicando con constancia para que el sistema identifique tus puntos fuertes.",
+        "justificacion": "Con más intentos el análisis será más preciso y personalizado.",
+        "ejercicios": 10,
+    },
+    {
+        "diagnostico": "Sin datos suficientes para evaluar áreas regulares.",
+        "accion": "Revisa los temas con mayor variación en tus resultados y practica con preguntas de dificultad media.",
+        "justificacion": "Consolidar el nivel intermedio es la base para avanzar hacia temas más complejos.",
+        "ejercicios": 15,
+    },
+    {
+        "diagnostico": "Sin datos suficientes para evaluar áreas críticas.",
+        "accion": "Dedica tiempo extra a los conceptos fundamentales de los temas donde hayas fallado más.",
+        "justificacion": "Reforzar la base conceptual evita errores recurrentes en preguntas más avanzadas.",
+        "ejercicios": 20,
+    },
+]
+
+
+def analyze_performance_local(history_data, current_elo, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None):
     """
-    Analiza el rendimiento del estudiante (versión JSON para el dashboard de estadísticas).
+    Analiza el rendimiento del estudiante y devuelve EXACTAMENTE 3 recomendaciones
+    con estructura fija: [fortalezas, áreas regulares, áreas críticas].
     """
     if not history_data:
-        return []
+        return _FALLBACK_RECOMMENDATIONS
 
-    incorrect_topics = [h['topic'] for h in history_data if not h['is_correct']]
-    recent_difficulty = [h['difficulty'] for h in history_data]
-    avg_difficulty = sum(recent_difficulty) / len(recent_difficulty) if recent_difficulty else 0
+    total = len(history_data)
+    correct_count = sum(1 for h in history_data if h['is_correct'])
+    accuracy = correct_count / total if total > 0 else 0
+    correct_topics = sorted({h['topic'] for h in history_data if h['is_correct']})
+    incorrect_topics = sorted({h['topic'] for h in history_data if not h['is_correct']})
+    avg_difficulty = sum(h['difficulty'] for h in history_data) / total
 
-    prompt = f"""
-    Actúa como tutor experto. Analiza:
-    - ELO: {current_elo:.2f}, Dificultad media: {avg_difficulty:.0f}
-    - Fallos en: {', '.join(set(incorrect_topics)) if incorrect_topics else 'Ninguno'}
+    prompt = f"""Eres un tutor académico experto. Analiza el rendimiento de un estudiante y genera exactamente 3 recomendaciones estructuradas.
 
-    Genera 3 recomendaciones en JSON. REGLA DE FORMATO: Usa LaTeX ($...$) para cualquier símbolo matemático dentro del texto.
-    [
-      {{"diagnostico": "...", "recomendación": "...", "justificación": "...", "ejercicios": 10}}
-    ]
-    """
+DATOS DEL ESTUDIANTE:
+- ELO global: {current_elo:.0f} (escala 600-1800, promedio=1000)
+- Intentos analizados: {total}
+- Tasa de acierto: {accuracy:.0%}
+- Temas donde acierta: {', '.join(correct_topics) if correct_topics else 'Ninguno registrado aun'}
+- Temas donde falla: {', '.join(incorrect_topics) if incorrect_topics else 'Ninguno'}
+- Dificultad media de las preguntas: {avg_difficulty:.0f}
+
+INSTRUCCION CRITICA: Responde UNICAMENTE con el siguiente JSON, sin ningun texto antes ni despues, sin bloques de codigo markdown:
+[
+  {{
+    "diagnostico": "Describe especificamente lo que el estudiante HACE BIEN segun los datos. Tono muy positivo y motivador.",
+    "accion": "Como puede potenciar y mantener estas fortalezas. Una sola accion clara.",
+    "justificacion": "Por que es importante seguir cultivando estas fortalezas.",
+    "ejercicios": 10
+  }},
+  {{
+    "diagnostico": "Describe especificamente lo que el estudiante hace de forma REGULAR o ACEPTABLE pero puede mejorar.",
+    "accion": "2 acciones concretas y ordenadas para pasar de nivel regular a bueno en esos temas.",
+    "justificacion": "Por que mejorar este nivel intermedio marcara la diferencia en su ELO.",
+    "ejercicios": 15
+  }},
+  {{
+    "diagnostico": "Describe especificamente lo que el estudiante hace MAL o tiene como debilidad critica segun los datos.",
+    "accion": "Pasos especificos y ordenados para superar esta debilidad. Se directo.",
+    "justificacion": "Por que es urgente atender esto y que consecuencias tiene no hacerlo.",
+    "ejercicios": 20
+  }}
+]"""
 
     content = _call_ai_api(prompt, model_name, base_url, json_mode=True, api_key=api_key, provider=provider)
 
     try:
         content = re.sub(r'```json\s*', '', content)
         content = re.sub(r'```\s*', '', content)
-        start = content.find('[')
+        # Buscar el array JSON usando [{ para no confundir con corchetes en texto
+        match = re.search(r'\[[\s\n]*\{', content)
+        start = match.start() if match else content.find('[')
         end = content.rfind(']')
-        if start != -1 and end != -1:
-            return json.loads(content[start:end+1])
-        return json.loads(content)
+        if start != -1 and end != -1 and end > start:
+            parsed = json.loads(content[start:end + 1])
+            if isinstance(parsed, list):
+                # Descartar cualquier elemento que no sea dict (strings de intro, nulls, etc.)
+                dict_items = [_normalize_rec(item) for item in parsed if isinstance(item, dict)]
+                while len(dict_items) < 3:
+                    dict_items.append(_FALLBACK_RECOMMENDATIONS[len(dict_items)])
+                return dict_items[:3]
     except Exception:
-        return [{"diagnostico": "Análisis no disponible", "recomendación": "Continuar practicando", "justificación": "La IA no pudo formatear el JSON correctamente.", "ejercicios": 0}]
+        pass
+
+    return _FALLBACK_RECOMMENDATIONS
+
+
+def _normalize_rec(rec: dict) -> dict:
+    """Normaliza claves alternativas que distintos modelos pueden devolver."""
+    diagnostico = (rec.get('diagnostico') or rec.get('descripcion') or
+                   rec.get('description') or rec.get('diagnosis') or 'N/A')
+    accion = (rec.get('accion') or rec.get('acción') or rec.get('recomendacion') or
+              rec.get('recomendación') or rec.get('recommendation') or
+              rec.get('action') or rec.get('consejo') or 'N/A')
+    justificacion = (rec.get('justificacion') or rec.get('justificación') or
+                     rec.get('justification') or rec.get('razon') or
+                     rec.get('razón') or rec.get('why') or 'N/A')
+    ejercicios = rec.get('ejercicios') or rec.get('exercises') or rec.get('meta') or 0
+    return {
+        'diagnostico': diagnostico,
+        'accion': accion,
+        'justificacion': justificacion,
+        'ejercicios': ejercicios,
+    }
+
+
+# ── Visión ────────────────────────────────────────────────────────────────────
+
+# Palabras clave en el nombre del modelo que indican soporte de visión
+_VISION_KEYWORDS = [
+    'gpt-4o', 'gpt-4-vision', 'gpt-4-turbo',
+    'vision', 'llava', 'pixtral', 'qwen-vl', 'qwen2-vl',
+    'minicpm-v', 'internvl', 'cogvlm', 'gemini', 'claude',
+]
+
+_VISION_PROMPT = """Eres un profesor de matemáticas revisando el procedimiento manuscrito de un estudiante.
+
+PREGUNTA DEL EJERCICIO:
+{question}
+
+INSTRUCCIONES DE REVISIÓN:
+1. Indica si el desarrollo general es correcto o incorrecto.
+2. Señala específicamente dónde hay errores (si existen), explicando si son conceptuales o de cálculo.
+3. Indica qué pasos o conceptos importantes faltan o están incompletos.
+4. Da una retroalimentación constructiva y motivadora.
+5. Usa notación LaTeX para expresiones matemáticas ($...$ inline, $$...$$ para bloque).
+
+Sé específico, directo y pedagógico."""
+
+
+def _model_supports_vision(model_name: str, provider: str) -> bool:
+    """Heurística para detectar si el modelo/proveedor activo soporta visión."""
+    if provider in ('anthropic', 'gemini'):
+        return True
+    if model_name:
+        model_lower = model_name.lower()
+        return any(kw in model_lower for kw in _VISION_KEYWORDS)
+    return False
+
+
+def analyze_procedure_image(
+    image_bytes: bytes,
+    mime_type: str,
+    question_content: str,
+    model_name: str,
+    base_url: str = "http://localhost:1234/v1",
+    api_key: str = None,
+    provider: str = None,
+) -> str:
+    """
+    Analiza una imagen del procedimiento manuscrito del estudiante usando visión de IA.
+    Devuelve la retroalimentación como texto Markdown, o la cadena
+    'VISION_NOT_SUPPORTED' si el modelo no tiene capacidad de visión.
+    """
+    if provider is None and api_key:
+        provider = detect_provider_from_key(api_key)
+
+    if not _model_supports_vision(model_name, provider):
+        return "VISION_NOT_SUPPORTED"
+
+    b64 = base64.b64encode(image_bytes).decode('utf-8')
+    prompt = _VISION_PROMPT.format(question=question_content)
+
+    if provider == 'anthropic':
+        try:
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+            resp = client.messages.create(
+                model=model_name,
+                max_tokens=1024,
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": mime_type,
+                                "data": b64,
+                            },
+                        },
+                        {"type": "text", "text": prompt},
+                    ],
+                }],
+            )
+            return resp.content[0].text.strip()
+        except Exception as e:
+            return f"Error al analizar la imagen: {str(e)}"
+
+    else:
+        # OpenAI-compatible: OpenAI (gpt-4o), Gemini, LM Studio/Ollama con modelo de visión
+        _base = PROVIDERS.get(provider, {}).get("base_url") if provider else None
+        if not _base:
+            _base = base_url
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=api_key or "no-key", base_url=_base)
+            response = client.chat.completions.create(
+                model=model_name,
+                max_tokens=1024,
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:{mime_type};base64,{b64}"},
+                        },
+                        {"type": "text", "text": prompt},
+                    ],
+                }],
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            err = str(e).lower()
+            if any(kw in err for kw in ('vision', 'image', 'multimodal', 'unsupported', 'does not support')):
+                return "VISION_NOT_SUPPORTED"
+            return f"Error al analizar la imagen: {str(e)}"

@@ -25,6 +25,8 @@ SQLiteRepository = db_mod.SQLiteRepository
 analyze_performance_local = ai_mod.analyze_performance_local
 get_active_models = ai_mod.get_active_models
 get_socratic_guidance_stream = ai_mod.get_socratic_guidance_stream
+analyze_procedure_image = ai_mod.analyze_procedure_image
+_model_supports_vision = ai_mod._model_supports_vision
 import time
 import extra_streamlit_components as stx
 
@@ -564,6 +566,73 @@ else:
 
         st.title("🏫 Panel del Profesor")
 
+        # ── Notificación de procedimientos pendientes ──────────────────────────
+        _pending_count = st.session_state.db.get_pending_submissions_count(st.session_state.user_id)
+        if _pending_count > 0:
+            st.warning(
+                f"📋 **{_pending_count} procedimiento(s) de estudiantes esperando revisión.** "
+                "Revísalos en la sección de abajo."
+            )
+
+        # ── Revisión de Procedimientos ─────────────────────────────────────────
+        _exp_label = (
+            f"📋 Procedimientos para Revisar  🔴 {_pending_count} pendiente(s)"
+            if _pending_count > 0 else "📋 Procedimientos para Revisar"
+        )
+        with st.expander(_exp_label, expanded=_pending_count > 0):
+            _pending_subs = st.session_state.db.get_pending_submissions_for_teacher(
+                st.session_state.user_id
+            )
+            if not _pending_subs:
+                st.info("No hay procedimientos pendientes de revisión.")
+            else:
+                for _sub in _pending_subs:
+                    with st.container(border=True):
+                        st.markdown(
+                            f"**👤 {_sub['student_name']}** — "
+                            f"enviado el {_sub['submitted_at'][:16]}"
+                        )
+                        st.caption(f"Pregunta: {_sub['item_content'][:120]}{'…' if len(_sub['item_content']) > 120 else ''}")
+                        _c_img, _c_fb = st.columns([1, 1])
+                        with _c_img:
+                            st.image(
+                                bytes(_sub['image_data']),
+                                caption="Procedimiento del estudiante",
+                                use_container_width=True,
+                            )
+                        with _c_fb:
+                            _fb_text = st.text_area(
+                                "Retroalimentación escrita:",
+                                key=f"fb_text_{_sub['id']}",
+                                placeholder="Escribe tu retroalimentación aquí…",
+                                height=150,
+                            )
+                            _fb_img = st.file_uploader(
+                                "O sube el procedimiento calificado (opcional):",
+                                type=["jpg", "jpeg", "png", "webp"],
+                                key=f"fb_img_{_sub['id']}",
+                            )
+                            _can_submit = bool(_fb_text or _fb_img)
+                            if st.button(
+                                "✅ Enviar retroalimentación",
+                                key=f"fb_submit_{_sub['id']}",
+                                width='stretch',
+                                disabled=not _can_submit,
+                            ):
+                                _fb_img_data = _fb_img.getvalue() if _fb_img else None
+                                _fb_mime = None
+                                if _fb_img:
+                                    _fext = _fb_img.name.rsplit('.', 1)[-1].lower()
+                                    _fb_mime = {
+                                        'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',
+                                        'png': 'image/png', 'webp': 'image/webp',
+                                    }.get(_fext, 'image/jpeg')
+                                st.session_state.db.save_teacher_feedback(
+                                    _sub['id'], _fb_text, _fb_img_data, _fb_mime
+                                )
+                                st.success(f"Retroalimentación enviada a {_sub['student_name']}.")
+                                st.rerun()
+
         # ── Gestión de Grupos ──────────────────────────────────────────────────
         with st.expander("🛠️ Gestión de Grupos"):
             col_a, col_b = st.columns([3, 1])
@@ -689,14 +758,9 @@ else:
                                         api_key=st.session_state.cloud_api_key,
                                         provider=st.session_state.get('ai_provider'),
                                     )
-                                    st.markdown(f"""
-                                    <div class="elo-card" style="text-align: left; background: rgba(0, 201, 255, 0.05); border-color: rgba(0, 201, 255, 0.3);">
-                                        <h4>📋 Análisis de la IA para el Docente</h4>
-                                        <div style="font-size: 0.95rem; color: #e0e0e0;">
-                                        {analysis}
-                                        </div>
-                                    </div>
-                                    """, unsafe_allow_html=True)
+                                with st.container(border=True):
+                                    st.markdown("#### 📋 Análisis Pedagógico con IA")
+                                    st.markdown(analysis)
                             except (ConnectionError, TimeoutError):
                                 st.info("IA no disponible en este momento. Inténtalo más tarde.")
 
@@ -979,9 +1043,6 @@ else:
                                 on_change=_sync_answer,
                             )
                             selected_option = st.session_state.get(f"answer_text_{item_data['id']}")
-                            reasoning = st.text_area("🧠 Justifica tu razonamiento (opcional para análisis IA):", 
-                                                    placeholder="Explica brevemente por qué crees que esta es la respuesta...",
-                                                    help="Tu explicación ayuda a la IA a entender si tu acierto fue seguro o si tu error fue conceptual.")
                             st.write("")
                             submit_button = st.button(label="📝 Enviar Respuesta", width='stretch')
 
@@ -993,7 +1054,7 @@ else:
                                     st.error(f"Respuesta incorrecta. La opción correcta era: **{item_data['correct_option']}**")
                                 
                                 time.sleep(1.5)
-                                handle_answer_topic(is_correct, item_data, reasoning=reasoning)
+                                handle_answer_topic(is_correct, item_data)
 
                         # --- Ayuda del Tutor Socrático (Siempre disponible) ---
                         st.markdown("---")
@@ -1019,6 +1080,98 @@ else:
                                 st.info("IA no disponible en este momento. Inténtalo más tarde.")
                         elif 'options' not in item_data:
                             st.warning("Pregunta sin opciones configuradas.")
+
+            # --- Procedimiento Manuscrito (columna izquierda, debajo del ELO) ---
+            if item_data:
+                with col1:
+                    st.markdown("---")
+                    show_upload = st.checkbox(
+                        "📎 ¿Subir procedimiento para retroalimentación?",
+                        key=f"show_upload_{item_data['id']}",
+                    )
+                    if show_upload:
+                        uploaded_file = st.file_uploader(
+                            "Foto o escaneo de tu desarrollo:",
+                            type=["jpg", "jpeg", "png", "webp"],
+                            key=f"proc_upload_{item_data['id']}",
+                            label_visibility="collapsed",
+                        )
+                        if uploaded_file is not None:
+                            _iid = item_data['id']
+                            _uid = st.session_state.user_id
+                            _ext = uploaded_file.name.rsplit('.', 1)[-1].lower()
+                            _mime = {'jpg':'image/jpeg','jpeg':'image/jpeg',
+                                     'png':'image/png','webp':'image/webp'}.get(_ext,'image/jpeg')
+
+                            st.image(uploaded_file, use_container_width=True)
+
+                            _vision_ok = _model_supports_vision(
+                                st.session_state.model_analysis,
+                                st.session_state.get('ai_provider'),
+                            )
+
+                            # ── Análisis con IA ───────────────────────────────
+                            if _vision_ok:
+                                if st.button(
+                                    "🔍 Analizar procedimiento",
+                                    key=f"analyze_proc_{_iid}",
+                                    width='stretch',
+                                    disabled=not st.session_state.ai_available,
+                                ):
+                                    with st.spinner("Analizando procedimiento..."):
+                                        result = analyze_procedure_image(
+                                            uploaded_file.getvalue(), _mime,
+                                            item_data['content'],
+                                            model_name=st.session_state.model_analysis,
+                                            base_url=st.session_state.ai_url,
+                                            api_key=st.session_state.cloud_api_key,
+                                            provider=st.session_state.get('ai_provider'),
+                                        )
+                                    if result == "VISION_NOT_SUPPORTED":
+                                        # El modelo respondió que no soporta visión → escalar al docente
+                                        st.session_state[f'proc_no_vision_{_iid}'] = True
+                                    else:
+                                        st.session_state[f'proc_fb_{_iid}'] = result
+
+                                _ai_fb = st.session_state.get(f'proc_fb_{_iid}')
+                                if _ai_fb:
+                                    with st.container(border=True):
+                                        st.markdown("##### 🔍 Retroalimentación del procedimiento")
+                                        st.markdown(_ai_fb)
+
+                            # ── Envío al docente (sin visión o fallback) ──────
+                            _no_vision = (not _vision_ok or
+                                          st.session_state.get(f'proc_no_vision_{_iid}', False))
+                            if _no_vision:
+                                _sub = st.session_state.db.get_student_submission(_uid, _iid)
+                                if _sub is None:
+                                    st.caption(
+                                        "El modelo activo no analiza imágenes. "
+                                        "Tu procedimiento puede ser revisado por tu profesor."
+                                    )
+                                    if st.button(
+                                        "📤 Enviar al profesor para revisión",
+                                        key=f"send_teacher_{_iid}",
+                                        width='stretch',
+                                    ):
+                                        st.session_state.db.save_procedure_submission(
+                                            _uid, _iid, item_data['content'],
+                                            uploaded_file.getvalue(), _mime,
+                                        )
+                                        st.rerun()
+                                elif _sub['status'] == 'pending':
+                                    st.info("⏳ Procedimiento enviado. Tu profesor lo revisará pronto.")
+                                elif _sub['status'] == 'reviewed':
+                                    with st.container(border=True):
+                                        st.markdown("##### ✅ Retroalimentación del Profesor")
+                                        if _sub.get('teacher_feedback'):
+                                            st.markdown(_sub['teacher_feedback'])
+                                        if _sub.get('feedback_image'):
+                                            st.image(
+                                                bytes(_sub['feedback_image']),
+                                                caption="Procedimiento calificado",
+                                                use_container_width=True,
+                                            )
 
         elif mode == "📊 Estadísticas":
             st.title("📊 Estadísticas de Aprendizaje")
@@ -1103,7 +1256,13 @@ else:
 
             st.markdown("---")
             st.subheader("🧠 Asistente Virtual Inteligente")
-            st.write("Generando recomendaciones personalizadas basadas en tu desempeño reciente.")
+            st.write("Genera un diagnóstico personalizado con tus fortalezas, áreas a mejorar y puntos críticos.")
+
+            _REC_META = [
+                ("💪", "Fortalezas",    "Qué estás haciendo bien — sigue así"),
+                ("⚡", "Por mejorar",   "Áreas aceptables con potencial de crecimiento"),
+                ("🎯", "Áreas críticas","Debilidades que necesitan atención urgente"),
+            ]
 
             _rec_help = None if st.session_state.ai_available else "IA no disponible en este entorno demo"
             if st.button("✨ Generar Recomendaciones de Estudio", disabled=not st.session_state.ai_available, help=_rec_help):
@@ -1111,9 +1270,7 @@ else:
                     with st.spinner("Analizando patrones de aprendizaje..."):
                         recent_attempts = st.session_state.db.get_attempts_for_ai(st.session_state.user_id)
                         current_elo_val = aggregate_global_elo(st.session_state.vector)
-
-                        # Usar el proveedor activo en lugar de URL hardcodeada
-                        recommendations = analyze_performance_local(
+                        recs = analyze_performance_local(
                             recent_attempts,
                             current_elo_val,
                             base_url=st.session_state.ai_url,
@@ -1121,24 +1278,28 @@ else:
                             api_key=st.session_state.cloud_api_key,
                             provider=st.session_state.get('ai_provider'),
                         )
-
-                        if isinstance(recommendations, list) and len(recommendations) > 0:
-                            for idx, rec in enumerate(recommendations):
-                                with st.container(border=True):
-                                    st.markdown(f"### 🎯 Recomendación #{idx+1}")
-                                    if isinstance(rec, dict):
-                                        st.markdown(f"**🔍 Diagnóstico:** {rec.get('diagnostico', 'N/A')}")
-                                        st.success(f"**📝 Acción:** {rec.get('recomendación', 'N/A')}")
-                                        st.info(f"**💡 Justificación:** {rec.get('justificación', 'N/A')}")
-                                        st.markdown(f"**🔢 Meta Sugerida:** {rec.get('ejercicios', 0)} ejercicios")
-                                    else:
-                                        # Manejo de mensajes de error o formatos antiguos
-                                        st.info(str(rec))
-                        elif isinstance(recommendations, list) and len(recommendations) == 0:
-                            st.warning("No hay suficientes datos para generar recomendaciones aún.")
-                        else:
-                            st.error(f"Respuesta inesperada de IA: {recommendations}")
+                    # Guardar en session_state y renderizar FUERA del spinner
+                    st.session_state['study_recs'] = recs if isinstance(recs, list) else []
                 except (ConnectionError, TimeoutError):
                     st.info("IA no disponible en este momento. Inténtalo más tarde.")
                 except Exception as e:
-                    st.error(f"Error crítico en interfaz: {str(e)}")
+                    st.error(f"Error crítico: {str(e)}")
+
+            # Renderizado persistente (sobrevive reruns)
+            if st.session_state.get('study_recs') is not None:
+                recs = st.session_state['study_recs']
+                if len(recs) == 0:
+                    st.warning("No hay suficientes datos para generar recomendaciones aún.")
+                else:
+                    _CALLOUT = [st.success, st.info, st.warning]
+                    for idx, (icon, label, subtitle) in enumerate(_REC_META):
+                        rec = recs[idx] if idx < len(recs) else {}
+                        with st.container(border=True):
+                            st.markdown(f"### {icon} Recomendación #{idx + 1}: {label}")
+                            st.caption(subtitle)
+                            st.markdown(f"**🔍 Diagnóstico:** {rec.get('diagnostico', 'N/A')}")
+                            _CALLOUT[idx](f"**📝 Acción:** {rec.get('accion', 'N/A')}")
+                            st.markdown(f"**💡 Justificación:** {rec.get('justificacion', 'N/A')}")
+                            ejercicios = rec.get('ejercicios', 0)
+                            if ejercicios:
+                                st.markdown(f"**🔢 Meta sugerida:** {ejercicios} ejercicios")

@@ -161,6 +161,25 @@ class SQLiteRepository:
             )
         ''')
 
+        # Tabla de procedimientos enviados por estudiantes para revisión del docente
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS procedure_submissions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_id INTEGER NOT NULL,
+                item_id TEXT NOT NULL,
+                item_content TEXT NOT NULL,
+                image_data BLOB NOT NULL,
+                mime_type TEXT DEFAULT 'image/jpeg',
+                status TEXT DEFAULT 'pending',
+                teacher_feedback TEXT,
+                feedback_image BLOB,
+                feedback_mime_type TEXT,
+                submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                reviewed_at TIMESTAMP,
+                FOREIGN KEY(student_id) REFERENCES users(id)
+            )
+        ''')
+
         conn.commit()
         conn.close()
 
@@ -771,4 +790,96 @@ class SQLiteRepository:
         with self.get_connection() as conn:
             conn.execute("DELETE FROM sessions WHERE token = ?", (token,))
             conn.commit()
+
+    # ── Procedimientos para revisión del docente ──────────────────────────────
+
+    def save_procedure_submission(self, student_id, item_id, item_content, image_data, mime_type='image/jpeg'):
+        """Guarda o reemplaza el procedimiento enviado por el estudiante."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT id FROM procedure_submissions WHERE student_id=? AND item_id=?',
+            (student_id, item_id),
+        )
+        existing = cursor.fetchone()
+        if existing:
+            cursor.execute('''
+                UPDATE procedure_submissions
+                SET image_data=?, mime_type=?, status='pending',
+                    teacher_feedback=NULL, feedback_image=NULL,
+                    submitted_at=CURRENT_TIMESTAMP, reviewed_at=NULL
+                WHERE student_id=? AND item_id=?
+            ''', (image_data, mime_type, student_id, item_id))
+        else:
+            cursor.execute('''
+                INSERT INTO procedure_submissions
+                    (student_id, item_id, item_content, image_data, mime_type)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (student_id, item_id, item_content, image_data, mime_type))
+        conn.commit()
+        conn.close()
+
+    def get_student_submission(self, student_id, item_id):
+        """Retorna la entrega del estudiante para una pregunta, o None."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT id, status, teacher_feedback, feedback_image,
+                   feedback_mime_type, submitted_at, reviewed_at
+            FROM procedure_submissions
+            WHERE student_id=? AND item_id=?
+        ''', (student_id, item_id))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            cols = ['id', 'status', 'teacher_feedback', 'feedback_image',
+                    'feedback_mime_type', 'submitted_at', 'reviewed_at']
+            return dict(zip(cols, row))
+        return None
+
+    def get_pending_submissions_count(self, teacher_id):
+        """Cuenta las entregas pendientes de revisión del docente."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT COUNT(*) FROM procedure_submissions ps
+            JOIN users u ON ps.student_id = u.id
+            JOIN groups g ON u.group_id = g.id
+            WHERE g.teacher_id = ? AND ps.status = 'pending'
+        ''', (teacher_id,))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+
+    def get_pending_submissions_for_teacher(self, teacher_id):
+        """Retorna todas las entregas pendientes de los estudiantes del docente."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT ps.id, ps.student_id, u.username AS student_name,
+                   ps.item_id, ps.item_content, ps.image_data, ps.mime_type,
+                   ps.submitted_at
+            FROM procedure_submissions ps
+            JOIN users u ON ps.student_id = u.id
+            JOIN groups g ON u.group_id = g.id
+            WHERE g.teacher_id = ? AND ps.status = 'pending'
+            ORDER BY ps.submitted_at DESC
+        ''', (teacher_id,))
+        cols = [c[0] for c in cursor.description]
+        rows = [dict(zip(cols, r)) for r in cursor.fetchall()]
+        conn.close()
+        return rows
+
+    def save_teacher_feedback(self, submission_id, feedback_text,
+                              feedback_image=None, feedback_mime_type=None):
+        """Guarda la retroalimentación del docente y marca la entrega como revisada."""
+        conn = self.get_connection()
+        conn.execute('''
+            UPDATE procedure_submissions
+            SET teacher_feedback=?, feedback_image=?, feedback_mime_type=?,
+                status='reviewed', reviewed_at=CURRENT_TIMESTAMP
+            WHERE id=?
+        ''', (feedback_text, feedback_image, feedback_mime_type, submission_id))
+        conn.commit()
+        conn.close()
 
