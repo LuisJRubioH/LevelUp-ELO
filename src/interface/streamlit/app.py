@@ -9,6 +9,7 @@ if base_path not in sys.path:
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 import requests
 import json
 import random
@@ -538,25 +539,21 @@ else:
 
                     with tab_elo:
                         st.markdown(f"**Evolución del ELO de {selected_name} por tema**")
-                        fig_elo, ax_elo = plt.subplots(figsize=(10, 5))
-                        fig_elo.patch.set_alpha(0)
-                        ax_elo.set_facecolor('#1E1E1E')
+                        fig_elo = go.Figure()
                         for topic in df['topic'].unique():
                             td = df[df['topic'] == topic]
-                            ax_elo.plot(td['intento'], td['elo_after'], marker='o', label=topic, linewidth=2)
-                        ax_elo.set_ylabel("ELO", color="white")
-                        ax_elo.set_xlabel("Intento #", color="white")
-                        ax_elo.tick_params(colors='white')
-                        ax_elo.grid(True, linestyle=':', alpha=0.3, color='gray')
-                        for spine in ax_elo.spines.values():
-                            spine.set_color('#444')
-                        legend = ax_elo.legend(bbox_to_anchor=(1.05, 1), loc='upper left', frameon=True)
-                        legend.get_frame().set_facecolor('#262730')
-                        legend.get_frame().set_edgecolor('gray')
-                        for text in legend.get_texts():
-                            text.set_color("white")
-                        plt.tight_layout()
-                        st.pyplot(fig_elo)
+                            fig_elo.add_trace(go.Scatter(
+                                x=td['intento'], y=td['elo_after'],
+                                mode='lines+markers', name=topic, line=dict(width=2)
+                            ))
+                        fig_elo.update_layout(
+                            template="plotly_dark",
+                            plot_bgcolor='rgba(0,0,0,0)',
+                            paper_bgcolor='rgba(0,0,0,0)',
+                            xaxis_title="Intento #", yaxis_title="ELO",
+                            legend=dict(bgcolor='rgba(38,39,48,0.8)', bordercolor='gray')
+                        )
+                        st.plotly_chart(fig_elo, use_container_width=True)
 
                         # --- Botón de Análisis Pedagógico para el Profesor ---
                         st.markdown("---")
@@ -586,28 +583,22 @@ else:
                         else:
                             df_prob['prob_success'] = 1.0 - df_prob['prob_failure']
 
-                            fig_prob, ax_prob = plt.subplots(figsize=(10, 5))
-                            fig_prob.patch.set_alpha(0)
-                            ax_prob.set_facecolor('#1E1E1E')
-
-                            colors = ['#28a745' if ps >= 0.5 else '#dc3545' for ps in df_prob['prob_success']]
-                            ax_prob.bar(df_prob['intento'], df_prob['prob_success'], color=colors, alpha=0.85)
-                            ax_prob.axhline(0.5, color='#ffc107', linestyle='--', linewidth=1.5, label='Umbral 50%')
-
-                            ax_prob.set_ylabel("Prob. de Acierto", color="white")
-                            ax_prob.set_xlabel("Intento #", color="white")
-                            ax_prob.set_ylim(0, 1)
-                            ax_prob.tick_params(colors='white')
-                            ax_prob.grid(True, axis='y', linestyle=':', alpha=0.3, color='gray')
-                            for spine in ax_prob.spines.values():
-                                spine.set_color('#444')
-                            legend_p = ax_prob.legend(frameon=True)
-                            legend_p.get_frame().set_facecolor('#262730')
-                            legend_p.get_frame().set_edgecolor('gray')
-                            for text in legend_p.get_texts():
-                                text.set_color("white")
-                            plt.tight_layout()
-                            st.pyplot(fig_prob)
+                            bar_colors = ['#28a745' if ps >= 0.5 else '#dc3545' for ps in df_prob['prob_success']]
+                            fig_prob = go.Figure()
+                            fig_prob.add_trace(go.Bar(
+                                x=df_prob['intento'], y=df_prob['prob_success'],
+                                marker_color=bar_colors, opacity=0.85, name='Prob. Acierto'
+                            ))
+                            fig_prob.add_hline(y=0.5, line_dash='dash', line_color='#ffc107',
+                                               annotation_text='Umbral 50%', annotation_font_color='#ffc107')
+                            fig_prob.update_layout(
+                                template="plotly_dark",
+                                plot_bgcolor='rgba(0,0,0,0)',
+                                paper_bgcolor='rgba(0,0,0,0)',
+                                xaxis_title="Intento #", yaxis_title="Prob. de Acierto",
+                                yaxis=dict(range=[0, 1])
+                            )
+                            st.plotly_chart(fig_prob, use_container_width=True)
 
                             # Métricas rápidas
                             m1, m2, m3 = st.columns(3)
@@ -720,8 +711,8 @@ else:
             # Delegar procesamiento al servicio
             is_correct, cog_data = st.session_state.student_service.process_answer(
                 st.session_state.user_id, item_data,
-                # La opción seleccionada se recupera del estado del radio
-                st.session_state.get(f"radio_{item_data['id']}"),
+                # La opción seleccionada se recupera del texto mapeado (soporte LaTeX)
+                st.session_state.get(f"answer_text_{item_data['id']}"),
                 reasoning, time_taken, st.session_state.vector
             )
 
@@ -806,8 +797,26 @@ else:
                             # Bug 3: Aleatorizar opciones
                             shuffled_options = item_data['options'].copy()
                             random.Random(item_data['id']).shuffle(shuffled_options)
-                            
-                            selected_option = st.radio("Selecciona tu respuesta:", shuffled_options, key=f"radio_{item_data['id']}")
+                            option_labels = [chr(65 + i) for i in range(len(shuffled_options))]
+                            label_to_text = dict(zip(option_labels, shuffled_options))
+                            _item_id = item_data['id']
+
+                            # Renderizar opciones con LaTeX via markdown
+                            for lbl, opt in zip(option_labels, shuffled_options):
+                                st.markdown(f"**{lbl}.** {opt}")
+
+                            def _sync_answer(_id=_item_id, _map=label_to_text):
+                                lbl = st.session_state.get(f"radio_{_id}")
+                                st.session_state[f"answer_text_{_id}"] = _map.get(lbl)
+
+                            st.radio(
+                                "Selecciona tu respuesta:",
+                                option_labels,
+                                format_func=lambda x: x,
+                                key=f"radio_{item_data['id']}",
+                                on_change=_sync_answer,
+                            )
+                            selected_option = st.session_state.get(f"answer_text_{item_data['id']}")
                             reasoning = st.text_area("🧠 Justifica tu razonamiento (opcional para análisis IA):", 
                                                     placeholder="Explica brevemente por qué crees que esta es la respuesta...",
                                                     help="Tu explicación ayuda a la IA a entender si tu acierto fue seguro o si tu error fue conceptual.")
@@ -830,7 +839,7 @@ else:
                         if st.button("🙋 Preguntar al Tutor Socrático", key=f"socratic_{item_data['id']}", width='stretch'):
                             with st.spinner("El tutor socrático está pensando una pregunta para ti..."):
                                 # Obtener la respuesta actual seleccionada o indicar que no hay ninguna
-                                current_ans = st.session_state.get(f"radio_{item_data['id']}", "Aún no ha seleccionado una opción")
+                                current_ans = st.session_state.get(f"answer_text_{item_data['id']}", "Aún no ha seleccionado una opción")
                                 guidance = st.session_state.student_service.get_socratic_help(
                                     current_elo_display, 
                                     item_data['topic'], 
@@ -886,24 +895,21 @@ else:
                         'RD': rds_list
                     }).sort_values('ELO', ascending=False)
 
-                    fig_bar, ax_bar = plt.subplots(figsize=(10, 5))
-                    fig_bar.patch.set_alpha(0)
-                    ax_bar.set_facecolor('#1E1E1E')
-                    
-                    # Graficar barras
-                    bars = ax_bar.bar(df_elo['Tema'], df_elo['ELO'], color='#00C9FF', alpha=0.8)
-                    
-                    # Añadir error bars (RD) si se desea, o solo el texto
-                    ax_bar.errorbar(df_elo['Tema'], df_elo['ELO'], yerr=df_elo['RD'], fmt='none', ecolor='#FFC107', capsize=5, alpha=0.6)
-                    ax_bar.set_ylabel("ELO", color="white")
-                    ax_bar.set_xlabel("Materia", color="white")
-                    ax_bar.tick_params(axis='x', colors='white', rotation=45)
-                    ax_bar.tick_params(axis='y', colors='white')
-                    ax_bar.set_ylim(bottom=max(0, min(elos_list) - 50))
-                    ax_bar.grid(True, axis='y', linestyle=':', alpha=0.3, color='gray')
-                    for spine in ax_bar.spines.values():
-                        spine.set_color('#444')
-                    st.pyplot(fig_bar)
+                    fig_bar = go.Figure()
+                    fig_bar.add_trace(go.Bar(
+                        x=df_elo['Tema'], y=df_elo['ELO'],
+                        marker_color='#00C9FF', opacity=0.8,
+                        error_y=dict(type='data', array=df_elo['RD'].tolist(),
+                                     color='#FFC107', thickness=1.5, width=5)
+                    ))
+                    fig_bar.update_layout(
+                        template="plotly_dark",
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        xaxis_title="Materia", yaxis_title="ELO",
+                        yaxis=dict(range=[max(0, min(elos_list) - 50), None])
+                    )
+                    st.plotly_chart(fig_bar, use_container_width=True)
                 except Exception as e:
                     st.error(f"Error visualizando gráfica: {str(e)}")
             else:
@@ -913,26 +919,21 @@ else:
             if history_full:
                 df_hist = pd.DataFrame(history_full)
                 df_hist['intento'] = range(1, len(df_hist) + 1)
-                fig, ax = plt.subplots(figsize=(10, 5))
-                fig.patch.set_alpha(0)
-                ax.set_facecolor('#1E1E1E')
+                fig = go.Figure()
                 for topic in df_hist['topic'].unique():
                     topic_data = df_hist[df_hist['topic'] == topic]
-                    ax.plot(topic_data['intento'], topic_data['elo'], marker='o', label=topic, linewidth=2)
-                ax.set_ylabel("Nivel ELO", color="white")
-                ax.set_xlabel("Secuencia de Ejercicios", color="white")
-                ax.tick_params(axis='x', colors='white')
-                ax.tick_params(axis='y', colors='white')
-                legend = ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', frameon=True)
-                legend.get_frame().set_facecolor('#262730')
-                legend.get_frame().set_edgecolor('gray')
-                for text in legend.get_texts():
-                    text.set_color("white")
-                ax.grid(True, linestyle=':', alpha=0.3, color='gray')
-                for spine in ax.spines.values():
-                    spine.set_color('#444')
-                plt.tight_layout()
-                st.pyplot(fig)
+                    fig.add_trace(go.Scatter(
+                        x=topic_data['intento'], y=topic_data['elo'],
+                        mode='lines+markers', name=topic, line=dict(width=2)
+                    ))
+                fig.update_layout(
+                    template="plotly_dark",
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    xaxis_title="Secuencia de Ejercicios", yaxis_title="Nivel ELO",
+                    legend=dict(bgcolor='rgba(38,39,48,0.8)', bordercolor='gray')
+                )
+                st.plotly_chart(fig, use_container_width=True)
             else:
                 st.write("Sin datos históricos.")
 
