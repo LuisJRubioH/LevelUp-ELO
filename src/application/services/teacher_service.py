@@ -13,11 +13,52 @@ class TeacherService:
         groups = self.repository.get_groups_by_teacher(teacher_id)
         return students, groups
 
+    def create_new_group(self, teacher_id: int, course_id: str, group_name: str) -> tuple:
+        """Valida y crea un nuevo grupo vinculado a un curso del catálogo.
+
+        Returns (True, mensaje_ok) o (False, mensaje_error).
+        """
+        group_name = group_name.strip() if group_name else ""
+        if not group_name:
+            return False, "El nombre del grupo no puede estar vacío."
+        if not course_id:
+            return False, "Debes seleccionar un curso."
+        self.repository.create_group(group_name, teacher_id, course_id)
+        return True, f"Grupo '{group_name}' creado exitosamente."
+
+    def get_teacher_groups(self, teacher_id: int) -> list:
+        """Devuelve los grupos del profesor con información del curso asociado."""
+        return self.repository.get_groups_by_teacher(teacher_id)
+
     def get_student_report(self, student_id):
         """Genera un reporte detallado de un estudiante."""
         attempts = self.repository.get_student_attempts_detail(student_id)
         # Aquí se podrían añadir cálculos adicionales de dominio
         return attempts
+
+    def get_student_dashboard(self, student_id):
+        """Datos consolidados para el panel de detalle del estudiante seleccionado.
+        Retorna dict con: elo_summary, procedure_stats_by_course, attempts.
+        """
+        return {
+            'elo_summary': self.repository.get_student_elo_summary(student_id),
+            'procedure_stats_by_course': self.repository.get_procedure_stats_by_course(student_id),
+            'attempts': self.repository.get_student_attempts_detail(student_id),
+        }
+
+    def validate_procedure(self, submission_id: int,
+                           teacher_score: float, feedback: str = "") -> None:
+        """Valida la calificación de un procedimiento y persiste la nota final oficial.
+
+        teacher_score (0.0-100.0) se copia a final_score; el status pasa a
+        VALIDATED_BY_TEACHER. Desde ese momento, solo final_score puede usarse
+        en analytics y ELO (nunca ai_proposed_score).
+        """
+        if not (0.0 <= teacher_score <= 100.0):
+            raise ValueError(
+                f"teacher_score fuera de rango: {teacher_score}. Debe estar entre 0.0 y 100.0."
+            )
+        self.repository.validate_procedure_submission(submission_id, teacher_score, feedback)
 
     def generate_ai_analysis(self, student_id, global_elo, api_key=None, provider=None,
                              procedure_stats=None, procedure_stats_by_course=None):

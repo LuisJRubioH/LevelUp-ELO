@@ -34,6 +34,7 @@ Plataforma de **aprendizaje adaptativo** construida con Python y Streamlit que u
 - **Dashboard docente**: los profesores visualizan ELO por tópico, tasa de error reciente, probabilidad de fallo por pregunta y pueden generar reportes con IA.
 - **Soporte multi-proveedor de IA**: Groq, OpenAI, Anthropic Claude, Google Gemini, HuggingFace, LM Studio local, Ollama local — detección automática por prefijo de API key.
 - **Sin infraestructura externa obligatoria**: funciona completamente offline con LM Studio u Ollama; las funciones de IA degradan con gracia si no hay servidor disponible.
+- **Revisión matemática rigurosa de procedimientos**: cuando el proveedor activo es Groq, el sistema analiza imágenes de desarrollos manuscritos con `meta-llama/llama-4-scout-17b-16e-instruct` y devuelve una corrección paso a paso en JSON con un score 0–100 que ajusta el ELO del estudiante de forma secundaria.
 
 ---
 
@@ -62,7 +63,8 @@ src/
 │   ├── persistence/
 │   │   └── sqlite_repository.py  # SQLite: esquema, migraciones, seed, queries
 │   ├── external_api/
-│   │   └── ai_client.py          # Cliente universal multi-proveedor de IA
+│   │   ├── ai_client.py                 # Cliente universal multi-proveedor de IA
+│   │   └── math_procedure_review.py     # Revisión matemática rigurosa (Groq + Llama 4 Scout)
 │   └── security/
 │       └── hashing_service.py    # Argon2id + migración desde SHA-256 legacy
 │
@@ -222,11 +224,46 @@ El proveedor se infiere del prefijo de la API key ingresada en la sidebar:
 | `sk-proj-` / `sk-` | OpenAI |
 | (sin key) | LM Studio / Ollama local |
 
-### Tres funciones de IA
+### Funciones de IA
 
 - **`get_socratic_guidance()`** / **`get_socratic_guidance_stream()`**: tutor socrático que guía al alumno con preguntas sin revelar la respuesta. Soporta streaming token a token.
 - **`get_pedagogical_analysis()`**: análisis profundo del desempeño de un estudiante para el docente.
 - **`analyze_performance_local()`**: genera 3 recomendaciones en JSON para el dashboard de estadísticas del alumno.
+- **`analyze_procedure_image()`**: revisión visual genérica de procedimientos usando el modelo activo (para OpenAI, Anthropic, Gemini y modelos locales con visión).
+
+### Revisión matemática rigurosa (`math_procedure_review.py`)
+
+Servicio dedicado que se activa automáticamente cuando el proveedor es **Groq**. Usa el modelo de visión `meta-llama/llama-4-scout-17b-16e-instruct` con temperatura 0.1 y fuerza respuesta en JSON estricto.
+
+**Flujo:**
+1. La imagen del procedimiento se envía en base64 a `https://api.groq.com/openai/v1`.
+2. El modelo transcribe el contenido, evalúa cada paso y asigna un `score_procedimiento` (0–100).
+3. En caso de JSON inválido, se reintenta una vez; si falla de nuevo, se lanza un `ValueError` controlado.
+4. El score ajusta el ELO del estudiante en el tópico activo como factor secundario:
+
+```
+ELO_final = ELO_base + (score_procedimiento − 50) × 0.2
+```
+
+Ejemplos de ajuste: score 100 → +10 ELO · score 50 → 0 · score 0 → −10 ELO.
+
+**JSON de respuesta:**
+
+```json
+{
+  "transcripcion": "...",
+  "pasos": [
+    { "numero": 1, "contenido": "...", "evaluacion": "Valido | Algebraicamente incorrecto | Conceptualmente incorrecto | Incompleto", "comentario": "..." }
+  ],
+  "errores_detectados": [],
+  "saltos_logicos": [],
+  "resultado_correcto": true,
+  "evaluacion_global": "...",
+  "score_procedimiento": 85
+}
+```
+
+El ajuste ELO se aplica una sola vez por ejercicio (flag de sesión `proc_elo_applied_{item_id}`) y se muestra al alumno junto con el detalle de la revisión en la interfaz.
 
 ---
 

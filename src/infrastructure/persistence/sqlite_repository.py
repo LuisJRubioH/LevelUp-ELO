@@ -26,8 +26,10 @@ class SQLiteRepository:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 teacher_id INTEGER NOT NULL,
+                course_id TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY(teacher_id) REFERENCES users(id) ON DELETE CASCADE
+                FOREIGN KEY(teacher_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY(course_id) REFERENCES courses(id)
             )
         ''')
 
@@ -42,6 +44,7 @@ class SQLiteRepository:
                 active INTEGER DEFAULT 1,
                 group_id INTEGER,
                 rating_deviation REAL DEFAULT 350.0,
+                education_level TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(group_id) REFERENCES groups(id) ON DELETE SET NULL
             )
@@ -95,13 +98,25 @@ class SQLiteRepository:
         conn.close()
 
     def get_student_procedure_scores(self, student_id):
-        """Retorna lista de notas de procedimientos evaluados por el docente para el estudiante."""
+        """Retorna notas de procedimientos validados, normalizadas a escala 0-100.
+
+        Reglas de normalización (retrocompatibilidad):
+          - final_score (0-100)   → usado directamente.
+          - procedure_score (0-5) → multiplicado × 20 para equiparar escala.
+          - ai_proposed_score     → NUNCA incluido (no es nota oficial).
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT procedure_score, submitted_at
+            SELECT
+                CASE
+                    WHEN final_score IS NOT NULL THEN final_score
+                    ELSE procedure_score * 20.0
+                END AS score,
+                submitted_at
             FROM procedure_submissions
-            WHERE student_id = ? AND procedure_score IS NOT NULL
+            WHERE student_id = ?
+              AND (final_score IS NOT NULL OR procedure_score IS NOT NULL)
             ORDER BY submitted_at DESC
         ''', (student_id,))
         rows = cursor.fetchall()
@@ -114,11 +129,17 @@ class SQLiteRepository:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT i.course_id, c.name, AVG(ps.procedure_score), COUNT(ps.id)
+            SELECT i.course_id, c.name,
+                   AVG(CASE
+                       WHEN ps.final_score IS NOT NULL THEN ps.final_score
+                       ELSE ps.procedure_score * 20.0
+                   END),
+                   COUNT(ps.id)
             FROM procedure_submissions ps
             JOIN items i ON ps.item_id = i.id
             LEFT JOIN courses c ON i.course_id = c.id
-            WHERE ps.student_id = ? AND ps.procedure_score IS NOT NULL
+            WHERE ps.student_id = ?
+              AND (ps.final_score IS NOT NULL OR ps.procedure_score IS NOT NULL)
             GROUP BY i.course_id
         ''', (student_id,))
         rows = cursor.fetchall()
@@ -183,6 +204,12 @@ class SQLiteRepository:
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)")
 
+        # Migración: vincular grupos a un curso del catálogo (course_id nullable)
+        cursor.execute("PRAGMA table_info(groups)")
+        group_cols = [row[1] for row in cursor.fetchall()]
+        if 'course_id' not in group_cols:
+            cursor.execute("ALTER TABLE groups ADD COLUMN course_id TEXT REFERENCES courses(id)")
+
         # Asegurar tabla de auditoría
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS audit_group_changes (
@@ -236,6 +263,18 @@ class SQLiteRepository:
             cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN procedure_image_path TEXT")
         if 'feedback_image_path' not in _proc_cols:
             cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN feedback_image_path TEXT")
+        # v3 — flujo formal de validación docente (Task 3)
+        # INVARIANTE: ai_proposed_score NUNCA toca ELO; solo final_score puede hacerlo.
+        if 'ai_proposed_score' not in _proc_cols:
+            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN ai_proposed_score REAL")
+        if 'teacher_score' not in _proc_cols:
+            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN teacher_score REAL")
+        if 'final_score' not in _proc_cols:
+            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN final_score REAL")
+        # v4 — delta ELO calculado al momento de la validación docente (Task 5)
+        # Formula: elo_delta = (final_score - 50) * 0.2  (nunca desde ai_proposed_score)
+        if 'elo_delta' not in _proc_cols:
+            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN elo_delta REAL")
 
         # Tabla de procedimientos enviados por estudiantes para revisión del docente
         cursor.execute('''
@@ -273,12 +312,23 @@ class SQLiteRepository:
             CREATE TABLE IF NOT EXISTS enrollments (
                 user_id INTEGER NOT NULL,
                 course_id TEXT NOT NULL,
+                group_id INTEGER,
                 enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (user_id, course_id),
                 FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-                FOREIGN KEY(course_id) REFERENCES courses(id) ON DELETE CASCADE
+                FOREIGN KEY(course_id) REFERENCES courses(id) ON DELETE CASCADE,
+                FOREIGN KEY(group_id) REFERENCES groups(id) ON DELETE SET NULL
             )
         ''')
+
+        # Migración: asociar matrícula a un grupo (nullable — inscripciones previas
+        # quedan con group_id = NULL, el sistema las tolera sin riesgo).
+        cursor.execute("PRAGMA table_info(enrollments)")
+        enrollment_cols = [row[1] for row in cursor.fetchall()]
+        if 'group_id' not in enrollment_cols:
+            cursor.execute(
+                "ALTER TABLE enrollments ADD COLUMN group_id INTEGER REFERENCES groups(id) ON DELETE SET NULL"
+            )
 
         # Vincular ítems a su curso (migración aditiva)
         cursor.execute("PRAGMA table_info(items)")
@@ -390,11 +440,14 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
-    def register_user(self, username, password, role='student', group_id=None):
-        """Registra un nuevo usuario. Valida group_id para estudiantes."""
-        if role == 'student' and group_id is None:
-            return False, "Error: Los estudiantes deben pertenecer a un grupo."
+    def register_user(self, username, password, role='student', group_id=None, education_level=None):
+        """Registra un nuevo usuario.
 
+        Para estudiantes, `group_id` es opcional en el momento del registro:
+        el estudiante elige grupo al matricularse en un curso (catálogo).
+        `education_level` ('universidad' | 'colegio') determina qué catálogo
+        de cursos podrá ver el estudiante.
+        """
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
@@ -402,8 +455,9 @@ class SQLiteRepository:
             # Teachers necesitan aprobación; students y admin se aprueban solos
             approved = 0 if role == 'teacher' else 1
             cursor.execute(
-                "INSERT INTO users (username, password_hash, role, approved, group_id, rating_deviation) VALUES (?, ?, ?, ?, ?, 350.0)",
-                (username, password_hash, role, approved, group_id)
+                "INSERT INTO users (username, password_hash, role, approved, group_id, rating_deviation, education_level) "
+                "VALUES (?, ?, ?, ?, ?, 350.0, ?)",
+                (username, password_hash, role, approved, group_id, education_level)
             )
             conn.commit()
             return True, "Registro exitoso."
@@ -525,16 +579,46 @@ class SQLiteRepository:
         return [r[0] for r in rows]
 
     def get_latest_elo_by_topic(self, user_id):
-        """Devuelve un diccionario {topic: (elo_actual, rd_actual)} para el usuario."""
+        """Devuelve {topic: (elo_actual, rd_actual)} incluyendo ajustes de procedimientos.
+
+        Fuentes de ELO (en orden de aplicación):
+          1. Intentos de preguntas (tabla `attempts`) — base cronológica.
+          2. Procedimientos validados por docente (elo_delta de procedure_submissions).
+             INVARIANTE: solo elo_delta de status='VALIDATED_BY_TEACHER' se aplica aquí.
+             ai_proposed_score NUNCA afecta este cálculo.
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT topic, elo_after, rating_deviation FROM attempts WHERE user_id = ? ORDER BY timestamp ASC", (user_id,))
-        rows = cursor.fetchall()
-        conn.close()
+
+        # 1. ELO base desde los intentos de preguntas
+        cursor.execute(
+            "SELECT topic, elo_after, rating_deviation "
+            "FROM attempts WHERE user_id = ? ORDER BY timestamp ASC",
+            (user_id,)
+        )
         elo_map = {}
-        for topic, elo, rd in rows:
-            # Si rd es NULL (intentos viejos), usamos el valor por defecto 350.0
+        for topic, elo, rd in cursor.fetchall():
             elo_map[topic] = (elo, rd if rd is not None else 350.0)
+
+        # 2. Sumar deltas ELO de procedimientos validados por el docente (agrupados por tópico)
+        cursor.execute('''
+            SELECT i.topic, SUM(ps.elo_delta)
+            FROM procedure_submissions ps
+            JOIN items i ON ps.item_id = i.id
+            WHERE ps.student_id = ?
+              AND ps.status = 'VALIDATED_BY_TEACHER'
+              AND ps.elo_delta IS NOT NULL
+            GROUP BY i.topic
+        ''', (user_id,))
+        for topic, total_delta in cursor.fetchall():
+            if topic in elo_map:
+                base_elo, rd = elo_map[topic]
+                elo_map[topic] = (round(base_elo + total_delta, 2), rd)
+            else:
+                # Tópico solo en procedimientos (sin intentos de preguntas aún)
+                elo_map[topic] = (round(1000.0 + total_delta, 2), 350.0)
+
+        conn.close()
         return elo_map
 
     def get_user_history_full(self, user_id):
@@ -630,22 +714,35 @@ class SQLiteRepository:
 
     # ─── Gestión de GRUPOS ────────────────────────────────────────────────────────
 
-    def create_group(self, name, teacher_id):
-        """Crea un nuevo grupo para un profesor."""
+    def create_group(self, name, teacher_id, course_id=None):
+        """Crea un nuevo grupo para un profesor, opcionalmente vinculado a un curso."""
         conn = self.get_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO groups (name, teacher_id) VALUES (?, ?)", (name, teacher_id))
+        cursor.execute(
+            "INSERT INTO groups (name, teacher_id, course_id) VALUES (?, ?, ?)",
+            (name, teacher_id, course_id)
+        )
         conn.commit()
         conn.close()
 
     def get_groups_by_teacher(self, teacher_id):
-        """Lista grupos que pertenecen a un profesor específico (Seguridad)."""
+        """Lista grupos de un profesor con el nombre del curso vinculado (JOIN)."""
         conn = self.get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name, created_at FROM groups WHERE teacher_id = ? ORDER BY name ASC", (teacher_id,))
+        cursor.execute('''
+            SELECT g.id, g.name, g.course_id, COALESCE(c.name, '—') AS course_name, g.created_at
+            FROM groups g
+            LEFT JOIN courses c ON g.course_id = c.id
+            WHERE g.teacher_id = ?
+            ORDER BY g.name ASC
+        ''', (teacher_id,))
         rows = cursor.fetchall()
         conn.close()
-        return [{'id': r[0], 'name': r[1], 'created_at': r[2]} for r in rows]
+        return [
+            {'id': r[0], 'name': r[1], 'course_id': r[2],
+             'course_name': r[3], 'created_at': r[4]}
+            for r in rows
+        ]
 
     def get_all_groups(self):
         """Lista todos los grupos disponibles (para el registro de estudiantes)."""
@@ -854,6 +951,25 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    def get_available_courses_by_level(self, level: str):
+        """Retorna los cursos disponibles filtrados ESTRICTAMENTE por nivel educativo.
+
+        Parámetro level: 'universidad' | 'colegio' (case-insensitive).
+        La consulta usa WHERE block = ? sin fallback a todos los cursos;
+        si el nivel no existe en la tabla, devuelve lista vacía.
+        """
+        from src.domain.entities import LEVEL_TO_BLOCK, LEVEL_UNIVERSIDAD
+        _block = LEVEL_TO_BLOCK.get(level.lower(), LEVEL_TO_BLOCK[LEVEL_UNIVERSIDAD])
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, name, block, description FROM courses WHERE block = ? ORDER BY name ASC",
+            (_block,)
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [{'id': r[0], 'name': r[1], 'block': r[2], 'description': r[3]} for r in rows]
+
     def get_courses(self, block=None):
         """Devuelve todos los cursos, opcionalmente filtrados por bloque."""
         conn = self.get_connection()
@@ -869,14 +985,51 @@ class SQLiteRepository:
         conn.close()
         return [{'id': r[0], 'name': r[1], 'block': r[2], 'description': r[3]} for r in rows]
 
-    def enroll_user(self, user_id, course_id):
-        """Matricula a un usuario en un curso. Idempotente."""
+    def get_available_groups_for_course(self, course_id):
+        """Retorna los grupos activos vinculados a un curso específico.
+
+        El JOIN con users expone el nombre del profesor para la UI del catálogo.
+        Solo retorna grupos cuyo teacher esté activo y aprobado.
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT g.id, g.name, u.username AS teacher_name
+            FROM groups g
+            JOIN users u ON g.teacher_id = u.id
+            WHERE g.course_id = ? AND u.active = 1 AND u.approved = 1
+            ORDER BY g.name ASC
+        ''', (course_id,))
+        rows = cursor.fetchall()
+        conn.close()
+        return [{'id': r[0], 'name': r[1], 'teacher_name': r[2]} for r in rows]
+
+    def enroll_user(self, user_id, course_id, group_id=None):
+        """Matricula a un usuario en un curso. Idempotente.
+
+        Si se proporciona group_id:
+          - Se registra en enrollments.group_id para rastrear la asociación curso→grupo.
+          - Se actualiza users.group_id para mantener compatibilidad con el dashboard
+            docente (que filtra estudiantes por grupo del profesor).
+        Las matrículas existentes sin grupo quedan con group_id = NULL — no se rompen.
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT OR IGNORE INTO enrollments (user_id, course_id) VALUES (?, ?)",
-            (user_id, course_id)
+            "INSERT OR IGNORE INTO enrollments (user_id, course_id, group_id) VALUES (?, ?, ?)",
+            (user_id, course_id, group_id)
         )
+        if group_id is not None:
+            # Actualizar group_id aunque la matrícula ya existiera
+            cursor.execute(
+                "UPDATE enrollments SET group_id = ? WHERE user_id = ? AND course_id = ?",
+                (group_id, user_id, course_id)
+            )
+            # Mantener users.group_id sincronizado (dashboard docente)
+            cursor.execute(
+                "UPDATE users SET group_id = ? WHERE id = ?",
+                (group_id, user_id)
+            )
         conn.commit()
         conn.close()
 
@@ -892,19 +1045,62 @@ class SQLiteRepository:
         conn.close()
 
     def get_user_enrollments(self, user_id):
-        """Devuelve los cursos en los que está matriculado el usuario."""
+        """Devuelve los cursos en los que está matriculado el usuario.
+
+        Incluye el nombre del grupo asociado a cada matrícula (puede ser None para
+        inscripciones previas que no tenían grupo).
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT c.id, c.name, c.block, c.description
+            SELECT c.id, c.name, c.block, c.description,
+                   e.group_id, COALESCE(g.name, '') AS group_name
             FROM enrollments e
             JOIN courses c ON e.course_id = c.id
+            LEFT JOIN groups g ON e.group_id = g.id
             WHERE e.user_id = ?
             ORDER BY c.name ASC
         ''', (user_id,))
         rows = cursor.fetchall()
         conn.close()
-        return [{'id': r[0], 'name': r[1], 'block': r[2], 'description': r[3]} for r in rows]
+        return [
+            {'id': r[0], 'name': r[1], 'block': r[2], 'description': r[3],
+             'group_id': r[4], 'group_name': r[5]}
+            for r in rows
+        ]
+
+    def get_enrolled_topics(self, user_id):
+        """Retorna el conjunto de tópicos relevantes para el filtrado de la tabla ELO.
+
+        Fuentes incluidas (OR lógico):
+          1. Tópicos de ítems pertenecientes a cursos en los que el estudiante
+             está actualmente matriculado (enrollments → items.course_id → items.topic).
+          2. Tópicos de ítems donde el estudiante tiene procedimientos enviados
+             (independientemente de matrícula, para no ocultar actividad real).
+
+        Retorna set vacío si el estudiante no tiene matrículas ni procedimientos;
+        en ese caso, el llamador debe usar el elo_map completo como fallback.
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        # Fuente 1: cursos matriculados → tópicos de sus ítems
+        cursor.execute('''
+            SELECT DISTINCT i.topic
+            FROM enrollments e
+            JOIN items i ON i.course_id = e.course_id
+            WHERE e.user_id = ? AND i.topic IS NOT NULL
+        ''', (user_id,))
+        topics = {row[0] for row in cursor.fetchall()}
+        # Fuente 2: tópicos de ítems con procedimientos enviados
+        cursor.execute('''
+            SELECT DISTINCT i.topic
+            FROM procedure_submissions ps
+            JOIN items i ON ps.item_id = i.id
+            WHERE ps.student_id = ? AND i.topic IS NOT NULL
+        ''', (user_id,))
+        topics |= {row[0] for row in cursor.fetchall()}
+        conn.close()
+        return topics
 
     def set_education_level(self, user_id, level):
         """Guarda el nivel educativo del usuario ('universidad' | 'colegio')."""
@@ -1091,12 +1287,18 @@ class SQLiteRepository:
         )
         existing = cursor.fetchone()
         if existing:
+            # Preserva ai_proposed_score si ya fue analizado por IA.
+            # Resetea solo campos de revisión del docente (nueva entrega anula feedback anterior).
             cursor.execute('''
                 UPDATE procedure_submissions
                 SET image_data=?, mime_type=?, procedure_image_path=?,
-                    status='pending', teacher_feedback=NULL,
+                    status=CASE
+                        WHEN ai_proposed_score IS NOT NULL THEN 'PENDING_TEACHER_VALIDATION'
+                        ELSE 'pending'
+                    END,
+                    teacher_feedback=NULL,
                     feedback_image=NULL, feedback_image_path=NULL,
-                    procedure_score=NULL,
+                    procedure_score=NULL, teacher_score=NULL, final_score=NULL,
                     submitted_at=CURRENT_TIMESTAMP, reviewed_at=NULL
                 WHERE student_id=? AND item_id=?
             ''', (image_data, mime_type, img_path, student_id, item_id))
@@ -1109,14 +1311,37 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    def save_ai_proposed_score(self, student_id: int, item_id: str, ai_score: float):
+        """Guarda la puntuación propuesta por la IA y actualiza el status a PENDING_TEACHER_VALIDATION.
+
+        INVARIANTE CRÍTICA: ai_proposed_score NUNCA modifica el ELO del estudiante.
+        Solo final_score (validado por el docente vía Task 4) puede afectar analytics.
+
+        Si no existe registro previo para student_id+item_id, no hace nada (la imagen
+        debe guardarse primero con save_procedure_submission).
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE procedure_submissions
+            SET ai_proposed_score = ?,
+                status = 'PENDING_TEACHER_VALIDATION'
+            WHERE student_id = ? AND item_id = ?
+        ''', (ai_score, student_id, item_id))
+        conn.commit()
+        conn.close()
+
     def get_student_submission(self, student_id, item_id):
-        """Retorna la entrega del estudiante para una pregunta, o None."""
+        """Retorna la entrega del estudiante para una pregunta, o None.
+        Incluye ai_proposed_score, teacher_score y final_score del flujo de validación.
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
             SELECT id, status, teacher_feedback, feedback_image,
                    feedback_mime_type, submitted_at, reviewed_at,
-                   procedure_score, feedback_image_path
+                   procedure_score, feedback_image_path,
+                   ai_proposed_score, teacher_score, final_score
             FROM procedure_submissions
             WHERE student_id=? AND item_id=?
         ''', (student_id, item_id))
@@ -1125,42 +1350,110 @@ class SQLiteRepository:
         if row:
             cols = ['id', 'status', 'teacher_feedback', 'feedback_image',
                     'feedback_mime_type', 'submitted_at', 'reviewed_at',
-                    'procedure_score', 'feedback_image_path']
+                    'procedure_score', 'feedback_image_path',
+                    'ai_proposed_score', 'teacher_score', 'final_score']
             return dict(zip(cols, row))
         return None
 
     def get_pending_submissions_count(self, teacher_id):
-        """Cuenta las entregas pendientes de revisión del docente."""
+        """Cuenta las entregas pendientes de revisión del docente.
+        Incluye tanto envíos manuales ('pending') como los revisados por IA
+        que esperan validación docente ('PENDING_TEACHER_VALIDATION').
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
             SELECT COUNT(*) FROM procedure_submissions ps
             JOIN users u ON ps.student_id = u.id
             JOIN groups g ON u.group_id = g.id
-            WHERE g.teacher_id = ? AND ps.status = 'pending'
+            WHERE g.teacher_id = ?
+              AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
         ''', (teacher_id,))
         count = cursor.fetchone()[0]
         conn.close()
         return count
 
     def get_pending_submissions_for_teacher(self, teacher_id):
-        """Retorna todas las entregas pendientes de los estudiantes del docente."""
+        """Retorna todas las entregas pendientes de los estudiantes del docente.
+        Incluye ai_proposed_score para que el docente pueda ver la propuesta de la IA.
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
             SELECT ps.id, ps.student_id, u.username AS student_name,
                    ps.item_id, ps.item_content, ps.image_data, ps.mime_type,
-                   ps.submitted_at, ps.procedure_image_path
+                   ps.submitted_at, ps.procedure_image_path,
+                   ps.status, ps.ai_proposed_score
             FROM procedure_submissions ps
             JOIN users u ON ps.student_id = u.id
             JOIN groups g ON u.group_id = g.id
-            WHERE g.teacher_id = ? AND ps.status = 'pending'
+            WHERE g.teacher_id = ?
+              AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
             ORDER BY ps.submitted_at DESC
         ''', (teacher_id,))
         cols = [c[0] for c in cursor.description]
         rows = [dict(zip(cols, r)) for r in cursor.fetchall()]
         conn.close()
         return rows
+
+    def get_student_elo_summary(self, student_id):
+        """ELO actual por tópico, ELO global, total de intentos y precisión reciente.
+        Devuelve dict con claves: elo_by_topic, global_elo, attempts_count, recent_accuracy.
+        """
+        elo_by_topic = self.get_latest_elo_by_topic(student_id)
+        global_elo = (
+            sum(e for e, _ in elo_by_topic.values()) / len(elo_by_topic)
+            if elo_by_topic else 1000.0
+        )
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM attempts WHERE user_id = ?", (student_id,))
+        total = cursor.fetchone()[0]
+        cursor.execute(
+            "SELECT is_correct FROM attempts WHERE user_id = ? ORDER BY timestamp DESC LIMIT 10",
+            (student_id,)
+        )
+        recent = cursor.fetchall()
+        conn.close()
+        recent_acc = sum(1 for r in recent if r[0]) / len(recent) if recent else 0.0
+        return {
+            'elo_by_topic': elo_by_topic,
+            'global_elo': round(global_elo, 1),
+            'attempts_count': total,
+            'recent_accuracy': recent_acc,
+        }
+
+    def validate_procedure_submission(self, submission_id: int,
+                                      teacher_score: float, feedback: str = ""):
+        """Valida la calificación de un procedimiento y establece la nota final oficial.
+
+        Reglas de negocio:
+          - teacher_score y final_score se fijan al mismo valor (el docente es la autoridad).
+          - final_score es el único campo que puede afectar ELO y analytics (Task 5).
+          - Una vez en 'VALIDATED_BY_TEACHER', la entrega desaparece de la cola pendiente.
+
+        Args:
+            submission_id: PK de procedure_submissions.
+            teacher_score: Calificación oficial (0.0 – 100.0).
+            feedback:      Comentario opcional del docente.
+        """
+        # ELO delta: independiente del ELO base del estudiante (es un ajuste aditivo)
+        # Formula idéntica a apply_procedure_elo_adjustment: (score - 50) * 0.2
+        elo_delta = round((teacher_score - 50.0) * 0.2, 4)
+
+        conn = self.get_connection()
+        conn.execute('''
+            UPDATE procedure_submissions
+            SET teacher_score    = ?,
+                final_score      = ?,
+                teacher_feedback = ?,
+                elo_delta        = ?,
+                status           = 'VALIDATED_BY_TEACHER',
+                reviewed_at      = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (teacher_score, teacher_score, feedback or None, elo_delta, submission_id))
+        conn.commit()
+        conn.close()
 
     def save_teacher_feedback(self, submission_id, feedback_text,
                               feedback_image=None, feedback_mime_type=None,

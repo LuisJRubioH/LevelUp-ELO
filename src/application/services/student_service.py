@@ -1,6 +1,7 @@
 from src.domain.elo.model import expected_score
 from src.domain.elo.cognitive import CognitiveAnalyzer
 from src.domain.selector.item_selector import AdaptiveItemSelector
+from src.domain.entities import VALID_LEVELS, LEVEL_UNIVERSIDAD
 from src.infrastructure.external_api.ai_client import get_socratic_guidance
 
 class StudentService:
@@ -108,6 +109,26 @@ class StudentService:
         )
         
         return is_correct, cog_data
+
+    def get_groups_for_course(self, course_id: str) -> list:
+        """Devuelve los grupos disponibles para inscribirse en un curso específico."""
+        return self.repository.get_available_groups_for_course(course_id)
+
+    def enroll_in_course(self, user_id: int, course_id: str, group_id: int = None) -> None:
+        """Matricula al estudiante en un curso asociándolo al grupo elegido."""
+        self.repository.enroll_user(user_id, course_id, group_id)
+
+    def get_available_courses(self, user_id: int) -> list:
+        """Devuelve los cursos disponibles para el nivel educativo del estudiante.
+
+        El nivel se lee desde la base de datos (fuente de verdad), nunca
+        desde la sesión, garantizando el filtro estricto de catálogo.
+        Un estudiante de Colegio NUNCA recibe cursos de Universidad y viceversa.
+        """
+        level = self.repository.get_education_level(user_id) or LEVEL_UNIVERSIDAD
+        if level.lower() not in VALID_LEVELS:
+            level = LEVEL_UNIVERSIDAD
+        return self.repository.get_available_courses_by_level(level)
 
     def get_socratic_help(self, student_rating, topic, content, last_answer, correct_answer, all_options, model_name, ai_url):
         """Orquesta la obtención de guía socrática adaptativa y contextualizada."""
