@@ -1,21 +1,83 @@
-MIT License
+MIT-Restricted License (Source-Available)
 
-Copyright (c) 2026 Luis J Rubio H
+Copyright (c) 2026 Luis J Rubio H, Oriana Giraldo A. Todos los derechos reservados.
+Copyright (c) 2026 Luis J Rubio H, Oriana Giraldo A. All rights reserved.
+
+=== ESPAÑOL ===
+
+Se concede permiso, de forma gratuita, a cualquier persona que obtenga una copia
+de este software y los archivos de documentación asociados (el "Software"), para
+usar el Software únicamente con fines académicos y personales, sujeto a las
+siguientes condiciones:
+
+1. USOS PERMITIDOS
+   a) Uso personal no comercial.
+   b) Uso académico en instituciones educativas (docencia, investigación,
+      trabajos estudiantiles).
+   c) Estudio del código fuente con fines de aprendizaje.
+
+2. USOS PROHIBIDOS
+   a) Uso comercial de cualquier tipo, incluyendo pero no limitado a:
+      venta, sublicenciamiento, ofrecimiento como servicio (SaaS),
+      integración en productos comerciales o uso interno en empresas
+      con fines de lucro.
+   b) Redistribución del Software, modificado o no, sin autorización
+      previa y por escrito de los titulares del copyright.
+   c) Presentar el Software, total o parcialmente, como trabajo propio.
+
+3. ATRIBUCIÓN
+   Cualquier uso permitido debe mantener este aviso de copyright y esta
+   licencia en todas las copias o porciones sustanciales del Software.
+
+4. USO COMERCIAL BAJO ACUERDO
+   El uso comercial puede ser autorizado mediante un acuerdo de licencia
+   separado con los titulares del copyright. Para consultas:
+   [CORREO_DE_CONTACTO]
+
+5. SIN GARANTÍA
+   EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA DE NINGÚN TIPO,
+   EXPRESA O IMPLÍCITA, INCLUYENDO PERO NO LIMITÁNDOSE A LAS GARANTÍAS
+   DE COMERCIALIZACIÓN, ADECUACIÓN PARA UN PROPÓSITO PARTICULAR Y NO
+   INFRACCIÓN. EN NINGÚN CASO LOS AUTORES O TITULARES DEL COPYRIGHT
+   SERÁN RESPONSABLES DE NINGUNA RECLAMACIÓN, DAÑO U OTRA RESPONSABILIDAD,
+   YA SEA EN UNA ACCIÓN CONTRACTUAL, EXTRACONTRACTUAL O DE OTRO TIPO,
+   DERIVADA DE O EN CONEXIÓN CON EL SOFTWARE O EL USO U OTROS TRATOS
+   EN EL SOFTWARE.
+
+=== ENGLISH ===
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+of this software and associated documentation files (the "Software"), to use
+the Software solely for academic and personal purposes, subject to the
+following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. PERMITTED USES
+   a) Personal, non-commercial use.
+   b) Academic use in educational institutions (teaching, research,
+      student coursework).
+   c) Studying the source code for learning purposes.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2. PROHIBITED USES
+   a) Commercial use of any kind, including but not limited to: selling,
+      sublicensing, offering as a service (SaaS), integrating into
+      commercial products, or internal use in for-profit organizations.
+   b) Redistribution of the Software, modified or unmodified, without
+      prior written authorization from the copyright holders.
+   c) Presenting the Software, in whole or in part, as one's own work.
+
+3. ATTRIBUTION
+   Any permitted use must retain this copyright notice and this license
+   in all copies or substantial portions of the Software.
+
+4. COMMERCIAL USE BY AGREEMENT
+   Commercial use may be authorized through a separate license agreement
+   with the copyright holders. For inquiries: [CONTACT_EMAIL]
+
+5. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
