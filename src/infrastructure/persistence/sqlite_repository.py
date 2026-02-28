@@ -178,37 +178,36 @@ class SQLiteRepository:
         return rows
 
 
+    def _column_exists(self, cursor, table: str, column: str) -> bool:
+        """Devuelve True si `column` ya existe en `table`."""
+        cursor.execute(f"PRAGMA table_info({table})")
+        return any(row[1] == column for row in cursor.fetchall())
+
+    def _add_column_if_not_exists(self, cursor, table: str, column: str, definition: str) -> None:
+        """Ejecuta ALTER TABLE ADD COLUMN sólo si la columna no existe todavía."""
+        if not self._column_exists(cursor, table, column):
+            cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+
     def _migrate_db(self):
         """Agrega columnas nuevas de forma segura si no existen (migración)."""
         conn = self.get_connection()
         cursor = conn.cursor()
 
-        # Obtener columnas actuales de users
-        cursor.execute("PRAGMA table_info(users)")
-        user_cols = [row[1] for row in cursor.fetchall()]
-        if 'role' not in user_cols:
-            cursor.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'student'")
-        if 'approved' not in user_cols:
-            cursor.execute("ALTER TABLE users ADD COLUMN approved INTEGER DEFAULT 1")
-        if 'active' not in user_cols:
-            cursor.execute("ALTER TABLE users ADD COLUMN active INTEGER DEFAULT 1")
-        if 'group_id' not in user_cols:
-            cursor.execute("ALTER TABLE users ADD COLUMN group_id INTEGER")
-        if 'rating_deviation' not in user_cols:
-            cursor.execute("ALTER TABLE users ADD COLUMN rating_deviation REAL DEFAULT 350.0")
-        if 'education_level' not in user_cols:
-            # Sin DEFAULT: los usuarios existentes quedan NULL → pasan por onboarding la primera vez
-            cursor.execute("ALTER TABLE users ADD COLUMN education_level TEXT")
+        # users
+        self._add_column_if_not_exists(cursor, 'users', 'role', "TEXT DEFAULT 'student'")
+        self._add_column_if_not_exists(cursor, 'users', 'approved', "INTEGER DEFAULT 1")
+        self._add_column_if_not_exists(cursor, 'users', 'active', "INTEGER DEFAULT 1")
+        self._add_column_if_not_exists(cursor, 'users', 'group_id', "INTEGER")
+        self._add_column_if_not_exists(cursor, 'users', 'rating_deviation', "REAL DEFAULT 350.0")
+        # Sin DEFAULT: los usuarios existentes quedan NULL → pasan por onboarding la primera vez
+        self._add_column_if_not_exists(cursor, 'users', 'education_level', "TEXT")
 
         # Asegurar índices si no existen
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)")
 
         # Migración: vincular grupos a un curso del catálogo (course_id nullable)
-        cursor.execute("PRAGMA table_info(groups)")
-        group_cols = [row[1] for row in cursor.fetchall()]
-        if 'course_id' not in group_cols:
-            cursor.execute("ALTER TABLE groups ADD COLUMN course_id TEXT REFERENCES courses(id)")
+        self._add_column_if_not_exists(cursor, 'groups', 'course_id', "TEXT REFERENCES courses(id)")
 
         # Asegurar tabla de auditoría
         cursor.execute('''
@@ -224,21 +223,13 @@ class SQLiteRepository:
             )
         ''')
 
-        # Obtener columnas actuales de attempts
-        cursor.execute("PRAGMA table_info(attempts)")
-        attempt_cols = [row[1] for row in cursor.fetchall()]
-        if 'prob_failure' not in attempt_cols:
-            cursor.execute("ALTER TABLE attempts ADD COLUMN prob_failure REAL")
-        if 'expected_score' not in attempt_cols:
-            cursor.execute("ALTER TABLE attempts ADD COLUMN expected_score REAL")
-        if 'time_taken' not in attempt_cols:
-            cursor.execute("ALTER TABLE attempts ADD COLUMN time_taken REAL")
-        if 'confidence_score' not in attempt_cols:
-            cursor.execute("ALTER TABLE attempts ADD COLUMN confidence_score REAL")
-        if 'error_type' not in attempt_cols:
-            cursor.execute("ALTER TABLE attempts ADD COLUMN error_type TEXT")
-        if 'rating_deviation' not in attempt_cols:
-            cursor.execute("ALTER TABLE attempts ADD COLUMN rating_deviation REAL")
+        # attempts
+        self._add_column_if_not_exists(cursor, 'attempts', 'prob_failure', "REAL")
+        self._add_column_if_not_exists(cursor, 'attempts', 'expected_score', "REAL")
+        self._add_column_if_not_exists(cursor, 'attempts', 'time_taken', "REAL")
+        self._add_column_if_not_exists(cursor, 'attempts', 'confidence_score', "REAL")
+        self._add_column_if_not_exists(cursor, 'attempts', 'error_type', "TEXT")
+        self._add_column_if_not_exists(cursor, 'attempts', 'rating_deviation', "REAL")
 
         # Asegurar tabla items
         cursor.execute('''
@@ -253,28 +244,6 @@ class SQLiteRepository:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-
-        # Migración de procedure_submissions: columnas añadidas en v2
-        cursor.execute("PRAGMA table_info(procedure_submissions)")
-        _proc_cols = [row[1] for row in cursor.fetchall()]
-        if 'procedure_score' not in _proc_cols:
-            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN procedure_score REAL")
-        if 'procedure_image_path' not in _proc_cols:
-            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN procedure_image_path TEXT")
-        if 'feedback_image_path' not in _proc_cols:
-            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN feedback_image_path TEXT")
-        # v3 — flujo formal de validación docente (Task 3)
-        # INVARIANTE: ai_proposed_score NUNCA toca ELO; solo final_score puede hacerlo.
-        if 'ai_proposed_score' not in _proc_cols:
-            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN ai_proposed_score REAL")
-        if 'teacher_score' not in _proc_cols:
-            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN teacher_score REAL")
-        if 'final_score' not in _proc_cols:
-            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN final_score REAL")
-        # v4 — delta ELO calculado al momento de la validación docente (Task 5)
-        # Formula: elo_delta = (final_score - 50) * 0.2  (nunca desde ai_proposed_score)
-        if 'elo_delta' not in _proc_cols:
-            cursor.execute("ALTER TABLE procedure_submissions ADD COLUMN elo_delta REAL")
 
         # Tabla de procedimientos enviados por estudiantes para revisión del docente
         cursor.execute('''
@@ -294,6 +263,19 @@ class SQLiteRepository:
                 FOREIGN KEY(student_id) REFERENCES users(id)
             )
         ''')
+
+        # Migración de procedure_submissions: columnas añadidas en v2
+        self._add_column_if_not_exists(cursor, 'procedure_submissions', 'procedure_score', "REAL")
+        self._add_column_if_not_exists(cursor, 'procedure_submissions', 'procedure_image_path', "TEXT")
+        self._add_column_if_not_exists(cursor, 'procedure_submissions', 'feedback_image_path', "TEXT")
+        # v3 — flujo formal de validación docente (Task 3)
+        # INVARIANTE: ai_proposed_score NUNCA toca ELO; solo final_score puede hacerlo.
+        self._add_column_if_not_exists(cursor, 'procedure_submissions', 'ai_proposed_score', "REAL")
+        self._add_column_if_not_exists(cursor, 'procedure_submissions', 'teacher_score', "REAL")
+        self._add_column_if_not_exists(cursor, 'procedure_submissions', 'final_score', "REAL")
+        # v4 — delta ELO calculado al momento de la validación docente (Task 5)
+        # Formula: elo_delta = (final_score - 50) * 0.2  (nunca desde ai_proposed_score)
+        self._add_column_if_not_exists(cursor, 'procedure_submissions', 'elo_delta', "REAL")
 
         # ── LMS: Cursos y Matrículas ─────────────────────────────────────────────
 
@@ -323,18 +305,13 @@ class SQLiteRepository:
 
         # Migración: asociar matrícula a un grupo (nullable — inscripciones previas
         # quedan con group_id = NULL, el sistema las tolera sin riesgo).
-        cursor.execute("PRAGMA table_info(enrollments)")
-        enrollment_cols = [row[1] for row in cursor.fetchall()]
-        if 'group_id' not in enrollment_cols:
-            cursor.execute(
-                "ALTER TABLE enrollments ADD COLUMN group_id INTEGER REFERENCES groups(id) ON DELETE SET NULL"
-            )
+        self._add_column_if_not_exists(
+            cursor, 'enrollments', 'group_id',
+            "INTEGER REFERENCES groups(id) ON DELETE SET NULL"
+        )
 
         # Vincular ítems a su curso (migración aditiva)
-        cursor.execute("PRAGMA table_info(items)")
-        item_cols = [row[1] for row in cursor.fetchall()]
-        if 'course_id' not in item_cols:
-            cursor.execute("ALTER TABLE items ADD COLUMN course_id TEXT REFERENCES courses(id)")
+        self._add_column_if_not_exists(cursor, 'items', 'course_id', "TEXT REFERENCES courses(id)")
 
         conn.commit()
         conn.close()
