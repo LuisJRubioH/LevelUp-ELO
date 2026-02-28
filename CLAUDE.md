@@ -58,7 +58,7 @@ src/
 
 ## AI Integration (LM Studio)
 
-- All AI calls go to a local LM Studio instance at `http://192.168.40.66:1234/v1` by default.
+- All AI calls go to a local LM Studio instance whose URL is entered manually by the user (no default URL is hardcoded; the field starts empty).
 - The URL and model are configurable per-session in the Streamlit sidebar.
 - Three AI functions in `infrastructure/external_api/ai_client.py`:
   - `get_socratic_guidance()` — student tutor (socratic hints, never reveals answer)

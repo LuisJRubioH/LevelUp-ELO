@@ -62,7 +62,7 @@ if 'model_analysis' not in st.session_state:
     st.session_state.model_analysis = "mistralai/mistral-7b-instruct-v0.3"
 
 if 'ai_url' not in st.session_state:
-    st.session_state.ai_url = "http://192.168.40.66:1234/v1"
+    st.session_state.ai_url = ""
 
 if 'ai_provider_mode' not in st.session_state:
     st.session_state.ai_provider_mode = 'auto'
@@ -504,25 +504,40 @@ else:
                             st.session_state.pop(_k, None)
                         st.rerun()
                 elif _t_mode == "☁️ API Key":
-                    _key_in = st.text_input(
-                        "API Key", type="password",
-                        value=st.session_state.cloud_api_key or "",
-                        placeholder="sk-ant-… / gsk_… / sk-… / AIzaSy…",
-                        key="cloud_key_teacher",
-                    )
-                    st.caption("🔒 Tus credenciales son seguras y no se almacenan en ninguna base de datos.")
-                    if _key_in:
-                        _detected = ai_mod.detect_provider_from_key(_key_in)
-                        st.session_state.cloud_api_key = _key_in
-                        st.session_state.ai_provider = _detected or 'groq'
-                        _pinfo = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {})
-                        st.session_state.model_cog = _pinfo.get('model_cog') or st.session_state.model_cog
-                        st.session_state.model_analysis = _pinfo.get('model_analysis') or st.session_state.model_analysis
-                        st.session_state.ai_available = True
-                        _plabel = _pinfo.get('label', st.session_state.ai_provider)
-                        st.success(f"{_plabel} detectado")
+                    _env_key = os.getenv("GROQ_API_KEY")
+                    if _env_key:
+                        # Remoto (Streamlit Cloud): key disponible en entorno, no mostrar input
+                        if st.session_state.cloud_api_key != _env_key:
+                            st.session_state.cloud_api_key = _env_key
+                            _detected = ai_mod.detect_provider_from_key(_env_key)
+                            st.session_state.ai_provider = _detected or 'groq'
+                            _pinfo = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {})
+                            st.session_state.model_cog = _pinfo.get('model_cog') or st.session_state.model_cog
+                            st.session_state.model_analysis = _pinfo.get('model_analysis') or st.session_state.model_analysis
+                            st.session_state.ai_available = True
+                        _plabel = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {}).get('label', st.session_state.ai_provider)
+                        st.caption(f"🔒 Modelo activo: **{_plabel}**")
                     else:
-                        st.caption("Soporta: Groq, OpenAI, Anthropic, Gemini, HuggingFace")
+                        # Local: el usuario ingresa la key manualmente
+                        _key_in = st.text_input(
+                            "API Key", type="password",
+                            value="",
+                            placeholder="sk-ant-… / gsk_… / sk-… / AIzaSy…",
+                            key="cloud_key_teacher",
+                        )
+                        st.caption("🔒 Tus credenciales son seguras y no se almacenan en ninguna base de datos.")
+                        if _key_in:
+                            _detected = ai_mod.detect_provider_from_key(_key_in)
+                            st.session_state.cloud_api_key = _key_in
+                            st.session_state.ai_provider = _detected or 'groq'
+                            _pinfo = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {})
+                            st.session_state.model_cog = _pinfo.get('model_cog') or st.session_state.model_cog
+                            st.session_state.model_analysis = _pinfo.get('model_analysis') or st.session_state.model_analysis
+                            st.session_state.ai_available = True
+                            _plabel = _pinfo.get('label', st.session_state.ai_provider)
+                            st.success(f"{_plabel} detectado")
+                        else:
+                            st.caption("Soporta: Groq, OpenAI, Anthropic, Gemini, HuggingFace")
                 elif _t_mode == "🖥️ Local":
                     _local_url = st.text_input("URL servidor local", value=st.session_state.ai_url, key="lm_url_teacher")
                     st.session_state.ai_url = _local_url
@@ -607,6 +622,10 @@ else:
                                         f"🤖 **Nota propuesta por IA: {_ai_prop:.1f} / 100**\n\n"
                                         "Puedes aceptarla o ajustarla antes de confirmar."
                                     )
+                                _ai_fb_t = _sub.get('ai_feedback') or ''
+                                if _ai_fb_t:
+                                    with st.expander("📋 Ver retroalimentación de la IA"):
+                                        st.markdown(_ai_fb_t)
                                 _default_score = float(_ai_prop) if _ai_prop is not None else 50.0
                                 _teacher_score_val = st.number_input(
                                     "📊 Calificación oficial (0.0 – 100.0)",
@@ -972,6 +991,8 @@ else:
                                 _sel_stu['id'], _global_elo,
                                 api_key=st.session_state.cloud_api_key,
                                 provider=st.session_state.get('ai_provider'),
+                                base_url=st.session_state.ai_url,
+                                model_name=st.session_state.model_analysis,
                                 procedure_stats=_ai_proc_stats,
                                 procedure_stats_by_course=_proc_by_course,
                             )
@@ -1092,26 +1113,42 @@ else:
                             st.session_state.pop(_k, None)
                         st.rerun()
                 elif _s_mode == "☁️ API Key":
-                    _key_in_st = st.text_input(
-                        "API Key", type="password",
-                        value=st.session_state.cloud_api_key or "",
-                        placeholder="sk-ant-… / gsk_… / sk-… / AIzaSy…",
-                        key="cloud_key_st",
-                    )
-                    st.caption("🔒 Tus credenciales son seguras y no se almacenan en ninguna base de datos.")
-                    if _key_in_st:
-                        _detected_st = ai_mod.detect_provider_from_key(_key_in_st)
-                        st.session_state.cloud_api_key = _key_in_st
-                        st.session_state.ai_provider = _detected_st or 'groq'
-                        _pinfo_st = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {})
-                        st.session_state.model_cog = _pinfo_st.get('model_cog') or st.session_state.model_cog
-                        st.session_state.model_analysis = _pinfo_st.get('model_analysis') or st.session_state.model_analysis
-                        st.session_state.student_service.cognitive_analyzer.model_name = st.session_state.model_cog
-                        st.session_state.ai_available = True
-                        _plabel_st = _pinfo_st.get('label', st.session_state.ai_provider)
-                        st.success(f"{_plabel_st} detectado")
+                    _env_key = os.getenv("GROQ_API_KEY")
+                    if _env_key:
+                        # Remoto (Streamlit Cloud): key disponible en entorno, no mostrar input
+                        if st.session_state.cloud_api_key != _env_key:
+                            st.session_state.cloud_api_key = _env_key
+                            _detected_st = ai_mod.detect_provider_from_key(_env_key)
+                            st.session_state.ai_provider = _detected_st or 'groq'
+                            _pinfo_st = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {})
+                            st.session_state.model_cog = _pinfo_st.get('model_cog') or st.session_state.model_cog
+                            st.session_state.model_analysis = _pinfo_st.get('model_analysis') or st.session_state.model_analysis
+                            st.session_state.student_service.cognitive_analyzer.model_name = st.session_state.model_cog
+                            st.session_state.ai_available = True
+                        _plabel_st = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {}).get('label', st.session_state.ai_provider)
+                        st.caption(f"🔒 Modelo activo: **{_plabel_st}**")
                     else:
-                        st.caption("Soporta: Groq, OpenAI, Anthropic, Gemini, HuggingFace")
+                        # Local: el usuario ingresa la key manualmente
+                        _key_in_st = st.text_input(
+                            "API Key", type="password",
+                            value="",
+                            placeholder="sk-ant-… / gsk_… / sk-… / AIzaSy…",
+                            key="cloud_key_st",
+                        )
+                        st.caption("🔒 Tus credenciales son seguras y no se almacenan en ninguna base de datos.")
+                        if _key_in_st:
+                            _detected_st = ai_mod.detect_provider_from_key(_key_in_st)
+                            st.session_state.cloud_api_key = _key_in_st
+                            st.session_state.ai_provider = _detected_st or 'groq'
+                            _pinfo_st = ai_mod.PROVIDERS.get(st.session_state.ai_provider, {})
+                            st.session_state.model_cog = _pinfo_st.get('model_cog') or st.session_state.model_cog
+                            st.session_state.model_analysis = _pinfo_st.get('model_analysis') or st.session_state.model_analysis
+                            st.session_state.student_service.cognitive_analyzer.model_name = st.session_state.model_cog
+                            st.session_state.ai_available = True
+                            _plabel_st = _pinfo_st.get('label', st.session_state.ai_provider)
+                            st.success(f"{_plabel_st} detectado")
+                        else:
+                            st.caption("Soporta: Groq, OpenAI, Anthropic, Gemini, HuggingFace")
                 elif _s_mode == "🖥️ Local":
                     _local_url_st = st.text_input("URL servidor local", value=st.session_state.ai_url, key="lm_url_st")
                     st.session_state.ai_url = _local_url_st
@@ -1361,6 +1398,7 @@ else:
                                                 _rev = review_math_procedure(
                                                     uploaded_file.getvalue(), _mime,
                                                     api_key=st.session_state.cloud_api_key,
+                                                    question_content=item_data['content'],
                                                 )
                                                 st.session_state[f'proc_review_{_iid}'] = _rev
                                                 # Guardar imagen + puntuación propuesta por IA en DB
@@ -1371,9 +1409,11 @@ else:
                                                         uploaded_file.getvalue(), _mime,
                                                     )
                                                     _ai_score = _rev.get('score_procedimiento')
+                                                    _ai_eval = _rev.get('evaluacion_global') or ''
                                                     if _ai_score is not None:
                                                         st.session_state.db.save_ai_proposed_score(
-                                                            _uid, _iid, float(_ai_score)
+                                                            _uid, _iid, float(_ai_score),
+                                                            ai_feedback=_ai_eval,
                                                         )
                                                     st.session_state[f'proc_ai_saved_{_iid}'] = True
                                             except (ValueError, ConnectionError) as _exc:

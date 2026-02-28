@@ -2,7 +2,7 @@ import requests
 import json
 import re
 
-def get_active_models(base_url="http://192.168.40.66:1234/v1"):
+def get_active_models(base_url="http://localhost:1234/v1"):
     """Consulta LM Studio para obtener la lista de IDs de modelos disponibles."""
     try:
         response = requests.get(f"{base_url.rstrip('/')}/models", timeout=5)
@@ -42,7 +42,7 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False):
     except Exception as e:
         return f"Error de conexión: {str(e)}"
 
-def get_socratic_guidance(student_rating, topic, content, student_answer, base_url="http://192.168.40.66:1234/v1", model_name="google/gemma-3-4b"):
+def get_socratic_guidance(student_rating, topic, content, student_answer, base_url="http://localhost:1234/v1", model_name="google/gemma-3-4b"):
     """Genera una guía socrática para el estudiante."""
     prompt = f"""
     Actúa como tutor socrático experto.
@@ -62,7 +62,7 @@ def get_socratic_guidance(student_rating, topic, content, student_answer, base_u
     """
     return _call_ai_api(prompt, model_name, base_url)
 
-def get_pedagogical_analysis(student_data, base_url="http://192.168.40.66:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3"):
+def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3"):
     """Genera un análisis pedagógico detallado para el profesor."""
     prompt = f"""
     Actúa como analista pedagógico experto. 
@@ -84,7 +84,7 @@ def get_pedagogical_analysis(student_data, base_url="http://192.168.40.66:1234/v
     """
     return _call_ai_api(prompt, model_name, base_url)
 
-def analyze_performance_local(history_data, current_elo, base_url="http://192.168.40.66:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3"):
+def analyze_performance_local(history_data, current_elo, base_url="http://localhost:1234/v1", model_name="mistralai/mistral-7b-instruct-v0.3"):
     """
     Analiza el rendimiento del estudiante (versión JSON para el dashboard de estadísticas).
     """

@@ -61,6 +61,7 @@ class TeacherService:
         self.repository.validate_procedure_submission(submission_id, teacher_score, feedback)
 
     def generate_ai_analysis(self, student_id, global_elo, api_key=None, provider=None,
+                             base_url=None, model_name=None,
                              procedure_stats=None, procedure_stats_by_course=None):
         """Orquesta la generación del análisis pedagógico con IA.
         Requiere un mínimo de 3 intentos para producir un análisis significativo.
@@ -83,8 +84,15 @@ class TeacherService:
             "recent_accuracy": recent_acc
         }
 
-        return get_pedagogical_analysis(
-            student_data, api_key=api_key, provider=provider,
+        kwargs = dict(
+            api_key=api_key,
+            provider=provider,
             procedure_stats=procedure_stats,
             procedure_stats_by_course=procedure_stats_by_course,
         )
+        if base_url:
+            kwargs['base_url'] = base_url
+        if model_name:
+            kwargs['model_name'] = model_name
+
+        return get_pedagogical_analysis(student_data, **kwargs)

@@ -277,6 +277,8 @@ class SQLiteRepository:
         # v4 — delta ELO calculado al momento de la validación docente (Task 5)
         # Formula: elo_delta = (final_score - 50) * 0.2  (nunca desde ai_proposed_score)
         self._add_column_if_not_exists(cursor, 'procedure_submissions', 'elo_delta', "REAL")
+        # v5 — retroalimentación textual generada por la IA (evaluacion_global del modelo)
+        self._add_column_if_not_exists(cursor, 'procedure_submissions', 'ai_feedback', "TEXT")
 
         # ── LMS: Cursos y Matrículas ─────────────────────────────────────────────
 
@@ -1307,7 +1309,8 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
-    def save_ai_proposed_score(self, student_id: int, item_id: str, ai_score: float):
+    def save_ai_proposed_score(self, student_id: int, item_id: str, ai_score: float,
+                               ai_feedback: str = None):
         """Guarda la puntuación propuesta por la IA y actualiza el status a PENDING_TEACHER_VALIDATION.
 
         INVARIANTE CRÍTICA: ai_proposed_score NUNCA modifica el ELO del estudiante.
@@ -1321,9 +1324,10 @@ class SQLiteRepository:
         cursor.execute('''
             UPDATE procedure_submissions
             SET ai_proposed_score = ?,
+                ai_feedback = ?,
                 status = 'PENDING_TEACHER_VALIDATION'
             WHERE student_id = ? AND item_id = ?
-        ''', (ai_score, student_id, item_id))
+        ''', (ai_score, ai_feedback, student_id, item_id))
         conn.commit()
         conn.close()
 
@@ -1379,7 +1383,7 @@ class SQLiteRepository:
             SELECT ps.id, ps.student_id, u.username AS student_name,
                    ps.item_id, ps.item_content, ps.image_data, ps.mime_type,
                    ps.submitted_at, ps.procedure_image_path,
-                   ps.status, ps.ai_proposed_score
+                   ps.status, ps.ai_proposed_score, ps.ai_feedback
             FROM procedure_submissions ps
             JOIN users u ON ps.student_id = u.id
             JOIN groups g ON u.group_id = g.id

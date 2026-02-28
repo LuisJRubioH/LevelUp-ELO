@@ -624,7 +624,7 @@ else:
 
             with st.expander("⚙️ ID de Modelos (LM Studio)"):
                 if st.button("🔄 Sincronizar con LM Studio"):
-                    active_models = get_active_models(st.session_state.get('lm_url', "http://192.168.40.66:1234/v1"))
+                    active_models = get_active_models(st.session_state.get('lm_url', "http://localhost:1234/v1"))
                     if active_models:
                         selected_model = active_models[0]
                         st.session_state.model_cog = selected_model
@@ -921,7 +921,7 @@ else:
             st.subheader("🧠 Asistente Virtual Inteligente")
             st.write("Generando recomendaciones personalizadas basadas en tu desempeño reciente.")
 
-            lm_studio_url_dash = st.text_input("Servidor de IA (URL)", value="http://192.168.40.66:1234/v1", key="lm_dash")
+            lm_studio_url_dash = st.text_input("Servidor de IA (URL)", value="http://localhost:1234/v1", key="lm_dash")
 
             if st.button("✨ Generar Recomendaciones de Estudio"):
                 try:

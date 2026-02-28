@@ -25,11 +25,24 @@ _SYSTEM_PROMPT = (
     "Evalúa únicamente lo que aparece en la imagen."
 )
 
-_USER_PROMPT = """Analiza la imagen del procedimiento y realiza lo siguiente:
+def _build_user_prompt(question_content: str = "") -> str:
+    """Construye el prompt de usuario incluyendo la pregunta de referencia si se provee."""
+    if question_content:
+        question_section = (
+            f"PREGUNTA DE REFERENCIA (asignada al estudiante):\n{question_content}\n\n"
+            "PASO 0 — VERIFICACION PREVIA (obligatorio): Determina si el procedimiento "
+            "visible en la imagen corresponde a la pregunta de referencia anterior. "
+            'Si NO corresponde, indica "corresponde_a_pregunta": false en el JSON. '
+            "Si SI corresponde, indica true y continua con el analisis completo.\n\n"
+        )
+    else:
+        question_section = ""
 
-1) Transcribe exactamente el contenido matemático visible.
-2) Enumera cada paso explícito.
-3) Verifica formalmente cada implicación matemática.
+    return f"""{question_section}Analiza la imagen del procedimiento y realiza lo siguiente:
+
+1) Transcribe exactamente el contenido matematico visible.
+2) Enumera cada paso explicito.
+3) Verifica formalmente cada implicacion matematica.
 4) Clasifica cada paso como:
    - Valido
    - Algebraicamente incorrecto
@@ -41,22 +54,23 @@ _USER_PROMPT = """Analiza la imagen del procedimiento y realiza lo siguiente:
 
 Devuelve exclusivamente un JSON valido con esta estructura:
 
-{
+{{
+  "corresponde_a_pregunta": true,
   "transcripcion": "...",
   "pasos": [
-    {
+    {{
       "numero": 1,
       "contenido": "...",
       "evaluacion": "Valido | Algebraicamente incorrecto | Conceptualmente incorrecto | Incompleto",
       "comentario": "..."
-    }
+    }}
   ],
   "errores_detectados": [],
   "saltos_logicos": [],
   "resultado_correcto": true,
   "evaluacion_global": "...",
   "score_procedimiento": 0
-}
+}}
 
 No incluyas texto fuera del JSON."""
 
@@ -79,17 +93,24 @@ def review_math_procedure(
     image_bytes: bytes,
     mime_type: str,
     api_key: str,
+    question_content: str = "",
 ) -> dict:
     """Envía la imagen a Groq y retorna la revisión estructurada del procedimiento.
 
     Parámetros:
-        image_bytes: bytes de la imagen del procedimiento manuscrito.
-        mime_type:   'image/jpeg' | 'image/png' | 'image/webp'
-        api_key:     API key de Groq (prefijo 'gsk_').
+        image_bytes:      bytes de la imagen del procedimiento manuscrito.
+        mime_type:        'image/jpeg' | 'image/png' | 'image/webp'
+        api_key:          API key de Groq (prefijo 'gsk_').
+        question_content: enunciado de la pregunta asignada (opcional).
+                          Si se provee, la IA verifica que el procedimiento
+                          corresponda a esa pregunta antes de calificar.
 
     Retorna:
-        dict con claves: transcripcion, pasos, errores_detectados,
-        saltos_logicos, resultado_correcto, evaluacion_global, score_procedimiento.
+        dict con claves: corresponde_a_pregunta, transcripcion, pasos,
+        errores_detectados, saltos_logicos, resultado_correcto,
+        evaluacion_global, score_procedimiento.
+        Si el procedimiento no corresponde a la pregunta, retorna
+        score_procedimiento=0 y corresponde_a_pregunta=False.
 
     Lanza:
         ValueError:       si la respuesta no es JSON válido tras un reintento.
@@ -99,6 +120,7 @@ def review_math_procedure(
 
     b64 = base64.b64encode(image_bytes).decode('utf-8')
     client = OpenAI(api_key=api_key, base_url=GROQ_BASE_URL)
+    user_prompt = _build_user_prompt(question_content)
 
     messages = [
         {"role": "system", "content": _SYSTEM_PROMPT},
@@ -109,7 +131,7 @@ def review_math_procedure(
                     "type": "image_url",
                     "image_url": {"url": f"data:{mime_type};base64,{b64}"},
                 },
-                {"type": "text", "text": _USER_PROMPT},
+                {"type": "text", "text": user_prompt},
             ],
         },
     ]
@@ -128,7 +150,24 @@ def review_math_procedure(
             raise ConnectionError(f"Error al conectar con Groq: {exc}") from exc
 
         try:
-            return _parse_json_response(content)
+            result = _parse_json_response(content)
+            # Verificar correspondencia: si el modelo detectó que no corresponde,
+            # retornar score=0 con el mensaje específico sin evaluar contenido.
+            if question_content and not result.get('corresponde_a_pregunta', True):
+                return {
+                    "corresponde_a_pregunta": False,
+                    "transcripcion": "",
+                    "pasos": [],
+                    "errores_detectados": [],
+                    "saltos_logicos": [],
+                    "resultado_correcto": False,
+                    "evaluacion_global": (
+                        "El procedimiento no corresponde a la pregunta asignada. "
+                        f"Resuelve: {question_content}"
+                    ),
+                    "score_procedimiento": 0,
+                }
+            return result
         except (json.JSONDecodeError, ValueError) as exc:
             last_error = exc
             if attempt == 0:

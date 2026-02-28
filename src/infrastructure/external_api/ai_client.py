@@ -704,7 +704,7 @@ class AIClient:
         ('HF_TOKEN',          'huggingface'),
     ]
 
-    def __init__(self, lmstudio_url: str = "http://192.168.40.66:1234/v1"):
+    def __init__(self, lmstudio_url: str = ""):
         self._provider = None
         self._api_key = None
         self._base_url = lmstudio_url
@@ -777,6 +777,6 @@ class AIClient:
         return _AI_KEY_ERROR
 
 
-def get_ai_client(lmstudio_url: str = "http://192.168.40.66:1234/v1") -> AIClient:
+def get_ai_client(lmstudio_url: str = "") -> AIClient:
     """Factory que crea y retorna un AIClient con auto-detección de backend."""
     return AIClient(lmstudio_url)

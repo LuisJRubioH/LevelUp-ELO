@@ -7,7 +7,7 @@ import time
 import re
 
 class CognitiveAnalyzer:
-    def __init__(self, base_url="http://192.168.40.66:1234/v1", model_name="google/gemma-3-4b"):
+    def __init__(self, base_url="", model_name="google/gemma-3-4b"):
         self.base_url = base_url.rstrip('/')
         self.model_name = model_name
 
