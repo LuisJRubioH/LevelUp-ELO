@@ -323,11 +323,16 @@ SQLite (archivo `elo_project.db` en el directorio de trabajo). Se crea y migra a
 
 Las migraciones son **aditivas** (`ALTER TABLE ADD COLUMN IF NOT EXISTS`). No hay migraciones destructivas. Se ejecutan automáticamente en `SQLiteRepository.__init__()`.
 
-### Credenciales por defecto
+### Usuario admin
 
-| Usuario | Contraseña | Rol |
-|---|---|---|
-| `admin` | `admin123` | admin |
+El usuario admin se crea al primer arranque **sólo si la variable de entorno `ADMIN_PASSWORD` está definida**:
+
+```bash
+export ADMIN_USER=admin          # opcional, valor por defecto: "admin"
+export ADMIN_PASSWORD=tu_clave   # obligatorio para crear el admin
+```
+
+Si `ADMIN_PASSWORD` no está definida, no se crea ningún usuario admin automáticamente. No hay credenciales por defecto en el código.
 
 ---
 

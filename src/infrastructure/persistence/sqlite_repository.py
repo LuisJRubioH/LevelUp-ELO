@@ -8,6 +8,7 @@ class SQLiteRepository:
         self.hashing = HashingService()
         self.init_db()
         self._migrate_db()
+        self._seed_admin()
         self._seed_demo_data()
         self._backfill_prob_failure()
         self.sync_items_from_bank_folder()
@@ -353,23 +354,41 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    def _seed_admin(self):
+        """Crea el usuario admin desde variables de entorno si no existe.
+
+        Requiere ADMIN_PASSWORD definida en el entorno; si no existe, no se crea
+        ningún admin por defecto. El nombre de usuario se toma de ADMIN_USER
+        (por defecto 'admin').
+        """
+        admin_password = os.getenv("ADMIN_PASSWORD")
+        if not admin_password:
+            return
+
+        admin_user = os.getenv("ADMIN_USER", "admin")
+        # Argon2 es lento por diseño; calcular el hash antes de abrir la conexión
+        # evita "database is locked" en entornos con alta concurrencia.
+        admin_hash = self.hashing.hash_password(admin_password)
+
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM users WHERE username = ?", (admin_user,))
+        if not cursor.fetchone():
+            cursor.execute(
+                "INSERT INTO users (username, password_hash, role, approved) VALUES (?, ?, 'admin', 1)",
+                (admin_user, admin_hash)
+            )
+            conn.commit()
+        conn.close()
+
     def _seed_demo_data(self):
         """Crea usuarios y grupo demo si no existen (idempotente)."""
         # Pre-computar hashes ANTES de abrir la conexión:
         # Argon2 es lento por diseño; calcularlos con la DB abierta provoca "database is locked".
-        admin_hash = self.hashing.hash_password("admin1234")
         demo_hash = self.hashing.hash_password("demo1234")
 
         conn = self.get_connection()
         cursor = conn.cursor()
-
-        # Admin
-        cursor.execute("SELECT id FROM users WHERE username = 'admin'")
-        if not cursor.fetchone():
-            cursor.execute(
-                "INSERT INTO users (username, password_hash, role, approved) VALUES (?, ?, 'admin', 1)",
-                ("admin", admin_hash)
-            )
 
         # Profesor demo
         cursor.execute("SELECT id FROM users WHERE username = 'profesor1'")
