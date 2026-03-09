@@ -287,7 +287,7 @@ class SQLiteRepository:
             CREATE TABLE IF NOT EXISTS courses (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
-                block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio')),
+                block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio', 'Concursos')),
                 description TEXT DEFAULT ''
             )
         ''')
@@ -316,8 +316,105 @@ class SQLiteRepository:
         # Vincular ítems a su curso (migración aditiva)
         self._add_column_if_not_exists(cursor, 'items', 'course_id', "TEXT REFERENCES courses(id)")
 
+        # ── Migración: ampliar CHECK constraint de courses.block ──────────────
+        # SQLite no soporta ALTER TABLE para modificar constraints; hay que
+        # recrear la tabla. Solo se ejecuta si el CHECK actual no permite
+        # 'Concursos' (detección: intentar INSERT + ROLLBACK).
+        self._migrate_courses_block_check(cursor)
+
+        # ── Unicidad de nombre de grupo por profesor (case-insensitive) ────
+        # Columna auxiliar para el índice único normalizado
+        self._add_column_if_not_exists(cursor, 'groups', 'name_normalized', "TEXT")
+        # Rellenar valores existentes que estén NULL
+        cursor.execute("""
+            UPDATE groups SET name_normalized = LOWER(TRIM(name))
+            WHERE name_normalized IS NULL
+        """)
+        # Resolver duplicados existentes antes de crear el índice único:
+        # renombrar grupos con sufijo -DUP-{id} para desambiguar
+        cursor.execute("""
+            SELECT id, name, teacher_id, name_normalized
+            FROM groups
+            WHERE (teacher_id, name_normalized) IN (
+                SELECT teacher_id, name_normalized
+                FROM groups
+                GROUP BY teacher_id, name_normalized
+                HAVING COUNT(*) > 1
+            )
+            ORDER BY teacher_id, name_normalized, id
+        """)
+        dup_rows = cursor.fetchall()
+        # Agrupar por (teacher_id, name_normalized); conservar el primero, renombrar el resto
+        seen = set()
+        for row_id, row_name, row_teacher, row_norm in dup_rows:
+            key = (row_teacher, row_norm)
+            if key not in seen:
+                seen.add(key)  # el primero se conserva intacto
+                continue
+            new_name = f"{row_name}-DUP-{row_id}"
+            new_norm = new_name.strip().lower()
+            cursor.execute(
+                "UPDATE groups SET name = ?, name_normalized = ? WHERE id = ?",
+                (new_name, new_norm, row_id)
+            )
+        # Índice único: (teacher_id, nombre normalizado)
+        cursor.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_groups_teacher_name_unique
+            ON groups(teacher_id, name_normalized)
+        """)
+
+        # ── Desactivar usuarios con contraseña vacía o nula ────────────────
+        # Conserva sus datos históricos pero impide login hasta que un admin
+        # los reactive y se les asigne una contraseña válida.
+        cursor.execute("""
+            UPDATE users SET active = 0
+            WHERE (password_hash IS NULL OR TRIM(password_hash) = '')
+              AND active = 1
+        """)
+
         conn.commit()
         conn.close()
+
+    def _migrate_courses_block_check(self, cursor):
+        """Recrea la tabla courses si el CHECK constraint no incluye 'Concursos'.
+
+        SQLite no permite ALTER CHECK, así que se usa rename-recreate-copy.
+        Es idempotente: si el CHECK ya es correcto, no hace nada.
+        """
+        # Detectar si 'Concursos' ya es aceptado
+        try:
+            cursor.execute(
+                "INSERT INTO courses (id, name, block, description) "
+                "VALUES ('__check_probe__', '__probe__', 'Concursos', '')"
+            )
+            # Si llegó aquí, el INSERT fue aceptado → CHECK ya lo permite
+            cursor.execute("DELETE FROM courses WHERE id = '__check_probe__'")
+            return  # No hace falta migrar
+        except Exception:
+            # CHECK constraint rechazó 'Concursos' → necesitamos migrar
+            pass
+
+        # 1. Renombrar tabla actual
+        cursor.execute("ALTER TABLE courses RENAME TO _courses_old")
+
+        # 2. Crear tabla nueva con CHECK ampliado
+        cursor.execute('''
+            CREATE TABLE courses (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio', 'Concursos')),
+                description TEXT DEFAULT ''
+            )
+        ''')
+
+        # 3. Copiar datos existentes
+        cursor.execute('''
+            INSERT INTO courses (id, name, block, description)
+            SELECT id, name, block, description FROM _courses_old
+        ''')
+
+        # 4. Eliminar tabla antigua
+        cursor.execute("DROP TABLE _courses_old")
 
     def _backfill_prob_failure(self):
         """Rellena prob_failure para intentos históricos que tienen NULL.
@@ -446,6 +543,11 @@ class SQLiteRepository:
         `education_level` ('universidad' | 'colegio') determina qué catálogo
         de cursos podrá ver el estudiante.
         """
+        # Validación backend de contraseña (no confiar solo en la UI)
+        if not password or not password.strip():
+            return False, "La contraseña es obligatoria."
+        if len(password.strip()) < 6:
+            return False, "La contraseña debe tener al menos 6 caracteres."
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
@@ -477,6 +579,10 @@ class SQLiteRepository:
 
         if row:
             user_id, uname, role, approved, stored_hash = row
+
+            # Rechazar cuentas con contraseña vacía o nula
+            if not stored_hash or not stored_hash.strip():
+                return None
             
             # 1. Intentar verificación con Argon2
             if stored_hash.startswith("$argon2id$"):
@@ -713,15 +819,25 @@ class SQLiteRepository:
     # ─── Gestión de GRUPOS ────────────────────────────────────────────────────────
 
     def create_group(self, name, teacher_id, course_id=None):
-        """Crea un nuevo grupo para un profesor, opcionalmente vinculado a un curso."""
+        """Crea un nuevo grupo para un profesor, opcionalmente vinculado a un curso.
+
+        Returns (True, msg) si fue creado, (False, msg) si hay duplicado u otro error.
+        """
+        import sqlite3
+        name_normalized = name.strip().lower()
         conn = self.get_connection()
         cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO groups (name, teacher_id, course_id) VALUES (?, ?, ?)",
-            (name, teacher_id, course_id)
-        )
-        conn.commit()
-        conn.close()
+        try:
+            cursor.execute(
+                "INSERT INTO groups (name, teacher_id, course_id, name_normalized) VALUES (?, ?, ?, ?)",
+                (name, teacher_id, course_id, name_normalized)
+            )
+            conn.commit()
+            return True, f"Grupo '{name}' creado exitosamente."
+        except sqlite3.IntegrityError:
+            return False, "Ya existe un grupo con ese nombre."
+        finally:
+            conn.close()
 
     def get_groups_by_teacher(self, teacher_id):
         """Lista grupos de un profesor con el nombre del curso vinculado (JOIN)."""
@@ -755,6 +871,46 @@ class SQLiteRepository:
         rows = cursor.fetchall()
         conn.close()
         return [{'id': r[0], 'name': r[1], 'teacher_name': r[2]} for r in rows]
+
+    def delete_group(self, group_id, admin_id):
+        """Elimina un grupo (solo admin). Desvincula estudiantes y matrículas del grupo.
+
+        Returns (True, msg) o (False, msg).
+        """
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+
+            # Validar que el ejecutor sea admin
+            cursor.execute("SELECT role FROM users WHERE id = ? AND active = 1", (admin_id,))
+            res = cursor.fetchone()
+            if not res or res[0] != 'admin':
+                return False, "Error de seguridad: Solo un administrador puede eliminar grupos."
+
+            # Verificar que el grupo existe
+            cursor.execute("SELECT name FROM groups WHERE id = ?", (group_id,))
+            grp = cursor.fetchone()
+            if not grp:
+                return False, "El grupo no existe."
+
+            group_name = grp[0]
+
+            # Desvincular estudiantes del grupo (conservar sus datos)
+            cursor.execute("UPDATE users SET group_id = NULL WHERE group_id = ?", (group_id,))
+
+            # Desvincular matrículas del grupo
+            cursor.execute("UPDATE enrollments SET group_id = NULL WHERE group_id = ?", (group_id,))
+
+            # Eliminar el grupo
+            cursor.execute("DELETE FROM groups WHERE id = ?", (group_id,))
+
+            conn.commit()
+            return True, f"Grupo '{group_name}' eliminado. Los estudiantes fueron desvinculados."
+        except Exception as e:
+            conn.rollback()
+            return False, f"Error al eliminar grupo: {e}"
+        finally:
+            conn.close()
 
     def get_students_by_teacher(self, teacher_id):
         """Retorna estudiantes que pertenecen a CUALQUIER grupo del profesor (Seguridad)."""
@@ -868,12 +1024,23 @@ class SQLiteRepository:
         'calculo_integral':        'Universidad',
         'calculo_varias_variables':'Universidad',
         'ecuaciones_diferenciales':'Universidad',
+        'probabilidad':            'Universidad',
         # ── Bloque Colegio ────────────────────────────────────────────────────
         'algebra_basica':          'Colegio',
         'aritmetica':              'Colegio',
         'aritmetica_basica':       'Colegio',
         'trigonometria':           'Colegio',
         'geometria':               'Colegio',
+        # ── Bloque Concursos (preparación para concursos públicos) ────────────
+        'DIAN':                    'Concursos',
+        'SENA':                    'Concursos',
+    }
+
+    # Nombre legible del curso cuando el topic del primer ítem no es representativo.
+    # Solo se necesita para cursos con múltiples subtemas heterogéneos.
+    _COURSE_NAME_MAP = {
+        'DIAN': 'Concurso DIAN — Gestor I',
+        'SENA': 'Concurso SENA — Profesional 10',
     }
 
     def sync_items_from_bank_folder(self, bank_dir='items/bank'):
@@ -902,16 +1069,23 @@ class SQLiteRepository:
             if not items_list:
                 continue
 
-            # Nombre legible tomado del campo 'topic' del primer ítem
-            course_name = items_list[0].get('topic', course_id)
+            # Nombre legible: usar mapa explícito o el topic del primer ítem
+            course_name = self._COURSE_NAME_MAP.get(course_id) or items_list[0].get('topic', course_id)
             block = self._COURSE_BLOCK_MAP.get(course_id, 'Universidad')
 
-            # Upsert del curso (nunca sobreescribe si ya existe)
-            cursor.execute("SELECT id FROM courses WHERE id = ?", (course_id,))
-            if not cursor.fetchone():
+            # Upsert del curso: insertar si no existe, actualizar nombre/bloque si cambiaron
+            cursor.execute("SELECT id, name, block FROM courses WHERE id = ?", (course_id,))
+            _existing = cursor.fetchone()
+            if not _existing:
                 cursor.execute(
                     "INSERT INTO courses (id, name, block, description) VALUES (?, ?, ?, ?)",
                     (course_id, course_name, block, f"Curso de {course_name}")
+                )
+            elif _existing[1] != course_name or _existing[2] != block:
+                # Actualizar si el nombre o bloque cambiaron (por reconfiguración)
+                cursor.execute(
+                    "UPDATE courses SET name = ?, block = ?, description = ? WHERE id = ?",
+                    (course_name, block, f"Curso de {course_name}", course_id)
                 )
 
             # Sincronizar cada ítem vinculándolo al curso
@@ -952,7 +1126,7 @@ class SQLiteRepository:
     def get_available_courses_by_level(self, level: str):
         """Retorna los cursos disponibles filtrados ESTRICTAMENTE por nivel educativo.
 
-        Parámetro level: 'universidad' | 'colegio' (case-insensitive).
+        Parámetro level: 'universidad' | 'colegio' | 'concursos' (case-insensitive).
         La consulta usa WHERE block = ? sin fallback a todos los cursos;
         si el nivel no existe en la tabla, devuelve lista vacía.
         """

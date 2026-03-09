@@ -4,7 +4,12 @@
         "content": "$\\int 1 \\, dx$.",
         "difficulty": 600,
         "topic": "Cálculo Integral",
-        "options": ["$x + C$", "$0 + C$", "$1 + C$", "$\\frac{x^2}{2} + C$"],
+        "options": [
+            "$x + C$",
+            "$0 + C$",
+            "$1 + C$",
+            "$\\frac{x^2}{2} + C$"
+        ],
         "correct_option": "$x + C$"
     },
     {
@@ -12,7 +17,12 @@
         "content": "$\\int x \\, dx$.",
         "difficulty": 650,
         "topic": "Cálculo Integral",
-        "options": ["$\\frac{x^2}{2} + C$", "$x^2 + C$", "$2x + C$", "$1 + C$"],
+        "options": [
+            "$\\frac{x^2}{2} + C$",
+            "$x^2 + C$",
+            "$2x + C$",
+            "$1 + C$"
+        ],
         "correct_option": "$\\frac{x^2}{2} + C$"
     },
     {
@@ -20,7 +30,12 @@
         "content": "$\\int e^x \\, dx$.",
         "difficulty": 700,
         "topic": "Cálculo Integral",
-        "options": ["$e^x + C$", "$e^x + 1 + C$", "$\\ln(x) + C$", "$1 + C$"],
+        "options": [
+            "$e^x + C$",
+            "$e^x + 1 + C$",
+            "$\\ln(x) + C$",
+            "$1 + C$"
+        ],
         "correct_option": "$e^x + C$"
     },
     {
@@ -28,7 +43,12 @@
         "content": "$\\int \\cos(x) \\, dx$.",
         "difficulty": 750,
         "topic": "Cálculo Integral",
-        "options": ["$\\sin(x) + C$", "$-\\sin(x) + C$", "$\\cos(x) + C$", "$-\\cos(x) + C$"],
+        "options": [
+            "$\\sin(x) + C$",
+            "$-\\sin(x) + C$",
+            "$\\cos(x) + C$",
+            "$-\\cos(x) + C$"
+        ],
         "correct_option": "$\\sin(x) + C$"
     },
     {
@@ -36,7 +56,12 @@
         "content": "$\\int \\frac{1}{x} \\, dx$.",
         "difficulty": 800,
         "topic": "Cálculo Integral",
-        "options": ["$\\ln|x| + C$", "$\\frac{1}{x^2} + C$", "$x + C$", "$e^x + C$"],
+        "options": [
+            "$\\ln|x| + C$",
+            "$\\frac{1}{x^2} + C$",
+            "$x + C$",
+            "$e^x + C$"
+        ],
         "correct_option": "$\\ln|x| + C$"
     },
     {
@@ -44,7 +69,12 @@
         "content": "$\\int_{0}^{1} x^2 \\, dx$.",
         "difficulty": 850,
         "topic": "Cálculo Integral",
-        "options": ["$\\frac{1}{3}$", "$\\frac{1}{2}$", "1", "0"],
+        "options": [
+            "$\\frac{1}{3}$",
+            "$\\frac{1}{2}$",
+            "1",
+            "0"
+        ],
         "correct_option": "$\\frac{1}{3}$"
     },
     {
@@ -52,7 +82,12 @@
         "content": "Fórmula de integración por partes: $\\int u \\, dv = ?$",
         "difficulty": 900,
         "topic": "Cálculo Integral",
-        "options": ["$uv - \\int v \\, du$", "$uv + \\int v \\, du$", "$\\int uv - \\int vu$", "$u v - \\int v \\, du$"],
+        "options": [
+            "$uv - \\int v \\, du$",
+            "$uv + \\int v \\, du$",
+            "$\\int uv - \\int vu$",
+            "$u v - \\int v \\, du$"
+        ],
         "correct_option": "$uv - \\int v \\, du$"
     },
     {
@@ -60,23 +95,38 @@
         "content": "$\\int \\sin^{2}(x) \\, dx$.",
         "difficulty": 950,
         "topic": "Cálculo Integral",
-        "options": ["x/2 - $\\sin(2x)$/4 + C", "x/2 + $\\sin(2x)$/4 + C", "co$s^{2}$(x) + C", "-$\\cos(2x)$/2 + C"],
-        "correct_option": "x/2 - $\\sin(2x)$/4 + C"
+        "options": [
+            "$\\frac{x}{2} - \\frac{\\sin(2x)}{4} + C$",
+            "$\\frac{x}{2} + \\frac{\\sin(2x)}{4} + C$",
+            "$\\cos^{2}(x) + C$",
+            "$-\\frac{\\cos(2x)}{2} + C$"
+        ],
+        "correct_option": "$\\frac{x}{2} - \\frac{\\sin(2x)}{4} + C$"
     },
     {
         "id": "q49",
         "content": "$\\int \\sec^{2}(x) \\, dx$.",
         "difficulty": 1000,
         "topic": "Cálculo Integral",
-        "options": ["$\\tan(x)$ + C", "cot(x) + C", "sec(x)$\\tan(x)$ + C", "cs$c^{2}$(x) + C"],
-        "correct_option": "$\\tan(x)$ + C"
+        "options": [
+            "$\\tan(x) + C$",
+            "cot(x) + C",
+            "$\\sec(x)\\tan(x) + C$",
+            "$\\csc^{2}(x) + C$"
+        ],
+        "correct_option": "$\\tan(x) + C$"
     },
     {
         "id": "q50",
         "content": "$\\int \\frac{1}{1+x^{2}} \\, dx$.",
         "difficulty": 1050,
         "topic": "Cálculo Integral",
-        "options": ["arctan(x) + C", "arcsin(x) + C", "$\\ln(1+x^{2})$ + C", "1/x + C"],
+        "options": [
+            "arctan(x) + C",
+            "arcsin(x) + C",
+            "$\\ln(1+x^{2})$ + C",
+            "1/x + C"
+        ],
         "correct_option": "arctan(x) + C"
     },
     {
@@ -84,7 +134,12 @@
         "content": "$\\int x e^x \\, dx$.",
         "difficulty": 1100,
         "topic": "Cálculo Integral",
-        "options": ["$e^x(x-1) + C$", "$e^x(x+1) + C$", "$e^x + C$", "$x e^x + C$"],
+        "options": [
+            "$e^x(x-1) + C$",
+            "$e^x(x+1) + C$",
+            "$e^x + C$",
+            "$x e^x + C$"
+        ],
         "correct_option": "$e^x(x-1) + C$"
     },
     {
@@ -92,7 +147,12 @@
         "content": "$\\int \\frac{dx}{\\sqrt{1-x^2}}$.",
         "difficulty": 1150,
         "topic": "Cálculo Integral",
-        "options": ["$\\arcsin(x) + C$", "$\\arctan(x) + C$", "$\\text{arcsec}(x) + C$", "$\\ln|x+\\sqrt{1-x^2}| + C$"],
+        "options": [
+            "$\\arcsin(x) + C$",
+            "$\\arctan(x) + C$",
+            "$\\text{arcsec}(x) + C$",
+            "$\\ln|x+\\sqrt{1-x^2}| + C$"
+        ],
         "correct_option": "$\\arcsin(x) + C$"
     },
     {
@@ -100,7 +160,12 @@
         "content": "$\\int \\frac{dx}{x^2-1}$.",
         "difficulty": 1200,
         "topic": "Cálculo Integral",
-        "options": ["$\\frac{1}{2} \\ln|\\frac{x-1}{x+1}| + C$", "$\\ln|x^2-1| + C$", "$\\text{arctanh}(x) + C$", "$\\frac{1}{2} \\ln|\\frac{x+1}{x-1}| + C$"],
+        "options": [
+            "$\\frac{1}{2} \\ln|\\frac{x-1}{x+1}| + C$",
+            "$\\ln|x^2-1| + C$",
+            "$\\text{arctanh}(x) + C$",
+            "$\\frac{1}{2} \\ln|\\frac{x+1}{x-1}| + C$"
+        ],
         "correct_option": "$\\frac{1}{2} \\ln|\\frac{x-1}{x+1}| + C$"
     },
     {
@@ -108,7 +173,12 @@
         "content": "$\\int_1^\\infty \\frac{1}{x^2} \\, dx$.",
         "difficulty": 1250,
         "topic": "Cálculo Integral",
-        "options": ["1", "Divergente", "0", "2"],
+        "options": [
+            "1",
+            "Divergente",
+            "0",
+            "2"
+        ],
         "correct_option": "1"
     },
     {
@@ -116,23 +186,38 @@
         "content": "$\\int \\ln(x) \\, dx$.",
         "difficulty": 1300,
         "topic": "Cálculo Integral",
-        "options": ["x ln x - x + C", "x ln x + C", "ln x - x + C", "x ln x + x + C"],
-        "correct_option": "x ln x - x + C"
+        "options": [
+            "$x \\ln x - x + C$",
+            "$x \\ln x + C$",
+            "$\\ln x - x + C$",
+            "$x \\ln x + x + C$"
+        ],
+        "correct_option": "$x \\ln x - x + C$"
     },
     {
         "id": "q56",
         "content": "$\\int \\tan(x) \\, dx$.",
         "difficulty": 1350,
         "topic": "Cálculo Integral",
-        "options": ["-ln|$\\cos(x)$| + C", "ln|sec(x)| + C", "ln|$\\sin(x)$| + C", "-ln|csc(x)| + C"],
-        "correct_option": "-ln|$\\cos(x)$| + C"
+        "options": [
+            "$-\\ln|\\cos(x)| + C$",
+            "$\\ln|\\sec(x)| + C$",
+            "$\\ln|\\sin(x)| + C$",
+            "$-\\ln|\\csc(x)| + C$"
+        ],
+        "correct_option": "$-\\ln|\\cos(x)| + C$"
     },
     {
         "id": "q57",
         "content": "$\\int_0^1 \\sqrt{1-x^2} \\, dx$.",
         "difficulty": 1400,
         "topic": "Cálculo Integral",
-        "options": ["$\\pi/4$", "$\\pi/2$", "1", "0"],
+        "options": [
+            "$\\pi/4$",
+            "$\\pi/2$",
+            "1",
+            "0"
+        ],
         "correct_option": "$\\pi/4$"
     },
     {
@@ -140,7 +225,12 @@
         "content": "$\\int \\sin^3(x) \\, dx$.",
         "difficulty": 1450,
         "topic": "Cálculo Integral",
-        "options": ["$-\\cos(x) + \\frac{\\cos^3(x)}{3} + C$", "$\\cos(x) - \\frac{\\cos^3(x)}{3} + C$", "$-\\sin(x) + \\frac{\\sin^3(x)}{3} + C$", "$\\sin(x) - \\frac{\\sin^3(x)}{3} + C$"],
+        "options": [
+            "$-\\cos(x) + \\frac{\\cos^3(x)}{3} + C$",
+            "$\\cos(x) - \\frac{\\cos^3(x)}{3} + C$",
+            "$-\\sin(x) + \\frac{\\sin^3(x)}{3} + C$",
+            "$\\sin(x) - \\frac{\\sin^3(x)}{3} + C$"
+        ],
         "correct_option": "$-\\cos(x) + \\frac{\\cos^3(x)}{3} + C$"
     },
     {
@@ -148,7 +238,12 @@
         "content": "$\\int e^x \\sin(x) \\, dx$.",
         "difficulty": 1500,
         "topic": "Cálculo Integral",
-        "options": ["$\\frac{e^x(\\sin x - \\cos x)}{2} + C$", "$\\frac{e^x(\\sin x + \\cos x)}{2} + C$", "$e^x \\cos x + C$", "$e^x \\sin x + C$"],
+        "options": [
+            "$\\frac{e^x(\\sin x - \\cos x)}{2} + C$",
+            "$\\frac{e^x(\\sin x + \\cos x)}{2} + C$",
+            "$e^x \\cos x + C$",
+            "$e^x \\sin x + C$"
+        ],
         "correct_option": "$\\frac{e^x(\\sin x - \\cos x)}{2} + C$"
     },
     {
@@ -156,7 +251,1312 @@
         "content": "Γ(n+1) para n entero positivo es igual a:",
         "difficulty": 1550,
         "topic": "Cálculo Integral",
-        "options": ["n!", "nΓ(n)", "(n-1)!", "n"],
+        "options": [
+            "n!",
+            "nΓ(n)",
+            "(n-1)!",
+            "n"
+        ],
         "correct_option": "n!"
+    },
+    {
+        "id": "q141",
+        "content": "La antiderivada de $x^4$ es:",
+        "difficulty": 600,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{x^5}{5} + C$",
+            "$4x^3 + C$",
+            "$\\frac{x^4}{4} + C$",
+            "$x^5 + C$"
+        ],
+        "correct_option": "$\\frac{x^5}{5} + C$"
+    },
+    {
+        "id": "q142",
+        "content": "La antiderivada de $\\frac{1}{x^2}$ es:",
+        "difficulty": 650,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$-\\frac{1}{x} + C$",
+            "$\\frac{1}{x} + C$",
+            "$\\ln(x^2) + C$",
+            "$-\\frac{2}{x^3} + C$"
+        ],
+        "correct_option": "$-\\frac{1}{x} + C$"
+    },
+    {
+        "id": "q143",
+        "content": "Si $F(x)$ y $G(x)$ son antiderivadas de $f(x)$, entonces $F(x) - G(x)$ es:",
+        "difficulty": 700,
+        "topic": "Cálculo Integral",
+        "options": [
+            "Una constante",
+            "Cero",
+            "Otra antiderivada de $f$",
+            "Una función lineal"
+        ],
+        "correct_option": "Una constante"
+    },
+    {
+        "id": "q144",
+        "content": "$\\int (3x^2 + 2x) \\, dx =$",
+        "difficulty": 620,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$x^3 + x^2 + C$",
+            "$6x + 2 + C$",
+            "$x^3 + 2x + C$",
+            "$3x^3 + x^2 + C$"
+        ],
+        "correct_option": "$x^3 + x^2 + C$"
+    },
+    {
+        "id": "q145",
+        "content": "$\\int x^{-1/2} \\, dx =$",
+        "difficulty": 720,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$2\\sqrt{x} + C$",
+            "$\\frac{\\sqrt{x}}{2} + C$",
+            "$-\\frac{1}{2}x^{-3/2} + C$",
+            "$\\ln(\\sqrt{x}) + C$"
+        ],
+        "correct_option": "$2\\sqrt{x} + C$"
+    },
+    {
+        "id": "q146",
+        "content": "$\\int (x^3 + 2x) \\, dx =$",
+        "difficulty": 650,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{x^4}{4} + x^2 + C$",
+            "$3x^2 + 2 + C$",
+            "$\\frac{x^3}{3} + x^2 + C$",
+            "$x^4 + x^2 + C$"
+        ],
+        "correct_option": "$\\frac{x^4}{4} + x^2 + C$"
+    },
+    {
+        "id": "q147",
+        "content": "$\\int (3\\cos(x) - 2\\sin(x)) \\, dx =$",
+        "difficulty": 750,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$3\\sin(x) + 2\\cos(x) + C$",
+            "$-3\\sin(x) + 2\\cos(x) + C$",
+            "$3\\sin(x) - 2\\cos(x) + C$",
+            "$-3\\cos(x) - 2\\sin(x) + C$"
+        ],
+        "correct_option": "$3\\sin(x) + 2\\cos(x) + C$"
+    },
+    {
+        "id": "q148",
+        "content": "$\\int \\left(e^x + \\frac{1}{x}\\right) dx =$",
+        "difficulty": 780,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$e^x + \\ln|x| + C$",
+            "$e^x + \\frac{1}{x^2} + C$",
+            "$xe^x + \\ln|x| + C$",
+            "$e^x - \\ln|x| + C$"
+        ],
+        "correct_option": "$e^x + \\ln|x| + C$"
+    },
+    {
+        "id": "q149",
+        "content": "$\\int x^{3/2} \\, dx =$",
+        "difficulty": 700,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{2}{5}x^{5/2} + C$",
+            "$\\frac{3}{2}x^{1/2} + C$",
+            "$\\frac{5}{2}x^{5/2} + C$",
+            "$\\frac{2}{3}x^{3/2} + C$"
+        ],
+        "correct_option": "$\\frac{2}{5}x^{5/2} + C$"
+    },
+    {
+        "id": "q150",
+        "content": "$\\int \\sec(x)\\tan(x) \\, dx =$",
+        "difficulty": 800,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\sec(x) + C$",
+            "$\\tan(x) + C$",
+            "$-\\sec(x) + C$",
+            "$\\sec^2(x) + C$"
+        ],
+        "correct_option": "$\\sec(x) + C$"
+    },
+    {
+        "id": "q151",
+        "content": "$\\int \\csc^2(x) \\, dx =$",
+        "difficulty": 800,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$-\\cot(x) + C$",
+            "$\\cot(x) + C$",
+            "$\\csc(x) + C$",
+            "$-\\tan(x) + C$"
+        ],
+        "correct_option": "$-\\cot(x) + C$"
+    },
+    {
+        "id": "q152",
+        "content": "$\\int \\csc(x)\\cot(x) \\, dx =$",
+        "difficulty": 820,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$-\\csc(x) + C$",
+            "$\\csc(x) + C$",
+            "$-\\cot(x) + C$",
+            "$\\sec(x) + C$"
+        ],
+        "correct_option": "$-\\csc(x) + C$"
+    },
+    {
+        "id": "q153",
+        "content": "$\\int 5^x \\, dx =$",
+        "difficulty": 850,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{5^x}{\\ln(5)} + C$",
+            "$5^x \\ln(5) + C$",
+            "$\\frac{5^{x+1}}{x+1} + C$",
+            "$5^x + C$"
+        ],
+        "correct_option": "$\\frac{5^x}{\\ln(5)} + C$"
+    },
+    {
+        "id": "q154",
+        "content": "$\\int_0^{\\pi} \\sin(x) \\, dx =$",
+        "difficulty": 700,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$2$",
+            "$0$",
+            "$1$",
+            "$\\pi$"
+        ],
+        "correct_option": "$2$"
+    },
+    {
+        "id": "q155",
+        "content": "$\\int_1^{e} \\frac{1}{x} \\, dx =$",
+        "difficulty": 750,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$1$",
+            "$e$",
+            "$e - 1$",
+            "$\\ln(e-1)$"
+        ],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "q156",
+        "content": "$\\int_0^1 (3x^2 - 2x) \\, dx =$",
+        "difficulty": 780,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$0$",
+            "$1$",
+            "$\\frac{1}{3}$",
+            "$-\\frac{1}{3}$"
+        ],
+        "correct_option": "$0$"
+    },
+    {
+        "id": "q157",
+        "content": "$\\int_{-1}^{1} x^3 \\, dx =$",
+        "difficulty": 750,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$0$",
+            "$\\frac{1}{2}$",
+            "$2$",
+            "$\\frac{1}{4}$"
+        ],
+        "correct_option": "$0$"
+    },
+    {
+        "id": "q158",
+        "content": "$\\int_0^{\\pi/2} \\cos(x) \\, dx =$",
+        "difficulty": 700,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$1$",
+            "$0$",
+            "$\\frac{\\pi}{2}$",
+            "$-1$"
+        ],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "q159",
+        "content": "$\\int_0^2 |x - 1| \\, dx =$",
+        "difficulty": 900,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$1$",
+            "$2$",
+            "$0$",
+            "$\\frac{1}{2}$"
+        ],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "q160",
+        "content": "$\\int_0^1 e^x \\, dx =$",
+        "difficulty": 720,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$e - 1$",
+            "$e$",
+            "$1$",
+            "$e + 1$"
+        ],
+        "correct_option": "$e - 1$"
+    },
+    {
+        "id": "q161",
+        "content": "Propiedad de aditividad: $\\int_a^b f(x) \\, dx + \\int_b^c f(x) \\, dx =$",
+        "difficulty": 700,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\int_a^c f(x) \\, dx$",
+            "$\\int_b^c f(x) \\, dx$",
+            "$2\\int_a^c f(x) \\, dx$",
+            "$\\int_a^b f(x) \\, dx$"
+        ],
+        "correct_option": "$\\int_a^c f(x) \\, dx$"
+    },
+    {
+        "id": "q162",
+        "content": "Si $v(t)$ es la velocidad de una partícula, $\\int_a^b v(t) \\, dt$ representa:",
+        "difficulty": 800,
+        "topic": "Cálculo Integral",
+        "options": [
+            "El desplazamiento neto",
+            "La distancia total recorrida",
+            "La aceleración promedio",
+            "La velocidad promedio"
+        ],
+        "correct_option": "El desplazamiento neto"
+    },
+    {
+        "id": "q163",
+        "content": "Teorema del cambio neto: $\\int_a^b f'(x) \\, dx =$",
+        "difficulty": 850,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$f(b) - f(a)$",
+            "$f'(b) - f'(a)$",
+            "$f(a) - f(b)$",
+            "$f(b) + f(a)$"
+        ],
+        "correct_option": "$f(b) - f(a)$"
+    },
+    {
+        "id": "q164",
+        "content": "Un tanque se llena a razón $r(t) = 3t$ L/min. La cantidad de líquido agregado en $[0, 4]$ minutos es:",
+        "difficulty": 900,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$24$ L",
+            "$12$ L",
+            "$48$ L",
+            "$6$ L"
+        ],
+        "correct_option": "$24$ L"
+    },
+    {
+        "id": "q165",
+        "content": "Primera parte del Teorema Fundamental del Cálculo: si $F(x) = \\int_a^x f(t) \\, dt$, entonces $F'(x) =$",
+        "difficulty": 900,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$f(x)$",
+            "$f(a)$",
+            "$\\int_a^x f'(t) \\, dt$",
+            "$f(x) - f(a)$"
+        ],
+        "correct_option": "$f(x)$"
+    },
+    {
+        "id": "q166",
+        "content": "Segunda parte del TFC: si $F' = f$ en $[a,b]$, entonces $\\int_a^b f(x) \\, dx =$",
+        "difficulty": 850,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$F(b) - F(a)$",
+            "$F(a) - F(b)$",
+            "$f(b) - f(a)$",
+            "$F'(b) - F'(a)$"
+        ],
+        "correct_option": "$F(b) - F(a)$"
+    },
+    {
+        "id": "q167",
+        "content": "$\\frac{d}{dx} \\int_0^x e^{t^2} \\, dt =$",
+        "difficulty": 950,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$e^{x^2}$",
+            "$2xe^{x^2}$",
+            "$e^{x^2} - 1$",
+            "$\\int_0^x 2te^{t^2} \\, dt$"
+        ],
+        "correct_option": "$e^{x^2}$"
+    },
+    {
+        "id": "q168",
+        "content": "$\\frac{d}{dx} \\int_0^{x^2} \\sin(t) \\, dt =$",
+        "difficulty": 1100,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$2x\\sin(x^2)$",
+            "$\\sin(x^2)$",
+            "$2x\\cos(x^2)$",
+            "$\\cos(x^2)$"
+        ],
+        "correct_option": "$2x\\sin(x^2)$"
+    },
+    {
+        "id": "q169",
+        "content": "$\\frac{d}{dx} \\int_x^{x^2} t^3 \\, dt =$",
+        "difficulty": 1250,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$2x^7 - x^3$",
+            "$x^6 - x^3$",
+            "$2x^7 + x^3$",
+            "$x^7 - x^3$"
+        ],
+        "correct_option": "$2x^7 - x^3$"
+    },
+    {
+        "id": "q170",
+        "content": "$\\int 2x \\cdot e^{x^2} \\, dx =$",
+        "difficulty": 800,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$e^{x^2} + C$",
+            "$x^2 e^{x^2} + C$",
+            "$2e^{x^2} + C$",
+            "$\\frac{e^{x^2}}{2} + C$"
+        ],
+        "correct_option": "$e^{x^2} + C$"
+    },
+    {
+        "id": "q171",
+        "content": "$\\int \\cos(3x) \\, dx =$",
+        "difficulty": 750,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{\\sin(3x)}{3} + C$",
+            "$3\\sin(3x) + C$",
+            "$-\\frac{\\sin(3x)}{3} + C$",
+            "$\\sin(3x) + C$"
+        ],
+        "correct_option": "$\\frac{\\sin(3x)}{3} + C$"
+    },
+    {
+        "id": "q172",
+        "content": "$\\int \\frac{x}{x^2 + 1} \\, dx =$",
+        "difficulty": 850,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{1}{2}\\ln(x^2+1) + C$",
+            "$\\ln(x^2+1) + C$",
+            "$\\arctan(x) + C$",
+            "$\\frac{x^2}{2(x^2+1)} + C$"
+        ],
+        "correct_option": "$\\frac{1}{2}\\ln(x^2+1) + C$"
+    },
+    {
+        "id": "q173",
+        "content": "$\\int \\sin(x)\\cos(x) \\, dx =$",
+        "difficulty": 850,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{\\sin^2(x)}{2} + C$",
+            "$-\\cos^2(x) + C$",
+            "$\\sin^2(x) + C$",
+            "$\\frac{\\cos^2(x)}{2} + C$"
+        ],
+        "correct_option": "$\\frac{\\sin^2(x)}{2} + C$"
+    },
+    {
+        "id": "q174",
+        "content": "$\\int e^{2x} \\, dx =$",
+        "difficulty": 700,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{e^{2x}}{2} + C$",
+            "$e^{2x} + C$",
+            "$2e^{2x} + C$",
+            "$\\frac{e^{2x+1}}{2x+1} + C$"
+        ],
+        "correct_option": "$\\frac{e^{2x}}{2} + C$"
+    },
+    {
+        "id": "q175",
+        "content": "$\\int x^2(x^3+1)^4 \\, dx =$",
+        "difficulty": 950,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{(x^3+1)^5}{15} + C$",
+            "$\\frac{(x^3+1)^5}{5} + C$",
+            "$\\frac{(x^3+1)^4}{12} + C$",
+            "$\\frac{x^3(x^3+1)^4}{3} + C$"
+        ],
+        "correct_option": "$\\frac{(x^3+1)^5}{15} + C$"
+    },
+    {
+        "id": "q176",
+        "content": "Para evaluar $\\int \\tan(x) \\, dx$ se usa la sustitución $u = \\cos(x)$. El resultado es:",
+        "difficulty": 900,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$-\\ln|\\cos(x)| + C$",
+            "$\\ln|\\cos(x)| + C$",
+            "$-\\ln|\\sin(x)| + C$",
+            "$\\sec(x) + C$"
+        ],
+        "correct_option": "$-\\ln|\\cos(x)| + C$"
+    },
+    {
+        "id": "q177",
+        "content": "$\\int \\frac{1}{2x+3} \\, dx =$",
+        "difficulty": 780,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{1}{2}\\ln|2x+3| + C$",
+            "$\\ln|2x+3| + C$",
+            "$\\frac{2}{(2x+3)^2} + C$",
+            "$2\\ln|2x+3| + C$"
+        ],
+        "correct_option": "$\\frac{1}{2}\\ln|2x+3| + C$"
+    },
+    {
+        "id": "q178",
+        "content": "$\\int x \\sin(x) \\, dx =$",
+        "difficulty": 1000,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$-x\\cos(x) + \\sin(x) + C$",
+            "$x\\cos(x) - \\sin(x) + C$",
+            "$-x\\cos(x) - \\sin(x) + C$",
+            "$x\\sin(x) + \\cos(x) + C$"
+        ],
+        "correct_option": "$-x\\cos(x) + \\sin(x) + C$"
+    },
+    {
+        "id": "q179",
+        "content": "$\\int x^2 e^x \\, dx =$",
+        "difficulty": 1150,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$e^x(x^2 - 2x + 2) + C$",
+            "$e^x(x^2 + 2x + 2) + C$",
+            "$x^2 e^x - 2xe^x + C$",
+            "$e^x(x^2 - 2x) + C$"
+        ],
+        "correct_option": "$e^x(x^2 - 2x + 2) + C$"
+    },
+    {
+        "id": "q180",
+        "content": "$\\int x \\cos(x) \\, dx =$",
+        "difficulty": 1000,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$x\\sin(x) + \\cos(x) + C$",
+            "$x\\sin(x) - \\cos(x) + C$",
+            "$-x\\sin(x) + \\cos(x) + C$",
+            "$x\\cos(x) + \\sin(x) + C$"
+        ],
+        "correct_option": "$x\\sin(x) + \\cos(x) + C$"
+    },
+    {
+        "id": "q181",
+        "content": "$\\int x \\ln(x) \\, dx =$",
+        "difficulty": 1050,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{x^2}{2}\\ln(x) - \\frac{x^2}{4} + C$",
+            "$\\frac{x^2}{2}\\ln(x) + \\frac{x^2}{4} + C$",
+            "$x\\ln(x) - x + C$",
+            "$\\frac{x^2 \\ln(x)}{2} + C$"
+        ],
+        "correct_option": "$\\frac{x^2}{2}\\ln(x) - \\frac{x^2}{4} + C$"
+    },
+    {
+        "id": "q182",
+        "content": "$\\int \\arctan(x) \\, dx =$",
+        "difficulty": 1150,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$x\\arctan(x) - \\frac{1}{2}\\ln(1+x^2) + C$",
+            "$x\\arctan(x) + \\frac{1}{2}\\ln(1+x^2) + C$",
+            "$\\frac{\\arctan^2(x)}{2} + C$",
+            "$\\frac{x}{1+x^2} + C$"
+        ],
+        "correct_option": "$x\\arctan(x) - \\frac{1}{2}\\ln(1+x^2) + C$"
+    },
+    {
+        "id": "q183",
+        "content": "$\\int e^x \\cos(x) \\, dx =$",
+        "difficulty": 1250,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{e^x(\\sin x + \\cos x)}{2} + C$",
+            "$\\frac{e^x(\\sin x - \\cos x)}{2} + C$",
+            "$e^x \\cos(x) + C$",
+            "$e^x(\\cos x + \\sin x) + C$"
+        ],
+        "correct_option": "$\\frac{e^x(\\sin x + \\cos x)}{2} + C$"
+    },
+    {
+        "id": "q184",
+        "content": "$\\int \\frac{dx}{\\sqrt{4 - x^2}} =$",
+        "difficulty": 1100,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\arcsin\\left(\\frac{x}{2}\\right) + C$",
+            "$\\arctan\\left(\\frac{x}{2}\\right) + C$",
+            "$\\frac{1}{2}\\arcsin(x) + C$",
+            "$\\ln|x + \\sqrt{4-x^2}| + C$"
+        ],
+        "correct_option": "$\\arcsin\\left(\\frac{x}{2}\\right) + C$"
+    },
+    {
+        "id": "q185",
+        "content": "$\\int \\frac{dx}{x^2 + 9} =$",
+        "difficulty": 1000,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{1}{3}\\arctan\\left(\\frac{x}{3}\\right) + C$",
+            "$\\arctan\\left(\\frac{x}{3}\\right) + C$",
+            "$\\frac{1}{9}\\arctan(x) + C$",
+            "$\\ln(x^2+9) + C$"
+        ],
+        "correct_option": "$\\frac{1}{3}\\arctan\\left(\\frac{x}{3}\\right) + C$"
+    },
+    {
+        "id": "q186",
+        "content": "Para evaluar $\\int \\frac{dx}{\\sqrt{x^2 + 4}}$, la sustitución trigonométrica adecuada es:",
+        "difficulty": 1050,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$x = 2\\tan(\\theta)$",
+            "$x = 2\\sin(\\theta)$",
+            "$x = 2\\sec(\\theta)$",
+            "$x = 4\\sin(\\theta)$"
+        ],
+        "correct_option": "$x = 2\\tan(\\theta)$"
+    },
+    {
+        "id": "q187",
+        "content": "Para evaluar $\\int \\frac{dx}{\\sqrt{x^2 - 9}}$, la sustitución trigonométrica adecuada es:",
+        "difficulty": 1050,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$x = 3\\sec(\\theta)$",
+            "$x = 3\\sin(\\theta)$",
+            "$x = 3\\tan(\\theta)$",
+            "$x = 9\\sec(\\theta)$"
+        ],
+        "correct_option": "$x = 3\\sec(\\theta)$"
+    },
+    {
+        "id": "q188",
+        "content": "Para evaluar $\\int \\sqrt{a^2 - x^2} \\, dx$, la sustitución adecuada es:",
+        "difficulty": 1000,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$x = a\\sin(\\theta)$",
+            "$x = a\\tan(\\theta)$",
+            "$x = a\\sec(\\theta)$",
+            "$x = a\\cos(\\theta)$"
+        ],
+        "correct_option": "$x = a\\sin(\\theta)$"
+    },
+    {
+        "id": "q189",
+        "content": "$\\int \\frac{dx}{\\sqrt{x^2 + 4}} =$",
+        "difficulty": 1200,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\ln|x + \\sqrt{x^2+4}| + C$",
+            "$\\arctan\\left(\\frac{x}{2}\\right) + C$",
+            "$\\frac{x}{\\sqrt{x^2+4}} + C$",
+            "$\\arcsin\\left(\\frac{x}{2}\\right) + C$"
+        ],
+        "correct_option": "$\\ln|x + \\sqrt{x^2+4}| + C$"
+    },
+    {
+        "id": "q190",
+        "content": "$\\int \\cos^2(x) \\, dx =$",
+        "difficulty": 900,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{x}{2} + \\frac{\\sin(2x)}{4} + C$",
+            "$\\frac{x}{2} - \\frac{\\sin(2x)}{4} + C$",
+            "$\\cos(x)\\sin(x) + C$",
+            "$\\frac{\\cos^3(x)}{3} + C$"
+        ],
+        "correct_option": "$\\frac{x}{2} + \\frac{\\sin(2x)}{4} + C$"
+    },
+    {
+        "id": "q191",
+        "content": "$\\int \\cos^3(x) \\, dx =$",
+        "difficulty": 1050,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\sin(x) - \\frac{\\sin^3(x)}{3} + C$",
+            "$\\frac{\\cos^4(x)}{4} + C$",
+            "$3\\cos^2(x)\\sin(x) + C$",
+            "$\\sin(x) + \\frac{\\sin^3(x)}{3} + C$"
+        ],
+        "correct_option": "$\\sin(x) - \\frac{\\sin^3(x)}{3} + C$"
+    },
+    {
+        "id": "q192",
+        "content": "Para integrar $\\int \\sin^m(x)\\cos^n(x) \\, dx$ cuando $n$ es impar, la estrategia es:",
+        "difficulty": 950,
+        "topic": "Cálculo Integral",
+        "options": [
+            "Reservar un factor $\\cos(x)$ y usar $\\cos^2(x) = 1 - \\sin^2(x)$",
+            "Usar identidades de ángulo doble",
+            "Reservar un factor $\\sin(x)$ y usar $\\sin^2(x) = 1 - \\cos^2(x)$",
+            "Aplicar integración por partes"
+        ],
+        "correct_option": "Reservar un factor $\\cos(x)$ y usar $\\cos^2(x) = 1 - \\sin^2(x)$"
+    },
+    {
+        "id": "q193",
+        "content": "$\\int \\tan^2(x) \\, dx =$",
+        "difficulty": 950,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\tan(x) - x + C$",
+            "$\\frac{\\tan^3(x)}{3} + C$",
+            "$\\sec^2(x) + C$",
+            "$-\\tan(x) + x + C$"
+        ],
+        "correct_option": "$\\tan(x) - x + C$"
+    },
+    {
+        "id": "q194",
+        "content": "$\\int \\sec^3(x) \\, dx =$",
+        "difficulty": 1350,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{1}{2}[\\sec(x)\\tan(x) + \\ln|\\sec(x)+\\tan(x)|] + C$",
+            "$\\frac{\\sec^2(x)\\tan(x)}{2} + C$",
+            "$\\sec(x)\\tan(x) + C$",
+            "$\\frac{\\sec^4(x)}{4} + C$"
+        ],
+        "correct_option": "$\\frac{1}{2}[\\sec(x)\\tan(x) + \\ln|\\sec(x)+\\tan(x)|] + C$"
+    },
+    {
+        "id": "q195",
+        "content": "$\\int \\frac{dx}{x(x+1)} =$",
+        "difficulty": 950,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\ln\\left|\\frac{x}{x+1}\\right| + C$",
+            "$\\ln|x(x+1)| + C$",
+            "$\\frac{1}{x+1} + C$",
+            "$\\ln|x+1| - \\ln|x| + C$"
+        ],
+        "correct_option": "$\\ln\\left|\\frac{x}{x+1}\\right| + C$"
+    },
+    {
+        "id": "q196",
+        "content": "$\\int \\frac{2x+3}{(x+1)(x+2)} \\, dx =$",
+        "difficulty": 1100,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\ln|x+1| + \\ln|x+2| + C$",
+            "$2\\ln|x+1| + \\ln|x+2| + C$",
+            "$\\ln\\left|\\frac{x+1}{x+2}\\right| + C$",
+            "$\\frac{2x+3}{x^2+3x+2} + C$"
+        ],
+        "correct_option": "$\\ln|x+1| + \\ln|x+2| + C$"
+    },
+    {
+        "id": "q197",
+        "content": "La descomposición en fracciones parciales de $\\frac{1}{(x-1)(x+1)}$ es:",
+        "difficulty": 1000,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{1}{2}\\cdot\\frac{1}{x-1} - \\frac{1}{2}\\cdot\\frac{1}{x+1}$",
+            "$\\frac{1}{x-1} + \\frac{1}{x+1}$",
+            "$\\frac{1}{x-1} - \\frac{1}{x+1}$",
+            "$\\frac{1}{2}\\cdot\\frac{1}{x-1} + \\frac{1}{2}\\cdot\\frac{1}{x+1}$"
+        ],
+        "correct_option": "$\\frac{1}{2}\\cdot\\frac{1}{x-1} - \\frac{1}{2}\\cdot\\frac{1}{x+1}$"
+    },
+    {
+        "id": "q198",
+        "content": "La forma de fracciones parciales de $\\frac{x+1}{x^2(x-1)}$ es:",
+        "difficulty": 1100,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{A}{x} + \\frac{B}{x^2} + \\frac{C}{x-1}$",
+            "$\\frac{A}{x} + \\frac{B}{x-1}$",
+            "$\\frac{Ax+B}{x^2} + \\frac{C}{x-1}$",
+            "$\\frac{A}{x^2} + \\frac{B}{x-1}$"
+        ],
+        "correct_option": "$\\frac{A}{x} + \\frac{B}{x^2} + \\frac{C}{x-1}$"
+    },
+    {
+        "id": "q199",
+        "content": "$\\int \\frac{3x+5}{(x+1)(x+2)} \\, dx =$",
+        "difficulty": 1100,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$2\\ln|x+1| + \\ln|x+2| + C$",
+            "$\\ln|x+1| + 2\\ln|x+2| + C$",
+            "$3\\ln|x+1| + \\ln|x+2| + C$",
+            "$\\ln|(x+1)(x+2)| + C$"
+        ],
+        "correct_option": "$2\\ln|x+1| + \\ln|x+2| + C$"
+    },
+    {
+        "id": "q200",
+        "content": "Cuando el denominador tiene un factor cuadrático irreducible $(ax^2+bx+c)$, la fracción parcial correspondiente tiene la forma:",
+        "difficulty": 1050,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{Ax+B}{ax^2+bx+c}$",
+            "$\\frac{A}{ax^2+bx+c}$",
+            "$\\frac{A}{ax+b} + \\frac{B}{c}$",
+            "$\\frac{Ax^2+B}{ax^2+bx+c}$"
+        ],
+        "correct_option": "$\\frac{Ax+B}{ax^2+bx+c}$"
+    },
+    {
+        "id": "q201",
+        "content": "El área bajo la curva $y = x^2$ desde $x = 0$ hasta $x = 2$ es:",
+        "difficulty": 850,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{8}{3}$",
+            "$4$",
+            "$2$",
+            "$\\frac{4}{3}$"
+        ],
+        "correct_option": "$\\frac{8}{3}$"
+    },
+    {
+        "id": "q202",
+        "content": "El área entre $y = x$ y $y = x^2$ en $[0, 1]$ es:",
+        "difficulty": 1000,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{1}{6}$",
+            "$\\frac{1}{3}$",
+            "$\\frac{1}{2}$",
+            "$\\frac{1}{4}$"
+        ],
+        "correct_option": "$\\frac{1}{6}$"
+    },
+    {
+        "id": "q203",
+        "content": "El área entre $y = \\sin(x)$ y el eje $x$ en $[0, \\pi]$ es:",
+        "difficulty": 850,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$2$",
+            "$\\pi$",
+            "$1$",
+            "$0$"
+        ],
+        "correct_option": "$2$"
+    },
+    {
+        "id": "q204",
+        "content": "El área entre $y = \\sqrt{x}$ y $y = x^2$ en $[0, 1]$ es:",
+        "difficulty": 1050,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{1}{3}$",
+            "$\\frac{1}{6}$",
+            "$\\frac{1}{2}$",
+            "$\\frac{2}{3}$"
+        ],
+        "correct_option": "$\\frac{1}{3}$"
+    },
+    {
+        "id": "q205",
+        "content": "Para calcular el área entre dos curvas $f(x) \\geq g(x)$ en $[a, b]$, se usa:",
+        "difficulty": 750,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\int_a^b [f(x) - g(x)] \\, dx$",
+            "$\\int_a^b [f(x) + g(x)] \\, dx$",
+            "$\\int_a^b f(x) \\, dx - \\int_a^b g(x) \\, dx$",
+            "$\\int_a^b |f(x) \\cdot g(x)| \\, dx$"
+        ],
+        "correct_option": "$\\int_a^b [f(x) - g(x)] \\, dx$"
+    },
+    {
+        "id": "q206",
+        "content": "El área encerrada por la parábola $y = 4 - x^2$ y el eje $x$ es:",
+        "difficulty": 900,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{32}{3}$",
+            "$16$",
+            "$8$",
+            "$\\frac{16}{3}$"
+        ],
+        "correct_option": "$\\frac{32}{3}$"
+    },
+    {
+        "id": "q207",
+        "content": "El área entre $y = e^x$, el eje $x$, $x = 0$ y $x = 1$ es:",
+        "difficulty": 800,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$e - 1$",
+            "$e$",
+            "$1$",
+            "$e + 1$"
+        ],
+        "correct_option": "$e - 1$"
+    },
+    {
+        "id": "q208",
+        "content": "El área entre $y = x^3$ y $y = x$ en $[-1, 1]$ es:",
+        "difficulty": 1100,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{1}{2}$",
+            "$1$",
+            "$\\frac{1}{4}$",
+            "$0$"
+        ],
+        "correct_option": "$\\frac{1}{2}$"
+    },
+    {
+        "id": "q209",
+        "content": "Fórmula del método de discos para revolución alrededor del eje $x$:",
+        "difficulty": 900,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$V = \\pi \\int_a^b [f(x)]^2 \\, dx$",
+            "$V = 2\\pi \\int_a^b x f(x) \\, dx$",
+            "$V = \\pi \\int_a^b f(x) \\, dx$",
+            "$V = 2\\pi \\int_a^b [f(x)]^2 \\, dx$"
+        ],
+        "correct_option": "$V = \\pi \\int_a^b [f(x)]^2 \\, dx$"
+    },
+    {
+        "id": "q210",
+        "content": "Fórmula del método de arandelas:",
+        "difficulty": 950,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$V = \\pi \\int_a^b ([R(x)]^2 - [r(x)]^2) \\, dx$",
+            "$V = \\pi \\int_a^b [R(x) - r(x)]^2 \\, dx$",
+            "$V = 2\\pi \\int_a^b (R(x) - r(x)) \\, dx$",
+            "$V = \\pi \\int_a^b [R(x)]^2 + [r(x)]^2 \\, dx$"
+        ],
+        "correct_option": "$V = \\pi \\int_a^b ([R(x)]^2 - [r(x)]^2) \\, dx$"
+    },
+    {
+        "id": "q211",
+        "content": "Volumen al rotar $y = x$ de $x = 0$ a $x = 2$ alrededor del eje $x$ (discos):",
+        "difficulty": 1000,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{8\\pi}{3}$",
+            "$4\\pi$",
+            "$2\\pi$",
+            "$8\\pi$"
+        ],
+        "correct_option": "$\\frac{8\\pi}{3}$"
+    },
+    {
+        "id": "q212",
+        "content": "Volumen al rotar $y = \\sqrt{x}$ de $x = 0$ a $x = 4$ alrededor del eje $x$:",
+        "difficulty": 1000,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$8\\pi$",
+            "$4\\pi$",
+            "$16\\pi$",
+            "$2\\pi$"
+        ],
+        "correct_option": "$8\\pi$"
+    },
+    {
+        "id": "q213",
+        "content": "Fórmula del método de capas cilíndricas (revolución alrededor del eje $y$):",
+        "difficulty": 1000,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$V = 2\\pi \\int_a^b x \\cdot f(x) \\, dx$",
+            "$V = \\pi \\int_a^b [f(x)]^2 \\, dx$",
+            "$V = 2\\pi \\int_a^b [f(x)]^2 \\, dx$",
+            "$V = \\pi \\int_a^b x \\cdot f(x) \\, dx$"
+        ],
+        "correct_option": "$V = 2\\pi \\int_a^b x \\cdot f(x) \\, dx$"
+    },
+    {
+        "id": "q214",
+        "content": "Volumen al rotar $y = x^2$ de $x = 0$ a $x = 1$ alrededor del eje $y$ (capas cilíndricas):",
+        "difficulty": 1100,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{\\pi}{2}$",
+            "$\\pi$",
+            "$\\frac{\\pi}{4}$",
+            "$2\\pi$"
+        ],
+        "correct_option": "$\\frac{\\pi}{2}$"
+    },
+    {
+        "id": "q215",
+        "content": "El volumen de la esfera de radio $R$ se obtiene rotando $y = \\sqrt{R^2 - x^2}$ alrededor del eje $x$. El resultado es:",
+        "difficulty": 1150,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{4}{3}\\pi R^3$",
+            "$\\frac{2}{3}\\pi R^3$",
+            "$\\pi R^3$",
+            "$4\\pi R^2$"
+        ],
+        "correct_option": "$\\frac{4}{3}\\pi R^3$"
+    },
+    {
+        "id": "q216",
+        "content": "La trompeta de Gabriel se obtiene rotando $y = \\frac{1}{x}$ de $x = 1$ a $x = \\infty$ alrededor del eje $x$. Su volumen es:",
+        "difficulty": 1300,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\pi$",
+            "$\\infty$",
+            "$1$",
+            "$2\\pi$"
+        ],
+        "correct_option": "$\\pi$"
+    },
+    {
+        "id": "q217",
+        "content": "El trabajo realizado por una fuerza variable $F(x)$ al desplazar un objeto de $x = a$ a $x = b$ es:",
+        "difficulty": 850,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$W = \\int_a^b F(x) \\, dx$",
+            "$W = F \\cdot (b - a)$",
+            "$W = \\int_a^b F'(x) \\, dx$",
+            "$W = F(b) - F(a)$"
+        ],
+        "correct_option": "$W = \\int_a^b F(x) \\, dx$"
+    },
+    {
+        "id": "q218",
+        "content": "Un resorte con constante $k = 10$ N/m se estira desde su posición natural hasta $x = 0.5$ m. El trabajo realizado es:",
+        "difficulty": 950,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$1.25$ J",
+            "$5$ J",
+            "$2.5$ J",
+            "$0.5$ J"
+        ],
+        "correct_option": "$1.25$ J"
+    },
+    {
+        "id": "q219",
+        "content": "Según la Ley de Hooke, $F(x) = kx$. El trabajo para estirar el resorte de $x = 0$ a $x = a$ es:",
+        "difficulty": 900,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{1}{2}ka^2$",
+            "$ka$",
+            "$ka^2$",
+            "$\\frac{ka}{2}$"
+        ],
+        "correct_option": "$\\frac{1}{2}ka^2$"
+    },
+    {
+        "id": "q220",
+        "content": "Un cable de 20 m pesa 5 N/m. El trabajo para levantarlo completamente es:",
+        "difficulty": 1050,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$1000$ J",
+            "$500$ J",
+            "$100$ J",
+            "$2000$ J"
+        ],
+        "correct_option": "$1000$ J"
+    },
+    {
+        "id": "q221",
+        "content": "La fórmula de longitud de arco de $y = f(x)$ en $[a, b]$ es:",
+        "difficulty": 900,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$L = \\int_a^b \\sqrt{1 + [f'(x)]^2} \\, dx$",
+            "$L = \\int_a^b |f'(x)| \\, dx$",
+            "$L = \\int_a^b \\sqrt{[f(x)]^2 + [f'(x)]^2} \\, dx$",
+            "$L = \\int_a^b (1 + [f'(x)]^2) \\, dx$"
+        ],
+        "correct_option": "$L = \\int_a^b \\sqrt{1 + [f'(x)]^2} \\, dx$"
+    },
+    {
+        "id": "q222",
+        "content": "La longitud de la curva $y = \\frac{2}{3}x^{3/2}$ de $x = 0$ a $x = 3$ es:",
+        "difficulty": 1150,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{14}{3}$",
+            "$\\frac{8}{3}$",
+            "$6$",
+            "$\\frac{10}{3}$"
+        ],
+        "correct_option": "$\\frac{14}{3}$"
+    },
+    {
+        "id": "q223",
+        "content": "La longitud de arco de $y = \\ln(\\sec(x))$ en $[0, \\pi/4]$ es:",
+        "difficulty": 1250,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\ln(\\sqrt{2} + 1)$",
+            "$\\frac{\\pi}{4}$",
+            "$\\sqrt{2}$",
+            "$1$"
+        ],
+        "correct_option": "$\\ln(\\sqrt{2} + 1)$"
+    },
+    {
+        "id": "q224",
+        "content": "Para una curva paramétrica $x = f(t)$, $y = g(t)$, la longitud de arco es:",
+        "difficulty": 1000,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$L = \\int_a^b \\sqrt{[f'(t)]^2 + [g'(t)]^2} \\, dt$",
+            "$L = \\int_a^b (f'(t) + g'(t)) \\, dt$",
+            "$L = \\int_a^b |f'(t) \\cdot g'(t)| \\, dt$",
+            "$L = \\int_a^b \\sqrt{f(t)^2 + g(t)^2} \\, dt$"
+        ],
+        "correct_option": "$L = \\int_a^b \\sqrt{[f'(t)]^2 + [g'(t)]^2} \\, dt$"
+    },
+    {
+        "id": "q225",
+        "content": "La curva paramétrica $x = \\cos(t)$, $y = \\sin(t)$ con $0 \\leq t \\leq 2\\pi$ describe:",
+        "difficulty": 700,
+        "topic": "Cálculo Integral",
+        "options": [
+            "Un círculo de radio 1",
+            "Una elipse",
+            "Una parábola",
+            "Una recta"
+        ],
+        "correct_option": "Un círculo de radio 1"
+    },
+    {
+        "id": "q226",
+        "content": "Si $x = t^2$ y $y = t^3$, entonces $\\frac{dy}{dx} =$",
+        "difficulty": 950,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{3t}{2}$",
+            "$\\frac{3t^2}{2t}$",
+            "$\\frac{2t}{3t^2}$",
+            "$\\frac{t}{2}$"
+        ],
+        "correct_option": "$\\frac{3t}{2}$"
+    },
+    {
+        "id": "q227",
+        "content": "El área encerrada por $x = \\cos(t)$, $y = \\sin(t)$, $0 \\leq t \\leq 2\\pi$ es:",
+        "difficulty": 1050,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\pi$",
+            "$2\\pi$",
+            "$\\frac{\\pi}{2}$",
+            "$4\\pi$"
+        ],
+        "correct_option": "$\\pi$"
+    },
+    {
+        "id": "q228",
+        "content": "La longitud de arco de $x = 3\\cos(t)$, $y = 3\\sin(t)$ en $[0, 2\\pi]$ es:",
+        "difficulty": 900,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$6\\pi$",
+            "$3\\pi$",
+            "$9\\pi$",
+            "$2\\pi$"
+        ],
+        "correct_option": "$6\\pi$"
+    },
+    {
+        "id": "q229",
+        "content": "El área en coordenadas polares se calcula con:",
+        "difficulty": 900,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$A = \\frac{1}{2}\\int_{\\alpha}^{\\beta} r^2 \\, d\\theta$",
+            "$A = \\int_{\\alpha}^{\\beta} r \\, d\\theta$",
+            "$A = \\pi \\int_{\\alpha}^{\\beta} r^2 \\, d\\theta$",
+            "$A = \\int_{\\alpha}^{\\beta} r^2 \\, d\\theta$"
+        ],
+        "correct_option": "$A = \\frac{1}{2}\\int_{\\alpha}^{\\beta} r^2 \\, d\\theta$"
+    },
+    {
+        "id": "q230",
+        "content": "El área encerrada por $r = 2$ (círculo completo) es:",
+        "difficulty": 800,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$4\\pi$",
+            "$2\\pi$",
+            "$\\pi$",
+            "$8\\pi$"
+        ],
+        "correct_option": "$4\\pi$"
+    },
+    {
+        "id": "q231",
+        "content": "El área de un pétalo de $r = \\cos(2\\theta)$ es:",
+        "difficulty": 1200,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{\\pi}{8}$",
+            "$\\frac{\\pi}{4}$",
+            "$\\frac{\\pi}{2}$",
+            "$\\pi$"
+        ],
+        "correct_option": "$\\frac{\\pi}{8}$"
+    },
+    {
+        "id": "q232",
+        "content": "La longitud de arco en coordenadas polares se calcula con:",
+        "difficulty": 1050,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$L = \\int_{\\alpha}^{\\beta} \\sqrt{r^2 + \\left(\\frac{dr}{d\\theta}\\right)^2} \\, d\\theta$",
+            "$L = \\int_{\\alpha}^{\\beta} r \\, d\\theta$",
+            "$L = \\int_{\\alpha}^{\\beta} \\sqrt{r^2 + r'^2} \\cdot r \\, d\\theta$",
+            "$L = \\int_{\\alpha}^{\\beta} |r'(\\theta)| \\, d\\theta$"
+        ],
+        "correct_option": "$L = \\int_{\\alpha}^{\\beta} \\sqrt{r^2 + \\left(\\frac{dr}{d\\theta}\\right)^2} \\, d\\theta$"
+    },
+    {
+        "id": "q233",
+        "content": "$\\int_1^{\\infty} \\frac{1}{x} \\, dx$ es:",
+        "difficulty": 850,
+        "topic": "Cálculo Integral",
+        "options": [
+            "Divergente",
+            "$1$",
+            "$\\infty$",
+            "$0$"
+        ],
+        "correct_option": "Divergente"
+    },
+    {
+        "id": "q234",
+        "content": "$\\int_0^1 \\frac{1}{\\sqrt{x}} \\, dx =$",
+        "difficulty": 900,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$2$",
+            "Divergente",
+            "$1$",
+            "$\\frac{1}{2}$"
+        ],
+        "correct_option": "$2$"
+    },
+    {
+        "id": "q235",
+        "content": "La integral impropia $\\int_1^{\\infty} \\frac{1}{x^p} \\, dx$ converge si y solo si:",
+        "difficulty": 1000,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$p > 1$",
+            "$p \\geq 1$",
+            "$p < 1$",
+            "$p > 0$"
+        ],
+        "correct_option": "$p > 1$"
+    },
+    {
+        "id": "q236",
+        "content": "La sucesión $a_n = \\frac{1}{n}$ cuando $n \\to \\infty$ converge a:",
+        "difficulty": 600,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$0$",
+            "$1$",
+            "$\\infty$",
+            "No converge"
+        ],
+        "correct_option": "$0$"
+    },
+    {
+        "id": "q237",
+        "content": "La serie geométrica $\\sum_{n=0}^{\\infty} ar^n$ converge si y solo si:",
+        "difficulty": 800,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$|r| < 1$",
+            "$|r| \\leq 1$",
+            "$r < 1$",
+            "$r > 0$"
+        ],
+        "correct_option": "$|r| < 1$"
+    },
+    {
+        "id": "q238",
+        "content": "La suma de la serie geométrica $\\sum_{n=0}^{\\infty} r^n$ con $|r| < 1$ es:",
+        "difficulty": 850,
+        "topic": "Cálculo Integral",
+        "options": [
+            "$\\frac{1}{1-r}$",
+            "$\\frac{1}{1+r}$",
+            "$\\frac{r}{1-r}$",
+            "$\\frac{1}{r}$"
+        ],
+        "correct_option": "$\\frac{1}{1-r}$"
+    },
+    {
+        "id": "q239",
+        "content": "Criterio de la razón (D'Alembert): si $\\lim_{n \\to \\infty} \\left|\\frac{a_{n+1}}{a_n}\\right| = L < 1$, la serie:",
+        "difficulty": 1000,
+        "topic": "Cálculo Integral",
+        "options": [
+            "Converge absolutamente",
+            "Diverge",
+            "Converge condicionalmente",
+            "No se puede determinar"
+        ],
+        "correct_option": "Converge absolutamente"
+    },
+    {
+        "id": "q240",
+        "content": "La serie armónica $\\sum_{n=1}^{\\infty} \\frac{1}{n}$ es:",
+        "difficulty": 850,
+        "topic": "Cálculo Integral",
+        "options": [
+            "Divergente",
+            "Convergente",
+            "Condicionalmente convergente",
+            "Absolutamente convergente"
+        ],
+        "correct_option": "Divergente"
     }
 ]

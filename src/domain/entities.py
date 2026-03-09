@@ -11,7 +11,8 @@ from typing import Optional
 # Valores canónicos del nivel educativo (fuente de verdad del dominio)
 LEVEL_UNIVERSIDAD = 'universidad'
 LEVEL_COLEGIO     = 'colegio'
-VALID_LEVELS      = frozenset({LEVEL_UNIVERSIDAD, LEVEL_COLEGIO})
+LEVEL_CONCURSOS   = 'concursos'
+VALID_LEVELS      = frozenset({LEVEL_UNIVERSIDAD, LEVEL_COLEGIO, LEVEL_CONCURSOS})
 
 # ── Estados del flujo de validación de procedimientos ────────────────────────
 # Invariante CRÍTICA: ai_proposed_score NUNCA afecta ELO ni estadísticas.
@@ -24,6 +25,7 @@ PROC_STATUS_VALIDATED          = 'VALIDATED_BY_TEACHER'       # Docente validó 
 LEVEL_TO_BLOCK = {
     LEVEL_UNIVERSIDAD: 'Universidad',
     LEVEL_COLEGIO:     'Colegio',
+    LEVEL_CONCURSOS:   'Concursos',
 }
 
 
@@ -55,7 +57,12 @@ class Student:
     @property
     def level_label(self) -> str:
         """Etiqueta legible para la UI."""
-        return "🎓 Universidad" if self.level == LEVEL_UNIVERSIDAD else "🏫 Colegio"
+        _labels = {
+            LEVEL_UNIVERSIDAD: "🎓 Universidad",
+            LEVEL_COLEGIO:     "🏫 Colegio",
+            LEVEL_CONCURSOS:   "🏆 Preparación para Concursos",
+        }
+        return _labels.get(self.level, "🎓 Universidad")
 
 
 @dataclass

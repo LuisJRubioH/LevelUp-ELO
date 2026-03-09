@@ -4,6 +4,8 @@ import json
 import re
 import base64
 
+from src.utils import strip_thinking_tags, strip_thinking_tags_stream
+
 # Cargar variables de entorno desde .env si python-dotenv está instalado
 try:
     from dotenv import load_dotenv as _load_dotenv
@@ -163,8 +165,7 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
                 messages=[{"role": "user", "content": full_prompt}],
             )
             content = resp.content[0].text
-            content = re.sub(r'<thought>.*?</thought>', '', content, flags=re.DOTALL)
-            return content.strip()
+            return strip_thinking_tags(content)
         except Exception as e:
             return f"Error Anthropic: {str(e)}"
 
@@ -181,8 +182,7 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
                 temperature=temperature, max_tokens=4096,
             )
             content = response.choices[0].message.content
-            content = re.sub(r'<thought>.*?</thought>', '', content, flags=re.DOTALL)
-            return content.strip()
+            return strip_thinking_tags(content)
         except Exception as e:
             global _AI_KEY_ERROR
             err_str = str(e)
@@ -206,8 +206,7 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
             )
             if response.status_code == 200:
                 content = response.json()['choices'][0]['message']['content']
-                content = re.sub(r'<thought>.*?</thought>', '', content, flags=re.DOTALL)
-                return content.strip()
+                return strip_thinking_tags(content)
             return f"Error HTTP {response.status_code}"
         except Exception as e:
             return f"Error de conexión: {str(e)}"
@@ -349,7 +348,10 @@ def get_socratic_guidance_stream(student_rating, topic, content, student_answer,
     6. Sé breve, motivador y puramente socrático (guía mediante preguntas).
     7. REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática en LaTeX usando $...$ o $$...$$.
     """
-    yield from stream_ai_response(prompt, model_name, base_url, api_key=api_key, provider=provider)
+    # Filtrar tags de pensamiento del streaming antes de emitir al UI
+    yield from strip_thinking_tags_stream(
+        stream_ai_response(prompt, model_name, base_url, api_key=api_key, provider=provider)
+    )
 
 
 def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None, procedure_stats=None, procedure_stats_by_course=None):

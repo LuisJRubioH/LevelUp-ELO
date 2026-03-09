@@ -4,7 +4,12 @@
         "content": "¿Cuánto es $15 \\times 4$?",
         "difficulty": 600,
         "topic": "Aritmética Básica",
-        "options": ["55", "60", "45", "70"],
+        "options": [
+            "55",
+            "60",
+            "45",
+            "70"
+        ],
         "correct_option": "60"
     },
     {
@@ -12,7 +17,12 @@
         "content": "¿Cuál es el mínimo común múltiplo (MCM) de 4 y 6?",
         "difficulty": 700,
         "topic": "Aritmética Básica",
-        "options": ["8", "12", "24", "6"],
+        "options": [
+            "8",
+            "12",
+            "24",
+            "6"
+        ],
         "correct_option": "12"
     },
     {
@@ -20,7 +30,1312 @@
         "content": "Si una tienda aplica un descuento del 20% a un artículo de $\\$50$, ¿cuál es el precio final?",
         "difficulty": 800,
         "topic": "Aritmética Básica",
-        "options": ["$\\$30$", "$\\$40$", "$\\$45$", "$\\$35$"],
+        "options": [
+            "$\\$30$",
+            "$\\$40$",
+            "$\\$45$",
+            "$\\$35$"
+        ],
         "correct_option": "$\\$40$"
+    },
+    {
+        "id": "ab4",
+        "content": "Calcula: $25 + 37$",
+        "difficulty": 600,
+        "topic": "Aritmética Básica",
+        "options": [
+            "52",
+            "62",
+            "72",
+            "82"
+        ],
+        "correct_option": "62"
+    },
+    {
+        "id": "ab5",
+        "content": "¿Cuánto es $48 \\div 6$?",
+        "difficulty": 600,
+        "topic": "Aritmética Básica",
+        "options": [
+            "6",
+            "7",
+            "8",
+            "9"
+        ],
+        "correct_option": "8"
+    },
+    {
+        "id": "ab6",
+        "content": "Resta: $93 - 47$",
+        "difficulty": 600,
+        "topic": "Aritmética Básica",
+        "options": [
+            "46",
+            "56",
+            "44",
+            "54"
+        ],
+        "correct_option": "46"
+    },
+    {
+        "id": "ab7",
+        "content": "¿Cuál es el resultado de $9 \\times 7$?",
+        "difficulty": 600,
+        "topic": "Aritmética Básica",
+        "options": [
+            "56",
+            "63",
+            "72",
+            "81"
+        ],
+        "correct_option": "63"
+    },
+    {
+        "id": "ab8",
+        "content": "Suma: $124 + 389$",
+        "difficulty": 620,
+        "topic": "Aritmética Básica",
+        "options": [
+            "403",
+            "413",
+            "503",
+            "513"
+        ],
+        "correct_option": "513"
+    },
+    {
+        "id": "ab9",
+        "content": "Multiplica: $12 \\times 12$",
+        "difficulty": 620,
+        "topic": "Aritmética Básica",
+        "options": [
+            "124",
+            "144",
+            "154",
+            "164"
+        ],
+        "correct_option": "144"
+    },
+    {
+        "id": "ab10",
+        "content": "Divide: $144 \\div 12$",
+        "difficulty": 620,
+        "topic": "Aritmética Básica",
+        "options": [
+            "10",
+            "11",
+            "12",
+            "13"
+        ],
+        "correct_option": "12"
+    },
+    {
+        "id": "ab11",
+        "content": "¿Cuál es el resto de $37 \\div 5$?",
+        "difficulty": 640,
+        "topic": "Aritmética Básica",
+        "options": [
+            "1",
+            "2",
+            "3",
+            "4"
+        ],
+        "correct_option": "2"
+    },
+    {
+        "id": "ab12",
+        "content": "Calcula: $\\frac{3}{4} + \\frac{1}{2}$",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{5}{6}$",
+            "$\\frac{4}{6}$",
+            "$\\frac{5}{4}$",
+            "$\\frac{4}{5}$"
+        ],
+        "correct_option": "$\\frac{5}{4}$"
+    },
+    {
+        "id": "ab13",
+        "content": "¿Cuánto es $\\frac{2}{3}$ de 60?",
+        "difficulty": 680,
+        "topic": "Aritmética Básica",
+        "options": [
+            "20",
+            "30",
+            "40",
+            "50"
+        ],
+        "correct_option": "40"
+    },
+    {
+        "id": "ab14",
+        "content": "Convierte $\\frac{5}{8}$ a decimal.",
+        "difficulty": 680,
+        "topic": "Aritmética Básica",
+        "options": [
+            "0.5",
+            "0.625",
+            "0.75",
+            "0.875"
+        ],
+        "correct_option": "0.625"
+    },
+    {
+        "id": "ab15",
+        "content": "¿Cuál es el máximo común divisor (MCD) de 18 y 24?",
+        "difficulty": 720,
+        "topic": "Aritmética Básica",
+        "options": [
+            "3",
+            "4",
+            "6",
+            "8"
+        ],
+        "correct_option": "6"
+    },
+    {
+        "id": "ab16",
+        "content": "Calcula: $15\\%$ de $200$.",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "15",
+            "20",
+            "30",
+            "35"
+        ],
+        "correct_option": "30"
+    },
+    {
+        "id": "ab17",
+        "content": "¿Cuál es el resultado de $2^5$?",
+        "difficulty": 620,
+        "topic": "Aritmética Básica",
+        "options": [
+            "16",
+            "24",
+            "32",
+            "64"
+        ],
+        "correct_option": "32"
+    },
+    {
+        "id": "ab18",
+        "content": "Raíz cuadrada: $\\sqrt{81}$",
+        "difficulty": 620,
+        "topic": "Aritmética Básica",
+        "options": [
+            "7",
+            "8",
+            "9",
+            "10"
+        ],
+        "correct_option": "9"
+    },
+    {
+        "id": "ab19",
+        "content": "Suma: $3.5 + 2.75$",
+        "difficulty": 660,
+        "topic": "Aritmética Básica",
+        "options": [
+            "5.25",
+            "6.0",
+            "6.25",
+            "6.5"
+        ],
+        "correct_option": "6.25"
+    },
+    {
+        "id": "ab20",
+        "content": "Resta: $10.3 - 4.8$",
+        "difficulty": 660,
+        "topic": "Aritmética Básica",
+        "options": [
+            "5.5",
+            "5.6",
+            "6.5",
+            "6.6"
+        ],
+        "correct_option": "5.5"
+    },
+    {
+        "id": "ab21",
+        "content": "¿Cuántos minutos hay en 3 horas y media?",
+        "difficulty": 680,
+        "topic": "Aritmética Básica",
+        "options": [
+            "180",
+            "190",
+            "200",
+            "210"
+        ],
+        "correct_option": "210"
+    },
+    {
+        "id": "ab22",
+        "content": "Si un kilo de manzanas cuesta $\\$2.5$, ¿cuánto cuestan 4 kilos?",
+        "difficulty": 640,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\$8$",
+            "$\\$9$",
+            "$\\$10$",
+            "$\\$12$"
+        ],
+        "correct_option": "$\\$10$"
+    },
+    {
+        "id": "ab23",
+        "content": "Calcula el perímetro de un cuadrado de lado 6 cm.",
+        "difficulty": 650,
+        "topic": "Aritmética Básica",
+        "options": [
+            "12 cm",
+            "18 cm",
+            "24 cm",
+            "36 cm"
+        ],
+        "correct_option": "24 cm"
+    },
+    {
+        "id": "ab24",
+        "content": "¿Cuál es el área de un rectángulo de 5 m de ancho y 8 m de largo?",
+        "difficulty": 660,
+        "topic": "Aritmética Básica",
+        "options": [
+            "13 m²",
+            "26 m²",
+            "35 m²",
+            "40 m²"
+        ],
+        "correct_option": "40 m²"
+    },
+    {
+        "id": "ab25",
+        "content": "Suma: $\\frac{2}{5} + \\frac{3}{10}$",
+        "difficulty": 720,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{5}{15}$",
+            "$\\frac{7}{10}$",
+            "$\\frac{5}{10}$",
+            "$\\frac{1}{2}$"
+        ],
+        "correct_option": "$\\frac{7}{10}$"
+    },
+    {
+        "id": "ab26",
+        "content": "Multiplica: $\\frac{3}{4} \\times \\frac{2}{5}$",
+        "difficulty": 720,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{6}{20}$",
+            "$\\frac{5}{9}$",
+            "$\\frac{3}{10}$",
+            "$\\frac{1}{2}$"
+        ],
+        "correct_option": "$\\frac{3}{10}$"
+    },
+    {
+        "id": "ab27",
+        "content": "Divide: $\\frac{5}{6} \\div \\frac{1}{3}$",
+        "difficulty": 750,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{5}{2}$",
+            "$\\frac{5}{18}$",
+            "$\\frac{3}{5}$",
+            "$\\frac{15}{6}$"
+        ],
+        "correct_option": "$\\frac{5}{2}$"
+    },
+    {
+        "id": "ab28",
+        "content": "¿Qué porcentaje de 80 es 20?",
+        "difficulty": 720,
+        "topic": "Aritmética Básica",
+        "options": [
+            "20%",
+            "25%",
+            "30%",
+            "40%"
+        ],
+        "correct_option": "25%"
+    },
+    {
+        "id": "ab29",
+        "content": "Calcula el 150% de 40.",
+        "difficulty": 740,
+        "topic": "Aritmética Básica",
+        "options": [
+            "40",
+            "50",
+            "60",
+            "70"
+        ],
+        "correct_option": "60"
+    },
+    {
+        "id": "ab30",
+        "content": "Si un número es múltiplo de 3 y de 4, también es múltiplo de:",
+        "difficulty": 760,
+        "topic": "Aritmética Básica",
+        "options": [
+            "7",
+            "8",
+            "12",
+            "16"
+        ],
+        "correct_option": "12"
+    },
+    {
+        "id": "ab31",
+        "content": "¿Cuál es el mínimo común múltiplo de 5, 10 y 15?",
+        "difficulty": 780,
+        "topic": "Aritmética Básica",
+        "options": [
+            "15",
+            "30",
+            "45",
+            "60"
+        ],
+        "correct_option": "30"
+    },
+    {
+        "id": "ab32",
+        "content": "Expresa 0.75 como fracción irreducible.",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{3}{4}$",
+            "$\\frac{75}{100}$",
+            "$\\frac{7}{10}$",
+            "$\\frac{1}{2}$"
+        ],
+        "correct_option": "$\\frac{3}{4}$"
+    },
+    {
+        "id": "ab33",
+        "content": "Calcula: $(-5) + 8$",
+        "difficulty": 620,
+        "topic": "Aritmética Básica",
+        "options": [
+            "-13",
+            "-3",
+            "3",
+            "13"
+        ],
+        "correct_option": "3"
+    },
+    {
+        "id": "ab34",
+        "content": "Resta: $(-3) - (-7)$",
+        "difficulty": 660,
+        "topic": "Aritmética Básica",
+        "options": [
+            "-10",
+            "-4",
+            "4",
+            "10"
+        ],
+        "correct_option": "4"
+    },
+    {
+        "id": "ab35",
+        "content": "Multiplica: $(-4) \\times 6$",
+        "difficulty": 640,
+        "topic": "Aritmética Básica",
+        "options": [
+            "-24",
+            "-10",
+            "10",
+            "24"
+        ],
+        "correct_option": "-24"
+    },
+    {
+        "id": "ab36",
+        "content": "Divide: $(-20) \\div (-5)$",
+        "difficulty": 640,
+        "topic": "Aritmética Básica",
+        "options": [
+            "-4",
+            "-5",
+            "4",
+            "5"
+        ],
+        "correct_option": "4"
+    },
+    {
+        "id": "ab37",
+        "content": "¿Cuál es el valor absoluto de $|-12|$?",
+        "difficulty": 600,
+        "topic": "Aritmética Básica",
+        "options": [
+            "-12",
+            "0",
+            "12",
+            "24"
+        ],
+        "correct_option": "12"
+    },
+    {
+        "id": "ab38",
+        "content": "Calcula: $2^3 \\times 2^2$",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "16",
+            "32",
+            "64",
+            "128"
+        ],
+        "correct_option": "32"
+    },
+    {
+        "id": "ab39",
+        "content": "Simplifica: $\\frac{12}{18}$",
+        "difficulty": 640,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{2}{3}$",
+            "$\\frac{3}{4}$",
+            "$\\frac{4}{6}$",
+            "$\\frac{6}{9}$"
+        ],
+        "correct_option": "$\\frac{2}{3}$"
+    },
+    {
+        "id": "ab40",
+        "content": "Ordena de menor a mayor: $\\frac{1}{2}, \\frac{2}{3}, \\frac{3}{4}$",
+        "difficulty": 780,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{1}{2} < \\frac{2}{3} < \\frac{3}{4}$",
+            "$\\frac{2}{3} < \\frac{1}{2} < \\frac{3}{4}$",
+            "$\\frac{3}{4} < \\frac{2}{3} < \\frac{1}{2}$",
+            "$\\frac{1}{2} < \\frac{3}{4} < \\frac{2}{3}$"
+        ],
+        "correct_option": "$\\frac{1}{2} < \\frac{2}{3} < \\frac{3}{4}$"
+    },
+    {
+        "id": "ab41",
+        "content": "¿Cuál es la fracción equivalente a $\\frac{4}{5}$ con denominador 20?",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{16}{20}$",
+            "$\\frac{15}{20}$",
+            "$\\frac{14}{20}$",
+            "$\\frac{12}{20}$"
+        ],
+        "correct_option": "$\\frac{16}{20}$"
+    },
+    {
+        "id": "ab42",
+        "content": "Calcula: $\\sqrt{36} + \\sqrt{49}$",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "13",
+            "15",
+            "17",
+            "19"
+        ],
+        "correct_option": "13"
+    },
+    {
+        "id": "ab43",
+        "content": "¿Cuánto es $5!$ (5 factorial)?",
+        "difficulty": 720,
+        "topic": "Aritmética Básica",
+        "options": [
+            "60",
+            "120",
+            "240",
+            "360"
+        ],
+        "correct_option": "120"
+    },
+    {
+        "id": "ab44",
+        "content": "Si $a = 3$ y $b = 4$, calcula $a^2 + b^2$.",
+        "difficulty": 680,
+        "topic": "Aritmética Básica",
+        "options": [
+            "7",
+            "12",
+            "25",
+            "49"
+        ],
+        "correct_option": "25"
+    },
+    {
+        "id": "ab45",
+        "content": "Un tren viaja a 80 km/h. ¿Cuántos kilómetros recorre en 3 horas y media?",
+        "difficulty": 760,
+        "topic": "Aritmética Básica",
+        "options": [
+            "240 km",
+            "260 km",
+            "280 km",
+            "300 km"
+        ],
+        "correct_option": "280 km"
+    },
+    {
+        "id": "ab46",
+        "content": "Si 5 camisetas cuestan $\\$45$, ¿cuánto cuestan 8 camisetas?",
+        "difficulty": 740,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\$60$",
+            "$\\$64$",
+            "$\\$72$",
+            "$\\$80$"
+        ],
+        "correct_option": "$\\$72$"
+    },
+    {
+        "id": "ab47",
+        "content": "Calcula la media (promedio) de 4, 8, 12 y 16.",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "8",
+            "10",
+            "12",
+            "14"
+        ],
+        "correct_option": "10"
+    },
+    {
+        "id": "ab48",
+        "content": "¿Cuál es la mediana de 3, 7, 9, 12, 15?",
+        "difficulty": 720,
+        "topic": "Aritmética Básica",
+        "options": [
+            "7",
+            "9",
+            "12",
+            "15"
+        ],
+        "correct_option": "9"
+    },
+    {
+        "id": "ab49",
+        "content": "Redondea 7.638 a la décima más cercana.",
+        "difficulty": 680,
+        "topic": "Aritmética Básica",
+        "options": [
+            "7.6",
+            "7.64",
+            "7.7",
+            "8.0"
+        ],
+        "correct_option": "7.6"
+    },
+    {
+        "id": "ab50",
+        "content": "Convierte 3/20 a porcentaje.",
+        "difficulty": 720,
+        "topic": "Aritmética Básica",
+        "options": [
+            "10%",
+            "15%",
+            "20%",
+            "25%"
+        ],
+        "correct_option": "15%"
+    },
+    {
+        "id": "ab51",
+        "content": "Un producto cuesta $\\$120$ con un impuesto del 15%. ¿Cuál es el precio total?",
+        "difficulty": 760,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\$132$",
+            "$\\$135$",
+            "$\\$138$",
+            "$\\$140$"
+        ],
+        "correct_option": "$\\$138$"
+    },
+    {
+        "id": "ab52",
+        "content": "¿Cuánto es $3^4$?",
+        "difficulty": 640,
+        "topic": "Aritmética Básica",
+        "options": [
+            "27",
+            "64",
+            "81",
+            "243"
+        ],
+        "correct_option": "81"
+    },
+    {
+        "id": "ab53",
+        "content": "Calcula: $\\sqrt[3]{27}$",
+        "difficulty": 660,
+        "topic": "Aritmética Básica",
+        "options": [
+            "3",
+            "9",
+            "27",
+            "81"
+        ],
+        "correct_option": "3"
+    },
+    {
+        "id": "ab54",
+        "content": "Escribe 0.00045 en notación científica.",
+        "difficulty": 800,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$4.5 \\times 10^{-4}$",
+            "$4.5 \\times 10^{-3}$",
+            "$45 \\times 10^{-5}$",
+            "$4.5 \\times 10^{4}$"
+        ],
+        "correct_option": "$4.5 \\times 10^{-4}$"
+    },
+    {
+        "id": "ab55",
+        "content": "¿Cuál de estos números es primo?",
+        "difficulty": 720,
+        "topic": "Aritmética Básica",
+        "options": [
+            "27",
+            "29",
+            "33",
+            "35"
+        ],
+        "correct_option": "29"
+    },
+    {
+        "id": "ab56",
+        "content": "Descompón 60 en factores primos.",
+        "difficulty": 720,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$2^2 \\times 3 \\times 5$",
+            "$2 \\times 3 \\times 5$",
+            "$2^3 \\times 3 \\times 5$",
+            "$2 \\times 3^2 \\times 5$"
+        ],
+        "correct_option": "$2^2 \\times 3 \\times 5$"
+    },
+    {
+        "id": "ab57",
+        "content": "Suma: $1.2 + 0.45 + 2.3$",
+        "difficulty": 660,
+        "topic": "Aritmética Básica",
+        "options": [
+            "3.85",
+            "3.95",
+            "4.05",
+            "4.15"
+        ],
+        "correct_option": "3.95"
+    },
+    {
+        "id": "ab58",
+        "content": "Resta: $5 - 0.75$",
+        "difficulty": 640,
+        "topic": "Aritmética Básica",
+        "options": [
+            "4.25",
+            "4.75",
+            "5.25",
+            "5.75"
+        ],
+        "correct_option": "4.25"
+    },
+    {
+        "id": "ab59",
+        "content": "Multiplica: $0.3 \\times 0.4$",
+        "difficulty": 640,
+        "topic": "Aritmética Básica",
+        "options": [
+            "0.12",
+            "0.7",
+            "1.2",
+            "12"
+        ],
+        "correct_option": "0.12"
+    },
+    {
+        "id": "ab60",
+        "content": "Divide: $0.6 \\div 0.2$",
+        "difficulty": 660,
+        "topic": "Aritmética Básica",
+        "options": [
+            "0.3",
+            "3",
+            "30",
+            "300"
+        ],
+        "correct_option": "3"
+    },
+    {
+        "id": "ab61",
+        "content": "¿Cuánto es $\\frac{7}{8}$ de 64?",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "48",
+            "56",
+            "60",
+            "64"
+        ],
+        "correct_option": "56"
+    },
+    {
+        "id": "ab62",
+        "content": "Si hoy es martes, ¿qué día será en 100 días?",
+        "difficulty": 800,
+        "topic": "Aritmética Básica",
+        "options": [
+            "lunes",
+            "martes",
+            "miércoles",
+            "jueves"
+        ],
+        "correct_option": "jueves"
+    },
+    {
+        "id": "ab63",
+        "content": "¿Cuál es el número romano para 49?",
+        "difficulty": 760,
+        "topic": "Aritmética Básica",
+        "options": [
+            "IL",
+            "XLIX",
+            "XLVIII",
+            "L"
+        ],
+        "correct_option": "XLIX"
+    },
+    {
+        "id": "ab64",
+        "content": "Calcula: $2.5 \\times 3.2$",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "7.0",
+            "7.5",
+            "8.0",
+            "8.5"
+        ],
+        "correct_option": "8.0"
+    },
+    {
+        "id": "ab65",
+        "content": "Un rectángulo tiene área 56 cm² y ancho 7 cm. ¿Cuál es su largo?",
+        "difficulty": 720,
+        "topic": "Aritmética Básica",
+        "options": [
+            "6 cm",
+            "7 cm",
+            "8 cm",
+            "9 cm"
+        ],
+        "correct_option": "8 cm"
+    },
+    {
+        "id": "ab66",
+        "content": "¿Cuántos segundos hay en 2 horas y 15 minutos?",
+        "difficulty": 760,
+        "topic": "Aritmética Básica",
+        "options": [
+            "7200 s",
+            "8100 s",
+            "8400 s",
+            "9000 s"
+        ],
+        "correct_option": "8100 s"
+    },
+    {
+        "id": "ab67",
+        "content": "Si un número es divisible por 9, la suma de sus dígitos es múltiplo de:",
+        "difficulty": 740,
+        "topic": "Aritmética Básica",
+        "options": [
+            "3",
+            "6",
+            "9",
+            "12"
+        ],
+        "correct_option": "9"
+    },
+    {
+        "id": "ab68",
+        "content": "Calcula: $3 \\times (4 + 5)$",
+        "difficulty": 620,
+        "topic": "Aritmética Básica",
+        "options": [
+            "17",
+            "27",
+            "37",
+            "47"
+        ],
+        "correct_option": "27"
+    },
+    {
+        "id": "ab69",
+        "content": "Calcula: $(5 + 3) \\times 2$",
+        "difficulty": 620,
+        "topic": "Aritmética Básica",
+        "options": [
+            "10",
+            "11",
+            "16",
+            "13"
+        ],
+        "correct_option": "16"
+    },
+    {
+        "id": "ab70",
+        "content": "Simplifica: $\\frac{18}{24}$",
+        "difficulty": 640,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{2}{3}$",
+            "$\\frac{3}{4}$",
+            "$\\frac{1}{2}$",
+            "$\\frac{3}{8}$"
+        ],
+        "correct_option": "$\\frac{3}{4}$"
+    },
+    {
+        "id": "ab71",
+        "content": "¿Qué fracción del día son 6 horas?",
+        "difficulty": 680,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{1}{2}$",
+            "$\\frac{1}{3}$",
+            "$\\frac{1}{4}$",
+            "$\\frac{1}{6}$"
+        ],
+        "correct_option": "$\\frac{1}{4}$"
+    },
+    {
+        "id": "ab72",
+        "content": "Si una pizza se divide en 8 partes iguales y comes 3, ¿qué fracción queda?",
+        "difficulty": 640,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{3}{8}$",
+            "$\\frac{5}{8}$",
+            "$\\frac{1}{2}$",
+            "$\\frac{3}{5}$"
+        ],
+        "correct_option": "$\\frac{5}{8}$"
+    },
+    {
+        "id": "ab73",
+        "content": "Calcula: $\\frac{2}{3} - \\frac{1}{6}$",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{1}{2}$",
+            "$\\frac{1}{3}$",
+            "$\\frac{1}{6}$",
+            "$\\frac{1}{4}$"
+        ],
+        "correct_option": "$\\frac{1}{2}$"
+    },
+    {
+        "id": "ab74",
+        "content": "¿Cuál es el resultado de $0.25 \\times 0.4$?",
+        "difficulty": 660,
+        "topic": "Aritmética Básica",
+        "options": [
+            "0.1",
+            "0.2",
+            "0.5",
+            "1.0"
+        ],
+        "correct_option": "0.1"
+    },
+    {
+        "id": "ab75",
+        "content": "Convierte 0.6 a fracción irreducible.",
+        "difficulty": 680,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{3}{5}$",
+            "$\\frac{6}{10}$",
+            "$\\frac{2}{3}$",
+            "$\\frac{1}{2}$"
+        ],
+        "correct_option": "$\\frac{3}{5}$"
+    },
+    {
+        "id": "ab76",
+        "content": "¿Cuánto es $10^3$?",
+        "difficulty": 600,
+        "topic": "Aritmética Básica",
+        "options": [
+            "10",
+            "100",
+            "1000",
+            "10000"
+        ],
+        "correct_option": "1000"
+    },
+    {
+        "id": "ab77",
+        "content": "Calcula: $\\frac{1}{2} + \\frac{1}{3} + \\frac{1}{6}$",
+        "difficulty": 740,
+        "topic": "Aritmética Básica",
+        "options": [
+            "1",
+            "$\\frac{5}{6}$",
+            "$\\frac{7}{6}$",
+            "$\\frac{1}{12}$"
+        ],
+        "correct_option": "1"
+    },
+    {
+        "id": "ab78",
+        "content": "Un número aumentado en 15 es igual a 42. ¿Cuál es el número?",
+        "difficulty": 640,
+        "topic": "Aritmética Básica",
+        "options": [
+            "27",
+            "37",
+            "47",
+            "57"
+        ],
+        "correct_option": "27"
+    },
+    {
+        "id": "ab79",
+        "content": "La mitad de un número es 28. ¿Cuál es el número?",
+        "difficulty": 620,
+        "topic": "Aritmética Básica",
+        "options": [
+            "14",
+            "28",
+            "42",
+            "56"
+        ],
+        "correct_option": "56"
+    },
+    {
+        "id": "ab80",
+        "content": "¿Cuál es el triple de 24?",
+        "difficulty": 600,
+        "topic": "Aritmética Básica",
+        "options": [
+            "48",
+            "72",
+            "96",
+            "108"
+        ],
+        "correct_option": "72"
+    },
+    {
+        "id": "ab81",
+        "content": "Suma: $\\frac{3}{7} + \\frac{2}{7}$",
+        "difficulty": 620,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{1}{7}$",
+            "$\\frac{5}{14}$",
+            "$\\frac{5}{7}$",
+            "$\\frac{6}{7}$"
+        ],
+        "correct_option": "$\\frac{5}{7}$"
+    },
+    {
+        "id": "ab82",
+        "content": "Resta: $\\frac{7}{9} - \\frac{4}{9}$",
+        "difficulty": 620,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{1}{3}$",
+            "$\\frac{3}{9}$",
+            "$\\frac{2}{9}$",
+            "$\\frac{11}{9}$"
+        ],
+        "correct_option": "$\\frac{1}{3}$"
+    },
+    {
+        "id": "ab83",
+        "content": "Multiplica: $\\frac{5}{6} \\times 18$",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "12",
+            "15",
+            "18",
+            "21"
+        ],
+        "correct_option": "15"
+    },
+    {
+        "id": "ab84",
+        "content": "Divide: $\\frac{12}{25} \\div \\frac{4}{5}$",
+        "difficulty": 760,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{3}{5}$",
+            "$\\frac{5}{3}$",
+            "$\\frac{48}{125}$",
+            "$\\frac{125}{48}$"
+        ],
+        "correct_option": "$\\frac{3}{5}$"
+    },
+    {
+        "id": "ab85",
+        "content": "¿Cuál es el 40% de 250?",
+        "difficulty": 680,
+        "topic": "Aritmética Básica",
+        "options": [
+            "80",
+            "90",
+            "100",
+            "110"
+        ],
+        "correct_option": "100"
+    },
+    {
+        "id": "ab86",
+        "content": "Si el 25% de un número es 30, ¿cuál es el número?",
+        "difficulty": 720,
+        "topic": "Aritmética Básica",
+        "options": [
+            "90",
+            "100",
+            "110",
+            "120"
+        ],
+        "correct_option": "120"
+    },
+    {
+        "id": "ab87",
+        "content": "Calcula: $2.4 \\div 0.6$",
+        "difficulty": 680,
+        "topic": "Aritmética Básica",
+        "options": [
+            "0.4",
+            "4",
+            "40",
+            "400"
+        ],
+        "correct_option": "4"
+    },
+    {
+        "id": "ab88",
+        "content": "Redondea 12.456 a la centésima más cercana.",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "12.45",
+            "12.46",
+            "12.5",
+            "12.4"
+        ],
+        "correct_option": "12.46"
+    },
+    {
+        "id": "ab89",
+        "content": "Escribe 3.2 × 10^5 en notación decimal.",
+        "difficulty": 740,
+        "topic": "Aritmética Básica",
+        "options": [
+            "3200",
+            "32000",
+            "320000",
+            "3200000"
+        ],
+        "correct_option": "320000"
+    },
+    {
+        "id": "ab90",
+        "content": "¿Cuánto es $\\sqrt{144} - \\sqrt{64}$?",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "4",
+            "8",
+            "12",
+            "20"
+        ],
+        "correct_option": "4"
+    },
+    {
+        "id": "ab91",
+        "content": "Calcula: $2^4 + 3^2$",
+        "difficulty": 700,
+        "topic": "Aritmética Básica",
+        "options": [
+            "17",
+            "25",
+            "41",
+            "52"
+        ],
+        "correct_option": "25"
+    },
+    {
+        "id": "ab92",
+        "content": "¿Cuál es el mínimo común múltiplo de 6 y 8?",
+        "difficulty": 720,
+        "topic": "Aritmética Básica",
+        "options": [
+            "12",
+            "16",
+            "24",
+            "48"
+        ],
+        "correct_option": "24"
+    },
+    {
+        "id": "ab93",
+        "content": "¿Cuál es el máximo común divisor de 36 y 48?",
+        "difficulty": 740,
+        "topic": "Aritmética Básica",
+        "options": [
+            "6",
+            "8",
+            "12",
+            "18"
+        ],
+        "correct_option": "12"
+    },
+    {
+        "id": "ab94",
+        "content": "Un número es divisible por 5 si termina en:",
+        "difficulty": 600,
+        "topic": "Aritmética Básica",
+        "options": [
+            "0 o 5",
+            "0 o 2",
+            "5 o 7",
+            "0 o 10"
+        ],
+        "correct_option": "0 o 5"
+    },
+    {
+        "id": "ab95",
+        "content": "¿Cuál de estos números es divisible por 3?",
+        "difficulty": 640,
+        "topic": "Aritmética Básica",
+        "options": [
+            "124",
+            "233",
+            "342",
+            "451"
+        ],
+        "correct_option": "342"
+    },
+    {
+        "id": "ab96",
+        "content": "Suma: $\\frac{5}{12} + \\frac{3}{8}$",
+        "difficulty": 800,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{19}{24}$",
+            "$\\frac{5}{8}$",
+            "$\\frac{2}{3}$",
+            "$\\frac{7}{12}$"
+        ],
+        "correct_option": "$\\frac{19}{24}$"
+    },
+    {
+        "id": "ab97",
+        "content": "Resta: $\\frac{9}{10} - \\frac{2}{5}$",
+        "difficulty": 720,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{1}{2}$",
+            "$\\frac{3}{5}$",
+            "$\\frac{7}{10}$",
+            "$\\frac{4}{5}$"
+        ],
+        "correct_option": "$\\frac{1}{2}$"
+    },
+    {
+        "id": "ab98",
+        "content": "Multiplica: $\\frac{7}{3} \\times \\frac{6}{14}$",
+        "difficulty": 760,
+        "topic": "Aritmética Básica",
+        "options": [
+            "1",
+            "$\\frac{1}{2}$",
+            "$\\frac{2}{3}$",
+            "$\\frac{3}{2}$"
+        ],
+        "correct_option": "1"
+    },
+    {
+        "id": "ab99",
+        "content": "Divide: $\\frac{8}{15} \\div \\frac{4}{5}$",
+        "difficulty": 760,
+        "topic": "Aritmética Básica",
+        "options": [
+            "$\\frac{2}{3}$",
+            "$\\frac{3}{2}$",
+            "$\\frac{32}{75}$",
+            "$\\frac{75}{32}$"
+        ],
+        "correct_option": "$\\frac{2}{3}$"
+    },
+    {
+        "id": "ab100",
+        "content": "Calcula: $\\sqrt{225}$",
+        "difficulty": 640,
+        "topic": "Aritmética Básica",
+        "options": [
+            "15",
+            "25",
+            "35",
+            "45"
+        ],
+        "correct_option": "15"
+    },
+    {
+        "id": "ab101",
+        "content": "Si $x = 5$, ¿cuánto es $3x + 2$?",
+        "difficulty": 620,
+        "topic": "Aritmética Básica",
+        "options": [
+            "15",
+            "17",
+            "18",
+            "20"
+        ],
+        "correct_option": "17"
+    },
+    {
+        "id": "ab102",
+        "content": "Calcula la raíz cúbica de 125.",
+        "difficulty": 680,
+        "topic": "Aritmética Básica",
+        "options": [
+            "3",
+            "5",
+            "15",
+            "25"
+        ],
+        "correct_option": "5"
+    },
+    {
+        "id": "ab103",
+        "content": "¿Cuál es el valor de $(-2)^4$?",
+        "difficulty": 660,
+        "topic": "Aritmética Básica",
+        "options": [
+            "-16",
+            "-8",
+            "8",
+            "16"
+        ],
+        "correct_option": "16"
     }
 ]

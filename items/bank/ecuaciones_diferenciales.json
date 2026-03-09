@@ -4,7 +4,12 @@
         "content": "Solución general de $y' = 0$.",
         "difficulty": 600,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["$y = C$", "$y = x + C$", "$y = 0$", "$y = Cx$"],
+        "options": [
+            "$y = C$",
+            "$y = x + C$",
+            "$y = 0$",
+            "$y = Cx$"
+        ],
         "correct_option": "$y = C$"
     },
     {
@@ -12,7 +17,12 @@
         "content": "Resolver $y' = y$.",
         "difficulty": 650,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["$y = C e^x$", "$y = C e^{-x}$", "$y = C e^x + D$", "$y = Cx$"],
+        "options": [
+            "$y = C e^x$",
+            "$y = C e^{-x}$",
+            "$y = C e^x + D$",
+            "$y = Cx$"
+        ],
         "correct_option": "$y = C e^x$"
     },
     {
@@ -20,7 +30,12 @@
         "content": "Resolver $y'' = 0$.",
         "difficulty": 700,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["$y = C_1 x + C_2$", "$y = C_1 + C_2$", "$y = C_1 e^x + C_2$", "$y = C_1 \\sin x + C_2 \\cos x$"],
+        "options": [
+            "$y = C_1 x + C_2$",
+            "$y = C_1 + C_2$",
+            "$y = C_1 e^x + C_2$",
+            "$y = C_1 \\sin x + C_2 \\cos x$"
+        ],
         "correct_option": "$y = C_1 x + C_2$"
     },
     {
@@ -28,7 +43,12 @@
         "content": "Orden de la ecuación diferencial $y''' + 2y'' - y = 0$.",
         "difficulty": 750,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["3", "2", "1", "4"],
+        "options": [
+            "3",
+            "2",
+            "1",
+            "4"
+        ],
         "correct_option": "3"
     },
     {
@@ -36,7 +56,12 @@
         "content": "¿Cuál de las siguientes es una EDO lineal?",
         "difficulty": 800,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["$y' + y = 0$", "$y' + y^2 = 0$", "$y' + \\sin y = 0$", "$y y' = 0$"],
+        "options": [
+            "$y' + y = 0$",
+            "$y' + y^2 = 0$",
+            "$y' + \\sin y = 0$",
+            "$y y' = 0$"
+        ],
         "correct_option": "$y' + y = 0$"
     },
     {
@@ -44,15 +69,25 @@
         "content": "Resolver la EDO separable: dy/dx = x/y.",
         "difficulty": 850,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["$y^{2}$ = $x^{2}$ + C", "y = x + C", "y = C$e^{x}$", "y = Cx"],
-        "correct_option": "$y^{2}$ = $x^{2}$ + C"
+        "options": [
+            "$y^{2} = x^{2} + C$",
+            "$y = Ce^{x}$",
+            "$y = x + C$",
+            "$y = Cx$"
+        ],
+        "correct_option": "$y^{2} = x^{2} + C$"
     },
     {
         "id": "q87",
         "content": "Factor integrante para la EDO lineal de primer orden: $y' + P(x)y = Q(x)$.",
         "difficulty": 900,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["$e^{\\int P \\, dx}$", "$e^{\\int Q \\, dx}$", "$\\int P \\, dx$", "$\\int Q \\, dx$"],
+        "options": [
+            "$e^{\\int P \\, dx}$",
+            "$e^{\\int Q \\, dx}$",
+            "$\\int P \\, dx$",
+            "$\\int Q \\, dx$"
+        ],
         "correct_option": "$e^{\\int P \\, dx}$"
     },
     {
@@ -60,7 +95,12 @@
         "content": "Resolver $y' + 2y = e^{-x}$.",
         "difficulty": 950,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["$y = e^{-x} + Ce^{-2x}$", "$y = e^{-2x} + Ce^{-x}$", "$y = e^{-x} + C$", "$y = Ce^{-2x}$"],
+        "options": [
+            "$y = e^{-x} + Ce^{-2x}$",
+            "$y = e^{-2x} + Ce^{-x}$",
+            "$y = e^{-x} + C$",
+            "$y = Ce^{-2x}$"
+        ],
         "correct_option": "$y = e^{-x} + Ce^{-2x}$"
     },
     {
@@ -68,7 +108,12 @@
         "content": "Ecuación característica de $y'' - 3y' + 2y = 0$.",
         "difficulty": 1000,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["$r^2 - 3r + 2 = 0$", "$r^2 + 3r + 2 = 0$", "$r^2 - 3r - 2 = 0$", "$r^2 - 3 = 0$"],
+        "options": [
+            "$r^2 - 3r + 2 = 0$",
+            "$r^2 + 3r + 2 = 0$",
+            "$r^2 - 3r - 2 = 0$",
+            "$r^2 - 3 = 0$"
+        ],
         "correct_option": "$r^2 - 3r + 2 = 0$"
     },
     {
@@ -76,7 +121,12 @@
         "content": "Solución general de $y'' + y = 0$.",
         "difficulty": 1050,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["$y = C_1 \\cos x + C_2 \\sin x$", "$y = C_1 e^x + C_2 e^{-x}$", "$y = C_1 e^{ix} + C_2 e^{-ix}$", "$y = C_1 \\cosh x + C_2 \\sinh x$"],
+        "options": [
+            "$y = C_1 \\cos x + C_2 \\sin x$",
+            "$y = C_1 e^x + C_2 e^{-x}$",
+            "$y = C_1 e^{ix} + C_2 e^{-ix}$",
+            "$y = C_1 \\cosh x + C_2 \\sinh x$"
+        ],
         "correct_option": "$y = C_1 \\cos x + C_2 \\sin x$"
     },
     {
@@ -84,7 +134,12 @@
         "content": "Resolver $y'' - 2y' + y = 0$.",
         "difficulty": 1100,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["$y = (C_1 + C_2 x)e^x$", "$y = C_1 e^x + C_2 e^{-x}$", "$y = C_1 e^{2x} + C_2 e^{-2x}$", "$y = C_1 \\cos x + C_2 \\sin x$"],
+        "options": [
+            "$y = (C_1 + C_2 x)e^x$",
+            "$y = C_1 e^x + C_2 e^{-x}$",
+            "$y = C_1 e^{2x} + C_2 e^{-2x}$",
+            "$y = C_1 \\cos x + C_2 \\sin x$"
+        ],
         "correct_option": "$y = (C_1 + C_2 x)e^x$"
     },
     {
@@ -92,71 +147,116 @@
         "content": "Método de coeficientes indeterminados: solución particular para $y'' + y = \\sin x$.",
         "difficulty": 1150,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["$y_p = -\\frac{x}{2} \\cos x$", "$y_p = A \\sin x$", "$y_p = A \\cos x$", "$y_p = A \\sin x + B \\cos x$"],
+        "options": [
+            "$y_p = -\\frac{x}{2} \\cos x$",
+            "$y_p = A \\sin x$",
+            "$y_p = A \\cos x$",
+            "$y_p = A \\sin x + B \\cos x$"
+        ],
         "correct_option": "$y_p = -\\frac{x}{2} \\cos x$"
     },
     {
         "id": "q93",
-        "content": "Wronskiano de y1 = $e^{x}$, y2 = e^{2x}.",
+        "content": "Wronskiano de $y_1 = e^{x}$, $y_2 = e^{2x}$.",
         "difficulty": 1200,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["e^{3x}", "e^{2x}", "$e^{x}$", "0"],
-        "correct_option": "e^{3x}"
+        "options": [
+            "$e^{x}$",
+            "$e^{3x}$",
+            "$e^{2x}$",
+            "$0$"
+        ],
+        "correct_option": "$e^{3x}$"
     },
     {
         "id": "q94",
-        "content": "Sistema de EDOs: x' = Ax. Si A tiene valores propios complejos λ = a ± bi, la solución involucra:",
+        "content": "Sistema de EDOs: $x' = Ax$. Si $A$ tiene valores propios complejos $\\lambda = a \\pm bi$, la solución involucra:",
         "difficulty": 1250,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["e^{at}(cos bt, sin bt)", "e^{at}", "e^{bt}", "cos at, sin bt"],
-        "correct_option": "e^{at}(cos bt, sin bt)"
+        "options": [
+            "$e^{at}(\\cos bt, \\sin bt)$",
+            "$e^{at}$",
+            "$e^{bt}$",
+            "$\\cos at, \\sin bt$"
+        ],
+        "correct_option": "$e^{at}(\\cos bt, \\sin bt)$"
     },
     {
         "id": "q95",
         "content": "Transformada de Laplace de t.",
         "difficulty": 1300,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["1/$s^{2}$", "1/s", "s", "1"],
-        "correct_option": "1/$s^{2}$"
+        "options": [
+            "1/$s^{2}$",
+            "1/s",
+            "$1/s^{2}$",
+            "1"
+        ],
+        "correct_option": "$1/s^{2}$"
     },
     {
         "id": "q96",
-        "content": "Transformada de Laplace de e^{at}.",
+        "content": "Transformada de Laplace de $e^{at}$.",
         "difficulty": 1350,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["1/(s-a)", "1/(s+a)", "s/($s^{2}$+$a^{2}$)", "a/($s^{2}$+$a^{2}$)"],
-        "correct_option": "1/(s-a)"
+        "options": [
+            "$s/(s^{2}+a^{2})$",
+            "$a/(s^{2}+a^{2})$",
+            "$1/(s-a)$",
+            "$1/(s+a)$"
+        ],
+        "correct_option": "$1/(s-a)$"
     },
     {
         "id": "q97",
-        "content": "Resolver usando Laplace: y' + y = 0, y(0)=1.",
+        "content": "Resolver usando Laplace: $y' + y = 0$, $y(0)=1$.",
         "difficulty": 1400,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["y = e^{-t}", "y = $e^{t}$", "y = 1", "y = cos t"],
-        "correct_option": "y = e^{-t}"
+        "options": [
+            "$y = e^{-t}$",
+            "$y = e^{t}$",
+            "$y = 1$",
+            "$y = \\cos t$"
+        ],
+        "correct_option": "$y = e^{-t}$"
     },
     {
         "id": "q98",
-        "content": "Encuentra la ecuación indicial para la ecuación de Euler-Cauchy: $x^{2}$ y'' + x y' + y = 0.",
+        "content": "Encuentra la ecuación indicial para la ecuación de Euler-Cauchy: $x^{2} y'' + x y' + y = 0$.",
         "difficulty": 1450,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["$r^{2}$ + 1 = 0", "$r^{2}$ - 1 = 0", "$r^{2}$ + r + 1 = 0", "$r^{2}$ - r + 1 = 0"],
-        "correct_option": "$r^{2}$ + 1 = 0"
+        "options": [
+            "$r^{2} + 1 = 0$",
+            "$r^{2} - 1 = 0$",
+            "$r^{2} + r + 1 = 0$",
+            "$r^{2} - r + 1 = 0$"
+        ],
+        "correct_option": "$r^{2} + 1 = 0$"
     },
     {
         "id": "q99",
-        "content": "Plano fase: Para el sistema dx/dt = y, dy/dt = -x, las trayectorias son:",
+        "content": "Plano fase: Para el sistema $dx/dt = y$, $dy/dt = -x$, las trayectorias son:",
         "difficulty": 1500,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["Círculos", "Elipses", "Hipérbolas", "Rectas"],
+        "options": [
+            "Círculos",
+            "Elipses",
+            "Hipérbolas",
+            "Rectas"
+        ],
         "correct_option": "Círculos"
     },
     {
         "id": "q100",
-        "content": "Estabilidad: Para y' = y(1-y), el equilibrio en y=1 es:",
+        "content": "Estabilidad: Para $y' = y(1-y)$, el equilibrio en $y=1$ es:",
         "difficulty": 1550,
         "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": ["Asintóticamente estable", "Inestable", "Semiestable", "Estable pero no asintóticamente"],
+        "options": [
+            "Asintóticamente estable",
+            "Inestable",
+            "Semiestable",
+            "Estable pero no asintóticamente"
+        ],
         "correct_option": "Asintóticamente estable"
     }
 ]

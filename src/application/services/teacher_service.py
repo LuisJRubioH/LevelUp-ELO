@@ -23,8 +23,7 @@ class TeacherService:
             return False, "El nombre del grupo no puede estar vacío."
         if not course_id:
             return False, "Debes seleccionar un curso."
-        self.repository.create_group(group_name, teacher_id, course_id)
-        return True, f"Grupo '{group_name}' creado exitosamente."
+        return self.repository.create_group(group_name, teacher_id, course_id)
 
     def get_teacher_groups(self, teacher_id: int) -> list:
         """Devuelve los grupos del profesor con información del curso asociado."""

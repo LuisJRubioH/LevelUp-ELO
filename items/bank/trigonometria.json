@@ -4,7 +4,12 @@
         "content": "Un triángulo rectángulo tiene catetos de longitud $3$ y $4$. ¿Cuánto mide su hipotenusa?",
         "difficulty": 650,
         "topic": "Trigonometría",
-        "options": ["$5$", "$6$", "$7$", "$\\sqrt{7}$"],
+        "options": [
+            "$5$",
+            "$6$",
+            "$7$",
+            "$\\sqrt{7}$"
+        ],
         "correct_option": "$5$"
     },
     {
@@ -12,7 +17,12 @@
         "content": "¿Cuál es el valor exacto de $\\sin(30°)$?",
         "difficulty": 700,
         "topic": "Trigonometría",
-        "options": ["$\\dfrac{\\sqrt{3}}{2}$", "$\\dfrac{1}{2}$", "$1$", "$\\dfrac{\\sqrt{2}}{2}$"],
+        "options": [
+            "$\\dfrac{\\sqrt{3}}{2}$",
+            "$\\dfrac{1}{2}$",
+            "$1$",
+            "$\\dfrac{\\sqrt{2}}{2}$"
+        ],
         "correct_option": "$\\dfrac{1}{2}$"
     },
     {
@@ -20,7 +30,1312 @@
         "content": "En un triángulo rectángulo, la hipotenusa mide $10$ y uno de los catetos mide $6$. ¿Cuánto mide el otro cateto?",
         "difficulty": 800,
         "topic": "Trigonometría",
-        "options": ["$4$", "$6$", "$8$", "$\\sqrt{64}$"],
+        "options": [
+            "$4$",
+            "$6$",
+            "$8$",
+            "$\\sqrt{64}$"
+        ],
         "correct_option": "$8$"
+    },
+    {
+        "id": "trig4",
+        "content": "En un triángulo rectángulo, los catetos miden $5$ y $12$. ¿Cuánto mide la hipotenusa?",
+        "difficulty": 620,
+        "topic": "Trigonometría",
+        "options": [
+            "$10$",
+            "$13$",
+            "$15$",
+            "$17$"
+        ],
+        "correct_option": "$13$"
+    },
+    {
+        "id": "trig5",
+        "content": "¿Cuál es el valor exacto de $\\cos(60°)$?",
+        "difficulty": 640,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{1}{2}$",
+            "$\\dfrac{\\sqrt{3}}{2}$",
+            "$\\dfrac{\\sqrt{2}}{2}$",
+            "$1$"
+        ],
+        "correct_option": "$\\dfrac{1}{2}$"
+    },
+    {
+        "id": "trig6",
+        "content": "Calcula $\\tan(45°)$.",
+        "difficulty": 620,
+        "topic": "Trigonometría",
+        "options": [
+            "$0$",
+            "$\\dfrac{1}{2}$",
+            "$1$",
+            "$\\sqrt{3}$"
+        ],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "trig7",
+        "content": "Si $\\sin(\\theta) = \\dfrac{3}{5}$ y $\\theta$ es un ángulo agudo, ¿cuánto vale $\\cos(\\theta)$?",
+        "difficulty": 750,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{4}{5}$",
+            "$\\dfrac{2}{5}$",
+            "$\\dfrac{1}{5}$",
+            "$\\dfrac{3}{4}$"
+        ],
+        "correct_option": "$\\dfrac{4}{5}$"
+    },
+    {
+        "id": "trig8",
+        "content": "Un árbol proyecta una sombra de $10$ m cuando el ángulo de elevación del sol es de $30°$. ¿Cuál es la altura aproximada del árbol?",
+        "difficulty": 820,
+        "topic": "Trigonometría",
+        "options": [
+            "$5.77$ m",
+            "$8.66$ m",
+            "$10$ m",
+            "$17.32$ m"
+        ],
+        "correct_option": "$5.77$ m"
+    },
+    {
+        "id": "trig9",
+        "content": "Expresa $120°$ en radianes.",
+        "difficulty": 700,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{\\pi}{3}$",
+            "$\\dfrac{2\\pi}{3}$",
+            "$\\dfrac{4\\pi}{3}$",
+            "$\\dfrac{5\\pi}{3}$"
+        ],
+        "correct_option": "$\\dfrac{2\\pi}{3}$"
+    },
+    {
+        "id": "trig10",
+        "content": "¿Cuál es el valor de $\\sin(90°)$?",
+        "difficulty": 600,
+        "topic": "Trigonometría",
+        "options": [
+            "$0$",
+            "$\\dfrac{1}{2}$",
+            "$1$",
+            "$\\sqrt{2}$"
+        ],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "trig11",
+        "content": "Simplifica: $\\sin^2(x) + \\cos^2(x)$",
+        "difficulty": 650,
+        "topic": "Trigonometría",
+        "options": [
+            "$0$",
+            "$1$",
+            "$\\sin(x)\\cos(x)$",
+            "$\\tan(x)$"
+        ],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "trig12",
+        "content": "Si $\\cos(\\theta) = \\dfrac{1}{2}$, ¿cuál es un posible valor de $\\theta$ en grados?",
+        "difficulty": 680,
+        "topic": "Trigonometría",
+        "options": [
+            "$30°$",
+            "$45°$",
+            "$60°$",
+            "$90°$"
+        ],
+        "correct_option": "$60°$"
+    },
+    {
+        "id": "trig13",
+        "content": "En un triángulo rectángulo, la hipotenusa mide $2$ y un cateto mide $\\sqrt{3}$. ¿Cuánto mide el otro cateto?",
+        "difficulty": 720,
+        "topic": "Trigonometría",
+        "options": [
+            "$1$",
+            "$\\sqrt{2}$",
+            "$\\sqrt{3}$",
+            "$2$"
+        ],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "trig14",
+        "content": "Calcula $\\sec(60°)$.",
+        "difficulty": 740,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{1}{2}$",
+            "$2$",
+            "$\\dfrac{\\sqrt{3}}{2}$",
+            "$\\dfrac{2\\sqrt{3}}{3}$"
+        ],
+        "correct_option": "$2$"
+    },
+    {
+        "id": "trig15",
+        "content": "¿Cuál es el valor de $\\sin(150°)$?",
+        "difficulty": 780,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{1}{2}$",
+            "$-\\dfrac{1}{2}$",
+            "$\\dfrac{\\sqrt{3}}{2}$",
+            "$-\\dfrac{\\sqrt{3}}{2}$"
+        ],
+        "correct_option": "$\\dfrac{1}{2}$"
+    },
+    {
+        "id": "trig16",
+        "content": "Convierte $\\dfrac{\\pi}{4}$ radianes a grados.",
+        "difficulty": 660,
+        "topic": "Trigonometría",
+        "options": [
+            "$30°$",
+            "$45°$",
+            "$60°$",
+            "$90°$"
+        ],
+        "correct_option": "$45°$"
+    },
+    {
+        "id": "trig17",
+        "content": "Si $\\tan(\\theta) = 1$, ¿cuánto vale $\\theta$ en grados (para el ángulo agudo)?",
+        "difficulty": 640,
+        "topic": "Trigonometría",
+        "options": [
+            "$30°$",
+            "$45°$",
+            "$60°$",
+            "$90°$"
+        ],
+        "correct_option": "$45°$"
+    },
+    {
+        "id": "trig18",
+        "content": "Un poste de $6$ m de altura produce una sombra de $6$ m. ¿Cuál es el ángulo de elevación del sol?",
+        "difficulty": 760,
+        "topic": "Trigonometría",
+        "options": [
+            "$30°$",
+            "$45°$",
+            "$60°$",
+            "$75°$"
+        ],
+        "correct_option": "$45°$"
+    },
+    {
+        "id": "trig19",
+        "content": "Calcula $\\csc(30°)$.",
+        "difficulty": 740,
+        "topic": "Trigonometría",
+        "options": [
+            "$2$",
+            "$\\dfrac{2\\sqrt{3}}{3}$",
+            "$\\sqrt{2}$",
+            "$\\dfrac{1}{2}$"
+        ],
+        "correct_option": "$2$"
+    },
+    {
+        "id": "trig20",
+        "content": "¿Cuál es el signo de $\\cos(120°)$?",
+        "difficulty": 700,
+        "topic": "Trigonometría",
+        "options": [
+            "Positivo",
+            "Negativo",
+            "Cero",
+            "No está definido"
+        ],
+        "correct_option": "Negativo"
+    },
+    {
+        "id": "trig21",
+        "content": "Resuelve para $x$: $\\sin(x) = \\dfrac{\\sqrt{3}}{2}$ para $0° \\leq x \\leq 90°$.",
+        "difficulty": 720,
+        "topic": "Trigonometría",
+        "options": [
+            "$30°$",
+            "$45°$",
+            "$60°$",
+            "$90°$"
+        ],
+        "correct_option": "$60°$"
+    },
+    {
+        "id": "trig22",
+        "content": "Una escalera de $5$ m está apoyada en una pared formando un ángulo de $60°$ con el suelo. ¿A qué altura llega la escalera?",
+        "difficulty": 800,
+        "topic": "Trigonometría",
+        "options": [
+            "$2.5$ m",
+            "$4.33$ m",
+            "$5$ m",
+            "$10$ m"
+        ],
+        "correct_option": "$4.33$ m"
+    },
+    {
+        "id": "trig23",
+        "content": "Expresa $\\dfrac{3\\pi}{2}$ radianes en grados.",
+        "difficulty": 680,
+        "topic": "Trigonometría",
+        "options": [
+            "$90°$",
+            "$180°$",
+            "$270°$",
+            "$360°$"
+        ],
+        "correct_option": "$270°$"
+    },
+    {
+        "id": "trig24",
+        "content": "¿Cuál es el valor de $\\cos(180°)$?",
+        "difficulty": 620,
+        "topic": "Trigonometría",
+        "options": [
+            "$0$",
+            "$1$",
+            "$-1$",
+            "$\\dfrac{1}{2}$"
+        ],
+        "correct_option": "$-1$"
+    },
+    {
+        "id": "trig25",
+        "content": "Simplifica: $\\tan(x) \\cdot \\cos(x)$",
+        "difficulty": 740,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\sin(x)$",
+            "$\\cos(x)$",
+            "$\\sec(x)$",
+            "$\\csc(x)$"
+        ],
+        "correct_option": "$\\sin(x)$"
+    },
+    {
+        "id": "trig26",
+        "content": "Si $\\sin(\\theta) = \\dfrac{12}{13}$ y $\\theta$ es agudo, halla $\\tan(\\theta)$.",
+        "difficulty": 780,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{5}{12}$",
+            "$\\dfrac{12}{5}$",
+            "$\\dfrac{13}{12}$",
+            "$\\dfrac{5}{13}$"
+        ],
+        "correct_option": "$\\dfrac{12}{5}$"
+    },
+    {
+        "id": "trig27",
+        "content": "Calcula la longitud del arco de un círculo de radio $4$ cm con ángulo central de $60°$.",
+        "difficulty": 820,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{4\\pi}{3}$ cm",
+            "$\\dfrac{2\\pi}{3}$ cm",
+            "$\\dfrac{\\pi}{3}$ cm",
+            "$\\dfrac{8\\pi}{3}$ cm"
+        ],
+        "correct_option": "$\\dfrac{4\\pi}{3}$ cm"
+    },
+    {
+        "id": "trig28",
+        "content": "¿Cuál es el valor de $\\sin(270°)$?",
+        "difficulty": 660,
+        "topic": "Trigonometría",
+        "options": [
+            "$0$",
+            "$1$",
+            "$-1$",
+            "$\\dfrac{1}{2}$"
+        ],
+        "correct_option": "$-1$"
+    },
+    {
+        "id": "trig29",
+        "content": "En un triángulo rectángulo, un ángulo agudo mide $30°$ y la hipotenusa mide $10$. ¿Cuánto mide el cateto opuesto?",
+        "difficulty": 720,
+        "topic": "Trigonometría",
+        "options": [
+            "$5$",
+            "$5\\sqrt{3}$",
+            "$10$",
+            "$\\dfrac{10}{\\sqrt{3}}$"
+        ],
+        "correct_option": "$5$"
+    },
+    {
+        "id": "trig30",
+        "content": "Expresa $\\sin(\\pi - x)$ en términos de $\\sin(x)$ o $\\cos(x)$.",
+        "difficulty": 840,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\sin(x)$",
+            "$-\\sin(x)$",
+            "$\\cos(x)$",
+            "$-\\cos(x)$"
+        ],
+        "correct_option": "$\\sin(x)$"
+    },
+    {
+        "id": "trig31",
+        "content": "Calcula $\\cot(45°)$.",
+        "difficulty": 660,
+        "topic": "Trigonometría",
+        "options": [
+            "$0$",
+            "$1$",
+            "$\\sqrt{3}$",
+            "$\\dfrac{\\sqrt{3}}{3}$"
+        ],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "trig32",
+        "content": "Si $\\cos(\\theta) = -\\dfrac{1}{2}$ y $\\theta$ está en el segundo cuadrante, ¿cuánto vale $\\sin(\\theta)$?",
+        "difficulty": 860,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{\\sqrt{3}}{2}$",
+            "$-\\dfrac{\\sqrt{3}}{2}$",
+            "$\\dfrac{1}{2}$",
+            "$-\\dfrac{1}{2}$"
+        ],
+        "correct_option": "$\\dfrac{\\sqrt{3}}{2}$"
+    },
+    {
+        "id": "trig33",
+        "content": "Un observador ve la cima de una montaña con un ángulo de elevación de $45°$ desde un punto a $500$ m de la base. ¿Cuál es la altura de la montaña?",
+        "difficulty": 760,
+        "topic": "Trigonometría",
+        "options": [
+            "$250$ m",
+            "$500$ m",
+            "$707$ m",
+            "$1000$ m"
+        ],
+        "correct_option": "$500$ m"
+    },
+    {
+        "id": "trig34",
+        "content": "Convierte $\\dfrac{5\\pi}{6}$ radianes a grados.",
+        "difficulty": 680,
+        "topic": "Trigonometría",
+        "options": [
+            "$120°$",
+            "$135°$",
+            "$150°$",
+            "$165°$"
+        ],
+        "correct_option": "$150°$"
+    },
+    {
+        "id": "trig35",
+        "content": "¿Cuál es el período de la función $y = \\sin(2x)$?",
+        "difficulty": 820,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\pi$",
+            "$2\\pi$",
+            "$\\dfrac{\\pi}{2}$",
+            "$4\\pi$"
+        ],
+        "correct_option": "$\\pi$"
+    },
+    {
+        "id": "trig36",
+        "content": "Simplifica: $\\dfrac{\\sin(x)}{\\cos(x)}$",
+        "difficulty": 600,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\tan(x)$",
+            "$\\cot(x)$",
+            "$\\sec(x)$",
+            "$\\csc(x)$"
+        ],
+        "correct_option": "$\\tan(x)$"
+    },
+    {
+        "id": "trig37",
+        "content": "Halla el valor de $\\cos(240°)$.",
+        "difficulty": 780,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{1}{2}$",
+            "$-\\dfrac{1}{2}$",
+            "$\\dfrac{\\sqrt{3}}{2}$",
+            "$-\\dfrac{\\sqrt{3}}{2}$"
+        ],
+        "correct_option": "$-\\dfrac{1}{2}$"
+    },
+    {
+        "id": "trig38",
+        "content": "Si $\\tan(\\theta) = \\dfrac{3}{4}$ y $\\theta$ es agudo, halla $\\sin(\\theta)$.",
+        "difficulty": 800,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{3}{5}$",
+            "$\\dfrac{4}{5}$",
+            "$\\dfrac{3}{4}$",
+            "$\\dfrac{5}{3}$"
+        ],
+        "correct_option": "$\\dfrac{3}{5}$"
+    },
+    {
+        "id": "trig39",
+        "content": "Una torre de $20$ m de altura proyecta una sombra de $20\\sqrt{3}$ m. ¿Cuál es el ángulo de elevación del sol?",
+        "difficulty": 820,
+        "topic": "Trigonometría",
+        "options": [
+            "$30°$",
+            "$45°$",
+            "$60°$",
+            "$75°$"
+        ],
+        "correct_option": "$30°$"
+    },
+    {
+        "id": "trig40",
+        "content": "Expresa $\\cos(\\pi + x)$ en términos de $\\sin(x)$ o $\\cos(x)$.",
+        "difficulty": 840,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\cos(x)$",
+            "$-\\cos(x)$",
+            "$\\sin(x)$",
+            "$-\\sin(x)$"
+        ],
+        "correct_option": "$-\\cos(x)$"
+    },
+    {
+        "id": "trig41",
+        "content": "Calcula $\\sin(\\dfrac{\\pi}{3})$.",
+        "difficulty": 640,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{1}{2}$",
+            "$\\dfrac{\\sqrt{3}}{2}$",
+            "$\\dfrac{\\sqrt{2}}{2}$",
+            "$1$"
+        ],
+        "correct_option": "$\\dfrac{\\sqrt{3}}{2}$"
+    },
+    {
+        "id": "trig42",
+        "content": "¿Cuál es la amplitud de la función $y = 3\\cos(x)$?",
+        "difficulty": 700,
+        "topic": "Trigonometría",
+        "options": [
+            "$1$",
+            "$3$",
+            "$\\dfrac{1}{3}$",
+            "$\\pi$"
+        ],
+        "correct_option": "$3$"
+    },
+    {
+        "id": "trig43",
+        "content": "Resuelve para $x$ en $[0, 2\\pi]$: $\\cos(x) = \\dfrac{\\sqrt{2}}{2}$.",
+        "difficulty": 800,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{\\pi}{4}$ y $\\dfrac{7\\pi}{4}$",
+            "$\\dfrac{\\pi}{4}$ y $\\dfrac{3\\pi}{4}$",
+            "$\\dfrac{\\pi}{6}$ y $\\dfrac{11\\pi}{6}$",
+            "$\\dfrac{\\pi}{3}$ y $\\dfrac{5\\pi}{3}$"
+        ],
+        "correct_option": "$\\dfrac{\\pi}{4}$ y $\\dfrac{7\\pi}{4}$"
+    },
+    {
+        "id": "trig44",
+        "content": "Un triángulo tiene lados $a=7$, $b=8$ y $c=9$. Calcula el coseno del ángulo opuesto al lado $a$ usando la ley del coseno.",
+        "difficulty": 950,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{2}{3}$",
+            "$\\dfrac{1}{3}$",
+            "$\\dfrac{4}{9}$",
+            "$\\dfrac{5}{9}$"
+        ],
+        "correct_option": "$\\dfrac{2}{3}$"
+    },
+    {
+        "id": "trig45",
+        "content": "Convierte $210°$ a radianes.",
+        "difficulty": 700,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{5\\pi}{6}$",
+            "$\\dfrac{7\\pi}{6}$",
+            "$\\dfrac{4\\pi}{3}$",
+            "$\\dfrac{5\\pi}{3}$"
+        ],
+        "correct_option": "$\\dfrac{7\\pi}{6}$"
+    },
+    {
+        "id": "trig46",
+        "content": "¿Cuál es el valor de $\\tan(120°)$?",
+        "difficulty": 760,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\sqrt{3}$",
+            "$-\\sqrt{3}$",
+            "$\\dfrac{1}{\\sqrt{3}}$",
+            "$-\\dfrac{1}{\\sqrt{3}}$"
+        ],
+        "correct_option": "$-\\sqrt{3}$"
+    },
+    {
+        "id": "trig47",
+        "content": "Simplifica: $\\sin(\\dfrac{\\pi}{2} - x)$",
+        "difficulty": 740,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\sin(x)$",
+            "$\\cos(x)$",
+            "$-\\sin(x)$",
+            "$-\\cos(x)$"
+        ],
+        "correct_option": "$\\cos(x)$"
+    },
+    {
+        "id": "trig48",
+        "content": "Un barco navega $15$ km hacia el este y luego $8$ km hacia el norte. ¿A qué distancia está del punto de partida?",
+        "difficulty": 700,
+        "topic": "Trigonometría",
+        "options": [
+            "$17$ km",
+            "$23$ km",
+            "$7$ km",
+            "$\\sqrt{289}$ km"
+        ],
+        "correct_option": "$17$ km"
+    },
+    {
+        "id": "trig49",
+        "content": "Halla $\\csc(\\dfrac{\\pi}{6})$.",
+        "difficulty": 720,
+        "topic": "Trigonometría",
+        "options": [
+            "$2$",
+            "$\\dfrac{2\\sqrt{3}}{3}$",
+            "$\\sqrt{2}$",
+            "$\\dfrac{1}{2}$"
+        ],
+        "correct_option": "$2$"
+    },
+    {
+        "id": "trig50",
+        "content": "Si $\\sin(\\theta) = \\dfrac{4}{5}$ y $\\theta$ está en el segundo cuadrante, halla $\\cos(\\theta)$.",
+        "difficulty": 820,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{3}{5}$",
+            "$-\\dfrac{3}{5}$",
+            "$\\dfrac{4}{3}$",
+            "$-\\dfrac{4}{3}$"
+        ],
+        "correct_option": "$-\\dfrac{3}{5}$"
+    },
+    {
+        "id": "trig51",
+        "content": "Calcula la longitud de la hipotenusa de un triángulo rectángulo con catetos $1$ y $\\sqrt{3}$.",
+        "difficulty": 680,
+        "topic": "Trigonometría",
+        "options": [
+            "$2$",
+            "$\\sqrt{2}$",
+            "$\\sqrt{3}$",
+            "$\\sqrt{10}$"
+        ],
+        "correct_option": "$2$"
+    },
+    {
+        "id": "trig52",
+        "content": "Expresa $\\tan(\\pi - x)$ en términos de $\\tan(x)$.",
+        "difficulty": 800,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\tan(x)$",
+            "$-\\tan(x)$",
+            "$\\cot(x)$",
+            "$-\\cot(x)$"
+        ],
+        "correct_option": "$-\\tan(x)$"
+    },
+    {
+        "id": "trig53",
+        "content": "¿Cuál es el valor de $\\cos(\\dfrac{5\\pi}{4})$?",
+        "difficulty": 780,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{\\sqrt{2}}{2}$",
+            "$-\\dfrac{\\sqrt{2}}{2}$",
+            "$\\dfrac{1}{2}$",
+            "$-\\dfrac{1}{2}$"
+        ],
+        "correct_option": "$-\\dfrac{\\sqrt{2}}{2}$"
+    },
+    {
+        "id": "trig54",
+        "content": "Un avión despega con un ángulo de $15°$ y recorre $2000$ m en línea recta. ¿A qué altura se encuentra?",
+        "difficulty": 840,
+        "topic": "Trigonometría",
+        "options": [
+            "$517.6$ m",
+            "$1931.8$ m",
+            "$2000$ m",
+            "$500$ m"
+        ],
+        "correct_option": "$517.6$ m"
+    },
+    {
+        "id": "trig55",
+        "content": "Convierte $\\dfrac{11\\pi}{6}$ radianes a grados.",
+        "difficulty": 680,
+        "topic": "Trigonometría",
+        "options": [
+            "$300°$",
+            "$315°$",
+            "$330°$",
+            "$345°$"
+        ],
+        "correct_option": "$330°$"
+    },
+    {
+        "id": "trig56",
+        "content": "Simplifica: $1 - \\sin^2(x)$",
+        "difficulty": 660,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\cos^2(x)$",
+            "$\\sin^2(x)$",
+            "$\\tan^2(x)$",
+            "$\\sec^2(x)$"
+        ],
+        "correct_option": "$\\cos^2(x)$"
+    },
+    {
+        "id": "trig57",
+        "content": "Halla $\\sec(\\dfrac{\\pi}{4})$.",
+        "difficulty": 720,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\sqrt{2}$",
+            "$\\dfrac{\\sqrt{2}}{2}$",
+            "$2$",
+            "$\\dfrac{2\\sqrt{3}}{3}$"
+        ],
+        "correct_option": "$\\sqrt{2}$"
+    },
+    {
+        "id": "trig58",
+        "content": "Si $\\cos(\\theta) = -\\dfrac{\\sqrt{3}}{2}$ y $\\theta$ está en el tercer cuadrante, halla $\\sin(\\theta)$.",
+        "difficulty": 860,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{1}{2}$",
+            "$-\\dfrac{1}{2}$",
+            "$\\dfrac{\\sqrt{3}}{2}$",
+            "$-\\dfrac{\\sqrt{3}}{2}$"
+        ],
+        "correct_option": "$-\\dfrac{1}{2}$"
+    },
+    {
+        "id": "trig59",
+        "content": "Una persona camina $4$ km hacia el norte y luego $3$ km hacia el oeste. ¿Cuál es su distancia al punto de partida?",
+        "difficulty": 700,
+        "topic": "Trigonometría",
+        "options": [
+            "$5$ km",
+            "$7$ km",
+            "$1$ km",
+            "$12$ km"
+        ],
+        "correct_option": "$5$ km"
+    },
+    {
+        "id": "trig60",
+        "content": "Calcula $\\sin(\\dfrac{7\\pi}{6})$.",
+        "difficulty": 760,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{1}{2}$",
+            "$-\\dfrac{1}{2}$",
+            "$\\dfrac{\\sqrt{3}}{2}$",
+            "$-\\dfrac{\\sqrt{3}}{2}$"
+        ],
+        "correct_option": "$-\\dfrac{1}{2}$"
+    },
+    {
+        "id": "trig61",
+        "content": "Resuelve para $x$ en $[0, 2\\pi]$: $\\sin(x) = -\\dfrac{\\sqrt{3}}{2}$.",
+        "difficulty": 820,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{4\\pi}{3}$ y $\\dfrac{5\\pi}{3}$",
+            "$\\dfrac{2\\pi}{3}$ y $\\dfrac{4\\pi}{3}$",
+            "$\\dfrac{5\\pi}{3}$ y $\\dfrac{11\\pi}{6}$",
+            "$\\dfrac{\\pi}{3}$ y $\\dfrac{2\\pi}{3}$"
+        ],
+        "correct_option": "$\\dfrac{4\\pi}{3}$ y $\\dfrac{5\\pi}{3}$"
+    },
+    {
+        "id": "trig62",
+        "content": "Un triángulo tiene ángulos $A=40°$, $B=60°$ y lado $a=10$. Usa la ley de senos para hallar el lado $b$.",
+        "difficulty": 950,
+        "topic": "Trigonometría",
+        "options": [
+            "$13.47$",
+            "$15.32$",
+            "$12.86$",
+            "$14.34$"
+        ],
+        "correct_option": "$13.47$"
+    },
+    {
+        "id": "trig63",
+        "content": "Expresa $\\cos(\\dfrac{3\\pi}{2} + x)$ en términos de $\\sin(x)$ o $\\cos(x)$.",
+        "difficulty": 880,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\sin(x)$",
+            "$-\\sin(x)$",
+            "$\\cos(x)$",
+            "$-\\cos(x)$"
+        ],
+        "correct_option": "$\\sin(x)$"
+    },
+    {
+        "id": "trig64",
+        "content": "¿Cuál es el rango de la función $y = \\cos(x)$?",
+        "difficulty": 700,
+        "topic": "Trigonometría",
+        "options": [
+            "$[-1, 1]$",
+            "$(-1, 1)$",
+            "$[0, 1]$",
+            "$(-\\infty, \\infty)$"
+        ],
+        "correct_option": "$[-1, 1]$"
+    },
+    {
+        "id": "trig65",
+        "content": "Halla $\\cot(\\dfrac{\\pi}{3})$.",
+        "difficulty": 720,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{1}{\\sqrt{3}}$",
+            "$\\sqrt{3}$",
+            "$\\dfrac{\\sqrt{3}}{3}$",
+            "$1$"
+        ],
+        "correct_option": "$\\dfrac{1}{\\sqrt{3}}$"
+    },
+    {
+        "id": "trig66",
+        "content": "Si $\\tan(\\theta) = -1$ y $\\theta$ está en el cuarto cuadrante, halla $\\sin(\\theta)$.",
+        "difficulty": 840,
+        "topic": "Trigonometría",
+        "options": [
+            "$-\\dfrac{\\sqrt{2}}{2}$",
+            "$\\dfrac{\\sqrt{2}}{2}$",
+            "$-\\dfrac{1}{2}$",
+            "$\\dfrac{1}{2}$"
+        ],
+        "correct_option": "$-\\dfrac{\\sqrt{2}}{2}$"
+    },
+    {
+        "id": "trig67",
+        "content": "Un cable de $10$ m está sujeto a una torre y forma un ángulo de $30°$ con el suelo. ¿A qué altura está sujeto?",
+        "difficulty": 740,
+        "topic": "Trigonometría",
+        "options": [
+            "$5$ m",
+            "$8.66$ m",
+            "$10$ m",
+            "$20$ m"
+        ],
+        "correct_option": "$5$ m"
+    },
+    {
+        "id": "trig68",
+        "content": "Convierte $300°$ a radianes.",
+        "difficulty": 680,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{5\\pi}{3}$",
+            "$\\dfrac{4\\pi}{3}$",
+            "$\\dfrac{7\\pi}{4}$",
+            "$\\dfrac{11\\pi}{6}$"
+        ],
+        "correct_option": "$\\dfrac{5\\pi}{3}$"
+    },
+    {
+        "id": "trig69",
+        "content": "Simplifica: $\\cos^2(x) - \\sin^2(x)$",
+        "difficulty": 780,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\cos(2x)$",
+            "$\\sin(2x)$",
+            "$1$",
+            "$\\tan(2x)$"
+        ],
+        "correct_option": "$\\cos(2x)$"
+    },
+    {
+        "id": "trig70",
+        "content": "Calcula $\\sin(315°)$.",
+        "difficulty": 760,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{\\sqrt{2}}{2}$",
+            "$-\\dfrac{\\sqrt{2}}{2}$",
+            "$\\dfrac{1}{2}$",
+            "$-\\dfrac{1}{2}$"
+        ],
+        "correct_option": "$-\\dfrac{\\sqrt{2}}{2}$"
+    },
+    {
+        "id": "trig71",
+        "content": "Un triángulo tiene lados $a=5$, $b=6$ y $c=7$. Usa la ley del coseno para hallar el ángulo $C$ (opuesto a $c$).",
+        "difficulty": 1000,
+        "topic": "Trigonometría",
+        "options": [
+            "$78.46°$",
+            "$60°$",
+            "$45°$",
+            "$90°$"
+        ],
+        "correct_option": "$78.46°$"
+    },
+    {
+        "id": "trig72",
+        "content": "Expresa $\\sin(\\pi + x)$ en términos de $\\sin(x)$.",
+        "difficulty": 800,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\sin(x)$",
+            "$-\\sin(x)$",
+            "$\\cos(x)$",
+            "$-\\cos(x)$"
+        ],
+        "correct_option": "$-\\sin(x)$"
+    },
+    {
+        "id": "trig73",
+        "content": "Halla el valor de $\\tan(\\dfrac{5\\pi}{4})$.",
+        "difficulty": 780,
+        "topic": "Trigonometría",
+        "options": [
+            "$1$",
+            "$-1$",
+            "$\\sqrt{3}$",
+            "$-\\sqrt{3}$"
+        ],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "trig74",
+        "content": "Si $\\sec(\\theta) = 2$, halla $\\cos(\\theta)$.",
+        "difficulty": 700,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{1}{2}$",
+            "$2$",
+            "$\\dfrac{\\sqrt{3}}{2}$",
+            "$\\dfrac{2\\sqrt{3}}{3}$"
+        ],
+        "correct_option": "$\\dfrac{1}{2}$"
+    },
+    {
+        "id": "trig75",
+        "content": "Una escalera de $6$ m está apoyada en una pared a $5$ m de altura. ¿Qué ángulo forma con el suelo?",
+        "difficulty": 800,
+        "topic": "Trigonometría",
+        "options": [
+            "$33.56°$",
+            "$45°$",
+            "$56.44°$",
+            "$60°$"
+        ],
+        "correct_option": "$56.44°$"
+    },
+    {
+        "id": "trig76",
+        "content": "Convierte $\\dfrac{7\\pi}{4}$ radianes a grados.",
+        "difficulty": 680,
+        "topic": "Trigonometría",
+        "options": [
+            "$315°$",
+            "$300°$",
+            "$330°$",
+            "$345°$"
+        ],
+        "correct_option": "$315°$"
+    },
+    {
+        "id": "trig77",
+        "content": "Simplifica: $\\dfrac{1}{\\cos(x)}$",
+        "difficulty": 600,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\sec(x)$",
+            "$\\csc(x)$",
+            "$\\tan(x)$",
+            "$\\cot(x)$"
+        ],
+        "correct_option": "$\\sec(x)$"
+    },
+    {
+        "id": "trig78",
+        "content": "Calcula $\\cos(\\dfrac{4\\pi}{3})$.",
+        "difficulty": 760,
+        "topic": "Trigonometría",
+        "options": [
+            "$-\\dfrac{1}{2}$",
+            "$\\dfrac{1}{2}$",
+            "$-\\dfrac{\\sqrt{3}}{2}$",
+            "$\\dfrac{\\sqrt{3}}{2}$"
+        ],
+        "correct_option": "$-\\dfrac{1}{2}$"
+    },
+    {
+        "id": "trig79",
+        "content": "Resuelve para $x$ en $[0, 2\\pi]$: $\\tan(x) = \\sqrt{3}$.",
+        "difficulty": 800,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{\\pi}{3}$ y $\\dfrac{4\\pi}{3}$",
+            "$\\dfrac{\\pi}{6}$ y $\\dfrac{7\\pi}{6}$",
+            "$\\dfrac{\\pi}{4}$ y $\\dfrac{5\\pi}{4}$",
+            "$\\dfrac{2\\pi}{3}$ y $\\dfrac{5\\pi}{3}$"
+        ],
+        "correct_option": "$\\dfrac{\\pi}{3}$ y $\\dfrac{4\\pi}{3}$"
+    },
+    {
+        "id": "trig80",
+        "content": "Un árbol de $8$ m proyecta una sombra de $6$ m. ¿Cuál es el ángulo de elevación del sol?",
+        "difficulty": 780,
+        "topic": "Trigonometría",
+        "options": [
+            "$53.13°$",
+            "$36.87°$",
+            "$45°$",
+            "$60°$"
+        ],
+        "correct_option": "$53.13°$"
+    },
+    {
+        "id": "trig81",
+        "content": "Expresa $\\sin(2x)$ en términos de $\\sin(x)$ y $\\cos(x)$.",
+        "difficulty": 820,
+        "topic": "Trigonometría",
+        "options": [
+            "$2\\sin(x)\\cos(x)$",
+            "$\\sin^2(x) - \\cos^2(x)$",
+            "$\\cos^2(x) - \\sin^2(x)$",
+            "$2\\cos^2(x) - 1$"
+        ],
+        "correct_option": "$2\\sin(x)\\cos(x)$"
+    },
+    {
+        "id": "trig82",
+        "content": "Halla $\\csc(\\dfrac{2\\pi}{3})$.",
+        "difficulty": 760,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{2\\sqrt{3}}{3}$",
+            "$\\sqrt{3}$",
+            "$2$",
+            "$\\dfrac{1}{2}$"
+        ],
+        "correct_option": "$\\dfrac{2\\sqrt{3}}{3}$"
+    },
+    {
+        "id": "trig83",
+        "content": "Si $\\sin(\\theta) = -\\dfrac{1}{2}$ y $\\theta$ está en el cuarto cuadrante, halla $\\tan(\\theta)$.",
+        "difficulty": 840,
+        "topic": "Trigonometría",
+        "options": [
+            "$-\\dfrac{1}{\\sqrt{3}}$",
+            "$\\dfrac{1}{\\sqrt{3}}$",
+            "$-\\sqrt{3}$",
+            "$\\sqrt{3}$"
+        ],
+        "correct_option": "$-\\dfrac{1}{\\sqrt{3}}$"
+    },
+    {
+        "id": "trig84",
+        "content": "Un barco ve un faro con un ángulo de elevación de $10°$ desde una distancia de $500$ m. ¿Cuál es la altura del faro?",
+        "difficulty": 820,
+        "topic": "Trigonometría",
+        "options": [
+            "$88.16$ m",
+            "$492.4$ m",
+            "$86.6$ m",
+            "$500$ m"
+        ],
+        "correct_option": "$88.16$ m"
+    },
+    {
+        "id": "trig85",
+        "content": "Convierte $\\dfrac{5\\pi}{12}$ radianes a grados.",
+        "difficulty": 720,
+        "topic": "Trigonometría",
+        "options": [
+            "$75°$",
+            "$60°$",
+            "$45°$",
+            "$90°$"
+        ],
+        "correct_option": "$75°$"
+    },
+    {
+        "id": "trig86",
+        "content": "Simplifica: $\\sin(x) \\cot(x)$",
+        "difficulty": 740,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\cos(x)$",
+            "$\\sin(x)$",
+            "$\\tan(x)$",
+            "$\\sec(x)$"
+        ],
+        "correct_option": "$\\cos(x)$"
+    },
+    {
+        "id": "trig87",
+        "content": "Calcula $\\tan(330°)$.",
+        "difficulty": 760,
+        "topic": "Trigonometría",
+        "options": [
+            "$-\\dfrac{1}{\\sqrt{3}}$",
+            "$\\dfrac{1}{\\sqrt{3}}$",
+            "$-\\sqrt{3}$",
+            "$\\sqrt{3}$"
+        ],
+        "correct_option": "$-\\dfrac{1}{\\sqrt{3}}$"
+    },
+    {
+        "id": "trig88",
+        "content": "Un triángulo tiene lados $a=8$, $b=10$ y el ángulo $C=50°$. Usa la ley del coseno para hallar el lado $c$.",
+        "difficulty": 950,
+        "topic": "Trigonometría",
+        "options": [
+            "$7.82$",
+            "$9.12$",
+            "$6.45$",
+            "$8.34$"
+        ],
+        "correct_option": "$7.82$"
+    },
+    {
+        "id": "trig89",
+        "content": "Expresa $\\cos(\\dfrac{\\pi}{2} + x)$ en términos de $\\sin(x)$ o $\\cos(x)$.",
+        "difficulty": 800,
+        "topic": "Trigonometría",
+        "options": [
+            "$-\\sin(x)$",
+            "$\\sin(x)$",
+            "$-\\cos(x)$",
+            "$\\cos(x)$"
+        ],
+        "correct_option": "$-\\sin(x)$"
+    },
+    {
+        "id": "trig90",
+        "content": "Halla $\\sec(\\dfrac{3\\pi}{4})$.",
+        "difficulty": 760,
+        "topic": "Trigonometría",
+        "options": [
+            "$-\\sqrt{2}$",
+            "$\\sqrt{2}$",
+            "$-\\dfrac{2\\sqrt{3}}{3}$",
+            "$\\dfrac{2\\sqrt{3}}{3}$"
+        ],
+        "correct_option": "$-\\sqrt{2}$"
+    },
+    {
+        "id": "trig91",
+        "content": "Resuelve para $x$ en $[0, 2\\pi]$: $\\cos(2x) = \\dfrac{1}{2}$.",
+        "difficulty": 880,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{\\pi}{6}, \\dfrac{5\\pi}{6}, \\dfrac{7\\pi}{6}, \\dfrac{11\\pi}{6}$",
+            "$\\dfrac{\\pi}{3}, \\dfrac{2\\pi}{3}, \\dfrac{4\\pi}{3}, \\dfrac{5\\pi}{3}$",
+            "$\\dfrac{\\pi}{4}, \\dfrac{3\\pi}{4}, \\dfrac{5\\pi}{4}, \\dfrac{7\\pi}{4}$",
+            "$\\dfrac{\\pi}{2}, \\pi, \\dfrac{3\\pi}{2}, 2\\pi$"
+        ],
+        "correct_option": "$\\dfrac{\\pi}{6}, \\dfrac{5\\pi}{6}, \\dfrac{7\\pi}{6}, \\dfrac{11\\pi}{6}$"
+    },
+    {
+        "id": "trig92",
+        "content": "Un observador en un barco ve la cima de un acantilado con un ángulo de $20°$. Si se acerca $100$ m, el ángulo es de $35°$. ¿Cuál es la altura del acantilado?",
+        "difficulty": 1200,
+        "topic": "Trigonometría",
+        "options": [
+            "$102.2$ m",
+            "$150.5$ m",
+            "$89.3$ m",
+            "$120.7$ m"
+        ],
+        "correct_option": "$102.2$ m"
+    },
+    {
+        "id": "trig93",
+        "content": "Convierte $\\dfrac{13\\pi}{6}$ radianes a grados (ángulo mayor a 360°).",
+        "difficulty": 700,
+        "topic": "Trigonometría",
+        "options": [
+            "$390°$",
+            "$360°$",
+            "$30°$",
+            "$210°$"
+        ],
+        "correct_option": "$390°$"
+    },
+    {
+        "id": "trig94",
+        "content": "Simplifica: $\\sin^2(x) \\sec(x) \\csc(x)$",
+        "difficulty": 860,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\tan(x)$",
+            "$\\cot(x)$",
+            "$\\sin(x)\\cos(x)$",
+            "$1$"
+        ],
+        "correct_option": "$\\tan(x)$"
+    },
+    {
+        "id": "trig95",
+        "content": "Calcula $\\cos(\\dfrac{11\\pi}{6})$.",
+        "difficulty": 760,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{\\sqrt{3}}{2}$",
+            "$-\\dfrac{\\sqrt{3}}{2}$",
+            "$\\dfrac{1}{2}$",
+            "$-\\dfrac{1}{2}$"
+        ],
+        "correct_option": "$\\dfrac{\\sqrt{3}}{2}$"
+    },
+    {
+        "id": "trig96",
+        "content": "Halla $\\cot(\\dfrac{2\\pi}{3})$.",
+        "difficulty": 780,
+        "topic": "Trigonometría",
+        "options": [
+            "$-\\dfrac{1}{\\sqrt{3}}$",
+            "$\\dfrac{1}{\\sqrt{3}}$",
+            "$-\\sqrt{3}$",
+            "$\\sqrt{3}$"
+        ],
+        "correct_option": "$-\\dfrac{1}{\\sqrt{3}}$"
+    },
+    {
+        "id": "trig97",
+        "content": "Si $\\csc(\\theta) = 2$, halla $\\sin(\\theta)$.",
+        "difficulty": 680,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\dfrac{1}{2}$",
+            "$2$",
+            "$\\dfrac{\\sqrt{3}}{2}$",
+            "$\\dfrac{1}{\\sqrt{3}}$"
+        ],
+        "correct_option": "$\\dfrac{1}{2}$"
+    },
+    {
+        "id": "trig98",
+        "content": "Una antena de $12$ m está sujeta por un cable que forma un ángulo de $40°$ con la horizontal. ¿Cuál es la longitud del cable?",
+        "difficulty": 800,
+        "topic": "Trigonometría",
+        "options": [
+            "$15.67$ m",
+            "$18.66$ m",
+            "$14.34$ m",
+            "$12.56$ m"
+        ],
+        "correct_option": "$18.66$ m"
+    },
+    {
+        "id": "trig99",
+        "content": "Expresa $\\sin(3x)$ en términos de $\\sin(x)$ (identidad del ángulo triple).",
+        "difficulty": 1200,
+        "topic": "Trigonometría",
+        "options": [
+            "$3\\sin(x) - 4\\sin^3(x)$",
+            "$4\\sin^3(x) - 3\\sin(x)$",
+            "$3\\sin(x) - \\sin^3(x)$",
+            "$\\sin^3(x) - 3\\sin(x)$"
+        ],
+        "correct_option": "$3\\sin(x) - 4\\sin^3(x)$"
+    },
+    {
+        "id": "trig100",
+        "content": "Resuelve el triángulo con $a=7$, $b=8$, $c=9$ (halla el ángulo $A$, opuesto a $a$).",
+        "difficulty": 1000,
+        "topic": "Trigonometría",
+        "options": [
+            "$48.19°$",
+            "$58.41°$",
+            "$73.40°$",
+            "$41.12°$"
+        ],
+        "correct_option": "$48.19°$"
+    },
+    {
+        "id": "trig101",
+        "content": "Convierte $\\dfrac{17\\pi}{12}$ radianes a grados.",
+        "difficulty": 740,
+        "topic": "Trigonometría",
+        "options": [
+            "$255°$",
+            "$240°$",
+            "$270°$",
+            "$225°$"
+        ],
+        "correct_option": "$255°$"
+    },
+    {
+        "id": "trig102",
+        "content": "Simplifica: $\\dfrac{\\sin(x)}{1 - \\cos^2(x)}$",
+        "difficulty": 820,
+        "topic": "Trigonometría",
+        "options": [
+            "$\\csc(x)$",
+            "$\\sec(x)$",
+            "$\\sin(x)$",
+            "$\\tan(x)$"
+        ],
+        "correct_option": "$\\csc(x)$"
+    },
+    {
+        "id": "trig103",
+        "content": "Calcula $\\tan(\\dfrac{11\\pi}{6})$.",
+        "difficulty": 780,
+        "topic": "Trigonometría",
+        "options": [
+            "$-\\dfrac{1}{\\sqrt{3}}$",
+            "$\\dfrac{1}{\\sqrt{3}}$",
+            "$-\\sqrt{3}$",
+            "$\\sqrt{3}$"
+        ],
+        "correct_option": "$-\\dfrac{1}{\\sqrt{3}}$"
     }
 ]

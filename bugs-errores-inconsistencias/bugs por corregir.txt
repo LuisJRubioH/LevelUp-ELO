@@ -1,0 +1,50 @@
+Actúa como un ingeniero de software senior experto en Python, Streamlit y LLMs. Tu objetivo es resolver una serie de bugs y mejoras de coherencia en el proyecto actual sin alterar la arquitectura limpia ni las funcionalidades operativas (ELO, banco de preguntas, tutor socrático, panel de profesor).
+
+### REGLAS DE OPERACIÓN:
+1. EXPLORACIÓN: Antes de modificar, analiza la estructura de archivos para identificar dónde residen las utilidades, el estado de sesión (app.py) y los prompts.
+2. ATOMICIDAD: Ejecuta una tarea a la vez. Al finalizar cada una, detente y solicita mi permiso para continuar con la siguiente.
+3. NO COMMITS: No realices commits automáticos. Yo los gestionaré.
+4. COMENTARIOS: Agrega comentarios claros en el código explicando el "por qué" de los cambios.
+5. RETROCOMPATIBILIDAD: Los nuevos parámetros deben tener valores por defecto.
+
+---
+
+### TAREA 1: Filtrado de etiquetas <think> (Urgente)
+- Crea una función `strip_thinking_tags(text: str) -> str` en el módulo de utilidades/helpers. 
+- Lógica: `re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()`. Debe manejar tags incompletos o anidados.
+- Aplicación: Identifica todos los puntos de salida hacia la UI (tutor socrático, análisis, revisiones) y aplica este filtro. 
+- Excepción: No debe interferir con procesos de backend que requieran extraer JSON de la respuesta.
+
+### TAREA 2: Ajuste Defensivo en Llamadas (Bug Fix)
+- En `app.py` y donde se llame a `review_math_procedure`, asegura que el contenido de la pregunta no sea nulo.
+- Cambio: `question_content=item_data.get('content') or ''`.
+
+### TAREA 3: Manejo de Errores Amigables (UX)
+- Reemplaza los `st.error(e)` técnicos por mensajes amigables:
+  - 401: "❌ API Key inválida. Revisa la configuración en el panel lateral."
+  - Connection/Timeout: "❌ Error de conexión. Verifica tu servidor local o internet."
+  - Rate Limit: "⏳ Límite alcanzado. Espera un momento."
+- Usa `logging` para el error técnico, pero no lo muestres en la UI.
+
+### TAREA 4: Desbloqueo de API Key por Sesión
+- En la configuración del sidebar, asegura que al seleccionar "API Key", el `st.text_input` sea editable.
+- Almacena este valor exclusivamente en `st.session_state` para que cada usuario use su propia clave.
+- Limpia el estado si el proveedor cambia para evitar cruce de credenciales.
+
+### TAREA 5: Análisis de Procedimiento Adaptable (Visión vs Texto)
+- Implementa `model_supports_vision(provider, model_name, api_key) -> bool`.
+- Lógica de UI:
+  - Si soporta visión: Muestra botón "Analizar Procedimiento" y usa el modelo activo (Groq, OpenAI o Local).
+  - Si NO soporta: Muestra botón "📤 Enviar procedimiento al profesor" que guarde la imagen con status `PENDING_TEACHER_VALIDATION`.
+- Modifica `review_math_procedure` para que sea agnóstico al proveedor (Groq, OpenAI API, Local Endpoint).
+
+### TAREA 6: Coherencia del Análisis Pedagógico
+- Refactoriza el prompt de análisis para el profesor.
+- Inyección de datos: Pasa explícitamente el curso matriculado, tópicos reales, ELO global vs ELO por tópico y precisión reciente.
+- Reglas del Prompt:
+  - Escala estricta: 0-30 Deficiente, 31-50 Insuficiente, 51-70 Aceptable, 71-85 Bueno, 86-100 Excelente.
+  - El modelo DEBE señalar discrepancias (ej: ELO alto con procedimientos deficientes).
+  - Las recomendaciones deben basarse en los tópicos del curso actual, no ser genéricas.
+
+---
+INICIA CON LA TAREA 1 Y DETENTE PARA REVISIÓN.

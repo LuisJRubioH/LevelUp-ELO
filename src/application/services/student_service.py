@@ -75,31 +75,41 @@ class StudentService:
             return item_data, "ok"
         return None, "empty"
 
-    def process_answer(self, user_id, item_data, selected_option, reasoning, time_taken, vector_rating):
-        """Orquesta el procesamiento de una respuesta."""
+    def process_answer(self, user_id, item_data, selected_option, reasoning, time_taken, vector_rating, elo_topic=None):
+        """Orquesta el procesamiento de una respuesta.
+
+        elo_topic: clave del VectorRating para buscar/actualizar ELO.
+            Si no se pasa, usa item_data['topic'] (retrocompatible).
+            Para cursos con subtemas heterogéneos (e.g., DIAN) se debe pasar
+            el nombre del curso para que el ELO se consolide en una sola clave.
+        """
         is_correct = (selected_option == item_data['correct_option'])
-        current_elo = vector_rating.get(item_data['topic'])
-        
+        # Usar elo_topic (nombre del curso) si se proporciona, de lo contrario
+        # usar el topic del ítem (retrocompatible con cursos de tema único)
+        _topic_key = elo_topic or item_data['topic']
+        current_elo = vector_rating.get(_topic_key)
+
         # 1. Análisis Cognitivo
         cog_data = self.cognitive_analyzer.analyze_cognition(reasoning, is_correct, time_taken)
-        
-        # 2. Actualizar ELO del estudiante
+
+        # 2. Actualizar ELO del estudiante (usando la clave unificada del curso)
         result = 1.0 if is_correct else 0.0
         new_r, new_rd = vector_rating.update(
-            item_data['topic'], 
-            item_data['difficulty'], 
-            result, 
+            _topic_key,
+            item_data['difficulty'],
+            result,
             impact_modifier=cog_data['impact_modifier']
         )
-        
+
         # 3. Actualizar ELO del ítem (Simetría)
         self.repository.update_item_rating(item_data['id'], current_elo, result)
-        
-        # 4. Guardar intento
+
+        # 4. Guardar intento (persiste _topic_key para que get_latest_elo_by_topic
+        #    reconstruya correctamente el vector al re-iniciar sesión)
         p_success = expected_score(current_elo, item_data['difficulty'])
         self.repository.save_attempt(
             user_id, item_data['id'], is_correct, item_data['difficulty'],
-            item_data['topic'], new_r, 
+            _topic_key, new_r,
             prob_failure=1.0 - p_success,
             expected_score=p_success,
             time_taken=time_taken,
@@ -107,7 +117,7 @@ class StudentService:
             error_type=cog_data['error_type'],
             rating_deviation=new_rd
         )
-        
+
         return is_correct, cog_data
 
     def get_groups_for_course(self, course_id: str) -> list:

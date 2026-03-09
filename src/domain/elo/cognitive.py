@@ -6,6 +6,8 @@ import json
 import time
 import re
 
+from src.utils import strip_thinking_tags
+
 class CognitiveAnalyzer:
     def __init__(self, base_url="", model_name="google/gemma-3-4b"):
         self.base_url = base_url.rstrip('/')
@@ -95,8 +97,8 @@ class CognitiveAnalyzer:
                 content = data['choices'][0]['message']['content']
                 
                 # Robust extraction for objects {...}
-                # Remove thought tags
-                content = re.sub(r'<thought>.*?</thought>', '', content, flags=re.DOTALL)
+                # Eliminar tags de pensamiento (<think>, <thought>)
+                content = strip_thinking_tags(content)
                 
                 # Extract the first valid JSON object
                 match = re.search(r'\{.*\}', content, re.DOTALL)

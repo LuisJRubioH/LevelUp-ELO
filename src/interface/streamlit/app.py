@@ -23,6 +23,7 @@ importlib.reload(_math_review_mod)
 
 from src.domain.elo.vector_elo import VectorRating, aggregate_global_elo, aggregate_global_rd
 from src.domain.elo.model import expected_score, calculate_dynamic_k, Item
+from src.utils import strip_thinking_tags
 SQLiteRepository = db_mod.SQLiteRepository
 analyze_performance_local = ai_mod.analyze_performance_local
 get_active_models = ai_mod.get_active_models
@@ -35,7 +36,22 @@ import time
 import extra_streamlit_components as stx
 
 # Configuración de página
-st.set_page_config(page_title="ELO Learning — Evaluación Adaptativa", layout="wide", page_icon="🎓")
+st.set_page_config(page_title="LevelUp ELO — Evaluación Adaptativa", layout="wide", page_icon="🎓")
+
+# ── Logos según tema claro/oscuro ─────────────────────────────────────────────
+_LOGO_LIGHT = os.path.join(base_path, "logo-elo-light.png")
+_LOGO_DARK  = os.path.join(base_path, "logo-elo2-dark.png")
+
+def _get_theme():
+    """Devuelve 'light' o 'dark' según el tema activo de Streamlit."""
+    try:
+        return st.get_option("theme.base") or "light"
+    except Exception:
+        return "light"
+
+def _get_logo():
+    """Devuelve la ruta del logo adecuada al tema actual."""
+    return _LOGO_DARK if _get_theme() == "dark" else _LOGO_LIGHT
 
 # Inicializar Base de Datos
 if 'db' not in st.session_state:
@@ -225,7 +241,9 @@ if not st.session_state.logged_in:
 # PÁGINA DE LOGIN / REGISTRO
 # ══════════════════════════════════════════════════════════════════════════════
 if not st.session_state.logged_in:
-    st.markdown("<h1 style='text-align: center; font-size: 3.5rem; margin-bottom: 8px;'>🎓 ELO Learning</h1>", unsafe_allow_html=True)
+    _logo_col1, _logo_col2, _logo_col3 = st.columns([1, 2, 1])
+    with _logo_col2:
+        st.image(_get_logo(), use_container_width=True)
     st.markdown("<p style='text-align: center; color: #aaa; font-size: 1.2rem; margin-bottom: 40px;'>Plataforma de evaluación y aprendizaje adaptativo basada en el sistema ELO</p>", unsafe_allow_html=True)
 
     col_info, col_login = st.columns([1.4, 1])
@@ -233,8 +251,8 @@ if not st.session_state.logged_in:
     with col_info:
         st.markdown("""
         <div class="elo-card" style="text-align: left; padding: 30px;">
-            <h3>📌 ¿Qué es ELO Learning?</h3>
-            <p>ELO Learning es una plataforma académica de evaluación adaptativa que utiliza el <b>sistema de calificación ELO</b> —originalmente diseñado para el ajedrez— para medir con precisión el nivel de dominio de cada estudiante en distintas materias.</p>
+            <h3>📌 ¿Qué es LevelUp ELO?</h3>
+            <p>LevelUp ELO es una plataforma académica de evaluación adaptativa que utiliza el <b>sistema de calificación ELO</b> —originalmente diseñado para el ajedrez— para medir con precisión el nivel de dominio de cada estudiante en distintas materias.</p>
             <p style="margin-top:10px;">A diferencia de los exámenes tradicionales, el sistema se adapta continuamente: <b>la dificultad de cada ejercicio se ajusta en tiempo real</b> según el rendimiento del estudiante, maximizando el aprendizaje efectivo.</p>
         </div>
 
@@ -293,7 +311,7 @@ if not st.session_state.logged_in:
                 if new_role == "Estudiante":
                     level_label = st.selectbox(
                         "Nivel Educativo *",
-                        ["Universidad", "Colegio"],
+                        ["Universidad", "Colegio", "Concursos"],
                         key="reg_level",
                         help="Determina qué catálogo de cursos podrás ver."
                     )
@@ -304,7 +322,13 @@ if not st.session_state.logged_in:
                     role_map = {"Estudiante": "student", "Profesor": "teacher"}
                     chosen_role = role_map[new_role]
 
-                    if chosen_role == 'student' and not education_level:
+                    # Validaciones de contraseña en UI
+                    _pass_stripped = (new_pass or "").strip()
+                    if not _pass_stripped:
+                        st.error("La contraseña es obligatoria.")
+                    elif len(_pass_stripped) < 6:
+                        st.error("La contraseña debe tener al menos 6 caracteres.")
+                    elif chosen_role == 'student' and not education_level:
                         st.error("Debes seleccionar tu nivel educativo.")
                     else:
                         success, message = st.session_state.db.register_user(
@@ -325,7 +349,7 @@ else:
     # ══════════════════════════════════════════════════════════════════════════
     if st.session_state.role == 'admin':
         with st.sidebar:
-            st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=80)
+            st.image(_get_logo(), width=180)
             st.write(f"### 🛡️ Admin: **{st.session_state.username}**")
             st.markdown("---")
             if st.button("Cerrar Sesión"):
@@ -411,9 +435,22 @@ else:
                 with col_date:
                     st.caption(f"Desde: {s['created_at'][:10]}")
                 with col_baja:
-                    if st.button("🚫 Dar de baja", key=f"deact_s_{s['id']}"):
-                        st.session_state.db.deactivate_user(s['id'])
-                        st.rerun()
+                    confirm_key_s = f"confirm_deact_s_{s['id']}"
+                    if st.session_state.get(confirm_key_s):
+                        col_y, col_n = st.columns(2)
+                        with col_y:
+                            if st.button("✅ Sí", key=f"yes_deact_s_{s['id']}"):
+                                st.session_state.db.deactivate_user(s['id'])
+                                st.session_state.pop(confirm_key_s, None)
+                                st.rerun()
+                        with col_n:
+                            if st.button("❌ No", key=f"no_deact_s_{s['id']}"):
+                                st.session_state.pop(confirm_key_s, None)
+                                st.rerun()
+                    else:
+                        if st.button("🚫 Dar de baja", key=f"deact_s_{s['id']}"):
+                            st.session_state[confirm_key_s] = True
+                            st.rerun()
 
             if inactivos:
                 with st.expander(f"Ver {len(inactivos)} estudiante(s) dado(s) de baja"):
@@ -467,12 +504,53 @@ else:
                     else:
                         st.error(message)
 
+            st.markdown("---")
+
+            # ── Gestión de Grupos (Admin) ────────────────────────────────────
+            st.subheader("📂 Gestión de Grupos")
+            all_groups_admin = st.session_state.db.get_all_groups()
+            if not all_groups_admin:
+                st.info("No hay grupos registrados aún.")
+            else:
+                for g in all_groups_admin:
+                    col_name, col_teacher, col_del = st.columns([2.5, 2, 1.5])
+                    with col_name:
+                        st.write(f"📂 **{g['name']}**")
+                    with col_teacher:
+                        st.caption(f"Profesor: {g['teacher_name']}")
+                    with col_del:
+                        # Confirmación en dos pasos usando session_state
+                        confirm_key = f"confirm_del_group_{g['id']}"
+                        if st.session_state.get(confirm_key):
+                            col_yes, col_no = st.columns(2)
+                            with col_yes:
+                                if st.button("✅ Sí", key=f"yes_del_g_{g['id']}"):
+                                    ok, msg = st.session_state.db.delete_group(
+                                        g['id'], st.session_state.user_id
+                                    )
+                                    st.session_state.pop(confirm_key, None)
+                                    if ok:
+                                        st.success(msg)
+                                        import time
+                                        time.sleep(1.5)
+                                        st.rerun()
+                                    else:
+                                        st.error(msg)
+                            with col_no:
+                                if st.button("❌ No", key=f"no_del_g_{g['id']}"):
+                                    st.session_state.pop(confirm_key, None)
+                                    st.rerun()
+                        else:
+                            if st.button("🗑️ Eliminar", key=f"del_g_{g['id']}"):
+                                st.session_state[confirm_key] = True
+                                st.rerun()
+
     # ══════════════════════════════════════════════════════════════════════════
     # VISTA: PROFESOR
     # ══════════════════════════════════════════════════════════════════════════
     elif st.session_state.role == 'teacher':
         with st.sidebar:
-            st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=80)
+            st.image(_get_logo(), width=180)
             st.write(f"### 🏫 Profesor: **{st.session_state.username}**")
             st.markdown("---")
             # ── Badge de estado de IA (siempre visible) ───────────────────────
@@ -625,7 +703,7 @@ else:
                                 _ai_fb_t = _sub.get('ai_feedback') or ''
                                 if _ai_fb_t:
                                     with st.expander("📋 Ver retroalimentación de la IA"):
-                                        st.markdown(_ai_fb_t)
+                                        st.markdown(strip_thinking_tags(_ai_fb_t))
                                 _default_score = float(_ai_prop) if _ai_prop is not None else 50.0
                                 _teacher_score_val = st.number_input(
                                     "📊 Calificación oficial (0.0 – 100.0)",
@@ -1029,11 +1107,11 @@ else:
             st.session_state.education_level = repo.get_education_level(st.session_state.user_id)
 
         if not st.session_state.education_level:
-            st.title("🎓 Bienvenido a ELO Learning")
+            st.title("🎓 Bienvenido a LevelUp ELO")
             st.markdown("### ¿En qué nivel educativo estás?")
             st.markdown("Esto nos permite mostrarte los cursos adecuados para ti.")
             st.write("")
-            col_uni, col_col = st.columns(2)
+            col_uni, col_col, col_con = st.columns(3)
             with col_uni:
                 with st.container(border=True):
                     st.markdown("#### 🎓 Universidad")
@@ -1052,6 +1130,15 @@ else:
                         repo.set_education_level(st.session_state.user_id, 'colegio')
                         st.session_state.education_level = 'colegio'
                         st.rerun()
+            with col_con:
+                with st.container(border=True):
+                    st.markdown("#### 🏆 Concursos")
+                    st.write("Preparación para concursos públicos: DIAN, SENA y más")
+                    st.write("")
+                    if st.button("Preparo concursos", use_container_width=True, key="onb_con"):
+                        repo.set_education_level(st.session_state.user_id, 'concursos')
+                        st.session_state.education_level = 'concursos'
+                        st.rerun()
             st.stop()
 
         # Cargar cursos matriculados (disponible para todo el flujo del estudiante)
@@ -1063,7 +1150,7 @@ else:
 
         # Sidebar Estilizado
         with st.sidebar:
-            st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=80)
+            st.image(_get_logo(), width=180)
             st.write(f"### Hola, **{st.session_state.username}**")
             mode = st.radio(
                 "Modo",
@@ -1186,22 +1273,25 @@ else:
         # --- LÓGICA DE ACTUALIZACIÓN ---
         def handle_answer_topic(is_correct, item_data, reasoning=""):
             st.session_state['last_was_correct'] = is_correct
-            
+
             # --- Cálculo de Modificadores Cognitivos ---
             time_taken = 0.0
             if st.session_state.question_start_time:
                 time_taken = time.time() - st.session_state.question_start_time
-            
+
             # Configurar el servicio con los parámetros de IA de la sesión
             st.session_state.student_service.cognitive_analyzer.base_url = st.session_state.ai_url
             st.session_state.student_service.cognitive_analyzer.model_name = st.session_state.model_cog
-            
-            # Delegar procesamiento al servicio
+
+            # Delegar procesamiento al servicio.
+            # elo_topic = nombre del curso (selected_topic), para que cursos con
+            # subtemas heterogéneos (DIAN, SENA) consoliden ELO en una sola clave.
             is_correct, cog_data = st.session_state.student_service.process_answer(
                 st.session_state.user_id, item_data,
                 # La opción seleccionada se recupera del texto mapeado (soporte LaTeX)
                 st.session_state.get(f"answer_text_{item_data['id']}"),
-                reasoning, time_taken, st.session_state.vector
+                reasoning, time_taken, st.session_state.vector,
+                elo_topic=selected_topic,
             )
 
             st.session_state.session_questions_count += 1
@@ -1461,7 +1551,7 @@ else:
                                         )
                                         if _math_review.get('transcripcion'):
                                             with st.expander("📝 Transcripción del procedimiento"):
-                                                st.markdown(_math_review['transcripcion'])
+                                                st.markdown(strip_thinking_tags(_math_review['transcripcion']))
                                         _pasos = _math_review.get('pasos', [])
                                         if _pasos:
                                             with st.expander(f"🔢 Pasos analizados ({len(_pasos)})"):
@@ -1474,10 +1564,10 @@ else:
                                                     )
                                                     st.markdown(
                                                         f"**Paso {_paso.get('numero', '?')}:** "
-                                                        f"{_paso.get('contenido', '')}  \n"
+                                                        f"{strip_thinking_tags(_paso.get('contenido', ''))}  \n"
                                                         f"<span style='color:{_paso_color};'>"
-                                                        f"▶ {_ev}</span>  \n"
-                                                        f"{_paso.get('comentario', '')}",
+                                                        f"▶ {strip_thinking_tags(_ev)}</span>  \n"
+                                                        f"{strip_thinking_tags(_paso.get('comentario', ''))}",
                                                         unsafe_allow_html=True,
                                                     )
                                                     st.markdown("---")
@@ -1485,12 +1575,12 @@ else:
                                         if _errores:
                                             with st.expander(f"⚠️ Errores detectados ({len(_errores)})"):
                                                 for _err in _errores:
-                                                    st.markdown(f"- {_err}")
+                                                    st.markdown(f"- {strip_thinking_tags(_err)}")
                                         _saltos = _math_review.get('saltos_logicos', [])
                                         if _saltos:
                                             with st.expander(f"🔗 Saltos lógicos ({len(_saltos)})"):
                                                 for _salto in _saltos:
-                                                    st.markdown(f"- {_salto}")
+                                                    st.markdown(f"- {strip_thinking_tags(_salto)}")
                                         _res_ok = _math_review.get('resultado_correcto', False)
                                         st.markdown(
                                             f"**Resultado final:** "
@@ -1498,7 +1588,7 @@ else:
                                         )
                                         if _math_review.get('evaluacion_global'):
                                             st.markdown(
-                                                f"**Evaluación global:** {_math_review['evaluacion_global']}"
+                                                f"**Evaluación global:** {strip_thinking_tags(_math_review['evaluacion_global'])}"
                                             )
 
                                 # ── Resultado: revisión genérica (otros proveedores) ──
@@ -1506,7 +1596,7 @@ else:
                                 if _ai_fb:
                                     with st.container(border=True):
                                         st.markdown("##### 🔍 Retroalimentación del procedimiento")
-                                        st.markdown(_ai_fb)
+                                        st.markdown(strip_thinking_tags(_ai_fb))
 
                             # ── Sección de envío al docente: SIEMPRE visible ──────────
                             st.markdown("---")
@@ -1748,9 +1838,9 @@ else:
                         with st.container(border=True):
                             st.markdown(f"### {icon} Recomendación #{idx + 1}: {label}")
                             st.caption(subtitle)
-                            st.markdown(f"**🔍 Diagnóstico:** {rec.get('diagnostico', 'N/A')}")
-                            _CALLOUT[idx](f"**📝 Acción:** {rec.get('accion', 'N/A')}")
-                            st.markdown(f"**💡 Justificación:** {rec.get('justificacion', 'N/A')}")
+                            st.markdown(f"**🔍 Diagnóstico:** {strip_thinking_tags(rec.get('diagnostico', 'N/A'))}")
+                            _CALLOUT[idx](f"**📝 Acción:** {strip_thinking_tags(rec.get('accion', 'N/A'))}")
+                            st.markdown(f"**💡 Justificación:** {strip_thinking_tags(rec.get('justificacion', 'N/A'))}")
                             ejercicios = rec.get('ejercicios', 0)
                             if ejercicios:
                                 st.markdown(f"**🔢 Meta sugerida:** {ejercicios} ejercicios")
@@ -1763,7 +1853,8 @@ else:
             # catálogo. get_available_courses() lo lee desde DB, nunca desde sesión.
             # No existe ningún mecanismo en la UI para cambiarlo.
             _level = st.session_state.education_level or 'universidad'
-            _level_label = "🎓 Universidad" if _level == 'universidad' else "🏫 Colegio"
+            _level_labels = {'universidad': "🎓 Universidad", 'colegio': "🏫 Colegio", 'concursos': "🏆 Concursos"}
+            _level_label = _level_labels.get(_level, "🎓 Universidad")
             st.markdown(f"**Nivel académico:** {_level_label}")
             st.caption("Tu nivel se fijó al registrarte y determina qué cursos puedes ver.")
 

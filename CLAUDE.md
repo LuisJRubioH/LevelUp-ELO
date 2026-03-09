@@ -5,75 +5,65 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Running the Application
 
 ```bash
-# Install dependencies
 pip install -r requirements.txt
-
-# Run the app (must be run from the repo root)
 streamlit run src/interface/streamlit/app.py
 ```
 
-The app must be launched from the repo root because `app.py` injects the project root into `sys.path` at runtime to resolve imports (the `src/` package structure requires this).
+Must be launched from the repo root — `app.py` injects the project root into `sys.path` at runtime to resolve the `src/` package. There are no tests or linting configured in this project.
 
 ## Architecture
 
-The project follows Clean Architecture with four layers inside `src/`:
+Clean Architecture with four layers inside `src/`:
 
-```
-src/
-├── domain/          # Core business logic, no external dependencies
-│   ├── elo/         # ELO engine: model.py, vector_elo.py, uncertainty.py, cognitive.py, zdp.py
-│   └── selector/    # AdaptiveItemSelector (ZDP-based question picker)
-├── application/     # Use-case orchestrators
-│   └── services/    # StudentService, TeacherService
-├── infrastructure/  # External dependencies
-│   ├── persistence/ # SQLiteRepository (single file: elo_project.db)
-│   ├── external_api/# ai_client.py — calls LM Studio over HTTP
-│   └── security/    # Argon2id hashing + legacy SHA-256 migration
-└── interface/
-    └── streamlit/   # app.py — single-file UI, all panels and routing
-```
+- **`domain/`** — Pure business logic, no external dependencies. Contains the ELO engine (`elo/`) and adaptive question selector (`selector/`).
+- **`application/services/`** — Use-case orchestrators: `StudentService` (answer processing, question selection) and `TeacherService` (dashboards, reports).
+- **`infrastructure/`** — External dependencies: `persistence/sqlite_repository.py` (single ~1200-line file with schema, migrations, queries), `external_api/` (multi-provider AI client + math procedure review), `security/` (Argon2id hashing).
+- **`interface/streamlit/app.py`** — Single-file UI with all panels and routing.
 
 **Data flow for a student answer:**
-1. `app.py` calls `StudentService.process_answer()`
-2. `StudentService` invokes `CognitiveAnalyzer` (AI confidence/error-type classification)
-3. `VectorRating.update()` applies ELO delta with a cognitive `impact_modifier`
-4. `SQLiteRepository.update_item_rating()` updates the item's own ELO symmetrically (item loses difficulty when student wins)
-5. Attempt is persisted via `save_attempt()`
+1. `app.py` → `StudentService.process_answer()`
+2. `CognitiveAnalyzer` calls AI to classify reasoning → `impact_modifier` ∈ [0.5, 1.5]
+3. `VectorRating.update()` applies ELO delta per topic
+4. `SQLiteRepository.update_item_rating()` updates item difficulty symmetrically
+5. `save_attempt()` persists all metadata
 
 ## Key Domain Concepts
 
-- **VectorRating**: Each student holds a separate ELO rating per topic (not one global rating). `aggregate_global_elo()` averages them for display.
-- **Dynamic K factor**: Starts at 40 (first 30 attempts), drops to 32 (below 1400 ELO), then to 16 (stable performance). Defined as constants in `domain/elo/model.py`.
-- **AdaptiveItemSelector**: Selects questions where success probability P is in [0.4, 0.75] (ZDP). Maximizes Fisher information `P*(1-P)` among candidates. Expands the range by ±0.05 per step if no candidates found.
-- **CognitiveAnalyzer** (`domain/elo/cognitive.py`): Calls the local LM Studio AI to classify student reasoning as confident/unconfident and errors as conceptual/superficial. The result modifies the ELO delta via `impact_modifier` (range [0.5, 1.5]).
-- **Item ELO**: Items have their own `difficulty` rating that updates symmetrically — if the student wins, the item's difficulty decreases.
+- **VectorRating**: Per-topic ELO (not one global rating). `aggregate_global_elo()` averages for display.
+- **Dynamic K factor** (`domain/elo/model.py`): 40 (< 30 attempts) → 32 (< 1400 ELO) → 16 (stable) → 24 (default).
+- **AdaptiveItemSelector**: Picks questions where P(success) ∈ [0.4, 0.75] (ZDP). Maximizes Fisher information `P*(1-P)`. Expands range ±0.05 per step if no candidates.
+- **CognitiveAnalyzer** (`domain/elo/cognitive.py`): AI classifies confidence/error-type. Modifies ELO delta via `impact_modifier`.
+- **Item ELO**: Items have their own difficulty rating that updates symmetrically (item "loses" when student wins).
 
 ## Database
 
-- SQLite file created at `elo_project.db` in the working directory.
-- `SQLiteRepository.__init__()` runs `init_db()` → `_migrate_db()` → `_seed_admin()` → `_backfill_prob_failure()` on every startup.
-- Schema migrations are additive (`ALTER TABLE ADD COLUMN IF NOT EXISTS` pattern) — no destructive migrations.
-- Default admin credentials: `admin` / `admin123` (seeded automatically if not present).
-- Questions from `items/bank.json` are synced to the `items` table via `sync_items_from_json()` without overwriting existing ELO ratings.
+- SQLite at `elo_project.db` in working directory, auto-created on first run.
+- `SQLiteRepository.__init__()` runs: `init_db()` → `_migrate_db()` → `_seed_admin()` → `_backfill_prob_failure()` → `sync_items_from_bank_folder()`.
+- Migrations are additive only (`ALTER TABLE ADD COLUMN IF NOT EXISTS`) — no destructive migrations.
+- Admin user created only if env var `ADMIN_PASSWORD` is set (`ADMIN_USER` defaults to "admin"). No hardcoded credentials.
+- Tables include: `users`, `groups`, `items`, `attempts`, `courses`, `enrollments`, `procedure_submissions`, `audit_group_changes`.
 
-## AI Integration (LM Studio)
+## Question Bank
 
-- All AI calls go to a local LM Studio instance whose URL is entered manually by the user (no default URL is hardcoded; the field starts empty).
-- The URL and model are configurable per-session in the Streamlit sidebar.
-- Three AI functions in `infrastructure/external_api/ai_client.py`:
-  - `get_socratic_guidance()` — student tutor (socratic hints, never reveals answer)
-  - `get_pedagogical_analysis()` — teacher dashboard analysis
-  - `analyze_performance_local()` — student stats panel, returns JSON recommendations
-- `CognitiveAnalyzer` in `domain/elo/cognitive.py` also calls LM Studio directly.
-- All AI features degrade gracefully if LM Studio is unavailable (fallback returns hardcoded neutral values).
+Questions live in **`items/bank/`** as individual JSON files per topic (e.g., `algebra_lineal.json`, `calculo_diferencial.json`). Each file is an array of items. The filename (without extension) becomes the `course_id`.
+
+Each item needs: `id` (unique string), `content` (supports LaTeX `$...$`), `difficulty` (ELO, 600–1800), `topic`, `options` (list), `correct_option` (must exactly match one option string).
+
+On startup, `sync_items_from_bank_folder()` registers each file as a course and syncs items to the DB without overwriting existing ELO ratings.
+
+## AI Integration
+
+Multi-provider support via `ai_client.py`: Groq, OpenAI, Anthropic, Google Gemini, HuggingFace, LM Studio (local), Ollama (local). Provider auto-detected from API key prefix in the sidebar. All AI features degrade gracefully if unavailable.
+
+Key AI functions:
+- `get_socratic_guidance()` / `get_socratic_guidance_stream()` — student tutor (never reveals answer)
+- `get_pedagogical_analysis()` — teacher dashboard analysis
+- `analyze_performance_local()` — student stats, returns JSON recommendations
+- `CognitiveAnalyzer` (`domain/elo/cognitive.py`) — classifies student reasoning for ELO impact
+- `review_math_procedure()` (`math_procedure_review.py`) — Groq-only, vision model analyzes handwritten math procedures, returns JSON with step-by-step review and score 0–100 that nudges ELO
 
 ## User Roles
 
-Three roles with different access:
-- **student**: Must belong to a group; accesses practice mode and personal stats.
-- **teacher**: Requires admin approval; can create groups, view student dashboards, generate AI reports.
-- **admin**: Auto-approved; manages teacher approvals, group reassignment (with audit log in `audit_group_changes` table), and user deactivation.
-
-## Adding Questions
-
-Edit `items/bank.json`. Each item needs: `id` (unique string), `content` (supports LaTeX), `difficulty` (numeric ELO, e.g. 600–1800), `topic`, `options` (list), `correct_option` (must exactly match one option string). On next app startup the item is synced to the DB automatically.
+- **student**: Must belong to a group; practice mode + personal stats.
+- **teacher**: Requires admin approval; creates groups, views student dashboards, generates AI reports.
+- **admin**: Manages teacher approvals, group reassignment (audited), user activation/deactivation.

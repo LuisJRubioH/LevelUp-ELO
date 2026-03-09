@@ -1,0 +1,2095 @@
+[
+    {
+        "id": "GP_SENNOVA_01",
+        "content": "Un Centro de Formación presenta un retraso significativo en la adquisición de equipos para un proyecto de modernización tecnológica financiado por SENNOVA. El líder del proyecto propone reasignar los rubros de equipos a 'servicios técnicos' para contratar una consultoría que realice el trabajo manualmente y así cumplir con la ejecución presupuestal antes del cierre de vigencia. Como profesional grado 10 encargado del seguimiento, usted debe:",
+        "difficulty": 820,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Aprobar la reasignación presupuestal priorizando la meta de ejecución financiera institucional del Centro.",
+            "Rechazar la propuesta y solicitar un plan de contingencia que ajuste el cronograma sin desvirtuar el objeto técnico del proyecto, reportando el riesgo de baja ejecución.",
+            "Sugerir al Subdirector de Centro que realice el cambio mediante resolución interna para evitar trámites ante la Dirección General.",
+            "Solicitar la cancelación inmediata del proyecto por incapacidad técnica del equipo ejecutor para cumplir el cronograma original."
+        ],
+        "correct_option": "Rechazar la propuesta y solicitar un plan de contingencia que ajuste el cronograma sin desvirtuar el objeto técnico del proyecto, reportando el riesgo de baja ejecución."
+    },
+    {
+        "id": "GP_SENNOVA_02",
+        "content": "Al revisar la Estructura de Desglose de Trabajo (EDT) de un proyecto de investigación aplicada, usted nota que no se han incluido las actividades de 'Divulgación y Apropiación Social del Conocimiento'. El líder argumenta que estas actividades se harán de manera informal. Según los estándares de gestión de proyectos, su instrucción es:",
+        "difficulty": 750,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Aceptar la explicación, siempre que el líder se comprometa a enviar fotos de las charlas informales como evidencia final.",
+            "Exigir la inclusión de estas actividades en la EDT y el cronograma, ya que son productos obligatorios según los lineamientos de SENNOVA.",
+            "Permitir que el proyecto continúe así para no retrasar el inicio de la fase técnica de laboratorio.",
+            "Eliminar el rubro de divulgación del presupuesto para reasignarlo a la compra de más insumos químicos."
+        ],
+        "correct_option": "Exigir la inclusión de estas actividades en la EDT y el cronograma, ya que son productos obligatorios según los lineamientos de SENNOVA."
+    },
+    {
+        "id": "GP_SENNOVA_03",
+        "content": "Durante la fase de planificación de un proyecto en un Tecnoparque, se identifica un riesgo con alta probabilidad de ocurrencia relacionado con la fluctuación del dólar que afecta la compra de insumos importados. Como Gestor, usted recomienda que el plan de respuesta al riesgo incluya:",
+        "difficulty": 880,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Ignorar el riesgo, puesto que los trámites administrativos del SENA no permiten ajustes por cambio de moneda.",
+            "Establecer una reserva de contingencia técnica y realizar la compra de los insumos en el primer trimestre para mitigar el impacto financiero.",
+            "Transferir el riesgo totalmente al proveedor, exigiéndole que mantenga los precios de la propuesta inicial independientemente del mercado.",
+            "Esperar a que el riesgo ocurra para solicitar una adición presupuestal extraordinaria a la Dirección de Formación Profesional."
+        ],
+        "correct_option": "Establecer una reserva de contingencia técnica y realizar la compra de los insumos en el primer trimestre para mitigar el impacto financiero."
+    },
+    {
+        "id": "GP_SENNOVA_04",
+        "content": "En el seguimiento técnico a un semillero de investigación, se detecta que los indicadores de impacto definidos en la metodología de Marco Lógico son ambiguos y no permiten medir el cumplimiento de los objetivos. Su acción correctiva es:",
+        "difficulty": 780,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Solicitar el rediseño de los indicadores bajo criterios SMART (específicos, medibles, alcanzables, relevantes y temporales) para asegurar el seguimiento.",
+            "Continuar con los indicadores actuales para evitar trámites de modificación en la plataforma institucional.",
+            "Sustituir los indicadores de impacto por indicadores de gestión simple (ej. número de reuniones realizadas) para facilitar el reporte.",
+            "Asumir la redacción de los nuevos indicadores personalmente sin consultar al equipo técnico para agilizar el proceso."
+        ],
+        "correct_option": "Solicitar el rediseño de los indicadores bajo criterios SMART (específicos, medibles, alcanzables, relevantes y temporales) para asegurar el seguimiento."
+    },
+    {
+        "id": "GP_SENNOVA_05",
+        "content": "Un proyecto de la línea de cultura de la innovación reporta un ahorro del 15% en el rubro de capacitaciones. El equipo solicita usar ese dinero para una 'salida de integración' argumentando que esto mejora el clima laboral. De acuerdo con la normatividad de ejecución de recursos públicos en SENNOVA, usted:",
+        "difficulty": 920,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Deniega la solicitud, explicando que el uso de recursos debe ceñirse estrictamente a las actividades técnicas aprobadas y a los fines de la entidad.",
+            "Autoriza el gasto siempre que se presente como una 'capacitación en habilidades blandas' con lista de asistencia.",
+            "Sugiere que compren equipos de oficina con ese dinero para que el recurso quede en el Centro de Formación.",
+            "Indica que deben reintegrar el dinero inmediatamente a la Tesorería Nacional sin posibilidad de reinversión técnica."
+        ],
+        "correct_option": "Deniega la solicitud, explicando que el uso de recursos debe ceñirse estrictamente a las actividades técnicas aprobadas y a los fines de la entidad."
+    },
+    {
+        "id": "GP_SENNOVA_06",
+        "content": "Al evaluar la ruta crítica de un proyecto de prototipado en una Tecnoacademia, usted identifica que una actividad retrasada no tiene 'holgura'. Esto significa que:",
+        "difficulty": 710,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "El proyecto terminará antes de lo previsto si se asignan más aprendices a esa tarea.",
+            "Cualquier retraso adicional en esa actividad afectará directamente la fecha de finalización del proyecto.",
+            "La actividad puede esperar hasta el próximo mes sin afectar el cronograma general.",
+            "El presupuesto de esa actividad es insuficiente y debe ser incrementado."
+        ],
+        "correct_option": "Cualquier retraso adicional en esa actividad afectará directamente la fecha de finalización del proyecto."
+    },
+    {
+        "id": "GP_SENNOVA_07",
+        "content": "Un líder de proyecto SENNOVA omite presentar los informes mensuales de seguimiento financiero durante dos periodos consecutivos, alegando exceso de carga laboral. Como supervisor técnico, su conducta ajustada al debido proceso es:",
+        "difficulty": 840,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Hacer los informes usted mismo para evitar que el Centro sea sancionado en los indicadores de gestión regional.",
+            "Emitir un requerimiento formal al líder con copia al Subdirector de Centro, advirtiendo sobre el posible incumplimiento de las obligaciones contractuales.",
+            "Ignorar la falta de informes hasta el cierre del proyecto para no generar conflictos con los instructores investigadores.",
+            "Suspender el acceso del líder a los laboratorios hasta que presente la documentación completa."
+        ],
+        "correct_option": "Emitir un requerimiento formal al líder con copia al Subdirector de Centro, advirtiendo sobre el posible incumplimiento de las obligaciones contractuales."
+    },
+    {
+        "id": "GP_SENNOVA_08",
+        "content": "Para la validación de un proyecto de innovación, el manual de SENNOVA exige la vinculación de actores del sector productivo. Un proyecto presenta cartas de intención de empresas que no tienen relación con la temática técnica. Usted decide:",
+        "difficulty": 760,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Dar por cumplido el requisito, ya que lo importante es la cantidad de cartas recolectadas.",
+            "Solicitar al equipo técnico que busque aliados pertinentes cuya actividad económica se beneficie directamente de los resultados del proyecto.",
+            "Asignar un puntaje bajo en la evaluación pero permitir que el proyecto sea financiado para cumplir las metas de la Regional.",
+            "Rechazar el proyecto de forma definitiva sin dar oportunidad de subsanar los aliados estratégicos."
+        ],
+        "correct_option": "Solicitar al equipo técnico que busque aliados pertinentes cuya actividad económica se beneficie directamente de los resultados del proyecto."
+    },
+    {
+        "id": "GP_SENNOVA_09",
+        "content": "Usted está supervisando la liquidación de un proyecto de investigación. El equipo técnico no logró alcanzar uno de los objetivos específicos propuestos inicialmente. De acuerdo con el estándar de gestión, la acción correcta es:",
+        "difficulty": 890,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Solicitar al equipo que redacte el informe final omitiendo el objetivo no cumplido para que el proyecto cierre exitosamente.",
+            "Documentar el incumplimiento en el informe de cierre, analizar las causas técnicas y registrarlo como una 'lección aprendida' en el sistema de gestión del conocimiento.",
+            "Exigir el reintegro total de los recursos del proyecto por haber fallado en uno de los objetivos planteados.",
+            "Ajustar el acta de inicio para cambiar el alcance del proyecto de forma retroactiva y que coincida con lo ejecutado."
+        ],
+        "correct_option": "Documentar el incumplimiento en el informe de cierre, analizar las causas técnicas y registrarlo como una 'lección aprendida' en el sistema de gestión del conocimiento."
+    },
+    {
+        "id": "GP_SENNOVA_10",
+        "content": "En la gestión de interesados (stakeholders) de un proyecto regional de SENNOVA, un gremio empresarial manifiesta desinterés porque no conoce los beneficios de la innovación. Su estrategia para mejorar la competitividad en este caso es:",
+        "difficulty": 680,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Enviarles el manual de funciones de SENNOVA para que entiendan las obligaciones legales de la entidad.",
+            "Diseñar una sesión de transferencia tecnológica y demostración de prototipos enfocada en las necesidades de productividad de dicho gremio.",
+            "Excluir al gremio de las comunicaciones del proyecto para enfocarse únicamente en las empresas que sí muestran interés inicial.",
+            "Solicitar a la Dirección General que emita una circular obligando a los gremios a participar en los comités de innovación."
+        ],
+        "correct_option": "Diseñar una sesión de transferencia tecnológica y demostración de prototipos enfocada en las necesidades de productividad de dicho gremio."
+    },
+    {
+        "id": "GP_SENNOVA_11",
+        "content": "Usted debe revisar los costos directos de un proyecto. Identifica que se incluyó el pago de servicios públicos del Centro de Formación dentro del presupuesto de SENNOVA. Según los principios de planeación y presupuesto público:",
+        "difficulty": 910,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Es correcto, ya que el proyecto utiliza la energía y el agua del Centro para sus laboratorios.",
+            "Es incorrecto, los servicios públicos son gastos de funcionamiento ordinario de la entidad y no deben cargarse a proyectos de inversión de SENNOVA.",
+            "Es aceptable solo si el monto de los servicios públicos no supera el 5% del valor total del proyecto.",
+            "Se debe crear un rubro especial denominado 'Gastos Compartidos' para ocultar este tipo de erogaciones ante la auditoría."
+        ],
+        "correct_option": "Es incorrecto, los servicios públicos son gastos de funcionamiento ordinario de la entidad y no deben cargarse a proyectos de inversión de SENNOVA."
+    },
+    {
+        "id": "GP_SENNOVA_12",
+        "content": "Un proyecto de desarrollo tecnológico requiere un cambio en las especificaciones de un componente debido a que el original ya está obsoleto en el mercado. El líder solicita el cambio a través de un correo informal. Usted le indica que el procedimiento correcto según PMI es:",
+        "difficulty": 730,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Proceder con la compra y luego legalizar el cambio en el informe trimestral de avance.",
+            "Diligenciar una solicitud formal de control de cambios que analice el impacto en costo, tiempo y alcance, para su aprobación por el comité técnico.",
+            "Ignorar la obsolescencia y comprar el componente original así no funcione, para no alterar la ficha técnica aprobada.",
+            "Solicitar la baja del proyecto por falta de planeación en la vigilancia tecnológica inicial."
+        ],
+        "correct_option": "Diligenciar una solicitud formal de control de cambios que analice el impacto en costo, tiempo y alcance, para su aprobación por el comité técnico."
+    },
+    {
+        "id": "GP_SENNOVA_13",
+        "content": "Al aplicar la metodología de Marco Lógico, el 'Fin' de un proyecto de SENNOVA se diferencia del 'Propósito' en que:",
+        "difficulty": 640,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "El Fin es el impacto a largo plazo al cual el proyecto contribuye, mientras que el Propósito es el resultado directo logrado al finalizar el proyecto.",
+            "El Fin es el presupuesto total asignado y el Propósito es el número de aprendices vinculados.",
+            "El Fin es el cierre administrativo y el Propósito es la publicación de un artículo científico.",
+            "No existe diferencia, son términos sinónimos en la formulación de proyectos del sector público."
+        ],
+        "correct_option": "El Fin es el impacto a largo plazo al cual el proyecto contribuye, mientras que el Propósito es el resultado directo logrado al finalizar el proyecto."
+    },
+    {
+        "id": "GP_SENNOVA_14",
+        "content": "En una auditoría interna, se observa que no existen actas de las reuniones de seguimiento de un proyecto de alta inversión. Como Gestor encargado, su postura frente al equipo técnico es:",
+        "difficulty": 790,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Instruir que se elaboren las actas pendientes con la información real de las reuniones efectuadas para asegurar la trazabilidad de la gestión.",
+            "Sugerir que se falsifiquen las firmas para cumplir formalmente con el requerimiento del auditor.",
+            "Argumentar ante el auditor que las reuniones fueron verbales y que el éxito del proyecto es evidencia suficiente.",
+            "Sancionar económicamente a los instructores por no cumplir con las normas de gestión documental de la entidad."
+        ],
+        "correct_option": "Instruir que se elaboren las actas pendientes con la información real de las reuniones efectuadas para asegurar la trazabilidad de la gestión."
+    },
+    {
+        "id": "GP_SENNOVA_15",
+        "content": "Usted debe consolidar el informe nacional de ejecución de la línea de investigación aplicada. Encuentra que algunos centros reportan indicadores de cumplimiento por encima del 100% sin justificación técnica. Usted debe:",
+        "difficulty": 860,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Publicar el informe tal cual, para destacar la excelente gestión de esos centros ante la Dirección General.",
+            "Devolver los reportes a los centros solicitando la evidencia de los logros excepcionales o la corrección de errores de digitación.",
+            "Ajustar manualmente los valores al 100% para que el informe se vea coherente y no genere sospechas.",
+            "Eliminar a los centros con sobrecumplimiento del informe nacional para evitar sesgos estadísticos."
+        ],
+        "correct_option": "Devolver los reportes a los centros solicitando la evidencia de los logros excepcionales o la corrección de errores de digitación."
+    },
+    {
+        "id": "GP_SENNOVA_16",
+        "content": "Un proyecto de innovación busca reducir los costos de producción en una cadena agrícola local. Según la lógica de Marco Lógico, si los 'Supuestos' de nivel de componentes no se cumplen:",
+        "difficulty": 810,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "El proyecto debe ser cancelado inmediatamente porque la gerencia falló en su análisis de entorno.",
+            "Los resultados esperados (Propósito) están en riesgo y se debe evaluar si es posible mitigar el factor externo que falló.",
+            "Se debe cambiar el objetivo del proyecto para que coincida con la nueva realidad, sin informar a la supervisión.",
+            "Los supuestos no tienen relevancia una vez que el presupuesto ha sido asignado y el proyecto está en ejecución."
+        ],
+        "correct_option": "Los resultados esperados (Propósito) están en riesgo y se debe evaluar si es posible mitigar el factor externo que falló."
+    },
+    {
+        "id": "GP_SENNOVA_17",
+        "content": "Para la contratación de un experto internacional en un proyecto de transferencia tecnológica, se presentan tres candidatos. Uno de ellos es familiar en cuarto grado de consanguinidad del Subdirector de Centro. Según el Código de Integridad y las normas de contratación pública:",
+        "difficulty": 950,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Se puede contratar si es el candidato con mejor perfil técnico y académico del grupo.",
+            "Existe una inhabilidad o conflicto de intereses que impide su contratación, por lo cual debe ser excluido del proceso.",
+            "Puede ser contratado siempre que el Subdirector delegue la firma del contrato en el Gestor SENNOVA.",
+            "Debe ser contratado para evitar demandas por discriminación familiar contra la entidad."
+        ],
+        "correct_option": "Existe una inhabilidad o conflicto de intereses que impide su contratación, por lo cual debe ser excluido del proceso."
+    },
+    {
+        "id": "GP_SENNOVA_18",
+        "content": "Usted identifica que un proyecto de la línea de Tecnoparques ha agotado el presupuesto de materiales, pero aún le falta ejecutar el 40% de las actividades técnicas de prototipado. Esta situación indica una falla en:",
+        "difficulty": 770,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "La gestión del cronograma, por haber ejecutado las tareas muy rápido.",
+            "La estimación de costos y la planificación de recursos durante la fase de formulación.",
+            "La política institucional de SENNOVA, que asigna pocos recursos a los proyectos de innovación.",
+            "La calidad del talento humano, que no sabe ahorrar insumos en el laboratorio."
+        ],
+        "correct_option": "La estimación de costos y la planificación de recursos durante la fase de formulación."
+    },
+    {
+        "id": "GP_SENNOVA_19",
+        "content": "Un instructor investigador le solicita permiso para llevarse un equipo de laboratorio adquirido con recursos de SENNOVA a su casa para adelantar trabajo los fines de semana. Su respuesta como Gestor es:",
+        "difficulty": 830,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Autorizar la salida mediante un permiso verbal, confiando en el compromiso ético del investigador.",
+            "Informar que los bienes de la entidad deben permanecer en las sedes autorizadas para su custodia y que cualquier movimiento requiere un trámite administrativo de salida de almacén debidamente justificado.",
+            "Sugerir que lo haga de forma oculta para evitar el trámite burocrático ante la oficina de almacén.",
+            "Permitir la salida del equipo solo si el instructor firma una póliza de seguro personal a favor del SENA."
+        ],
+        "correct_option": "Informar que los bienes de la entidad deben permanecer en las sedes autorizadas para su custodia y que cualquier movimiento requiere un trámite administrativo de salida de almacén debidamente justificado."
+    },
+    {
+        "id": "GP_SENNOVA_20",
+        "content": "Al analizar el flujo de caja de un proyecto, nota que se realizaron pagos anticipados a proveedores sin que el contrato lo permitiera. Como profesional encargado de supervisar la ejecución, usted debe:",
+        "difficulty": 900,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Validar los pagos si el proveedor ya entregó los productos satisfactoriamente para no generar retrocesos.",
+            "Informar de inmediato al área administrativa y de supervisión de contratos sobre la irregularidad para que se tomen las medidas legales pertinentes.",
+            "Solicitar al proveedor que devuelva el dinero y lo vuelva a cobrar el próximo mes para corregir el registro contable.",
+            "Ocultar el hallazgo en el informe de auditoría para no afectar el desempeño del Centro de Formación."
+        ],
+        "correct_option": "Informar de inmediato al área administrativa y de supervisión de contratos sobre la irregularidad para que se tomen las medidas legales pertinentes."
+    },
+    {
+        "id": "GP_SENNOVA_21",
+        "content": "Un proyecto de desarrollo de software en el SENA no contempló las pruebas de ciberseguridad en su plan de calidad original. El líder dice que no hay presupuesto para eso. Usted le indica que:",
+        "difficulty": 740,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Lance el software así, ya que en el SENA los datos no son críticos y el riesgo es bajo.",
+            "Debe realizar una gestión de interesados y una solicitud de modificación presupuestal para cubrir este requisito de calidad técnica esencial.",
+            "Utilice a aprendices de otras áreas para que hagan las pruebas gratis y sin registro oficial.",
+            "Documente que la ciberseguridad queda bajo responsabilidad del usuario final en los términos y condiciones."
+        ],
+        "correct_option": "Debe realizar una gestión de interesados y una solicitud de modificación presupuestal para cubrir este requisito de calidad técnica esencial."
+    },
+    {
+        "id": "GP_SENNOVA_22",
+        "content": "Para medir el desempeño de un portafolio de proyectos en su Regional, usted decide utilizar el Índice de Desempeño del Cronograma (SPI) según el PMI. Si un proyecto tiene un SPI de 0.8, esto indica que:",
+        "difficulty": 670,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "El proyecto está adelantado respecto a la línea base programada.",
+            "El proyecto está retrasado y solo ha completado el 80% de lo planeado a la fecha.",
+            "El proyecto ha gastado el 80% del presupuesto total asignado.",
+            "El proyecto es 20% más eficiente en el uso de sus recursos humanos."
+        ],
+        "correct_option": "El proyecto está retrasado y solo ha completado el 80% de lo planeado a la fecha."
+    },
+    {
+        "id": "GP_SENNOVA_23",
+        "content": "En un proyecto de innovación social, la comunidad beneficiaria rechaza la solución técnica propuesta a mitad de la ejecución. Usted, como Gestor SENNOVA, recomienda:",
+        "difficulty": 850,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Obligar a la comunidad a aceptar la solución, ya que los recursos públicos ya fueron invertidos.",
+            "Aplicar un proceso de co-creación y ajuste del alcance (Control de Cambios) para alinear la solución técnica con las necesidades reales de la comunidad.",
+            "Terminar el proyecto de forma unilateral y recuperar los equipos entregados para llevarlos a otro Centro.",
+            "Redactar un informe diciendo que el proyecto fue exitoso pero que la comunidad no supo usar la tecnología."
+        ],
+        "correct_option": "Aplicar un proceso de co-creación y ajuste del alcance (Control de Cambios) para alinear la solución técnica con las necesidades reales de la comunidad."
+    },
+    {
+        "id": "GP_SENNOVA_24",
+        "content": "Al cierre de la vigencia, un Centro no ejecutó el 30% de los recursos de SENNOVA. El Subdirector le pide que 'guarde' ese dinero mediante un contrato ficticio con un proveedor amigo. Su respuesta es:",
+        "difficulty": 1000,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Acceder a la solicitud siempre que el proveedor garantice la entrega de los bienes en la siguiente vigencia.",
+            "Informar que tal acción constituye un delito de peculado y fraude, y proceder a reportar la situación ante la oficina de control interno si la presión persiste.",
+            "Sugerir que mejor se use el dinero para comprar tarjetas de regalo para los instructores más destacados.",
+            "Solicitar un traslado de esos fondos a su propia oficina de gestión para 'protegerlos' administrativamente."
+        ],
+        "correct_option": "Informar que tal acción constituye un delito de peculado y fraude, y proceder a reportar la situación ante la oficina de control interno si la presión persiste."
+    },
+    {
+        "id": "GP_SENNOVA_25",
+        "content": "En la metodología de Marco Lógico, el monitoreo se realiza sobre los indicadores de Actividades y Componentes, mientras que la evaluación de impacto se centra en:",
+        "difficulty": 620,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "El número de facturas pagadas mensualmente.",
+            "El cumplimiento del Fin y el Propósito del proyecto una vez finalizado o en el largo plazo.",
+            "La cantidad de instructores que asistieron a las reuniones de planeación.",
+            "El color de los gráficos utilizados en las presentaciones de resultados."
+        ],
+        "correct_option": "El cumplimiento del Fin y el Propósito del proyecto una vez finalizado o en el largo plazo."
+    },
+    {
+        "id": "GP_SENNOVA_26",
+        "content": "Un proyecto de investigación aplicada en biotecnología reporta que la cepa de estudio murió por una falla eléctrica en el Centro. Esto no se había contemplado en los riesgos. Usted indica que se debe:",
+        "difficulty": 870,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Declarar el proyecto como pérdida total y cerrar el expediente administrativo.",
+            "Utilizar la 'reserva de gestión' (para riesgos no identificados) y solicitar una extensión de tiempo para reiniciar el experimento con nuevas medidas de seguridad energética.",
+            "Pedirle al investigador que compre una nueva cepa con su propio dinero para no afectar el presupuesto oficial.",
+            "Omitir el incidente en el reporte y decir que la investigación sigue su curso normal."
+        ],
+        "correct_option": "Utilizar la 'reserva de gestión' (para riesgos no identificados) y solicitar una extensión de tiempo para reiniciar el experimento con nuevas medidas de seguridad energética."
+    },
+    {
+        "id": "GP_SENNOVA_27",
+        "content": "Para asegurar la transparencia en la selección de proyectos internos de SENNOVA, usted propone que el comité evaluador:",
+        "difficulty": 790,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Esté compuesto solo por los amigos del Subdirector de Centro para garantizar armonía en las decisiones.",
+            "Utilice pares evaluadores ciegos (externos o de otros centros) y rúbricas técnicas estandarizadas publicadas previamente.",
+            "Asigne los recursos por sorteo para evitar discusiones técnicas complejas.",
+            "Favorezca a los proyectos que tienen mayor presupuesto para asegurar una rápida ejecución financiera."
+        ],
+        "correct_option": "Utilice pares evaluadores ciegos (externos o de otros centros) y rúbricas técnicas estandarizadas publicadas previamente."
+    },
+    {
+        "id": "GP_SENNOVA_28",
+        "content": "Al revisar un cronograma en un diagrama de Gantt, usted observa que muchas actividades dependen de una sola persona (un instructor experto). Esto representa un riesgo de:",
+        "difficulty": 720,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Sobrecarga de recursos y posible cuello de botella que pone en peligro el cumplimiento de los plazos.",
+            "Alta eficiencia, ya que centralizar el conocimiento reduce la necesidad de reuniones de equipo.",
+            "Excelente liderazgo por parte del instructor experto.",
+            "Ahorro presupuestal al no tener que contratar personal de apoyo."
+        ],
+        "correct_option": "Sobrecarga de recursos y posible cuello de botella que pone en peligro el cumplimiento de los plazos."
+    },
+    {
+        "id": "GP_SENNOVA_29",
+        "content": "Un proyecto SENNOVA ha terminado exitosamente sus objetivos técnicos, pero el líder no ha entregado el informe de propiedad intelectual. Usted debe:",
+        "difficulty": 800,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Dar por cerrado el proyecto, ya que lo importante era el prototipo técnico.",
+            "Retener la certificación de cumplimiento del contrato o el cierre administrativo hasta que se entregue el informe de PI conforme a los lineamientos.",
+            "Redactar usted mismo el informe de PI para no molestar al investigador con trámites legales.",
+            "Sugerir que registren la propiedad intelectual a nombre del instructor para agilizar el proceso externo."
+        ],
+        "correct_option": "Retener la certificación de cumplimiento del contrato o el cierre administrativo hasta que se entregue el informe de PI conforme a los lineamientos."
+    },
+    {
+        "id": "GP_SENNOVA_30",
+        "content": "Usted es responsable de consolidar las necesidades de inversión para la vigencia futura. Un Centro le envía una lista de compras sin vinculación a ningún proyecto de investigación. Su decisión es:",
+        "difficulty": 830,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Incluir las compras en el plan global, asumiendo que el Centro las necesita para su funcionamiento.",
+            "Rechazar la solicitud de inversión hasta que cada rubro esté debidamente justificado dentro de un proyecto avalado en las líneas programáticas de SENNOVA.",
+            "Pedirle al Centro que invente nombres de proyectos para que la lista de compras sea aprobada por la Dirección General.",
+            "Aprobar la inversión solo si el Centro se compromete a donar algunos equipos a su oficina de gestión regional."
+        ],
+        "correct_option": "Rechazar la solicitud de inversión hasta que cada rubro esté debidamente justificado dentro de un proyecto avalado en las líneas programáticas de SENNOVA."
+    },
+    {
+        "id": "GP_SENNOVA_31",
+        "content": "En la gestión de calidad de un proyecto de Tecnoacademia, se detecta que los prototipos desarrollados por los aprendices no cumplen con las normas de seguridad eléctrica. Su instrucción inmediata es:",
+        "difficulty": 760,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Suspender el uso de los prototipos y priorizar la corrección técnica bajo supervisión de un experto, asegurando el cumplimiento normativo antes de cualquier divulgación.",
+            "Continuar con la divulgación del proyecto para cumplir con los indicadores de impacto, aclarando que son 'modelos de prueba'.",
+            "Solicitar a los aprendices que firmen un documento exonerando al SENA de cualquier responsabilidad por accidentes eléctricos.",
+            "Ignorar el hallazgo de seguridad, pues los proyectos académicos no requieren cumplir las mismas normas que los industriales."
+        ],
+        "correct_option": "Suspender el uso de los prototipos y priorizar la corrección técnica bajo supervisión de un experto, asegurando el cumplimiento normativo antes de cualquier divulgación."
+    },
+    {
+        "id": "GP_SENNOVA_32",
+        "content": "Un proyecto de SENNOVA requiere la contratación de un servicio de laboratorio especializado que solo ofrece una empresa en el país. El procedimiento administrativo correcto es:",
+        "difficulty": 880,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Realizar una contratación directa por proveedor único, previa justificación técnica y estudio de mercado que demuestre la exclusividad.",
+            "Obligar a la empresa a participar en una licitación pública abierta aunque no haya más competidores.",
+            "Pedirle a un amigo que cree una empresa similar para simular una competencia de precios en el proceso de selección.",
+            "Cancelar la actividad del proyecto por no existir pluralidad de oferentes en el mercado nacional."
+        ],
+        "correct_option": "Realizar una contratación directa por proveedor único, previa justificación técnica y estudio de mercado que demuestre la exclusividad."
+    },
+    {
+        "id": "GP_SENNOVA_33",
+        "content": "Usted identifica que un proyecto ha gastado el 90% de su presupuesto, pero solo ha alcanzado el 50% de sus metas técnicas. Según la técnica de Valor Ganado (EVM) del PMI, este proyecto presenta un:",
+        "difficulty": 810,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Índice de Desempeño del Costo (CPI) menor a 1.0, indicando sobrecostos significativos.",
+            "Índice de Desempeño del Costo (CPI) mayor a 1.0, indicando gran eficiencia financiera.",
+            "Índice de Desempeño del Cronograma (SPI) perfecto, indicando que el dinero se gasta según lo planeado.",
+            "Desempeño excelente, ya que ejecutar el presupuesto es la prioridad número uno en el sector público."
+        ],
+        "correct_option": "Índice de Desempeño del Costo (CPI) menor a 1.0, indicando sobrecostos significativos."
+    },
+    {
+        "id": "GP_SENNOVA_34",
+        "content": "Un líder de proyecto se queja de que el equipo de compras del Centro demora demasiado los trámites. Actuando con enfoque de liderazgo y orientación a resultados, usted:",
+        "difficulty": 700,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Se une a las quejas del líder para presionar colectivamente al área de compras en redes sociales.",
+            "Organiza una mesa de trabajo conjunta entre el equipo del proyecto y el área de compras para identificar cuellos de botella y agilizar los flujos de información.",
+            "Le dice al líder que las compras no son su responsabilidad y que debe esperar pacientemente los tiempos de ley.",
+            "Sugiere al líder que compre las cosas con su dinero y luego pase una cuenta de cobro por 'gastos de representación'."
+        ],
+        "correct_option": "Organiza una mesa de trabajo conjunta entre el equipo del proyecto y el área de compras para identificar cuellos de botella y agilizar los flujos de información."
+    },
+    {
+        "id": "GP_SENNOVA_35",
+        "content": "Al supervisar un proyecto de la línea programática de investigación, nota que no se han realizado las vigilancias tecnológicas previas. Su recomendación técnica es:",
+        "difficulty": 840,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Continuar con la investigación, ya que la vigilancia técnica es un trámite opcional para expertos de alto nivel.",
+            "Realizar un ejercicio de vigilancia tecnológica inmediato para validar que la investigación no esté duplicando esfuerzos existentes y asegurar la novedad de los resultados.",
+            "Omitir este paso si el instructor investigador afirma haber leído muchos libros sobre el tema en su tiempo libre.",
+            "Reemplazar la vigilancia tecnológica por una búsqueda rápida en motores de búsqueda comerciales de acceso gratuito."
+        ],
+        "correct_option": "Realizar un ejercicio de vigilancia tecnológica inmediato para validar que la investigación no esté duplicando esfuerzos existentes y asegurar la novedad de los resultados."
+    },
+    {
+        "id": "GP_SENNOVA_36",
+        "content": "En el cierre de un proyecto, se descubre que algunos activos adquiridos no tienen placa de inventario. Según la norma de gestión de bienes, usted debe:",
+        "difficulty": 750,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Esconder los activos en una bodega hasta que termine la auditoría externa.",
+            "Coordinar con el área de almacén el plaqueo y registro inmediato de los bienes en el sistema institucional, vinculándolos al proyecto correspondiente.",
+            "Permitir que el instructor se quede con los bienes 'sin placa' como compensación por sus horas extras de trabajo.",
+            "Dar de baja los activos inmediatamente para evitar sanciones por falta de registro oportuno."
+        ],
+        "correct_option": "Coordinar con el área de almacén el plaqueo y registro inmediato de los bienes en el sistema institucional, vinculándolos al proyecto correspondiente."
+    },
+    {
+        "id": "GP_SENNOVA_37",
+        "content": "Un proyecto de modernización tecnológica para una pequeña empresa local (aliada de SENNOVA) presenta un retraso. La empresa amenaza con retirarse del convenio. Usted, como Gestor, debe:",
+        "difficulty": 820,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Ignorar la amenaza, pues los convenios con el Estado son de cumplimiento obligatorio para los particulares.",
+            "Convocar a una reunión de gestión de interesados para renegociar plazos y demostrar los beneficios finales que recibirá la empresa al concluir el proyecto.",
+            "Ofrecerle dinero adicional del presupuesto del SENA a la empresa para que no se retire del convenio.",
+            "Buscar otra empresa de forma secreta para reemplazar a la actual sin hacer el trámite de modificación de convenio."
+        ],
+        "correct_option": "Convocar a una reunión de gestión de interesados para renegociar plazos y demostrar los beneficios finales que recibirá la empresa al concluir el proyecto."
+    },
+    {
+        "id": "GP_SENNOVA_38",
+        "content": "Según los principios de la Gestión para el Resultado (MIPG), la planificación de un proyecto de SENNOVA debe estar centrada principalmente en:",
+        "difficulty": 690,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "La satisfacción de las necesidades del ciudadano (aprendices, sector productivo) y la generación de valor público.",
+            "El cumplimiento estricto del horario laboral de los instructores investigadores del Centro.",
+            "La cantidad de papel impreso en los informes de gestión trimestrales.",
+            "El aumento del prestigio personal del Subdirector de Centro ante la Dirección General."
+        ],
+        "correct_option": "La satisfacción de las necesidades del ciudadano (aprendices, sector productivo) y la generación de valor público."
+    },
+    {
+        "id": "GP_SENNOVA_39",
+        "content": "Al realizar la transferencia técnica de un proyecto, se identifica que el manual de usuario es incomprensible para el operario final. Como Gestor de Calidad del proyecto, usted instruye:",
+        "difficulty": 730,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Aprobar el manual así, argumentando que el operario debe estudiar más para entender el nivel técnico de SENNOVA.",
+            "Solicitar un ajuste en el entregable de documentación técnica para asegurar que sea pedagógico, claro y funcional para el usuario objetivo.",
+            "Eliminar el manual de los entregables para que no haya evidencia de la mala redacción del equipo técnico.",
+            "Contratar a una agencia de publicidad externa para que haga el manual desde cero con el presupuesto de materiales de laboratorio."
+        ],
+        "correct_option": "Solicitar un ajuste en el entregable de documentación técnica para asegurar que sea pedagógico, claro y funcional para el usuario objetivo."
+    },
+    {
+        "id": "GP_SENNOVA_40",
+        "content": "Usted detecta que un proyecto está duplicando actividades técnicas que ya se realizaron en otro proyecto del mismo Centro el año pasado. Su deber como Gestor de Innovación es:",
+        "difficulty": 910,
+        "topic": "Gestión de Proyectos (PMI/Marco Lógico)",
+        "options": [
+            "Permitir la duplicidad para que el Centro muestre mayor volumen de proyectos ejecutados en la vigencia.",
+            "Suspender la financiación de las actividades duplicadas y orientar al equipo para que parta de los resultados previos, enfocándose en un nuevo avance incremental.",
+            "Sugerir que cambien el nombre de las actividades para que no parezcan iguales en el sistema de seguimiento.",
+            "Solicitar la destitución inmediata de los instructores por no conocer la historia de los proyectos del Centro."
+        ],
+        "correct_option": "Suspender la financiación de las actividades duplicadas y orientar al equipo para que parta de los resultados previos, enfocándose en un nuevo avance incremental."
+    },
+    {
+        "id": "IA_SENNOVA_01",
+        "content": "Un instructor que lidera un semillero de investigación en un Centro de Formación le informa que dos de los tres aprendices vinculados se retiraron de su proceso formativo. El instructor desea continuar con el semillero solo con el aprendiz restante. Según la normativa del SENA para la conformación de semilleros, su respuesta debe ser:",
+        "difficulty": 720,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Autorizar la continuidad, ya que lo importante es que el líder siga vinculado a un grupo de investigación.",
+            "Informar que el semillero entra en estado de incumplimiento de requisitos mínimos, pues debe contar con al menos dos integrantes aprendices.",
+            "Sugerir que vincule administrativamente a un administrativo del Centro para suplir la cuota de integrantes rápidamente.",
+            "Cerrar definitivamente el semillero sin posibilidad de reactivación por falta de compromiso de los aprendices."
+        ],
+        "correct_option": "Informar que el semillero entra en estado de incumplimiento de requisitos mínimos, pues debe contar con al menos dos integrantes aprendices."
+    },
+    {
+        "id": "IA_SENNOVA_02",
+        "content": "Durante la fase de preparación para la convocatoria de medición de grupos de MinCiencias, usted identifica que un grupo de investigación del SENA no ha actualizado el CvLAC de sus integrantes en los últimos dos años. Como Gestor, la acción estratégica a seguir es:",
+        "difficulty": 850,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Actualizar usted mismo los perfiles de los instructores utilizando la información de los informes mensuales.",
+            "Organizar una jornada técnica de actualización de hojas de vida (CvLAC) y de grupo (GrupLAC) para asegurar que la producción técnica sea visibilizada en la plataforma.",
+            "Solicitar a MinCiencias que prorrogue el plazo de la convocatoria exclusivamente para el SENA debido a la carga administrativa.",
+            "Recomendar que el grupo no participe en esta medición para evitar una baja categorización que afecte los indicadores regionales."
+        ],
+        "correct_option": "Organizar una jornada técnica de actualización de hojas de vida (CvLAC) y de grupo (GrupLAC) para asegurar que la producción técnica sea visibilizada en la plataforma."
+    },
+    {
+        "id": "IA_SENNOVA_03",
+        "content": "Un grupo de investigación solicita el aval institucional para un nuevo proyecto. Al revisar los antecedentes, usted nota que el grupo tiene dos productos de apropiación social del conocimiento pendientes de entrega de la vigencia anterior. Según los lineamientos de SENNOVA:",
+        "difficulty": 800,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Otorgar el aval condicionado a que entreguen los productos en el transcurso del primer semestre del nuevo proyecto.",
+            "Negar el aval institucional hasta que el grupo subsane los compromisos pendientes de la vigencia anterior, garantizando la trazabilidad de la inversión.",
+            "Eliminar los productos pendientes del sistema para que el grupo aparezca 'a paz y salvo' ante la Dirección General.",
+            "Otorgar el aval sin restricciones, priorizando el inicio de nuevas investigaciones para aumentar el impacto de la Regional."
+        ],
+        "correct_option": "Negar el aval institucional hasta que el grupo subsane los compromisos pendientes de la vigencia anterior, garantizando la trazabilidad de la inversión."
+    },
+    {
+        "id": "IA_SENNOVA_04",
+        "content": "Para fomentar la cultura de la investigación, un Subdirector le pide que los semilleros de investigación sean obligatorios para todos los aprendices del Centro de Formación. Su asesoría técnica basada en la política SENNOVA es:",
+        "difficulty": 650,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Apoyar la iniciativa y redactar un acto administrativo que convierta la investigación en requisito de grado para todos.",
+            "Explicar que la participación en semilleros debe ser voluntaria y basada en la motivación del aprendiz por el aprendizaje basado en problemas.",
+            "Sugerir que solo se obligue a los aprendices con mejores promedios académicos para asegurar resultados de alta calidad.",
+            "Indicar que la investigación es exclusiva para instructores y que los aprendices solo deben ser auxiliares operativos sin voz ni voto."
+        ],
+        "correct_option": "Explicar que la participación en semilleros debe ser voluntaria y basada en la motivación del aprendiz por el aprendizaje basado en problemas."
+    },
+    {
+        "id": "IA_SENNOVA_05",
+        "content": "Un grupo de investigación categorizado en 'C' por MinCiencias desea ascender a categoría 'B'. Usted les indica que el factor determinante que deben fortalecer en su GrupLAC es:",
+        "difficulty": 780,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "El número de reuniones sociales registradas en las bitácoras del grupo.",
+            "La producción de productos de nuevo conocimiento (artículos, patentes) y la formación de talento humano (dirección de proyectos de grado o semilleros).",
+            "La cantidad de instructores que pertenecen al grupo, sin importar si tienen productos registrados.",
+            "El presupuesto total que han ejecutado en viáticos y viajes durante la vigencia actual."
+        ],
+        "correct_option": "La producción de productos de nuevo conocimiento (artículos, patentes) y la formación de talento humano (dirección de proyectos de grado o semilleros)."
+    },
+    {
+        "id": "IA_SENNOVA_06",
+        "content": "En una mesa técnica de SENNOVA, un instructor propone crear un grupo de investigación cuyas líneas de investigación no coinciden con las Redes de Conocimiento del SENA asignadas al Centro. Su decisión como Gestor es:",
+        "difficulty": 740,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Avalar el grupo siempre que el instructor demuestre pasión por el tema ajeno al Centro.",
+            "Rechazar la propuesta y orientar al instructor para que alinee sus líneas de investigación con las prioridades estratégicas y redes de conocimiento del Centro.",
+            "Sugerir que el instructor busque financiación externa para evitar el control de SENNOVA sobre las líneas de investigación.",
+            "Modificar arbitrariamente las redes de conocimiento del Centro para que encajen con el interés del instructor."
+        ],
+        "correct_option": "Rechazar la propuesta y orientar al instructor para que alinee sus líneas de investigación con las prioridades estratégicas y redes de conocimiento del Centro."
+    },
+    {
+        "id": "IA_SENNOVA_07",
+        "content": "Usted recibe una solicitud para avalar a un instructor externo (de una universidad) como líder de un grupo de investigación del SENA. Al revisar la normativa interna, usted encuentra que:",
+        "difficulty": 820,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Es posible si el instructor externo tiene un doctorado y mucha experiencia en investigación.",
+            "El líder de un grupo de investigación del SENA debe ser un funcionario o instructor vinculado a la entidad que garantice la representatividad institucional.",
+            "Cualquier persona puede liderar un grupo del SENA siempre que no cobre honorarios por ello.",
+            "El SENA no permite la participación de externos en sus grupos de investigación bajo ninguna figura."
+        ],
+        "correct_option": "El líder de un grupo de investigación del SENA debe ser un funcionario o instructor vinculado a la entidad que garantice la representatividad institucional."
+    },
+    {
+        "id": "IA_SENNOVA_08",
+        "content": "Un semillero de investigación ha desarrollado un prototipo funcional que resuelve una necesidad técnica de una PyME local. Para el registro de este logro en el GrupLAC, usted clasifica este producto como:",
+        "difficulty": 710,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Producto de Apropiación Social del Conocimiento.",
+            "Producto de Desarrollo Tecnológico e Innovación.",
+            "Producto de Nuevo Conocimiento (Ciencia Básica).",
+            "Actividad de administración de la investigación."
+        ],
+        "correct_option": "Producto de Desarrollo Tecnológico e Innovación."
+    },
+    {
+        "id": "IA_SENNOVA_09",
+        "content": "Al realizar la auditoría a un semillero, usted detecta que el 'Plan Operativo' registrado no se ha cumplido en un 60% debido a fallas en la gestión del instructor líder. Actuando bajo el principio de mejora continua (MIPG), usted:",
+        "difficulty": 790,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Inicia un proceso disciplinario inmediato contra el instructor por incumplimiento de funciones.",
+            "Solicita un plan de mejoramiento donde se identifiquen las causas del retraso y se establezcan metas alcanzables para el cierre de la vigencia.",
+            "Asigna los aprendices de ese semillero a otro grupo para que no pierdan su tiempo.",
+            "Borra los registros de incumplimiento para que la Regional no pierda puntos en la medición nacional de SENNOVA."
+        ],
+        "correct_option": "Solicitar un plan de mejoramiento donde se identifiquen las causas del retraso y se establezcan metas alcanzables para el cierre de la vigencia."
+    },
+    {
+        "id": "IA_SENNOVA_10",
+        "content": "Usted debe asesorar la creación de un nuevo grupo de investigación. El equipo técnico le pregunta cuál es el número mínimo de integrantes que el SENA exige para avalar la conformación. Usted responde:",
+        "difficulty": 680,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Mínimo 5 integrantes con maestría.",
+            "No hay un número mínimo, puede ser unipersonal.",
+            "Mínimo 2 integrantes (Líder e investigador) registrados en el sistema institucional.",
+            "El número depende de lo que decida el Subdirector de cada Centro de Formación."
+        ],
+        "correct_option": "Mínimo 2 integrantes (Líder e investigador) registrados en el sistema institucional."
+    },
+    {
+        "id": "IA_SENNOVA_11",
+        "content": "En la convocatoria de SENNOVA para proyectos de I+D+i, un grupo de investigación presenta una propuesta que consiste únicamente en comprar computadores para el área de administración del Centro. Su evaluación técnica es:",
+        "difficulty": 910,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Aprobar el proyecto, pues la tecnología es necesaria para que el Centro funcione mejor.",
+            "Rechazar la propuesta, ya que los recursos de SENNOVA son para investigación y desarrollo, no para gastos de funcionamiento o dotación administrativa ordinaria.",
+            "Aprobarlo solo si incluyen una capacitación sobre cómo encender los computadores para que parezca una transferencia de conocimiento.",
+            "Redirigir la solicitud a la oficina de sistemas de la Regional sin emitir concepto técnico."
+        ],
+        "correct_option": "Rechazar la propuesta, ya que los recursos de SENNOVA son para investigación y desarrollo, no para gastos de funcionamiento o dotación administrativa ordinaria."
+    },
+    {
+        "id": "IA_SENNOVA_12",
+        "content": "Para que un artículo científico sea válido como producto de 'Nuevo Conocimiento' en la medición de MinCiencias para un grupo del SENA, este debe:",
+        "difficulty": 830,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Estar publicado en una revista indexada y que el autor tenga vinculada su filiación institucional al SENA en el CvLAC.",
+            "Ser publicado en el periódico local de la ciudad donde se encuentra el Centro de Formación.",
+            "Contar con la firma y sello del Director General del SENA en la primera página.",
+            "Haber sido impreso en papel reciclado como parte de la política ambiental de la entidad."
+        ],
+        "correct_option": "Estar publicado en una revista indexada y que el autor tenga vinculada su filiación institucional al SENA en el CvLAC."
+    },
+    {
+        "id": "IA_SENNOVA_13",
+        "content": "Un instructor le solicita permiso para utilizar el nombre del grupo de investigación del SENA en una consultoría privada que está realizando de forma independiente. Su respuesta como Gestor, basándose en la ética pública, es:",
+        "difficulty": 950,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Permitirlo, siempre que mencione que el SENA tiene los mejores equipos del país.",
+            "Negar la solicitud, explicando que el uso de la marca e institucionalidad del SENA es exclusivo para fines de la entidad y proyectos oficiales.",
+            "Sugerirle que cobre más en su consultoría privada y done un porcentaje al fondo de bienestar de aprendices.",
+            "Autorizarlo solo si la consultoría privada beneficia a una empresa que tenga convenio vigente con el SENA."
+        ],
+        "correct_option": "Negar la solicitud, explicando que el uso de la marca e institucionalidad del SENA es exclusivo para fines de la entidad y proyectos oficiales."
+    },
+    {
+        "id": "IA_SENNOVA_14",
+        "content": "En el marco de la estrategia SENNOVA, un Tecnoparque desea implementar una línea de investigación en inteligencia artificial. Usted debe verificar que esta iniciativa:",
+        "difficulty": 760,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Tenga el aval de una universidad extranjera de habla inglesa.",
+            "Esté alineada con el Plan Tecnológico del Centro y responda a las apuestas productivas de la región.",
+            "Sea liderada por el Gestor Regional de SENNOVA de forma personal.",
+            "No requiera el uso de energía eléctrica del Centro para no aumentar los costos fijos."
+        ],
+        "correct_option": "Esté alineada con el Plan Tecnológico del Centro y responda a las apuestas productivas de la región."
+    },
+    {
+        "id": "IA_SENNOVA_15",
+        "content": "Al revisar el GrupLAC de un grupo de investigación, usted nota que se han registrado productos de 'Prototipo Industrial' que en realidad son maquetas decorativas sin funcionalidad técnica. Su instrucción es:",
+        "difficulty": 870,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Mantenerlos así para que el grupo no baje de categoría en la próxima medición.",
+            "Solicitar la corrección inmediata del registro, aclarando que para ser prototipo industrial debe demostrar funcionalidad y validación técnica.",
+            "Sugerir que les tomen fotos artísticas para que parezcan funcionales ante el evaluador de MinCiencias.",
+            "Felicitar al grupo por su creatividad y promover el uso de maquetas en otros centros de formación."
+        ],
+        "correct_option": "Solicitar la corrección inmediata del registro, aclarando que para ser prototipo industrial debe demostrar funcionalidad y validación técnica."
+    },
+    {
+        "id": "IA_SENNOVA_16",
+        "content": "Un grupo de investigación desea categorizarse como 'Reconocido' ante MinCiencias. El requisito básico que usted debe validar es que el grupo tenga al menos:",
+        "difficulty": 720,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Dos años de existencia demostrable y una producción mínima exigida por el modelo de medición vigente.",
+            "Diez aprendices con contrato de aprendizaje vinculados permanentemente.",
+            "Un laboratorio propio construido con recursos de regalías.",
+            "Un logo diseñado por una agencia de publicidad externa."
+        ],
+        "correct_option": "Dos años de existencia demostrable y una producción mínima exigida por el modelo de medición vigente."
+    },
+    {
+        "id": "IA_SENNOVA_17",
+        "content": "Usted identifica que dos semilleros de investigación diferentes están trabajando en el mismo tema y con los mismos objetivos dentro del mismo Centro. Su acción estratégica es:",
+        "difficulty": 840,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Fomentar la competencia entre ellos para ver quién termina primero el prototipo.",
+            "Promover la fusión de los semilleros o la colaboración técnica para optimizar recursos y fortalecer el impacto de la investigación.",
+            "Eliminar al semillero que tenga menos aprendices de forma unilateral.",
+            "Ignorar la situación, ya que cada instructor tiene libertad de cátedra absoluta."
+        ],
+        "correct_option": "Promover la fusión de los semilleros o la colaboración técnica para optimizar recursos y fortalecer el impacto de la investigación."
+    },
+    {
+        "id": "IA_SENNOVA_18",
+        "content": "Para la vinculación de aprendices a los proyectos de investigación de SENNOVA, usted debe asegurar que:",
+        "difficulty": 660,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Los aprendices reciban una calificación de 'Excelente' automáticamente en sus módulos técnicos.",
+            "La participación del aprendiz esté registrada y se le reconozca su aporte en los productos de divulgación resultantes.",
+            "Los aprendices firmen una cláusula de confidencialidad que les prohíba hablar del proyecto de por vida.",
+            "Se priorice a los aprendices que ya terminaron su etapa lectiva y no tienen nada más que hacer."
+        ],
+        "correct_option": "La participación del aprendiz esté registrada y se le reconozca su aporte en los productos de divulgación resultantes."
+    },
+    {
+        "id": "IA_SENNOVA_19",
+        "content": "Un instructor le consulta cómo registrar un 'Software' desarrollado en un proyecto SENNOVA para que cuente como producto de desarrollo tecnológico. Usted le indica que debe contar con:",
+        "difficulty": 890,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "El código fuente guardado en un CD en la oficina del Subdirector.",
+            "El registro de Derechos de Autor ante la Dirección Nacional de Derecho de Autor (DNDA) a nombre del SENA y el manual de usuario.",
+            "Un video en YouTube con más de 1.000 reproducciones.",
+            "La factura de compra de la licencia del lenguaje de programación utilizado."
+        ],
+        "correct_option": "El registro de Derechos de Autor ante la Dirección Nacional de Derecho de Autor (DNDA) a nombre del SENA y el manual de usuario."
+    },
+    {
+        "id": "IA_SENNOVA_20",
+        "content": "Un Centro de Formación quiere contratar a un experto para que redacte todos los artículos científicos de los grupos de investigación del Centro sin que los instructores participen. Su concepto técnico es:",
+        "difficulty": 930,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Es una excelente idea para mejorar los indicadores de impacto rápidamente.",
+            "Es una práctica éticamente incorrecta y no permitida, ya que la autoría debe reflejar el trabajo real de los investigadores de la entidad.",
+            "Se puede hacer siempre que el experto no cobre más de un salario mínimo por artículo.",
+            "Solo se permite si el experto firma como coautor junto con el Subdirector del Centro."
+        ],
+        "correct_option": "Es una práctica éticamente incorrecta y no permitida, ya que la autoría debe reflejar el trabajo real de los investigadores de la entidad."
+    },
+    {
+        "id": "IA_SENNOVA_21",
+        "content": "En la evaluación de un proyecto de semillero de investigación, se detecta que no hay una pregunta de investigación clara. Su recomendación pedagógica es:",
+        "difficulty": 700,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Aprobar el proyecto así, pues los aprendices solo deben aprender a usar herramientas técnicas.",
+            "Asesorar al equipo en la delimitación del problema y la formulación de una pregunta que guíe el proceso de indagación técnica.",
+            "Redactar usted mismo la pregunta de investigación para no retrasar el cronograma del proyecto.",
+            "Rechazar el proyecto y sugerir que el semillero se dedique a hacer mantenimiento de equipos en lugar de investigar."
+        ],
+        "correct_option": "Asesorar al equipo en la delimitación del problema y la formulación de una pregunta que guíe el proceso de indagación técnica."
+    },
+    {
+        "id": "IA_SENNOVA_22",
+        "content": "Un grupo de investigación del SENA desea realizar una alianza con un grupo de una universidad para una convocatoria externa. Como Gestor, usted debe verificar que:",
+        "difficulty": 810,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "La universidad sea privada para evitar trámites con el Estado.",
+            "Exista un convenio o acuerdo de cooperación que defina claramente la propiedad intelectual y los compromisos de cada parte.",
+            "El grupo de la universidad tenga menos investigadores que el del SENA para mantener el liderazgo.",
+            "La alianza sea verbal para facilitar la agilidad administrativa."
+        ],
+        "correct_option": "Exista un convenio o acuerdo de cooperación que defina claramente la propiedad intelectual y los compromisos de cada parte."
+    },
+    {
+        "id": "IA_SENNOVA_23",
+        "content": "Según el modelo de MinCiencias aplicado a grupos del SENA, ¿cuál de los siguientes se considera un producto de formación de recurso humano?",
+        "difficulty": 670,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "La dirección de una tesis de pregrado o la tutoría de un aprendiz en un proyecto de investigación con resultado de certificación.",
+            "La asistencia de un instructor a un congreso como oyente.",
+            "La compra de libros para la biblioteca del Centro de Formación.",
+            "El pago de la nómina de los aprendices vinculados al semillero."
+        ],
+        "correct_option": "La dirección de una tesis de pregrado o la tutoría de un aprendiz en un proyecto de investigación con resultado de certificación."
+    },
+    {
+        "id": "IA_SENNOVA_24",
+        "content": "Un instructor que no pertenece a ningún grupo de investigación registrado desea liderar un semillero. De acuerdo con los requisitos mínimos de conformación, usted le informa que:",
+        "difficulty": 750,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "No hay problema, puede liderar el semillero de forma independiente.",
+            "Es requisito obligatorio que el líder del semillero esté vinculado a un grupo de investigación registrado ante el SENA.",
+            "Debe crear su propio grupo de investigación el mismo día que cree el semillero.",
+            "Solo puede liderar el semillero si tiene un título de doctorado vigente."
+        ],
+        "correct_option": "Es requisito obligatorio que el líder del semillero esté vinculado a un grupo de investigación registrado ante el SENA."
+    },
+    {
+        "id": "IA_SENNOVA_25",
+        "content": "Usted debe presentar un informe sobre la categorización de los grupos de su Regional. Si un grupo bajó de categoría 'A' a 'C', la causa técnica más probable a investigar es:",
+        "difficulty": 880,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "El grupo aumentó el número de integrantes jóvenes.",
+            "La producción de productos de alto impacto (Artículos A1, patentes) disminuyó o caducó en la ventana de observación de MinCiencias.",
+            "El grupo cambió de nombre en el sistema GrupLAC.",
+            "El Subdirector del Centro no firmó la carta de aval en papel membrete."
+        ],
+        "correct_option": "La producción de productos de alto impacto (Artículos A1, patentes) disminuyó o caducó en la ventana de observación de MinCiencias."
+    },
+    {
+        "id": "IA_SENNOVA_26",
+        "content": "Un proyecto de investigación aplicada en el SENA produce una cartilla pedagógica para agricultores. Este producto se clasifica en el sistema de ciencia y tecnología como:",
+        "difficulty": 740,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Nuevo Conocimiento.",
+            "Apropiación Social del Conocimiento y Divulgación Pública de la Ciencia.",
+            "Desarrollo Tecnológico Industrial.",
+            "Gasto administrativo de papelería."
+        ],
+        "correct_option": "Apropiación Social del Conocimiento y Divulgación Pública de la Ciencia."
+    },
+    {
+        "id": "IA_SENNOVA_27",
+        "content": "Para garantizar la transparencia en el uso de los laboratorios de investigación, usted propone implementar un sistema de:",
+        "difficulty": 730,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Reserva y bitácora de uso donde se registre el proyecto, los integrantes y el tiempo de utilización de los equipos.",
+            "Acceso libre las 24 horas sin necesidad de registro para fomentar la creatividad.",
+            "Cobro por minuto de uso de los equipos a los aprendices del semillero.",
+            "Asignación de llaves exclusivas solo para los instructores de planta antiguos."
+        ],
+        "correct_option": "Reserva y bitácora de uso donde se registre el proyecto, los integrantes y el tiempo de utilización de los equipos."
+    },
+    {
+        "id": "IA_SENNOVA_28",
+        "content": "Un grupo de investigación desea registrar una 'Consultoría Científica' como producto. Usted les recuerda que para que sea válido en el modelo de medición, esta debe:",
+        "difficulty": 860,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Haber sido gratuita para la empresa beneficiaria.",
+            "Estar soportada por un contrato oficial y un informe técnico final que demuestre la solución de un problema basado en investigación.",
+            "Haber durado menos de una semana para demostrar eficiencia técnica.",
+            "Contar con la aprobación verbal de la Cámara de Comercio regional."
+        ],
+        "correct_option": "Estar soportada por un contrato oficial y un informe técnico final que demuestre la solución de un problema basado en investigación."
+    },
+    {
+        "id": "IA_SENNOVA_29",
+        "content": "Usted es el encargado de dar el aval institucional en la plataforma de MinCiencias para los grupos del SENA. Antes de hacer clic en 'Avalar', su deber legal es verificar que:",
+        "difficulty": 940,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "El grupo tenga un nombre bonito y llamativo.",
+            "La información registrada en el GrupLAC sea verídica, esté soportada con evidencias y cumpla con los lineamientos institucionales del SENA.",
+            "El líder del grupo sea de su misma corriente política para asegurar el trabajo en equipo.",
+            "Hayan pasado más de cinco años desde la creación del grupo."
+        ],
+        "correct_option": "La información registrada en el GrupLAC sea verídica, esté soportada con evidencias y cumpla con los lineamientos institucionales del SENA."
+    },
+    {
+        "id": "IA_SENNOVA_30",
+        "content": "Un instructor le informa que ha sido invitado a un congreso internacional para presentar los resultados de un proyecto SENNOVA, pero el evento es después de que finalice su contrato. Usted aconseja:",
+        "difficulty": 820,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Que asista por su cuenta y riesgo y luego pida el reembolso al SENA.",
+            "Gestionar con el Centro la participación de otro integrante del grupo o semillero que tenga contrato vigente para garantizar la representación institucional.",
+            "Que cancele la presentación, ya que sin contrato no tiene derecho a hablar en nombre del SENA.",
+            "Pedirle al instructor que grabe un video en su casa para que lo proyecten en el congreso y no haya que pagar viáticos."
+        ],
+        "correct_option": "Gestionar con el Centro la participación de otro integrante del grupo o semillero que tenga contrato vigente para garantizar la representación institucional."
+    },
+    {
+        "id": "IA_SENNOVA_31",
+        "content": "En la evaluación de impacto de SENNOVA, un indicador clave para medir el éxito de la investigación aplicada en los Centros de Formación es:",
+        "difficulty": 770,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "El número de tazas de café consumidas durante las jornadas de investigación.",
+            "El porcentaje de proyectos que resultaron en transferencias tecnológicas efectivas al sector productivo o mejoras en los programas de formación.",
+            "La cantidad de fotos publicadas en las redes sociales de la Regional.",
+            "El ahorro de papel logrado al no imprimir los informes técnicos finales."
+        ],
+        "correct_option": "El porcentaje de proyectos que resultaron en transferencias tecnológicas efectivas al sector productivo o mejoras en los programas de formación."
+    },
+    {
+        "id": "IA_SENNOVA_32",
+        "content": "Un grupo de investigación quiere registrar como integrante a una persona que nunca ha participado en sus actividades, solo para 'ayudarle' a mejorar su hoja de vida. Usted, como Gestor, les advierte que:",
+        "difficulty": 960,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Es una práctica solidaria permitida en el sector público.",
+            "Constituye una falta grave a la integridad científica y puede acarrear sanciones administrativas tanto para el grupo como para el Centro.",
+            "Solo se permite si la persona tiene un título de postgrado que suba el promedio del grupo.",
+            "Deben hacerlo de forma discreta para que MinCiencias no se dé cuenta en la auditoría aleatoria."
+        ],
+        "correct_option": "Constituye una falta grave a la integridad científica y puede acarrear sanciones administrativas tanto para el grupo como para el Centro."
+    },
+    {
+        "id": "IA_SENNOVA_33",
+        "content": "Para fortalecer los semilleros de investigación, usted recomienda que los instructores líderes dediquen tiempo de su jornada laboral a la tutoría. Este tiempo se debe registrar oficialmente en:",
+        "difficulty": 710,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "El horario de formación como 'Horas de Investigación/SENNOVA' de acuerdo con la planeación pedagógica del Centro.",
+            "Un cuaderno personal que el instructor guarda en su casillero.",
+            "El sistema de nómina como 'horas extras dominicales'.",
+            "No se debe registrar, la investigación es una actividad voluntaria que se hace en el tiempo libre."
+        ],
+        "correct_option": "El horario de formación como 'Horas de Investigación/SENNOVA' de acuerdo con la planeación pedagógica del Centro."
+    },
+    {
+        "id": "IA_SENNOVA_34",
+        "content": "Un proyecto de investigación aplicada en el SENA genera una 'Patente de Modelo de Utilidad'. Usted le aclara al equipo que la titularidad de dicha patente es de:",
+        "difficulty": 850,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "El instructor líder de forma exclusiva.",
+            "El SENA, reconociendo siempre los derechos morales de los inventores (instructores y aprendices).",
+            "La empresa que prestó los materiales para el experimento.",
+            "El Ministerio de Ciencia, Tecnología e Innovación."
+        ],
+        "correct_option": "El SENA, reconociendo siempre los derechos morales de los inventores (instructores y aprendices)."
+    },
+    {
+        "id": "IA_SENNOVA_35",
+        "content": "Al cierre de la vigencia, usted debe validar los 'Productos de Divulgación' de los semilleros. Uno de ellos presenta un blog personal sin contenido técnico. Su decisión es:",
+        "difficulty": 790,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Aceptarlo, pues el uso de las TIC siempre es positivo en la formación.",
+            "Rechazar el producto por no cumplir con el rigor técnico y los objetivos de divulgación científica establecidos en el plan operativo.",
+            "Sugerir que copien y peguen información de Wikipedia para llenar el blog rápidamente.",
+            "Darle un plazo de un año más para que el blog tenga al menos una entrada técnica."
+        ],
+        "correct_option": "Rechazar el producto por no cumplir con el rigor técnico y los objetivos de divulgación científica establecidos en el plan operativo."
+    },
+    {
+        "id": "IA_SENNOVA_36",
+        "content": "En la estrategia SENNOVA, el rol de la 'Tecnoacademia' se centra principalmente en:",
+        "difficulty": 690,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Brindar formación técnica a adultos desempleados de la región.",
+            "Fomentar competencias en ciencia, tecnología e innovación en niños y jóvenes de educación básica y media mediante proyectos prácticos.",
+            "Vender servicios de laboratorio a grandes multinacionales farmacéuticas.",
+            "Sustituir a los colegios públicos en la enseñanza de las matemáticas básicas."
+        ],
+        "correct_option": "Fomentar competencias en ciencia, tecnología e innovación en niños y jóvenes de educación básica y media mediante proyectos prácticos."
+    },
+    {
+        "id": "IA_SENNOVA_37",
+        "content": "Un grupo de investigación solicita recursos para participar en una red de conocimiento internacional. Para autorizar este gasto, usted debe verificar que la red:",
+        "difficulty": 820,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Tenga una página web con muchas fotos de viajes.",
+            "Sea pertinente para las líneas de investigación del grupo y genere beneficios tangibles en transferencia de conocimiento para el SENA.",
+            "Esté liderada por un premio Nobel de forma obligatoria.",
+            "Cobre la membresía en pesos colombianos para facilitar el pago."
+        ],
+        "correct_option": "Sea pertinente para las líneas de investigación del grupo y genere beneficios tangibles en transferencia de conocimiento para el SENA."
+    },
+    {
+        "id": "IA_SENNOVA_38",
+        "content": "Según el Código de Integridad de la Función Pública, si usted descubre que un colega Gestor está alterando los datos de impacto de SENNOVA para favorecer a su Regional, usted debe:",
+        "difficulty": 970,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Ignorar el hecho para mantener un buen ambiente laboral entre colegas.",
+            "Denunciar la irregularidad ante las instancias competentes (Control Interno/Ética), protegiendo la veracidad de la información pública.",
+            "Pedirle que también le ayude a mejorar los datos de su propia Regional.",
+            "Publicar la situación en sus redes sociales personales antes de hablar con la entidad."
+        ],
+        "correct_option": "Denunciar la irregularidad ante las instancias competentes (Control Interno/Ética), protegiendo la veracidad de la información pública."
+    },
+    {
+        "id": "IA_SENNOVA_39",
+        "content": "Para que un grupo de investigación del SENA pueda mantener su aval institucional, debe realizar anualmente:",
+        "difficulty": 730,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Un asado de integración con todos los aprendices del Centro.",
+            "La actualización de su plan de trabajo y el reporte de avances en los sistemas dispuestos por el SENA y MinCiencias.",
+            "Una huelga para pedir más presupuesto a la Dirección General.",
+            "Un cambio de líder para asegurar que todos los instructores roten por el cargo."
+        ],
+        "correct_option": "La actualización de su plan de trabajo y el reporte de avances en los sistemas dispuestos por el SENA y MinCiencias."
+    },
+    {
+        "id": "IA_SENNOVA_40",
+        "content": "Usted está asesorando la formulación de un proyecto de investigación aplicada. El equipo le pregunta por el rubro de 'Personal'. Usted les aclara que en SENNOVA:",
+        "difficulty": 880,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Se pueden contratar modelos para las fotos del informe final.",
+            "Los recursos pueden destinarse a la vinculación de profesionales externos especializados o monitores (aprendices) necesarios para el desarrollo técnico del proyecto.",
+            "No se puede pagar a ninguna persona, todo el trabajo debe ser gratuito y voluntario.",
+            "El dinero de personal se debe usar para pagar las deudas personales de los instructores de planta."
+        ],
+        "correct_option": "Los recursos pueden destinarse a la vinculación de profesionales externos especializados o monitores (aprendices) necesarios para el desarrollo técnico del proyecto."
+    },
+    {
+        "id": "IA_SENNOVA_41",
+        "content": "Un semillero de investigación ha estado trabajando durante un año en un proyecto que ya ha generado resultados técnicos significativos. Sin embargo, el instructor líder no ha registrado ningún producto en el GrupLAC. Su recomendación para mejorar la gestión del semillero es:",
+        "difficulty": 900,
+        "topic": "Investigación Aplicada (SENNOVA)",
+        "options": [
+            "Dejarlo así, pues lo importante es que estén investigando aunque no se refleje en los indicadores.",
+            "Orientar al instructor para que registre los productos generados, asegurándose de que cumplan con los requisitos técnicos y de evidencia para ser validados por MinCiencias.",
+            "Registrar productos ficticios para que el semillero no pierda puntos en la medición nacional.",
+            "Recomendar al instructor que se enfoque solo en la parte técnica y deje la gestión administrativa para otro compañero."
+        ],
+        "correct_option": "Orientar al instructor para que registre los productos generados, asegurándose de que cumplan con los requisitos técnicos y de evidencia para ser validados por MinCiencias."
+    },
+    {
+        "id": "MIPG_SENNOVA_01",
+        "content": "En el marco de la Dimensión de Gestión del Conocimiento de MIPG, usted identifica que un instructor experto en biotecnología se va a pensionar y su conocimiento técnico no está documentado. Como Gestor SENNOVA, la acción más adecuada para evitar la fuga de conocimiento es:",
+        "difficulty": 780,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Pedirle al instructor que trabaje gratis los fines de semana después de pensionado para terminar sus proyectos.",
+            "Implementar una estrategia de transferencia de conocimiento tácito a explícito mediante 'mentoring' o comunidades de práctica con otros instructores y aprendices.",
+            "Solicitar al instructor que entregue sus archivos personales en un disco duro antes de retirarse.",
+            "Ignorar la situación, ya que el SENA contratará a un nuevo instructor que traerá sus propios conocimientos."
+        ],
+        "correct_option": "Implementar una estrategia de transferencia de conocimiento tácito a explícito mediante 'mentoring' o comunidades de práctica con otros instructores y aprendices."
+    },
+    {
+        "id": "MIPG_SENNOVA_02",
+        "content": "Un ciudadano solicita mediante un Derecho de Petición el listado de todos los proyectos de investigación financiados en la Regional y el monto asignado a cada uno. Según la Ley de Transparencia y Acceso a la Información (Ley 1712), usted debe:",
+        "difficulty": 650,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Entregar la información completa, veraz y de forma gratuita dentro de los tiempos estipulados por el CPACA, ya que es información pública.",
+            "Responder que los presupuestos de investigación son confidenciales para no alertar a la competencia comercial.",
+            "Exigirle al ciudadano que explique detalladamente para qué necesita usar esa información antes de entregarla.",
+            "Cobrar una tarifa de administración por el tiempo que le toma a su equipo recopilar los datos financieros."
+        ],
+        "correct_option": "Entregar la información completa, veraz y de forma gratuita dentro de los tiempos estipulados por el CPACA, ya que es información pública."
+    },
+    {
+        "id": "MIPG_SENNOVA_03",
+        "content": "Usted es designado como evaluador de las propuestas de proyectos de investigación del Centro. Al revisar los documentos, nota que uno de los proyectos es liderado por su cónyuge. Actuando conforme al Código de Integridad, usted debe:",
+        "difficulty": 900,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Declarar inmediatamente el conflicto de intereses y solicitar por escrito ser apartado de la evaluación de ese proyecto específico.",
+            "Evaluar el proyecto de forma estricta para demostrar que no hay favoritismo, asignándole una nota ligeramente más baja.",
+            "Delegar verbalmente la evaluación a un compañero de confianza sin notificar al coordinador del proceso.",
+            "Aprobar el proyecto si cumple técnicamente, ya que el parentesco no afecta la viabilidad científica."
+        ],
+        "correct_option": "Declarar inmediatamente el conflicto de intereses y solicitar por escrito ser apartado de la evaluación de ese proyecto específico."
+    },
+    {
+        "id": "MIPG_SENNOVA_04",
+        "content": "Dentro de la política de Racionalización de Trámites de MIPG, un grupo de investigación se queja de que para solicitar un reactivo de laboratorio deben llenar 5 formatos físicos y obtener 4 firmas originales. Su propuesta de mejora institucional es:",
+        "difficulty": 720,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Exigir que sigan cumpliendo el proceso, argumentando que la burocracia garantiza el control de los recursos públicos.",
+            "Eliminar todos los formatos y permitir que los instructores tomen los reactivos libremente del almacén.",
+            "Sugerir que se contrate más personal administrativo para que recojan las firmas más rápido.",
+            "Proponer la digitalización del trámite mediante un flujo de aprobación en el sistema institucional, reduciendo pasos y uso de papel."
+        ],
+        "correct_option": "Proponer la digitalización del trámite mediante un flujo de aprobación en el sistema institucional, reduciendo pasos y uso de papel."
+    },
+    {
+        "id": "MIPG_SENNOVA_05",
+        "content": "Un proyecto financiado por SENNOVA desarrolló un nuevo método de cultivo para campesinos de la región. Según las políticas de Participación Ciudadana y Rendición de Cuentas, ¿cuál es el paso a seguir al finalizar el proyecto?",
+        "difficulty": 680,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Publicar el artículo solo en inglés en una revista científica internacional para asegurar el prestigio de la entidad.",
+            "Organizar un espacio de diálogo y socialización directa con la comunidad campesina beneficiaria para entregar los resultados y recibir retroalimentación.",
+            "Enviar el manual de cultivo al Ministerio de Agricultura y dar por terminado el compromiso social.",
+            "Archivar los resultados en la biblioteca del Centro de Formación, esperando a que los campesinos vayan a consultarlos."
+        ],
+        "correct_option": "Organizar un espacio de diálogo y socialización directa con la comunidad campesina beneficiaria para entregar los resultados y recibir retroalimentación."
+    },
+    {
+        "id": "MIPG_SENNOVA_06",
+        "content": "Durante una auditoría, la Oficina de Control Interno detecta que su área no ha realizado seguimiento a los riesgos técnicos de los proyectos en los últimos seis meses. Como responsable de la primera línea de defensa (MECI), usted debe:",
+        "difficulty": 840,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Rechazar el hallazgo, afirmando que la gestión de riesgos es responsabilidad exclusiva de Control Interno.",
+            "Inventar actas de seguimiento con fechas pasadas para subsanar el hallazgo antes del informe final.",
+            "Reconocer la omisión, formular un plan de mejoramiento inmediato e implementar controles periódicos documentados.",
+            "Sancionar a los líderes de los proyectos por no haberle recordado que debía hacer el seguimiento."
+        ],
+        "correct_option": "Reconocer la omisión, formular un plan de mejoramiento inmediato e implementar controles periódicos documentados."
+    },
+    {
+        "id": "MIPG_SENNOVA_07",
+        "content": "En un semillero de investigación, un instructor humilla constantemente a los aprendices argumentando que 'así se forja el carácter científico'. Basado en el valor del Respeto del Código de Integridad, su intervención como Gestor es:",
+        "difficulty": 750,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Documentar la situación, citar al instructor para exigir un trato digno y pedagógico, y escalar el caso al comité de convivencia si no hay cambio.",
+            "Apoyar al instructor, ya que el rigor científico exige niveles altos de presión sobre los estudiantes.",
+            "Ignorar el problema, considerando que la libertad de cátedra permite estos métodos pedagógicos.",
+            "Trasladar a los aprendices a otro centro sin dar explicaciones para evitar confrontar al instructor."
+        ],
+        "correct_option": "Documentar la situación, citar al instructor para exigir un trato digno y pedagógico, y escalar el caso al comité de convivencia si no hay cambio."
+    },
+    {
+        "id": "MIPG_SENNOVA_08",
+        "content": "Al revisar el archivo de gestión de su oficina, nota que los expedientes de proyectos de años anteriores están desorganizados y mezclados con documentos personales. Según la Política de Gestión Documental de MIPG, usted debe:",
+        "difficulty": 710,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Tirar a la basura los documentos más antiguos para liberar espacio en la oficina.",
+            "Digitalizar todo sin orden y guardar los archivos en su correo electrónico personal.",
+            "Organizar los expedientes aplicando las Tablas de Retención Documental (TRD) institucionales, separando la documentación oficial de la personal.",
+            "Enviar todas las cajas al archivo central de la entidad sin rotular para que ellos las organicen."
+        ],
+        "correct_option": "Organizar los expedientes aplicando las Tablas de Retención Documental (TRD) institucionales, separando la documentación oficial de la personal."
+    },
+    {
+        "id": "MIPG_SENNOVA_09",
+        "content": "Usted está encargado de preparar el informe de Rendición de Cuentas de SENNOVA. Un Subdirector le sugiere omitir los proyectos que fracasaron o tuvieron baja ejecución para no afectar la imagen institucional. Usted responde que:",
+        "difficulty": 920,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "La rendición de cuentas debe basarse en el principio de transparencia, informando tanto los logros como las dificultades y las acciones de mejora.",
+            "Acepta la sugerencia, pues la rendición de cuentas es un evento publicitario para destacar solo lo positivo.",
+            "Omite los fracasos pero infla los números de los proyectos exitosos para compensar el presupuesto.",
+            "Incluye los proyectos fracasados pero culpa exclusivamente a los contratistas externos frente a la ciudadanía."
+        ],
+        "correct_option": "La rendición de cuentas debe basarse en el principio de transparencia, informando tanto los logros como las dificultades y las acciones de mejora."
+    },
+    {
+        "id": "MIPG_SENNOVA_10",
+        "content": "Al iniciar el año, usted debe orientar a los investigadores sobre la formulación de nuevos proyectos. Según la Dimensión de Direccionamiento Estratégico, la condición fundamental es que los proyectos:",
+        "difficulty": 660,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Estén alineados exclusivamente con los pasatiempos personales del equipo investigador.",
+            "Apunten al cumplimiento de las metas del Plan Estratégico Institucional del SENA y las políticas nacionales de CTeI.",
+            "Consuman el 100% del presupuesto asignado sin importar el impacto social generado.",
+            "Cuenten con tecnología importada de Europa para garantizar la visibilidad internacional."
+        ],
+        "correct_option": "Apunten al cumplimiento de las metas del Plan Estratégico Institucional del SENA y las políticas nacionales de CTeI."
+    },
+    {
+        "id": "MIPG_SENNOVA_11",
+        "content": "En la política de Gestión del Conocimiento, la capitalización de lecciones aprendidas de un proyecto SENNOVA que enfrentó múltiples sobrecostos sirve para:",
+        "difficulty": 770,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Ocultar los errores cometidos ante la auditoría de la Contraloría.",
+            "Generar un banco de conocimiento que prevenga la repetición de los mismos errores en futuras formulaciones y ejecuciones.",
+            "Justificar el despido del líder del proyecto y su equipo de trabajo.",
+            "Demostrar que la investigación en Colombia siempre es más costosa de lo planeado."
+        ],
+        "correct_option": "Generar un banco de conocimiento que prevenga la repetición de los mismos errores en futuras formulaciones y ejecuciones."
+    },
+    {
+        "id": "MIPG_SENNOVA_12",
+        "content": "Un empresario se acerca a su oficina buscando apoyo técnico para mejorar un proceso en su fábrica, pero se muestra confundido por el lenguaje institucional. Actuando bajo la Política de Servicio al Ciudadano, usted debe:",
+        "difficulty": 690,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Entregarle el manual de políticas de SENNOVA de 300 páginas para que lo lea por su cuenta.",
+            "Brindarle una atención empática, utilizando un lenguaje claro y sencillo para explicarle la oferta de servicios de extensión tecnológica del SENA.",
+            "Decirle que debe contratar a un consultor externo porque el SENA no asesora a empresas privadas.",
+            "Remitirlo a la página web institucional sin darle mayor explicación para ahorrar tiempo."
+        ],
+        "correct_option": "Brindarle una atención empática, utilizando un lenguaje claro y sencillo para explicarle la oferta de servicios de extensión tecnológica del SENA."
+    },
+    {
+        "id": "MIPG_SENNOVA_13",
+        "content": "Usted nota que el equipo de instructores investigadores está desmotivado y hay conflictos internos por la distribución de cargas. Desde la Gestión Estratégica del Talento Humano (MIPG), su acción como líder técnico es:",
+        "difficulty": 810,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Ignorar el clima laboral, argumentando que su rol es netamente técnico y no de recursos humanos.",
+            "Fomentar un espacio de diálogo constructivo, redistribuir cargas de forma equitativa y promover el reconocimiento al buen desempeño.",
+            "Sancionar a los instructores que se quejen para restablecer el principio de autoridad.",
+            "Informarles que si no mejoran su actitud, sus proyectos no serán aprobados en la siguiente vigencia."
+        ],
+        "correct_option": "Fomentar un espacio de diálogo constructivo, redistribuir cargas de forma equitativa y promover el reconocimiento al buen desempeño."
+    },
+    {
+        "id": "MIPG_SENNOVA_14",
+        "content": "Se aproxima la apertura de una convocatoria interna para financiar proyectos de I+D+i. Para garantizar la Transparencia Activa, su deber es:",
+        "difficulty": 640,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Enviar los términos de referencia únicamente a los grupos de investigación que tienen buena relación con la subdirección.",
+            "Publicar los términos de referencia, cronograma y criterios de evaluación de forma oportuna y en los canales institucionales de acceso público.",
+            "Mantener los criterios de evaluación en secreto para evitar que los participantes ajusten sus propuestas solo para ganar.",
+            "Notificar verbalmente a los líderes de proyecto un día antes del cierre de la convocatoria."
+        ],
+        "correct_option": "Publicar los términos de referencia, cronograma y criterios de evaluación de forma oportuna y en los canales institucionales de acceso público."
+    },
+    {
+        "id": "MIPG_SENNOVA_15",
+        "content": "Dos proyectos compiten por un presupuesto limitado. Uno es de un grupo consolidado que siempre recibe fondos, y el otro es de un grupo nuevo del área rural. Guiado por el valor de la Justicia del Código de Integridad, usted debe:",
+        "difficulty": 880,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Evaluar ambas propuestas estrictamente por sus méritos técnicos, pertinencia y criterios establecidos, garantizando igualdad de oportunidades.",
+            "Asignar los fondos al grupo consolidado porque representan una 'inversión segura' sin importar el impacto técnico del otro.",
+            "Asignar todo el dinero al grupo nuevo por lástima, aunque su propuesta tenga graves deficiencias técnicas.",
+            "Dividir el dinero exactamente por la mitad, aunque esto implique que ninguno de los dos proyectos logre comprar los equipos completos."
+        ],
+        "correct_option": "Evaluar ambas propuestas estrictamente por sus méritos técnicos, pertinencia y criterios establecidos, garantizando igualdad de oportunidades."
+    },
+    {
+        "id": "MIPG_SENNOVA_16",
+        "content": "Según MIPG, la 'Memoria Institucional' en el componente de innovación se asegura cuando:",
+        "difficulty": 730,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Se documentan los procesos, metodologías y resultados de los proyectos en repositorios institucionales accesibles para toda la entidad.",
+            "Se guardan bajo llave los informes finales para que otras entidades no copien las ideas del SENA.",
+            "Se publican noticias en el periódico local sobre los logros del Subdirector de Centro.",
+            "El Gestor SENNOVA memoriza todos los datos de los proyectos de su regional."
+        ],
+        "correct_option": "Se documentan los procesos, metodologías y resultados de los proyectos en repositorios institucionales accesibles para toda la entidad."
+    },
+    {
+        "id": "MIPG_SENNOVA_17",
+        "content": "En el Sistema de Control Interno, el Gestor SENNOVA hace parte de la 'Primera Línea de Defensa'. Esto significa que en su día a día debe:",
+        "difficulty": 860,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Auditar a otros centros de formación para encontrar hallazgos fiscales.",
+            "Realizar el control de las operaciones a su cargo, gestionando los riesgos e implementando los autocontroles en los proyectos que supervisa.",
+            "Delegar toda la responsabilidad del control a la Oficina Asesora de Control Interno.",
+            "Hacer de policía judicial para investigar posibles delitos dentro de la entidad."
+        ],
+        "correct_option": "Realizar el control de las operaciones a su cargo, gestionando los riesgos e implementando los autocontroles en los proyectos que supervisa."
+    },
+    {
+        "id": "MIPG_SENNOVA_18",
+        "content": "A usted se le asignan viáticos para asistir a un evento de ciencia y tecnología. Por un cambio de agenda, el evento termina un día antes. De acuerdo con el valor de la Honestidad, su deber es:",
+        "difficulty": 620,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Quedarse en la ciudad de destino haciendo turismo con el dinero público, ya que los viáticos fueron aprobados.",
+            "Solicitar un reintegro del dinero sobrante correspondiente al día no ejecutado y regresar a su sede de trabajo.",
+            "Usar el dinero sobrante para invitar a cenar a los demás asistentes del evento y así hacer relaciones públicas para el SENA.",
+            "No reportar el cambio y guardar el dinero para compensar las horas extras que ha trabajado sin pago."
+        ],
+        "correct_option": "Solicitar un reintegro del dinero sobrante correspondiente al día no ejecutado y regresar a su sede de trabajo."
+    },
+    {
+        "id": "MIPG_SENNOVA_19",
+        "content": "La Dimensión de 'Evaluación de Resultados' de MIPG indica que los indicadores de SENNOVA no solo deben medir la ejecución presupuestal, sino también:",
+        "difficulty": 790,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "La popularidad del Director General en las redes sociales.",
+            "El número de formatos físicos que se imprimieron en el Centro.",
+            "El impacto social, tecnológico o productivo generado en los grupos de valor (aprendices, sector productivo).",
+            "La cantidad de horas que los contratistas pasaron dentro de las oficinas del SENA."
+        ],
+        "correct_option": "El impacto social, tecnológico o productivo generado en los grupos de valor (aprendices, sector productivo)."
+    },
+    {
+        "id": "MIPG_SENNOVA_20",
+        "content": "Una empresa le solicita una base de datos con los resultados técnicos de ensayos de materiales realizados por SENNOVA. Para cumplir con la política de Datos Abiertos, esta información debe publicarse en un formato que sea:",
+        "difficulty": 830,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Un documento PDF escaneado y protegido con contraseña.",
+            "Procesable por máquinas (como un archivo CSV o Excel) para que terceros puedan reutilizarla y generar nuevo valor.",
+            "Un folleto impreso a todo color distribuido en las cámaras de comercio.",
+            "Una imagen incrustada en el cuerpo de un correo electrónico."
+        ],
+        "correct_option": "Procesable por máquinas (como un archivo CSV o Excel) para que terceros puedan reutilizarla y generar nuevo valor."
+    },
+    {
+        "id": "MIPG_SENNOVA_21",
+        "content": "En la racionalización de trámites, usted promueve el uso de firmas digitales para las actas de los semilleros. Un instructor se opone diciendo que si no es con lapicero azul, no es legal. Usted le aclara que legalmente:",
+        "difficulty": 700,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "La ley colombiana (Ley 527) otorga plena validez jurídica a los documentos electrónicos y firmas digitales, equiparándolos a los documentos físicos.",
+            "Tiene razón, y que la firma digital solo sirve para documentos internos sin importancia.",
+            "Se debe imprimir el documento, firmarlo en azul, escanearlo y luego destruir el papel original.",
+            "Las actas de semilleros no requieren firma de nadie, ya que son actividades extracurriculares."
+        ],
+        "correct_option": "La ley colombiana (Ley 527) otorga plena validez jurídica a los documentos electrónicos y firmas digitales, equiparándolos a los documentos físicos."
+    },
+    {
+        "id": "MIPG_SENNOVA_22",
+        "content": "Para fomentar la cultura de compartir conocimiento (Dimensión 6), usted nota que los líderes de las Tecnoacademias son muy celosos con sus metodologías. Su intervención institucional es:",
+        "difficulty": 850,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Ignorar el comportamiento, ya que el conocimiento es poder y cada líder debe proteger su puesto.",
+            "Obligarlos a entregar los documentos bajo amenaza de no renovar sus contratos de prestación de servicios.",
+            "Generar incentivos no pecuniarios y espacios de reconocimiento institucional para quienes sistematicen y compartan buenas prácticas.",
+            "Sugerir que registren las metodologías como propiedad intelectual privada para que puedan venderlas al SENA."
+        ],
+        "correct_option": "Generar incentivos no pecuniarios y espacios de reconocimiento institucional para quienes sistematicen y compartan buenas prácticas."
+    },
+    {
+        "id": "MIPG_SENNOVA_23",
+        "content": "La rendición de cuentas en el sector público, según los lineamientos del DAFP, no es solo un evento de una vía (presentar un informe), sino que fundamentalmente requiere:",
+        "difficulty": 760,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Contratar una firma de auditoría internacional para que valide los números.",
+            "El diálogo de doble vía, donde se escuchen las peticiones, críticas y sugerencias de la ciudadanía frente a la gestión.",
+            "Publicar toda la información en internet de forma unilateral sin habilitar canales de respuesta.",
+            "Transmitir el evento por televisión nacional en horario estelar."
+        ],
+        "correct_option": "El diálogo de doble vía, donde se escuchen las peticiones, críticas y sugerencias de la ciudadanía frente a la gestión."
+    },
+    {
+        "id": "MIPG_SENNOVA_24",
+        "content": "Un contratista externo ofrece a los instructores del Centro un 'bono de descuento' personal en equipos de laboratorio si garantizan que el SENA le comprará los insumos del próximo proyecto. Basado en el Código de Integridad, la respuesta del funcionario debe ser:",
+        "difficulty": 910,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Aceptar el bono, pues es un beneficio comercial que no afecta directamente el precio que paga el SENA.",
+            "Aceptar el bono y sortearlo entre los aprendices para que se vea como una labor social.",
+            "Rechazar tajantemente la oferta, ya que recibir dádivas a cambio de favorecer a un tercero compromete la integridad y la contratación objetiva.",
+            "Exigir que el bono sea canjeado por dinero en efectivo para ingresarlo al fondo de bienestar del Centro."
+        ],
+        "correct_option": "Rechazar tajantemente la oferta, ya que recibir dádivas a cambio de favorecer a un tercero compromete la integridad y la contratación objetiva."
+    },
+    {
+        "id": "MIPG_SENNOVA_25",
+        "content": "Usted debe revisar un convenio de investigación conjunta entre el SENA y una ONG. Al aplicar el principio de Control de Legalidad y Defensa de lo Público, usted se asegura de que:",
+        "difficulty": 870,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "El convenio ceda toda la propiedad intelectual a la ONG para evitar problemas legales a futuro.",
+            "Las obligaciones de las partes sean claras, equilibradas, protejan el patrimonio público y cumplan los fines misionales del SENA.",
+            "El convenio se firme inmediatamente sin revisión jurídica para no retrasar el inicio de la investigación.",
+            "El SENA asuma todos los costos financieros mientras la ONG solo aporta el nombre para dar prestigio."
+        ],
+        "correct_option": "Las obligaciones de las partes sean claras, equilibradas, protejan el patrimonio público y cumplan los fines misionales del SENA."
+    },
+    {
+        "id": "MIPG_SENNOVA_26",
+        "content": "Un aprendiz solicita ver el expediente de una investigación disciplinaria que se le adelanta a un instructor de SENNOVA. Usted debe manejar esta información considerando que:",
+        "difficulty": 800,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Es información pública y debe ser entregada inmediatamente para garantizar la transparencia ciudadana.",
+            "Solo se le puede entregar si el aprendiz paga las copias por adelantado.",
+            "Es información clasificada o reservada debido al debido proceso y protección de datos personales, por lo que no puede ser entregada a terceros.",
+            "Debe publicarse en la cartelera del Centro para que sirva de escarmiento a otros funcionarios."
+        ],
+        "correct_option": "Es información clasificada o reservada debido al debido proceso y protección de datos personales, por lo que no puede ser entregada a terceros."
+    },
+    {
+        "id": "MIPG_SENNOVA_27",
+        "content": "Como parte de la gestión estratégica del talento humano, usted diagnostica que su equipo tiene deficiencias en la redacción de patentes. La acción institucional a seguir es:",
+        "difficulty": 740,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Obligar a los instructores a pagar un curso privado con su propio sueldo.",
+            "Incluir esta necesidad en el Plan Institucional de Capacitación (PIC) para fortalecer las competencias técnicas del equipo.",
+            "Despedir a los instructores y contratar abogados expertos en propiedad intelectual.",
+            "Asumir usted mismo la redacción de todas las patentes de la Regional de forma indefinida."
+        ],
+        "correct_option": "Incluir esta necesidad en el Plan Institucional de Capacitación (PIC) para fortalecer las competencias técnicas del equipo."
+    },
+    {
+        "id": "MIPG_SENNOVA_28",
+        "content": "El SENA desea crear una nueva línea programática en SENNOVA. Para aplicar el principio de Participación Ciudadana en la Gestión (MIPG), la fase de diseño de la política debe incluir:",
+        "difficulty": 780,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Una reunión a puerta cerrada entre la Dirección General y un consultor extranjero.",
+            "El diseño del programa unilateralmente por los expertos y su posterior publicación en el Diario Oficial.",
+            "Espacios de co-creación y consulta con actores del ecosistema CTeI, empresarios, instructores y aprendices para garantizar su pertinencia.",
+            "Una votación obligatoria de todos los funcionarios del SENA a través del correo institucional."
+        ],
+        "correct_option": "Espacios de co-creación y consulta con actores del ecosistema CTeI, empresarios, instructores y aprendices para garantizar su pertinencia."
+    },
+    {
+        "id": "MIPG_SENNOVA_29",
+        "content": "Según los principios del Modelo Integrado de Planeación y Gestión, el concepto de 'Generación de Valor Público' en un proyecto SENNOVA se refiere a:",
+        "difficulty": 670,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "El retorno financiero en efectivo que el proyecto le devuelve a la Tesorería Nacional.",
+            "La solución efectiva a una necesidad social o productiva de la región, mejorando las condiciones de vida o competitividad de los ciudadanos.",
+            "El nivel de complejidad matemática utilizado en los algoritmos de la investigación.",
+            "La cantidad de veces que la marca SENA aparece en los medios de comunicación locales."
+        ],
+        "correct_option": "La solución efectiva a una necesidad social o productiva de la región, mejorando las condiciones de vida o competitividad de los ciudadanos."
+    },
+    {
+        "id": "MIPG_SENNOVA_30",
+        "content": "Un subalterno le confiesa que cometió un error grave en la formulación del presupuesto del plan de acción que ya fue enviado a Bogotá. Basado en el valor del Compromiso, su rol como jefe es:",
+        "difficulty": 820,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Culpar al subalterno públicamente frente a la Dirección General para salvar su propio prestigio.",
+            "Ocultar el error y esperar que la oficina de planeación nacional no se dé cuenta.",
+            "Asumir la responsabilidad como líder del equipo, reportar el error inmediatamente y gestionar la corrección ante la instancia correspondiente.",
+            "Modificar los informes de seguimiento mes a mes para encubrir la falla financiera de origen."
+        ],
+        "correct_option": "Asumir la responsabilidad como líder del equipo, reportar el error inmediatamente y gestionar la corrección ante la instancia correspondiente."
+    },
+    {
+        "id": "MIPG_SENNOVA_31",
+        "content": "El Plan de Acción Anual de su Centro no contempla recursos para 'Vigilancia Tecnológica'. Un instructor insiste en hacer un viaje al exterior para realizarla. De acuerdo con el principio de planeación presupuestal, usted le indica:",
+        "difficulty": 890,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Que no es posible autorizar viáticos o gastos para actividades que no estén previamente formuladas, aprobadas y con disponibilidad presupuestal en el Plan de Acción.",
+            "Que realice el viaje pidiendo dinero prestado y luego el SENA le hace un cruce de cuentas el próximo año.",
+            "Que utilice el presupuesto destinado a la compra de materiales de formación de los aprendices para cubrir su viaje.",
+            "Que viaje sin autorización oficial y presente los resultados como si los hubiera investigado desde su oficina."
+        ],
+        "correct_option": "Que no es posible autorizar viáticos o gastos para actividades que no estén previamente formuladas, aprobadas y con disponibilidad presupuestal en el Plan de Acción."
+    },
+    {
+        "id": "MIPG_SENNOVA_32",
+        "content": "En el marco del Servicio al Ciudadano, usted recibe un correo de un investigador de otra entidad con múltiples faltas de ortografía y una redacción confusa solicitando información técnica. Usted:",
+        "difficulty": 630,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Ignora el correo argumentando que el nivel académico del solicitante no está a la altura de SENNOVA.",
+            "Le responde corrigiendo sus errores ortográficos en rojo para darle una lección pedagógica.",
+            "Analiza la petición de fondo y responde de manera oportuna, respetuosa y comprensible, resolviendo la necesidad de información del ciudadano.",
+            "Le exige que envíe la solicitud por correo físico autenticado en notaría para garantizar que es un profesional serio."
+        ],
+        "correct_option": "Analiza la petición de fondo y responde de manera oportuna, respetuosa y comprensible, resolviendo la necesidad de información del ciudadano."
+    },
+    {
+        "id": "MIPG_SENNOVA_33",
+        "content": "Un contratista externo le envía los entregables finales de un proyecto de innovación a través de su cuenta de WhatsApp personal. Siguiendo las políticas de Gestión de la Información institucional, usted le indica que:",
+        "difficulty": 710,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Los entregables deben radicarse a través de los canales oficiales y sistemas de gestión documental de la entidad para garantizar su trazabilidad y custodia legal.",
+            "Descargará los archivos de WhatsApp y los guardará en una memoria USB personal para mayor seguridad.",
+            "Está perfecto, ya que WhatsApp es el canal más ágil para la administración pública moderna.",
+            "Debe imprimirlos y dejarlos por debajo de la puerta de su oficina el fin de semana."
+        ],
+        "correct_option": "Los entregables deben radicarse a través de los canales oficiales y sistemas de gestión documental de la entidad para garantizar su trazabilidad y custodia legal."
+    },
+    {
+        "id": "MIPG_SENNOVA_34",
+        "content": "La Contraloría General de la República encuentra un hallazgo administrativo (sin alcance fiscal) en la compra de unos equipos de SENNOVA. La acción inmediata dentro del marco de MIPG es:",
+        "difficulty": 880,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Interponer una demanda contra la Contraloría por daño a la reputación del Centro de Formación.",
+            "Formular e implementar un Plan de Mejoramiento Institucional, estableciendo causas raíces y acciones correctivas medibles.",
+            "Ignorar el hallazgo ya que, al no tener alcance fiscal ni cobro de dinero, no es importante.",
+            "Despedir al Subdirector del Centro para demostrar gestión ante los entes de control."
+        ],
+        "correct_option": "Formular e implementar un Plan de Mejoramiento Institucional, estableciendo causas raíces y acciones correctivas medibles."
+    },
+    {
+        "id": "MIPG_SENNOVA_35",
+        "content": "El principio de 'Articulación Interinstitucional' de MIPG se hace evidente en un proyecto de SENNOVA cuando:",
+        "difficulty": 750,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "El proyecto se ejecuta en total aislamiento para proteger los secretos industriales de la entidad.",
+            "El Gestor SENNOVA hace el trabajo de recursos humanos, compras y planeación simultáneamente.",
+            "Se establecen alianzas estratégicas con universidades, alcaldías o MinCiencias para aunar esfuerzos y recursos frente a un problema común.",
+            "Se prohíbe el acceso de actores externos a los laboratorios del Centro de Formación."
+        ],
+        "correct_option": "Se establecen alianzas estratégicas con universidades, alcaldías o MinCiencias para aunar esfuerzos y recursos frente a un problema común."
+    },
+    {
+        "id": "MIPG_SENNOVA_36",
+        "content": "Para realizar trabajo de campo de un proyecto agrícola, el Centro asigna una camioneta oficial. El conductor sugiere usarla el domingo para un paseo familiar aprovechando que está tanqueada. Su directriz, bajo el Código de Integridad, es:",
+        "difficulty": 600,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Prohibir tajantemente su uso y advertir sobre la falta disciplinaria de usar bienes públicos para fines particulares.",
+            "Aceptar, siempre y cuando el conductor pague el combustible que se gaste el domingo.",
+            "Permitirlo solo si invitan a los instructores investigadores al paseo.",
+            "Sugerir que cambien las placas del vehículo el domingo para que nadie los reconozca."
+        ],
+        "correct_option": "Prohibir tajantemente su uso y advertir sobre la falta disciplinaria de usar bienes públicos para fines particulares."
+    },
+    {
+        "id": "MIPG_SENNOVA_37",
+        "content": "Como Gestor de Conocimiento (Dimensión 6), usted decide crear un repositorio digital de los proyectos exitosos. Para maximizar su valor público, este repositorio debe estar:",
+        "difficulty": 770,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Oculto en la intranet del SENA, accesible solo para la Dirección General.",
+            "Integrado y disponible públicamente para el sector académico y productivo, respetando los límites de la propiedad intelectual y la confidencialidad.",
+            "Almacenado en discos compactos (CDs) que se entreguen únicamente por solicitud escrita.",
+            "Protegido con un muro de pago (paywall) para generar ingresos adicionales al Centro."
+        ],
+        "correct_option": "Integrado y disponible públicamente para el sector académico y productivo, respetando los límites de la propiedad intelectual y la confidencialidad."
+    },
+    {
+        "id": "MIPG_SENNOVA_38",
+        "content": "Usted asume el cargo en marzo y nota que la página web de su Regional no ha actualizado la información del portafolio de servicios de SENNOVA desde hace tres años. Su deber frente a la Transparencia Activa es:",
+        "difficulty": 720,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Esperar a que el Ministerio de TIC les exija la actualización formalmente.",
+            "Eliminar la sección de SENNOVA de la página web para no mostrar información desactualizada.",
+            "Coordinar inmediatamente con el área de comunicaciones la actualización de los servicios, datos de contacto y proyectos vigentes.",
+            "Crear una página de Facebook personal y publicar todo allí en lugar de usar la web oficial."
+        ],
+        "correct_option": "Coordinar inmediatamente con el área de comunicaciones la actualización de los servicios, datos de contacto y proyectos vigentes."
+    },
+    {
+        "id": "MIPG_SENNOVA_39",
+        "content": "Un grupo de empresarios pertenecientes a comunidades indígenas solicita acompañamiento de SENNOVA, pero la documentación técnica está estructurada desde una visión occidental rígida. Aplicando el enfoque diferencial del Servicio al Ciudadano, usted:",
+        "difficulty": 840,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Adapta las metodologías y el acompañamiento respetando la pertinencia cultural y los saberes ancestrales para garantizar una apropiación real.",
+            "Les informa que deben adaptarse a la normatividad ISO estándar del SENA o no podrán ser atendidos.",
+            "Les niega el servicio argumentando que SENNOVA solo trabaja con empresas industriales de alta tecnología.",
+            "Transfiere el caso a la oficina de bienestar social porque considera que la innovación no aplica a estas comunidades."
+        ],
+        "correct_option": "Adapta las metodologías y el acompañamiento respetando la pertinencia cultural y los saberes ancestrales para garantizar una apropiación real."
+    },
+    {
+        "id": "MIPG_SENNOVA_40",
+        "content": "Al momento de planear la inversión del próximo año (Dimensión 2 de MIPG), usted tiene 5 propuestas de proyectos pero presupuesto solo para 2. El criterio de selección bajo el principio de 'Toma de decisiones basada en evidencia' debe ser:",
+        "difficulty": 810,
+        "topic": "MIPG y Gestión Pública",
+        "options": [
+            "Escoger los dos proyectos que sean liderados por los instructores con mayor antigüedad en el Centro.",
+            "Aplicar una matriz de evaluación técnica que cruce la viabilidad financiera, el impacto esperado y los datos de desempeño previo de proyectos similares.",
+            "Elegir los proyectos que pidan menos presupuesto para tratar de que el dinero sobre.",
+            "Seleccionar los proyectos al azar para evitar que alguien se sienta discriminado por su propuesta técnica."
+        ],
+        "correct_option": "Aplicar una matriz de evaluación técnica que cruce la viabilidad financiera, el impacto esperado y los datos de desempeño previo de proyectos similares."
+    },
+    {
+        "id": "GI_SENNOVA_01",
+        "content": "Un aprendiz y su instructor desarrollaron un prototipo electromecánico durante un proyecto de semillero financiado por SENNOVA. Una empresa local ofrece comprarles la máquina directamente a ellos. Como Gestor de Innovación, usted les aclara que la titularidad de los derechos patrimoniales sobre esta invención corresponde a:",
+        "difficulty": 850,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "El aprendiz y el instructor a partes iguales, por ser los inventores directos del prototipo.",
+            "El SENA, dado que se utilizaron recursos, tiempo e infraestructura institucional, aunque siempre se deben reconocer los derechos morales (autoría) de los inventores.",
+            "La empresa local, si paga el valor total de los materiales utilizados durante la investigación.",
+            "El Ministerio de Ciencia, Tecnología e Innovación, por ser el ente rector de la política pública."
+        ],
+        "correct_option": "El SENA, dado que se utilizaron recursos, tiempo e infraestructura institucional, aunque siempre se deben reconocer los derechos morales (autoría) de los inventores."
+    },
+    {
+        "id": "GI_SENNOVA_02",
+        "content": "Al revisar las propuestas de investigación para la nueva vigencia, usted nota que un proyecto pretende desarrollar un tipo de fertilizante que, según su experiencia, ya existe en el mercado. Para aplicar la Vigilancia Tecnológica (VT) de manera preventiva, usted exige:",
+        "difficulty": 780,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Que el equipo presente un informe de estado de la técnica y búsqueda en bases de datos de patentes para garantizar la novedad y evitar duplicidad de esfuerzos.",
+            "Aprobar el proyecto condicionado a que le cambien el nombre al fertilizante para que parezca nuevo.",
+            "Rechazar el proyecto de inmediato sin dar oportunidad de revisión al equipo investigador.",
+            "Que el instructor firme una declaración juramentada diciendo que él nunca ha visto ese fertilizante antes."
+        ],
+        "correct_option": "Que el equipo presente un informe de estado de la técnica y búsqueda en bases de datos de patentes para garantizar la novedad y evitar duplicidad de esfuerzos."
+    },
+    {
+        "id": "GI_SENNOVA_03",
+        "content": "Un Centro de Formación va a iniciar mesas de trabajo con una empresa privada para codiseñar un software. Antes de compartir cualquier información técnica o estratégica, el paso legal y administrativo indispensable es:",
+        "difficulty": 820,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Registrar el software en la Superintendencia de Industria y Comercio.",
+            "Publicar la intención de trabajo conjunto en las redes sociales de la Regional.",
+            "Suscribir un Acuerdo de Confidencialidad (NDA) entre el SENA y la empresa para proteger el intercambio de información sensible y la futura propiedad intelectual.",
+            "Entregar los códigos fuente a la empresa para demostrar buena fe y voluntad de trabajo."
+        ],
+        "correct_option": "Suscribir un Acuerdo de Confidencialidad (NDA) entre el SENA y la empresa para proteger el intercambio de información sensible y la futura propiedad intelectual."
+    },
+    {
+        "id": "GI_SENNOVA_04",
+        "content": "En un proyecto de desarrollo de software, el equipo finalizó el código y creó el manual de usuario. Para proteger legalmente este producto (Propiedad Intelectual), usted debe guiar al equipo para que realice el registro ante:",
+        "difficulty": 700,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "La Dirección Nacional de Derecho de Autor (DNDA), bajo la categoría de soporte lógico (software) y obra literaria (manual).",
+            "La Superintendencia de Industria y Comercio (SIC), solicitando una patente de invención.",
+            "Una notaría pública, autenticando el código fuente impreso.",
+            "El Instituto Colombiano Agropecuario (ICA), al ser una herramienta transversal."
+        ],
+        "correct_option": "La Dirección Nacional de Derecho de Autor (DNDA), bajo la categoría de soporte lógico (software) y obra literaria (manual)."
+    },
+    {
+        "id": "GI_SENNOVA_05",
+        "content": "Una Mipyme se acerca al Centro solicitando servicios de 'Extensionismo Tecnológico'. El empresario no tiene claro por dónde empezar a mejorar su empresa. Su acción inicial, basada en la metodología SENNOVA, es:",
+        "difficulty": 750,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Aplicar una herramienta de diagnóstico y medición del nivel de madurez tecnológica y digital para formular un plan de mejora a la medida.",
+            "Venderle inmediatamente la maquinaria más costosa que el Centro haya desarrollado.",
+            "Remitirlo a una universidad, ya que el SENA solo se dedica a dar clases a los operarios.",
+            "Solicitarle que contrate primero a un gerente de innovación con maestría antes de que el SENA lo atienda."
+        ],
+        "correct_option": "Aplicar una herramienta de diagnóstico y medición del nivel de madurez tecnológica y digital para formular un plan de mejora a la medida."
+    },
+    {
+        "id": "GI_SENNOVA_06",
+        "content": "Usted identifica que varios proyectos culminaron con éxito y generaron patentes a nombre del SENA, pero llevan dos años archivadas sin uso. Para generar impacto real (Transferencia Tecnológica), su estrategia debe ser:",
+        "difficulty": 880,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Dejar las patentes archivadas, pues el objetivo misional del SENA es solo investigar, no comercializar.",
+            "Subir fotos de las patentes a internet para que cualquier empresa las use libremente sin control.",
+            "Estructurar un portafolio tecnológico y promover acuerdos de licenciamiento o transferencia con el sector productivo para que estas invenciones lleguen al mercado.",
+            "Cobrarle a los inventores (instructores) una tarifa de mantenimiento por el almacenamiento físico del documento de la patente."
+        ],
+        "correct_option": "Estructurar un portafolio tecnológico y promover acuerdos de licenciamiento o transferencia con el sector productivo para que estas invenciones lleguen al mercado."
+    },
+    {
+        "id": "GI_SENNOVA_07",
+        "content": "El equipo técnico de un proyecto de biotecnología desea publicar los resultados de su investigación en una revista científica internacional la próxima semana, pero usted sabe que la invención tiene potencial para ser patentada. Usted recomienda:",
+        "difficulty": 910,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Pausar la publicación científica y radicar primero la solicitud de patente, ya que la divulgación previa destruye el requisito legal de 'novedad'.",
+            "Publicar el artículo inmediatamente porque eso da más puntos en el escalafón salarial y luego buscar la patente.",
+            "Publicar el artículo, pero cambiando los nombres químicos de la fórmula para engañar a los lectores y proteger la idea.",
+            "Prohibir permanentemente la publicación del artículo, argumentando que el SENA funciona bajo secreto de Estado."
+        ],
+        "correct_option": "Pausar la publicación científica y radicar primero la solicitud de patente, ya que la divulgación previa destruye el requisito legal de 'novedad'."
+    },
+    {
+        "id": "GI_SENNOVA_08",
+        "content": "En la evaluación del nivel de madurez tecnológica (TRL - Technology Readiness Level) de un proyecto de Tecnoacademia, el equipo afirma estar en TRL 9 porque 'la idea es excelente y la tienen dibujada en un papel'. Usted corrige esta apreciación indicando que:",
+        "difficulty": 680,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Un dibujo en papel corresponde a un TRL 1 o 2 (principios básicos u observación de concepto), mientras que un TRL 9 implica un sistema probado con éxito en un entorno real operativo.",
+            "Tienen razón, ya que el TRL evalúa la creatividad de los aprendices y no la materialización del producto.",
+            "Para estar en TRL 9 solo necesitan hacer una maqueta en plastilina de su idea.",
+            "El modelo TRL solo se usa para medir la ejecución presupuestal, no el avance técnico."
+        ],
+        "correct_option": "Un dibujo en papel corresponde a un TRL 1 o 2 (principios básicos u observación de concepto), mientras que un TRL 9 implica un sistema probado con éxito en un entorno real operativo."
+    },
+    {
+        "id": "GI_SENNOVA_09",
+        "content": "Para estructurar el Plan Tecnológico del Centro de Formación, el Subdirector le pide basar las decisiones en 'lo que a usted le parezca mejor'. Para aplicar una verdadera Inteligencia Competitiva, usted decide:",
+        "difficulty": 790,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Realizar un análisis sistémico de las apuestas productivas regionales, estudios prospectivos y las demandas tecnológicas de los gremios del departamento.",
+            "Buscar en Google las tendencias mundiales y copiarlas exactamente, sin importar la vocación económica de su región.",
+            "Acatar la sugerencia del Subdirector e inventar un plan basado en su intuición personal para no contradecirlo.",
+            "Preguntarle únicamente a los aprendices nuevos qué tecnología les gusta más."
+        ],
+        "correct_option": "Realizar un análisis sistémico de las apuestas productivas regionales, estudios prospectivos y las demandas tecnológicas de los gremios del departamento."
+    },
+    {
+        "id": "GI_SENNOVA_10",
+        "content": "Un grupo de investigación presenta un equipo modificado. Tomaron una máquina existente en la industria y le agregaron un mecanismo que mejora su eficiencia y velocidad. Según la normatividad de Propiedad Industrial de la SIC, esto es susceptible de protegerse mediante:",
+        "difficulty": 830,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Derechos de Autor.",
+            "Patente de Modelo de Utilidad, ya que le otorga una nueva ventaja técnica o mejora funcional a un objeto ya conocido.",
+            "Patente de Invención, porque revolucionará el mercado mundial.",
+            "Marca Mixta institucional."
+        ],
+        "correct_option": "Patente de Modelo de Utilidad, ya que le otorga una nueva ventaja técnica o mejora funcional a un objeto ya conocido."
+    },
+    {
+        "id": "GI_SENNOVA_11",
+        "content": "Una empresa aliada firma un convenio para desarrollar un prototipo con un Tecnoparque. El convenio no estipuló claramente cómo se repartiría la Propiedad Intelectual futura. Al final, la empresa patenta el prototipo exclusivamente a su nombre. Su fallo como Gestor en la etapa de formulación fue:",
+        "difficulty": 920,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "No haber asegurado que en el convenio o contrato de co-desarrollo se incluyera una cláusula de Propiedad Intelectual que definiera la titularidad compartida o los porcentajes de explotación.",
+            "No haber denunciado a la empresa ante la Fiscalía General de la Nación antes de empezar el proyecto.",
+            "Haber confiado en que las empresas siempre regalan sus patentes a las entidades públicas.",
+            "Ninguno, las empresas siempre tienen derecho a patentar lo que se haga en sus instalaciones."
+        ],
+        "correct_option": "No haber asegurado que en el convenio o contrato de co-desarrollo se incluyera una cláusula de Propiedad Intelectual que definiera la titularidad compartida o los porcentajes de explotación."
+    },
+    {
+        "id": "GI_SENNOVA_12",
+        "content": "Usted está asesorando a un grupo de instructores sobre el uso de recursos educativos de internet para un proyecto SENNOVA. Un instructor quiere incluir una figura de un libro protegido por derechos de autor argumentando que 'como es para fines educativos, se puede usar todo sin permiso'. Usted le corrige explicando que:",
+        "difficulty": 760,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Tiene razón, en Colombia la academia está exenta de cualquier ley de derechos de autor.",
+            "Puede usarla libremente solo si le cambia los colores a la imagen para que no parezca la original.",
+            "El derecho de cita o uso con fines educativos permite usar extractos cortos y obliga siempre a mencionar al autor y la fuente, pero no permite copiar la obra sustancialmente sin autorización.",
+            "Debe pagarle regalías al autor directamente de su bolsillo cada vez que abra la presentación."
+        ],
+        "correct_option": "El derecho de cita o uso con fines educativos permite usar extractos cortos y obliga siempre a mencionar al autor y la fuente, pero no permite copiar la obra sustancialmente sin autorización."
+    },
+    {
+        "id": "GI_SENNOVA_13",
+        "content": "Para la comercialización de un producto tecnológico desarrollado por el SENA, se necesita ceder los derechos de explotación a una empresa privada. El mecanismo jurídico idóneo para realizar esto es:",
+        "difficulty": 810,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Un contrato de donación sin condiciones.",
+            "Una carta de recomendación firmada por el Director General.",
+            "Un contrato de licenciamiento de tecnología, donde se estipulen las regalías, exclusividad, duración y territorio de uso.",
+            "Un acta de entrega del almacén del Centro de Formación."
+        ],
+        "correct_option": "Un contrato de licenciamiento de tecnología, donde se estipulen las regalías, exclusividad, duración y territorio de uso."
+    },
+    {
+        "id": "GI_SENNOVA_14",
+        "content": "Un equipo de investigadores no logra resolver un desafío técnico de filtración de agua. En lugar de gastar meses ensayando a ciegas, usted les propone usar inteligencia competitiva. La herramienta específica más útil en este caso sería:",
+        "difficulty": 740,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Buscar soluciones tecnológicas ya publicadas realizando una búsqueda de patentes en bases de datos como Espacenet o WIPO (Patentscope).",
+            "Hacer una encuesta de satisfacción en la calle preguntando cómo filtra el agua la gente en su casa.",
+            "Comprar un software de contabilidad para llevar mejor el presupuesto del equipo.",
+            "Dejar que el proyecto fracase para documentar la lección aprendida."
+        ],
+        "correct_option": "Buscar soluciones tecnológicas ya publicadas realizando una búsqueda de patentes en bases de datos como Espacenet o WIPO (Patentscope)."
+    },
+    {
+        "id": "GI_SENNOVA_15",
+        "content": "Como parte de la estrategia de 'Apropiación Social del Conocimiento', su Regional organizó una feria de innovación. Un empresario le propone a un aprendiz comprar la idea de negocio que este expuso. El aprendiz no tiene patente ni acuerdo de confidencialidad. ¿Qué riesgo inminente se materializó por falta de gestión de la innovación?",
+        "difficulty": 860,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "El enriquecimiento ilícito del empresario.",
+            "La pérdida de secreto industrial y el riesgo de que el empresario registre la idea a su nombre, debido a la exposición pública sin mecanismos previos de protección.",
+            "Que el aprendiz se salga del SENA antes de graduarse.",
+            "Ninguno, las ideas no tienen valor comercial hasta que se construyen en una fábrica."
+        ],
+        "correct_option": "La pérdida de secreto industrial y el riesgo de que el empresario registre la idea a su nombre, debido a la exposición pública sin mecanismos previos de protección."
+    },
+    {
+        "id": "GI_SENNOVA_16",
+        "content": "Un instructor que desarrolló una nueva metodología didáctica en el SENA le exige que el Centro le pague regalías por usarla en las clases, argumentando sus 'derechos morales'. Usted fundamenta su respuesta negativa aclarando que:",
+        "difficulty": 890,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Los derechos morales solo aplican a los cantantes y escritores de novelas.",
+            "El instructor debe demandar al Estado para poder cobrar.",
+            "Los derechos morales protegen la autoría e integridad de la obra (ser reconocido como autor), pero los derechos patrimoniales (explotación económica) pertenecen al SENA, según el manual de PI institucional y la ley.",
+            "Le pagarán regalías, pero descontándolas de su salario mensual."
+        ],
+        "correct_option": "Los derechos morales protegen la autoría e integridad de la obra (ser reconocido como autor), pero los derechos patrimoniales (explotación económica) pertenecen al SENA, según el manual de PI institucional y la ley."
+    },
+    {
+        "id": "GI_SENNOVA_17",
+        "content": "Dentro de un proyecto de innovación abierta, el SENA convoca a varias startups para resolver un reto del sector salud. Para estructurar este proceso de manera transparente y eficiente, la herramienta principal de gestión es:",
+        "difficulty": 730,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Un término de referencia (TdR) o pliego de bases que defina claramente el reto, los criterios técnicos de evaluación y las reglas de propiedad intelectual resultantes.",
+            "Una invitación informal por grupos de WhatsApp para que las empresas participen de forma voluntaria sin tanto trámite.",
+            "Contratar directamente a la startup del hijo de un instructor del centro para asegurar la confianza técnica.",
+            "Comprar un seguro de vida para los evaluadores."
+        ],
+        "correct_option": "Un término de referencia (TdR) o pliego de bases que defina claramente el reto, los criterios técnicos de evaluación y las reglas de propiedad intelectual resultantes."
+    },
+    {
+        "id": "GI_SENNOVA_18",
+        "content": "El comité técnico le solicita evaluar si un proyecto de diseño industrial amerita inversión para ser protegido. El producto es una silla con una forma estética nueva que no cambia su función (sirve para sentarse igual que otras). La figura jurídica correcta para proteger esto es:",
+        "difficulty": 800,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Un Diseño Industrial, ya que protege la apariencia particular y ornamental del producto sin alterar su funcionalidad técnica.",
+            "Una Patente de Invención, porque la silla tiene una forma nunca antes vista en el universo.",
+            "El Secreto Empresarial, encerrando la silla en una bóveda para que nadie la vea.",
+            "Una Denominación de Origen, porque la silla está hecha de madera colombiana."
+        ],
+        "correct_option": "Un Diseño Industrial, ya que protege la apariencia particular y ornamental del producto sin alterar su funcionalidad técnica."
+    },
+    {
+        "id": "GI_SENNOVA_19",
+        "content": "Durante una consultoría de extensionismo tecnológico, usted observa que una PyME maneja las fórmulas de sus productos estrella en una libreta que está al alcance de todos los empleados y visitantes. Para fortalecer la competitividad de la empresa, su principal recomendación es:",
+        "difficulty": 670,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Que fotocopien la libreta para tener un respaldo en caso de incendio.",
+            "Que dejen de fabricar esos productos y se dediquen a importar mercancía.",
+            "Implementar una estrategia de protección por Secreto Empresarial (Secreto Industrial), restringiendo el acceso y firmando acuerdos de confidencialidad con empleados clave.",
+            "Que publiquen la fórmula en internet para ganar seguidores en redes sociales."
+        ],
+        "correct_option": "Implementar una estrategia de protección por Secreto Empresarial (Secreto Industrial), restringiendo el acceso y firmando acuerdos de confidencialidad con empleados clave."
+    },
+    {
+        "id": "GI_SENNOVA_20",
+        "content": "En la ejecución de la política de innovación de SENNOVA, se incentiva la creación de Spin-offs o empresas de base tecnológica. Un instructor y sus aprendices quieren formar una basándose en tecnología del SENA. Usted como asesor técnico debe asegurar que:",
+        "difficulty": 950,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "La empresa se cree de forma oculta para no tener problemas con la oficina jurídica del SENA.",
+            "El proceso se realice en el marco de la normativa institucional vigente sobre Spin-offs, gestionando el licenciamiento o transferencia de la tecnología y previniendo conflictos de interés.",
+            "Los aprendices sean los únicos dueños y excluyan al instructor para que no se vea como un negocio de un funcionario público.",
+            "La Spin-off se comprometa a devolverle al SENA el 100% de sus ganancias brutas mensuales."
+        ],
+        "correct_option": "El proceso se realice en el marco de la normativa institucional vigente sobre Spin-offs, gestionando el licenciamiento o transferencia de la tecnología y previniendo conflictos de interés."
+    },
+    {
+        "id": "GI_SENNOVA_21",
+        "content": "Para hacer la vigilancia tecnológica de una nueva línea de investigación en energías renovables, usted orienta a los aprendices a que revisen el 'Estado de la Técnica'. Esto comprende:",
+        "difficulty": 720,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Todo lo que ha sido puesto a disposición del público en cualquier lugar del mundo (publicaciones, patentes, internet, uso comercial) antes de la fecha de inicio del proyecto.",
+            "Únicamente los libros que están físicamente en la biblioteca del Centro de Formación.",
+            "Las opiniones de los instructores más antiguos sobre qué tecnología es mejor.",
+            "Los videos de divulgación científica en plataformas recreativas sin importar la fecha de publicación."
+        ],
+        "correct_option": "Todo lo que ha sido puesto a disposición del público en cualquier lugar del mundo (publicaciones, patentes, internet, uso comercial) antes de la fecha de inicio del proyecto."
+    },
+    {
+        "id": "GI_SENNOVA_22",
+        "content": "El líder de un proyecto Tecnoparque afirma que su desarrollo llegó a TRL 6. Para validar técnicamente esta afirmación, el entregable mínimo que usted debe revisar es:",
+        "difficulty": 870,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Un documento Word con el estado del arte y la justificación del problema.",
+            "Una prueba de concepto matemática realizada en un simulador por computador.",
+            "Un prototipo validado y demostrado en un entorno relevante o simulado, que opera con características similares al sistema final esperado.",
+            "Un producto certificado que ya se está vendiendo masivamente en las tiendas de la ciudad."
+        ],
+        "correct_option": "Un prototipo validado y demostrado en un entorno relevante o simulado, que opera con características similares al sistema final esperado."
+    },
+    {
+        "id": "GI_SENNOVA_23",
+        "content": "Un grupo de investigación creó una marca y un logo ('BioAgroSena') para identificar un abono orgánico resultado de su proyecto y quieren registrarla. Este trámite de propiedad industrial debe gestionarse ante:",
+        "difficulty": 650,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "La Superintendencia de Industria y Comercio (SIC).",
+            "La Cámara de Comercio local.",
+            "La Dirección Nacional de Derecho de Autor (DNDA).",
+            "La Alcaldía municipal."
+        ],
+        "correct_option": "La Superintendencia de Industria y Comercio (SIC)."
+    },
+    {
+        "id": "GI_SENNOVA_24",
+        "content": "Una Tecnoacademia va a realizar un evento virtual donde los aprendices presentarán ideas de innovación para empresas. Para salvaguardar la creatividad de los jóvenes y permitir que las empresas escuchen, se recomienda utilizar acuerdos tipo:",
+        "difficulty": 770,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Contrato de franquicia con tarifa fija.",
+            "NDA (Non-Disclosure Agreement) o Acuerdos de Confidencialidad y Uso Limitado de la Información firmados por los asistentes.",
+            "Acta de renuncia masiva de derechos de autor.",
+            "Licencia Creative Commons de dominio público incondicional."
+        ],
+        "correct_option": "NDA (Non-Disclosure Agreement) o Acuerdos de Confidencialidad y Uso Limitado de la Información firmados por los asistentes."
+    },
+    {
+        "id": "GI_SENNOVA_25",
+        "content": "Un instructor que abandonó el SENA hace un año, registra a su nombre exclusivo en la SIC una patente que fue desarrollada durante su tiempo como líder de un semillero de la entidad. Su deber como Gestor al enterarse es:",
+        "difficulty": 940,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Felicitarlo en redes sociales institucionales por su emprendimiento personal.",
+            "Ignorar la situación porque él ya no trabaja para el Estado y no se puede hacer nada.",
+            "Informar de inmediato a la Dirección Jurídica del SENA con todas las evidencias (actas, contratos, productos) para interponer la demanda de reivindicación de derechos ante la autoridad competente.",
+            "Ofrecerle comprarle la patente de nuevo usando el presupuesto de SENNOVA."
+        ],
+        "correct_option": "Informar de inmediato a la Dirección Jurídica del SENA con todas las evidencias (actas, contratos, productos) para interponer la demanda de reivindicación de derechos ante la autoridad competente."
+    },
+    {
+        "id": "GI_SENNOVA_26",
+        "content": "En la transferencia de tecnología a comunidades rurales (innovación social), la medida de éxito principal no son los ingresos generados, sino:",
+        "difficulty": 690,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "El grado de apropiación social, uso sostenido de la tecnología y mejora objetiva en la calidad de vida o productividad de la comunidad.",
+            "La cantidad de artículos en revistas Q1 en inglés que el instructor publique sobre los campesinos.",
+            "El número de cartillas impresas que se dejaron en la biblioteca del pueblo.",
+            "El valor económico del equipo tecnológico que se regaló."
+        ],
+        "correct_option": "El grado de apropiación social, uso sostenido de la tecnología y mejora objetiva en la calidad de vida o productividad de la comunidad."
+    },
+    {
+        "id": "GI_SENNOVA_27",
+        "content": "Usted asesora a un semillero sobre la publicación en 'Acceso Abierto' (Open Access). Un aprendiz le pregunta si al publicar allí pierden sus derechos de autor. Usted explica que:",
+        "difficulty": 840,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "El Acceso Abierto permite la lectura gratuita, pero el autor conserva sus derechos morales e incluso establece los límites de uso mediante licencias como Creative Commons.",
+            "Sí, publicar en internet significa que cualquiera puede robar la idea y registrarla a su nombre sin dar crédito.",
+            "El Acceso Abierto solo aplica para documentos que no tienen ningún rigor científico o importancia técnica.",
+            "Los derechos de autor en Colombia solo se reconocen si el libro se imprime físicamente en una imprenta registrada."
+        ],
+        "correct_option": "El Acceso Abierto permite la lectura gratuita, pero el autor conserva sus derechos morales e incluso establece los límites de uso mediante licencias como Creative Commons."
+    },
+    {
+        "id": "GI_SENNOVA_28",
+        "content": "En el marco de un proyecto conjunto con el sector privado, un empresario sugiere utilizar una tecnología de terceros que claramente está patentada en Colombia, sin solicitar licencia. Siguiendo el Código de Integridad y las normas de PI, usted:",
+        "difficulty": 900,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Acoge la sugerencia, bajo la premisa de que las instituciones públicas no son perseguidas por infracciones de patentes.",
+            "Acepta pero sugiere cambiarle una pieza a la máquina para que el dueño de la patente no se dé cuenta.",
+            "Exige detener el uso de dicha tecnología e iniciar formalmente el trámite de solicitud de licencia de uso o diseño de una alternativa tecnológica ('Design around') para no incurrir en infracción legal.",
+            "Propone que la empresa privada compre la tecnología y se la done en secreto al SENA."
+        ],
+        "correct_option": "Exige detener el uso de dicha tecnología e iniciar formalmente el trámite de solicitud de licencia de uso o diseño de una alternativa tecnológica ('Design around') para no incurrir en infracción legal."
+    },
+    {
+        "id": "GI_SENNOVA_29",
+        "content": "Para estructurar un servicio de Inteligencia Competitiva para las Pymes de la región, SENNOVA debe proporcionar información sobre:",
+        "difficulty": 760,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Los números telefónicos personales de los gerentes de las multinacionales competidoras.",
+            "Tendencias tecnológicas, nuevos competidores, cambios normativos, oportunidades de mercado e innovación en el sector, analizados para orientar decisiones estratégicas.",
+            "Estrategias de evasión de impuestos basadas en vacíos legales del ecosistema de innovación.",
+            "Listas de aprendices para que las contraten con el menor salario posible."
+        ],
+        "correct_option": "Tendencias tecnológicas, nuevos competidores, cambios normativos, oportunidades de mercado e innovación en el sector, analizados para orientar decisiones estratégicas."
+    },
+    {
+        "id": "GI_SENNOVA_30",
+        "content": "Usted recibe un prototipo de software de gestión agrícola financiado por SENNOVA, que ya está en TRL 7 (validado en un entorno real). La estrategia más rápida para transferir esta tecnología a los pequeños agricultores de la región es:",
+        "difficulty": 820,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Publicar el código fuente en GitHub y no hacer nada más.",
+            "Entregarlo al departamento jurídico para que lo evalúe durante tres años antes de dárselo a alguien.",
+            "Establecer un esquema de licenciamiento de uso gratuito (open source o freemium) acompañado de talleres de capacitación directa (extensionismo) en campo.",
+            "Vender el software a un banco privado y dejar que ellos lo revendan a los agricultores."
+        ],
+        "correct_option": "Establecer un esquema de licenciamiento de uso gratuito (open source o freemium) acompañado de talleres de capacitación directa (extensionismo) en campo."
+    },
+    {
+        "id": "GI_SENNOVA_31",
+        "content": "Un instructor traduce al español un manual técnico de robótica en inglés y lo presenta como producto de 'Apropiación Social' del grupo de investigación, poniéndose como autor original. Su observación técnica y legal es:",
+        "difficulty": 880,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Una traducción es una obra derivada; no puede reclamar autoría de la obra original y requiere autorización expresa del titular de los derechos del manual en inglés para distribuirla.",
+            "Felicitarlo por facilitar la lectura de los aprendices y aprobar el producto sin observaciones.",
+            "La traducción automática en internet anula los derechos de autor, por lo que su acción es completamente legal.",
+            "Sugiere que borre el nombre del autor original y ponga el logo de SENNOVA en cada página."
+        ],
+        "correct_option": "Una traducción es una obra derivada; no puede reclamar autoría de la obra original y requiere autorización expresa del titular de los derechos del manual en inglés para distribuirla."
+    },
+    {
+        "id": "GI_SENNOVA_32",
+        "content": "Durante un ejercicio de 'Vigilancia Comercial', el Gestor analiza las ofertas de proveedores de maquinaria para un Tecnoparque. El objetivo principal de aplicar esta herramienta de innovación en procesos de compra pública es:",
+        "difficulty": 710,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Favorecer a la empresa proveedora que tenga mejores contactos políticos.",
+            "Asegurar que las especificaciones técnicas solicitadas no correspondan a tecnología obsoleta y garantizar la pluralidad de oferentes con tecnología de punta.",
+            "Gastar el presupuesto en la maquinaria más costosa, sin importar si los aprendices saben cómo usarla.",
+            "Impedir la compra de equipos para forzar a los instructores a fabricarlos desde cero."
+        ],
+        "correct_option": "Asegurar que las especificaciones técnicas solicitadas no correspondan a tecnología obsoleta y garantizar la pluralidad de oferentes con tecnología de punta."
+    },
+    {
+        "id": "GI_SENNOVA_33",
+        "content": "En la transferencia de tecnología tipo 'Llave en mano' (Turnkey), un Centro de Formación recibe de un aliado internacional un laboratorio completo. Esto significa que el aliado:",
+        "difficulty": 640,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Solo entrega los equipos en la puerta y el SENA debe descubrir cómo ensamblarlos.",
+            "Entrega la tecnología instalada, probada, con los manuales y la capacitación necesaria para que el SENA empiece a operar inmediatamente.",
+            "Le alquila el laboratorio al SENA por horas y se lleva la llave al terminar.",
+            "Se queda con los derechos de autor de todos los proyectos que el SENA haga dentro de ese laboratorio."
+        ],
+        "correct_option": "Entrega la tecnología instalada, probada, con los manuales y la capacitación necesaria para que el SENA empiece a operar inmediatamente."
+    },
+    {
+        "id": "GI_SENNOVA_34",
+        "content": "Un aprendiz se retira del SENA habiendo participado en la creación de una base de datos de clientes para un proyecto de innovación empresarial. Se lleva una copia en una USB para venderla a la competencia. Legalmente, esta acción viola:",
+        "difficulty": 850,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Únicamente el reglamento estudiantil del SENA.",
+            "La Ley de Propiedad Intelectual sobre derechos de autor (bases de datos), los acuerdos de confidencialidad y la Ley de Protección de Datos Personales (Habeas Data).",
+            "La Ley de Contratación Estatal (Estatuto General de Contratación Pública).",
+            "No hay violación legal, ya que como fue su trabajo, él tiene derecho a sacar provecho de ello."
+        ],
+        "correct_option": "La Ley de Propiedad Intelectual sobre derechos de autor (bases de datos), los acuerdos de confidencialidad y la Ley de Protección de Datos Personales (Habeas Data)."
+    },
+    {
+        "id": "GI_SENNOVA_35",
+        "content": "Al aplicar la herramienta de Matriz DOFA para evaluar el ecosistema de innovación de su Regional, usted encuentra que 'las empresas locales desconfían de la capacidad técnica de la academia'. En el análisis estratégico, esto se clasifica como:",
+        "difficulty": 620,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Una debilidad interna del SENA.",
+            "Una fortaleza del modelo educativo.",
+            "Una amenaza externa u obstáculo del entorno.",
+            "Una oportunidad de negocio internacional."
+        ],
+        "correct_option": "Una amenaza externa u obstáculo del entorno."
+    },
+    {
+        "id": "GI_SENNOVA_36",
+        "content": "En la ruta de Innovación y Competitividad (SENNOVA), el 'Alistamiento Tecnológico' en las empresas (Mipymes) persigue como fin último:",
+        "difficulty": 700,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Generar capacidades en las empresas para adoptar, adaptar o desarrollar nuevas tecnologías que mejoren su productividad y posición en el mercado.",
+            "Sustituir la gerencia de las empresas privadas por directivos del SENA.",
+            "Obligar a las empresas a pagar impuestos más altos por uso de tecnología.",
+            "Entregarles equipos de computo gratis para que puedan usar el correo electrónico."
+        ],
+        "correct_option": "Generar capacidades en las empresas para adoptar, adaptar o desarrollar nuevas tecnologías que mejoren su productividad y posición en el mercado."
+    },
+    {
+        "id": "GI_SENNOVA_37",
+        "content": "Un instructor registra un proyecto de investigación que resultó en la creación de una nueva variedad de semilla resistente a la sequía. Para proteger esta innovación en Colombia, el mecanismo que aplica es:",
+        "difficulty": 780,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "El Certificado de Obtentor de Variedades Vegetales, administrado por el Instituto Colombiano Agropecuario (ICA).",
+            "Un Diseño Industrial registrado ante la Superintendencia de Industria y Comercio.",
+            "El registro como Obra Científica ante la Dirección Nacional de Derecho de Autor.",
+            "Una Patente de Software, argumentando que la semilla tiene un 'código' genético."
+        ],
+        "correct_option": "El Certificado de Obtentor de Variedades Vegetales, administrado por el Instituto Colombiano Agropecuario (ICA)."
+    },
+    {
+        "id": "GI_SENNOVA_38",
+        "content": "Un proyecto SENNOVA colaboró con una comunidad de artesanos para integrar sensores tecnológicos en sus tejidos tradicionales. Las comunidades indígenas reclaman protección de su conocimiento tradicional. Como Gestor Integral, usted asegura que:",
+        "difficulty": 890,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "El SENA patente todo el tejido incluyendo el conocimiento tradicional a nombre de la entidad pública.",
+            "Se ignore el reclamo, ya que el folclore no tiene protección en la propiedad intelectual formal colombiana.",
+            "Se reconozca, respete y proteja el conocimiento tradicional, estableciendo mecanismos de distribución justa y equitativa de beneficios en caso de comercialización tecnológica.",
+            "Se cancele el proyecto y se retire la tecnología para evitar problemas con las minorías étnicas."
+        ],
+        "correct_option": "Se reconozca, respete y proteja el conocimiento tradicional, estableciendo mecanismos de distribución justa y equitativa de beneficios en caso de comercialización tecnológica."
+    },
+    {
+        "id": "GI_SENNOVA_39",
+        "content": "Usted lidera un taller de ideación con el sector empresarial. Según la metodología del 'Design Thinking' orientada a la innovación, el punto de partida (la primera fase) debe enfocarse obligatoriamente en:",
+        "difficulty": 660,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Empatizar con el usuario final, comprendiendo sus necesidades reales, frustraciones y el contexto del problema.",
+            "Construir un prototipo funcional avanzado para impresionar a los inversionistas.",
+            "Buscar financiación gubernamental para asegurar el pago de los instructores.",
+            "Patentarlo todo rápidamente antes de saber si la idea realmente sirve para algo."
+        ],
+        "correct_option": "Empatizar con el usuario final, comprendiendo sus necesidades reales, frustraciones y el contexto del problema."
+    },
+    {
+        "id": "GI_SENNOVA_40",
+        "content": "En un comité de ética institucional, se evalúa si un Gestor SENNOVA incurrió en falta grave al compartir el portafolio de patentes del SENA con una empresa extranjera durante una feria internacional. De acuerdo con las funciones de Gestión Tecnológica:",
+        "difficulty": 920,
+        "topic": "Gestión de la Innovación",
+        "options": [
+            "Incurrió en una falta, porque las patentes del Estado colombiano no pueden ser conocidas por extranjeros.",
+            "Constituye una práctica excelente, ya que los documentos de patentes públicas son instrumentos para buscar transferencia tecnológica, inversión comercial o alianzas estratégicas internacionales.",
+            "Es un acto de traición a la patria y de espionaje industrial, sancionado por la Procuraduría.",
+            "Fue un error menor administrativo si no llevó un permiso firmado y autenticado en notaría."
+        ],
+        "correct_option": "Constituye una práctica excelente, ya que los documentos de patentes públicas son instrumentos para buscar transferencia tecnológica, inversión comercial o alianzas estratégicas internacionales."
+    }
+]

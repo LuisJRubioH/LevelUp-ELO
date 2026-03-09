@@ -1,0 +1,802 @@
+[
+    {
+        "id": "qpb1",
+        "content": "Si se lanza un dado justo, la probabilidad de obtener un 4 es:",
+        "difficulty": 600,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{1}{6}$", "$\\frac{1}{4}$", "$\\frac{1}{3}$", "$\\frac{1}{2}$"],
+        "correct_option": "$\\frac{1}{6}$"
+    },
+    {
+        "id": "qpb2",
+        "content": "Si se lanza una moneda justa, la probabilidad de obtener cara es:",
+        "difficulty": 600,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{1}{2}$", "$\\frac{1}{3}$", "$1$", "$0$"],
+        "correct_option": "$\\frac{1}{2}$"
+    },
+    {
+        "id": "qpb3",
+        "content": "Para cualquier evento $A$, $0 \\leq P(A) \\leq$:",
+        "difficulty": 600,
+        "topic": "Probabilidad",
+        "options": ["$1$", "$\\infty$", "$100$", "$0.5$"],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "qpb4",
+        "content": "La probabilidad del espacio muestral $\\Omega$ es:",
+        "difficulty": 620,
+        "topic": "Probabilidad",
+        "options": ["$1$", "$0$", "$\\frac{1}{2}$", "Depende del experimento"],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "qpb5",
+        "content": "La probabilidad del evento vacío $\\emptyset$ es:",
+        "difficulty": 620,
+        "topic": "Probabilidad",
+        "options": ["$0$", "$1$", "$\\frac{1}{2}$", "Indefinida"],
+        "correct_option": "$0$"
+    },
+    {
+        "id": "qpb6",
+        "content": "$P(A^c) =$",
+        "difficulty": 650,
+        "topic": "Probabilidad",
+        "options": ["$1 - P(A)$", "$P(A)$", "$\\frac{1}{P(A)}$", "$P(A) - 1$"],
+        "correct_option": "$1 - P(A)$"
+    },
+    {
+        "id": "qpb7",
+        "content": "En el enfoque clásico (Laplace), $P(A) =$",
+        "difficulty": 650,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{\\text{casos favorables}}{\\text{casos posibles}}$", "$\\frac{\\text{casos posibles}}{\\text{casos favorables}}$", "$\\text{casos favorables} \\times \\text{casos posibles}$", "$1 - \\frac{\\text{casos favorables}}{\\text{casos posibles}}$"],
+        "correct_option": "$\\frac{\\text{casos favorables}}{\\text{casos posibles}}$"
+    },
+    {
+        "id": "qpb8",
+        "content": "En el enfoque frecuentista, $P(A) =$",
+        "difficulty": 700,
+        "topic": "Probabilidad",
+        "options": ["$\\lim_{n \\to \\infty} \\frac{n_A}{n}$", "$\\frac{1}{n}$", "$\\frac{n}{n_A}$", "$n_A \\cdot n$"],
+        "correct_option": "$\\lim_{n \\to \\infty} \\frac{n_A}{n}$"
+    },
+    {
+        "id": "qpb9",
+        "content": "La ley de los grandes números establece que, al repetir un experimento muchas veces, la frecuencia relativa se acerca a:",
+        "difficulty": 750,
+        "topic": "Probabilidad",
+        "options": ["La probabilidad teórica", "Cero", "Uno", "La media aritmética"],
+        "correct_option": "La probabilidad teórica"
+    },
+    {
+        "id": "qpb10",
+        "content": "El enfoque subjetivo de probabilidad asigna $P(A)$ basándose en:",
+        "difficulty": 750,
+        "topic": "Probabilidad",
+        "options": ["El grado de creencia del individuo", "La frecuencia relativa", "Casos equiprobables", "El axioma de aditividad"],
+        "correct_option": "El grado de creencia del individuo"
+    },
+    {
+        "id": "qpb11",
+        "content": "Si $A$ y $B$ son mutuamente excluyentes, entonces $P(A \\cup B) =$",
+        "difficulty": 700,
+        "topic": "Probabilidad",
+        "options": ["$P(A) + P(B)$", "$P(A) \\cdot P(B)$", "$P(A) + P(B) - P(A \\cap B)$", "$P(A) - P(B)$"],
+        "correct_option": "$P(A) + P(B)$"
+    },
+    {
+        "id": "qpb12",
+        "content": "La regla general de la adición es: $P(A \\cup B) =$",
+        "difficulty": 750,
+        "topic": "Probabilidad",
+        "options": ["$P(A) + P(B) - P(A \\cap B)$", "$P(A) + P(B)$", "$P(A) \\cdot P(B)$", "$P(A) + P(B) + P(A \\cap B)$"],
+        "correct_option": "$P(A) + P(B) - P(A \\cap B)$"
+    },
+    {
+        "id": "qpb13",
+        "content": "Si $P(A) = 0.3$ y $P(B) = 0.4$ y $A$, $B$ son mutuamente excluyentes, entonces $P(A \\cup B) =$",
+        "difficulty": 700,
+        "topic": "Probabilidad",
+        "options": ["$0.7$", "$0.12$", "$0.58$", "$1$"],
+        "correct_option": "$0.7$"
+    },
+    {
+        "id": "qpb14",
+        "content": "Si $P(A) = 0.5$, $P(B) = 0.4$, $P(A \\cap B) = 0.2$, entonces $P(A \\cup B) =$",
+        "difficulty": 780,
+        "topic": "Probabilidad",
+        "options": ["$0.7$", "$0.9$", "$0.2$", "$0.5$"],
+        "correct_option": "$0.7$"
+    },
+    {
+        "id": "qpb15",
+        "content": "El principio fundamental del conteo establece que si una tarea se realiza en $k$ etapas con $n_1, n_2, \\ldots, n_k$ opciones, el total de formas es:",
+        "difficulty": 650,
+        "topic": "Probabilidad",
+        "options": ["$n_1 \\cdot n_2 \\cdots n_k$", "$n_1 + n_2 + \\cdots + n_k$", "$n_1^k$", "$k \\cdot n_1$"],
+        "correct_option": "$n_1 \\cdot n_2 \\cdots n_k$"
+    },
+    {
+        "id": "qpb16",
+        "content": "El número de permutaciones de $n$ objetos distintos es:",
+        "difficulty": 700,
+        "topic": "Probabilidad",
+        "options": ["$n!$", "$n^2$", "$2^n$", "$\\frac{n!}{2}$"],
+        "correct_option": "$n!$"
+    },
+    {
+        "id": "qpb17",
+        "content": "$5! =$",
+        "difficulty": 600,
+        "topic": "Probabilidad",
+        "options": ["$120$", "$25$", "$60$", "$720$"],
+        "correct_option": "$120$"
+    },
+    {
+        "id": "qpb18",
+        "content": "El número de permutaciones de $n$ objetos tomados de $r$ en $r$ es $P(n,r) =$",
+        "difficulty": 750,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{n!}{(n-r)!}$", "$\\frac{n!}{r!}$", "$\\frac{n!}{r!(n-r)!}$", "$n^r$"],
+        "correct_option": "$\\frac{n!}{(n-r)!}$"
+    },
+    {
+        "id": "qpb19",
+        "content": "$P(8, 3) =$",
+        "difficulty": 720,
+        "topic": "Probabilidad",
+        "options": ["$336$", "$56$", "$512$", "$6720$"],
+        "correct_option": "$336$"
+    },
+    {
+        "id": "qpb20",
+        "content": "El número de combinaciones de $n$ objetos tomados de $r$ en $r$ es $\\binom{n}{r} =$",
+        "difficulty": 750,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{n!}{r!(n-r)!}$", "$\\frac{n!}{(n-r)!}$", "$n^r$", "$\\frac{n!}{r!}$"],
+        "correct_option": "$\\frac{n!}{r!(n-r)!}$"
+    },
+    {
+        "id": "qpb21",
+        "content": "$\\binom{10}{3} =$",
+        "difficulty": 700,
+        "topic": "Probabilidad",
+        "options": ["$120$", "$720$", "$210$", "$30$"],
+        "correct_option": "$120$"
+    },
+    {
+        "id": "qpb22",
+        "content": "$\\binom{n}{0} =$",
+        "difficulty": 650,
+        "topic": "Probabilidad",
+        "options": ["$1$", "$0$", "$n$", "$n!$"],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "qpb23",
+        "content": "$\\binom{n}{n} =$",
+        "difficulty": 650,
+        "topic": "Probabilidad",
+        "options": ["$1$", "$n$", "$0$", "$n!$"],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "qpb24",
+        "content": "$\\binom{n}{r} = \\binom{n}{?}$ (propiedad de simetría):",
+        "difficulty": 700,
+        "topic": "Probabilidad",
+        "options": ["$n - r$", "$r$", "$n$", "$r - 1$"],
+        "correct_option": "$n - r$"
+    },
+    {
+        "id": "qpb25",
+        "content": "El número de permutaciones de $n$ objetos donde hay $n_1$ iguales, $n_2$ iguales, etc. es:",
+        "difficulty": 850,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{n!}{n_1! \\cdot n_2! \\cdots n_k!}$", "$n!$", "$\\frac{n!}{k!}$", "$n_1! \\cdot n_2! \\cdots n_k!$"],
+        "correct_option": "$\\frac{n!}{n_1! \\cdot n_2! \\cdots n_k!}$"
+    },
+    {
+        "id": "qpb26",
+        "content": "¿De cuántas formas se pueden sentar 6 personas en una mesa circular?",
+        "difficulty": 850,
+        "topic": "Probabilidad",
+        "options": ["$120$", "$720$", "$60$", "$24$"],
+        "correct_option": "$120$"
+    },
+    {
+        "id": "qpb27",
+        "content": "¿Cuántas palabras distintas se pueden formar con las letras de MISSISSIPPI?",
+        "difficulty": 950,
+        "topic": "Probabilidad",
+        "options": ["$34650$", "$11!$", "$\\frac{11!}{4!}$", "$\\frac{11!}{2!4!}$"],
+        "correct_option": "$34650$"
+    },
+    {
+        "id": "qpb28",
+        "content": "De un comité de 10 personas, ¿de cuántas formas se puede elegir un subcomité de 4?",
+        "difficulty": 750,
+        "topic": "Probabilidad",
+        "options": ["$210$", "$5040$", "$40$", "$120$"],
+        "correct_option": "$210$"
+    },
+    {
+        "id": "qpb29",
+        "content": "¿De cuántas formas se pueden distribuir 5 libros distintos en 3 estantes (importa el orden en cada estante)?",
+        "difficulty": 1000,
+        "topic": "Probabilidad",
+        "options": ["$3^5 = 243$", "$5^3 = 125$", "$\\binom{5}{3} = 10$", "$5! = 120$"],
+        "correct_option": "$3^5 = 243$"
+    },
+    {
+        "id": "qpb30",
+        "content": "En el Teorema del Binomio, $(a+b)^n = \\sum_{k=0}^{n}$:",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$\\binom{n}{k} a^{n-k} b^k$", "$n^k a^k b^{n-k}$", "$k! \\cdot a^k b^{n-k}$", "$\\frac{n!}{k!} a^k b^k$"],
+        "correct_option": "$\\binom{n}{k} a^{n-k} b^k$"
+    },
+    {
+        "id": "qpb31",
+        "content": "$P(A | B) =$",
+        "difficulty": 750,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{P(A \\cap B)}{P(B)}$", "$\\frac{P(A)}{P(B)}$", "$P(A) \\cdot P(B)$", "$\\frac{P(B)}{P(A)}$"],
+        "correct_option": "$\\frac{P(A \\cap B)}{P(B)}$"
+    },
+    {
+        "id": "qpb32",
+        "content": "Si $P(A) = 0.6$, $P(B) = 0.5$ y $P(A \\cap B) = 0.3$, entonces $P(A|B) =$",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$0.6$", "$0.5$", "$0.3$", "$0.75$"],
+        "correct_option": "$0.6$"
+    },
+    {
+        "id": "qpb33",
+        "content": "La regla de la multiplicación establece: $P(A \\cap B) =$",
+        "difficulty": 780,
+        "topic": "Probabilidad",
+        "options": ["$P(A|B) \\cdot P(B)$", "$P(A) + P(B)$", "$P(A) \\cdot P(B)$ siempre", "$P(A|B) + P(B|A)$"],
+        "correct_option": "$P(A|B) \\cdot P(B)$"
+    },
+    {
+        "id": "qpb34",
+        "content": "Dos eventos $A$ y $B$ son independientes si y solo si:",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$P(A \\cap B) = P(A) \\cdot P(B)$", "$P(A \\cup B) = P(A) + P(B)$", "$P(A|B) = P(B)$", "$P(A \\cap B) = 0$"],
+        "correct_option": "$P(A \\cap B) = P(A) \\cdot P(B)$"
+    },
+    {
+        "id": "qpb35",
+        "content": "Si $A$ y $B$ son independientes con $P(A) = 0.4$ y $P(B) = 0.3$, entonces $P(A \\cap B) =$",
+        "difficulty": 750,
+        "topic": "Probabilidad",
+        "options": ["$0.12$", "$0.7$", "$0.58$", "$0.1$"],
+        "correct_option": "$0.12$"
+    },
+    {
+        "id": "qpb36",
+        "content": "Si $A$ y $B$ son independientes, entonces $P(A|B) =$",
+        "difficulty": 780,
+        "topic": "Probabilidad",
+        "options": ["$P(A)$", "$P(B)$", "$P(A \\cap B)$", "$0$"],
+        "correct_option": "$P(A)$"
+    },
+    {
+        "id": "qpb37",
+        "content": "¿Son mutuamente excluyentes e independientes la misma cosa?",
+        "difficulty": 850,
+        "topic": "Probabilidad",
+        "options": ["No", "Sí", "Solo si $P(A) = P(B)$", "Solo si $P(A) > 0$"],
+        "correct_option": "No"
+    },
+    {
+        "id": "qpb38",
+        "content": "El Teorema de Probabilidad Total establece: si $\\{B_1, \\ldots, B_n\\}$ es una partición, $P(A) =$",
+        "difficulty": 900,
+        "topic": "Probabilidad",
+        "options": ["$\\sum_{i=1}^{n} P(A|B_i) P(B_i)$", "$\\sum_{i=1}^{n} P(B_i|A) P(A)$", "$\\sum_{i=1}^{n} P(A) P(B_i)$", "$\\prod_{i=1}^{n} P(A|B_i)$"],
+        "correct_option": "$\\sum_{i=1}^{n} P(A|B_i) P(B_i)$"
+    },
+    {
+        "id": "qpb39",
+        "content": "El Teorema de Bayes establece: $P(B_j | A) =$",
+        "difficulty": 950,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{P(A|B_j) P(B_j)}{\\sum_{i} P(A|B_i) P(B_i)}$", "$\\frac{P(A) P(B_j)}{P(A|B_j)}$", "$P(A|B_j) \\cdot P(A)$", "$\\frac{P(B_j)}{P(A)}$"],
+        "correct_option": "$\\frac{P(A|B_j) P(B_j)}{\\sum_{i} P(A|B_i) P(B_i)}$"
+    },
+    {
+        "id": "qpb40",
+        "content": "Una enfermedad afecta al 1% de la población. Un test tiene sensibilidad 99% y especificidad 95%. Si una persona da positivo, la probabilidad de estar enferma es (aprox.):",
+        "difficulty": 1200,
+        "topic": "Probabilidad",
+        "options": ["$\\approx 16.7\\%$", "$\\approx 99\\%$", "$\\approx 95\\%$", "$\\approx 50\\%$"],
+        "correct_option": "$\\approx 16.7\\%$"
+    },
+    {
+        "id": "qpb41",
+        "content": "Tres fábricas producen el 30%, 45% y 25% de los productos. Las tasas de defectos son 2%, 3% y 2% respectivamente. Si se elige un producto defectuoso, la probabilidad de que venga de la fábrica 2 (Bayes) es:",
+        "difficulty": 1150,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{0.0135}{0.0245} \\approx 55.1\\%$", "$45\\%$", "$3\\%$", "$\\frac{1}{3}$"],
+        "correct_option": "$\\frac{0.0135}{0.0245} \\approx 55.1\\%$"
+    },
+    {
+        "id": "qpb42",
+        "content": "En una urna hay 5 bolas rojas y 3 azules. Se extraen 2 sin reemplazo. $P(\\text{ambas rojas}) =$",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{5}{14}$", "$\\frac{25}{64}$", "$\\frac{10}{28}$", "$\\frac{1}{4}$"],
+        "correct_option": "$\\frac{5}{14}$"
+    },
+    {
+        "id": "qpb43",
+        "content": "En una urna hay 5 bolas rojas y 3 azules. Se extraen 2 con reemplazo. $P(\\text{ambas rojas}) =$",
+        "difficulty": 780,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{25}{64}$", "$\\frac{5}{14}$", "$\\frac{5}{8}$", "$\\frac{10}{16}$"],
+        "correct_option": "$\\frac{25}{64}$"
+    },
+    {
+        "id": "qpb44",
+        "content": "Se lanzan 2 dados. La probabilidad de que la suma sea 7 es:",
+        "difficulty": 750,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{1}{6}$", "$\\frac{1}{12}$", "$\\frac{7}{36}$", "$\\frac{1}{7}$"],
+        "correct_option": "$\\frac{1}{6}$"
+    },
+    {
+        "id": "qpb45",
+        "content": "Se lanzan 2 dados. El número total de resultados posibles es:",
+        "difficulty": 620,
+        "topic": "Probabilidad",
+        "options": ["$36$", "$12$", "$6$", "$24$"],
+        "correct_option": "$36$"
+    },
+    {
+        "id": "qpb46",
+        "content": "De una baraja estándar de 52 cartas, la probabilidad de sacar un as es:",
+        "difficulty": 650,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{1}{13}$", "$\\frac{1}{52}$", "$\\frac{4}{13}$", "$\\frac{1}{4}$"],
+        "correct_option": "$\\frac{1}{13}$"
+    },
+    {
+        "id": "qpb47",
+        "content": "La probabilidad de obtener al menos un 6 en 4 lanzamientos de un dado es:",
+        "difficulty": 900,
+        "topic": "Probabilidad",
+        "options": ["$1 - \\left(\\frac{5}{6}\\right)^4$", "$4 \\cdot \\frac{1}{6}$", "$\\left(\\frac{1}{6}\\right)^4$", "$\\frac{4}{6}$"],
+        "correct_option": "$1 - \\left(\\frac{5}{6}\\right)^4$"
+    },
+    {
+        "id": "qpb48",
+        "content": "¿Cuántas manos de 5 cartas se pueden formar de una baraja de 52?",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$\\binom{52}{5} = 2598960$", "$52^5$", "$52 \\cdot 5$", "$P(52,5)$"],
+        "correct_option": "$\\binom{52}{5} = 2598960$"
+    },
+    {
+        "id": "qpb49",
+        "content": "Una variable aleatoria discreta $X$ satisface $\\sum_x P(X=x) =$",
+        "difficulty": 700,
+        "topic": "Probabilidad",
+        "options": ["$1$", "$0$", "$E[X]$", "$\\infty$"],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "qpb50",
+        "content": "La esperanza (valor esperado) de $X$ discreta es $E[X] =$",
+        "difficulty": 750,
+        "topic": "Probabilidad",
+        "options": ["$\\sum_x x \\cdot P(X=x)$", "$\\sum_x P(X=x)$", "$\\sum_x x^2 P(X=x)$", "$\\max(x) \\cdot P(X=x)$"],
+        "correct_option": "$\\sum_x x \\cdot P(X=x)$"
+    },
+    {
+        "id": "qpb51",
+        "content": "La varianza de $X$ se define como $\\text{Var}(X) =$",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$E[(X - \\mu)^2]$", "$E[X] - \\mu$", "$(E[X])^2$", "$E[X^2]$"],
+        "correct_option": "$E[(X - \\mu)^2]$"
+    },
+    {
+        "id": "qpb52",
+        "content": "Una fórmula alternativa para la varianza es $\\text{Var}(X) =$",
+        "difficulty": 850,
+        "topic": "Probabilidad",
+        "options": ["$E[X^2] - (E[X])^2$", "$E[X^2] + (E[X])^2$", "$(E[X])^2 - E[X^2]$", "$E[X^2] \\cdot E[X]$"],
+        "correct_option": "$E[X^2] - (E[X])^2$"
+    },
+    {
+        "id": "qpb53",
+        "content": "La desviación estándar de $X$ es:",
+        "difficulty": 700,
+        "topic": "Probabilidad",
+        "options": ["$\\sqrt{\\text{Var}(X)}$", "$\\text{Var}(X)$", "$(\\text{Var}(X))^2$", "$E[X]$"],
+        "correct_option": "$\\sqrt{\\text{Var}(X)}$"
+    },
+    {
+        "id": "qpb54",
+        "content": "$E[aX + b] =$",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$aE[X] + b$", "$a^2 E[X] + b$", "$aE[X]$", "$E[X] + b$"],
+        "correct_option": "$aE[X] + b$"
+    },
+    {
+        "id": "qpb55",
+        "content": "$\\text{Var}(aX + b) =$",
+        "difficulty": 850,
+        "topic": "Probabilidad",
+        "options": ["$a^2 \\text{Var}(X)$", "$a \\text{Var}(X) + b$", "$a^2 \\text{Var}(X) + b^2$", "$a \\text{Var}(X)$"],
+        "correct_option": "$a^2 \\text{Var}(X)$"
+    },
+    {
+        "id": "qpb56",
+        "content": "Si $X \\sim \\text{Bernoulli}(p)$, entonces $E[X] =$",
+        "difficulty": 750,
+        "topic": "Probabilidad",
+        "options": ["$p$", "$1-p$", "$p(1-p)$", "$p^2$"],
+        "correct_option": "$p$"
+    },
+    {
+        "id": "qpb57",
+        "content": "Si $X \\sim \\text{Bernoulli}(p)$, entonces $\\text{Var}(X) =$",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$p(1-p)$", "$p$", "$p^2$", "$1-p$"],
+        "correct_option": "$p(1-p)$"
+    },
+    {
+        "id": "qpb58",
+        "content": "Si $X \\sim \\text{Binomial}(n, p)$, entonces $P(X = k) =$",
+        "difficulty": 850,
+        "topic": "Probabilidad",
+        "options": ["$\\binom{n}{k} p^k (1-p)^{n-k}$", "$\\frac{n!}{k!} p^k$", "$p^k (1-p)^{n-k}$", "$\\binom{n}{k} p^k q^k$"],
+        "correct_option": "$\\binom{n}{k} p^k (1-p)^{n-k}$"
+    },
+    {
+        "id": "qpb59",
+        "content": "Si $X \\sim \\text{Binomial}(n, p)$, entonces $E[X] =$",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$np$", "$np(1-p)$", "$\\frac{n}{p}$", "$p^n$"],
+        "correct_option": "$np$"
+    },
+    {
+        "id": "qpb60",
+        "content": "Si $X \\sim \\text{Binomial}(n, p)$, entonces $\\text{Var}(X) =$",
+        "difficulty": 850,
+        "topic": "Probabilidad",
+        "options": ["$np(1-p)$", "$np$", "$n^2 p$", "$np^2$"],
+        "correct_option": "$np(1-p)$"
+    },
+    {
+        "id": "qpb61",
+        "content": "Se lanza una moneda justa 10 veces. La probabilidad de obtener exactamente 3 caras es:",
+        "difficulty": 900,
+        "topic": "Probabilidad",
+        "options": ["$\\binom{10}{3} \\left(\\frac{1}{2}\\right)^{10}$", "$\\frac{3}{10}$", "$\\left(\\frac{1}{2}\\right)^3$", "$\\binom{10}{3} \\left(\\frac{1}{2}\\right)^{3}$"],
+        "correct_option": "$\\binom{10}{3} \\left(\\frac{1}{2}\\right)^{10}$"
+    },
+    {
+        "id": "qpb62",
+        "content": "Si $X \\sim \\text{Geométrica}(p)$, entonces $P(X = k) =$",
+        "difficulty": 900,
+        "topic": "Probabilidad",
+        "options": ["$(1-p)^{k-1} p$", "$p^k (1-p)$", "$\\binom{k}{1} p (1-p)^{k-1}$", "$kp(1-p)^{k-1}$"],
+        "correct_option": "$(1-p)^{k-1} p$"
+    },
+    {
+        "id": "qpb63",
+        "content": "Si $X \\sim \\text{Geométrica}(p)$, entonces $E[X] =$",
+        "difficulty": 900,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{1}{p}$", "$p$", "$1-p$", "$\\frac{p}{1-p}$"],
+        "correct_option": "$\\frac{1}{p}$"
+    },
+    {
+        "id": "qpb64",
+        "content": "La distribución geométrica modela:",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["El número de ensayos hasta el primer éxito", "El número de éxitos en $n$ ensayos", "El tiempo entre eventos", "El número de defectos por unidad"],
+        "correct_option": "El número de ensayos hasta el primer éxito"
+    },
+    {
+        "id": "qpb65",
+        "content": "Si $X \\sim \\text{Poisson}(\\lambda)$, entonces $P(X = k) =$",
+        "difficulty": 900,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{e^{-\\lambda} \\lambda^k}{k!}$", "$\\frac{\\lambda^k}{k!}$", "$e^{-\\lambda} k!$", "$\\binom{\\lambda}{k} e^{-k}$"],
+        "correct_option": "$\\frac{e^{-\\lambda} \\lambda^k}{k!}$"
+    },
+    {
+        "id": "qpb66",
+        "content": "Si $X \\sim \\text{Poisson}(\\lambda)$, entonces $E[X] = \\text{Var}(X) =$",
+        "difficulty": 850,
+        "topic": "Probabilidad",
+        "options": ["$\\lambda$", "$\\lambda^2$", "$\\sqrt{\\lambda}$", "$e^{\\lambda}$"],
+        "correct_option": "$\\lambda$"
+    },
+    {
+        "id": "qpb67",
+        "content": "La distribución de Poisson es una buena aproximación de la binomial cuando:",
+        "difficulty": 950,
+        "topic": "Probabilidad",
+        "options": ["$n$ es grande y $p$ es pequeño", "$n$ es pequeño y $p$ es grande", "$n = p$", "$np > 100$"],
+        "correct_option": "$n$ es grande y $p$ es pequeño"
+    },
+    {
+        "id": "qpb68",
+        "content": "Si $X \\sim \\text{Hipergeométrica}(N, K, n)$, $P(X=k)$ modela:",
+        "difficulty": 1000,
+        "topic": "Probabilidad",
+        "options": ["Muestreo sin reemplazo de una población finita", "Muestreo con reemplazo", "Tiempo entre eventos", "Ensayos Bernoulli independientes"],
+        "correct_option": "Muestreo sin reemplazo de una población finita"
+    },
+    {
+        "id": "qpb69",
+        "content": "Para una variable aleatoria continua, $P(X = a) =$",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$0$", "$f(a)$", "$F(a)$", "$1$"],
+        "correct_option": "$0$"
+    },
+    {
+        "id": "qpb70",
+        "content": "Para una v.a. continua con densidad $f(x)$, se cumple $\\int_{-\\infty}^{\\infty} f(x) \\, dx =$",
+        "difficulty": 750,
+        "topic": "Probabilidad",
+        "options": ["$1$", "$0$", "$E[X]$", "$\\infty$"],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "qpb71",
+        "content": "La función de distribución acumulada $F(x) = P(X \\leq x)$ satisface $\\lim_{x \\to \\infty} F(x) =$",
+        "difficulty": 750,
+        "topic": "Probabilidad",
+        "options": ["$1$", "$0$", "$\\infty$", "$\\frac{1}{2}$"],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "qpb72",
+        "content": "$P(a < X < b) = \\int_a^b f(x) \\, dx$. La relación entre $f(x)$ y $F(x)$ es:",
+        "difficulty": 850,
+        "topic": "Probabilidad",
+        "options": ["$f(x) = F'(x)$", "$F(x) = f'(x)$", "$f(x) = F(x)$", "$f(x) = 1 - F(x)$"],
+        "correct_option": "$f(x) = F'(x)$"
+    },
+    {
+        "id": "qpb73",
+        "content": "Si $X \\sim \\text{Uniforme}(a, b)$, entonces $f(x) =$",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{1}{b-a}$ para $a \\leq x \\leq b$", "$\\frac{1}{a+b}$", "$\\frac{x}{b-a}$", "$\\frac{b-a}{2}$"],
+        "correct_option": "$\\frac{1}{b-a}$ para $a \\leq x \\leq b$"
+    },
+    {
+        "id": "qpb74",
+        "content": "Si $X \\sim \\text{Uniforme}(a, b)$, entonces $E[X] =$",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{a+b}{2}$", "$\\frac{b-a}{2}$", "$ab$", "$\\frac{1}{b-a}$"],
+        "correct_option": "$\\frac{a+b}{2}$"
+    },
+    {
+        "id": "qpb75",
+        "content": "Si $X \\sim \\text{Uniforme}(a, b)$, entonces $\\text{Var}(X) =$",
+        "difficulty": 900,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{(b-a)^2}{12}$", "$\\frac{b-a}{12}$", "$\\frac{(b-a)^2}{2}$", "$\\frac{a+b}{12}$"],
+        "correct_option": "$\\frac{(b-a)^2}{12}$"
+    },
+    {
+        "id": "qpb76",
+        "content": "Si $X \\sim \\text{Exponencial}(\\lambda)$, entonces $f(x) =$",
+        "difficulty": 900,
+        "topic": "Probabilidad",
+        "options": ["$\\lambda e^{-\\lambda x}$ para $x \\geq 0$", "$e^{-\\lambda x}$", "$\\frac{1}{\\lambda} e^{-x/\\lambda}$", "$\\lambda x e^{-\\lambda}$"],
+        "correct_option": "$\\lambda e^{-\\lambda x}$ para $x \\geq 0$"
+    },
+    {
+        "id": "qpb77",
+        "content": "Si $X \\sim \\text{Exponencial}(\\lambda)$, entonces $E[X] =$",
+        "difficulty": 850,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{1}{\\lambda}$", "$\\lambda$", "$\\lambda^2$", "$\\frac{1}{\\lambda^2}$"],
+        "correct_option": "$\\frac{1}{\\lambda}$"
+    },
+    {
+        "id": "qpb78",
+        "content": "La propiedad de falta de memoria $P(X > s+t | X > s) = P(X > t)$ la tiene la distribución:",
+        "difficulty": 1000,
+        "topic": "Probabilidad",
+        "options": ["Exponencial", "Normal", "Uniforme", "Binomial"],
+        "correct_option": "Exponencial"
+    },
+    {
+        "id": "qpb79",
+        "content": "Si $X \\sim N(\\mu, \\sigma^2)$, la función de densidad tiene forma de:",
+        "difficulty": 700,
+        "topic": "Probabilidad",
+        "options": ["Campana simétrica", "Línea recta", "Escalón", "Exponencial decreciente"],
+        "correct_option": "Campana simétrica"
+    },
+    {
+        "id": "qpb80",
+        "content": "Si $X \\sim N(\\mu, \\sigma^2)$, entonces $E[X] =$",
+        "difficulty": 700,
+        "topic": "Probabilidad",
+        "options": ["$\\mu$", "$\\sigma$", "$\\mu + \\sigma$", "$\\sigma^2$"],
+        "correct_option": "$\\mu$"
+    },
+    {
+        "id": "qpb81",
+        "content": "Si $X \\sim N(\\mu, \\sigma^2)$, entonces $\\text{Var}(X) =$",
+        "difficulty": 720,
+        "topic": "Probabilidad",
+        "options": ["$\\sigma^2$", "$\\mu$", "$\\sigma$", "$\\mu^2$"],
+        "correct_option": "$\\sigma^2$"
+    },
+    {
+        "id": "qpb82",
+        "content": "La estandarización $Z = \\frac{X - \\mu}{\\sigma}$ produce $Z \\sim$",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$N(0, 1)$", "$N(\\mu, 1)$", "$N(0, \\sigma)$", "$N(1, 1)$"],
+        "correct_option": "$N(0, 1)$"
+    },
+    {
+        "id": "qpb83",
+        "content": "Para $Z \\sim N(0,1)$, $P(-1 \\leq Z \\leq 1) \\approx$",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$68\\%$", "$95\\%$", "$99.7\\%$", "$50\\%$"],
+        "correct_option": "$68\\%$"
+    },
+    {
+        "id": "qpb84",
+        "content": "Para $Z \\sim N(0,1)$, $P(-2 \\leq Z \\leq 2) \\approx$",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$95\\%$", "$68\\%$", "$99.7\\%$", "$90\\%$"],
+        "correct_option": "$95\\%$"
+    },
+    {
+        "id": "qpb85",
+        "content": "Para $Z \\sim N(0,1)$, $P(-3 \\leq Z \\leq 3) \\approx$",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$99.7\\%$", "$95\\%$", "$68\\%$", "$100\\%$"],
+        "correct_option": "$99.7\\%$"
+    },
+    {
+        "id": "qpb86",
+        "content": "Si $X$ e $Y$ son independientes, entonces $E[XY] =$",
+        "difficulty": 900,
+        "topic": "Probabilidad",
+        "options": ["$E[X] \\cdot E[Y]$", "$E[X] + E[Y]$", "$E[X+Y]$", "$E[X]^2$"],
+        "correct_option": "$E[X] \\cdot E[Y]$"
+    },
+    {
+        "id": "qpb87",
+        "content": "$E[X + Y] =$ (siempre, sin importar independencia):",
+        "difficulty": 800,
+        "topic": "Probabilidad",
+        "options": ["$E[X] + E[Y]$", "$E[X] \\cdot E[Y]$", "$E[XY]$", "$\\max(E[X], E[Y])$"],
+        "correct_option": "$E[X] + E[Y]$"
+    },
+    {
+        "id": "qpb88",
+        "content": "Si $X$ e $Y$ son independientes, $\\text{Var}(X + Y) =$",
+        "difficulty": 900,
+        "topic": "Probabilidad",
+        "options": ["$\\text{Var}(X) + \\text{Var}(Y)$", "$\\text{Var}(X) \\cdot \\text{Var}(Y)$", "$(\\text{Var}(X) + \\text{Var}(Y))^2$", "$\\text{Var}(X) - \\text{Var}(Y)$"],
+        "correct_option": "$\\text{Var}(X) + \\text{Var}(Y)$"
+    },
+    {
+        "id": "qpb89",
+        "content": "La covarianza $\\text{Cov}(X,Y) =$",
+        "difficulty": 950,
+        "topic": "Probabilidad",
+        "options": ["$E[XY] - E[X]E[Y]$", "$E[X]E[Y]$", "$E[(X-Y)^2]$", "$E[X+Y] - E[X]$"],
+        "correct_option": "$E[XY] - E[X]E[Y]$"
+    },
+    {
+        "id": "qpb90",
+        "content": "Si $X$ e $Y$ son independientes, entonces $\\text{Cov}(X,Y) =$",
+        "difficulty": 850,
+        "topic": "Probabilidad",
+        "options": ["$0$", "$1$", "$E[X]E[Y]$", "$\\text{Var}(X)$"],
+        "correct_option": "$0$"
+    },
+    {
+        "id": "qpb91",
+        "content": "El coeficiente de correlación $\\rho(X,Y)$ se define como:",
+        "difficulty": 950,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{\\text{Cov}(X,Y)}{\\sigma_X \\sigma_Y}$", "$\\frac{\\text{Var}(X)}{\\text{Var}(Y)}$", "$\\text{Cov}(X,Y) \\cdot \\sigma_X$", "$\\frac{E[XY]}{E[X]}$"],
+        "correct_option": "$\\frac{\\text{Cov}(X,Y)}{\\sigma_X \\sigma_Y}$"
+    },
+    {
+        "id": "qpb92",
+        "content": "El rango del coeficiente de correlación $\\rho$ es:",
+        "difficulty": 850,
+        "topic": "Probabilidad",
+        "options": ["$[-1, 1]$", "$[0, 1]$", "$(-\\infty, \\infty)$", "$[0, \\infty)$"],
+        "correct_option": "$[-1, 1]$"
+    },
+    {
+        "id": "qpb93",
+        "content": "La desigualdad de Chebyshev establece que $P(|X - \\mu| \\geq k\\sigma) \\leq$",
+        "difficulty": 1050,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{1}{k^2}$", "$\\frac{1}{k}$", "$k^2$", "$\\frac{\\sigma}{k}$"],
+        "correct_option": "$\\frac{1}{k^2}$"
+    },
+    {
+        "id": "qpb94",
+        "content": "El Teorema Central del Límite establece que para $n$ grande, $\\bar{X}_n$ se distribuye aproximadamente como:",
+        "difficulty": 1100,
+        "topic": "Probabilidad",
+        "options": ["$N\\left(\\mu, \\frac{\\sigma^2}{n}\\right)$", "$N(\\mu, \\sigma^2)$", "$N(0, 1)$", "$N(n\\mu, n\\sigma^2)$"],
+        "correct_option": "$N\\left(\\mu, \\frac{\\sigma^2}{n}\\right)$"
+    },
+    {
+        "id": "qpb95",
+        "content": "La función generadora de momentos (FGM) de $X$ se define como $M_X(t) =$",
+        "difficulty": 1050,
+        "topic": "Probabilidad",
+        "options": ["$E[e^{tX}]$", "$E[X^t]$", "$e^{E[X]t}$", "$\\sum t^k E[X^k]$"],
+        "correct_option": "$E[e^{tX}]$"
+    },
+    {
+        "id": "qpb96",
+        "content": "El $n$-ésimo momento de $X$ se obtiene de la FGM como:",
+        "difficulty": 1100,
+        "topic": "Probabilidad",
+        "options": ["$M_X^{(n)}(0)$", "$M_X(n)$", "$M_X^{(n)}(1)$", "$\\frac{M_X(0)}{n!}$"],
+        "correct_option": "$M_X^{(n)}(0)$"
+    },
+    {
+        "id": "qpb97",
+        "content": "En el problema del cumpleaños, la probabilidad de que al menos 2 de 23 personas compartan cumpleaños es aproximadamente:",
+        "difficulty": 1000,
+        "topic": "Probabilidad",
+        "options": ["$\\approx 50\\%$", "$\\approx 23\\%$", "$\\approx 6\\%$", "$\\approx 90\\%$"],
+        "correct_option": "$\\approx 50\\%$"
+    },
+    {
+        "id": "qpb98",
+        "content": "La desigualdad de Markov establece que para $X \\geq 0$, $P(X \\geq a) \\leq$",
+        "difficulty": 1050,
+        "topic": "Probabilidad",
+        "options": ["$\\frac{E[X]}{a}$", "$\\frac{a}{E[X]}$", "$\\frac{E[X^2]}{a^2}$", "$\\frac{1}{a}$"],
+        "correct_option": "$\\frac{E[X]}{a}$"
+    },
+    {
+        "id": "qpb99",
+        "content": "Si se lanzan 100 monedas justas, el número esperado de caras es:",
+        "difficulty": 700,
+        "topic": "Probabilidad",
+        "options": ["$50$", "$100$", "$25$", "$75$"],
+        "correct_option": "$50$"
+    },
+    {
+        "id": "qpb100",
+        "content": "Si $X \\sim \\text{Binomial}(100, 0.5)$, entonces $\\sigma =$",
+        "difficulty": 900,
+        "topic": "Probabilidad",
+        "options": ["$5$", "$25$", "$50$", "$10$"],
+        "correct_option": "$5$"
+    }
+]

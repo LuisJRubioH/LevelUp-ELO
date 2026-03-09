@@ -4,7 +4,12 @@
         "content": "¿Cuál es la dimensión del espacio vectorial $\\mathbb{R}^{3}$ sobre R?",
         "difficulty": 600,
         "topic": "Álgebra Lineal",
-        "options": ["1", "2", "3", "4"],
+        "options": [
+            "1",
+            "2",
+            "3",
+            "4"
+        ],
         "correct_option": "3"
     },
     {
@@ -12,7 +17,12 @@
         "content": "¿Son linealmente independientes los vectores (1,0) y (0,1) en $\\mathbb{R}^{2}$?",
         "difficulty": 650,
         "topic": "Álgebra Lineal",
-        "options": ["Sí", "No", "Depende del campo", "No hay suficiente información"],
+        "options": [
+            "Sí",
+            "No",
+            "Depende del campo",
+            "No hay suficiente información"
+        ],
         "correct_option": "Sí"
     },
     {
@@ -20,7 +30,12 @@
         "content": "¿Cuál es el rango de la matriz identidad de 3x3?",
         "difficulty": 700,
         "topic": "Álgebra Lineal",
-        "options": ["0", "1", "2", "3"],
+        "options": [
+            "0",
+            "1",
+            "2",
+            "3"
+        ],
         "correct_option": "3"
     },
     {
@@ -28,7 +43,12 @@
         "content": "Calcula el determinante de $\\begin{pmatrix}2 & 0\\\\0 & 3\\end{pmatrix}$.",
         "difficulty": 750,
         "topic": "Álgebra Lineal",
-        "options": ["6", "5", "0", "1"],
+        "options": [
+            "6",
+            "5",
+            "0",
+            "1"
+        ],
         "correct_option": "6"
     },
     {
@@ -36,7 +56,12 @@
         "content": "¿Cuál de los siguientes conjuntos es un subespacio de $\\mathbb{R}^{2}$?",
         "difficulty": 800,
         "topic": "Álgebra Lineal",
-        "options": ["{(x,y): x=0}", "{(x,y): x=1}", "{(x,y): $x^{2}$+$y^{2}$=1}", "{(x,y): x>0}"],
+        "options": [
+            "{(x,y): x=0}",
+            "{(x,y): x=1}",
+            "{(x,y): $x^{2}$+$y^{2}$=1}",
+            "{(x,y): x>0}"
+        ],
         "correct_option": "{(x,y): x=0}"
     },
     {
@@ -44,7 +69,12 @@
         "content": "¿Cuáles son los valores propios (eigenvalores) de $\\begin{pmatrix}2 & 0\\\\0 & 3\\end{pmatrix}$?",
         "difficulty": 850,
         "topic": "Álgebra Lineal",
-        "options": ["2 y 3", "0 y 5", "2 y 2", "3 y 3"],
+        "options": [
+            "2 y 3",
+            "0 y 5",
+            "2 y 2",
+            "3 y 3"
+        ],
         "correct_option": "2 y 3"
     },
     {
@@ -52,7 +82,12 @@
         "content": "¿Cuál es la nulidad de una matriz 4x4 con rango 3?",
         "difficulty": 900,
         "topic": "Álgebra Lineal",
-        "options": ["0", "1", "2", "3"],
+        "options": [
+            "0",
+            "1",
+            "2",
+            "3"
+        ],
         "correct_option": "1"
     },
     {
@@ -60,7 +95,12 @@
         "content": "El espacio columna de una matriz m×n es un subespacio de:",
         "difficulty": 950,
         "topic": "Álgebra Lineal",
-        "options": ["$\\mathbb{R}^{m}$", "$\\mathbb{R}^{n}$", "R^{m+n}", "R^{mn}"],
+        "options": [
+            "$\\mathbb{R}^{m}$",
+            "$\\mathbb{R}^{n}$",
+            "$\\mathbb{R}^{m+n}$",
+            "$\\mathbb{R}^{mn}$"
+        ],
         "correct_option": "$\\mathbb{R}^{m}$"
     },
     {
@@ -68,7 +108,12 @@
         "content": "¿El conjunto de todas las matrices simétricas de 2x2 forma un espacio vectorial sobre R?",
         "difficulty": 1000,
         "topic": "Álgebra Lineal",
-        "options": ["Sí", "No", "Solo si el campo es real", "Solo si la dimensión es 3"],
+        "options": [
+            "Sí",
+            "No",
+            "Solo si el campo es real",
+            "Solo si la dimensión es 3"
+        ],
         "correct_option": "Sí"
     },
     {
@@ -76,15 +121,25 @@
         "content": "El polinomio característico de una matriz 2x2 con traza 5 y determinante 6 es:",
         "difficulty": 1050,
         "topic": "Álgebra Lineal",
-        "options": ["$λ^{2}$ - 5λ + 6", "$λ^{2}$ + 5λ + 6", "$λ^{2}$ - 5λ - 6", "$λ^{2}$ + 5λ - 6"],
-        "correct_option": "$λ^{2}$ - 5λ + 6"
+        "options": [
+            "$\\lambda^{2} - 5\\lambda + 6$",
+            "$\\lambda^{2} + 5\\lambda + 6$",
+            "$\\lambda^{2} - 5\\lambda - 6$",
+            "$\\lambda^{2} + 5\\lambda - 6$"
+        ],
+        "correct_option": "$\\lambda^{2} - 5\\lambda + 6$"
     },
     {
         "id": "q11",
         "content": "¿Cuál es el polinomio mínimo de una matriz diagonalizable con valores propios 2,2,3?",
         "difficulty": 1100,
         "topic": "Álgebra Lineal",
-        "options": ["(x-2)(x-3)", "(x-2)^2(x-3)", "(x-2)(x-3)^2", "(x-2)^2(x-3)^2"],
+        "options": [
+            "(x-2)(x-3)",
+            "(x-2)^2(x-3)",
+            "(x-2)(x-3)^2",
+            "(x-2)^2(x-3)^2"
+        ],
         "correct_option": "(x-2)(x-3)"
     },
     {
@@ -92,7 +147,12 @@
         "content": "Para una matriz ortogonal Q, ¿cuál es el valor de $Q^{T}$ Q?",
         "difficulty": 1150,
         "topic": "Álgebra Lineal",
-        "options": ["I", "Q", "$Q^{2}$", "0"],
+        "options": [
+            "I",
+            "Q",
+            "$Q^{2}$",
+            "0"
+        ],
         "correct_option": "I"
     },
     {
@@ -100,7 +160,12 @@
         "content": "¿A qué tipo de matrices se aplica el teorema espectral (para matrices reales)?",
         "difficulty": 1200,
         "topic": "Álgebra Lineal",
-        "options": ["Simétricas", "Cualquier matriz cuadrada", "Antisimétricas", "Diagonalizables"],
+        "options": [
+            "Simétricas",
+            "Cualquier matriz cuadrada",
+            "Antisimétricas",
+            "Diagonalizables"
+        ],
         "correct_option": "Simétricas"
     },
     {
@@ -108,7 +173,12 @@
         "content": "¿Cuál es la dimensión del espacio vectorial de las matrices antisimétricas de 3x3 sobre R?",
         "difficulty": 1250,
         "topic": "Álgebra Lineal",
-        "options": ["3", "6", "9", "0"],
+        "options": [
+            "3",
+            "6",
+            "9",
+            "0"
+        ],
         "correct_option": "3"
     },
     {
@@ -116,7 +186,12 @@
         "content": "¿Cuál de las siguientes es una transformación lineal?",
         "difficulty": 1300,
         "topic": "Álgebra Lineal",
-        "options": ["T(x)=Ax", "T(x)=$x^{2}$", "T(x)=x+1", "T(x)=||x||"],
+        "options": [
+            "T(x)=Ax",
+            "T(x)=$x^{2}$",
+            "T(x)=x+1",
+            "T(x)=||x||"
+        ],
         "correct_option": "T(x)=Ax"
     },
     {
@@ -124,7 +199,12 @@
         "content": "Los valores singulares de una matriz son las raíces cuadradas de los valores propios de:",
         "difficulty": 1350,
         "topic": "Álgebra Lineal",
-        "options": ["$A^{T}$ A", "A $A^{T}$", "A", "A^{-1}"],
+        "options": [
+            "$A^{T}$ A",
+            "A $A^{T}$",
+            "A",
+            "A^{-1}"
+        ],
         "correct_option": "$A^{T}$ A"
     },
     {
@@ -132,7 +212,12 @@
         "content": "Si $A$ es una matriz $n \\times n$ con valores propios $\\lambda_i$, entonces la traza de $A$ es igual a:",
         "difficulty": 1400,
         "topic": "Álgebra Lineal",
-        "options": ["$\\sum \\lambda_i$", "$\\prod \\lambda_i$", "$\\sum \\lambda_i^2$", "Ninguna de las anteriores"],
+        "options": [
+            "$\\sum \\lambda_i$",
+            "$\\prod \\lambda_i$",
+            "$\\sum \\lambda_i^2$",
+            "Ninguna de las anteriores"
+        ],
         "correct_option": "$\\sum \\lambda_i$"
     },
     {
@@ -140,7 +225,12 @@
         "content": "La dimensión del núcleo (kernel) de una transformación lineal de $\\mathbb{R}^{5}$ a $\\mathbb{R}^{3}$ con rango 2 es:",
         "difficulty": 1450,
         "topic": "Álgebra Lineal",
-        "options": ["1", "2", "3", "4"],
+        "options": [
+            "1",
+            "2",
+            "3",
+            "4"
+        ],
         "correct_option": "3"
     },
     {
@@ -148,7 +238,12 @@
         "content": "Para una matriz definida positiva, todos sus valores propios son:",
         "difficulty": 1500,
         "topic": "Álgebra Lineal",
-        "options": ["Positivos", "No negativos", "Reales", "Complejos"],
+        "options": [
+            "Positivos",
+            "No negativos",
+            "Reales",
+            "Complejos"
+        ],
         "correct_option": "Positivos"
     },
     {
@@ -156,7 +251,1312 @@
         "content": "¿Cuál es la forma canónica de Jordan de una matriz nilpotente 3x3 de índice 2 con nulidad 2?",
         "difficulty": 1550,
         "topic": "Álgebra Lineal",
-        "options": ["J2 ⊕ J1", "J1 ⊕ J1 ⊕ J1", "J3", "J2 ⊕ J2"],
+        "options": [
+            "J2 ⊕ J1",
+            "J1 ⊕ J1 ⊕ J1",
+            "J3",
+            "J2 ⊕ J2"
+        ],
         "correct_option": "J2 ⊕ J1"
+    },
+    {
+        "id": "q241",
+        "content": "El sistema $x + y = 3$, $2x + 2y = 6$ es:",
+        "difficulty": 600,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Compatible indeterminado",
+            "Compatible determinado",
+            "Incompatible",
+            "Homogéneo"
+        ],
+        "correct_option": "Compatible indeterminado"
+    },
+    {
+        "id": "q242",
+        "content": "El sistema $x + y = 1$, $x + y = 3$ es:",
+        "difficulty": 620,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Incompatible",
+            "Compatible determinado",
+            "Compatible indeterminado",
+            "Homogéneo"
+        ],
+        "correct_option": "Incompatible"
+    },
+    {
+        "id": "q243",
+        "content": "La solución del sistema $x + y = 5$, $x - y = 1$ es:",
+        "difficulty": 600,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$x=3, y=2$",
+            "$x=2, y=3$",
+            "$x=4, y=1$",
+            "$x=1, y=4$"
+        ],
+        "correct_option": "$x=3, y=2$"
+    },
+    {
+        "id": "q244",
+        "content": "Un sistema homogéneo $Ax = 0$ siempre tiene al menos la solución:",
+        "difficulty": 650,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Trivial ($x = 0$)",
+            "Única no trivial",
+            "Infinitas soluciones",
+            "Ninguna solución"
+        ],
+        "correct_option": "Trivial ($x = 0$)"
+    },
+    {
+        "id": "q245",
+        "content": "Si la matriz aumentada $[A|b]$ tiene rango mayor que el rango de $A$, el sistema es:",
+        "difficulty": 800,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Incompatible",
+            "Compatible determinado",
+            "Compatible indeterminado",
+            "Homogéneo"
+        ],
+        "correct_option": "Incompatible"
+    },
+    {
+        "id": "q246",
+        "content": "El método de eliminación de Gauss transforma la matriz aumentada en forma:",
+        "difficulty": 700,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Escalonada",
+            "Diagonal",
+            "Simétrica",
+            "Ortogonal"
+        ],
+        "correct_option": "Escalonada"
+    },
+    {
+        "id": "q247",
+        "content": "Un sistema $Ax = b$ con $A$ de $3 \\times 3$ y $\\det(A) \\neq 0$ tiene:",
+        "difficulty": 750,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Solución única",
+            "Infinitas soluciones",
+            "Ninguna solución",
+            "Dos soluciones"
+        ],
+        "correct_option": "Solución única"
+    },
+    {
+        "id": "q248",
+        "content": "Un sistema homogéneo $Ax = 0$ con más incógnitas que ecuaciones tiene:",
+        "difficulty": 850,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Infinitas soluciones no triviales",
+            "Solo la solución trivial",
+            "Exactamente dos soluciones",
+            "Ninguna solución"
+        ],
+        "correct_option": "Infinitas soluciones no triviales"
+    },
+    {
+        "id": "q249",
+        "content": "Según el Teorema de Rouché-Frobenius, $Ax = b$ es compatible si y solo si:",
+        "difficulty": 950,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\text{rango}(A) = \\text{rango}([A|b])$",
+            "$\\det(A) \\neq 0$",
+            "$\\text{rango}(A) = n$",
+            "$A$ es cuadrada"
+        ],
+        "correct_option": "$\\text{rango}(A) = \\text{rango}([A|b])$"
+    },
+    {
+        "id": "q250",
+        "content": "La regla de Cramer se aplica cuando:",
+        "difficulty": 900,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$A$ es cuadrada y $\\det(A) \\neq 0$",
+            "$A$ es rectangular",
+            "$\\det(A) = 0$",
+            "$A$ es simétrica"
+        ],
+        "correct_option": "$A$ es cuadrada y $\\det(A) \\neq 0$"
+    },
+    {
+        "id": "q251",
+        "content": "En la regla de Cramer, $x_i = \\frac{\\det(A_i)}{\\det(A)}$ donde $A_i$ se forma:",
+        "difficulty": 1000,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Reemplazando la columna $i$ de $A$ por $b$",
+            "Reemplazando la fila $i$ de $A$ por $b$",
+            "Eliminando la columna $i$",
+            "Eliminando la fila $i$"
+        ],
+        "correct_option": "Reemplazando la columna $i$ de $A$ por $b$"
+    },
+    {
+        "id": "q252",
+        "content": "El número de variables libres en la solución de $Ax = 0$ es igual a:",
+        "difficulty": 900,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$n - \\text{rango}(A)$",
+            "$\\text{rango}(A)$",
+            "$n$",
+            "$m - \\text{rango}(A)$"
+        ],
+        "correct_option": "$n - \\text{rango}(A)$"
+    },
+    {
+        "id": "q253",
+        "content": "Usando Cramer, la solución de $\\begin{cases} 2x + y = 5 \\\\ x - y = 1 \\end{cases}$ da $x =$:",
+        "difficulty": 950,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$2$",
+            "$3$",
+            "$1$",
+            "$4$"
+        ],
+        "correct_option": "$2$"
+    },
+    {
+        "id": "q254",
+        "content": "Si $A = \\begin{pmatrix}1 & 2 \\\\ 3 & 4\\end{pmatrix}$ y $B = \\begin{pmatrix}5 & 6 \\\\ 7 & 8\\end{pmatrix}$, entonces $A + B =$",
+        "difficulty": 600,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\begin{pmatrix}6 & 8 \\\\ 10 & 12\\end{pmatrix}$",
+            "$\\begin{pmatrix}5 & 12 \\\\ 21 & 32\\end{pmatrix}$",
+            "$\\begin{pmatrix}6 & 6 \\\\ 10 & 10\\end{pmatrix}$",
+            "$\\begin{pmatrix}4 & 4 \\\\ 4 & 4\\end{pmatrix}$"
+        ],
+        "correct_option": "$\\begin{pmatrix}6 & 8 \\\\ 10 & 12\\end{pmatrix}$"
+    },
+    {
+        "id": "q255",
+        "content": "Si $A = \\begin{pmatrix}1 & 2 \\\\ 3 & 4\\end{pmatrix}$, entonces $2A =$",
+        "difficulty": 600,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\begin{pmatrix}2 & 4 \\\\ 6 & 8\\end{pmatrix}$",
+            "$\\begin{pmatrix}1 & 4 \\\\ 3 & 8\\end{pmatrix}$",
+            "$\\begin{pmatrix}3 & 4 \\\\ 5 & 6\\end{pmatrix}$",
+            "$\\begin{pmatrix}2 & 2 \\\\ 6 & 4\\end{pmatrix}$"
+        ],
+        "correct_option": "$\\begin{pmatrix}2 & 4 \\\\ 6 & 8\\end{pmatrix}$"
+    },
+    {
+        "id": "q256",
+        "content": "El producto $AB$ está definido cuando:",
+        "difficulty": 650,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "El número de columnas de $A$ es igual al número de filas de $B$",
+            "El número de filas de $A$ es igual al de $B$",
+            "$A$ y $B$ son cuadradas",
+            "$A$ y $B$ tienen la misma dimensión"
+        ],
+        "correct_option": "El número de columnas de $A$ es igual al número de filas de $B$"
+    },
+    {
+        "id": "q257",
+        "content": "Si $A$ es $2 \\times 3$ y $B$ es $3 \\times 4$, entonces $AB$ tiene dimensión:",
+        "difficulty": 680,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$2 \\times 4$",
+            "$3 \\times 3$",
+            "$2 \\times 3$",
+            "$4 \\times 2$"
+        ],
+        "correct_option": "$2 \\times 4$"
+    },
+    {
+        "id": "q258",
+        "content": "En general, para matrices cuadradas $A$ y $B$, ¿se cumple $AB = BA$?",
+        "difficulty": 700,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "No, en general",
+            "Siempre",
+            "Solo si son simétricas",
+            "Solo si son diagonales"
+        ],
+        "correct_option": "No, en general"
+    },
+    {
+        "id": "q259",
+        "content": "$(AB)^T =$",
+        "difficulty": 750,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$B^T A^T$",
+            "$A^T B^T$",
+            "$(AB)$",
+            "$B A^T$"
+        ],
+        "correct_option": "$B^T A^T$"
+    },
+    {
+        "id": "q260",
+        "content": "Si $A$ es invertible, entonces $(A^{-1})^{-1} =$",
+        "difficulty": 720,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$A$",
+            "$A^T$",
+            "$A^2$",
+            "$I$"
+        ],
+        "correct_option": "$A$"
+    },
+    {
+        "id": "q261",
+        "content": "$(AB)^{-1} =$",
+        "difficulty": 800,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$B^{-1}A^{-1}$",
+            "$A^{-1}B^{-1}$",
+            "$(AB)^T$",
+            "$A^{-1} + B^{-1}$"
+        ],
+        "correct_option": "$B^{-1}A^{-1}$"
+    },
+    {
+        "id": "q262",
+        "content": "La inversa de $A = \\begin{pmatrix}1 & 2 \\\\ 3 & 7\\end{pmatrix}$ es:",
+        "difficulty": 900,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\begin{pmatrix}7 & -2 \\\\ -3 & 1\\end{pmatrix}$",
+            "$\\begin{pmatrix}7 & 2 \\\\ 3 & 1\\end{pmatrix}$",
+            "$\\begin{pmatrix}1 & -2 \\\\ -3 & 7\\end{pmatrix}$",
+            "$\\frac{1}{7}\\begin{pmatrix}7 & -2 \\\\ -3 & 1\\end{pmatrix}$"
+        ],
+        "correct_option": "$\\begin{pmatrix}7 & -2 \\\\ -3 & 1\\end{pmatrix}$"
+    },
+    {
+        "id": "q263",
+        "content": "Una matriz $A$ es invertible si y solo si:",
+        "difficulty": 780,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\det(A) \\neq 0$",
+            "$\\det(A) = 0$",
+            "$A$ es simétrica",
+            "$A$ tiene rango 1"
+        ],
+        "correct_option": "$\\det(A) \\neq 0$"
+    },
+    {
+        "id": "q264",
+        "content": "Una matriz $A$ es idempotente si:",
+        "difficulty": 850,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$A^2 = A$",
+            "$A^2 = I$",
+            "$A^T = A$",
+            "$A^2 = 0$"
+        ],
+        "correct_option": "$A^2 = A$"
+    },
+    {
+        "id": "q265",
+        "content": "Una matriz $A$ es involutiva si:",
+        "difficulty": 860,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$A^2 = I$",
+            "$A^2 = A$",
+            "$A^2 = 0$",
+            "$A^T = A^{-1}$"
+        ],
+        "correct_option": "$A^2 = I$"
+    },
+    {
+        "id": "q266",
+        "content": "Una matriz $A$ es nilpotente si existe un entero $k$ tal que:",
+        "difficulty": 900,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$A^k = 0$",
+            "$A^k = I$",
+            "$A^k = A$",
+            "$A^k = kA$"
+        ],
+        "correct_option": "$A^k = 0$"
+    },
+    {
+        "id": "q267",
+        "content": "La traza de $A = \\begin{pmatrix}3 & 1 & 2 \\\\ 0 & 5 & 4 \\\\ 1 & 0 & 7\\end{pmatrix}$ es:",
+        "difficulty": 650,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$15$",
+            "$12$",
+            "$10$",
+            "$8$"
+        ],
+        "correct_option": "$15$"
+    },
+    {
+        "id": "q268",
+        "content": "$\\text{tr}(AB) = \\text{tr}(BA)$ es una propiedad que se cumple:",
+        "difficulty": 850,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Siempre (cuando ambos productos existen)",
+            "Solo si $A$ y $B$ son cuadradas",
+            "Solo si $A = B$",
+            "Nunca"
+        ],
+        "correct_option": "Siempre (cuando ambos productos existen)"
+    },
+    {
+        "id": "q269",
+        "content": "La forma escalonada reducida por filas de una matriz es única:",
+        "difficulty": 800,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Verdadero",
+            "Falso",
+            "Solo para matrices cuadradas",
+            "Solo para matrices invertibles"
+        ],
+        "correct_option": "Verdadero"
+    },
+    {
+        "id": "q270",
+        "content": "El determinante de $\\begin{pmatrix}1 & 2 & 3 \\\\ 0 & 4 & 5 \\\\ 0 & 0 & 6\\end{pmatrix}$ es:",
+        "difficulty": 700,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$24$",
+            "$12$",
+            "$6$",
+            "$30$"
+        ],
+        "correct_option": "$24$"
+    },
+    {
+        "id": "q271",
+        "content": "El determinante de una matriz triangular es igual a:",
+        "difficulty": 680,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "El producto de los elementos de la diagonal",
+            "La suma de los elementos de la diagonal",
+            "El producto de todos los elementos",
+            "Siempre 1"
+        ],
+        "correct_option": "El producto de los elementos de la diagonal"
+    },
+    {
+        "id": "q272",
+        "content": "Si se intercambian dos filas de una matriz, su determinante:",
+        "difficulty": 750,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Cambia de signo",
+            "Se duplica",
+            "No cambia",
+            "Se anula"
+        ],
+        "correct_option": "Cambia de signo"
+    },
+    {
+        "id": "q273",
+        "content": "Si una fila de $A$ se multiplica por un escalar $k$, el determinante se multiplica por:",
+        "difficulty": 780,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$k$",
+            "$k^2$",
+            "$1/k$",
+            "$k^n$"
+        ],
+        "correct_option": "$k$"
+    },
+    {
+        "id": "q274",
+        "content": "$\\det(kA)$ para $A$ de $n \\times n$ es igual a:",
+        "difficulty": 900,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$k^n \\det(A)$",
+            "$k \\det(A)$",
+            "$k^2 \\det(A)$",
+            "$\\det(A)$"
+        ],
+        "correct_option": "$k^n \\det(A)$"
+    },
+    {
+        "id": "q275",
+        "content": "$\\det(AB) =$",
+        "difficulty": 800,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\det(A) \\cdot \\det(B)$",
+            "$\\det(A) + \\det(B)$",
+            "$\\det(A + B)$",
+            "$\\det(A) / \\det(B)$"
+        ],
+        "correct_option": "$\\det(A) \\cdot \\det(B)$"
+    },
+    {
+        "id": "q276",
+        "content": "$\\det(A^T) =$",
+        "difficulty": 720,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\det(A)$",
+            "$-\\det(A)$",
+            "$1/\\det(A)$",
+            "$\\det(A)^2$"
+        ],
+        "correct_option": "$\\det(A)$"
+    },
+    {
+        "id": "q277",
+        "content": "$\\det(A^{-1}) =$",
+        "difficulty": 850,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\frac{1}{\\det(A)}$",
+            "$\\det(A)$",
+            "$-\\det(A)$",
+            "$\\det(A)^2$"
+        ],
+        "correct_option": "$\\frac{1}{\\det(A)}$"
+    },
+    {
+        "id": "q278",
+        "content": "Si $A$ tiene dos filas iguales, entonces $\\det(A) =$",
+        "difficulty": 700,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$0$",
+            "$1$",
+            "$-1$",
+            "Depende de $A$"
+        ],
+        "correct_option": "$0$"
+    },
+    {
+        "id": "q279",
+        "content": "El determinante de $\\begin{pmatrix}1 & 2 & 3 \\\\ 4 & 5 & 6 \\\\ 7 & 8 & 9\\end{pmatrix}$ es:",
+        "difficulty": 850,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$0$",
+            "$1$",
+            "$-6$",
+            "$3$"
+        ],
+        "correct_option": "$0$"
+    },
+    {
+        "id": "q280",
+        "content": "Si se suma a una fila un múltiplo de otra, el determinante:",
+        "difficulty": 750,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "No cambia",
+            "Cambia de signo",
+            "Se duplica",
+            "Se anula"
+        ],
+        "correct_option": "No cambia"
+    },
+    {
+        "id": "q281",
+        "content": "La fórmula de cofactores para el determinante de una matriz $3 \\times 3$ por la primera fila es:",
+        "difficulty": 900,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$a_{11}C_{11} + a_{12}C_{12} + a_{13}C_{13}$",
+            "$a_{11}a_{22}a_{33}$",
+            "$a_{11}C_{11} - a_{12}C_{12} + a_{13}C_{13}$",
+            "$a_{11} + a_{12} + a_{13}$"
+        ],
+        "correct_option": "$a_{11}C_{11} + a_{12}C_{12} + a_{13}C_{13}$"
+    },
+    {
+        "id": "q282",
+        "content": "El cofactor $C_{ij}$ de una matriz se define como:",
+        "difficulty": 920,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$(-1)^{i+j} M_{ij}$",
+            "$M_{ij}$",
+            "$(-1)^{ij} M_{ij}$",
+            "$(-1)^{i-j} M_{ij}$"
+        ],
+        "correct_option": "$(-1)^{i+j} M_{ij}$"
+    },
+    {
+        "id": "q283",
+        "content": "¿Cuál de los siguientes es un espacio vectorial?",
+        "difficulty": 700,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "El conjunto de polinomios de grado $\\leq n$",
+            "El conjunto de polinomios de grado exactamente $n$",
+            "El conjunto $\\{(x,y) : x > 0\\}$",
+            "El conjunto $\\{(x,y) : x + y = 1\\}$"
+        ],
+        "correct_option": "El conjunto de polinomios de grado $\\leq n$"
+    },
+    {
+        "id": "q284",
+        "content": "Todo espacio vectorial debe contener:",
+        "difficulty": 650,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "El vector cero",
+            "Al menos dos vectores",
+            "Un vector unitario",
+            "Una base ortonormal"
+        ],
+        "correct_option": "El vector cero"
+    },
+    {
+        "id": "q285",
+        "content": "La dimensión del espacio de polinomios de grado $\\leq 3$ es:",
+        "difficulty": 750,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$4$",
+            "$3$",
+            "$5$",
+            "$\\infty$"
+        ],
+        "correct_option": "$4$"
+    },
+    {
+        "id": "q286",
+        "content": "La dimensión del espacio de matrices $2 \\times 2$ reales es:",
+        "difficulty": 700,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$4$",
+            "$2$",
+            "$3$",
+            "$1$"
+        ],
+        "correct_option": "$4$"
+    },
+    {
+        "id": "q287",
+        "content": "La dimensión del espacio de matrices simétricas $n \\times n$ es:",
+        "difficulty": 1000,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\frac{n(n+1)}{2}$",
+            "$n^2$",
+            "$\\frac{n(n-1)}{2}$",
+            "$n$"
+        ],
+        "correct_option": "$\\frac{n(n+1)}{2}$"
+    },
+    {
+        "id": "q288",
+        "content": "Si $W$ es un subespacio de $V$ con $\\dim(V) = 5$ y $\\dim(W) = 3$, entonces $\\dim(V/W) =$",
+        "difficulty": 1100,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$2$",
+            "$3$",
+            "$5$",
+            "$8$"
+        ],
+        "correct_option": "$2$"
+    },
+    {
+        "id": "q289",
+        "content": "¿Cuál es una base canónica de $\\mathbb{R}^3$?",
+        "difficulty": 650,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\{(1,0,0), (0,1,0), (0,0,1)\\}$",
+            "$\\{(1,1,1), (0,1,0), (0,0,1)\\}$",
+            "$\\{(1,0,0), (0,1,0)\\}$",
+            "$\\{(1,0,0), (1,1,0), (1,1,1)\\}$"
+        ],
+        "correct_option": "$\\{(1,0,0), (0,1,0), (0,0,1)\\}$"
+    },
+    {
+        "id": "q290",
+        "content": "El espacio generado por $\\{(1,0), (2,0)\\}$ en $\\mathbb{R}^2$ tiene dimensión:",
+        "difficulty": 750,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$1$",
+            "$2$",
+            "$0$",
+            "$3$"
+        ],
+        "correct_option": "$1$"
+    },
+    {
+        "id": "q291",
+        "content": "Si $\\dim(W_1) = 3$, $\\dim(W_2) = 4$ y $\\dim(W_1 + W_2) = 5$, entonces $\\dim(W_1 \\cap W_2) =$",
+        "difficulty": 1050,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$2$",
+            "$1$",
+            "$3$",
+            "$0$"
+        ],
+        "correct_option": "$2$"
+    },
+    {
+        "id": "q292",
+        "content": "El conjunto $\\{(1,2), (3,6)\\}$ en $\\mathbb{R}^2$ es:",
+        "difficulty": 650,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Linealmente dependiente",
+            "Linealmente independiente",
+            "Base de $\\mathbb{R}^2$",
+            "Ortogonal"
+        ],
+        "correct_option": "Linealmente dependiente"
+    },
+    {
+        "id": "q293",
+        "content": "Los vectores $v_1, v_2, \\ldots, v_k$ son linealmente dependientes si y solo si:",
+        "difficulty": 780,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Existe una combinación lineal no trivial igual a cero",
+            "Todos son el vector cero",
+            "Son ortogonales entre sí",
+            "Generan $\\mathbb{R}^n$"
+        ],
+        "correct_option": "Existe una combinación lineal no trivial igual a cero"
+    },
+    {
+        "id": "q294",
+        "content": "Si un conjunto tiene más vectores que la dimensión del espacio, entonces es:",
+        "difficulty": 800,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Linealmente dependiente",
+            "Linealmente independiente",
+            "Una base",
+            "Ortogonal"
+        ],
+        "correct_option": "Linealmente dependiente"
+    },
+    {
+        "id": "q295",
+        "content": "El Wronskiano se usa para determinar la independencia lineal de:",
+        "difficulty": 950,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Funciones",
+            "Matrices",
+            "Escalares",
+            "Polinomios característicos"
+        ],
+        "correct_option": "Funciones"
+    },
+    {
+        "id": "q296",
+        "content": "¿Los vectores $(1,0,0)$, $(0,1,0)$, $(1,1,0)$ son linealmente independientes en $\\mathbb{R}^3$?",
+        "difficulty": 800,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "No",
+            "Sí",
+            "Solo dos de ellos lo son",
+            "Depende del campo"
+        ],
+        "correct_option": "No"
+    },
+    {
+        "id": "q297",
+        "content": "El rango de una matriz es igual al número máximo de:",
+        "difficulty": 750,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Columnas (o filas) linealmente independientes",
+            "Elementos no nulos",
+            "Filas",
+            "Columnas"
+        ],
+        "correct_option": "Columnas (o filas) linealmente independientes"
+    },
+    {
+        "id": "q298",
+        "content": "Si $v_1, v_2, v_3$ son linealmente independientes, entonces $v_1 + v_2, v_2 + v_3, v_1 + v_3$ son:",
+        "difficulty": 1100,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Linealmente independientes",
+            "Linealmente dependientes",
+            "No se puede determinar",
+            "Ortogonales"
+        ],
+        "correct_option": "Linealmente independientes"
+    },
+    {
+        "id": "q299",
+        "content": "El proceso de Gram-Schmidt convierte un conjunto linealmente independiente en un conjunto:",
+        "difficulty": 1000,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Ortonormal",
+            "Ortogonal",
+            "Diagonal",
+            "Simétrico"
+        ],
+        "correct_option": "Ortonormal"
+    },
+    {
+        "id": "q300",
+        "content": "La proyección ortogonal de $u$ sobre $v$ es:",
+        "difficulty": 950,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\frac{u \\cdot v}{v \\cdot v} v$",
+            "$\\frac{u \\cdot v}{\\|u\\|} v$",
+            "$u \\cdot v$",
+            "$\\frac{v}{\\|v\\|}$"
+        ],
+        "correct_option": "$\\frac{u \\cdot v}{v \\cdot v} v$"
+    },
+    {
+        "id": "q301",
+        "content": "Sea $T: \\mathbb{R}^2 \\to \\mathbb{R}^2$ definida por $T(x,y) = (2x, 3y)$. ¿Es lineal?",
+        "difficulty": 750,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Sí",
+            "No",
+            "Solo para vectores unitarios",
+            "Depende del dominio"
+        ],
+        "correct_option": "Sí"
+    },
+    {
+        "id": "q302",
+        "content": "$T: \\mathbb{R}^2 \\to \\mathbb{R}^2$ definida por $T(x,y) = (x+1, y)$. ¿Es lineal?",
+        "difficulty": 780,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "No",
+            "Sí",
+            "Solo si $y = 0$",
+            "Solo para escalares positivos"
+        ],
+        "correct_option": "No"
+    },
+    {
+        "id": "q303",
+        "content": "Una transformación lineal $T$ satisface siempre $T(0) =$",
+        "difficulty": 700,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$0$",
+            "$1$",
+            "$-1$",
+            "Depende de $T$"
+        ],
+        "correct_option": "$0$"
+    },
+    {
+        "id": "q304",
+        "content": "El Teorema de la Dimensión (rango-nulidad) establece que para $T: V \\to W$:",
+        "difficulty": 1000,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\dim(V) = \\dim(\\ker T) + \\dim(\\text{Im}\\, T)$",
+            "$\\dim(W) = \\dim(\\ker T) + \\dim(\\text{Im}\\, T)$",
+            "$\\dim(V) = \\dim(\\ker T) \\cdot \\dim(\\text{Im}\\, T)$",
+            "$\\dim(V) + \\dim(W) = \\dim(\\ker T)$"
+        ],
+        "correct_option": "$\\dim(V) = \\dim(\\ker T) + \\dim(\\text{Im}\\, T)$"
+    },
+    {
+        "id": "q305",
+        "content": "Una transformación lineal $T$ es inyectiva si y solo si:",
+        "difficulty": 900,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\ker(T) = \\{0\\}$",
+            "$\\text{Im}(T) = W$",
+            "$T$ es sobreyectiva",
+            "$\\dim(\\ker T) = \\dim V$"
+        ],
+        "correct_option": "$\\ker(T) = \\{0\\}$"
+    },
+    {
+        "id": "q306",
+        "content": "La matriz asociada a la rotación de ángulo $\\theta$ en $\\mathbb{R}^2$ es:",
+        "difficulty": 1000,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\begin{pmatrix}\\cos\\theta & -\\sin\\theta \\\\ \\sin\\theta & \\cos\\theta\\end{pmatrix}$",
+            "$\\begin{pmatrix}\\cos\\theta & \\sin\\theta \\\\ \\sin\\theta & \\cos\\theta\\end{pmatrix}$",
+            "$\\begin{pmatrix}\\sin\\theta & \\cos\\theta \\\\ -\\cos\\theta & \\sin\\theta\\end{pmatrix}$",
+            "$\\begin{pmatrix}1 & \\theta \\\\ 0 & 1\\end{pmatrix}$"
+        ],
+        "correct_option": "$\\begin{pmatrix}\\cos\\theta & -\\sin\\theta \\\\ \\sin\\theta & \\cos\\theta\\end{pmatrix}$"
+    },
+    {
+        "id": "q307",
+        "content": "La reflexión respecto al eje $x$ en $\\mathbb{R}^2$ tiene matriz:",
+        "difficulty": 850,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\begin{pmatrix}1 & 0 \\\\ 0 & -1\\end{pmatrix}$",
+            "$\\begin{pmatrix}-1 & 0 \\\\ 0 & 1\\end{pmatrix}$",
+            "$\\begin{pmatrix}0 & 1 \\\\ 1 & 0\\end{pmatrix}$",
+            "$\\begin{pmatrix}-1 & 0 \\\\ 0 & -1\\end{pmatrix}$"
+        ],
+        "correct_option": "$\\begin{pmatrix}1 & 0 \\\\ 0 & -1\\end{pmatrix}$"
+    },
+    {
+        "id": "q308",
+        "content": "Si $T$ tiene matriz $A$ en una base y $P$ es la matriz de cambio de base, la matriz de $T$ en la nueva base es:",
+        "difficulty": 1150,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$P^{-1}AP$",
+            "$PAP^{-1}$",
+            "$P^TAP$",
+            "$APA^{-1}$"
+        ],
+        "correct_option": "$P^{-1}AP$"
+    },
+    {
+        "id": "q309",
+        "content": "Dos matrices $A$ y $B$ son semejantes si existe $P$ invertible tal que:",
+        "difficulty": 1050,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$B = P^{-1}AP$",
+            "$B = A + P$",
+            "$B = PA$",
+            "$B = A^T P$"
+        ],
+        "correct_option": "$B = P^{-1}AP$"
+    },
+    {
+        "id": "q310",
+        "content": "Matrices semejantes tienen:",
+        "difficulty": 1050,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Los mismos valores propios",
+            "Los mismos vectores propios",
+            "La misma inversa",
+            "La misma transpuesta"
+        ],
+        "correct_option": "Los mismos valores propios"
+    },
+    {
+        "id": "q311",
+        "content": "Si $\\lambda$ es un valor propio de $A$, entonces $\\lambda$ satisface:",
+        "difficulty": 800,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\det(A - \\lambda I) = 0$",
+            "$\\det(A + \\lambda I) = 0$",
+            "$\\det(A) = \\lambda$",
+            "$\\text{tr}(A) = \\lambda$"
+        ],
+        "correct_option": "$\\det(A - \\lambda I) = 0$"
+    },
+    {
+        "id": "q312",
+        "content": "Los valores propios de $A = \\begin{pmatrix}4 & 1 \\\\ 0 & 3\\end{pmatrix}$ son:",
+        "difficulty": 800,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$4$ y $3$",
+            "$1$ y $0$",
+            "$4$ y $1$",
+            "$3$ y $0$"
+        ],
+        "correct_option": "$4$ y $3$"
+    },
+    {
+        "id": "q313",
+        "content": "Si $\\lambda$ es un valor propio de $A$ con vector propio $v$, entonces $A^2$ tiene valor propio:",
+        "difficulty": 950,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\lambda^2$",
+            "$2\\lambda$",
+            "$\\lambda$",
+            "$\\lambda + 1$"
+        ],
+        "correct_option": "$\\lambda^2$"
+    },
+    {
+        "id": "q314",
+        "content": "El determinante de $A$ es igual al producto de sus valores propios. ¿Es correcto?",
+        "difficulty": 900,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Sí",
+            "No",
+            "Solo para matrices simétricas",
+            "Solo para matrices $2 \\times 2$"
+        ],
+        "correct_option": "Sí"
+    },
+    {
+        "id": "q315",
+        "content": "Los valores propios de una matriz simétrica real son siempre:",
+        "difficulty": 900,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Reales",
+            "Positivos",
+            "Enteros",
+            "Complejos"
+        ],
+        "correct_option": "Reales"
+    },
+    {
+        "id": "q316",
+        "content": "Una matriz $A$ es diagonalizable si y solo si:",
+        "difficulty": 1050,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Tiene $n$ vectores propios linealmente independientes",
+            "$\\det(A) \\neq 0$",
+            "Es simétrica",
+            "Todos sus valores propios son distintos"
+        ],
+        "correct_option": "Tiene $n$ vectores propios linealmente independientes"
+    },
+    {
+        "id": "q317",
+        "content": "Si $A$ es diagonalizable con $A = PDP^{-1}$, entonces $A^k =$",
+        "difficulty": 1100,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$PD^kP^{-1}$",
+            "$P^kDP^{-k}$",
+            "$D^k$",
+            "$kPDP^{-1}$"
+        ],
+        "correct_option": "$PD^kP^{-1}$"
+    },
+    {
+        "id": "q318",
+        "content": "Los vectores propios correspondientes a valores propios distintos de una matriz simétrica real son:",
+        "difficulty": 1000,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Ortogonales",
+            "Paralelos",
+            "Iguales",
+            "Linealmente dependientes"
+        ],
+        "correct_option": "Ortogonales"
+    },
+    {
+        "id": "q319",
+        "content": "La multiplicidad algebraica de un valor propio $\\lambda$ es:",
+        "difficulty": 1000,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Su multiplicidad como raíz del polinomio característico",
+            "La dimensión del espacio propio",
+            "El número de vectores propios",
+            "El valor de $\\lambda$"
+        ],
+        "correct_option": "Su multiplicidad como raíz del polinomio característico"
+    },
+    {
+        "id": "q320",
+        "content": "La multiplicidad geométrica de $\\lambda$ es:",
+        "difficulty": 1050,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\dim(\\ker(A - \\lambda I))$",
+            "La multiplicidad como raíz del polinomio característico",
+            "$\\text{rango}(A - \\lambda I)$",
+            "$n - \\lambda$"
+        ],
+        "correct_option": "$\\dim(\\ker(A - \\lambda I))$"
+    },
+    {
+        "id": "q321",
+        "content": "Según Cayley-Hamilton, toda matriz cuadrada $A$ satisface:",
+        "difficulty": 1200,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Su propio polinomio característico: $p(A) = 0$",
+            "$A^n = 0$",
+            "$A = A^T$",
+            "$\\det(A) = \\text{tr}(A)$"
+        ],
+        "correct_option": "Su propio polinomio característico: $p(A) = 0$"
+    },
+    {
+        "id": "q322",
+        "content": "Si $A = \\begin{pmatrix}2 & 1 \\\\ 0 & 2\\end{pmatrix}$, ¿es $A$ diagonalizable?",
+        "difficulty": 1100,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "No",
+            "Sí",
+            "Solo sobre $\\mathbb{C}$",
+            "Depende de la base"
+        ],
+        "correct_option": "No"
+    },
+    {
+        "id": "q323",
+        "content": "Si $A$ tiene valores propios $1, 2, 3$, entonces $\\det(A) =$",
+        "difficulty": 850,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$6$",
+            "$5$",
+            "$3$",
+            "$1$"
+        ],
+        "correct_option": "$6$"
+    },
+    {
+        "id": "q324",
+        "content": "Si $A$ tiene valores propios $1, 2, 3$, entonces $\\text{tr}(A) =$",
+        "difficulty": 850,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$6$",
+            "$5$",
+            "$3$",
+            "$1$"
+        ],
+        "correct_option": "$6$"
+    },
+    {
+        "id": "q325",
+        "content": "Si $\\lambda$ es valor propio de $A$ invertible, entonces $\\lambda^{-1}$ es valor propio de:",
+        "difficulty": 1050,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$A^{-1}$",
+            "$A^T$",
+            "$A^2$",
+            "$-A$"
+        ],
+        "correct_option": "$A^{-1}$"
+    },
+    {
+        "id": "q326",
+        "content": "Una cadena de Markov con matriz de transición $A$ tiene un vector de estado estable $q$ que satisface:",
+        "difficulty": 1200,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$Aq = q$",
+            "$Aq = 0$",
+            "$A^Tq = 0$",
+            "$Aq = 2q$"
+        ],
+        "correct_option": "$Aq = q$"
+    },
+    {
+        "id": "q327",
+        "content": "En la factorización $LU$, $L$ es una matriz:",
+        "difficulty": 950,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Triangular inferior con unos en la diagonal",
+            "Triangular superior",
+            "Diagonal",
+            "Ortogonal"
+        ],
+        "correct_option": "Triangular inferior con unos en la diagonal"
+    },
+    {
+        "id": "q328",
+        "content": "La solución de mínimos cuadrados de $Ax = b$ (sistema sobredeterminado) satisface:",
+        "difficulty": 1150,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$A^TAx = A^Tb$",
+            "$Ax = b$",
+            "$A^Tx = b$",
+            "$AA^Tx = b$"
+        ],
+        "correct_option": "$A^TAx = A^Tb$"
+    },
+    {
+        "id": "q329",
+        "content": "En un modelo de población de Leslie, la matriz es útil para:",
+        "difficulty": 1100,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Modelar dinámica de poblaciones por grupos etarios",
+            "Resolver sistemas de ecuaciones",
+            "Factorizar matrices",
+            "Calcular determinantes"
+        ],
+        "correct_option": "Modelar dinámica de poblaciones por grupos etarios"
+    },
+    {
+        "id": "q330",
+        "content": "En compresión de imágenes con SVD, una imagen se aproxima usando:",
+        "difficulty": 1250,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Los $k$ valores singulares más grandes",
+            "Todos los valores singulares",
+            "Solo los valores propios",
+            "La inversa de la matriz"
+        ],
+        "correct_option": "Los $k$ valores singulares más grandes"
+    },
+    {
+        "id": "q331",
+        "content": "El método de potencias se usa para encontrar:",
+        "difficulty": 1100,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "El valor propio dominante",
+            "Todos los valores propios",
+            "El determinante",
+            "La inversa"
+        ],
+        "correct_option": "El valor propio dominante"
+    },
+    {
+        "id": "q332",
+        "content": "En criptografía con matrices, el cifrado Hill usa:",
+        "difficulty": 1050,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Multiplicación por una matriz invertible módulo 26",
+            "El determinante de la clave",
+            "La traza de la matriz",
+            "Valores propios"
+        ],
+        "correct_option": "Multiplicación por una matriz invertible módulo 26"
+    },
+    {
+        "id": "q333",
+        "content": "La ecuación de la recta de mejor ajuste por mínimos cuadrados para datos $(x_i, y_i)$ minimiza:",
+        "difficulty": 1000,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$\\sum (y_i - (mx_i + b))^2$",
+            "$\\sum |y_i - (mx_i + b)|$",
+            "$\\max |y_i - (mx_i + b)|$",
+            "$\\sum (y_i + mx_i + b)^2$"
+        ],
+        "correct_option": "$\\sum (y_i - (mx_i + b))^2$"
+    },
+    {
+        "id": "q334",
+        "content": "El PageRank de Google se modela como un problema de:",
+        "difficulty": 1200,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Valores y vectores propios de una matriz estocástica",
+            "Determinantes",
+            "Inversa de matrices",
+            "Factorización LU"
+        ],
+        "correct_option": "Valores y vectores propios de una matriz estocástica"
+    },
+    {
+        "id": "q335",
+        "content": "Si una fuerza $F = (3, 4)$ actúa sobre un desplazamiento $d = (1, 0)$, el trabajo $W = F \\cdot d$ es:",
+        "difficulty": 700,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$3$",
+            "$4$",
+            "$7$",
+            "$5$"
+        ],
+        "correct_option": "$3$"
+    },
+    {
+        "id": "q336",
+        "content": "Para un circuito eléctrico con las leyes de Kirchhoff, el sistema resultante se resuelve usando:",
+        "difficulty": 950,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Sistemas de ecuaciones lineales",
+            "Ecuaciones diferenciales",
+            "Transformada de Laplace",
+            "Series de Fourier"
+        ],
+        "correct_option": "Sistemas de ecuaciones lineales"
+    },
+    {
+        "id": "q337",
+        "content": "En análisis de componentes principales (PCA), los componentes principales son:",
+        "difficulty": 1250,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Los vectores propios de la matriz de covarianza",
+            "Los valores propios de la matriz de datos",
+            "Las columnas de la matriz original",
+            "Los vectores singulares derechos"
+        ],
+        "correct_option": "Los vectores propios de la matriz de covarianza"
+    },
+    {
+        "id": "q338",
+        "content": "La norma euclidiana del vector $(3, 4)$ es:",
+        "difficulty": 650,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$5$",
+            "$7$",
+            "$\\sqrt{7}$",
+            "$25$"
+        ],
+        "correct_option": "$5$"
+    },
+    {
+        "id": "q339",
+        "content": "El producto cruz $u \\times v$ de dos vectores en $\\mathbb{R}^3$ produce un vector:",
+        "difficulty": 800,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "Perpendicular a ambos",
+            "Paralelo a $u$",
+            "Paralelo a $v$",
+            "En el plano de $u$ y $v$"
+        ],
+        "correct_option": "Perpendicular a ambos"
+    },
+    {
+        "id": "q340",
+        "content": "El complemento ortogonal $W^{\\perp}$ de un subespacio $W$ de $\\mathbb{R}^n$ satisface $\\dim(W) + \\dim(W^{\\perp}) =$",
+        "difficulty": 1050,
+        "topic": "Álgebra Lineal",
+        "options": [
+            "$n$",
+            "$n^2$",
+            "$2n$",
+            "$\\dim(W)^2$"
+        ],
+        "correct_option": "$n$"
     }
 ]
