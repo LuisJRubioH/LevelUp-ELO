@@ -17,9 +17,13 @@ import importlib
 import src.infrastructure.persistence.sqlite_repository as db_mod
 import src.infrastructure.external_api.ai_client as ai_mod
 import src.infrastructure.external_api.math_procedure_review as _math_review_mod
+import src.infrastructure.external_api.model_router as _router_mod
+import src.infrastructure.external_api.math_analysis_pipeline as _pipeline_mod
 importlib.reload(db_mod)
 importlib.reload(ai_mod)
 importlib.reload(_math_review_mod)
+importlib.reload(_router_mod)
+importlib.reload(_pipeline_mod)
 
 from src.domain.elo.vector_elo import VectorRating, aggregate_global_elo, aggregate_global_rd
 from src.domain.elo.model import expected_score, calculate_dynamic_k, Item
@@ -33,6 +37,9 @@ validate_procedure_relevance = ai_mod.validate_procedure_relevance
 _model_supports_vision = ai_mod._model_supports_vision
 review_math_procedure = _math_review_mod.review_math_procedure
 apply_procedure_elo_adjustment = _math_review_mod.apply_procedure_elo_adjustment
+select_model_for_task = _router_mod.select_model_for_task
+validate_socratic_response = _router_mod.validate_socratic_response
+math_pipeline_analyze = _pipeline_mod.analyze_with_llm_data
 import time
 import extra_streamlit_components as stx
 
@@ -1518,8 +1525,15 @@ else:
                         if st.button("🙋 Preguntar al Tutor Socrático", key=f"socratic_{item_data['id']}", width='stretch', disabled=not st.session_state.ai_available, help=_soc_help):
                             try:
                                 current_ans = st.session_state.get(f"answer_text_{item_data['id']}", "Aún no ha seleccionado una opción")
+                                # Model Router: seleccionar modelo óptimo para tutoría socrática
+                                _soc_model = select_model_for_task(
+                                    "tutor_socratic",
+                                    st.session_state.get('lmstudio_models', []),
+                                    st.session_state.model_cog,
+                                    provider=st.session_state.get('ai_provider'),
+                                )
                                 with st.chat_message("assistant", avatar="🎓"):
-                                    st.write_stream(get_socratic_guidance_stream(
+                                    _soc_full = st.write_stream(get_socratic_guidance_stream(
                                         current_elo_display,
                                         item_data.get('topic') or '',
                                         item_data.get('content') or '',
@@ -1527,12 +1541,17 @@ else:
                                         correct_answer=item_data.get('correct_option') or '',
                                         all_options=item_data.get('options') or [],
                                         base_url=st.session_state.ai_url,
-                                        model_name=st.session_state.model_cog,
+                                        model_name=_soc_model,
                                         api_key=st.session_state.cloud_api_key,
                                         provider=st.session_state.get('ai_provider'),
                                     ))
+                                    # Validación post-generación: verificar que no viole reglas socrátivas
+                                    if isinstance(_soc_full, str) and not validate_socratic_response(_soc_full):
+                                        st.warning("⚠️ La respuesta fue filtrada por revelar demasiada información. Intenta de nuevo.")
                             except (ConnectionError, TimeoutError):
                                 st.error("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.")
+                            except Exception:
+                                st.error("⚠️ El modelo no pudo procesar la solicitud. Verifica que esté cargado correctamente.")
                         elif not item_data.get('options'):
                             st.warning("Pregunta sin opciones configuradas.")
 
@@ -1597,10 +1616,14 @@ else:
                                 st.session_state.get('ai_provider') == 'groq'
                                 and bool(st.session_state.get('cloud_api_key'))
                             )
-                            _vision_ok = _is_groq or _model_supports_vision(
+                            # Model Router: seleccionar modelo con visión+razonamiento
+                            _proc_model = select_model_for_task(
+                                "image_procedure_analysis",
+                                st.session_state.get('lmstudio_models', []),
                                 st.session_state.model_analysis,
-                                st.session_state.get('ai_provider'),
+                                provider=st.session_state.get('ai_provider'),
                             )
+                            _vision_ok = _is_groq or (_proc_model is not None)
 
                             # ── T5b: contador de intentos fallidos por pregunta ────
                             _fail_key = f'proc_fail_count_{_iid}'
@@ -1674,7 +1697,7 @@ else:
                                                 api_key=st.session_state.cloud_api_key,
                                                 provider=st.session_state.get('ai_provider'),
                                                 base_url=st.session_state.ai_url,
-                                                model_name=st.session_state.model_analysis,
+                                                model_name=_proc_model or st.session_state.model_analysis,
                                             )
 
                                         if not _is_relevant:
@@ -1755,7 +1778,7 @@ else:
                                                 result = analyze_procedure_image(
                                                     _file_bytes, _mime,
                                                     _q_content,
-                                                    model_name=st.session_state.model_analysis,
+                                                    model_name=_proc_model or st.session_state.model_analysis,
                                                     base_url=st.session_state.ai_url,
                                                     api_key=st.session_state.cloud_api_key,
                                                     provider=st.session_state.get('ai_provider'),
@@ -1832,6 +1855,20 @@ else:
                                             st.markdown(
                                                 f"**Evaluación global:** {strip_thinking_tags(_math_review['evaluacion_global'])}"
                                             )
+
+                                        # ── Pipeline de verificación simbólica (complementario) ──
+                                        try:
+                                            _sym_result = math_pipeline_analyze(_math_review)
+                                            if _sym_result and _sym_result.analysis and _sym_result.analysis.sympy_used:
+                                                _sym_invalid = _sym_result.analysis.invalid_steps
+                                                if _sym_invalid > 0:
+                                                    with st.expander(f"🧮 Verificación simbólica ({_sym_invalid} error(es))"):
+                                                        st.markdown(_sym_result.feedback)
+                                                elif _sym_result.analysis.valid_steps > 1:
+                                                    with st.expander("🧮 Verificación simbólica"):
+                                                        st.markdown("Todos los pasos verificados son algebraicamente correctos.")
+                                        except Exception:
+                                            pass  # T10: fallback silencioso, no interrumpir flujo
 
                                 # ── Resultado: revisión genérica (otros proveedores) ──
                                 _ai_fb = st.session_state.get(f'proc_fb_{_iid}')

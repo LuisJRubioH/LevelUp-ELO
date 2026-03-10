@@ -243,6 +243,13 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
                 f"{base_url.rstrip('/')}/chat/completions",
                 json=payload, headers={"Content-Type": "application/json"}, timeout=180,
             )
+            # Si el servidor rechaza max_tokens, reintentar sin ese campo
+            if response.status_code == 400:
+                payload.pop("max_tokens", None)
+                response = requests.post(
+                    f"{base_url.rstrip('/')}/chat/completions",
+                    json=payload, headers={"Content-Type": "application/json"}, timeout=180,
+                )
             if response.status_code == 200:
                 content = response.json()['choices'][0]['message']['content']
                 return strip_thinking_tags(content)
@@ -258,7 +265,7 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
             return f"❌ Error inesperado: {type(e).__name__}. Contacta al administrador."
 
 
-def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", api_key=None, provider=None):
+def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", api_key=None, provider=None, max_tokens=4096):
     """Genera respuesta de IA en streaming. Soporta todos los proveedores."""
     system_instr = (
         "Responde EXCLUSIVAMENTE con el contenido solicitado. "
@@ -278,7 +285,7 @@ def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", 
             client = anthropic.Anthropic(api_key=api_key)
             with client.messages.stream(
                 model=model_name,
-                max_tokens=4096,
+                max_tokens=max_tokens,
                 messages=[{"role": "user", "content": full_prompt}],
             ) as stream:
                 for text in stream.text_stream:
@@ -296,7 +303,7 @@ def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", 
             client = OpenAI(api_key=api_key, base_url=_base)
             stream = client.chat.completions.create(
                 model=model_name, messages=messages,
-                temperature=0.3, max_tokens=4096, stream=True,
+                temperature=0.3, max_tokens=max_tokens, stream=True,
             )
             for chunk in stream:
                 delta = chunk.choices[0].delta.content
@@ -308,7 +315,7 @@ def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", 
         # ── LM Studio / Ollama local streaming (SSE) ─────────────────────────
         payload = {
             "model": model_name, "messages": messages,
-            "temperature": 0.3, "max_tokens": 4096, "stream": True,
+            "temperature": 0.3, "max_tokens": max_tokens, "stream": True,
         }
         try:
             response = requests.post(
@@ -316,6 +323,14 @@ def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", 
                 json=payload, headers={"Content-Type": "application/json"},
                 timeout=180, stream=True,
             )
+            # Si el servidor rechaza max_tokens, reintentar sin ese campo
+            if response.status_code == 400:
+                payload.pop("max_tokens", None)
+                response = requests.post(
+                    f"{base_url.rstrip('/')}/chat/completions",
+                    json=payload, headers={"Content-Type": "application/json"},
+                    timeout=180, stream=True,
+                )
             response.raise_for_status()
             for line in response.iter_lines():
                 if not line:
@@ -337,6 +352,8 @@ def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", 
             raise ConnectionError(f"Servidor local no disponible: {e}") from e
         except requests.exceptions.Timeout as e:
             raise TimeoutError(f"Tiempo de espera agotado: {e}") from e
+        except requests.exceptions.HTTPError as e:
+            raise ConnectionError(f"Error del servidor local ({e.response.status_code}): {e}") from e
 
 
 def get_socratic_guidance(student_rating, topic, content, student_answer, correct_answer, all_options, base_url="http://localhost:1234/v1", model_name="google/gemma-3-4b", api_key=None, provider=None):
@@ -401,9 +418,11 @@ EJEMPLO DE MALA RESPUESTA (NO hacer esto):
 "Para resolver esto, primero derivamos... luego sustituimos... la respuesta es X."
 """
     # Filtrar tags de pensamiento y normalizar LaTeX del streaming
+    # Limitar tokens para reducir latencia (respuestas socrátivas son breves)
+    from src.infrastructure.external_api.model_router import SOCRATIC_MAX_TOKENS
     yield from _normalize_latex_stream(
         strip_thinking_tags_stream(
-            stream_ai_response(prompt, model_name, base_url, api_key=api_key, provider=provider)
+            stream_ai_response(prompt, model_name, base_url, api_key=api_key, provider=provider, max_tokens=SOCRATIC_MAX_TOKENS)
         )
     )
 
