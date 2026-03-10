@@ -485,7 +485,16 @@ class SQLiteRepository:
         conn.close()
 
     def _seed_demo_data(self):
-        """Crea usuarios y grupo demo si no existen (idempotente)."""
+        """Crea usuarios, grupos y matrículas demo si no existen (idempotente).
+
+        Credenciales de prueba:
+        - Profesor: profesor1 / demo1234
+        - Estudiantes: estudiante1 / demo1234, estudiante2 / demo1234
+
+        Se crean dos grupos vinculados a cursos reales (Cálculo Diferencial y
+        Álgebra Básica) con los estudiantes matriculados para que puedan
+        iniciar su estudio inmediatamente.
+        """
         # Pre-computar hashes ANTES de abrir la conexión:
         # Argon2 es lento por diseño; calcularlos con la DB abierta provoca "database is locked".
         demo_hash = self.hashing.hash_password("demo1234")
@@ -503,29 +512,78 @@ class SQLiteRepository:
 
         conn.commit()
 
-        # Grupo Demo (necesita el id del profesor)
+        # ID del profesor para crear grupos
         cursor.execute("SELECT id FROM users WHERE username = 'profesor1'")
         profesor_id = cursor.fetchone()[0]
 
-        cursor.execute("SELECT id FROM groups WHERE name = 'Grupo Demo' AND teacher_id = ?", (profesor_id,))
-        if not cursor.fetchone():
+        # Grupos demo vinculados a cursos del catálogo
+        _demo_groups = [
+            ("Grupo Demo - Cálculo", "calculo_diferencial"),
+            ("Grupo Demo - Álgebra", "algebra_basica"),
+        ]
+        group_ids = {}
+        for g_name, g_course in _demo_groups:
+            g_norm = g_name.strip().lower()
             cursor.execute(
-                "INSERT INTO groups (name, teacher_id, name_normalized) VALUES (?, ?, ?)",
-                ("Grupo Demo", profesor_id, "grupo demo")
+                "SELECT id FROM groups WHERE name_normalized = ? AND teacher_id = ?",
+                (g_norm, profesor_id)
             )
-            conn.commit()
+            row = cursor.fetchone()
+            if not row:
+                cursor.execute(
+                    "INSERT INTO groups (name, teacher_id, course_id, name_normalized) VALUES (?, ?, ?, ?)",
+                    (g_name, profesor_id, g_course, g_norm)
+                )
+                conn.commit()
+                group_ids[g_course] = cursor.lastrowid
+            else:
+                group_ids[g_course] = row[0]
+                # Asegurar que el grupo tenga course_id (migra grupos legacy sin curso)
+                cursor.execute(
+                    "UPDATE groups SET course_id = ? WHERE id = ? AND course_id IS NULL",
+                    (g_course, row[0])
+                )
 
-        cursor.execute("SELECT id FROM groups WHERE name = 'Grupo Demo' AND teacher_id = ?", (profesor_id,))
-        group_id = cursor.fetchone()[0]
+        conn.commit()
 
-        # Estudiantes demo
+        # Grupo principal para asignar a los estudiantes (Cálculo Diferencial)
+        primary_group_id = group_ids.get("calculo_diferencial")
+
+        # Estudiantes demo con nivel 'universidad'
         for username in ("estudiante1", "estudiante2"):
             cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
-            if not cursor.fetchone():
+            row = cursor.fetchone()
+            if not row:
                 cursor.execute(
-                    "INSERT INTO users (username, password_hash, role, approved, group_id) VALUES (?, ?, 'student', 1, ?)",
-                    (username, demo_hash, group_id)
+                    "INSERT INTO users (username, password_hash, role, approved, group_id, rating_deviation, education_level) "
+                    "VALUES (?, ?, 'student', 1, ?, 350.0, 'universidad')",
+                    (username, demo_hash, primary_group_id)
                 )
+            else:
+                # Asegurar que el estudiante tenga grupo y nivel asignados
+                cursor.execute(
+                    "UPDATE users SET group_id = COALESCE(group_id, ?), "
+                    "education_level = COALESCE(education_level, 'universidad') "
+                    "WHERE id = ?",
+                    (primary_group_id, row[0])
+                )
+
+        conn.commit()
+
+        # Matrículas demo: inscribir estudiantes en los cursos de los grupos
+        for username in ("estudiante1", "estudiante2"):
+            cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+            student_id = cursor.fetchone()[0]
+            for g_course, g_id in group_ids.items():
+                cursor.execute(
+                    "SELECT 1 FROM enrollments WHERE user_id = ? AND course_id = ? AND group_id = ?",
+                    (student_id, g_course, g_id)
+                )
+                if not cursor.fetchone():
+                    cursor.execute(
+                        "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (?, ?, ?)",
+                        (student_id, g_course, g_id)
+                    )
 
         conn.commit()
         conn.close()

@@ -36,6 +36,15 @@ Plataforma de **aprendizaje adaptativo** construida con Python y Streamlit que u
 - **Soporte multi-proveedor de IA**: Groq, OpenAI, Anthropic Claude, Google Gemini, HuggingFace, LM Studio local, Ollama local — detección automática por prefijo de API key.
 - **Sin infraestructura externa obligatoria**: funciona completamente offline con LM Studio u Ollama; las funciones de IA degradan con gracia si no hay servidor disponible.
 - **Revisión matemática rigurosa de procedimientos**: cuando el proveedor activo es Groq, el sistema analiza imágenes de desarrollos manuscritos con `meta-llama/llama-4-scout-17b-16e-instruct` y devuelve una corrección paso a paso en JSON con un score 0–100 que ajusta el ELO del estudiante de forma secundaria.
+- **Soporte PDF en procedimientos**: los estudiantes pueden subir procedimientos en formato PDF además de imágenes; el sistema renderiza la primera página con PyMuPDF para análisis visual.
+- **Centro de feedback del estudiante**: los alumnos consultan notas numéricas (IA y docente) y comentarios de cada procedimiento enviado, con badge de notificación para revisiones nuevas.
+- **Filtros cascada en dashboard docente**: Grupo → Nivel → Materia, con opciones dinámicas que se actualizan según la selección.
+- **Badges de notificación**: el docente ve cuántos procedimientos tiene pendientes de revisar; el estudiante ve cuántas revisiones nuevas tiene sin leer.
+- **Anti-plagio SHA-256**: cada archivo subido se hashea y se compara contra envíos previos del mismo estudiante y ejercicio para detectar duplicados.
+- **Validación de relevancia de procedimientos**: antes de enviar, la IA verifica que el archivo corresponda al ejercicio actual; tras 3 intentos fallidos se ofrecen opciones alternativas.
+- **Racha de estudio**: el sistema calcula días consecutivos de actividad y lo muestra en la sala de estudio y estadísticas.
+- **Ranking ELO de 16 niveles**: desde Aspirante (0–399) hasta Leyenda Suprema (2500+), con nombre y rango dinámico según el ELO global.
+- **Imágenes en preguntas**: los ítems del banco pueden incluir una URL de imagen que se muestra junto al enunciado.
 
 ---
 
@@ -243,6 +252,8 @@ El proveedor se infiere del prefijo de la API key ingresada en la sidebar:
 - **`get_pedagogical_analysis()`**: análisis profundo del desempeño de un estudiante para el docente.
 - **`analyze_performance_local()`**: genera 3 recomendaciones en JSON para el dashboard de estadísticas del alumno.
 - **`analyze_procedure_image()`**: revisión visual genérica de procedimientos usando el modelo activo (para OpenAI, Anthropic, Gemini y modelos locales con visión).
+- **`validate_procedure_relevance()`**: verificación ligera (SÍ/NO) de que el archivo subido corresponde al ejercicio actual.
+- **`select_best_math_model()`**: selecciona el mejor modelo disponible para razonamiento matemático entre los cargados en servidores locales.
 
 ### Revisión matemática rigurosa (`math_procedure_review.py`)
 
@@ -319,6 +330,7 @@ Restricción: **índice único** en `(teacher_id, name_normalized)` — un profe
 | `correct_option` | TEXT | Opción correcta exacta |
 | `difficulty` | REAL | Rating ELO del ítem |
 | `rating_deviation` | REAL | Incertidumbre del ítem |
+| `image_url` | TEXT | URL de imagen complementaria (opcional) |
 
 **`attempts`**
 | Campo | Tipo | Descripción |
@@ -361,6 +373,7 @@ Restricción: **índice único** en `(teacher_id, name_normalized)` — un profe
 | `teacher_score` | REAL | Calificación oficial del docente (0–100) |
 | `final_score` | REAL | Nota final = teacher_score (única que afecta ELO) |
 | `elo_delta` | REAL | Ajuste ELO calculado: `(final_score - 50) * 0.2` |
+| `file_hash` | TEXT | SHA-256 del archivo subido (detección anti-plagio) |
 
 **`audit_group_changes`**: log de reasignaciones de grupo (admin), con usuario, grupo anterior/nuevo y timestamp.
 
@@ -403,16 +416,17 @@ Los estudiantes se **matriculan** en cursos de su nivel y se unen a un **grupo**
 - Selecciona su **nivel educativo** al registrarse: Universidad, Colegio o Concursos.
 - Se matricula en **cursos** del catálogo correspondiente a su nivel y se une a un grupo del docente.
 - Accede al **modo práctica**: responde preguntas adaptativas, ve retroalimentación socrática con IA, rastrea su ELO por tópico.
-- Puede subir **procedimientos manuscritos** para revisión (IA o docente).
-- Puede ver su **dashboard de estadísticas**: historial de intentos, evolución del ELO, recomendaciones generadas con IA.
+- Puede subir **procedimientos manuscritos** (imagen o PDF) para revisión (IA o docente), con validación de relevancia y detección de duplicados.
+- Puede ver su **dashboard de estadísticas**: historial de intentos, evolución del ELO, racha de estudio, ranking de 16 niveles, y recomendaciones generadas con IA.
+- **Centro de feedback**: consulta notas numéricas (IA y docente), comentarios y estado de cada procedimiento enviado, con notificación de revisiones nuevas.
 
 ### Docente
 - Requiere aprobación del admin tras el registro.
 - Crea y gestiona **grupos de alumnos** vinculados a cursos del catálogo.
 - Los nombres de grupo son **únicos por profesor** (case-insensitive); el sistema rechaza duplicados.
-- Accede al **dashboard docente**: ELO por tópico de cada alumno, tasa de acierto reciente, probabilidades de fallo por pregunta, historial de intentos.
-- Revisa y califica **procedimientos** enviados por alumnos (con propuesta de la IA como referencia).
-- Puede generar **análisis pedagógico con IA** sobre cualquier alumno.
+- Accede al **dashboard docente** con **filtros cascada** (Grupo → Nivel → Materia): ELO por tópico de cada alumno, tasa de acierto reciente, probabilidades de fallo por pregunta, historial de intentos.
+- Revisa y califica **procedimientos** enviados por alumnos (con propuesta de la IA como referencia). Badge de notificación con cantidad de pendientes.
+- Puede generar **análisis pedagógico con IA** sobre cualquier alumno (con ELO desglosado por tópico y tiempo promedio de respuesta).
 
 ### Admin
 - Aprueba o rechaza solicitudes de docentes.
@@ -455,7 +469,19 @@ streamlit run src/interface/streamlit/app.py
 
 > **Importante**: la app debe lanzarse desde la raíz del repositorio porque `app.py` inyecta el directorio raíz en `sys.path` en tiempo de ejecución para resolver el paquete `src/`.
 
-La base de datos `elo_project.db` se crea automáticamente en el primer arranque junto con el usuario admin y las preguntas del banco.
+La base de datos `elo_project.db` se crea automáticamente en el primer arranque junto con el usuario admin, las preguntas del banco y los usuarios de prueba.
+
+### Usuarios de prueba
+
+Al primer arranque se crean automáticamente los siguientes usuarios demo (contraseña compartida: `demo1234`):
+
+| Usuario | Contraseña | Rol | Detalle |
+|---|---|---|---|
+| `profesor1` | `demo1234` | Docente | Pre-aprobado, con dos grupos: *Grupo Demo - Cálculo* (Cálculo Diferencial) y *Grupo Demo - Álgebra* (Álgebra Básica) |
+| `estudiante1` | `demo1234` | Estudiante | Matriculado en ambos grupos, nivel Universidad |
+| `estudiante2` | `demo1234` | Estudiante | Matriculado en ambos grupos, nivel Universidad |
+
+Los estudiantes pueden iniciar su estudio inmediatamente tras el login — ya están inscritos en cursos con preguntas disponibles.
 
 ---
 
@@ -493,7 +519,8 @@ Las preguntas se organizan en **`items/bank/`**, un archivo JSON por curso. El n
     "difficulty": 1200,
     "topic": "Mi Tema",
     "options": ["Opción A", "Opción B", "Opción C", "Opción D"],
-    "correct_option": "Opción A"
+    "correct_option": "Opción A",
+    "image_url": "https://ejemplo.com/diagrama.png"
 }
 ```
 
@@ -505,6 +532,7 @@ Las preguntas se organizan en **`items/bank/`**, un archivo JSON por curso. El n
 | `topic` | Sí | Tema (debe coincidir exactamente con los de la UI para filtrar) |
 | `options` | Sí | Lista de 2 a 4 opciones |
 | `correct_option` | Sí | Debe coincidir exactamente con uno de los strings en `options` |
+| `image_url` | No | URL de imagen complementaria al enunciado (se muestra junto a la pregunta) |
 
 > **Importante**: los backslashes de LaTeX deben estar **escapados** en JSON (`\\frac`, `\\sin`, etc.). Un `\f` sin escapar causa `JSONDecodeError`.
 
@@ -541,3 +569,4 @@ En el siguiente arranque de la app, el ítem se sincroniza automáticamente a la
 | `openai>=1.0.0` | Cliente OpenAI-compatible (Groq, Gemini, HF, LM Studio, Ollama) |
 | `anthropic>=0.40.0` | SDK nativo de Anthropic Claude |
 | `extra-streamlit-components` | Componentes adicionales de UI |
+| `PyMuPDF` | Renderizado de PDF a imagen para revisión de procedimientos |
