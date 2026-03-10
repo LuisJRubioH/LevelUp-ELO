@@ -1,262 +1,1302 @@
 [
-    {
-        "id": "q81",
-        "content": "Solución general de $y' = 0$.",
-        "difficulty": 600,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$y = C$",
-            "$y = x + C$",
-            "$y = 0$",
-            "$y = Cx$"
-        ],
-        "correct_option": "$y = C$"
-    },
-    {
-        "id": "q82",
-        "content": "Resolver $y' = y$.",
-        "difficulty": 650,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$y = C e^x$",
-            "$y = C e^{-x}$",
-            "$y = C e^x + D$",
-            "$y = Cx$"
-        ],
-        "correct_option": "$y = C e^x$"
-    },
-    {
-        "id": "q83",
-        "content": "Resolver $y'' = 0$.",
-        "difficulty": 700,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$y = C_1 x + C_2$",
-            "$y = C_1 + C_2$",
-            "$y = C_1 e^x + C_2$",
-            "$y = C_1 \\sin x + C_2 \\cos x$"
-        ],
-        "correct_option": "$y = C_1 x + C_2$"
-    },
-    {
-        "id": "q84",
-        "content": "Orden de la ecuación diferencial $y''' + 2y'' - y = 0$.",
-        "difficulty": 750,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "3",
-            "2",
-            "1",
-            "4"
-        ],
-        "correct_option": "3"
-    },
-    {
-        "id": "q85",
-        "content": "¿Cuál de las siguientes es una EDO lineal?",
-        "difficulty": 800,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$y' + y = 0$",
-            "$y' + y^2 = 0$",
-            "$y' + \\sin y = 0$",
-            "$y y' = 0$"
-        ],
-        "correct_option": "$y' + y = 0$"
-    },
-    {
-        "id": "q86",
-        "content": "Resolver la EDO separable: dy/dx = x/y.",
-        "difficulty": 850,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$y^{2} = x^{2} + C$",
-            "$y = Ce^{x}$",
-            "$y = x + C$",
-            "$y = Cx$"
-        ],
-        "correct_option": "$y^{2} = x^{2} + C$"
-    },
-    {
-        "id": "q87",
-        "content": "Factor integrante para la EDO lineal de primer orden: $y' + P(x)y = Q(x)$.",
-        "difficulty": 900,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$e^{\\int P \\, dx}$",
-            "$e^{\\int Q \\, dx}$",
-            "$\\int P \\, dx$",
-            "$\\int Q \\, dx$"
-        ],
-        "correct_option": "$e^{\\int P \\, dx}$"
-    },
-    {
-        "id": "q88",
-        "content": "Resolver $y' + 2y = e^{-x}$.",
-        "difficulty": 950,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$y = e^{-x} + Ce^{-2x}$",
-            "$y = e^{-2x} + Ce^{-x}$",
-            "$y = e^{-x} + C$",
-            "$y = Ce^{-2x}$"
-        ],
-        "correct_option": "$y = e^{-x} + Ce^{-2x}$"
-    },
-    {
-        "id": "q89",
-        "content": "Ecuación característica de $y'' - 3y' + 2y = 0$.",
-        "difficulty": 1000,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$r^2 - 3r + 2 = 0$",
-            "$r^2 + 3r + 2 = 0$",
-            "$r^2 - 3r - 2 = 0$",
-            "$r^2 - 3 = 0$"
-        ],
-        "correct_option": "$r^2 - 3r + 2 = 0$"
-    },
-    {
-        "id": "q90",
-        "content": "Solución general de $y'' + y = 0$.",
-        "difficulty": 1050,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$y = C_1 \\cos x + C_2 \\sin x$",
-            "$y = C_1 e^x + C_2 e^{-x}$",
-            "$y = C_1 e^{ix} + C_2 e^{-ix}$",
-            "$y = C_1 \\cosh x + C_2 \\sinh x$"
-        ],
-        "correct_option": "$y = C_1 \\cos x + C_2 \\sin x$"
-    },
-    {
-        "id": "q91",
-        "content": "Resolver $y'' - 2y' + y = 0$.",
-        "difficulty": 1100,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$y = (C_1 + C_2 x)e^x$",
-            "$y = C_1 e^x + C_2 e^{-x}$",
-            "$y = C_1 e^{2x} + C_2 e^{-2x}$",
-            "$y = C_1 \\cos x + C_2 \\sin x$"
-        ],
-        "correct_option": "$y = (C_1 + C_2 x)e^x$"
-    },
-    {
-        "id": "q92",
-        "content": "Método de coeficientes indeterminados: solución particular para $y'' + y = \\sin x$.",
-        "difficulty": 1150,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$y_p = -\\frac{x}{2} \\cos x$",
-            "$y_p = A \\sin x$",
-            "$y_p = A \\cos x$",
-            "$y_p = A \\sin x + B \\cos x$"
-        ],
-        "correct_option": "$y_p = -\\frac{x}{2} \\cos x$"
-    },
-    {
-        "id": "q93",
-        "content": "Wronskiano de $y_1 = e^{x}$, $y_2 = e^{2x}$.",
-        "difficulty": 1200,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$e^{x}$",
-            "$e^{3x}$",
-            "$e^{2x}$",
-            "$0$"
-        ],
-        "correct_option": "$e^{3x}$"
-    },
-    {
-        "id": "q94",
-        "content": "Sistema de EDOs: $x' = Ax$. Si $A$ tiene valores propios complejos $\\lambda = a \\pm bi$, la solución involucra:",
-        "difficulty": 1250,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$e^{at}(\\cos bt, \\sin bt)$",
-            "$e^{at}$",
-            "$e^{bt}$",
-            "$\\cos at, \\sin bt$"
-        ],
-        "correct_option": "$e^{at}(\\cos bt, \\sin bt)$"
-    },
-    {
-        "id": "q95",
-        "content": "Transformada de Laplace de t.",
-        "difficulty": 1300,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "1/$s^{2}$",
-            "1/s",
-            "$1/s^{2}$",
-            "1"
-        ],
-        "correct_option": "$1/s^{2}$"
-    },
-    {
-        "id": "q96",
-        "content": "Transformada de Laplace de $e^{at}$.",
-        "difficulty": 1350,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$s/(s^{2}+a^{2})$",
-            "$a/(s^{2}+a^{2})$",
-            "$1/(s-a)$",
-            "$1/(s+a)$"
-        ],
-        "correct_option": "$1/(s-a)$"
-    },
-    {
-        "id": "q97",
-        "content": "Resolver usando Laplace: $y' + y = 0$, $y(0)=1$.",
-        "difficulty": 1400,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$y = e^{-t}$",
-            "$y = e^{t}$",
-            "$y = 1$",
-            "$y = \\cos t$"
-        ],
-        "correct_option": "$y = e^{-t}$"
-    },
-    {
-        "id": "q98",
-        "content": "Encuentra la ecuación indicial para la ecuación de Euler-Cauchy: $x^{2} y'' + x y' + y = 0$.",
-        "difficulty": 1450,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "$r^{2} + 1 = 0$",
-            "$r^{2} - 1 = 0$",
-            "$r^{2} + r + 1 = 0$",
-            "$r^{2} - r + 1 = 0$"
-        ],
-        "correct_option": "$r^{2} + 1 = 0$"
-    },
-    {
-        "id": "q99",
-        "content": "Plano fase: Para el sistema $dx/dt = y$, $dy/dt = -x$, las trayectorias son:",
-        "difficulty": 1500,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "Círculos",
-            "Elipses",
-            "Hipérbolas",
-            "Rectas"
-        ],
-        "correct_option": "Círculos"
-    },
-    {
-        "id": "q100",
-        "content": "Estabilidad: Para $y' = y(1-y)$, el equilibrio en $y=1$ es:",
-        "difficulty": 1550,
-        "topic": "Ecuaciones Diferenciales Ordinarias",
-        "options": [
-            "Asintóticamente estable",
-            "Inestable",
-            "Semiestable",
-            "Estable pero no asintóticamente"
-        ],
-        "correct_option": "Asintóticamente estable"
-    }
+  {
+    "id": "ed1",
+    "content": "Resuelve la ecuación diferencial de variables separables: $\\frac{dy}{dx} = \\frac{x}{y}$.",
+    "difficulty": 700,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y^2 = x^2 + C$",
+      "$y = x + C$",
+      "$y = Ce^x$",
+      "$y = Cx$"
+    ],
+    "correct_option": "$y^2 = x^2 + C$"
+  },
+  {
+    "id": "ed2",
+    "content": "La solución general de $\\frac{dy}{dx} = e^{x-y}$ es:",
+    "difficulty": 750,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$e^y = e^x + C$",
+      "$y = e^x + C$",
+      "$e^x = e^y + C$",
+      "$y = \\ln(e^x + C)$"
+    ],
+    "correct_option": "$e^y = e^x + C$"
+  },
+  {
+    "id": "ed3",
+    "content": "Resuelve la ecuación homogénea: $\\frac{dy}{dx} = \\frac{y}{x} + \\frac{x}{y}$.",
+    "difficulty": 850,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y^2 = x^2 \\ln(Cx)$",
+      "$y = x \\ln(Cx)$",
+      "$y^2 = 2x^2 \\ln(Cx)$",
+      "$y = x \\sqrt{\\ln(Cx)}$"
+    ],
+    "correct_option": "$y^2 = 2x^2 \\ln(Cx)$"
+  },
+  {
+    "id": "ed4",
+    "content": "Determina si la ecuación $(2xy + y^2) dx + (x^2 + 2xy) dy = 0$ es exacta.",
+    "difficulty": 800,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "Sí, es exacta",
+      "No, no es exacta",
+      "Es exacta solo si $x=y$",
+      "Es exacta solo si $xy=1$"
+    ],
+    "correct_option": "Sí, es exacta"
+  },
+  {
+    "id": "ed5",
+    "content": "Resuelve la ecuación exacta: $(2xy + y^2) dx + (x^2 + 2xy) dy = 0$.",
+    "difficulty": 900,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$x^2y + xy^2 = C$",
+      "$xy^2 + x^2y = C$",
+      "$x^2 + y^2 = C$",
+      "$x^2y + y^2x = C$"
+    ],
+    "correct_option": "$x^2y + xy^2 = C$"
+  },
+  {
+    "id": "ed6",
+    "content": "Encuentra un factor integrante para la ecuación no exacta: $y dx - x dy = 0$.",
+    "difficulty": 820,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{1}{x^2}$",
+      "$\\frac{1}{y^2}$",
+      "$\\frac{1}{xy}$",
+      "$\\frac{1}{x+y}$"
+    ],
+    "correct_option": "$\\frac{1}{x^2}$"
+  },
+  {
+    "id": "ed7",
+    "content": "Resuelve la ecuación lineal de primer orden: $\\frac{dy}{dx} + 2xy = x$.",
+    "difficulty": 780,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = \\frac{1}{2} + Ce^{-x^2}$",
+      "$y = \\frac{1}{2} + Ce^{x^2}$",
+      "$y = \\frac{1}{2}x + Ce^{-x^2}$",
+      "$y = Ce^{-x^2}$"
+    ],
+    "correct_option": "$y = \\frac{1}{2} + Ce^{-x^2}$"
+  },
+  {
+    "id": "ed8",
+    "content": "La ecuación de Bernoulli: $\\frac{dy}{dx} + y = xy^2$ se transforma en lineal mediante el cambio $z = y^{1-2} = y^{-1}$. La ecuación resultante es:",
+    "difficulty": 880,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{dz}{dx} - z = -x$",
+      "$\\frac{dz}{dx} + z = x$",
+      "$\\frac{dz}{dx} - z = x$",
+      "$\\frac{dz}{dx} + z = -x$"
+    ],
+    "correct_option": "$\\frac{dz}{dx} - z = -x$"
+  },
+  {
+    "id": "ed9",
+    "content": "Resuelve la ecuación de segundo orden por reducción de orden: $y'' = 2x$.",
+    "difficulty": 680,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = \\frac{x^3}{3} + C_1 x + C_2$",
+      "$y = x^2 + C_1 x + C_2$",
+      "$y = \\frac{x^3}{3} + C_1$",
+      "$y = \\frac{x^2}{2} + C_1 x + C_2$"
+    ],
+    "correct_option": "$y = \\frac{x^3}{3} + C_1 x + C_2$"
+  },
+  {
+    "id": "ed10",
+    "content": "Dada la ecuación $y'' = (y')^2$, realiza la reducción de orden usando $p = y'$. La ecuación resultante en $p$ es:",
+    "difficulty": 860,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{dp}{dx} = p^2$",
+      "$\\frac{dp}{dx} = p$",
+      "$\\frac{dp}{dx} = 1$",
+      "$\\frac{dp}{dx} = 0$"
+    ],
+    "correct_option": "$\\frac{dp}{dx} = p^2$"
+  },
+  {
+    "id": "ed11",
+    "content": "Resuelve la ecuación homogénea de segundo orden con coeficientes constantes: $y'' - 5y' + 6y = 0$.",
+    "difficulty": 720,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = C_1 e^{2x} + C_2 e^{3x}$",
+      "$y = C_1 e^{2x} + C_2 e^{-3x}$",
+      "$y = C_1 e^{-2x} + C_2 e^{3x}$",
+      "$y = C_1 e^{-2x} + C_2 e^{-3x}$"
+    ],
+    "correct_option": "$y = C_1 e^{2x} + C_2 e^{3x}$"
+  },
+  {
+    "id": "ed12",
+    "content": "La ecuación característica de $y'' + 4y = 0$ tiene raíces:",
+    "difficulty": 700,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$r = \\pm 2i$",
+      "$r = \\pm 2$",
+      "$r = \\pm i$",
+      "$r = 0$"
+    ],
+    "correct_option": "$r = \\pm 2i$"
+  },
+  {
+    "id": "ed13",
+    "content": "Solución general de $y'' + 4y = 0$:",
+    "difficulty": 710,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = C_1 \\cos 2x + C_2 \\sin 2x$",
+      "$y = C_1 e^{2x} + C_2 e^{-2x}$",
+      "$y = C_1 \\cosh 2x + C_2 \\sinh 2x$",
+      "$y = C_1 \\cos x + C_2 \\sin x$"
+    ],
+    "correct_option": "$y = C_1 \\cos 2x + C_2 \\sin 2x$"
+  },
+  {
+    "id": "ed14",
+    "content": "Resuelve la ecuación con raíces repetidas: $y'' - 4y' + 4y = 0$.",
+    "difficulty": 740,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = (C_1 + C_2 x) e^{2x}$",
+      "$y = C_1 e^{2x} + C_2 e^{-2x}$",
+      "$y = C_1 e^{2x} + C_2 x e^{2x}$",
+      "$y = C_1 \\cos 2x + C_2 \\sin 2x$"
+    ],
+    "correct_option": "$y = (C_1 + C_2 x) e^{2x}$"
+  },
+  {
+    "id": "ed15",
+    "content": "Para la ecuación no homogénea $y'' - 3y' + 2y = e^{3x}$, la forma de la solución particular (método de coeficientes indeterminados) es:",
+    "difficulty": 820,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$A e^{3x}$",
+      "$A x e^{3x}$",
+      "$A e^{2x}$",
+      "$A e^{x}$"
+    ],
+    "correct_option": "$A e^{3x}$"
+  },
+  {
+    "id": "ed16",
+    "content": "Si el término no homogéneo es $e^{2x}$ y la ecuación tiene raíces $r=2$ y $r=3$, la solución particular debe ser de la forma:",
+    "difficulty": 840,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$A x e^{2x}$",
+      "$A e^{2x}$",
+      "$A x^2 e^{2x}$",
+      "$A e^{3x}$"
+    ],
+    "correct_option": "$A x e^{2x}$"
+  },
+  {
+    "id": "ed17",
+    "content": "Usa variación de parámetros para resolver $y'' + y = \\sec x$. La solución particular es:",
+    "difficulty": 1100,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y_p = \\cos x \\ln|\\cos x| + x \\sin x$",
+      "$y_p = \\sin x \\ln|\\sec x + \\tan x|$",
+      "$y_p = -\\cos x \\ln|\\sec x + \\tan x|$",
+      "$y_p = \\sin x \\ln|\\cos x|$"
+    ],
+    "correct_option": "$y_p = \\cos x \\ln|\\cos x| + x \\sin x$"
+  },
+  {
+    "id": "ed18",
+    "content": "La ecuación de Euler-Cauchy: $x^2 y'' - 2x y' + 2y = 0$ tiene solución general:",
+    "difficulty": 900,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = C_1 x + C_2 x^2$",
+      "$y = C_1 x + C_2 x^{-1}$",
+      "$y = C_1 x^2 + C_2 x$",
+      "$y = C_1 x^2 + C_2 x \\ln x$"
+    ],
+    "correct_option": "$y = C_1 x + C_2 x^2$"
+  },
+  {
+    "id": "ed19",
+    "content": "Para la ecuación de Euler-Cauchy $x^2 y'' + x y' + y = 0$, la ecuación indicial es:",
+    "difficulty": 880,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$r^2 + 1 = 0$",
+      "$r^2 - 1 = 0$",
+      "$r^2 + r + 1 = 0$",
+      "$r^2 - r + 1 = 0$"
+    ],
+    "correct_option": "$r^2 + 1 = 0$"
+  },
+  {
+    "id": "ed20",
+    "content": "Resuelve la ecuación de orden superior: $y''' - 3y'' + 3y' - y = 0$.",
+    "difficulty": 920,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = (C_1 + C_2 x + C_3 x^2) e^x$",
+      "$y = C_1 e^x + C_2 e^{2x} + C_3 e^{3x}$",
+      "$y = C_1 e^x + C_2 x e^x + C_3 x^2 e^x$",
+      "$y = C_1 \\cos x + C_2 \\sin x + C_3 e^x$"
+    ],
+    "correct_option": "$y = (C_1 + C_2 x + C_3 x^2) e^x$"
+  },
+  {
+    "id": "ed21",
+    "content": "La transformada de Laplace de $f(t) = t^2$ es:",
+    "difficulty": 750,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{2}{s^3}$",
+      "$\\frac{1}{s^3}$",
+      "$\\frac{2}{s^2}$",
+      "$\\frac{2}{s}$"
+    ],
+    "correct_option": "$\\frac{2}{s^3}$"
+  },
+  {
+    "id": "ed22",
+    "content": "La transformada de Laplace de $f(t) = e^{at}$ es:",
+    "difficulty": 700,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{1}{s-a}$",
+      "$\\frac{1}{s+a}$",
+      "$\\frac{a}{s^2+a^2}$",
+      "$\\frac{s}{s^2+a^2}$"
+    ],
+    "correct_option": "$\\frac{1}{s-a}$"
+  },
+  {
+    "id": "ed23",
+    "content": "Calcula la transformada de Laplace de $f(t) = \\sin(kt)$.",
+    "difficulty": 720,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{k}{s^2+k^2}$",
+      "$\\frac{s}{s^2+k^2}$",
+      "$\\frac{1}{s^2+k^2}$",
+      "$\\frac{k}{s^2-k^2}$"
+    ],
+    "correct_option": "$\\frac{k}{s^2+k^2}$"
+  },
+  {
+    "id": "ed24",
+    "content": "La transformada inversa de $\\frac{1}{s^2+4}$ es:",
+    "difficulty": 730,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{1}{2} \\sin(2t)$",
+      "$\\sin(2t)$",
+      "$\\frac{1}{2} \\cos(2t)$",
+      "$\\cos(2t)$"
+    ],
+    "correct_option": "$\\frac{1}{2} \\sin(2t)$"
+  },
+  {
+    "id": "ed25",
+    "content": "Usa Laplace para resolver: $y' + y = 0$, $y(0)=2$. La solución es:",
+    "difficulty": 760,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = 2e^{-t}$",
+      "$y = 2e^{t}$",
+      "$y = e^{-2t}$",
+      "$y = 2 \\cos t$"
+    ],
+    "correct_option": "$y = 2e^{-t}$"
+  },
+  {
+    "id": "ed26",
+    "content": "Resuelve por Laplace: $y'' + y = 0$, $y(0)=1$, $y'(0)=0$.",
+    "difficulty": 800,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = \\cos t$",
+      "$y = \\sin t$",
+      "$y = \\cosh t$",
+      "$y = e^t$"
+    ],
+    "correct_option": "$y = \\cos t$"
+  },
+  {
+    "id": "ed27",
+    "content": "La transformada de Laplace de la función escalón unitario $u(t-a)$ es:",
+    "difficulty": 780,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{e^{-as}}{s}$",
+      "$\\frac{e^{as}}{s}$",
+      "$\\frac{1}{s}e^{-as}$",
+      "$\\frac{1}{s}e^{as}$"
+    ],
+    "correct_option": "$\\frac{e^{-as}}{s}$"
+  },
+  {
+    "id": "ed28",
+    "content": "Calcula la transformada de Laplace de $f(t) = t e^{at}$.",
+    "difficulty": 820,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{1}{(s-a)^2}$",
+      "$\\frac{1}{(s+a)^2}$",
+      "$\\frac{2}{(s-a)^3}$",
+      "$\\frac{a}{(s-a)^2}$"
+    ],
+    "correct_option": "$\\frac{1}{(s-a)^2}$"
+  },
+  {
+    "id": "ed29",
+    "content": "La transformada inversa de $\\frac{2s+3}{s^2+4}$ es:",
+    "difficulty": 860,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$2\\cos 2t + \\frac{3}{2} \\sin 2t$",
+      "$2\\cos 2t + 3 \\sin 2t$",
+      "$2\\sin 2t + \\frac{3}{2} \\cos 2t$",
+      "$2\\sin 2t + 3 \\cos 2t$"
+    ],
+    "correct_option": "$2\\cos 2t + \\frac{3}{2} \\sin 2t$"
+  },
+  {
+    "id": "ed30",
+    "content": "Resuelve por Laplace: $y'' - 3y' + 2y = e^{3t}$, $y(0)=1$, $y'(0)=0$.",
+    "difficulty": 1000,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = \\frac{1}{2}e^{3t} + \\frac{1}{2}e^{2t} - e^{t}$",
+      "$y = \\frac{1}{2}e^{3t} - e^{2t} + \\frac{1}{2}e^{t}$",
+      "$y = \\frac{1}{2}e^{3t} + e^{2t} - \\frac{1}{2}e^{t}$",
+      "$y = \\frac{1}{2}e^{3t} - \\frac{1}{2}e^{2t} + e^{t}$"
+    ],
+    "correct_option": "$y = \\frac{1}{2}e^{3t} + \\frac{1}{2}e^{2t} - e^{t}$"
+  },
+  {
+    "id": "ed31",
+    "content": "La serie de Fourier de una función periódica de período $2L$ tiene coeficientes dados por:",
+    "difficulty": 900,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$a_n = \\frac{1}{L} \\int_{-L}^{L} f(x) \\cos(\\frac{n\\pi x}{L}) dx$",
+      "$a_n = \\frac{2}{L} \\int_{0}^{L} f(x) \\cos(\\frac{n\\pi x}{L}) dx$",
+      "$a_n = \\frac{1}{2L} \\int_{-L}^{L} f(x) \\cos(\\frac{n\\pi x}{L}) dx$",
+      "$a_n = \\frac{1}{L} \\int_{0}^{L} f(x) \\cos(\\frac{n\\pi x}{L}) dx$"
+    ],
+    "correct_option": "$a_n = \\frac{1}{L} \\int_{-L}^{L} f(x) \\cos(\\frac{n\\pi x}{L}) dx$"
+  },
+  {
+    "id": "ed32",
+    "content": "Para una función impar en $[-L, L]$, los coeficientes de Fourier $a_n$ son:",
+    "difficulty": 850,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "Todos cero",
+      "Todos distintos de cero",
+      "Solo los pares son cero",
+      "Solo los impares son cero"
+    ],
+    "correct_option": "Todos cero"
+  },
+  {
+    "id": "ed33",
+    "content": "La serie de Fourier de $f(x)=x$ en $(-\\pi, \\pi)$ es:",
+    "difficulty": 950,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$2\\sum_{n=1}^{\\infty} \\frac{(-1)^{n+1}}{n} \\sin(nx)$",
+      "$\\sum_{n=1}^{\\infty} \\frac{(-1)^{n}}{n} \\sin(nx)$",
+      "$\\frac{\\pi}{2} + \\sum \\frac{(-1)^n}{n} \\cos(nx)$",
+      "$\\sum \\frac{1}{n} \\sin(nx)$"
+    ],
+    "correct_option": "$2\\sum_{n=1}^{\\infty} \\frac{(-1)^{n+1}}{n} \\sin(nx)$"
+  },
+  {
+    "id": "ed34",
+    "content": "El desarrollo en serie de Fourier de coseno de $f(x)=1$ en $[0,\\pi]$ es:",
+    "difficulty": 880,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$1$",
+      "$\\frac{4}{\\pi} \\sum \\frac{\\sin((2n-1)x)}{2n-1}$",
+      "$\\frac{2}{\\pi} \\sum \\frac{(-1)^{n+1}}{n} \\sin(nx)$",
+      "$\\frac{1}{2} + \\sum \\frac{2}{n\\pi} \\sin(nx)$"
+    ],
+    "correct_option": "$1$"
+  },
+  {
+    "id": "ed35",
+    "content": "La serie de Fourier de $f(x)=x^2$ en $(-\\pi, \\pi)$ tiene coeficientes $a_0$ igual a:",
+    "difficulty": 920,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{2\\pi^2}{3}$",
+      "$\\frac{\\pi^2}{3}$",
+      "$\\frac{4\\pi^2}{3}$",
+      "$\\pi^2$"
+    ],
+    "correct_option": "$\\frac{2\\pi^2}{3}$"
+  },
+  {
+    "id": "ed36",
+    "content": "La transformada de Fourier de $f(t) = e^{-a|t|}$ (con $a>0$) es:",
+    "difficulty": 1100,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{2a}{\\omega^2 + a^2}$",
+      "$\\frac{a}{\\omega^2 + a^2}$",
+      "$\\frac{2}{\\omega^2 + a^2}$",
+      "$\\frac{1}{\\omega^2 + a^2}$"
+    ],
+    "correct_option": "$\\frac{2a}{\\omega^2 + a^2}$"
+  },
+  {
+    "id": "ed37",
+    "content": "La transformada de Fourier de la función pulso rectangular $f(t) = 1$ para $|t|<1$, $0$ en otro caso, es:",
+    "difficulty": 1050,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$2\\frac{\\sin \\omega}{\\omega}$",
+      "$\\frac{\\sin \\omega}{\\omega}$",
+      "$2\\frac{\\cos \\omega}{\\omega}$",
+      "$\\frac{\\cos \\omega}{\\omega}$"
+    ],
+    "correct_option": "$2\\frac{\\sin \\omega}{\\omega}$"
+  },
+  {
+    "id": "ed38",
+    "content": "La ecuación de ondas unidimensional $u_{tt} = c^2 u_{xx}$ se resuelve mediante separación de variables. La solución general (para condiciones de frontera periódicas) involucra:",
+    "difficulty": 1200,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "Series de Fourier en $x$ y funciones trigonométricas en $t$",
+      "Exponenciales en ambas variables",
+      "Polinomios de Legendre",
+      "Funciones de Bessel"
+    ],
+    "correct_option": "Series de Fourier en $x$ y funciones trigonométricas en $t$"
+  },
+  {
+    "id": "ed39",
+    "content": "La ecuación del calor $u_t = k u_{xx}$ con condiciones de frontera homogéneas se resuelve mediante:",
+    "difficulty": 1150,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "Series de Fourier en $x$ y exponenciales en $t$",
+      "Series de Fourier en $t$ y exponenciales en $x$",
+      "Transformada de Laplace",
+      "Transformada de Fourier"
+    ],
+    "correct_option": "Series de Fourier en $x$ y exponenciales en $t$"
+  },
+  {
+    "id": "ed40",
+    "content": "La transformada de Laplace de la derivada $f'(t)$ está dada por:",
+    "difficulty": 800,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$sF(s) - f(0)$",
+      "$sF(s) + f(0)$",
+      "$F(s)/s$",
+      "$F(s) - f(0)$"
+    ],
+    "correct_option": "$sF(s) - f(0)$"
+  },
+  {
+    "id": "ed41",
+    "content": "Resuelve la ecuación de variables separables: $\\frac{dy}{dx} = \\frac{3x^2}{2y}$.",
+    "difficulty": 680,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y^2 = x^3 + C$",
+      "$y = x^3 + C$",
+      "$y^2 = \\frac{3}{2}x^3 + C$",
+      "$y = \\frac{3}{2}x^2 + C$"
+    ],
+    "correct_option": "$y^2 = x^3 + C$"
+  },
+  {
+    "id": "ed42",
+    "content": "La ecuación $\\frac{dy}{dx} = \\frac{y}{x} + \\tan\\left(\\frac{y}{x}\\right)$ es homogénea. Haciendo $v = y/x$, se obtiene:",
+    "difficulty": 860,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$x\\frac{dv}{dx} = \\tan v$",
+      "$x\\frac{dv}{dx} = v + \\tan v$",
+      "$x\\frac{dv}{dx} = \\tan v - v$",
+      "$\\frac{dv}{dx} = \\tan v$"
+    ],
+    "correct_option": "$x\\frac{dv}{dx} = \\tan v$"
+  },
+  {
+    "id": "ed43",
+    "content": "La ecuación exacta $(y\\cos x + 2x e^y) dx + (\\sin x + x^2 e^y + 2) dy = 0$ tiene solución:",
+    "difficulty": 950,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y\\sin x + x^2 e^y + 2y = C$",
+      "$y\\sin x + x^2 e^y = C$",
+      "$y\\cos x + x^2 e^y + 2y = C$",
+      "$y\\sin x + x^2 e^y + 2x = C$"
+    ],
+    "correct_option": "$y\\sin x + x^2 e^y + 2y = C$"
+  },
+  {
+    "id": "ed44",
+    "content": "Resuelve la ecuación lineal: $\\frac{dy}{dx} + \\frac{2}{x} y = x^3$.",
+    "difficulty": 820,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = \\frac{x^4}{6} + \\frac{C}{x^2}$",
+      "$y = \\frac{x^4}{6} + Cx^2$",
+      "$y = \\frac{x^3}{5} + \\frac{C}{x}$",
+      "$y = \\frac{x^4}{5} + \\frac{C}{x^2}$"
+    ],
+    "correct_option": "$y = \\frac{x^4}{6} + \\frac{C}{x^2}$"
+  },
+  {
+    "id": "ed45",
+    "content": "La ecuación de Bernoulli $\\frac{dy}{dx} + y = xy^3$ se transforma con $z = y^{-2}$. La ecuación lineal en $z$ es:",
+    "difficulty": 900,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{dz}{dx} - 2z = -2x$",
+      "$\\frac{dz}{dx} + 2z = 2x$",
+      "$\\frac{dz}{dx} - 2z = 2x$",
+      "$\\frac{dz}{dx} + 2z = -2x$"
+    ],
+    "correct_option": "$\\frac{dz}{dx} - 2z = -2x$"
+  },
+  {
+    "id": "ed46",
+    "content": "Resuelve por reducción de orden: $y'' = 2y'$, sabiendo que una solución es $y_1 = 1$.",
+    "difficulty": 800,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = C_1 + C_2 e^{2x}$",
+      "$y = C_1 + C_2 e^{-2x}$",
+      "$y = C_1 x + C_2$",
+      "$y = C_1 e^{2x} + C_2$"
+    ],
+    "correct_option": "$y = C_1 + C_2 e^{2x}$"
+  },
+  {
+    "id": "ed47",
+    "content": "La ecuación $y'' + y = 0$ tiene solución general $y = C_1 \\cos x + C_2 \\sin x$. Una solución particular de $y'' + y = \\cos x$ por coeficientes indeterminados es de la forma:",
+    "difficulty": 900,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$A x \\cos x$",
+      "$A \\cos x$",
+      "$A x \\sin x$",
+      "$A \\sin x$"
+    ],
+    "correct_option": "$A x \\sin x$"
+  },
+  {
+    "id": "ed48",
+    "content": "Resuelve la ecuación de segundo orden no homogénea: $y'' - y = e^x$.",
+    "difficulty": 850,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = C_1 e^x + C_2 e^{-x} + \\frac{x}{2} e^x$",
+      "$y = C_1 e^x + C_2 e^{-x} + \\frac{1}{2} e^x$",
+      "$y = C_1 e^x + C_2 e^{-x} + x e^x$",
+      "$y = C_1 e^x + C_2 e^{-x} + \\frac{1}{2} x e^x$"
+    ],
+    "correct_option": "$y = C_1 e^x + C_2 e^{-x} + \\frac{x}{2} e^x$"
+  },
+  {
+    "id": "ed49",
+    "content": "La ecuación de Euler-Cauchy $x^2 y'' - 3x y' + 3y = 0$ tiene solución general:",
+    "difficulty": 880,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = C_1 x + C_2 x^3$",
+      "$y = C_1 x + C_2 x^2$",
+      "$y = C_1 x^2 + C_2 x^3$",
+      "$y = C_1 x + C_2 x \\ln x$"
+    ],
+    "correct_option": "$y = C_1 x + C_2 x^3$"
+  },
+  {
+    "id": "ed50",
+    "content": "Para la ecuación de Euler-Cauchy $x^2 y'' + x y' - y = 0$, la ecuación indicial es:",
+    "difficulty": 860,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$r^2 - 1 = 0$",
+      "$r^2 + 1 = 0$",
+      "$r^2 + r - 1 = 0$",
+      "$r^2 - r - 1 = 0$"
+    ],
+    "correct_option": "$r^2 - 1 = 0$"
+  },
+  {
+    "id": "ed51",
+    "content": "Resuelve la ecuación de orden superior: $y^{(4)} - y = 0$.",
+    "difficulty": 950,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = C_1 e^x + C_2 e^{-x} + C_3 \\cos x + C_4 \\sin x$",
+      "$y = C_1 e^x + C_2 e^{-x} + C_3 e^{ix} + C_4 e^{-ix}$",
+      "$y = C_1 \\cosh x + C_2 \\sinh x + C_3 \\cos x + C_4 \\sin x$",
+      "$y = C_1 e^x + C_2 e^{-x} + C_3 x e^x + C_4 x e^{-x}$"
+    ],
+    "correct_option": "$y = C_1 e^x + C_2 e^{-x} + C_3 \\cos x + C_4 \\sin x$"
+  },
+  {
+    "id": "ed52",
+    "content": "La transformada de Laplace de $f(t) = \\cosh(at)$ es:",
+    "difficulty": 780,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{s}{s^2 - a^2}$",
+      "$\\frac{a}{s^2 - a^2}$",
+      "$\\frac{s}{s^2 + a^2}$",
+      "$\\frac{a}{s^2 + a^2}$"
+    ],
+    "correct_option": "$\\frac{s}{s^2 - a^2}$"
+  },
+  {
+    "id": "ed53",
+    "content": "La transformada inversa de $\\frac{1}{s^2 - a^2}$ es:",
+    "difficulty": 790,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{1}{a} \\sinh(at)$",
+      "$\\frac{1}{a} \\sin(at)$",
+      "$\\cosh(at)$",
+      "$\\sinh(at)$"
+    ],
+    "correct_option": "$\\frac{1}{a} \\sinh(at)$"
+  },
+  {
+    "id": "ed54",
+    "content": "Resuelve por Laplace: $y'' + 4y = \\sin t$, $y(0)=0$, $y'(0)=0$.",
+    "difficulty": 950,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = \\frac{1}{3} \\sin t - \\frac{1}{6} \\sin 2t$",
+      "$y = \\frac{1}{3} \\sin t - \\frac{1}{3} \\sin 2t$",
+      "$y = \\frac{1}{2} \\sin t - \\frac{1}{4} \\sin 2t$",
+      "$y = \\frac{1}{3} \\sin 2t - \\frac{1}{6} \\sin t$"
+    ],
+    "correct_option": "$y = \\frac{1}{3} \\sin t - \\frac{1}{6} \\sin 2t$"
+  },
+  {
+    "id": "ed55",
+    "content": "La función de transferencia de un sistema LTI con ecuación diferencial $y'' + 3y' + 2y = x(t)$ es:",
+    "difficulty": 1000,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$H(s) = \\frac{1}{s^2+3s+2}$",
+      "$H(s) = \\frac{1}{s^2+3s+2}$",
+      "$H(s) = \\frac{s^2+3s+2}{1}$",
+      "$H(s) = \\frac{1}{s^2-3s+2}$"
+    ],
+    "correct_option": "$H(s) = \\frac{1}{s^2+3s+2}$"
+  },
+  {
+    "id": "ed56",
+    "content": "La serie de Fourier de $f(x) = \\pi - x$ en $[0, 2\\pi]$ es:",
+    "difficulty": 950,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{\\pi}{2} + \\sum_{n=1}^{\\infty} \\frac{2}{n} \\sin(nx)$",
+      "$\\frac{\\pi}{2} - \\sum \\frac{2}{n} \\sin(nx)$",
+      "$\\sum \\frac{2}{n} \\cos(nx)$",
+      "$\\frac{\\pi}{2} + \\sum \\frac{(-1)^n}{n} \\sin(nx)$"
+    ],
+    "correct_option": "$\\frac{\\pi}{2} + \\sum_{n=1}^{\\infty} \\frac{2}{n} \\sin(nx)$"
+  },
+  {
+    "id": "ed57",
+    "content": "El coeficiente $a_0$ de la serie de Fourier de $f(x) = x$ en $[-\\pi, \\pi]$ es:",
+    "difficulty": 800,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$0$",
+      "$\\pi$",
+      "$2\\pi$",
+      "$\\frac{\\pi}{2}$"
+    ],
+    "correct_option": "$0$"
+  },
+  {
+    "id": "ed58",
+    "content": "La serie de Fourier de coseno de $f(x) = x$ en $[0, \\pi]$ es:",
+    "difficulty": 920,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{\\pi}{2} - \\frac{4}{\\pi} \\sum_{n=1}^{\\infty} \\frac{\\cos((2n-1)x)}{(2n-1)^2}$",
+      "$\\frac{\\pi}{2} + \\frac{4}{\\pi} \\sum \\frac{\\cos(nx)}{n^2}$",
+      "$\\frac{\\pi}{2} - \\frac{2}{\\pi} \\sum \\frac{\\cos(nx)}{n^2}$",
+      "$\\frac{\\pi}{2} + \\frac{4}{\\pi} \\sum \\frac{\\sin(nx)}{n}$"
+    ],
+    "correct_option": "$\\frac{\\pi}{2} - \\frac{4}{\\pi} \\sum_{n=1}^{\\infty} \\frac{\\cos((2n-1)x)}{(2n-1)^2}$"
+  },
+  {
+    "id": "ed59",
+    "content": "La transformada de Fourier de $f(t) = e^{-at}u(t)$ (con $a>0$) es:",
+    "difficulty": 1000,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{1}{a + i\\omega}$",
+      "$\\frac{1}{a - i\\omega}$",
+      "$\\frac{1}{\\omega + ia}$",
+      "$\\frac{1}{\\omega - ia}$"
+    ],
+    "correct_option": "$\\frac{1}{a + i\\omega}$"
+  },
+  {
+    "id": "ed60",
+    "content": "La transformada de Fourier de $f(t) = \\delta(t)$ (delta de Dirac) es:",
+    "difficulty": 850,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$1$",
+      "$0$",
+      "$\\infty$",
+      "$\\frac{1}{\\sqrt{2\\pi}}$"
+    ],
+    "correct_option": "$1$"
+  },
+  {
+    "id": "ed61",
+    "content": "Resuelve la ecuación de variables separables: $\\frac{dy}{dx} = \\frac{y \\ln x}{x}$.",
+    "difficulty": 750,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\ln y = \\frac{1}{2} (\\ln x)^2 + C$",
+      "$y = \\frac{1}{2} (\\ln x)^2 + C$",
+      "$\\ln y = \\ln x + C$",
+      "$y = C \\ln x$"
+    ],
+    "correct_option": "$\\ln y = \\frac{1}{2} (\\ln x)^2 + C$"
+  },
+  {
+    "id": "ed62",
+    "content": "La ecuación homogénea $\\frac{dy}{dx} = \\frac{x^2 + y^2}{xy}$ se transforma con $v = y/x$ en:",
+    "difficulty": 840,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$x\\frac{dv}{dx} = \\frac{1+v^2}{v} - v$",
+      "$x\\frac{dv}{dx} = \\frac{1+v^2}{v}$",
+      "$x\\frac{dv}{dx} = \\frac{1}{v}$",
+      "$x\\frac{dv}{dx} = \\frac{1+v^2}{v} + v$"
+    ],
+    "correct_option": "$x\\frac{dv}{dx} = \\frac{1+v^2}{v} - v$"
+  },
+  {
+    "id": "ed63",
+    "content": "Comprueba si la ecuación $(y e^{xy} + 2x) dx + (x e^{xy} + 2y) dy = 0$ es exacta.",
+    "difficulty": 860,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "Sí, es exacta",
+      "No, no es exacta",
+      "Es exacta solo si $xy=0$",
+      "Es exacta solo si $x=y$"
+    ],
+    "correct_option": "Sí, es exacta"
+  },
+  {
+    "id": "ed64",
+    "content": "Resuelve la ecuación lineal: $\\frac{dy}{dx} + y \\cot x = \\csc x$.",
+    "difficulty": 880,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = \\csc x (C - \\cos x)$",
+      "$y = \\sin x (C - \\cos x)$",
+      "$y = \\csc x (C + \\cos x)$",
+      "$y = \\sin x (C + \\cos x)$"
+    ],
+    "correct_option": "$y = \\csc x (C - \\cos x)$"
+  },
+  {
+    "id": "ed65",
+    "content": "La ecuación de Bernoulli $\\frac{dy}{dx} + \\frac{1}{x} y = x y^2$ se transforma con $z = y^{-1}$. La ecuación lineal en $z$ es:",
+    "difficulty": 900,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{dz}{dx} - \\frac{1}{x} z = -x$",
+      "$\\frac{dz}{dx} + \\frac{1}{x} z = x$",
+      "$\\frac{dz}{dx} - \\frac{1}{x} z = x$",
+      "$\\frac{dz}{dx} + \\frac{1}{x} z = -x$"
+    ],
+    "correct_option": "$\\frac{dz}{dx} - \\frac{1}{x} z = -x$"
+  },
+  {
+    "id": "ed66",
+    "content": "Resuelve por reducción de orden: $x^2 y'' + 2x y' = 0$, sabiendo que $y_1 = 1$ es una solución.",
+    "difficulty": 820,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = C_1 + \\frac{C_2}{x}$",
+      "$y = C_1 + C_2 x$",
+      "$y = C_1 + C_2 \\ln x$",
+      "$y = C_1 + C_2 e^x$"
+    ],
+    "correct_option": "$y = C_1 + \\frac{C_2}{x}$"
+  },
+  {
+    "id": "ed67",
+    "content": "La ecuación $y'' + 4y = \\sin 2x$ tiene solución particular de la forma:",
+    "difficulty": 900,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$A x \\cos 2x$",
+      "$A \\sin 2x$",
+      "$A x \\sin 2x$",
+      "$A \\cos 2x$"
+    ],
+    "correct_option": "$A x \\cos 2x$"
+  },
+  {
+    "id": "ed68",
+    "content": "Resuelve la ecuación de Euler-Cauchy: $x^2 y'' + 3x y' + y = 0$.",
+    "difficulty": 890,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = \\frac{C_1}{x} + \\frac{C_2 \\ln x}{x}$",
+      "$y = C_1 x^{-1} + C_2 x^{-1} \\ln x$",
+      "$y = C_1 x + C_2 x \\ln x$",
+      "$y = C_1 x^{-1} + C_2 x$"
+    ],
+    "correct_option": "$y = \\frac{C_1}{x} + \\frac{C_2 \\ln x}{x}$"
+  },
+  {
+    "id": "ed69",
+    "content": "Para la ecuación de orden superior $y''' - 3y'' + 2y' = 0$, la solución general es:",
+    "difficulty": 930,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = C_1 + C_2 e^x + C_3 e^{2x}$",
+      "$y = C_1 e^x + C_2 e^{2x} + C_3 e^{3x}$",
+      "$y = C_1 + C_2 e^{x} + C_3 e^{-2x}$",
+      "$y = C_1 + C_2 x + C_3 e^{2x}$"
+    ],
+    "correct_option": "$y = C_1 + C_2 e^x + C_3 e^{2x}$"
+  },
+  {
+    "id": "ed70",
+    "content": "La transformada de Laplace de $f(t) = t \\sin(kt)$ es:",
+    "difficulty": 950,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{2ks}{(s^2+k^2)^2}$",
+      "$\\frac{2k^2}{(s^2+k^2)^2}$",
+      "$\\frac{2ks}{s^2+k^2}$",
+      "$\\frac{2k}{s^2+k^2}$"
+    ],
+    "correct_option": "$\\frac{2ks}{(s^2+k^2)^2}$"
+  },
+  {
+    "id": "ed71",
+    "content": "La transformada inversa de $\\frac{2s+1}{s^2+2s+5}$ es:",
+    "difficulty": 1000,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$2e^{-t} \\cos 2t - \\frac{1}{2} e^{-t} \\sin 2t$",
+      "$2e^{-t} \\cos 2t + \\frac{1}{2} e^{-t} \\sin 2t$",
+      "$2e^{t} \\cos 2t - \\frac{1}{2} e^{t} \\sin 2t$",
+      "$2e^{-t} \\sin 2t + \\frac{1}{2} e^{-t} \\cos 2t$"
+    ],
+    "correct_option": "$2e^{-t} \\cos 2t - \\frac{1}{2} e^{-t} \\sin 2t$"
+  },
+  {
+    "id": "ed72",
+    "content": "Resuelve por Laplace: $y'' + 2y' + y = t e^{-t}$, $y(0)=0$, $y'(0)=0$.",
+    "difficulty": 1100,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = \\frac{1}{6} t^3 e^{-t}$",
+      "$y = \\frac{1}{2} t^2 e^{-t}$",
+      "$y = \\frac{1}{6} t^3 e^{t}$",
+      "$y = \\frac{1}{2} t e^{-t}$"
+    ],
+    "correct_option": "$y = \\frac{1}{6} t^3 e^{-t}$"
+  },
+  {
+    "id": "ed73",
+    "content": "La serie de Fourier de $f(x) = |x|$ en $[-\\pi, \\pi]$ tiene coeficientes $a_n$ para $n$ impar iguales a:",
+    "difficulty": 980,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$-\\frac{4}{\\pi n^2}$",
+      "$\\frac{4}{\\pi n^2}$",
+      "$0$",
+      "$\\frac{2}{\\pi n}$"
+    ],
+    "correct_option": "$-\\frac{4}{\\pi n^2}$"
+  },
+  {
+    "id": "ed74",
+    "content": "La serie de Fourier de $f(x) = x$ en $[0, 2\\pi]$ tiene coeficiente $a_0$ igual a:",
+    "difficulty": 820,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$2\\pi$",
+      "$\\pi$",
+      "$0$",
+      "$\\frac{\\pi}{2}$"
+    ],
+    "correct_option": "$2\\pi$"
+  },
+  {
+    "id": "ed75",
+    "content": "La transformada de Fourier de $f(t) = \\operatorname{rect}(t)$ (pulso de ancho 1 centrado en 0) es:",
+    "difficulty": 1050,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\operatorname{sinc}(\\frac{\\omega}{2})$",
+      "$\\operatorname{sinc}(\\omega)$",
+      "$2\\operatorname{sinc}(\\omega)$",
+      "$\\frac{1}{2}\\operatorname{sinc}(\\frac{\\omega}{2})$"
+    ],
+    "correct_option": "$\\operatorname{sinc}(\\frac{\\omega}{2})$"
+  },
+  {
+    "id": "ed76",
+    "content": "La transformada de Fourier de $f(t) = \\cos(\\omega_0 t)$ es:",
+    "difficulty": 1100,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\pi[\\delta(\\omega-\\omega_0)+\\delta(\\omega+\\omega_0)]$",
+      "$\\frac{1}{2}[\\delta(\\omega-\\omega_0)+\\delta(\\omega+\\omega_0)]$",
+      "$\\pi[\\delta(\\omega-\\omega_0)-\\delta(\\omega+\\omega_0)]$",
+      "$\\frac{1}{2}[\\delta(\\omega-\\omega_0)-\\delta(\\omega+\\omega_0)]$"
+    ],
+    "correct_option": "$\\pi[\\delta(\\omega-\\omega_0)+\\delta(\\omega+\\omega_0)]$"
+  },
+  {
+    "id": "ed77",
+    "content": "Resuelve la ecuación diferencial de variables separables: $\\frac{dy}{dx} = \\frac{1+y^2}{1+x^2}$.",
+    "difficulty": 760,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\arctan y = \\arctan x + C$",
+      "$\\arctan y = \\ln(1+x^2) + C$",
+      "$y = \\tan(\\arctan x + C)$",
+      "$y = \\tan(\\ln(1+x^2)+C)$"
+    ],
+    "correct_option": "$\\arctan y = \\arctan x + C$"
+  },
+  {
+    "id": "ed78",
+    "content": "La ecuación homogénea $\\frac{dy}{dx} = \\frac{x+y}{x-y}$ se transforma con $v = y/x$ en:",
+    "difficulty": 870,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$x\\frac{dv}{dx} = \\frac{1+v}{1-v} - v$",
+      "$x\\frac{dv}{dx} = \\frac{1+v}{1-v} + v$",
+      "$x\\frac{dv}{dx} = \\frac{1+v}{1-v}$",
+      "$x\\frac{dv}{dx} = \\frac{1-v}{1+v} - v$"
+    ],
+    "correct_option": "$x\\frac{dv}{dx} = \\frac{1+v}{1-v} - v$"
+  },
+  {
+    "id": "ed79",
+    "content": "Determina si la ecuación $(x^2 + y^2) dx + 2xy dy = 0$ es exacta.",
+    "difficulty": 800,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "No, no es exacta",
+      "Sí, es exacta",
+      "Es exacta solo si $x=y$",
+      "Es exacta solo si $xy=0$"
+    ],
+    "correct_option": "No, no es exacta"
+  },
+  {
+    "id": "ed80",
+    "content": "Encuentra un factor integrante para la ecuación no exacta $(x^2 + y^2) dx + 2xy dy = 0$.",
+    "difficulty": 880,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{1}{x^2}$",
+      "$\\frac{1}{y^2}$",
+      "$\\frac{1}{x^2+y^2}$",
+      "$\\frac{1}{xy}$"
+    ],
+    "correct_option": "$\\frac{1}{x^2}$"
+  },
+  {
+    "id": "ed81",
+    "content": "Resuelve la ecuación lineal: $\\frac{dy}{dx} + \\frac{3}{x} y = \\frac{\\sin x}{x^3}$.",
+    "difficulty": 900,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = \\frac{-\\cos x + C}{x^3}$",
+      "$y = \\frac{\\cos x + C}{x^3}$",
+      "$y = \\frac{-\\sin x + C}{x^3}$",
+      "$y = \\frac{\\sin x + C}{x^3}$"
+    ],
+    "correct_option": "$y = \\frac{-\\cos x + C}{x^3}$"
+  },
+  {
+    "id": "ed82",
+    "content": "La ecuación de Bernoulli $\\frac{dy}{dx} + \\frac{2}{x} y = y^3$ se transforma con $z = y^{-2}$. La ecuación lineal en $z$ es:",
+    "difficulty": 920,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{dz}{dx} - \\frac{4}{x} z = -2$",
+      "$\\frac{dz}{dx} + \\frac{4}{x} z = 2$",
+      "$\\frac{dz}{dx} - \\frac{4}{x} z = 2$",
+      "$\\frac{dz}{dx} + \\frac{4}{x} z = -2$"
+    ],
+    "correct_option": "$\\frac{dz}{dx} - \\frac{4}{x} z = -2$"
+  },
+  {
+    "id": "ed83",
+    "content": "Resuelve por reducción de orden: $y'' + y' = 0$, sabiendo que $y_1 = 1$ es solución.",
+    "difficulty": 780,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = C_1 + C_2 e^{-x}$",
+      "$y = C_1 + C_2 e^{x}$",
+      "$y = C_1 x + C_2$",
+      "$y = C_1 + C_2 \\ln x$"
+    ],
+    "correct_option": "$y = C_1 + C_2 e^{-x}$"
+  },
+  {
+    "id": "ed84",
+    "content": "La ecuación $y'' - 2y' + y = e^x$ tiene solución particular de la forma:",
+    "difficulty": 880,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$A x^2 e^x$",
+      "$A e^x$",
+      "$A x e^x$",
+      "$A e^{2x}$"
+    ],
+    "correct_option": "$A x^2 e^x$"
+  },
+  {
+    "id": "ed85",
+    "content": "Resuelve la ecuación de Euler-Cauchy: $x^2 y'' + 5x y' + 4y = 0$.",
+    "difficulty": 900,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = C_1 x^{-2} + C_2 x^{-2} \\ln x$",
+      "$y = C_1 x^{-2} + C_2 x^{-1}$",
+      "$y = C_1 x^{-1} + C_2 x^{-2}$",
+      "$y = C_1 x^{-2} + C_2 x^{-2} \\ln x$"
+    ],
+    "correct_option": "$y = C_1 x^{-2} + C_2 x^{-2} \\ln x$"
+  },
+  {
+    "id": "ed86",
+    "content": "Para la ecuación de orden superior $y^{(4)} - 2y'' + y = 0$, la solución general es:",
+    "difficulty": 1000,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = (C_1 + C_2 x) e^x + (C_3 + C_4 x) e^{-x}$",
+      "$y = C_1 e^x + C_2 e^{-x} + C_3 \\cos x + C_4 \\sin x$",
+      "$y = C_1 \\cosh x + C_2 \\sinh x + C_3 \\cos x + C_4 \\sin x$",
+      "$y = (C_1 + C_2 x) e^x + (C_3 + C_4 x) e^{-x}$"
+    ],
+    "correct_option": "$y = (C_1 + C_2 x) e^x + (C_3 + C_4 x) e^{-x}$"
+  },
+  {
+    "id": "ed87",
+    "content": "La transformada de Laplace de $f(t) = t^2 e^{at}$ es:",
+    "difficulty": 850,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{2}{(s-a)^3}$",
+      "$\\frac{2}{(s-a)^2}$",
+      "$\\frac{2}{s^3} e^{a/s}$",
+      "$\\frac{2}{s^3}$"
+    ],
+    "correct_option": "$\\frac{2}{(s-a)^3}$"
+  },
+  {
+    "id": "ed88",
+    "content": "La transformada inversa de $\\frac{2s+3}{s^2+2s+2}$ es:",
+    "difficulty": 1020,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$2e^{-t} \\cos t + e^{-t} \\sin t$",
+      "$2e^{-t} \\cos t - e^{-t} \\sin t$",
+      "$2e^{t} \\cos t + e^{t} \\sin t$",
+      "$2e^{-t} \\sin t + e^{-t} \\cos t$"
+    ],
+    "correct_option": "$2e^{-t} \\cos t + e^{-t} \\sin t$"
+  },
+  {
+    "id": "ed89",
+    "content": "Resuelve por Laplace: $y'' + 4y = \\delta(t-\\pi)$, $y(0)=0$, $y'(0)=0$.",
+    "difficulty": 1150,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = \\frac{1}{2} \\sin(2(t-\\pi)) u(t-\\pi)$",
+      "$y = \\frac{1}{2} \\cos(2(t-\\pi)) u(t-\\pi)$",
+      "$y = \\sin(2(t-\\pi)) u(t-\\pi)$",
+      "$y = \\cos(2(t-\\pi)) u(t-\\pi)$"
+    ],
+    "correct_option": "$y = \\frac{1}{2} \\sin(2(t-\\pi)) u(t-\\pi)$"
+  },
+  {
+    "id": "ed90",
+    "content": "La serie de Fourier de $f(x) = x^2$ en $[-\\pi, \\pi]$ tiene coeficientes $b_n$ iguales a:",
+    "difficulty": 900,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "Todos cero",
+      "$\\frac{2}{n} (-1)^n$",
+      "$0$ para $n$ par, $\\frac{4}{n^3}$ para $n$ impar",
+      "$\\frac{4}{n^2} (-1)^n$"
+    ],
+    "correct_option": "Todos cero"
+  },
+  {
+    "id": "ed91",
+    "content": "La serie de Fourier de $f(x) = \\sin x$ en $[-\\pi, \\pi]$ es:",
+    "difficulty": 850,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\sin x$",
+      "$\\cos x$",
+      "$\\frac{2}{\\pi} \\sum \\frac{(-1)^{n+1}}{n} \\sin(nx)$",
+      "$\\frac{2}{\\pi} \\sum \\frac{1}{n} \\sin(nx)$"
+    ],
+    "correct_option": "$\\sin x$"
+  },
+  {
+    "id": "ed92",
+    "content": "La transformada de Fourier de $f(t) = e^{-t^2}$ es:",
+    "difficulty": 1200,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\sqrt{\\pi} e^{-\\omega^2/4}$",
+      "$\\sqrt{2\\pi} e^{-\\omega^2/2}$",
+      "$\\sqrt{\\pi} e^{-\\omega^2}$",
+      "$e^{-\\omega^2/4}$"
+    ],
+    "correct_option": "$\\sqrt{\\pi} e^{-\\omega^2/4}$"
+  },
+  {
+    "id": "ed93",
+    "content": "La ecuación diferencial de un circuito RLC serie es $L \\frac{d^2i}{dt^2} + R \\frac{di}{dt} + \\frac{1}{C} i = 0$. Si $L=1$, $R=2$, $C=1$, la solución general es:",
+    "difficulty": 950,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$i = e^{-t}(C_1 \\cos t + C_2 \\sin t)$",
+      "$i = e^{-t}(C_1 + C_2 t)$",
+      "$i = C_1 e^{-t} + C_2 e^{-2t}$",
+      "$i = C_1 e^{t} + C_2 e^{-t}$"
+    ],
+    "correct_option": "$i = e^{-t}(C_1 \\cos t + C_2 \\sin t)$"
+  },
+  {
+    "id": "ed94",
+    "content": "La ecuación del movimiento de un resorte con amortiguamiento es $m\\frac{d^2x}{dt^2} + c\\frac{dx}{dt} + kx = 0$. Si $m=1$, $c=2$, $k=1$, la solución es:",
+    "difficulty": 950,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$x = e^{-t}(C_1 + C_2 t)$",
+      "$x = e^{-t}(C_1 \\cos t + C_2 \\sin t)$",
+      "$x = C_1 e^{-t} + C_2 e^{-2t}$",
+      "$x = C_1 e^{t} + C_2 e^{-t}$"
+    ],
+    "correct_option": "$x = e^{-t}(C_1 + C_2 t)$"
+  },
+  {
+    "id": "ed95",
+    "content": "Resuelve la ecuación de variables separables: $\\frac{dy}{dx} = \\frac{\\cos^2 y}{\\sin^2 x}$.",
+    "difficulty": 800,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\tan y = -\\cot x + C$",
+      "$\\tan y = \\cot x + C$",
+      "$\\tan y = \\tan x + C$",
+      "$\\tan y = -\\tan x + C$"
+    ],
+    "correct_option": "$\\tan y = -\\cot x + C$"
+  },
+  {
+    "id": "ed96",
+    "content": "La ecuación homogénea $\\frac{dy}{dx} = \\frac{x + 2y}{2x + y}$ se transforma con $v = y/x$ en:",
+    "difficulty": 880,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$x\\frac{dv}{dx} = \\frac{1+2v}{2+v} - v$",
+      "$x\\frac{dv}{dx} = \\frac{1+2v}{2+v} + v$",
+      "$x\\frac{dv}{dx} = \\frac{1+2v}{2+v}$",
+      "$x\\frac{dv}{dx} = \\frac{2+v}{1+2v} - v$"
+    ],
+    "correct_option": "$x\\frac{dv}{dx} = \\frac{1+2v}{2+v} - v$"
+  },
+  {
+    "id": "ed97",
+    "content": "Comprueba si la ecuación $(2xy + \\sin y) dx + (x^2 + x \\cos y) dy = 0$ es exacta.",
+    "difficulty": 840,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "Sí, es exacta",
+      "No, no es exacta",
+      "Es exacta solo si $x=0$",
+      "Es exacta solo si $y=0$"
+    ],
+    "correct_option": "Sí, es exacta"
+  },
+  {
+    "id": "ed98",
+    "content": "Resuelve la ecuación lineal: $\\frac{dy}{dx} + \\frac{2x}{1+x^2} y = \\frac{1}{(1+x^2)^2}$.",
+    "difficulty": 920,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = \\frac{\\arctan x + C}{1+x^2}$",
+      "$y = \\frac{\\ln(1+x^2) + C}{1+x^2}$",
+      "$y = \\frac{x + C}{1+x^2}$",
+      "$y = \\frac{1}{1+x^2} (\\arctan x + C)$"
+    ],
+    "correct_option": "$y = \\frac{\\arctan x + C}{1+x^2}$"
+  },
+  {
+    "id": "ed99",
+    "content": "La ecuación de Bernoulli $\\frac{dy}{dx} + y = x y^4$ se transforma con $z = y^{-3}$. La ecuación lineal en $z$ es:",
+    "difficulty": 940,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$\\frac{dz}{dx} - 3z = -3x$",
+      "$\\frac{dz}{dx} + 3z = 3x$",
+      "$\\frac{dz}{dx} - 3z = 3x$",
+      "$\\frac{dz}{dx} + 3z = -3x$"
+    ],
+    "correct_option": "$\\frac{dz}{dx} - 3z = -3x$"
+  },
+  {
+    "id": "ed100",
+    "content": "Resuelve por reducción de orden: $x y'' - y' = 0$, sabiendo que $y_1 = 1$ es solución.",
+    "difficulty": 860,
+    "topic": "Ecuaciones Diferenciales Ordinarias",
+    "options": [
+      "$y = C_1 + C_2 x^2$",
+      "$y = C_1 + C_2 \\ln x$",
+      "$y = C_1 + C_2 e^x$",
+      "$y = C_1 + C_2 x$"
+    ],
+    "correct_option": "$y = C_1 + C_2 x^2$"
+  }
 ]

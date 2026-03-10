@@ -14,6 +14,7 @@ Plataforma de **aprendizaje adaptativo** construida con Python y Streamlit que u
 - [Analizador Cognitivo con IA](#analizador-cognitivo-con-ia)
 - [Integración multi-proveedor de IA](#integración-multi-proveedor-de-ia)
 - [Base de datos](#base-de-datos)
+- [Niveles educativos y catálogo de cursos](#niveles-educativos-y-catálogo-de-cursos)
 - [Roles de usuario](#roles-de-usuario)
 - [Seguridad](#seguridad)
 - [Instalación y ejecución](#instalación-y-ejecución)
@@ -92,7 +93,19 @@ app.py
 LevelUp-ELO/
 ├── src/                    # Código fuente (ver árbol de arriba)
 ├── items/
-│   └── bank.json           # Banco de preguntas (sincronizado automáticamente al inicio)
+│   └── bank/               # Banco de preguntas por curso (1 JSON por curso)
+│       ├── algebra_lineal.json
+│       ├── calculo_diferencial.json
+│       ├── calculo_integral.json
+│       ├── calculo_varias_variables.json
+│       ├── ecuaciones_diferenciales.json
+│       ├── probabilidad.json
+│       ├── algebra_basica.json
+│       ├── aritmetica_basica.json
+│       ├── trigonometria.json
+│       ├── geometria.json
+│       ├── DIAN.json
+│       └── SENA.json
 ├── requirements.txt        # Dependencias Python
 ├── elo_project.db          # Base de datos SQLite (generada en el primer arranque)
 └── CLAUDE.md               # Instrucciones para Claude Code
@@ -291,6 +304,10 @@ SQLite (archivo `elo_project.db` en el directorio de trabajo). Se crea y migra a
 | `id` | INTEGER PK | Identificador |
 | `name` | TEXT | Nombre del grupo |
 | `teacher_id` | INTEGER FK | Docente propietario |
+| `course_id` | TEXT FK | Curso vinculado (catálogo) |
+| `name_normalized` | TEXT | Nombre en minúsculas para unicidad |
+
+Restricción: **índice único** en `(teacher_id, name_normalized)` — un profesor no puede crear dos grupos con el mismo nombre (case-insensitive).
 
 **`items`**
 | Campo | Tipo | Descripción |
@@ -317,6 +334,34 @@ SQLite (archivo `elo_project.db` en el directorio de trabajo). Se crea y migra a
 | `error_type` | TEXT | `conceptual` / `superficial` / `none` |
 | `rating_deviation` | REAL | RD del alumno en ese tópico tras el intento |
 
+**`courses`**
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | TEXT PK | Slug del archivo JSON (ej. `calculo_diferencial`) |
+| `name` | TEXT | Nombre legible del curso |
+| `block` | TEXT | `Universidad` / `Colegio` / `Concursos` |
+| `description` | TEXT | Descripción del curso |
+
+**`enrollments`**
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `user_id` | INTEGER FK | Estudiante |
+| `course_id` | TEXT FK | Curso matriculado |
+| `group_id` | INTEGER FK | Grupo asociado a la matrícula |
+
+**`procedure_submissions`**
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | INTEGER PK | Identificador |
+| `student_id` | INTEGER FK | Estudiante que envía |
+| `item_id` | TEXT | Pregunta asociada |
+| `image_data` | BLOB | Imagen del procedimiento |
+| `status` | TEXT | `pending` / `PENDING_TEACHER_VALIDATION` / `VALIDATED_BY_TEACHER` / `reviewed` |
+| `ai_proposed_score` | REAL | Score propuesto por IA (nunca afecta ELO directamente) |
+| `teacher_score` | REAL | Calificación oficial del docente (0–100) |
+| `final_score` | REAL | Nota final = teacher_score (única que afecta ELO) |
+| `elo_delta` | REAL | Ajuste ELO calculado: `(final_score - 50) * 0.2` |
+
 **`audit_group_changes`**: log de reasignaciones de grupo (admin), con usuario, grupo anterior/nuevo y timestamp.
 
 ### Migraciones
@@ -336,23 +381,45 @@ Si `ADMIN_PASSWORD` no está definida, no se crea ningún usuario admin automát
 
 ---
 
+## Niveles educativos y catálogo de cursos
+
+Al registrarse, cada estudiante selecciona su **nivel educativo**, que determina qué cursos puede ver:
+
+| Nivel | Bloque | Cursos |
+|---|---|---|
+| Universidad | `Universidad` | Álgebra Lineal, Cálculo Diferencial, Cálculo Integral, Cálculo de Varias Variables, Ecuaciones Diferenciales, Probabilidad |
+| Colegio | `Colegio` | Álgebra Básica, Aritmética Básica, Trigonometría, Geometría |
+| Concursos | `Concursos` | DIAN — Gestor I, SENA — Profesional 10 |
+
+El catálogo se genera automáticamente desde los archivos JSON en `items/bank/`. La asignación curso-bloque se define en `_COURSE_BLOCK_MAP` dentro de `sqlite_repository.py`.
+
+Los estudiantes se **matriculan** en cursos de su nivel y se unen a un **grupo** creado por un docente para ese curso.
+
+---
+
 ## Roles de usuario
 
 ### Estudiante
-- Debe pertenecer a un grupo (asignado por docente o admin).
-- Accede al **modo práctica**: responde preguntas, ve retroalimentación socrática con IA, rastrea su ELO por tópico.
+- Selecciona su **nivel educativo** al registrarse: Universidad, Colegio o Concursos.
+- Se matricula en **cursos** del catálogo correspondiente a su nivel y se une a un grupo del docente.
+- Accede al **modo práctica**: responde preguntas adaptativas, ve retroalimentación socrática con IA, rastrea su ELO por tópico.
+- Puede subir **procedimientos manuscritos** para revisión (IA o docente).
 - Puede ver su **dashboard de estadísticas**: historial de intentos, evolución del ELO, recomendaciones generadas con IA.
 
 ### Docente
 - Requiere aprobación del admin tras el registro.
-- Crea y gestiona **grupos de alumnos**.
+- Crea y gestiona **grupos de alumnos** vinculados a cursos del catálogo.
+- Los nombres de grupo son **únicos por profesor** (case-insensitive); el sistema rechaza duplicados.
 - Accede al **dashboard docente**: ELO por tópico de cada alumno, tasa de acierto reciente, probabilidades de fallo por pregunta, historial de intentos.
+- Revisa y califica **procedimientos** enviados por alumnos (con propuesta de la IA como referencia).
 - Puede generar **análisis pedagógico con IA** sobre cualquier alumno.
 
 ### Admin
 - Aprueba o rechaza solicitudes de docentes.
 - Reasigna alumnos entre grupos (con log de auditoría).
-- Activa/desactiva usuarios.
+- **Elimina grupos**: desvincula estudiantes y matrículas sin perder datos históricos.
+- **Da de baja estudiantes y docentes** (`active = 0`): impide login conservando todo el historial. Puede reactivarlos.
+- Todas las acciones destructivas requieren **confirmación** en la UI.
 - Acceso completo a todos los datos.
 
 ---
@@ -361,8 +428,12 @@ Si `ADMIN_PASSWORD` no está definida, no se crea ningún usuario admin automát
 
 - **Argon2id** como algoritmo de hashing de contraseñas (vía `passlib[argon2]`).
 - **Migración automática** desde hashes SHA-256 legacy: en el próximo login del usuario, el hash antiguo se reemplaza por Argon2id de forma transparente.
+- **Contraseña obligatoria** en el registro: mínimo 6 caracteres, validada en UI y backend. La columna `password_hash` es `NOT NULL`.
+- **Cuentas con contraseña inválida** (vacía, nula o solo espacios) se desactivan automáticamente en la migración de base de datos.
+- **Login bloqueado** para cuentas con hash vacío o nulo.
 - Las contraseñas nunca se almacenan en texto plano ni en logs.
 - Las API keys de los proveedores de IA se gestionan solo en memoria de sesión (sidebar de Streamlit); nunca se persisten en base de datos.
+- Las credenciales del admin se configuran exclusivamente vía **variables de entorno** (`ADMIN_PASSWORD`, `ADMIN_USER`); no hay credenciales hardcodeadas.
 
 ---
 
@@ -402,14 +473,25 @@ Si no se configura ningún proveedor, todas las funciones de IA retornan valores
 
 ## Agregar preguntas
 
-Edita `items/bank.json`. Cada pregunta requiere:
+Las preguntas se organizan en **`items/bank/`**, un archivo JSON por curso. El nombre del archivo (sin extensión) se convierte en el `course_id`. Al arrancar, `sync_items_from_bank_folder()` registra cada archivo como curso y sincroniza sus ítems.
+
+### Crear un nuevo curso
+
+1. Crea un archivo `items/bank/mi_curso.json` con un array de ítems.
+2. Agrega la entrada en `_COURSE_BLOCK_MAP` en `sqlite_repository.py`:
+   ```python
+   'mi_curso': 'Universidad',  # o 'Colegio' o 'Concursos'
+   ```
+3. Reinicia la app. El curso y sus ítems aparecerán en el catálogo.
+
+### Formato de cada ítem
 
 ```json
 {
-    "id": "q_nuevo",
+    "id": "mc_01",
     "content": "Enunciado con soporte de LaTeX: $ax^2 + bx + c = 0$",
     "difficulty": 1200,
-    "topic": "Álgebra Lineal",
+    "topic": "Mi Tema",
     "options": ["Opción A", "Opción B", "Opción C", "Opción D"],
     "correct_option": "Opción A"
 }
@@ -424,7 +506,26 @@ Edita `items/bank.json`. Cada pregunta requiere:
 | `options` | Sí | Lista de 2 a 4 opciones |
 | `correct_option` | Sí | Debe coincidir exactamente con uno de los strings en `options` |
 
+> **Importante**: los backslashes de LaTeX deben estar **escapados** en JSON (`\\frac`, `\\sin`, etc.). Un `\f` sin escapar causa `JSONDecodeError`.
+
 En el siguiente arranque de la app, el ítem se sincroniza automáticamente a la base de datos **sin sobrescribir** el rating ELO que ya hubiera acumulado.
+
+### Cursos disponibles
+
+| Archivo | Curso | Bloque |
+|---|---|---|
+| `algebra_lineal.json` | Álgebra Lineal | Universidad |
+| `calculo_diferencial.json` | Cálculo Diferencial | Universidad |
+| `calculo_integral.json` | Cálculo Integral | Universidad |
+| `calculo_varias_variables.json` | Cálculo de Varias Variables | Universidad |
+| `ecuaciones_diferenciales.json` | Ecuaciones Diferenciales | Universidad |
+| `probabilidad.json` | Probabilidad | Universidad |
+| `algebra_basica.json` | Álgebra Básica | Colegio |
+| `aritmetica_basica.json` | Aritmética Básica | Colegio |
+| `trigonometria.json` | Trigonometría | Colegio |
+| `geometria.json` | Geometría | Colegio |
+| `DIAN.json` | Concurso DIAN — Gestor I | Concursos |
+| `SENA.json` | Concurso SENA — Profesional 10 | Concursos |
 
 ---
 

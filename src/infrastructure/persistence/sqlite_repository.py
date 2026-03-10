@@ -1,4 +1,5 @@
 import os
+import sqlite3
 from src.infrastructure.security.hashing_service import HashingService
 
 # TODO: reemplazar SQLite por DB externa (PostgreSQL, etc.) en producción
@@ -14,7 +15,6 @@ class SQLiteRepository:
         self.sync_items_from_bank_folder()
 
     def get_connection(self):
-        import sqlite3
         return sqlite3.connect(self.db_name, timeout=10.0)
 
     def init_db(self):
@@ -506,8 +506,8 @@ class SQLiteRepository:
         cursor.execute("SELECT id FROM groups WHERE name = 'Grupo Demo' AND teacher_id = ?", (profesor_id,))
         if not cursor.fetchone():
             cursor.execute(
-                "INSERT INTO groups (name, teacher_id) VALUES (?, ?)",
-                ("Grupo Demo", profesor_id)
+                "INSERT INTO groups (name, teacher_id, name_normalized) VALUES (?, ?, ?)",
+                ("Grupo Demo", profesor_id, "grupo demo")
             )
             conn.commit()
 
@@ -823,7 +823,6 @@ class SQLiteRepository:
 
         Returns (True, msg) si fue creado, (False, msg) si hay duplicado u otro error.
         """
-        import sqlite3
         name_normalized = name.strip().lower()
         conn = self.get_connection()
         cursor = conn.cursor()
