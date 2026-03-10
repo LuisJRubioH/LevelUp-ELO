@@ -4,6 +4,9 @@ elo_project.db
 # Archivos cargados por usuarios (Multimedia)
 data/
 uploads/
+bugs-errores-inconsistencias/
+DIAN.jso
+SENA.json
 
 # Entornos virtuales
 .venv/
@@ -13,6 +16,7 @@ env/
 
 # Configuración sensible
 .env
+
 
 # Archivos temporales de Python
 __pycache__/
