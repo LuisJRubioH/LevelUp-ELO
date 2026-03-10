@@ -13,6 +13,9 @@ Plataforma de **aprendizaje adaptativo** construida con Python y Streamlit que u
 - [Selector adaptativo ZDP](#selector-adaptativo-zdp)
 - [Analizador Cognitivo con IA](#analizador-cognitivo-con-ia)
 - [Integración multi-proveedor de IA](#integración-multi-proveedor-de-ia)
+  - [Model Router inteligente](#model-router-inteligente-model_routerpy)
+  - [Detección automática de capacidades](#detección-automática-de-capacidades-model_capability_detectorpy)
+  - [Pipeline de verificación simbólica](#pipeline-de-verificación-simbólica)
 - [Base de datos](#base-de-datos)
 - [Niveles educativos y catálogo de cursos](#niveles-educativos-y-catálogo-de-cursos)
 - [Roles de usuario](#roles-de-usuario)
@@ -34,6 +37,8 @@ Plataforma de **aprendizaje adaptativo** construida con Python y Streamlit que u
 - **Tutor socrático con streaming**: guía al estudiante mediante preguntas sin revelar la respuesta.
 - **Dashboard docente**: los profesores visualizan ELO por tópico, tasa de error reciente, probabilidad de fallo por pregunta y pueden generar reportes con IA.
 - **Soporte multi-proveedor de IA**: Groq, OpenAI, Anthropic Claude, Google Gemini, HuggingFace, LM Studio local, Ollama local — detección automática por prefijo de API key.
+- **Model Router inteligente**: selección automática del mejor modelo por tarea (tutor socrático → rápido + razonamiento, análisis de imagen → visión + razonamiento, chat general → modelo del usuario). Registro manual de capacidades + detección heurística automática desde endpoints `/v1/models`.
+- **Pipeline de verificación simbólica**: verificación algebraica con SymPy en 4 capas (simplificación → expansión → equivalencia con valor absoluto → fallback numérico), diagnóstico de errores (distributiva incorrecta, error de signo, fracción mal simplificada) y feedback pedagógico socrático por tipo de error.
 - **Sin infraestructura externa obligatoria**: funciona completamente offline con LM Studio u Ollama; las funciones de IA degradan con gracia si no hay servidor disponible.
 - **Revisión matemática rigurosa de procedimientos**: cuando el proveedor activo es Groq, el sistema analiza imágenes de desarrollos manuscritos con `meta-llama/llama-4-scout-17b-16e-instruct` y devuelve una corrección paso a paso en JSON con un score 0–100 que ajusta el ELO del estudiante de forma secundaria.
 - **Soporte PDF en procedimientos**: los estudiantes pueden subir procedimientos en formato PDF además de imágenes; el sistema renderiza la primera página con PyMuPDF para análisis visual.
@@ -74,7 +79,15 @@ src/
 │   │   └── sqlite_repository.py  # SQLite: esquema, migraciones, seed, queries
 │   ├── external_api/
 │   │   ├── ai_client.py                 # Cliente universal multi-proveedor de IA
-│   │   └── math_procedure_review.py     # Revisión matemática rigurosa (Groq + Llama 4 Scout)
+│   │   ├── math_procedure_review.py     # Revisión matemática rigurosa (Groq + Llama 4 Scout)
+│   │   ├── model_router.py             # Router inteligente: selección de modelo por tarea
+│   │   ├── model_capability_detector.py # Detección automática de capacidades desde nombre
+│   │   ├── symbolic_math_verifier.py   # Verificador simbólico con SymPy (4 capas)
+│   │   ├── math_step_extractor.py      # Extracción estructurada de pasos matemáticos
+│   │   ├── math_ocr.py                 # OCR matemático (pix2tex > tesseract > regex)
+│   │   ├── math_reasoning_analyzer.py  # Análisis de razonamiento paso a paso
+│   │   ├── pedagogical_feedback.py     # Feedback pedagógico socrático por error
+│   │   └── math_analysis_pipeline.py   # Pipeline completo: OCR → pasos → verificación → feedback
 │   └── security/
 │       └── hashing_service.py    # Argon2id + migración desde SHA-256 legacy
 │
@@ -288,6 +301,62 @@ Ejemplos de ajuste: score 100 → +10 ELO · score 50 → 0 · score 0 → −10
 ```
 
 El ajuste ELO se aplica una sola vez por ejercicio (flag de sesión `proc_elo_applied_{item_id}`) y se muestra al alumno junto con el detalle de la revisión en la interfaz.
+
+### Model Router inteligente (`model_router.py`)
+
+Selecciona automáticamente el mejor modelo disponible según el tipo de tarea, eliminando la necesidad de usar un solo modelo para todo.
+
+**Tareas soportadas:**
+
+| Tarea | Requisitos | Prioridad |
+|---|---|---|
+| `tutor_socratic` | Razonamiento + velocidad rápida | Excluye modelos lentos; prioriza `fast` + `reasoning` |
+| `image_procedure_analysis` | Visión + razonamiento | Retorna `None` si no hay modelo con visión |
+| `general_chat` | Texto | Usa el modelo seleccionado por el usuario |
+
+**Fuentes de capacidades (en orden de prioridad):**
+1. Registro manual (`_MODEL_REGISTRY`) — modelos cloud conocidos (GPT-4o, Claude, Llama, etc.)
+2. Valores por defecto del proveedor — cada proveedor tiene capacidades típicas
+3. Detección heurística automática — análisis del nombre del modelo
+
+**Validación socrática:** `validate_socratic_response()` verifica post-generación que la respuesta no revele la solución directa (detecta patrones como "la respuesta es", "la solución es", etc.) y que sea concisa (≤ 3 oraciones). Límite de tokens: `SOCRATIC_MAX_TOKENS = 120`.
+
+### Detección automática de capacidades (`model_capability_detector.py`)
+
+Infiere visión, razonamiento y velocidad a partir del nombre del modelo mediante heurísticas:
+
+- **Visión**: detecta keywords como `vision`, `vl`, `llava`, `gpt-4o`, `gemma-3`, `llama-4`, `pixtral`, `moondream`, `fuyu`, etc.
+- **Razonamiento**: detecta `math`, `instruct`, `reason`, `-r1`, `deepseek`, `qwen`, `gpt-4`, `phi-3`, `claude`, etc.
+- **Velocidad**: `≤9B → fast`, `≤14B → medium`, `>14B/MoE/mixtral/70b → slow`
+
+`detect_all_capabilities(base_url)` consulta `GET /v1/models` y retorna las capacidades de todos los modelos disponibles en servidores OpenAI-compatibles (LM Studio, Ollama).
+
+### Pipeline de verificación simbólica
+
+Cadena de 4 módulos que complementa el análisis LLM con verificación algebraica formal:
+
+```
+OCR (math_ocr.py) → Extracción de pasos (math_step_extractor.py)
+    → Verificación simbólica (symbolic_math_verifier.py)
+        → Feedback pedagógico (pedagogical_feedback.py)
+```
+
+**Verificador simbólico (`symbolic_math_verifier.py`)** — Verificación en 4 capas:
+
+1. `simplify(e1 - e2) == 0` — equivalencia algebraica directa
+2. `expand(e1 - e2) == 0` — equivalencia tras expansión
+3. Equivalencia con valor absoluto — acepta `sqrt(x²) = x` en contexto escolar (variables positivas)
+4. Verificación numérica — sustituye valores de prueba (`x=2, 3, -2`) como fallback
+
+Diagnóstico de errores: `incorrect_distributive`, `sign_error`, `fraction_simplification`, `not_equivalent`. Soporte para ecuaciones (verifica múltiplos escalares: `3x=9 ↔ x=3`).
+
+Optimizaciones: `@lru_cache(maxsize=256)` en `simplify` y `expand`; limpieza LaTeX→SymPy con 18 patrones de reemplazo; SymPy como dependencia opcional (degrada con gracia).
+
+**Extractor de pasos (`math_step_extractor.py`)** — Detecta separadores naturales (saltos de línea, flechas `→/⇒`, numeración `1.`, prefijos `Paso N`) y clasifica cada paso en: `equation`, `simplification`, `substitution`, `factoring`, `derivative`, `integral`, `limit`, `definition`.
+
+**Feedback pedagógico (`pedagogical_feedback.py`)** — Genera pistas socráticas rotativas según el tipo de error detectado, sin revelar la respuesta.
+
+**Pipeline completo (`math_analysis_pipeline.py`)** — Orquesta los 4 módulos con fallback independiente por etapa. Se invoca automáticamente tras la revisión LLM de procedimientos en la UI.
 
 ---
 
@@ -648,3 +717,4 @@ Sube las imágenes a tu repositorio y usa la URL raw de GitHub:
 | `anthropic>=0.40.0` | SDK nativo de Anthropic Claude |
 | `extra-streamlit-components` | Componentes adicionales de UI |
 | `PyMuPDF` | Renderizado de PDF a imagen para revisión de procedimientos |
+| `sympy` | Verificación simbólica de equivalencias algebraicas en el pipeline matemático |
