@@ -499,7 +499,7 @@ Si no se configura ningún proveedor, todas las funciones de IA retornan valores
 
 ## Agregar preguntas
 
-Las preguntas se organizan en **`items/bank/`**, un archivo JSON por curso. El nombre del archivo (sin extensión) se convierte en el `course_id`. Al arrancar, `sync_items_from_bank_folder()` registra cada archivo como curso y sincroniza sus ítems.
+Las preguntas se organizan en **`items/bank/`**, un archivo JSON por curso. El nombre del archivo (sin extensión) se convierte en el `course_id`. Al arrancar, `sync_items_from_bank_folder()` registra cada archivo como curso y sincroniza sus ítems a la base de datos **sin sobrescribir** los ratings ELO que ya hubieran acumulado.
 
 ### Crear un nuevo curso
 
@@ -512,31 +512,109 @@ Las preguntas se organizan en **`items/bank/`**, un archivo JSON por curso. El n
 
 ### Formato de cada ítem
 
+**Pregunta de solo texto (sin imagen):**
+
 ```json
 {
-    "id": "mc_01",
-    "content": "Enunciado con soporte de LaTeX: $ax^2 + bx + c = 0$",
-    "difficulty": 1200,
-    "topic": "Mi Tema",
-    "options": ["Opción A", "Opción B", "Opción C", "Opción D"],
-    "correct_option": "Opción A",
-    "image_url": "https://ejemplo.com/diagrama.png"
+    "id": "cd_01",
+    "content": "Derivada de $\\sin(x)$.",
+    "difficulty": 650,
+    "topic": "Cálculo Diferencial",
+    "options": ["$\\cos(x)$", "-$\\cos(x)$", "$\\sin(x)$", "-$\\sin(x)$"],
+    "correct_option": "$\\cos(x)$"
 }
 ```
 
+**Pregunta con imagen:**
+
+```json
+{
+    "id": "geo_01",
+    "content": "Observa la siguiente figura y calcula el área sombreada.",
+    "difficulty": 1200,
+    "topic": "Geometría",
+    "options": ["$12\\pi$", "$8\\pi$", "$16\\pi$", "$4\\pi$"],
+    "correct_option": "$12\\pi$",
+    "image_url": "https://ejemplo.com/area_sombreada.png"
+}
+```
+
+### Campos del ítem
+
 | Campo | Requerido | Descripción |
 |---|---|---|
-| `id` | Sí | String único en todo el banco |
+| `id` | Sí | String único en todo el banco (ej. `cd_01`, `geo_15`) |
 | `content` | Sí | Enunciado; usar `$...$` para LaTeX inline y `$$...$$` para bloque |
 | `difficulty` | Sí | Rating ELO inicial del ítem (rango recomendado: 600–1800) |
-| `topic` | Sí | Tema (debe coincidir exactamente con los de la UI para filtrar) |
-| `options` | Sí | Lista de 2 a 4 opciones |
-| `correct_option` | Sí | Debe coincidir exactamente con uno de los strings en `options` |
-| `image_url` | No | URL de imagen complementaria al enunciado (se muestra junto a la pregunta) |
+| `topic` | Sí | Tema dentro del curso (ej. "Derivadas", "Áreas") |
+| `options` | Sí | Lista de 2 a 4 opciones (soportan LaTeX) |
+| `correct_option` | Sí | Debe coincidir **exactamente** con uno de los strings en `options` |
+| `image_url` | No | URL o ruta de imagen complementaria (se muestra debajo del enunciado) |
 
-> **Importante**: los backslashes de LaTeX deben estar **escapados** en JSON (`\\frac`, `\\sin`, etc.). Un `\f` sin escapar causa `JSONDecodeError`.
+### Preguntas con imágenes
 
-En el siguiente arranque de la app, el ítem se sincroniza automáticamente a la base de datos **sin sobrescribir** el rating ELO que ya hubiera acumulado.
+Muchas preguntas de matemáticas, geometría o concursos necesitan una figura, gráfica o diagrama que el estudiante debe analizar para responder. El campo `image_url` (o su alias `image_path`) permite asociar una imagen a cualquier pregunta. La imagen se renderiza debajo del enunciado, antes de las opciones de respuesta.
+
+#### Formas de integrar imágenes
+
+**1. URL externa (hosting de imágenes)**
+
+La forma más simple. Sube la imagen a cualquier servicio de hosting (GitHub, Imgur, Google Drive público, servidor propio) y usa la URL directa:
+
+```json
+{
+    "id": "tri_05",
+    "content": "¿Cuál es el valor del ángulo $\\alpha$ en el triángulo mostrado?",
+    "difficulty": 900,
+    "topic": "Trigonometría",
+    "options": ["$30°$", "$45°$", "$60°$", "$90°$"],
+    "correct_option": "$45°$",
+    "image_url": "https://raw.githubusercontent.com/tu-usuario/tu-repo/main/images/triangulo_alpha.png"
+}
+```
+
+> La URL debe apuntar directamente al archivo de imagen (terminando en `.png`, `.jpg`, `.svg`, etc.), no a una página HTML que contenga la imagen.
+
+**2. Ruta local relativa al proyecto**
+
+Si prefieres no depender de servicios externos, coloca las imágenes en una carpeta dentro del proyecto (por ejemplo `items/images/`) y referénciala con una ruta relativa:
+
+```json
+{
+    "id": "geo_03",
+    "content": "Calcula el perímetro de la figura.",
+    "difficulty": 1100,
+    "topic": "Geometría",
+    "options": ["$24$ cm", "$18$ cm", "$30$ cm", "$12$ cm"],
+    "correct_option": "$24$ cm",
+    "image_path": "items/images/perimetro_figura.png"
+}
+```
+
+> Usa `image_path` o `image_url` indistintamente — el sistema acepta ambos campos. Si ambos están presentes, `image_url` tiene prioridad.
+
+**3. Usando GitHub como hosting gratuito**
+
+Sube las imágenes a tu repositorio y usa la URL raw de GitHub:
+
+1. Crea una carpeta `items/images/` en tu repositorio.
+2. Sube las imágenes ahí.
+3. Usa la URL raw: `https://raw.githubusercontent.com/<usuario>/<repo>/main/items/images/mi_imagen.png`
+
+#### Recomendaciones para imágenes
+
+- **Formatos soportados**: PNG, JPG, SVG, GIF, WebP.
+- **Tamaño recomendado**: entre 400px y 1200px de ancho. La imagen se ajusta automáticamente al ancho del contenedor.
+- **Fondo**: preferir fondo blanco o transparente (PNG) para buena legibilidad.
+- **Resolución**: suficiente para que fórmulas y números sean legibles. Mínimo 150 DPI si la imagen contiene texto.
+- **Nombre del archivo**: usar nombres descriptivos (`triangulo_rectangulo_30_60.png` en lugar de `img1.png`).
+- **Sin imagen**: si el campo `image_url`/`image_path` no existe, está vacío o la URL no carga, la pregunta se muestra normalmente solo con texto — la imagen es siempre opcional y nunca rompe la UI.
+
+### Notas importantes sobre el formato JSON
+
+- Los **backslashes de LaTeX** deben estar escapados en JSON: usar `\\frac`, `\\sin`, `\\alpha`, etc. Un `\f` sin escapar causa `JSONDecodeError`.
+- Las **opciones de respuesta** también soportan LaTeX: `"$\\frac{1}{2}$"`.
+- El campo `correct_option` debe coincidir **carácter por carácter** con uno de los strings en `options`, incluyendo espacios y signos LaTeX.
 
 ### Cursos disponibles
 
