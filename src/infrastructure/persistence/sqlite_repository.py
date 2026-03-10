@@ -489,11 +489,11 @@ class SQLiteRepository:
 
         Credenciales de prueba:
         - Profesor: profesor1 / demo1234
-        - Estudiantes: estudiante1 / demo1234, estudiante2 / demo1234
+        - Estudiante universidad: estudiante1 / demo1234 (Cálculo Diferencial)
+        - Estudiante colegio: estudiante2 / demo1234 (Álgebra Básica)
 
-        Se crean dos grupos vinculados a cursos reales (Cálculo Diferencial y
-        Álgebra Básica) con los estudiantes matriculados para que puedan
-        iniciar su estudio inmediatamente.
+        Se crean dos grupos vinculados a cursos reales con cada estudiante
+        matriculado en el grupo de su nivel para iniciar estudio inmediatamente.
         """
         # Pre-computar hashes ANTES de abrir la conexión:
         # Argon2 es lento por diseño; calcularlos con la DB abierta provoca "database is locked".
@@ -546,44 +546,47 @@ class SQLiteRepository:
 
         conn.commit()
 
-        # Grupo principal para asignar a los estudiantes (Cálculo Diferencial)
-        primary_group_id = group_ids.get("calculo_diferencial")
-
-        # Estudiantes demo con nivel 'universidad'
-        for username in ("estudiante1", "estudiante2"):
+        # Estudiantes demo: cada uno en su nivel y grupo correspondiente
+        _demo_students = [
+            # (username, nivel_educativo, course_id del grupo principal)
+            ("estudiante1", "universidad", "calculo_diferencial"),
+            ("estudiante2", "colegio", "algebra_basica"),
+        ]
+        for username, edu_level, primary_course in _demo_students:
+            primary_gid = group_ids.get(primary_course)
             cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
             row = cursor.fetchone()
             if not row:
                 cursor.execute(
                     "INSERT INTO users (username, password_hash, role, approved, group_id, rating_deviation, education_level) "
-                    "VALUES (?, ?, 'student', 1, ?, 350.0, 'universidad')",
-                    (username, demo_hash, primary_group_id)
+                    "VALUES (?, ?, 'student', 1, ?, 350.0, ?)",
+                    (username, demo_hash, primary_gid, edu_level)
                 )
             else:
                 # Asegurar que el estudiante tenga grupo y nivel asignados
                 cursor.execute(
                     "UPDATE users SET group_id = COALESCE(group_id, ?), "
-                    "education_level = COALESCE(education_level, 'universidad') "
+                    "education_level = COALESCE(education_level, ?) "
                     "WHERE id = ?",
-                    (primary_group_id, row[0])
+                    (primary_gid, edu_level, row[0])
                 )
 
         conn.commit()
 
-        # Matrículas demo: inscribir estudiantes en los cursos de los grupos
-        for username in ("estudiante1", "estudiante2"):
+        # Matrículas demo: cada estudiante se inscribe en su grupo principal
+        for username, _edu, primary_course in _demo_students:
             cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
             student_id = cursor.fetchone()[0]
-            for g_course, g_id in group_ids.items():
+            g_id = group_ids.get(primary_course)
+            cursor.execute(
+                "SELECT 1 FROM enrollments WHERE user_id = ? AND course_id = ? AND group_id = ?",
+                (student_id, primary_course, g_id)
+            )
+            if not cursor.fetchone():
                 cursor.execute(
-                    "SELECT 1 FROM enrollments WHERE user_id = ? AND course_id = ? AND group_id = ?",
-                    (student_id, g_course, g_id)
+                    "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (?, ?, ?)",
+                    (student_id, primary_course, g_id)
                 )
-                if not cursor.fetchone():
-                    cursor.execute(
-                        "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (?, ?, ?)",
-                        (student_id, g_course, g_id)
-                    )
 
         conn.commit()
         conn.close()

@@ -478,10 +478,10 @@ Al primer arranque se crean automáticamente los siguientes usuarios demo (contr
 | Usuario | Contraseña | Rol | Detalle |
 |---|---|---|---|
 | `profesor1` | `demo1234` | Docente | Pre-aprobado, con dos grupos: *Grupo Demo - Cálculo* (Cálculo Diferencial) y *Grupo Demo - Álgebra* (Álgebra Básica) |
-| `estudiante1` | `demo1234` | Estudiante | Matriculado en ambos grupos, nivel Universidad |
-| `estudiante2` | `demo1234` | Estudiante | Matriculado en ambos grupos, nivel Universidad |
+| `estudiante1` | `demo1234` | Estudiante | Nivel **Universidad**, matriculado en *Grupo Demo - Cálculo* (Cálculo Diferencial) |
+| `estudiante2` | `demo1234` | Estudiante | Nivel **Colegio**, matriculado en *Grupo Demo - Álgebra* (Álgebra Básica) |
 
-Los estudiantes pueden iniciar su estudio inmediatamente tras el login — ya están inscritos en cursos con preguntas disponibles.
+Los estudiantes pueden iniciar su estudio inmediatamente tras el login — cada uno ve el catálogo de cursos de su nivel educativo.
 
 ---
 
