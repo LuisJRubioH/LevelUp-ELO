@@ -688,7 +688,7 @@ class SQLiteRepository:
         cursor = conn.cursor()
         # Obtener fechas únicas con actividad (intentos + procedimientos)
         cursor.execute('''
-            SELECT DISTINCT DATE(created_at) AS d FROM attempts WHERE user_id = ?
+            SELECT DISTINCT DATE(timestamp) AS d FROM attempts WHERE user_id = ?
             UNION
             SELECT DISTINCT DATE(submitted_at) AS d FROM procedure_submissions WHERE student_id = ?
             ORDER BY d DESC
@@ -1012,19 +1012,39 @@ class SQLiteRepository:
             conn.close()
 
     def get_students_by_teacher(self, teacher_id):
-        """Retorna estudiantes que pertenecen a CUALQUIER grupo del profesor (Seguridad)."""
+        """Retorna estudiantes vinculados al profesor vía grupo primario O matrículas.
+
+        Un estudiante puede aparecer varias veces si está matriculado en
+        múltiples grupos del profesor — una fila por (estudiante, grupo).
+        Esto permite que los filtros de grupo/nivel/materia funcionen
+        correctamente mostrando al estudiante en cada contexto.
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
+        # Unión de dos fuentes: grupo primario (users.group_id) y matrículas
+        # (enrollments.group_id). UNION elimina duplicados exactos.
         cursor.execute('''
-            SELECT u.id, u.username, u.created_at, g.name as group_name, g.id as group_id,
+            SELECT u.id, u.username, u.created_at, g.name AS group_name, g.id AS group_id,
                    g.course_id, COALESCE(c.name, '—') AS course_name,
                    COALESCE(c.block, '—') AS course_block
             FROM users u
             JOIN groups g ON u.group_id = g.id
             LEFT JOIN courses c ON g.course_id = c.id
             WHERE g.teacher_id = ? AND u.active = 1
-            ORDER BY u.username ASC
-        ''', (teacher_id,))
+
+            UNION
+
+            SELECT u.id, u.username, u.created_at, g.name AS group_name, g.id AS group_id,
+                   g.course_id, COALESCE(c.name, '—') AS course_name,
+                   COALESCE(c.block, '—') AS course_block
+            FROM enrollments e
+            JOIN users u ON e.user_id = u.id
+            JOIN groups g ON e.group_id = g.id
+            LEFT JOIN courses c ON g.course_id = c.id
+            WHERE g.teacher_id = ? AND u.active = 1
+
+            ORDER BY 2 ASC
+        ''', (teacher_id, teacher_id))
         rows = cursor.fetchall()
         conn.close()
         return [{

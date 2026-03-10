@@ -905,6 +905,17 @@ else:
             if not students:
                 st.info("No hay estudiantes en esta combinación de filtros.")
 
+            # Deduplicar estudiantes por id tras aplicar filtros (un estudiante
+            # puede aparecer en varias filas si está matriculado en múltiples
+            # grupos del profesor; los filtros ya redujeron al contexto correcto).
+            _seen_ids = set()
+            _unique_students = []
+            for _st in students:
+                if _st['id'] not in _seen_ids:
+                    _seen_ids.add(_st['id'])
+                    _unique_students.append(_st)
+            students = _unique_students
+
             # ── Selector de estudiante (sobre el subconjunto filtrado) ────────
             _stu_opts = ["— Selecciona un estudiante —"] + [s['username'] for s in students]
             _sel_name = st.selectbox(

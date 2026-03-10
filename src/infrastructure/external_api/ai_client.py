@@ -6,6 +6,30 @@ import base64
 
 from src.utils import strip_thinking_tags, strip_thinking_tags_stream
 
+
+def _normalize_latex(text: str) -> str:
+    """Normaliza notación LaTeX de modelos que usan \\(...\\) y \\[...\\] a $...$ y $$...$$.
+
+    Algunos modelos (Qwen, Mistral) emiten LaTeX con paréntesis/corchetes
+    escapados que Streamlit no renderiza. Esta función los convierte al
+    formato estándar $...$ / $$...$$ que sí se renderiza correctamente.
+    """
+    if not text:
+        return text
+    # \[...\] → $$...$$  (bloque)
+    text = re.sub(r'\\\[', '$$', text)
+    text = re.sub(r'\\\]', '$$', text)
+    # \(...\) → $...$  (inline)
+    text = re.sub(r'\\\(', '$', text)
+    text = re.sub(r'\\\)', '$', text)
+    return text
+
+
+def _normalize_latex_stream(chunk_generator):
+    """Wrapper para generadores de streaming que normaliza LaTeX chunk a chunk."""
+    for chunk in chunk_generator:
+        yield _normalize_latex(chunk)
+
 # Cargar variables de entorno desde .env si python-dotenv está instalado
 try:
     from dotenv import load_dotenv as _load_dotenv
@@ -347,32 +371,40 @@ def get_socratic_guidance(student_rating, topic, content, student_answer, correc
 def get_socratic_guidance_stream(student_rating, topic, content, student_answer, correct_answer, all_options, base_url="http://localhost:1234/v1", model_name="google/gemma-3-4b", api_key=None, provider=None):
     """Versión streaming de get_socratic_guidance. Retorna generador de chunks."""
     options_str = "\n".join([f"- {opt}" for opt in all_options])
-    prompt = f"""
-    Actúa como un Tutor Socrático altamente preciso y adaptativo.
+    prompt = f"""Actúa como un Tutor Socrático. Tu ÚNICO objetivo es hacer PREGUNTAS que guíen al estudiante a descubrir la respuesta por sí mismo.
 
-    CONTEXTO DE LA PREGUNTA:
-    - Tema: {topic}
-    - Enunciado: {content}
-    - Opciones disponibles:
+CONTEXTO DE LA PREGUNTA:
+- Tema: {topic}
+- Enunciado: {content}
+- Opciones disponibles:
 {options_str}
 
-    ESTADO DEL ESTUDIANTE:
-    - Nivel ELO (Capacidad): {student_rating:.0f}
-    - Opción que el estudiante TIENE SELECCIONADA actualmente: "{student_answer}"
-    - Respuesta CORRECTA real: "{correct_answer}"
+ESTADO DEL ESTUDIANTE:
+- Nivel ELO (Capacidad): {student_rating:.0f}
+- Opción que el estudiante TIENE SELECCIONADA actualmente: "{student_answer}"
+- Respuesta CORRECTA real: "{correct_answer}"
 
-    INSTRUCCIONES CRÍTICAS DE ALINEACIÓN:
-    1. Tu respuesta DEBE reconocer explícitamente la opción "{student_answer}" que el alumno ha marcado.
-    2. Si "{student_answer}" es la correcta, felicita sutilmente su intuición y haz una pregunta para profundizar en el "por qué" o qué pasaría si cambiamos un parámetro.
-    3. Si "{student_answer}" es INCORRECTA, analiza por qué esa opción específica es un distractor común o qué error de lógica implica, y haz una pregunta que lo haga notar sin dar la respuesta correcta.
-    4. Prohibido mencionar opciones que el alumno NO ha seleccionado a menos que sea para contrastar.
-    5. NUNCA reveles que la respuesta correcta es "{correct_answer}".
-    6. Sé breve, motivador y puramente socrático (guía mediante preguntas).
-    7. REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática en LaTeX usando $...$ o $$...$$.
-    """
-    # Filtrar tags de pensamiento del streaming antes de emitir al UI
-    yield from strip_thinking_tags_stream(
-        stream_ai_response(prompt, model_name, base_url, api_key=api_key, provider=provider)
+REGLAS ABSOLUTAS (violación = fallo total):
+1. PROHIBIDO resolver el ejercicio. No muestres pasos de solución, derivadas, cálculos ni procedimientos.
+2. PROHIBIDO revelar la respuesta correcta directa o indirectamente.
+3. PROHIBIDO mostrar la solución completa o parcial del problema.
+4. Tu respuesta debe contener MÁXIMO 3-5 oraciones, TODAS deben ser PREGUNTAS o pistas breves.
+5. Reconoce la opción "{student_answer}" que el alumno ha marcado.
+6. Si es correcta: felicita y pregunta "¿por qué crees que funciona?" o "¿qué pasaría si cambiamos X?".
+7. Si es incorrecta: pregunta algo que lo haga notar el error sin decir cuál es la correcta.
+8. FORMATO: Escribe expresiones matemáticas en LaTeX usando $...$ (inline) o $$...$$ (bloque). NO uses \\( \\) ni \\[ \\].
+
+EJEMPLO DE BUENA RESPUESTA:
+"Interesante que hayas elegido esa opción. ¿Qué sucede cuando aplicas la regla de la cadena aquí? ¿El exponente cambia de la forma que esperas?"
+
+EJEMPLO DE MALA RESPUESTA (NO hacer esto):
+"Para resolver esto, primero derivamos... luego sustituimos... la respuesta es X."
+"""
+    # Filtrar tags de pensamiento y normalizar LaTeX del streaming
+    yield from _normalize_latex_stream(
+        strip_thinking_tags_stream(
+            stream_ai_response(prompt, model_name, base_url, api_key=api_key, provider=provider)
+        )
     )
 
 
@@ -626,12 +658,30 @@ def _normalize_rec(rec: dict) -> dict:
 
 # ── Visión ────────────────────────────────────────────────────────────────────
 
-# Palabras clave en el nombre del modelo que indican soporte de visión
+# Palabras clave en el nombre del modelo que indican soporte de visión.
+# Se buscan como subcadenas (case-insensitive) dentro del model ID completo.
+# Incluye modelos cloud y locales populares con capacidad multimodal.
 _VISION_KEYWORDS = [
+    # OpenAI
     'gpt-4o', 'gpt-4-vision', 'gpt-4-turbo', 'gpt-4.1',
-    'vision', 'llava', 'pixtral', 'qwen-vl', 'qwen2-vl',
-    'minicpm-v', 'internvl', 'cogvlm', 'gemini', 'claude',
-    'llama-4', 'llama4',  # Llama 4 Scout tiene visión
+    # Google / Anthropic
+    'gemini', 'claude',
+    # Meta Llama 4+ (visión nativa)
+    'llama-4', 'llama4',
+    # Mistral con visión (Mistral 3+, Pixtral)
+    'mistral-3', 'mistral3', 'pixtral',
+    # Qwen con visión (múltiples convenciones de nombre)
+    'qwen-vl', 'qwen2-vl', 'qwen2.5-vl', 'qwen-2-vl', 'qwen2.5-v',
+    # Google Gemma 3+ (visión nativa desde Gemma 3)
+    'gemma-3', 'gemma3',
+    # GML (variante de Gemma con visión)
+    'gml-',
+    # Keyword genérico: cualquier modelo con "vision" o "vl" en el nombre
+    'vision', 'llava', '-vl-', '-vl:',
+    # Otros modelos locales populares con visión
+    'minicpm-v', 'internvl', 'cogvlm', 'moondream',
+    'deepseek-vl', 'phi-3-vision', 'phi-3.5-vision', 'phi-4-vision',
+    'molmo', 'ovis', 'mantis', 'idefics',
 ]
 
 _VISION_PROMPT = """Eres un profesor de matemáticas revisando el procedimiento manuscrito de un estudiante.
@@ -649,12 +699,28 @@ INSTRUCCIONES DE REVISIÓN:
 Sé específico, directo y pedagógico."""
 
 
+# Modelos que matchean keywords de visión pero son solo texto.
+# Se excluyen explícitamente para evitar falsos positivos.
+_VISION_EXCLUSIONS = [
+    'qwen2.5-math',      # modelo matemático sin visión
+    'qwen2.5-coder',     # modelo de código sin visión
+    'gemma-3-1b',        # Gemma 3 1B no tiene visión (solo 4B+)
+]
+
+
 def _model_supports_vision(model_name: str, provider: str) -> bool:
-    """Heurística para detectar si el modelo/proveedor activo soporta visión."""
+    """Heurística para detectar si el modelo/proveedor activo soporta visión.
+
+    Usa una lista de keywords conocidos de modelos con visión y
+    una lista de exclusión para falsos positivos.
+    """
     if provider in ('anthropic', 'gemini'):
         return True
     if model_name:
         model_lower = model_name.lower()
+        # Verificar exclusiones primero (modelos de texto que matchean keywords)
+        if any(ex in model_lower for ex in _VISION_EXCLUSIONS):
+            return False
         return any(kw in model_lower for kw in _VISION_KEYWORDS)
     return False
 
