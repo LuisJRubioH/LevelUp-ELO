@@ -167,7 +167,15 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
             content = resp.content[0].text
             return strip_thinking_tags(content)
         except Exception as e:
-            return f"Error Anthropic: {str(e)}"
+            # T9c: mapeo estandarizado de errores Anthropic
+            err_str = str(e)
+            if "401" in err_str or "authentication" in err_str.lower():
+                return "ERROR_401: ❌ API Key inválida o expirada para Anthropic. Verifica tu clave en el panel lateral."
+            if "429" in err_str or "rate_limit" in err_str.lower():
+                return "ERROR_429: ⏳ Límite de solicitudes alcanzado. Espera un momento antes de continuar."
+            if "timeout" in err_str.lower() or "connection" in err_str.lower():
+                raise ConnectionError("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.") from e
+            return f"❌ Error inesperado: {type(e).__name__}. Contacta al administrador."
 
     elif api_key:
         # ── OpenAI-compatible cloud (Groq, OpenAI, Gemini, HuggingFace, …) ──
@@ -186,13 +194,20 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
         except Exception as e:
             global _AI_KEY_ERROR
             err_str = str(e)
+            # T9c: mapeo estandarizado de errores HTTP a mensajes en español
             if "401" in err_str or "invalid_api_key" in err_str.lower() or "authentication" in err_str.lower():
                 _AI_KEY_ERROR = (
-                    f"❌ API Key inválida para {provider or 'proveedor cloud'}. "
+                    f"❌ API Key inválida o expirada para {provider or 'proveedor cloud'}. "
                     "Verifica tu clave en el panel lateral (⚙️ Configuración IA)."
                 )
                 return f"ERROR_401: {_AI_KEY_ERROR}"
-            return f"Error {provider or 'cloud'}: {err_str}"
+            if "429" in err_str or "rate_limit" in err_str.lower() or "too many requests" in err_str.lower():
+                return "ERROR_429: ⏳ Límite de solicitudes alcanzado. Espera un momento antes de continuar."
+            if "timeout" in err_str.lower() or "timed out" in err_str.lower():
+                raise TimeoutError("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.") from e
+            if "connection" in err_str.lower():
+                raise ConnectionError("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.") from e
+            return f"❌ Error inesperado: {type(e).__name__}. Contacta al administrador."
     else:
         # ── LM Studio / Ollama local ─────────────────────────────────────────
         payload = {
@@ -207,9 +222,16 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
             if response.status_code == 200:
                 content = response.json()['choices'][0]['message']['content']
                 return strip_thinking_tags(content)
-            return f"Error HTTP {response.status_code}"
+            # T9c: mensajes estandarizados para errores del servidor local
+            if response.status_code == 429:
+                return "ERROR_429: ⏳ Límite de solicitudes alcanzado. Espera un momento antes de continuar."
+            return f"❌ Error HTTP {response.status_code} del servidor local."
+        except requests.exceptions.ConnectionError as e:
+            raise ConnectionError("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.") from e
+        except requests.exceptions.Timeout as e:
+            raise TimeoutError("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.") from e
         except Exception as e:
-            return f"Error de conexión: {str(e)}"
+            return f"❌ Error inesperado: {type(e).__name__}. Contacta al administrador."
 
 
 def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", api_key=None, provider=None):

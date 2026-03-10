@@ -574,7 +574,11 @@ else:
                     label_visibility="collapsed",
                     horizontal=True,
                 )
-                st.session_state.ai_provider_mode = {"🤖 Auto": "auto", "☁️ API Key": "cloud", "🖥️ Local": "local"}[_t_mode]
+                _new_mode_t = {"🤖 Auto": "auto", "☁️ API Key": "cloud", "🖥️ Local": "local"}[_t_mode]
+                # T9b: limpiar API key al cambiar de modo para evitar mezclas entre proveedores
+                if st.session_state.ai_provider_mode != _new_mode_t:
+                    st.session_state.cloud_api_key = None
+                    st.session_state.ai_provider_mode = _new_mode_t
 
                 if _t_mode == "🤖 Auto":
                     if st.button("🔄 Reconectar", key="btn_reconnect_teacher"):
@@ -840,8 +844,8 @@ else:
         if not students:
             st.info("Aún no tienes estudiantes vinculados a tus grupos.")
         else:
-            # ── Fila de filtros: Grupo + Selector de estudiante ───────────────
-            _f_col1, _f_col2 = st.columns([1, 1])
+            # ── Fila de filtros: Grupo + Nivel + Materia ─────────────────────
+            _f_col1, _f_col2, _f_col3 = st.columns([1, 1, 1])
             with _f_col1:
                 _grp_opts = {"Todos mis grupos": None}
                 _grp_opts.update({g['name']: g['id'] for g in groups})
@@ -854,11 +858,41 @@ else:
                     students = [s for s in students if s['group_id'] == selected_group_id]
 
             with _f_col2:
-                _stu_opts = ["— Selecciona un estudiante —"] + [s['username'] for s in students]
-                _sel_name = st.selectbox(
-                    "👤 Ver detalle de estudiante", _stu_opts,
-                    key="tch_student_selector",
+                # Nivel educativo: filtra por el bloque del curso vinculado al grupo
+                _level_opts = ["Todos", "Colegio", "Universidad", "Concursos"]
+                _sel_level = st.selectbox(
+                    "🎓 Filtrar por Nivel", _level_opts,
+                    key="tch_level_filter",
                 )
+                if _sel_level != "Todos":
+                    students = [s for s in students if s.get('course_block') == _sel_level]
+
+            with _f_col3:
+                # Materia: lista dinámica construida a partir de los cursos reales
+                # de los estudiantes ya filtrados por grupo y nivel.
+                # Se usa "Todas" como opción por defecto para evitar conflictos
+                # de Streamlit cuando las opciones cambian entre reruns.
+                _all_subjects = sorted(set(
+                    s.get('course_name', '—') for s in students if s.get('course_name', '—') != '—'
+                ))
+                _subj_opts = ["Todas"] + _all_subjects
+                _sel_subject = st.selectbox(
+                    "📚 Filtrar por Materia", _subj_opts,
+                    key="tch_subject_filter",
+                )
+                if _sel_subject != "Todas":
+                    students = [s for s in students if s.get('course_name') == _sel_subject]
+
+            # ── Verificación de filtros vacíos ────────────────────────────────
+            if not students:
+                st.info("No hay estudiantes en esta combinación de filtros.")
+
+            # ── Selector de estudiante (sobre el subconjunto filtrado) ────────
+            _stu_opts = ["— Selecciona un estudiante —"] + [s['username'] for s in students]
+            _sel_name = st.selectbox(
+                "👤 Ver detalle de estudiante", _stu_opts,
+                key="tch_student_selector",
+            )
 
             # ── Tabla resumen ELO (siempre visible) ───────────────────────────
             st.subheader(f"📈 Rendimiento ELO — {selected_group_name}")
@@ -1074,14 +1108,15 @@ else:
                                 procedure_stats=_ai_proc_stats,
                                 procedure_stats_by_course=_proc_by_course,
                             )
-                        if isinstance(_analysis, str) and _analysis.startswith("ERROR_401:"):
-                            st.error(_analysis.replace("ERROR_401: ", ""))
+                        # T9c: detectar errores estandarizados de la capa IA
+                        if isinstance(_analysis, str) and (_analysis.startswith("ERROR_401:") or _analysis.startswith("ERROR_429:")):
+                            st.error(_analysis.split(": ", 1)[1])
                         else:
                             with st.container(border=True):
                                 st.markdown("#### 📋 Análisis Pedagógico con IA")
                                 st.markdown(_analysis)
                     except (ConnectionError, TimeoutError):
-                        st.info("IA no disponible en este momento. Inténtalo más tarde.")
+                        st.error("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.")
 
     # ══════════════════════════════════════════════════════════════════════════
     # VISTA: ESTUDIANTE (sin cambios funcionales)
@@ -1154,7 +1189,7 @@ else:
             st.write(f"### Hola, **{st.session_state.username}**")
             mode = st.radio(
                 "Modo",
-                ["📝 Practicar", "📊 Estadísticas", "🎓 Mis Cursos"],
+                ["📝 Practicar", "📊 Estadísticas", "🎓 Mis Cursos", "💬 Feedback"],
                 label_visibility="collapsed",
             )
             st.caption("Navegación Principal")
@@ -1192,7 +1227,11 @@ else:
                     label_visibility="collapsed",
                     horizontal=True,
                 )
-                st.session_state.ai_provider_mode = {"🤖 Auto": "auto", "☁️ API Key": "cloud", "🖥️ Local": "local"}[_s_mode]
+                _new_mode_s = {"🤖 Auto": "auto", "☁️ API Key": "cloud", "🖥️ Local": "local"}[_s_mode]
+                # T9b: limpiar API key al cambiar de modo para evitar mezclas entre proveedores
+                if st.session_state.ai_provider_mode != _new_mode_s:
+                    st.session_state.cloud_api_key = None
+                    st.session_state.ai_provider_mode = _new_mode_s
 
                 if _s_mode == "🤖 Auto":
                     if st.button("🔄 Reconectar", key="btn_reconnect_ai"):
@@ -1359,7 +1398,8 @@ else:
 
                     with st.container(border=True):
                         # Color dinámico por dificultad
-                        diff = item_data['difficulty']
+                        # T9a: null safety — proteger accesos a campos del ítem
+                        diff = item_data.get('difficulty') or 1000
                         if diff < 800:
                             diff_color = "#92FE9D"  # Verde neón (Fácil)
                         elif diff < 1100:
@@ -1370,10 +1410,10 @@ else:
                             diff_color = "#FF4B4B"  # Rojo (Experto)
 
                         st.markdown(f"<span style='color: {diff_color}; font-weight: 700; font-size: 0.9rem;'>⚡ Dificultad {diff:.0f}</span>", unsafe_allow_html=True)
-                        st.markdown(f"### {item_data['content']}")
+                        st.markdown(f"### {item_data.get('content') or ''}")
                         st.write("")
 
-                        if 'options' in item_data:
+                        if item_data.get('options'):
                             # Bug 3: Aleatorizar opciones
                             shuffled_options = item_data['options'].copy()
                             random.Random(item_data['id']).shuffle(shuffled_options)
@@ -1401,11 +1441,11 @@ else:
                             submit_button = st.button(label="📝 Enviar Respuesta", width='stretch')
 
                             if submit_button:
-                                is_correct = (selected_option == item_data['correct_option'])
+                                is_correct = (selected_option == item_data.get('correct_option'))
                                 if is_correct:
                                     st.success("¡Respuesta correcta! Excelente análisis. 🎓")
                                 else:
-                                    st.error(f"Respuesta incorrecta. La opción correcta era: **{item_data['correct_option']}**")
+                                    st.error(f"Respuesta incorrecta. La opción correcta era: **{item_data.get('correct_option') or '—'}**")
                                 
                                 time.sleep(1.5)
                                 handle_answer_topic(is_correct, item_data)
@@ -1420,19 +1460,19 @@ else:
                                 with st.chat_message("assistant", avatar="🎓"):
                                     st.write_stream(get_socratic_guidance_stream(
                                         current_elo_display,
-                                        item_data['topic'],
-                                        item_data['content'],
+                                        item_data.get('topic') or '',
+                                        item_data.get('content') or '',
                                         current_ans,
-                                        correct_answer=item_data['correct_option'],
-                                        all_options=item_data['options'],
+                                        correct_answer=item_data.get('correct_option') or '',
+                                        all_options=item_data.get('options') or [],
                                         base_url=st.session_state.ai_url,
                                         model_name=st.session_state.model_cog,
                                         api_key=st.session_state.cloud_api_key,
                                         provider=st.session_state.get('ai_provider'),
                                     ))
                             except (ConnectionError, TimeoutError):
-                                st.info("IA no disponible en este momento. Inténtalo más tarde.")
-                        elif 'options' not in item_data:
+                                st.error("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.")
+                        elif not item_data.get('options'):
                             st.warning("Pregunta sin opciones configuradas.")
 
             # --- Procedimiento Manuscrito (columna izquierda, debajo del ELO) ---
@@ -1488,14 +1528,14 @@ else:
                                                 _rev = review_math_procedure(
                                                     uploaded_file.getvalue(), _mime,
                                                     api_key=st.session_state.cloud_api_key,
-                                                    question_content=item_data['content'],
+                                                    question_content=item_data.get('content') or '',
                                                 )
                                                 st.session_state[f'proc_review_{_iid}'] = _rev
                                                 # Guardar imagen + puntuación propuesta por IA en DB
                                                 # (una sola vez por ejercicio; ELO NO se modifica aquí)
                                                 if not st.session_state.get(f'proc_ai_saved_{_iid}', False):
                                                     st.session_state.db.save_procedure_submission(
-                                                        _uid, _iid, item_data['content'],
+                                                        _uid, _iid, item_data.get('content') or '',
                                                         uploaded_file.getvalue(), _mime,
                                                     )
                                                     _ai_score = _rev.get('score_procedimiento')
@@ -1512,7 +1552,7 @@ else:
                                             try:
                                                 result = analyze_procedure_image(
                                                     uploaded_file.getvalue(), _mime,
-                                                    item_data['content'],
+                                                    item_data.get('content') or '',
                                                     model_name=st.session_state.model_analysis,
                                                     base_url=st.session_state.ai_url,
                                                     api_key=st.session_state.cloud_api_key,
@@ -1664,7 +1704,7 @@ else:
                                         width='stretch',
                                     ):
                                         st.session_state.db.save_procedure_submission(
-                                            _uid, _iid, item_data['content'],
+                                            _uid, _iid, item_data.get('content') or '',
                                             uploaded_file.getvalue(), _mime,
                                         )
                                         st.rerun()
@@ -1816,8 +1856,9 @@ else:
                             procedure_stats_by_course=_proc_by_course_student,
                         )
                     # Detectar error de autenticación antes de guardar
-                    if isinstance(recs, str) and recs.startswith("ERROR_401:"):
-                        st.error(recs.replace("ERROR_401: ", ""))
+                    # T9c: detectar errores estandarizados de la capa IA
+                    if isinstance(recs, str) and (recs.startswith("ERROR_401:") or recs.startswith("ERROR_429:")):
+                        st.error(recs.split(": ", 1)[1])
                     else:
                         # Guardar en session_state y renderizar FUERA del spinner
                         st.session_state['study_recs'] = recs if isinstance(recs, list) else []
@@ -1928,3 +1969,83 @@ else:
                     _grp_label = _ec.get('group_name', '')
                     _suffix = f"— {_grp_label}" if _grp_label else f"— {_ec['block']}"
                     st.markdown(f"- **{_ec['name']}** {_suffix}")
+
+        # ── MODO: Centro de Feedback (solo lectura) ───────────────────────────
+        elif mode == "💬 Feedback":
+            st.title("💬 Centro de Feedback")
+            st.caption("Historial de tus entregas de procedimiento y retroalimentación recibida. Solo lectura.")
+
+            # Consulta todas las entregas del estudiante ordenadas por fecha DESC
+            _fb_rows = repo.get_student_feedback_history(st.session_state.user_id)
+
+            if not _fb_rows:
+                st.info("Aún no tienes entregas de procedimiento. Envía tu primer procedimiento desde el modo Practicar.")
+            else:
+                for _fb in _fb_rows:
+                    # Encabezado: pregunta resumida + fecha
+                    _item_label = _fb.get('item_short') or _fb.get('item_id', '—')
+                    _date_label = (_fb.get('submitted_at') or '—')[:16]
+                    _status = _fb.get('status', 'pending')
+
+                    # Indicador visual del estado de revisión
+                    _status_map = {
+                        'pending': "🟡 Pendiente",
+                        'PENDING_TEACHER_VALIDATION': "🟠 Esperando validación docente",
+                        'VALIDATED_BY_TEACHER': "🟢 Validado por docente",
+                        'reviewed': "🟢 Revisado",
+                    }
+                    _status_label = _status_map.get(_status, f"⚪ {_status}")
+
+                    with st.expander(f"📄 {_item_label}… — {_date_label} — {_status_label}"):
+                        # Nota IA: ai_proposed_score (0-100). Si no existe, sin dato.
+                        _ai_score = _fb.get('ai_proposed_score')
+
+                        # Nota docente: flujo formal (final_score/teacher_score, 0-100)
+                        # o flujo legacy (procedure_score, 0-5 escalado a 0-100).
+                        _final = _fb.get('final_score')
+                        if _final is None:
+                            _final = _fb.get('teacher_score')
+                        if _final is None:
+                            _legacy = _fb.get('procedure_score')
+                            if _legacy is not None:
+                                _final = _legacy * 20.0
+
+                        # Mostrar notas siempre visibles con métricas grandes
+                        _m1, _m2, _m3 = st.columns(3)
+                        _m1.metric(
+                            "🤖 Nota IA",
+                            f"{_ai_score:.1f}" if _ai_score is not None else "—",
+                        )
+                        _m2.metric(
+                            "👨‍🏫 Nota Docente",
+                            f"{_final:.1f}" if _final is not None else "—",
+                        )
+                        _m3.metric("📅 Enviado", _date_label)
+
+                        # Justificación IA (ai_feedback)
+                        _ai_fb = _fb.get('ai_feedback')
+                        if _ai_fb:
+                            st.markdown("**Retroalimentación IA:**")
+                            st.info(_ai_fb)
+
+                        # Comentario manual del docente (teacher_feedback)
+                        _tch_fb = _fb.get('teacher_feedback')
+                        if _tch_fb:
+                            st.markdown("**Comentario del docente:**")
+                            st.success(_tch_fb)
+
+                        # Si no hay ningún comentario todavía
+                        if not _ai_fb and not _tch_fb:
+                            st.caption("Sin comentarios aún.")
+
+                        # Enlace para ver el archivo enviado (procedure_image_path)
+                        _img_path = _fb.get('procedure_image_path')
+                        if _img_path and os.path.isfile(_img_path):
+                            st.markdown("**Archivo enviado:**")
+                            st.image(_img_path, caption="Procedimiento enviado", use_container_width=True)
+
+                        # Enlace para ver corrección del docente (feedback_image_path)
+                        _fb_img_path = _fb.get('feedback_image_path')
+                        if _fb_img_path and os.path.isfile(_fb_img_path):
+                            st.markdown("**Corrección del docente:**")
+                            st.image(_fb_img_path, caption="Archivo corregido", use_container_width=True)

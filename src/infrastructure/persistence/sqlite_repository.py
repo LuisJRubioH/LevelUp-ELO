@@ -916,15 +916,22 @@ class SQLiteRepository:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT u.id, u.username, u.created_at, g.name as group_name, g.id as group_id
+            SELECT u.id, u.username, u.created_at, g.name as group_name, g.id as group_id,
+                   g.course_id, COALESCE(c.name, '—') AS course_name,
+                   COALESCE(c.block, '—') AS course_block
             FROM users u
             JOIN groups g ON u.group_id = g.id
+            LEFT JOIN courses c ON g.course_id = c.id
             WHERE g.teacher_id = ? AND u.active = 1
             ORDER BY u.username ASC
         ''', (teacher_id,))
         rows = cursor.fetchall()
         conn.close()
-        return [{'id': r[0], 'username': r[1], 'created_at': r[2], 'group_name': r[3], 'group_id': r[4]} for r in rows]
+        return [{
+            'id': r[0], 'username': r[1], 'created_at': r[2],
+            'group_name': r[3], 'group_id': r[4],
+            'course_id': r[5], 'course_name': r[6], 'course_block': r[7]
+        } for r in rows]
 
     def get_students_by_group(self, group_id, teacher_id):
         """Retorna estudiantes de un grupo específico, validando que sea del profesor."""
@@ -1527,6 +1534,33 @@ class SQLiteRepository:
                     'ai_proposed_score', 'teacher_score', 'final_score']
             return dict(zip(cols, row))
         return None
+
+    def get_student_feedback_history(self, student_id):
+        """Historial completo de entregas del estudiante para el Centro de Feedback.
+
+        Retorna todas las procedure_submissions del estudiante con datos de la
+        pregunta asociada, ordenadas por fecha descendente (más reciente primero).
+        Solo lectura — no dispara recálculo de ELO ni puntuación.
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT ps.id, ps.item_id,
+                   SUBSTR(ps.item_content, 1, 80) AS item_short,
+                   ps.ai_proposed_score, ps.ai_feedback,
+                   ps.final_score, ps.teacher_score,
+                   ps.procedure_score,
+                   ps.teacher_feedback,
+                   ps.status, ps.submitted_at, ps.reviewed_at,
+                   ps.procedure_image_path, ps.feedback_image_path
+            FROM procedure_submissions ps
+            WHERE ps.student_id = ?
+            ORDER BY ps.submitted_at DESC
+        ''', (student_id,))
+        cols = [c[0] for c in cursor.description]
+        rows = [dict(zip(cols, r)) for r in cursor.fetchall()]
+        conn.close()
+        return rows
 
     def get_pending_submissions_count(self, teacher_id):
         """Cuenta las entregas pendientes de revisión del docente.
