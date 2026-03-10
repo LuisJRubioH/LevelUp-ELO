@@ -279,6 +279,8 @@ class SQLiteRepository:
         self._add_column_if_not_exists(cursor, 'procedure_submissions', 'elo_delta', "REAL")
         # v5 — retroalimentación textual generada por la IA (evaluacion_global del modelo)
         self._add_column_if_not_exists(cursor, 'procedure_submissions', 'ai_feedback', "TEXT")
+        # v6 — hash SHA-256 del archivo subido para detección anti-plagio (T7)
+        self._add_column_if_not_exists(cursor, 'procedure_submissions', 'file_hash', "TEXT")
 
         # ── LMS: Cursos y Matrículas ─────────────────────────────────────────────
 
@@ -315,6 +317,8 @@ class SQLiteRepository:
 
         # Vincular ítems a su curso (migración aditiva)
         self._add_column_if_not_exists(cursor, 'items', 'course_id', "TEXT REFERENCES courses(id)")
+        # T14: campo opcional para imagen/diagrama asociado a la pregunta
+        self._add_column_if_not_exists(cursor, 'items', 'image_url', "TEXT")
 
         # ── Migración: ampliar CHECK constraint de courses.block ──────────────
         # SQLite no soporta ALTER TABLE para modificar constraints; hay que
@@ -611,6 +615,41 @@ class SQLiteRepository:
         ''', (user_id, item_id, is_correct, difficulty, topic, elo_after, prob_failure, expected_score, time_taken, confidence_score, error_type, rating_deviation))
         conn.commit()
         conn.close()
+
+    def get_study_streak(self, user_id):
+        """Calcula la racha de días consecutivos de estudio del estudiante.
+
+        Cuenta hacia atrás desde hoy (o ayer si hoy no hay actividad aún).
+        Un día cuenta si tiene al menos 1 intento o 1 procedimiento enviado.
+        Retorna el número de días consecutivos (0 si no hay actividad reciente).
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        # Obtener fechas únicas con actividad (intentos + procedimientos)
+        cursor.execute('''
+            SELECT DISTINCT DATE(created_at) AS d FROM attempts WHERE user_id = ?
+            UNION
+            SELECT DISTINCT DATE(submitted_at) AS d FROM procedure_submissions WHERE student_id = ?
+            ORDER BY d DESC
+        ''', (user_id, user_id))
+        dates = [row[0] for row in cursor.fetchall()]
+        conn.close()
+
+        if not dates:
+            return 0
+
+        from datetime import date, timedelta
+        today = date.today()
+        streak = 0
+        # Si hoy tiene actividad, empezar desde hoy; si no, desde ayer
+        expected = today if dates[0] == str(today) else today - timedelta(days=1)
+        for d_str in dates:
+            if d_str == str(expected):
+                streak += 1
+                expected -= timedelta(days=1)
+            elif d_str < str(expected):
+                break  # hueco en la racha
+        return streak
 
     def get_total_attempts_count(self, user_id):
         """Retorna el número total de intentos de un estudiante."""
@@ -953,7 +992,7 @@ class SQLiteRepository:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT id, topic, difficulty, is_correct, elo_after, rating_deviation, prob_failure, timestamp
+            SELECT id, topic, difficulty, is_correct, elo_after, rating_deviation, prob_failure, timestamp, time_taken
             FROM attempts
             WHERE user_id = ?
             ORDER BY timestamp ASC
@@ -1100,8 +1139,8 @@ class SQLiteRepository:
                 if not cursor.fetchone():
                     cursor.execute('''
                         INSERT INTO items
-                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id)
-                        VALUES (?, ?, ?, ?, ?, ?, 350.0, ?)
+                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url)
+                        VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?)
                     ''', (
                         item['id'],
                         item['topic'],
@@ -1110,12 +1149,13 @@ class SQLiteRepository:
                         item['correct_option'],
                         item['difficulty'],
                         course_id,
+                        item.get('image_url') or item.get('image_path'),
                     ))
                 else:
                     # Actualizar contenido/metadatos sin tocar el rating ELO
                     cursor.execute('''
                         UPDATE items
-                        SET content = ?, options = ?, correct_option = ?, topic = ?, course_id = ?
+                        SET content = ?, options = ?, correct_option = ?, topic = ?, course_id = ?, image_url = ?
                         WHERE id = ?
                     ''', (
                         item['content'],
@@ -1123,6 +1163,7 @@ class SQLiteRepository:
                         item['correct_option'],
                         item['topic'],
                         course_id,
+                        item.get('image_url') or item.get('image_path'),
                         item['id'],
                     ))
 
@@ -1344,17 +1385,17 @@ class SQLiteRepository:
 
         if course_id:
             cursor.execute(
-                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation FROM items WHERE course_id = ?",
+                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url FROM items WHERE course_id = ?",
                 (course_id,)
             )
         elif topic and topic != "Todos":
             cursor.execute(
-                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation FROM items WHERE topic = ?",
+                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url FROM items WHERE topic = ?",
                 (topic,)
             )
         else:
             cursor.execute(
-                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation FROM items"
+                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url FROM items"
             )
 
         rows = cursor.fetchall()
@@ -1370,6 +1411,7 @@ class SQLiteRepository:
                 'correct_option': r[4],
                 'difficulty': r[5],
                 'rating_deviation': r[6],
+                'image_url': r[7],
             })
         return items
 
@@ -1445,9 +1487,27 @@ class SQLiteRepository:
 
     # ── Procedimientos para revisión del docente ──────────────────────────────
 
-    def save_procedure_submission(self, student_id, item_id, item_content, image_data, mime_type='image/jpeg'):
+    def check_file_hash_duplicate(self, item_id, student_id, file_hash):
+        """Verifica si el hash SHA-256 de un archivo ya fue registrado por OTRO estudiante
+        para la misma pregunta. Previene plagio de procedimientos entre alumnos.
+
+        Retorna True si hay duplicado (otro estudiante subió el mismo archivo), False si es limpio.
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT 1 FROM procedure_submissions
+            WHERE item_id = ? AND file_hash = ? AND student_id != ?
+            LIMIT 1
+        ''', (item_id, file_hash, student_id))
+        found = cursor.fetchone() is not None
+        conn.close()
+        return found
+
+    def save_procedure_submission(self, student_id, item_id, item_content, image_data, mime_type='image/jpeg', file_hash=None):
         """Guarda o reemplaza el procedimiento enviado por el estudiante.
         La imagen se persiste en data/uploads/procedures/ y la ruta se almacena en la DB.
+        file_hash: SHA-256 del archivo para detección anti-plagio.
         """
         import time as _time
         ext = {'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp'}.get(mime_type, 'jpg')
@@ -1469,7 +1529,7 @@ class SQLiteRepository:
             # Resetea solo campos de revisión del docente (nueva entrega anula feedback anterior).
             cursor.execute('''
                 UPDATE procedure_submissions
-                SET image_data=?, mime_type=?, procedure_image_path=?,
+                SET image_data=?, mime_type=?, procedure_image_path=?, file_hash=?,
                     status=CASE
                         WHEN ai_proposed_score IS NOT NULL THEN 'PENDING_TEACHER_VALIDATION'
                         ELSE 'pending'
@@ -1479,13 +1539,13 @@ class SQLiteRepository:
                     procedure_score=NULL, teacher_score=NULL, final_score=NULL,
                     submitted_at=CURRENT_TIMESTAMP, reviewed_at=NULL
                 WHERE student_id=? AND item_id=?
-            ''', (image_data, mime_type, img_path, student_id, item_id))
+            ''', (image_data, mime_type, img_path, file_hash, student_id, item_id))
         else:
             cursor.execute('''
                 INSERT INTO procedure_submissions
-                    (student_id, item_id, item_content, image_data, mime_type, procedure_image_path)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (student_id, item_id, item_content, image_data, mime_type, img_path))
+                    (student_id, item_id, item_content, image_data, mime_type, procedure_image_path, file_hash)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (student_id, item_id, item_content, image_data, mime_type, img_path, file_hash))
         conn.commit()
         conn.close()
 
@@ -1534,6 +1594,22 @@ class SQLiteRepository:
                     'ai_proposed_score', 'teacher_score', 'final_score']
             return dict(zip(cols, row))
         return None
+
+    def get_reviewed_submission_ids(self, student_id):
+        """Retorna los IDs de entregas que ya tienen retroalimentación (reviewed_at no nulo).
+
+        Se usa junto con st.session_state para determinar cuáles son nuevas
+        (el estudiante aún no las ha visto en el Centro de Feedback).
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT id FROM procedure_submissions
+            WHERE student_id = ? AND reviewed_at IS NOT NULL
+        ''', (student_id,))
+        ids = {row[0] for row in cursor.fetchall()}
+        conn.close()
+        return ids
 
     def get_student_feedback_history(self, student_id):
         """Historial completo de entregas del estudiante para el Centro de Feedback.

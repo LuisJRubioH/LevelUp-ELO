@@ -376,6 +376,38 @@ def get_socratic_guidance_stream(student_rating, topic, content, student_answer,
     )
 
 
+# T11: prompt del análisis pedagógico extraído a constante para mantenimiento centralizado.
+# Incluye ELO global, ELO por tópico, tiempo promedio, procedimientos, y regla de discrepancia.
+_PEDAGOGICAL_PROMPT = """Actua como analista pedagogico experto.
+Analiza los siguientes datos de rendimiento de un estudiante:
+
+DATOS:
+- ELO Global: {elo_global}
+- Intentos totales: {attempts_count}
+- Temas recorridos: {topics}
+- Tasa de acierto reciente: {recent_accuracy}{elo_topic_section}{time_section}
+- Habito de procedimientos escritos: {proc_line}{course_proc_section}
+
+OBJETIVOS DEL ANALISIS:
+1. Identificar debilidades conceptuales especificas basadas en los temas con menor rendimiento.
+   Usar el ELO por topico para detectar areas debiles vs fuertes.
+2. Recomendar tipos de ejercicios o areas de refuerzo concretas.
+3. Sugerir ajustes en la estrategia de ensenanza o dificultad.
+4. Proponer una estrategia pedagogica personalizada y accionable.
+5. SECCION OBLIGATORIA — Calidad del procedimiento y desarrollo manual: {proc_instruction}
+6. Si hay datos por curso, detecta si existe discrepancia entre ELO alto y procedimiento bajo
+   (posible patron de adivinanza) o ELO bajo con procedimiento alto (comprende el proceso
+   pero falla en la seleccion final). Reporta cualquier patron anomalo encontrado.
+7. ALERTA PEDAGOGICA: Si el ELO global es alto pero la calidad reciente de procedimientos es
+   baja, señalarlo explicitamente como una alerta critica — el estudiante podria estar
+   adivinando respuestas sin comprender el proceso.
+
+IMPORTANTE: No expliques teoria basica. Se directo y profesional. Usa bullet points.
+Incluye siempre la seccion "Calidad del procedimiento" como ultimo punto del analisis.
+REGLA ESTRICTA DE FORMATO: Escribe TODA expresion matematica en LaTeX usando $...$ o $$...$$.
+"""
+
+
 def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None, procedure_stats=None, procedure_stats_by_course=None):
     """Genera un análisis pedagógico detallado para el profesor.
     procedure_stats (opcional): dict con 'count', 'avg_score', 'scores'.
@@ -430,31 +462,28 @@ def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", 
             "razonar. Señalarlo explicitamente si es el caso."
         )
 
-    prompt = f"""
-    Actua como analista pedagogico experto.
-    Analiza los siguientes datos de rendimiento de un estudiante:
+    # T11: ELO desglosado por tópico (si viene en student_data)
+    _elo_by_topic = student_data.get('elo_by_topic', {})
+    _elo_topic_section = ""
+    if _elo_by_topic:
+        _elo_lines = [f"    - {t}: {e}" for t, e in sorted(_elo_by_topic.items(), key=lambda x: -x[1])]
+        _elo_topic_section = "\n  ELO por tópico:\n" + "\n".join(_elo_lines)
 
-    DATOS:
-    - ELO Global: {student_data['elo_global']:.1f}
-    - Intentos totales: {student_data['attempts_count']}
-    - Temas recorridos: {', '.join(student_data['topics'])}
-    - Tasa de acierto reciente: {student_data['recent_accuracy']:.1%}
-    - Habito de procedimientos escritos: {_proc_line}{_course_proc_section}
+    # T11: tiempo promedio de respuesta (si viene en student_data)
+    _avg_time = student_data.get('avg_response_time')
+    _time_section = f"\n- Tiempo promedio de respuesta: {_avg_time:.1f} segundos" if _avg_time else ""
 
-    OBJETIVOS DEL ANALISIS:
-    1. Identificar debilidades conceptuales especificas basadas en los temas con menor rendimiento.
-    2. Recomendar tipos de ejercicios o areas de refuerzo concretas.
-    3. Sugerir ajustes en la estrategia de ensenanza o dificultad.
-    4. Proponer una estrategia pedagogica personalizada y accionable.
-    5. SECCION OBLIGATORIA — Calidad del procedimiento y desarrollo manual: {_proc_instruction}
-    6. Si hay datos por curso, detecta si existe discrepancia entre ELO alto y procedimiento bajo
-       (posible patron de adivinanza) o ELO bajo con procedimiento alto (comprende el proceso
-       pero falla en la seleccion final). Reporta cualquier patron anomalo encontrado.
-
-    IMPORTANTE: No expliques teoria basica. Se directo y profesional. Usa bullet points.
-    Incluye siempre la seccion "Calidad del procedimiento" como ultimo punto del analisis.
-    REGLA ESTRICTA DE FORMATO: Escribe TODA expresion matematica en LaTeX usando $...$ o $$...$$.
-    """
+    prompt = _PEDAGOGICAL_PROMPT.format(
+        elo_global=f"{student_data['elo_global']:.1f}",
+        attempts_count=student_data['attempts_count'],
+        topics=', '.join(student_data['topics']),
+        recent_accuracy=f"{student_data['recent_accuracy']:.1%}",
+        proc_line=_proc_line,
+        course_proc_section=_course_proc_section,
+        elo_topic_section=_elo_topic_section,
+        time_section=_time_section,
+        proc_instruction=_proc_instruction,
+    )
     return _call_ai_api(prompt, model_name, base_url, api_key=api_key, provider=provider)
 
 
@@ -599,9 +628,10 @@ def _normalize_rec(rec: dict) -> dict:
 
 # Palabras clave en el nombre del modelo que indican soporte de visión
 _VISION_KEYWORDS = [
-    'gpt-4o', 'gpt-4-vision', 'gpt-4-turbo',
+    'gpt-4o', 'gpt-4-vision', 'gpt-4-turbo', 'gpt-4.1',
     'vision', 'llava', 'pixtral', 'qwen-vl', 'qwen2-vl',
     'minicpm-v', 'internvl', 'cogvlm', 'gemini', 'claude',
+    'llama-4', 'llama4',  # Llama 4 Scout tiene visión
 ]
 
 _VISION_PROMPT = """Eres un profesor de matemáticas revisando el procedimiento manuscrito de un estudiante.
@@ -627,6 +657,88 @@ def _model_supports_vision(model_name: str, provider: str) -> bool:
         model_lower = model_name.lower()
         return any(kw in model_lower for kw in _VISION_KEYWORDS)
     return False
+
+# T6a: alias público para detección de capacidad de visión (fail-safe: False por defecto)
+check_vision_support = _model_supports_vision
+
+# T6c: lista de preferencia de modelos locales con buen razonamiento matemático.
+# Se usa para priorizar automáticamente en Ollama cuando el área es matemáticas.
+_MATH_REASONING_PREFERENCE = [
+    "deepseek-r1",
+    "qwen2.5-math",
+    "qwen2.5",
+    "llama3",
+    "mistral",
+]
+
+
+def select_best_math_model(available_models: list, provider: str = None) -> str | None:
+    """Selecciona el mejor modelo local para razonamiento matemático.
+
+    Recorre la lista de preferencia y retorna el primer modelo disponible que
+    coincida (por substring). Retorna None si ningún modelo preferido está disponible.
+    Solo aplica para proveedores locales (Ollama, LM Studio).
+    """
+    if provider not in ('ollama', 'lmstudio', None):
+        return None
+    for preferred in _MATH_REASONING_PREFERENCE:
+        for model in available_models:
+            if preferred in model.lower():
+                return model
+    return None
+
+
+def validate_procedure_relevance(
+    image_bytes: bytes,
+    mime_type: str,
+    question_content: str,
+    api_key: str = None,
+    provider: str = None,
+    base_url: str = "http://localhost:1234/v1",
+    model_name: str = None,
+) -> bool:
+    """Valida si el procedimiento de la imagen corresponde a la pregunta activa.
+
+    Llamada ligera al LLM con visión: solo pide SÍ o NO.
+    Retorna True si corresponde, False si no.
+    En caso de error o modelo sin visión, retorna True (beneficio de la duda).
+    """
+    if provider is None and api_key:
+        provider = detect_provider_from_key(api_key)
+    if not _model_supports_vision(model_name, provider):
+        return True  # sin visión no se puede validar, asumimos que es válido
+
+    b64 = base64.b64encode(image_bytes).decode('utf-8')
+    _val_prompt = (
+        f"PREGUNTA ASIGNADA AL ESTUDIANTE:\n{question_content}\n\n"
+        "¿El procedimiento visible en la imagen corresponde a la pregunta anterior? "
+        "Responde ÚNICAMENTE 'SÍ' o 'NO'."
+    )
+
+    try:
+        from openai import OpenAI
+        _url = base_url or "http://localhost:1234/v1"
+        _key = api_key or "not-needed"
+        if provider in PROVIDERS:
+            _url = PROVIDERS[provider].get('base_url', _url)
+        client = OpenAI(api_key=_key, base_url=_url)
+        resp = client.chat.completions.create(
+            model=model_name or "default",
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{b64}"}},
+                    {"type": "text", "text": _val_prompt},
+                ],
+            }],
+            max_tokens=10,
+            temperature=0.0,
+        )
+        answer = (resp.choices[0].message.content or "").strip().upper()
+        # Considerar variantes: SÍ, SI, YES → True; NO → False
+        return "NO" not in answer
+    except Exception:
+        return True  # en caso de error, beneficio de la duda
 
 
 def analyze_procedure_image(

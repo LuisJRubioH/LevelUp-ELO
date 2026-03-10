@@ -29,6 +29,7 @@ analyze_performance_local = ai_mod.analyze_performance_local
 get_active_models = ai_mod.get_active_models
 get_socratic_guidance_stream = ai_mod.get_socratic_guidance_stream
 analyze_procedure_image = ai_mod.analyze_procedure_image
+validate_procedure_relevance = ai_mod.validate_procedure_relevance
 _model_supports_vision = ai_mod._model_supports_vision
 review_math_procedure = _math_review_mod.review_math_procedure
 apply_procedure_elo_adjustment = _math_review_mod.apply_procedure_elo_adjustment
@@ -137,13 +138,26 @@ if 'bank_synced_v12' not in st.session_state:
 
 # --- NIVELES DE DESEMPEÑO ACADÉMICO ---
 def get_rank(elo):
-    if elo < 800: return "🌱 Inicial", "#28a745"
-    if elo < 1000: return "📖 Básico", "#17a2b8"
-    if elo < 1200: return "✏️ Intermedio", "#007bff"
-    if elo < 1400: return "📐 Avanzado", "#6610f2"
-    if elo < 1600: return "🔬 Experto", "#fd7e14"
-    if elo < 1800: return "🎓 Sobresaliente", "#dc3545"
-    return "⭐ Excelencia", "#e83e8c"
+    """Retorna (nombre_rango, color_hex) según la tabla de rangos ELO.
+    16 niveles progresivos que aplican a cualquier materia.
+    """
+    if elo < 1000:  return "🌱 Punto de Partida",  "#9E9E9E"
+    if elo < 1100:  return "🔰 Iniciado",          "#8D6E63"
+    if elo < 1200:  return "🔍 Curioso",            "#78909C"
+    if elo < 1300:  return "🧭 Explorador",         "#26A69A"
+    if elo < 1400:  return "📖 Aprendiz",           "#66BB6A"
+    if elo < 1500:  return "📝 Aprendiz Activo",    "#29B6F6"
+    if elo < 1600:  return "💡 Intermedio Básico",  "#AB47BC"
+    if elo < 1700:  return "🧩 Intermedio",         "#7E57C2"
+    if elo < 1800:  return "⚙️ En Desarrollo",      "#42A5F5"
+    if elo < 1900:  return "🏗️ Consolidado",        "#26C6DA"
+    if elo < 2000:  return "✅ Competente",          "#D4E157"
+    if elo < 2100:  return "🎯 Competente Plus",    "#FFCA28"
+    if elo < 2200:  return "🚀 Avanzado",           "#FFA726"
+    if elo < 2300:  return "🏅 Especialista",       "#FF7043"
+    if elo < 2400:  return "🥈 Experto",            "#EF5350"
+    if elo < 2500:  return "🥇 Sabio",              "#EC407A"
+    return "🌟 Visionario", "#AB47BC"
 
 # --- ESTILOS CSS ---
 st.markdown("""
@@ -552,6 +566,10 @@ else:
         with st.sidebar:
             st.image(_get_logo(), width=180)
             st.write(f"### 🏫 Profesor: **{st.session_state.username}**")
+            # T4a: badge de procedimientos pendientes en el sidebar
+            _pend_n = st.session_state.db.get_pending_submissions_count(st.session_state.user_id)
+            if _pend_n > 0:
+                st.markdown(f"🔔 **Pendientes: {_pend_n}**")
             st.markdown("---")
             # ── Badge de estado de IA (siempre visible) ───────────────────────
             _badge_p = st.session_state.get('ai_provider')
@@ -1183,13 +1201,23 @@ else:
         selected_course_id = None
         selected_topic = None
 
+        # T4b: inicializar set de entregas ya vistas por el estudiante en esta sesión.
+        # Al abrir el Centro de Feedback se marcan como vistas.
+        if 'fb_seen_ids' not in st.session_state:
+            st.session_state.fb_seen_ids = set()
+
+        # T4b: calcular cuántas retroalimentaciones nuevas hay (revisadas - vistas)
+        _reviewed_ids = repo.get_reviewed_submission_ids(st.session_state.user_id)
+        _unseen_fb = _reviewed_ids - st.session_state.fb_seen_ids
+        _fb_badge = f" 🆕 {len(_unseen_fb)}" if _unseen_fb else ""
+
         # Sidebar Estilizado
         with st.sidebar:
             st.image(_get_logo(), width=180)
             st.write(f"### Hola, **{st.session_state.username}**")
             mode = st.radio(
                 "Modo",
-                ["📝 Practicar", "📊 Estadísticas", "🎓 Mis Cursos", "💬 Feedback"],
+                ["📝 Practicar", "📊 Estadísticas", "🎓 Mis Cursos", f"💬 Feedback{_fb_badge}"],
                 label_visibility="collapsed",
             )
             st.caption("Navegación Principal")
@@ -1285,7 +1313,12 @@ else:
                             st.session_state.ai_available = True
                             st.session_state.ai_provider = 'lmstudio'
                             st.session_state.cloud_api_key = None
-                            _best = ai_mod.select_best_model(_det['models'])
+                            # T6c: si hay curso activo de matemáticas, priorizar modelo
+                            # con mejor razonamiento matemático de la lista de preferencia
+                            _math_best = ai_mod.select_best_math_model(
+                                _det['models'], provider='ollama',
+                            )
+                            _best = _math_best or ai_mod.select_best_model(_det['models'])
                             if _best:
                                 st.session_state.model_cog = _best
                                 st.session_state.model_analysis = _best
@@ -1369,6 +1402,10 @@ else:
                         <p style="color: #aaa; font-size: 0.9rem;">Puntos ELO en {topic_display_name} (± RD)</p>
                     </div>
                 """, unsafe_allow_html=True)
+                # T8c: racha de estudio (días consecutivos con actividad)
+                _streak = repo.get_study_streak(st.session_state.user_id)
+                if _streak > 0:
+                    st.markdown(f"🔥 **Racha: {_streak} día{'s' if _streak != 1 else ''}**")
                 st.info("💡 **Consejo:** La constancia es clave. Practica diariamente para consolidar tu aprendizaje.")
 
             with col2:
@@ -1409,8 +1446,21 @@ else:
                         else:
                             diff_color = "#FF4B4B"  # Rojo (Experto)
 
+                        # T8a: metadatos de área y tópico sobre el enunciado
+                        _item_topic = item_data.get('topic') or selected_topic or ''
+                        st.caption(f"Área: {selected_topic} | Tema: {_item_topic}")
                         st.markdown(f"<span style='color: {diff_color}; font-weight: 700; font-size: 0.9rem;'>⚡ Dificultad {diff:.0f}</span>", unsafe_allow_html=True)
                         st.markdown(f"### {item_data.get('content') or ''}")
+
+                        # T14: soporte visual en preguntas — renderizar imagen si existe
+                        _img_url = item_data.get('image_url') or item_data.get('image_path')
+                        if _img_url:
+                            try:
+                                st.image(_img_url, use_container_width=True,
+                                         caption="Figura correspondiente a la pregunta")
+                            except Exception:
+                                pass  # imagen no disponible — no romper la UI
+
                         st.write("")
 
                         if item_data.get('options'):
@@ -1485,8 +1535,8 @@ else:
                     )
                     if show_upload:
                         uploaded_file = st.file_uploader(
-                            "Foto o escaneo de tu desarrollo:",
-                            type=["jpg", "jpeg", "png", "webp"],
+                            "Foto, escaneo o PDF de tu desarrollo:",
+                            type=["jpg", "jpeg", "png", "webp", "pdf"],
                             key=f"proc_upload_{item_data['id']}",
                             label_visibility="collapsed",
                         )
@@ -1494,10 +1544,42 @@ else:
                             _iid = item_data['id']
                             _uid = st.session_state.user_id
                             _ext = uploaded_file.name.rsplit('.', 1)[-1].lower()
-                            _mime = {'jpg':'image/jpeg','jpeg':'image/jpeg',
-                                     'png':'image/png','webp':'image/webp'}.get(_ext,'image/jpeg')
 
-                            st.image(uploaded_file, use_container_width=True)
+                            # T13: procesamiento diferenciado según formato
+                            import hashlib
+                            _raw_bytes = uploaded_file.getvalue()
+                            _file_hash = hashlib.sha256(_raw_bytes).hexdigest()
+
+                            if _ext == 'pdf':
+                                # PDF: renderizar primera página como imagen para visión
+                                try:
+                                    import fitz  # PyMuPDF
+                                    _pdf_doc = fitz.open(stream=_raw_bytes, filetype="pdf")
+                                    _page = _pdf_doc[0]
+                                    _pix = _page.get_pixmap(dpi=200)
+                                    _file_bytes = _pix.tobytes("png")
+                                    _mime = 'image/png'
+                                    _pdf_doc.close()
+                                except Exception as _pdf_err:
+                                    st.error(f"No se pudo procesar el PDF: {_pdf_err}")
+                                    _file_bytes = None
+                            else:
+                                _file_bytes = _raw_bytes
+                                _mime = {'jpg':'image/jpeg','jpeg':'image/jpeg',
+                                         'png':'image/png','webp':'image/webp'}.get(_ext,'image/jpeg')
+
+                            if _file_bytes is None:
+                                st.stop()  # Error procesando PDF, no continuar
+
+                            # T7: verificar si otro estudiante ya subió el mismo archivo para esta pregunta
+                            _plagiarism_detected = repo.check_file_hash_duplicate(_iid, _uid, _file_hash)
+                            if _plagiarism_detected:
+                                st.error(
+                                    "⚠️ Este archivo ya ha sido registrado por otro usuario "
+                                    "para esta pregunta."
+                                )
+
+                            st.image(_file_bytes, use_container_width=True)
 
                             # Groq activo → revisión matemática rigurosa con Llama 4 Scout
                             _is_groq = (
@@ -1509,50 +1591,159 @@ else:
                                 st.session_state.get('ai_provider'),
                             )
 
+                            # ── T5b: contador de intentos fallidos por pregunta ────
+                            _fail_key = f'proc_fail_count_{_iid}'
+                            if _fail_key not in st.session_state:
+                                st.session_state[_fail_key] = 0
+                            _fail_count = st.session_state[_fail_key]
+
+                            # T5b: si ya alcanzó 3 fallos, mostrar opciones finales
+                            if _fail_count >= 3 and not _plagiarism_detected:
+                                st.error(
+                                    "⚠️ Has fallado 3 veces seguidas. Se registrará una "
+                                    "calificación de 0.0 por inconsistencia persistente."
+                                )
+                                _b1, _b2, _b3 = st.columns(3)
+                                with _b1:
+                                    if st.button("📤 Enviar como está", key=f"proc_send0_{_iid}"):
+                                        # Registrar 0.0 y enviar al profesor
+                                        st.session_state.db.save_procedure_submission(
+                                            _uid, _iid, item_data.get('content') or '',
+                                            _file_bytes, _mime,
+                                            file_hash=_file_hash,
+                                        )
+                                        st.session_state.db.save_ai_proposed_score(
+                                            _uid, _iid, 0.0,
+                                            ai_feedback="Procedimiento irrelevante para la pregunta (3 intentos fallidos).",
+                                        )
+                                        st.session_state[f'proc_ai_saved_{_iid}'] = True
+                                        st.session_state[_fail_key] = 0
+                                        st.rerun()
+                                with _b2:
+                                    if st.button("🚫 No enviar nada", key=f"proc_cancel_{_iid}"):
+                                        # Cancelar sin registrar
+                                        st.session_state[_fail_key] = 0
+                                        st.rerun()
+                                with _b3:
+                                    if st.button("📁 Subir el correcto", key=f"proc_retry_{_iid}"):
+                                        # Resetear para un último intento
+                                        st.session_state[_fail_key] = 0
+                                        st.rerun()
+
                             # ── Análisis con IA ───────────────────────────────
-                            if _vision_ok:
+                            elif _vision_ok:
                                 _btn_label = "🔬 Analizar procedimiento" if _is_groq else "🔍 Analizar procedimiento"
+                                # T7: bloquear análisis si se detectó plagio
                                 if st.button(
                                     _btn_label,
                                     key=f"analyze_proc_{_iid}",
                                     width='stretch',
-                                    disabled=not st.session_state.ai_available,
+                                    disabled=not st.session_state.ai_available or _plagiarism_detected,
                                 ):
+                                    # T10: validar que el contenido de la pregunta no sea nulo/vacío
+                                    _q_content = item_data.get('content') or ''
+                                    if not _q_content.strip():
+                                        st.error("No se pudo cargar el contenido de la pregunta. Intenta recargar.")
+                                        st.stop()
+
                                     _spinner_msg = (
                                         "Analizando con rigor matemático (Llama 4 Scout)..."
                                         if _is_groq else "Analizando procedimiento..."
                                     )
                                     with st.spinner(_spinner_msg):
-                                        if _is_groq:
+                                        # T5a: validación de relevancia antes de calificar.
+                                        # Para Groq la validación está integrada en review_math_procedure
+                                        # (campo corresponde_a_pregunta). Para otros proveedores se hace
+                                        # una llamada ligera previa.
+                                        _is_relevant = True
+                                        if not _is_groq:
+                                            _is_relevant = validate_procedure_relevance(
+                                                _file_bytes, _mime,
+                                                _q_content,
+                                                api_key=st.session_state.cloud_api_key,
+                                                provider=st.session_state.get('ai_provider'),
+                                                base_url=st.session_state.ai_url,
+                                                model_name=st.session_state.model_analysis,
+                                            )
+
+                                        if not _is_relevant:
+                                            # T5a+5b: procedimiento irrelevante → nota 0.0 + incrementar fallo
+                                            st.session_state[_fail_key] = _fail_count + 1
+                                            st.session_state.db.save_procedure_submission(
+                                                _uid, _iid, _q_content,
+                                                _file_bytes, _mime,
+                                                file_hash=_file_hash,
+                                            )
+                                            st.session_state.db.save_ai_proposed_score(
+                                                _uid, _iid, 0.0,
+                                                ai_feedback="Procedimiento irrelevante para la pregunta.",
+                                            )
+                                            st.session_state[f'proc_ai_saved_{_iid}'] = True
+                                            _new_fails = _fail_count + 1
+                                            if _new_fails < 3:
+                                                st.warning(
+                                                    f"⚠️ El procedimiento no corresponde a la pregunta asignada "
+                                                    f"(intento {_new_fails}/3). Sube el procedimiento correcto."
+                                                )
+                                            else:
+                                                st.rerun()  # mostrará la lógica de 3 fallos arriba
+                                        elif _is_groq:
                                             try:
                                                 _rev = review_math_procedure(
-                                                    uploaded_file.getvalue(), _mime,
+                                                    _file_bytes, _mime,
                                                     api_key=st.session_state.cloud_api_key,
-                                                    question_content=item_data.get('content') or '',
+                                                    question_content=_q_content,
                                                 )
-                                                st.session_state[f'proc_review_{_iid}'] = _rev
-                                                # Guardar imagen + puntuación propuesta por IA en DB
-                                                # (una sola vez por ejercicio; ELO NO se modifica aquí)
-                                                if not st.session_state.get(f'proc_ai_saved_{_iid}', False):
-                                                    st.session_state.db.save_procedure_submission(
-                                                        _uid, _iid, item_data.get('content') or '',
-                                                        uploaded_file.getvalue(), _mime,
-                                                    )
-                                                    _ai_score = _rev.get('score_procedimiento')
-                                                    _ai_eval = _rev.get('evaluacion_global') or ''
-                                                    if _ai_score is not None:
-                                                        st.session_state.db.save_ai_proposed_score(
-                                                            _uid, _iid, float(_ai_score),
-                                                            ai_feedback=_ai_eval,
+                                                # Groq: la validación de relevancia viene dentro del JSON
+                                                if not _rev.get('corresponde_a_pregunta', True):
+                                                    st.session_state[_fail_key] = _fail_count + 1
+                                                    _new_fails = _fail_count + 1
+                                                    if _new_fails < 3:
+                                                        st.warning(
+                                                            f"⚠️ El procedimiento no corresponde a la pregunta asignada "
+                                                            f"(intento {_new_fails}/3). Sube el procedimiento correcto."
                                                         )
-                                                    st.session_state[f'proc_ai_saved_{_iid}'] = True
+                                                    # Guardar 0.0 en DB
+                                                    if not st.session_state.get(f'proc_ai_saved_{_iid}', False):
+                                                        st.session_state.db.save_procedure_submission(
+                                                            _uid, _iid, _q_content,
+                                                            _file_bytes, _mime,
+                                                            file_hash=_file_hash,
+                                                        )
+                                                        st.session_state.db.save_ai_proposed_score(
+                                                            _uid, _iid, 0.0,
+                                                            ai_feedback="Procedimiento irrelevante para la pregunta.",
+                                                        )
+                                                        st.session_state[f'proc_ai_saved_{_iid}'] = True
+                                                    if _new_fails >= 3:
+                                                        st.rerun()
+                                                else:
+                                                    # Procedimiento relevante: flujo normal
+                                                    st.session_state[_fail_key] = 0
+                                                    st.session_state[f'proc_review_{_iid}'] = _rev
+                                                    if not st.session_state.get(f'proc_ai_saved_{_iid}', False):
+                                                        st.session_state.db.save_procedure_submission(
+                                                            _uid, _iid, _q_content,
+                                                            _file_bytes, _mime,
+                                                            file_hash=_file_hash,
+                                                        )
+                                                        _ai_score = _rev.get('score_procedimiento')
+                                                        _ai_eval = _rev.get('evaluacion_global') or ''
+                                                        if _ai_score is not None:
+                                                            st.session_state.db.save_ai_proposed_score(
+                                                                _uid, _iid, float(_ai_score),
+                                                                ai_feedback=_ai_eval,
+                                                            )
+                                                        st.session_state[f'proc_ai_saved_{_iid}'] = True
                                             except (ValueError, ConnectionError) as _exc:
                                                 st.error(f"Error en la revisión matemática: {_exc}")
                                         else:
+                                            # Proveedor no-Groq, procedimiento relevante
+                                            st.session_state[_fail_key] = 0
                                             try:
                                                 result = analyze_procedure_image(
-                                                    uploaded_file.getvalue(), _mime,
-                                                    item_data.get('content') or '',
+                                                    _file_bytes, _mime,
+                                                    _q_content,
                                                     model_name=st.session_state.model_analysis,
                                                     base_url=st.session_state.ai_url,
                                                     api_key=st.session_state.cloud_api_key,
@@ -1638,6 +1829,14 @@ else:
                                         st.markdown("##### 🔍 Retroalimentación del procedimiento")
                                         st.markdown(strip_thinking_tags(_ai_fb))
 
+                            # T6b: si el modelo no soporta visión, indicar al usuario que
+                            # el procedimiento se enviará directamente al profesor.
+                            if not _vision_ok and _fail_count < 3:
+                                st.info(
+                                    "📤 Tu modelo actual no soporta visión. El procedimiento "
+                                    "será enviado al profesor para revisión manual."
+                                )
+
                             # ── Sección de envío al docente: SIEMPRE visible ──────────
                             st.markdown("---")
                             _sub = st.session_state.db.get_student_submission(_uid, _iid)
@@ -1696,21 +1895,27 @@ else:
                                     or st.session_state.get(f'proc_no_vision_{_iid}', False)
                                     or not st.session_state.get(f'proc_ai_saved_{_iid}', False)
                                 )
-                                if _show_send_btn:
+                                if _show_send_btn and not _plagiarism_detected:
                                     st.info("El profesor revisará el archivo y proporcionará retroalimentación.")
                                     if st.button(
                                         "📤 Enviar al profesor para revisión",
                                         key=f"send_teacher_{_iid}",
                                         width='stretch',
                                     ):
+                                        # T7: guardar hash junto con la entrega
                                         st.session_state.db.save_procedure_submission(
                                             _uid, _iid, item_data.get('content') or '',
-                                            uploaded_file.getvalue(), _mime,
+                                            _file_bytes, _mime,
+                                            file_hash=_file_hash,
                                         )
                                         st.rerun()
 
         elif mode == "📊 Estadísticas":
             st.title("📊 Estadísticas de Aprendizaje")
+            # T8c: racha de estudio en la cabecera de estadísticas
+            _stat_streak = repo.get_study_streak(st.session_state.user_id)
+            if _stat_streak > 0:
+                st.markdown(f"🔥 **Racha de estudio: {_stat_streak} día{'s' if _stat_streak != 1 else ''} consecutivo{'s' if _stat_streak != 1 else ''}**")
 
             history_full = st.session_state.db.get_user_history_full(st.session_state.user_id)
             attempts_data = st.session_state.db.get_attempts_for_ai(st.session_state.user_id, limit=1000)
@@ -1971,7 +2176,10 @@ else:
                     st.markdown(f"- **{_ec['name']}** {_suffix}")
 
         # ── MODO: Centro de Feedback (solo lectura) ───────────────────────────
-        elif mode == "💬 Feedback":
+        elif mode.startswith("💬 Feedback"):
+            # T4b: al entrar al centro de feedback, marcar todas las revisadas como vistas
+            st.session_state.fb_seen_ids |= _reviewed_ids
+
             st.title("💬 Centro de Feedback")
             st.caption("Historial de tus entregas de procedimiento y retroalimentación recibida. Solo lectura.")
 

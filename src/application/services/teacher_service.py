@@ -76,11 +76,21 @@ class TeacherService:
         recent_acc = sum(1 for a in recent_attempts if a['is_correct']) / len(recent_attempts) if recent_attempts else 0
         topics_unique = list(set([a['topic'] for a in attempts]))
 
+        # T11: ELO desglosado por tópico para análisis pedagógico más preciso
+        elo_by_topic = self.repository.get_latest_elo_by_topic(student_id)
+        elo_topic_summary = {t: round(e, 1) for t, (e, _rd) in elo_by_topic.items()} if elo_by_topic else {}
+
+        # T11: tiempo promedio de respuesta (solo intentos con time_taken registrado)
+        _times = [a.get('time_taken') for a in attempts if a.get('time_taken') and a['time_taken'] > 0]
+        avg_time = round(sum(_times) / len(_times), 1) if _times else None
+
         student_data = {
             "elo_global": global_elo,
             "attempts_count": len(attempts),
             "topics": topics_unique,
-            "recent_accuracy": recent_acc
+            "recent_accuracy": recent_acc,
+            "elo_by_topic": elo_topic_summary,
+            "avg_response_time": avg_time,
         }
 
         kwargs = dict(
