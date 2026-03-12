@@ -4,8 +4,12 @@ from src.infrastructure.security.hashing_service import HashingService
 
 # TODO: reemplazar SQLite por DB externa (PostgreSQL, etc.) en producción
 class SQLiteRepository:
+    # Ruta fija — garantiza que todos los datos persistan entre ejecuciones.
+    _DEFAULT_DB_PATH = os.path.join('data', 'elo_database.db')
+
     def __init__(self, db_name=None):
-        self.db_name = db_name or os.environ.get('DB_PATH', 'elo_project.db')
+        self.db_name = db_name or os.environ.get('DB_PATH', self._DEFAULT_DB_PATH)
+        os.makedirs(os.path.dirname(self.db_name), exist_ok=True)
         self.hashing = HashingService()
         self.init_db()
         self._migrate_db()
@@ -13,6 +17,7 @@ class SQLiteRepository:
         self._seed_demo_data()
         self._backfill_prob_failure()
         self.sync_items_from_bank_folder()
+        self._seed_test_students()
 
     def get_connection(self):
         return sqlite3.connect(self.db_name, timeout=10.0)
@@ -202,6 +207,8 @@ class SQLiteRepository:
         self._add_column_if_not_exists(cursor, 'users', 'rating_deviation', "REAL DEFAULT 350.0")
         # Sin DEFAULT: los usuarios existentes quedan NULL → pasan por onboarding la primera vez
         self._add_column_if_not_exists(cursor, 'users', 'education_level', "TEXT")
+        # Flag para estudiantes de prueba (protección contra eliminación accidental)
+        self._add_column_if_not_exists(cursor, 'users', 'is_test_user', "INTEGER DEFAULT 0")
 
         # Asegurar índices si no existen
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
@@ -1250,6 +1257,11 @@ class SQLiteRepository:
 
         conn.commit()
         conn.close()
+
+    def _seed_test_students(self):
+        """Crea estudiantes de prueba permanentes (delegado a módulo externo)."""
+        from src.infrastructure.persistence.seed_test_students import seed_test_students
+        seed_test_students(self)
 
     def get_available_courses_by_level(self, level: str):
         """Retorna los cursos disponibles filtrados ESTRICTAMENTE por nivel educativo.
