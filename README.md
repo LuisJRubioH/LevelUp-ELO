@@ -76,7 +76,8 @@ src/
 │
 ├── infrastructure/          # Implementaciones concretas (detalles técnicos)
 │   ├── persistence/
-│   │   └── sqlite_repository.py  # SQLite: esquema, migraciones, seed, queries
+│   │   ├── sqlite_repository.py  # SQLite: esquema, migraciones, seed, queries
+│   │   └── seed_test_students.py # Seed idempotente de 5 estudiantes de prueba
 │   ├── external_api/
 │   │   ├── ai_client.py                 # Cliente universal multi-proveedor de IA
 │   │   ├── math_procedure_review.py     # Revisión matemática rigurosa (Groq + Llama 4 Scout)
@@ -128,8 +129,9 @@ LevelUp-ELO/
 │       ├── geometria.json
 │       ├── DIAN.json
 │       └── SENA.json
+├── data/
+│   └── elo_database.db     # Base de datos SQLite (generada en el primer arranque)
 ├── requirements.txt        # Dependencias Python
-├── elo_project.db          # Base de datos SQLite (generada en el primer arranque)
 └── CLAUDE.md               # Instrucciones para Claude Code
 ```
 
@@ -362,7 +364,7 @@ Optimizaciones: `@lru_cache(maxsize=256)` en `simplify` y `expand`; limpieza LaT
 
 ## Base de datos
 
-SQLite (archivo `elo_project.db` en el directorio de trabajo). Se crea y migra automáticamente en cada arranque.
+SQLite (archivo `data/elo_database.db`, ruta fija). Se crea y migra automáticamente en cada arranque. La carpeta `data/` se genera si no existe. La ruta se puede sobreescribir con la variable de entorno `DB_PATH`.
 
 ### Esquema principal
 
@@ -376,6 +378,8 @@ SQLite (archivo `elo_project.db` en el directorio de trabajo). Se crea y migra a
 | `approved` | INTEGER | 0 = pendiente de aprobación (docentes) |
 | `active` | INTEGER | 0 = desactivado por admin |
 | `group_id` | INTEGER FK | Grupo asignado (estudiantes) |
+| `education_level` | TEXT | `universidad` / `colegio` / `concursos` |
+| `is_test_user` | INTEGER | 1 = estudiante de prueba (protegido contra eliminación) |
 | `rating_deviation` | REAL | RD global (promedio de tópicos) |
 
 **`groups`**
@@ -538,17 +542,31 @@ streamlit run src/interface/streamlit/app.py
 
 > **Importante**: la app debe lanzarse desde la raíz del repositorio porque `app.py` inyecta el directorio raíz en `sys.path` en tiempo de ejecución para resolver el paquete `src/`.
 
-La base de datos `elo_project.db` se crea automáticamente en el primer arranque junto con el usuario admin, las preguntas del banco y los usuarios de prueba.
+La base de datos `data/elo_database.db` se crea automáticamente en el primer arranque junto con el usuario admin, las preguntas del banco y los usuarios de prueba.
 
 ### Usuarios de prueba
 
-Al primer arranque se crean automáticamente los siguientes usuarios demo (contraseña compartida: `demo1234`):
+Al primer arranque se crean automáticamente los siguientes usuarios demo:
 
-| Usuario | Contraseña | Rol | Detalle |
-|---|---|---|---|
-| `profesor1` | `demo1234` | Docente | Pre-aprobado, con dos grupos: *Grupo Demo - Cálculo* (Cálculo Diferencial) y *Grupo Demo - Álgebra* (Álgebra Básica) |
-| `estudiante1` | `demo1234` | Estudiante | Nivel **Universidad**, matriculado en *Grupo Demo - Cálculo* (Cálculo Diferencial) |
-| `estudiante2` | `demo1234` | Estudiante | Nivel **Colegio**, matriculado en *Grupo Demo - Álgebra* (Álgebra Básica) |
+**Usuarios demo** (contraseña: `demo1234`):
+
+| Usuario | Rol | Detalle |
+|---|---|---|
+| `profesor1` | Docente | Pre-aprobado, con grupos demo vinculados a cursos |
+| `estudiante1` | Estudiante | Nivel **Universidad**, matriculado en Cálculo Diferencial |
+| `estudiante2` | Estudiante | Nivel **Colegio**, matriculado en Álgebra Básica |
+
+**Estudiantes de prueba persistentes** (contraseña: `test1234`, `is_test_user=1`):
+
+| Usuario | Nivel | Cursos matriculados |
+|---|---|---|
+| `estudiante_colegio_1` | Colegio | Todos los cursos de Colegio |
+| `estudiante_colegio_2` | Colegio | Todos los cursos de Colegio |
+| `estudiante_colegio_3` | Colegio | Todos los cursos de Colegio |
+| `estudiante_universidad_1` | Universidad | Todos los cursos de Universidad |
+| `estudiante_universidad_2` | Universidad | Todos los cursos de Universidad |
+
+El seed de estudiantes de prueba (`seed_test_students.py`) es estrictamente idempotente: solo crea usuarios si no existen, nunca modifica progreso, intentos, matrículas ni ELO existentes. El flag `is_test_user=1` los protege contra eliminación accidental.
 
 Los estudiantes pueden iniciar su estudio inmediatamente tras el login — cada uno ve el catálogo de cursos de su nivel educativo.
 
