@@ -1241,15 +1241,13 @@ else:
             st.caption("Navegación Principal")
 
             if mode == "📝 Practicar":
-                st.markdown("### Curso Activo")
-                if _enrolled:
-                    _course_names = [c['name'] for c in _enrolled]
-                    _sel_name = st.selectbox("¿Qué quieres estudiar hoy?", _course_names)
-                    _sel_course = next(c for c in _enrolled if c['name'] == _sel_name)
-                    selected_course_id = _sel_course['id']
-                    selected_topic = _sel_course['name']
-                else:
-                    st.warning("Sin cursos inscritos. Ve a '🎓 Mis Cursos'.")
+                if _enrolled and 'selected_course' in st.session_state:
+                    _sc = st.session_state.selected_course
+                    st.markdown(f"### 📚 {_sc['name']}")
+                    if st.button("↩ Cambiar materia", key="sidebar_change_course"):
+                        del st.session_state.selected_course
+                        st.session_state.question_start_time = None
+                        st.rerun()
 
             st.markdown("---")
             # ── Badge de estado de IA (siempre visible) ───────────────────────
@@ -1376,12 +1374,13 @@ else:
             # Delegar procesamiento al servicio.
             # elo_topic = nombre del curso (selected_topic), para que cursos con
             # subtemas heterogéneos (DIAN, SENA) consoliden ELO en una sola clave.
+            _elo_topic = st.session_state.selected_course['name']
             is_correct, cog_data = st.session_state.student_service.process_answer(
                 st.session_state.user_id, item_data,
                 # La opción seleccionada se recupera del texto mapeado (soporte LaTeX)
                 st.session_state.get(f"answer_text_{item_data['id']}"),
                 reasoning, time_taken, st.session_state.vector,
-                elo_topic=selected_topic,
+                elo_topic=_elo_topic,
             )
 
             st.session_state.session_questions_count += 1
@@ -1394,13 +1393,56 @@ else:
             st.rerun()
 
         # --- VISTAS ---
-        if mode == "📝 Practicar" and (not _enrolled or not selected_course_id):
+        if mode == "📝 Practicar" and not _enrolled:
             st.title("🚀 Sala de Estudio")
             st.info(
                 "📚 Aún no tienes cursos inscritos. "
                 "Ve a **🎓 Mis Cursos** en el menú lateral para matricularte."
             )
+        elif mode == "📝 Practicar" and 'selected_course' not in st.session_state:
+            # ── Pantalla de selección de curso ──────────────────────────────
+            st.title("🚀 Sala de Estudio")
+            st.markdown("#### Selecciona la materia que deseas practicar")
+            st.markdown("")
+
+            # Grid de cards: 2 columnas
+            for row_start in range(0, len(_enrolled), 2):
+                cols = st.columns(2)
+                for col_idx, course in enumerate(_enrolled[row_start:row_start + 2]):
+                    c_name = course['name']
+                    c_elo = st.session_state.vector.get(c_name)
+                    c_rank, c_color = get_rank(c_elo)
+                    with cols[col_idx]:
+                        st.markdown(f"""
+                        <div style="
+                            padding: 24px; border-radius: 16px;
+                            background: rgba(38, 39, 48, 0.95);
+                            border: 1px solid {c_color}44;
+                            box-shadow: 0 4px 20px {c_color}22;
+                            text-align: center; margin-bottom: 12px;
+                        ">
+                            <h3 style="color: #fff !important; margin: 0 0 12px 0;
+                                border-left: none; padding-left: 0;
+                                background: linear-gradient(90deg, #00C9FF, #92FE9D);
+                                -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                {c_name}
+                            </h3>
+                            <p style="color: {c_color}; font-size: 0.9rem; margin: 0;">{c_rank}</p>
+                            <p style="color: #fff; font-size: 2.4rem; font-weight: 700; margin: 4px 0;">
+                                {c_elo:.0f}
+                            </p>
+                            <p style="color: #888; font-size: 0.8rem; margin: 0;">Puntos ELO</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        if st.button(f"Practicar", key=f"sel_course_{course['id']}",
+                                     use_container_width=True):
+                            st.session_state.selected_course = course
+                            st.session_state.question_start_time = None
+                            st.rerun()
+
         elif mode == "📝 Practicar":
+            selected_course_id = st.session_state.selected_course['id']
+            selected_topic = st.session_state.selected_course['name']
             current_elo_display = st.session_state.vector.get(selected_topic)
             current_rd_display = st.session_state.vector.get_rd(selected_topic)
             topic_display_name = selected_topic
