@@ -9,61 +9,166 @@ pip install -r requirements.txt
 streamlit run src/interface/streamlit/app.py
 ```
 
-Must be launched from the repo root — `app.py` injects the project root into `sys.path` at runtime to resolve the `src/` package. There are no tests or linting configured in this project.
+Must be launched from the **repo root** — `app.py` injects the project root into `sys.path` at runtime to resolve the `src/` package. There are no tests or linting configured in this project.
 
 ## Architecture
 
 Clean Architecture with four layers inside `src/`:
 
-- **`domain/`** — Pure business logic, no external dependencies. Contains the ELO engine (`elo/`) and adaptive question selector (`selector/`).
-- **`application/services/`** — Use-case orchestrators: `StudentService` (answer processing, question selection) and `TeacherService` (dashboards, reports).
-- **`infrastructure/`** — External dependencies: `persistence/sqlite_repository.py` (single ~1200-line file with schema, migrations, queries), `external_api/` (multi-provider AI client + math procedure review), `security/` (Argon2id hashing).
-- **`interface/streamlit/app.py`** — Single-file UI with all panels and routing.
+- **`domain/`** — Pure business logic, no external dependencies.
+  - `elo/model.py` — Dynamic K factor, classic ELO, `Item`/`StudentELO` dataclasses.
+  - `elo/vector_elo.py` — `VectorRating`: per-topic ELO + Rating Deviation (RD).
+  - `elo/uncertainty.py` — `RatingModel` (Glicko-simplified): RD initial=350, min=30, decay=RD×0.95 per attempt.
+  - `elo/cognitive.py` — `CognitiveAnalyzer`: classifies student responses via AI → `impact_modifier` ∈ [0.5, 1.5].
+  - `elo/zdp.py` — ZDP interval calculation.
+  - `selector/item_selector.py` — `AdaptiveItemSelector`: question selection via Fisher Information.
+
+- **`application/services/`** — Use-case orchestrators:
+  - `student_service.py` — `process_answer()`, `get_next_question()`, `get_socratic_help()`.
+  - `teacher_service.py` — Dashboard analysis and AI reports.
+
+- **`infrastructure/`**
+  - `persistence/sqlite_repository.py` — Single ~1200-line file: schema, migrations, seed, queries.
+  - `persistence/seed_test_students.py` — Idempotent seed of 5 test students (never overwrites existing ELO/progress).
+  - `external_api/ai_client.py` — Universal multi-provider AI client.
+  - `external_api/math_procedure_review.py` — Groq + Llama 4 Scout vision review of handwritten procedures.
+  - `external_api/model_router.py` — Intelligent model router: selects best model per task type (`tutor_socratic`, `image_procedure_analysis`, `general_chat`).
+  - `external_api/model_capability_detector.py` — Auto-detects vision/reasoning/speed capabilities from model name heuristics.
+  - `external_api/symbolic_math_verifier.py` — SymPy-based 4-layer algebraic verification (simplify → expand → abs equivalence → numeric fallback).
+  - `external_api/math_step_extractor.py` — Extracts and classifies math steps from OCR output.
+  - `external_api/math_ocr.py` — OCR pipeline: pix2tex > tesseract > regex.
+  - `external_api/math_reasoning_analyzer.py` — Step-by-step reasoning analysis.
+  - `external_api/pedagogical_feedback.py` — Rotating Socratic hints by error type (never reveals answer).
+  - `external_api/math_analysis_pipeline.py` — Full pipeline: OCR → steps → symbolic verification → feedback.
+  - `security/hashing_service.py` — Argon2id hashing + transparent migration from legacy SHA-256.
+
+- **`interface/streamlit/app.py`** — Single-file UI: login, student panel, teacher dashboard, admin panel.
 
 **Data flow for a student answer:**
 1. `app.py` → `StudentService.process_answer()`
-2. `CognitiveAnalyzer` calls AI to classify reasoning → `impact_modifier` ∈ [0.5, 1.5]
+2. `CognitiveAnalyzer` calls AI → `impact_modifier`
 3. `VectorRating.update()` applies ELO delta per topic
 4. `SQLiteRepository.update_item_rating()` updates item difficulty symmetrically
 5. `save_attempt()` persists all metadata
 
 ## Key Domain Concepts
 
-- **VectorRating**: Per-topic ELO (not one global rating). `aggregate_global_elo()` averages for display.
-- **Dynamic K factor** (`domain/elo/model.py`): 40 (< 30 attempts) → 32 (< 1400 ELO) → 16 (stable) → 24 (default).
-- **AdaptiveItemSelector**: Picks questions where P(success) ∈ [0.4, 0.75] (ZDP). Maximizes Fisher information `P*(1-P)`. Expands range ±0.05 per step if no candidates.
-- **CognitiveAnalyzer** (`domain/elo/cognitive.py`): AI classifies confidence/error-type. Modifies ELO delta via `impact_modifier`.
+- **VectorRating**: Per-topic ELO + RD (not one global rating). `aggregate_global_elo()` averages for display.
+- **Dynamic K factor** (`domain/elo/model.py`):
+  - K=40 (< 30 attempts) → K=32 (ELO < 1400) → K=16 (stable, error < 15% in last 20) → K=24 (default).
+  - Effective K scales with RD: `K_eff = K_BASE × (RD / RD_BASE)`.
+- **AdaptiveItemSelector**: Picks questions where P(success) ∈ [0.4, 0.75] (ZDP). Maximizes Fisher Information `P×(1−P)`. Expands ±0.05 per step (up to 10 steps) if no candidates. Prioritizes unseen questions, then failed ones with ≥3 cooldown.
+- **CognitiveAnalyzer**: Classifies confidence [0,1] and error type (`conceptual`/`superficial`). Combined with response time to compute `impact_modifier`.
 - **Item ELO**: Items have their own difficulty rating that updates symmetrically (item "loses" when student wins).
+- **16-level ELO ranking**: Aspirante (0–399) → Leyenda Suprema (2500+).
+- **Study streak**: Consecutive days of activity tracked and displayed.
 
 ## Database
 
-- SQLite at `elo_project.db` in working directory, auto-created on first run.
+- SQLite at **`data/elo_database.db`** (fixed path). The `data/` folder is auto-created if absent. Override with env var `DB_PATH`.
 - `SQLiteRepository.__init__()` runs: `init_db()` → `_migrate_db()` → `_seed_admin()` → `_backfill_prob_failure()` → `sync_items_from_bank_folder()`.
-- Migrations are additive only (`ALTER TABLE ADD COLUMN IF NOT EXISTS`) — no destructive migrations.
-- Admin user created only if env var `ADMIN_PASSWORD` is set (`ADMIN_USER` defaults to "admin"). No hardcoded credentials.
-- Tables include: `users`, `groups`, `items`, `attempts`, `courses`, `enrollments`, `procedure_submissions`, `audit_group_changes`.
+- Migrations are **additive only** (`ALTER TABLE ADD COLUMN IF NOT EXISTS`) — no destructive migrations.
+- Admin user created only if env var `ADMIN_PASSWORD` is set (`ADMIN_USER` defaults to `"admin"`). No hardcoded credentials.
+
+### Tables
+
+| Table | Key details |
+|---|---|
+| `users` | `role` (student/teacher/admin), `approved`, `active`, `group_id`, `education_level`, `is_test_user` (protects against deletion), `rating_deviation` |
+| `groups` | Unique index on `(teacher_id, name_normalized)` — no duplicate group names per teacher (case-insensitive) |
+| `items` | `difficulty`, `rating_deviation`, `image_url` (optional) |
+| `attempts` | `elo_after`, `prob_failure`, `expected_score`, `time_taken`, `confidence_score`, `error_type`, `rating_deviation` |
+| `courses` | `id` (slug), `name`, `block` (Universidad/Colegio/Concursos) |
+| `enrollments` | `user_id`, `course_id`, `group_id` |
+| `procedure_submissions` | `image_data` (BLOB), `status`, `ai_proposed_score` (never affects ELO directly), `teacher_score` (official), `final_score` = teacher_score, `elo_delta` = (final_score−50)×0.2, `file_hash` (SHA-256 anti-plagiarism) |
+| `audit_group_changes` | Log of group reassignments by admin |
+
+### Test users (seed_test_students.py — idempotent)
+
+| User | Password | Level |
+|---|---|---|
+| `profesor1` | `demo1234` | Teacher (pre-approved) |
+| `estudiante1` | `demo1234` | Universidad |
+| `estudiante2` | `demo1234` | Colegio |
+| `estudiante_colegio_1..3` | `test1234` | Colegio (`is_test_user=1`) |
+| `estudiante_universidad_1..2` | `test1234` | Universidad (`is_test_user=1`) |
 
 ## Question Bank
 
-Questions live in **`items/bank/`** as individual JSON files per topic (e.g., `algebra_lineal.json`, `calculo_diferencial.json`). Each file is an array of items. The filename (without extension) becomes the `course_id`.
+Questions live in **`items/bank/`** as individual JSON files per course. Filename (without extension) = `course_id`.
 
-Each item needs: `id` (unique string), `content` (supports LaTeX `$...$`), `difficulty` (ELO, 600–1800), `topic`, `options` (list), `correct_option` (must exactly match one option string).
+Required fields per item: `id` (unique string), `content` (LaTeX `$...$`), `difficulty` (600–1800), `topic`, `options` (list), `correct_option` (exact match).
 
-On startup, `sync_items_from_bank_folder()` registers each file as a course and syncs items to the DB without overwriting existing ELO ratings.
+Optional: `image_url` or `image_path` — displayed below the question stem. If both present, `image_url` takes priority. Missing/broken image never breaks UI.
+
+**Important**: LaTeX backslashes must be escaped in JSON (`\\frac`, `\\sin`, etc.).
+
+`sync_items_from_bank_folder()` on startup registers courses and syncs items **without overwriting** existing ELO ratings.
+
+### Course catalog
+
+| File | Course | Block |
+|---|---|---|
+| `algebra_lineal.json` | Álgebra Lineal | Universidad |
+| `calculo_diferencial.json` | Cálculo Diferencial | Universidad |
+| `calculo_integral.json` | Cálculo Integral | Universidad |
+| `calculo_varias_variables.json` | Cálculo de Varias Variables | Universidad |
+| `ecuaciones_diferenciales.json` | Ecuaciones Diferenciales | Universidad |
+| `probabilidad.json` | Probabilidad | Universidad |
+| `algebra_basica.json` | Álgebra Básica | Colegio |
+| `aritmetica_basica.json` | Aritmética Básica | Colegio |
+| `trigonometria.json` | Trigonometría | Colegio |
+| `geometria.json` | Geometría | Colegio |
+| `DIAN.json` | Concurso DIAN — Gestor I | Concursos |
+| `SENA.json` | Concurso SENA — Profesional 10 | Concursos |
+
+To add a new course: create the JSON, add entry to `_COURSE_BLOCK_MAP` in `sqlite_repository.py`, restart.
 
 ## AI Integration
 
-Multi-provider support via `ai_client.py`: Groq, OpenAI, Anthropic, Google Gemini, HuggingFace, LM Studio (local), Ollama (local). Provider auto-detected from API key prefix in the sidebar. All AI features degrade gracefully if unavailable.
+Multi-provider via `ai_client.py`. Provider auto-detected from API key prefix in sidebar:
 
-Key AI functions:
-- `get_socratic_guidance()` / `get_socratic_guidance_stream()` — student tutor (never reveals answer)
-- `get_pedagogical_analysis()` — teacher dashboard analysis
-- `analyze_performance_local()` — student stats, returns JSON recommendations
-- `CognitiveAnalyzer` (`domain/elo/cognitive.py`) — classifies student reasoning for ELO impact
-- `review_math_procedure()` (`math_procedure_review.py`) — Groq-only, vision model analyzes handwritten math procedures, returns JSON with step-by-step review and score 0–100 that nudges ELO
+| Prefix | Provider |
+|---|---|
+| `sk-ant-` | Anthropic |
+| `gsk_` | Groq |
+| `AIzaSy` | Google Gemini |
+| `hf_` | HuggingFace |
+| `sk-proj-`/`sk-` | OpenAI |
+| (none) | LM Studio / Ollama local |
+
+All AI features **degrade gracefully** if unavailable (fallback to neutral values).
+
+**Model Router** (`model_router.py`): selects best model per task. Sources in priority order: manual registry → provider defaults → heuristic name detection.
+
+**Socratic validation** (`validate_socratic_response()`): post-generation check that response doesn't reveal the answer and is ≤3 sentences. `SOCRATIC_MAX_TOKENS = 120`.
+
+**Math procedure review** (`math_procedure_review.py`): Groq-only, uses `meta-llama/llama-4-scout-17b-16e-instruct`. Returns JSON with step evaluation and `score_procedimiento` (0–100). ELO adjustment: `(score − 50) × 0.2`. Applied once per item (flag `proc_elo_applied_{item_id}`).
+
+**Symbolic math pipeline** (`symbolic_math_verifier.py`): 4-layer verification with SymPy. Error diagnosis: `incorrect_distributive`, `sign_error`, `fraction_simplification`, `not_equivalent`. Optional dependency — degrades gracefully.
+
+**Procedure relevance validation** (`validate_procedure_relevance()`): light YES/NO check before submission. After 3 failed attempts, alternative options are offered.
+
+**Anti-plagiarism**: SHA-256 hash of each uploaded file compared against prior submissions for same student+item.
+
+## Security
+
+- **Argon2id** (via `passlib[argon2]`) for all passwords.
+- Transparent migration from legacy SHA-256: replaced on next login.
+- Accounts with empty/null password hash are auto-deactivated on DB migration.
+- API keys stored only in Streamlit session memory — never persisted to DB.
+- Admin credentials via env vars only (`ADMIN_PASSWORD`, `ADMIN_USER`).
 
 ## User Roles
 
-- **student**: Must belong to a group; practice mode + personal stats.
-- **teacher**: Requires admin approval; creates groups, views student dashboards, generates AI reports.
-- **admin**: Manages teacher approvals, group reassignment (audited), user activation/deactivation.
+- **student**: Must belong to a group. Practice mode + personal stats + procedure submissions + feedback center (with unread badge).
+- **teacher**: Requires admin approval. Creates/manages groups (unique names per teacher). Dashboard with cascade filters (Group → Level → Subject). Reviews and scores procedures (badge shows pending count). Generates AI pedagogical analysis per student.
+- **admin**: Approves teachers, reassigns students between groups (audited), deletes groups, activates/deactivates users. All destructive actions require UI confirmation.
+
+## Important Implementation Notes
+
+- **DB path changed**: current path is `data/elo_database.db`, not `elo_project.db` (old path from earlier versions).
+- **`is_test_user=1`**: these students are protected against deletion — never remove this flag.
+- **Streamlit Cloud caveat**: the filesystem is ephemeral. `data/elo_database.db` is lost on container restart. For production persistence, `DB_PATH` env var must point to an external persistent volume or the repository must be migrated to an external DB (e.g., Supabase/PostgreSQL).
+- **Single-file UI**: `app.py` is intentionally monolithic. Be careful with changes — all panels share session state via `st.session_state`.
+- **Procedure ELO**: `ai_proposed_score` never directly affects ELO. Only `teacher_score` (via `final_score`) does.

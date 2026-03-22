@@ -15,11 +15,13 @@ import json
 import random
 import importlib
 import src.infrastructure.persistence.sqlite_repository as db_mod
+import src.infrastructure.persistence.postgres_repository as pg_mod
 import src.infrastructure.external_api.ai_client as ai_mod
 import src.infrastructure.external_api.math_procedure_review as _math_review_mod
 import src.infrastructure.external_api.model_router as _router_mod
 import src.infrastructure.external_api.math_analysis_pipeline as _pipeline_mod
 importlib.reload(db_mod)
+importlib.reload(pg_mod)
 importlib.reload(ai_mod)
 importlib.reload(_math_review_mod)
 importlib.reload(_router_mod)
@@ -29,6 +31,7 @@ from src.domain.elo.vector_elo import VectorRating, aggregate_global_elo, aggreg
 from src.domain.elo.model import expected_score, calculate_dynamic_k, Item
 from src.utils import strip_thinking_tags
 SQLiteRepository = db_mod.SQLiteRepository
+PostgresRepository = pg_mod.PostgresRepository
 analyze_performance_local = ai_mod.analyze_performance_local
 get_active_models = ai_mod.get_active_models
 get_socratic_guidance_stream = ai_mod.get_socratic_guidance_stream
@@ -62,8 +65,12 @@ def _get_logo():
     return _LOGO_DARK if _get_theme() == "dark" else _LOGO_LIGHT
 
 # Inicializar Base de Datos
+# Si DATABASE_URL está definida → PostgreSQL; si no → SQLite local
 if 'db' not in st.session_state:
-    st.session_state.db = SQLiteRepository()
+    if os.environ.get('DATABASE_URL'):
+        st.session_state.db = PostgresRepository()
+    else:
+        st.session_state.db = SQLiteRepository()
 repo = st.session_state.db
 cookie_manager = stx.CookieManager()
 # Inicializar Servicios (Re-instanciar en cada recarga para capturar cambios en código)
@@ -390,7 +397,7 @@ else:
                 with col_name:
                     st.write(f"👤 **{teacher['username']}**")
                 with col_date:
-                    st.caption(f"Registrado: {teacher['created_at'][:10]}")
+                    st.caption(f"Registrado: {str(teacher['created_at'])[:10]}")
                 with col_ok:
                     if st.button("✅ Aprobar", key=f"approve_{teacher['id']}"):
                         st.session_state.db.approve_teacher(teacher['id'])
@@ -413,7 +420,7 @@ else:
                 with col_name:
                     st.write(f"🏫 **{t['username']}**")
                 with col_date:
-                    st.caption(f"Desde: {t['created_at'][:10]}")
+                    st.caption(f"Desde: {str(t['created_at'])[:10]}")
                 with col_baja:
                     if st.button("🚫 Dar de baja", key=f"deact_t_{t['id']}"):
                         st.session_state.db.deactivate_user(t['id'])
@@ -454,7 +461,7 @@ else:
                 with col_group:
                     st.caption(f"Grupo: {s['group_name'] or 'N/A'}")
                 with col_date:
-                    st.caption(f"Desde: {s['created_at'][:10]}")
+                    st.caption(f"Desde: {str(s['created_at'])[:10]}")
                 with col_baja:
                     confirm_key_s = f"confirm_deact_s_{s['id']}"
                     if st.session_state.get(confirm_key_s):
@@ -853,7 +860,7 @@ else:
                     {
                         "Grupo": g['name'],
                         "Curso": g['course_name'],
-                        "Creado": g['created_at'][:10],
+                        "Creado": str(g['created_at'])[:10],
                     }
                     for g in _my_groups
                 ]

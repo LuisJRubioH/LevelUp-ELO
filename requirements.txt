@@ -9,3 +9,4 @@ extra-streamlit-components
 plotly
 PyMuPDF
 sympy
+psycopg2-binary
