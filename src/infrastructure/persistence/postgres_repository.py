@@ -8,6 +8,7 @@ import psycopg2.extras
 import psycopg2.pool
 from psycopg2.extras import RealDictCursor
 from src.infrastructure.security.hashing_service import HashingService
+from src.infrastructure.storage.supabase_storage import SupabaseStorage
 from src.domain.elo.model import expected_score
 
 
@@ -77,10 +78,11 @@ class PostgresRepository:
             options='-c statement_timeout=60000',
         )
         self._pool = psycopg2.pool.SimpleConnectionPool(
-            minconn=1, maxconn=5, **self._conn_kwargs
+            minconn=3, maxconn=20, **self._conn_kwargs
         )
 
         self.hashing = HashingService()
+        self._storage = SupabaseStorage()
         print("Iniciando init_db...")
         self.init_db()
         print("init_db OK")
@@ -379,7 +381,7 @@ class PostgresRepository:
                         student_id INTEGER NOT NULL,
                         item_id TEXT NOT NULL,
                         item_content TEXT NOT NULL,
-                        image_data BYTEA NOT NULL,
+                        image_data BYTEA,
                         mime_type TEXT DEFAULT 'image/jpeg',
                         status TEXT DEFAULT 'pending',
                         teacher_feedback TEXT,
@@ -404,6 +406,13 @@ class PostgresRepository:
                 self._add_column_if_not_exists(cursor, 'procedure_submissions', 'ai_feedback', "TEXT")
                 # v6 — hash SHA-256 del archivo subido para detección anti-plagio
                 self._add_column_if_not_exists(cursor, 'procedure_submissions', 'file_hash', "TEXT")
+                # v7 — URL de Supabase Storage (reemplaza BYTEA para nuevos registros)
+                self._add_column_if_not_exists(cursor, 'procedure_submissions', 'storage_url', "TEXT")
+                # v7b — image_data ya no es obligatorio (NULL cuando se usa Storage)
+                cursor.execute('''
+                    ALTER TABLE procedure_submissions
+                    ALTER COLUMN image_data DROP NOT NULL
+                ''')
 
                 # ── LMS: Cursos y Matrículas ─────────────────────────────────────────────
 
@@ -1837,14 +1846,36 @@ class PostgresRepository:
     @_timing
     def save_procedure_submission(self, student_id, item_id, item_content, image_data,
                                   mime_type='image/jpeg', file_hash=None):
-        """Guarda o reemplaza el procedimiento enviado por el estudiante."""
+        """Guarda o reemplaza el procedimiento enviado por el estudiante.
+
+        Si Supabase Storage está disponible, sube el archivo al bucket
+        'procedimientos' y almacena la URL.  image_data se guarda como NULL
+        en la BD para nuevos registros (ahorra ~200 KB de BYTEA por fila).
+        Fallback: disco local + BYTEA si Storage no está disponible.
+        """
         import time as _time
         ext = {'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp'}.get(mime_type, 'jpg')
-        os.makedirs(os.path.join('data', 'uploads', 'procedures'), exist_ok=True)
-        img_filename = f"{student_id}_{item_id}_{int(_time.time())}.{ext}"
-        img_path = os.path.join('data', 'uploads', 'procedures', img_filename)
-        with open(img_path, 'wb') as _f:
-            _f.write(image_data)
+
+        # ── Intentar subir a Supabase Storage ────────────────────────────
+        storage_path = f"{student_id}/{item_id}/{file_hash or int(_time.time())}.{ext}"
+        if self._storage.available:
+            print(f"[STORAGE] Subiendo archivo a Supabase Storage...")
+        else:
+            print("[STORAGE] WARNING: SUPABASE_URL/KEY no definidas, usando BYTEA fallback")
+        storage_url = self._storage.upload_file(
+            'procedimientos', storage_path, image_data, mime_type,
+        )
+
+        # ── Fallback a disco local si Storage no disponible ──────────────
+        img_path = None
+        bytea_value = None
+        if not storage_url:
+            os.makedirs(os.path.join('data', 'uploads', 'procedures'), exist_ok=True)
+            img_filename = f"{student_id}_{item_id}_{int(_time.time())}.{ext}"
+            img_path = os.path.join('data', 'uploads', 'procedures', img_filename)
+            with open(img_path, 'wb') as _f:
+                _f.write(image_data)
+            bytea_value = psycopg2.Binary(image_data)
 
         conn = self.get_connection()
         try:
@@ -1858,6 +1889,7 @@ class PostgresRepository:
                 cursor.execute('''
                     UPDATE procedure_submissions
                     SET image_data=%s, mime_type=%s, procedure_image_path=%s, file_hash=%s,
+                        storage_url=%s,
                         status=CASE
                             WHEN ai_proposed_score IS NOT NULL THEN 'PENDING_TEACHER_VALIDATION'
                             ELSE 'pending'
@@ -1867,15 +1899,16 @@ class PostgresRepository:
                         procedure_score=NULL, teacher_score=NULL, final_score=NULL,
                         submitted_at=CURRENT_TIMESTAMP, reviewed_at=NULL
                     WHERE student_id=%s AND item_id=%s
-                ''', (psycopg2.Binary(image_data), mime_type, img_path, file_hash,
+                ''', (bytea_value, mime_type, img_path, file_hash, storage_url,
                       student_id, item_id))
             else:
                 cursor.execute('''
                     INSERT INTO procedure_submissions
-                        (student_id, item_id, item_content, image_data, mime_type, procedure_image_path, file_hash)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                ''', (student_id, item_id, item_content, psycopg2.Binary(image_data),
-                      mime_type, img_path, file_hash))
+                        (student_id, item_id, item_content, image_data, mime_type,
+                         procedure_image_path, file_hash, storage_url)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ''', (student_id, item_id, item_content, bytea_value,
+                      mime_type, img_path, file_hash, storage_url))
             conn.commit()
         finally:
             self.put_connection(conn)
@@ -1908,7 +1941,8 @@ class PostgresRepository:
                 SELECT id, status, teacher_feedback, feedback_image,
                        feedback_mime_type, submitted_at, reviewed_at,
                        procedure_score, feedback_image_path,
-                       ai_proposed_score, teacher_score, final_score
+                       ai_proposed_score, teacher_score, final_score,
+                       storage_url
                 FROM procedure_submissions
                 WHERE student_id=%s AND item_id=%s
             ''', (student_id, item_id))
@@ -1948,7 +1982,8 @@ class PostgresRepository:
                        ps.procedure_score,
                        ps.teacher_feedback,
                        ps.status, ps.submitted_at, ps.reviewed_at,
-                       ps.procedure_image_path, ps.feedback_image_path
+                       ps.procedure_image_path, ps.feedback_image_path,
+                       ps.storage_url
                 FROM procedure_submissions ps
                 WHERE ps.student_id = %s
                 ORDER BY ps.submitted_at DESC
@@ -1984,9 +2019,12 @@ class PostgresRepository:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute('''
                 SELECT ps.id, ps.student_id, u.username AS student_name,
-                       ps.item_id, ps.item_content, ps.image_data, ps.mime_type,
+                       ps.item_id, ps.item_content, ps.mime_type,
                        ps.submitted_at, ps.procedure_image_path,
-                       ps.status, ps.ai_proposed_score, ps.ai_feedback
+                       ps.status, ps.ai_proposed_score, ps.ai_feedback,
+                       ps.storage_url,
+                       CASE WHEN ps.storage_url IS NULL THEN ps.image_data
+                            ELSE NULL END AS image_data
                 FROM procedure_submissions ps
                 JOIN users u ON ps.student_id = u.id
                 JOIN groups g ON u.group_id = g.id

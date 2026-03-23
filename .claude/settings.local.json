@@ -8,7 +8,9 @@
       "Bash(cd D:/Portafolio/LevelUp-ELO && python -c \"\nfrom src.infrastructure.persistence.sqlite_repository import SQLiteRepository\nrepo = SQLiteRepository\\(\\)\nprint\\(f'DB path: {repo.db_name}'\\)\n\nimport os\nprint\\(f'File exists: {os.path.exists\\(repo.db_name\\)}'\\)\nprint\\(f'File size: {os.path.getsize\\(repo.db_name\\)} bytes'\\)\n\nconn = repo.get_connection\\(\\)\nc = conn.cursor\\(\\)\nc.execute\\('SELECT COUNT\\(*\\) FROM users WHERE is_test_user = 1'\\)\nprint\\(f'Test students: {c.fetchone\\(\\)[0]}'\\)\nc.execute\\('SELECT COUNT\\(*\\) FROM enrollments e JOIN users u ON e.user_id = u.id WHERE u.is_test_user = 1'\\)\nprint\\(f'Enrollments: {c.fetchone\\(\\)[0]}'\\)\nconn.close\\(\\)\n\")",
       "Bash(cd D:/Portafolio/LevelUp-ELO && python -c \"import ast; ast.parse\\(open\\('src/interface/streamlit/app.py', encoding='utf-8'\\).read\\(\\)\\); print\\('Syntax OK'\\)\")",
       "Bash(cd D:/Portafolio/LevelUp-ELO && python -c \"\nimport ast\ntree = ast.parse\\(open\\('src/interface/streamlit/app.py', encoding='utf-8'\\).read\\(\\)\\)\nprint\\(f'Syntax OK — {len\\(tree.body\\)} top-level statements'\\)\n\")",
-      "Bash(cd D:/Portafolio/LevelUp-ELO && python scripts/create_local_admin.py)"
+      "Bash(cd D:/Portafolio/LevelUp-ELO && python scripts/create_local_admin.py)",
+      "Bash(python -c \"import src.infrastructure.persistence.postgres_repository as pg_mod; print\\(''OK''\\)\")",
+      "Bash(pip install:*)"
     ]
   }
 }

@@ -14,6 +14,10 @@ import requests
 import json
 import random
 import importlib
+try:
+    from psycopg2.extras import RealDictCursor
+except ImportError:
+    RealDictCursor = None
 import src.infrastructure.persistence.sqlite_repository as db_mod
 import src.infrastructure.persistence.postgres_repository as pg_mod
 import src.infrastructure.external_api.ai_client as ai_mod
@@ -273,9 +277,9 @@ if not st.session_state.logged_in:
         user = repo.validate_session(token)
         if user:
             st.session_state.logged_in = True
-            st.session_state.user_id = user[0]
-            st.session_state.username = user[1]
-            st.session_state.role = user[3]
+            st.session_state.user_id = user['id']
+            st.session_state.username = user['username']
+            st.session_state.role = user['role']
         else:
             cookie_manager.delete("elo_auth_token")
 
@@ -424,6 +428,7 @@ else:
                     if st.button("❌ Rechazar", key=f"reject_{teacher['id']}"):
                         st.session_state.db.reject_teacher(teacher['id'])
                         st.session_state.pop('cache_pending_teachers', None)
+                        st.session_state.pop('cache_approved_teachers', None)
                         st.rerun()
 
         st.markdown("---")
@@ -446,14 +451,17 @@ else:
                     if st.button("🚫 Dar de baja", key=f"deact_t_{t['id']}"):
                         st.session_state.db.deactivate_user(t['id'])
                         st.session_state.pop('cache_approved_teachers', None)
+                        st.session_state.pop('cache_all_students', None)
                         st.rerun()
 
         # Profesores dados de baja
         conn_t = st.session_state.db.get_connection()
-        cur_t = conn_t.cursor()
-        cur_t.execute("SELECT id, username, created_at FROM users WHERE role='teacher' AND active=0 ORDER BY username ASC")
-        inactive_teachers = [{'id': r[0], 'username': r[1], 'created_at': r[2]} for r in cur_t.fetchall()]
-        conn_t.close()
+        try:
+            cur_t = conn_t.cursor(cursor_factory=RealDictCursor)
+            cur_t.execute("SELECT id, username, created_at FROM users WHERE role='teacher' AND active=0 ORDER BY username ASC")
+            inactive_teachers = [dict(r) for r in cur_t.fetchall()]
+        finally:
+            st.session_state.db.put_connection(conn_t)
         if inactive_teachers:
             with st.expander(f"Ver {len(inactive_teachers)} profesor(es) dado(s) de baja"):
                 for t in inactive_teachers:
@@ -464,6 +472,7 @@ else:
                         if st.button("✅ Reactivar", key=f"react_t_{t['id']}"):
                             st.session_state.db.reactivate_user(t['id'])
                             st.session_state.pop('cache_approved_teachers', None)
+                            st.session_state.pop('cache_all_students', None)
                             st.rerun()
 
         st.markdown("---")
@@ -748,14 +757,17 @@ else:
                     with st.container(border=True):
                         st.markdown(
                             f"**👤 {_sub['student_name']}** — "
-                            f"enviado el {_sub['submitted_at'][:16]}"
+                            f"enviado el {str(_sub['submitted_at'])[:16]}"
                         )
                         st.caption(f"Pregunta: {_sub['item_content'][:120]}{'…' if len(_sub['item_content']) > 120 else ''}")
 
                         _c_img, _c_fb = st.columns([1, 1])
                         with _c_img:
+                            _stor_url = _sub.get('storage_url')
                             _img_path = _sub.get('procedure_image_path')
-                            if _img_path and os.path.exists(_img_path):
+                            if _stor_url:
+                                st.image(_stor_url, caption="Procedimiento del estudiante", use_container_width=True)
+                            elif _img_path and os.path.exists(_img_path):
                                 st.image(_img_path, caption="Procedimiento del estudiante", use_container_width=True)
                             elif _sub.get('image_data'):
                                 st.image(bytes(_sub['image_data']), caption="Procedimiento del estudiante", use_container_width=True)
@@ -883,6 +895,7 @@ else:
                         )
                         if _ok:
                             st.success(_msg)
+                            st.session_state.pop('cache_all_groups', None)
                             st.rerun()
                         else:
                             st.error(_msg)
@@ -977,13 +990,15 @@ else:
             _BASE_COLS = {"Estudiante", "Grupo", "ELO Global", "Rango"}
             _sum_rows = []
             for _s in students:
-                _elo_map = st.session_state.db.get_latest_elo_by_topic(_s['id'])
+                _elo_map = cached(f'cache_elo_topic_{_s["id"]}',
+                                  lambda _sid=_s['id']: st.session_state.db.get_latest_elo_by_topic(_sid))
 
                 # Filtrado estricto: solo tópicos de cursos inscritos o procedimientos.
                 # Si el conjunto de tópicos inscritos está vacío (estudiante antiguo sin
                 # matrículas o sin ítems con course_id), usamos el elo_map completo como
                 # fallback para no ocultar actividad real.
-                _enrolled_topics = st.session_state.db.get_enrolled_topics(_s['id'])
+                _enrolled_topics = cached(f'cache_enrolled_topics_{_s["id"]}',
+                                          lambda _sid=_s['id']: st.session_state.db.get_enrolled_topics(_sid))
                 _active_map = (
                     {t: v for t, v in _elo_map.items() if t in _enrolled_topics}
                     if _enrolled_topics
@@ -2343,7 +2358,7 @@ else:
                 for _fb in _fb_rows:
                     # Encabezado: pregunta resumida + fecha
                     _item_label = _fb.get('item_short') or _fb.get('item_id', '—')
-                    _date_label = (_fb.get('submitted_at') or '—')[:16]
+                    _date_label = str(_fb.get('submitted_at') or '—')[:16]
                     _status = _fb.get('status', 'pending')
 
                     # Indicador visual del estado de revisión
@@ -2397,9 +2412,13 @@ else:
                         if not _ai_fb and not _tch_fb:
                             st.caption("Sin comentarios aún.")
 
-                        # Enlace para ver el archivo enviado (procedure_image_path)
+                        # Enlace para ver el archivo enviado
+                        _stor_url = _fb.get('storage_url')
                         _img_path = _fb.get('procedure_image_path')
-                        if _img_path and os.path.isfile(_img_path):
+                        if _stor_url:
+                            st.markdown("**Archivo enviado:**")
+                            st.image(_stor_url, caption="Procedimiento enviado", use_container_width=True)
+                        elif _img_path and os.path.isfile(_img_path):
                             st.markdown("**Archivo enviado:**")
                             st.image(_img_path, caption="Procedimiento enviado", use_container_width=True)
 

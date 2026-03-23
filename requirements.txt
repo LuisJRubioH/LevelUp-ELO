@@ -10,3 +10,5 @@ plotly
 PyMuPDF
 sympy
 psycopg2-binary
+supabase
+python-dotenv
