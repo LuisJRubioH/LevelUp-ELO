@@ -76,8 +76,9 @@ src/
 │
 ├── infrastructure/          # Implementaciones concretas (detalles técnicos)
 │   ├── persistence/
-│   │   ├── sqlite_repository.py  # SQLite: esquema, migraciones, seed, queries
-│   │   └── seed_test_students.py # Seed idempotente de 5 estudiantes de prueba
+│   │   ├── sqlite_repository.py    # SQLite: esquema, migraciones, seed, queries (desarrollo local)
+│   │   ├── postgres_repository.py  # PostgreSQL: port completo para producción (Supabase)
+│   │   └── seed_test_students.py   # Seed idempotente de 5 estudiantes de prueba
 │   ├── external_api/
 │   │   ├── ai_client.py                 # Cliente universal multi-proveedor de IA
 │   │   ├── math_procedure_review.py     # Revisión matemática rigurosa (Groq + Llama 4 Scout)
@@ -104,8 +105,8 @@ app.py
   └─→ StudentService.process_answer()
         ├─→ CognitiveAnalyzer.analyze_cognition()   ← IA local clasifica el razonamiento
         ├─→ VectorRating.update()                   ← aplica ELO delta con impact_modifier
-        ├─→ SQLiteRepository.update_item_rating()   ← actualiza dificultad del ítem simétricamente
-        └─→ SQLiteRepository.save_attempt()         ← persiste todos los metadatos del intento
+        ├─→ Repository.update_item_rating()          ← actualiza dificultad del ítem (SQLite o PostgreSQL)
+        └─→ Repository.save_attempt()                ← persiste todos los metadatos del intento
 ```
 
 ---
@@ -364,7 +365,14 @@ Optimizaciones: `@lru_cache(maxsize=256)` en `simplify` y `expand`; limpieza LaT
 
 ## Base de datos
 
-SQLite (archivo `data/elo_database.db`, ruta fija). Se crea y migra automáticamente en cada arranque. La carpeta `data/` se genera si no existe. La ruta se puede sobreescribir con la variable de entorno `DB_PATH`.
+**Doble backend** — la aplicación selecciona automáticamente según el entorno:
+
+| Entorno | Backend | Detalle |
+|---|---|---|
+| `DATABASE_URL` definida | **PostgreSQL** (Supabase) | Pool de conexiones (`SimpleConnectionPool 1–5`), `sslmode=require`, `statement_timeout=60s` |
+| `DATABASE_URL` ausente | **SQLite** (local) | Archivo `data/elo_database.db`, ruta fija. Override con `DB_PATH` |
+
+Ambos backends exponen la misma API pública y ejecutan las mismas migraciones, seeds y sincronización de ítems al arrancar. La carpeta `data/` se genera automáticamente si no existe (solo SQLite).
 
 ### Esquema principal
 
@@ -440,7 +448,7 @@ Restricción: **índice único** en `(teacher_id, name_normalized)` — un profe
 | `id` | INTEGER PK | Identificador |
 | `student_id` | INTEGER FK | Estudiante que envía |
 | `item_id` | TEXT | Pregunta asociada |
-| `image_data` | BLOB | Imagen del procedimiento |
+| `image_data` | BLOB / BYTEA | Imagen del procedimiento |
 | `status` | TEXT | `pending` / `PENDING_TEACHER_VALIDATION` / `VALIDATED_BY_TEACHER` / `reviewed` |
 | `ai_proposed_score` | REAL | Score propuesto por IA (nunca afecta ELO directamente) |
 | `teacher_score` | REAL | Calificación oficial del docente (0–100) |
@@ -452,7 +460,7 @@ Restricción: **índice único** en `(teacher_id, name_normalized)` — un profe
 
 ### Migraciones
 
-Las migraciones son **aditivas** (`ALTER TABLE ADD COLUMN IF NOT EXISTS`). No hay migraciones destructivas. Se ejecutan automáticamente en `SQLiteRepository.__init__()`.
+Las migraciones son **aditivas** (`ALTER TABLE ADD COLUMN IF NOT EXISTS`). No hay migraciones destructivas. Se ejecutan automáticamente en `__init__()` de ambos repositorios. El repositorio PostgreSQL incluye retry (3 intentos) para `DeadlockDetected` / `QueryCanceled`.
 
 ### Usuario admin
 
@@ -477,7 +485,7 @@ Al registrarse, cada estudiante selecciona su **nivel educativo**, que determina
 | Colegio | `Colegio` | Álgebra Básica, Aritmética Básica, Trigonometría, Geometría |
 | Concursos | `Concursos` | DIAN — Gestor I, SENA — Profesional 10 |
 
-El catálogo se genera automáticamente desde los archivos JSON en `items/bank/`. La asignación curso-bloque se define en `_COURSE_BLOCK_MAP` dentro de `sqlite_repository.py`.
+El catálogo se genera automáticamente desde los archivos JSON en `items/bank/`. La asignación curso-bloque se define en `_COURSE_BLOCK_MAP` dentro de `sqlite_repository.py` y `postgres_repository.py`.
 
 Los estudiantes se **matriculan** en cursos de su nivel y se unen a un **grupo** creado por un docente para ese curso.
 
@@ -533,7 +541,10 @@ Los estudiantes se **matriculan** en cursos de su nivel y se unen a un **grupo**
 git clone <url-del-repo>
 cd LevelUp-ELO
 
-# 2. Instalar dependencias
+# 2. Crear entorno virtual e instalar dependencias
+python -m venv venv
+source venv/Scripts/activate   # Windows (Git Bash)
+# source venv/bin/activate     # Linux / macOS
 pip install -r requirements.txt
 
 # 3. Ejecutar (siempre desde la raíz del proyecto)
@@ -542,7 +553,20 @@ streamlit run src/interface/streamlit/app.py
 
 > **Importante**: la app debe lanzarse desde la raíz del repositorio porque `app.py` inyecta el directorio raíz en `sys.path` en tiempo de ejecución para resolver el paquete `src/`.
 
-La base de datos `data/elo_database.db` se crea automáticamente en el primer arranque junto con el usuario admin, las preguntas del banco y los usuarios de prueba.
+### Modo local (SQLite)
+
+Sin configuración adicional, la base de datos `data/elo_database.db` se crea automáticamente en el primer arranque junto con el usuario admin, las preguntas del banco y los usuarios de prueba.
+
+### Modo producción (PostgreSQL / Supabase)
+
+Definir la variable de entorno `DATABASE_URL` antes de ejecutar:
+
+```bash
+export DATABASE_URL="postgresql://user:password@host:5432/dbname"
+streamlit run src/interface/streamlit/app.py
+```
+
+La app detecta `DATABASE_URL` y usa `PostgresRepository` con pool de conexiones (`psycopg2`, SSL requerido). Si la variable no está definida, cae automáticamente a SQLite local.
 
 ### Usuarios de prueba
 
@@ -591,7 +615,7 @@ Las preguntas se organizan en **`items/bank/`**, un archivo JSON por curso. El n
 ### Crear un nuevo curso
 
 1. Crea un archivo `items/bank/mi_curso.json` con un array de ítems.
-2. Agrega la entrada en `_COURSE_BLOCK_MAP` en `sqlite_repository.py`:
+2. Agrega la entrada en `_COURSE_BLOCK_MAP` en **ambos** repositorios (`sqlite_repository.py` y `postgres_repository.py`):
    ```python
    'mi_curso': 'Universidad',  # o 'Colegio' o 'Concursos'
    ```
@@ -736,3 +760,4 @@ Sube las imágenes a tu repositorio y usa la URL raw de GitHub:
 | `extra-streamlit-components` | Componentes adicionales de UI |
 | `PyMuPDF` | Renderizado de PDF a imagen para revisión de procedimientos |
 | `sympy` | Verificación simbólica de equivalencias algebraicas en el pipeline matemático |
+| `psycopg2-binary` | Driver PostgreSQL para el backend de producción (Supabase) |

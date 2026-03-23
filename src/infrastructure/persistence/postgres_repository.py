@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import functools
 import psycopg2
 import psycopg2.errors
 import psycopg2.extras
@@ -8,6 +9,18 @@ import psycopg2.pool
 from psycopg2.extras import RealDictCursor
 from src.infrastructure.security.hashing_service import HashingService
 from src.domain.elo.model import expected_score
+
+
+def _timing(func):
+    """Decorator que mide y reporta el tiempo de ejecución de cada método."""
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        elapsed_ms = (time.time() - start) * 1000
+        print(f"[TIMING] {func.__name__}: {elapsed_ms:.0f}ms")
+        return result
+    return wrapper
 
 
 class PostgresRepository:
@@ -105,6 +118,7 @@ class PostgresRepository:
         """Devuelve una conexión al pool para reutilización."""
         self._pool.putconn(conn)
 
+    @_timing
     def init_db(self):
         conn = self.get_connection()
         try:
@@ -179,10 +193,17 @@ class PostgresRepository:
                 )
             ''')
 
+            # ── Índices para acelerar JOINs y filtros frecuentes ─────────
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_attempts_user_id ON attempts(user_id)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_enrollments_user_id ON enrollments(user_id)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_groups_teacher_id ON groups(teacher_id)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_procedure_submissions_student_id ON procedure_submissions(student_id)')
+
             conn.commit()
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_student_procedure_scores(self, student_id):
         """Retorna notas de procedimientos validados, normalizadas a escala 0-100."""
         conn = self.get_connection()
@@ -205,6 +226,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_procedure_stats_by_course(self, student_id):
         """Retorna dict {course_id: {'course_name', 'avg_score', 'count'}} con el
         promedio de notas de procedimiento agrupadas por curso del estudiante."""
@@ -237,6 +259,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_students_procedure_summary_table(self, teacher_id):
         """Para el panel docente: lista de dicts con promedio de procedimiento
         por estudiante y curso, filtrado por los grupos del profesor."""
@@ -667,6 +690,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def register_user(self, username, password, role='student', group_id=None, education_level=None):
         """Registra un nuevo usuario."""
         if not password or not password.strip():
@@ -691,6 +715,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def login_user(self, username, password):
         conn = self.get_connection()
         try:
@@ -732,6 +757,7 @@ class PostgresRepository:
 
         return None  # Credenciales inválidas o usuario inactivo
 
+    @_timing
     def save_attempt(self, user_id, item_id, is_correct, difficulty, topic, elo_after,
                      prob_failure=None, expected_score=None, time_taken=None,
                      confidence_score=None, error_type=None, rating_deviation=None):
@@ -750,6 +776,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_study_streak(self, user_id):
         """Calcula la racha de días consecutivos de estudio del estudiante."""
         conn = self.get_connection()
@@ -780,6 +807,7 @@ class PostgresRepository:
                 break  # hueco en la racha
         return streak
 
+    @_timing
     def get_total_attempts_count(self, user_id):
         """Retorna el número total de intentos de un estudiante."""
         conn = self.get_connection()
@@ -791,6 +819,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_latest_attempts(self, user_id, limit=20):
         """Retorna los últimos N intentos con el resultado real y el esperado."""
         conn = self.get_connection()
@@ -820,6 +849,7 @@ class PostgresRepository:
             results.append({"actual": actual, "expected": expected})
         return results
 
+    @_timing
     def get_user_history_elo(self, user_id):
         conn = self.get_connection()
         try:
@@ -830,10 +860,12 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_latest_elo(self, user_id):
         history = self.get_user_history_elo(user_id)
         return history[-1]
 
+    @_timing
     def get_attempts_for_ai(self, user_id, limit=20):
         conn = self.get_connection()
         try:
@@ -850,6 +882,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_answered_item_ids(self, user_id):
         conn = self.get_connection()
         try:
@@ -860,6 +893,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_latest_elo_by_topic(self, user_id):
         """Devuelve {topic: (elo_actual, rd_actual)} incluyendo ajustes de procedimientos."""
         conn = self.get_connection()
@@ -902,6 +936,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_user_history_full(self, user_id):
         """Devuelve historial completo para gráficas."""
         conn = self.get_connection()
@@ -918,6 +953,7 @@ class PostgresRepository:
 
     # ─── Métodos para ADMIN ─────────────────────────────────────────────────────
 
+    @_timing
     def get_pending_teachers(self):
         """Retorna lista de teachers pendientes de aprobación."""
         conn = self.get_connection()
@@ -931,6 +967,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_approved_teachers(self):
         """Retorna lista de teachers aprobados y activos."""
         conn = self.get_connection()
@@ -944,6 +981,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def deactivate_user(self, user_id):
         """Da de baja (desactiva) a un usuario por id."""
         conn = self.get_connection()
@@ -954,6 +992,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def reactivate_user(self, user_id):
         """Reactiva un usuario dado de baja, conservando todo su progreso."""
         conn = self.get_connection()
@@ -964,6 +1003,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def approve_teacher(self, user_id):
         conn = self.get_connection()
         try:
@@ -973,6 +1013,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def reject_teacher(self, user_id):
         conn = self.get_connection()
         try:
@@ -984,6 +1025,7 @@ class PostgresRepository:
 
     # ─── Métodos para TEACHER ────────────────────────────────────────────────────
 
+    @_timing
     def get_all_students(self):
         """Retorna lista de todos los estudiantes activos."""
         conn = self.get_connection()
@@ -997,6 +1039,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_all_students_admin(self):
         """Retorna TODOS los estudiantes (activos e inactivos) con su grupo para el panel admin."""
         conn = self.get_connection()
@@ -1017,6 +1060,7 @@ class PostgresRepository:
 
     # ─── Gestión de GRUPOS ────────────────────────────────────────────────────────
 
+    @_timing
     def create_group(self, name, teacher_id, course_id=None):
         """Crea un nuevo grupo para un profesor, opcionalmente vinculado a un curso."""
         name_normalized = name.strip().lower()
@@ -1035,6 +1079,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_groups_by_teacher(self, teacher_id):
         """Lista grupos de un profesor con el nombre del curso vinculado (JOIN)."""
         conn = self.get_connection()
@@ -1056,6 +1101,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_all_groups(self):
         """Lista todos los grupos disponibles (para el registro de estudiantes)."""
         conn = self.get_connection()
@@ -1072,6 +1118,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def delete_group(self, group_id, admin_id):
         """Elimina un grupo (solo admin). Desvincula estudiantes y matrículas del grupo."""
         conn = self.get_connection()
@@ -1109,6 +1156,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_students_by_teacher(self, teacher_id):
         """Retorna estudiantes vinculados al profesor vía grupo primario O matrículas."""
         conn = self.get_connection()
@@ -1146,6 +1194,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_students_by_group(self, group_id, teacher_id):
         """Retorna estudiantes de un grupo específico, validando que sea del profesor."""
         conn = self.get_connection()
@@ -1163,6 +1212,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_student_attempts_detail(self, student_id):
         """Historial detallado de intentos de un estudiante (para el teacher)."""
         conn = self.get_connection()
@@ -1182,6 +1232,7 @@ class PostgresRepository:
 
     # ─── Gestión de SEGURIDAD (Admin) ───────────────────────────────────────────
 
+    @_timing
     def change_student_group(self, student_id, new_group_id, admin_id, allow_null=False):
         """Reasigna a un estudiante a un nuevo grupo con validaciones y auditoría."""
         conn = self.get_connection()
@@ -1236,6 +1287,7 @@ class PostgresRepository:
 
     # ─── Gestión de CURSOS y MATRÍCULAS ─────────────────────────────────────────
 
+    @_timing
     def sync_items_from_bank_folder(self, bank_dir='items/bank'):
         """Escanea items/bank/*.json, registra cada archivo como curso y sincroniza
         sus ítems sin sobreescribir ratings ELO ya calculados.
@@ -1429,6 +1481,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_available_courses_by_level(self, level: str):
         """Retorna los cursos disponibles filtrados ESTRICTAMENTE por nivel educativo."""
         from src.domain.entities import LEVEL_TO_BLOCK, LEVEL_UNIVERSIDAD
@@ -1445,6 +1498,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_courses(self, block=None):
         """Devuelve todos los cursos, opcionalmente filtrados por bloque."""
         conn = self.get_connection()
@@ -1462,6 +1516,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_available_groups_for_course(self, course_id):
         """Retorna los grupos activos vinculados a un curso específico."""
         conn = self.get_connection()
@@ -1479,6 +1534,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def enroll_user(self, user_id, course_id, group_id=None):
         """Matricula a un usuario en un curso. Idempotente."""
         conn = self.get_connection()
@@ -1501,6 +1557,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def unenroll_user(self, user_id, course_id):
         """Elimina la matrícula de un usuario en un curso."""
         conn = self.get_connection()
@@ -1514,6 +1571,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_user_enrollments(self, user_id):
         """Devuelve los cursos en los que está matriculado el usuario."""
         conn = self.get_connection()
@@ -1537,6 +1595,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_enrolled_topics(self, user_id):
         """Retorna el conjunto de tópicos relevantes para el filtrado de la tabla ELO."""
         conn = self.get_connection()
@@ -1562,6 +1621,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def set_education_level(self, user_id, level):
         """Guarda el nivel educativo del usuario."""
         conn = self.get_connection()
@@ -1572,6 +1632,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_education_level(self, user_id):
         """Retorna el education_level del usuario, o None si no existe."""
         conn = self.get_connection()
@@ -1585,6 +1646,7 @@ class PostgresRepository:
 
     # ─── Gestión de ÍTEMS (ELO Dinámico) ────────────────────────────────────────
 
+    @_timing
     def sync_items_from_json(self, items_list):
         """Sincroniza el banco de preguntas JSON con la DB. No sobreescribe ratings actuales."""
         conn = self.get_connection()
@@ -1622,6 +1684,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_items_from_db(self, topic=None, course_id=None):
         """Obtiene ítems desde la base de datos."""
         conn = self.get_connection()
@@ -1662,6 +1725,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def update_item_rating(self, item_id, student_rating, actual_score, k_item=32.0):
         """Actualiza la dificultad (rating) del ítem de forma simétrica."""
         conn = self.get_connection()
@@ -1690,6 +1754,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def create_session(self, user_id):
         import secrets
         from datetime import datetime, timedelta, timezone
@@ -1707,6 +1772,7 @@ class PostgresRepository:
             self.put_connection(conn)
         return token
 
+    @_timing
     def validate_session(self, token):
         from datetime import datetime, timezone
         conn = self.get_connection()
@@ -1739,6 +1805,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def delete_session(self, token):
         conn = self.get_connection()
         try:
@@ -1750,6 +1817,7 @@ class PostgresRepository:
 
     # ── Procedimientos para revisión del docente ──────────────────────────────
 
+    @_timing
     def check_file_hash_duplicate(self, item_id, student_id, file_hash):
         """Verifica si el hash SHA-256 de un archivo ya fue registrado por OTRO estudiante
         para la misma pregunta."""
@@ -1766,6 +1834,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def save_procedure_submission(self, student_id, item_id, item_content, image_data,
                                   mime_type='image/jpeg', file_hash=None):
         """Guarda o reemplaza el procedimiento enviado por el estudiante."""
@@ -1811,6 +1880,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def save_ai_proposed_score(self, student_id: int, item_id: str, ai_score: float,
                                ai_feedback: str = None):
         """Guarda la puntuación propuesta por la IA y actualiza el status."""
@@ -1828,6 +1898,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_student_submission(self, student_id, item_id):
         """Retorna la entrega del estudiante para una pregunta, o None."""
         conn = self.get_connection()
@@ -1848,6 +1919,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_reviewed_submission_ids(self, student_id):
         """Retorna los IDs de entregas que ya tienen retroalimentación."""
         conn = self.get_connection()
@@ -1862,6 +1934,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_student_feedback_history(self, student_id):
         """Historial completo de entregas del estudiante para el Centro de Feedback."""
         conn = self.get_connection()
@@ -1885,6 +1958,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_pending_submissions_count(self, teacher_id):
         """Cuenta las entregas pendientes de revisión del docente."""
         conn = self.get_connection()
@@ -1902,6 +1976,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_pending_submissions_for_teacher(self, teacher_id):
         """Retorna todas las entregas pendientes de los estudiantes del docente."""
         conn = self.get_connection()
@@ -1924,6 +1999,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def get_student_elo_summary(self, student_id):
         """ELO actual por tópico, ELO global, total de intentos y precisión reciente."""
         elo_by_topic = self.get_latest_elo_by_topic(student_id)
@@ -1951,6 +2027,7 @@ class PostgresRepository:
             'recent_accuracy': recent_acc,
         }
 
+    @_timing
     def validate_procedure_submission(self, submission_id: int,
                                       teacher_score: float, feedback: str = ""):
         """Valida la calificación de un procedimiento y establece la nota final oficial."""
@@ -1973,6 +2050,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_timing
     def save_teacher_feedback(self, submission_id, feedback_text,
                               feedback_image=None, feedback_mime_type=None,
                               procedure_score=None):

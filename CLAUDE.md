@@ -28,8 +28,9 @@ Clean Architecture with four layers inside `src/`:
   - `teacher_service.py` — Dashboard analysis and AI reports.
 
 - **`infrastructure/`**
-  - `persistence/sqlite_repository.py` — Single ~1200-line file: schema, migrations, seed, queries.
-  - `persistence/seed_test_students.py` — Idempotent seed of 5 test students (never overwrites existing ELO/progress).
+  - `persistence/sqlite_repository.py` — SQLite implementation: schema, migrations, seed, queries (~1200 lines). Used as local fallback.
+  - `persistence/postgres_repository.py` — PostgreSQL implementation (psycopg2): full port of SQLite repo for production (Supabase). Uses `SimpleConnectionPool(1–5)`, `RealDictCursor`, `ON CONFLICT DO NOTHING`, `SERIAL PRIMARY KEY`, `BYTEA`. Connection pooling eliminates per-query TCP+SSL overhead. Retry logic for `DeadlockDetected`/`QueryCanceled` in migrations.
+  - `persistence/seed_test_students.py` — Idempotent seed of 5 test students (never overwrites existing ELO/progress). Used by SQLite repo; PostgreSQL repo has inline equivalent.
   - `external_api/ai_client.py` — Universal multi-provider AI client.
   - `external_api/math_procedure_review.py` — Groq + Llama 4 Scout vision review of handwritten procedures.
   - `external_api/model_router.py` — Intelligent model router: selects best model per task type (`tutor_socratic`, `image_procedure_analysis`, `general_chat`).
@@ -48,7 +49,7 @@ Clean Architecture with four layers inside `src/`:
 1. `app.py` → `StudentService.process_answer()`
 2. `CognitiveAnalyzer` calls AI → `impact_modifier`
 3. `VectorRating.update()` applies ELO delta per topic
-4. `SQLiteRepository.update_item_rating()` updates item difficulty symmetrically
+4. `Repository.update_item_rating()` updates item difficulty symmetrically (SQLite or PostgreSQL)
 5. `save_attempt()` persists all metadata
 
 ## Key Domain Concepts
@@ -65,9 +66,17 @@ Clean Architecture with four layers inside `src/`:
 
 ## Database
 
-- SQLite at **`data/elo_database.db`** (fixed path). The `data/` folder is auto-created if absent. Override with env var `DB_PATH`.
-- `SQLiteRepository.__init__()` runs: `init_db()` → `_migrate_db()` → `_seed_admin()` → `_backfill_prob_failure()` → `sync_items_from_bank_folder()`.
+**Dual-backend**: app.py auto-selects based on environment:
+- If `DATABASE_URL` is set → `PostgresRepository` (production, Supabase).
+- Otherwise → `SQLiteRepository` (local development, file `data/elo_database.db`).
+
+**SQLite** (local): file at `data/elo_database.db` (fixed path, auto-created). Override with env var `DB_PATH`.
+
+**PostgreSQL** (production): reads `DATABASE_URL` env var (format: `postgresql://user:pass@host:port/dbname`). Uses `psycopg2` with `SimpleConnectionPool(minconn=1, maxconn=5)` to reuse TCP+SSL connections. URL parsed via regex to handle special characters in passwords. `sslmode='require'` and `statement_timeout=60000` (60s) on every connection.
+
+Both repositories run on init: `init_db()` → `_migrate_db()` → `_seed_admin()` → `_seed_demo_data()` → `_backfill_prob_failure()` → `sync_items_from_bank_folder()` → `_seed_test_students()`.
 - Migrations are **additive only** (`ALTER TABLE ADD COLUMN IF NOT EXISTS`) — no destructive migrations.
+- PostgreSQL migrations use retry logic (3 attempts) for `DeadlockDetected`/`QueryCanceled` with `time.sleep(2)` between retries.
 - Admin user created only if env var `ADMIN_PASSWORD` is set (`ADMIN_USER` defaults to `"admin"`). No hardcoded credentials.
 
 ### Tables
@@ -80,7 +89,7 @@ Clean Architecture with four layers inside `src/`:
 | `attempts` | `elo_after`, `prob_failure`, `expected_score`, `time_taken`, `confidence_score`, `error_type`, `rating_deviation` |
 | `courses` | `id` (slug), `name`, `block` (Universidad/Colegio/Concursos) |
 | `enrollments` | `user_id`, `course_id`, `group_id` |
-| `procedure_submissions` | `image_data` (BLOB), `status`, `ai_proposed_score` (never affects ELO directly), `teacher_score` (official), `final_score` = teacher_score, `elo_delta` = (final_score−50)×0.2, `file_hash` (SHA-256 anti-plagiarism) |
+| `procedure_submissions` | `image_data` (BLOB/BYTEA), `status`, `ai_proposed_score` (never affects ELO directly), `teacher_score` (official), `final_score` = teacher_score, `elo_delta` = (final_score−50)×0.2, `file_hash` (SHA-256 anti-plagiarism) |
 | `audit_group_changes` | Log of group reassignments by admin |
 
 ### Test users (seed_test_students.py — idempotent)
@@ -122,7 +131,7 @@ Optional: `image_url` or `image_path` — displayed below the question stem. If 
 | `DIAN.json` | Concurso DIAN — Gestor I | Concursos |
 | `SENA.json` | Concurso SENA — Profesional 10 | Concursos |
 
-To add a new course: create the JSON, add entry to `_COURSE_BLOCK_MAP` in `sqlite_repository.py`, restart.
+To add a new course: create the JSON, add entry to `_COURSE_BLOCK_MAP` in both `sqlite_repository.py` and `postgres_repository.py`, restart.
 
 ## AI Integration
 
@@ -167,8 +176,12 @@ All AI features **degrade gracefully** if unavailable (fallback to neutral value
 
 ## Important Implementation Notes
 
-- **DB path changed**: current path is `data/elo_database.db`, not `elo_project.db` (old path from earlier versions).
+- **Dual DB backend**: `DATABASE_URL` env var → PostgreSQL (Supabase); absent → SQLite local. Both repos have identical public API.
+- **PostgreSQL connection pool**: `SimpleConnectionPool(1–5)` reuses TCP+SSL connections. Never call `conn.close()` — use `self.put_connection(conn)` to return to pool.
+- **PostgreSQL uses `RealDictCursor`**: all row access is `row['column_name']`, never `row[0]`. Date fields return `datetime` objects (not strings) — always wrap with `str()` before slicing (e.g., `str(row['created_at'])[:10]`).
+- **`_COURSE_BLOCK_MAP`** exists in both `sqlite_repository.py` and `postgres_repository.py` — keep them in sync when adding courses.
+- **DB path (SQLite)**: `data/elo_database.db` (fixed). Override with `DB_PATH` env var.
 - **`is_test_user=1`**: these students are protected against deletion — never remove this flag.
-- **Streamlit Cloud caveat**: the filesystem is ephemeral. `data/elo_database.db` is lost on container restart. For production persistence, `DB_PATH` env var must point to an external persistent volume or the repository must be migrated to an external DB (e.g., Supabase/PostgreSQL).
+- **Streamlit Cloud**: uses `DATABASE_URL` pointing to Supabase PostgreSQL for persistent data. SQLite fallback is for local development only.
 - **Single-file UI**: `app.py` is intentionally monolithic. Be careful with changes — all panels share session state via `st.session_state`.
 - **Procedure ELO**: `ai_proposed_score` never directly affects ELO. Only `teacher_score` (via `final_score`) does.

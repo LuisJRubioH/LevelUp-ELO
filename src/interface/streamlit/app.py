@@ -49,6 +49,20 @@ import extra_streamlit_components as stx
 # Configuración de página
 st.set_page_config(page_title="LevelUp ELO — Evaluación Adaptativa", layout="wide", page_icon="🎓")
 
+# ── Caché ligero en session_state ─────────────────────────────────────────────
+def cached(key, fn):
+    """Devuelve st.session_state[key]; solo llama a fn() si la clave no existe."""
+    if key not in st.session_state:
+        st.session_state[key] = fn()
+    return st.session_state[key]
+
+
+def invalidate_cache(*keys):
+    """Elimina una o más claves de caché de session_state."""
+    for k in keys:
+        st.session_state.pop(k, None)
+
+
 # ── Logos según tema claro/oscuro ─────────────────────────────────────────────
 _LOGO_LIGHT = os.path.join(base_path, "logo-elo-light.png")
 _LOGO_DARK  = os.path.join(base_path, "logo-elo2-dark.png")
@@ -387,7 +401,9 @@ else:
 
         # ── Profesores pendientes ──────────────────────────────────────────────
         st.subheader("⏳ Solicitudes de Profesores Pendientes")
-        pending = st.session_state.db.get_pending_teachers()
+        if 'cache_pending_teachers' not in st.session_state:
+            st.session_state.cache_pending_teachers = st.session_state.db.get_pending_teachers()
+        pending = st.session_state.cache_pending_teachers
 
         if not pending:
             st.info("No hay solicitudes pendientes.")
@@ -401,17 +417,22 @@ else:
                 with col_ok:
                     if st.button("✅ Aprobar", key=f"approve_{teacher['id']}"):
                         st.session_state.db.approve_teacher(teacher['id'])
+                        st.session_state.pop('cache_pending_teachers', None)
+                        st.session_state.pop('cache_approved_teachers', None)
                         st.rerun()
                 with col_no:
                     if st.button("❌ Rechazar", key=f"reject_{teacher['id']}"):
                         st.session_state.db.reject_teacher(teacher['id'])
+                        st.session_state.pop('cache_pending_teachers', None)
                         st.rerun()
 
         st.markdown("---")
 
         # ── Profesores activos ─────────────────────────────────────────────────
         st.subheader("✅ Profesores Activos")
-        approved_teachers = st.session_state.db.get_approved_teachers()
+        if 'cache_approved_teachers' not in st.session_state:
+            st.session_state.cache_approved_teachers = st.session_state.db.get_approved_teachers()
+        approved_teachers = st.session_state.cache_approved_teachers
         if not approved_teachers:
             st.info("No hay profesores activos aún.")
         else:
@@ -424,6 +445,7 @@ else:
                 with col_baja:
                     if st.button("🚫 Dar de baja", key=f"deact_t_{t['id']}"):
                         st.session_state.db.deactivate_user(t['id'])
+                        st.session_state.pop('cache_approved_teachers', None)
                         st.rerun()
 
         # Profesores dados de baja
@@ -441,13 +463,16 @@ else:
                     with col_r:
                         if st.button("✅ Reactivar", key=f"react_t_{t['id']}"):
                             st.session_state.db.reactivate_user(t['id'])
+                            st.session_state.pop('cache_approved_teachers', None)
                             st.rerun()
 
         st.markdown("---")
 
         # ── Estudiantes registrados ────────────────────────────────────────────
         st.subheader("🎓 Estudiantes Registrados")
-        all_students = st.session_state.db.get_all_students_admin()
+        if 'cache_all_students' not in st.session_state:
+            st.session_state.cache_all_students = st.session_state.db.get_all_students_admin()
+        all_students = st.session_state.cache_all_students
         if not all_students:
             st.info("No hay estudiantes registrados aún.")
         else:
@@ -470,6 +495,7 @@ else:
                             if st.button("✅ Sí", key=f"yes_deact_s_{s['id']}"):
                                 st.session_state.db.deactivate_user(s['id'])
                                 st.session_state.pop(confirm_key_s, None)
+                                st.session_state.pop('cache_all_students', None)
                                 st.rerun()
                         with col_n:
                             if st.button("❌ No", key=f"no_deact_s_{s['id']}"):
@@ -489,6 +515,7 @@ else:
                         with col_r:
                             if st.button("✅ Reactivar", key=f"react_s_{s['id']}"):
                                 st.session_state.db.reactivate_user(s['id'])
+                                st.session_state.pop('cache_all_students', None)
                                 st.rerun()
 
             st.markdown("---")
@@ -498,8 +525,10 @@ else:
             with st.container(border=True):
                 col_s, col_g = st.columns(2)
                 
-                # Cargar datos necesarios
-                all_groups = st.session_state.db.get_all_groups()
+                # Cargar datos necesarios (cached)
+                if 'cache_all_groups' not in st.session_state:
+                    st.session_state.cache_all_groups = st.session_state.db.get_all_groups()
+                all_groups = st.session_state.cache_all_groups
                 # Filtrar solo estudiantes activos para reasignar (usando la lista ya cargada arriba)
                 student_options = {s['username']: s['id'] for s in activos}
                 group_options = {f"{g['name']} ({g['teacher_name']})": g['id'] for g in all_groups}
@@ -526,6 +555,8 @@ else:
                     
                     if success:
                         st.success(message)
+                        st.session_state.pop('cache_all_students', None)
+                        st.session_state.pop('cache_all_groups', None)
                         import time
                         time.sleep(1.5)
                         st.rerun()
@@ -536,7 +567,9 @@ else:
 
             # ── Gestión de Grupos (Admin) ────────────────────────────────────
             st.subheader("📂 Gestión de Grupos")
-            all_groups_admin = st.session_state.db.get_all_groups()
+            if 'cache_all_groups' not in st.session_state:
+                st.session_state.cache_all_groups = st.session_state.db.get_all_groups()
+            all_groups_admin = st.session_state.cache_all_groups
             if not all_groups_admin:
                 st.info("No hay grupos registrados aún.")
             else:
@@ -559,6 +592,8 @@ else:
                                     st.session_state.pop(confirm_key, None)
                                     if ok:
                                         st.success(msg)
+                                        st.session_state.pop('cache_all_groups', None)
+                                        st.session_state.pop('cache_all_students', None)
                                         import time
                                         time.sleep(1.5)
                                         st.rerun()
@@ -1167,7 +1202,8 @@ else:
     else:
         # 1. Recuperar Estado Inicial de DB para VectorELO
         if 'vector_initialized' not in st.session_state:
-            latest_elos = st.session_state.db.get_latest_elo_by_topic(st.session_state.user_id)
+            latest_elos = cached('cache_elo_by_topic',
+                                 lambda: st.session_state.db.get_latest_elo_by_topic(st.session_state.user_id))
             st.session_state.vector = VectorRating()
             for topic, (elo, rd) in latest_elos.items():
                 st.session_state.vector.ratings[topic] = (elo, rd)
@@ -1182,7 +1218,8 @@ else:
 
         # ── Onboarding: nivel educativo ──────────────────────────────────────
         if 'education_level' not in st.session_state:
-            st.session_state.education_level = repo.get_education_level(st.session_state.user_id)
+            st.session_state.education_level = cached('cache_edu_level',
+                                                       lambda: repo.get_education_level(st.session_state.user_id))
 
         if not st.session_state.education_level:
             st.title("🎓 Bienvenido a LevelUp ELO")
@@ -1220,7 +1257,8 @@ else:
             st.stop()
 
         # Cargar cursos matriculados (disponible para todo el flujo del estudiante)
-        _enrolled = repo.get_user_enrollments(st.session_state.user_id)
+        _enrolled = cached('cache_enrollments',
+                           lambda: repo.get_user_enrollments(st.session_state.user_id))
 
         # Defaults para variables usadas en las vistas
         selected_course_id = None
@@ -1232,7 +1270,8 @@ else:
             st.session_state.fb_seen_ids = set()
 
         # T4b: calcular cuántas retroalimentaciones nuevas hay (revisadas - vistas)
-        _reviewed_ids = repo.get_reviewed_submission_ids(st.session_state.user_id)
+        _reviewed_ids = cached('cache_reviewed_ids',
+                               lambda: repo.get_reviewed_submission_ids(st.session_state.user_id))
         _unseen_fb = _reviewed_ids - st.session_state.fb_seen_ids
         _fb_badge = f" 🆕 {len(_unseen_fb)}" if _unseen_fb else ""
 
@@ -1396,6 +1435,11 @@ else:
             else:
                 st.session_state.session_wrong_timestamps[item_data['id']] = float(st.session_state.session_questions_count)
 
+            # Invalidar caches afectados por save_attempt
+            invalidate_cache('cache_answered_ids', 'cache_elo_by_topic', 'cache_streak')
+            # Forzar que get_next_question se llame de nuevo en la próxima recarga
+            st.session_state.pop('current_question', None)
+
             st.session_state.question_start_time = None
             st.rerun()
 
@@ -1445,6 +1489,7 @@ else:
                                      use_container_width=True):
                             st.session_state.selected_course = course
                             st.session_state.question_start_time = None
+                            st.session_state.pop('current_question', None)
                             st.rerun()
 
         elif mode == "📝 Practicar":
@@ -1470,7 +1515,8 @@ else:
                     </div>
                 """, unsafe_allow_html=True)
                 # T8c: racha de estudio (días consecutivos con actividad)
-                _streak = repo.get_study_streak(st.session_state.user_id)
+                _streak = cached('cache_streak',
+                                lambda: repo.get_study_streak(st.session_state.user_id))
                 if _streak > 0:
                     st.markdown(f"🔥 **Racha: {_streak} día{'s' if _streak != 1 else ''}**")
                 st.info("💡 **Consejo:** La constancia es clave. Practica diariamente para consolidar tu aprendizaje.")
@@ -1478,14 +1524,16 @@ else:
             with col2:
                 st.subheader(f"📖 Ejercicio: {selected_topic}")
 
-                # Delegar obtención de pregunta al servicio (filtrado exclusivo por curso activo)
-                item_data, status = st.session_state.student_service.get_next_question(
-                    st.session_state.user_id, selected_topic, st.session_state.vector,
-                    session_correct_ids=st.session_state.session_correct_ids,
-                    session_wrong_timestamps=st.session_state.session_wrong_timestamps,
-                    session_questions_count=st.session_state.session_questions_count,
-                    course_id=selected_course_id,
-                )
+                # Delegar obtención de pregunta al servicio (una sola vez por recarga)
+                if 'current_question' not in st.session_state:
+                    st.session_state.current_question = st.session_state.student_service.get_next_question(
+                        st.session_state.user_id, selected_topic, st.session_state.vector,
+                        session_correct_ids=st.session_state.session_correct_ids,
+                        session_wrong_timestamps=st.session_state.session_wrong_timestamps,
+                        session_questions_count=st.session_state.session_questions_count,
+                        course_id=selected_course_id,
+                    )
+                item_data, status = st.session_state.current_question
 
                 if status == "mastery":
                     st.success("🎉 ¡Excelente trabajo! Has alcanzado el nivel de excelencia en esta materia.")
@@ -2010,7 +2058,8 @@ else:
         elif mode == "📊 Estadísticas":
             st.title("📊 Estadísticas de Aprendizaje")
             # T8c: racha de estudio en la cabecera de estadísticas
-            _stat_streak = repo.get_study_streak(st.session_state.user_id)
+            _stat_streak = cached('cache_streak',
+                                  lambda: repo.get_study_streak(st.session_state.user_id))
             if _stat_streak > 0:
                 st.markdown(f"🔥 **Racha de estudio: {_stat_streak} día{'s' if _stat_streak != 1 else ''} consecutivo{'s' if _stat_streak != 1 else ''}**")
 
@@ -2067,7 +2116,8 @@ else:
             st.markdown("---")
 
             st.subheader("🏆 Dominio por Materia")
-            current_elos = st.session_state.db.get_latest_elo_by_topic(st.session_state.user_id)
+            current_elos = cached('cache_elo_by_topic',
+                                  lambda: st.session_state.db.get_latest_elo_by_topic(st.session_state.user_id))
 
             if current_elos:
                 try:
@@ -2225,6 +2275,9 @@ else:
                             with _cc2:
                                 if st.button("Desmatricular", key=f"unenroll_{_course['id']}"):
                                     repo.unenroll_user(st.session_state.user_id, _course['id'])
+                                    invalidate_cache('cache_enrollments')
+                                    st.session_state.pop('current_question', None)
+                                    st.session_state.pop('selected_course', None)
                                     st.rerun()
                         else:
                             # ── Curso disponible: verificar grupos ──────────
@@ -2261,6 +2314,7 @@ else:
                                             _course['id'],
                                             _sel_grp_id,
                                         )
+                                        invalidate_cache('cache_enrollments')
                                         st.rerun()
 
             # ── Resumen de matrículas activas ─────────────────────────────────
