@@ -782,6 +782,10 @@ else:
                                 st.image(bytes(_sub['image_data']), caption="Procedimiento del estudiante", width='stretch')
                                 _img_shown = True
                             if not _img_shown:
+                                print(f"[TEACHER VIEW] No se pudo mostrar imagen: "
+                                      f"storage_url={_stor_url}, "
+                                      f"img_path={_img_path}, "
+                                      f"image_data={'tiene' if _sub.get('image_data') else 'None'}")
                                 st.warning("Imagen no disponible.")
 
                         with _c_fb:

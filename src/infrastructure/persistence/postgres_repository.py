@@ -129,9 +129,13 @@ class PostgresRepository:
         ``procedure_submissions.storage_url``.  Returns raw bytes suitable
         for ``st.image()``, or None if unavailable.
         """
+        print(f"[RESOLVE_IMG] Intentando descargar: {storage_url}")
         if not storage_url:
+            print("[RESOLVE_IMG] storage_url es None/vacío")
             return None
-        return self._storage.get_file('procedimientos', storage_url)
+        result = self._storage.get_file('procedimientos', storage_url)
+        print(f"[RESOLVE_IMG] Resultado: {'bytes:'+str(len(result)) if result else 'None'}")
+        return result
 
     def put_connection(self, conn):
         """Devuelve una conexión al pool para reutilización."""

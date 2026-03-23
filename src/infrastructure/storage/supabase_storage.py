@@ -98,11 +98,15 @@ class SupabaseStorage:
     def get_file(self, bucket: str, path: str) -> bytes | None:
         """Download and return file bytes, or None on failure."""
         if not self.available:
+            print("[STORAGE GET] No disponible - SUPABASE_URL/KEY faltantes")
             return None
         try:
-            storage = self._client.storage.from_(bucket)
             clean_path = self.extract_path(path, bucket)
-            return storage.download(clean_path)
+            print(f"[STORAGE GET] Descargando: bucket={bucket}, path={clean_path}")
+            storage = self._client.storage.from_(bucket)
+            data = storage.download(clean_path)
+            print(f"[STORAGE GET] OK: {len(data)} bytes")
+            return data
         except Exception as exc:
-            print(f"[SupabaseStorage] download error: {exc}")
+            print(f"[STORAGE GET ERROR] {type(exc).__name__}: {exc}")
             return None
