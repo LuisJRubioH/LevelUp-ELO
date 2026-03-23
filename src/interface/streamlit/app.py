@@ -59,17 +59,47 @@ st.set_page_config(page_title="LevelUp ELO — Evaluación Adaptativa", layout="
 # ── CSS: radio button seleccionado en verde ──────────────────────────────────
 st.markdown("""
 <style>
-div[data-testid="stRadio"] div[role="radiogroup"] label[data-checked="true"] > div:first-child {
+/* Streamlit 1.55+ radio: the selected indicator circle */
+div[data-testid="stRadio"] div[role="radiogroup"] label[data-baseweb="radio"] input:checked + div {
     background-color: #00CC66 !important;
     border-color: #00CC66 !important;
 }
-div[data-testid="stRadio"] div[role="radiogroup"] label[aria-checked="true"] > div:first-child {
+/* Fallback: target the SVG-based radio indicator */
+div[data-testid="stRadio"] div[role="radiogroup"] label[data-baseweb="radio"] div[data-testid="stMarkdownContainer"],
+div[data-testid="stRadio"] [role="radiogroup"] label div:first-child div {
+    border-color: inherit;
+}
+div[data-testid="stRadio"] [role="radiogroup"] label[aria-checked="true"] div:first-child div {
     background-color: #00CC66 !important;
     border-color: #00CC66 !important;
 }
-div[data-testid="stRadio"] div[role="radiogroup"] label[data-checked="true"],
-div[data-testid="stRadio"] div[role="radiogroup"] label[aria-checked="true"] {
-    color: #00CC66 !important;
+/* Streamlit emotion-cache based radio dot */
+div[data-testid="stRadio"] [role="radiogroup"] label[aria-checked="true"] > div:first-child > div {
+    background-color: #00CC66 !important;
+    border-color: #00CC66 !important;
+}
+div[data-testid="stRadio"] [role="radiogroup"] label[aria-checked="true"] > div:first-child {
+    border-color: #00CC66 !important;
+}
+/* Target the Streamlit primary color variable override */
+div[data-testid="stRadio"] {
+    --primary-color: #00CC66;
+}
+/* BaseWeb radio overrides */
+[data-baseweb="radio"] input[type="radio"]:checked ~ div {
+    background-color: #00CC66 !important;
+    border-color: #00CC66 !important;
+}
+[data-baseweb="radio"] input[type="radio"]:checked ~ div::after {
+    background-color: #00CC66 !important;
+}
+/* Generic: override Streamlit's red/blue active color for radios */
+.stRadio > div[role="radiogroup"] > label > div:first-child > div {
+    border-color: #555 !important;
+}
+.stRadio > div[role="radiogroup"] > label[aria-checked="true"] > div:first-child > div {
+    background-color: #00CC66 !important;
+    border-color: #00CC66 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -953,24 +983,17 @@ else:
 
         st.markdown("---")
 
-        # ── Ranking semanal por grupo ─────────────────────────────────────────
-        with st.expander("🏆 Ranking Semanal por Grupo"):
-            _tch_groups = st.session_state.teacher_service.get_teacher_groups(st.session_state.user_id)
-            if not _tch_groups:
-                st.info("Crea un grupo primero para ver el ranking.")
-            else:
-                _grp_opts_rank = {g['name']: g['id'] for g in _tch_groups}
-                _sel_grp_rank = st.selectbox(
-                    "Grupo", list(_grp_opts_rank.keys()), key="tch_ranking_group"
-                )
-                _sel_grp_rank_id = _grp_opts_rank[_sel_grp_rank]
+        # ── Ranking semanal ─────────────────────────────────────────
+        with st.expander("🏆 Ranking Semanal"):
+            _rank_mode = st.radio("Modo", ["Ranking General", "Por Grupo"], horizontal=True, key="tch_rank_mode")
+            _medal = {1: "🥇", 2: "🥈", 3: "🥉"}
 
-                _tch_ranking = repo.get_weekly_ranking(_sel_grp_rank_id)
-                if _tch_ranking:
-                    _medal = {1: "🥇", 2: "🥈", 3: "🥉"}
+            if _rank_mode == "Ranking General":
+                _global_ranking = repo.get_global_ranking(limit=10)
+                if _global_ranking:
                     _tch_rank_html = "<table style='width:100%; border-collapse:collapse; font-size:0.9rem;'>"
                     _tch_rank_html += "<tr style='border-bottom:1px solid #444;'><th style='padding:6px;'>🏅</th><th style='padding:6px; text-align:left;'>Estudiante</th><th style='padding:6px;'>ELO</th><th style='padding:6px;'>Intentos</th></tr>"
-                    for _r in _tch_ranking:
+                    for _r in _global_ranking:
                         _pos = _medal.get(_r['rank'], str(_r['rank']))
                         _tch_rank_html += f"<tr style='border-bottom:1px solid #333;'>"
                         _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_pos}</td>"
@@ -981,45 +1004,71 @@ else:
                     _tch_rank_html += "</table>"
                     st.markdown(_tch_rank_html, unsafe_allow_html=True)
                 else:
-                    st.caption("Sin actividad esta semana en este grupo.")
+                    st.caption("Sin actividad global esta semana.")
+            else:
+                _tch_groups = st.session_state.teacher_service.get_teacher_groups(st.session_state.user_id)
+                if not _tch_groups:
+                    st.info("Crea un grupo primero para ver el ranking.")
+                else:
+                    _grp_opts_rank = {g['name']: g['id'] for g in _tch_groups}
+                    _sel_grp_rank = st.selectbox(
+                        "Grupo", list(_grp_opts_rank.keys()), key="tch_ranking_group"
+                    )
+                    _sel_grp_rank_id = _grp_opts_rank[_sel_grp_rank]
 
-                _col_save, _col_hist = st.columns(2)
-                with _col_save:
-                    if st.button("📸 Guardar ranking de esta semana", key="tch_save_ranking"):
-                        repo.save_weekly_ranking(_sel_grp_rank_id)
-                        st.success("Ranking guardado exitosamente.")
-                with _col_hist:
-                    pass
+                    _tch_ranking = repo.get_weekly_ranking(_sel_grp_rank_id)
+                    if _tch_ranking:
+                        _tch_rank_html = "<table style='width:100%; border-collapse:collapse; font-size:0.9rem;'>"
+                        _tch_rank_html += "<tr style='border-bottom:1px solid #444;'><th style='padding:6px;'>🏅</th><th style='padding:6px; text-align:left;'>Estudiante</th><th style='padding:6px;'>ELO</th><th style='padding:6px;'>Intentos</th></tr>"
+                        for _r in _tch_ranking:
+                            _pos = _medal.get(_r['rank'], str(_r['rank']))
+                            _tch_rank_html += f"<tr style='border-bottom:1px solid #333;'>"
+                            _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_pos}</td>"
+                            _tch_rank_html += f"<td style='padding:6px;'>{_r['username']}</td>"
+                            _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_r['global_elo']:.0f}</td>"
+                            _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_r['attempts_this_week']}</td>"
+                            _tch_rank_html += "</tr>"
+                        _tch_rank_html += "</table>"
+                        st.markdown(_tch_rank_html, unsafe_allow_html=True)
+                    else:
+                        st.caption("Sin actividad esta semana en este grupo.")
 
-                # ── Historial de rankings ──────────────────────────────────
-                _history = repo.get_ranking_history(_sel_grp_rank_id)
-                if _history:
-                    st.markdown("**📊 Historial de rankings (últimas 4 semanas)**")
-                    # Agrupar por semana
-                    from collections import defaultdict
-                    _weeks_hist = defaultdict(list)
-                    for _h in _history:
-                        _weeks_hist[_h['week_start']].append(_h)
-                    _prev_week_users = {}
-                    _sorted_weeks = sorted(_weeks_hist.keys(), reverse=True)
-                    for _w_idx, _wk in enumerate(_sorted_weeks):
-                        _entries = _weeks_hist[_wk]
-                        _wk_end = _entries[0]['week_end']
-                        st.caption(f"Semana {_wk} → {_wk_end}")
-                        _curr_week_users = {e['username']: e['rank'] for e in _entries}
-                        for _e in _entries:
-                            _pos_str = _medal.get(_e['rank'], str(_e['rank']))
-                            _arrow = ""
-                            if _prev_week_users:
-                                _old_rank = _prev_week_users.get(_e['username'])
-                                if _old_rank is None:
-                                    _arrow = " 🆕"
-                                elif _old_rank > _e['rank']:
-                                    _arrow = " ⬆️"
-                                elif _old_rank < _e['rank']:
-                                    _arrow = " ⬇️"
-                            st.markdown(f"  {_pos_str} **{_e['username']}** — {_e['global_elo']:.0f} ELO ({_e['attempts_count']} intentos){_arrow}")
-                        _prev_week_users = _curr_week_users
+                    _col_save, _col_hist = st.columns(2)
+                    with _col_save:
+                        if st.button("📸 Guardar ranking de esta semana", key="tch_save_ranking"):
+                            repo.save_weekly_ranking(_sel_grp_rank_id)
+                            st.success("Ranking guardado exitosamente.")
+                    with _col_hist:
+                        pass
+
+                    # ── Historial de rankings ──────────────────────────────────
+                    _history = repo.get_ranking_history(_sel_grp_rank_id)
+                    if _history:
+                        st.markdown("**📊 Historial de rankings (últimas 4 semanas)**")
+                        from collections import defaultdict
+                        _weeks_hist = defaultdict(list)
+                        for _h in _history:
+                            _weeks_hist[_h['week_start']].append(_h)
+                        _prev_week_users = {}
+                        _sorted_weeks = sorted(_weeks_hist.keys(), reverse=True)
+                        for _w_idx, _wk in enumerate(_sorted_weeks):
+                            _entries = _weeks_hist[_wk]
+                            _wk_end = _entries[0]['week_end']
+                            st.caption(f"Semana {_wk} → {_wk_end}")
+                            _curr_week_users = {e['username']: e['rank'] for e in _entries}
+                            for _e in _entries:
+                                _pos_str = _medal.get(_e['rank'], str(_e['rank']))
+                                _arrow = ""
+                                if _prev_week_users:
+                                    _old_rank = _prev_week_users.get(_e['username'])
+                                    if _old_rank is None:
+                                        _arrow = " 🆕"
+                                    elif _old_rank > _e['rank']:
+                                        _arrow = " ⬆️"
+                                    elif _old_rank < _e['rank']:
+                                        _arrow = " ⬇️"
+                                st.markdown(f"  {_pos_str} **{_e['username']}** — {_e['global_elo']:.0f} ELO ({_e['attempts_count']} intentos){_arrow}")
+                            _prev_week_users = _curr_week_users
 
         st.markdown("---")
 
@@ -1592,6 +1641,10 @@ else:
                     c_name = course['name']
                     c_elo = st.session_state.vector.get(c_name)
                     c_rank, c_color = get_rank(c_elo)
+                    # Posición del estudiante en esta materia
+                    _c_rank_info = repo.get_student_rank(st.session_state.user_id, course['id'])
+                    _c_rank_text = (f"📊 Tu posición: #{_c_rank_info['rank']} de {_c_rank_info['total_students']} estudiantes"
+                                    if _c_rank_info else "Sin posición aún")
                     with cols[col_idx]:
                         st.markdown(f"""
                         <div style="
@@ -1612,6 +1665,7 @@ else:
                                 {c_elo:.0f}
                             </p>
                             <p style="color: #888; font-size: 0.8rem; margin: 0;">Puntos ELO</p>
+                            <p style="color: #aaa; font-size: 0.8rem; margin: 6px 0 0;">{_c_rank_text}</p>
                         </div>
                         """, unsafe_allow_html=True)
                         if st.button(f"Practicar", key=f"sel_course_{course['id']}",
@@ -1620,6 +1674,39 @@ else:
                             st.session_state.question_start_time = None
                             st.session_state.pop('current_question', None)
                             st.rerun()
+
+            # ── Ranking General — Top 5 ─────────────────────────────────
+            st.markdown("---")
+            st.markdown("#### 🏆 Ranking General — Top 5")
+            _global_top = repo.get_global_ranking(limit=5)
+            if _global_top:
+                _medal_sel = {1: "🥇", 2: "🥈", 3: "🥉"}
+                _my_user_sel = st.session_state.username
+                _in_top_sel = False
+                _grank_html = "<table style='width:100%; border-collapse:collapse; font-size:0.9rem;'>"
+                _grank_html += "<tr style='border-bottom:1px solid #444;'><th style='padding:4px 6px;'>🏅</th><th style='padding:4px 6px; text-align:left;'>Estudiante</th><th style='padding:4px 6px;'>ELO</th><th style='padding:4px 6px;'>Intentos</th></tr>"
+                for _r in _global_top:
+                    _is_me_sel = (_r['username'] == _my_user_sel)
+                    if _is_me_sel:
+                        _in_top_sel = True
+                    _bg_sel = "background:rgba(255,215,0,0.15); font-weight:700;" if _is_me_sel else ""
+                    _pos_sel = _medal_sel.get(_r['rank'], str(_r['rank']))
+                    _grank_html += f"<tr style='{_bg_sel} border-bottom:1px solid #333;'>"
+                    _grank_html += f"<td style='padding:4px 6px; text-align:center;'>{_pos_sel}</td>"
+                    _grank_html += f"<td style='padding:4px 6px;'>{_r['username']}</td>"
+                    _grank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['global_elo']:.0f}</td>"
+                    _grank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['attempts_this_week']}</td>"
+                    _grank_html += "</tr>"
+                _grank_html += "</table>"
+                st.markdown(_grank_html, unsafe_allow_html=True)
+                if not _in_top_sel:
+                    _my_global_rank = repo.get_student_rank(st.session_state.user_id)
+                    if _my_global_rank:
+                        st.caption(f"Tu posición: #{_my_global_rank['rank']} de {_my_global_rank['total_students']} 🎯")
+                    else:
+                        st.caption("Practica esta semana para aparecer en el ranking")
+            else:
+                st.caption("Sin actividad global esta semana.")
 
         elif mode == "📝 Practicar":
             selected_course_id = st.session_state.selected_course['id']
@@ -1683,41 +1770,41 @@ else:
                     """, unsafe_allow_html=True)
                 st.info("💡 **Consejo:** La constancia es clave. Practica diariamente para consolidar tu aprendizaje.")
 
-                # ── Ranking semanal Top 5 ────────────────────────────────────
-                _student_group_id = st.session_state.selected_course.get('group_id')
-                if _student_group_id:
-                    _ranking = cached('cache_weekly_ranking',
-                                      lambda: repo.get_weekly_ranking(_student_group_id))
-                    if _ranking:
-                        st.markdown("#### 🏆 Ranking Semanal")
-                        _medal = {1: "🥇", 2: "🥈", 3: "🥉"}
-                        _my_user = st.session_state.username
-                        _in_top = False
-                        _rank_html = "<table style='width:100%; border-collapse:collapse; font-size:0.9rem;'>"
-                        _rank_html += "<tr style='border-bottom:1px solid #444;'><th style='padding:4px 6px;'>🏅</th><th style='padding:4px 6px; text-align:left;'>Estudiante</th><th style='padding:4px 6px;'>ELO</th><th style='padding:4px 6px;'>Intentos</th></tr>"
-                        for _r in _ranking:
-                            _is_me = (_r['username'] == _my_user)
-                            if _is_me:
-                                _in_top = True
-                            _bg = "background:rgba(255,215,0,0.15); font-weight:700;" if _is_me else ""
-                            _pos = _medal.get(_r['rank'], str(_r['rank']))
-                            _rank_html += f"<tr style='{_bg} border-bottom:1px solid #333;'>"
-                            _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_pos}</td>"
-                            _rank_html += f"<td style='padding:4px 6px;'>{_r['username']}</td>"
-                            _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['global_elo']:.0f}</td>"
-                            _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['attempts_this_week']}</td>"
-                            _rank_html += "</tr>"
-                        _rank_html += "</table>"
-                        st.markdown(_rank_html, unsafe_allow_html=True)
-                        if _in_top:
-                            st.caption("¡Estás en el Top 5! 🎯")
+                # ── Ranking General Top 5 ────────────────────────────────────
+                _ranking = cached('cache_global_ranking',
+                                  lambda: repo.get_global_ranking(limit=5))
+                if _ranking:
+                    st.markdown("#### 🏆 Ranking General")
+                    _medal = {1: "🥇", 2: "🥈", 3: "🥉"}
+                    _my_user = st.session_state.username
+                    _in_top = False
+                    _rank_html = "<table style='width:100%; border-collapse:collapse; font-size:0.9rem;'>"
+                    _rank_html += "<tr style='border-bottom:1px solid #444;'><th style='padding:4px 6px;'>🏅</th><th style='padding:4px 6px; text-align:left;'>Estudiante</th><th style='padding:4px 6px;'>ELO</th><th style='padding:4px 6px;'>Intentos</th></tr>"
+                    for _r in _ranking:
+                        _is_me = (_r['username'] == _my_user)
+                        if _is_me:
+                            _in_top = True
+                        _bg = "background:rgba(255,215,0,0.15); font-weight:700;" if _is_me else ""
+                        _pos = _medal.get(_r['rank'], str(_r['rank']))
+                        _rank_html += f"<tr style='{_bg} border-bottom:1px solid #333;'>"
+                        _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_pos}</td>"
+                        _rank_html += f"<td style='padding:4px 6px;'>{_r['username']}</td>"
+                        _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['global_elo']:.0f}</td>"
+                        _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['attempts_this_week']}</td>"
+                        _rank_html += "</tr>"
+                    _rank_html += "</table>"
+                    st.markdown(_rank_html, unsafe_allow_html=True)
+                    if _in_top:
+                        st.caption("¡Estás en el Top 5! 🎯")
+                    else:
+                        _my_rank = repo.get_student_rank(st.session_state.user_id)
+                        if _my_rank:
+                            st.caption(f"Tu posición: #{_my_rank['rank']} de {_my_rank['total_students']} 🎯")
                         else:
                             st.caption("Sigue practicando para entrar al ranking")
-                    else:
-                        st.markdown("#### 🏆 Ranking Semanal")
-                        st.caption("Sin actividad esta semana en tu grupo.")
                 else:
-                    st.caption("Únete a un grupo para ver el ranking semanal")
+                    st.markdown("#### 🏆 Ranking General")
+                    st.caption("Sin actividad esta semana.")
 
             with col2:
                 st.subheader(f"📖 Ejercicio: {selected_topic}")
@@ -1816,21 +1903,27 @@ else:
                                     _sc = st.session_state.streak_correct
                                     if _sc > 0 and _sc % 5 == 0:
                                         st.balloons()
-                                        if _sc >= 20:
-                                            _cel_title, _cel_emoji = "¡MODO BESTIA ACTIVADO!", "🐉"
-                                        elif _sc >= 15:
-                                            _cel_title, _cel_emoji = "¡ERES UNA LEYENDA!", "👑"
-                                        elif _sc >= 10:
-                                            _cel_title, _cel_emoji = "¡IMPARABLE!", "⚡"
-                                        else:
-                                            _cel_title, _cel_emoji = "¡RACHA PERFECTA!", "🎉"
+                                        import random
+                                        _cel_messages = [
+                                            "¡Estás haciendo un trabajo increíble! 🌟",
+                                            "¡Eres el mejor! Sigue así 💪",
+                                            "¡Estás encendido! No pares ahora 🔥",
+                                            "¡Impresionante! Tu esfuerzo se nota ⚡",
+                                            "¡Si sigues así serás parte del Top 5! 🏆",
+                                            "¡Estudiando así llegarás muy lejos! 🚀",
+                                            "¡Increíble razonamiento! Sigue adelante 🧠",
+                                            "¡Lo estás logrando! Cada pregunta cuenta 🎯",
+                                        ]
+                                        _cel_msg = random.choice(_cel_messages)
+                                        _cel_elo = st.session_state.vector.get(selected_topic)
                                         st.markdown(f"""
-                                            <div style="text-align:center; padding:20px; margin:10px 0;
+                                            <div style="text-align:center; padding:28px 20px; margin:10px 0;
                                                         background:linear-gradient(135deg,#6a0dad,#ffd700);
-                                                        border-radius:16px; box-shadow:0 0 20px rgba(255,215,0,0.4);">
-                                                <div style="font-size:3rem;">{_cel_emoji} {_cel_title} {_cel_emoji}</div>
-                                                <p style="color:white; font-size:1.2rem; margin:8px 0 0; font-weight:600;">
-                                                    {_sc} respuestas correctas seguidas</p>
+                                                        border-radius:20px; box-shadow:0 0 30px rgba(255,215,0,0.5);">
+                                                <div style="font-size:2.2rem; font-weight:800; color:white; margin-bottom:8px;">
+                                                    {_cel_msg}</div>
+                                                <p style="color:rgba(255,255,255,0.9); font-size:1.1rem; margin:8px 0 0; font-weight:500;">
+                                                    Tu ELO actual: {_cel_elo:.0f} puntos — ¡sigue subiendo!</p>
                                             </div>
                                         """, unsafe_allow_html=True)
                                 else:
@@ -1881,18 +1974,30 @@ else:
             if item_data:
                 with col1:
                     st.markdown("---")
-                    show_upload = st.checkbox(
-                        "📎 ¿Subir procedimiento para retroalimentación?",
-                        key=f"show_upload_{item_data['id']}",
+                    st.markdown("""
+                        <div style="
+                            border: 2px dashed #00CC66;
+                            border-radius: 16px;
+                            padding: 20px 16px;
+                            text-align: center;
+                            background: rgba(0, 204, 102, 0.05);
+                            margin-bottom: 12px;
+                        ">
+                            <div style="font-size: 2.5rem; margin-bottom: 6px;">📸</div>
+                            <p style="color: #fff; font-size: 1rem; font-weight: 600; margin: 0 0 4px;">
+                                ¡Sube tu procedimiento y recibe retroalimentación!</p>
+                            <p style="color: #aaa; font-size: 0.8rem; margin: 0;">
+                                Toma una foto de tu desarrollo paso a paso. Tu profesor y la IA lo revisarán.</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    uploaded_file = st.file_uploader(
+                        "Foto, escaneo o PDF de tu desarrollo:",
+                        type=["jpg", "jpeg", "png", "webp", "pdf"],
+                        key=f"proc_upload_{item_data['id']}",
+                        label_visibility="collapsed",
                     )
-                    if show_upload:
-                        uploaded_file = st.file_uploader(
-                            "Foto, escaneo o PDF de tu desarrollo:",
-                            type=["jpg", "jpeg", "png", "webp", "pdf"],
-                            key=f"proc_upload_{item_data['id']}",
-                            label_visibility="collapsed",
-                        )
-                        if uploaded_file is not None:
+                    if uploaded_file is not None:
+                        if True:
                             _iid = item_data['id']
                             _uid = st.session_state.user_id
                             _ext = uploaded_file.name.rsplit('.', 1)[-1].lower()

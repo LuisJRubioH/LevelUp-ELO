@@ -837,6 +837,196 @@ class SQLiteRepository:
             for row in rows
         ]
 
+    def get_global_ranking(self, limit=5):
+        """Top estudiantes globales por ELO promedio, con actividad en los últimos 7 días."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            WITH active_users AS (
+                SELECT DISTINCT a.user_id
+                FROM attempts a
+                JOIN users u ON a.user_id = u.id
+                WHERE u.role = 'student' AND u.active = 1
+                  AND a.timestamp >= datetime('now', '-7 days')
+            ),
+            latest_elo AS (
+                SELECT a.user_id, a.elo_after,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY a.user_id, i.course_id
+                           ORDER BY a.timestamp DESC
+                       ) AS rn
+                FROM attempts a
+                JOIN items i ON a.item_id = i.id
+                WHERE a.user_id IN (SELECT user_id FROM active_users)
+            ),
+            user_elo AS (
+                SELECT le.user_id,
+                       ROUND(AVG(le.elo_after), 0) AS global_elo
+                FROM latest_elo le
+                WHERE le.rn = 1
+                GROUP BY le.user_id
+            ),
+            week_attempts AS (
+                SELECT a.user_id, COUNT(*) AS attempts_this_week
+                FROM attempts a
+                WHERE a.user_id IN (SELECT user_id FROM active_users)
+                  AND a.timestamp >= datetime('now', '-7 days')
+                GROUP BY a.user_id
+            )
+            SELECT ue.user_id, u.username, ue.global_elo, wa.attempts_this_week
+            FROM user_elo ue
+            JOIN users u ON ue.user_id = u.id
+            JOIN week_attempts wa ON ue.user_id = wa.user_id
+            ORDER BY ue.global_elo DESC
+            LIMIT ?
+        ''', (limit,))
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {'user_id': row[0], 'username': row[1], 'global_elo': row[2],
+             'rank': idx + 1, 'attempts_this_week': row[3]}
+            for idx, row in enumerate(rows)
+        ]
+
+    def get_course_ranking(self, course_id, limit=5):
+        """Top estudiantes en un curso específico por ELO promedio, últimos 7 días."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            WITH active_users AS (
+                SELECT DISTINCT a.user_id
+                FROM attempts a
+                JOIN users u ON a.user_id = u.id
+                JOIN items i ON a.item_id = i.id
+                WHERE u.role = 'student' AND u.active = 1
+                  AND i.course_id = ?
+                  AND a.timestamp >= datetime('now', '-7 days')
+            ),
+            latest_elo AS (
+                SELECT a.user_id, a.elo_after,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY a.user_id, i.topic
+                           ORDER BY a.timestamp DESC
+                       ) AS rn
+                FROM attempts a
+                JOIN items i ON a.item_id = i.id
+                WHERE a.user_id IN (SELECT user_id FROM active_users)
+                  AND i.course_id = ?
+            ),
+            user_elo AS (
+                SELECT le.user_id,
+                       ROUND(AVG(le.elo_after), 0) AS course_elo
+                FROM latest_elo le
+                WHERE le.rn = 1
+                GROUP BY le.user_id
+            ),
+            week_attempts AS (
+                SELECT a.user_id, COUNT(*) AS attempts_this_week
+                FROM attempts a
+                JOIN items i ON a.item_id = i.id
+                WHERE a.user_id IN (SELECT user_id FROM active_users)
+                  AND i.course_id = ?
+                  AND a.timestamp >= datetime('now', '-7 days')
+                GROUP BY a.user_id
+            )
+            SELECT ue.user_id, u.username, ue.course_elo, wa.attempts_this_week
+            FROM user_elo ue
+            JOIN users u ON ue.user_id = u.id
+            JOIN week_attempts wa ON ue.user_id = wa.user_id
+            ORDER BY ue.course_elo DESC
+            LIMIT ?
+        ''', (course_id, course_id, course_id, limit))
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {'user_id': row[0], 'username': row[1], 'course_elo': row[2],
+             'rank': idx + 1, 'attempts_this_week': row[3]}
+            for idx, row in enumerate(rows)
+        ]
+
+    def get_student_rank(self, user_id, course_id=None):
+        """Posición del estudiante en el ranking (global o por curso)."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        if course_id is None:
+            # Ranking global
+            cursor.execute('''
+                WITH active_users AS (
+                    SELECT DISTINCT a.user_id
+                    FROM attempts a
+                    JOIN users u ON a.user_id = u.id
+                    WHERE u.role = 'student' AND u.active = 1
+                      AND a.timestamp >= datetime('now', '-7 days')
+                ),
+                latest_elo AS (
+                    SELECT a.user_id, a.elo_after,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY a.user_id, i.course_id
+                               ORDER BY a.timestamp DESC
+                           ) AS rn
+                    FROM attempts a
+                    JOIN items i ON a.item_id = i.id
+                    WHERE a.user_id IN (SELECT user_id FROM active_users)
+                ),
+                user_elo AS (
+                    SELECT le.user_id,
+                           ROUND(AVG(le.elo_after), 0) AS global_elo
+                    FROM latest_elo le
+                    WHERE le.rn = 1
+                    GROUP BY le.user_id
+                ),
+                ranked AS (
+                    SELECT user_id, global_elo,
+                           ROW_NUMBER() OVER (ORDER BY global_elo DESC) AS rank
+                    FROM user_elo
+                )
+                SELECT rank, (SELECT COUNT(*) FROM user_elo) AS total, global_elo
+                FROM ranked WHERE user_id = ?
+            ''', (user_id,))
+        else:
+            # Ranking por curso
+            cursor.execute('''
+                WITH active_users AS (
+                    SELECT DISTINCT a.user_id
+                    FROM attempts a
+                    JOIN users u ON a.user_id = u.id
+                    JOIN items i ON a.item_id = i.id
+                    WHERE u.role = 'student' AND u.active = 1
+                      AND i.course_id = ?
+                      AND a.timestamp >= datetime('now', '-7 days')
+                ),
+                latest_elo AS (
+                    SELECT a.user_id, a.elo_after,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY a.user_id, i.topic
+                               ORDER BY a.timestamp DESC
+                           ) AS rn
+                    FROM attempts a
+                    JOIN items i ON a.item_id = i.id
+                    WHERE a.user_id IN (SELECT user_id FROM active_users)
+                      AND i.course_id = ?
+                ),
+                user_elo AS (
+                    SELECT le.user_id,
+                           ROUND(AVG(le.elo_after), 0) AS course_elo
+                    FROM latest_elo le
+                    WHERE le.rn = 1
+                    GROUP BY le.user_id
+                ),
+                ranked AS (
+                    SELECT user_id, course_elo AS global_elo,
+                           ROW_NUMBER() OVER (ORDER BY course_elo DESC) AS rank
+                    FROM user_elo
+                )
+                SELECT rank, (SELECT COUNT(*) FROM user_elo) AS total, global_elo
+                FROM ranked WHERE user_id = ?
+            ''', (course_id, course_id, user_id))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return {'rank': row[0], 'total_students': row[1], 'global_elo': row[2]}
+        return None
+
     def get_total_attempts_count(self, user_id):
         """Retorna el número total de intentos de un estudiante."""
         conn = self.get_connection()

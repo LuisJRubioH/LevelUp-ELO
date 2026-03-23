@@ -13,7 +13,12 @@
       "Bash(pip install:*)",
       "Bash(python -m py_compile src/infrastructure/persistence/postgres_repository.py)",
       "Bash(python -m py_compile src/infrastructure/storage/supabase_storage.py)",
-      "Bash(python -m py_compile src/interface/streamlit/app.py)"
+      "Bash(python -m py_compile src/interface/streamlit/app.py)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(python:*)",
+      "Bash(PYTHONIOENCODING=utf-8 python scripts/db_sync_check.py)"
     ]
   }
 }
