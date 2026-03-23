@@ -86,7 +86,11 @@ def _get_logo():
 # Si DATABASE_URL está definida → PostgreSQL; si no → SQLite local
 if 'db' not in st.session_state:
     if os.environ.get('DATABASE_URL'):
-        st.session_state.db = PostgresRepository()
+        try:
+            st.session_state.db = PostgresRepository()
+        except RuntimeError as _db_err:
+            st.error(f"Error al conectar con la base de datos: {_db_err}")
+            st.stop()
     else:
         st.session_state.db = SQLiteRepository()
 repo = st.session_state.db
@@ -289,7 +293,7 @@ if not st.session_state.logged_in:
 if not st.session_state.logged_in:
     _logo_col1, _logo_col2, _logo_col3 = st.columns([1, 2, 1])
     with _logo_col2:
-        st.image(_get_logo(), use_container_width=True)
+        st.image(_get_logo(), width='stretch')
     st.markdown("<p style='text-align: center; color: #aaa; font-size: 1.2rem; margin-bottom: 40px;'>Plataforma de evaluación y aprendizaje adaptativo basada en el sistema ELO</p>", unsafe_allow_html=True)
 
     col_info, col_login = st.columns([1.4, 1])
@@ -765,13 +769,19 @@ else:
                         with _c_img:
                             _stor_url = _sub.get('storage_url')
                             _img_path = _sub.get('procedure_image_path')
+                            _img_shown = False
                             if _stor_url:
-                                st.image(_stor_url, caption="Procedimiento del estudiante", use_container_width=True)
-                            elif _img_path and os.path.exists(_img_path):
-                                st.image(_img_path, caption="Procedimiento del estudiante", use_container_width=True)
-                            elif _sub.get('image_data'):
-                                st.image(bytes(_sub['image_data']), caption="Procedimiento del estudiante", use_container_width=True)
-                            else:
+                                _img_bytes = repo.resolve_storage_image(_stor_url)
+                                if _img_bytes:
+                                    st.image(_img_bytes, caption="Procedimiento del estudiante", width='stretch')
+                                    _img_shown = True
+                            if not _img_shown and _img_path and os.path.exists(_img_path):
+                                st.image(_img_path, caption="Procedimiento del estudiante", width='stretch')
+                                _img_shown = True
+                            if not _img_shown and _sub.get('image_data'):
+                                st.image(bytes(_sub['image_data']), caption="Procedimiento del estudiante", width='stretch')
+                                _img_shown = True
+                            if not _img_shown:
                                 st.warning("Imagen no disponible.")
 
                         with _c_fb:
@@ -912,7 +922,7 @@ else:
                     }
                     for g in _my_groups
                 ]
-                st.dataframe(pd.DataFrame(_tbl_groups), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(_tbl_groups), width='stretch', hide_index=True)
             else:
                 st.info("No tienes grupos creados aún.")
 
@@ -1043,7 +1053,7 @@ else:
                         if c in _df_sum.columns] + _active_topic_cols
             _df_sum = _df_sum[_ordered]
 
-            st.dataframe(_df_sum, use_container_width=True)
+            st.dataframe(_df_sum, width='stretch')
 
             st.markdown("---")
 
@@ -1080,7 +1090,7 @@ else:
                             )
                         ]
                         st.dataframe(
-                            pd.DataFrame(_elo_rows), use_container_width=True, hide_index=True
+                            pd.DataFrame(_elo_rows), width='stretch', hide_index=True
                         )
                     else:
                         st.caption("Sin datos de ELO por tópico.")
@@ -1097,7 +1107,7 @@ else:
                             for v in _proc_by_course.values()
                         ]
                         st.dataframe(
-                            pd.DataFrame(_proc_rows), use_container_width=True, hide_index=True
+                            pd.DataFrame(_proc_rows), width='stretch', hide_index=True
                         )
                     else:
                         st.caption("Sin procedimientos evaluados.")
@@ -1125,7 +1135,7 @@ else:
                         legend=dict(bgcolor='rgba(38,39,48,0.8)', bordercolor='gray'),
                         margin=dict(t=10),
                     )
-                    st.plotly_chart(_fig_evo, use_container_width=True)
+                    st.plotly_chart(_fig_evo, width='stretch')
 
                     # ── Secciones expandibles ──────────────────────────────────
                     with st.expander("🎯 Probabilidad de Acierto por Intento"):
@@ -1154,7 +1164,7 @@ else:
                                 xaxis_title="Intento #", yaxis_title="Prob. de Acierto",
                                 yaxis=dict(range=[0, 1]),
                             )
-                            st.plotly_chart(_fig_p, use_container_width=True)
+                            st.plotly_chart(_fig_p, width='stretch')
                             _pm1, _pm2, _pm3 = st.columns(3)
                             _pm1.metric("Promedio", f"{_df_prob['prob_success'].mean():.1%}")
                             _pm2.metric("Máximo", f"{_df_prob['prob_success'].max():.1%}")
@@ -1168,7 +1178,7 @@ else:
                                 'resultado': 'Res.', 'elo_after': 'ELO', 'prob_failure': 'P.Fallo',
                                 'timestamp': 'Fecha',
                             }),
-                            use_container_width=True,
+                            width='stretch',
                         )
                 else:
                     st.info(f"{_sel_name} aún no ha respondido ninguna pregunta.")
@@ -1247,7 +1257,7 @@ else:
                     st.markdown("#### 🎓 Universidad")
                     st.write("Cálculo, Álgebra Lineal, EDO, Probabilidad, Estadística")
                     st.write("")
-                    if st.button("Soy universitario", use_container_width=True, type="primary", key="onb_uni"):
+                    if st.button("Soy universitario", width='stretch', type="primary", key="onb_uni"):
                         repo.set_education_level(st.session_state.user_id, 'universidad')
                         st.session_state.education_level = 'universidad'
                         st.rerun()
@@ -1256,7 +1266,7 @@ else:
                     st.markdown("#### 🏫 Colegio")
                     st.write("Álgebra Básica, Aritmética, Trigonometría, Geometría")
                     st.write("")
-                    if st.button("Soy de colegio", use_container_width=True, key="onb_col"):
+                    if st.button("Soy de colegio", width='stretch', key="onb_col"):
                         repo.set_education_level(st.session_state.user_id, 'colegio')
                         st.session_state.education_level = 'colegio'
                         st.rerun()
@@ -1265,7 +1275,7 @@ else:
                     st.markdown("#### 🏆 Concursos")
                     st.write("Preparación para concursos públicos: DIAN, SENA y más")
                     st.write("")
-                    if st.button("Preparo concursos", use_container_width=True, key="onb_con"):
+                    if st.button("Preparo concursos", width='stretch', key="onb_con"):
                         repo.set_education_level(st.session_state.user_id, 'concursos')
                         st.session_state.education_level = 'concursos'
                         st.rerun()
@@ -1501,7 +1511,7 @@ else:
                         </div>
                         """, unsafe_allow_html=True)
                         if st.button(f"Practicar", key=f"sel_course_{course['id']}",
-                                     use_container_width=True):
+                                     width='stretch'):
                             st.session_state.selected_course = course
                             st.session_state.question_start_time = None
                             st.session_state.pop('current_question', None)
@@ -1586,7 +1596,7 @@ else:
                         _img_url = item_data.get('image_url') or item_data.get('image_path')
                         if _img_url:
                             try:
-                                st.image(_img_url, use_container_width=True,
+                                st.image(_img_url, width='stretch',
                                          caption="Figura correspondiente a la pregunta")
                             except Exception:
                                 pass  # imagen no disponible — no romper la UI
@@ -1721,7 +1731,7 @@ else:
                                     "para esta pregunta."
                                 )
 
-                            st.image(_file_bytes, use_container_width=True)
+                            st.image(_file_bytes, width='stretch')
 
                             # Groq activo → revisión matemática rigurosa con Llama 4 Scout
                             _is_groq = (
@@ -2027,9 +2037,9 @@ else:
                                         st.markdown(_sub['teacher_feedback'])
                                     _fb_path = _sub.get('feedback_image_path')
                                     if _fb_path and os.path.exists(_fb_path):
-                                        st.image(_fb_path, caption="Procedimiento calificado", use_container_width=True)
+                                        st.image(_fb_path, caption="Procedimiento calificado", width='stretch')
                                     elif _sub.get('feedback_image'):
-                                        st.image(bytes(_sub['feedback_image']), caption="Procedimiento calificado", use_container_width=True)
+                                        st.image(bytes(_sub['feedback_image']), caption="Procedimiento calificado", width='stretch')
 
                             elif _sub_status in ('pending', 'reviewed'):
                                 # Flujo legado: enviado manualmente o revisado sin IA
@@ -2044,9 +2054,9 @@ else:
                                             st.markdown(_sub['teacher_feedback'])
                                         _fb_path = _sub.get('feedback_image_path')
                                         if _fb_path and os.path.exists(_fb_path):
-                                            st.image(_fb_path, caption="Procedimiento calificado", use_container_width=True)
+                                            st.image(_fb_path, caption="Procedimiento calificado", width='stretch')
                                         elif _sub.get('feedback_image'):
-                                            st.image(bytes(_sub['feedback_image']), caption="Procedimiento calificado", use_container_width=True)
+                                            st.image(bytes(_sub['feedback_image']), caption="Procedimiento calificado", width='stretch')
 
                             else:
                                 # Sin envío previo: mostrar botón para enviar al docente
@@ -2415,15 +2425,19 @@ else:
                         # Enlace para ver el archivo enviado
                         _stor_url = _fb.get('storage_url')
                         _img_path = _fb.get('procedure_image_path')
+                        _fb_img_shown = False
                         if _stor_url:
+                            _fb_img_bytes = repo.resolve_storage_image(_stor_url)
+                            if _fb_img_bytes:
+                                st.markdown("**Archivo enviado:**")
+                                st.image(_fb_img_bytes, caption="Procedimiento enviado", width='stretch')
+                                _fb_img_shown = True
+                        if not _fb_img_shown and _img_path and os.path.isfile(_img_path):
                             st.markdown("**Archivo enviado:**")
-                            st.image(_stor_url, caption="Procedimiento enviado", use_container_width=True)
-                        elif _img_path and os.path.isfile(_img_path):
-                            st.markdown("**Archivo enviado:**")
-                            st.image(_img_path, caption="Procedimiento enviado", use_container_width=True)
+                            st.image(_img_path, caption="Procedimiento enviado", width='stretch')
 
                         # Enlace para ver corrección del docente (feedback_image_path)
                         _fb_img_path = _fb.get('feedback_image_path')
                         if _fb_img_path and os.path.isfile(_fb_img_path):
                             st.markdown("**Corrección del docente:**")
-                            st.image(_fb_img_path, caption="Archivo corregido", use_container_width=True)
+                            st.image(_fb_img_path, caption="Archivo corregido", width='stretch')

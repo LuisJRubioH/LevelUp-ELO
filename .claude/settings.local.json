@@ -10,7 +10,8 @@
       "Bash(cd D:/Portafolio/LevelUp-ELO && python -c \"\nimport ast\ntree = ast.parse\\(open\\('src/interface/streamlit/app.py', encoding='utf-8'\\).read\\(\\)\\)\nprint\\(f'Syntax OK — {len\\(tree.body\\)} top-level statements'\\)\n\")",
       "Bash(cd D:/Portafolio/LevelUp-ELO && python scripts/create_local_admin.py)",
       "Bash(python -c \"import src.infrastructure.persistence.postgres_repository as pg_mod; print\\(''OK''\\)\")",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(python -m py_compile src/infrastructure/persistence/postgres_repository.py)"
     ]
   }
 }

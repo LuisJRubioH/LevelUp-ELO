@@ -35,7 +35,12 @@ class SupabaseStorage:
 
     def upload_file(self, bucket: str, path: str, file_bytes: bytes,
                     mime_type: str = 'image/jpeg') -> str | None:
-        """Upload *file_bytes* and return its public URL, or None on failure."""
+        """Upload *file_bytes* and return the storage *path* (not a URL).
+
+        Previous versions returned a public URL, but the bucket is private
+        so public URLs don't work.  Now we store the path and generate
+        signed URLs on demand via :meth:`create_signed_url`.
+        """
         if not self.available:
             return None
         try:
@@ -50,9 +55,43 @@ class SupabaseStorage:
                 file_bytes,
                 file_options={"content-type": mime_type, "upsert": "true"},
             )
-            return storage.get_public_url(path)
+            # Return the path — callers use create_signed_url() to display.
+            return path
         except Exception as exc:
             print(f"[SupabaseStorage] upload error: {exc}")
+            return None
+
+    @staticmethod
+    def extract_path(storage_url: str, bucket: str) -> str:
+        """Extract the storage path from a public URL or return as-is if already a path.
+
+        Handles legacy rows where storage_url is a full public URL like:
+        ``https://xxx.supabase.co/storage/v1/object/public/procedimientos/1/2/h.jpg``
+        Returns: ``1/2/h.jpg``
+        """
+        marker = f"/object/public/{bucket}/"
+        idx = storage_url.find(marker)
+        if idx != -1:
+            return storage_url[idx + len(marker):]
+        # Already a plain path
+        return storage_url
+
+    def create_signed_url(self, bucket: str, path: str,
+                          expires_in: int = 3600) -> str | None:
+        """Create a signed URL valid for *expires_in* seconds, or None."""
+        if not self.available:
+            return None
+        try:
+            storage = self._client.storage.from_(bucket)
+            # extract_path handles legacy full-URL values
+            clean_path = self.extract_path(path, bucket)
+            resp = storage.create_signed_url(clean_path, expires_in)
+            # supabase-py returns {'signedURL': '...'} or a dict with 'signedUrl'
+            if isinstance(resp, dict):
+                return resp.get('signedURL') or resp.get('signedUrl')
+            return resp
+        except Exception as exc:
+            print(f"[SupabaseStorage] signed-url error: {exc}")
             return None
 
     def get_file(self, bucket: str, path: str) -> bytes | None:
@@ -61,7 +100,8 @@ class SupabaseStorage:
             return None
         try:
             storage = self._client.storage.from_(bucket)
-            return storage.download(path)
+            clean_path = self.extract_path(path, bucket)
+            return storage.download(clean_path)
         except Exception as exc:
             print(f"[SupabaseStorage] download error: {exc}")
             return None

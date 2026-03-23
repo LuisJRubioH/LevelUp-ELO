@@ -77,9 +77,15 @@ class PostgresRepository:
             sslmode='require',
             options='-c statement_timeout=60000',
         )
-        self._pool = psycopg2.pool.SimpleConnectionPool(
-            minconn=3, maxconn=20, **self._conn_kwargs
-        )
+        try:
+            self._pool = psycopg2.pool.SimpleConnectionPool(
+                minconn=1, maxconn=5, **self._conn_kwargs
+            )
+        except psycopg2.OperationalError as exc:
+            raise RuntimeError(
+                f"No se pudo conectar a PostgreSQL. Verifica que DATABASE_URL "
+                f"use el pooler de Supabase (puerto 6543, no 5432). Error: {exc}"
+            ) from exc
 
         self.hashing = HashingService()
         self._storage = SupabaseStorage()
@@ -115,6 +121,17 @@ class PostgresRepository:
             self._pool.putconn(conn, close=True)
             conn = self._pool.getconn()
         return conn
+
+    def resolve_storage_image(self, storage_url: str) -> bytes | None:
+        """Download procedure image bytes from Supabase Storage.
+
+        Handles both legacy public URLs and plain storage paths stored in
+        ``procedure_submissions.storage_url``.  Returns raw bytes suitable
+        for ``st.image()``, or None if unavailable.
+        """
+        if not storage_url:
+            return None
+        return self._storage.get_file('procedimientos', storage_url)
 
     def put_connection(self, conn):
         """Devuelve una conexión al pool para reutilización."""
@@ -312,194 +329,207 @@ class PostgresRepository:
     def _migrate_db(self):
         """Agrega columnas nuevas de forma segura si no existen (migración).
 
-        Usa statement_timeout para evitar bloqueos indefinidos cuando
-        múltiples procesos de Streamlit arrancan simultáneamente.
-        Reintenta hasta 3 veces ante DeadlockDetected o QueryCanceled.
+        Usa un advisory lock para que solo una instancia ejecute las
+        migraciones a la vez (evita deadlocks en arranque paralelo de
+        Streamlit).  Reintenta hasta 3 veces ante DeadlockDetected o
+        QueryCanceled.
         """
         for attempt in range(3):
             conn = self.get_connection()
             try:
                 cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-                # ── Timeout de 30s por statement para evitar bloqueos ──────────
-                cursor.execute("SET statement_timeout = '30s'")
+                # ── Advisory lock: solo una instancia migra a la vez ───────────
+                cursor.execute("SELECT pg_advisory_lock(12345)")
+                try:
 
-                # users
-                self._add_column_if_not_exists(cursor, 'users', 'role', "TEXT DEFAULT 'student'")
-                self._add_column_if_not_exists(cursor, 'users', 'approved', "INTEGER DEFAULT 1")
-                self._add_column_if_not_exists(cursor, 'users', 'active', "INTEGER DEFAULT 1")
-                self._add_column_if_not_exists(cursor, 'users', 'group_id', "INTEGER")
-                self._add_column_if_not_exists(cursor, 'users', 'rating_deviation', "REAL DEFAULT 350.0")
-                self._add_column_if_not_exists(cursor, 'users', 'education_level', "TEXT")
-                self._add_column_if_not_exists(cursor, 'users', 'is_test_user', "INTEGER DEFAULT 0")
+                    # ── Timeout de 30s por statement para evitar bloqueos ──────
+                    cursor.execute("SET statement_timeout = '30s'")
 
-                # Asegurar índices si no existen
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
-                cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)")
+                    # users
+                    self._add_column_if_not_exists(cursor, 'users', 'role', "TEXT DEFAULT 'student'")
+                    self._add_column_if_not_exists(cursor, 'users', 'approved', "INTEGER DEFAULT 1")
+                    self._add_column_if_not_exists(cursor, 'users', 'active', "INTEGER DEFAULT 1")
+                    self._add_column_if_not_exists(cursor, 'users', 'group_id', "INTEGER")
+                    self._add_column_if_not_exists(cursor, 'users', 'rating_deviation', "REAL DEFAULT 350.0")
+                    self._add_column_if_not_exists(cursor, 'users', 'education_level', "TEXT")
+                    self._add_column_if_not_exists(cursor, 'users', 'is_test_user', "INTEGER DEFAULT 0")
 
-                # Migración: vincular grupos a un curso del catálogo (course_id nullable)
-                self._add_column_if_not_exists(cursor, 'groups', 'course_id', "TEXT")
+                    # Asegurar índices si no existen
+                    cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
+                    cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)")
 
-                # Asegurar tabla de auditoría
-                cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS audit_group_changes (
-                        id SERIAL PRIMARY KEY,
-                        student_id INTEGER NOT NULL,
-                        old_group_id INTEGER,
-                        new_group_id INTEGER,
-                        admin_id INTEGER NOT NULL,
-                        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )
-                ''')
+                    # Migración: vincular grupos a un curso del catálogo (course_id nullable)
+                    self._add_column_if_not_exists(cursor, 'groups', 'course_id', "TEXT")
 
-                # attempts
-                self._add_column_if_not_exists(cursor, 'attempts', 'prob_failure', "REAL")
-                self._add_column_if_not_exists(cursor, 'attempts', 'expected_score', "REAL")
-                self._add_column_if_not_exists(cursor, 'attempts', 'time_taken', "REAL")
-                self._add_column_if_not_exists(cursor, 'attempts', 'confidence_score', "REAL")
-                self._add_column_if_not_exists(cursor, 'attempts', 'error_type', "TEXT")
-                self._add_column_if_not_exists(cursor, 'attempts', 'rating_deviation', "REAL")
+                    # Asegurar tabla de auditoría
+                    cursor.execute('''
+                        CREATE TABLE IF NOT EXISTS audit_group_changes (
+                            id SERIAL PRIMARY KEY,
+                            student_id INTEGER NOT NULL,
+                            old_group_id INTEGER,
+                            new_group_id INTEGER,
+                            admin_id INTEGER NOT NULL,
+                            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        )
+                    ''')
 
-                # Asegurar tabla items
-                cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS items (
-                        id TEXT PRIMARY KEY,
-                        topic TEXT NOT NULL,
-                        content TEXT NOT NULL,
-                        options TEXT NOT NULL,
-                        correct_option TEXT NOT NULL,
-                        difficulty REAL NOT NULL,
-                        rating_deviation REAL DEFAULT 350.0,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )
-                ''')
+                    # attempts
+                    self._add_column_if_not_exists(cursor, 'attempts', 'prob_failure', "REAL")
+                    self._add_column_if_not_exists(cursor, 'attempts', 'expected_score', "REAL")
+                    self._add_column_if_not_exists(cursor, 'attempts', 'time_taken', "REAL")
+                    self._add_column_if_not_exists(cursor, 'attempts', 'confidence_score', "REAL")
+                    self._add_column_if_not_exists(cursor, 'attempts', 'error_type', "TEXT")
+                    self._add_column_if_not_exists(cursor, 'attempts', 'rating_deviation', "REAL")
 
-                # Tabla de procedimientos enviados por estudiantes para revisión del docente
-                cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS procedure_submissions (
-                        id SERIAL PRIMARY KEY,
-                        student_id INTEGER NOT NULL,
-                        item_id TEXT NOT NULL,
-                        item_content TEXT NOT NULL,
-                        image_data BYTEA,
-                        mime_type TEXT DEFAULT 'image/jpeg',
-                        status TEXT DEFAULT 'pending',
-                        teacher_feedback TEXT,
-                        feedback_image BYTEA,
-                        feedback_mime_type TEXT,
-                        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        reviewed_at TIMESTAMP
-                    )
-                ''')
+                    # Asegurar tabla items
+                    cursor.execute('''
+                        CREATE TABLE IF NOT EXISTS items (
+                            id TEXT PRIMARY KEY,
+                            topic TEXT NOT NULL,
+                            content TEXT NOT NULL,
+                            options TEXT NOT NULL,
+                            correct_option TEXT NOT NULL,
+                            difficulty REAL NOT NULL,
+                            rating_deviation REAL DEFAULT 350.0,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        )
+                    ''')
 
-                # Migración de procedure_submissions: columnas añadidas en v2
-                self._add_column_if_not_exists(cursor, 'procedure_submissions', 'procedure_score', "REAL")
-                self._add_column_if_not_exists(cursor, 'procedure_submissions', 'procedure_image_path', "TEXT")
-                self._add_column_if_not_exists(cursor, 'procedure_submissions', 'feedback_image_path', "TEXT")
-                # v3 — flujo formal de validación docente
-                self._add_column_if_not_exists(cursor, 'procedure_submissions', 'ai_proposed_score', "REAL")
-                self._add_column_if_not_exists(cursor, 'procedure_submissions', 'teacher_score', "REAL")
-                self._add_column_if_not_exists(cursor, 'procedure_submissions', 'final_score', "REAL")
-                # v4 — delta ELO calculado al momento de la validación docente
-                self._add_column_if_not_exists(cursor, 'procedure_submissions', 'elo_delta', "REAL")
-                # v5 — retroalimentación textual generada por la IA
-                self._add_column_if_not_exists(cursor, 'procedure_submissions', 'ai_feedback', "TEXT")
-                # v6 — hash SHA-256 del archivo subido para detección anti-plagio
-                self._add_column_if_not_exists(cursor, 'procedure_submissions', 'file_hash', "TEXT")
-                # v7 — URL de Supabase Storage (reemplaza BYTEA para nuevos registros)
-                self._add_column_if_not_exists(cursor, 'procedure_submissions', 'storage_url', "TEXT")
-                # v7b — image_data ya no es obligatorio (NULL cuando se usa Storage)
-                cursor.execute('''
-                    ALTER TABLE procedure_submissions
-                    ALTER COLUMN image_data DROP NOT NULL
-                ''')
+                    # Tabla de procedimientos enviados por estudiantes para revisión del docente
+                    cursor.execute('''
+                        CREATE TABLE IF NOT EXISTS procedure_submissions (
+                            id SERIAL PRIMARY KEY,
+                            student_id INTEGER NOT NULL,
+                            item_id TEXT NOT NULL,
+                            item_content TEXT NOT NULL,
+                            image_data BYTEA,
+                            mime_type TEXT DEFAULT 'image/jpeg',
+                            status TEXT DEFAULT 'pending',
+                            teacher_feedback TEXT,
+                            feedback_image BYTEA,
+                            feedback_mime_type TEXT,
+                            submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            reviewed_at TIMESTAMP
+                        )
+                    ''')
 
-                # ── LMS: Cursos y Matrículas ─────────────────────────────────────────────
+                    # Migración de procedure_submissions: columnas añadidas en v2
+                    self._add_column_if_not_exists(cursor, 'procedure_submissions', 'procedure_score', "REAL")
+                    self._add_column_if_not_exists(cursor, 'procedure_submissions', 'procedure_image_path', "TEXT")
+                    self._add_column_if_not_exists(cursor, 'procedure_submissions', 'feedback_image_path', "TEXT")
+                    # v3 — flujo formal de validación docente
+                    self._add_column_if_not_exists(cursor, 'procedure_submissions', 'ai_proposed_score', "REAL")
+                    self._add_column_if_not_exists(cursor, 'procedure_submissions', 'teacher_score', "REAL")
+                    self._add_column_if_not_exists(cursor, 'procedure_submissions', 'final_score', "REAL")
+                    # v4 — delta ELO calculado al momento de la validación docente
+                    self._add_column_if_not_exists(cursor, 'procedure_submissions', 'elo_delta', "REAL")
+                    # v5 — retroalimentación textual generada por la IA
+                    self._add_column_if_not_exists(cursor, 'procedure_submissions', 'ai_feedback', "TEXT")
+                    # v6 — hash SHA-256 del archivo subido para detección anti-plagio
+                    self._add_column_if_not_exists(cursor, 'procedure_submissions', 'file_hash', "TEXT")
+                    # v7 — URL de Supabase Storage (reemplaza BYTEA para nuevos registros)
+                    self._add_column_if_not_exists(cursor, 'procedure_submissions', 'storage_url', "TEXT")
+                    # v7b — image_data ya no es obligatorio (NULL cuando se usa Storage)
+                    cursor.execute('''
+                        ALTER TABLE procedure_submissions
+                        ALTER COLUMN image_data DROP NOT NULL
+                    ''')
 
-                # Catálogo de cursos (uno por archivo JSON en items/bank/)
-                cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS courses (
-                        id TEXT PRIMARY KEY,
-                        name TEXT NOT NULL,
-                        block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio', 'Concursos')),
-                        description TEXT DEFAULT ''
-                    )
-                ''')
+                    # ── LMS: Cursos y Matrículas ─────────────────────────────────────
 
-                # Matrículas: relación N-N entre estudiantes y cursos
-                cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS enrollments (
-                        user_id INTEGER NOT NULL,
-                        course_id TEXT NOT NULL,
-                        group_id INTEGER,
-                        enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        PRIMARY KEY (user_id, course_id)
-                    )
-                ''')
+                    # Catálogo de cursos (uno por archivo JSON en items/bank/)
+                    cursor.execute('''
+                        CREATE TABLE IF NOT EXISTS courses (
+                            id TEXT PRIMARY KEY,
+                            name TEXT NOT NULL,
+                            block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio', 'Concursos')),
+                            description TEXT DEFAULT ''
+                        )
+                    ''')
 
-                # Migración: asociar matrícula a un grupo (nullable)
-                self._add_column_if_not_exists(cursor, 'enrollments', 'group_id', "INTEGER")
+                    # Matrículas: relación N-N entre estudiantes y cursos
+                    cursor.execute('''
+                        CREATE TABLE IF NOT EXISTS enrollments (
+                            user_id INTEGER NOT NULL,
+                            course_id TEXT NOT NULL,
+                            group_id INTEGER,
+                            enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            PRIMARY KEY (user_id, course_id)
+                        )
+                    ''')
 
-                # Vincular ítems a su curso (migración aditiva)
-                self._add_column_if_not_exists(cursor, 'items', 'course_id', "TEXT")
-                # T14: campo opcional para imagen/diagrama asociado a la pregunta
-                self._add_column_if_not_exists(cursor, 'items', 'image_url', "TEXT")
+                    # Migración: asociar matrícula a un grupo (nullable)
+                    self._add_column_if_not_exists(cursor, 'enrollments', 'group_id', "INTEGER")
 
-                # ── Migración: ampliar CHECK constraint de courses.block ──────────────
-                self._migrate_courses_block_check(cursor)
+                    # Vincular ítems a su curso (migración aditiva)
+                    self._add_column_if_not_exists(cursor, 'items', 'course_id', "TEXT")
+                    # T14: campo opcional para imagen/diagrama asociado a la pregunta
+                    self._add_column_if_not_exists(cursor, 'items', 'image_url', "TEXT")
 
-                # ── Unicidad de nombre de grupo por profesor (case-insensitive) ────
-                self._add_column_if_not_exists(cursor, 'groups', 'name_normalized', "TEXT")
-                # Rellenar valores existentes que estén NULL
-                cursor.execute("""
-                    UPDATE groups SET name_normalized = LOWER(TRIM(name))
-                    WHERE name_normalized IS NULL
-                """)
-                # Resolver duplicados existentes antes de crear el índice único:
-                # renombrar grupos con sufijo -DUP-{id} para desambiguar
-                cursor.execute("""
-                    SELECT id, name, teacher_id, name_normalized
-                    FROM groups
-                    WHERE (teacher_id, name_normalized) IN (
-                        SELECT teacher_id, name_normalized
+                    # ── Migración: ampliar CHECK constraint de courses.block ──────
+                    self._migrate_courses_block_check(cursor)
+
+                    # ── Unicidad de nombre de grupo por profesor (case-insensitive) ─
+                    self._add_column_if_not_exists(cursor, 'groups', 'name_normalized', "TEXT")
+                    # Rellenar valores existentes que estén NULL
+                    try:
+                        cursor.execute("""
+                            UPDATE groups SET name_normalized = LOWER(TRIM(name))
+                            WHERE name_normalized IS NULL
+                        """)
+                    except Exception:
+                        conn.rollback()
+                        # Otra instancia ya lo hizo, continuar
+                    # Resolver duplicados existentes antes de crear el índice único:
+                    # renombrar grupos con sufijo -DUP-{id} para desambiguar
+                    cursor.execute("""
+                        SELECT id, name, teacher_id, name_normalized
                         FROM groups
-                        GROUP BY teacher_id, name_normalized
-                        HAVING COUNT(*) > 1
-                    )
-                    ORDER BY teacher_id, name_normalized, id
-                """)
-                dup_rows = cursor.fetchall()
-                # Agrupar por (teacher_id, name_normalized); conservar el primero, renombrar el resto
-                seen = set()
-                for row in dup_rows:
-                    row_id = row['id']
-                    row_name = row['name']
-                    row_teacher = row['teacher_id']
-                    row_norm = row['name_normalized']
-                    key = (row_teacher, row_norm)
-                    if key not in seen:
-                        seen.add(key)  # el primero se conserva intacto
-                        continue
-                    new_name = f"{row_name}-DUP-{row_id}"
-                    new_norm = new_name.strip().lower()
-                    cursor.execute(
-                        "UPDATE groups SET name = %s, name_normalized = %s WHERE id = %s",
-                        (new_name, new_norm, row_id)
-                    )
-                # Índice único: (teacher_id, nombre normalizado)
-                cursor.execute("""
-                    CREATE UNIQUE INDEX IF NOT EXISTS idx_groups_teacher_name_unique
-                    ON groups(teacher_id, name_normalized)
-                """)
+                        WHERE (teacher_id, name_normalized) IN (
+                            SELECT teacher_id, name_normalized
+                            FROM groups
+                            GROUP BY teacher_id, name_normalized
+                            HAVING COUNT(*) > 1
+                        )
+                        ORDER BY teacher_id, name_normalized, id
+                    """)
+                    dup_rows = cursor.fetchall()
+                    # Agrupar por (teacher_id, name_normalized); conservar el primero, renombrar el resto
+                    seen = set()
+                    for row in dup_rows:
+                        row_id = row['id']
+                        row_name = row['name']
+                        row_teacher = row['teacher_id']
+                        row_norm = row['name_normalized']
+                        key = (row_teacher, row_norm)
+                        if key not in seen:
+                            seen.add(key)  # el primero se conserva intacto
+                            continue
+                        new_name = f"{row_name}-DUP-{row_id}"
+                        new_norm = new_name.strip().lower()
+                        cursor.execute(
+                            "UPDATE groups SET name = %s, name_normalized = %s WHERE id = %s",
+                            (new_name, new_norm, row_id)
+                        )
+                    # Índice único: (teacher_id, nombre normalizado)
+                    cursor.execute("""
+                        CREATE UNIQUE INDEX IF NOT EXISTS idx_groups_teacher_name_unique
+                        ON groups(teacher_id, name_normalized)
+                    """)
 
-                # ── Desactivar usuarios con contraseña vacía o nula ────────────────
-                cursor.execute("""
-                    UPDATE users SET active = 0
-                    WHERE (password_hash IS NULL OR TRIM(password_hash) = '')
-                      AND active = 1
-                """)
+                    # ── Desactivar usuarios con contraseña vacía o nula ────────────
+                    cursor.execute("""
+                        UPDATE users SET active = 0
+                        WHERE (password_hash IS NULL OR TRIM(password_hash) = '')
+                          AND active = 1
+                    """)
 
-                conn.commit()
+                    conn.commit()
+
+                finally:
+                    cursor.execute("SELECT pg_advisory_unlock(12345)")
+
                 return  # Migración exitosa, salir del loop de reintentos
 
             except (psycopg2.errors.DeadlockDetected, psycopg2.errors.QueryCanceled):
@@ -581,13 +611,17 @@ class PostgresRepository:
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute("SELECT id FROM users WHERE username = %s", (admin_user,))
-            if not cursor.fetchone():
-                cursor.execute(
-                    "INSERT INTO users (username, password_hash, role, approved) VALUES (%s, %s, 'admin', 1)",
-                    (admin_user, admin_hash)
-                )
-                conn.commit()
+            cursor.execute("SELECT pg_advisory_lock(12346)")
+            try:
+                cursor.execute("SELECT id FROM users WHERE username = %s", (admin_user,))
+                if not cursor.fetchone():
+                    cursor.execute(
+                        "INSERT INTO users (username, password_hash, role, approved) VALUES (%s, %s, 'admin', 1)",
+                        (admin_user, admin_hash)
+                    )
+                    conn.commit()
+            finally:
+                cursor.execute("SELECT pg_advisory_unlock(12346)")
         finally:
             self.put_connection(conn)
 
@@ -598,93 +632,97 @@ class PostgresRepository:
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute("SELECT pg_advisory_lock(12347)")
+            try:
 
-            # Profesor demo
-            cursor.execute("SELECT id FROM users WHERE username = 'profesor1'")
-            if not cursor.fetchone():
-                cursor.execute(
-                    "INSERT INTO users (username, password_hash, role, approved) VALUES (%s, %s, 'teacher', 1)",
-                    ("profesor1", demo_hash)
-                )
-
-            conn.commit()
-
-            # ID del profesor para crear grupos
-            cursor.execute("SELECT id FROM users WHERE username = 'profesor1'")
-            profesor_id = cursor.fetchone()['id']
-
-            # Grupos demo vinculados a cursos del catálogo
-            _demo_groups = [
-                ("Grupo Demo - Cálculo", "calculo_diferencial"),
-                ("Grupo Demo - Álgebra", "algebra_basica"),
-            ]
-            group_ids = {}
-            for g_name, g_course in _demo_groups:
-                g_norm = g_name.strip().lower()
-                cursor.execute(
-                    "SELECT id FROM groups WHERE name_normalized = %s AND teacher_id = %s",
-                    (g_norm, profesor_id)
-                )
-                row = cursor.fetchone()
-                if not row:
-                    cursor.execute(
-                        "INSERT INTO groups (name, teacher_id, course_id, name_normalized) VALUES (%s, %s, %s, %s) RETURNING id",
-                        (g_name, profesor_id, g_course, g_norm)
-                    )
-                    conn.commit()
-                    group_ids[g_course] = cursor.fetchone()['id']
-                else:
-                    group_ids[g_course] = row['id']
-                    # Asegurar que el grupo tenga course_id (migra grupos legacy sin curso)
-                    cursor.execute(
-                        "UPDATE groups SET course_id = %s WHERE id = %s AND course_id IS NULL",
-                        (g_course, row['id'])
-                    )
-
-            conn.commit()
-
-            # Estudiantes demo: cada uno en su nivel y grupo correspondiente
-            _demo_students = [
-                ("estudiante1", "universidad", "calculo_diferencial"),
-                ("estudiante2", "colegio", "algebra_basica"),
-            ]
-            for username, edu_level, primary_course in _demo_students:
-                primary_gid = group_ids.get(primary_course)
-                cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
-                row = cursor.fetchone()
-                if not row:
-                    cursor.execute(
-                        "INSERT INTO users (username, password_hash, role, approved, group_id, rating_deviation, education_level) "
-                        "VALUES (%s, %s, 'student', 1, %s, 350.0, %s)",
-                        (username, demo_hash, primary_gid, edu_level)
-                    )
-                else:
-                    # Asegurar que el estudiante tenga grupo y nivel asignados
-                    cursor.execute(
-                        "UPDATE users SET group_id = COALESCE(group_id, %s), "
-                        "education_level = COALESCE(education_level, %s) "
-                        "WHERE id = %s",
-                        (primary_gid, edu_level, row['id'])
-                    )
-
-            conn.commit()
-
-            # Matrículas demo: cada estudiante se inscribe en su grupo principal
-            for username, _edu, primary_course in _demo_students:
-                cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
-                student_id = cursor.fetchone()['id']
-                g_id = group_ids.get(primary_course)
-                cursor.execute(
-                    "SELECT 1 FROM enrollments WHERE user_id = %s AND course_id = %s AND group_id = %s",
-                    (student_id, primary_course, g_id)
-                )
+                # Profesor demo
+                cursor.execute("SELECT id FROM users WHERE username = 'profesor1'")
                 if not cursor.fetchone():
                     cursor.execute(
-                        "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (%s, %s, %s)",
-                        (student_id, primary_course, g_id)
+                        "INSERT INTO users (username, password_hash, role, approved) VALUES (%s, %s, 'teacher', 1)",
+                        ("profesor1", demo_hash)
                     )
 
-            conn.commit()
+                conn.commit()
+
+                # ID del profesor para crear grupos
+                cursor.execute("SELECT id FROM users WHERE username = 'profesor1'")
+                profesor_id = cursor.fetchone()['id']
+
+                # Grupos demo vinculados a cursos del catálogo
+                _demo_groups = [
+                    ("Grupo Demo - Cálculo", "calculo_diferencial"),
+                    ("Grupo Demo - Álgebra", "algebra_basica"),
+                ]
+                group_ids = {}
+                for g_name, g_course in _demo_groups:
+                    g_norm = g_name.strip().lower()
+                    cursor.execute(
+                        "SELECT id FROM groups WHERE name_normalized = %s AND teacher_id = %s",
+                        (g_norm, profesor_id)
+                    )
+                    row = cursor.fetchone()
+                    if not row:
+                        cursor.execute(
+                            "INSERT INTO groups (name, teacher_id, course_id, name_normalized) VALUES (%s, %s, %s, %s) RETURNING id",
+                            (g_name, profesor_id, g_course, g_norm)
+                        )
+                        conn.commit()
+                        group_ids[g_course] = cursor.fetchone()['id']
+                    else:
+                        group_ids[g_course] = row['id']
+                        # Asegurar que el grupo tenga course_id (migra grupos legacy sin curso)
+                        cursor.execute(
+                            "UPDATE groups SET course_id = %s WHERE id = %s AND course_id IS NULL",
+                            (g_course, row['id'])
+                        )
+
+                conn.commit()
+
+                # Estudiantes demo: cada uno en su nivel y grupo correspondiente
+                _demo_students = [
+                    ("estudiante1", "universidad", "calculo_diferencial"),
+                    ("estudiante2", "colegio", "algebra_basica"),
+                ]
+                for username, edu_level, primary_course in _demo_students:
+                    primary_gid = group_ids.get(primary_course)
+                    cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
+                    row = cursor.fetchone()
+                    if not row:
+                        cursor.execute(
+                            "INSERT INTO users (username, password_hash, role, approved, group_id, rating_deviation, education_level) "
+                            "VALUES (%s, %s, 'student', 1, %s, 350.0, %s)",
+                            (username, demo_hash, primary_gid, edu_level)
+                        )
+                    else:
+                        # Asegurar que el estudiante tenga grupo y nivel asignados
+                        cursor.execute(
+                            "UPDATE users SET group_id = COALESCE(group_id, %s), "
+                            "education_level = COALESCE(education_level, %s) "
+                            "WHERE id = %s",
+                            (primary_gid, edu_level, row['id'])
+                        )
+
+                conn.commit()
+
+                # Matrículas demo: cada estudiante se inscribe en su grupo principal
+                for username, _edu, primary_course in _demo_students:
+                    cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
+                    student_id = cursor.fetchone()['id']
+                    g_id = group_ids.get(primary_course)
+                    cursor.execute(
+                        "SELECT 1 FROM enrollments WHERE user_id = %s AND course_id = %s AND group_id = %s",
+                        (student_id, primary_course, g_id)
+                    )
+                    if not cursor.fetchone():
+                        cursor.execute(
+                            "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (%s, %s, %s)",
+                            (student_id, primary_course, g_id)
+                        )
+
+                conn.commit()
+            finally:
+                cursor.execute("SELECT pg_advisory_unlock(12347)")
         finally:
             self.put_connection(conn)
 
@@ -1330,61 +1368,65 @@ class PostgresRepository:
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute("SELECT pg_advisory_lock(12348)")
+            try:
 
-            # 1. Obtener todos los IDs existentes en una sola query
-            cursor.execute("SELECT id FROM items")
-            existing_item_ids = {row['id'] for row in cursor.fetchall()}
+                # 1. Obtener todos los IDs existentes en una sola query
+                cursor.execute("SELECT id FROM items")
+                existing_item_ids = {row['id'] for row in cursor.fetchall()}
 
-            cursor.execute("SELECT id FROM courses")
-            existing_course_ids = {row['id'] for row in cursor.fetchall()}
+                cursor.execute("SELECT id FROM courses")
+                existing_course_ids = {row['id'] for row in cursor.fetchall()}
 
-            # 2. Construir listas de courses e items nuevos
-            new_courses_params = []
-            new_items_params = []
+                # 2. Construir listas de courses e items nuevos
+                new_courses_params = []
+                new_items_params = []
 
-            for course_id, items_list in courses_data:
-                course_name = self._COURSE_NAME_MAP.get(course_id) or items_list[0].get('topic', course_id)
-                block = self._COURSE_BLOCK_MAP.get(course_id, 'Universidad')
+                for course_id, items_list in courses_data:
+                    course_name = self._COURSE_NAME_MAP.get(course_id) or items_list[0].get('topic', course_id)
+                    block = self._COURSE_BLOCK_MAP.get(course_id, 'Universidad')
 
-                if course_id not in existing_course_ids:
-                    new_courses_params.append(
-                        (course_id, course_name, block, f"Curso de {course_name}")
+                    if course_id not in existing_course_ids:
+                        new_courses_params.append(
+                            (course_id, course_name, block, f"Curso de {course_name}")
+                        )
+
+                    for item in items_list:
+                        if item['id'] not in existing_item_ids:
+                            new_items_params.append((
+                                item['id'],
+                                item['topic'],
+                                item['content'],
+                                json.dumps(item['options']),
+                                item['correct_option'],
+                                item['difficulty'],
+                                course_id,
+                                item.get('image_url') or item.get('image_path'),
+                            ))
+
+                # 3. Si no hay nada nuevo, salir
+                if not new_courses_params and not new_items_params:
+                    return  # finally blocks devuelven conexión y liberan lock
+
+                # 4. Insertar todo de una sola vez
+                if new_courses_params:
+                    cursor.executemany(
+                        "INSERT INTO courses (id, name, block, description) "
+                        "VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",
+                        new_courses_params
                     )
 
-                for item in items_list:
-                    if item['id'] not in existing_item_ids:
-                        new_items_params.append((
-                            item['id'],
-                            item['topic'],
-                            item['content'],
-                            json.dumps(item['options']),
-                            item['correct_option'],
-                            item['difficulty'],
-                            course_id,
-                            item.get('image_url') or item.get('image_path'),
-                        ))
+                if new_items_params:
+                    cursor.executemany('''
+                        INSERT INTO items
+                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url)
+                        VALUES (%s, %s, %s, %s, %s, %s, 350.0, %s, %s)
+                        ON CONFLICT (id) DO NOTHING
+                    ''', new_items_params)
 
-            # 3. Si no hay nada nuevo, salir
-            if not new_courses_params and not new_items_params:
-                return
-
-            # 4. Insertar todo de una sola vez
-            if new_courses_params:
-                cursor.executemany(
-                    "INSERT INTO courses (id, name, block, description) "
-                    "VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",
-                    new_courses_params
-                )
-
-            if new_items_params:
-                cursor.executemany('''
-                    INSERT INTO items
-                        (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url)
-                    VALUES (%s, %s, %s, %s, %s, %s, 350.0, %s, %s)
-                    ON CONFLICT (id) DO NOTHING
-                ''', new_items_params)
-
-            conn.commit()
+                conn.commit()
+            finally:
+                cursor.execute("SELECT pg_advisory_unlock(12348)")
         finally:
             self.put_connection(conn)
 
@@ -1404,89 +1446,93 @@ class PostgresRepository:
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute("SELECT pg_advisory_lock(12349)")
+            try:
 
-            # ── Salida rápida: si los 5 ya existen, no hay nada que hacer ────────
-            placeholders = ','.join(['%s'] * len(_TEST_STUDENTS))
-            cursor.execute(
-                "SELECT username FROM users WHERE username IN ({})".format(placeholders),
-                [s[0] for s in _TEST_STUDENTS],
-            )
-            existing = {row['username'] for row in cursor.fetchall()}
-            students_to_create = [(u, l) for u, l in _TEST_STUDENTS if u not in existing]
-
-            if not students_to_create:
-                return  # Todos existen — no tocar nada
-
-            # Solo computar hash si hay estudiantes nuevos
-            password_hash = self.hashing.hash_password(_TEST_PASSWORD)
-
-            # Necesitamos un profesor para crear grupos; usar profesor1
-            cursor.execute("SELECT id FROM users WHERE username = 'profesor1'")
-            row = cursor.fetchone()
-            if not row:
-                return  # Sin profesor demo no podemos crear grupos
-            profesor_id = row['id']
-
-            # Grupos de prueba por nivel
-            _level_groups = {
-                LEVEL_COLEGIO: ("Grupo Prueba - Colegio", None),
-                LEVEL_UNIVERSIDAD: ("Grupo Prueba - Universidad", None),
-            }
-            for level, (g_name, _) in list(_level_groups.items()):
-                g_norm = g_name.strip().lower()
+                # ── Salida rápida: si los 5 ya existen, no hay nada que hacer ────
+                placeholders = ','.join(['%s'] * len(_TEST_STUDENTS))
                 cursor.execute(
-                    "SELECT id FROM groups WHERE name_normalized = %s AND teacher_id = %s",
-                    (g_norm, profesor_id),
+                    "SELECT username FROM users WHERE username IN ({})".format(placeholders),
+                    [s[0] for s in _TEST_STUDENTS],
                 )
+                existing = {row['username'] for row in cursor.fetchall()}
+                students_to_create = [(u, l) for u, l in _TEST_STUDENTS if u not in existing]
+
+                if not students_to_create:
+                    return  # Todos existen — finally blocks liberan lock y conexión
+
+                # Solo computar hash si hay estudiantes nuevos
+                password_hash = self.hashing.hash_password(_TEST_PASSWORD)
+
+                # Necesitamos un profesor para crear grupos; usar profesor1
+                cursor.execute("SELECT id FROM users WHERE username = 'profesor1'")
                 row = cursor.fetchone()
                 if not row:
-                    block = LEVEL_TO_BLOCK[level]
+                    return  # Sin profesor demo no podemos crear grupos
+                profesor_id = row['id']
+
+                # Grupos de prueba por nivel
+                _level_groups = {
+                    LEVEL_COLEGIO: ("Grupo Prueba - Colegio", None),
+                    LEVEL_UNIVERSIDAD: ("Grupo Prueba - Universidad", None),
+                }
+                for level, (g_name, _) in list(_level_groups.items()):
+                    g_norm = g_name.strip().lower()
                     cursor.execute(
-                        "SELECT id FROM courses WHERE block = %s ORDER BY name ASC LIMIT 1",
+                        "SELECT id FROM groups WHERE name_normalized = %s AND teacher_id = %s",
+                        (g_norm, profesor_id),
+                    )
+                    row = cursor.fetchone()
+                    if not row:
+                        block = LEVEL_TO_BLOCK[level]
+                        cursor.execute(
+                            "SELECT id FROM courses WHERE block = %s ORDER BY name ASC LIMIT 1",
+                            (block,),
+                        )
+                        first_course = cursor.fetchone()
+                        course_id = first_course['id'] if first_course else None
+                        cursor.execute(
+                            "INSERT INTO groups (name, teacher_id, course_id, name_normalized) VALUES (%s, %s, %s, %s) RETURNING id",
+                            (g_name, profesor_id, course_id, g_norm),
+                        )
+                        conn.commit()
+                        new_row = cursor.fetchone()
+                        _level_groups[level] = (g_name, new_row['id'])
+                    else:
+                        _level_groups[level] = (g_name, row['id'])
+
+                # Crear SOLO estudiantes que no existen
+                for username, edu_level in students_to_create:
+                    group_id = _level_groups[edu_level][1]
+                    cursor.execute(
+                        "INSERT INTO users (username, password_hash, role, approved, group_id, "
+                        "rating_deviation, education_level, is_test_user) "
+                        "VALUES (%s, %s, 'student', 1, %s, 350.0, %s, 1)",
+                        (username, password_hash, group_id, edu_level),
+                    )
+                conn.commit()
+
+                # Matricular estudiantes nuevos en TODOS los cursos de su nivel
+                for username, edu_level in students_to_create:
+                    cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
+                    student_id = cursor.fetchone()['id']
+                    block = LEVEL_TO_BLOCK[edu_level]
+                    group_id = _level_groups[edu_level][1]
+
+                    cursor.execute(
+                        "SELECT id FROM courses WHERE block = %s",
                         (block,),
                     )
-                    first_course = cursor.fetchone()
-                    course_id = first_course['id'] if first_course else None
-                    cursor.execute(
-                        "INSERT INTO groups (name, teacher_id, course_id, name_normalized) VALUES (%s, %s, %s, %s) RETURNING id",
-                        (g_name, profesor_id, course_id, g_norm),
-                    )
-                    conn.commit()
-                    new_row = cursor.fetchone()
-                    _level_groups[level] = (g_name, new_row['id'])
-                else:
-                    _level_groups[level] = (g_name, row['id'])
+                    courses = cursor.fetchall()
+                    for course_row in courses:
+                        cursor.execute(
+                            "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+                            (student_id, course_row['id'], group_id),
+                        )
 
-            # Crear SOLO estudiantes que no existen
-            for username, edu_level in students_to_create:
-                group_id = _level_groups[edu_level][1]
-                cursor.execute(
-                    "INSERT INTO users (username, password_hash, role, approved, group_id, "
-                    "rating_deviation, education_level, is_test_user) "
-                    "VALUES (%s, %s, 'student', 1, %s, 350.0, %s, 1)",
-                    (username, password_hash, group_id, edu_level),
-                )
-            conn.commit()
-
-            # Matricular estudiantes nuevos en TODOS los cursos de su nivel
-            for username, edu_level in students_to_create:
-                cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
-                student_id = cursor.fetchone()['id']
-                block = LEVEL_TO_BLOCK[edu_level]
-                group_id = _level_groups[edu_level][1]
-
-                cursor.execute(
-                    "SELECT id FROM courses WHERE block = %s",
-                    (block,),
-                )
-                courses = cursor.fetchall()
-                for course_row in courses:
-                    cursor.execute(
-                        "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
-                        (student_id, course_row['id'], group_id),
-                    )
-
-            conn.commit()
+                conn.commit()
+            finally:
+                cursor.execute("SELECT pg_advisory_unlock(12349)")
         finally:
             self.put_connection(conn)
 

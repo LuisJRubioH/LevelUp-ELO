@@ -1664,6 +1664,10 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    def resolve_storage_image(self, storage_url: str):
+        """Stub — SQLite backend does not use Supabase Storage."""
+        return None
+
     def get_student_submission(self, student_id, item_id):
         """Retorna la entrega del estudiante para una pregunta, o None.
         Incluye ai_proposed_score, teacher_score y final_score del flujo de validación.
