@@ -719,6 +719,59 @@ class SQLiteRepository:
                 break  # hueco en la racha
         return streak
 
+    def get_weekly_ranking(self, group_id, limit=5):
+        """Top estudiantes del grupo por ELO promedio, con actividad en los últimos 7 días."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        # Subconsulta: último elo_after por (usuario, tópico) para usuarios del grupo
+        # con al menos 1 intento en los últimos 7 días.
+        cursor.execute('''
+            WITH active_users AS (
+                SELECT DISTINCT a.user_id
+                FROM attempts a
+                JOIN users u ON a.user_id = u.id
+                WHERE u.group_id = ? AND u.role = 'student'
+                  AND a.timestamp >= datetime('now', '-7 days')
+            ),
+            latest_elo AS (
+                SELECT a.user_id, a.item_id, a.elo_after,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY a.user_id, i.course_id
+                           ORDER BY a.timestamp DESC
+                       ) AS rn
+                FROM attempts a
+                JOIN items i ON a.item_id = i.id
+                WHERE a.user_id IN (SELECT user_id FROM active_users)
+            ),
+            user_elo AS (
+                SELECT le.user_id,
+                       ROUND(AVG(le.elo_after), 0) AS global_elo
+                FROM latest_elo le
+                WHERE le.rn = 1
+                GROUP BY le.user_id
+            ),
+            week_attempts AS (
+                SELECT a.user_id, COUNT(*) AS attempts_this_week
+                FROM attempts a
+                WHERE a.user_id IN (SELECT user_id FROM active_users)
+                  AND a.timestamp >= datetime('now', '-7 days')
+                GROUP BY a.user_id
+            )
+            SELECT u.username, ue.global_elo, wa.attempts_this_week
+            FROM user_elo ue
+            JOIN users u ON ue.user_id = u.id
+            JOIN week_attempts wa ON ue.user_id = wa.user_id
+            ORDER BY ue.global_elo DESC
+            LIMIT ?
+        ''', (group_id, limit))
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {'username': row[0], 'global_elo': row[1], 'rank': idx + 1,
+             'attempts_this_week': row[2]}
+            for idx, row in enumerate(rows)
+        ]
+
     def get_total_attempts_count(self, user_id):
         """Retorna el número total de intentos de un estudiante."""
         conn = self.get_connection()

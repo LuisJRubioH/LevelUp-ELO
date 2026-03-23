@@ -1265,6 +1265,8 @@ else:
             st.session_state.session_wrong_timestamps = {}
         if 'session_questions_count' not in st.session_state:
             st.session_state.session_questions_count = 0
+        if 'streak_correct' not in st.session_state:
+            st.session_state.streak_correct = 0
 
         # ── Onboarding: nivel educativo ──────────────────────────────────────
         if 'education_level' not in st.session_state:
@@ -1493,7 +1495,7 @@ else:
                 st.session_state.session_wrong_timestamps[item_data['id']] = float(st.session_state.session_questions_count)
 
             # Invalidar caches afectados por save_attempt
-            invalidate_cache('cache_answered_ids', 'cache_elo_by_topic', 'cache_streak')
+            invalidate_cache('cache_answered_ids', 'cache_elo_by_topic', 'cache_streak', 'cache_weekly_ranking')
             # Forzar que get_next_question se llame de nuevo en la próxima recarga
             st.session_state.pop('current_question', None)
 
@@ -1611,6 +1613,42 @@ else:
                     """, unsafe_allow_html=True)
                 st.info("💡 **Consejo:** La constancia es clave. Practica diariamente para consolidar tu aprendizaje.")
 
+                # ── Ranking semanal Top 5 ────────────────────────────────────
+                _student_group_id = st.session_state.selected_course.get('group_id')
+                if _student_group_id:
+                    _ranking = cached('cache_weekly_ranking',
+                                      lambda: repo.get_weekly_ranking(_student_group_id))
+                    if _ranking:
+                        st.markdown("#### 🏆 Ranking Semanal")
+                        _medal = {1: "🥇", 2: "🥈", 3: "🥉"}
+                        _my_user = st.session_state.username
+                        _in_top = False
+                        _rank_html = "<table style='width:100%; border-collapse:collapse; font-size:0.9rem;'>"
+                        _rank_html += "<tr style='border-bottom:1px solid #444;'><th style='padding:4px 6px;'>🏅</th><th style='padding:4px 6px; text-align:left;'>Estudiante</th><th style='padding:4px 6px;'>ELO</th><th style='padding:4px 6px;'>Intentos</th></tr>"
+                        for _r in _ranking:
+                            _is_me = (_r['username'] == _my_user)
+                            if _is_me:
+                                _in_top = True
+                            _bg = "background:rgba(255,215,0,0.15); font-weight:700;" if _is_me else ""
+                            _pos = _medal.get(_r['rank'], str(_r['rank']))
+                            _rank_html += f"<tr style='{_bg} border-bottom:1px solid #333;'>"
+                            _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_pos}</td>"
+                            _rank_html += f"<td style='padding:4px 6px;'>{_r['username']}</td>"
+                            _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['global_elo']:.0f}</td>"
+                            _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['attempts_this_week']}</td>"
+                            _rank_html += "</tr>"
+                        _rank_html += "</table>"
+                        st.markdown(_rank_html, unsafe_allow_html=True)
+                        if _in_top:
+                            st.caption("¡Estás en el Top 5! 🎯")
+                        else:
+                            st.caption("Sigue practicando para entrar al ranking")
+                    else:
+                        st.markdown("#### 🏆 Ranking Semanal")
+                        st.caption("Sin actividad esta semana en tu grupo.")
+                else:
+                    st.caption("Únete a un grupo para ver el ranking semanal")
+
             with col2:
                 st.subheader(f"📖 Ejercicio: {selected_topic}")
 
@@ -1703,10 +1741,32 @@ else:
                             if submit_button:
                                 is_correct = (selected_option == item_data.get('correct_option'))
                                 if is_correct:
+                                    st.session_state.streak_correct += 1
                                     st.success("¡Respuesta correcta! Excelente análisis. 🎓")
+                                    _sc = st.session_state.streak_correct
+                                    if _sc > 0 and _sc % 5 == 0:
+                                        st.balloons()
+                                        if _sc >= 20:
+                                            _cel_title, _cel_emoji = "¡MODO BESTIA ACTIVADO!", "🐉"
+                                        elif _sc >= 15:
+                                            _cel_title, _cel_emoji = "¡ERES UNA LEYENDA!", "👑"
+                                        elif _sc >= 10:
+                                            _cel_title, _cel_emoji = "¡IMPARABLE!", "⚡"
+                                        else:
+                                            _cel_title, _cel_emoji = "¡RACHA PERFECTA!", "🎉"
+                                        st.markdown(f"""
+                                            <div style="text-align:center; padding:20px; margin:10px 0;
+                                                        background:linear-gradient(135deg,#6a0dad,#ffd700);
+                                                        border-radius:16px; box-shadow:0 0 20px rgba(255,215,0,0.4);">
+                                                <div style="font-size:3rem;">{_cel_emoji} {_cel_title} {_cel_emoji}</div>
+                                                <p style="color:white; font-size:1.2rem; margin:8px 0 0; font-weight:600;">
+                                                    {_sc} respuestas correctas seguidas</p>
+                                            </div>
+                                        """, unsafe_allow_html=True)
                                 else:
+                                    st.session_state.streak_correct = 0
                                     st.error(f"Respuesta incorrecta. La opción correcta era: **{item_data.get('correct_option') or '—'}**")
-                                
+
                                 time.sleep(1.5)
                                 handle_answer_topic(is_correct, item_data)
 
