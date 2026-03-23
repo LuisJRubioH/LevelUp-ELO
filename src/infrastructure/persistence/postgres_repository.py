@@ -993,7 +993,7 @@ class PostgresRepository:
                     SELECT DISTINCT a.user_id
                     FROM attempts a
                     JOIN users u ON a.user_id = u.id
-                    WHERE u.role = 'student' AND u.active = TRUE
+                    WHERE u.role = 'student' AND u.active = 1
                       AND a.timestamp >= NOW() - INTERVAL '7 days'
                 ),
                 latest_elo AS (
@@ -1048,7 +1048,7 @@ class PostgresRepository:
                     FROM attempts a
                     JOIN users u ON a.user_id = u.id
                     JOIN items i ON a.item_id = i.id
-                    WHERE u.role = 'student' AND u.active = TRUE
+                    WHERE u.role = 'student' AND u.active = 1
                       AND i.course_id = %s
                       AND a.timestamp >= NOW() - INTERVAL '7 days'
                 ),
@@ -1107,7 +1107,7 @@ class PostgresRepository:
                         SELECT DISTINCT a.user_id
                         FROM attempts a
                         JOIN users u ON a.user_id = u.id
-                        WHERE u.role = 'student' AND u.active = TRUE
+                        WHERE u.role = 'student' AND u.active = 1
                           AND a.timestamp >= NOW() - INTERVAL '7 days'
                     ),
                     latest_elo AS (
@@ -1142,7 +1142,7 @@ class PostgresRepository:
                         FROM attempts a
                         JOIN users u ON a.user_id = u.id
                         JOIN items i ON a.item_id = i.id
-                        WHERE u.role = 'student' AND u.active = TRUE
+                        WHERE u.role = 'student' AND u.active = 1
                           AND i.course_id = %s
                           AND a.timestamp >= NOW() - INTERVAL '7 days'
                     ),
