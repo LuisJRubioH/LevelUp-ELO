@@ -2,6 +2,8 @@ import streamlit as st
 import os
 import sys
 
+print("[APP VERSION] 2026-03-23-v2")
+
 # Parche para resolver imports desde la raíz del proyecto
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 if base_path not in sys.path:

@@ -1919,9 +1919,12 @@ class PostgresRepository:
         )
         print(f"[SAVE_PROC] storage_url resultado={storage_url}")
 
-        # ── Fallback a disco local + BYTEA si Storage no disponible ────
+        # ── BYTEA backup + disco local fallback ────────────────────────
         img_path = None
         bytea_value = None
+        if image_data:
+            # Always keep BYTEA as backup regardless of storage_url
+            bytea_value = psycopg2.Binary(image_data)
         if not storage_url:
             if image_data:
                 os.makedirs(os.path.join('data', 'uploads', 'procedures'), exist_ok=True)
@@ -1929,7 +1932,6 @@ class PostgresRepository:
                 img_path = os.path.join('data', 'uploads', 'procedures', img_filename)
                 with open(img_path, 'wb') as _f:
                     _f.write(image_data)
-                bytea_value = psycopg2.Binary(image_data)
             else:
                 print("[SAVE_PROC] ERROR: storage_url=None AND image_data=None, no hay datos para guardar")
 

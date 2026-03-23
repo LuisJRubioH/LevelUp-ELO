@@ -66,15 +66,22 @@ class SupabaseStorage:
     def extract_path(storage_url: str, bucket: str) -> str:
         """Extract the storage path from a public URL or return as-is if already a path.
 
-        Handles legacy rows where storage_url is a full public URL like:
-        ``https://xxx.supabase.co/storage/v1/object/public/procedimientos/1/2/h.jpg``
-        Returns: ``1/2/h.jpg``
+        Handles three cases:
+        (a) Full URL: ``https://xxx.supabase.co/storage/v1/object/public/procedimientos/1/2/h.jpg``
+            → ``1/2/h.jpg``
+        (b) Plain path: ``1/2/h.jpg`` → ``1/2/h.jpg``
+        (c) Path with bucket prefix: ``procedimientos/1/2/h.jpg`` → ``1/2/h.jpg``
         """
+        # Case (a): full public URL
         marker = f"/object/public/{bucket}/"
         idx = storage_url.find(marker)
         if idx != -1:
             return storage_url[idx + len(marker):]
-        # Already a plain path
+        # Case (c): path starts with bucket name
+        prefix = f"{bucket}/"
+        if storage_url.startswith(prefix):
+            return storage_url[len(prefix):]
+        # Case (b): already a plain path
         return storage_url
 
     def create_signed_url(self, bucket: str, path: str,
@@ -101,8 +108,9 @@ class SupabaseStorage:
             print("[STORAGE GET] No disponible - SUPABASE_URL/KEY faltantes")
             return None
         try:
+            print(f"[STORAGE GET] path_original={path}")
             clean_path = self.extract_path(path, bucket)
-            print(f"[STORAGE GET] Descargando: bucket={bucket}, path={clean_path}")
+            print(f"[STORAGE GET] path_limpio={clean_path}")
             storage = self._client.storage.from_(bucket)
             data = storage.download(clean_path)
             print(f"[STORAGE GET] OK: {len(data)} bytes")
