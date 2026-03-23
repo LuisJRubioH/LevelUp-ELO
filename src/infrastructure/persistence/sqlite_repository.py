@@ -383,6 +383,30 @@ class SQLiteRepository:
               AND active = 1
         """)
 
+        # ── Tabla weekly_rankings ─────────────────────────────────────
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS weekly_rankings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                week_start DATE NOT NULL,
+                week_end DATE NOT NULL,
+                group_id INTEGER NOT NULL,
+                rank INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                username TEXT NOT NULL,
+                global_elo REAL NOT NULL,
+                attempts_count INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        cursor.execute('''
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_weekly_rankings_unique
+            ON weekly_rankings(week_start, group_id, user_id)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_weekly_rankings_week_group
+            ON weekly_rankings(week_start, group_id)
+        ''')
+
         conn.commit()
         conn.close()
 
@@ -757,7 +781,7 @@ class SQLiteRepository:
                   AND a.timestamp >= datetime('now', '-7 days')
                 GROUP BY a.user_id
             )
-            SELECT u.username, ue.global_elo, wa.attempts_this_week
+            SELECT ue.user_id, u.username, ue.global_elo, wa.attempts_this_week
             FROM user_elo ue
             JOIN users u ON ue.user_id = u.id
             JOIN week_attempts wa ON ue.user_id = wa.user_id
@@ -767,9 +791,50 @@ class SQLiteRepository:
         rows = cursor.fetchall()
         conn.close()
         return [
-            {'username': row[0], 'global_elo': row[1], 'rank': idx + 1,
-             'attempts_this_week': row[2]}
+            {'user_id': row[0], 'username': row[1], 'global_elo': row[2],
+             'rank': idx + 1, 'attempts_this_week': row[3]}
             for idx, row in enumerate(rows)
+        ]
+
+    def save_weekly_ranking(self, group_id):
+        """Guarda el top 5 actual en weekly_rankings. Idempotente por semana+grupo+user."""
+        from datetime import date, timedelta
+        today = date.today()
+        week_start = today - timedelta(days=today.weekday())  # lunes
+        week_end = week_start + timedelta(days=6)             # domingo
+        ranking = self.get_weekly_ranking(group_id, 5)
+        if not ranking:
+            return
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        for r in ranking:
+            cursor.execute('''
+                INSERT OR IGNORE INTO weekly_rankings
+                    (week_start, week_end, group_id, rank, user_id, username, global_elo, attempts_count)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (str(week_start), str(week_end), group_id, r['rank'],
+                  r['user_id'], r['username'], r['global_elo'], r['attempts_this_week']))
+        conn.commit()
+        conn.close()
+
+    def get_ranking_history(self, group_id, weeks=4):
+        """Historial de rankings de las últimas N semanas."""
+        from datetime import date, timedelta
+        cutoff = date.today() - timedelta(weeks=weeks)
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT week_start, week_end, rank, username, global_elo, attempts_count
+            FROM weekly_rankings
+            WHERE group_id = ? AND week_start >= ?
+            ORDER BY week_start DESC, rank ASC
+        ''', (group_id, str(cutoff)))
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {'week_start': row[0], 'week_end': row[1], 'rank': row[2],
+             'username': row[3], 'global_elo': row[4], 'attempts_count': row[5]}
+            for row in rows
         ]
 
     def get_total_attempts_count(self, user_id):

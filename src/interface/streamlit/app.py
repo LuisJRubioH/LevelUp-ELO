@@ -953,6 +953,76 @@ else:
 
         st.markdown("---")
 
+        # ── Ranking semanal por grupo ─────────────────────────────────────────
+        with st.expander("🏆 Ranking Semanal por Grupo"):
+            _tch_groups = st.session_state.teacher_service.get_teacher_groups(st.session_state.user_id)
+            if not _tch_groups:
+                st.info("Crea un grupo primero para ver el ranking.")
+            else:
+                _grp_opts_rank = {g['name']: g['id'] for g in _tch_groups}
+                _sel_grp_rank = st.selectbox(
+                    "Grupo", list(_grp_opts_rank.keys()), key="tch_ranking_group"
+                )
+                _sel_grp_rank_id = _grp_opts_rank[_sel_grp_rank]
+
+                _tch_ranking = repo.get_weekly_ranking(_sel_grp_rank_id)
+                if _tch_ranking:
+                    _medal = {1: "🥇", 2: "🥈", 3: "🥉"}
+                    _tch_rank_html = "<table style='width:100%; border-collapse:collapse; font-size:0.9rem;'>"
+                    _tch_rank_html += "<tr style='border-bottom:1px solid #444;'><th style='padding:6px;'>🏅</th><th style='padding:6px; text-align:left;'>Estudiante</th><th style='padding:6px;'>ELO</th><th style='padding:6px;'>Intentos</th></tr>"
+                    for _r in _tch_ranking:
+                        _pos = _medal.get(_r['rank'], str(_r['rank']))
+                        _tch_rank_html += f"<tr style='border-bottom:1px solid #333;'>"
+                        _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_pos}</td>"
+                        _tch_rank_html += f"<td style='padding:6px;'>{_r['username']}</td>"
+                        _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_r['global_elo']:.0f}</td>"
+                        _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_r['attempts_this_week']}</td>"
+                        _tch_rank_html += "</tr>"
+                    _tch_rank_html += "</table>"
+                    st.markdown(_tch_rank_html, unsafe_allow_html=True)
+                else:
+                    st.caption("Sin actividad esta semana en este grupo.")
+
+                _col_save, _col_hist = st.columns(2)
+                with _col_save:
+                    if st.button("📸 Guardar ranking de esta semana", key="tch_save_ranking"):
+                        repo.save_weekly_ranking(_sel_grp_rank_id)
+                        st.success("Ranking guardado exitosamente.")
+                with _col_hist:
+                    pass
+
+                # ── Historial de rankings ──────────────────────────────────
+                _history = repo.get_ranking_history(_sel_grp_rank_id)
+                if _history:
+                    st.markdown("**📊 Historial de rankings (últimas 4 semanas)**")
+                    # Agrupar por semana
+                    from collections import defaultdict
+                    _weeks_hist = defaultdict(list)
+                    for _h in _history:
+                        _weeks_hist[_h['week_start']].append(_h)
+                    _prev_week_users = {}
+                    _sorted_weeks = sorted(_weeks_hist.keys(), reverse=True)
+                    for _w_idx, _wk in enumerate(_sorted_weeks):
+                        _entries = _weeks_hist[_wk]
+                        _wk_end = _entries[0]['week_end']
+                        st.caption(f"Semana {_wk} → {_wk_end}")
+                        _curr_week_users = {e['username']: e['rank'] for e in _entries}
+                        for _e in _entries:
+                            _pos_str = _medal.get(_e['rank'], str(_e['rank']))
+                            _arrow = ""
+                            if _prev_week_users:
+                                _old_rank = _prev_week_users.get(_e['username'])
+                                if _old_rank is None:
+                                    _arrow = " 🆕"
+                                elif _old_rank > _e['rank']:
+                                    _arrow = " ⬆️"
+                                elif _old_rank < _e['rank']:
+                                    _arrow = " ⬇️"
+                            st.markdown(f"  {_pos_str} **{_e['username']}** — {_e['global_elo']:.0f} ELO ({_e['attempts_count']} intentos){_arrow}")
+                        _prev_week_users = _curr_week_users
+
+        st.markdown("---")
+
         # ── Dashboard principal ────────────────────────────────────────────────
         students, groups = st.session_state.teacher_service.get_dashboard_data(st.session_state.user_id)
 

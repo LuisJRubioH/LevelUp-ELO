@@ -529,6 +529,30 @@ class PostgresRepository:
                           AND active = 1
                     """)
 
+                    # ── Tabla weekly_rankings ─────────────────────────────────
+                    cursor.execute('''
+                        CREATE TABLE IF NOT EXISTS weekly_rankings (
+                            id SERIAL PRIMARY KEY,
+                            week_start DATE NOT NULL,
+                            week_end DATE NOT NULL,
+                            group_id INTEGER NOT NULL,
+                            rank INTEGER NOT NULL,
+                            user_id INTEGER NOT NULL,
+                            username TEXT NOT NULL,
+                            global_elo REAL NOT NULL,
+                            attempts_count INTEGER NOT NULL,
+                            created_at TIMESTAMP DEFAULT NOW()
+                        )
+                    ''')
+                    cursor.execute('''
+                        CREATE UNIQUE INDEX IF NOT EXISTS idx_weekly_rankings_unique
+                        ON weekly_rankings(week_start, group_id, user_id)
+                    ''')
+                    cursor.execute('''
+                        CREATE INDEX IF NOT EXISTS idx_weekly_rankings_week_group
+                        ON weekly_rankings(week_start, group_id)
+                    ''')
+
                     conn.commit()
 
                 finally:
@@ -895,7 +919,7 @@ class PostgresRepository:
                       AND a.timestamp >= NOW() - INTERVAL '7 days'
                     GROUP BY a.user_id
                 )
-                SELECT u.username, ue.global_elo, wa.attempts_this_week
+                SELECT ue.user_id, u.username, ue.global_elo, wa.attempts_this_week
                 FROM user_elo ue
                 JOIN users u ON ue.user_id = u.id
                 JOIN week_attempts wa ON ue.user_id = wa.user_id
@@ -904,9 +928,57 @@ class PostgresRepository:
             ''', (group_id, limit))
             rows = cursor.fetchall()
             return [
-                {'username': row['username'], 'global_elo': float(row['global_elo']),
+                {'user_id': row['user_id'], 'username': row['username'],
+                 'global_elo': float(row['global_elo']),
                  'rank': idx + 1, 'attempts_this_week': row['attempts_this_week']}
                 for idx, row in enumerate(rows)
+            ]
+        finally:
+            self.put_connection(conn)
+
+    def save_weekly_ranking(self, group_id):
+        """Guarda el top 5 actual en weekly_rankings. Idempotente por semana+grupo+user."""
+        from datetime import date, timedelta
+        today = date.today()
+        week_start = today - timedelta(days=today.weekday())  # lunes
+        week_end = week_start + timedelta(days=6)             # domingo
+        ranking = self.get_weekly_ranking(group_id, 5)
+        if not ranking:
+            return
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            for r in ranking:
+                cursor.execute('''
+                    INSERT INTO weekly_rankings
+                        (week_start, week_end, group_id, rank, user_id, username, global_elo, attempts_count)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (week_start, group_id, user_id) DO NOTHING
+                ''', (str(week_start), str(week_end), group_id, r['rank'],
+                      r['user_id'], r['username'], r['global_elo'], r['attempts_this_week']))
+            conn.commit()
+        finally:
+            self.put_connection(conn)
+
+    def get_ranking_history(self, group_id, weeks=4):
+        """Historial de rankings de las últimas N semanas."""
+        from datetime import date, timedelta
+        cutoff = date.today() - timedelta(weeks=weeks)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute('''
+                SELECT week_start, week_end, rank, username, global_elo, attempts_count
+                FROM weekly_rankings
+                WHERE group_id = %s AND week_start >= %s
+                ORDER BY week_start DESC, rank ASC
+            ''', (group_id, str(cutoff)))
+            rows = cursor.fetchall()
+            return [
+                {'week_start': str(row['week_start']), 'week_end': str(row['week_end']),
+                 'rank': row['rank'], 'username': row['username'],
+                 'global_elo': float(row['global_elo']), 'attempts_count': row['attempts_count']}
+                for row in rows
             ]
         finally:
             self.put_connection(conn)
