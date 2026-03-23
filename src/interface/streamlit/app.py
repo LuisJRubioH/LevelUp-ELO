@@ -985,11 +985,13 @@ else:
 
         # ── Ranking semanal ─────────────────────────────────────────
         with st.expander("🏆 Ranking Semanal"):
-            _rank_mode = st.radio("Modo", ["Ranking General", "Por Grupo"], horizontal=True, key="tch_rank_mode")
+            _rank_mode = st.radio("Modo", ["Por nivel", "Por curso", "Por grupo"], horizontal=True, key="tch_rank_mode")
             _medal = {1: "🥇", 2: "🥈", 3: "🥉"}
 
-            if _rank_mode == "Ranking General":
-                _global_ranking = repo.get_global_ranking(limit=10)
+            if _rank_mode == "Por nivel":
+                _sel_level = st.selectbox("Nivel educativo", ["universidad", "colegio", "concursos"],
+                                          format_func=lambda x: x.title(), key="tch_rank_level")
+                _global_ranking = repo.get_global_ranking(limit=10, education_level=_sel_level)
                 if _global_ranking:
                     _tch_rank_html = "<table style='width:100%; border-collapse:collapse; font-size:0.9rem;'>"
                     _tch_rank_html += "<tr style='border-bottom:1px solid #444;'><th style='padding:6px;'>🏅</th><th style='padding:6px; text-align:left;'>Estudiante</th><th style='padding:6px;'>ELO</th><th style='padding:6px;'>Intentos</th></tr>"
@@ -1004,7 +1006,31 @@ else:
                     _tch_rank_html += "</table>"
                     st.markdown(_tch_rank_html, unsafe_allow_html=True)
                 else:
-                    st.caption("Sin actividad global esta semana.")
+                    st.caption("Sin actividad esta semana en este nivel.")
+            elif _rank_mode == "Por curso":
+                _all_courses = repo.get_courses()
+                if _all_courses:
+                    _course_opts = {c['name']: c['id'] for c in _all_courses}
+                    _sel_course_rank = st.selectbox("Curso", list(_course_opts.keys()), key="tch_rank_course")
+                    _sel_course_rank_id = _course_opts[_sel_course_rank]
+                    _course_ranking = repo.get_course_ranking(_sel_course_rank_id, limit=10)
+                    if _course_ranking:
+                        _tch_rank_html = "<table style='width:100%; border-collapse:collapse; font-size:0.9rem;'>"
+                        _tch_rank_html += "<tr style='border-bottom:1px solid #444;'><th style='padding:6px;'>🏅</th><th style='padding:6px; text-align:left;'>Estudiante</th><th style='padding:6px;'>ELO</th><th style='padding:6px;'>Intentos</th></tr>"
+                        for _r in _course_ranking:
+                            _pos = _medal.get(_r['rank'], str(_r['rank']))
+                            _tch_rank_html += f"<tr style='border-bottom:1px solid #333;'>"
+                            _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_pos}</td>"
+                            _tch_rank_html += f"<td style='padding:6px;'>{_r['username']}</td>"
+                            _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_r['course_elo']:.0f}</td>"
+                            _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_r['attempts_this_week']}</td>"
+                            _tch_rank_html += "</tr>"
+                        _tch_rank_html += "</table>"
+                        st.markdown(_tch_rank_html, unsafe_allow_html=True)
+                    else:
+                        st.caption("Sin actividad esta semana en este curso.")
+                else:
+                    st.caption("No hay cursos registrados.")
             else:
                 _tch_groups = st.session_state.teacher_service.get_teacher_groups(st.session_state.user_id)
                 if not _tch_groups:
@@ -1614,7 +1640,7 @@ else:
                 st.session_state.session_wrong_timestamps[item_data['id']] = float(st.session_state.session_questions_count)
 
             # Invalidar caches afectados por save_attempt
-            invalidate_cache('cache_answered_ids', 'cache_elo_by_topic', 'cache_streak', 'cache_weekly_ranking')
+            invalidate_cache('cache_answered_ids', 'cache_elo_by_topic', 'cache_streak', 'cache_weekly_ranking', 'cache_course_ranking')
             # Forzar que get_next_question se llame de nuevo en la próxima recarga
             st.session_state.pop('current_question', None)
 
@@ -1675,10 +1701,11 @@ else:
                             st.session_state.pop('current_question', None)
                             st.rerun()
 
-            # ── Ranking General — Top 5 ─────────────────────────────────
+            # ── Ranking General por nivel educativo — Top 5 ──────────────
             st.markdown("---")
-            st.markdown("#### 🏆 Ranking General — Top 5")
-            _global_top = repo.get_global_ranking(limit=5)
+            _level_label = {'universidad': 'Universidad', 'colegio': 'Colegio', 'concursos': 'Concursos'}.get(_level, _level.title())
+            st.markdown(f"#### 🏆 Ranking General — {_level_label}")
+            _global_top = repo.get_global_ranking(limit=5, education_level=_level)
             if _global_top:
                 _medal_sel = {1: "🥇", 2: "🥈", 3: "🥉"}
                 _my_user_sel = st.session_state.username
@@ -1700,13 +1727,13 @@ else:
                 _grank_html += "</table>"
                 st.markdown(_grank_html, unsafe_allow_html=True)
                 if not _in_top_sel:
-                    _my_global_rank = repo.get_student_rank(st.session_state.user_id)
+                    _my_global_rank = repo.get_student_rank(st.session_state.user_id, education_level=_level)
                     if _my_global_rank:
                         st.caption(f"Tu posición: #{_my_global_rank['rank']} de {_my_global_rank['total_students']} 🎯")
                     else:
                         st.caption("Practica esta semana para aparecer en el ranking")
             else:
-                st.caption("Sin actividad global esta semana.")
+                st.caption(f"Sin actividad esta semana en {_level_label}.")
 
         elif mode == "📝 Practicar":
             selected_course_id = st.session_state.selected_course['id']
@@ -1770,11 +1797,11 @@ else:
                     """, unsafe_allow_html=True)
                 st.info("💡 **Consejo:** La constancia es clave. Practica diariamente para consolidar tu aprendizaje.")
 
-                # ── Ranking General Top 5 ────────────────────────────────────
-                _ranking = cached('cache_global_ranking',
-                                  lambda: repo.get_global_ranking(limit=5))
+                # ── Ranking del curso actual Top 5 ──────────────────────────
+                _ranking = cached('cache_course_ranking',
+                                  lambda: repo.get_course_ranking(selected_course_id, limit=5))
                 if _ranking:
-                    st.markdown("#### 🏆 Ranking General")
+                    st.markdown(f"#### 🏆 Ranking — {topic_display_name}")
                     _medal = {1: "🥇", 2: "🥈", 3: "🥉"}
                     _my_user = st.session_state.username
                     _in_top = False
@@ -1789,7 +1816,7 @@ else:
                         _rank_html += f"<tr style='{_bg} border-bottom:1px solid #333;'>"
                         _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_pos}</td>"
                         _rank_html += f"<td style='padding:4px 6px;'>{_r['username']}</td>"
-                        _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['global_elo']:.0f}</td>"
+                        _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['course_elo']:.0f}</td>"
                         _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['attempts_this_week']}</td>"
                         _rank_html += "</tr>"
                     _rank_html += "</table>"
@@ -1797,14 +1824,14 @@ else:
                     if _in_top:
                         st.caption("¡Estás en el Top 5! 🎯")
                     else:
-                        _my_rank = repo.get_student_rank(st.session_state.user_id)
+                        _my_rank = repo.get_student_rank(st.session_state.user_id, course_id=selected_course_id)
                         if _my_rank:
                             st.caption(f"Tu posición: #{_my_rank['rank']} de {_my_rank['total_students']} 🎯")
                         else:
                             st.caption("Sigue practicando para entrar al ranking")
                 else:
-                    st.markdown("#### 🏆 Ranking General")
-                    st.caption("Sin actividad esta semana.")
+                    st.markdown(f"#### 🏆 Ranking — {topic_display_name}")
+                    st.caption("Sin actividad esta semana en este curso.")
 
             with col2:
                 st.subheader(f"📖 Ejercicio: {selected_topic}")

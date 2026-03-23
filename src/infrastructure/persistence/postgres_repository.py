@@ -983,18 +983,25 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    def get_global_ranking(self, limit=5):
+    def get_global_ranking(self, limit=5, education_level=None):
         """Top estudiantes globales por ELO promedio, con actividad en los últimos 7 días."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute('''
+            _level_filter = ""
+            _params = []
+            if education_level:
+                _level_filter = "AND u.education_level = %s"
+                _params.append(education_level)
+            _params.append(limit)
+            cursor.execute(f'''
                 WITH active_users AS (
                     SELECT DISTINCT a.user_id
                     FROM attempts a
                     JOIN users u ON a.user_id = u.id
                     WHERE u.role = 'student'
                       AND a.timestamp >= NOW() - INTERVAL '7 days'
+                      {_level_filter}
                 ),
                 latest_elo AS (
                     SELECT a.user_id, a.elo_after,
@@ -1026,7 +1033,7 @@ class PostgresRepository:
                 JOIN week_attempts wa ON ue.user_id = wa.user_id
                 ORDER BY ue.global_elo DESC
                 LIMIT %s
-            ''', (limit,))
+            ''', tuple(_params))
             rows = cursor.fetchall()
             return [
                 {'user_id': row['user_id'], 'username': row['username'],
@@ -1048,7 +1055,7 @@ class PostgresRepository:
                     FROM attempts a
                     JOIN users u ON a.user_id = u.id
                     JOIN items i ON a.item_id = i.id
-                    WHERE u.role = 'student' AND u.active = 1
+                    WHERE u.role = 'student'
                       AND i.course_id = %s
                       AND a.timestamp >= NOW() - INTERVAL '7 days'
                 ),
@@ -1096,53 +1103,20 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    def get_student_rank(self, user_id, course_id=None):
+    def get_student_rank(self, user_id, course_id=None, education_level=None):
         """Posición del estudiante en el ranking (global o por curso)."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            if course_id is None:
-                cursor.execute('''
-                    WITH active_users AS (
-                        SELECT DISTINCT a.user_id
-                        FROM attempts a
-                        JOIN users u ON a.user_id = u.id
-                        WHERE u.role = 'student' AND u.active = 1
-                          AND a.timestamp >= NOW() - INTERVAL '7 days'
-                    ),
-                    latest_elo AS (
-                        SELECT a.user_id, a.elo_after,
-                               ROW_NUMBER() OVER (
-                                   PARTITION BY a.user_id, i.course_id
-                                   ORDER BY a.timestamp DESC
-                               ) AS rn
-                        FROM attempts a
-                        JOIN items i ON a.item_id = i.id
-                        WHERE a.user_id IN (SELECT user_id FROM active_users)
-                    ),
-                    user_elo AS (
-                        SELECT le.user_id,
-                               ROUND(AVG(le.elo_after)::numeric, 0) AS global_elo
-                        FROM latest_elo le
-                        WHERE le.rn = 1
-                        GROUP BY le.user_id
-                    ),
-                    ranked AS (
-                        SELECT user_id, global_elo,
-                               ROW_NUMBER() OVER (ORDER BY global_elo DESC) AS rank
-                        FROM user_elo
-                    )
-                    SELECT rank, (SELECT COUNT(*) FROM user_elo) AS total, global_elo
-                    FROM ranked WHERE user_id = %s
-                ''', (user_id,))
-            else:
+            if course_id is not None:
+                # Ranking por curso (ignora education_level)
                 cursor.execute('''
                     WITH active_users AS (
                         SELECT DISTINCT a.user_id
                         FROM attempts a
                         JOIN users u ON a.user_id = u.id
                         JOIN items i ON a.item_id = i.id
-                        WHERE u.role = 'student' AND u.active = 1
+                        WHERE u.role = 'student'
                           AND i.course_id = %s
                           AND a.timestamp >= NOW() - INTERVAL '7 days'
                     ),
@@ -1172,6 +1146,48 @@ class PostgresRepository:
                     SELECT rank, (SELECT COUNT(*) FROM user_elo) AS total, global_elo
                     FROM ranked WHERE user_id = %s
                 ''', (course_id, course_id, user_id))
+            else:
+                # Ranking global, opcionalmente filtrado por nivel educativo
+                _level_filter = ""
+                _params = []
+                if education_level:
+                    _level_filter = "AND u.education_level = %s"
+                    _params.append(education_level)
+                _params.append(user_id)
+                cursor.execute(f'''
+                    WITH active_users AS (
+                        SELECT DISTINCT a.user_id
+                        FROM attempts a
+                        JOIN users u ON a.user_id = u.id
+                        WHERE u.role = 'student'
+                          AND a.timestamp >= NOW() - INTERVAL '7 days'
+                          {_level_filter}
+                    ),
+                    latest_elo AS (
+                        SELECT a.user_id, a.elo_after,
+                               ROW_NUMBER() OVER (
+                                   PARTITION BY a.user_id, i.course_id
+                                   ORDER BY a.timestamp DESC
+                               ) AS rn
+                        FROM attempts a
+                        JOIN items i ON a.item_id = i.id
+                        WHERE a.user_id IN (SELECT user_id FROM active_users)
+                    ),
+                    user_elo AS (
+                        SELECT le.user_id,
+                               ROUND(AVG(le.elo_after)::numeric, 0) AS global_elo
+                        FROM latest_elo le
+                        WHERE le.rn = 1
+                        GROUP BY le.user_id
+                    ),
+                    ranked AS (
+                        SELECT user_id, global_elo,
+                               ROW_NUMBER() OVER (ORDER BY global_elo DESC) AS rank
+                        FROM user_elo
+                    )
+                    SELECT rank, (SELECT COUNT(*) FROM user_elo) AS total, global_elo
+                    FROM ranked WHERE user_id = %s
+                ''', tuple(_params))
             row = cursor.fetchone()
             if row:
                 return {'rank': row['rank'], 'total_students': row['total'], 'global_elo': float(row['global_elo'])}
