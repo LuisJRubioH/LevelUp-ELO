@@ -846,7 +846,7 @@ class SQLiteRepository:
                 SELECT DISTINCT a.user_id
                 FROM attempts a
                 JOIN users u ON a.user_id = u.id
-                WHERE u.role = 'student' AND u.active = 1
+                WHERE u.role = 'student'
                   AND a.timestamp >= datetime('now', '-7 days')
             ),
             latest_elo AS (
