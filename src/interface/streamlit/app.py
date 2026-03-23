@@ -1701,6 +1701,7 @@ else:
                             import hashlib
                             _raw_bytes = uploaded_file.getvalue()
                             _file_hash = hashlib.sha256(_raw_bytes).hexdigest()
+                            print(f"[UPLOAD] archivo recibido: {uploaded_file.name}, size={len(_raw_bytes)} bytes, type={uploaded_file.type}")
 
                             if _ext == 'pdf':
                                 # PDF: renderizar primera página como imagen para visión
@@ -1763,6 +1764,7 @@ else:
                                 with _b1:
                                     if st.button("📤 Enviar como está", key=f"proc_send0_{_iid}"):
                                         # Registrar 0.0 y enviar al profesor
+                                        print(f"[UPLOAD] Llamando save_procedure_submission con image_data={len(_file_bytes) if _file_bytes else 'None'} bytes")
                                         st.session_state.db.save_procedure_submission(
                                             _uid, _iid, item_data.get('content') or '',
                                             _file_bytes, _mime,
@@ -1825,6 +1827,7 @@ else:
                                         if not _is_relevant:
                                             # T5a+5b: procedimiento irrelevante → nota 0.0 + incrementar fallo
                                             st.session_state[_fail_key] = _fail_count + 1
+                                            print(f"[UPLOAD] Llamando save_procedure_submission con image_data={len(_file_bytes) if _file_bytes else 'None'} bytes")
                                             st.session_state.db.save_procedure_submission(
                                                 _uid, _iid, _q_content,
                                                 _file_bytes, _mime,
@@ -1861,6 +1864,7 @@ else:
                                                         )
                                                     # Guardar 0.0 en DB
                                                     if not st.session_state.get(f'proc_ai_saved_{_iid}', False):
+                                                        print(f"[UPLOAD] Llamando save_procedure_submission con image_data={len(_file_bytes) if _file_bytes else 'None'} bytes")
                                                         st.session_state.db.save_procedure_submission(
                                                             _uid, _iid, _q_content,
                                                             _file_bytes, _mime,
@@ -1878,6 +1882,7 @@ else:
                                                     st.session_state[_fail_key] = 0
                                                     st.session_state[f'proc_review_{_iid}'] = _rev
                                                     if not st.session_state.get(f'proc_ai_saved_{_iid}', False):
+                                                        print(f"[UPLOAD] Llamando save_procedure_submission con image_data={len(_file_bytes) if _file_bytes else 'None'} bytes")
                                                         st.session_state.db.save_procedure_submission(
                                                             _uid, _iid, _q_content,
                                                             _file_bytes, _mime,
@@ -2073,6 +2078,7 @@ else:
                                         width='stretch',
                                     ):
                                         # T7: guardar hash junto con la entrega
+                                        print(f"[UPLOAD] Llamando save_procedure_submission con image_data={len(_file_bytes) if _file_bytes else 'None'} bytes")
                                         st.session_state.db.save_procedure_submission(
                                             _uid, _iid, item_data.get('content') or '',
                                             _file_bytes, _mime,

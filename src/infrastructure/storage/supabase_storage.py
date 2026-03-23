@@ -43,6 +43,7 @@ class SupabaseStorage:
         """
         if not self.available:
             return None
+        print(f"[STORAGE UPLOAD] bucket={bucket}, path={path}, size={len(file_bytes)} bytes, mime={mime_type}")
         try:
             storage = self._client.storage.from_(bucket)
             # Remove existing file at same path (idempotent re-upload)
@@ -58,7 +59,7 @@ class SupabaseStorage:
             # Return the path — callers use create_signed_url() to display.
             return path
         except Exception as exc:
-            print(f"[SupabaseStorage] upload error: {exc}")
+            print(f"[STORAGE UPLOAD ERROR] {exc}")
             return None
 
     @staticmethod

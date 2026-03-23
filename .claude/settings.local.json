@@ -11,7 +11,9 @@
       "Bash(cd D:/Portafolio/LevelUp-ELO && python scripts/create_local_admin.py)",
       "Bash(python -c \"import src.infrastructure.persistence.postgres_repository as pg_mod; print\\(''OK''\\)\")",
       "Bash(pip install:*)",
-      "Bash(python -m py_compile src/infrastructure/persistence/postgres_repository.py)"
+      "Bash(python -m py_compile src/infrastructure/persistence/postgres_repository.py)",
+      "Bash(python -m py_compile src/infrastructure/storage/supabase_storage.py)",
+      "Bash(python -m py_compile src/interface/streamlit/app.py)"
     ]
   }
 }

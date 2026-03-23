@@ -1900,6 +1900,8 @@ class PostgresRepository:
         Fallback: disco local + BYTEA si Storage no está disponible.
         """
         import time as _time
+        print(f"[SAVE_PROC] Recibido: student_id={student_id}, item_id={item_id}, "
+              f"image_data={'bytes:'+str(len(image_data)) if image_data else 'None'}, mime_type={mime_type}")
         ext = {'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp'}.get(mime_type, 'jpg')
 
         # ── Intentar subir a Supabase Storage ────────────────────────────
@@ -1911,17 +1913,24 @@ class PostgresRepository:
         storage_url = self._storage.upload_file(
             'procedimientos', storage_path, image_data, mime_type,
         )
+        print(f"[SAVE_PROC] storage_url resultado={storage_url}")
 
-        # ── Fallback a disco local si Storage no disponible ──────────────
+        # ── Fallback a disco local + BYTEA si Storage no disponible ────
         img_path = None
         bytea_value = None
         if not storage_url:
-            os.makedirs(os.path.join('data', 'uploads', 'procedures'), exist_ok=True)
-            img_filename = f"{student_id}_{item_id}_{int(_time.time())}.{ext}"
-            img_path = os.path.join('data', 'uploads', 'procedures', img_filename)
-            with open(img_path, 'wb') as _f:
-                _f.write(image_data)
-            bytea_value = psycopg2.Binary(image_data)
+            if image_data:
+                os.makedirs(os.path.join('data', 'uploads', 'procedures'), exist_ok=True)
+                img_filename = f"{student_id}_{item_id}_{int(_time.time())}.{ext}"
+                img_path = os.path.join('data', 'uploads', 'procedures', img_filename)
+                with open(img_path, 'wb') as _f:
+                    _f.write(image_data)
+                bytea_value = psycopg2.Binary(image_data)
+            else:
+                print("[SAVE_PROC] ERROR: storage_url=None AND image_data=None, no hay datos para guardar")
+
+        print(f"[SAVE_PROC] Guardando en DB: storage_url={storage_url}, "
+              f"image_data={'bytes:'+str(len(image_data)) if image_data else 'None'}")
 
         conn = self.get_connection()
         try:
