@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import sys
 
-print("[APP VERSION] 2026-03-23-v2")
+print("[APP VERSION] 2026-03-23-v3")
 
 # Parche para resolver imports desde la raíz del proyecto
 base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
@@ -35,6 +35,7 @@ importlib.reload(_pipeline_mod)
 
 from src.domain.elo.vector_elo import VectorRating, aggregate_global_elo, aggregate_global_rd
 from src.domain.elo.model import expected_score, calculate_dynamic_k, Item
+from src.domain.entities import LEVEL_TO_BLOCK
 from src.utils import strip_thinking_tags
 SQLiteRepository = db_mod.SQLiteRepository
 PostgresRepository = pg_mod.PostgresRepository
@@ -54,6 +55,24 @@ import extra_streamlit_components as stx
 
 # Configuración de página
 st.set_page_config(page_title="LevelUp ELO — Evaluación Adaptativa", layout="wide", page_icon="🎓")
+
+# ── CSS: radio button seleccionado en verde ──────────────────────────────────
+st.markdown("""
+<style>
+div[data-testid="stRadio"] div[role="radiogroup"] label[data-checked="true"] > div:first-child {
+    background-color: #00CC66 !important;
+    border-color: #00CC66 !important;
+}
+div[data-testid="stRadio"] div[role="radiogroup"] label[aria-checked="true"] > div:first-child {
+    background-color: #00CC66 !important;
+    border-color: #00CC66 !important;
+}
+div[data-testid="stRadio"] div[role="radiogroup"] label[data-checked="true"],
+div[data-testid="stRadio"] div[role="radiogroup"] label[aria-checked="true"] {
+    color: #00CC66 !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ── Caché ligero en session_state ─────────────────────────────────────────────
 def cached(key, fn):
@@ -1287,9 +1306,16 @@ else:
                         st.rerun()
             st.stop()
 
-        # Cargar cursos matriculados (disponible para todo el flujo del estudiante)
-        _enrolled = cached('cache_enrollments',
-                           lambda: repo.get_user_enrollments(st.session_state.user_id))
+        # Cargar cursos matriculados filtrados por nivel educativo del estudiante.
+        # Sin este filtro, matrículas legacy en cursos de otro bloque aparecerían
+        # en «Practicar» y «Mis Cursos».
+        _level = st.session_state.education_level or 'universidad'
+        _student_block = LEVEL_TO_BLOCK.get(_level, 'Universidad')
+        _enrolled = [
+            c for c in cached('cache_enrollments',
+                              lambda: repo.get_user_enrollments(st.session_state.user_id))
+            if c.get('block') == _student_block
+        ]
 
         # Defaults para variables usadas en las vistas
         selected_course_id = None
@@ -1548,8 +1574,41 @@ else:
                 # T8c: racha de estudio (días consecutivos con actividad)
                 _streak = cached('cache_streak',
                                 lambda: repo.get_study_streak(st.session_state.user_id))
-                if _streak > 0:
-                    st.markdown(f"🔥 **Racha: {_streak} día{'s' if _streak != 1 else ''}**")
+                if _streak == 0:
+                    st.markdown("""
+                        <div style="text-align:center; padding:12px 8px; background:linear-gradient(135deg,#1a1a2e,#16213e);
+                                    border-radius:12px; margin-bottom:12px;">
+                            <div style="font-size:2rem;">💤</div>
+                            <p style="color:#aaa; margin:4px 0 0; font-size:0.9rem;">Empieza hoy tu racha de estudio</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                elif _streak <= 2:
+                    st.markdown(f"""
+                        <div style="text-align:center; padding:12px 8px; background:linear-gradient(135deg,#1a1a2e,#2d1b00);
+                                    border-radius:12px; margin-bottom:12px;">
+                            <div style="font-size:2.5rem;">🔥</div>
+                            <div style="font-size:2rem; font-weight:800; color:#FF9800;">{_streak} día{'s' if _streak != 1 else ''}</div>
+                            <p style="color:#FFB74D; margin:2px 0 0; font-size:0.85rem;">¡Buen inicio!</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                elif _streak <= 6:
+                    st.markdown(f"""
+                        <div style="text-align:center; padding:12px 8px; background:linear-gradient(135deg,#1a1a2e,#4a1500);
+                                    border-radius:12px; margin-bottom:12px;">
+                            <div style="font-size:2.5rem;">🔥🔥</div>
+                            <div style="font-size:2rem; font-weight:800; color:#FF5722;">{_streak} días</div>
+                            <p style="color:#FF8A65; margin:2px 0 0; font-size:0.85rem;">¡Vas en racha!</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown(f"""
+                        <div style="text-align:center; padding:14px 8px; background:linear-gradient(135deg,#4a0000,#ff4500,#ff8c00);
+                                    border-radius:12px; margin-bottom:12px; box-shadow:0 0 15px rgba(255,69,0,0.3);">
+                            <div style="font-size:3rem;">🔥🔥🔥</div>
+                            <div style="font-size:2.2rem; font-weight:900; color:#fff;">{_streak} días</div>
+                            <p style="color:#FFE0B2; margin:2px 0 0; font-size:0.9rem; font-weight:700;">¡IMPARABLE!</p>
+                        </div>
+                    """, unsafe_allow_html=True)
                 st.info("💡 **Consejo:** La constancia es clave. Practica diariamente para consolidar tu aprendizaje.")
 
             with col2:
@@ -1628,13 +1687,18 @@ else:
                             st.radio(
                                 "Selecciona tu respuesta:",
                                 option_labels,
+                                index=None,
                                 format_func=lambda x: x,
                                 key=f"radio_{item_data['id']}",
                                 on_change=_sync_answer,
                             )
                             selected_option = st.session_state.get(f"answer_text_{item_data['id']}")
                             st.write("")
-                            submit_button = st.button(label="📝 Enviar Respuesta", width='stretch')
+                            submit_button = st.button(
+                                label="📝 Enviar Respuesta",
+                                width='stretch',
+                                disabled=(selected_option is None),
+                            )
 
                             if submit_button:
                                 is_correct = (selected_option == item_data.get('correct_option'))
@@ -2097,8 +2161,20 @@ else:
             # T8c: racha de estudio en la cabecera de estadísticas
             _stat_streak = cached('cache_streak',
                                   lambda: repo.get_study_streak(st.session_state.user_id))
-            if _stat_streak > 0:
-                st.markdown(f"🔥 **Racha de estudio: {_stat_streak} día{'s' if _stat_streak != 1 else ''} consecutivo{'s' if _stat_streak != 1 else ''}**")
+            if _stat_streak == 0:
+                _streak_msg = "💤 Sin racha activa — ¡empieza hoy!"
+                _streak_color = "#aaa"
+            elif _stat_streak <= 2:
+                _streak_msg = f"🔥 Racha: {_stat_streak} día{'s' if _stat_streak != 1 else ''} — ¡Buen inicio!"
+                _streak_color = "#FF9800"
+            elif _stat_streak <= 6:
+                _streak_msg = f"🔥🔥 Racha: {_stat_streak} días — ¡Vas en racha!"
+                _streak_color = "#FF5722"
+            else:
+                _streak_msg = f"🔥🔥🔥 Racha: {_stat_streak} días — ¡IMPARABLE!"
+                _streak_color = "#FF4500"
+            st.markdown(f"<p style='font-size:1.1rem; font-weight:700; color:{_streak_color};'>{_streak_msg}</p>",
+                        unsafe_allow_html=True)
 
             history_full = st.session_state.db.get_user_history_full(st.session_state.user_id)
             attempts_data = st.session_state.db.get_attempts_for_ai(st.session_state.user_id, limit=1000)
