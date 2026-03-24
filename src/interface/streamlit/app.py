@@ -1641,10 +1641,12 @@ else:
 
             # Invalidar caches afectados por save_attempt
             invalidate_cache('cache_answered_ids', 'cache_elo_by_topic', 'cache_streak', 'cache_weekly_ranking', 'cache_course_ranking')
-            # Forzar que get_next_question se llame de nuevo en la próxima recarga
-            st.session_state.pop('current_question', None)
 
             st.session_state.question_start_time = None
+            # Marcar que estamos mostrando el resultado (no avanzar automáticamente)
+            st.session_state.show_result = True
+            st.session_state.last_result_correct = is_correct
+            st.session_state.last_result_item = item_data
             st.rerun()
 
         # --- VISTAS ---
@@ -1835,167 +1837,197 @@ else:
 
             with col2:
                 st.subheader(f"📖 Ejercicio: {selected_topic}")
+                item_data = None  # inicializar para scope exterior (procedimiento manuscrito)
 
-                # Delegar obtención de pregunta al servicio (una sola vez por recarga)
-                if 'current_question' not in st.session_state:
-                    st.session_state.current_question = st.session_state.student_service.get_next_question(
-                        st.session_state.user_id, selected_topic, st.session_state.vector,
-                        session_correct_ids=st.session_state.session_correct_ids,
-                        session_wrong_timestamps=st.session_state.session_wrong_timestamps,
-                        session_questions_count=st.session_state.session_questions_count,
-                        course_id=selected_course_id,
-                    )
-                item_data, status = st.session_state.current_question
-
-                if status == "mastery":
-                    st.success("🎉 ¡Excelente trabajo! Has alcanzado el nivel de excelencia en esta materia.")
+                # ── Pantalla de celebración (bloquea vista de pregunta) ──
+                if st.session_state.get('show_celebration'):
                     st.balloons()
-                    item_data = None
-                elif status == "empty":
-                    st.warning("No hay preguntas disponibles para tu nivel actual.")
-                    item_data = None
-                
-                if item_data:
-                    # Iniciar cronómetro si es una nueva pregunta
-                    if st.session_state.question_start_time is None:
-                        st.session_state.question_start_time = time.time()
+                    _cel_sc = st.session_state.get('celebration_streak', 5)
+                    _cel_elo = st.session_state.get('celebration_elo', 1000)
+                    import random as _rnd_cel
+                    _cel_messages = [
+                        "¡Estás haciendo un trabajo increíble! 🌟",
+                        "¡Eres el mejor! Sigue así 💪",
+                        "¡Estás encendido! No pares ahora 🔥",
+                        "¡Impresionante! Tu esfuerzo se nota ⚡",
+                        "¡Si sigues así serás parte del Top 5! 🏆",
+                        "¡Estudiando así llegarás muy lejos! 🚀",
+                        "¡Increíble razonamiento! Sigue adelante 🧠",
+                        "¡Lo estás logrando! Cada pregunta cuenta 🎯",
+                    ]
+                    _cel_msg = _rnd_cel.choice(_cel_messages)
+                    st.markdown(f"""
+                        <div style="text-align:center; padding:48px 24px; margin:20px 0;
+                                    background:linear-gradient(135deg,#6a0dad 0%,#ffd700 50%,#ff8c00 100%);
+                                    border-radius:24px; box-shadow:0 0 40px rgba(255,215,0,0.6);">
+                            <div style="font-size:4rem; margin-bottom:12px;">🎉</div>
+                            <div style="font-size:2rem; font-weight:900; color:white; margin-bottom:8px;
+                                        text-shadow:0 2px 8px rgba(0,0,0,0.3);">
+                                ¡{_cel_sc} RESPUESTAS CORRECTAS!</div>
+                            <div style="font-size:1.4rem; font-weight:600; color:rgba(255,255,255,0.95);
+                                        margin-bottom:16px;">
+                                {_cel_msg}</div>
+                            <div style="display:inline-block; background:rgba(0,0,0,0.25); border-radius:12px;
+                                        padding:10px 24px;">
+                                <span style="color:#ffd700; font-size:1.1rem; font-weight:700;">
+                                    Tu ELO actual: {_cel_elo:.0f} puntos</span>
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    st.write("")
+                    if st.button("🚀 SEGUIR PRACTICANDO", width='stretch', type="primary", key="btn_continue_cel"):
+                        st.session_state.show_celebration = False
+                        st.session_state.pop('current_question', None)
+                        st.rerun()
 
-                    with st.container(border=True):
-                        # Color dinámico por dificultad
-                        # T9a: null safety — proteger accesos a campos del ítem
-                        diff = item_data.get('difficulty') or 1000
-                        if diff < 800:
-                            diff_color = "#92FE9D"  # Verde neón (Fácil)
-                        elif diff < 1100:
-                            diff_color = "#FFD700"  # Dorado (Medio)
-                        elif diff < 1400:
-                            diff_color = "#FF8C00"  # Naranja (Difícil)
-                        else:
-                            diff_color = "#FF4B4B"  # Rojo (Experto)
+                # ── Pantalla de resultado (después de responder) ─────────
+                elif st.session_state.get('show_result'):
+                    _res_item = st.session_state.get('last_result_item', {})
+                    _res_correct = st.session_state.get('last_result_correct', False)
+                    if _res_correct:
+                        st.success("¡Respuesta correcta! Excelente análisis. 🎓")
+                    else:
+                        st.error(f"Respuesta incorrecta. La opción correcta era: **{_res_item.get('correct_option') or '—'}**")
 
-                        # T8a: metadatos de área y tópico sobre el enunciado
-                        _item_topic = item_data.get('topic') or selected_topic or ''
-                        st.caption(f"Área: {selected_topic} | Tema: {_item_topic}")
-                        st.markdown(f"<span style='color: {diff_color}; font-weight: 700; font-size: 0.9rem;'>⚡ Dificultad {diff:.0f}</span>", unsafe_allow_html=True)
-                        st.markdown(f"### {item_data.get('content') or ''}")
+                    st.write("")
+                    if st.button("▶️ SIGUIENTE PREGUNTA", width='stretch', type="primary", key="btn_next_question"):
+                        st.session_state.show_result = False
+                        st.session_state.pop('current_question', None)
+                        st.session_state.pop('last_result_item', None)
+                        st.session_state.pop('last_result_correct', None)
+                        st.rerun()
 
-                        # T14: soporte visual en preguntas — renderizar imagen si existe
-                        _img_url = item_data.get('image_url') or item_data.get('image_path')
-                        if _img_url:
-                            try:
-                                st.image(_img_url, width='stretch',
-                                         caption="Figura correspondiente a la pregunta")
-                            except Exception:
-                                pass  # imagen no disponible — no romper la UI
+                else:
+                    # ── Vista normal: pregunta activa ─────────────────────
+                    # Delegar obtención de pregunta al servicio (una sola vez por recarga)
+                    if 'current_question' not in st.session_state:
+                        st.session_state.current_question = st.session_state.student_service.get_next_question(
+                            st.session_state.user_id, selected_topic, st.session_state.vector,
+                            session_correct_ids=st.session_state.session_correct_ids,
+                            session_wrong_timestamps=st.session_state.session_wrong_timestamps,
+                            session_questions_count=st.session_state.session_questions_count,
+                            course_id=selected_course_id,
+                        )
+                    item_data, status = st.session_state.current_question
 
-                        st.write("")
+                    if status == "mastery":
+                        st.success("🎉 ¡Excelente trabajo! Has alcanzado el nivel de excelencia en esta materia.")
+                        st.balloons()
+                        item_data = None
+                    elif status == "empty":
+                        st.warning("No hay preguntas disponibles para tu nivel actual.")
+                        item_data = None
 
-                        if item_data.get('options'):
-                            # Bug 3: Aleatorizar opciones
-                            shuffled_options = item_data['options'].copy()
-                            random.Random(item_data['id']).shuffle(shuffled_options)
-                            option_labels = [chr(65 + i) for i in range(len(shuffled_options))]
-                            label_to_text = dict(zip(option_labels, shuffled_options))
-                            _item_id = item_data['id']
+                    if item_data:
+                        # Iniciar cronómetro si es una nueva pregunta
+                        if st.session_state.question_start_time is None:
+                            st.session_state.question_start_time = time.time()
 
-                            # Renderizar opciones con LaTeX via markdown
-                            for lbl, opt in zip(option_labels, shuffled_options):
-                                st.markdown(f"**{lbl}.** {opt}")
+                        with st.container(border=True):
+                            # Color dinámico por dificultad
+                            diff = item_data.get('difficulty') or 1000
+                            if diff < 800:
+                                diff_color = "#92FE9D"
+                            elif diff < 1100:
+                                diff_color = "#FFD700"
+                            elif diff < 1400:
+                                diff_color = "#FF8C00"
+                            else:
+                                diff_color = "#FF4B4B"
 
-                            def _sync_answer(_id=_item_id, _map=label_to_text):
-                                lbl = st.session_state.get(f"radio_{_id}")
-                                st.session_state[f"answer_text_{_id}"] = _map.get(lbl)
+                            _item_topic = item_data.get('topic') or selected_topic or ''
+                            st.caption(f"Área: {selected_topic} | Tema: {_item_topic}")
+                            st.markdown(f"<span style='color: {diff_color}; font-weight: 700; font-size: 0.9rem;'>⚡ Dificultad {diff:.0f}</span>", unsafe_allow_html=True)
+                            st.markdown(f"### {item_data.get('content') or ''}")
 
-                            st.radio(
-                                "Selecciona tu respuesta:",
-                                option_labels,
-                                index=None,
-                                format_func=lambda x: x,
-                                key=f"radio_{item_data['id']}",
-                                on_change=_sync_answer,
-                            )
-                            selected_option = st.session_state.get(f"answer_text_{item_data['id']}")
+                            _img_url = item_data.get('image_url') or item_data.get('image_path')
+                            if _img_url:
+                                try:
+                                    st.image(_img_url, width='stretch',
+                                             caption="Figura correspondiente a la pregunta")
+                                except Exception:
+                                    pass
+
                             st.write("")
-                            submit_button = st.button(
-                                label="📝 Enviar Respuesta",
-                                width='stretch',
-                                disabled=(selected_option is None),
-                            )
 
-                            if submit_button:
-                                is_correct = (selected_option == item_data.get('correct_option'))
-                                if is_correct:
-                                    st.session_state.streak_correct += 1
-                                    st.success("¡Respuesta correcta! Excelente análisis. 🎓")
-                                    _sc = st.session_state.streak_correct
-                                    if _sc > 0 and _sc % 5 == 0:
-                                        st.balloons()
-                                        import random
-                                        _cel_messages = [
-                                            "¡Estás haciendo un trabajo increíble! 🌟",
-                                            "¡Eres el mejor! Sigue así 💪",
-                                            "¡Estás encendido! No pares ahora 🔥",
-                                            "¡Impresionante! Tu esfuerzo se nota ⚡",
-                                            "¡Si sigues así serás parte del Top 5! 🏆",
-                                            "¡Estudiando así llegarás muy lejos! 🚀",
-                                            "¡Increíble razonamiento! Sigue adelante 🧠",
-                                            "¡Lo estás logrando! Cada pregunta cuenta 🎯",
-                                        ]
-                                        _cel_msg = random.choice(_cel_messages)
-                                        _cel_elo = st.session_state.vector.get(selected_topic)
-                                        st.markdown(f"""
-                                            <div style="text-align:center; padding:28px 20px; margin:10px 0;
-                                                        background:linear-gradient(135deg,#6a0dad,#ffd700);
-                                                        border-radius:20px; box-shadow:0 0 30px rgba(255,215,0,0.5);">
-                                                <div style="font-size:2.2rem; font-weight:800; color:white; margin-bottom:8px;">
-                                                    {_cel_msg}</div>
-                                                <p style="color:rgba(255,255,255,0.9); font-size:1.1rem; margin:8px 0 0; font-weight:500;">
-                                                    Tu ELO actual: {_cel_elo:.0f} puntos — ¡sigue subiendo!</p>
-                                            </div>
-                                        """, unsafe_allow_html=True)
-                                else:
-                                    st.session_state.streak_correct = 0
-                                    st.error(f"Respuesta incorrecta. La opción correcta era: **{item_data.get('correct_option') or '—'}**")
+                            if item_data.get('options'):
+                                shuffled_options = item_data['options'].copy()
+                                random.Random(item_data['id']).shuffle(shuffled_options)
+                                option_labels = [chr(65 + i) for i in range(len(shuffled_options))]
+                                label_to_text = dict(zip(option_labels, shuffled_options))
+                                _item_id = item_data['id']
 
-                                time.sleep(1.5)
-                                handle_answer_topic(is_correct, item_data)
+                                for lbl, opt in zip(option_labels, shuffled_options):
+                                    st.markdown(f"**{lbl}.** {opt}")
 
-                        # --- Ayuda del Tutor Socrático (Siempre disponible) ---
-                        st.markdown("---")
-                        st.info("💡 Si te sientes bloqueado, puedes pedir orientación. El tutor socrático no te dará la respuesta, pero te ayudará a razonar.")
-                        _soc_help = None if st.session_state.ai_available else "IA no disponible en este entorno demo"
-                        if st.button("🙋 Preguntar al Tutor Socrático", key=f"socratic_{item_data['id']}", width='stretch', disabled=not st.session_state.ai_available, help=_soc_help):
-                            try:
-                                current_ans = st.session_state.get(f"answer_text_{item_data['id']}", "Aún no ha seleccionado una opción")
-                                # Model Router: seleccionar modelo óptimo para tutoría socrática
-                                _soc_model = select_model_for_task(
-                                    "tutor_socratic",
-                                    st.session_state.get('lmstudio_models', []),
-                                    st.session_state.model_cog,
-                                    provider=st.session_state.get('ai_provider'),
+                                def _sync_answer(_id=_item_id, _map=label_to_text):
+                                    lbl = st.session_state.get(f"radio_{_id}")
+                                    st.session_state[f"answer_text_{_id}"] = _map.get(lbl)
+
+                                st.radio(
+                                    "Selecciona tu respuesta:",
+                                    option_labels,
+                                    index=None,
+                                    format_func=lambda x: x,
+                                    key=f"radio_{item_data['id']}",
+                                    on_change=_sync_answer,
                                 )
-                                with st.chat_message("assistant", avatar="🎓"):
-                                    _soc_full = st.write_stream(get_socratic_guidance_stream(
-                                        current_elo_display,
-                                        item_data.get('topic') or '',
-                                        item_data.get('content') or '',
-                                        current_ans,
-                                        correct_answer=item_data.get('correct_option') or '',
-                                        all_options=item_data.get('options') or [],
-                                        base_url=st.session_state.ai_url,
-                                        model_name=_soc_model,
-                                        api_key=st.session_state.cloud_api_key,
+                                selected_option = st.session_state.get(f"answer_text_{item_data['id']}")
+                                st.write("")
+                                submit_button = st.button(
+                                    label="📝 Enviar Respuesta",
+                                    width='stretch',
+                                    disabled=(selected_option is None),
+                                )
+
+                                if submit_button:
+                                    is_correct = (selected_option == item_data.get('correct_option'))
+                                    if is_correct:
+                                        st.session_state.streak_correct += 1
+                                        _sc = st.session_state.streak_correct
+                                        if _sc > 0 and _sc % 5 == 0:
+                                            # Preparar pantalla de celebración
+                                            st.session_state.show_celebration = True
+                                            st.session_state.celebration_streak = _sc
+                                            st.session_state.celebration_elo = st.session_state.vector.get(selected_topic)
+                                    else:
+                                        st.session_state.streak_correct = 0
+                                    handle_answer_topic(is_correct, item_data)
+
+                            # --- Ayuda del Tutor Socrático (Siempre disponible) ---
+                            st.markdown("---")
+                            st.info("💡 Si te sientes bloqueado, puedes pedir orientación. El tutor socrático no te dará la respuesta, pero te ayudará a razonar.")
+                            _soc_help = None if st.session_state.ai_available else "IA no disponible en este entorno demo"
+                            if st.button("🙋 Preguntar al Tutor Socrático", key=f"socratic_{item_data['id']}", width='stretch', disabled=not st.session_state.ai_available, help=_soc_help):
+                                try:
+                                    current_ans = st.session_state.get(f"answer_text_{item_data['id']}", "Aún no ha seleccionado una opción")
+                                    _soc_model = select_model_for_task(
+                                        "tutor_socratic",
+                                        st.session_state.get('lmstudio_models', []),
+                                        st.session_state.model_cog,
                                         provider=st.session_state.get('ai_provider'),
-                                    ))
-                                    # Validación post-generación: verificar que no viole reglas socrátivas
-                                    if isinstance(_soc_full, str) and not validate_socratic_response(_soc_full):
-                                        st.warning("⚠️ La respuesta fue filtrada por revelar demasiada información. Intenta de nuevo.")
-                            except (ConnectionError, TimeoutError):
-                                st.error("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.")
-                            except Exception:
-                                st.error("⚠️ El modelo no pudo procesar la solicitud. Verifica que esté cargado correctamente.")
-                        elif not item_data.get('options'):
-                            st.warning("Pregunta sin opciones configuradas.")
+                                    )
+                                    with st.chat_message("assistant", avatar="🎓"):
+                                        _soc_full = st.write_stream(get_socratic_guidance_stream(
+                                            current_elo_display,
+                                            item_data.get('topic') or '',
+                                            item_data.get('content') or '',
+                                            current_ans,
+                                            correct_answer=item_data.get('correct_option') or '',
+                                            all_options=item_data.get('options') or [],
+                                            base_url=st.session_state.ai_url,
+                                            model_name=_soc_model,
+                                            api_key=st.session_state.cloud_api_key,
+                                            provider=st.session_state.get('ai_provider'),
+                                        ))
+                                        if isinstance(_soc_full, str) and not validate_socratic_response(_soc_full):
+                                            st.warning("⚠️ La respuesta fue filtrada por revelar demasiada información. Intenta de nuevo.")
+                                except (ConnectionError, TimeoutError):
+                                    st.error("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.")
+                                except Exception:
+                                    st.error("⚠️ El modelo no pudo procesar la solicitud. Verifica que esté cargado correctamente.")
+                            elif not item_data.get('options'):
+                                st.warning("Pregunta sin opciones configuradas.")
 
             # --- Procedimiento Manuscrito (columna izquierda, debajo del ELO) ---
             if item_data:
