@@ -49,6 +49,10 @@ Plataforma de **aprendizaje adaptativo** construida con Python y Streamlit que u
 - **Validación de relevancia de procedimientos**: antes de enviar, la IA verifica que el archivo corresponda al ejercicio actual; tras 3 intentos fallidos se ofrecen opciones alternativas.
 - **Racha de estudio**: el sistema calcula días consecutivos de actividad y lo muestra en la sala de estudio y estadísticas.
 - **Ranking ELO de 16 niveles**: desde Aspirante (0–399) hasta Leyenda Suprema (2500+), con nombre y rango dinámico según el ELO global.
+- **Rankings separados por nivel educativo**: los rankings globales filtran por nivel (Universidad, Colegio, Concursos), evitando mezclar estudiantes de contextos diferentes. Incluye ranking por curso y posición individual.
+- **Celebración persistente**: al alcanzar rachas de 5 respuestas correctas consecutivas, pantalla completa con animación, ELO actual y botón "SEGUIR PRACTICANDO" que permanece hasta que el estudiante decide continuar.
+- **Retroalimentación sin auto-avance**: tras responder, el estudiante ve si acertó o falló con un botón "SIGUIENTE PREGUNTA", permitiendo reflexionar antes de avanzar.
+- **Panel de ranking docente**: tres modos de visualización — por nivel educativo, por curso y por grupo — con selectores dinámicos.
 - **Imágenes en preguntas**: los ítems del banco pueden incluir una URL de imagen que se muestra junto al enunciado.
 
 ---
@@ -90,6 +94,8 @@ src/
 │   │   ├── math_reasoning_analyzer.py  # Análisis de razonamiento paso a paso
 │   │   ├── pedagogical_feedback.py     # Feedback pedagógico socrático por error
 │   │   └── math_analysis_pipeline.py   # Pipeline completo: OCR → pasos → verificación → feedback
+│   ├── storage/
+│   │   └── supabase_storage.py   # Cliente Supabase Storage (bucket privado 'procedimientos')
 │   └── security/
 │       └── hashing_service.py    # Argon2id + migración desde SHA-256 legacy
 │
@@ -130,10 +136,12 @@ LevelUp-ELO/
 │       ├── geometria.json
 │       ├── DIAN.json
 │       └── SENA.json
+├── scripts/
+│   ├── create_local_admin.py  # Crear admin local para desarrollo
+│   └── db_sync_check.py      # Verificar sincronía entre repositorios SQLite/PostgreSQL
 ├── data/
 │   └── elo_database.db     # Base de datos SQLite (generada en el primer arranque)
-├── requirements.txt        # Dependencias Python
-└── CLAUDE.md               # Instrucciones para Claude Code
+└── requirements.txt        # Dependencias Python
 ```
 
 ---
@@ -506,6 +514,7 @@ Los estudiantes se **matriculan** en cursos de su nivel y se unen a un **grupo**
 - Crea y gestiona **grupos de alumnos** vinculados a cursos del catálogo.
 - Los nombres de grupo son **únicos por profesor** (case-insensitive); el sistema rechaza duplicados.
 - Accede al **dashboard docente** con **filtros cascada** (Grupo → Nivel → Materia): ELO por tópico de cada alumno, tasa de acierto reciente, probabilidades de fallo por pregunta, historial de intentos.
+- **Panel de rankings** con tres modos: por nivel educativo, por curso y por grupo — cada uno con selectores dinámicos.
 - Revisa y califica **procedimientos** enviados por alumnos (con propuesta de la IA como referencia). Badge de notificación con cantidad de pendientes.
 - Puede generar **análisis pedagógico con IA** sobre cualquier alumno (con ELO desglosado por tópico y tiempo promedio de respuesta).
 

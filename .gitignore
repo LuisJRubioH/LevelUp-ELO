@@ -1,12 +1,11 @@
 # Base de datos local
 elo_project.db
+*.db
 
 # Archivos cargados por usuarios (Multimedia)
 data/
 uploads/
 bugs-errores-inconsistencias/
-DIAN.jso
-SENA.json
 
 # Entornos virtuales
 .venv/
@@ -17,7 +16,19 @@ env/
 # Configuración sensible
 .env
 
-
 # Archivos temporales de Python
 __pycache__/
 *.py[cod]
+*.pyo
+
+# Claude Code — NUNCA subir al repositorio
+.claude/
+CLAUDE.md
+
+# Archivos de respaldo y temporales
+old_backup/
+*.bak
+*.zip
+*.tmp
+prompt_claude_code.md
+Nuevo Documento de texto.txt
