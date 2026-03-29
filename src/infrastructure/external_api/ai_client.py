@@ -442,6 +442,130 @@ EJEMPLO DE MALA RESPUESTA (NO hacer esto):
     )
 
 
+# ── KatIA: chatbot conversacional multi-turno ─────────────────────────────────
+
+_KATIA_SYSTEM_PROMPT = """Eres KatIA, una tutora socrática mitad gata, mitad cyborg. Tu personalidad:
+- Usas metáforas felinas y tecnológicas ("mis sensores detectan", "desenredemos este ovillo")
+- Haces referencias a filósofos griegos (Sócrates, Platón, Diógenes, Aristóteles)
+- Eres amigable, motivadora, pero NUNCA revelas la respuesta directa
+- Guías con preguntas socráticas que lleven al estudiante a descubrir por sí mismo
+- Tus respuestas son concisas (máx. 3-4 oraciones)
+- Puedes usar onomatopeyas felinas ocasionalmente (miau, purrr, bip)
+- JAMÁS uses emojis. Tu personalidad se expresa solo con palabras.
+- Si el estudiante te pide la respuesta directa, redirecciónalo con una pregunta
+- FORMATO: Escribe expresiones matemáticas en LaTeX usando $...$ (inline) o $$...$$ (bloque). NO uses \\( \\) ni \\[ \\].
+
+REGLAS ABSOLUTAS:
+1. PROHIBIDO resolver el ejercicio o mostrar pasos de solución.
+2. PROHIBIDO revelar la respuesta correcta directa o indirectamente.
+3. Guía ÚNICAMENTE mediante preguntas socráticas y pistas conceptuales."""
+
+
+def get_katia_chat_stream(messages, question_context, base_url="http://localhost:1234/v1",
+                          model_name="google/gemma-3-4b", api_key=None, provider=None):
+    """Chat conversacional multi-turno con KatIA. Retorna generador de tokens."""
+    ctx = question_context or {}
+    q_text = ctx.get('content') or ''
+    q_topic = ctx.get('topic') or ''
+    q_options = ctx.get('options') or []
+    q_selected = ctx.get('selected_option') or 'Aún no seleccionada'
+    q_correct = ctx.get('correct_option') or ''
+
+    options_str = "\n".join([f"- {opt}" for opt in q_options])
+    system = f"""{_KATIA_SYSTEM_PROMPT}
+
+[Contexto del ejercicio actual]
+Pregunta: {q_text}
+Tema: {q_topic}
+Opciones:
+{options_str}
+El estudiante seleccionó: "{q_selected}"
+Respuesta CORRECTA (NUNCA revelar): "{q_correct}"
+"""
+
+    if provider is None and api_key:
+        provider = detect_provider_from_key(api_key)
+
+    from src.infrastructure.external_api.model_router import SOCRATIC_MAX_TOKENS
+    _max_tokens = SOCRATIC_MAX_TOKENS * 2  # chat multi-turno necesita más margen
+
+    if provider == "anthropic":
+        try:
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+            with client.messages.stream(
+                model=model_name,
+                max_tokens=_max_tokens,
+                system=system,
+                messages=messages,
+            ) as stream:
+                for text in stream.text_stream:
+                    yield text
+        except Exception as e:
+            raise ConnectionError(f"Error Anthropic streaming: {e}") from e
+
+    elif api_key:
+        _base = PROVIDERS.get(provider, {}).get("base_url") if provider else None
+        if not _base:
+            _base = base_url
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=api_key, base_url=_base)
+            api_messages = [{"role": "system", "content": system}] + messages
+            stream = client.chat.completions.create(
+                model=model_name, messages=api_messages,
+                temperature=0.3, max_tokens=_max_tokens, stream=True,
+            )
+            for chunk in stream:
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    yield delta
+        except Exception as e:
+            raise ConnectionError(f"Error {provider or 'cloud'} streaming: {e}") from e
+    else:
+        api_messages = [{"role": "system", "content": system}] + messages
+        payload = {
+            "model": model_name, "messages": api_messages,
+            "temperature": 0.3, "max_tokens": _max_tokens, "stream": True,
+        }
+        try:
+            response = requests.post(
+                f"{base_url.rstrip('/')}/chat/completions",
+                json=payload, headers={"Content-Type": "application/json"},
+                timeout=180, stream=True,
+            )
+            if response.status_code == 400:
+                payload.pop("max_tokens", None)
+                response = requests.post(
+                    f"{base_url.rstrip('/')}/chat/completions",
+                    json=payload, headers={"Content-Type": "application/json"},
+                    timeout=180, stream=True,
+                )
+            response.raise_for_status()
+            for line in response.iter_lines():
+                if not line:
+                    continue
+                decoded = line.decode("utf-8") if isinstance(line, bytes) else line
+                if not decoded.startswith("data: "):
+                    continue
+                data = decoded[6:]
+                if data == "[DONE]":
+                    return
+                try:
+                    chunk = json.loads(data)
+                    delta = chunk["choices"][0]["delta"].get("content", "")
+                    if delta:
+                        yield delta
+                except (json.JSONDecodeError, KeyError):
+                    continue
+        except requests.exceptions.ConnectionError as e:
+            raise ConnectionError(f"Servidor local no disponible: {e}") from e
+        except requests.exceptions.Timeout as e:
+            raise TimeoutError(f"Tiempo de espera agotado: {e}") from e
+        except requests.exceptions.HTTPError as e:
+            raise ConnectionError(f"Error del servidor local ({e.response.status_code}): {e}") from e
+
+
 # T11: prompt del análisis pedagógico extraído a constante para mantenimiento centralizado.
 # Incluye ELO global, ELO por tópico, tiempo promedio, procedimientos, y regla de discrepancia.
 _PEDAGOGICAL_PROMPT = """Actua como analista pedagogico experto.

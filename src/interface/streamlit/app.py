@@ -46,6 +46,7 @@ PostgresRepository = pg_mod.PostgresRepository
 analyze_performance_local = ai_mod.analyze_performance_local
 get_active_models = ai_mod.get_active_models
 get_socratic_guidance_stream = ai_mod.get_socratic_guidance_stream
+get_katia_chat_stream = ai_mod.get_katia_chat_stream
 analyze_procedure_image = ai_mod.analyze_procedure_image
 validate_procedure_relevance = ai_mod.validate_procedure_relevance
 _model_supports_vision = ai_mod._model_supports_vision
@@ -1519,6 +1520,7 @@ else:
                     if st.button("↩ Cambiar materia", key="sidebar_change_course"):
                         del st.session_state.selected_course
                         st.session_state.question_start_time = None
+                        st.session_state.pop('katia_chat_history', None)
                         st.rerun()
 
             st.markdown("---")
@@ -1906,6 +1908,7 @@ else:
                     if st.button("🐾 SEGUIR PRACTICANDO", width='stretch', type="primary", key="btn_continue_cel"):
                         st.session_state.show_celebration = False
                         st.session_state.pop('current_question', None)
+                        st.session_state.pop('katia_chat_history', None)
                         st.rerun()
 
                 # ── Pantalla de resultado (después de responder) ─────────
@@ -1923,6 +1926,7 @@ else:
                         st.session_state.pop('current_question', None)
                         st.session_state.pop('last_result_item', None)
                         st.session_state.pop('last_result_correct', None)
+                        st.session_state.pop('katia_chat_history', None)
                         st.rerun()
 
                 else:
@@ -2022,40 +2026,73 @@ else:
                                         st.session_state.streak_correct = 0
                                     handle_answer_topic(is_correct, item_data)
 
-                            # --- KatIA — Tu Tutora Socrática ---
+                            # --- CHATBOT KatIA (conversacional multi-turno) ---
                             st.markdown("---")
                             _katia_avatar = _KATIA_IMG or "🐱"
-                            st.info("Soy KatIA, tu tutora. No te dare la respuesta, pero te ayudare a razonar con preguntas.")
-                            _soc_help = None if st.session_state.ai_available else "IA no disponible en este entorno demo"
-                            if st.button("🐾 Preguntar a KatIA", key=f"socratic_{item_data['id']}", width='stretch', disabled=not st.session_state.ai_available, help=_soc_help):
+                            st.markdown("#### 🐾 KatIA — Tu Tutora")
+                            if _KATIA_IMG:
+                                st.image(_KATIA_IMG, width=80)
+
+                            if 'katia_chat_history' not in st.session_state:
+                                st.session_state.katia_chat_history = []
+
+                            _chat_container = st.container(height=350)
+                            with _chat_container:
+                                if not st.session_state.katia_chat_history:
+                                    _katia_welcome = get_random_message(MENSAJES_BIENVENIDA)
+                                    st.chat_message("assistant", avatar=_katia_avatar).markdown(_katia_welcome)
+                                for _msg in st.session_state.katia_chat_history:
+                                    if _msg["role"] == "user":
+                                        st.chat_message("user").markdown(_msg["content"])
+                                    else:
+                                        st.chat_message("assistant", avatar=_katia_avatar).markdown(_msg["content"])
+
+                            if st.session_state.ai_available:
+                                _katia_input = st.chat_input("Escribe tu pregunta a KatIA...", key="katia_chat_input")
+                            else:
+                                _katia_input = None
+                                st.caption("IA no disponible — configura un proveedor en la barra lateral.")
+
+                            if _katia_input:
+                                st.session_state.katia_chat_history.append({"role": "user", "content": _katia_input})
+                                _soc_model = select_model_for_task(
+                                    "tutor_socratic",
+                                    st.session_state.get('lmstudio_models', []),
+                                    st.session_state.model_cog,
+                                    provider=st.session_state.get('ai_provider'),
+                                )
+                                _q_ctx = {
+                                    'content': item_data.get('content') or '',
+                                    'topic': item_data.get('topic') or '',
+                                    'options': item_data.get('options') or [],
+                                    'selected_option': st.session_state.get(f"answer_text_{item_data['id']}", ''),
+                                    'correct_option': item_data.get('correct_option') or '',
+                                }
                                 try:
-                                    current_ans = st.session_state.get(f"answer_text_{item_data['id']}", "Aún no ha seleccionado una opción")
-                                    _soc_model = select_model_for_task(
-                                        "tutor_socratic",
-                                        st.session_state.get('lmstudio_models', []),
-                                        st.session_state.model_cog,
-                                        provider=st.session_state.get('ai_provider'),
-                                    )
-                                    with st.chat_message("assistant", avatar=_katia_avatar):
-                                        _soc_full = st.write_stream(get_socratic_guidance_stream(
-                                            current_elo_display,
-                                            item_data.get('topic') or '',
-                                            item_data.get('content') or '',
-                                            current_ans,
-                                            correct_answer=item_data.get('correct_option') or '',
-                                            all_options=item_data.get('options') or [],
-                                            base_url=st.session_state.ai_url,
-                                            model_name=_soc_model,
-                                            api_key=st.session_state.cloud_api_key,
-                                            provider=st.session_state.get('ai_provider'),
-                                        ))
-                                        if isinstance(_soc_full, str) and not validate_socratic_response(_soc_full):
-                                            st.warning("⚠️ La respuesta fue filtrada por revelar demasiada información. Intenta de nuevo.")
+                                    with _chat_container:
+                                        st.chat_message("user").markdown(_katia_input)
+                                        with st.chat_message("assistant", avatar=_katia_avatar):
+                                            _katia_resp = st.write_stream(
+                                                get_katia_chat_stream(
+                                                    messages=st.session_state.katia_chat_history,
+                                                    question_context=_q_ctx,
+                                                    base_url=st.session_state.ai_url,
+                                                    model_name=_soc_model,
+                                                    api_key=st.session_state.cloud_api_key,
+                                                    provider=st.session_state.get('ai_provider'),
+                                                )
+                                            )
+                                    if isinstance(_katia_resp, str):
+                                        if not validate_socratic_response(_katia_resp):
+                                            st.warning("La respuesta fue filtrada por revelar demasiada información.")
+                                        st.session_state.katia_chat_history.append({"role": "assistant", "content": _katia_resp})
                                 except (ConnectionError, TimeoutError):
-                                    st.error("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.")
+                                    st.error("No se pudo conectar al modelo. Intenta de nuevo en unos segundos.")
                                 except Exception:
-                                    st.error("⚠️ El modelo no pudo procesar la solicitud. Verifica que esté cargado correctamente.")
-                            elif not item_data.get('options'):
+                                    st.error("El modelo no pudo procesar la solicitud. Verifica que esté cargado correctamente.")
+                                st.rerun()
+
+                            if not item_data.get('options'):
                                 st.warning("Pregunta sin opciones configuradas.")
 
             # --- Procedimiento Manuscrito (columna izquierda, debajo del ELO) ---
