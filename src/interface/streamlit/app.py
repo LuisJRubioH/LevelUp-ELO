@@ -36,6 +36,10 @@ importlib.reload(_pipeline_mod)
 from src.domain.elo.vector_elo import VectorRating, aggregate_global_elo, aggregate_global_rd
 from src.domain.elo.model import expected_score, calculate_dynamic_k, Item
 from src.domain.entities import LEVEL_TO_BLOCK
+from src.domain.katia.katia_messages import (
+    get_random_message, get_streak_message, get_procedure_comment,
+    MENSAJES_BIENVENIDA, MENSAJES_DESPEDIDA,
+)
 from src.utils import strip_thinking_tags
 SQLiteRepository = db_mod.SQLiteRepository
 PostgresRepository = pg_mod.PostgresRepository
@@ -132,6 +136,19 @@ def _get_theme():
 def _get_logo():
     """Devuelve la ruta del logo adecuada al tema actual."""
     return _LOGO_DARK if _get_theme() == "dark" else _LOGO_LIGHT
+
+# ── Imagen de KatIA (cacheada para no releer en cada rerun) ──────────────────
+_KATIA_IMG_PATH = os.path.join(base_path, "KatIA", "katIA.png")
+
+@st.cache_resource
+def _load_katia_image():
+    try:
+        with open(_KATIA_IMG_PATH, "rb") as f:
+            return f.read()
+    except FileNotFoundError:
+        return None
+
+_KATIA_IMG = _load_katia_image()
 
 # Inicializar Base de Datos
 # Si DATABASE_URL está definida → PostgreSQL; si no → SQLite local
@@ -1413,6 +1430,11 @@ else:
         if 'streak_correct' not in st.session_state:
             st.session_state.streak_correct = 0
 
+        # ── Saludo de KatIA al iniciar sesión (una sola vez) ─────────────────
+        if not st.session_state.get('katia_greeted') and _KATIA_IMG:
+            st.session_state.katia_greeted = True
+            st.toast(get_random_message(MENSAJES_BIENVENIDA), icon="🐱")
+
         # ── Onboarding: nivel educativo ──────────────────────────────────────
         if 'education_level' not in st.session_state:
             st.session_state.education_level = cached('cache_edu_level',
@@ -1606,6 +1628,9 @@ else:
                         st.caption("Pulsa 'Detectar modelos' para listar los disponibles")
 
             if st.button("Cerrar Sesión"):
+                if _KATIA_IMG:
+                    st.toast(get_random_message(MENSAJES_DESPEDIDA), icon="🐱")
+                    time.sleep(1.5)
                 logout()
 
         # --- LÓGICA DE ACTUALIZACIÓN ---
@@ -1839,33 +1864,36 @@ else:
                 st.subheader(f"📖 Ejercicio: {selected_topic}")
                 item_data = None  # inicializar para scope exterior (procedimiento manuscrito)
 
-                # ── Pantalla de celebración (bloquea vista de pregunta) ──
+                # ── Pantalla de celebración KatIA (bloquea vista de pregunta) ──
                 if st.session_state.get('show_celebration'):
-                    st.balloons()
                     _cel_sc = st.session_state.get('celebration_streak', 5)
                     _cel_elo = st.session_state.get('celebration_elo', 1000)
-                    import random as _rnd_cel
-                    _cel_messages = [
-                        "¡Estás haciendo un trabajo increíble! 🌟",
-                        "¡Eres el mejor! Sigue así 💪",
-                        "¡Estás encendido! No pares ahora 🔥",
-                        "¡Impresionante! Tu esfuerzo se nota ⚡",
-                        "¡Si sigues así serás parte del Top 5! 🏆",
-                        "¡Estudiando así llegarás muy lejos! 🚀",
-                        "¡Increíble razonamiento! Sigue adelante 🧠",
-                        "¡Lo estás logrando! Cada pregunta cuenta 🎯",
-                    ]
-                    _cel_msg = _rnd_cel.choice(_cel_messages)
+                    _cel_msg = get_streak_message(_cel_sc)
+
+                    # Animación diferenciada por tier
+                    if _cel_sc >= 20 and _cel_sc % 20 == 0:
+                        st.balloons()
+                        st.snow()
+                    elif _cel_sc >= 10 and _cel_sc % 10 == 0:
+                        st.snow()
+                    else:
+                        st.balloons()
+
+                    # Imagen de KatIA centrada
+                    if _KATIA_IMG:
+                        _kc1, _kc2, _kc3 = st.columns([1, 2, 1])
+                        with _kc2:
+                            st.image(_KATIA_IMG, width=180)
+
                     st.markdown(f"""
                         <div style="text-align:center; padding:48px 24px; margin:20px 0;
                                     background:linear-gradient(135deg,#6a0dad 0%,#ffd700 50%,#ff8c00 100%);
                                     border-radius:24px; box-shadow:0 0 40px rgba(255,215,0,0.6);">
-                            <div style="font-size:4rem; margin-bottom:12px;">🎉</div>
                             <div style="font-size:2rem; font-weight:900; color:white; margin-bottom:8px;
                                         text-shadow:0 2px 8px rgba(0,0,0,0.3);">
-                                ¡{_cel_sc} RESPUESTAS CORRECTAS!</div>
-                            <div style="font-size:1.4rem; font-weight:600; color:rgba(255,255,255,0.95);
-                                        margin-bottom:16px;">
+                                {_cel_sc} RESPUESTAS CORRECTAS</div>
+                            <div style="font-size:1.2rem; font-weight:600; color:rgba(255,255,255,0.95);
+                                        margin-bottom:16px; font-style:italic;">
                                 {_cel_msg}</div>
                             <div style="display:inline-block; background:rgba(0,0,0,0.25); border-radius:12px;
                                         padding:10px 24px;">
@@ -1875,7 +1903,7 @@ else:
                         </div>
                     """, unsafe_allow_html=True)
                     st.write("")
-                    if st.button("🚀 SEGUIR PRACTICANDO", width='stretch', type="primary", key="btn_continue_cel"):
+                    if st.button("🐾 SEGUIR PRACTICANDO", width='stretch', type="primary", key="btn_continue_cel"):
                         st.session_state.show_celebration = False
                         st.session_state.pop('current_question', None)
                         st.rerun()
@@ -1994,11 +2022,12 @@ else:
                                         st.session_state.streak_correct = 0
                                     handle_answer_topic(is_correct, item_data)
 
-                            # --- Ayuda del Tutor Socrático (Siempre disponible) ---
+                            # --- KatIA — Tu Tutora Socrática ---
                             st.markdown("---")
-                            st.info("💡 Si te sientes bloqueado, puedes pedir orientación. El tutor socrático no te dará la respuesta, pero te ayudará a razonar.")
+                            _katia_avatar = _KATIA_IMG or "🐱"
+                            st.info("Soy KatIA, tu tutora. No te dare la respuesta, pero te ayudare a razonar con preguntas.")
                             _soc_help = None if st.session_state.ai_available else "IA no disponible en este entorno demo"
-                            if st.button("🙋 Preguntar al Tutor Socrático", key=f"socratic_{item_data['id']}", width='stretch', disabled=not st.session_state.ai_available, help=_soc_help):
+                            if st.button("🐾 Preguntar a KatIA", key=f"socratic_{item_data['id']}", width='stretch', disabled=not st.session_state.ai_available, help=_soc_help):
                                 try:
                                     current_ans = st.session_state.get(f"answer_text_{item_data['id']}", "Aún no ha seleccionado una opción")
                                     _soc_model = select_model_for_task(
@@ -2007,7 +2036,7 @@ else:
                                         st.session_state.model_cog,
                                         provider=st.session_state.get('ai_provider'),
                                     )
-                                    with st.chat_message("assistant", avatar="🎓"):
+                                    with st.chat_message("assistant", avatar=_katia_avatar):
                                         _soc_full = st.write_stream(get_socratic_guidance_stream(
                                             current_elo_display,
                                             item_data.get('topic') or '',
@@ -2287,9 +2316,19 @@ else:
                                 # ── Resultado: revisión matemática rigurosa (Groq) ──
                                 _math_review = st.session_state.get(f'proc_review_{_iid}')
                                 if _math_review:
+                                    # ── Comentario de KatIA sobre el procedimiento ──
+                                    _pscore_v = _math_review.get('score_procedimiento', 0)
+                                    _katia_proc_msg = get_procedure_comment(_pscore_v)
+                                    _katia_proc_avatar = _KATIA_IMG or "🐱"
+                                    with st.chat_message("assistant", avatar=_katia_proc_avatar):
+                                        st.markdown(f"**KatIA dice:** {_katia_proc_msg}")
+                                        if _pscore_v < 91:
+                                            _eval_global = _math_review.get('evaluacion_global') or ''
+                                            if _eval_global:
+                                                st.caption(strip_thinking_tags(_eval_global))
+
                                     with st.container(border=True):
                                         st.markdown("##### 🔬 Revisión Matemática Rigurosa")
-                                        _pscore_v = _math_review.get('score_procedimiento', 0)
                                         _pscore_color = (
                                             "#FF4B4B" if _pscore_v < 40
                                             else "#FFD700" if _pscore_v < 70

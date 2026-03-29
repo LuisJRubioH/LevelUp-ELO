@@ -32,3 +32,8 @@ old_backup/
 *.tmp
 prompt_claude_code.md
 Nuevo Documento de texto.txt
+
+# Instrucciones/prompts de KatIA (solo se sube la imagen y el código)
+KatIA/*.md
+KatIA/*.txt
+instrucciones_katia.md
