@@ -1276,11 +1276,12 @@ class SQLiteRepository:
             conn.close()
 
     def get_groups_by_teacher(self, teacher_id):
-        """Lista grupos de un profesor con el nombre del curso vinculado (JOIN)."""
+        """Lista grupos de un profesor con el nombre y bloque del curso vinculado (JOIN)."""
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT g.id, g.name, g.course_id, COALESCE(c.name, '—') AS course_name, g.created_at
+            SELECT g.id, g.name, g.course_id, COALESCE(c.name, '—') AS course_name, g.created_at,
+                   COALESCE(c.block, 'Universidad') AS block
             FROM groups g
             LEFT JOIN courses c ON g.course_id = c.id
             WHERE g.teacher_id = ?
@@ -1290,7 +1291,7 @@ class SQLiteRepository:
         conn.close()
         return [
             {'id': r[0], 'name': r[1], 'course_id': r[2],
-             'course_name': r[3], 'created_at': r[4]}
+             'course_name': r[3], 'created_at': r[4], 'block': r[5]}
             for r in rows
         ]
 
@@ -1498,12 +1499,41 @@ class SQLiteRepository:
         'DIAN':                    'Concursos',
         'SENA':                    'Concursos',
         # ── Bloque Semillero (Olimpiadas Matemáticas UdeA, grados 6–11) ───────
-        'aritmetica_semillero':           'Semillero',
-        'algebra_semillero':              'Semillero',
-        'geometria_semillero':            'Semillero',
-        'logica_semillero':               'Semillero',
-        'conteo_combinatoria_semillero':  'Semillero',
-        'probabilidad_semillero':         'Semillero',
+        'logica_semillero_6':                'Semillero',
+        'algebra_semillero_6':               'Semillero',
+        'geometria_semillero_6':             'Semillero',
+        'conteo_combinatoria_semillero_6':   'Semillero',
+        'probabilidad_semillero_6':          'Semillero',
+        'aritmetica_semillero_6':            'Semillero',
+        'logica_semillero_7':                'Semillero',
+        'algebra_semillero_7':               'Semillero',
+        'geometria_semillero_7':             'Semillero',
+        'conteo_combinatoria_semillero_7':   'Semillero',
+        'probabilidad_semillero_7':          'Semillero',
+        'aritmetica_semillero_7':            'Semillero',
+        'logica_semillero_8':                'Semillero',
+        'algebra_semillero_8':               'Semillero',
+        'geometria_semillero_8':             'Semillero',
+        'conteo_combinatoria_semillero_8':   'Semillero',
+        'probabilidad_semillero_8':          'Semillero',
+        'aritmetica_semillero_8':            'Semillero',
+        'logica_semillero_9':                'Semillero',
+        'algebra_semillero_9':               'Semillero',
+        'geometria_semillero_9':             'Semillero',
+        'conteo_combinatoria_semillero_9':   'Semillero',
+        'probabilidad_semillero_9':          'Semillero',
+        'logica_semillero_10':               'Semillero',
+        'algebra_semillero_10':              'Semillero',
+        'geometria_semillero_10':            'Semillero',
+        'conteo_combinatoria_semillero_10':  'Semillero',
+        'probabilidad_semillero_10':         'Semillero',
+        'aritmetica_semillero_10':           'Semillero',
+        'logica_semillero_11':               'Semillero',
+        'algebra_semillero_11':              'Semillero',
+        'geometria_semillero_11':            'Semillero',
+        'conteo_combinatoria_semillero_11':  'Semillero',
+        'probabilidad_semillero_11':         'Semillero',
+        'aritmetica_semillero_11':           'Semillero',
     }
 
     # Nombre legible del curso cuando el topic del primer ítem no es representativo.
@@ -1511,12 +1541,41 @@ class SQLiteRepository:
     _COURSE_NAME_MAP = {
         'DIAN': 'Concurso DIAN — Gestor I',
         'SENA': 'Concurso SENA — Profesional 10',
-        'aritmetica_semillero':          'Aritmética — Semillero',
-        'algebra_semillero':             'Álgebra — Semillero',
-        'geometria_semillero':           'Geometría — Semillero',
-        'logica_semillero':              'Lógica — Semillero',
-        'conteo_combinatoria_semillero': 'Conteo y Combinatoria — Semillero',
-        'probabilidad_semillero':        'Probabilidad — Semillero',
+        'logica_semillero_6':               'Lógica Semillero 6°',
+        'algebra_semillero_6':              'Álgebra Semillero 6°',
+        'geometria_semillero_6':            'Geometría Semillero 6°',
+        'conteo_combinatoria_semillero_6':  'Conteo y Combinatoria Semillero 6°',
+        'probabilidad_semillero_6':         'Probabilidad Semillero 6°',
+        'aritmetica_semillero_6':           'Aritmética Semillero 6°',
+        'logica_semillero_7':               'Lógica Semillero 7°',
+        'algebra_semillero_7':              'Álgebra Semillero 7°',
+        'geometria_semillero_7':            'Geometría Semillero 7°',
+        'conteo_combinatoria_semillero_7':  'Conteo y Combinatoria Semillero 7°',
+        'probabilidad_semillero_7':         'Probabilidad Semillero 7°',
+        'aritmetica_semillero_7':           'Aritmética Semillero 7°',
+        'logica_semillero_8':               'Lógica Semillero 8°',
+        'algebra_semillero_8':              'Álgebra Semillero 8°',
+        'geometria_semillero_8':            'Geometría Semillero 8°',
+        'conteo_combinatoria_semillero_8':  'Conteo y Combinatoria Semillero 8°',
+        'probabilidad_semillero_8':         'Probabilidad Semillero 8°',
+        'aritmetica_semillero_8':           'Aritmética Semillero 8°',
+        'logica_semillero_9':               'Lógica Semillero 9°',
+        'algebra_semillero_9':              'Álgebra Semillero 9°',
+        'geometria_semillero_9':            'Geometría Semillero 9°',
+        'conteo_combinatoria_semillero_9':  'Conteo y Combinatoria Semillero 9°',
+        'probabilidad_semillero_9':         'Probabilidad Semillero 9°',
+        'logica_semillero_10':              'Lógica Semillero 10°',
+        'algebra_semillero_10':             'Álgebra Semillero 10°',
+        'geometria_semillero_10':           'Geometría Semillero 10°',
+        'conteo_combinatoria_semillero_10': 'Conteo y Combinatoria Semillero 10°',
+        'probabilidad_semillero_10':        'Probabilidad Semillero 10°',
+        'aritmetica_semillero_10':          'Aritmética Semillero 10°',
+        'logica_semillero_11':              'Lógica Semillero 11°',
+        'algebra_semillero_11':             'Álgebra Semillero 11°',
+        'geometria_semillero_11':           'Geometría Semillero 11°',
+        'conteo_combinatoria_semillero_11': 'Conteo y Combinatoria Semillero 11°',
+        'probabilidad_semillero_11':        'Probabilidad Semillero 11°',
+        'aritmetica_semillero_11':          'Aritmética Semillero 11°',
     }
 
     def sync_items_from_bank_folder(self, bank_dir='items/bank'):
@@ -1529,6 +1588,8 @@ class SQLiteRepository:
             return
 
         json_files = sorted(_glob.glob(os.path.join(bank_dir, '*.json')))
+        # También escanear el subdirectorio semillero/
+        json_files += sorted(_glob.glob(os.path.join(bank_dir, 'semillero', '*.json')))
         if not json_files:
             return
 
@@ -1606,15 +1667,19 @@ class SQLiteRepository:
         from src.infrastructure.persistence.seed_test_students import seed_test_students
         seed_test_students(self)
 
-    def get_available_courses_by_level(self, level: str):
+    def get_available_courses_by_level(self, level: str, grade=None):
         """Retorna los cursos disponibles filtrados ESTRICTAMENTE por nivel educativo.
 
-        Parámetro level: 'universidad' | 'colegio' | 'concursos' (case-insensitive).
+        Parámetro level: 'universidad' | 'colegio' | 'concursos' | 'semillero' (case-insensitive).
+        Para semillero, usar grade ('6'–'11') para filtrar por bloque específico de grado.
         La consulta usa WHERE block = ? sin fallback a todos los cursos;
         si el nivel no existe en la tabla, devuelve lista vacía.
         """
         from src.domain.entities import LEVEL_TO_BLOCK, LEVEL_UNIVERSIDAD
-        _block = LEVEL_TO_BLOCK.get(level.lower(), LEVEL_TO_BLOCK[LEVEL_UNIVERSIDAD])
+        if level.lower() == 'semillero' and grade:
+            _block = f'Semillero {grade}°'
+        else:
+            _block = LEVEL_TO_BLOCK.get(level.lower(), LEVEL_TO_BLOCK[LEVEL_UNIVERSIDAD])
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
@@ -2102,42 +2167,62 @@ class SQLiteRepository:
         conn.close()
         return rows
 
-    def get_pending_submissions_count(self, teacher_id):
+    def get_pending_submissions_count(self, teacher_id, group_id=None):
         """Cuenta las entregas pendientes de revisión del docente.
-        Incluye tanto envíos manuales ('pending') como los revisados por IA
-        que esperan validación docente ('PENDING_TEACHER_VALIDATION').
+        Si se pasa group_id, restringe al grupo indicado.
         """
         conn = self.get_connection()
         cursor = conn.cursor()
-        cursor.execute('''
-            SELECT COUNT(*) FROM procedure_submissions ps
-            JOIN users u ON ps.student_id = u.id
-            JOIN groups g ON u.group_id = g.id
-            WHERE g.teacher_id = ?
-              AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
-        ''', (teacher_id,))
+        if group_id:
+            cursor.execute('''
+                SELECT COUNT(*) FROM procedure_submissions ps
+                JOIN users u ON ps.student_id = u.id
+                WHERE u.group_id = ?
+                  AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+            ''', (group_id,))
+        else:
+            cursor.execute('''
+                SELECT COUNT(*) FROM procedure_submissions ps
+                JOIN users u ON ps.student_id = u.id
+                JOIN groups g ON u.group_id = g.id
+                WHERE g.teacher_id = ?
+                  AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+            ''', (teacher_id,))
         count = cursor.fetchone()[0]
         conn.close()
         return count
 
-    def get_pending_submissions_for_teacher(self, teacher_id):
-        """Retorna todas las entregas pendientes de los estudiantes del docente.
-        Incluye ai_proposed_score para que el docente pueda ver la propuesta de la IA.
+    def get_pending_submissions_for_teacher(self, teacher_id, group_id=None):
+        """Retorna las entregas pendientes del docente.
+        Si se pasa group_id, restringe al grupo indicado.
         """
         conn = self.get_connection()
         cursor = conn.cursor()
-        cursor.execute('''
-            SELECT ps.id, ps.student_id, u.username AS student_name,
-                   ps.item_id, ps.item_content, ps.image_data, ps.mime_type,
-                   ps.submitted_at, ps.procedure_image_path,
-                   ps.status, ps.ai_proposed_score, ps.ai_feedback
-            FROM procedure_submissions ps
-            JOIN users u ON ps.student_id = u.id
-            JOIN groups g ON u.group_id = g.id
-            WHERE g.teacher_id = ?
-              AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
-            ORDER BY ps.submitted_at DESC
-        ''', (teacher_id,))
+        if group_id:
+            cursor.execute('''
+                SELECT ps.id, ps.student_id, u.username AS student_name,
+                       ps.item_id, ps.item_content, ps.image_data, ps.mime_type,
+                       ps.submitted_at, ps.procedure_image_path,
+                       ps.status, ps.ai_proposed_score, ps.ai_feedback
+                FROM procedure_submissions ps
+                JOIN users u ON ps.student_id = u.id
+                WHERE u.group_id = ?
+                  AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                ORDER BY ps.submitted_at DESC
+            ''', (group_id,))
+        else:
+            cursor.execute('''
+                SELECT ps.id, ps.student_id, u.username AS student_name,
+                       ps.item_id, ps.item_content, ps.image_data, ps.mime_type,
+                       ps.submitted_at, ps.procedure_image_path,
+                       ps.status, ps.ai_proposed_score, ps.ai_feedback
+                FROM procedure_submissions ps
+                JOIN users u ON ps.student_id = u.id
+                JOIN groups g ON u.group_id = g.id
+                WHERE g.teacher_id = ?
+                  AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                ORDER BY ps.submitted_at DESC
+            ''', (teacher_id,))
         cols = [c[0] for c in cursor.description]
         rows = [dict(zip(cols, r)) for r in cursor.fetchall()]
         conn.close()

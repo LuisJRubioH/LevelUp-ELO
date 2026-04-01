@@ -1,0 +1,15 @@
+[
+  {
+    "id": "ars_8_01",
+    "content": "Dados dos números reales positivos $a$ y $b$, se define $a \\triangle b = \\frac{a^b}{b^a}$. ¿Cuál afirmación es verdadera?",
+    "difficulty": 1100,
+    "topic": "Operaciones definidas",
+    "options": [
+      "$a \\triangle \\frac{1}{a} = \\frac{1}{\\frac{1}{a} \\triangle a}$",
+      "$a \\triangle (b+c) = (a \\triangle b)+(a \\triangle c)$",
+      "$a \\triangle b = b \\triangle a$",
+      "$a \\triangle 1 = 1 \\triangle a$"
+    ],
+    "correct_option": "$a \\triangle 1 = 1 \\triangle a$"
+  }
+]

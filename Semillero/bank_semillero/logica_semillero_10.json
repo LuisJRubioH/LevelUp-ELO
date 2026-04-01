@@ -1,0 +1,54 @@
+[
+  {
+    "id": "ls_10_01",
+    "content": "Desde hace un mes, el 10% de la población de Bajirá tenía dengue y el 90% estaba sana. En el último mes, el 10% de los enfermos se curaron y el 10% de los sanos se enfermaron. ¿Qué porcentaje goza de buena salud ahora?",
+    "difficulty": 1200,
+    "topic": "Razonamiento cuantitativo",
+    "options": [
+      "78%",
+      "81.01%",
+      "90%",
+      "82%"
+    ],
+    "correct_option": "82%"
+  },
+  {
+    "id": "ls_10_02",
+    "content": "Un número capicúa se lee igual de izquierda a derecha. Si $abcd$ es un entero de 4 dígitos tal que: $(abcd)+1000-100+10-1$ es capicúa de 4 dígitos, la suma de sus dígitos es capicúa de 2 dígitos, $(a+b)(d-c)=77$, y $a \\times b \\times c \\times d \\neq 0$. Entonces $abcd$ es:",
+    "difficulty": 1350,
+    "topic": "Lógica numérica",
+    "options": [
+      "9429",
+      "7429",
+      "4324",
+      "8654"
+    ],
+    "correct_option": "7429"
+  },
+  {
+    "id": "ls_10_03",
+    "content": "En una papelería: fotocopias a \\$70; desde 75 en adelante, todas a \\$50. Un amigo necesita fotocopiar 58 páginas pero dice que no puede porque solo tiene \\$3850. Yo le respondo que sí puede y le sobra dinero. ¿Cuánto le sobra?",
+    "difficulty": 1250,
+    "topic": "Razonamiento lógico",
+    "options": [
+      "0",
+      "100",
+      "800",
+      "100"
+    ],
+    "correct_option": "100"
+  },
+  {
+    "id": "ls_10_04",
+    "content": "Cuatro futbolistas discuten sobre quién marcó el último gol. Falcao dice: 'Hugo es el autor'. Hugo dice: 'James es el autor'. James dice que Hugo mintió. Freddy dice que él no marcó el gol. Si solo uno dice la verdad, el autor del gol es:",
+    "difficulty": 1300,
+    "topic": "Lógica proposicional",
+    "options": [
+      "Falcao",
+      "Hugo",
+      "James",
+      "Freddy"
+    ],
+    "correct_option": "Freddy"
+  }
+]

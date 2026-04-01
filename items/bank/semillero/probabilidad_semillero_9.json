@@ -1,0 +1,28 @@
+[
+  {
+    "id": "ps_9_01",
+    "content": "El departamento de matemáticas consta de 9 hombres y 11 mujeres, incluido el Sr. y la Sra. Zapata. Se elige al azar un comité de 3 hombres y 3 mujeres. ¿Cuál es la probabilidad de que la pareja Zapata forme parte del comité?",
+    "difficulty": 1250,
+    "topic": "Probabilidad combinatoria",
+    "options": [
+      "$\\frac{1}{11}$",
+      "$\\frac{28}{84}$",
+      "$\\frac{20}{80}$",
+      "$\\frac{5}{36}$"
+    ],
+    "correct_option": "$\\frac{28}{84}$"
+  },
+  {
+    "id": "ps_9_02",
+    "content": "Enrique e Isabel juegan con 2 dados, cada dado tiene los números 1, 2, 3, 5, 7, 11 en sus caras. Isabel gana si el producto de los dos números es primo. ¿Cuál es la probabilidad de que Isabel gane?",
+    "difficulty": 1200,
+    "topic": "Probabilidad con dados",
+    "options": [
+      "$\\frac{5}{36}$",
+      "$\\frac{13}{36}$",
+      "$\\frac{5}{18}$",
+      "$\\frac{17}{36}$"
+    ],
+    "correct_option": "$\\frac{5}{18}$"
+  }
+]

@@ -1,0 +1,67 @@
+[
+  {
+    "id": "ccs_6_01",
+    "content": "De tres dados idénticos, cada uno tiene dos caras con el 2, dos con el 4 y dos con el 6. Si se lanzan y se suman los 3 números obtenidos, ¿cuántas sumas diferentes son posibles?",
+    "difficulty": 850,
+    "topic": "Conteo de casos",
+    "options": [
+      "6",
+      "7",
+      "9",
+      "10"
+    ],
+    "correct_option": "7"
+  },
+  {
+    "id": "ccs_6_02",
+    "content": "Sandra visita un restaurante cada 2 días; Carlos cada 3; Andrés cada 4; Felipe cada 5; Óscar cada 6 y Tatiana cada 7. Hoy están todos. ¿Cuántos días pasarán hasta la próxima vez que se encuentren todos?",
+    "difficulty": 900,
+    "topic": "MCM",
+    "options": [
+      "21",
+      "42",
+      "120",
+      "420"
+    ],
+    "correct_option": "420"
+  },
+  {
+    "id": "ccs_6_03",
+    "content": "Se construye una figura alternando cuadrados blancos y negros en cada fila horizontal (la fila 1 tiene 1 cuadrado blanco). Cada fila empieza y termina con cuadrado blanco. ¿Cuántos cuadrados negros hay en la fila 55?",
+    "difficulty": 900,
+    "topic": "Patrones y sucesiones",
+    "options": [
+      "53",
+      "54",
+      "55",
+      "56"
+    ],
+    "correct_option": "54"
+  },
+  {
+    "id": "ccs_6_04",
+    "content": "¿Cuántas combinaciones diferentes de billetes de \\$5000 y \\$2000 pueden usarse para acumular exactamente \\$17000? (Los billetes de igual denominación se consideran iguales).",
+    "difficulty": 850,
+    "topic": "Conteo de combinaciones",
+    "options": [
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "correct_option": "2"
+  },
+  {
+    "id": "ccs_p_01",
+    "content": "Una bolsa contiene un gran número de pelotas que pueden repartirse en partes iguales entre 4, 5, 6, 7 o 9 personas sin que sobren. ¿Cuál es el menor número de pelotas?",
+    "difficulty": 900,
+    "topic": "MCM",
+    "options": [
+      "1260",
+      "840",
+      "7560",
+      "180"
+    ],
+    "correct_option": "1260"
+  }
+]

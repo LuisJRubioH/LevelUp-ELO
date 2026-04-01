@@ -53,7 +53,7 @@ Plataforma de **aprendizaje adaptativo** construida con Python y Streamlit que u
 - **Celebración persistente**: al alcanzar rachas de 5 respuestas correctas consecutivas, pantalla completa con animación, ELO actual y botón "SEGUIR PRACTICANDO" que permanece hasta que el estudiante decide continuar.
 - **Retroalimentación sin auto-avance**: tras responder, el estudiante ve si acertó o falló con un botón "SIGUIENTE PREGUNTA", permitiendo reflexionar antes de avanzar.
 - **Panel de ranking docente**: tres modos de visualización — por nivel educativo, por curso y por grupo — con selectores dinámicos.
-- **Imágenes en preguntas**: los ítems del banco pueden incluir una URL de imagen que se muestra junto al enunciado.
+- **Imágenes en preguntas**: los ítems del banco pueden incluir `image_url` (URL externa) o `image_path` (ruta local relativa al repo). Las figuras geométricas del bloque Semillero se extraen directamente de los PDFs originales de las Olimpiadas UdeA 2020 con PyMuPDF.
 
 ---
 
@@ -123,22 +123,33 @@ app.py
 LevelUp-ELO/
 ├── src/                    # Código fuente (ver árbol de arriba)
 ├── items/
-│   └── bank/               # Banco de preguntas por curso (1 JSON por curso)
-│       ├── algebra_lineal.json
-│       ├── calculo_diferencial.json
-│       ├── calculo_integral.json
-│       ├── calculo_varias_variables.json
-│       ├── ecuaciones_diferenciales.json
-│       ├── probabilidad.json
-│       ├── algebra_basica.json
-│       ├── aritmetica_basica.json
-│       ├── trigonometria.json
-│       ├── geometria.json
-│       ├── DIAN.json
-│       └── SENA.json
+│   ├── bank/               # Banco de preguntas por curso (1 JSON por curso)
+│   │   ├── algebra_lineal.json
+│   │   ├── calculo_diferencial.json
+│   │   ├── calculo_integral.json
+│   │   ├── calculo_varias_variables.json
+│   │   ├── ecuaciones_diferenciales.json
+│   │   ├── probabilidad.json
+│   │   ├── algebra_basica.json
+│   │   ├── aritmetica_basica.json
+│   │   ├── trigonometria.json
+│   │   ├── geometria.json
+│   │   ├── DIAN.json
+│   │   ├── SENA.json
+│   │   └── semillero/      # Olimpiadas UdeA — un JSON por materia×grado (6°–11°)
+│   │       ├── algebra_semillero_6.json ... algebra_semillero_11.json
+│   │       ├── aritmetica_semillero_6.json ... (×6 archivos)
+│   │       ├── geometria_semillero_6.json ...
+│   │       ├── logica_semillero_6.json ...
+│   │       ├── conteo_combinatoria_semillero_6.json ...
+│   │       └── probabilidad_semillero_6.json ...
+│   └── images/             # Figuras geométricas extraídas de PDFs (33 PNGs)
+├── Semillero/
+│   └── OLIMPIADAS-2020/    # PDFs originales de los Talleres UdeA 2020
 ├── scripts/
-│   ├── create_local_admin.py  # Crear admin local para desarrollo
-│   └── db_sync_check.py      # Verificar sincronía entre repositorios SQLite/PostgreSQL
+│   ├── create_local_admin.py        # Crear admin local para desarrollo
+│   ├── db_sync_check.py             # Verificar sincronía entre repositorios SQLite/PostgreSQL
+│   └── extract_figures_from_pdfs.py # Extraer figuras geométricas de los PDFs de Olimpiadas
 ├── migrate.py              # Ejecutar migraciones PostgreSQL manualmente (python migrate.py)
 ├── data/
 │   └── elo_database.db     # Base de datos SQLite (generada en el primer arranque)
@@ -494,9 +505,9 @@ Al registrarse, cada estudiante selecciona su **nivel educativo**, que determina
 | Universidad | `Universidad` | Álgebra Lineal, Cálculo Diferencial, Cálculo Integral, Cálculo de Varias Variables, Ecuaciones Diferenciales, Probabilidad |
 | Colegio | `Colegio` | Álgebra Básica, Aritmética Básica, Trigonometría, Geometría |
 | Concursos | `Concursos` | DIAN — Gestor I, SENA — Profesional 10 |
-| Semillero de Matemáticas | `Semillero` | Álgebra, Aritmética, Geometría, Lógica, Conteo y Combinatoria, Probabilidad |
+| Semillero de Matemáticas | `Semillero` | Álgebra, Aritmética, Geometría, Lógica, Conteo y Combinatoria, Probabilidad (por grado 6°–11°) |
 
-El nivel **Semillero** corresponde al programa de olimpiadas matemáticas de la UdeA para grados 6° a 11°. Al registrarse, el estudiante selecciona su grado (`grade`), que se usa para separar rankings por grado dentro del bloque.
+El nivel **Semillero** corresponde al programa de olimpiadas matemáticas de la UdeA para grados 6° a 11°. Al registrarse, el estudiante selecciona su grado (`grade`), que determina qué banco de preguntas ve (archivos `semillero/*_semillero_{grado}.json`) y separa los rankings dentro del bloque.
 
 El catálogo se genera automáticamente desde los archivos JSON en `items/bank/`. La asignación curso-bloque se define en `_COURSE_BLOCK_MAP` dentro de `sqlite_repository.py` y `postgres_repository.py`.
 
@@ -759,6 +770,14 @@ Sube las imágenes a tu repositorio y usa la URL raw de GitHub:
 | `geometria.json` | Geometría | Colegio |
 | `DIAN.json` | Concurso DIAN — Gestor I | Concursos |
 | `SENA.json` | Concurso SENA — Profesional 10 | Concursos |
+| `semillero/algebra_semillero_6..11.json` | Álgebra Semillero (por grado) | Semillero |
+| `semillero/aritmetica_semillero_6..11.json` | Aritmética Semillero (por grado) | Semillero |
+| `semillero/geometria_semillero_6..11.json` | Geometría Semillero (por grado) | Semillero |
+| `semillero/logica_semillero_6..11.json` | Lógica Semillero (por grado) | Semillero |
+| `semillero/conteo_combinatoria_semillero_6..11.json` | Conteo y Combinatoria (por grado) | Semillero |
+| `semillero/probabilidad_semillero_6..11.json` | Probabilidad Semillero (por grado) | Semillero |
+
+Los archivos del bloque **Semillero** se encuentran en `items/bank/semillero/` (subdirectorio). Las preguntas de geometría con figura referencia imágenes en `items/images/` extraídas directamente de los PDFs originales de las Olimpiadas UdeA 2020 (`Semillero/OLIMPIADAS-2020/`). Para regenerar las figuras: `venv/Scripts/python.exe scripts/extract_figures_from_pdfs.py`.
 
 ---
 

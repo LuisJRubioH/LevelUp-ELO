@@ -77,11 +77,19 @@ def seed_test_students(repo):
         )
         row = cursor.fetchone()
         if not row:
-            block = LEVEL_TO_BLOCK[level]
-            cursor.execute(
-                "SELECT id FROM courses WHERE block = ? ORDER BY name ASC LIMIT 1",
-                (block,),
-            )
+            # Para semillero, usar cualquier bloque de grado para encontrar un curso
+            if level == LEVEL_SEMILLERO:
+                block_pattern = 'Semillero %'
+                cursor.execute(
+                    "SELECT id FROM courses WHERE block LIKE ? ORDER BY name ASC LIMIT 1",
+                    (block_pattern,),
+                )
+            else:
+                block = LEVEL_TO_BLOCK[level]
+                cursor.execute(
+                    "SELECT id FROM courses WHERE block = ? ORDER BY name ASC LIMIT 1",
+                    (block,),
+                )
             first_course = cursor.fetchone()
             course_id = first_course[0] if first_course else None
             cursor.execute(
@@ -105,12 +113,17 @@ def seed_test_students(repo):
         )
     conn.commit()
 
-    # Matricular estudiantes nuevos en TODOS los cursos de su nivel
+    # Matricular estudiantes nuevos en TODOS los cursos de su nivel/grado
     for username, edu_level, _grade in students_to_create:
         cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
         student_id = cursor.fetchone()[0]
-        block = LEVEL_TO_BLOCK[edu_level]
         group_id = _level_groups[edu_level][1]
+
+        # Para semillero: filtrar por bloque específico del grado
+        if edu_level == LEVEL_SEMILLERO and _grade:
+            block = f'Semillero {_grade}°'
+        else:
+            block = LEVEL_TO_BLOCK[edu_level]
 
         cursor.execute(
             "SELECT id FROM courses WHERE block = ?",

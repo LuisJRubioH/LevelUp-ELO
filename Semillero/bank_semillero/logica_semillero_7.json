@@ -1,0 +1,41 @@
+[
+  {
+    "id": "ls_7_01",
+    "content": "Juan tiene dos recipientes vacíos idénticos y un vaso pequeño. Primero, llena el recipiente 1 hasta el tope con agua, y bebe dos vasos de agua del recipiente 1. Después llena completamente el recipiente 2, pero vierte un vaso del recipiente 2 al recipiente 1. ¿Cómo se compara la cantidad de agua en el recipiente 1 con la del recipiente 2?",
+    "difficulty": 900,
+    "topic": "Razonamiento lógico",
+    "options": [
+      "Son iguales",
+      "Hay más agua en el recipiente 2",
+      "Hay más agua en el recipiente 1",
+      "No puede saberse"
+    ],
+    "correct_option": "Son iguales"
+  },
+  {
+    "id": "ls_7_02",
+    "content": "Miguel compró una bolsa con 2005 caramelos de 5 colores: 390 blancos, 396 amarillos, 402 rojos, 409 verdes y 408 cafés. Sin mirar, sacaba tres caramelos: si los tres eran del mismo color, se los comía; si no, los regresaba. Continuó hasta que quedó un caramelo. ¿De qué color era?",
+    "difficulty": 1100,
+    "topic": "Invariantes",
+    "options": [
+      "Amarillo",
+      "Verde",
+      "Café",
+      "Rojo"
+    ],
+    "correct_option": "Rojo"
+  },
+  {
+    "id": "ls_7_03",
+    "content": "Camilo tiene una chocolatina de 18 cm. La marcó para repartir entre 6 amigos en partes iguales. Como a 2 no les gusta el chocolate, remarcó en pedazos de 4 cm, dejando un pedazo de 2 cm para él. Si por error la partió en todos los pedazos marcados, la longitud que más se repitió fue:",
+    "difficulty": 950,
+    "topic": "Razonamiento lógico",
+    "options": [
+      "La de 1 cm",
+      "La de 2 cm",
+      "La de 3 cm",
+      "La misma cantidad por cada longitud"
+    ],
+    "correct_option": "La de 1 cm"
+  }
+]

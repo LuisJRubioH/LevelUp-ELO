@@ -24,6 +24,29 @@ def _timing(func):
     return wrapper
 
 
+def _retry_on_deadlock(max_retries=2, delay=0.05):
+    """Reintenta automáticamente la función si PostgreSQL detecta un deadlock.
+
+    Tras cada intento fallido hace rollback de la conexión y espera
+    `delay * intento` segundos antes de reintentar. Si se agotan los reintentos
+    propaga la excepción original.
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            last_exc = None
+            for attempt in range(max_retries + 1):
+                try:
+                    return func(self, *args, **kwargs)
+                except psycopg2.errors.DeadlockDetected as exc:
+                    last_exc = exc
+                    if attempt < max_retries:
+                        time.sleep(delay * (attempt + 1))
+            raise last_exc
+        return wrapper
+    return decorator
+
+
 class PostgresRepository:
 
     _COURSE_BLOCK_MAP = {
@@ -44,23 +67,81 @@ class PostgresRepository:
         'DIAN':                    'Concursos',
         'SENA':                    'Concursos',
         # ── Bloque Semillero (Olimpiadas Matemáticas UdeA, grados 6–11) ───────
-        'aritmetica_semillero':           'Semillero',
-        'algebra_semillero':              'Semillero',
-        'geometria_semillero':            'Semillero',
-        'logica_semillero':               'Semillero',
-        'conteo_combinatoria_semillero':  'Semillero',
-        'probabilidad_semillero':         'Semillero',
+        'logica_semillero_6':                'Semillero',
+        'algebra_semillero_6':               'Semillero',
+        'geometria_semillero_6':             'Semillero',
+        'conteo_combinatoria_semillero_6':   'Semillero',
+        'probabilidad_semillero_6':          'Semillero',
+        'aritmetica_semillero_6':            'Semillero',
+        'logica_semillero_7':                'Semillero',
+        'algebra_semillero_7':               'Semillero',
+        'geometria_semillero_7':             'Semillero',
+        'conteo_combinatoria_semillero_7':   'Semillero',
+        'probabilidad_semillero_7':          'Semillero',
+        'aritmetica_semillero_7':            'Semillero',
+        'logica_semillero_8':                'Semillero',
+        'algebra_semillero_8':               'Semillero',
+        'geometria_semillero_8':             'Semillero',
+        'conteo_combinatoria_semillero_8':   'Semillero',
+        'probabilidad_semillero_8':          'Semillero',
+        'aritmetica_semillero_8':            'Semillero',
+        'logica_semillero_9':                'Semillero',
+        'algebra_semillero_9':               'Semillero',
+        'geometria_semillero_9':             'Semillero',
+        'conteo_combinatoria_semillero_9':   'Semillero',
+        'probabilidad_semillero_9':          'Semillero',
+        'logica_semillero_10':               'Semillero',
+        'algebra_semillero_10':              'Semillero',
+        'geometria_semillero_10':            'Semillero',
+        'conteo_combinatoria_semillero_10':  'Semillero',
+        'probabilidad_semillero_10':         'Semillero',
+        'aritmetica_semillero_10':           'Semillero',
+        'logica_semillero_11':               'Semillero',
+        'algebra_semillero_11':              'Semillero',
+        'geometria_semillero_11':            'Semillero',
+        'conteo_combinatoria_semillero_11':  'Semillero',
+        'probabilidad_semillero_11':         'Semillero',
+        'aritmetica_semillero_11':           'Semillero',
     }
 
     _COURSE_NAME_MAP = {
         'DIAN': 'Concurso DIAN — Gestor I',
         'SENA': 'Concurso SENA — Profesional 10',
-        'aritmetica_semillero':          'Aritmética — Semillero',
-        'algebra_semillero':             'Álgebra — Semillero',
-        'geometria_semillero':           'Geometría — Semillero',
-        'logica_semillero':              'Lógica — Semillero',
-        'conteo_combinatoria_semillero': 'Conteo y Combinatoria — Semillero',
-        'probabilidad_semillero':        'Probabilidad — Semillero',
+        'logica_semillero_6':               'Lógica Semillero 6°',
+        'algebra_semillero_6':              'Álgebra Semillero 6°',
+        'geometria_semillero_6':            'Geometría Semillero 6°',
+        'conteo_combinatoria_semillero_6':  'Conteo y Combinatoria Semillero 6°',
+        'probabilidad_semillero_6':         'Probabilidad Semillero 6°',
+        'aritmetica_semillero_6':           'Aritmética Semillero 6°',
+        'logica_semillero_7':               'Lógica Semillero 7°',
+        'algebra_semillero_7':              'Álgebra Semillero 7°',
+        'geometria_semillero_7':            'Geometría Semillero 7°',
+        'conteo_combinatoria_semillero_7':  'Conteo y Combinatoria Semillero 7°',
+        'probabilidad_semillero_7':         'Probabilidad Semillero 7°',
+        'aritmetica_semillero_7':           'Aritmética Semillero 7°',
+        'logica_semillero_8':               'Lógica Semillero 8°',
+        'algebra_semillero_8':              'Álgebra Semillero 8°',
+        'geometria_semillero_8':            'Geometría Semillero 8°',
+        'conteo_combinatoria_semillero_8':  'Conteo y Combinatoria Semillero 8°',
+        'probabilidad_semillero_8':         'Probabilidad Semillero 8°',
+        'aritmetica_semillero_8':           'Aritmética Semillero 8°',
+        'logica_semillero_9':               'Lógica Semillero 9°',
+        'algebra_semillero_9':              'Álgebra Semillero 9°',
+        'geometria_semillero_9':            'Geometría Semillero 9°',
+        'conteo_combinatoria_semillero_9':  'Conteo y Combinatoria Semillero 9°',
+        'probabilidad_semillero_9':         'Probabilidad Semillero 9°',
+        'logica_semillero_10':              'Lógica Semillero 10°',
+        'algebra_semillero_10':             'Álgebra Semillero 10°',
+        'geometria_semillero_10':           'Geometría Semillero 10°',
+        'conteo_combinatoria_semillero_10': 'Conteo y Combinatoria Semillero 10°',
+        'probabilidad_semillero_10':        'Probabilidad Semillero 10°',
+        'aritmetica_semillero_10':          'Aritmética Semillero 10°',
+        'logica_semillero_11':              'Lógica Semillero 11°',
+        'algebra_semillero_11':             'Álgebra Semillero 11°',
+        'geometria_semillero_11':           'Geometría Semillero 11°',
+        'conteo_combinatoria_semillero_11': 'Conteo y Combinatoria Semillero 11°',
+        'probabilidad_semillero_11':        'Probabilidad Semillero 11°',
+        'aritmetica_semillero_11':          'Aritmética Semillero 11°',
     }
 
     _URL_RE = re.compile(
@@ -90,14 +171,22 @@ class PostgresRepository:
             sslmode='require',
             options='-c statement_timeout=60000',
         )
+        _is_pooler = "pooler" in host
+        _conn_mode = "pooler" if _is_pooler else "directa"
+        print(f"[DB] Modo de conexión: {_conn_mode} ({host}:{port})")
         try:
             self._pool = psycopg2.pool.SimpleConnectionPool(
                 minconn=1, maxconn=5, **self._conn_kwargs
             )
         except psycopg2.OperationalError as exc:
+            _hint = (
+                "Usando pooler — verifica que el host sea accesible desde este entorno."
+                if _is_pooler
+                else "Usando conexión directa — verifica que el host sea accesible "
+                     "(en Streamlit Cloud usa el pooler: aws-...pooler.supabase.com:6543)."
+            )
             raise RuntimeError(
-                f"No se pudo conectar a PostgreSQL. Verifica que DATABASE_URL "
-                f"use el pooler de Supabase (puerto 6543, no 5432). Error: {exc}"
+                f"No se pudo conectar a PostgreSQL ({_conn_mode}). {_hint} Error: {exc}"
             ) from exc
 
         self.hashing = HashingService()
@@ -151,7 +240,17 @@ class PostgresRepository:
         return result
 
     def put_connection(self, conn):
-        """Devuelve una conexión al pool para reutilización."""
+        """Devuelve una conexión al pool para reutilización.
+
+        Siempre hace rollback antes de devolver al pool: es un no-op si la
+        transacción ya fue committed o si no había transacción activa; pero
+        limpia el estado de error si ocurrió un deadlock o cualquier otra
+        excepción que dejó la conexión en estado abortado.
+        """
+        try:
+            conn.rollback()
+        except Exception:
+            pass
         self._pool.putconn(conn)
 
     @_timing
@@ -459,7 +558,12 @@ class PostgresRepository:
                 CREATE TABLE IF NOT EXISTS courses (
                     id TEXT PRIMARY KEY,
                     name TEXT NOT NULL,
-                    block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio', 'Concursos', 'Semillero')),
+                    block TEXT NOT NULL CHECK (block IN (
+                        'Universidad', 'Colegio', 'Concursos',
+                        'Semillero',
+                        'Semillero', 'Semillero', 'Semillero',
+                        'Semillero', 'Semillero', 'Semillero 11°'
+                    )),
                     description TEXT DEFAULT ''
                 )
             ''')
@@ -586,10 +690,10 @@ class PostgresRepository:
     def _migrate_courses_block_check(self, cursor):
         """Actualiza el CHECK constraint de courses.block para incluir todos los bloques.
 
-        Solo ejecuta el DROP/ADD si el constraint actual NO incluye ya 'Semillero',
-        evitando el ACCESS EXCLUSIVE lock en cada arranque.
+        Solo ejecuta el DROP/ADD si el constraint actual no incluye ya los bloques
+        de grado específicos ('Semillero 6°' … 'Semillero 11°').
         """
-        # Verificar si el constraint ya está actualizado (incluye 'Semillero')
+        # Verificar si el constraint ya incluye los bloques de grado específicos
         cursor.execute("""
             SELECT pg_get_constraintdef(oid)
             FROM pg_constraint
@@ -597,7 +701,7 @@ class PostgresRepository:
               AND conrelid = 'courses'::regclass
         """)
         row = cursor.fetchone()
-        if row and 'Semillero' in row['pg_get_constraintdef']:
+        if row and 'Semillero 6' in row['pg_get_constraintdef']:
             return  # Ya está actualizado, no hacer nada
 
         cursor.execute("""
@@ -605,7 +709,12 @@ class PostgresRepository:
         """)
         cursor.execute("""
             ALTER TABLE courses ADD CONSTRAINT courses_block_check
-            CHECK (block IN ('Universidad', 'Colegio', 'Concursos', 'Semillero'))
+            CHECK (block IN (
+                'Universidad', 'Colegio', 'Concursos',
+                'Semillero',
+                'Semillero', 'Semillero', 'Semillero',
+                'Semillero', 'Semillero', 'Semillero 11°'
+            ))
         """)
 
     def _backfill_prob_failure(self):
@@ -1512,12 +1621,13 @@ class PostgresRepository:
 
     @_timing
     def get_groups_by_teacher(self, teacher_id):
-        """Lista grupos de un profesor con el nombre del curso vinculado (JOIN)."""
+        """Lista grupos de un profesor con el nombre y bloque del curso vinculado (JOIN)."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute('''
-                SELECT g.id, g.name, g.course_id, COALESCE(c.name, '—') AS course_name, g.created_at
+                SELECT g.id, g.name, g.course_id, COALESCE(c.name, '—') AS course_name, g.created_at,
+                       COALESCE(c.block, 'Universidad') AS block
                 FROM groups g
                 LEFT JOIN courses c ON g.course_id = c.id
                 WHERE g.teacher_id = %s
@@ -1526,7 +1636,8 @@ class PostgresRepository:
             rows = cursor.fetchall()
             return [
                 {'id': r['id'], 'name': r['name'], 'course_id': r['course_id'],
-                 'course_name': r['course_name'], 'created_at': r['created_at']}
+                 'course_name': r['course_name'], 'created_at': str(r['created_at'])[:10],
+                 'block': r['block']}
                 for r in rows
             ]
         finally:
@@ -1734,6 +1845,8 @@ class PostgresRepository:
             return
 
         json_files = sorted(_glob.glob(os.path.join(bank_dir, '*.json')))
+        # También escanear el subdirectorio semillero/
+        json_files += sorted(_glob.glob(os.path.join(bank_dir, 'semillero', '*.json')))
         if not json_files:
             return
 
@@ -1876,11 +1989,17 @@ class PostgresRepository:
                     )
                     row = cursor.fetchone()
                     if not row:
-                        block = LEVEL_TO_BLOCK[level]
-                        cursor.execute(
-                            "SELECT id FROM courses WHERE block = %s ORDER BY name ASC LIMIT 1",
-                            (block,),
-                        )
+                        # Para semillero: buscar cualquier curso de algún grado
+                        if level == LEVEL_SEMILLERO:
+                            cursor.execute(
+                                "SELECT id FROM courses WHERE block LIKE 'Semillero %' ORDER BY name ASC LIMIT 1",
+                            )
+                        else:
+                            block = LEVEL_TO_BLOCK[level]
+                            cursor.execute(
+                                "SELECT id FROM courses WHERE block = %s ORDER BY name ASC LIMIT 1",
+                                (block,),
+                            )
                         first_course = cursor.fetchone()
                         course_id = first_course['id'] if first_course else None
                         cursor.execute(
@@ -1905,12 +2024,17 @@ class PostgresRepository:
                     )
                 conn.commit()
 
-                # Matricular estudiantes nuevos en TODOS los cursos de su nivel
+                # Matricular estudiantes nuevos en TODOS los cursos de su nivel/grado
                 for username, edu_level, _grade in students_to_create:
                     cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
                     student_id = cursor.fetchone()['id']
-                    block = LEVEL_TO_BLOCK[edu_level]
                     group_id = _level_groups[edu_level][1]
+
+                    # Para semillero: filtrar por bloque específico del grado
+                    if edu_level == LEVEL_SEMILLERO and _grade:
+                        block = f'Semillero {_grade}°'
+                    else:
+                        block = LEVEL_TO_BLOCK[edu_level]
 
                     cursor.execute(
                         "SELECT id FROM courses WHERE block = %s",
@@ -1934,10 +2058,16 @@ class PostgresRepository:
             self.put_connection(conn)
 
     @_timing
-    def get_available_courses_by_level(self, level: str):
-        """Retorna los cursos disponibles filtrados ESTRICTAMENTE por nivel educativo."""
+    def get_available_courses_by_level(self, level: str, grade=None):
+        """Retorna los cursos disponibles filtrados ESTRICTAMENTE por nivel educativo.
+
+        Para semillero, usar grade ('6'–'11') para filtrar por bloque específico de grado.
+        """
         from src.domain.entities import LEVEL_TO_BLOCK, LEVEL_UNIVERSIDAD
-        _block = LEVEL_TO_BLOCK.get(level.lower(), LEVEL_TO_BLOCK[LEVEL_UNIVERSIDAD])
+        if level.lower() == 'semillero' and grade:
+            _block = f'Semillero {grade}°'
+        else:
+            _block = LEVEL_TO_BLOCK.get(level.lower(), LEVEL_TO_BLOCK[LEVEL_UNIVERSIDAD])
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -2479,45 +2609,75 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_retry_on_deadlock()
     @_timing
-    def get_pending_submissions_count(self, teacher_id):
-        """Cuenta las entregas pendientes de revisión del docente."""
+    def get_pending_submissions_count(self, teacher_id, group_id=None):
+        """Cuenta las entregas pendientes de revisión del docente.
+        Si se pasa group_id, restringe al grupo indicado.
+        """
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute('''
-                SELECT COUNT(*) AS cnt FROM procedure_submissions ps
-                JOIN users u ON ps.student_id = u.id
-                JOIN groups g ON u.group_id = g.id
-                WHERE g.teacher_id = %s
-                  AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
-            ''', (teacher_id,))
+            if group_id:
+                cursor.execute('''
+                    SELECT COUNT(*) AS cnt FROM procedure_submissions ps
+                    JOIN users u ON ps.student_id = u.id
+                    WHERE u.group_id = %s
+                      AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                ''', (group_id,))
+            else:
+                cursor.execute('''
+                    SELECT COUNT(*) AS cnt FROM procedure_submissions ps
+                    JOIN users u ON ps.student_id = u.id
+                    JOIN groups g ON u.group_id = g.id
+                    WHERE g.teacher_id = %s
+                      AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                ''', (teacher_id,))
             count = cursor.fetchone()['cnt']
             return count
         finally:
             self.put_connection(conn)
 
+    @_retry_on_deadlock()
     @_timing
-    def get_pending_submissions_for_teacher(self, teacher_id):
-        """Retorna todas las entregas pendientes de los estudiantes del docente."""
+    def get_pending_submissions_for_teacher(self, teacher_id, group_id=None):
+        """Retorna las entregas pendientes del docente.
+        Si se pasa group_id, restringe al grupo indicado.
+        """
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute('''
-                SELECT ps.id, ps.student_id, u.username AS student_name,
-                       ps.item_id, ps.item_content, ps.mime_type,
-                       ps.submitted_at, ps.procedure_image_path,
-                       ps.status, ps.ai_proposed_score, ps.ai_feedback,
-                       ps.storage_url,
-                       CASE WHEN ps.storage_url IS NULL THEN ps.image_data
-                            ELSE NULL END AS image_data
-                FROM procedure_submissions ps
-                JOIN users u ON ps.student_id = u.id
-                JOIN groups g ON u.group_id = g.id
-                WHERE g.teacher_id = %s
-                  AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
-                ORDER BY ps.submitted_at DESC
-            ''', (teacher_id,))
+            if group_id:
+                cursor.execute('''
+                    SELECT ps.id, ps.student_id, u.username AS student_name,
+                           ps.item_id, ps.item_content, ps.mime_type,
+                           ps.submitted_at, ps.procedure_image_path,
+                           ps.status, ps.ai_proposed_score, ps.ai_feedback,
+                           ps.storage_url,
+                           CASE WHEN ps.storage_url IS NULL THEN ps.image_data
+                                ELSE NULL END AS image_data
+                    FROM procedure_submissions ps
+                    JOIN users u ON ps.student_id = u.id
+                    WHERE u.group_id = %s
+                      AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                    ORDER BY ps.submitted_at DESC
+                ''', (group_id,))
+            else:
+                cursor.execute('''
+                    SELECT ps.id, ps.student_id, u.username AS student_name,
+                           ps.item_id, ps.item_content, ps.mime_type,
+                           ps.submitted_at, ps.procedure_image_path,
+                           ps.status, ps.ai_proposed_score, ps.ai_feedback,
+                           ps.storage_url,
+                           CASE WHEN ps.storage_url IS NULL THEN ps.image_data
+                                ELSE NULL END AS image_data
+                    FROM procedure_submissions ps
+                    JOIN users u ON ps.student_id = u.id
+                    JOIN groups g ON u.group_id = g.id
+                    WHERE g.teacher_id = %s
+                      AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                    ORDER BY ps.submitted_at DESC
+                ''', (teacher_id,))
             rows = cursor.fetchall()
             return [dict(row) for row in rows]
         finally:

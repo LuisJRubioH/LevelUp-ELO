@@ -1,0 +1,28 @@
+[
+  {
+    "id": "ps_gen_03",
+    "content": "En una bolsa hay 3 bolas rojas, 4 azules y 5 verdes. Se sacan 2 bolas sin reposición. ¿Cuál es la probabilidad de que ambas sean del mismo color?",
+    "difficulty": 1100,
+    "topic": "Probabilidad sin reposición",
+    "options": [
+      "$\\frac{19}{66}$",
+      "$\\frac{1}{3}$",
+      "$\\frac{19}{72}$",
+      "$\\frac{5}{22}$"
+    ],
+    "correct_option": "$\\frac{19}{66}$"
+  },
+  {
+    "id": "ps_gen_04",
+    "content": "Se lanza una moneda justa 4 veces. ¿Cuál es la probabilidad de obtener exactamente 2 caras?",
+    "difficulty": 1050,
+    "topic": "Distribución binomial",
+    "options": [
+      "$\\frac{1}{4}$",
+      "$\\frac{3}{8}$",
+      "$\\frac{1}{2}$",
+      "$\\frac{5}{16}$"
+    ],
+    "correct_option": "$\\frac{3}{8}$"
+  }
+]

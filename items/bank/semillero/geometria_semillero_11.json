@@ -1,0 +1,58 @@
+[
+  {
+    "id": "gs_11_01",
+    "content": "Si el paralelogramo $ABCD$ tiene área de 1 m² y los puntos $E$ y $F$ son los puntos medios de los lados $AB$ y $CD$ respectivamente, ¿qué área tiene la región sombreada formada por las diagonales del paralelogramo y los segmentos a los puntos medios?",
+    "difficulty": 1350,
+    "topic": "Áreas y puntos medios",
+    "options": [
+      "$\\frac{5}{24}$",
+      "$\\frac{5}{12}$",
+      "$\\frac{5}{6}$",
+      "$\\frac{1}{6}$"
+    ],
+    "correct_option": "$\\frac{5}{12}$",
+    "image_path": "items/images/undecimo_q14_paralelogramo.png"
+  },
+  {
+    "id": "gs_11_02",
+    "content": "En un triángulo equilátero $XYZ$ de área 18 cm², se dividen los lados en tres partes iguales (puntos $A,B,C,D,E,F$). Determine el área de la figura sombreada formada al unir estos puntos.",
+    "difficulty": 1400,
+    "topic": "Áreas en triángulo equilátero",
+    "options": [
+      "4.5",
+      "6",
+      "8",
+      "10"
+    ],
+    "correct_option": "6",
+    "image_path": "items/images/undecimo_q15_equilatero_XYZ.png"
+  },
+  {
+    "id": "gs_11_03",
+    "content": "Por un punto $P$ en el interior del triángulo rectángulo $ABC$ se trazan segmentos paralelos a los lados. Las áreas de los tres triángulos sombreados son 2, 8 y 18. El área del triángulo $ABC$ es:",
+    "difficulty": 1450,
+    "topic": "Áreas y semejanza",
+    "options": [
+      "54",
+      "64",
+      "72",
+      "90"
+    ],
+    "correct_option": "72",
+    "image_path": "items/images/undecimo_q16_triangulo_P.png"
+  },
+  {
+    "id": "gs_11_04",
+    "content": "Se observan tres cuadrados. El más grande tiene lados de longitud 9 y el más pequeño lados de longitud 4. Si los vértices $A$, $B$ y $C$ están sobre una misma recta, la longitud de los lados del cuadrado mediano es:",
+    "difficulty": 1350,
+    "topic": "Cuadrados y colinealidad",
+    "options": [
+      "5",
+      "$\\frac{11}{2}$",
+      "6",
+      "7"
+    ],
+    "correct_option": "6",
+    "image_path": "items/images/undecimo_q13_tres_cuadrados.png"
+  }
+]

@@ -1,0 +1,54 @@
+[
+  {
+    "id": "gs_10_01",
+    "content": "En la figura, los puntos $P$, $Q$, $R$ y $S$ dividen cada lado del rectángulo $ABCD$ en razón $1:2$. ¿Cuál es la razón entre el área del paralelogramo $PQRS$ y el área del rectángulo $ABCD$?",
+    "difficulty": 1250,
+    "topic": "Razón de áreas",
+    "options": [
+      "$2:5$",
+      "$5:9$",
+      "$12:5$",
+      "$1:2$"
+    ],
+    "correct_option": "$1:2$"
+  },
+  {
+    "id": "gs_10_02",
+    "content": "Un rectángulo de altura 2 está inscrito en un semicírculo de diámetro 5. El área del rectángulo es igual a:",
+    "difficulty": 1250,
+    "topic": "Semicírculo y rectángulo",
+    "options": [
+      "$\\frac{13}{2}$",
+      "$\\frac{9}{2}$",
+      "$\\frac{11}{2}$",
+      "6"
+    ],
+    "correct_option": "6"
+  },
+  {
+    "id": "gs_10_03",
+    "content": "Dos cuadrados del mismo tamaño cubren un círculo de radio 4 cm. ¿Cuál es el área sombreada (dentro del círculo pero fuera de los cuadrados), en cm²?",
+    "difficulty": 1300,
+    "topic": "Áreas con círculos",
+    "options": [
+      "$\\frac{16\\pi}{5}$",
+      "$\\frac{16\\pi}{3}$",
+      "$8(2\\pi-4)$",
+      "$16(\\pi-3)$"
+    ],
+    "correct_option": "$16(\\pi-3)$"
+  },
+  {
+    "id": "gs_10_04",
+    "content": "En el triángulo $\\triangle ABC$, $AB=AC=28$ y $BC=20$. Los puntos $D$, $E$ y $F$ están sobre los lados $AB$, $BC$ y $AC$ respectivamente, con $DE \\parallel AC$ y $EF \\parallel AB$. ¿Cuál es el perímetro del paralelogramo $ADEF$?",
+    "difficulty": 1300,
+    "topic": "Triángulos y paralelismo",
+    "options": [
+      "48",
+      "52",
+      "56",
+      "60"
+    ],
+    "correct_option": "56"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "id": "ars_7_01",
+    "content": "Sara escribía en un tablero 95×95 los múltiplos positivos de 4 en orden ascendente (primera fila: 4, 8, ..., 380; segunda fila inversa: 760, 756, ..., 384; etc.). El número en la posición $U$ (última fila, última columna) es:",
+    "difficulty": 1100,
+    "topic": "Patrones numéricos",
+    "options": [
+      "35192",
+      "35196",
+      "36100",
+      "36104"
+    ],
+    "correct_option": "36100"
+  }
+]

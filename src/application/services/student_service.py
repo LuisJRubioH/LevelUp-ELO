@@ -1,7 +1,7 @@
 from src.domain.elo.model import expected_score
 from src.domain.elo.cognitive import CognitiveAnalyzer
 from src.domain.selector.item_selector import AdaptiveItemSelector
-from src.domain.entities import VALID_LEVELS, LEVEL_UNIVERSIDAD
+from src.domain.entities import VALID_LEVELS, LEVEL_UNIVERSIDAD, LEVEL_SEMILLERO
 from src.infrastructure.external_api.ai_client import get_socratic_guidance
 
 class StudentService:
@@ -138,7 +138,10 @@ class StudentService:
         level = self.repository.get_education_level(user_id) or LEVEL_UNIVERSIDAD
         if level.lower() not in VALID_LEVELS:
             level = LEVEL_UNIVERSIDAD
-        return self.repository.get_available_courses_by_level(level)
+        grade = None
+        if level == LEVEL_SEMILLERO:
+            grade = self.repository.get_grade(user_id)
+        return self.repository.get_available_courses_by_level(level, grade=grade)
 
     def get_socratic_help(self, student_rating, topic, content, last_answer, correct_answer, all_options, model_name, ai_url):
         """Orquesta la obtención de guía socrática adaptativa y contextualizada."""

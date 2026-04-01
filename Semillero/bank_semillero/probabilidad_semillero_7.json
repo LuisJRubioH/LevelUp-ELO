@@ -1,0 +1,28 @@
+[
+  {
+    "id": "ps_gen_01",
+    "content": "Se lanzan dos dados de 6 caras estándar. ¿Cuál es la probabilidad de que la suma sea mayor o igual a 10?",
+    "difficulty": 1000,
+    "topic": "Probabilidad clásica",
+    "options": [
+      "$\\frac{1}{12}$",
+      "$\\frac{1}{6}$",
+      "$\\frac{1}{4}$",
+      "$\\frac{5}{36}$"
+    ],
+    "correct_option": "$\\frac{1}{6}$"
+  },
+  {
+    "id": "ps_gen_02",
+    "content": "De una baraja de 52 cartas se extrae una al azar. ¿Cuál es la probabilidad de que sea una figura (J, Q, K) o un as?",
+    "difficulty": 950,
+    "topic": "Probabilidad clásica",
+    "options": [
+      "$\\frac{4}{13}$",
+      "$\\frac{3}{13}$",
+      "$\\frac{1}{4}$",
+      "$\\frac{16}{52}$"
+    ],
+    "correct_option": "$\\frac{4}{13}$"
+  }
+]

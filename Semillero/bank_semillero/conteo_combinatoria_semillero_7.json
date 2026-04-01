@@ -1,0 +1,41 @@
+[
+  {
+    "id": "ccs_7_01",
+    "content": "Los números 9, $b$, $c$, $d$, 9 son los primeros cinco términos de una secuencia. A partir de $c$, cada término es la suma de los dos anteriores. Encuentre el valor de $d$.",
+    "difficulty": 1000,
+    "topic": "Sucesiones recurrentes",
+    "options": [
+      "3",
+      "5",
+      "8",
+      "11"
+    ],
+    "correct_option": "9"
+  },
+  {
+    "id": "ccs_7_02",
+    "content": "Si $a_n = \\frac{1}{n} - \\frac{1}{n+1}$ para cada $n \\geq 1$, el valor de $a_1+a_2+a_3+\\cdots+a_{2019}$ es:",
+    "difficulty": 1050,
+    "topic": "Sumas telescópicas",
+    "options": [
+      "2019",
+      "$\\frac{2017}{2018}$",
+      "$\\frac{2018}{2019}$",
+      "$\\frac{2019}{2020}$"
+    ],
+    "correct_option": "$\\frac{2019}{2020}$"
+  },
+  {
+    "id": "ccs_7_03",
+    "content": "En una caja grande hay 6 cajas medianas, dentro de cada una hay 3 cajas pequeñas y dentro de estas hay 2 cajas más pequeñas. El número total de cajas es:",
+    "difficulty": 950,
+    "topic": "Conteo por niveles",
+    "options": [
+      "60",
+      "61",
+      "62",
+      "63"
+    ],
+    "correct_option": "61"
+  }
+]

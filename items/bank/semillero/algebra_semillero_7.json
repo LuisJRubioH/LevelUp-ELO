@@ -1,0 +1,41 @@
+[
+  {
+    "id": "as_7_01",
+    "content": "La suma de dos enteros positivos es 4 veces el número más pequeño. La diferencia positiva de sus cuadrados es 8 veces el número más grande. ¿Cuál es el producto de los dos números?",
+    "difficulty": 1000,
+    "topic": "Ecuaciones",
+    "options": [
+      "12",
+      "13",
+      "15",
+      "27"
+    ],
+    "correct_option": "27"
+  },
+  {
+    "id": "as_7_02",
+    "content": "Una caja rectangular cerrada tiene superficie de 1000 cm². Su longitud es el doble del ancho y su altura es seis veces su ancho. ¿Cuál es el volumen de la caja?",
+    "difficulty": 1050,
+    "topic": "Ecuaciones y volumen",
+    "options": [
+      "1000 cm³",
+      "1500 cm³",
+      "1700 cm³",
+      "2000 cm³"
+    ],
+    "correct_option": "1500 cm³"
+  },
+  {
+    "id": "as_7_03",
+    "content": "Si $\\frac{x-y}{x+y} = \\frac{9}{13}$, encuentre el valor de $\\frac{x^2}{y^2}$.",
+    "difficulty": 1100,
+    "topic": "Proporciones y álgebra",
+    "options": [
+      "$\\frac{121}{4}$",
+      "$\\frac{120}{7}$",
+      "$\\frac{123}{2}$",
+      "$\\frac{25}{4}$"
+    ],
+    "correct_option": "$\\frac{121}{4}$"
+  }
+]

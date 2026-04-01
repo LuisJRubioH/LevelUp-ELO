@@ -1,0 +1,28 @@
+[
+  {
+    "id": "ars_11_01",
+    "content": "Un número de 5 dígitos se divide entre 100, con cociente $k$ y residuo $r$. ¿Cuántos números de 5 dígitos hay tales que $k+r$ es divisible entre 11?",
+    "difficulty": 1400,
+    "topic": "Divisibilidad y conteo",
+    "options": [
+      "8080",
+      "808",
+      "8181",
+      "9090"
+    ],
+    "correct_option": "8181"
+  },
+  {
+    "id": "ars_11_02",
+    "content": "Se tienen boletos enumerados del 1 al $N$ y exactamente la mitad contienen el dígito 1. Si $N$ es un número de 3 dígitos, ¿cuáles valores de $N$ cumplen la condición?",
+    "difficulty": 1350,
+    "topic": "Conteo de dígitos",
+    "options": [
+      "272 y 315",
+      "270 y 235",
+      "160 y 315",
+      "270 y 272"
+    ],
+    "correct_option": "270 y 272"
+  }
+]

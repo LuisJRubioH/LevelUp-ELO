@@ -1,0 +1,28 @@
+[
+  {
+    "id": "ps_p_01",
+    "content": "Se han coloreado los enteros positivos: 1 rosado, 2 amarillo, 3 violeta, 4 rosado, 5 amarillo, 6 violeta, y así sucesivamente. Carlos calcula la suma de un número rosado y un número amarillo. ¿De qué color será el resultado?",
+    "difficulty": 900,
+    "topic": "Aritmética modular y patrones",
+    "options": [
+      "Cualquier color",
+      "Solo violeta",
+      "Solo amarillo",
+      "Amarillo o rosado"
+    ],
+    "correct_option": "Solo violeta"
+  },
+  {
+    "id": "ps_6_01",
+    "content": "El Grado Quinto B vende limonadas: básica a \\$4000 y con miel a \\$5000. Si recogieron \\$79000, el menor número posible de clientes fue:",
+    "difficulty": 950,
+    "topic": "Optimización discreta",
+    "options": [
+      "14",
+      "15",
+      "16",
+      "17"
+    ],
+    "correct_option": "16"
+  }
+]

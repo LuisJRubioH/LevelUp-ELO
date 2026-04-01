@@ -1,0 +1,15 @@
+[
+  {
+    "id": "ars_10_01",
+    "content": "Si $m,n$ son enteros positivos, $x=10^n+10^{n-1}+\\cdots+10+1$ y $y=10^m+10^{m-1}+\\cdots+10+1$. La suma de los dígitos de $x+y$ es:",
+    "difficulty": 1300,
+    "topic": "Repunits y dígitos",
+    "options": [
+      "$n-m$",
+      "0",
+      "$n+m$",
+      "$m+n+2$"
+    ],
+    "correct_option": "$m+n+2$"
+  }
+]

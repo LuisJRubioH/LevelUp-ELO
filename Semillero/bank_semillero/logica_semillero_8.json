@@ -1,0 +1,41 @@
+[
+  {
+    "id": "ls_8_01",
+    "content": "Alejandra, Sara y Tatiana tienen diferentes edades. Exactamente una de las siguientes afirmaciones es verdadera: 1) Sara es la mayor. 2) Alejandra no es la mayor. 3) Tatiana no es la más joven. ¿Quién es la menor?",
+    "difficulty": 1000,
+    "topic": "Lógica proposicional",
+    "options": [
+      "Alejandra",
+      "Sara",
+      "Tatiana",
+      "No se puede determinar"
+    ],
+    "correct_option": "Sara"
+  },
+  {
+    "id": "ls_8_02",
+    "content": "Se tiene un objeto del cual sabemos que: si es verde, entonces es plano; si es triangular, entonces es negro; el objeto es verde o blanco; si es blanco entonces es triangular; de su forma, es triangular o plano. Esto significa:",
+    "difficulty": 1050,
+    "topic": "Lógica proposicional",
+    "options": [
+      "Es blanco y triangular",
+      "Es negro y plano",
+      "Es verde y plano",
+      "Es blanco y plano"
+    ],
+    "correct_option": "Es negro y plano"
+  },
+  {
+    "id": "ls_8_03",
+    "content": "Alejandro, Benjamín y Carlos son atletas de velocidad a velocidad constante pero diferente. Cuando Alejandro ha recorrido 100 metros, está 20 m al frente de Benjamín y 50 m al frente de Carlos. Cuando Benjamín haya recorrido 100 metros, ¿cuántos metros de diferencia le llevará a Carlos?",
+    "difficulty": 1100,
+    "topic": "Razonamiento proporcional",
+    "options": [
+      "20 m",
+      "25.5 m",
+      "30 m",
+      "37.5 m"
+    ],
+    "correct_option": "37.5 m"
+  }
+]

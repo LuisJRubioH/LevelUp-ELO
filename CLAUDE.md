@@ -90,7 +90,7 @@ Clean Architecture con cuatro capas dentro de `src/`:
 - **`infrastructure/`**
   - `persistence/sqlite_repository.py` — SQLite: esquema, migraciones, seed, queries (~1200 líneas). Fallback local.
   - `persistence/postgres_repository.py` — PostgreSQL (psycopg2): port completo de SQLite para producción (Supabase). Pool `SimpleConnectionPool(1–5)`, `RealDictCursor`, `ON CONFLICT DO NOTHING`, `SERIAL PRIMARY KEY`, `BYTEA`.
-  - `persistence/seed_test_students.py` — Seed idempotente de 5 estudiantes de prueba.
+  - `persistence/seed_test_students.py` — Seed idempotente de 7 estudiantes de prueba (3 colegio, 2 universidad, 2 semillero).
   - `storage/supabase_storage.py` — Cliente Supabase Storage. Upload/download de archivos al bucket `procedimientos`. Lee `SUPABASE_URL` y `SUPABASE_KEY` de env vars. Degrada con gracia si no están definidas.
   - `external_api/ai_client.py` — Cliente universal multi-proveedor de IA.
   - `external_api/math_procedure_review.py` — Revisión de procedimientos manuscritos (Groq + Llama 4 Scout).
@@ -264,12 +264,23 @@ Campos opcionales: `image_url` o `image_path`. Si ambos presentes, `image_url` t
 | `geometria.json` | Geometría | Colegio |
 | `DIAN.json` | Concurso DIAN — Gestor I | Concursos |
 | `SENA.json` | Concurso SENA — Profesional 10 | Concursos |
-| `algebra_semillero.json` | Álgebra — Semillero | Semillero |
-| `aritmetica_semillero.json` | Aritmética — Semillero | Semillero |
-| `geometria_semillero.json` | Geometría — Semillero | Semillero |
-| `logica_semillero.json` | Lógica — Semillero | Semillero |
-| `conteo_combinatoria_semillero.json` | Conteo y Combinatoria — Semillero | Semillero |
-| `probabilidad_semillero.json` | Probabilidad — Semillero | Semillero |
+| `semillero/algebra_semillero_6..11.json` | Álgebra Semillero 6°–11° | Semillero |
+| `semillero/aritmetica_semillero_6..11.json` | Aritmética Semillero 6°–11° | Semillero |
+| `semillero/geometria_semillero_6..11.json` | Geometría Semillero 6°–11° | Semillero |
+| `semillero/logica_semillero_6..11.json` | Lógica Semillero 6°–11° | Semillero |
+| `semillero/conteo_combinatoria_semillero_6..11.json` | Conteo y Combinatoria Semillero 6°–11° | Semillero |
+| `semillero/probabilidad_semillero_6..11.json` | Probabilidad Semillero 6°–11° | Semillero |
+
+**Semillero**: los JSONs están en `items/bank/semillero/` separados por grado (ej. `geometria_semillero_8.json`). `sync_items_from_bank_folder()` escanea automáticamente ese subdirectorio además de `items/bank/*.json`.
+
+### Figuras de Semillero
+
+Las figuras geométricas de las Olimpiadas UdeA 2020 (Taller Primaria, Séptimo, Octavo, Noveno, Décimo, Undécimo) están en `items/images/` (33 PNGs). Se extrajeron de los PDFs originales usando `page.get_image_rects()` de PyMuPDF — **no** regenerar con matplotlib.
+
+- **PDFs originales**: `Semillero/OLIMPIADAS-2020/`
+- **Script de extracción**: `scripts/extract_figures_from_pdfs.py`
+- **Ejecutar**: `venv/Scripts/python.exe scripts/extract_figures_from_pdfs.py` (desde la raíz del repo)
+- Las coordenadas del script se obtuvieron de `get_image_rects()` — son las posiciones exactas de cada imagen embebida en el PDF, no estimaciones manuales.
 
 ---
 
