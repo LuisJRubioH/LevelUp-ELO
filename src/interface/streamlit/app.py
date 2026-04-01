@@ -427,14 +427,23 @@ if not st.session_state.logged_in:
                 new_role = st.selectbox("Tipo de cuenta", ["Estudiante", "Profesor"], key="reg_role")
 
                 education_level = None
+                grade = None
                 if new_role == "Estudiante":
                     level_label = st.selectbox(
                         "Nivel Educativo *",
-                        ["Universidad", "Colegio", "Concursos"],
+                        ["Universidad", "Colegio", "Concursos", "Semillero de Matemáticas"],
                         key="reg_level",
                         help="Determina qué catálogo de cursos podrás ver."
                     )
-                    education_level = level_label.lower()
+                    education_level = "semillero" if level_label == "Semillero de Matemáticas" else level_label.lower()
+                    if education_level == "semillero":
+                        grade_label = st.selectbox(
+                            "Grado *",
+                            ["6°", "7°", "8°", "9°", "10°", "11°"],
+                            key="reg_grade",
+                            help="Grado escolar (6° a 11° bachillerato)."
+                        )
+                        grade = grade_label.replace("°", "")
 
                 st.write("")
                 if st.button("Crear Cuenta"):
@@ -452,7 +461,8 @@ if not st.session_state.logged_in:
                     else:
                         success, message = st.session_state.db.register_user(
                             new_user, new_pass, chosen_role,
-                            education_level=education_level
+                            education_level=education_level,
+                            grade=grade
                         )
                         if success:
                             if chosen_role == 'teacher':
@@ -1007,9 +1017,19 @@ else:
             _medal = {1: "🥇", 2: "🥈", 3: "🥉"}
 
             if _rank_mode == "Por nivel":
-                _sel_level = st.selectbox("Nivel educativo", ["universidad", "colegio", "concursos"],
-                                          format_func=lambda x: x.title(), key="tch_rank_level")
-                _global_ranking = repo.get_global_ranking(limit=10, education_level=_sel_level)
+                _sel_level = st.selectbox(
+                    "Nivel educativo",
+                    ["universidad", "colegio", "concursos", "semillero"],
+                    format_func=lambda x: {"semillero": "Semillero de Matemáticas"}.get(x, x.title()),
+                    key="tch_rank_level",
+                )
+                _tch_rank_grade = None
+                if _sel_level == "semillero":
+                    _tch_grade_label = st.selectbox(
+                        "Grado", ["6°", "7°", "8°", "9°", "10°", "11°"], key="tch_rank_grade"
+                    )
+                    _tch_rank_grade = _tch_grade_label.replace("°", "")
+                _global_ranking = repo.get_global_ranking(limit=10, education_level=_sel_level, grade=_tch_rank_grade)
                 if _global_ranking:
                     _tch_rank_html = "<table style='width:100%; border-collapse:collapse; font-size:0.9rem;'>"
                     _tch_rank_html += "<tr style='border-bottom:1px solid #444;'><th style='padding:6px;'>🏅</th><th style='padding:6px; text-align:left;'>Estudiante</th><th style='padding:6px;'>ELO</th><th style='padding:6px;'>Intentos</th></tr>"
@@ -1686,6 +1706,12 @@ else:
         elif mode == "📝 Practicar" and 'selected_course' not in st.session_state:
             # ── Pantalla de selección de curso ──────────────────────────────
             st.title("🚀 Sala de Estudio")
+            if _level == 'semillero':
+                _sem_grade = st.session_state.get('student_grade') or repo.get_grade(st.session_state.user_id)
+                st.session_state['student_grade'] = _sem_grade
+                _grade_label = f" — Grado {_sem_grade}°" if _sem_grade else ""
+                st.markdown(f"### 🏅 Semillero de Matemáticas — Olimpiadas UdeA{_grade_label}")
+                st.markdown("---")
             st.markdown("#### Selecciona la materia que deseas practicar")
             st.markdown("")
 
@@ -1732,9 +1758,17 @@ else:
 
             # ── Ranking General por nivel educativo — Top 5 ──────────────
             st.markdown("---")
-            _level_label = {'universidad': 'Universidad', 'colegio': 'Colegio', 'concursos': 'Concursos'}.get(_level, _level.title())
-            st.markdown(f"#### 🏆 Ranking General — {_level_label}")
-            _global_top = repo.get_global_ranking(limit=5, education_level=_level)
+            _level_label = {'universidad': 'Universidad', 'colegio': 'Colegio', 'concursos': 'Concursos', 'semillero': 'Semillero'}.get(_level, _level.title())
+            # Para semillero: sub-filtro por grado del propio estudiante
+            _rank_grade = None
+            if _level == 'semillero':
+                _rank_grade = st.session_state.get('student_grade') or repo.get_grade(st.session_state.user_id)
+                st.session_state['student_grade'] = _rank_grade
+                _grade_suffix = f" — Grado {_rank_grade}°" if _rank_grade else ""
+                st.markdown(f"#### 🏆 Ranking General — {_level_label}{_grade_suffix}")
+            else:
+                st.markdown(f"#### 🏆 Ranking General — {_level_label}")
+            _global_top = repo.get_global_ranking(limit=5, education_level=_level, grade=_rank_grade)
             if _global_top:
                 _medal_sel = {1: "🥇", 2: "🥈", 3: "🥉"}
                 _my_user_sel = st.session_state.username
@@ -1756,7 +1790,7 @@ else:
                 _grank_html += "</table>"
                 st.markdown(_grank_html, unsafe_allow_html=True)
                 if not _in_top_sel:
-                    _my_global_rank = repo.get_student_rank(st.session_state.user_id, education_level=_level)
+                    _my_global_rank = repo.get_student_rank(st.session_state.user_id, education_level=_level, grade=_rank_grade)
                     if _my_global_rank:
                         st.caption(f"Tu posición: #{_my_global_rank['rank']} de {_my_global_rank['total_students']} 🎯")
                     else:
@@ -2729,7 +2763,7 @@ else:
             # catálogo. get_available_courses() lo lee desde DB, nunca desde sesión.
             # No existe ningún mecanismo en la UI para cambiarlo.
             _level = st.session_state.education_level or 'universidad'
-            _level_labels = {'universidad': "🎓 Universidad", 'colegio': "🏫 Colegio", 'concursos': "🏆 Concursos"}
+            _level_labels = {'universidad': "🎓 Universidad", 'colegio': "🏫 Colegio", 'concursos': "🏆 Concursos", 'semillero': "🏅 Semillero de Matemáticas"}
             _level_label = _level_labels.get(_level, "🎓 Universidad")
             st.markdown(f"**Nivel académico:** {_level_label}")
             st.caption("Tu nivel se fijó al registrarte y determina qué cursos puedes ver.")

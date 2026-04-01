@@ -11,17 +11,19 @@ Uso:
   seed_test_students(repository)  # llamado desde SQLiteRepository.__init__
 """
 
-from src.domain.entities import LEVEL_COLEGIO, LEVEL_UNIVERSIDAD, LEVEL_TO_BLOCK
+from src.domain.entities import LEVEL_COLEGIO, LEVEL_UNIVERSIDAD, LEVEL_SEMILLERO, LEVEL_TO_BLOCK
 
 _TEST_PASSWORD = "test1234"
 
 _TEST_STUDENTS = [
-    # (username, education_level)
-    ("estudiante_colegio_1", LEVEL_COLEGIO),
-    ("estudiante_colegio_2", LEVEL_COLEGIO),
-    ("estudiante_colegio_3", LEVEL_COLEGIO),
-    ("estudiante_universidad_1", LEVEL_UNIVERSIDAD),
-    ("estudiante_universidad_2", LEVEL_UNIVERSIDAD),
+    # (username, education_level, grade)
+    ("estudiante_colegio_1",      LEVEL_COLEGIO,     None),
+    ("estudiante_colegio_2",      LEVEL_COLEGIO,     None),
+    ("estudiante_colegio_3",      LEVEL_COLEGIO,     None),
+    ("estudiante_universidad_1",  LEVEL_UNIVERSIDAD, None),
+    ("estudiante_universidad_2",  LEVEL_UNIVERSIDAD, None),
+    ("estudiante_semillero_1",    LEVEL_SEMILLERO,   "9"),
+    ("estudiante_semillero_2",    LEVEL_SEMILLERO,   "11"),
 ]
 
 
@@ -36,7 +38,7 @@ def seed_test_students(repo):
     conn = repo.get_connection()
     cursor = conn.cursor()
 
-    # ── Salida rápida: si los 5 ya existen, no hay nada que hacer ────────
+    # ── Salida rápida: si todos ya existen, no hay nada que hacer ────────
     cursor.execute(
         "SELECT username FROM users WHERE username IN ({})".format(
             ','.join('?' * len(_TEST_STUDENTS))
@@ -44,7 +46,7 @@ def seed_test_students(repo):
         [s[0] for s in _TEST_STUDENTS],
     )
     existing = {row[0] for row in cursor.fetchall()}
-    students_to_create = [(u, l) for u, l in _TEST_STUDENTS if u not in existing]
+    students_to_create = [(u, l, g) for u, l, g in _TEST_STUDENTS if u not in existing]
 
     if not students_to_create:
         conn.close()
@@ -63,8 +65,9 @@ def seed_test_students(repo):
 
     # Grupos de prueba por nivel (uno por bloque educativo)
     _level_groups = {
-        LEVEL_COLEGIO: ("Grupo Prueba - Colegio", None),
+        LEVEL_COLEGIO:     ("Grupo Prueba - Colegio",     None),
         LEVEL_UNIVERSIDAD: ("Grupo Prueba - Universidad", None),
+        LEVEL_SEMILLERO:   ("Grupo Prueba - Semillero",   None),
     }
     for level, (g_name, _) in _level_groups.items():
         g_norm = g_name.strip().lower()
@@ -91,18 +94,19 @@ def seed_test_students(repo):
             _level_groups[level] = (g_name, row[0])
 
     # Crear SOLO estudiantes que no existen — nunca modificar los existentes
-    for username, edu_level in students_to_create:
+    for username, edu_level, student_grade in students_to_create:
         group_id = _level_groups[edu_level][1]
+        _grade = student_grade if edu_level == LEVEL_SEMILLERO else None
         cursor.execute(
             "INSERT INTO users (username, password_hash, role, approved, group_id, "
-            "rating_deviation, education_level, is_test_user) "
-            "VALUES (?, ?, 'student', 1, ?, 350.0, ?, 1)",
-            (username, password_hash, group_id, edu_level),
+            "rating_deviation, education_level, is_test_user, grade) "
+            "VALUES (?, ?, 'student', 1, ?, 350.0, ?, 1, ?)",
+            (username, password_hash, group_id, edu_level, _grade),
         )
     conn.commit()
 
     # Matricular estudiantes nuevos en TODOS los cursos de su nivel
-    for username, edu_level in students_to_create:
+    for username, edu_level, _grade in students_to_create:
         cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
         student_id = cursor.fetchone()[0]
         block = LEVEL_TO_BLOCK[edu_level]

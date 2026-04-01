@@ -12,7 +12,8 @@ from typing import Optional
 LEVEL_UNIVERSIDAD = 'universidad'
 LEVEL_COLEGIO     = 'colegio'
 LEVEL_CONCURSOS   = 'concursos'
-VALID_LEVELS      = frozenset({LEVEL_UNIVERSIDAD, LEVEL_COLEGIO, LEVEL_CONCURSOS})
+LEVEL_SEMILLERO   = 'semillero'
+VALID_LEVELS      = frozenset({LEVEL_UNIVERSIDAD, LEVEL_COLEGIO, LEVEL_CONCURSOS, LEVEL_SEMILLERO})
 
 # ── Estados del flujo de validación de procedimientos ────────────────────────
 # Invariante CRÍTICA: ai_proposed_score NUNCA afecta ELO ni estadísticas.
@@ -26,6 +27,7 @@ LEVEL_TO_BLOCK = {
     LEVEL_UNIVERSIDAD: 'Universidad',
     LEVEL_COLEGIO:     'Colegio',
     LEVEL_CONCURSOS:   'Concursos',
+    LEVEL_SEMILLERO:   'Semillero',
 }
 
 
@@ -61,6 +63,7 @@ class Student:
             LEVEL_UNIVERSIDAD: "🎓 Universidad",
             LEVEL_COLEGIO:     "🏫 Colegio",
             LEVEL_CONCURSOS:   "🏆 Preparación para Concursos",
+            LEVEL_SEMILLERO:   "🏅 Semillero de Matemáticas",
         }
         return _labels.get(self.level, "🎓 Universidad")
 

@@ -1,0 +1,227 @@
+[
+  {
+    "id": "albS1",
+    "content": "El número positivo que debe ocupar el lugar ○, para que se tenga la igualdad en la suma $\\frac{○}{3} + \\frac{○}{6} = 2$, es:",
+    "difficulty": 500,
+    "topic": "Álgebra",
+    "options": ["1", "2", "5", "4"],
+    "correct_option": "4",
+    "image_url": ""
+  },
+  {
+    "id": "albS2",
+    "content": "Si $n$ es un número par, entonces de las siguientes expresiones la única que es siempre par es:",
+    "difficulty": 700,
+    "topic": "Álgebra",
+    "options": ["$\\frac{n}{2}$", "$n^2 + 3n$", "$(n+1)^2$", "$\\frac{n(n+1)}{2}$"],
+    "correct_option": "$n^2 + 3n$",
+    "image_url": ""
+  },
+  {
+    "id": "albS3",
+    "content": "Sean $x, y$ dos números reales tales que $x^2 = y^2$ pero $x$ es diferente de $y$. El valor de $x^2 - 5x + 7 - y^2 - 5y$ es:",
+    "difficulty": 850,
+    "topic": "Álgebra",
+    "options": ["0", "$-3$", "7", "2"],
+    "correct_option": "7",
+    "image_url": ""
+  },
+  {
+    "id": "albS4",
+    "content": "Si $a < 0$, la única expresión negativa es:",
+    "difficulty": 600,
+    "topic": "Álgebra",
+    "options": ["$a^3$", "$-a^3$", "$a^4$", "$-\\frac{1}{a}$"],
+    "correct_option": "$a^3$",
+    "image_url": ""
+  },
+  {
+    "id": "albS5",
+    "content": "Un número de 3 cifras es 629 veces menor que la suma de todos los otros números de 3 cifras. Este número es:",
+    "difficulty": 1100,
+    "topic": "Álgebra",
+    "options": ["450", "785", "430", "471"],
+    "correct_option": "785",
+    "image_url": ""
+  },
+  {
+    "id": "albS6",
+    "content": "Diana comenzó a bajar una escalera de 30 escalones en el mismo instante en que Sandra comenzó a subirla. Diana había bajado $\\frac{3}{4}$ de la escalera cuando se encontró con Sandra. En el momento en que Diana acabe de bajar, ¿cuántos escalones le restan por subir a Sandra?",
+    "difficulty": 850,
+    "topic": "Álgebra",
+    "options": ["2", "8", "20", "10"],
+    "correct_option": "20",
+    "image_url": ""
+  },
+  {
+    "id": "albS7",
+    "content": "Los primeros 30 minutos de un viaje Juan manejó a una velocidad constante. Para los siguientes 30 minutos, él manejó a una velocidad constante mayor en 20 km/h que la velocidad original. Si la distancia total recorrida es de 100 km, ¿cuál es la velocidad original?",
+    "difficulty": 600,
+    "topic": "Álgebra",
+    "options": ["70 km/h", "80 km/h", "90 km/h", "100 km/h"],
+    "correct_option": "90 km/h",
+    "image_url": ""
+  },
+  {
+    "id": "albS8",
+    "content": "Carmen tiene un trabajo repartiendo revistas. Ella gana $6,000 pesos por hora y le dan $200 pesos por cada revista entregada. Ella entrega 30 revistas por hora. ¿Cuánto dinero gana ella durante tres horas?",
+    "difficulty": 500,
+    "topic": "Álgebra",
+    "options": ["$24,000", "$30,000", "$36,000", "$42,000"],
+    "correct_option": "$36,000",
+    "image_url": ""
+  },
+  {
+    "id": "albS9",
+    "content": "La edad de Miguel más la edad de Ana es 17. La edad de Miguel más la edad de Ramón es 21. La edad de Ramón más la edad de Ana es 22. ¿Cuál es la suma de sus tres edades?",
+    "difficulty": 600,
+    "topic": "Álgebra",
+    "options": ["25", "28", "30", "32"],
+    "correct_option": "30",
+    "image_url": ""
+  },
+  {
+    "id": "albS10",
+    "content": "Un edificio tiene 105 ventanas, $\\frac{1}{3}$ de ellas tienen flores y $\\frac{3}{7}$ de ellas tienen cortinas, 40 ventanas no tienen ni cortinas ni flores. ¿Cuántas ventanas tienen cortinas y flores?",
+    "difficulty": 700,
+    "topic": "Álgebra",
+    "options": ["10", "12", "15", "18"],
+    "correct_option": "15",
+    "image_url": ""
+  },
+  {
+    "id": "albS11",
+    "content": "Si $x - y = 2$ y $x^2 - y^2 = 8$, ¿cuál es el valor de $2x - 6y$?",
+    "difficulty": 650,
+    "topic": "Álgebra",
+    "options": ["$-6$", "$-2$", "$0$", "$2$"],
+    "correct_option": "$0$",
+    "image_url": ""
+  },
+  {
+    "id": "albS12",
+    "content": "Si $x + \\frac{1}{x} = 5$, ¿cuál es el valor de $x^2 + \\frac{1}{x^2}$?",
+    "difficulty": 650,
+    "topic": "Álgebra",
+    "options": ["$21$", "$23$", "$25$", "$27$"],
+    "correct_option": "$23$",
+    "image_url": ""
+  },
+  {
+    "id": "albS13",
+    "content": "Si $x + \\frac{1}{x} = 5$, ¿cuál es el valor de $x^3 + \\frac{1}{x^3}$?",
+    "difficulty": 750,
+    "topic": "Álgebra",
+    "options": ["$100$", "$105$", "$110$", "$115$"],
+    "correct_option": "$110$",
+    "image_url": ""
+  },
+  {
+    "id": "albS14",
+    "content": "Si $xy = 4$ y $x^2 - y^2 = 9$, ¿cuál es el valor de $\\frac{2x}{y} - \\frac{2y}{x}$?",
+    "difficulty": 750,
+    "topic": "Álgebra",
+    "options": ["$\\frac{7}{2}$", "$\\frac{9}{2}$", "$\\frac{11}{2}$", "$\\frac{13}{2}$"],
+    "correct_option": "$\\frac{9}{2}$",
+    "image_url": ""
+  },
+  {
+    "id": "albS15",
+    "content": "Supongamos que $a, b, c$ y $d$ son enteros positivos tales que $a^5 = b^4$, $c^3 = d^2$, y $c - a = 19$. Determine $d - b$.",
+    "difficulty": 1100,
+    "topic": "Álgebra",
+    "options": ["657", "707", "757", "807"],
+    "correct_option": "757",
+    "image_url": ""
+  },
+  {
+    "id": "albS16",
+    "content": "Encuentre todas las soluciones que resuelven la ecuación $x^2 - 5x + 3 = 12$",
+    "difficulty": 600,
+    "topic": "Álgebra",
+    "options": ["$x = \\frac{5 \\pm \\sqrt{37}}{2}$", "$x = \\frac{5 \\pm \\sqrt{61}}{2}$", "$x = \\frac{-5 \\pm \\sqrt{61}}{2}$", "$x = \\frac{5 \\pm \\sqrt{13}}{2}$"],
+    "correct_option": "$x = \\frac{5 \\pm \\sqrt{61}}{2}$",
+    "image_url": ""
+  },
+  {
+    "id": "albS17",
+    "content": "Supongamos que $x$ y $y$ son números reales no negativos tales que $x^2 + y^2 = 5$ y $xy = 7$. Determine $x + y$.",
+    "difficulty": 650,
+    "topic": "Álgebra",
+    "options": ["$\\sqrt{17}$", "$\\sqrt{19}$", "$\\sqrt{21}$", "$\\sqrt{23}$"],
+    "correct_option": "$\\sqrt{19}$",
+    "image_url": ""
+  },
+  {
+    "id": "albS18",
+    "content": "Supongamos que $x$ y $y$ son dos números reales tales que $xy = 6$ y $x^2y + xy^2 + x + y = 63$. Encuentre $x^2 + y^2$.",
+    "difficulty": 700,
+    "topic": "Álgebra",
+    "options": ["65", "67", "69", "71"],
+    "correct_option": "69",
+    "image_url": ""
+  },
+  {
+    "id": "albS19",
+    "content": "Si $x, y, z$ son enteros positivos tales que $xy = 24$, $xz = 48$ y $yz = 72$, encuentre el valor de $x + y + z$.",
+    "difficulty": 700,
+    "topic": "Álgebra",
+    "options": ["18", "20", "22", "24"],
+    "correct_option": "22",
+    "image_url": ""
+  },
+  {
+    "id": "albS20",
+    "content": "Determine las parejas $(x, y)$ de números reales que satisfacen las ecuaciones $x + xy + y = -9$ y $x^2 + y^2 = 17$.",
+    "difficulty": 850,
+    "topic": "Álgebra",
+    "options": ["$\\left( \\frac{-1 \\pm \\sqrt{33}}{2}, \\frac{-1 \\mp \\sqrt{33}}{2} \\right)$", "$\\left( \\frac{1 \\pm \\sqrt{33}}{2}, \\frac{1 \\mp \\sqrt{33}}{2} \\right)$", "$\\left( \\frac{-3 \\pm \\sqrt{33}}{2}, \\frac{-3 \\mp \\sqrt{33}}{2} \\right)$", "$\\left( \\frac{3 \\pm \\sqrt{33}}{2}, \\frac{3 \\mp \\sqrt{33}}{2} \\right)$"],
+    "correct_option": "$\\left( \\frac{-1 \\pm \\sqrt{33}}{2}, \\frac{-1 \\mp \\sqrt{33}}{2} \\right)$",
+    "image_url": ""
+  },
+  {
+    "id": "albS21",
+    "content": "Si $x$ y $y$ son enteros tales que $x^2y + xy^2 = 70$ y $xy + x + y = 17$, encuentre el valor de $x^2 + y^2$.",
+    "difficulty": 800,
+    "topic": "Álgebra",
+    "options": ["25", "27", "29", "31"],
+    "correct_option": "29",
+    "image_url": ""
+  },
+  {
+    "id": "albS22",
+    "content": "Sea $a + 1 = b + 2 = c + 3 = d + 4 = a + b + c + d + 5$. Encuentre el valor de $a + b + c + d$.",
+    "difficulty": 800,
+    "topic": "Álgebra",
+    "options": ["$-\\frac{10}{3}$", "$-\\frac{5}{3}$", "$\\frac{5}{3}$", "$\\frac{10}{3}$"],
+    "correct_option": "$-\\frac{10}{3}$",
+    "image_url": ""
+  },
+  {
+    "id": "albS23",
+    "content": "Si $\\frac{a + 3b}{a - 3b} = 7$, entonces el valor de $\\frac{a + 2b}{a - 2b}$ es:",
+    "difficulty": 650,
+    "topic": "Álgebra",
+    "options": ["$1$", "$2$", "$3$", "$4$"],
+    "correct_option": "$3$",
+    "image_url": ""
+  },
+  {
+    "id": "albS24",
+    "content": "Sean $a$ y $b$ números reales distintos que satisfacen que $\\frac{a}{b} + \\frac{a + 3b}{b + 3a} = 2$. Encuentre $a/b$.",
+    "difficulty": 750,
+    "topic": "Álgebra",
+    "options": ["$\\frac{1}{4}$", "$\\frac{1}{3}$", "$\\frac{1}{2}$", "$\\frac{2}{3}$"],
+    "correct_option": "$\\frac{1}{3}$",
+    "image_url": ""
+  },
+  {
+    "id": "albS25",
+    "content": "Resolver el sistema: $\\begin{cases} x^2 + y = \\frac{3}{4} \\\\ x + y^2 = \\frac{3}{4} \\end{cases}$",
+    "difficulty": 800,
+    "topic": "Álgebra",
+    "options": ["$(1, 1)$ y $(-1, -1)$", "$\\left(\\frac{1}{2}, \\frac{1}{2}\\right)$ y $\\left(-\\frac{3}{2}, -\\frac{3}{2}\\right)$", "$(1, -1)$ y $(-1, 1)$", "$\\left(\\frac{1}{2}, \\frac{1}{2}\\right)$ solamente"],
+    "correct_option": "$\\left(\\frac{1}{2}, \\frac{1}{2}\\right)$ y $\\left(-\\frac{3}{2}, -\\frac{3}{2}\\right)$",
+    "image_url": ""
+  }
+]

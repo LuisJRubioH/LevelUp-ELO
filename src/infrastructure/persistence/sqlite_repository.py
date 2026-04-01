@@ -209,6 +209,8 @@ class SQLiteRepository:
         self._add_column_if_not_exists(cursor, 'users', 'education_level', "TEXT")
         # Flag para estudiantes de prueba (protección contra eliminación accidental)
         self._add_column_if_not_exists(cursor, 'users', 'is_test_user', "INTEGER DEFAULT 0")
+        # Grado escolar (solo para education_level = 'semillero'; valores '6'–'11')
+        self._add_column_if_not_exists(cursor, 'users', 'grade', "TEXT")
 
         # Asegurar índices si no existen
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
@@ -296,7 +298,7 @@ class SQLiteRepository:
             CREATE TABLE IF NOT EXISTS courses (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
-                block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio', 'Concursos')),
+                block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio', 'Concursos', 'Semillero')),
                 description TEXT DEFAULT ''
             )
         ''')
@@ -411,33 +413,33 @@ class SQLiteRepository:
         conn.close()
 
     def _migrate_courses_block_check(self, cursor):
-        """Recrea la tabla courses si el CHECK constraint no incluye 'Concursos'.
+        """Recrea la tabla courses si el CHECK constraint no incluye todos los bloques.
 
         SQLite no permite ALTER CHECK, así que se usa rename-recreate-copy.
         Es idempotente: si el CHECK ya es correcto, no hace nada.
         """
-        # Detectar si 'Concursos' ya es aceptado
+        # Detectar si 'Semillero' ya es aceptado (implica que el CHECK está actualizado)
         try:
             cursor.execute(
                 "INSERT INTO courses (id, name, block, description) "
-                "VALUES ('__check_probe__', '__probe__', 'Concursos', '')"
+                "VALUES ('__check_probe__', '__probe__', 'Semillero', '')"
             )
             # Si llegó aquí, el INSERT fue aceptado → CHECK ya lo permite
             cursor.execute("DELETE FROM courses WHERE id = '__check_probe__'")
             return  # No hace falta migrar
         except Exception:
-            # CHECK constraint rechazó 'Concursos' → necesitamos migrar
+            # CHECK constraint rechazó 'Semillero' → necesitamos migrar
             pass
 
         # 1. Renombrar tabla actual
         cursor.execute("ALTER TABLE courses RENAME TO _courses_old")
 
-        # 2. Crear tabla nueva con CHECK ampliado
+        # 2. Crear tabla nueva con CHECK ampliado (incluye Semillero)
         cursor.execute('''
             CREATE TABLE courses (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
-                block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio', 'Concursos')),
+                block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio', 'Concursos', 'Semillero')),
                 description TEXT DEFAULT ''
             )
         ''')
@@ -631,13 +633,13 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
-    def register_user(self, username, password, role='student', group_id=None, education_level=None):
+    def register_user(self, username, password, role='student', group_id=None, education_level=None, grade=None):
         """Registra un nuevo usuario.
 
         Para estudiantes, `group_id` es opcional en el momento del registro:
         el estudiante elige grupo al matricularse en un curso (catálogo).
-        `education_level` ('universidad' | 'colegio') determina qué catálogo
-        de cursos podrá ver el estudiante.
+        `education_level` determina qué catálogo de cursos podrá ver.
+        `grade` solo aplica cuando education_level = 'semillero' ('6'–'11').
         """
         # Validación backend de contraseña (no confiar solo en la UI)
         if not password or not password.strip():
@@ -650,10 +652,11 @@ class SQLiteRepository:
             password_hash = self.hashing.hash_password(password)
             # Teachers necesitan aprobación; students y admin se aprueban solos
             approved = 0 if role == 'teacher' else 1
+            _grade = grade if education_level == 'semillero' else None
             cursor.execute(
-                "INSERT INTO users (username, password_hash, role, approved, group_id, rating_deviation, education_level) "
-                "VALUES (?, ?, ?, ?, ?, 350.0, ?)",
-                (username, password_hash, role, approved, group_id, education_level)
+                "INSERT INTO users (username, password_hash, role, approved, group_id, rating_deviation, education_level, grade) "
+                "VALUES (?, ?, ?, ?, ?, 350.0, ?, ?)",
+                (username, password_hash, role, approved, group_id, education_level, _grade)
             )
             conn.commit()
             return True, "Registro exitoso."
@@ -837,15 +840,18 @@ class SQLiteRepository:
             for row in rows
         ]
 
-    def get_global_ranking(self, limit=5, education_level=None):
+    def get_global_ranking(self, limit=5, education_level=None, grade=None):
         """Top estudiantes globales por ELO promedio, con actividad en los últimos 7 días."""
         conn = self.get_connection()
         cursor = conn.cursor()
         _level_filter = ""
         _params = []
         if education_level:
-            _level_filter = "AND u.education_level = ?"
+            _level_filter += "AND u.education_level = ?"
             _params.append(education_level)
+        if grade:
+            _level_filter += " AND u.grade = ?"
+            _params.append(grade)
         cursor.execute(f'''
             WITH active_users AS (
                 SELECT DISTINCT a.user_id
@@ -950,7 +956,7 @@ class SQLiteRepository:
             for idx, row in enumerate(rows)
         ]
 
-    def get_student_rank(self, user_id, course_id=None, education_level=None):
+    def get_student_rank(self, user_id, course_id=None, education_level=None, grade=None):
         """Posición del estudiante en el ranking (global o por curso)."""
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -993,12 +999,15 @@ class SQLiteRepository:
                 FROM ranked WHERE user_id = ?
             ''', (course_id, course_id, user_id))
         else:
-            # Ranking global, opcionalmente filtrado por nivel educativo
+            # Ranking global, opcionalmente filtrado por nivel educativo y grado
             _level_filter = ""
             _params = []
             if education_level:
-                _level_filter = "AND u.education_level = ?"
+                _level_filter += "AND u.education_level = ?"
                 _params.append(education_level)
+            if grade:
+                _level_filter += " AND u.grade = ?"
+                _params.append(grade)
             _params.append(user_id)
             cursor.execute(f'''
                 WITH active_users AS (
@@ -1488,6 +1497,13 @@ class SQLiteRepository:
         # ── Bloque Concursos (preparación para concursos públicos) ────────────
         'DIAN':                    'Concursos',
         'SENA':                    'Concursos',
+        # ── Bloque Semillero (Olimpiadas Matemáticas UdeA, grados 6–11) ───────
+        'aritmetica_semillero':           'Semillero',
+        'algebra_semillero':              'Semillero',
+        'geometria_semillero':            'Semillero',
+        'logica_semillero':               'Semillero',
+        'conteo_combinatoria_semillero':  'Semillero',
+        'probabilidad_semillero':         'Semillero',
     }
 
     # Nombre legible del curso cuando el topic del primer ítem no es representativo.
@@ -1495,6 +1511,12 @@ class SQLiteRepository:
     _COURSE_NAME_MAP = {
         'DIAN': 'Concurso DIAN — Gestor I',
         'SENA': 'Concurso SENA — Profesional 10',
+        'aritmetica_semillero':          'Aritmética — Semillero',
+        'algebra_semillero':             'Álgebra — Semillero',
+        'geometria_semillero':           'Geometría — Semillero',
+        'logica_semillero':              'Lógica — Semillero',
+        'conteo_combinatoria_semillero': 'Conteo y Combinatoria — Semillero',
+        'probabilidad_semillero':        'Probabilidad — Semillero',
     }
 
     def sync_items_from_bank_folder(self, bank_dir='items/bank'):
@@ -1619,18 +1641,25 @@ class SQLiteRepository:
         return [{'id': r[0], 'name': r[1], 'block': r[2], 'description': r[3]} for r in rows]
 
     def get_available_groups_for_course(self, course_id):
-        """Retorna los grupos activos vinculados a un curso específico.
+        """Retorna los grupos activos disponibles para un curso.
 
-        El JOIN con users expone el nombre del profesor para la UI del catálogo.
+        Busca grupos por bloque del curso (no por course_id exacto) para que
+        un único grupo "Semillero" o "Universidad" aparezca en todos los cursos
+        de ese bloque. El JOIN con users expone el nombre del profesor.
         Solo retorna grupos cuyo teacher esté activo y aprobado.
         """
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT g.id, g.name, u.username AS teacher_name
+            SELECT DISTINCT g.id, g.name, u.username AS teacher_name
             FROM groups g
             JOIN users u ON g.teacher_id = u.id
-            WHERE g.course_id = ? AND u.active = 1 AND u.approved = 1
+            WHERE g.course_id IN (
+                SELECT id FROM courses WHERE block = (
+                    SELECT block FROM courses WHERE id = ?
+                )
+            )
+            AND u.active = 1 AND u.approved = 1
             ORDER BY g.name ASC
         ''', (course_id,))
         rows = cursor.fetchall()
@@ -1748,6 +1777,23 @@ class SQLiteRepository:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT education_level FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        conn.close()
+        return row[0] if row else None
+
+    def set_grade(self, user_id, grade):
+        """Guarda el grado escolar del usuario (solo válido para nivel semillero)."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET grade = ? WHERE id = ?", (grade, user_id))
+        conn.commit()
+        conn.close()
+
+    def get_grade(self, user_id):
+        """Retorna el grado del usuario, o None si no aplica."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT grade FROM users WHERE id = ?", (user_id,))
         row = cursor.fetchone()
         conn.close()
         return row[0] if row else None
