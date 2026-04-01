@@ -49,7 +49,7 @@ Plataforma de **aprendizaje adaptativo** construida con Python y Streamlit que u
 - **Validación de relevancia de procedimientos**: antes de enviar, la IA verifica que el archivo corresponda al ejercicio actual; tras 3 intentos fallidos se ofrecen opciones alternativas.
 - **Racha de estudio**: el sistema calcula días consecutivos de actividad y lo muestra en la sala de estudio y estadísticas.
 - **Ranking ELO de 16 niveles**: desde Aspirante (0–399) hasta Leyenda Suprema (2500+), con nombre y rango dinámico según el ELO global.
-- **Rankings separados por nivel educativo**: los rankings globales filtran por nivel (Universidad, Colegio, Concursos), evitando mezclar estudiantes de contextos diferentes. Incluye ranking por curso y posición individual.
+- **Rankings separados por nivel educativo**: los rankings globales filtran por nivel (Universidad, Colegio, Concursos, Semillero), evitando mezclar estudiantes de contextos diferentes. El nivel Semillero filtra además por grado (6°–11°). Incluye ranking por curso y posición individual.
 - **Celebración persistente**: al alcanzar rachas de 5 respuestas correctas consecutivas, pantalla completa con animación, ELO actual y botón "SEGUIR PRACTICANDO" que permanece hasta que el estudiante decide continuar.
 - **Retroalimentación sin auto-avance**: tras responder, el estudiante ve si acertó o falló con un botón "SIGUIENTE PREGUNTA", permitiendo reflexionar antes de avanzar.
 - **Panel de ranking docente**: tres modos de visualización — por nivel educativo, por curso y por grupo — con selectores dinámicos.
@@ -82,7 +82,7 @@ src/
 │   ├── persistence/
 │   │   ├── sqlite_repository.py    # SQLite: esquema, migraciones, seed, queries (desarrollo local)
 │   │   ├── postgres_repository.py  # PostgreSQL: port completo para producción (Supabase)
-│   │   └── seed_test_students.py   # Seed idempotente de 5 estudiantes de prueba
+│   │   └── seed_test_students.py   # Seed idempotente de 7 estudiantes de prueba (incl. 2 Semillero)
 │   ├── external_api/
 │   │   ├── ai_client.py                 # Cliente universal multi-proveedor de IA
 │   │   ├── math_procedure_review.py     # Revisión matemática rigurosa (Groq + Llama 4 Scout)
@@ -139,6 +139,7 @@ LevelUp-ELO/
 ├── scripts/
 │   ├── create_local_admin.py  # Crear admin local para desarrollo
 │   └── db_sync_check.py      # Verificar sincronía entre repositorios SQLite/PostgreSQL
+├── migrate.py              # Ejecutar migraciones PostgreSQL manualmente (python migrate.py)
 ├── data/
 │   └── elo_database.db     # Base de datos SQLite (generada en el primer arranque)
 └── requirements.txt        # Dependencias Python
@@ -394,7 +395,8 @@ Ambos backends exponen la misma API pública y ejecutan las mismas migraciones, 
 | `approved` | INTEGER | 0 = pendiente de aprobación (docentes) |
 | `active` | INTEGER | 0 = desactivado por admin |
 | `group_id` | INTEGER FK | Grupo asignado (estudiantes) |
-| `education_level` | TEXT | `universidad` / `colegio` / `concursos` |
+| `education_level` | TEXT | `universidad` / `colegio` / `concursos` / `semillero` |
+| `grade` | TEXT | Grado escolar (`'6'`–`'11'`); solo aplica cuando `education_level = 'semillero'` |
 | `is_test_user` | INTEGER | 1 = estudiante de prueba (protegido contra eliminación) |
 | `rating_deviation` | REAL | RD global (promedio de tópicos) |
 
@@ -440,7 +442,7 @@ Restricción: **índice único** en `(teacher_id, name_normalized)` — un profe
 |---|---|---|
 | `id` | TEXT PK | Slug del archivo JSON (ej. `calculo_diferencial`) |
 | `name` | TEXT | Nombre legible del curso |
-| `block` | TEXT | `Universidad` / `Colegio` / `Concursos` |
+| `block` | TEXT | `Universidad` / `Colegio` / `Concursos` / `Semillero` |
 | `description` | TEXT | Descripción del curso |
 
 **`enrollments`**
@@ -468,7 +470,7 @@ Restricción: **índice único** en `(teacher_id, name_normalized)` — un profe
 
 ### Migraciones
 
-Las migraciones son **aditivas** (`ALTER TABLE ADD COLUMN IF NOT EXISTS`). No hay migraciones destructivas. Se ejecutan automáticamente en `__init__()` de ambos repositorios. El repositorio PostgreSQL incluye retry (3 intentos) para `DeadlockDetected` / `QueryCanceled`.
+Las migraciones son **aditivas** (`ALTER TABLE ADD COLUMN IF NOT EXISTS`). No hay migraciones destructivas. Se ejecutan automáticamente en `__init__()` de ambos repositorios. El repositorio PostgreSQL usa `pg_try_advisory_lock(12345)` (no-bloqueante) para que solo una instancia ejecute las migraciones cuando Streamlit arranca en paralelo; las demás retornan inmediatamente si el lock está tomado. Para ejecutar migraciones manualmente: `python migrate.py`.
 
 ### Usuario admin
 
@@ -492,6 +494,9 @@ Al registrarse, cada estudiante selecciona su **nivel educativo**, que determina
 | Universidad | `Universidad` | Álgebra Lineal, Cálculo Diferencial, Cálculo Integral, Cálculo de Varias Variables, Ecuaciones Diferenciales, Probabilidad |
 | Colegio | `Colegio` | Álgebra Básica, Aritmética Básica, Trigonometría, Geometría |
 | Concursos | `Concursos` | DIAN — Gestor I, SENA — Profesional 10 |
+| Semillero de Matemáticas | `Semillero` | Álgebra, Aritmética, Geometría, Lógica, Conteo y Combinatoria, Probabilidad |
+
+El nivel **Semillero** corresponde al programa de olimpiadas matemáticas de la UdeA para grados 6° a 11°. Al registrarse, el estudiante selecciona su grado (`grade`), que se usa para separar rankings por grado dentro del bloque.
 
 El catálogo se genera automáticamente desde los archivos JSON en `items/bank/`. La asignación curso-bloque se define en `_COURSE_BLOCK_MAP` dentro de `sqlite_repository.py` y `postgres_repository.py`.
 
@@ -502,7 +507,7 @@ Los estudiantes se **matriculan** en cursos de su nivel y se unen a un **grupo**
 ## Roles de usuario
 
 ### Estudiante
-- Selecciona su **nivel educativo** al registrarse: Universidad, Colegio o Concursos.
+- Selecciona su **nivel educativo** al registrarse: Universidad, Colegio, Concursos o Semillero de Matemáticas. Los estudiantes de Semillero también seleccionan su **grado** (6°–11°).
 - Se matricula en **cursos** del catálogo correspondiente a su nivel y se une a un grupo del docente.
 - Accede al **modo práctica**: responde preguntas adaptativas, ve retroalimentación socrática con IA, rastrea su ELO por tópico.
 - Puede subir **procedimientos manuscritos** (imagen o PDF) para revisión (IA o docente), con validación de relevancia y detección de duplicados.
@@ -598,6 +603,8 @@ Al primer arranque se crean automáticamente los siguientes usuarios demo:
 | `estudiante_colegio_3` | Colegio | Todos los cursos de Colegio |
 | `estudiante_universidad_1` | Universidad | Todos los cursos de Universidad |
 | `estudiante_universidad_2` | Universidad | Todos los cursos de Universidad |
+| `estudiante_semillero_1` | Semillero — Grado 9° | Todos los cursos de Semillero |
+| `estudiante_semillero_2` | Semillero — Grado 11° | Todos los cursos de Semillero |
 
 El seed de estudiantes de prueba (`seed_test_students.py`) es estrictamente idempotente: solo crea usuarios si no existen, nunca modifica progreso, intentos, matrículas ni ELO existentes. El flag `is_test_user=1` los protege contra eliminación accidental.
 
@@ -626,7 +633,7 @@ Las preguntas se organizan en **`items/bank/`**, un archivo JSON por curso. El n
 1. Crea un archivo `items/bank/mi_curso.json` con un array de ítems.
 2. Agrega la entrada en `_COURSE_BLOCK_MAP` en **ambos** repositorios (`sqlite_repository.py` y `postgres_repository.py`):
    ```python
-   'mi_curso': 'Universidad',  # o 'Colegio' o 'Concursos'
+   'mi_curso': 'Universidad',  # o 'Colegio', 'Concursos' o 'Semillero'
    ```
 3. Reinicia la app. El curso y sus ítems aparecerán en el catálogo.
 
