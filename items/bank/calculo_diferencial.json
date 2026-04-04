@@ -1,1562 +1,1562 @@
 [
-    {
-        "id": "q21",
-        "content": "Derivada de $x^3$.",
-        "difficulty": 600,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$3x^2$",
-            "$x^2$",
-            "$3x$",
-            "$0$"
-        ],
-        "correct_option": "$3x^2$"
-    },
-    {
-        "id": "q22",
-        "content": "Derivada de $\\sin(x)$.",
-        "difficulty": 650,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\cos(x)$",
-            "-$\\cos(x)$",
-            "$\\sin(x)$",
-            "-$\\sin(x)$"
-        ],
-        "correct_option": "$\\cos(x)$"
-    },
-    {
-        "id": "q23",
-        "content": "Derivada de $e^x$.",
-        "difficulty": 700,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$e^x$",
-            "$e^x+1$",
-            "$x e^{x-1}$",
-            "$\\ln(x)$"
-        ],
-        "correct_option": "$e^x$"
-    },
-    {
-        "id": "q24",
-        "content": "Derivada de $\\ln(x)$.",
-        "difficulty": 750,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{1}{x}$",
-            "$\\ln(x)$",
-            "$\\frac{1}{x^2}$",
-            "$x$"
-        ],
-        "correct_option": "$\\frac{1}{x}$"
-    },
-    {
-        "id": "q25",
-        "content": "La derivada de $f(x)g(x)$ es:",
-        "difficulty": 800,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$f' g + f g'$",
-            "$f' g'$",
-            "$f g' + f' g$",
-            "$f' g'$"
-        ],
-        "correct_option": "$f' g + f g'$"
-    },
-    {
-        "id": "q26",
-        "content": "Derivada de $\\tan(x)$.",
-        "difficulty": 850,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\sec^2(x)$",
-            "$\\csc^2(x)$",
-            "$\\sec(x)\\tan(x)$",
-            "$1+\\tan^2(x)$"
-        ],
-        "correct_option": "$\\sec^2(x)$"
-    },
-    {
-        "id": "q27",
-        "content": "Derivada de $\\arcsin(x)$.",
-        "difficulty": 900,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{1}{\\sqrt{1-x^2}}$",
-            "$\\frac{1}{1+x^2}$",
-            "$\\frac{1}{\\sqrt{1+x^2}}$",
-            "$-\\frac{1}{\\sqrt{1-x^2}}$"
-        ],
-        "correct_option": "$\\frac{1}{\\sqrt{1-x^2}}$"
-    },
-    {
-        "id": "q28",
-        "content": "Si $y = x^x$, encuentra $\\frac{dy}{dx}$.",
-        "difficulty": 950,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$x^x(1+\\ln x)$",
-            "$x^x \\ln x$",
-            "$x^x(x-1)$",
-            "$x^{x-1}$"
-        ],
-        "correct_option": "$x^x(1+\\ln x)$"
-    },
-    {
-        "id": "q29",
-        "content": "Usando la definición de derivada, $f'(a) = \\lim_{h \\to 0} \\frac{f(a+h)-f(a)}{h}$, para $f(x)=x^2$, el límite es igual a:",
-        "difficulty": 1000,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$2a$",
-            "$a^2$",
-            "$2a+h$",
-            "$a$"
-        ],
-        "correct_option": "$2a$"
-    },
-    {
-        "id": "q30",
-        "content": "Halla la ecuación de la recta tangente a $y=x^2$ en $x=1$.",
-        "difficulty": 1050,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$y=2x-1$",
-            "$y=2x+1$",
-            "$y=x-1$",
-            "$y=2x$"
-        ],
-        "correct_option": "$y=2x-1$"
-    },
-    {
-        "id": "q31",
-        "content": "Usa diferenciación implícita: $x^2+y^2=1$, encuentra $\\frac{dy}{dx}$.",
-        "difficulty": 1100,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$-\\frac{x}{y}$",
-            "$\\frac{x}{y}$",
-            "$\\frac{y}{x}$",
-            "$-\\frac{y}{x}$"
-        ],
-        "correct_option": "$-\\frac{x}{y}$"
-    },
-    {
-        "id": "q32",
-        "content": "Determina los puntos críticos de $f(x) = x^{3} - 3x$.",
-        "difficulty": 1150,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "x=1 y x=-1",
-            "x=0 y x=1",
-            "x=0 y x=-1",
-            "x=1 y x=0"
-        ],
-        "correct_option": "x=1 y x=-1"
-    },
-    {
-        "id": "q33",
-        "content": "Teorema del valor medio: Si f es continua en [a,b] y diferenciable en (a,b), entonces existe c en (a,b) tal que:",
-        "difficulty": 1200,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "f'(c) = (f(b)-f(a))/(b-a)",
-            "f(c) = (f(b)-f(a))/(b-a)",
-            "f'(c) = f(b)-f(a)",
-            "f(c) = f'(c)"
-        ],
-        "correct_option": "f'(c) = (f(b)-f(a))/(b-a)"
-    },
-    {
-        "id": "q34",
-        "content": "Expansión en serie de Taylor de $e^{x}$ alrededor de x=0.",
-        "difficulty": 1250,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\sum \\frac{x^{n}}{n!}$",
-            "∑ $x^{n}$",
-            "∑ $x^{n}$/n",
-            "∑ n! $x^{n}$"
-        ],
-        "correct_option": "$\\sum \\frac{x^{n}}{n!}$"
-    },
-    {
-        "id": "q35",
-        "content": "Para f(x)=$x^{2}$, la segunda derivada es:",
-        "difficulty": 1300,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "2",
-            "2x",
-            "0",
-            "1"
-        ],
-        "correct_option": "2"
-    },
-    {
-        "id": "q36",
-        "content": "Regla de L'Hôpital: límite cuando x→0 de $\\frac{\\sin(x)}{x}$.",
-        "difficulty": 1350,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "1",
-            "0",
-            "∞",
-            "No existe"
-        ],
-        "correct_option": "1"
-    },
-    {
-        "id": "q37",
-        "content": "Halla el valor máximo de $f(x) = -x^{2} + 4x$ en el intervalo [0,3].",
-        "difficulty": 1400,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "4",
-            "3",
-            "0",
-            "5"
-        ],
-        "correct_option": "4"
-    },
-    {
-        "id": "q38",
-        "content": "Si g es la función inversa de f, entonces g'(x) es igual a:",
-        "difficulty": 1450,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "1/f'(g(x))",
-            "f'(g(x))",
-            "1/f'(x)",
-            "f'(x)"
-        ],
-        "correct_option": "1/f'(g(x))"
-    },
-    {
-        "id": "q39",
-        "content": "¿Es f(x)=|x| diferenciable en x=0?",
-        "difficulty": 1500,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "No",
-            "Sí",
-            "Solo la derivada por la izquierda existe",
-            "Solo la derivada por la derecha existe"
-        ],
-        "correct_option": "No"
-    },
-    {
-        "id": "q40",
-        "content": "Derivada de orden n de $x^{n}$ (para n entero) es:",
-        "difficulty": 1550,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "n!",
-            "n",
-            "n! * x",
-            "0"
-        ],
-        "correct_option": "n!"
-    },
-    {
-        "id": "q41",
-        "content": "¿Cuál de las siguientes es una función par?",
-        "difficulty": 600,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$f(x) = x^2$",
-            "$f(x) = x^3$",
-            "$f(x) = x$",
-            "$f(x) = \\sin(x)$"
-        ],
-        "correct_option": "$f(x) = x^2$"
-    },
-    {
-        "id": "q42",
-        "content": "¿Cuál de las siguientes es una función impar?",
-        "difficulty": 620,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$f(x) = x^3$",
-            "$f(x) = x^2$",
-            "$f(x) = |x|$",
-            "$f(x) = \\cos(x)$"
-        ],
-        "correct_option": "$f(x) = x^3$"
-    },
-    {
-        "id": "q43",
-        "content": "Si $f(x) = 2x + 1$ y $g(x) = x^2$, entonces $(f \\circ g)(x)$ es:",
-        "difficulty": 680,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$2x^2 + 1$",
-            "$(2x+1)^2$",
-            "$2x^2$",
-            "$4x^2 + 1$"
-        ],
-        "correct_option": "$2x^2 + 1$"
-    },
-    {
-        "id": "q44",
-        "content": "Si $f(x) = 2x + 1$ y $g(x) = x^2$, entonces $(g \\circ f)(x)$ es:",
-        "difficulty": 700,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$(2x+1)^2$",
-            "$2x^2 + 1$",
-            "$4x^2 + 4x + 1$",
-            "$2x^2$"
-        ],
-        "correct_option": "$(2x+1)^2$"
-    },
-    {
-        "id": "q45",
-        "content": "La función $f(x) = \\sqrt{x}$ es de tipo:",
-        "difficulty": 620,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "Algebraica irracional",
-            "Trascendente",
-            "Polinómica",
-            "Racional"
-        ],
-        "correct_option": "Algebraica irracional"
-    },
-    {
-        "id": "q46",
-        "content": "¿Cuál es la inversa de $f(x) = 3x - 2$?",
-        "difficulty": 700,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$f^{-1}(x) = \\frac{x+2}{3}$",
-            "$f^{-1}(x) = \\frac{x-2}{3}$",
-            "$f^{-1}(x) = 3x + 2$",
-            "$f^{-1}(x) = \\frac{x}{3} + 2$"
-        ],
-        "correct_option": "$f^{-1}(x) = \\frac{x+2}{3}$"
-    },
-    {
-        "id": "q47",
-        "content": "Si $f(x) = \\frac{1}{x-2}$, ¿cuál es la asíntota vertical?",
-        "difficulty": 660,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$x = 2$",
-            "$x = 0$",
-            "$x = -2$",
-            "No tiene"
-        ],
-        "correct_option": "$x = 2$"
-    },
-    {
-        "id": "q48",
-        "content": "La función $f(x) = a^x$ con $a > 0$ y $a \\neq 1$ es de tipo:",
-        "difficulty": 640,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "Exponencial",
-            "Logarítmica",
-            "Potencia",
-            "Polinómica"
-        ],
-        "correct_option": "Exponencial"
-    },
-    {
-        "id": "q49",
-        "content": "¿Cuánto vale $f(g(2))$ si $f(x) = x + 1$ y $g(x) = x^2 - 1$?",
-        "difficulty": 650,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$4$",
-            "$3$",
-            "$5$",
-            "$8$"
-        ],
-        "correct_option": "$4$"
-    },
-    {
-        "id": "q50",
-        "content": "La función $f(x) = \\lfloor x \\rfloor$ (parte entera o piso) es:",
-        "difficulty": 720,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "Escalonada",
-            "Continua",
-            "Diferenciable en todo punto",
-            "Biyectiva"
-        ],
-        "correct_option": "Escalonada"
-    },
-    {
-        "id": "q51",
-        "content": "Si $f(x) = \\ln(x)$ y $g(x) = e^x$, entonces $(f \\circ g)(x)$ es:",
-        "difficulty": 680,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$x$",
-            "$e^{\\ln(x)}$",
-            "$\\ln(x) \\cdot e^x$",
-            "$e^x + \\ln(x)$"
-        ],
-        "correct_option": "$x$"
-    },
-    {
-        "id": "q52",
-        "content": "Una función $f$ es inyectiva si y solo si:",
-        "difficulty": 780,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$f(a) = f(b) \\Rightarrow a = b$",
-            "$a = b \\Rightarrow f(a) = f(b)$",
-            "Toda recta horizontal corta la gráfica al menos una vez",
-            "$f$ es continua"
-        ],
-        "correct_option": "$f(a) = f(b) \\Rightarrow a = b$"
-    },
-    {
-        "id": "q53",
-        "content": "La gráfica de $f(x) = (x-3)^2 + 1$ es una parábola con vértice en:",
-        "difficulty": 660,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$(3, 1)$",
-            "$(1, 3)$",
-            "$(-3, 1)$",
-            "$(3, -1)$"
-        ],
-        "correct_option": "$(3, 1)$"
-    },
-    {
-        "id": "q54",
-        "content": "¿Cuál es la asíntota horizontal de $f(x) = \\frac{2x}{x+1}$?",
-        "difficulty": 750,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$y = 2$",
-            "$y = 1$",
-            "$y = 0$",
-            "No tiene"
-        ],
-        "correct_option": "$y = 2$"
-    },
-    {
-        "id": "q55",
-        "content": "La función $f(x) = \\frac{x^2 - 1}{x - 1}$ simplificada para $x \\neq 1$ es:",
-        "difficulty": 680,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$x + 1$",
-            "$x - 1$",
-            "$x^2$",
-            "$1$"
-        ],
-        "correct_option": "$x + 1$"
-    },
-    {
-        "id": "q56",
-        "content": "El dominio de $f(x) = \\sqrt{x - 3}$ es:",
-        "difficulty": 620,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$[3, \\infty)$",
-            "$(3, \\infty)$",
-            "$(-\\infty, 3]$",
-            "$\\mathbb{R}$"
-        ],
-        "correct_option": "$[3, \\infty)$"
-    },
-    {
-        "id": "q57",
-        "content": "El dominio de $f(x) = \\ln(x - 1)$ es:",
-        "difficulty": 680,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$(1, \\infty)$",
-            "$[1, \\infty)$",
-            "$(0, \\infty)$",
-            "$\\mathbb{R}$"
-        ],
-        "correct_option": "$(1, \\infty)$"
-    },
-    {
-        "id": "q58",
-        "content": "El rango de $f(x) = x^2$ es:",
-        "difficulty": 600,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$[0, \\infty)$",
-            "$\\mathbb{R}$",
-            "$(0, \\infty)$",
-            "$(-\\infty, 0]$"
-        ],
-        "correct_option": "$[0, \\infty)$"
-    },
-    {
-        "id": "q59",
-        "content": "El dominio de $f(x) = \\frac{1}{x^2 - 4}$ es:",
-        "difficulty": 720,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\mathbb{R} \\setminus \\{-2, 2\\}$",
-            "$\\mathbb{R} \\setminus \\{2\\}$",
-            "$\\mathbb{R}$",
-            "$(-2, 2)$"
-        ],
-        "correct_option": "$\\mathbb{R} \\setminus \\{-2, 2\\}$"
-    },
-    {
-        "id": "q60",
-        "content": "El rango de $f(x) = e^x$ es:",
-        "difficulty": 660,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$(0, \\infty)$",
-            "$\\mathbb{R}$",
-            "$[0, \\infty)$",
-            "$[1, \\infty)$"
-        ],
-        "correct_option": "$(0, \\infty)$"
-    },
-    {
-        "id": "q61",
-        "content": "El dominio de $f(x) = \\sqrt{4 - x^2}$ es:",
-        "difficulty": 740,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$[-2, 2]$",
-            "$(-2, 2)$",
-            "$[0, 2]$",
-            "$\\mathbb{R}$"
-        ],
-        "correct_option": "$[-2, 2]$"
-    },
-    {
-        "id": "q62",
-        "content": "El rango de $f(x) = \\sin(x)$ es:",
-        "difficulty": 620,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$[-1, 1]$",
-            "$[0, 1]$",
-            "$\\mathbb{R}$",
-            "$(-1, 1)$"
-        ],
-        "correct_option": "$[-1, 1]$"
-    },
-    {
-        "id": "q63",
-        "content": "El dominio de $f(x) = \\arcsin(x)$ es:",
-        "difficulty": 750,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$[-1, 1]$",
-            "$\\mathbb{R}$",
-            "$[0, \\pi]$",
-            "$(-\\infty, 1]$"
-        ],
-        "correct_option": "$[-1, 1]$"
-    },
-    {
-        "id": "q64",
-        "content": "El rango de $f(x) = \\arctan(x)$ es:",
-        "difficulty": 800,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\left(-\\frac{\\pi}{2}, \\frac{\\pi}{2}\\right)$",
-            "$\\left[-\\frac{\\pi}{2}, \\frac{\\pi}{2}\\right]$",
-            "$\\mathbb{R}$",
-            "$[0, \\pi]$"
-        ],
-        "correct_option": "$\\left(-\\frac{\\pi}{2}, \\frac{\\pi}{2}\\right)$"
-    },
-    {
-        "id": "q65",
-        "content": "El dominio de $f(x) = \\frac{\\sqrt{x}}{x - 1}$ es:",
-        "difficulty": 820,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$[0, 1) \\cup (1, \\infty)$",
-            "$(0, \\infty)$",
-            "$[0, \\infty)$",
-            "$\\mathbb{R} \\setminus \\{1\\}$"
-        ],
-        "correct_option": "$[0, 1) \\cup (1, \\infty)$"
-    },
-    {
-        "id": "q66",
-        "content": "El rango de $f(x) = |x - 2| + 3$ es:",
-        "difficulty": 700,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$[3, \\infty)$",
-            "$[2, \\infty)$",
-            "$\\mathbb{R}$",
-            "$(3, \\infty)$"
-        ],
-        "correct_option": "$[3, \\infty)$"
-    },
-    {
-        "id": "q67",
-        "content": "El dominio de $f(x) = \\log_2(x^2 - 9)$ es:",
-        "difficulty": 860,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$(-\\infty, -3) \\cup (3, \\infty)$",
-            "$(-3, 3)$",
-            "$(3, \\infty)$",
-            "$\\mathbb{R} \\setminus \\{-3, 3\\}$"
-        ],
-        "correct_option": "$(-\\infty, -3) \\cup (3, \\infty)$"
-    },
-    {
-        "id": "q68",
-        "content": "$\\lim_{x \\to 2} (3x + 1) =$",
-        "difficulty": 600,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$7$",
-            "$6$",
-            "$5$",
-            "$8$"
-        ],
-        "correct_option": "$7$"
-    },
-    {
-        "id": "q69",
-        "content": "$\\lim_{x \\to 0} \\frac{x^2 + x}{x} =$",
-        "difficulty": 650,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$1$",
-            "$0$",
-            "$\\infty$",
-            "No existe"
-        ],
-        "correct_option": "$1$"
-    },
-    {
-        "id": "q70",
-        "content": "$\\lim_{x \\to \\infty} \\frac{3x^2 + 1}{x^2 - 2} =$",
-        "difficulty": 750,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$3$",
-            "$1$",
-            "$\\infty$",
-            "$0$"
-        ],
-        "correct_option": "$3$"
-    },
-    {
-        "id": "q71",
-        "content": "$\\lim_{x \\to 0} \\frac{\\tan(x)}{x} =$",
-        "difficulty": 800,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$1$",
-            "$0$",
-            "$\\infty$",
-            "No existe"
-        ],
-        "correct_option": "$1$"
-    },
-    {
-        "id": "q72",
-        "content": "$\\lim_{x \\to \\infty} \\left(1 + \\frac{1}{x}\\right)^x =$",
-        "difficulty": 900,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$e$",
-            "$1$",
-            "$\\infty$",
-            "$0$"
-        ],
-        "correct_option": "$e$"
-    },
-    {
-        "id": "q73",
-        "content": "$\\lim_{x \\to 0^+} \\ln(x) =$",
-        "difficulty": 700,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$-\\infty$",
-            "$0$",
-            "$1$",
-            "$\\infty$"
-        ],
-        "correct_option": "$-\\infty$"
-    },
-    {
-        "id": "q74",
-        "content": "$\\lim_{x \\to 0} \\frac{e^x - 1}{x} =$",
-        "difficulty": 850,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$1$",
-            "$e$",
-            "$0$",
-            "$\\infty$"
-        ],
-        "correct_option": "$1$"
-    },
-    {
-        "id": "q75",
-        "content": "$\\lim_{x \\to 0} \\frac{1 - \\cos(x)}{x^2} =$",
-        "difficulty": 950,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{1}{2}$",
-            "$1$",
-            "$0$",
-            "$\\infty$"
-        ],
-        "correct_option": "$\\frac{1}{2}$"
-    },
-    {
-        "id": "q76",
-        "content": "$\\lim_{x \\to 3} \\frac{x^2 - 9}{x - 3} =$",
-        "difficulty": 680,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$6$",
-            "$3$",
-            "$0$",
-            "$9$"
-        ],
-        "correct_option": "$6$"
-    },
-    {
-        "id": "q77",
-        "content": "$\\lim_{x \\to \\infty} \\frac{5x^3 - x}{2x^3 + 3} =$",
-        "difficulty": 780,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{5}{2}$",
-            "$5$",
-            "$\\infty$",
-            "$0$"
-        ],
-        "correct_option": "$\\frac{5}{2}$"
-    },
-    {
-        "id": "q78",
-        "content": "$\\lim_{x \\to 0} \\frac{\\sin(3x)}{x} =$",
-        "difficulty": 820,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$3$",
-            "$1$",
-            "$0$",
-            "$\\frac{1}{3}$"
-        ],
-        "correct_option": "$3$"
-    },
-    {
-        "id": "q79",
-        "content": "$\\lim_{x \\to 0^+} x \\ln(x) =$",
-        "difficulty": 1000,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$0$",
-            "$-\\infty$",
-            "$1$",
-            "No existe"
-        ],
-        "correct_option": "$0$"
-    },
-    {
-        "id": "q80",
-        "content": "$\\lim_{x \\to \\infty} \\frac{\\ln(x)}{x} =$",
-        "difficulty": 880,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$0$",
-            "$1$",
-            "$\\infty$",
-            "No existe"
-        ],
-        "correct_option": "$0$"
-    },
-    {
-        "id": "q81",
-        "content": "Si $\\lim_{x \\to a} f(x) = L$ y $\\lim_{x \\to a} g(x) = M$ con $M \\neq 0$, entonces $\\lim_{x \\to a} \\frac{f(x)}{g(x)} =$",
-        "difficulty": 720,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{L}{M}$",
-            "$L \\cdot M$",
-            "$L - M$",
-            "$\\frac{M}{L}$"
-        ],
-        "correct_option": "$\\frac{L}{M}$"
-    },
-    {
-        "id": "q82",
-        "content": "$\\lim_{x \\to 0} \\frac{\\sin(x) - x}{x^3} =$",
-        "difficulty": 1100,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$-\\frac{1}{6}$",
-            "$0$",
-            "$\\frac{1}{6}$",
-            "$-1$"
-        ],
-        "correct_option": "$-\\frac{1}{6}$"
-    },
-    {
-        "id": "q83",
-        "content": "El límite $\\lim_{x \\to 0} \\frac{|x|}{x}$:",
-        "difficulty": 780,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "No existe",
-            "$1$",
-            "$-1$",
-            "$0$"
-        ],
-        "correct_option": "No existe"
-    },
-    {
-        "id": "q84",
-        "content": "$\\lim_{x \\to \\infty} \\frac{2x + 1}{x^2} =$",
-        "difficulty": 700,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$0$",
-            "$2$",
-            "$\\infty$",
-            "$1$"
-        ],
-        "correct_option": "$0$"
-    },
-    {
-        "id": "q85",
-        "content": "$\\lim_{x \\to 0} \\frac{\\arctan(x)}{x} =$",
-        "difficulty": 870,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$1$",
-            "$0$",
-            "$\\frac{\\pi}{2}$",
-            "$\\infty$"
-        ],
-        "correct_option": "$1$"
-    },
-    {
-        "id": "q86",
-        "content": "Una función $f$ es continua en $x = a$ si se cumplen tres condiciones: $f(a)$ existe, $\\lim_{x \\to a} f(x)$ existe, y:",
-        "difficulty": 750,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\lim_{x \\to a} f(x) = f(a)$",
-            "$f'(a)$ existe",
-            "$f$ es diferenciable en $a$",
-            "$f(a) > 0$"
-        ],
-        "correct_option": "$\\lim_{x \\to a} f(x) = f(a)$"
-    },
-    {
-        "id": "q87",
-        "content": "La función $f(x) = \\frac{x^2 - 4}{x - 2}$ tiene una discontinuidad en $x = 2$ de tipo:",
-        "difficulty": 820,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "Removible",
-            "De salto",
-            "Esencial",
-            "No tiene discontinuidad"
-        ],
-        "correct_option": "Removible"
-    },
-    {
-        "id": "q88",
-        "content": "El Teorema del Valor Intermedio establece que si $f$ es continua en $[a,b]$ y $N$ está entre $f(a)$ y $f(b)$, entonces:",
-        "difficulty": 900,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "Existe $c \\in (a,b)$ tal que $f(c) = N$",
-            "Existe $c \\in (a,b)$ tal que $f'(c) = N$",
-            "$f$ tiene un máximo en $(a,b)$",
-            "$f$ es diferenciable en $(a,b)$"
-        ],
-        "correct_option": "Existe $c \\in (a,b)$ tal que $f(c) = N$"
-    },
-    {
-        "id": "q89",
-        "content": "$f(x) = \\begin{cases} x^2 & \\text{si } x \\leq 1 \\\\ 2x - 1 & \\text{si } x > 1 \\end{cases}$ ¿Es continua en $x=1$?",
-        "difficulty": 850,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "Sí",
-            "No",
-            "Solo por la izquierda",
-            "Solo por la derecha"
-        ],
-        "correct_option": "Sí"
-    },
-    {
-        "id": "q90",
-        "content": "Toda función diferenciable en un punto es:",
-        "difficulty": 800,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "Continua en ese punto",
-            "Integrable en ese punto",
-            "Acotada globalmente",
-            "Derivable de todo orden"
-        ],
-        "correct_option": "Continua en ese punto"
-    },
-    {
-        "id": "q91",
-        "content": "¿Es cierto que toda función continua es diferenciable?",
-        "difficulty": 780,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "No",
-            "Sí",
-            "Solo para polinomios",
-            "Solo en intervalos abiertos"
-        ],
-        "correct_option": "No"
-    },
-    {
-        "id": "q92",
-        "content": "La función $f(x) = \\frac{1}{x}$ es continua en:",
-        "difficulty": 700,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\mathbb{R} \\setminus \\{0\\}$",
-            "$\\mathbb{R}$",
-            "$(0, \\infty)$",
-            "Ningún punto"
-        ],
-        "correct_option": "$\\mathbb{R} \\setminus \\{0\\}$"
-    },
-    {
-        "id": "q93",
-        "content": "Si $f$ y $g$ son continuas en $x = a$, entonces $f \\cdot g$ es:",
-        "difficulty": 720,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "Continua en $x = a$",
-            "Diferenciable en $x = a$",
-            "Discontinua en $x = a$",
-            "No se puede determinar"
-        ],
-        "correct_option": "Continua en $x = a$"
-    },
-    {
-        "id": "q94",
-        "content": "Derivada de $\\cos(x)$.",
-        "difficulty": 650,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$-\\sin(x)$",
-            "$\\sin(x)$",
-            "$-\\cos(x)$",
-            "$\\sec^2(x)$"
-        ],
-        "correct_option": "$-\\sin(x)$"
-    },
-    {
-        "id": "q95",
-        "content": "Derivada de $\\cot(x)$.",
-        "difficulty": 850,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$-\\csc^2(x)$",
-            "$\\csc^2(x)$",
-            "$-\\sec^2(x)$",
-            "$\\tan^2(x)$"
-        ],
-        "correct_option": "$-\\csc^2(x)$"
-    },
-    {
-        "id": "q96",
-        "content": "Derivada de $\\sec(x)$.",
-        "difficulty": 870,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\sec(x)\\tan(x)$",
-            "$\\sec^2(x)$",
-            "$-\\csc(x)\\cot(x)$",
-            "$\\tan(x)$"
-        ],
-        "correct_option": "$\\sec(x)\\tan(x)$"
-    },
-    {
-        "id": "q97",
-        "content": "Derivada de $\\csc(x)$.",
-        "difficulty": 880,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$-\\csc(x)\\cot(x)$",
-            "$\\csc(x)\\cot(x)$",
-            "$-\\sec(x)\\tan(x)$",
-            "$\\csc^2(x)$"
-        ],
-        "correct_option": "$-\\csc(x)\\cot(x)$"
-    },
-    {
-        "id": "q98",
-        "content": "La regla del cociente establece que $\\left(\\frac{f}{g}\\right)' =$",
-        "difficulty": 850,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{f'g - fg'}{g^2}$",
-            "$\\frac{f'g + fg'}{g^2}$",
-            "$\\frac{f'}{g'}$",
-            "$\\frac{fg' - f'g}{g^2}$"
-        ],
-        "correct_option": "$\\frac{f'g - fg'}{g^2}$"
-    },
-    {
-        "id": "q99",
-        "content": "Si $y = \\sin(3x^2)$, entonces $\\frac{dy}{dx} =$",
-        "difficulty": 900,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$6x\\cos(3x^2)$",
-            "$\\cos(3x^2)$",
-            "$3x^2\\cos(3x^2)$",
-            "$6x\\sin(3x^2)$"
-        ],
-        "correct_option": "$6x\\cos(3x^2)$"
-    },
-    {
-        "id": "q100",
-        "content": "Derivada de $e^{5x}$.",
-        "difficulty": 750,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$5e^{5x}$",
-            "$e^{5x}$",
-            "$5xe^{5x}$",
-            "$e^{5x+1}$"
-        ],
-        "correct_option": "$5e^{5x}$"
-    },
-    {
-        "id": "q101",
-        "content": "Derivada de $\\ln(x^2 + 1)$.",
-        "difficulty": 850,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{2x}{x^2+1}$",
-            "$\\frac{1}{x^2+1}$",
-            "$\\frac{2x}{x^2}$",
-            "$\\ln(2x)$"
-        ],
-        "correct_option": "$\\frac{2x}{x^2+1}$"
-    },
-    {
-        "id": "q102",
-        "content": "Si $y = (2x+1)^5$, entonces $\\frac{dy}{dx} =$",
-        "difficulty": 820,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$10(2x+1)^4$",
-            "$5(2x+1)^4$",
-            "$10x(2x+1)^4$",
-            "$(2x+1)^4$"
-        ],
-        "correct_option": "$10(2x+1)^4$"
-    },
-    {
-        "id": "q103",
-        "content": "Derivada de $\\arctan(x)$.",
-        "difficulty": 880,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{1}{1+x^2}$",
-            "$\\frac{1}{\\sqrt{1-x^2}}$",
-            "$-\\frac{1}{1+x^2}$",
-            "$\\frac{x}{1+x^2}$"
-        ],
-        "correct_option": "$\\frac{1}{1+x^2}$"
-    },
-    {
-        "id": "q104",
-        "content": "Si $y = \\sqrt{x^2 + 4}$, entonces $\\frac{dy}{dx} =$",
-        "difficulty": 880,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{x}{\\sqrt{x^2+4}}$",
-            "$\\frac{1}{2\\sqrt{x^2+4}}$",
-            "$\\frac{2x}{\\sqrt{x^2+4}}$",
-            "$\\sqrt{2x}$"
-        ],
-        "correct_option": "$\\frac{x}{\\sqrt{x^2+4}}$"
-    },
-    {
-        "id": "q105",
-        "content": "Derivada de $x \\cdot e^x$.",
-        "difficulty": 800,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$(1+x)e^x$",
-            "$xe^x$",
-            "$e^x$",
-            "$(x-1)e^x$"
-        ],
-        "correct_option": "$(1+x)e^x$"
-    },
-    {
-        "id": "q106",
-        "content": "Si $x^3 + y^3 = 6xy$, usando diferenciación implícita, $\\frac{dy}{dx} =$",
-        "difficulty": 1200,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{6y - 3x^2}{3y^2 - 6x}$",
-            "$\\frac{3x^2}{3y^2}$",
-            "$\\frac{x^2 - 2y}{2x - y^2}$",
-            "$\\frac{6y + 3x^2}{3y^2 + 6x}$"
-        ],
-        "correct_option": "$\\frac{6y - 3x^2}{3y^2 - 6x}$"
-    },
-    {
-        "id": "q107",
-        "content": "Si $y = \\log_{10}(x)$, entonces $\\frac{dy}{dx} =$",
-        "difficulty": 820,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{1}{x \\ln(10)}$",
-            "$\\frac{1}{x}$",
-            "$\\frac{\\ln(10)}{x}$",
-            "$\\frac{10}{x}$"
-        ],
-        "correct_option": "$\\frac{1}{x \\ln(10)}$"
-    },
-    {
-        "id": "q108",
-        "content": "Derivada de $\\sinh(x) = \\frac{e^x - e^{-x}}{2}$.",
-        "difficulty": 950,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\cosh(x)$",
-            "$-\\cosh(x)$",
-            "$\\sinh(x)$",
-            "$\\text{sech}^2(x)$"
-        ],
-        "correct_option": "$\\cosh(x)$"
-    },
-    {
-        "id": "q109",
-        "content": "Si $y = x^{\\sin(x)}$, usando diferenciación logarítmica, $\\frac{dy}{dx} =$",
-        "difficulty": 1300,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$x^{\\sin(x)}\\left(\\cos(x)\\ln(x) + \\frac{\\sin(x)}{x}\\right)$",
-            "$x^{\\sin(x)}\\cos(x)$",
-            "$\\sin(x) \\cdot x^{\\sin(x)-1}$",
-            "$x^{\\sin(x)} \\ln(\\sin(x))$"
-        ],
-        "correct_option": "$x^{\\sin(x)}\\left(\\cos(x)\\ln(x) + \\frac{\\sin(x)}{x}\\right)$"
-    },
-    {
-        "id": "q110",
-        "content": "La tercera derivada de $f(x) = x^4$ es:",
-        "difficulty": 750,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$24x$",
-            "$12x^2$",
-            "$4x^3$",
-            "$24$"
-        ],
-        "correct_option": "$24x$"
-    },
-    {
-        "id": "q111",
-        "content": "Derivada de $\\frac{\\sin(x)}{x}$.",
-        "difficulty": 920,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{x\\cos(x) - \\sin(x)}{x^2}$",
-            "$\\frac{\\cos(x)}{x}$",
-            "$\\frac{\\cos(x) - \\sin(x)}{x}$",
-            "$\\cos(x) \\cdot \\ln(x)$"
-        ],
-        "correct_option": "$\\frac{x\\cos(x) - \\sin(x)}{x^2}$"
-    },
-    {
-        "id": "q112",
-        "content": "Si $y = e^{x^2}$, entonces $\\frac{dy}{dx} =$",
-        "difficulty": 830,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$2xe^{x^2}$",
-            "$e^{x^2}$",
-            "$x^2 e^{x^2}$",
-            "$2e^{x^2}$"
-        ],
-        "correct_option": "$2xe^{x^2}$"
-    },
-    {
-        "id": "q113",
-        "content": "Si $f(x) = \\tan^{-1}(e^x)$, entonces $f'(x) =$",
-        "difficulty": 1050,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{e^x}{1 + e^{2x}}$",
-            "$\\frac{1}{1 + e^{2x}}$",
-            "$\\frac{e^x}{1 + e^x}$",
-            "$\\frac{1}{e^x(1+e^{2x})}$"
-        ],
-        "correct_option": "$\\frac{e^x}{1 + e^{2x}}$"
-    },
-    {
-        "id": "q114",
-        "content": "Un globo esférico se infla a razón de $10 \\text{ cm}^3/\\text{s}$. ¿A qué tasa cambia el radio cuando $r = 5$ cm? ($V = \\frac{4}{3}\\pi r^3$)",
-        "difficulty": 1150,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{1}{10\\pi}$ cm/s",
-            "$\\frac{10}{\\pi}$ cm/s",
-            "$\\frac{2}{5\\pi}$ cm/s",
-            "$\\frac{1}{5\\pi}$ cm/s"
-        ],
-        "correct_option": "$\\frac{1}{10\\pi}$ cm/s"
-    },
-    {
-        "id": "q115",
-        "content": "La velocidad instantánea de un objeto con posición $s(t) = 3t^2 - 2t + 1$ en $t = 2$ es:",
-        "difficulty": 800,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$10$",
-            "$12$",
-            "$8$",
-            "$9$"
-        ],
-        "correct_option": "$10$"
-    },
-    {
-        "id": "q116",
-        "content": "La aceleración de un objeto con posición $s(t) = t^3 - 6t^2 + 9t$ es:",
-        "difficulty": 900,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$6t - 12$",
-            "$3t^2 - 12t + 9$",
-            "$6t$",
-            "$3t - 6$"
-        ],
-        "correct_option": "$6t - 12$"
-    },
-    {
-        "id": "q117",
-        "content": "Una escalera de 10 m está apoyada en una pared. La base se desliza a 1 m/s. ¿A qué tasa baja la parte superior cuando la base está a 6 m de la pared?",
-        "difficulty": 1250,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$-\\frac{3}{4}$ m/s",
-            "$-\\frac{4}{3}$ m/s",
-            "$-1$ m/s",
-            "$-\\frac{6}{8}$ m/s"
-        ],
-        "correct_option": "$-\\frac{3}{4}$ m/s"
-    },
-    {
-        "id": "q118",
-        "content": "Si el área de un círculo crece a $6$ cm$^2$/s, ¿a qué tasa crece el radio cuando $r = 3$ cm?",
-        "difficulty": 1100,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{1}{\\pi}$ cm/s",
-            "$\\frac{3}{\\pi}$ cm/s",
-            "$\\frac{6}{\\pi}$ cm/s",
-            "$\\pi$ cm/s"
-        ],
-        "correct_option": "$\\frac{1}{\\pi}$ cm/s"
-    },
-    {
-        "id": "q119",
-        "content": "La tasa de cambio promedio de $f(x) = x^3$ en el intervalo $[1, 3]$ es:",
-        "difficulty": 750,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$13$",
-            "$9$",
-            "$26$",
-            "$27$"
-        ],
-        "correct_option": "$13$"
-    },
-    {
-        "id": "q120",
-        "content": "Un cono tiene radio y altura proporcionales ($r = h/2$). Si el volumen crece a $5$ cm$^3$/s, ¿cuánto crece $h$ cuando $h = 4$? ($V = \\frac{1}{3}\\pi r^2 h$)",
-        "difficulty": 1350,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{5}{4\\pi}$ cm/s",
-            "$\\frac{15}{4\\pi}$ cm/s",
-            "$\\frac{5}{\\pi}$ cm/s",
-            "$\\frac{1}{4\\pi}$ cm/s"
-        ],
-        "correct_option": "$\\frac{5}{4\\pi}$ cm/s"
-    },
-    {
-        "id": "q121",
-        "content": "Si $C(x) = 500 + 10x + 0.01x^2$ es la función de costo, el costo marginal cuando $x = 100$ es:",
-        "difficulty": 950,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$12$",
-            "$10$",
-            "$500$",
-            "$20$"
-        ],
-        "correct_option": "$12$"
-    },
-    {
-        "id": "q122",
-        "content": "La derivada de $f(x) = x^2$ representa geométricamente:",
-        "difficulty": 700,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "La pendiente de la recta tangente a la curva",
-            "El área bajo la curva",
-            "La longitud de arco",
-            "La concavidad"
-        ],
-        "correct_option": "La pendiente de la recta tangente a la curva"
-    },
-    {
-        "id": "q123",
-        "content": "Dos autos parten del mismo punto: uno va al norte a 60 km/h y otro al este a 80 km/h. ¿A qué tasa se separan después de 2 horas?",
-        "difficulty": 1300,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$100$ km/h",
-            "$140$ km/h",
-            "$200$ km/h",
-            "$70$ km/h"
-        ],
-        "correct_option": "$100$ km/h"
-    },
-    {
-        "id": "q124",
-        "content": "La elasticidad precio de la demanda se define como:",
-        "difficulty": 1050,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\frac{p}{q} \\cdot \\frac{dq}{dp}$",
-            "$\\frac{dq}{dp}$",
-            "$\\frac{dp}{dq}$",
-            "$p \\cdot q$"
-        ],
-        "correct_option": "$\\frac{p}{q} \\cdot \\frac{dq}{dp}$"
-    },
-    {
-        "id": "q125",
-        "content": "Si la posición de una partícula es $s(t) = \\sin(\\pi t)$, su velocidad en $t = \\frac{1}{2}$ es:",
-        "difficulty": 900,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$0$",
-            "$\\pi$",
-            "$1$",
-            "$-\\pi$"
-        ],
-        "correct_option": "$0$"
-    },
-    {
-        "id": "q126",
-        "content": "Halla dos números positivos cuya suma es 20 y cuyo producto es máximo.",
-        "difficulty": 1000,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$10$ y $10$",
-            "$5$ y $15$",
-            "$1$ y $19$",
-            "$8$ y $12$"
-        ],
-        "correct_option": "$10$ y $10$"
-    },
-    {
-        "id": "q127",
-        "content": "¿Cuáles son las dimensiones del rectángulo de perímetro 40 con área máxima?",
-        "difficulty": 1050,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$10 \\times 10$",
-            "$5 \\times 15$",
-            "$8 \\times 12$",
-            "$20 \\times 0$"
-        ],
-        "correct_option": "$10 \\times 10$"
-    },
-    {
-        "id": "q128",
-        "content": "Halla el punto sobre la curva $y = \\sqrt{x}$ más cercano al punto $(3, 0)$.",
-        "difficulty": 1350,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\left(\\frac{5}{2}, \\sqrt{\\frac{5}{2}}\\right)$",
-            "$(1, 1)$",
-            "$(4, 2)$",
-            "$(3, \\sqrt{3})$"
-        ],
-        "correct_option": "$\\left(\\frac{5}{2}, \\sqrt{\\frac{5}{2}}\\right)$"
-    },
-    {
-        "id": "q129",
-        "content": "El criterio de la segunda derivada establece que si $f'(c) = 0$ y $f''(c) > 0$, entonces $f$ tiene en $c$:",
-        "difficulty": 950,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "Un mínimo local",
-            "Un máximo local",
-            "Un punto de inflexión",
-            "No se puede determinar"
-        ],
-        "correct_option": "Un mínimo local"
-    },
-    {
-        "id": "q130",
-        "content": "Halla el valor máximo absoluto de $f(x) = x^3 - 3x + 2$ en $[-2, 2]$.",
-        "difficulty": 1200,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$4$",
-            "$2$",
-            "$0$",
-            "$6$"
-        ],
-        "correct_option": "$4$"
-    },
-    {
-        "id": "q131",
-        "content": "Un granjero tiene 200 m de cerca para cercar un campo rectangular adyacente a un río (no necesita cerca en ese lado). ¿Cuáles son las dimensiones que maximizan el área?",
-        "difficulty": 1250,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$50 \\times 100$",
-            "$100 \\times 100$",
-            "$25 \\times 150$",
-            "$40 \\times 120$"
-        ],
-        "correct_option": "$50 \\times 100$"
-    },
-    {
-        "id": "q132",
-        "content": "Un punto de inflexión de $f$ es un punto donde:",
-        "difficulty": 900,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$f$ cambia de concavidad",
-            "$f'(x) = 0$",
-            "$f$ alcanza un extremo",
-            "$f$ es discontinua"
-        ],
-        "correct_option": "$f$ cambia de concavidad"
-    },
-    {
-        "id": "q133",
-        "content": "Los puntos de inflexión de $f(x) = x^3 - 3x^2 + 2$ se encuentran donde:",
-        "difficulty": 1100,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$f''(x) = 0$, es decir $x = 1$",
-            "$f'(x) = 0$",
-            "$x = 0$",
-            "$x = 2$"
-        ],
-        "correct_option": "$f''(x) = 0$, es decir $x = 1$"
-    },
-    {
-        "id": "q134",
-        "content": "Se quiere construir una caja sin tapa a partir de una lámina de $12 \\times 12$ cm, recortando cuadrados de lado $x$ en las esquinas. ¿Qué valor de $x$ maximiza el volumen?",
-        "difficulty": 1400,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$2$",
-            "$3$",
-            "$4$",
-            "$1$"
-        ],
-        "correct_option": "$2$"
-    },
-    {
-        "id": "q135",
-        "content": "Si $f'(x) > 0$ en un intervalo, entonces $f$ es:",
-        "difficulty": 700,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "Creciente en ese intervalo",
-            "Decreciente en ese intervalo",
-            "Constante",
-            "Cóncava hacia arriba"
-        ],
-        "correct_option": "Creciente en ese intervalo"
-    },
-    {
-        "id": "q136",
-        "content": "Si $f''(x) < 0$ en un intervalo, entonces la gráfica de $f$ es:",
-        "difficulty": 780,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "Cóncava hacia abajo",
-            "Cóncava hacia arriba",
-            "Creciente",
-            "Decreciente"
-        ],
-        "correct_option": "Cóncava hacia abajo"
-    },
-    {
-        "id": "q137",
-        "content": "Minimizar el costo de una lata cilíndrica de volumen $1000$ cm$^3$. Si el costo del material es uniforme, las dimensiones óptimas satisfacen $r = h/2$ y el radio es:",
-        "difficulty": 1500,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$\\left(\\frac{500}{\\pi}\\right)^{1/3}$ cm",
-            "$\\left(\\frac{1000}{\\pi}\\right)^{1/3}$ cm",
-            "$10$ cm",
-            "$\\frac{10}{\\pi}$ cm"
-        ],
-        "correct_option": "$\\left(\\frac{500}{\\pi}\\right)^{1/3}$ cm"
-    },
-    {
-        "id": "q138",
-        "content": "Halla los intervalos de crecimiento de $f(x) = x^3 - 12x$.",
-        "difficulty": 1050,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$(-\\infty, -2) \\cup (2, \\infty)$",
-            "$(-2, 2)$",
-            "$(0, \\infty)$",
-            "$(-\\infty, 0)$"
-        ],
-        "correct_option": "$(-\\infty, -2) \\cup (2, \\infty)$"
-    },
-    {
-        "id": "q139",
-        "content": "El Teorema de Rolle establece que si $f$ es continua en $[a,b]$, diferenciable en $(a,b)$ y $f(a) = f(b)$, entonces:",
-        "difficulty": 1150,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "Existe $c \\in (a,b)$ con $f'(c) = 0$",
-            "Existe $c \\in (a,b)$ con $f(c) = 0$",
-            "$f$ es constante",
-            "$f'(a) = f'(b)$"
-        ],
-        "correct_option": "Existe $c \\in (a,b)$ con $f'(c) = 0$"
-    },
-    {
-        "id": "q140",
-        "content": "Halla el valor mínimo absoluto de $f(x) = x + \\frac{4}{x}$ para $x > 0$.",
-        "difficulty": 1200,
-        "topic": "Cálculo Diferencial",
-        "options": [
-            "$4$",
-            "$2$",
-            "$5$",
-            "$8$"
-        ],
-        "correct_option": "$4$"
-    }
+  {
+    "id": "q21",
+    "content": "Derivada de $x^3$.",
+    "difficulty": 600,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$3x^2$",
+      "$x^2$",
+      "$3x$",
+      "$0$"
+    ],
+    "correct_option": "$3x^2$"
+  },
+  {
+    "id": "q22",
+    "content": "Derivada de $\\sin(x)$.",
+    "difficulty": 650,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\cos(x)$",
+      "-$\\cos(x)$",
+      "$\\sin(x)$",
+      "-$\\sin(x)$"
+    ],
+    "correct_option": "$\\cos(x)$"
+  },
+  {
+    "id": "q23",
+    "content": "Derivada de $e^x$.",
+    "difficulty": 700,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$e^x$",
+      "$e^x+1$",
+      "$x e^{x-1}$",
+      "$\\ln(x)$"
+    ],
+    "correct_option": "$e^x$"
+  },
+  {
+    "id": "q24",
+    "content": "Derivada de $\\ln(x)$.",
+    "difficulty": 750,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{1}{x}$",
+      "$\\ln(x)$",
+      "$\\frac{1}{x^2}$",
+      "$x$"
+    ],
+    "correct_option": "$\\frac{1}{x}$"
+  },
+  {
+    "id": "q25",
+    "content": "La derivada de $f(x)g(x)$ es:",
+    "difficulty": 800,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$f' g + f g'$",
+      "$f' g'$",
+      "$f g' + f' g$",
+      "$f' g'$"
+    ],
+    "correct_option": "$f' g + f g'$"
+  },
+  {
+    "id": "q26",
+    "content": "Derivada de $\\tan(x)$.",
+    "difficulty": 850,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\sec^2(x)$",
+      "$\\csc^2(x)$",
+      "$\\sec(x)\\tan(x)$",
+      "$1+\\tan^2(x)$"
+    ],
+    "correct_option": "$\\sec^2(x)$"
+  },
+  {
+    "id": "q27",
+    "content": "Derivada de $\\arcsin(x)$.",
+    "difficulty": 900,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{1}{\\sqrt{1-x^2}}$",
+      "$\\frac{1}{1+x^2}$",
+      "$\\frac{1}{\\sqrt{1+x^2}}$",
+      "$-\\frac{1}{\\sqrt{1-x^2}}$"
+    ],
+    "correct_option": "$\\frac{1}{\\sqrt{1-x^2}}$"
+  },
+  {
+    "id": "q28",
+    "content": "Si $y = x^x$, encuentra $\\frac{dy}{dx}$.",
+    "difficulty": 950,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$x^x(1+\\ln x)$",
+      "$x^x \\ln x$",
+      "$x^x(x-1)$",
+      "$x^{x-1}$"
+    ],
+    "correct_option": "$x^x(1+\\ln x)$"
+  },
+  {
+    "id": "q29",
+    "content": "Usando la definición de derivada, $f'(a) = \\lim_{h \\to 0} \\frac{f(a+h)-f(a)}{h}$, para $f(x)=x^2$, el límite es igual a:",
+    "difficulty": 1000,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$2a$",
+      "$a^2$",
+      "$2a+h$",
+      "$a$"
+    ],
+    "correct_option": "$2a$"
+  },
+  {
+    "id": "q30",
+    "content": "Halla la ecuación de la recta tangente a $y=x^2$ en $x=1$.",
+    "difficulty": 1050,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$y=2x-1$",
+      "$y=2x+1$",
+      "$y=x-1$",
+      "$y=2x$"
+    ],
+    "correct_option": "$y=2x-1$"
+  },
+  {
+    "id": "q31",
+    "content": "Usa diferenciación implícita: $x^2+y^2=1$, encuentra $\\frac{dy}{dx}$.",
+    "difficulty": 1100,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$-\\frac{x}{y}$",
+      "$\\frac{x}{y}$",
+      "$\\frac{y}{x}$",
+      "$-\\frac{y}{x}$"
+    ],
+    "correct_option": "$-\\frac{x}{y}$"
+  },
+  {
+    "id": "q32",
+    "content": "Determina los puntos críticos de $f(x) = x^{3} - 3x$.",
+    "difficulty": 1150,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "x=1 y x=-1",
+      "x=0 y x=1",
+      "x=0 y x=-1",
+      "x=1 y x=0"
+    ],
+    "correct_option": "x=1 y x=-1"
+  },
+  {
+    "id": "q33",
+    "content": "Teorema del valor medio: Si f es continua en [a,b] y diferenciable en (a,b), entonces existe c en (a,b) tal que:",
+    "difficulty": 1200,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "f'(c) = (f(b)-f(a))/(b-a)",
+      "f(c) = (f(b)-f(a))/(b-a)",
+      "f'(c) = f(b)-f(a)",
+      "f(c) = f'(c)"
+    ],
+    "correct_option": "f'(c) = (f(b)-f(a))/(b-a)"
+  },
+  {
+    "id": "q34",
+    "content": "Expansión en serie de Taylor de $e^{x}$ alrededor de x=0.",
+    "difficulty": 1250,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\sum \\frac{x^{n}}{n!}$",
+      "∑ $x^{n}$",
+      "∑ $x^{n}$/n",
+      "∑ n! $x^{n}$"
+    ],
+    "correct_option": "$\\sum \\frac{x^{n}}{n!}$"
+  },
+  {
+    "id": "q35",
+    "content": "Para f(x)=$x^{2}$, la segunda derivada es:",
+    "difficulty": 1300,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "2",
+      "2x",
+      "0",
+      "1"
+    ],
+    "correct_option": "2"
+  },
+  {
+    "id": "q36",
+    "content": "Regla de L'Hôpital: límite cuando x→0 de $\\frac{\\sin(x)}{x}$.",
+    "difficulty": 1350,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "1",
+      "0",
+      "∞",
+      "No existe"
+    ],
+    "correct_option": "1"
+  },
+  {
+    "id": "q37",
+    "content": "Halla el valor máximo de $f(x) = -x^{2} + 4x$ en el intervalo [0,3].",
+    "difficulty": 1400,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "4",
+      "3",
+      "0",
+      "5"
+    ],
+    "correct_option": "4"
+  },
+  {
+    "id": "q38",
+    "content": "Si g es la función inversa de f, entonces g'(x) es igual a:",
+    "difficulty": 1450,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "1/f'(g(x))",
+      "f'(g(x))",
+      "1/f'(x)",
+      "f'(x)"
+    ],
+    "correct_option": "1/f'(g(x))"
+  },
+  {
+    "id": "q39",
+    "content": "¿Es f(x)=|x| diferenciable en x=0?",
+    "difficulty": 1500,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "No",
+      "Sí",
+      "Solo la derivada por la izquierda existe",
+      "Solo la derivada por la derecha existe"
+    ],
+    "correct_option": "No"
+  },
+  {
+    "id": "q40",
+    "content": "Derivada de orden n de $x^{n}$ (para n entero) es:",
+    "difficulty": 1550,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "n!",
+      "n",
+      "n! * x",
+      "0"
+    ],
+    "correct_option": "n!"
+  },
+  {
+    "id": "cd_q41",
+    "content": "¿Cuál de las siguientes es una función par?",
+    "difficulty": 600,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$f(x) = x^2$",
+      "$f(x) = x^3$",
+      "$f(x) = x$",
+      "$f(x) = \\sin(x)$"
+    ],
+    "correct_option": "$f(x) = x^2$"
+  },
+  {
+    "id": "cd_q42",
+    "content": "¿Cuál de las siguientes es una función impar?",
+    "difficulty": 620,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$f(x) = x^3$",
+      "$f(x) = x^2$",
+      "$f(x) = |x|$",
+      "$f(x) = \\cos(x)$"
+    ],
+    "correct_option": "$f(x) = x^3$"
+  },
+  {
+    "id": "cd_q43",
+    "content": "Si $f(x) = 2x + 1$ y $g(x) = x^2$, entonces $(f \\circ g)(x)$ es:",
+    "difficulty": 680,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$2x^2 + 1$",
+      "$(2x+1)^2$",
+      "$2x^2$",
+      "$4x^2 + 1$"
+    ],
+    "correct_option": "$2x^2 + 1$"
+  },
+  {
+    "id": "cd_q44",
+    "content": "Si $f(x) = 2x + 1$ y $g(x) = x^2$, entonces $(g \\circ f)(x)$ es:",
+    "difficulty": 700,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$(2x+1)^2$",
+      "$2x^2 + 1$",
+      "$4x^2 + 4x + 1$",
+      "$2x^2$"
+    ],
+    "correct_option": "$(2x+1)^2$"
+  },
+  {
+    "id": "cd_q45",
+    "content": "La función $f(x) = \\sqrt{x}$ es de tipo:",
+    "difficulty": 620,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "Algebraica irracional",
+      "Trascendente",
+      "Polinómica",
+      "Racional"
+    ],
+    "correct_option": "Algebraica irracional"
+  },
+  {
+    "id": "cd_q46",
+    "content": "¿Cuál es la inversa de $f(x) = 3x - 2$?",
+    "difficulty": 700,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$f^{-1}(x) = \\frac{x+2}{3}$",
+      "$f^{-1}(x) = \\frac{x-2}{3}$",
+      "$f^{-1}(x) = 3x + 2$",
+      "$f^{-1}(x) = \\frac{x}{3} + 2$"
+    ],
+    "correct_option": "$f^{-1}(x) = \\frac{x+2}{3}$"
+  },
+  {
+    "id": "cd_q47",
+    "content": "Si $f(x) = \\frac{1}{x-2}$, ¿cuál es la asíntota vertical?",
+    "difficulty": 660,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$x = 2$",
+      "$x = 0$",
+      "$x = -2$",
+      "No tiene"
+    ],
+    "correct_option": "$x = 2$"
+  },
+  {
+    "id": "cd_q48",
+    "content": "La función $f(x) = a^x$ con $a > 0$ y $a \\neq 1$ es de tipo:",
+    "difficulty": 640,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "Exponencial",
+      "Logarítmica",
+      "Potencia",
+      "Polinómica"
+    ],
+    "correct_option": "Exponencial"
+  },
+  {
+    "id": "cd_q49",
+    "content": "¿Cuánto vale $f(g(2))$ si $f(x) = x + 1$ y $g(x) = x^2 - 1$?",
+    "difficulty": 650,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$4$",
+      "$3$",
+      "$5$",
+      "$8$"
+    ],
+    "correct_option": "$4$"
+  },
+  {
+    "id": "cd_q50",
+    "content": "La función $f(x) = \\lfloor x \\rfloor$ (parte entera o piso) es:",
+    "difficulty": 720,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "Escalonada",
+      "Continua",
+      "Diferenciable en todo punto",
+      "Biyectiva"
+    ],
+    "correct_option": "Escalonada"
+  },
+  {
+    "id": "cd_q51",
+    "content": "Si $f(x) = \\ln(x)$ y $g(x) = e^x$, entonces $(f \\circ g)(x)$ es:",
+    "difficulty": 680,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$x$",
+      "$e^{\\ln(x)}$",
+      "$\\ln(x) \\cdot e^x$",
+      "$e^x + \\ln(x)$"
+    ],
+    "correct_option": "$x$"
+  },
+  {
+    "id": "cd_q52",
+    "content": "Una función $f$ es inyectiva si y solo si:",
+    "difficulty": 780,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$f(a) = f(b) \\Rightarrow a = b$",
+      "$a = b \\Rightarrow f(a) = f(b)$",
+      "Toda recta horizontal corta la gráfica al menos una vez",
+      "$f$ es continua"
+    ],
+    "correct_option": "$f(a) = f(b) \\Rightarrow a = b$"
+  },
+  {
+    "id": "cd_q53",
+    "content": "La gráfica de $f(x) = (x-3)^2 + 1$ es una parábola con vértice en:",
+    "difficulty": 660,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$(3, 1)$",
+      "$(1, 3)$",
+      "$(-3, 1)$",
+      "$(3, -1)$"
+    ],
+    "correct_option": "$(3, 1)$"
+  },
+  {
+    "id": "cd_q54",
+    "content": "¿Cuál es la asíntota horizontal de $f(x) = \\frac{2x}{x+1}$?",
+    "difficulty": 750,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$y = 2$",
+      "$y = 1$",
+      "$y = 0$",
+      "No tiene"
+    ],
+    "correct_option": "$y = 2$"
+  },
+  {
+    "id": "cd_q55",
+    "content": "La función $f(x) = \\frac{x^2 - 1}{x - 1}$ simplificada para $x \\neq 1$ es:",
+    "difficulty": 680,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$x + 1$",
+      "$x - 1$",
+      "$x^2$",
+      "$1$"
+    ],
+    "correct_option": "$x + 1$"
+  },
+  {
+    "id": "cd_q56",
+    "content": "El dominio de $f(x) = \\sqrt{x - 3}$ es:",
+    "difficulty": 620,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$[3, \\infty)$",
+      "$(3, \\infty)$",
+      "$(-\\infty, 3]$",
+      "$\\mathbb{R}$"
+    ],
+    "correct_option": "$[3, \\infty)$"
+  },
+  {
+    "id": "cd_q57",
+    "content": "El dominio de $f(x) = \\ln(x - 1)$ es:",
+    "difficulty": 680,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$(1, \\infty)$",
+      "$[1, \\infty)$",
+      "$(0, \\infty)$",
+      "$\\mathbb{R}$"
+    ],
+    "correct_option": "$(1, \\infty)$"
+  },
+  {
+    "id": "cd_q58",
+    "content": "El rango de $f(x) = x^2$ es:",
+    "difficulty": 600,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$[0, \\infty)$",
+      "$\\mathbb{R}$",
+      "$(0, \\infty)$",
+      "$(-\\infty, 0]$"
+    ],
+    "correct_option": "$[0, \\infty)$"
+  },
+  {
+    "id": "cd_q59",
+    "content": "El dominio de $f(x) = \\frac{1}{x^2 - 4}$ es:",
+    "difficulty": 720,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\mathbb{R} \\setminus \\{-2, 2\\}$",
+      "$\\mathbb{R} \\setminus \\{2\\}$",
+      "$\\mathbb{R}$",
+      "$(-2, 2)$"
+    ],
+    "correct_option": "$\\mathbb{R} \\setminus \\{-2, 2\\}$"
+  },
+  {
+    "id": "cd_q60",
+    "content": "El rango de $f(x) = e^x$ es:",
+    "difficulty": 660,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$(0, \\infty)$",
+      "$\\mathbb{R}$",
+      "$[0, \\infty)$",
+      "$[1, \\infty)$"
+    ],
+    "correct_option": "$(0, \\infty)$"
+  },
+  {
+    "id": "cd_q61",
+    "content": "El dominio de $f(x) = \\sqrt{4 - x^2}$ es:",
+    "difficulty": 740,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$[-2, 2]$",
+      "$(-2, 2)$",
+      "$[0, 2]$",
+      "$\\mathbb{R}$"
+    ],
+    "correct_option": "$[-2, 2]$"
+  },
+  {
+    "id": "cd_q62",
+    "content": "El rango de $f(x) = \\sin(x)$ es:",
+    "difficulty": 620,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$[-1, 1]$",
+      "$[0, 1]$",
+      "$\\mathbb{R}$",
+      "$(-1, 1)$"
+    ],
+    "correct_option": "$[-1, 1]$"
+  },
+  {
+    "id": "cd_q63",
+    "content": "El dominio de $f(x) = \\arcsin(x)$ es:",
+    "difficulty": 750,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$[-1, 1]$",
+      "$\\mathbb{R}$",
+      "$[0, \\pi]$",
+      "$(-\\infty, 1]$"
+    ],
+    "correct_option": "$[-1, 1]$"
+  },
+  {
+    "id": "cd_q64",
+    "content": "El rango de $f(x) = \\arctan(x)$ es:",
+    "difficulty": 800,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\left(-\\frac{\\pi}{2}, \\frac{\\pi}{2}\\right)$",
+      "$\\left[-\\frac{\\pi}{2}, \\frac{\\pi}{2}\\right]$",
+      "$\\mathbb{R}$",
+      "$[0, \\pi]$"
+    ],
+    "correct_option": "$\\left(-\\frac{\\pi}{2}, \\frac{\\pi}{2}\\right)$"
+  },
+  {
+    "id": "cd_q65",
+    "content": "El dominio de $f(x) = \\frac{\\sqrt{x}}{x - 1}$ es:",
+    "difficulty": 820,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$[0, 1) \\cup (1, \\infty)$",
+      "$(0, \\infty)$",
+      "$[0, \\infty)$",
+      "$\\mathbb{R} \\setminus \\{1\\}$"
+    ],
+    "correct_option": "$[0, 1) \\cup (1, \\infty)$"
+  },
+  {
+    "id": "cd_q66",
+    "content": "El rango de $f(x) = |x - 2| + 3$ es:",
+    "difficulty": 700,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$[3, \\infty)$",
+      "$[2, \\infty)$",
+      "$\\mathbb{R}$",
+      "$(3, \\infty)$"
+    ],
+    "correct_option": "$[3, \\infty)$"
+  },
+  {
+    "id": "cd_q67",
+    "content": "El dominio de $f(x) = \\log_2(x^2 - 9)$ es:",
+    "difficulty": 860,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$(-\\infty, -3) \\cup (3, \\infty)$",
+      "$(-3, 3)$",
+      "$(3, \\infty)$",
+      "$\\mathbb{R} \\setminus \\{-3, 3\\}$"
+    ],
+    "correct_option": "$(-\\infty, -3) \\cup (3, \\infty)$"
+  },
+  {
+    "id": "cd_q68",
+    "content": "$\\lim_{x \\to 2} (3x + 1) =$",
+    "difficulty": 600,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$7$",
+      "$6$",
+      "$5$",
+      "$8$"
+    ],
+    "correct_option": "$7$"
+  },
+  {
+    "id": "cd_q69",
+    "content": "$\\lim_{x \\to 0} \\frac{x^2 + x}{x} =$",
+    "difficulty": 650,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$1$",
+      "$0$",
+      "$\\infty$",
+      "No existe"
+    ],
+    "correct_option": "$1$"
+  },
+  {
+    "id": "cd_q70",
+    "content": "$\\lim_{x \\to \\infty} \\frac{3x^2 + 1}{x^2 - 2} =$",
+    "difficulty": 750,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$3$",
+      "$1$",
+      "$\\infty$",
+      "$0$"
+    ],
+    "correct_option": "$3$"
+  },
+  {
+    "id": "cd_q71",
+    "content": "$\\lim_{x \\to 0} \\frac{\\tan(x)}{x} =$",
+    "difficulty": 800,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$1$",
+      "$0$",
+      "$\\infty$",
+      "No existe"
+    ],
+    "correct_option": "$1$"
+  },
+  {
+    "id": "cd_q72",
+    "content": "$\\lim_{x \\to \\infty} \\left(1 + \\frac{1}{x}\\right)^x =$",
+    "difficulty": 900,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$e$",
+      "$1$",
+      "$\\infty$",
+      "$0$"
+    ],
+    "correct_option": "$e$"
+  },
+  {
+    "id": "cd_q73",
+    "content": "$\\lim_{x \\to 0^+} \\ln(x) =$",
+    "difficulty": 700,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$-\\infty$",
+      "$0$",
+      "$1$",
+      "$\\infty$"
+    ],
+    "correct_option": "$-\\infty$"
+  },
+  {
+    "id": "cd_q74",
+    "content": "$\\lim_{x \\to 0} \\frac{e^x - 1}{x} =$",
+    "difficulty": 850,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$1$",
+      "$e$",
+      "$0$",
+      "$\\infty$"
+    ],
+    "correct_option": "$1$"
+  },
+  {
+    "id": "cd_q75",
+    "content": "$\\lim_{x \\to 0} \\frac{1 - \\cos(x)}{x^2} =$",
+    "difficulty": 950,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{1}{2}$",
+      "$1$",
+      "$0$",
+      "$\\infty$"
+    ],
+    "correct_option": "$\\frac{1}{2}$"
+  },
+  {
+    "id": "cd_q76",
+    "content": "$\\lim_{x \\to 3} \\frac{x^2 - 9}{x - 3} =$",
+    "difficulty": 680,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$6$",
+      "$3$",
+      "$0$",
+      "$9$"
+    ],
+    "correct_option": "$6$"
+  },
+  {
+    "id": "cd_q77",
+    "content": "$\\lim_{x \\to \\infty} \\frac{5x^3 - x}{2x^3 + 3} =$",
+    "difficulty": 780,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{5}{2}$",
+      "$5$",
+      "$\\infty$",
+      "$0$"
+    ],
+    "correct_option": "$\\frac{5}{2}$"
+  },
+  {
+    "id": "cd_q78",
+    "content": "$\\lim_{x \\to 0} \\frac{\\sin(3x)}{x} =$",
+    "difficulty": 820,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$3$",
+      "$1$",
+      "$0$",
+      "$\\frac{1}{3}$"
+    ],
+    "correct_option": "$3$"
+  },
+  {
+    "id": "cd_q79",
+    "content": "$\\lim_{x \\to 0^+} x \\ln(x) =$",
+    "difficulty": 1000,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$0$",
+      "$-\\infty$",
+      "$1$",
+      "No existe"
+    ],
+    "correct_option": "$0$"
+  },
+  {
+    "id": "cd_q80",
+    "content": "$\\lim_{x \\to \\infty} \\frac{\\ln(x)}{x} =$",
+    "difficulty": 880,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$0$",
+      "$1$",
+      "$\\infty$",
+      "No existe"
+    ],
+    "correct_option": "$0$"
+  },
+  {
+    "id": "q81",
+    "content": "Si $\\lim_{x \\to a} f(x) = L$ y $\\lim_{x \\to a} g(x) = M$ con $M \\neq 0$, entonces $\\lim_{x \\to a} \\frac{f(x)}{g(x)} =$",
+    "difficulty": 720,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{L}{M}$",
+      "$L \\cdot M$",
+      "$L - M$",
+      "$\\frac{M}{L}$"
+    ],
+    "correct_option": "$\\frac{L}{M}$"
+  },
+  {
+    "id": "q82",
+    "content": "$\\lim_{x \\to 0} \\frac{\\sin(x) - x}{x^3} =$",
+    "difficulty": 1100,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$-\\frac{1}{6}$",
+      "$0$",
+      "$\\frac{1}{6}$",
+      "$-1$"
+    ],
+    "correct_option": "$-\\frac{1}{6}$"
+  },
+  {
+    "id": "q83",
+    "content": "El límite $\\lim_{x \\to 0} \\frac{|x|}{x}$:",
+    "difficulty": 780,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "No existe",
+      "$1$",
+      "$-1$",
+      "$0$"
+    ],
+    "correct_option": "No existe"
+  },
+  {
+    "id": "q84",
+    "content": "$\\lim_{x \\to \\infty} \\frac{2x + 1}{x^2} =$",
+    "difficulty": 700,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$0$",
+      "$2$",
+      "$\\infty$",
+      "$1$"
+    ],
+    "correct_option": "$0$"
+  },
+  {
+    "id": "q85",
+    "content": "$\\lim_{x \\to 0} \\frac{\\arctan(x)}{x} =$",
+    "difficulty": 870,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$1$",
+      "$0$",
+      "$\\frac{\\pi}{2}$",
+      "$\\infty$"
+    ],
+    "correct_option": "$1$"
+  },
+  {
+    "id": "q86",
+    "content": "Una función $f$ es continua en $x = a$ si se cumplen tres condiciones: $f(a)$ existe, $\\lim_{x \\to a} f(x)$ existe, y:",
+    "difficulty": 750,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\lim_{x \\to a} f(x) = f(a)$",
+      "$f'(a)$ existe",
+      "$f$ es diferenciable en $a$",
+      "$f(a) > 0$"
+    ],
+    "correct_option": "$\\lim_{x \\to a} f(x) = f(a)$"
+  },
+  {
+    "id": "q87",
+    "content": "La función $f(x) = \\frac{x^2 - 4}{x - 2}$ tiene una discontinuidad en $x = 2$ de tipo:",
+    "difficulty": 820,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "Removible",
+      "De salto",
+      "Esencial",
+      "No tiene discontinuidad"
+    ],
+    "correct_option": "Removible"
+  },
+  {
+    "id": "q88",
+    "content": "El Teorema del Valor Intermedio establece que si $f$ es continua en $[a,b]$ y $N$ está entre $f(a)$ y $f(b)$, entonces:",
+    "difficulty": 900,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "Existe $c \\in (a,b)$ tal que $f(c) = N$",
+      "Existe $c \\in (a,b)$ tal que $f'(c) = N$",
+      "$f$ tiene un máximo en $(a,b)$",
+      "$f$ es diferenciable en $(a,b)$"
+    ],
+    "correct_option": "Existe $c \\in (a,b)$ tal que $f(c) = N$"
+  },
+  {
+    "id": "q89",
+    "content": "$f(x) = \\begin{cases} x^2 & \\text{si } x \\leq 1 \\\\ 2x - 1 & \\text{si } x > 1 \\end{cases}$ ¿Es continua en $x=1$?",
+    "difficulty": 850,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "Sí",
+      "No",
+      "Solo por la izquierda",
+      "Solo por la derecha"
+    ],
+    "correct_option": "Sí"
+  },
+  {
+    "id": "q90",
+    "content": "Toda función diferenciable en un punto es:",
+    "difficulty": 800,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "Continua en ese punto",
+      "Integrable en ese punto",
+      "Acotada globalmente",
+      "Derivable de todo orden"
+    ],
+    "correct_option": "Continua en ese punto"
+  },
+  {
+    "id": "q91",
+    "content": "¿Es cierto que toda función continua es diferenciable?",
+    "difficulty": 780,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "No",
+      "Sí",
+      "Solo para polinomios",
+      "Solo en intervalos abiertos"
+    ],
+    "correct_option": "No"
+  },
+  {
+    "id": "q92",
+    "content": "La función $f(x) = \\frac{1}{x}$ es continua en:",
+    "difficulty": 700,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\mathbb{R} \\setminus \\{0\\}$",
+      "$\\mathbb{R}$",
+      "$(0, \\infty)$",
+      "Ningún punto"
+    ],
+    "correct_option": "$\\mathbb{R} \\setminus \\{0\\}$"
+  },
+  {
+    "id": "q93",
+    "content": "Si $f$ y $g$ son continuas en $x = a$, entonces $f \\cdot g$ es:",
+    "difficulty": 720,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "Continua en $x = a$",
+      "Diferenciable en $x = a$",
+      "Discontinua en $x = a$",
+      "No se puede determinar"
+    ],
+    "correct_option": "Continua en $x = a$"
+  },
+  {
+    "id": "q94",
+    "content": "Derivada de $\\cos(x)$.",
+    "difficulty": 650,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$-\\sin(x)$",
+      "$\\sin(x)$",
+      "$-\\cos(x)$",
+      "$\\sec^2(x)$"
+    ],
+    "correct_option": "$-\\sin(x)$"
+  },
+  {
+    "id": "q95",
+    "content": "Derivada de $\\cot(x)$.",
+    "difficulty": 850,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$-\\csc^2(x)$",
+      "$\\csc^2(x)$",
+      "$-\\sec^2(x)$",
+      "$\\tan^2(x)$"
+    ],
+    "correct_option": "$-\\csc^2(x)$"
+  },
+  {
+    "id": "q96",
+    "content": "Derivada de $\\sec(x)$.",
+    "difficulty": 870,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\sec(x)\\tan(x)$",
+      "$\\sec^2(x)$",
+      "$-\\csc(x)\\cot(x)$",
+      "$\\tan(x)$"
+    ],
+    "correct_option": "$\\sec(x)\\tan(x)$"
+  },
+  {
+    "id": "q97",
+    "content": "Derivada de $\\csc(x)$.",
+    "difficulty": 880,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$-\\csc(x)\\cot(x)$",
+      "$\\csc(x)\\cot(x)$",
+      "$-\\sec(x)\\tan(x)$",
+      "$\\csc^2(x)$"
+    ],
+    "correct_option": "$-\\csc(x)\\cot(x)$"
+  },
+  {
+    "id": "q98",
+    "content": "La regla del cociente establece que $\\left(\\frac{f}{g}\\right)' =$",
+    "difficulty": 850,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{f'g - fg'}{g^2}$",
+      "$\\frac{f'g + fg'}{g^2}$",
+      "$\\frac{f'}{g'}$",
+      "$\\frac{fg' - f'g}{g^2}$"
+    ],
+    "correct_option": "$\\frac{f'g - fg'}{g^2}$"
+  },
+  {
+    "id": "q99",
+    "content": "Si $y = \\sin(3x^2)$, entonces $\\frac{dy}{dx} =$",
+    "difficulty": 900,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$6x\\cos(3x^2)$",
+      "$\\cos(3x^2)$",
+      "$3x^2\\cos(3x^2)$",
+      "$6x\\sin(3x^2)$"
+    ],
+    "correct_option": "$6x\\cos(3x^2)$"
+  },
+  {
+    "id": "q100",
+    "content": "Derivada de $e^{5x}$.",
+    "difficulty": 750,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$5e^{5x}$",
+      "$e^{5x}$",
+      "$5xe^{5x}$",
+      "$e^{5x+1}$"
+    ],
+    "correct_option": "$5e^{5x}$"
+  },
+  {
+    "id": "q101",
+    "content": "Derivada de $\\ln(x^2 + 1)$.",
+    "difficulty": 850,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{2x}{x^2+1}$",
+      "$\\frac{1}{x^2+1}$",
+      "$\\frac{2x}{x^2}$",
+      "$\\ln(2x)$"
+    ],
+    "correct_option": "$\\frac{2x}{x^2+1}$"
+  },
+  {
+    "id": "q102",
+    "content": "Si $y = (2x+1)^5$, entonces $\\frac{dy}{dx} =$",
+    "difficulty": 820,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$10(2x+1)^4$",
+      "$5(2x+1)^4$",
+      "$10x(2x+1)^4$",
+      "$(2x+1)^4$"
+    ],
+    "correct_option": "$10(2x+1)^4$"
+  },
+  {
+    "id": "q103",
+    "content": "Derivada de $\\arctan(x)$.",
+    "difficulty": 880,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{1}{1+x^2}$",
+      "$\\frac{1}{\\sqrt{1-x^2}}$",
+      "$-\\frac{1}{1+x^2}$",
+      "$\\frac{x}{1+x^2}$"
+    ],
+    "correct_option": "$\\frac{1}{1+x^2}$"
+  },
+  {
+    "id": "q104",
+    "content": "Si $y = \\sqrt{x^2 + 4}$, entonces $\\frac{dy}{dx} =$",
+    "difficulty": 880,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{x}{\\sqrt{x^2+4}}$",
+      "$\\frac{1}{2\\sqrt{x^2+4}}$",
+      "$\\frac{2x}{\\sqrt{x^2+4}}$",
+      "$\\sqrt{2x}$"
+    ],
+    "correct_option": "$\\frac{x}{\\sqrt{x^2+4}}$"
+  },
+  {
+    "id": "q105",
+    "content": "Derivada de $x \\cdot e^x$.",
+    "difficulty": 800,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$(1+x)e^x$",
+      "$xe^x$",
+      "$e^x$",
+      "$(x-1)e^x$"
+    ],
+    "correct_option": "$(1+x)e^x$"
+  },
+  {
+    "id": "q106",
+    "content": "Si $x^3 + y^3 = 6xy$, usando diferenciación implícita, $\\frac{dy}{dx} =$",
+    "difficulty": 1200,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{6y - 3x^2}{3y^2 - 6x}$",
+      "$\\frac{3x^2}{3y^2}$",
+      "$\\frac{x^2 - 2y}{2x - y^2}$",
+      "$\\frac{6y + 3x^2}{3y^2 + 6x}$"
+    ],
+    "correct_option": "$\\frac{6y - 3x^2}{3y^2 - 6x}$"
+  },
+  {
+    "id": "q107",
+    "content": "Si $y = \\log_{10}(x)$, entonces $\\frac{dy}{dx} =$",
+    "difficulty": 820,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{1}{x \\ln(10)}$",
+      "$\\frac{1}{x}$",
+      "$\\frac{\\ln(10)}{x}$",
+      "$\\frac{10}{x}$"
+    ],
+    "correct_option": "$\\frac{1}{x \\ln(10)}$"
+  },
+  {
+    "id": "q108",
+    "content": "Derivada de $\\sinh(x) = \\frac{e^x - e^{-x}}{2}$.",
+    "difficulty": 950,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\cosh(x)$",
+      "$-\\cosh(x)$",
+      "$\\sinh(x)$",
+      "$\\text{sech}^2(x)$"
+    ],
+    "correct_option": "$\\cosh(x)$"
+  },
+  {
+    "id": "q109",
+    "content": "Si $y = x^{\\sin(x)}$, usando diferenciación logarítmica, $\\frac{dy}{dx} =$",
+    "difficulty": 1300,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$x^{\\sin(x)}\\left(\\cos(x)\\ln(x) + \\frac{\\sin(x)}{x}\\right)$",
+      "$x^{\\sin(x)}\\cos(x)$",
+      "$\\sin(x) \\cdot x^{\\sin(x)-1}$",
+      "$x^{\\sin(x)} \\ln(\\sin(x))$"
+    ],
+    "correct_option": "$x^{\\sin(x)}\\left(\\cos(x)\\ln(x) + \\frac{\\sin(x)}{x}\\right)$"
+  },
+  {
+    "id": "q110",
+    "content": "La tercera derivada de $f(x) = x^4$ es:",
+    "difficulty": 750,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$24x$",
+      "$12x^2$",
+      "$4x^3$",
+      "$24$"
+    ],
+    "correct_option": "$24x$"
+  },
+  {
+    "id": "q111",
+    "content": "Derivada de $\\frac{\\sin(x)}{x}$.",
+    "difficulty": 920,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{x\\cos(x) - \\sin(x)}{x^2}$",
+      "$\\frac{\\cos(x)}{x}$",
+      "$\\frac{\\cos(x) - \\sin(x)}{x}$",
+      "$\\cos(x) \\cdot \\ln(x)$"
+    ],
+    "correct_option": "$\\frac{x\\cos(x) - \\sin(x)}{x^2}$"
+  },
+  {
+    "id": "q112",
+    "content": "Si $y = e^{x^2}$, entonces $\\frac{dy}{dx} =$",
+    "difficulty": 830,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$2xe^{x^2}$",
+      "$e^{x^2}$",
+      "$x^2 e^{x^2}$",
+      "$2e^{x^2}$"
+    ],
+    "correct_option": "$2xe^{x^2}$"
+  },
+  {
+    "id": "q113",
+    "content": "Si $f(x) = \\tan^{-1}(e^x)$, entonces $f'(x) =$",
+    "difficulty": 1050,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{e^x}{1 + e^{2x}}$",
+      "$\\frac{1}{1 + e^{2x}}$",
+      "$\\frac{e^x}{1 + e^x}$",
+      "$\\frac{1}{e^x(1+e^{2x})}$"
+    ],
+    "correct_option": "$\\frac{e^x}{1 + e^{2x}}$"
+  },
+  {
+    "id": "q114",
+    "content": "Un globo esférico se infla a razón de $10 \\text{ cm}^3/\\text{s}$. ¿A qué tasa cambia el radio cuando $r = 5$ cm? ($V = \\frac{4}{3}\\pi r^3$)",
+    "difficulty": 1150,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{1}{10\\pi}$ cm/s",
+      "$\\frac{10}{\\pi}$ cm/s",
+      "$\\frac{2}{5\\pi}$ cm/s",
+      "$\\frac{1}{5\\pi}$ cm/s"
+    ],
+    "correct_option": "$\\frac{1}{10\\pi}$ cm/s"
+  },
+  {
+    "id": "q115",
+    "content": "La velocidad instantánea de un objeto con posición $s(t) = 3t^2 - 2t + 1$ en $t = 2$ es:",
+    "difficulty": 800,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$10$",
+      "$12$",
+      "$8$",
+      "$9$"
+    ],
+    "correct_option": "$10$"
+  },
+  {
+    "id": "q116",
+    "content": "La aceleración de un objeto con posición $s(t) = t^3 - 6t^2 + 9t$ es:",
+    "difficulty": 900,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$6t - 12$",
+      "$3t^2 - 12t + 9$",
+      "$6t$",
+      "$3t - 6$"
+    ],
+    "correct_option": "$6t - 12$"
+  },
+  {
+    "id": "q117",
+    "content": "Una escalera de 10 m está apoyada en una pared. La base se desliza a 1 m/s. ¿A qué tasa baja la parte superior cuando la base está a 6 m de la pared?",
+    "difficulty": 1250,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$-\\frac{3}{4}$ m/s",
+      "$-\\frac{4}{3}$ m/s",
+      "$-1$ m/s",
+      "$-\\frac{6}{8}$ m/s"
+    ],
+    "correct_option": "$-\\frac{3}{4}$ m/s"
+  },
+  {
+    "id": "q118",
+    "content": "Si el área de un círculo crece a $6$ cm$^2$/s, ¿a qué tasa crece el radio cuando $r = 3$ cm?",
+    "difficulty": 1100,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{1}{\\pi}$ cm/s",
+      "$\\frac{3}{\\pi}$ cm/s",
+      "$\\frac{6}{\\pi}$ cm/s",
+      "$\\pi$ cm/s"
+    ],
+    "correct_option": "$\\frac{1}{\\pi}$ cm/s"
+  },
+  {
+    "id": "q119",
+    "content": "La tasa de cambio promedio de $f(x) = x^3$ en el intervalo $[1, 3]$ es:",
+    "difficulty": 750,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$13$",
+      "$9$",
+      "$26$",
+      "$27$"
+    ],
+    "correct_option": "$13$"
+  },
+  {
+    "id": "q120",
+    "content": "Un cono tiene radio y altura proporcionales ($r = h/2$). Si el volumen crece a $5$ cm$^3$/s, ¿cuánto crece $h$ cuando $h = 4$? ($V = \\frac{1}{3}\\pi r^2 h$)",
+    "difficulty": 1350,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{5}{4\\pi}$ cm/s",
+      "$\\frac{15}{4\\pi}$ cm/s",
+      "$\\frac{5}{\\pi}$ cm/s",
+      "$\\frac{1}{4\\pi}$ cm/s"
+    ],
+    "correct_option": "$\\frac{5}{4\\pi}$ cm/s"
+  },
+  {
+    "id": "q121",
+    "content": "Si $C(x) = 500 + 10x + 0.01x^2$ es la función de costo, el costo marginal cuando $x = 100$ es:",
+    "difficulty": 950,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$12$",
+      "$10$",
+      "$500$",
+      "$20$"
+    ],
+    "correct_option": "$12$"
+  },
+  {
+    "id": "q122",
+    "content": "La derivada de $f(x) = x^2$ representa geométricamente:",
+    "difficulty": 700,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "La pendiente de la recta tangente a la curva",
+      "El área bajo la curva",
+      "La longitud de arco",
+      "La concavidad"
+    ],
+    "correct_option": "La pendiente de la recta tangente a la curva"
+  },
+  {
+    "id": "q123",
+    "content": "Dos autos parten del mismo punto: uno va al norte a 60 km/h y otro al este a 80 km/h. ¿A qué tasa se separan después de 2 horas?",
+    "difficulty": 1300,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$100$ km/h",
+      "$140$ km/h",
+      "$200$ km/h",
+      "$70$ km/h"
+    ],
+    "correct_option": "$100$ km/h"
+  },
+  {
+    "id": "q124",
+    "content": "La elasticidad precio de la demanda se define como:",
+    "difficulty": 1050,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\frac{p}{q} \\cdot \\frac{dq}{dp}$",
+      "$\\frac{dq}{dp}$",
+      "$\\frac{dp}{dq}$",
+      "$p \\cdot q$"
+    ],
+    "correct_option": "$\\frac{p}{q} \\cdot \\frac{dq}{dp}$"
+  },
+  {
+    "id": "q125",
+    "content": "Si la posición de una partícula es $s(t) = \\sin(\\pi t)$, su velocidad en $t = \\frac{1}{2}$ es:",
+    "difficulty": 900,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$0$",
+      "$\\pi$",
+      "$1$",
+      "$-\\pi$"
+    ],
+    "correct_option": "$0$"
+  },
+  {
+    "id": "q126",
+    "content": "Halla dos números positivos cuya suma es 20 y cuyo producto es máximo.",
+    "difficulty": 1000,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$10$ y $10$",
+      "$5$ y $15$",
+      "$1$ y $19$",
+      "$8$ y $12$"
+    ],
+    "correct_option": "$10$ y $10$"
+  },
+  {
+    "id": "q127",
+    "content": "¿Cuáles son las dimensiones del rectángulo de perímetro 40 con área máxima?",
+    "difficulty": 1050,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$10 \\times 10$",
+      "$5 \\times 15$",
+      "$8 \\times 12$",
+      "$20 \\times 0$"
+    ],
+    "correct_option": "$10 \\times 10$"
+  },
+  {
+    "id": "q128",
+    "content": "Halla el punto sobre la curva $y = \\sqrt{x}$ más cercano al punto $(3, 0)$.",
+    "difficulty": 1350,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\left(\\frac{5}{2}, \\sqrt{\\frac{5}{2}}\\right)$",
+      "$(1, 1)$",
+      "$(4, 2)$",
+      "$(3, \\sqrt{3})$"
+    ],
+    "correct_option": "$\\left(\\frac{5}{2}, \\sqrt{\\frac{5}{2}}\\right)$"
+  },
+  {
+    "id": "q129",
+    "content": "El criterio de la segunda derivada establece que si $f'(c) = 0$ y $f''(c) > 0$, entonces $f$ tiene en $c$:",
+    "difficulty": 950,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "Un mínimo local",
+      "Un máximo local",
+      "Un punto de inflexión",
+      "No se puede determinar"
+    ],
+    "correct_option": "Un mínimo local"
+  },
+  {
+    "id": "q130",
+    "content": "Halla el valor máximo absoluto de $f(x) = x^3 - 3x + 2$ en $[-2, 2]$.",
+    "difficulty": 1200,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$4$",
+      "$2$",
+      "$0$",
+      "$6$"
+    ],
+    "correct_option": "$4$"
+  },
+  {
+    "id": "q131",
+    "content": "Un granjero tiene 200 m de cerca para cercar un campo rectangular adyacente a un río (no necesita cerca en ese lado). ¿Cuáles son las dimensiones que maximizan el área?",
+    "difficulty": 1250,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$50 \\times 100$",
+      "$100 \\times 100$",
+      "$25 \\times 150$",
+      "$40 \\times 120$"
+    ],
+    "correct_option": "$50 \\times 100$"
+  },
+  {
+    "id": "q132",
+    "content": "Un punto de inflexión de $f$ es un punto donde:",
+    "difficulty": 900,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$f$ cambia de concavidad",
+      "$f'(x) = 0$",
+      "$f$ alcanza un extremo",
+      "$f$ es discontinua"
+    ],
+    "correct_option": "$f$ cambia de concavidad"
+  },
+  {
+    "id": "q133",
+    "content": "Los puntos de inflexión de $f(x) = x^3 - 3x^2 + 2$ se encuentran donde:",
+    "difficulty": 1100,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$f''(x) = 0$, es decir $x = 1$",
+      "$f'(x) = 0$",
+      "$x = 0$",
+      "$x = 2$"
+    ],
+    "correct_option": "$f''(x) = 0$, es decir $x = 1$"
+  },
+  {
+    "id": "q134",
+    "content": "Se quiere construir una caja sin tapa a partir de una lámina de $12 \\times 12$ cm, recortando cuadrados de lado $x$ en las esquinas. ¿Qué valor de $x$ maximiza el volumen?",
+    "difficulty": 1400,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$2$",
+      "$3$",
+      "$4$",
+      "$1$"
+    ],
+    "correct_option": "$2$"
+  },
+  {
+    "id": "q135",
+    "content": "Si $f'(x) > 0$ en un intervalo, entonces $f$ es:",
+    "difficulty": 700,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "Creciente en ese intervalo",
+      "Decreciente en ese intervalo",
+      "Constante",
+      "Cóncava hacia arriba"
+    ],
+    "correct_option": "Creciente en ese intervalo"
+  },
+  {
+    "id": "q136",
+    "content": "Si $f''(x) < 0$ en un intervalo, entonces la gráfica de $f$ es:",
+    "difficulty": 780,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "Cóncava hacia abajo",
+      "Cóncava hacia arriba",
+      "Creciente",
+      "Decreciente"
+    ],
+    "correct_option": "Cóncava hacia abajo"
+  },
+  {
+    "id": "q137",
+    "content": "Minimizar el costo de una lata cilíndrica de volumen $1000$ cm$^3$. Si el costo del material es uniforme, las dimensiones óptimas satisfacen $r = h/2$ y el radio es:",
+    "difficulty": 1500,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$\\left(\\frac{500}{\\pi}\\right)^{1/3}$ cm",
+      "$\\left(\\frac{1000}{\\pi}\\right)^{1/3}$ cm",
+      "$10$ cm",
+      "$\\frac{10}{\\pi}$ cm"
+    ],
+    "correct_option": "$\\left(\\frac{500}{\\pi}\\right)^{1/3}$ cm"
+  },
+  {
+    "id": "q138",
+    "content": "Halla los intervalos de crecimiento de $f(x) = x^3 - 12x$.",
+    "difficulty": 1050,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$(-\\infty, -2) \\cup (2, \\infty)$",
+      "$(-2, 2)$",
+      "$(0, \\infty)$",
+      "$(-\\infty, 0)$"
+    ],
+    "correct_option": "$(-\\infty, -2) \\cup (2, \\infty)$"
+  },
+  {
+    "id": "q139",
+    "content": "El Teorema de Rolle establece que si $f$ es continua en $[a,b]$, diferenciable en $(a,b)$ y $f(a) = f(b)$, entonces:",
+    "difficulty": 1150,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "Existe $c \\in (a,b)$ con $f'(c) = 0$",
+      "Existe $c \\in (a,b)$ con $f(c) = 0$",
+      "$f$ es constante",
+      "$f'(a) = f'(b)$"
+    ],
+    "correct_option": "Existe $c \\in (a,b)$ con $f'(c) = 0$"
+  },
+  {
+    "id": "q140",
+    "content": "Halla el valor mínimo absoluto de $f(x) = x + \\frac{4}{x}$ para $x > 0$.",
+    "difficulty": 1200,
+    "topic": "Cálculo Diferencial",
+    "options": [
+      "$4$",
+      "$2$",
+      "$5$",
+      "$8$"
+    ],
+    "correct_option": "$4$"
+  }
 ]
