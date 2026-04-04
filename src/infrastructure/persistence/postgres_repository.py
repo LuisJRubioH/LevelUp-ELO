@@ -1875,9 +1875,10 @@ class PostgresRepository:
                 cursor.execute("SELECT id FROM courses")
                 existing_course_ids = {row['id'] for row in cursor.fetchall()}
 
-                # 2. Construir listas de courses e items nuevos
+                # 2. Construir listas de courses e items nuevos, y actualizar image_url de existentes
                 new_courses_params = []
                 new_items_params = []
+                update_image_params = []  # ítems existentes con imagen en JSON pero NULL en DB
 
                 for course_id, items_list in courses_data:
                     course_name = self._COURSE_NAME_MAP.get(course_id) or items_list[0].get('topic', course_id)
@@ -1889,6 +1890,7 @@ class PostgresRepository:
                         )
 
                     for item in items_list:
+                        img = item.get('image_url') or item.get('image_path')
                         if item['id'] not in existing_item_ids:
                             new_items_params.append((
                                 item['id'],
@@ -1898,14 +1900,17 @@ class PostgresRepository:
                                 item['correct_option'],
                                 item['difficulty'],
                                 course_id,
-                                item.get('image_url') or item.get('image_path'),
+                                img,
                             ))
+                        elif img:
+                            # Ítem existente con imagen: actualizar image_url si está en NULL
+                            update_image_params.append((img, item['id']))
 
-                # 3. Si no hay nada nuevo, salir
-                if not new_courses_params and not new_items_params:
+                # 3. Si no hay nada que hacer, salir
+                if not new_courses_params and not new_items_params and not update_image_params:
                     return  # finally blocks devuelven conexión y liberan lock
 
-                # 4. Insertar todo de una sola vez
+                # 4. Insertar/actualizar
                 if new_courses_params:
                     cursor.executemany(
                         "INSERT INTO courses (id, name, block, description) "
@@ -1920,6 +1925,12 @@ class PostgresRepository:
                         VALUES (%s, %s, %s, %s, %s, %s, 350.0, %s, %s)
                         ON CONFLICT (id) DO NOTHING
                     ''', new_items_params)
+
+                if update_image_params:
+                    cursor.executemany(
+                        "UPDATE items SET image_url = %s WHERE id = %s AND image_url IS NULL",
+                        update_image_params
+                    )
 
                 conn.commit()
             except Exception:

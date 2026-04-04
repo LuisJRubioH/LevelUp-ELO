@@ -4,12 +4,7 @@
     "content": "Si $x + \\frac{1}{x} = \\sqrt{22}$, encuentre el valor de $x^2 + \\frac{1}{x^2}$.",
     "difficulty": 1100,
     "topic": "Identidades algebraicas",
-    "options": [
-      "22",
-      "20",
-      "11",
-      "10"
-    ],
+    "options": ["22", "20", "11", "10"],
     "correct_option": "20"
   },
   {
@@ -17,12 +12,7 @@
     "content": "Sea $A_i$ una secuencia tal que $A_1=1$, $A_2=1+3+1$, $A_3=1+3+5+1$, $A_4=1+3+5+7+1$, ... ¿Cuál es el valor de $A_{51}$?",
     "difficulty": 1150,
     "topic": "Sucesiones",
-    "options": [
-      "2501",
-      "2598",
-      "2602",
-      "2701"
-    ],
+    "options": ["2501", "2598", "2602", "2701"],
     "correct_option": "2602"
   },
   {
@@ -30,12 +20,467 @@
     "content": "Dado que $x=2$, $y=1$ es la solución al sistema $\\begin{cases} ax+by=7 \\\\ bx+cy=5 \\end{cases}$, entonces la relación entre $a$ y $c$ es:",
     "difficulty": 1100,
     "topic": "Sistemas de ecuaciones",
-    "options": [
-      "$4a+c=9$",
-      "$2a+c=9$",
-      "$4a-c=9$",
-      "$2a-c=9$"
-    ],
+    "options": ["$4a+c=9$", "$2a+c=9$", "$4a-c=9$", "$2a-c=9$"],
     "correct_option": "$4a-c=9$"
+  },
+  {
+    "id": "as_8_04",
+    "content": "Supongamos que $a$, $b$ y $c$ son números distintos y satisfacen $a^2 - bc = 7$, $b^2 + ac = 7$, $c^2 + ab = 7$. Encuentre $a^2 + b^2 + c^2$.",
+    "difficulty": 1200,
+    "topic": "Sistemas de ecuaciones",
+    "options": ["7", "10", "12", "14"],
+    "correct_option": "14",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_05",
+    "content": "Si $x^2 + xy + y^2 = 84$ y $x - \\sqrt{xy} + y = 6$, encuentre el valor de $xy$.",
+    "difficulty": 750,
+    "topic": "Identidades algebraicas",
+    "options": ["12", "14", "16", "18"],
+    "correct_option": "16",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_06",
+    "content": "¿Cuántas tripletas $(x, y, z)$ de números racionales satisfacen el sistema $x + y + z = 0$, $xyz + z = 0$, $xy + yz + xz + y = 0$?",
+    "difficulty": 1100,
+    "topic": "Sistemas de ecuaciones",
+    "options": ["0", "1", "2", "3"],
+    "correct_option": "2",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_07",
+    "content": "Sean $a$, $b$ y $c$ enteros positivos que satisfacen $7a^2 - 3b^2 + 4c^2 = 8$ y $16a^2 - 7b^2 + 9c^2 = -3$. Encuentre $a^2 + b^2 + c^2$.",
+    "difficulty": 1000,
+    "topic": "Sistemas de ecuaciones",
+    "options": ["145", "155", "165", "175"],
+    "correct_option": "165",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_08",
+    "content": "Sean $a$, $b$ y $c$ números reales tales que $a+b+c = 5$ y $\\frac{1}{b+c} + \\frac{1}{c+a} + \\frac{1}{a+b} = 6$. ¿Cuál es el valor de $\\frac{a}{b+c} + \\frac{b}{c+a} + \\frac{c}{a+b}$?",
+    "difficulty": 850,
+    "topic": "Identidades algebraicas",
+    "options": ["15", "21", "27", "33"],
+    "correct_option": "27",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_09",
+    "content": "Simplifica la siguiente expresión: $3(2x - 5) + 4(x + 2) - 2(3x - 1)$",
+    "difficulty": 550,
+    "topic": "Expresiones algebraicas",
+    "options": ["$4x - 5$", "$4x + 5$", "$2x - 5$", "$2x + 5$"],
+    "correct_option": "$4x - 5$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_10",
+    "content": "Factoriza completamente la expresión: $x^2 - 7x + 12$",
+    "difficulty": 550,
+    "topic": "Factorización",
+    "options": ["$(x - 3)(x - 4)$", "$(x + 3)(x + 4)$", "$(x - 2)(x - 6)$", "$(x + 2)(x + 6)$"],
+    "correct_option": "$(x - 3)(x - 4)$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_11",
+    "content": "Resuelve la siguiente ecuación: $\\frac{x}{2} + \\frac{x}{3} = 10$",
+    "difficulty": 600,
+    "topic": "Ecuaciones lineales",
+    "options": ["$x = 8$", "$x = 10$", "$x = 12$", "$x = 15$"],
+    "correct_option": "$x = 12$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_12",
+    "content": "Resuelve el siguiente sistema de ecuaciones: $\\begin{cases} 2x + y = 10 \\\\ x - y = 2 \\end{cases}$",
+    "difficulty": 600,
+    "topic": "Sistemas de ecuaciones",
+    "options": ["$(4, 2)$", "$(2, 4)$", "$(3, 4)$", "$(4, 3)$"],
+    "correct_option": "$(4, 2)$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_13",
+    "content": "La suma de las edades de Ana y Luis es 38 años. Hace 5 años, la edad de Ana era el doble de la edad de Luis. ¿Cuál es la edad actual de Ana?",
+    "difficulty": 750,
+    "topic": "Álgebra aplicada",
+    "options": ["22 años", "23 años", "$\\frac{71}{3}$ años", "25 años"],
+    "correct_option": "$\\frac{71}{3}$ años",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_14",
+    "content": "Factoriza completamente la expresión: $x^3 - 4x^2 - 4x + 16$",
+    "difficulty": 750,
+    "topic": "Factorización",
+    "options": ["$(x - 4)(x - 2)(x + 2)$", "$(x - 4)(x^2 - 4)$", "$(x + 4)(x - 2)(x + 2)$", "$(x - 4)(x^2 + 4)$"],
+    "correct_option": "$(x - 4)(x - 2)(x + 2)$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_15",
+    "content": "Si una de las raíces de la ecuación $x^2 - kx + 12 = 0$ es $x = 3$, ¿cuál es el valor de la otra raíz?",
+    "difficulty": 700,
+    "topic": "Ecuaciones cuadráticas",
+    "options": ["$x = 2$", "$x = 3$", "$x = 4$", "$x = 6$"],
+    "correct_option": "$x = 4$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_16",
+    "content": "Si $x + y = 7$ y $xy = 12$, encuentra el valor de $x^2 + y^2$.",
+    "difficulty": 650,
+    "topic": "Identidades algebraicas",
+    "options": ["23", "24", "25", "26"],
+    "correct_option": "25",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_17",
+    "content": "Un cine vende boletos a $8\\,000$ pesos para adultos y $5\\,000$ pesos para niños. En una función asistieron 150 personas y se recaudaron $1\\,020\\,000$ pesos. ¿Cuántos adultos y cuántos niños asistieron?",
+    "difficulty": 700,
+    "topic": "Álgebra aplicada",
+    "options": ["80 adultos, 70 niños", "85 adultos, 65 niños", "90 adultos, 60 niños", "95 adultos, 55 niños"],
+    "correct_option": "90 adultos, 60 niños",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_18",
+    "content": "Resuelve la siguiente ecuación: $\\frac{x}{x-2} + \\frac{x-2}{x} = \\frac{10}{3}$",
+    "difficulty": 850,
+    "topic": "Ecuaciones racionales",
+    "options": ["$x = 3$ solamente", "$x = -1$ solamente", "$x = 3$ y $x = -1$", "$x = 2$ y $x = -2$"],
+    "correct_option": "$x = 3$ y $x = -1$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_19",
+    "content": "Resuelve el siguiente sistema: $\\begin{cases} \\frac{1}{x} + \\frac{1}{y} = \\frac{5}{6} \\\\ \\frac{1}{x} - \\frac{1}{y} = \\frac{1}{6} \\end{cases}$. Encuentra el valor de $x + y$.",
+    "difficulty": 750,
+    "topic": "Sistemas de ecuaciones",
+    "options": ["4", "5", "6", "7"],
+    "correct_option": "5",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_20",
+    "content": "Un comerciante mezcla café a $12\\,000$ el kg con café a $8\\,000$ el kg. Si desea obtener 50 kg de mezcla a $10\\,000$ el kg, ¿cuántos kilogramos de cada tipo debe mezclar?",
+    "difficulty": 750,
+    "topic": "Álgebra aplicada",
+    "options": ["20 kg de $12\\,000$ y 30 kg de $8\\,000$", "25 kg de $12\\,000$ y 25 kg de $8\\,000$", "30 kg de $12\\,000$ y 20 kg de $8\\,000$", "15 kg de $12\\,000$ y 35 kg de $8\\,000$"],
+    "correct_option": "25 kg de $12\\,000$ y 25 kg de $8\\,000$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_21",
+    "content": "Resuelve la siguiente ecuación: $\\sqrt{x + 7} + \\sqrt{x - 5} = 6$",
+    "difficulty": 850,
+    "topic": "Ecuaciones con radicales",
+    "options": ["$x = 5$", "$x = 7$", "$x = 9$", "$x = 11$"],
+    "correct_option": "$x = 9$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_22",
+    "content": "Resuelve el sistema $\\begin{cases} x^2 + y^2 = 25 \\\\ xy = 12 \\end{cases}$. Encuentra el valor de $(x + y)^2$.",
+    "difficulty": 700,
+    "topic": "Sistemas de ecuaciones",
+    "options": ["25", "36", "49", "64"],
+    "correct_option": "49",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_23",
+    "content": "Hace 4 años, la edad de Pedro era el triple de la edad de Juan. Dentro de 6 años, la edad de Pedro será el doble de la edad de Juan. ¿Cuáles son las edades actuales de Pedro y Juan?",
+    "difficulty": 750,
+    "topic": "Álgebra aplicada",
+    "options": ["Pedro 30 años, Juan 12 años", "Pedro 32 años, Juan 13 años", "Pedro 34 años, Juan 14 años", "Pedro 36 años, Juan 15 años"],
+    "correct_option": "Pedro 34 años, Juan 14 años",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_24",
+    "content": "Resuelve $x^4 - 10x^2 + 9 = 0$. Encuentra la suma de todas las soluciones reales.",
+    "difficulty": 1050,
+    "topic": "Ecuaciones",
+    "options": ["-3", "0", "3", "6"],
+    "correct_option": "0",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_25",
+    "content": "Si el sistema $\\begin{cases} ax + y = 5 \\\\ x + ay = 5 \\end{cases}$ tiene infinitas soluciones, encuentra el valor de $a^2 + 1$.",
+    "difficulty": 1100,
+    "topic": "Sistemas de ecuaciones",
+    "options": ["1", "2", "3", "5"],
+    "correct_option": "2",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_26",
+    "content": "Determina el valor de $k$ para que la ecuación $\\frac{x}{x-2} + \\frac{k}{x+2} = \\frac{8}{x^2 - 4}$ no tenga solución.",
+    "difficulty": 1150,
+    "topic": "Ecuaciones racionales",
+    "options": ["$k = -4$", "$k = -2$", "$k = 0$", "$k = 2$"],
+    "correct_option": "$k = -2$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_27",
+    "content": "Resuelve el sistema $\\begin{cases} \\sqrt{x} + \\sqrt{y} = 5 \\\\ x + y = 13 \\end{cases}$. Encuentra el valor de $xy$.",
+    "difficulty": 1200,
+    "topic": "Sistemas de ecuaciones",
+    "options": ["25", "30", "36", "42"],
+    "correct_option": "36",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_28",
+    "content": "Dos números enteros positivos cumplen que su producto es 180 y la suma de sus cuadrados es 369. Encuentra el valor absoluto de la diferencia entre los dos números.",
+    "difficulty": 1250,
+    "topic": "Sistemas de ecuaciones",
+    "options": ["2", "3", "4", "5"],
+    "correct_option": "3",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_29",
+    "content": "El número positivo que debe ocupar el lugar $\\circ$, para que se tenga la igualdad $\\frac{\\circ}{3} + \\frac{\\circ}{6} = 2$, es:",
+    "difficulty": 500,
+    "topic": "Ecuaciones lineales",
+    "options": ["1", "2", "5", "4"],
+    "correct_option": "4",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_30",
+    "content": "Si $n$ es un número par, entonces de las siguientes expresiones la única que es siempre par es:",
+    "difficulty": 700,
+    "topic": "Paridad e imparidad",
+    "options": ["$\\frac{n}{2}$", "$n^2 + 3n$", "$(n+1)^2$", "$\\frac{n(n+1)}{2}$"],
+    "correct_option": "$n^2 + 3n$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_31",
+    "content": "Sean $x, y$ dos números reales tales que $x^2 = y^2$ pero $x \\neq y$. El valor de $x^2 - 5x + 7 - y^2 - 5y$ es:",
+    "difficulty": 850,
+    "topic": "Identidades algebraicas",
+    "options": ["0", "$-3$", "7", "2"],
+    "correct_option": "7",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_32",
+    "content": "Si $a < 0$, la única expresión negativa es:",
+    "difficulty": 600,
+    "topic": "Desigualdades",
+    "options": ["$a^3$", "$-a^3$", "$a^4$", "$-\\frac{1}{a}$"],
+    "correct_option": "$a^3$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_33",
+    "content": "Un número de 3 cifras es 629 veces menor que la suma de todos los demás números de 3 cifras. ¿Cuál es ese número?",
+    "difficulty": 1100,
+    "topic": "Álgebra aplicada",
+    "options": ["450", "785", "430", "471"],
+    "correct_option": "785",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_34",
+    "content": "Diana comenzó a bajar una escalera de 30 escalones en el mismo instante en que Sandra comenzó a subirla. Diana había bajado $\\frac{3}{4}$ de la escalera cuando se encontró con Sandra. En el momento en que Diana acabe de bajar, ¿cuántos escalones le restan por subir a Sandra?",
+    "difficulty": 850,
+    "topic": "Álgebra aplicada",
+    "options": ["2", "8", "20", "10"],
+    "correct_option": "20",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_35",
+    "content": "Los primeros 30 minutos de un viaje Juan manejó a velocidad constante. Los siguientes 30 minutos manejó a una velocidad 20 km/h mayor. Si la distancia total recorrida es de 100 km, ¿cuál es la velocidad original?",
+    "difficulty": 600,
+    "topic": "Álgebra aplicada",
+    "options": ["70 km/h", "80 km/h", "90 km/h", "100 km/h"],
+    "correct_option": "90 km/h",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_36",
+    "content": "Carmen gana $6\\,000$ pesos por hora y $200$ pesos por cada revista entregada. Ella entrega 30 revistas por hora. ¿Cuánto dinero gana durante tres horas?",
+    "difficulty": 500,
+    "topic": "Álgebra aplicada",
+    "options": ["$24\\,000$", "$30\\,000$", "$36\\,000$", "$42\\,000$"],
+    "correct_option": "$36\\,000$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_37",
+    "content": "La edad de Miguel más la edad de Ana es 17. La edad de Miguel más la edad de Ramón es 21. La edad de Ramón más la edad de Ana es 22. ¿Cuál es la suma de sus tres edades?",
+    "difficulty": 600,
+    "topic": "Álgebra aplicada",
+    "options": ["25", "28", "30", "32"],
+    "correct_option": "30",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_38",
+    "content": "Un edificio tiene 105 ventanas: $\\frac{1}{3}$ tienen flores, $\\frac{3}{7}$ tienen cortinas y 40 no tienen ni cortinas ni flores. ¿Cuántas ventanas tienen cortinas y flores a la vez?",
+    "difficulty": 700,
+    "topic": "Conjuntos y conteo",
+    "options": ["10", "12", "15", "18"],
+    "correct_option": "15",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_39",
+    "content": "Si $x - y = 2$ y $x^2 - y^2 = 8$, ¿cuál es el valor de $2x - 6y$?",
+    "difficulty": 650,
+    "topic": "Identidades algebraicas",
+    "options": ["$-6$", "$-2$", "$0$", "$2$"],
+    "correct_option": "$0$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_40",
+    "content": "Si $x + \\frac{1}{x} = 5$, ¿cuál es el valor de $x^2 + \\frac{1}{x^2}$?",
+    "difficulty": 650,
+    "topic": "Identidades algebraicas",
+    "options": ["$21$", "$23$", "$25$", "$27$"],
+    "correct_option": "$23$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_41",
+    "content": "Si $x + \\frac{1}{x} = 5$, ¿cuál es el valor de $x^3 + \\frac{1}{x^3}$?",
+    "difficulty": 750,
+    "topic": "Identidades algebraicas",
+    "options": ["$100$", "$105$", "$110$", "$115$"],
+    "correct_option": "$110$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_42",
+    "content": "Si $xy = 4$ y $x^2 - y^2 = 9$, ¿cuál es el valor de $\\frac{2x}{y} - \\frac{2y}{x}$?",
+    "difficulty": 750,
+    "topic": "Identidades algebraicas",
+    "options": ["$\\frac{7}{2}$", "$\\frac{9}{2}$", "$\\frac{11}{2}$", "$\\frac{13}{2}$"],
+    "correct_option": "$\\frac{9}{2}$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_43",
+    "content": "Encuentra todas las soluciones de la ecuación $x^2 - 5x + 3 = 12$.",
+    "difficulty": 600,
+    "topic": "Ecuaciones cuadráticas",
+    "options": ["$x = \\frac{5 \\pm \\sqrt{37}}{2}$", "$x = \\frac{5 \\pm \\sqrt{61}}{2}$", "$x = \\frac{-5 \\pm \\sqrt{61}}{2}$", "$x = \\frac{5 \\pm \\sqrt{13}}{2}$"],
+    "correct_option": "$x = \\frac{5 \\pm \\sqrt{61}}{2}$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_44",
+    "content": "Supongamos que $a, b, c$ y $d$ son enteros positivos tales que $a^5 = b^4$, $c^3 = d^2$ y $c - a = 19$. Determine $d - b$.",
+    "difficulty": 1100,
+    "topic": "Potencias y raíces",
+    "options": ["657", "707", "757", "807"],
+    "correct_option": "757",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_45",
+    "content": "Supongamos que $x$ y $y$ son números reales no negativos tales que $x^2 + y^2 = 5$ y $xy = 7$. Determina $x + y$.",
+    "difficulty": 650,
+    "topic": "Identidades algebraicas",
+    "options": ["$\\sqrt{17}$", "$\\sqrt{19}$", "$\\sqrt{21}$", "$\\sqrt{23}$"],
+    "correct_option": "$\\sqrt{19}$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_46",
+    "content": "Supongamos que $x$ y $y$ son dos números reales tales que $xy = 6$ y $x^2y + xy^2 + x + y = 63$. Encuentra $x^2 + y^2$.",
+    "difficulty": 700,
+    "topic": "Identidades algebraicas",
+    "options": ["65", "67", "69", "71"],
+    "correct_option": "69",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_47",
+    "content": "Si $x, y, z$ son enteros positivos tales que $xy = 24$, $xz = 48$ y $yz = 72$, encuentra el valor de $x + y + z$.",
+    "difficulty": 700,
+    "topic": "Sistemas de ecuaciones",
+    "options": ["18", "20", "22", "24"],
+    "correct_option": "22",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_48",
+    "content": "Determina las parejas $(x, y)$ de números reales que satisfacen $x + xy + y = -9$ y $x^2 + y^2 = 17$.",
+    "difficulty": 850,
+    "topic": "Sistemas de ecuaciones",
+    "options": [
+      "$\\left(\\frac{-1 \\pm \\sqrt{33}}{2},\\ \\frac{-1 \\mp \\sqrt{33}}{2}\\right)$",
+      "$\\left(\\frac{1 \\pm \\sqrt{33}}{2},\\ \\frac{1 \\mp \\sqrt{33}}{2}\\right)$",
+      "$\\left(\\frac{-3 \\pm \\sqrt{33}}{2},\\ \\frac{-3 \\mp \\sqrt{33}}{2}\\right)$",
+      "$\\left(\\frac{3 \\pm \\sqrt{33}}{2},\\ \\frac{3 \\mp \\sqrt{33}}{2}\\right)$"
+    ],
+    "correct_option": "$\\left(\\frac{-1 \\pm \\sqrt{33}}{2},\\ \\frac{-1 \\mp \\sqrt{33}}{2}\\right)$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_49",
+    "content": "Si $x$ y $y$ son enteros tales que $x^2y + xy^2 = 70$ y $xy + x + y = 17$, encuentra el valor de $x^2 + y^2$.",
+    "difficulty": 800,
+    "topic": "Sistemas de ecuaciones",
+    "options": ["25", "27", "29", "31"],
+    "correct_option": "29",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_50",
+    "content": "Sea $a + 1 = b + 2 = c + 3 = d + 4 = a + b + c + d + 5$. Encuentra el valor de $a + b + c + d$.",
+    "difficulty": 800,
+    "topic": "Sistemas de ecuaciones",
+    "options": ["$-\\frac{10}{3}$", "$-\\frac{5}{3}$", "$\\frac{5}{3}$", "$\\frac{10}{3}$"],
+    "correct_option": "$-\\frac{10}{3}$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_51",
+    "content": "Si $\\frac{a + 3b}{a - 3b} = 7$, entonces el valor de $\\frac{a + 2b}{a - 2b}$ es:",
+    "difficulty": 650,
+    "topic": "Razones y proporciones",
+    "options": ["$1$", "$2$", "$3$", "$4$"],
+    "correct_option": "$3$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_52",
+    "content": "Sean $a$ y $b$ números reales distintos que satisfacen $\\frac{a}{b} + \\frac{a + 3b}{b + 3a} = 2$. Encuentra $\\frac{a}{b}$.",
+    "difficulty": 750,
+    "topic": "Razones y proporciones",
+    "options": ["$\\frac{1}{4}$", "$\\frac{1}{3}$", "$\\frac{1}{2}$", "$\\frac{2}{3}$"],
+    "correct_option": "$\\frac{1}{3}$",
+    "image_url": ""
+  },
+  {
+    "id": "as_8_53",
+    "content": "Resolver el sistema: $\\begin{cases} x^2 + y = \\frac{3}{4} \\\\ x + y^2 = \\frac{3}{4} \\end{cases}$",
+    "difficulty": 800,
+    "topic": "Sistemas de ecuaciones",
+    "options": [
+      "$(1, 1)$ y $(-1, -1)$",
+      "$\\left(\\frac{1}{2}, \\frac{1}{2}\\right)$ y $\\left(-\\frac{3}{2}, -\\frac{3}{2}\\right)$",
+      "$(1, -1)$ y $(-1, 1)$",
+      "$\\left(\\frac{1}{2}, \\frac{1}{2}\\right)$ solamente"
+    ],
+    "correct_option": "$\\left(\\frac{1}{2}, \\frac{1}{2}\\right)$ y $\\left(-\\frac{3}{2}, -\\frac{3}{2}\\right)$",
+    "image_url": ""
   }
 ]
