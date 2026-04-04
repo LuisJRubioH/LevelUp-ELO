@@ -2034,8 +2034,17 @@ else:
                             _img_url = item_data.get('image_url') or item_data.get('image_path')
                             if _img_url:
                                 try:
-                                    st.image(_img_url, width='stretch',
-                                             caption="Figura correspondiente a la pregunta")
+                                    # Si es ruta local relativa, resolverla desde la raíz del repo
+                                    _img_source = _img_url
+                                    if not _img_url.startswith('http'):
+                                        _abs = os.path.join(base_path, _img_url)
+                                        if os.path.isfile(_abs):
+                                            with open(_abs, 'rb') as _f:
+                                                _img_source = _f.read()
+                                    _c1, _c2, _c3 = st.columns([1, 2, 1])
+                                    with _c2:
+                                        st.image(_img_source, width=420,
+                                                 caption="Figura correspondiente a la pregunta")
                                 except Exception:
                                     pass
 

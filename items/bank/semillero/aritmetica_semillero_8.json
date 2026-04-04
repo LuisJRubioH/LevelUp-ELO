@@ -11,5 +11,465 @@
       "$a \\triangle 1 = 1 \\triangle a$"
     ],
     "correct_option": "$a \\triangle 1 = 1 \\triangle a$"
+  },
+  {
+    "id": "ars_8_02",
+    "content": "La cantidad de números de 3 dígitos que cumplen que el producto de sus dígitos es 4 es:",
+    "difficulty": 650,
+    "topic": "Conteo y dígitos",
+    "options": ["2", "4", "6", "8"],
+    "correct_option": "6",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_03",
+    "content": "De las siguientes fracciones la mayor es:",
+    "difficulty": 500,
+    "topic": "Fracciones",
+    "options": [
+      "$\\frac{1}{2} + \\frac{1}{3}$",
+      "$\\frac{1}{2} - \\frac{1}{3}$",
+      "$\\frac{1}{2} \\times \\frac{1}{3}$",
+      "$\\frac{1}{2} \\div \\frac{1}{3}$"
+    ],
+    "correct_option": "$\\frac{1}{2} \\div \\frac{1}{3}$",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_04",
+    "content": "Con los dígitos 2, 4, 6, 9, se forma una fracción utilizando dos dígitos en el numerador y dos dígitos en el denominador. La menor fracción que se puede formar es:",
+    "difficulty": 700,
+    "topic": "Fracciones",
+    "options": [
+      "$\\frac{24}{96}$",
+      "$\\frac{26}{94}$",
+      "$\\frac{29}{64}$",
+      "$\\frac{24}{69}$"
+    ],
+    "correct_option": "$\\frac{24}{96}$",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_05",
+    "content": "Con una botella de gaseosa se sirven 8 vasos y medio. Si sobran 13 vasos después de servir 22 botellas de gaseosa, el número de vasos que había inicialmente era:",
+    "difficulty": 600,
+    "topic": "Aritmética aplicada",
+    "options": ["150", "190", "200", "180"],
+    "correct_option": "200",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_06",
+    "content": "La suma de los 50 primeros dígitos de la expansión decimal de $\\frac{1}{7}$ es:",
+    "difficulty": 750,
+    "topic": "Fracciones decimales",
+    "options": ["221", "216", "210", "214"],
+    "correct_option": "221",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_07",
+    "content": "Encuentre el menor primo $p$ tal que $71p + 1$ es un cuadrado perfecto.",
+    "difficulty": 900,
+    "topic": "Números primos",
+    "options": ["61", "67", "71", "73"],
+    "correct_option": "73",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_08",
+    "content": "¿Cuántos números primos $p$ satisfacen que $p + 2$ y $p^2 + 2$ también son primos?",
+    "difficulty": 1000,
+    "topic": "Números primos",
+    "options": ["0", "1", "2", "3"],
+    "correct_option": "1",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_09",
+    "content": "¿Para cuántos valores de $n$ es $n^2 - 3n + 2$ un número primo?",
+    "difficulty": 950,
+    "topic": "Números primos",
+    "options": ["0", "1", "2", "3"],
+    "correct_option": "2",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_10",
+    "content": "Encuentre el menor entero $x > 100$ tal que cada permutación de los dígitos de $x$ es un número primo.",
+    "difficulty": 1200,
+    "topic": "Números primos",
+    "options": ["111", "113", "117", "131"],
+    "correct_option": "113",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_11",
+    "content": "Encuentre el último dígito de $2^{2015}$.",
+    "difficulty": 600,
+    "topic": "Potencias y últimos dígitos",
+    "options": ["2", "4", "6", "8"],
+    "correct_option": "8",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_12",
+    "content": "Encuentre los dos últimos dígitos de $11^{11^{11}}$.",
+    "difficulty": 1100,
+    "topic": "Potencias y últimos dígitos",
+    "options": ["01", "11", "21", "31"],
+    "correct_option": "11",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_13",
+    "content": "Encuentre el residuo de dividir $25^9 + 5^{9^2} + 9^{25}$ por 11.",
+    "difficulty": 1150,
+    "topic": "Aritmética modular",
+    "options": ["0", "1", "9", "10"],
+    "correct_option": "10",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_14",
+    "content": "¿Cuál es el menor entero positivo con exactamente 14 divisores positivos?",
+    "difficulty": 950,
+    "topic": "Divisores",
+    "options": ["96", "120", "180", "192"],
+    "correct_option": "192",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_15",
+    "content": "¿Cuántos números entre 1 y 2015 son múltiplos de 2 ó de 3?",
+    "difficulty": 650,
+    "topic": "Divisibilidad",
+    "options": ["1341", "1342", "1343", "1344"],
+    "correct_option": "1343",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_16",
+    "content": "¿Cuántos enteros positivos diferentes son divisores de $10^{12}$?",
+    "difficulty": 700,
+    "topic": "Divisores",
+    "options": ["144", "156", "169", "196"],
+    "correct_option": "169",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_17",
+    "content": "¿Cuántos divisores tiene el número $7200$?",
+    "difficulty": 650,
+    "topic": "Divisores",
+    "options": ["48", "50", "52", "54"],
+    "correct_option": "54",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_18",
+    "content": "¿Cuántos cuadrados perfectos dividen a $3600$?",
+    "difficulty": 750,
+    "topic": "Divisores",
+    "options": ["8", "10", "12", "14"],
+    "correct_option": "12",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_19",
+    "content": "¿Cuántos divisores pares tiene el número $25^{32} \\times 5^2$?",
+    "difficulty": 700,
+    "topic": "Divisores",
+    "options": ["0", "33", "66", "67"],
+    "correct_option": "0",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_20",
+    "content": "¿Cuántos divisores enteros positivos tiene $12!$?",
+    "difficulty": 850,
+    "topic": "Factoriales",
+    "options": ["720", "768", "792", "840"],
+    "correct_option": "792",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_21",
+    "content": "¿Cuántos enteros entre 1 y 2015 satisfacen que son divisibles por 6 pero no por 9?",
+    "difficulty": 700,
+    "topic": "Divisibilidad",
+    "options": ["222", "223", "224", "225"],
+    "correct_option": "224",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_22",
+    "content": "Si $A$ es la suma de los divisores de $500$. ¿Cuál es la suma de los divisores primos de $A$?",
+    "difficulty": 900,
+    "topic": "Divisores",
+    "options": ["23", "24", "25", "26"],
+    "correct_option": "25",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_23",
+    "content": "¿Cuántos de los factoriales del $1!$ al $100!$ son divisibles por $9$?",
+    "difficulty": 750,
+    "topic": "Factoriales",
+    "options": ["94", "95", "96", "97"],
+    "correct_option": "95",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_24",
+    "content": "Encuentre el mayor número de tres dígitos que sea divisible por $9$ y cuyos dígitos estén en orden creciente de izquierda a derecha.",
+    "difficulty": 700,
+    "topic": "Divisibilidad",
+    "options": ["549", "567", "576", "594"],
+    "correct_option": "567",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_25",
+    "content": "¿Cuál es el mayor valor de $x$ tal que $x^2$ divida a $(24)(35)(46)(57)$?",
+    "difficulty": 800,
+    "topic": "Divisores",
+    "options": ["6", "8", "12", "16"],
+    "correct_option": "12",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_26",
+    "content": "Encuentre el mayor $n$ tal que $2^n$ divide a $20!$",
+    "difficulty": 700,
+    "topic": "Factoriales",
+    "options": ["16", "17", "18", "19"],
+    "correct_option": "18",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_27",
+    "content": "El mínimo común múltiplo de dos números es 3780 y el máximo común divisor es 18. Dado que uno de los números es 180, ¿cuál es el otro número?",
+    "difficulty": 700,
+    "topic": "MCD y MCM",
+    "options": ["360", "378", "396", "420"],
+    "correct_option": "378",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_28",
+    "content": "¿Para cuántos enteros $n$ entre 1 y 100 es el máximo común divisor entre $n$ y $15$ igual a $3$?",
+    "difficulty": 700,
+    "topic": "MCD y MCM",
+    "options": ["24", "25", "26", "27"],
+    "correct_option": "27",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_29",
+    "content": "Encuentre $n$ si $\\text{MCD}(n, 40) \\times \\text{MCM}(n, 40) = 280$.",
+    "difficulty": 650,
+    "topic": "MCD y MCM",
+    "options": ["5", "7", "10", "14"],
+    "correct_option": "7",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_30",
+    "content": "Dado que $a$ es un múltiplo impar de $7767$. Encuentre el máximo común divisor entre $6a^2 + 49a + 108$ y $2a + 9$.",
+    "difficulty": 1100,
+    "topic": "MCD y MCM",
+    "options": ["3", "6", "9", "18"],
+    "correct_option": "9",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_31",
+    "content": "El máximo común divisor de $n$ y $180$ es $12$. El mínimo común múltiplo de $n$ y $180$ es $720$. Encuentre $n$.",
+    "difficulty": 700,
+    "topic": "MCD y MCM",
+    "options": ["36", "42", "48", "54"],
+    "correct_option": "48",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_32",
+    "content": "Determine el menor entero $n$ tal que $\\frac{100!}{50^n}$ no es un entero.",
+    "difficulty": 950,
+    "topic": "Factoriales",
+    "options": ["11", "12", "13", "14"],
+    "correct_option": "13",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_33",
+    "content": "¿Para cuántos valores $n$ es $72 \\times \\left(\\frac{3}{2}\\right)^n$ igual a un entero?",
+    "difficulty": 850,
+    "topic": "Potencias y últimos dígitos",
+    "options": ["4", "5", "6", "7"],
+    "correct_option": "6",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_34",
+    "content": "Si $a679b$ es un número de cinco dígitos en base 10 el cual es divisible por 72, determinar $a$ y $b$.",
+    "difficulty": 750,
+    "topic": "Criterios de divisibilidad",
+    "options": ["$a=3, b=2$", "$a=2, b=3$", "$a=4, b=2$", "$a=3, b=6$"],
+    "correct_option": "$a=3, b=2$",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_35",
+    "content": "Sea $n$ un número de tres dígitos tal que su cifra de las centenas es 3, el de las decenas es $x$ y el de las unidades es 7, así $n = 3x7$; similarmente tenemos al número $m = 26y$. ¿Cuántos pares $(x,y)$ de dígitos existen tal que $33$ divide a la suma $n + m$?",
+    "difficulty": 950,
+    "topic": "Criterios de divisibilidad",
+    "options": ["1", "2", "3", "4"],
+    "correct_option": "3",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_36",
+    "content": "Si $N$ es un dígito tal que el entero $62N$ es múltiplo de $11$. ¿Cuál es el valor de $N$?",
+    "difficulty": 600,
+    "topic": "Criterios de divisibilidad",
+    "options": ["3", "5", "7", "9"],
+    "correct_option": "7",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_37",
+    "content": "Si $N$ es un dígito tal que el entero $52N$ es múltiplo de $9$. ¿Cuál es el valor de $N$?",
+    "difficulty": 550,
+    "topic": "Criterios de divisibilidad",
+    "options": ["0", "2", "4", "6"],
+    "correct_option": "2",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_38",
+    "content": "¿Cuántos dígitos $N$ satisfacen que el entero $48N6$ es múltiplo de $3$?",
+    "difficulty": 550,
+    "topic": "Criterios de divisibilidad",
+    "options": ["2", "3", "4", "5"],
+    "correct_option": "4",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_39",
+    "content": "Encuentre el mayor número entero de siete dígitos que es divisible por 132 y cuyos dígitos en orden son $2, 0, x, y, 1, 2, z$, donde $x$, $y$ y $z$ son dígitos simples.",
+    "difficulty": 1100,
+    "topic": "Criterios de divisibilidad",
+    "options": ["2093124", "2086128", "2075128", "2067120"],
+    "correct_option": "2093124",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_40",
+    "content": "Si $a, b, c$ y $d$ son enteros positivos diferentes tales que $a \\times b = 60$, $c \\times d = 60$ y $a - b = c + d$, ¿cuál es el valor de $a$?",
+    "difficulty": 800,
+    "topic": "Aritmética aplicada",
+    "options": ["3", "20", "5", "30"],
+    "correct_option": "20",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_41",
+    "content": "¿Cuántos enteros positivos $n$ existen tales que $4n$ es un número de tres dígitos?",
+    "difficulty": 550,
+    "topic": "Aritmética aplicada",
+    "options": ["100", "250", "225", "200"],
+    "correct_option": "225",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_42",
+    "content": "Los enteros positivos $a, b, c$ son tales que $a \\times b = 14$, $b \\times c = 10$ y $c \\times a = 35$. ¿Cuál es el valor de $a + b + c$?",
+    "difficulty": 650,
+    "topic": "Aritmética aplicada",
+    "options": ["12", "14", "16", "18"],
+    "correct_option": "14",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_43",
+    "content": "Para $a$ y $b$ enteros positivos, definimos $a \\triangle b = a + b + ab$. Sea $A = \\{1, 2, 3, \\ldots, 100\\}$. ¿Cuántas parejas $(a, b)$ de elementos de $A$ satisfacen que $a \\triangle b$ es par?",
+    "difficulty": 750,
+    "topic": "Operaciones definidas",
+    "options": ["$100^2$", "$\\binom{50}{2}$", "$50^2$", "$100$"],
+    "correct_option": "$50^2$",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_44",
+    "content": "Por cada tres chocolates que Miguel compra a su precio regular, él compra el cuarto por 250 pesos. Miguel compró 12 chocolates y pagó en total $6\\,150$ pesos. ¿Cuál es el precio regular de un chocolate?",
+    "difficulty": 700,
+    "topic": "Aritmética aplicada",
+    "options": ["$1\\,700$ pesos", "$1\\,900$ pesos", "$2\\,000$ pesos", "$2\\,300$ pesos"],
+    "correct_option": "$2\\,000$ pesos",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_45",
+    "content": "En tres juegos de baloncesto, el promedio de anotaciones de Karla fue de 18 puntos por partido. Después del cuarto partido su promedio bajó a 17 puntos por partido. ¿Cuántos puntos anotó Karla en el cuarto partido?",
+    "difficulty": 600,
+    "topic": "Promedios",
+    "options": ["10", "12", "14", "16"],
+    "correct_option": "14",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_46",
+    "content": "Un triciclo en la tienda A cuesta $20\\,000$ pesos. El precio del mismo triciclo en la tienda B es 15% más alto. Si el triciclo es vendido en la tienda B con un 10% de descuento sobre su precio regular, ¿cuál es el precio de venta en la tienda B?",
+    "difficulty": 650,
+    "topic": "Porcentajes",
+    "options": ["$19\\,500$ pesos", "$20\\,000$ pesos", "$20\\,700$ pesos", "$21\\,500$ pesos"],
+    "correct_option": "$20\\,700$ pesos",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_47",
+    "content": "En un juego de fútbol americano, Alejandro realizó tres patadas. Su patada más larga fue de 43 metros y el promedio de metros de cada patada fue de 37 metros. Si la distancia de las otras dos patadas fue la misma, ¿cuál es esa distancia?",
+    "difficulty": 600,
+    "topic": "Promedios",
+    "options": ["30 m", "32 m", "34 m", "36 m"],
+    "correct_option": "34 m",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_48",
+    "content": "En una tienda de dulces hay 200 paletas. El 90% son de chocolate y el resto de fresa. Pilar compró algunas paletas de chocolate y ahora el porcentaje de paletas de chocolate en la tienda es del 80%. ¿Cuántas paletas compró Pilar?",
+    "difficulty": 750,
+    "topic": "Porcentajes",
+    "options": ["80", "90", "100", "110"],
+    "correct_option": "100",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_49",
+    "content": "Carlos paga $2\\,400$ pesos por un litro de gasolina. En promedio usa un litro para conducir 12.5 kilómetros. ¿Cuántos litros de gasolina debe comprar Carlos para conducir 50 kilómetros?",
+    "difficulty": 550,
+    "topic": "Aritmética aplicada",
+    "options": ["2 litros", "3 litros", "4 litros", "5 litros"],
+    "correct_option": "4 litros",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_50",
+    "content": "Encuentre el número de tripletas ordenadas $(a, b, c)$ de enteros positivos tal que $abc$ divide a $(ab + 1)(bc + 1)(ca + 1)$.",
+    "difficulty": 1300,
+    "topic": "Divisibilidad",
+    "options": ["3", "5", "7", "9"],
+    "correct_option": "7",
+    "image_url": ""
+  },
+  {
+    "id": "ars_8_51",
+    "content": "El número $20150000201d$ es un número primo. ¿Cuál es el dígito $d$ que satisface esto?",
+    "difficulty": 900,
+    "topic": "Números primos",
+    "options": ["1", "3", "7", "9"],
+    "correct_option": "3",
+    "image_url": ""
   }
 ]
