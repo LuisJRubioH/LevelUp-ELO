@@ -206,15 +206,19 @@ _KATIA_GIF_CORRECTO_PATH = os.path.join(base_path, "KatIA", "correcto_compressed
 _KATIA_GIF_ERRORES_PATH = os.path.join(base_path, "KatIA", "errores_compressed.gif")
 
 @st.cache_resource
-def _load_katia_gif(path: str):
+def _load_katia_gif_b64(path: str):
+    """Carga un GIF y retorna el tag HTML <img> con base64 para animación."""
+    import base64
     try:
         with open(path, "rb") as f:
-            return f.read()
+            data = f.read()
+        b64 = base64.b64encode(data).decode()
+        return f'<img src="data:image/gif;base64,{b64}" width="220" style="border-radius:12px;">'
     except FileNotFoundError:
         return None
 
-_KATIA_GIF_CORRECTO = _load_katia_gif(_KATIA_GIF_CORRECTO_PATH)
-_KATIA_GIF_ERRORES = _load_katia_gif(_KATIA_GIF_ERRORES_PATH)
+_KATIA_GIF_CORRECTO_HTML = _load_katia_gif_b64(_KATIA_GIF_CORRECTO_PATH)
+_KATIA_GIF_ERRORES_HTML = _load_katia_gif_b64(_KATIA_GIF_ERRORES_PATH)
 
 # Inicializar Base de Datos
 # Si DATABASE_URL está definida → PostgreSQL; si no → SQLite local
@@ -2783,11 +2787,14 @@ else:
 
                                     # ── GIF de KatIA revisando mientras la IA analiza ──
                                     _katia_review_placeholder = st.empty()
-                                    if _KATIA_GIF_CORRECTO:
-                                        _katia_review_placeholder.image(
-                                            _KATIA_GIF_CORRECTO, width=220,
-                                            caption="KatIA está revisando tu procedimiento... 🔍",
+                                    if _KATIA_GIF_CORRECTO_HTML:
+                                        _review_html = (
+                                            '<div style="text-align:center;">'
+                                            f'{_KATIA_GIF_CORRECTO_HTML}'
+                                            '<p style="color:#888;font-size:0.85rem;">KatIA está revisando tu procedimiento... 🔍</p>'
+                                            '</div>'
                                         )
+                                        _katia_review_placeholder.markdown(_review_html, unsafe_allow_html=True)
                                     _spinner_msg = (
                                         "Analizando con rigor matemático (Llama 4 Scout)..."
                                         if _is_groq else "Analizando procedimiento..."
@@ -2912,12 +2919,17 @@ else:
                                 if _math_review:
                                     # ── GIF de KatIA según resultado ──
                                     _pscore_v = _math_review.get('score_procedimiento', 0)
-                                    _katia_result_gif = (
-                                        _KATIA_GIF_CORRECTO if _pscore_v >= 91
-                                        else _KATIA_GIF_ERRORES
+                                    _katia_result_html = (
+                                        _KATIA_GIF_CORRECTO_HTML if _pscore_v >= 91
+                                        else _KATIA_GIF_ERRORES_HTML
                                     )
-                                    if _katia_result_gif:
-                                        st.image(_katia_result_gif, width=220)
+                                    if _katia_result_html:
+                                        _result_div = (
+                                            '<div style="text-align:center;">'
+                                            f'{_katia_result_html}'
+                                            '</div>'
+                                        )
+                                        st.markdown(_result_div, unsafe_allow_html=True)
 
                                     # ── Comentario de KatIA sobre el procedimiento ──
                                     _katia_proc_msg = get_procedure_comment(_pscore_v)
