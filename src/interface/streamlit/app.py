@@ -2787,6 +2787,8 @@ else:
 
                                     # ── GIF de KatIA revisando mientras la IA analiza ──
                                     _katia_review_placeholder = st.empty()
+                                    _gif_start_time = time.time()
+                                    _GIF_LOOP_DURATION = 13.44  # 48 frames × 280ms
                                     if _KATIA_GIF_CORRECTO_HTML:
                                         _review_html = (
                                             '<div style="text-align:center;">'
@@ -2908,6 +2910,11 @@ else:
                                             except Exception:
                                                 st.session_state[f'proc_no_vision_{_iid}'] = True
 
+                                    # Esperar a que el GIF complete al menos un loop
+                                    _elapsed = time.time() - _gif_start_time
+                                    _remaining = _GIF_LOOP_DURATION - _elapsed
+                                    if _remaining > 0:
+                                        time.sleep(_remaining)
                                     # Limpiar GIF de "revisando" al terminar el análisis
                                     _katia_review_placeholder.empty()
 
