@@ -56,6 +56,26 @@ Solo `ALTER TABLE ADD COLUMN IF NOT EXISTS`. Nunca `DROP COLUMN`, `DROP TABLE`, 
 ### Regla #9 — Supabase Storage: paths relativos, nunca URLs
 `upload_file()` debe retornar SOLO el path relativo (ej: `38/alb31/hash.jpg`), NUNCA una URL completa (`https://xxx.supabase.co/storage/v1/...`). El bucket `procedimientos` es PRIVADO — las URLs públicas no funcionan. Para mostrar imágenes, descargar los bytes con `get_file()` y pasarlos a `st.image()`. Si el upload falla, guardar en `image_data` (BYTEA) como fallback. Nunca dejar ambos (`storage_url` e `image_data`) en NULL.
 
+### Regla #10 — st.markdown con HTML: sin indentación profunda
+En Streamlit 1.55+ el parser CommonMark interpreta cualquier línea con 4+ espacios de indentación como bloque de código, no como HTML. Resultado: el tag `<div>` queda invisible y los `<p>` internos aparecen como texto crudo.
+
+**Regla:** cuando `st.markdown` renderiza HTML, construir el string de forma que el tag de apertura (`<div>`, `<p>`, etc.) quede en la posición 0 del string (sin espacios previos).
+
+```python
+# MAL — 24 espacios antes de <div → code block → HTML como texto plano
+st.markdown(f"""
+                        <div style="...">...</div>
+                        """, unsafe_allow_html=True)
+
+# BIEN — string de concatenación, <div en posición 0
+_html = (
+    f'<div style="...">'
+    f'<p>contenido</p>'
+    f'</div>'
+)
+st.markdown(_html, unsafe_allow_html=True)
+```
+
 ---
 
 ## Skills disponibles
@@ -79,9 +99,10 @@ Clean Architecture con cuatro capas dentro de `src/`:
   - `elo/model.py` — Factor K dinámico, ELO clásico, dataclasses `Item`/`StudentELO`.
   - `elo/vector_elo.py` — `VectorRating`: ELO + Rating Deviation (RD) por tópico.
   - `elo/uncertainty.py` — `RatingModel` (Glicko-simplificado): RD inicial=350, mín=30, decay=RD×0.95 por intento.
-  - `elo/cognitive.py` — `CognitiveAnalyzer`: clasifica respuestas del estudiante vía IA → `impact_modifier` ∈ [0.5, 1.5].
+  - `elo/cognitive.py` — `CognitiveAnalyzer`: clasifica respuestas del estudiante vía IA. **Nota:** `impact_modifier` está fijado en 1.0 en `student_service.py` — el análisis cognitivo por texto/tiempo fue desactivado porque causaba discrepancias entre el preview de puntos y el resultado real para el estudiante.
   - `elo/zdp.py` — Cálculo del intervalo ZDP.
   - `selector/item_selector.py` — `AdaptiveItemSelector`: selección por Fisher Information.
+  - `katia/katia_messages.py` — Bancos de mensajes de KatIA (tutora socrática gata cyborg). Funciones: `get_random_message()`, `get_procedure_comment(score)`, `get_streak_message(streak)`. Mensajes por rango: 0–59 (tutoría), 60–90 (buen trabajo), 91–100 (excelente). Rachas: 5, 10, 20. Bienvenida, fin de módulo, fin de curso.
 
 - **`application/services/`** — Orquestadores de casos de uso:
   - `student_service.py` — `process_answer()`, `get_next_question()`, `get_socratic_help()`.
@@ -104,7 +125,7 @@ Clean Architecture con cuatro capas dentro de `src/`:
   - `external_api/math_analysis_pipeline.py` — Pipeline completo: OCR → pasos → verificación simbólica → feedback.
   - `security/hashing_service.py` — Argon2id + migración transparente desde SHA-256 legacy.
 
-- **`interface/streamlit/app.py`** — UI monolítica: login, panel estudiante, dashboard docente, panel admin.
+- **`interface/streamlit/app.py`** — UI monolítica: login (con wizard de registro multi-paso), panel estudiante, dashboard docente, panel admin. GIFs animados de KatIA para revisión de procedimientos. Temporizadores en tiempo real (JavaScript vía `st.components.v1.html`): sesión global + por pregunta. Exportación CSV/XLSX de datos de estudiantes para el docente.
 
 ### Flujo de datos al responder una pregunta
 
@@ -125,10 +146,10 @@ app.py → StudentService.process_answer()
   - K=40 (< 30 intentos) → K=32 (ELO < 1400) → K=16 (estable, error < 15% en últimos 20) → K=24 (default).
   - K efectivo escala con RD: `K_eff = K_BASE × (RD / RD_BASE)`.
 - **AdaptiveItemSelector**: selecciona preguntas donde P(éxito) ∈ [0.4, 0.75] (ZDP). Maximiza Fisher Information `P×(1−P)`. Expande ±0.05 por paso (hasta 10) si no hay candidatos. Prioriza preguntas no vistas, luego falladas con ≥3 de cooldown.
-- **CognitiveAnalyzer**: clasifica confianza [0,1] y tipo de error (`conceptual`/`superficial`). Combinado con tiempo de respuesta para calcular `impact_modifier`.
+- **CognitiveAnalyzer**: clasifica confianza [0,1] y tipo de error (`conceptual`/`superficial`). **Desactivado en la práctica**: `student_service.py` pasa `impact_modifier=1.0` siempre, porque el modificador variable causaba discrepancias entre el preview de puntos y el resultado real.
 - **ELO del ítem**: los ítems tienen su propio rating de dificultad que se actualiza simétricamente (el ítem "pierde" cuando el estudiante gana).
 - **Ranking de 16 niveles**: Aspirante (0–399) → Leyenda Suprema (2500+).
-- **Racha de estudio**: días consecutivos de actividad.
+- **Racha de estudio por materia**: `get_study_streak(user_id, course_id=None)` — con `course_id` filtra solo los intentos de ese curso (JOIN con `items`); sin `course_id` es global. En la sala de estudio se pasa `selected_course_id`; en la página de Estadísticas es global. Caché independiente por curso: `cache_streak_{course_id}`.
 
 ---
 
@@ -164,12 +185,13 @@ Lee env var `DATABASE_URL` (formato: `postgresql://user:pass@host:port/dbname`).
 | Tabla | Detalles clave |
 |---|---|
 | `users` | `role` (student/teacher/admin), `approved`, `active`, `group_id`, `education_level`, `grade` (solo semillero: '6'–'11'), `is_test_user` (protege contra borrado), `rating_deviation` |
-| `groups` | Índice único en `(teacher_id, name_normalized)` — sin nombres duplicados por docente |
-| `items` | `difficulty`, `rating_deviation`, `image_url` (opcional) |
+| `groups` | Índice único en `(teacher_id, name_normalized)` — sin nombres duplicados por docente. `invite_code` TEXT (único, generado por docente para acceso inter-nivel) |
+| `items` | `difficulty`, `rating_deviation`, `image_url` (opcional), `tags` (JSON array: taxonomía cognitiva/general/específica) |
 | `attempts` | `elo_after`, `prob_failure`, `expected_score`, `time_taken`, `confidence_score`, `error_type`, `rating_deviation` |
 | `courses` | `id` (slug), `name`, `block` (Universidad/Colegio/Concursos/Semillero) |
 | `enrollments` | `user_id`, `course_id`, `group_id` |
 | `procedure_submissions` | `image_data` (BLOB/BYTEA fallback), `storage_url` (path en Supabase Storage, ej: `38/alb31/hash.jpg`), `procedure_image_path` (ruta local legacy), `status` (pending/reviewed/PENDING_TEACHER_VALIDATION/VALIDATED_BY_TEACHER), `ai_proposed_score` (nunca afecta ELO), `teacher_score` (oficial), `final_score` = teacher_score, `elo_delta` = (final_score−50)×0.2, `file_hash` (SHA-256 anti-plagio), `mime_type` |
+| `problem_reports` | `user_id` FK, `description` TEXT, `status` (`pending`/`resolved`), `created_at`. Métodos: `save_problem_report()`, `get_problem_reports(status=None)`, `mark_problem_resolved()` |
 | `audit_group_changes` | Log de reasignaciones de grupo por admin |
 
 ---
@@ -265,7 +287,7 @@ Campos opcionales: `image_url` o `image_path`. Si ambos presentes, `image_url` t
 | `DIAN.json` | Concurso DIAN — Gestor I | Concursos |
 | `SENA.json` | Concurso SENA — Profesional 10 | Concursos |
 | `semillero/algebra_semillero_6..11.json` | Álgebra Semillero 6°–11° | Semillero |
-| `semillero/aritmetica_semillero_6..11.json` | Aritmética Semillero 6°–11° | Semillero |
+| `semillero/aritmetica_semillero_6..9,10,11.json` | Aritmética Semillero 6°–11° (incluye `aritmetica_semillero_9.json` creado en integración 2026) | Semillero |
 | `semillero/geometria_semillero_6..11.json` | Geometría Semillero 6°–11° | Semillero |
 | `semillero/logica_semillero_6..11.json` | Lógica Semillero 6°–11° | Semillero |
 | `semillero/conteo_combinatoria_semillero_6..11.json` | Conteo y Combinatoria Semillero 6°–11° | Semillero |
@@ -275,7 +297,10 @@ Campos opcionales: `image_url` o `image_path`. Si ambos presentes, `image_url` t
 
 ### Figuras de Semillero
 
-Las figuras geométricas de las Olimpiadas UdeA 2020 (Taller Primaria, Séptimo, Octavo, Noveno, Décimo, Undécimo) están en `items/images/` (33 PNGs). Se extrajeron de los PDFs originales usando `page.get_image_rects()` de PyMuPDF — **no** regenerar con matplotlib.
+Las figuras geométricas de las Olimpiadas UdeA están en `items/images/` (86 PNGs):
+- **UdeA 2020** (33 PNGs): Taller Primaria, Séptimo, Octavo, Noveno, Décimo, Undécimo. Extraídos con `page.get_image_rects()` de PyMuPDF — **no** regenerar con matplotlib.
+- **UdeA 2012–2014 Octavo/Noveno** (22 PNGs): Octavo/Noveno Geometría y Lógica. Generados con matplotlib por `octavo_geometria.py` / `octavo_logica.py` / `noveno_geometria.py` / `noveno_logica.py` en `Semillero/para poblar/2012, 2013 y 2014/octavo y noveno/`. Nombres: `Octavo_Geometria_2012_F1_Q4.png`, etc.
+- **UdeA 2012–2014 Sexto/Séptimo** (31 PNGs): Sexto/Séptimo Geometría y Lógica, más Taller2014 Nivel1. Generados con matplotlib por los scripts `.py` en `Semillero/para poblar/2012, 2013 y 2014/sexto y septimo/`. Nombres: `Sexto_Geometria_2013_F1_Q9.png`, `Septimo_Logica_2013_F1_Q6.png`, etc.
 
 - **PDFs originales**: `Semillero/OLIMPIADAS-2020/`
 - **Script de extracción**: `scripts/extract_figures_from_pdfs.py`
@@ -305,6 +330,34 @@ Todas las funciones de IA **degradan con gracia** si no están disponibles (fall
 
 ---
 
+## KatIA — Tutora Socrática
+
+KatIA es una gata cyborg que actúa como tutora socrática del estudiante. Tiene personalidad persistente con mensajes predefinidos (no generados por IA) y GIFs animados.
+
+### Assets (`KatIA/`)
+- `katIA.png` — Avatar estático (6.5MB, cacheado con `@st.cache_resource`).
+- `correcto.gif` / `correcto_compressed.gif` — GIF animado de KatIA escribiendo (2.3MB → 698KB comprimido). Se usa como animación de "revisando" durante el análisis y como resultado cuando score >= 91.
+- `errores.gif` / `errores_compressed.gif` — GIF animado de KatIA con expresión de errores (69MB → 1.8MB comprimido). Se muestra cuando score < 91.
+- `instrucciones_katia.md` — Manual completo con bancos de mensajes por rango de score.
+
+### Mensajes (`src/domain/katia/katia_messages.py`)
+- `get_procedure_comment(score)`: score >= 91 → `RESPUESTAS_ALTA`, 60–90 → `RESPUESTAS_MEDIA`, < 60 → `RESPUESTAS_TUTORIA`.
+- `get_streak_message(streak)`: 5 → `FELICITACIONES_RACHA_5`, 10 → `RACHA_10`, 20 → `RACHA_20`.
+- `MENSAJES_BIENVENIDA`: saludo aleatorio al iniciar sesión.
+- Los mensajes de tutoría (< 60) invitan al estudiante a usar el chat socrático.
+
+### Flujo de GIFs en revisión de procedimientos
+1. Estudiante sube procedimiento y presiona "Analizar"
+2. → Aparece `correcto_compressed.gif` como animación de "KatIA está revisando..."
+3. → IA analiza (spinner simultáneo)
+4. → Se limpia el GIF de revisión
+5. → Score >= 91: muestra `correcto_compressed.gif` + mensaje de `RESPUESTAS_ALTA`
+6. → Score < 91: muestra `errores_compressed.gif` + mensaje de `RESPUESTAS_TUTORIA` o `RESPUESTAS_MEDIA` + diagnóstico del LLM
+
+**Importante**: la app usa los GIFs **comprimidos** (`*_compressed.gif`), no los originales. Los originales se conservan como fuente de alta calidad.
+
+---
+
 ## Seguridad
 
 - **Argon2id** (via `passlib[argon2]`) para todas las contraseñas.
@@ -317,9 +370,9 @@ Todas las funciones de IA **degradan con gracia** si no están disponibles (fall
 
 ## Roles de usuario
 
-- **student**: Debe pertenecer a un grupo. Práctica + estadísticas personales + envío de procedimientos + centro de feedback (con badge de no leídos).
-- **teacher**: Requiere aprobación del admin. Crea/gestiona grupos (nombres únicos por docente). Dashboard con filtros cascada (Grupo → Nivel → Materia). Revisa y puntúa procedimientos (badge muestra pendientes). Genera análisis pedagógico con IA por estudiante.
-- **admin**: Aprueba docentes, reasigna estudiantes entre grupos (auditado), elimina grupos, activa/desactiva usuarios. Todas las acciones destructivas requieren confirmación en la UI.
+- **student**: Debe pertenecer a un grupo. Práctica + estadísticas personales + envío de procedimientos con GIFs animados de KatIA + centro de feedback (con badge de no leídos) + formulario de reporte de problemas técnicos (expander en sidebar). Matrícula en 3 tabs: Explorar, Mis matrículas, Código de acceso (inter-nivel). Racha de estudio independiente por materia. Temporizadores en tiempo real: sesión global (sidebar) + por pregunta (sobre la pregunta, grande y visible).
+- **teacher**: Requiere aprobación del admin. Crea/gestiona grupos (nombres únicos por docente). Genera **códigos de invitación** por grupo para acceso inter-nivel. Dashboard con filtros cascada (Grupo → Nivel → Materia). Revisa y puntúa procedimientos (badge muestra pendientes). Genera análisis pedagógico con IA por estudiante. **Exportación CSV/XLSX** de datos completos de estudiantes (intentos con `time_taken` y RD, matrículas, procedimientos) para análisis estadístico posterior.
+- **admin**: Aprueba docentes, reasigna estudiantes entre grupos (auditado), elimina grupos, activa/desactiva usuarios. Notificaciones de problemas técnicos al inicio del panel (sección `🔔 Problemas Técnicos` con botón "Resuelto" por reporte). Todas las acciones destructivas requieren confirmación en la UI.
 
 ---
 
@@ -349,3 +402,15 @@ Todas las funciones de IA **degradan con gracia** si no están disponibles (fall
 - **ELO del procedimiento**: `ai_proposed_score` nunca afecta directamente el ELO. Solo `teacher_score` (vía `final_score`) lo hace.
 - **Supabase Storage**: bucket `procedimientos` es PRIVADO. `upload_file()` retorna solo el path relativo, NUNCA una URL pública. `resolve_storage_image()` descarga bytes para `st.image()`. Si el Storage falla, `image_data` (BYTEA) es el fallback.
 - **Streamlit Cloud**: usa `DATABASE_URL` apuntando a Supabase. SQLite solo para desarrollo local. Los secrets (`DATABASE_URL`, `ADMIN_PASSWORD`, `SUPABASE_URL`, `SUPABASE_KEY`) van en Settings → Secrets.
+- **Racha por materia**: en la sala de estudio `get_study_streak(user_id, selected_course_id)` filtra por curso. En Estadísticas es global (`course_id=None`). Cache key: `cache_streak_{course_id}` (invalidar al guardar intento). Nunca pasar `course_id` en la llamada de Estadísticas.
+- **Estrellas de dificultad**: `get_difficulty_label(d)` retorna `(n_filled: int, label: str)`. HTML: `★`×n_filled en `#FFD700` + `★`×(5-n_filled) en `#444`. Thresholds: <750=1, <950=2, <1150=3, <1400=4, ≥1400=5.
+- **Problem reports**: tabla `problem_reports` en ambos repos. Formulario en sidebar del estudiante (expander `🔧 Reportar un problema`, mín 10 chars). Sección `🔔 Problemas Técnicos` en admin panel se muestra solo si hay pendientes; no se cachea (lectura directa en cada render).
+- **Acceso especial inter-nivel**: un estudiante puede matricularse en un curso de otro nivel **solo** si usa un código de invitación de un docente (Tab 3 de Matrículas). La condición que los distingue de matrículas legacy es `group_id IS NOT NULL`. El filtro `_enrolled` en `app.py` incluye estos cursos aunque su `block` no coincida con `_student_block`. En la UI se marcan con `📌 Acceso especial`. El ranking y el ELO vectorial del estudiante **no** se ven afectados (siguen usando su `education_level` registrado). La exploración libre (Tab 1 Explorar) filtra siempre por nivel — solo el código de invitación puede dar acceso inter-nivel.
+- **st.markdown HTML en Streamlit 1.55+**: ver Regla #10. Construir siempre el HTML como string sin indentación previa; nunca usar `f"""` con el tag de apertura indentado.
+- **KatIA GIFs animados**: `correcto_compressed.gif` (698KB) y `errores_compressed.gif` (1.8MB) se cargan con `@st.cache_resource` al inicio. Se muestran durante y después de la revisión de procedimientos según el score (≥91 → correcto, <91 → errores). Siempre usar los comprimidos, no los originales (69MB).
+- **Wizard de registro**: flujo multi-paso en `app.py`. Paso 1: selección de rol (Estudiante/Profesor). Paso 2: datos de cuenta (usuario, contraseña, nivel, grado). Estado en `st.session_state.reg_step` y `st.session_state.reg_chosen_role`.
+- **Códigos de invitación**: `groups.invite_code` (TEXT, único). El docente genera un código desde su panel; el estudiante lo usa en Tab 3 "Código de acceso" de Matrículas para unirse a un grupo de otro nivel. Método: `generate_group_invite_code(group_id)`.
+- **Tags de taxonomía**: columna `items.tags` (TEXT, JSON array). Tres dimensiones: cognitiva, general y específica. Se muestran como badges en la UI de la pregunta.
+- **impact_modifier desactivado**: `student_service.py` pasa `impact_modifier=1.0` siempre. El `CognitiveAnalyzer` sigue existiendo pero su output no escala el delta ELO. Razón: el preview de puntos que se muestra al estudiante antes de responder no podía predecir el modifier, causando confusión.
+- **Temporizadores en tiempo real**: implementados con `st.components.v1.html()` + JavaScript `setInterval(tick, 1000)` para actualización segundo a segundo sin reruns de Streamlit. Timer de sesión en sidebar (gris, compacto) y timer por pregunta sobre el enunciado (1.3rem, dorado, bold). `session_start_time` se setea en login manual y en restauración por cookie. `question_start_time` se resetea al cargar cada pregunta. IDs únicos vía `_TIMER_ID_COUNTER` para evitar colisiones DOM.
+- **Exportación CSV/XLSX del docente**: 3 métodos en ambos repos (`export_teacher_student_data()`, `export_teacher_enrollments()`, `export_teacher_procedures()`). El Excel tiene una hoja por dataset. Incluye `time_taken` y `rating_deviation` por intento. Botones en expander "📥 Exportar datos de estudiantes" del panel docente. Dependencia: `openpyxl`.

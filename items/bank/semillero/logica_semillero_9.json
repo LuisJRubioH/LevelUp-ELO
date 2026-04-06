@@ -1,41 +1,225 @@
 [
-  {
-    "id": "ls_9_01",
-    "content": "El candado de Carlos tiene clave de 3 dígitos diferentes. La primera cifra es igual al cuadrado de la razón entre la segunda y la tercera cifra. ¿Cuántas claves de tres dígitos cumplen estas condiciones?",
-    "difficulty": 1150,
-    "topic": "Lógica y conteo",
-    "options": [
-      "1",
-      "3",
-      "4",
-      "7"
-    ],
-    "correct_option": "4"
-  },
-  {
-    "id": "ls_9_02",
-    "content": "Andrés, José, Camilo, Esteban, Juan y Antonio se sentaron alrededor de una mesa circular. Ni Andrés, ni José, ni Camilo se sentaron uno junto a otro. Además, los nombres de cualquier dos personas sentadas juntas empezaban con letras distintas. ¿Quién estaba en la posición opuesta a Camilo?",
-    "difficulty": 1200,
-    "topic": "Lógica combinatoria",
-    "options": [
-      "Andrés",
-      "José",
-      "Esteban",
-      "Antonio"
-    ],
-    "correct_option": "Antonio"
-  },
-  {
-    "id": "ls_9_03",
-    "content": "María, Fernando y Santiago deben adivinar un número de tres dígitos. Sus respuestas son: 221, 122 y 112. Uno acertó, otro falló en la posición de un dígito y el otro falló en las tres posiciones. ¿Quién(es) acertó (acertaron) el último dígito?",
-    "difficulty": 1200,
-    "topic": "Lógica deductiva",
-    "options": [
-      "María",
-      "Fernando y Santiago",
-      "María y Fernando",
-      "Santiago"
-    ],
-    "correct_option": "María y Fernando"
-  }
+    {
+        "id": "ls_9_01",
+        "content": "El candado de Carlos tiene clave de 3 dígitos diferentes. La primera cifra es igual al cuadrado de la razón entre la segunda y la tercera cifra. ¿Cuántas claves de tres dígitos cumplen estas condiciones?",
+        "difficulty": 1150,
+        "topic": "Lógica y conteo",
+        "options": [
+            "1",
+            "3",
+            "4",
+            "7"
+        ],
+        "correct_option": "4",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Inferencia y Deducción Lógica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ls_9_02",
+        "content": "Andrés, José, Camilo, Esteban, Juan y Antonio se sentaron alrededor de una mesa circular. Ni Andrés, ni José, ni Camilo se sentaron uno junto a otro. Además, los nombres de cualquier dos personas sentadas juntas empezaban con letras distintas. ¿Quién estaba en la posición opuesta a Camilo?",
+        "difficulty": 1200,
+        "topic": "Lógica combinatoria",
+        "options": [
+            "Andrés",
+            "José",
+            "Esteban",
+            "Antonio"
+        ],
+        "correct_option": "Antonio",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[General: Inferencia y Deducción Lógica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ls_9_03",
+        "content": "María, Fernando y Santiago deben adivinar un número de tres dígitos. Sus respuestas son: 221, 122 y 112. Uno acertó, otro falló en la posición de un dígito y el otro falló en las tres posiciones. ¿Quién(es) acertó (acertaron) el último dígito?",
+        "difficulty": 1200,
+        "topic": "Lógica deductiva",
+        "options": [
+            "María",
+            "Fernando y Santiago",
+            "María y Fernando",
+            "Santiago"
+        ],
+        "correct_option": "María y Fernando",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Noveno_Logica_2012_F1_Q3",
+        "content": "Betty compró una bolsa con 2000 caramelos de 5 colores; 387 eran blancos, 396 amarillos, 402 rojos, 407 verdes y 408 cafés. Decidió comerse los caramelos de la siguiente forma: Sin mirar sacaba tres de la bolsa, si los tres eran del mismo color, se los comía, si no, los regresaba a la bolsa. Continuó así hasta que sólo quedaron dos caramelos en la bolsa. El color de los dos caramelos que quedaron es:",
+        "difficulty": 850,
+        "topic": "Lógica",
+        "options": [
+            "Verde",
+            "Rojo",
+            "Blanco",
+            "Amarillo"
+        ],
+        "correct_option": "Verde",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Noveno_Logica_2012_F1_Q7",
+        "content": "Cinco amigos P, Q, R, S y T se dan la mano. Tanto P como Q estrecharon la mano de uno de sus amigos solamente, mientras que R, S y T estrecharon cada uno la mano de dos. Si P estrechó la mano de T, entonces podemos asegurar que quienes no se dieron la mano fueron:",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "T y S",
+            "T y R",
+            "Q y T",
+            "Q y S"
+        ],
+        "correct_option": "Q y T",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Noveno_Logica_2013_F1_Q6",
+        "content": "En una caja grande hay 6 cajas medianas, dentro de cada una hay tres cajas pequeñas y dentro de estas, hay dos cajas más pequeñas. El número total de cajas es:",
+        "difficulty": 700,
+        "topic": "Lógica",
+        "options": [
+            "60",
+            "62",
+            "61",
+            "63"
+        ],
+        "correct_option": "61",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Noveno_Logica_2013_F1_Q14",
+        "content": "A continuación se muestra el árbol genealógico de Carlos, en el cual sólo se muestran hombres. Las flechas son dirijidas de padres a hijos. El nombre del hijo del hermano del abuelo del hermano del padre de Carlos es:",
+        "difficulty": 650,
+        "topic": "Lógica",
+        "options": [
+            "Mario",
+            "Gabriel",
+            "Roger",
+            "Norberto"
+        ],
+        "correct_option": "Gabriel",
+        "image_url": "items/images/Noveno_Logica_2013_F1_Q14.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Noveno_Logica_2013_F2_Q4",
+        "content": "En el siguiente mini sudoku se debe llenar cada casilla de tal manera que cada fila, columna y cuadrado de 2x2 contenga los números del 1 al 4. El número de soluciones de este es:",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "2",
+            "3",
+            "4",
+            "5"
+        ],
+        "correct_option": "4",
+        "image_url": "items/images/Noveno_Logica_2013_F2_Q4.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Logica_Q1_9",
+        "content": "Una gran empresa posee 84 funcionarios y cada uno de ellos habla por lo menos una de las lenguas entre Español e Inglés. Por otro lado, 20% de los que hablan Español también hablan Inglés y 80% de los que hablan Inglés también hablan Español. ¿Cuántos funcionarios hablan las dos lenguas?",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "12",
+            "14",
+            "15",
+            "16",
+            "18"
+        ],
+        "correct_option": "16",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Logica_Q2_9",
+        "content": "Patricia lanzó un dado 10 veces y obtuvo 57 como suma de todos los puntos obtenidos en esos lanzamientos. Por lo menos, ¿cuántas veces salieron los 6 puntos?",
+        "difficulty": 750,
+        "topic": "Lógica",
+        "options": [
+            "5",
+            "7",
+            "8",
+            "6",
+            "9"
+        ],
+        "correct_option": "7",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Pensamiento Lateral]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Logica_Q3_9",
+        "content": "En una fila para comprar boletas para un juego de la selección Colombia, habían 49 personas: 25 hinchas del Nacional, 14 hinchas del Medellín y 10 hinchas del Envigado. Si cada persona de la fila es hincha fiel de un único equipo y dos hinchas del mismo equipo no están en posiciones consecutivas, podemos concluir que:",
+        "difficulty": 850,
+        "topic": "Lógica",
+        "options": [
+            "Tal fila no existe.",
+            "Algún de los hinchas de las extremidades de la fila es del Envigado.",
+            "Algún de los hinchas de las extremidades de la fila es del Medellín.",
+            "Algún hincha del Medellín es vecino de un hincha del Envigado.",
+            "Algún hincha del Envigado es vecino de dos hinchas del Nacional."
+        ],
+        "correct_option": "Algún hincha del Envigado es vecino de dos hinchas del Nacional.",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Logica_Q4_9",
+        "content": "El profesor Buenapapa aplicó un examen de 6 preguntas para 18 estudiantes. Cada pregunta vale 0 o 1 punto; no hay puntuaciones parciales. Buenapapa verificó que cada estudiante respondió acertadamente 4 preguntas y que cada pregunta tuvo una misma cantidad m de aciertos. ¿Cuál es el valor de m?",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "6",
+            "9",
+            "10",
+            "12",
+            "14"
+        ],
+        "correct_option": "12",
+        "image_url": "items/images/Taller2014_Nivel2_Logica_Q4.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]",
+            "[General: Pensamiento Lateral]"
+        ]
+    }
 ]

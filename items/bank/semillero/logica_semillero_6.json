@@ -1,67 +1,366 @@
 [
-  {
-    "id": "ls_6_01",
-    "content": "Nelson, Humberto y Mario conforman un grupo de amigos, con apellidos Naranjo, Hernández y Martínez. Se sabe que el nombre y el apellido de cada niño no tienen la misma inicial y además que Nelson tiene los ojos azules mientras que el niño Martínez tiene los ojos verdes. ¿Cuál es el apellido de Mario?",
-    "difficulty": 800,
-    "topic": "Lógica deductiva",
-    "options": [
-      "Martínez",
-      "Naranjo",
-      "Hernández",
-      "No se puede determinar"
-    ],
-    "correct_option": "Naranjo"
-  },
-  {
-    "id": "ls_6_02",
-    "content": "Sobre una mesa están tres cajas; una verde, una azul, y una roja. Cada una contiene uno de los siguientes objetos: una moneda, una grapa y un caucho. Se sabe que: la caja verde está a la izquierda de la azul; la moneda está a la izquierda del caucho; la caja roja está a la derecha de la grapa; el caucho está a la derecha de la caja roja. ¿En qué caja está la moneda?",
-    "difficulty": 850,
-    "topic": "Lógica deductiva",
-    "options": [
-      "En la caja roja",
-      "En la caja verde",
-      "En la caja azul",
-      "La información es insuficiente"
-    ],
-    "correct_option": "En la caja verde"
-  },
-  {
-    "id": "ls_6_03",
-    "content": "Tres amigos, Alejandro, Benjamín y Carlos, viven en ciudades diferentes: Medellín, Neiva y Pasto. Quien vive en Medellín es el más joven y no tiene hermanos. Carlos le lleva dos años al que vive en Neiva y está casado con la hermana de Alejandro. Las personas que viven en Medellín, Neiva y Pasto, en ese orden, son:",
-    "difficulty": 900,
-    "topic": "Lógica deductiva",
-    "options": [
-      "Alejandro, Benjamín, Carlos",
-      "Benjamín, Alejandro, Carlos",
-      "Benjamín, Carlos, Alejandro",
-      "Alejandro, Carlos, Benjamín"
-    ],
-    "correct_option": "Benjamín, Alejandro, Carlos"
-  },
-  {
-    "id": "ls_p_01",
-    "content": "Camila tiene un pastel. Se come $\\frac{4}{5}$ y le da el resto a Samuel. Él se come $\\frac{4}{5}$ de lo que recibe. Le regala el resto a Daniel, que se come la mitad y da el resto a Valentina. ¿Qué porcentaje del pastel recibió Valentina?",
-    "difficulty": 850,
-    "topic": "Razonamiento con fracciones",
-    "options": [
-      "5.21%",
-      "5%",
-      "3.5%",
-      "2%"
-    ],
-    "correct_option": "2%"
-  },
-  {
-    "id": "ls_p_02",
-    "content": "Cinco estudiantes obtuvieron calificaciones 2, 5, 6, 8 y 9. Pistas: Andrea obtuvo más de 6; Natalia obtuvo puntaje impar; Tatiana no obtuvo el más alto; Tomás obtuvo un primo; Iván fue el segundo más bajo. El orden de menor a mayor es:",
-    "difficulty": 900,
-    "topic": "Lógica deductiva",
-    "options": [
-      "Tatiana, Iván, Andrea, Tomás, Natalia",
-      "Tomás, Iván, Tatiana, Andrea, Natalia",
-      "Tomás, Iván, Tatiana, Natalia, Andrea",
-      "Tomás, Iván, Andrea, Tatiana, Natalia"
-    ],
-    "correct_option": "Tomás, Iván, Tatiana, Natalia, Andrea"
-  }
+    {
+        "id": "ls_6_01",
+        "content": "Nelson, Humberto y Mario conforman un grupo de amigos, con apellidos Naranjo, Hernández y Martínez. Se sabe que el nombre y el apellido de cada niño no tienen la misma inicial y además que Nelson tiene los ojos azules mientras que el niño Martínez tiene los ojos verdes. ¿Cuál es el apellido de Mario?",
+        "difficulty": 800,
+        "topic": "Lógica deductiva",
+        "options": [
+            "Martínez",
+            "Naranjo",
+            "Hernández",
+            "No se puede determinar"
+        ],
+        "correct_option": "Naranjo",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ls_6_02",
+        "content": "Sobre una mesa están tres cajas; una verde, una azul, y una roja. Cada una contiene uno de los siguientes objetos: una moneda, una grapa y un caucho. Se sabe que: la caja verde está a la izquierda de la azul; la moneda está a la izquierda del caucho; la caja roja está a la derecha de la grapa; el caucho está a la derecha de la caja roja. ¿En qué caja está la moneda?",
+        "difficulty": 850,
+        "topic": "Lógica deductiva",
+        "options": [
+            "En la caja roja",
+            "En la caja verde",
+            "En la caja azul",
+            "La información es insuficiente"
+        ],
+        "correct_option": "En la caja verde",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ls_6_03",
+        "content": "Tres amigos, Alejandro, Benjamín y Carlos, viven en ciudades diferentes: Medellín, Neiva y Pasto. Quien vive en Medellín es el más joven y no tiene hermanos. Carlos le lleva dos años al que vive en Neiva y está casado con la hermana de Alejandro. Las personas que viven en Medellín, Neiva y Pasto, en ese orden, son:",
+        "difficulty": 900,
+        "topic": "Lógica deductiva",
+        "options": [
+            "Alejandro, Benjamín, Carlos",
+            "Benjamín, Alejandro, Carlos",
+            "Benjamín, Carlos, Alejandro",
+            "Alejandro, Carlos, Benjamín"
+        ],
+        "correct_option": "Benjamín, Alejandro, Carlos",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[General: Inferencia y Deducción Lógica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ls_p_01",
+        "content": "Camila tiene un pastel. Se come $\\frac{4}{5}$ y le da el resto a Samuel. Él se come $\\frac{4}{5}$ de lo que recibe. Le regala el resto a Daniel, que se come la mitad y da el resto a Valentina. ¿Qué porcentaje del pastel recibió Valentina?",
+        "difficulty": 850,
+        "topic": "Razonamiento con fracciones",
+        "options": [
+            "5.21%",
+            "5%",
+            "3.5%",
+            "2%"
+        ],
+        "correct_option": "2%",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ls_p_02",
+        "content": "Cinco estudiantes obtuvieron calificaciones 2, 5, 6, 8 y 9. Pistas: Andrea obtuvo más de 6; Natalia obtuvo puntaje impar; Tatiana no obtuvo el más alto; Tomás obtuvo un primo; Iván fue el segundo más bajo. El orden de menor a mayor es:",
+        "difficulty": 900,
+        "topic": "Lógica deductiva",
+        "options": [
+            "Tatiana, Iván, Andrea, Tomás, Natalia",
+            "Tomás, Iván, Tatiana, Andrea, Natalia",
+            "Tomás, Iván, Tatiana, Natalia, Andrea",
+            "Tomás, Iván, Andrea, Tatiana, Natalia"
+        ],
+        "correct_option": "Tomás, Iván, Tatiana, Natalia, Andrea",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[General: Inferencia y Deducción Lógica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Sexto_Logica_2012_F1_Q1",
+        "content": "Cinco amigas: Andrea (A), Beatriz (B), Carmen (C), Daniela (D) y Elena (E) tienen sus casas en la posición representada por las respectivas letras mostradas en la figura. Si las únicas calles que conducen de una casa a la otra son las indicadas en la figura por las flechas y además éstas indican el sentido en el cuál se puede circular por ellas, entonces de las siguientes afirmaciones la única verdadera es:",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "Si Daniela visita a Beatriz, entonces tiene que pasar por la casa de Elena.",
+            "Si Elena visita a Carmen, entonces tiene que pasar por la casa de Andrea.",
+            "Si Andrea visita a Beatriz, entonces tiene que pasar por la casa de Elena.",
+            "Si Carmen visita a Daniela, entonces tiene que pasar por la casa de Andrea."
+        ],
+        "correct_option": "Si Carmen visita a Daniela, entonces tiene que pasar por la casa de Andrea.",
+        "image_url": "items/images/Sexto_Logica_2012_F1_Q1.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Logica_2013_F1_Q2",
+        "content": "De los siguientes números, el que cumple que: todos sus dígitos son diferentes, el dígito en el lugar de la unidad de mil es tres veces el dígito en el lugar de la decena, el número es impar, la suma de sus dígitos es 27, es:",
+        "difficulty": 850,
+        "topic": "Lógica",
+        "options": [
+            "6927",
+            "9738",
+            "9837",
+            "6829"
+        ],
+        "correct_option": "9837",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Logica_2013_F1_Q3",
+        "content": "Sobre el tablero de la figura hay varias monedas. Si se quiere tener dos monedas en cada fila y dos monedas en cada columna, la cantidad de monedas que hay que retirar del tablero es:",
+        "difficulty": 750,
+        "topic": "Lógica",
+        "options": [
+            "1",
+            "2",
+            "3",
+            "4"
+        ],
+        "correct_option": "2",
+        "image_url": "items/images/Sexto_Logica_2013_F1_Q3.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Logica_2013_F1_Q4",
+        "content": "Un grupo de chicas forma un círculo. Contando desde Martha, en sentido de las manecillas del reloj, Karla es la séptima niña. En cambio, en sentido opuesto a las manecillas del reloj, Karla es la octava niña. El número de chicas que hay en el grupo es:",
+        "difficulty": 650,
+        "topic": "Lógica",
+        "options": [
+            "13",
+            "14",
+            "15",
+            "16"
+        ],
+        "correct_option": "13",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Logica_2013_F1_Q6",
+        "content": "Los números en el dibujo son los precios que hay que pagar para ir de una ciudad vecina a otra. La menor cantidad de dinero que puede pagar Juan para ir de la ciudad A a la ciudad B es:",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "90",
+            "80",
+            "110",
+            "120"
+        ],
+        "correct_option": "90",
+        "image_url": "items/images/Sexto_Logica_2013_F1_Q6.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Logica_2013_F1_Q8",
+        "content": "Isis, Ana, Luz, Sol y Ema viven en la misma casa, dos de ellas viven en el primer piso y tres de ellas en el segundo piso. Sol vive en un piso diferente al de Luz y Ema. Ana vive en un piso diferente al de Isis y Luz. Las que viven en el primer piso son:",
+        "difficulty": 750,
+        "topic": "Lógica",
+        "options": [
+            "Luz y Ema",
+            "Isis y Ema",
+            "Ana y Sol",
+            "Isis y Luz"
+        ],
+        "correct_option": "Ana y Sol",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Logica_2013_F1_Q13",
+        "content": "En la tabla se escriben los números 1, 2, 3 de tal forma que en cada horizontal y en cada vertical aparezca cada uno de los tres números. El orden en que aparecen los números en la tercera linea horizontal es:",
+        "difficulty": 650,
+        "topic": "Lógica",
+        "options": [
+            "312",
+            "321",
+            "132",
+            "231"
+        ],
+        "correct_option": "231",
+        "image_url": "items/images/Sexto_Logica_2013_F1_Q13.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Pensamiento Lateral]",
+            "[Específica: Sucesiones y Series]"
+        ]
+    },
+    {
+        "id": "Sexto_Logica_2013_F1_Q14",
+        "content": "Tres dados estan puestos el uno sobre el otro como lo muestra la figura. El máximo valor que pueden sumar los puntos de las caras que están juntas, teniendo en cuenta que la suma de los puntos de dos caras opuestas siempre es 7, es:",
+        "difficulty": 900,
+        "topic": "Lógica",
+        "options": [
+            "16",
+            "17",
+            "18",
+            "19"
+        ],
+        "correct_option": "16",
+        "image_url": "items/images/Sexto_Logica_2013_F1_Q14.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Logica_2013_F1_Q15",
+        "content": "Un reloj digital marca las 18:32. La mínima cantidad de minutos que deben pasar, para que en el reloj aparezcan los mismos cuatro dígitos, es:",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "180",
+            "240",
+            "295",
+            "186"
+        ],
+        "correct_option": "186",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Logica_2013_F1_Q17",
+        "content": "Se tienen 20 pelotas de diferentes colores: amarillas, verdes, azules y negras. 17 de ellas NO son verdes, 5 son negras y 12 NO son amarillas. La cantidad de pelotas azules que hay es:",
+        "difficulty": 750,
+        "topic": "Lógica",
+        "options": [
+            "4",
+            "3",
+            "8",
+            "7"
+        ],
+        "correct_option": "4",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Logica_2013_F1_Q19",
+        "content": "En un concurso de televisión tres concursantes intentan adivinar un número. Uno dice 260, otro 274 y otro 234. Si se sabe que un concursante se equivocó en 9, otro en 17 y otro en 31, entonces el número correcto es:",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "225",
+            "251",
+            "265",
+            "243"
+        ],
+        "correct_option": "243",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Logica_2013_F2_Q1",
+        "content": "En una cierta comunidad de 300 personas se tiene que: 110 son mayores de 20 años, 120 son mujeres y 50 mujeres son mayores de 20 años. El número de hombres de esta comunidad que son menores de 20 años es:",
+        "difficulty": 700,
+        "topic": "Lógica",
+        "options": [
+            "60",
+            "120",
+            "50",
+            "70"
+        ],
+        "correct_option": "120",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Logica_2013_F2_Q7",
+        "content": "Se sabe que las caras opuestas de un dado suman siete puntos; por ejemplo 2 y 5 son caras opuestas. Si el dado en la figura sigue el camino punteado el número que corresponde a la cara superior del dado al final del recorrido es:",
+        "difficulty": 950,
+        "topic": "Lógica",
+        "options": [
+            "2",
+            "3",
+            "5",
+            "6"
+        ],
+        "correct_option": "5",
+        "image_url": "items/images/Sexto_Logica_2013_F2_Q7.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Logica_2013_F2_Q11",
+        "content": "Camilo tiene dos dados los cuales tienen en cada una de sus caras escrita una sílaba. Al tirar los dados Camilo puede obtener, entre otras, las siguientes palabras: CASA, MANO, TAPA, TEJA, CAPA, ROJO, LOSA y BETA, pero no puede obtener las palabras: CAMA, LOTE y ROMA. Determine cuales son las sílabas que tiene cada dado.",
+        "difficulty": 950,
+        "topic": "Lógica",
+        "options": [
+            "D1: CA, MA, LO, TE, RO, TA; D2: SA, PA, NO, JA, JO, BE",
+            "D1: CA, SA, MA, NO, TA, PA; D2: TE, JA, LO, BE, RO, JO",
+            "D1: CA, MA, TE, RO, SA, PA; D2: LO, TA, NO, JA, JO, BE",
+            "D1: CA, PA, LO, SA, BE, TA; D2: MA, NO, TE, JA, RO, JO"
+        ],
+        "correct_option": "D1: CA, MA, LO, TE, RO, TA; D2: SA, PA, NO, JA, JO, BE",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Nivel1_Logica_2014_Q4_6",
+        "content": "Usando baldosas de cerámica negra en la forma de cuadrados fue elaborada una decoración en una pared, mostrada parcialmente abajo. ¿Cuántas baldosas fueron usadas en toda la decoración considerando que en la última pieza montada fueron usadas 40 baldosas?",
+        "difficulty": 750,
+        "topic": "Lógica",
+        "options": [
+            "121",
+            "60",
+            "81",
+            "68",
+            "100"
+        ],
+        "correct_option": "121",
+        "image_url": "items/images/Nivel1_Logica_2014_Q4.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Pensamiento Lateral]"
+        ]
+    }
 ]

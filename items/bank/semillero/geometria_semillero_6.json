@@ -1,42 +1,212 @@
 [
-  {
-    "id": "gs_6_01",
-    "content": "Ya está la tortuga en el vértice de salida de un polígono regular de 37 lados. Cuando se cumplen 18 días, ha superado el 42% del perímetro total. ¿Cuántos lados completos ha recorrido?",
-    "difficulty": 850,
-    "topic": "Polígonos regulares",
-    "options": [
-      "14",
-      "15",
-      "16",
-      "17"
-    ],
-    "correct_option": "15"
-  },
-  {
-    "id": "gs_p_01",
-    "content": "Las figuras I, II y III son cuadrados. El perímetro del cuadrado I es 12 y el perímetro del cuadrado II es 24. Así, el perímetro del cuadrado III es:",
-    "difficulty": 850,
-    "topic": "Perímetros de cuadrados",
-    "options": [
-      "14",
-      "9",
-      "18",
-      "36"
-    ],
-    "correct_option": "36",
-    "image_path": "items/images/primaria_q14_cuadrados.png"
-  },
-  {
-    "id": "gs_p_02",
-    "content": "Ricardo tiene 42 fósforos. Construye un triángulo (cada lado con 4 fósforos), un cuadrado y un pentágono (cada lado con 2 fósforos). ¿Cuántos fósforos tiene cada lado del cuadrado?",
-    "difficulty": 800,
-    "topic": "Perímetros",
-    "options": [
-      "4",
-      "5",
-      "3",
-      "6"
-    ],
-    "correct_option": "5"
-  }
+    {
+        "id": "gs_6_01",
+        "content": "Ya está la tortuga en el vértice de salida de un polígono regular de 37 lados. Cuando se cumplen 18 días, ha superado el 42% del perímetro total. ¿Cuántos lados completos ha recorrido?",
+        "difficulty": 850,
+        "topic": "Polígonos regulares",
+        "options": [
+            "14",
+            "15",
+            "16",
+            "17"
+        ],
+        "correct_option": "15",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Perímetros y Áreas]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "gs_p_01",
+        "content": "Las figuras I, II y III son cuadrados. El perímetro del cuadrado I es 12 y el perímetro del cuadrado II es 24. Así, el perímetro del cuadrado III es:",
+        "difficulty": 850,
+        "topic": "Perímetros de cuadrados",
+        "options": [
+            "14",
+            "9",
+            "18",
+            "36"
+        ],
+        "correct_option": "36",
+        "image_path": "items/images/primaria_q14_cuadrados.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ],
+        "image_url": "items/images/primaria_q14_cuadrados.png"
+    },
+    {
+        "id": "gs_p_02",
+        "content": "Ricardo tiene 42 fósforos. Construye un triángulo (cada lado con 4 fósforos), un cuadrado y un pentágono (cada lado con 2 fósforos). ¿Cuántos fósforos tiene cada lado del cuadrado?",
+        "difficulty": 800,
+        "topic": "Perímetros",
+        "options": [
+            "4",
+            "5",
+            "3",
+            "6"
+        ],
+        "correct_option": "5",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Perímetros y Áreas]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Sexto_Geometria_2012_F1_Q3",
+        "content": "Con siete rectángulos iguales se formó el siguiente rectángulo[cite: 382]. Si el lado AD mide 14 cm, el perímetro del rectángulo ABCD, en centímetros, es: [cite: 388]",
+        "difficulty": 700,
+        "topic": "Geometría",
+        "options": [
+            "20",
+            "28",
+            "40",
+            "60"
+        ],
+        "correct_option": "60",
+        "image_url": "items/images/Sexto_Geometria_2012_F1_Q3.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    },
+    {
+        "id": "Sexto_Geometria_2013_F1_Q9",
+        "content": "La figura está compuesta de tres cuadrados. Si el área del cuadrado $A$ es $49 \\text{ cm}^2$ y el lado del cuadrado $B$ mide 3 cm, el perímetro del cuadrado $C$, en cm, es:",
+        "difficulty": 750,
+        "topic": "Geometría",
+        "options": [
+            "14",
+            "15",
+            "16",
+            "17"
+        ],
+        "correct_option": "16",
+        "image_url": "items/images/Sexto_Geometria_2013_F1_Q9.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]",
+            "[Enfoque: Saber]"
+        ]
+    },
+    {
+        "id": "Sexto_Geometria_2013_F1_Q12",
+        "content": "El número de triángulos que hay en la figura es: [cite: 438]",
+        "difficulty": 650,
+        "topic": "Geometría",
+        "options": [
+            "9",
+            "10",
+            "11",
+            "12"
+        ],
+        "correct_option": "12",
+        "image_url": "items/images/Sexto_Geometria_2013_F1_Q12.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]",
+            "[Enfoque: Saber]"
+        ]
+    },
+    {
+        "id": "Sexto_Geometria_2013_F2_Q2",
+        "content": "En la figura el ángulo AFC es tres veces el ángulo AFB y los ángulos AFC y CFD son iguales[cite: 892]. Si el ángulo AFB mide 20°, el ángulo AFD mide: [cite: 893]",
+        "difficulty": 600,
+        "topic": "Geometría",
+        "options": [
+            "120°",
+            "140°",
+            "150°",
+            "160°"
+        ],
+        "correct_option": "120°",
+        "image_url": "items/images/Sexto_Geometria_2013_F2_Q2.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Semejanza y Congruencia]",
+            "[Enfoque: Saber]"
+        ]
+    },
+    {
+        "id": "Sexto_Geometria_Taller2014_Q3",
+        "content": "María pegó con cinta adhesiva 6 triángulos equiláteros en los lados de un hexágono, de acuerdo a la figura, obteniendo un polígono de 12 lados. Si ella cambia 3 triángulos por 2 cuadrados y 1 pentágono regular, todos con la misma longitud del lado del hexágono, ¿ella obtendrá un polígono de cuántos lados?",
+        "difficulty": 850,
+        "topic": "Geometría",
+        "options": [
+            "14",
+            "16",
+            "18",
+            "17",
+            "25"
+        ],
+        "correct_option": "16",
+        "image_url": "items/images/Sexto_Geometria_Taller2014_Q3.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]",
+            "[Enfoque: Saber]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Geometria_Q1_6",
+        "content": "Con palitos de un centímetro de longitud podemos formar triángulos. Por ejemplo, con 9 palitos podemos formar un triángulo equilátero con lados de 3 cms de longitud. ¿Con cuál cantidad de palitos es imposible formar un triángulo?",
+        "difficulty": 750,
+        "topic": "Geometría",
+        "options": [
+            "4",
+            "5",
+            "6",
+            "7",
+            "8"
+        ],
+        "correct_option": "4",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Geometria_Q2_6",
+        "content": "En la figura, $C$ es un punto en el segmento $BD$ tal que $ACDE$ es un rectángulo y $ABCE$ es un paralelogramo de área $22 \\text{ cm}^2$. ¿Cuál es el área de $ABDE$ en $\\text{cm}^2$?",
+        "difficulty": 800,
+        "topic": "Geometría",
+        "options": [
+            "28",
+            "33",
+            "36",
+            "42",
+            "44"
+        ],
+        "correct_option": "33",
+        "image_url": "items/images/Taller2014_Nivel1_Geometria_Q2.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]",
+            "[Enfoque: Saber]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Geometria_Q4_6",
+        "content": "Un cubo de madera pintado de azul fue cortado en 27 cubos de menor tamaño todos iguales, y las caras de estos cubos que no fueron pintadas están en blanco. ¿Cuál es la razón entre las áreas de la superficie total pintada de azul y el área total de la superficie en blanco?",
+        "difficulty": 850,
+        "topic": "Geometría",
+        "options": [
+            "1:2",
+            "1:1",
+            "2:1",
+            "1:3",
+            "2:3"
+        ],
+        "correct_option": "1:2",
+        "image_url": "items/images/Taller2014_Nivel1_Geometria_Q4.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    }
 ]

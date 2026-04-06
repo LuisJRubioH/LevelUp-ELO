@@ -1,80 +1,224 @@
 [
-  {
-    "id": "as_6_01",
-    "content": "La suma de tres números es 98. El primero es $\\frac{2}{3}$ del segundo, y el segundo es $\\frac{5}{8}$ del tercero. ¿Cuál es el segundo número?",
-    "difficulty": 850,
-    "topic": "Ecuaciones lineales",
-    "options": [
-      "20",
-      "25",
-      "30",
-      "40"
-    ],
-    "correct_option": "30"
-  },
-  {
-    "id": "as_6_02",
-    "content": "Si $2^{19} + 2^{18} + 2^{17} + 2^{17} = 2^n$, entonces $n$ es:",
-    "difficulty": 900,
-    "topic": "Potencias",
-    "options": [
-      "72",
-      "25",
-      "21",
-      "20"
-    ],
-    "correct_option": "21"
-  },
-  {
-    "id": "as_6_03",
-    "content": "Un virus informático borra el disco duro. El primer día borra $\\frac{1}{2}$ de la memoria. El segundo día $\\frac{1}{3}$ de la restante. El tercer día $\\frac{1}{4}$ de la restante. El cuarto día $\\frac{1}{5}$ de lo que queda. ¿Qué fracción de la memoria inicial queda sin borrar?",
-    "difficulty": 950,
-    "topic": "Fracciones y productos",
-    "options": [
-      "$\\frac{1}{2}$",
-      "$\\frac{1}{3}$",
-      "$\\frac{1}{4}$",
-      "$\\frac{1}{5}$"
-    ],
-    "correct_option": "$\\frac{1}{5}$"
-  },
-  {
-    "id": "as_6_04",
-    "content": "Al resolver $\\left(1-\\frac{1}{2}\\right)\\left(1-\\frac{1}{3}\\right)\\left(1-\\frac{1}{5}\\right)\\cdots\\left(1-\\frac{1}{2019}\\right)$ se obtiene:",
-    "difficulty": 950,
-    "topic": "Productos telescópicos",
-    "options": [
-      "$\\frac{1}{2019}$",
-      "$\\frac{1}{2018}$",
-      "$\\frac{1}{3}$",
-      "$\\frac{235}{309}$"
-    ],
-    "correct_option": "$\\frac{1}{2019}$"
-  },
-  {
-    "id": "as_p_01",
-    "content": "Si $\\frac{a}{b}=\\frac{1}{2}$, entonces el valor de $b\\left(\\frac{1}{2a}-\\frac{1}{b}\\right)$ es:",
-    "difficulty": 900,
-    "topic": "Fracciones algebraicas",
-    "options": [
-      "1",
-      "$-1$",
-      "0",
-      "2"
-    ],
-    "correct_option": "0"
-  },
-  {
-    "id": "as_p_02",
-    "content": "El valor de $2019-2017+2015-2013+2011-\\cdots-5+3-1$ es igual a:",
-    "difficulty": 900,
-    "topic": "Sumas alternantes",
-    "options": [
-      "1008",
-      "1000",
-      "1006",
-      "1010"
-    ],
-    "correct_option": "1010"
-  }
+    {
+        "id": "as_6_01",
+        "content": "La suma de tres números es 98. El primero es $\\frac{2}{3}$ del segundo, y el segundo es $\\frac{5}{8}$ del tercero. ¿Cuál es el segundo número?",
+        "difficulty": 850,
+        "topic": "Ecuaciones lineales",
+        "options": [
+            "20",
+            "25",
+            "30",
+            "40"
+        ],
+        "correct_option": "30",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "as_6_02",
+        "content": "Si $2^{19} + 2^{18} + 2^{17} + 2^{17} = 2^n$, entonces $n$ es:",
+        "difficulty": 900,
+        "topic": "Potencias",
+        "options": [
+            "72",
+            "25",
+            "21",
+            "20"
+        ],
+        "correct_option": "21",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Potenciación y Radicación]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "as_6_03",
+        "content": "Un virus informático borra el disco duro. El primer día borra $\\frac{1}{2}$ de la memoria. El segundo día $\\frac{1}{3}$ de la restante. El tercer día $\\frac{1}{4}$ de la restante. El cuarto día $\\frac{1}{5}$ de lo que queda. ¿Qué fracción de la memoria inicial queda sin borrar?",
+        "difficulty": 950,
+        "topic": "Fracciones y productos",
+        "options": [
+            "$\\frac{1}{2}$",
+            "$\\frac{1}{3}$",
+            "$\\frac{1}{4}$",
+            "$\\frac{1}{5}$"
+        ],
+        "correct_option": "$\\frac{1}{5}$",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operatoria de Polinomios]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "as_6_04",
+        "content": "Al resolver $\\left(1-\\frac{1}{2}\\right)\\left(1-\\frac{1}{3}\\right)\\left(1-\\frac{1}{5}\\right)\\cdots\\left(1-\\frac{1}{2019}\\right)$ se obtiene:",
+        "difficulty": 950,
+        "topic": "Productos telescópicos",
+        "options": [
+            "$\\frac{1}{2019}$",
+            "$\\frac{1}{2018}$",
+            "$\\frac{1}{3}$",
+            "$\\frac{235}{309}$"
+        ],
+        "correct_option": "$\\frac{1}{2019}$",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Pensamiento Lateral]",
+            "[Específica: Operatoria de Polinomios]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "as_p_01",
+        "content": "Si $\\frac{a}{b}=\\frac{1}{2}$, entonces el valor de $b\\left(\\frac{1}{2a}-\\frac{1}{b}\\right)$ es:",
+        "difficulty": 900,
+        "topic": "Fracciones algebraicas",
+        "options": [
+            "1",
+            "$-1$",
+            "0",
+            "2"
+        ],
+        "correct_option": "0",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Factorización y Simplificación]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "as_p_02",
+        "content": "El valor de $2019-2017+2015-2013+2011-\\cdots-5+3-1$ es igual a:",
+        "difficulty": 900,
+        "topic": "Sumas alternantes",
+        "options": [
+            "1008",
+            "1000",
+            "1006",
+            "1010"
+        ],
+        "correct_option": "1010",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Pensamiento Lateral]",
+            "[Específica: Sucesiones y Series]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Sexto_Algebra_2012_F1_Q5",
+        "content": "Si $Z=10$, $\\text{✸}=2$ y $A=3$, entonces el valor de $3A + 2\\text{✸} - 8$ es:",
+        "difficulty": 650,
+        "topic": "Álgebra",
+        "options": [
+            "-3",
+            "7",
+            "9",
+            "13"
+        ],
+        "correct_option": "7",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "Sexto_Algebra_2013_F1_Q1",
+        "content": "Un libro cuesta 10 más que la mitad de su precio. El precio del libro es:",
+        "difficulty": 700,
+        "topic": "Álgebra",
+        "options": [
+            "30",
+            "20",
+            "5",
+            "15"
+        ],
+        "correct_option": "20",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Modelación Algebraica]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Sexto_Algebra_2013_F1_Q18",
+        "content": "Jorge y María tienen la misma cantidad de caramelos y Camilo tiene un caramelo más que Jorge. De las siguientes, la que podría ser la cantidad de caramelos que tienen los tres juntos es:",
+        "difficulty": 750,
+        "topic": "Álgebra",
+        "options": [
+            "35",
+            "32",
+            "37",
+            "39"
+        ],
+        "correct_option": "37",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Modelación Algebraica]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Sexto_Algebra_2013_F1_Q20",
+        "content": "Si △ ⊕ ◯ = 4, △ ⊕ △ = 6, ◯ ⊕ □ = 7 y □ ⊕ □ = ★, entonces el valor de ★ es:",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "12",
+            "6",
+            "9",
+            "10"
+        ],
+        "correct_option": "12",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Modelación Algebraica]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Algebra_2013_F2_Q6",
+        "content": "Si se define la operación $A * B = \\dfrac{A + B}{2B}$, el valor de $6 * (3 * 1)$ es:",
+        "difficulty": 850,
+        "topic": "Álgebra",
+        "options": [
+            "2",
+            "4",
+            "5",
+            "8"
+        ],
+        "correct_option": "2",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Algebra_Q1_6",
+        "content": "Si $a=2^{40}$, $b=3^{20}$ y $c=7^{10}$ entonces se tiene:",
+        "difficulty": 750,
+        "topic": "Álgebra",
+        "options": [
+            "$a>b>c$",
+            "$a<c<b$",
+            "$b<a<c$",
+            "$a>c>b$",
+            "$c<a<b$"
+        ],
+        "correct_option": "$a>b>c$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Potenciación y Radicación]"
+        ]
+    }
 ]

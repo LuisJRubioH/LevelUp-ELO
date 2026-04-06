@@ -328,6 +328,8 @@ class SQLiteRepository:
         self._add_column_if_not_exists(cursor, 'items', 'course_id', "TEXT REFERENCES courses(id)")
         # T14: campo opcional para imagen/diagrama asociado a la pregunta
         self._add_column_if_not_exists(cursor, 'items', 'image_url', "TEXT")
+        # Tags de taxonomía (JSON array): dimensión cognitiva, general y específica
+        self._add_column_if_not_exists(cursor, 'items', 'tags', "TEXT")
 
         # ── Migración: ampliar CHECK constraint de courses.block ──────────────
         # SQLite no soporta ALTER TABLE para modificar constraints; hay que
@@ -376,6 +378,13 @@ class SQLiteRepository:
             ON groups(teacher_id, name_normalized)
         """)
 
+        # Código de invitación por grupo (opcional, generado por el docente)
+        self._add_column_if_not_exists(cursor, 'groups', 'invite_code', "TEXT")
+        cursor.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_groups_invite_code
+            ON groups(invite_code) WHERE invite_code IS NOT NULL
+        """)
+
         # ── Desactivar usuarios con contraseña vacía o nula ────────────────
         # Conserva sus datos históricos pero impide login hasta que un admin
         # los reactive y se les asigne una contraseña válida.
@@ -384,6 +393,18 @@ class SQLiteRepository:
             WHERE (password_hash IS NULL OR TRIM(password_hash) = '')
               AND active = 1
         """)
+
+        # ── Tabla problem_reports (reportes técnicos de usuarios) ────
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS problem_reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                description TEXT NOT NULL,
+                status TEXT DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+        ''')
 
         # ── Tabla weekly_rankings ─────────────────────────────────────
         cursor.execute('''
@@ -711,22 +732,31 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
-    def get_study_streak(self, user_id):
+    def get_study_streak(self, user_id, course_id=None):
         """Calcula la racha de días consecutivos de estudio del estudiante.
 
-        Cuenta hacia atrás desde hoy (o ayer si hoy no hay actividad aún).
-        Un día cuenta si tiene al menos 1 intento o 1 procedimiento enviado.
+        Si course_id se proporciona, solo cuenta los días con actividad en ese
+        curso específico (racha independiente por materia). Sin course_id,
+        cuenta cualquier actividad (racha global).
         Retorna el número de días consecutivos (0 si no hay actividad reciente).
         """
         conn = self.get_connection()
         cursor = conn.cursor()
-        # Obtener fechas únicas con actividad (intentos + procedimientos)
-        cursor.execute('''
-            SELECT DISTINCT DATE(timestamp) AS d FROM attempts WHERE user_id = ?
-            UNION
-            SELECT DISTINCT DATE(submitted_at) AS d FROM procedure_submissions WHERE student_id = ?
-            ORDER BY d DESC
-        ''', (user_id, user_id))
+        if course_id:
+            cursor.execute('''
+                SELECT DISTINCT DATE(a.timestamp) AS d
+                FROM attempts a
+                JOIN items i ON i.id = a.item_id
+                WHERE a.user_id = ? AND i.course_id = ?
+                ORDER BY d DESC
+            ''', (user_id, course_id))
+        else:
+            cursor.execute('''
+                SELECT DISTINCT DATE(timestamp) AS d FROM attempts WHERE user_id = ?
+                UNION
+                SELECT DISTINCT DATE(submitted_at) AS d FROM procedure_submissions WHERE student_id = ?
+                ORDER BY d DESC
+            ''', (user_id, user_id))
         dates = [row[0] for row in cursor.fetchall()]
         conn.close()
 
@@ -736,15 +766,56 @@ class SQLiteRepository:
         from datetime import date, timedelta
         today = date.today()
         streak = 0
-        # Si hoy tiene actividad, empezar desde hoy; si no, desde ayer
         expected = today if dates[0] == str(today) else today - timedelta(days=1)
         for d_str in dates:
             if d_str == str(expected):
                 streak += 1
                 expected -= timedelta(days=1)
             elif d_str < str(expected):
-                break  # hueco en la racha
+                break
         return streak
+
+    def save_problem_report(self, user_id: int, description: str) -> None:
+        """Guarda un reporte de problema técnico enviado por un usuario."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO problem_reports (user_id, description) VALUES (?, ?)",
+            (user_id, description)
+        )
+        conn.commit()
+        conn.close()
+
+    def get_problem_reports(self, status: str = None) -> list:
+        """Devuelve reportes de problemas. Con status='pending' solo los pendientes."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        if status:
+            cursor.execute('''
+                SELECT pr.id, pr.user_id, u.username, pr.description, pr.status, pr.created_at
+                FROM problem_reports pr
+                JOIN users u ON u.id = pr.user_id
+                WHERE pr.status = ?
+                ORDER BY pr.created_at DESC
+            ''', (status,))
+        else:
+            cursor.execute('''
+                SELECT pr.id, pr.user_id, u.username, pr.description, pr.status, pr.created_at
+                FROM problem_reports pr
+                JOIN users u ON u.id = pr.user_id
+                ORDER BY pr.created_at DESC
+            ''')
+        rows = cursor.fetchall()
+        conn.close()
+        return [{'id': r[0], 'user_id': r[1], 'username': r[2], 'description': r[3], 'status': r[4], 'created_at': r[5]} for r in rows]
+
+    def mark_problem_resolved(self, report_id: int) -> None:
+        """Marca un reporte de problema como resuelto."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE problem_reports SET status = 'resolved' WHERE id = ?", (report_id,))
+        conn.commit()
+        conn.close()
 
     def get_weekly_ranking(self, group_id, limit=5):
         """Top estudiantes del grupo por ELO promedio, con actividad en los últimos 7 días."""
@@ -1163,13 +1234,13 @@ class SQLiteRepository:
         return elo_map
 
     def get_user_history_full(self, user_id):
-        """Devuelve historial completo para gráficas: [{'timestamp':..., 'topic':..., 'elo':...}]"""
+        """Devuelve historial completo para gráficas: [{'timestamp':..., 'topic':..., 'elo':..., 'time_taken':...}]"""
         conn = self.get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT timestamp, topic, elo_after FROM attempts WHERE user_id = ? ORDER BY timestamp ASC", (user_id,))
+        cursor.execute("SELECT timestamp, topic, elo_after, time_taken FROM attempts WHERE user_id = ? ORDER BY timestamp ASC", (user_id,))
         rows = cursor.fetchall()
         conn.close()
-        return [{'timestamp': r[0], 'topic': r[1], 'elo': r[2]} for r in rows]
+        return [{'timestamp': r[0], 'topic': r[1], 'elo': r[2], 'time_taken': r[3]} for r in rows]
 
     # ─── Métodos para ADMIN ─────────────────────────────────────────────────────
 
@@ -1281,7 +1352,7 @@ class SQLiteRepository:
         cursor = conn.cursor()
         cursor.execute('''
             SELECT g.id, g.name, g.course_id, COALESCE(c.name, '—') AS course_name, g.created_at,
-                   COALESCE(c.block, 'Universidad') AS block
+                   COALESCE(c.block, 'Universidad') AS block, g.invite_code
             FROM groups g
             LEFT JOIN courses c ON g.course_id = c.id
             WHERE g.teacher_id = ?
@@ -1291,9 +1362,96 @@ class SQLiteRepository:
         conn.close()
         return [
             {'id': r[0], 'name': r[1], 'course_id': r[2],
-             'course_name': r[3], 'created_at': r[4], 'block': r[5]}
+             'course_name': r[3], 'created_at': r[4], 'block': r[5], 'invite_code': r[6]}
             for r in rows
         ]
+
+    def get_teachers_with_groups_and_courses(self, education_level: str, grade: str = None) -> list:
+        """Devuelve lista de profesores con sus grupos y cursos para un nivel educativo.
+
+        Filtra por bloque del nivel del estudiante. Si grade se proporciona (Semillero),
+        filtra también por grado dentro del bloque.
+        """
+        _LEVEL_TO_BLOCK = {
+            'universidad': 'Universidad', 'colegio': 'Colegio',
+            'concursos': 'Concursos', 'semillero': 'Semillero',
+        }
+        block = _LEVEL_TO_BLOCK.get((education_level or 'universidad').lower(), 'Universidad')
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        if grade and block == 'Semillero':
+            cursor.execute('''
+                SELECT g.id, g.name, g.course_id, c.name AS course_name,
+                       u.id AS teacher_id, u.username AS teacher_name,
+                       (SELECT COUNT(*) FROM enrollments e WHERE e.group_id = g.id) AS student_count
+                FROM groups g
+                JOIN users u ON g.teacher_id = u.id
+                JOIN courses c ON g.course_id = c.id
+                WHERE u.active = 1 AND u.approved = 1
+                  AND c.block = ? AND c.id LIKE ?
+                ORDER BY u.username ASC, c.name ASC
+            ''', (block, f'%semillero_{grade}'))
+        else:
+            cursor.execute('''
+                SELECT g.id, g.name, g.course_id, c.name AS course_name,
+                       u.id AS teacher_id, u.username AS teacher_name,
+                       (SELECT COUNT(*) FROM enrollments e WHERE e.group_id = g.id) AS student_count
+                FROM groups g
+                JOIN users u ON g.teacher_id = u.id
+                JOIN courses c ON g.course_id = c.id
+                WHERE u.active = 1 AND u.approved = 1
+                  AND c.block = ?
+                ORDER BY u.username ASC, c.name ASC
+            ''', (block,))
+        rows = cursor.fetchall()
+        conn.close()
+        teachers: dict = {}
+        for r in rows:
+            tid = r[4]
+            if tid not in teachers:
+                teachers[tid] = {'teacher_id': tid, 'teacher_name': r[5], 'groups': []}
+            teachers[tid]['groups'].append({
+                'group_id': r[0], 'group_name': r[1],
+                'course_id': r[2], 'course_name': r[3],
+                'student_count': r[6] or 0,
+            })
+        return list(teachers.values())
+
+    def generate_group_invite_code(self, group_id: int) -> str:
+        """Genera o regenera el código de invitación de 6 chars para un grupo."""
+        import random, string
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        for _ in range(10):
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            try:
+                cursor.execute("UPDATE groups SET invite_code = ? WHERE id = ?", (code, group_id))
+                conn.commit()
+                conn.close()
+                return code
+            except Exception:
+                conn.rollback()
+        conn.close()
+        raise RuntimeError("No se pudo generar un código único. Intenta de nuevo.")
+
+    def get_group_by_invite_code(self, code: str) -> dict | None:
+        """Busca un grupo por su código de invitación. Retorna dict o None."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT g.id, g.name, g.course_id, c.name AS course_name, u.username AS teacher_name,
+                   c.block
+            FROM groups g
+            JOIN courses c ON g.course_id = c.id
+            JOIN users u ON g.teacher_id = u.id
+            WHERE g.invite_code = ? AND u.active = 1 AND u.approved = 1
+        ''', (code.upper().strip(),))
+        r = cursor.fetchone()
+        conn.close()
+        if not r:
+            return None
+        return {'group_id': r[0], 'group_name': r[1], 'course_id': r[2],
+                'course_name': r[3], 'teacher_name': r[4], 'block': r[5]}
 
     def get_all_groups(self):
         """Lista todos los grupos disponibles (para el registro de estudiantes)."""
@@ -1421,6 +1579,157 @@ class SQLiteRepository:
         conn.close()
         return [dict(zip(columns, row)) for row in rows]
 
+    def export_teacher_student_data(self, teacher_id, group_id=None):
+        """Exporta TODOS los datos de estudiantes del profesor para análisis externo.
+
+        Retorna una lista de dicts con: datos del estudiante, intento, ítem,
+        curso, matrícula, tiempo, RD, probabilidad, etc.
+        Si group_id se proporciona, filtra solo ese grupo.
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        _group_filter = "AND g.id = ?" if group_id else ""
+        _params = [teacher_id, teacher_id]
+        if group_id:
+            _params.extend([group_id, group_id])
+
+        cursor.execute(f'''
+            SELECT
+                u.id AS student_id,
+                u.username,
+                u.education_level,
+                u.grade,
+                g.name AS group_name,
+                c.name AS course_name,
+                c.block AS course_block,
+                a.id AS attempt_id,
+                a.item_id,
+                i.topic,
+                i.content AS item_content,
+                a.difficulty AS item_difficulty,
+                a.is_correct,
+                a.elo_after,
+                a.rating_deviation AS attempt_rd,
+                a.prob_failure,
+                a.expected_score,
+                a.time_taken,
+                a.confidence_score,
+                a.error_type,
+                a.timestamp AS attempt_timestamp
+            FROM attempts a
+            JOIN users u ON a.user_id = u.id
+            JOIN items i ON a.item_id = i.id
+            LEFT JOIN courses c ON i.course_id = c.id
+            LEFT JOIN groups g ON u.group_id = g.id
+            WHERE u.active = 1
+              AND g.teacher_id = ?
+              {_group_filter.replace('?', '?') if group_id else ''}
+
+            UNION ALL
+
+            SELECT
+                u.id AS student_id,
+                u.username,
+                u.education_level,
+                u.grade,
+                g.name AS group_name,
+                c.name AS course_name,
+                c.block AS course_block,
+                a.id AS attempt_id,
+                a.item_id,
+                i.topic,
+                i.content AS item_content,
+                a.difficulty AS item_difficulty,
+                a.is_correct,
+                a.elo_after,
+                a.rating_deviation AS attempt_rd,
+                a.prob_failure,
+                a.expected_score,
+                a.time_taken,
+                a.confidence_score,
+                a.error_type,
+                a.timestamp AS attempt_timestamp
+            FROM attempts a
+            JOIN users u ON a.user_id = u.id
+            JOIN items i ON a.item_id = i.id
+            LEFT JOIN courses c ON i.course_id = c.id
+            JOIN enrollments e ON e.user_id = u.id
+            JOIN groups g ON e.group_id = g.id
+            WHERE u.active = 1
+              AND g.teacher_id = ?
+              {_group_filter.replace('?', '?') if group_id else ''}
+
+            ORDER BY username ASC, attempt_timestamp ASC
+        ''', tuple(_params))
+        columns = [col[0] for col in cursor.description]
+        rows = cursor.fetchall()
+        conn.close()
+        return [dict(zip(columns, row)) for row in rows]
+
+    def export_teacher_enrollments(self, teacher_id, group_id=None):
+        """Exporta matrículas de los estudiantes del profesor."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        _gf = "AND g.id = ?" if group_id else ""
+        _params = (teacher_id, group_id) if group_id else (teacher_id,)
+        cursor.execute(f'''
+            SELECT
+                u.id AS student_id,
+                u.username,
+                u.education_level,
+                u.grade,
+                g.name AS group_name,
+                c.id AS course_id,
+                c.name AS course_name,
+                c.block AS course_block,
+                e.enrolled_at
+            FROM enrollments e
+            JOIN users u ON e.user_id = u.id
+            JOIN groups g ON e.group_id = g.id
+            LEFT JOIN courses c ON e.course_id = c.id
+            WHERE u.active = 1
+              AND g.teacher_id = ?
+              {_gf}
+            ORDER BY u.username ASC, c.name ASC
+        ''', _params)
+        columns = [col[0] for col in cursor.description]
+        rows = cursor.fetchall()
+        conn.close()
+        return [dict(zip(columns, row)) for row in rows]
+
+    def export_teacher_procedures(self, teacher_id, group_id=None):
+        """Exporta datos de procedimientos de los estudiantes del profesor."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        _gf = "AND g.id = ?" if group_id else ""
+        _params = (teacher_id, group_id) if group_id else (teacher_id,)
+        cursor.execute(f'''
+            SELECT
+                u.id AS student_id,
+                u.username,
+                g.name AS group_name,
+                ps.item_id,
+                ps.item_content,
+                ps.status,
+                ps.ai_proposed_score,
+                ps.teacher_score,
+                ps.final_score,
+                ps.elo_delta,
+                ps.submitted_at,
+                ps.reviewed_at
+            FROM procedure_submissions ps
+            JOIN users u ON ps.student_id = u.id
+            LEFT JOIN groups g ON u.group_id = g.id
+            WHERE u.active = 1
+              AND g.teacher_id = ?
+              {_gf}
+            ORDER BY u.username ASC, ps.submitted_at ASC
+        ''', _params)
+        columns = [col[0] for col in cursor.description]
+        rows = cursor.fetchall()
+        conn.close()
+        return [dict(zip(columns, row)) for row in rows]
+
     # ─── Gestión de SEGURIDAD (Admin) ───────────────────────────────────────────
 
     def change_student_group(self, student_id, new_group_id, admin_id, allow_null=False):
@@ -1517,6 +1826,7 @@ class SQLiteRepository:
         'conteo_combinatoria_semillero_8':   'Semillero',
         'probabilidad_semillero_8':          'Semillero',
         'aritmetica_semillero_8':            'Semillero',
+        'aritmetica_semillero_9':            'Semillero',
         'logica_semillero_9':                'Semillero',
         'algebra_semillero_9':               'Semillero',
         'geometria_semillero_9':             'Semillero',
@@ -1559,6 +1869,7 @@ class SQLiteRepository:
         'conteo_combinatoria_semillero_8':  'Conteo y Combinatoria Semillero 8°',
         'probabilidad_semillero_8':         'Probabilidad Semillero 8°',
         'aritmetica_semillero_8':           'Aritmética Semillero 8°',
+        'aritmetica_semillero_9':           'Aritmética Semillero 9°',
         'logica_semillero_9':               'Lógica Semillero 9°',
         'algebra_semillero_9':              'Álgebra Semillero 9°',
         'geometria_semillero_9':            'Geometría Semillero 9°',
@@ -1631,8 +1942,8 @@ class SQLiteRepository:
                 if not cursor.fetchone():
                     cursor.execute('''
                         INSERT INTO items
-                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url)
-                        VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?)
+                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags)
+                        VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?, ?)
                     ''', (
                         item['id'],
                         item['topic'],
@@ -1642,12 +1953,13 @@ class SQLiteRepository:
                         item['difficulty'],
                         course_id,
                         item.get('image_url') or item.get('image_path'),
+                        json.dumps(item.get('tags') or []),
                     ))
                 else:
                     # Actualizar contenido/metadatos sin tocar el rating ELO
                     cursor.execute('''
                         UPDATE items
-                        SET content = ?, options = ?, correct_option = ?, topic = ?, course_id = ?, image_url = ?
+                        SET content = ?, options = ?, correct_option = ?, topic = ?, course_id = ?, image_url = ?, tags = ?
                         WHERE id = ?
                     ''', (
                         item['content'],
@@ -1656,6 +1968,7 @@ class SQLiteRepository:
                         item['topic'],
                         course_id,
                         item.get('image_url') or item.get('image_path'),
+                        json.dumps(item.get('tags') or []),
                         item['id'],
                     ))
 
@@ -1910,17 +2223,17 @@ class SQLiteRepository:
 
         if course_id:
             cursor.execute(
-                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url FROM items WHERE course_id = ?",
+                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = ?",
                 (course_id,)
             )
         elif topic and topic != "Todos":
             cursor.execute(
-                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url FROM items WHERE topic = ?",
+                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE topic = ?",
                 (topic,)
             )
         else:
             cursor.execute(
-                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url FROM items"
+                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items"
             )
 
         rows = cursor.fetchall()
@@ -1937,6 +2250,7 @@ class SQLiteRepository:
                 'difficulty': r[5],
                 'rating_deviation': r[6],
                 'image_url': r[7],
+                'tags': json.loads(r[8]) if r[8] else [],
             })
         return items
 

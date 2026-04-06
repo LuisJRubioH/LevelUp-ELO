@@ -1,475 +1,1993 @@
 [
-  {
-    "id": "ars_8_01",
-    "content": "Dados dos números reales positivos $a$ y $b$, se define $a \\triangle b = \\frac{a^b}{b^a}$. ¿Cuál afirmación es verdadera?",
-    "difficulty": 1100,
-    "topic": "Operaciones definidas",
-    "options": [
-      "$a \\triangle \\frac{1}{a} = \\frac{1}{\\frac{1}{a} \\triangle a}$",
-      "$a \\triangle (b+c) = (a \\triangle b)+(a \\triangle c)$",
-      "$a \\triangle b = b \\triangle a$",
-      "$a \\triangle 1 = 1 \\triangle a$"
-    ],
-    "correct_option": "$a \\triangle 1 = 1 \\triangle a$"
-  },
-  {
-    "id": "ars_8_02",
-    "content": "La cantidad de números de 3 dígitos que cumplen que el producto de sus dígitos es 4 es:",
-    "difficulty": 650,
-    "topic": "Conteo y dígitos",
-    "options": ["2", "4", "6", "8"],
-    "correct_option": "6",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_03",
-    "content": "De las siguientes fracciones la mayor es:",
-    "difficulty": 500,
-    "topic": "Fracciones",
-    "options": [
-      "$\\frac{1}{2} + \\frac{1}{3}$",
-      "$\\frac{1}{2} - \\frac{1}{3}$",
-      "$\\frac{1}{2} \\times \\frac{1}{3}$",
-      "$\\frac{1}{2} \\div \\frac{1}{3}$"
-    ],
-    "correct_option": "$\\frac{1}{2} \\div \\frac{1}{3}$",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_04",
-    "content": "Con los dígitos 2, 4, 6, 9, se forma una fracción utilizando dos dígitos en el numerador y dos dígitos en el denominador. La menor fracción que se puede formar es:",
-    "difficulty": 700,
-    "topic": "Fracciones",
-    "options": [
-      "$\\frac{24}{96}$",
-      "$\\frac{26}{94}$",
-      "$\\frac{29}{64}$",
-      "$\\frac{24}{69}$"
-    ],
-    "correct_option": "$\\frac{24}{96}$",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_05",
-    "content": "Con una botella de gaseosa se sirven 8 vasos y medio. Si sobran 13 vasos después de servir 22 botellas de gaseosa, el número de vasos que había inicialmente era:",
-    "difficulty": 600,
-    "topic": "Aritmética aplicada",
-    "options": ["150", "190", "200", "180"],
-    "correct_option": "200",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_06",
-    "content": "La suma de los 50 primeros dígitos de la expansión decimal de $\\frac{1}{7}$ es:",
-    "difficulty": 750,
-    "topic": "Fracciones decimales",
-    "options": ["221", "216", "210", "214"],
-    "correct_option": "221",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_07",
-    "content": "Encuentre el menor primo $p$ tal que $71p + 1$ es un cuadrado perfecto.",
-    "difficulty": 900,
-    "topic": "Números primos",
-    "options": ["61", "67", "71", "73"],
-    "correct_option": "73",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_08",
-    "content": "¿Cuántos números primos $p$ satisfacen que $p + 2$ y $p^2 + 2$ también son primos?",
-    "difficulty": 1000,
-    "topic": "Números primos",
-    "options": ["0", "1", "2", "3"],
-    "correct_option": "1",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_09",
-    "content": "¿Para cuántos valores de $n$ es $n^2 - 3n + 2$ un número primo?",
-    "difficulty": 950,
-    "topic": "Números primos",
-    "options": ["0", "1", "2", "3"],
-    "correct_option": "2",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_10",
-    "content": "Encuentre el menor entero $x > 100$ tal que cada permutación de los dígitos de $x$ es un número primo.",
-    "difficulty": 1200,
-    "topic": "Números primos",
-    "options": ["111", "113", "117", "131"],
-    "correct_option": "113",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_11",
-    "content": "Encuentre el último dígito de $2^{2015}$.",
-    "difficulty": 600,
-    "topic": "Potencias y últimos dígitos",
-    "options": ["2", "4", "6", "8"],
-    "correct_option": "8",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_12",
-    "content": "Encuentre los dos últimos dígitos de $11^{11^{11}}$.",
-    "difficulty": 1100,
-    "topic": "Potencias y últimos dígitos",
-    "options": ["01", "11", "21", "31"],
-    "correct_option": "11",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_13",
-    "content": "Encuentre el residuo de dividir $25^9 + 5^{9^2} + 9^{25}$ por 11.",
-    "difficulty": 1150,
-    "topic": "Aritmética modular",
-    "options": ["0", "1", "9", "10"],
-    "correct_option": "10",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_14",
-    "content": "¿Cuál es el menor entero positivo con exactamente 14 divisores positivos?",
-    "difficulty": 950,
-    "topic": "Divisores",
-    "options": ["96", "120", "180", "192"],
-    "correct_option": "192",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_15",
-    "content": "¿Cuántos números entre 1 y 2015 son múltiplos de 2 ó de 3?",
-    "difficulty": 650,
-    "topic": "Divisibilidad",
-    "options": ["1341", "1342", "1343", "1344"],
-    "correct_option": "1343",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_16",
-    "content": "¿Cuántos enteros positivos diferentes son divisores de $10^{12}$?",
-    "difficulty": 700,
-    "topic": "Divisores",
-    "options": ["144", "156", "169", "196"],
-    "correct_option": "169",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_17",
-    "content": "¿Cuántos divisores tiene el número $7200$?",
-    "difficulty": 650,
-    "topic": "Divisores",
-    "options": ["48", "50", "52", "54"],
-    "correct_option": "54",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_18",
-    "content": "¿Cuántos cuadrados perfectos dividen a $3600$?",
-    "difficulty": 750,
-    "topic": "Divisores",
-    "options": ["8", "10", "12", "14"],
-    "correct_option": "12",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_19",
-    "content": "¿Cuántos divisores pares tiene el número $25^{32} \\times 5^2$?",
-    "difficulty": 700,
-    "topic": "Divisores",
-    "options": ["0", "33", "66", "67"],
-    "correct_option": "0",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_20",
-    "content": "¿Cuántos divisores enteros positivos tiene $12!$?",
-    "difficulty": 850,
-    "topic": "Factoriales",
-    "options": ["720", "768", "792", "840"],
-    "correct_option": "792",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_21",
-    "content": "¿Cuántos enteros entre 1 y 2015 satisfacen que son divisibles por 6 pero no por 9?",
-    "difficulty": 700,
-    "topic": "Divisibilidad",
-    "options": ["222", "223", "224", "225"],
-    "correct_option": "224",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_22",
-    "content": "Si $A$ es la suma de los divisores de $500$. ¿Cuál es la suma de los divisores primos de $A$?",
-    "difficulty": 900,
-    "topic": "Divisores",
-    "options": ["23", "24", "25", "26"],
-    "correct_option": "25",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_23",
-    "content": "¿Cuántos de los factoriales del $1!$ al $100!$ son divisibles por $9$?",
-    "difficulty": 750,
-    "topic": "Factoriales",
-    "options": ["94", "95", "96", "97"],
-    "correct_option": "95",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_24",
-    "content": "Encuentre el mayor número de tres dígitos que sea divisible por $9$ y cuyos dígitos estén en orden creciente de izquierda a derecha.",
-    "difficulty": 700,
-    "topic": "Divisibilidad",
-    "options": ["549", "567", "576", "594"],
-    "correct_option": "567",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_25",
-    "content": "¿Cuál es el mayor valor de $x$ tal que $x^2$ divida a $(24)(35)(46)(57)$?",
-    "difficulty": 800,
-    "topic": "Divisores",
-    "options": ["6", "8", "12", "16"],
-    "correct_option": "12",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_26",
-    "content": "Encuentre el mayor $n$ tal que $2^n$ divide a $20!$",
-    "difficulty": 700,
-    "topic": "Factoriales",
-    "options": ["16", "17", "18", "19"],
-    "correct_option": "18",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_27",
-    "content": "El mínimo común múltiplo de dos números es 3780 y el máximo común divisor es 18. Dado que uno de los números es 180, ¿cuál es el otro número?",
-    "difficulty": 700,
-    "topic": "MCD y MCM",
-    "options": ["360", "378", "396", "420"],
-    "correct_option": "378",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_28",
-    "content": "¿Para cuántos enteros $n$ entre 1 y 100 es el máximo común divisor entre $n$ y $15$ igual a $3$?",
-    "difficulty": 700,
-    "topic": "MCD y MCM",
-    "options": ["24", "25", "26", "27"],
-    "correct_option": "27",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_29",
-    "content": "Encuentre $n$ si $\\text{MCD}(n, 40) \\times \\text{MCM}(n, 40) = 280$.",
-    "difficulty": 650,
-    "topic": "MCD y MCM",
-    "options": ["5", "7", "10", "14"],
-    "correct_option": "7",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_30",
-    "content": "Dado que $a$ es un múltiplo impar de $7767$. Encuentre el máximo común divisor entre $6a^2 + 49a + 108$ y $2a + 9$.",
-    "difficulty": 1100,
-    "topic": "MCD y MCM",
-    "options": ["3", "6", "9", "18"],
-    "correct_option": "9",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_31",
-    "content": "El máximo común divisor de $n$ y $180$ es $12$. El mínimo común múltiplo de $n$ y $180$ es $720$. Encuentre $n$.",
-    "difficulty": 700,
-    "topic": "MCD y MCM",
-    "options": ["36", "42", "48", "54"],
-    "correct_option": "48",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_32",
-    "content": "Determine el menor entero $n$ tal que $\\frac{100!}{50^n}$ no es un entero.",
-    "difficulty": 950,
-    "topic": "Factoriales",
-    "options": ["11", "12", "13", "14"],
-    "correct_option": "13",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_33",
-    "content": "¿Para cuántos valores $n$ es $72 \\times \\left(\\frac{3}{2}\\right)^n$ igual a un entero?",
-    "difficulty": 850,
-    "topic": "Potencias y últimos dígitos",
-    "options": ["4", "5", "6", "7"],
-    "correct_option": "6",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_34",
-    "content": "Si $a679b$ es un número de cinco dígitos en base 10 el cual es divisible por 72, determinar $a$ y $b$.",
-    "difficulty": 750,
-    "topic": "Criterios de divisibilidad",
-    "options": ["$a=3, b=2$", "$a=2, b=3$", "$a=4, b=2$", "$a=3, b=6$"],
-    "correct_option": "$a=3, b=2$",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_35",
-    "content": "Sea $n$ un número de tres dígitos tal que su cifra de las centenas es 3, el de las decenas es $x$ y el de las unidades es 7, así $n = 3x7$; similarmente tenemos al número $m = 26y$. ¿Cuántos pares $(x,y)$ de dígitos existen tal que $33$ divide a la suma $n + m$?",
-    "difficulty": 950,
-    "topic": "Criterios de divisibilidad",
-    "options": ["1", "2", "3", "4"],
-    "correct_option": "3",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_36",
-    "content": "Si $N$ es un dígito tal que el entero $62N$ es múltiplo de $11$. ¿Cuál es el valor de $N$?",
-    "difficulty": 600,
-    "topic": "Criterios de divisibilidad",
-    "options": ["3", "5", "7", "9"],
-    "correct_option": "7",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_37",
-    "content": "Si $N$ es un dígito tal que el entero $52N$ es múltiplo de $9$. ¿Cuál es el valor de $N$?",
-    "difficulty": 550,
-    "topic": "Criterios de divisibilidad",
-    "options": ["0", "2", "4", "6"],
-    "correct_option": "2",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_38",
-    "content": "¿Cuántos dígitos $N$ satisfacen que el entero $48N6$ es múltiplo de $3$?",
-    "difficulty": 550,
-    "topic": "Criterios de divisibilidad",
-    "options": ["2", "3", "4", "5"],
-    "correct_option": "4",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_39",
-    "content": "Encuentre el mayor número entero de siete dígitos que es divisible por 132 y cuyos dígitos en orden son $2, 0, x, y, 1, 2, z$, donde $x$, $y$ y $z$ son dígitos simples.",
-    "difficulty": 1100,
-    "topic": "Criterios de divisibilidad",
-    "options": ["2093124", "2086128", "2075128", "2067120"],
-    "correct_option": "2093124",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_40",
-    "content": "Si $a, b, c$ y $d$ son enteros positivos diferentes tales que $a \\times b = 60$, $c \\times d = 60$ y $a - b = c + d$, ¿cuál es el valor de $a$?",
-    "difficulty": 800,
-    "topic": "Aritmética aplicada",
-    "options": ["3", "20", "5", "30"],
-    "correct_option": "20",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_41",
-    "content": "¿Cuántos enteros positivos $n$ existen tales que $4n$ es un número de tres dígitos?",
-    "difficulty": 550,
-    "topic": "Aritmética aplicada",
-    "options": ["100", "250", "225", "200"],
-    "correct_option": "225",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_42",
-    "content": "Los enteros positivos $a, b, c$ son tales que $a \\times b = 14$, $b \\times c = 10$ y $c \\times a = 35$. ¿Cuál es el valor de $a + b + c$?",
-    "difficulty": 650,
-    "topic": "Aritmética aplicada",
-    "options": ["12", "14", "16", "18"],
-    "correct_option": "14",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_43",
-    "content": "Para $a$ y $b$ enteros positivos, definimos $a \\triangle b = a + b + ab$. Sea $A = \\{1, 2, 3, \\ldots, 100\\}$. ¿Cuántas parejas $(a, b)$ de elementos de $A$ satisfacen que $a \\triangle b$ es par?",
-    "difficulty": 750,
-    "topic": "Operaciones definidas",
-    "options": ["$100^2$", "$\\binom{50}{2}$", "$50^2$", "$100$"],
-    "correct_option": "$50^2$",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_44",
-    "content": "Por cada tres chocolates que Miguel compra a su precio regular, él compra el cuarto por 250 pesos. Miguel compró 12 chocolates y pagó en total $6\\,150$ pesos. ¿Cuál es el precio regular de un chocolate?",
-    "difficulty": 700,
-    "topic": "Aritmética aplicada",
-    "options": ["$1\\,700$ pesos", "$1\\,900$ pesos", "$2\\,000$ pesos", "$2\\,300$ pesos"],
-    "correct_option": "$2\\,000$ pesos",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_45",
-    "content": "En tres juegos de baloncesto, el promedio de anotaciones de Karla fue de 18 puntos por partido. Después del cuarto partido su promedio bajó a 17 puntos por partido. ¿Cuántos puntos anotó Karla en el cuarto partido?",
-    "difficulty": 600,
-    "topic": "Promedios",
-    "options": ["10", "12", "14", "16"],
-    "correct_option": "14",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_46",
-    "content": "Un triciclo en la tienda A cuesta $20\\,000$ pesos. El precio del mismo triciclo en la tienda B es 15% más alto. Si el triciclo es vendido en la tienda B con un 10% de descuento sobre su precio regular, ¿cuál es el precio de venta en la tienda B?",
-    "difficulty": 650,
-    "topic": "Porcentajes",
-    "options": ["$19\\,500$ pesos", "$20\\,000$ pesos", "$20\\,700$ pesos", "$21\\,500$ pesos"],
-    "correct_option": "$20\\,700$ pesos",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_47",
-    "content": "En un juego de fútbol americano, Alejandro realizó tres patadas. Su patada más larga fue de 43 metros y el promedio de metros de cada patada fue de 37 metros. Si la distancia de las otras dos patadas fue la misma, ¿cuál es esa distancia?",
-    "difficulty": 600,
-    "topic": "Promedios",
-    "options": ["30 m", "32 m", "34 m", "36 m"],
-    "correct_option": "34 m",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_48",
-    "content": "En una tienda de dulces hay 200 paletas. El 90% son de chocolate y el resto de fresa. Pilar compró algunas paletas de chocolate y ahora el porcentaje de paletas de chocolate en la tienda es del 80%. ¿Cuántas paletas compró Pilar?",
-    "difficulty": 750,
-    "topic": "Porcentajes",
-    "options": ["80", "90", "100", "110"],
-    "correct_option": "100",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_49",
-    "content": "Carlos paga $2\\,400$ pesos por un litro de gasolina. En promedio usa un litro para conducir 12.5 kilómetros. ¿Cuántos litros de gasolina debe comprar Carlos para conducir 50 kilómetros?",
-    "difficulty": 550,
-    "topic": "Aritmética aplicada",
-    "options": ["2 litros", "3 litros", "4 litros", "5 litros"],
-    "correct_option": "4 litros",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_50",
-    "content": "Encuentre el número de tripletas ordenadas $(a, b, c)$ de enteros positivos tal que $abc$ divide a $(ab + 1)(bc + 1)(ca + 1)$.",
-    "difficulty": 1300,
-    "topic": "Divisibilidad",
-    "options": ["3", "5", "7", "9"],
-    "correct_option": "7",
-    "image_url": ""
-  },
-  {
-    "id": "ars_8_51",
-    "content": "El número $20150000201d$ es un número primo. ¿Cuál es el dígito $d$ que satisface esto?",
-    "difficulty": 900,
-    "topic": "Números primos",
-    "options": ["1", "3", "7", "9"],
-    "correct_option": "3",
-    "image_url": ""
-  }
+    {
+        "id": "ars_8_01",
+        "content": "Dados dos números reales positivos $a$ y $b$, se define $a \\triangle b = \\frac{a^b}{b^a}$. ¿Cuál afirmación es verdadera?",
+        "difficulty": 1100,
+        "topic": "Operaciones definidas",
+        "options": [
+            "$a \\triangle \\frac{1}{a} = \\frac{1}{\\frac{1}{a} \\triangle a}$",
+            "$a \\triangle (b+c) = (a \\triangle b)+(a \\triangle c)$",
+            "$a \\triangle b = b \\triangle a$",
+            "$a \\triangle 1 = 1 \\triangle a$"
+        ],
+        "correct_option": "$a \\triangle 1 = 1 \\triangle a$",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Inferencia y Deducción Lógica]",
+            "[Específica: Ley de los Signos y Jerarquía]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ars_8_02",
+        "content": "La cantidad de números de 3 dígitos que cumplen que el producto de sus dígitos es 4 es:",
+        "difficulty": 650,
+        "topic": "Conteo y dígitos",
+        "options": [
+            "2",
+            "4",
+            "6",
+            "8"
+        ],
+        "correct_option": "6",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Conteo y Combinatoria]"
+        ]
+    },
+    {
+        "id": "ars_8_03",
+        "content": "De las siguientes fracciones la mayor es:",
+        "difficulty": 500,
+        "topic": "Fracciones",
+        "options": [
+            "$\\frac{1}{2} + \\frac{1}{3}$",
+            "$\\frac{1}{2} - \\frac{1}{3}$",
+            "$\\frac{1}{2} \\times \\frac{1}{3}$",
+            "$\\frac{1}{2} \\div \\frac{1}{3}$"
+        ],
+        "correct_option": "$\\frac{1}{2} \\div \\frac{1}{3}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_04",
+        "content": "Con los dígitos 2, 4, 6, 9, se forma una fracción utilizando dos dígitos en el numerador y dos dígitos en el denominador. La menor fracción que se puede formar es:",
+        "difficulty": 700,
+        "topic": "Fracciones",
+        "options": [
+            "$\\frac{24}{96}$",
+            "$\\frac{26}{94}$",
+            "$\\frac{29}{64}$",
+            "$\\frac{24}{69}$"
+        ],
+        "correct_option": "$\\frac{24}{96}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_05",
+        "content": "Con una botella de gaseosa se sirven 8 vasos y medio. Si sobran 13 vasos después de servir 22 botellas de gaseosa, el número de vasos que había inicialmente era:",
+        "difficulty": 600,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "150",
+            "190",
+            "200",
+            "180"
+        ],
+        "correct_option": "200",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_06",
+        "content": "La suma de los 50 primeros dígitos de la expansión decimal de $\\frac{1}{7}$ es:",
+        "difficulty": 750,
+        "topic": "Fracciones decimales",
+        "options": [
+            "221",
+            "216",
+            "210",
+            "214"
+        ],
+        "correct_option": "221",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_07",
+        "content": "Encuentre el menor primo $p$ tal que $71p + 1$ es un cuadrado perfecto.",
+        "difficulty": 900,
+        "topic": "Números primos",
+        "options": [
+            "61",
+            "67",
+            "71",
+            "73"
+        ],
+        "correct_option": "73",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_08",
+        "content": "¿Cuántos números primos $p$ satisfacen que $p + 2$ y $p^2 + 2$ también son primos?",
+        "difficulty": 1000,
+        "topic": "Números primos",
+        "options": [
+            "0",
+            "1",
+            "2",
+            "3"
+        ],
+        "correct_option": "1",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_09",
+        "content": "¿Para cuántos valores de $n$ es $n^2 - 3n + 2$ un número primo?",
+        "difficulty": 950,
+        "topic": "Números primos",
+        "options": [
+            "0",
+            "1",
+            "2",
+            "3"
+        ],
+        "correct_option": "2",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_10",
+        "content": "Encuentre el menor entero $x > 100$ tal que cada permutación de los dígitos de $x$ es un número primo.",
+        "difficulty": 1200,
+        "topic": "Números primos",
+        "options": [
+            "111",
+            "113",
+            "117",
+            "131"
+        ],
+        "correct_option": "113",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_11",
+        "content": "Encuentre el último dígito de $2^{2015}$.",
+        "difficulty": 600,
+        "topic": "Potencias y últimos dígitos",
+        "options": [
+            "2",
+            "4",
+            "6",
+            "8"
+        ],
+        "correct_option": "8",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Potenciación y Radicación]"
+        ]
+    },
+    {
+        "id": "ars_8_12",
+        "content": "Encuentre los dos últimos dígitos de $11^{11^{11}}$.",
+        "difficulty": 1100,
+        "topic": "Potencias y últimos dígitos",
+        "options": [
+            "01",
+            "11",
+            "21",
+            "31"
+        ],
+        "correct_option": "11",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Potenciación y Radicación]"
+        ]
+    },
+    {
+        "id": "ars_8_13",
+        "content": "Encuentre el residuo de dividir $25^9 + 5^{9^2} + 9^{25}$ por 11.",
+        "difficulty": 1150,
+        "topic": "Aritmética modular",
+        "options": [
+            "0",
+            "1",
+            "9",
+            "10"
+        ],
+        "correct_option": "10",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_14",
+        "content": "¿Cuál es el menor entero positivo con exactamente 14 divisores positivos?",
+        "difficulty": 950,
+        "topic": "Divisores",
+        "options": [
+            "96",
+            "120",
+            "180",
+            "192"
+        ],
+        "correct_option": "192",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_15",
+        "content": "¿Cuántos números entre 1 y 2015 son múltiplos de 2 ó de 3?",
+        "difficulty": 650,
+        "topic": "Divisibilidad",
+        "options": [
+            "1341",
+            "1342",
+            "1343",
+            "1344"
+        ],
+        "correct_option": "1343",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_16",
+        "content": "¿Cuántos enteros positivos diferentes son divisores de $10^{12}$?",
+        "difficulty": 700,
+        "topic": "Divisores",
+        "options": [
+            "144",
+            "156",
+            "169",
+            "196"
+        ],
+        "correct_option": "169",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_17",
+        "content": "¿Cuántos divisores tiene el número $7200$?",
+        "difficulty": 650,
+        "topic": "Divisores",
+        "options": [
+            "48",
+            "50",
+            "52",
+            "54"
+        ],
+        "correct_option": "54",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_18",
+        "content": "¿Cuántos cuadrados perfectos dividen a $3600$?",
+        "difficulty": 750,
+        "topic": "Divisores",
+        "options": [
+            "8",
+            "10",
+            "12",
+            "14"
+        ],
+        "correct_option": "12",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_19",
+        "content": "¿Cuántos divisores pares tiene el número $25^{32} \\times 5^2$?",
+        "difficulty": 700,
+        "topic": "Divisores",
+        "options": [
+            "0",
+            "33",
+            "66",
+            "67"
+        ],
+        "correct_option": "0",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_20",
+        "content": "¿Cuántos divisores enteros positivos tiene $12!$?",
+        "difficulty": 850,
+        "topic": "Factoriales",
+        "options": [
+            "720",
+            "768",
+            "792",
+            "840"
+        ],
+        "correct_option": "792",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_21",
+        "content": "¿Cuántos enteros entre 1 y 2015 satisfacen que son divisibles por 6 pero no por 9?",
+        "difficulty": 700,
+        "topic": "Divisibilidad",
+        "options": [
+            "222",
+            "223",
+            "224",
+            "225"
+        ],
+        "correct_option": "224",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_22",
+        "content": "Si $A$ es la suma de los divisores de $500$. ¿Cuál es la suma de los divisores primos de $A$?",
+        "difficulty": 900,
+        "topic": "Divisores",
+        "options": [
+            "23",
+            "24",
+            "25",
+            "26"
+        ],
+        "correct_option": "25",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_23",
+        "content": "¿Cuántos de los factoriales del $1!$ al $100!$ son divisibles por $9$?",
+        "difficulty": 750,
+        "topic": "Factoriales",
+        "options": [
+            "94",
+            "95",
+            "96",
+            "97"
+        ],
+        "correct_option": "95",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_24",
+        "content": "Encuentre el mayor número de tres dígitos que sea divisible por $9$ y cuyos dígitos estén en orden creciente de izquierda a derecha.",
+        "difficulty": 700,
+        "topic": "Divisibilidad",
+        "options": [
+            "549",
+            "567",
+            "576",
+            "594"
+        ],
+        "correct_option": "567",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_25",
+        "content": "¿Cuál es el mayor valor de $x$ tal que $x^2$ divida a $(24)(35)(46)(57)$?",
+        "difficulty": 800,
+        "topic": "Divisores",
+        "options": [
+            "6",
+            "8",
+            "12",
+            "16"
+        ],
+        "correct_option": "12",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_26",
+        "content": "Encuentre el mayor $n$ tal que $2^n$ divide a $20!$",
+        "difficulty": 700,
+        "topic": "Factoriales",
+        "options": [
+            "16",
+            "17",
+            "18",
+            "19"
+        ],
+        "correct_option": "18",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_27",
+        "content": "El mínimo común múltiplo de dos números es 3780 y el máximo común divisor es 18. Dado que uno de los números es 180, ¿cuál es el otro número?",
+        "difficulty": 700,
+        "topic": "MCD y MCM",
+        "options": [
+            "360",
+            "378",
+            "396",
+            "420"
+        ],
+        "correct_option": "378",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_28",
+        "content": "¿Para cuántos enteros $n$ entre 1 y 100 es el máximo común divisor entre $n$ y $15$ igual a $3$?",
+        "difficulty": 700,
+        "topic": "MCD y MCM",
+        "options": [
+            "24",
+            "25",
+            "26",
+            "27"
+        ],
+        "correct_option": "27",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_29",
+        "content": "Encuentre $n$ si $\\text{MCD}(n, 40) \\times \\text{MCM}(n, 40) = 280$.",
+        "difficulty": 650,
+        "topic": "MCD y MCM",
+        "options": [
+            "5",
+            "7",
+            "10",
+            "14"
+        ],
+        "correct_option": "7",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_30",
+        "content": "Dado que $a$ es un múltiplo impar de $7767$. Encuentre el máximo común divisor entre $6a^2 + 49a + 108$ y $2a + 9$.",
+        "difficulty": 1100,
+        "topic": "MCD y MCM",
+        "options": [
+            "3",
+            "6",
+            "9",
+            "18"
+        ],
+        "correct_option": "9",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_31",
+        "content": "El máximo común divisor de $n$ y $180$ es $12$. El mínimo común múltiplo de $n$ y $180$ es $720$. Encuentre $n$.",
+        "difficulty": 700,
+        "topic": "MCD y MCM",
+        "options": [
+            "36",
+            "42",
+            "48",
+            "54"
+        ],
+        "correct_option": "48",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_32",
+        "content": "Determine el menor entero $n$ tal que $\\frac{100!}{50^n}$ no es un entero.",
+        "difficulty": 950,
+        "topic": "Factoriales",
+        "options": [
+            "11",
+            "12",
+            "13",
+            "14"
+        ],
+        "correct_option": "13",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_33",
+        "content": "¿Para cuántos valores $n$ es $72 \\times \\left(\\frac{3}{2}\\right)^n$ igual a un entero?",
+        "difficulty": 850,
+        "topic": "Potencias y últimos dígitos",
+        "options": [
+            "4",
+            "5",
+            "6",
+            "7"
+        ],
+        "correct_option": "6",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Potenciación y Radicación]"
+        ]
+    },
+    {
+        "id": "ars_8_34",
+        "content": "Si $a679b$ es un número de cinco dígitos en base 10 el cual es divisible por 72, determinar $a$ y $b$.",
+        "difficulty": 750,
+        "topic": "Criterios de divisibilidad",
+        "options": [
+            "$a=3, b=2$",
+            "$a=2, b=3$",
+            "$a=4, b=2$",
+            "$a=3, b=6$"
+        ],
+        "correct_option": "$a=3, b=2$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_35",
+        "content": "Sea $n$ un número de tres dígitos tal que su cifra de las centenas es 3, el de las decenas es $x$ y el de las unidades es 7, así $n = 3x7$; similarmente tenemos al número $m = 26y$. ¿Cuántos pares $(x,y)$ de dígitos existen tal que $33$ divide a la suma $n + m$?",
+        "difficulty": 950,
+        "topic": "Criterios de divisibilidad",
+        "options": [
+            "1",
+            "2",
+            "3",
+            "4"
+        ],
+        "correct_option": "3",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_36",
+        "content": "Si $N$ es un dígito tal que el entero $62N$ es múltiplo de $11$. ¿Cuál es el valor de $N$?",
+        "difficulty": 600,
+        "topic": "Criterios de divisibilidad",
+        "options": [
+            "3",
+            "5",
+            "7",
+            "9"
+        ],
+        "correct_option": "7",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_37",
+        "content": "Si $N$ es un dígito tal que el entero $52N$ es múltiplo de $9$. ¿Cuál es el valor de $N$?",
+        "difficulty": 550,
+        "topic": "Criterios de divisibilidad",
+        "options": [
+            "0",
+            "2",
+            "4",
+            "6"
+        ],
+        "correct_option": "2",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_38",
+        "content": "¿Cuántos dígitos $N$ satisfacen que el entero $48N6$ es múltiplo de $3$?",
+        "difficulty": 550,
+        "topic": "Criterios de divisibilidad",
+        "options": [
+            "2",
+            "3",
+            "4",
+            "5"
+        ],
+        "correct_option": "4",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_39",
+        "content": "Encuentre el mayor número entero de siete dígitos que es divisible por 132 y cuyos dígitos en orden son $2, 0, x, y, 1, 2, z$, donde $x$, $y$ y $z$ son dígitos simples.",
+        "difficulty": 1100,
+        "topic": "Criterios de divisibilidad",
+        "options": [
+            "2093124",
+            "2086128",
+            "2075128",
+            "2067120"
+        ],
+        "correct_option": "2093124",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_40",
+        "content": "Si $a, b, c$ y $d$ son enteros positivos diferentes tales que $a \\times b = 60$, $c \\times d = 60$ y $a - b = c + d$, ¿cuál es el valor de $a$?",
+        "difficulty": 800,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "3",
+            "20",
+            "5",
+            "30"
+        ],
+        "correct_option": "20",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_41",
+        "content": "¿Cuántos enteros positivos $n$ existen tales que $4n$ es un número de tres dígitos?",
+        "difficulty": 550,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "100",
+            "250",
+            "225",
+            "200"
+        ],
+        "correct_option": "225",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_42",
+        "content": "Los enteros positivos $a, b, c$ son tales que $a \\times b = 14$, $b \\times c = 10$ y $c \\times a = 35$. ¿Cuál es el valor de $a + b + c$?",
+        "difficulty": 650,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "12",
+            "14",
+            "16",
+            "18"
+        ],
+        "correct_option": "14",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_43",
+        "content": "Para $a$ y $b$ enteros positivos, definimos $a \\triangle b = a + b + ab$. Sea $A = \\{1, 2, 3, \\ldots, 100\\}$. ¿Cuántas parejas $(a, b)$ de elementos de $A$ satisfacen que $a \\triangle b$ es par?",
+        "difficulty": 750,
+        "topic": "Operaciones definidas",
+        "options": [
+            "$100^2$",
+            "$\\binom{50}{2}$",
+            "$50^2$",
+            "$100$"
+        ],
+        "correct_option": "$50^2$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ley de los Signos y Jerarquía]"
+        ]
+    },
+    {
+        "id": "ars_8_44",
+        "content": "Por cada tres chocolates que Miguel compra a su precio regular, él compra el cuarto por 250 pesos. Miguel compró 12 chocolates y pagó en total $6\\,150$ pesos. ¿Cuál es el precio regular de un chocolate?",
+        "difficulty": 700,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "$1\\,700$ pesos",
+            "$1\\,900$ pesos",
+            "$2\\,000$ pesos",
+            "$2\\,300$ pesos"
+        ],
+        "correct_option": "$2\\,000$ pesos",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_45",
+        "content": "En tres juegos de baloncesto, el promedio de anotaciones de Karla fue de 18 puntos por partido. Después del cuarto partido su promedio bajó a 17 puntos por partido. ¿Cuántos puntos anotó Karla en el cuarto partido?",
+        "difficulty": 600,
+        "topic": "Promedios",
+        "options": [
+            "10",
+            "12",
+            "14",
+            "16"
+        ],
+        "correct_option": "14",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Medidas de Tendencia y Dispersión]"
+        ]
+    },
+    {
+        "id": "ars_8_46",
+        "content": "Un triciclo en la tienda A cuesta $20\\,000$ pesos. El precio del mismo triciclo en la tienda B es 15% más alto. Si el triciclo es vendido en la tienda B con un 10% de descuento sobre su precio regular, ¿cuál es el precio de venta en la tienda B?",
+        "difficulty": 650,
+        "topic": "Porcentajes",
+        "options": [
+            "$19\\,500$ pesos",
+            "$20\\,000$ pesos",
+            "$20\\,700$ pesos",
+            "$21\\,500$ pesos"
+        ],
+        "correct_option": "$20\\,700$ pesos",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Proporcionalidad y Porcentajes]"
+        ]
+    },
+    {
+        "id": "ars_8_47",
+        "content": "En un juego de fútbol americano, Alejandro realizó tres patadas. Su patada más larga fue de 43 metros y el promedio de metros de cada patada fue de 37 metros. Si la distancia de las otras dos patadas fue la misma, ¿cuál es esa distancia?",
+        "difficulty": 600,
+        "topic": "Promedios",
+        "options": [
+            "30 m",
+            "32 m",
+            "34 m",
+            "36 m"
+        ],
+        "correct_option": "34 m",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Medidas de Tendencia y Dispersión]"
+        ]
+    },
+    {
+        "id": "ars_8_48",
+        "content": "En una tienda de dulces hay 200 paletas. El 90% son de chocolate y el resto de fresa. Pilar compró algunas paletas de chocolate y ahora el porcentaje de paletas de chocolate en la tienda es del 80%. ¿Cuántas paletas compró Pilar?",
+        "difficulty": 750,
+        "topic": "Porcentajes",
+        "options": [
+            "80",
+            "90",
+            "100",
+            "110"
+        ],
+        "correct_option": "100",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Proporcionalidad y Porcentajes]"
+        ]
+    },
+    {
+        "id": "ars_8_49",
+        "content": "Carlos paga $2\\,400$ pesos por un litro de gasolina. En promedio usa un litro para conducir 12.5 kilómetros. ¿Cuántos litros de gasolina debe comprar Carlos para conducir 50 kilómetros?",
+        "difficulty": 550,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "2 litros",
+            "3 litros",
+            "4 litros",
+            "5 litros"
+        ],
+        "correct_option": "4 litros",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_50",
+        "content": "Encuentre el número de tripletas ordenadas $(a, b, c)$ de enteros positivos tal que $abc$ divide a $(ab + 1)(bc + 1)(ca + 1)$.",
+        "difficulty": 1300,
+        "topic": "Divisibilidad",
+        "options": [
+            "3",
+            "5",
+            "7",
+            "9"
+        ],
+        "correct_option": "7",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_51",
+        "content": "El número $20150000201d$ es un número primo. ¿Cuál es el dígito $d$ que satisface esto?",
+        "difficulty": 900,
+        "topic": "Números primos",
+        "options": [
+            "1",
+            "3",
+            "7",
+            "9"
+        ],
+        "correct_option": "3",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "ars_8_52",
+        "content": "En una comunidad de 300 personas: 110 son mayores de 20 años, 120 son mujeres y 50 mujeres son mayores de 20 años. ¿Cuántos hombres son menores de 20 años?",
+        "difficulty": 650,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "60",
+            "120",
+            "50",
+            "70"
+        ],
+        "correct_option": "120",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_53",
+        "content": "Al realizar el producto $11111111 \\times 11111115$, el número que forman los últimos cuatro dígitos es:",
+        "difficulty": 850,
+        "topic": "Conteo y dígitos",
+        "options": [
+            "1150",
+            "9880",
+            "8765",
+            "7880"
+        ],
+        "correct_option": "8765",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Conteo y Combinatoria]"
+        ]
+    },
+    {
+        "id": "ars_8_54",
+        "content": "Isabel compra un libro con la tercera parte de su dinero y una revista con las dos terceras partes de lo que le quedaba. Si al salir tenía 12000 pesos, ¿cuánto dinero tenía inicialmente?",
+        "difficulty": 700,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "42000",
+            "18000",
+            "54000",
+            "36000"
+        ],
+        "correct_option": "54000",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_55",
+        "content": "A una fiesta asistieron 300 invitados. Si el 33% de ellos fue de corbata, ¿cuántos invitados no tenían corbata?",
+        "difficulty": 500,
+        "topic": "Porcentajes",
+        "options": [
+            "101",
+            "199",
+            "201",
+            "99"
+        ],
+        "correct_option": "201",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Proporcionalidad y Porcentajes]"
+        ]
+    },
+    {
+        "id": "ars_8_56",
+        "content": "Ricardo tiene 42 fósforos. Construye un triángulo (4 fósforos por lado), un cuadrado y un pentágono (2 fósforos por lado). ¿Cuántos fósforos tiene cada lado del cuadrado?",
+        "difficulty": 600,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "4",
+            "5",
+            "3",
+            "6",
+            "2"
+        ],
+        "correct_option": "5",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_57",
+        "content": "Tres calabazas se pesan de a dos. Los pesos de cada par son 12 kg, 13 kg y 15 kg. ¿Cuánto pesa la calabaza menos pesada?",
+        "difficulty": 700,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "4 kg",
+            "5 kg",
+            "6 kg",
+            "7 kg"
+        ],
+        "correct_option": "5 kg",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_58",
+        "content": "Diez almohadas de 10 cm de altura se apilan. Por presión, cada una se reduce 4 cm. ¿Qué altura tiene la pila?",
+        "difficulty": 550,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "60",
+            "54",
+            "64",
+            "58",
+            "8"
+        ],
+        "correct_option": "60",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_59",
+        "content": "Una botella está llena hasta la mitad. Con esa mitad se llenan 3 vasos de 12 onzas y 2 vasos de 8 onzas. ¿Cuántas onzas contiene la botella llena?",
+        "difficulty": 600,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "52",
+            "40",
+            "104",
+            "100"
+        ],
+        "correct_option": "104",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_60",
+        "content": "Pedro durmió de 8:45 p.m. a 6:20 a.m. José durmió 1 hora y 50 minutos más que Pedro. ¿Cuánto durmió José?",
+        "difficulty": 650,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "10 h 35 min",
+            "9 h 35 min",
+            "11 h 35 min",
+            "11 h 25 min",
+            "12 h 25 min"
+        ],
+        "correct_option": "11 h 25 min",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_61",
+        "content": "¿Cuántos números de tres dígitos tienen todos sus dígitos distintos?",
+        "difficulty": 650,
+        "topic": "Conteo y dígitos",
+        "options": [
+            "648",
+            "720",
+            "900",
+            "504"
+        ],
+        "correct_option": "648",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]"
+        ]
+    },
+    {
+        "id": "ars_8_62",
+        "content": "Ejecute la operación indicada: $\\frac{3}{10} + \\frac{4}{15}$",
+        "difficulty": 500,
+        "topic": "Fracciones",
+        "options": [
+            "$\\frac{7}{25}$",
+            "$\\frac{17}{30}$",
+            "$\\frac{1}{5}$",
+            "$\\frac{19}{30}$"
+        ],
+        "correct_option": "$\\frac{17}{30}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_63",
+        "content": "Ejecute la operación indicada: $\\frac{1}{4} + \\frac{1}{5}$",
+        "difficulty": 500,
+        "topic": "Fracciones",
+        "options": [
+            "$\\frac{2}{9}$",
+            "$\\frac{9}{20}$",
+            "$\\frac{1}{20}$",
+            "$\\frac{2}{20}$"
+        ],
+        "correct_option": "$\\frac{9}{20}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_64",
+        "content": "Ejecute la operación indicada: $\\frac{2}{3}\\left(6 - \\frac{3}{2}\\right)$",
+        "difficulty": 550,
+        "topic": "Fracciones",
+        "options": [
+            "$3$",
+            "$\\frac{9}{2}$",
+            "$\\frac{3}{2}$",
+            "$\\frac{9}{4}$"
+        ],
+        "correct_option": "$3$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_65",
+        "content": "Ejecute la operación indicada: $0.25\\left(\\frac{8}{9} + \\frac{1}{2}\\right)$",
+        "difficulty": 600,
+        "topic": "Fracciones",
+        "options": [
+            "$\\frac{25}{72}$",
+            "$\\frac{25}{36}$",
+            "$\\frac{25}{18}$",
+            "$\\frac{25}{9}$"
+        ],
+        "correct_option": "$\\frac{25}{72}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_66",
+        "content": "Ejecute la operación indicada: $\\left(3 + \\frac{1}{4}\\right)\\left(1 - \\frac{4}{5}\\right)$",
+        "difficulty": 550,
+        "topic": "Fracciones",
+        "options": [
+            "$\\frac{13}{20}$",
+            "$\\frac{13}{16}$",
+            "$\\frac{13}{25}$",
+            "$\\frac{13}{5}$"
+        ],
+        "correct_option": "$\\frac{13}{20}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_67",
+        "content": "Ejecute la operación indicada: $\\left(\\frac{1}{2} - \\frac{1}{3}\\right)\\left(\\frac{1}{2} + \\frac{1}{12}\\right)$",
+        "difficulty": 600,
+        "topic": "Fracciones",
+        "options": [
+            "$\\frac{7}{72}$",
+            "$\\frac{5}{72}$",
+            "$\\frac{1}{72}$",
+            "$\\frac{11}{72}$"
+        ],
+        "correct_option": "$\\frac{7}{72}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_68",
+        "content": "Ejecute la operación indicada: $\\frac{2}{\\frac{2}{3}} - \\frac{\\frac{2}{3}}{2}$",
+        "difficulty": 650,
+        "topic": "Fracciones",
+        "options": [
+            "$\\frac{8}{3}$",
+            "$\\frac{10}{3}$",
+            "$\\frac{7}{3}$",
+            "$\\frac{5}{3}$"
+        ],
+        "correct_option": "$\\frac{8}{3}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_69",
+        "content": "Ejecute la operación indicada: $\\frac{1}{\\frac{1}{8}} - \\frac{1}{9}$",
+        "difficulty": 600,
+        "topic": "Fracciones",
+        "options": [
+            "$\\frac{71}{9}$",
+            "$\\frac{70}{9}$",
+            "$\\frac{73}{9}$",
+            "$\\frac{69}{9}$"
+        ],
+        "correct_option": "$\\frac{71}{9}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_70",
+        "content": "Ejecute la operación indicada: $\\frac{2 - \\frac{3}{4}}{\\frac{1}{2} - \\frac{1}{3}}$",
+        "difficulty": 650,
+        "topic": "Fracciones",
+        "options": [
+            "$\\frac{15}{2}$",
+            "$\\frac{5}{2}$",
+            "$\\frac{5}{4}$",
+            "$\\frac{15}{4}$"
+        ],
+        "correct_option": "$\\frac{15}{2}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_71",
+        "content": "Ejecute la operación indicada: $\\frac{\\frac{2}{5} + \\frac{1}{2}}{\\frac{1}{10} + \\frac{3}{15}}$",
+        "difficulty": 650,
+        "topic": "Fracciones",
+        "options": [
+            "3",
+            "2",
+            "4",
+            "$\\frac{9}{3}$"
+        ],
+        "correct_option": "3",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_72",
+        "content": "Exprese la desigualdad $ -2 < x \\leq 1 $ en notación de intervalos.",
+        "difficulty": 500,
+        "topic": "Ecuaciones e Inecuaciones",
+        "options": [
+            "$(-2, 1]$",
+            "$[-2, 1)$",
+            "$(-2, 1)$",
+            "$[-2, 1]$"
+        ],
+        "correct_option": "$(-2, 1]$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]"
+        ]
+    },
+    {
+        "id": "ars_8_73",
+        "content": "Exprese la desigualdad $ x \\geq -5 $ en notación de intervalos.",
+        "difficulty": 500,
+        "topic": "Ecuaciones e Inecuaciones",
+        "options": [
+            "$(-5, \\infty)$",
+            "$[-5, \\infty)$",
+            "$(-\\infty, -5]$",
+            "$(-\\infty, -5)$"
+        ],
+        "correct_option": "$[-5, \\infty)$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]"
+        ]
+    },
+    {
+        "id": "ars_8_74",
+        "content": "Exprese la desigualdad $ x > -1 $ en notación de intervalos.",
+        "difficulty": 500,
+        "topic": "Ecuaciones e Inecuaciones",
+        "options": [
+            "$(-1, \\infty)$",
+            "$[-1, \\infty)$",
+            "$(-\\infty, -1)$",
+            "$(-\\infty, -1]$"
+        ],
+        "correct_option": "$(-1, \\infty)$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]"
+        ]
+    },
+    {
+        "id": "ars_8_75",
+        "content": "Exprese la desigualdad $ -5 < x < 2 $ en notación de intervalos.",
+        "difficulty": 500,
+        "topic": "Ecuaciones e Inecuaciones",
+        "options": [
+            "$(-5, 2)$",
+            "$[-5, 2]$",
+            "$(-5, 2]$",
+            "$[-5, 2)$"
+        ],
+        "correct_option": "$(-5, 2)$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]"
+        ]
+    },
+    {
+        "id": "ars_8_76",
+        "content": "Evalúe: (a) $(-2)^{-3}$, (b) $\\left(\\frac{3}{2}\\right)^{-2}$, (c) $\\left(\\frac{1}{2}\\right)^{4} \\cdot \\left(\\frac{5}{2}\\right)^{-2}$",
+        "difficulty": 650,
+        "topic": "Fracciones",
+        "options": [
+            "$-\\frac{1}{8}, \\frac{4}{9}, \\frac{1}{100}$",
+            "$-\\frac{1}{8}, \\frac{9}{4}, \\frac{1}{100}$",
+            "$\\frac{1}{8}, \\frac{4}{9}, \\frac{1}{100}$",
+            "$-\\frac{1}{8}, \\frac{4}{9}, \\frac{1}{10}$"
+        ],
+        "correct_option": "$-\\frac{1}{8}, \\frac{4}{9}, \\frac{1}{100}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_77",
+        "content": "Evalúe: (a) $\\sqrt{16}$, (b) $\\sqrt[4]{16}$, (c) $\\sqrt[4]{\\frac{1}{16}}$",
+        "difficulty": 550,
+        "topic": "Fracciones",
+        "options": [
+            "$4, 4, \\frac{1}{4}$",
+            "$4, 2, \\frac{1}{2}$",
+            "$4, 2, \\frac{1}{4}$",
+            "$8, 2, \\frac{1}{2}$"
+        ],
+        "correct_option": "$4, 2, \\frac{1}{2}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_78",
+        "content": "Evalúe: (a) $\\sqrt{64}$, (b) $\\sqrt[3]{-64}$, (c) $\\sqrt[3]{-32}$",
+        "difficulty": 650,
+        "topic": "Potenciación y Radicación",
+        "options": [
+            "$8, -4, -2\\sqrt[3]{4}$",
+            "$8, 4, -2\\sqrt[3]{4}$",
+            "$8, -4, -2\\sqrt[3]{2}$",
+            "$-8, -4, -2\\sqrt[3]{4}$"
+        ],
+        "correct_option": "$8, -4, -2\\sqrt[3]{4}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Potenciación y Radicación]"
+        ]
+    },
+    {
+        "id": "ars_8_79",
+        "content": "Evalúe la expresión $\\sqrt{x^2 + y^2}$ usando $x = 3$, $y = 4$.",
+        "difficulty": 500,
+        "topic": "Potenciación y Radicación",
+        "options": [
+            "5",
+            "7",
+            "25",
+            "12"
+        ],
+        "correct_option": "5",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Potenciación y Radicación]"
+        ]
+    },
+    {
+        "id": "ars_8_80",
+        "content": "Evalúe la expresión $(9x)^{2/3} + (2y)^{2/3} + z^{2/3}$ usando $x = 3$, $y = 4$, $z = -1$.",
+        "difficulty": 700,
+        "topic": "Potenciación y Radicación",
+        "options": [
+            "12",
+            "13",
+            "14",
+            "15"
+        ],
+        "correct_option": "14",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Potenciación y Radicación]"
+        ]
+    },
+    {
+        "id": "ars_8_81",
+        "content": "Evalúe la expresión $\\sqrt[4]{x^3 + 14y + 2z}$ usando $x = 3$, $y = 4$, $z = -1$.",
+        "difficulty": 600,
+        "topic": "Potenciación y Radicación",
+        "options": [
+            "3",
+            "9",
+            "81",
+            "27"
+        ],
+        "correct_option": "3",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Potenciación y Radicación]"
+        ]
+    },
+    {
+        "id": "ars_8_82",
+        "content": "Evalúe la expresión $(xy)^{2z}$ usando $x = 3$, $y = 4$, $z = -1$.",
+        "difficulty": 650,
+        "topic": "Potenciación y Radicación",
+        "options": [
+            "144",
+            "-144",
+            "$\\frac{1}{144}$",
+            "$-\\frac{1}{144}$"
+        ],
+        "correct_option": "$\\frac{1}{144}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Potenciación y Radicación]"
+        ]
+    },
+    {
+        "id": "ars_8_83",
+        "content": "Escriba en notación científica: Un año luz es alrededor de 5,900,000,000,000 millas.",
+        "difficulty": 550,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "$5.9 \\times 10^{11}$",
+            "$5.9 \\times 10^{12}$",
+            "$59 \\times 10^{11}$",
+            "$5.9 \\times 10^{13}$"
+        ],
+        "correct_option": "$5.9 \\times 10^{12}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_84",
+        "content": "Escriba en notación científica: El diámetro de un electrón es alrededor de 0.0000000000001 centímetros.",
+        "difficulty": 550,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "$1.0 \\times 10^{-12}$",
+            "$1.0 \\times 10^{-14}$",
+            "$1.0 \\times 10^{-13}$",
+            "$1.0 \\times 10^{-11}$"
+        ],
+        "correct_option": "$1.0 \\times 10^{-13}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_85",
+        "content": "Escriba en notación científica: Una gota de agua contiene más de 33 trillones de moléculas.",
+        "difficulty": 600,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "$3.3 \\times 10^{12}$",
+            "$33 \\times 10^{12}$",
+            "$3.3 \\times 10^{13}$",
+            "$33 \\times 10^{13}$"
+        ],
+        "correct_option": "$3.3 \\times 10^{13}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_86",
+        "content": "Escriba en notación científica: La distancia de la Tierra al Sol es de unos 93 millones de millas.",
+        "difficulty": 550,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "$9.3 \\times 10^{6}$",
+            "$9.3 \\times 10^{7}$",
+            "$93 \\times 10^{6}$",
+            "$9.3 \\times 10^{8}$"
+        ],
+        "correct_option": "$9.3 \\times 10^{7}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_87",
+        "content": "Escriba en notación científica: La masa de una molécula de oxígeno es de unos 0.000000000000000000000000000000000000000000000000000000000000003 g.",
+        "difficulty": 700,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "$3.0 \\times 10^{-62}$",
+            "$3.0 \\times 10^{-63}$",
+            "$3.0 \\times 10^{-64}$",
+            "$3.0 \\times 10^{-65}$"
+        ],
+        "correct_option": "$3.0 \\times 10^{-63}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_88",
+        "content": "Escriba en notación científica: La masa de la Tierra es de unos 5,970,000,000,000,000,000,000,000 kg.",
+        "difficulty": 600,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "$5.97 \\times 10^{23}$",
+            "$5.97 \\times 10^{24}$",
+            "$59.7 \\times 10^{23}$",
+            "$5.97 \\times 10^{25}$"
+        ],
+        "correct_option": "$5.97 \\times 10^{24}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_89",
+        "content": "Al mes de julio de 2010, la población de Estados Unidos era de $3.070 \\times 10^8$, y la deuda nacional era de $1.320 \\times 10^{13}$ dólares. ¿Cuánto era la parte que adeuda cada persona?",
+        "difficulty": 650,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "$4.30 \\times 10^3$ dólares",
+            "$4.30 \\times 10^4$ dólares",
+            "$4.30 \\times 10^5$ dólares",
+            "$4.30 \\times 10^2$ dólares"
+        ],
+        "correct_option": "$4.30 \\times 10^4$ dólares",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_90",
+        "content": "Una sala sellada de un hospital, con medidas de 5 m de ancho, 10 m de largo y 3 m de alto, está llena de oxígeno puro. Un metro cúbico contiene 1000 L, y 22.4 L de cualquier gas contienen $6.02 \\times 10^{23}$ moléculas (número de Avogadro). ¿Cuántas moléculas de oxígeno hay en la sala?",
+        "difficulty": 750,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "$4.03 \\times 10^{25}$",
+            "$4.03 \\times 10^{26}$",
+            "$4.03 \\times 10^{27}$",
+            "$4.03 \\times 10^{28}$"
+        ],
+        "correct_option": "$4.03 \\times 10^{27}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_91",
+        "content": "Si usted tuviera un millón ($10^6$) de dólares en una maleta, y gastara mil dólares ($10^3$) al día, ¿cuántos años tardaría en gastarse todo el dinero? Gastando al mismo paso, ¿cuántos años tardaría en vaciar la maleta llena con mil millones ($10^9$) de dólares?",
+        "difficulty": 650,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "2.74 años y 2739.73 años",
+            "2.74 años y 273.97 años",
+            "27.4 años y 2739.73 años",
+            "274 años y 2739.73 años"
+        ],
+        "correct_option": "2.74 años y 2739.73 años",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_92",
+        "content": "Resuelva la siguiente operación combinada respetando la jerarquía de las operaciones: $\\left( \\frac{2}{3} - \\frac{1}{6} \\right) \\times \\left( \\frac{3}{4} \\div \\frac{1}{2} \\right) + \\frac{5}{8}$",
+        "difficulty": 850,
+        "topic": "Fracciones",
+        "options": [
+            "$\\frac{11}{8}$",
+            "$\\frac{13}{8}$",
+            "$\\frac{9}{8}$",
+            "$\\frac{15}{8}$"
+        ],
+        "correct_option": "$\\frac{11}{8}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_93",
+        "content": "Una tienda ofrece un descuento del 20% en un producto, y luego sobre ese precio rebajado ofrece un descuento adicional del 10%. ¿Cuál es el descuento único equivalente?",
+        "difficulty": 1050,
+        "topic": "Porcentajes",
+        "options": [
+            "28%",
+            "30%",
+            "25%",
+            "32%"
+        ],
+        "correct_option": "28%",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Proporcionalidad y Porcentajes]"
+        ]
+    },
+    {
+        "id": "ars_8_94",
+        "content": "Ana invierte \\$500,000 a una tasa de interés compuesto anual del 8%. ¿Cuánto dinero tendrá después de 3 años? (Redondee al peso más cercano)",
+        "difficulty": 1100,
+        "topic": "Porcentajes",
+        "options": [
+            "\\$620,000",
+            "\\$629,856",
+            "\\$640,000",
+            "\\$600,000"
+        ],
+        "correct_option": "\\$629,856",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Proporcionalidad y Porcentajes]"
+        ]
+    },
+    {
+        "id": "ars_8_95",
+        "content": "Tres obreros trabajando 8 horas diarias durante 10 días construyen 120 metros de carretera. ¿Cuántos días necesitarán 6 obreros trabajando 6 horas diarias para construir 180 metros de carretera?",
+        "difficulty": 1150,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "8 días",
+            "9 días",
+            "10 días",
+            "12 días"
+        ],
+        "correct_option": "10 días",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_96",
+        "content": "En una universidad, el 60% de los estudiantes son mujeres. De ellas, el 40% estudian ingeniería. Si el número total de estudiantes es 12,000, ¿cuántas mujeres estudian ingeniería?",
+        "difficulty": 1200,
+        "topic": "Porcentajes",
+        "options": [
+            "2,500",
+            "2,880",
+            "3,000",
+            "2,700"
+        ],
+        "correct_option": "2,880",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Proporcionalidad y Porcentajes]"
+        ]
+    },
+    {
+        "id": "ars_8_97",
+        "content": "El precio de un producto aumenta un 15% en enero y un 20% adicional en febrero. En marzo, se aplica un descuento del 25% sobre el precio de febrero. ¿Cuál es la variación porcentual neta respecto al precio original?",
+        "difficulty": 1250,
+        "topic": "Porcentajes",
+        "options": [
+            "+5%",
+            "+3.5%",
+            "-3.5%",
+            "+4%"
+        ],
+        "correct_option": "+3.5%",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Proporcionalidad y Porcentajes]"
+        ]
+    },
+    {
+        "id": "ars_8_98",
+        "content": "¿Cuántos enteros positivos diferentes son divisores de $1000000000000$?",
+        "difficulty": 700,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "144",
+            "156",
+            "169",
+            "196"
+        ],
+        "correct_option": "169",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_99",
+        "content": "Determine el menor entero $n$ tal que $\\frac{100!}{(50)^n}$ no es un entero.",
+        "difficulty": 950,
+        "topic": "Fracciones",
+        "options": [
+            "11",
+            "12",
+            "13",
+            "14"
+        ],
+        "correct_option": "13",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_100",
+        "content": "Encuentre el número de tripletas ordenadas $(a, b, c)$ tal que $abc$ divida a $(ab + 1)(bc + 1)(ca + 1)$.",
+        "difficulty": 1300,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "3",
+            "5",
+            "7",
+            "9"
+        ],
+        "correct_option": "7",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_101",
+        "content": "Por cada tres chocolates que Miguel compra por su precio regular, él compra el cuarto por 250 pesos. Miguel compró 12 chocolates y pagó en total \\$6,150 pesos. ¿Cuál es el precio regular en centavos de un chocolate?",
+        "difficulty": 700,
+        "topic": "Aritmética aplicada",
+        "options": [
+            "50000 centavos",
+            "55000 centavos",
+            "60000 centavos",
+            "65000 centavos"
+        ],
+        "correct_option": "60000 centavos",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "ars_8_102",
+        "content": "Un triciclo en una tienda A cuesta \\$20,000. El precio del mismo triciclo en la tienda B es 15% más alto que el precio de la tienda A. Si el triciclo es vendido en la tienda B con un 10% de descuento al precio regular de la tienda, ¿cuál es el precio de venta del triciclo en la tienda B?",
+        "difficulty": 650,
+        "topic": "Porcentajes",
+        "options": [
+            "\\$19,500",
+            "\\$20,000",
+            "\\$20,700",
+            "\\$21,500"
+        ],
+        "correct_option": "\\$20,700",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Proporcionalidad y Porcentajes]"
+        ]
+    },
+    {
+        "id": "ars_8_103",
+        "content": "En un juego de fútbol americano, Alejandro pateó tres veces la pelota. Su lanzamiento más largo fue de 43 metros y el promedio de metros de cada patada fue de 37 metros. Si la distancia en metros de las otras dos patadas fue la misma, ¿cuál es la distancia recorrida por la pelota en cada uno de esas dos patadas?",
+        "difficulty": 600,
+        "topic": "Promedios",
+        "options": [
+            "30 m",
+            "32 m",
+            "34 m",
+            "36 m"
+        ],
+        "correct_option": "34 m",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Medidas de Tendencia y Dispersión]"
+        ]
+    },
+    {
+        "id": "ars_8_104",
+        "content": "En una tienda de dulces hay 200 paletas. El 90% de las paletas son de chocolate y el resto son de fresa. Pilar compró algunas paletas de chocolate y ahora el porcentaje de paletas de chocolate que hay en la tienda es del 80%. ¿Cuántas paletas compró Pilar?",
+        "difficulty": 750,
+        "topic": "Porcentajes",
+        "options": [
+            "80",
+            "90",
+            "100",
+            "110"
+        ],
+        "correct_option": "100",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Proporcionalidad y Porcentajes]"
+        ]
+    },
+    {
+        "id": "ars_8_105",
+        "content": "Carlos paga \\$2,400 pesos por un litro de gasolina. En promedio él usa un litro de gasolina para conducir 12.5 kilómetros. ¿Cuántos litros de gasolina debe comprar Carlos para conducir 50 kilómetros?",
+        "difficulty": 550,
+        "topic": "Promedios",
+        "options": [
+            "2 litros",
+            "3 litros",
+            "4 litros",
+            "5 litros"
+        ],
+        "correct_option": "4 litros",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Medidas de Tendencia y Dispersión]"
+        ]
+    },
+    {
+        "id": "Octavo_Aritmetica_2012_F1_Q10",
+        "content": "2.000 fresas valen lo mismo que 100 manzanas, 300 fresas valen lo mismo que 800 uvas. Calcule la cantidad de uvas que valen lo mismo que 9 manzanas.",
+        "difficulty": 800,
+        "topic": "Aritmética",
+        "options": [
+            "480",
+            "520",
+            "450",
+            "500"
+        ],
+        "correct_option": "480",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "Octavo_Aritmetica_2013_F1_Q4",
+        "content": "El valor numérico de la siguiente expresión es: $\\dfrac{2013 \\times 2{,}013}{201{,}3 \\times 20{,}13}$",
+        "difficulty": 750,
+        "topic": "Aritmética",
+        "options": [
+            "2013",
+            "1000",
+            "1",
+            "100"
+        ],
+        "correct_option": "1",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "Octavo_Aritmetica_2013_F1_Q10",
+        "content": "El producto de 600 y un entero positivo N es un cubo perfecto. El menor valor posible de N es:",
+        "difficulty": 850,
+        "topic": "Aritmética",
+        "options": [
+            "45",
+            "90",
+            "250",
+            "500"
+        ],
+        "correct_option": "45",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ]
+    },
+    {
+        "id": "Octavo_Aritmetica_2013_F1_Q17",
+        "content": "Si $a$ y $b$ tienen máximo común divisor igual a 4 y $\\dfrac{a}{b} = 0{,}3$. El producto de $a \\cdot b$ es:",
+        "difficulty": 800,
+        "topic": "Aritmética",
+        "options": [
+            "960",
+            "480",
+            "120",
+            "30"
+        ],
+        "correct_option": "480",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Teoría de Números]"
+        ]
+    }
 ]

@@ -1,28 +1,76 @@
 [
-  {
-    "id": "ps_9_01",
-    "content": "El departamento de matemáticas consta de 9 hombres y 11 mujeres, incluido el Sr. y la Sra. Zapata. Se elige al azar un comité de 3 hombres y 3 mujeres. ¿Cuál es la probabilidad de que la pareja Zapata forme parte del comité?",
-    "difficulty": 1250,
-    "topic": "Probabilidad combinatoria",
-    "options": [
-      "$\\frac{1}{11}$",
-      "$\\frac{28}{84}$",
-      "$\\frac{20}{80}$",
-      "$\\frac{5}{36}$"
-    ],
-    "correct_option": "$\\frac{28}{84}$"
-  },
-  {
-    "id": "ps_9_02",
-    "content": "Enrique e Isabel juegan con 2 dados, cada dado tiene los números 1, 2, 3, 5, 7, 11 en sus caras. Isabel gana si el producto de los dos números es primo. ¿Cuál es la probabilidad de que Isabel gane?",
-    "difficulty": 1200,
-    "topic": "Probabilidad con dados",
-    "options": [
-      "$\\frac{5}{36}$",
-      "$\\frac{13}{36}$",
-      "$\\frac{5}{18}$",
-      "$\\frac{17}{36}$"
-    ],
-    "correct_option": "$\\frac{5}{18}$"
-  }
+    {
+        "id": "ps_9_01",
+        "content": "El departamento de matemáticas consta de 9 hombres y 11 mujeres, incluido el Sr. y la Sra. Zapata. Se elige al azar un comité de 3 hombres y 3 mujeres. ¿Cuál es la probabilidad de que la pareja Zapata forme parte del comité?",
+        "difficulty": 1250,
+        "topic": "Probabilidad combinatoria",
+        "options": [
+            "$\\frac{1}{11}$",
+            "$\\frac{28}{84}$",
+            "$\\frac{20}{80}$",
+            "$\\frac{5}{36}$"
+        ],
+        "correct_option": "$\\frac{28}{84}$",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Probabilidad]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ps_9_02",
+        "content": "Enrique e Isabel juegan con 2 dados, cada dado tiene los números 1, 2, 3, 5, 7, 11 en sus caras. Isabel gana si el producto de los dos números es primo. ¿Cuál es la probabilidad de que Isabel gane?",
+        "difficulty": 1200,
+        "topic": "Probabilidad con dados",
+        "options": [
+            "$\\frac{5}{36}$",
+            "$\\frac{13}{36}$",
+            "$\\frac{5}{18}$",
+            "$\\frac{17}{36}$"
+        ],
+        "correct_option": "$\\frac{5}{18}$",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Probabilidad]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Noveno_Probabilidad_2013_F2_Q7",
+        "content": "Si a se escoge al azar del conjunto {1,2,3,4,5} y b es escogido al azar del conjunto {6,7,8}, la probabilidad que a sea par es:",
+        "difficulty": 600,
+        "topic": "Probabilidad",
+        "options": [
+            "$\\frac{2}{5}$",
+            "$\\frac{2}{3}$",
+            "$\\frac{13}{15}$",
+            "$\\frac{3}{5}$"
+        ],
+        "correct_option": "$\\frac{2}{5}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Probabilidad]"
+        ]
+    },
+    {
+        "id": "Noveno_Estadistica_2013_F1_Q19",
+        "content": "De mil televidentes encuestados se obtiene la siguiente información: 391 ven programas deportivos, 230 cómicos, 545 mundo animal, 98 cómicos y deportivos, 152 cómicos y mundo animal, 88 deportivos y mundo animal, 90 no ven ninguno de estos tres programas. El número de entrevistados que ven los tres tipos de programas es:",
+        "difficulty": 850,
+        "topic": "Estadística",
+        "options": [
+            "41",
+            "76",
+            "82",
+            "100"
+        ],
+        "correct_option": "76",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Medidas de Tendencia y Dispersión]"
+        ]
+    }
 ]

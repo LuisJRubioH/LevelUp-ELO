@@ -1,28 +1,75 @@
 [
-  {
-    "id": "ps_gen_03",
-    "content": "En una bolsa hay 3 bolas rojas, 4 azules y 5 verdes. Se sacan 2 bolas sin reposición. ¿Cuál es la probabilidad de que ambas sean del mismo color?",
-    "difficulty": 1100,
-    "topic": "Probabilidad sin reposición",
-    "options": [
-      "$\\frac{19}{66}$",
-      "$\\frac{1}{3}$",
-      "$\\frac{19}{72}$",
-      "$\\frac{5}{22}$"
-    ],
-    "correct_option": "$\\frac{19}{66}$"
-  },
-  {
-    "id": "ps_gen_04",
-    "content": "Se lanza una moneda justa 4 veces. ¿Cuál es la probabilidad de obtener exactamente 2 caras?",
-    "difficulty": 1050,
-    "topic": "Distribución binomial",
-    "options": [
-      "$\\frac{1}{4}$",
-      "$\\frac{3}{8}$",
-      "$\\frac{1}{2}$",
-      "$\\frac{5}{16}$"
-    ],
-    "correct_option": "$\\frac{3}{8}$"
-  }
+    {
+        "id": "ps_gen_03",
+        "content": "En una bolsa hay 3 bolas rojas, 4 azules y 5 verdes. Se sacan 2 bolas sin reposición. ¿Cuál es la probabilidad de que ambas sean del mismo color?",
+        "difficulty": 1100,
+        "topic": "Probabilidad sin reposición",
+        "options": [
+            "$\\frac{19}{66}$",
+            "$\\frac{1}{3}$",
+            "$\\frac{19}{72}$",
+            "$\\frac{5}{22}$"
+        ],
+        "correct_option": "$\\frac{19}{66}$",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Probabilidad]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ps_gen_04",
+        "content": "Se lanza una moneda justa 4 veces. ¿Cuál es la probabilidad de obtener exactamente 2 caras?",
+        "difficulty": 1050,
+        "topic": "Distribución binomial",
+        "options": [
+            "$\\frac{1}{4}$",
+            "$\\frac{3}{8}$",
+            "$\\frac{1}{2}$",
+            "$\\frac{5}{16}$"
+        ],
+        "correct_option": "$\\frac{3}{8}$",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Probabilidad]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Octavo_Probabilidad_2013_F2_Q7",
+        "content": "Si a se escoge al azar del conjunto {1,2,3,4,5} y b es escogido al azar del conjunto {6,7,8}, la probabilidad que a sea par es:",
+        "difficulty": 600,
+        "topic": "Probabilidad",
+        "options": [
+            "$\\frac{2}{5}$",
+            "$\\frac{2}{3}$",
+            "$\\frac{13}{15}$",
+            "$\\frac{3}{5}$"
+        ],
+        "correct_option": "$\\frac{2}{5}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Probabilidad]"
+        ]
+    },
+    {
+        "id": "Octavo_Estadistica_2013_F1_Q19",
+        "content": "De mil televidentes encuestados se obtiene la siguiente información: 391 ven programas deportivos, 230 cómicos, 545 mundo animal, 98 cómicos y deportivos, 152 cómicos y mundo animal, 88 deportivos y mundo animal, 90 no ven ninguno de estos tres programas. El número de entrevistados que ven los tres tipos de programas es:",
+        "difficulty": 850,
+        "topic": "Estadística",
+        "options": [
+            "41",
+            "76",
+            "82",
+            "100"
+        ],
+        "correct_option": "76",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Medidas de Tendencia y Dispersión]"
+        ]
+    }
 ]

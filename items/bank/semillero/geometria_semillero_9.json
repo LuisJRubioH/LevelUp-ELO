@@ -1,16 +1,202 @@
 [
-  {
-    "id": "gs_9_01",
-    "content": "En los lados $AD$ y $BC$ del rectángulo $ABCD$ se escogen puntos $F$ y $E$ tal que $AECF$ sea un rombo. Si $AD=16$ cm y $AB=12$ cm, ¿cuánto mide $EF$?",
-    "difficulty": 1200,
-    "topic": "Rombos y rectángulos",
-    "options": [
-      "11",
-      "12",
-      "13",
-      "15"
-    ],
-    "correct_option": "15",
-    "image_path": "items/images/noveno_q14_rombo.png"
-  }
+    {
+        "id": "gs_9_01",
+        "content": "En los lados $AD$ y $BC$ del rectángulo $ABCD$ se escogen puntos $F$ y $E$ tal que $AECF$ sea un rombo. Si $AD=16$ cm y $AB=12$ cm, ¿cuánto mide $EF$?",
+        "difficulty": 1200,
+        "topic": "Rombos y rectángulos",
+        "options": [
+            "11",
+            "12",
+            "13",
+            "15"
+        ],
+        "correct_option": "15",
+        "image_path": "items/images/noveno_q14_rombo.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ],
+        "image_url": "items/images/noveno_q14_rombo.png"
+    },
+    {
+        "id": "Noveno_Geometria_2012_F1_Q5",
+        "content": "La suma de las áreas de todos los triángulos que se pueden formar en la figura es:",
+        "difficulty": 850,
+        "topic": "Geometría",
+        "options": [
+            "10",
+            "8",
+            "7",
+            "6"
+        ],
+        "correct_option": "10",
+        "image_url": "items/images/Noveno_Geometria_2012_F1_Q5.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    },
+    {
+        "id": "Noveno_Geometria_2012_F1_Q8",
+        "content": "Un cubo $4\\times4\\times4$ está formado por 64 cubos de $1\\times1\\times1$. Si se hacen seis agujeros de tamaño $4\\times1\\times1$ atravesando el cubo grande como se indica en la figura, entonces la cantidad de cubos de $1\\times1\\times1$ que quedan del cubo inicial es:",
+        "difficulty": 900,
+        "topic": "Geometría",
+        "options": [
+            "44",
+            "42",
+            "40",
+            "46"
+        ],
+        "correct_option": "44",
+        "image_url": "items/images/Noveno_Geometria_2012_F1_Q8.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    },
+    {
+        "id": "Noveno_Geometria_2012_F1_Q9",
+        "content": "En la figura los puntos P, Q, R y S dividen cada lado del rectángulo en razón 1:2. Determine el cociente entre el área del paralelogramo PQRS y el área del rectángulo ABCD.",
+        "difficulty": 950,
+        "topic": "Geometría",
+        "options": [
+            "$\\dfrac{1}{2}$",
+            "$\\dfrac{5}{9}$",
+            "$\\dfrac{4}{9}$",
+            "$\\dfrac{2}{9}$"
+        ],
+        "correct_option": "$\\dfrac{5}{9}$",
+        "image_url": "items/images/Noveno_Geometria_2012_F1_Q9.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    },
+    {
+        "id": "Noveno_Geometria_2013_F1_Q5",
+        "content": "El triángulo $ABC$ es rectángulo en $B$ y tiene $50 \\text{ cm}^2$ de área, $D$ es el punto medio de $BC$ y $AB = 12{,}5$ cm. Si los arcos $BC$ y $CD$ son semicircunferencias, el área de la región sombreada es:",
+        "difficulty": 850,
+        "topic": "Geometría",
+        "options": [
+            "$6\\pi + 25$",
+            "$4\\pi + 25$",
+            "$6\\pi + 50$",
+            "$4\\pi + 50$"
+        ],
+        "correct_option": "$6\\pi + 25$",
+        "image_url": "items/images/Noveno_Geometria_2013_F1_Q5.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    },
+    {
+        "id": "Noveno_Geometria_2013_F1_Q8",
+        "content": "En el cuadrado $ABCD$ de la figura se tiene que $BC = PQ$ y que $PB = \\dfrac{1}{5} AB$. La razón entre el área sombreada y el área no sombreada es:",
+        "difficulty": 800,
+        "topic": "Geometría",
+        "options": [
+            "$\\dfrac{25}{17}$",
+            "$\\dfrac{17}{38}$",
+            "$\\dfrac{17}{33}$",
+            "$\\dfrac{25}{50}$"
+        ],
+        "correct_option": "$\\dfrac{17}{33}$",
+        "image_url": "items/images/Noveno_Geometria_2013_F1_Q8.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    },
+    {
+        "id": "Noveno_Geometria_2013_F1_Q12",
+        "content": "Se toman dos cuadrados cualesquiera y se sobreponen de cualquier manera. De los siguientes polígonos, el único que NO puede corresponder a la forma de la parte sobrepuesta es:",
+        "difficulty": 750,
+        "topic": "Geometría",
+        "options": [
+            "Triángulo",
+            "Cuadrado",
+            "Octágono",
+            "Hexágono"
+        ],
+        "correct_option": "Octágono",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    },
+    {
+        "id": "Noveno_Geometria_2013_F1_Q18",
+        "content": "Un vaso se llena con agua y se voltea 45° como muestra la figura. El porcentaje de agua en el vaso es:",
+        "difficulty": 750,
+        "topic": "Geometría",
+        "options": [
+            "25%",
+            "20%",
+            "30%",
+            "33%"
+        ],
+        "correct_option": "25%",
+        "image_url": "items/images/Noveno_Geometria_2013_F1_Q18.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    },
+    {
+        "id": "Noveno_Geometria_2013_F2_Q2",
+        "content": "Sea $ABCD$ un rectángulo con $AB=5$ unidades, $EC=2$ unidades y $AE=AD$. El valor de $AD$, en unidades, es:",
+        "difficulty": 800,
+        "topic": "Geometría",
+        "options": [
+            "$\\dfrac{5}{2}$",
+            "$\\dfrac{29}{4}$",
+            "$\\dfrac{25}{8}$",
+            "$\\dfrac{29}{2}$"
+        ],
+        "correct_option": "$\\dfrac{29}{4}$",
+        "image_url": "items/images/Noveno_Geometria_2013_F2_Q2.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    },
+    {
+        "id": "Noveno_Geometria_2013_F2_Q8",
+        "content": "En la figura, el triángulo $ABC$ es isósceles con $AB = AC$. Además, se sabe que $D$ esta sobre $AC$ de tal manera que $AD = DB = BC$. La medida del ángulo $ABD$ es:",
+        "difficulty": 850,
+        "topic": "Geometría",
+        "options": [
+            "18°",
+            "30°",
+            "45°",
+            "36°"
+        ],
+        "correct_option": "36°",
+        "image_url": "items/images/Noveno_Geometria_2013_F2_Q8.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    },
+    {
+        "id": "Noveno_Geometria_2013_F2_Q11",
+        "content": "En un triángulo $ABC$, $AD$ es la bisectriz del ángulo $BAC$; $BE$ es la altura desde $B$ sobre $AD$ y $F$ es el punto medio de $AB$. Sabiendo que $AB=28$, $BC=33$ y $CA=37$, halle la longitud de $EF$.",
+        "difficulty": 950,
+        "topic": "Geometría",
+        "options": [
+            "14",
+            "16.5",
+            "18",
+            "12"
+        ],
+        "correct_option": "14",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    }
 ]

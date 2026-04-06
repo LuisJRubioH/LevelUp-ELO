@@ -1,41 +1,385 @@
 [
-  {
-    "id": "ls_7_01",
-    "content": "Juan tiene dos recipientes vacíos idénticos y un vaso pequeño. Primero, llena el recipiente 1 hasta el tope con agua, y bebe dos vasos de agua del recipiente 1. Después llena completamente el recipiente 2, pero vierte un vaso del recipiente 2 al recipiente 1. ¿Cómo se compara la cantidad de agua en el recipiente 1 con la del recipiente 2?",
-    "difficulty": 900,
-    "topic": "Razonamiento lógico",
-    "options": [
-      "Son iguales",
-      "Hay más agua en el recipiente 2",
-      "Hay más agua en el recipiente 1",
-      "No puede saberse"
-    ],
-    "correct_option": "Son iguales"
-  },
-  {
-    "id": "ls_7_02",
-    "content": "Miguel compró una bolsa con 2005 caramelos de 5 colores: 390 blancos, 396 amarillos, 402 rojos, 409 verdes y 408 cafés. Sin mirar, sacaba tres caramelos: si los tres eran del mismo color, se los comía; si no, los regresaba. Continuó hasta que quedó un caramelo. ¿De qué color era?",
-    "difficulty": 1100,
-    "topic": "Invariantes",
-    "options": [
-      "Amarillo",
-      "Verde",
-      "Café",
-      "Rojo"
-    ],
-    "correct_option": "Rojo"
-  },
-  {
-    "id": "ls_7_03",
-    "content": "Camilo tiene una chocolatina de 18 cm. La marcó para repartir entre 6 amigos en partes iguales. Como a 2 no les gusta el chocolate, remarcó en pedazos de 4 cm, dejando un pedazo de 2 cm para él. Si por error la partió en todos los pedazos marcados, la longitud que más se repitió fue:",
-    "difficulty": 950,
-    "topic": "Razonamiento lógico",
-    "options": [
-      "La de 1 cm",
-      "La de 2 cm",
-      "La de 3 cm",
-      "La misma cantidad por cada longitud"
-    ],
-    "correct_option": "La de 1 cm"
-  }
+    {
+        "id": "ls_7_01",
+        "content": "Juan tiene dos recipientes vacíos idénticos y un vaso pequeño. Primero, llena el recipiente 1 hasta el tope con agua, y bebe dos vasos de agua del recipiente 1. Después llena completamente el recipiente 2, pero vierte un vaso del recipiente 2 al recipiente 1. ¿Cómo se compara la cantidad de agua en el recipiente 1 con la del recipiente 2?",
+        "difficulty": 900,
+        "topic": "Razonamiento lógico",
+        "options": [
+            "Son iguales",
+            "Hay más agua en el recipiente 2",
+            "Hay más agua en el recipiente 1",
+            "No puede saberse"
+        ],
+        "correct_option": "Son iguales",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[General: Inferencia y Deducción Lógica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ls_7_02",
+        "content": "Miguel compró una bolsa con 2005 caramelos de 5 colores: 390 blancos, 396 amarillos, 402 rojos, 409 verdes y 408 cafés. Sin mirar, sacaba tres caramelos: si los tres eran del mismo color, se los comía; si no, los regresaba. Continuó hasta que quedó un caramelo. ¿De qué color era?",
+        "difficulty": 1100,
+        "topic": "Invariantes",
+        "options": [
+            "Amarillo",
+            "Verde",
+            "Café",
+            "Rojo"
+        ],
+        "correct_option": "Rojo",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]",
+            "[General: Pensamiento Lateral]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ls_7_03",
+        "content": "Camilo tiene una chocolatina de 18 cm. La marcó para repartir entre 6 amigos en partes iguales. Como a 2 no les gusta el chocolate, remarcó en pedazos de 4 cm, dejando un pedazo de 2 cm para él. Si por error la partió en todos los pedazos marcados, la longitud que más se repitió fue:",
+        "difficulty": 950,
+        "topic": "Razonamiento lógico",
+        "options": [
+            "La de 1 cm",
+            "La de 2 cm",
+            "La de 3 cm",
+            "La misma cantidad por cada longitud"
+        ],
+        "correct_option": "La de 1 cm",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Inferencia y Deducción Lógica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Septimo_Logica_2012_F1_Q1",
+        "content": "El mes de diciembre de cierto año tiene 5 días miércoles y tres de ellos corresponden a números pares. El día 24 de ese mes es:",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "Lunes",
+            "Martes",
+            "Jueves",
+            "Viernes"
+        ],
+        "correct_option": "Lunes",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2012_F1_Q3",
+        "content": "Las siguientes figuras muestran varias balanzas de dos brazos en equilibrio. La cantidad de triángulos necesarios para equilibrar la última balanza es:",
+        "difficulty": 850,
+        "topic": "Lógica",
+        "options": [
+            "2",
+            "3",
+            "5",
+            "4"
+        ],
+        "correct_option": "3",
+        "image_url": "items/images/Septimo_Logica_2012_F1_Q3.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2012_F1_Q8",
+        "content": "En la finca de Laura hay un perro, un gato, un conejo y un cerdo. Si el cerdo pesa más que el perro y el conejo pesa más que el perro y menos que el gato, pero éste último pesa más que el cerdo, entonces el animal más pesado es el:",
+        "difficulty": 650,
+        "topic": "Lógica",
+        "options": [
+            "Gato",
+            "Perro",
+            "Cerdo",
+            "Conejo"
+        ],
+        "correct_option": "Gato",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2012_F1_Q11",
+        "content": "En su tarea de Historia Pablito tenía que encontrar el año de independencia del país Certaba, el profesor para ayudarle le dio algunas pistas: a) Los cuatros dígitos del año son diferentes. b) El segundo y el cuarto dígitos son números primos impares y la resta de ellos da un número primo. c) El primer dígito es el tercero del año de éstas olimpiadas. d) La suma del primer y segundo dígito es ocho. e) El cuadrado del segundo dígito menos ocho veces el tercero da el primer dígito. Determine la fecha de independencia del país Certaba.",
+        "difficulty": 900,
+        "topic": "Lógica",
+        "options": [
+            "1765",
+            "1567",
+            "1365",
+            "1965"
+        ],
+        "correct_option": "1765",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2013_F1_Q3",
+        "content": "Sobre el tablero de la figura hay varias monedas. Si se quiere tener dos monedas en cada fila y dos monedas en cada columna, la cantidad de monedas que hay que retirar del tablero es:",
+        "difficulty": 750,
+        "topic": "Lógica",
+        "options": [
+            "1",
+            "2",
+            "3",
+            "4"
+        ],
+        "correct_option": "2",
+        "image_url": "items/images/Septimo_Logica_2013_F1_Q3.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2013_F1_Q4",
+        "content": "Un grupo de chicas forma un círculo. Contando desde Martha, en sentido de las manecillas del reloj, Karla es la séptima niña. En cambio, en sentido opuesto a las manecillas del reloj, Karla es la octava niña. El número de chicas que hay en el grupo es:",
+        "difficulty": 650,
+        "topic": "Lógica",
+        "options": [
+            "13",
+            "14",
+            "15",
+            "16"
+        ],
+        "correct_option": "13",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2013_F1_Q6",
+        "content": "Los números en el dibujo son los precios que hay que pagar para ir de una ciudad vecina a otra. La menor cantidad de dinero que puede pagar Juan para ir de la ciudad A a la ciudad B es:",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "90",
+            "80",
+            "110",
+            "120"
+        ],
+        "correct_option": "90",
+        "image_url": "items/images/Septimo_Logica_2013_F1_Q6.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2013_F1_Q8",
+        "content": "Isis, Ana, Luz, Sol y Ema viven en la misma casa, dos de ellas viven en el primer piso y tres de ellas en el segundo piso. Sol vive en un piso diferente al de Luz y Ema. Ana vive en un piso diferente al de Isis y Luz. Las que viven en el primer piso son:",
+        "difficulty": 750,
+        "topic": "Lógica",
+        "options": [
+            "Luz y Ema",
+            "Isis y Ema",
+            "Ana y Sol",
+            "Isis y Luz"
+        ],
+        "correct_option": "Ana y Sol",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2013_F1_Q13",
+        "content": "En la tabla se escriben los números 1, 2, 3 de tal forma que en cada horizontal y en cada vertical aparezca cada uno de los tres números. El orden en que aparecen los números en la tercera linea horizontal es:",
+        "difficulty": 650,
+        "topic": "Lógica",
+        "options": [
+            "312",
+            "321",
+            "132",
+            "231"
+        ],
+        "correct_option": "231",
+        "image_url": "items/images/Septimo_Logica_2013_F1_Q13.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Pensamiento Lateral]",
+            "[Específica: Sucesiones y Series]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2013_F1_Q14",
+        "content": "Tres dados estan puestos el uno sobre el otro como lo muestra la figura. El máximo valor que pueden sumar los puntos de las caras que están juntas, teniendo en cuenta que la suma de los puntos de dos caras opuestas siempre es 7, es:",
+        "difficulty": 900,
+        "topic": "Lógica",
+        "options": [
+            "16",
+            "17",
+            "18",
+            "19"
+        ],
+        "correct_option": "16",
+        "image_url": "items/images/Septimo_Logica_2013_F1_Q14.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2013_F1_Q15",
+        "content": "Un reloj digital marca las 18:32. La mínima cantidad de minutos que deben pasar, para que en el reloj aparezcan los mismos cuatro dígitos, es:",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "180",
+            "240",
+            "295",
+            "186"
+        ],
+        "correct_option": "186",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2013_F1_Q17",
+        "content": "Se tienen 20 pelotas de diferentes colores: amarillas, verdes, azules y negras. 17 de ellas NO son verdes, 5 son negras y 12 NO son amarillas. La cantidad de pelotas azules que hay es:",
+        "difficulty": 750,
+        "topic": "Lógica",
+        "options": [
+            "4",
+            "3",
+            "8",
+            "7"
+        ],
+        "correct_option": "4",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2013_F1_Q19",
+        "content": "En un concurso de televisión tres concursantes intentan adivinar un número. Uno dice 260, otro 274 y otro 234. Si se sabe que un concursante se equivocó en 9, otro en 17 y otro en 31, entonces el número correcto es:",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "225",
+            "251",
+            "265",
+            "243"
+        ],
+        "correct_option": "243",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2013_F2_Q1",
+        "content": "En una cierta comunidad de 300 personas se tiene que: 110 son mayores de 20 años, 120 son mujeres y 50 mujeres son mayores de 20 años. El número de hombres de esta comunidad que son menores de 20 años es:",
+        "difficulty": 700,
+        "topic": "Lógica",
+        "options": [
+            "60",
+            "120",
+            "50",
+            "70"
+        ],
+        "correct_option": "120",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2013_F2_Q7",
+        "content": "Se sabe que las caras opuestas de un dado suman siete puntos; por ejemplo 2 y 5 son caras opuestas. Si el dado en la figura sigue el camino punteado el número que corresponde a la cara superior del dado al final del recorrido es:",
+        "difficulty": 950,
+        "topic": "Lógica",
+        "options": [
+            "2",
+            "3",
+            "5",
+            "6"
+        ],
+        "correct_option": "5",
+        "image_url": "items/images/Septimo_Logica_2013_F2_Q7.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2013_F2_Q9",
+        "content": "En la avenida Lógica hay cinco casas (A, B, C, D, E) que están en línea recta. Cuatro encuestadores (Marcos, Nancy, Omar, Paula) deben visitar, cada uno, solo una de las cinco casas y hacerlo teniendo en cuenta que: Marcos y Nancy deben estar separados por una casa. Omar y Paula deben estar separados por dos casas. La misma casa no puede ser visitada por dos encuestadores. De acuerdo a lo anterior, determine todas las formas distintas en que pueden ser visitadas las casas.",
+        "difficulty": 900,
+        "topic": "Lógica",
+        "options": [
+            "8",
+            "16",
+            "12",
+            "24"
+        ],
+        "correct_option": "8",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Logica_2013_F2_Q11",
+        "content": "Camilo tiene dos dados los cuales tienen en cada una de sus caras escrita una sílaba. Al tirar los dados Camilo puede obtener, entre otras, las siguientes palabras: CASA, MANO, TAPA, TEJA, CAPA, ROJO, LOSA y BETA, pero no puede obtener las palabras: CAMA, LOTE y ROMA. Determine cuales son las sílabas que tiene cada dado.",
+        "difficulty": 950,
+        "topic": "Lógica",
+        "options": [
+            "D1: CA, MA, LO, TE, RO, TA; D2: SA, PA, NO, JA, JO, BE",
+            "D1: CA, SA, MA, NO, TA, PA; D2: TE, JA, LO, BE, RO, JO",
+            "D1: CA, MA, TE, RO, SA, PA; D2: LO, TA, NO, JA, JO, BE",
+            "D1: CA, PA, LO, SA, BE, TA; D2: MA, NO, TE, JA, RO, JO"
+        ],
+        "correct_option": "D1: CA, MA, LO, TE, RO, TA; D2: SA, PA, NO, JA, JO, BE",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Nivel1_Logica_2014_Q4",
+        "content": "Usando baldosas de cerámica negra en la forma de cuadrados fue elaborada una decoración en una pared, mostrada parcialmente abajo. ¿Cuántas baldosas fueron usadas en toda la decoración considerando que en la última pieza montada fueron usadas 40 baldosas?",
+        "difficulty": 750,
+        "topic": "Lógica",
+        "options": [
+            "121",
+            "60",
+            "81",
+            "68",
+            "100"
+        ],
+        "correct_option": "121",
+        "image_url": "items/images/Nivel1_Logica_2014_Q4.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Pensamiento Lateral]",
+            "[Específica: Sucesiones y Series]"
+        ]
+    }
 ]

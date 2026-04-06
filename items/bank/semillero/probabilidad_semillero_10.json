@@ -1,29 +1,40 @@
 [
-  {
-    "id": "ps_10_01",
-    "content": "Un diagrama de barras muestra los resultados de un examen calificado de 0 a 5. Las frecuencias son: nota 1→2 estudiantes, nota 2→4, nota 3→7, nota 4→5, nota 5→2. ¿Cuál fue la nota promedio?",
-    "difficulty": 1200,
-    "topic": "Media ponderada",
-    "options": [
-      "3",
-      "$\\frac{10}{3}$",
-      "$\\frac{11}{5}$",
-      "$\\frac{17}{5}$"
-    ],
-    "correct_option": "3",
-    "image_path": "items/images/decimo_q12_barras.png"
-  },
-  {
-    "id": "ps_gen_05",
-    "content": "Hay 70 lapiceros: 20 rojos, 20 verdes, 20 amarillos y 10 entre negros y blancos. ¿Cuál es la cantidad mínima que debemos extraer sin mirar para tener la seguridad de que habrá 10 del mismo color?",
-    "difficulty": 1300,
-    "topic": "Principio del palomar",
-    "options": [
-      "37",
-      "40",
-      "46",
-      "50"
-    ],
-    "correct_option": "46"
-  }
+    {
+        "id": "ps_10_01",
+        "content": "Un diagrama de barras muestra los resultados de un examen calificado de 0 a 5. Las frecuencias son: nota 1→2 estudiantes, nota 2→4, nota 3→7, nota 4→5, nota 5→2. ¿Cuál fue la nota promedio?",
+        "difficulty": 1200,
+        "topic": "Media ponderada",
+        "options": [
+            "3",
+            "$\\frac{10}{3}$",
+            "$\\frac{11}{5}$",
+            "$\\frac{17}{5}$"
+        ],
+        "correct_option": "3",
+        "image_path": "items/images/decimo_q12_barras.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Medidas de Tendencia y Dispersión]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ps_gen_05",
+        "content": "Hay 70 lapiceros: 20 rojos, 20 verdes, 20 amarillos y 10 entre negros y blancos. ¿Cuál es la cantidad mínima que debemos extraer sin mirar para tener la seguridad de que habrá 10 del mismo color?",
+        "difficulty": 1300,
+        "topic": "Principio del palomar",
+        "options": [
+            "37",
+            "40",
+            "46",
+            "50"
+        ],
+        "correct_option": "46",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Pensamiento Lateral]"
+        ],
+        "image_url": ""
+    }
 ]

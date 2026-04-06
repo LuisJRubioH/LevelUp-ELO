@@ -1,28 +1,38 @@
 [
-  {
-    "id": "ps_11_01",
-    "content": "En una caja hay 5 tarjetas marcadas del 1 al 5. Lina saca una a una y forma un número de 5 cifras. La probabilidad de que sea par y su cifra de las decenas sea par, es:",
-    "difficulty": 1350,
-    "topic": "Probabilidad con permutaciones",
-    "options": [
-      "$\\frac{1}{6}$",
-      "$\\frac{1}{10}$",
-      "$\\frac{1}{12}$",
-      "$\\frac{1}{15}$"
-    ],
-    "correct_option": "$\\frac{1}{10}$"
-  },
-  {
-    "id": "ps_gen_06",
-    "content": "En un cajón Daniel tiene 40 medias rojas, 10 negras y 14 azules. ¿Cuál es el menor número de medias que debe sacar (sin mirar) para tener certeza de sacar dos del mismo color?",
-    "difficulty": 900,
-    "topic": "Principio del palomar",
-    "options": [
-      "3",
-      "4",
-      "5",
-      "10"
-    ],
-    "correct_option": "4"
-  }
+    {
+        "id": "ps_11_01",
+        "content": "En una caja hay 5 tarjetas marcadas del 1 al 5. Lina saca una a una y forma un número de 5 cifras. La probabilidad de que sea par y su cifra de las decenas sea par, es:",
+        "difficulty": 1350,
+        "topic": "Probabilidad con permutaciones",
+        "options": [
+            "$\\frac{1}{6}$",
+            "$\\frac{1}{10}$",
+            "$\\frac{1}{12}$",
+            "$\\frac{1}{15}$"
+        ],
+        "correct_option": "$\\frac{1}{10}$",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Probabilidad]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ps_gen_06",
+        "content": "En un cajón Daniel tiene 40 medias rojas, 10 negras y 14 azules. ¿Cuál es el menor número de medias que debe sacar (sin mirar) para tener certeza de sacar dos del mismo color?",
+        "difficulty": 900,
+        "topic": "Principio del palomar",
+        "options": [
+            "3",
+            "4",
+            "5",
+            "10"
+        ],
+        "correct_option": "4",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Pensamiento Lateral]"
+        ],
+        "image_url": ""
+    }
 ]

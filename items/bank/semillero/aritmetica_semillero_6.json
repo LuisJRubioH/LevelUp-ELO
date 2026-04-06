@@ -1,145 +1,434 @@
 [
-  {
-    "id": "ars_6_01",
-    "content": "En una clase de 36 alumnos, la mitad juega fútbol, un tercio juega baloncesto y el 25% juega ambos deportes. ¿Cuál es el número de alumnos que no juegan a ninguno de los dos deportes?",
-    "difficulty": 850,
-    "topic": "Conjuntos y conteo",
-    "options": [
-      "8",
-      "10",
-      "12",
-      "15"
-    ],
-    "correct_option": "12"
-  },
-  {
-    "id": "ars_45_01",
-    "content": "Con los números $\\{2, 4, 5, 7, 8, 9\\}$, Roberto forma parejitas de fichas para obtener números de dos cifras, y luego suma los tres números. ¿Cuál es el menor valor posible para la suma?",
-    "difficulty": 900,
-    "topic": "Optimización aritmética",
-    "options": [
-      "147",
-      "159",
-      "163",
-      "177"
-    ],
-    "correct_option": "159"
-  },
-  {
-    "id": "ars_45_02",
-    "content": "Con los números $\\{2, 4, 5, 7, 8, 9\\}$, Roberto forma parejitas de fichas para obtener números de dos cifras, y luego suma los tres números. ¿Cuál es el mayor valor posible para la suma?",
-    "difficulty": 900,
-    "topic": "Optimización aritmética",
-    "options": [
-      "217",
-      "237",
-      "243",
-      "252"
-    ],
-    "correct_option": "237"
-  },
-  {
-    "id": "ars_45_03",
-    "content": "Annie escribió números de 4 cifras divisibles por 15. Su hermanita borró la cifra de las centenas y las unidades, quedando: $2\\_6\\_$. ¿Cuántos números posibles escribió Annie?",
-    "difficulty": 950,
-    "topic": "Divisibilidad",
-    "options": [
-      "1",
-      "2",
-      "3",
-      "4"
-    ],
-    "correct_option": "2"
-  },
-  {
-    "id": "ars_45_04",
-    "content": "Si un ciclista el primer día recorre 96 km y cada día recorre la mitad de lo que recorrió el día anterior, ¿cuántos km habrá recorrido cuando transcurran 6 días?",
-    "difficulty": 850,
-    "topic": "Series geométricas",
-    "options": [
-      "186",
-      "189",
-      "190",
-      "192"
-    ],
-    "correct_option": "189"
-  },
-  {
-    "id": "ars_45_05",
-    "content": "Camila va al gimnasio cada 3 días, Andrea cada 2 días y María cada 5 días. Si coincidieron el martes 4 de enero, ¿cuándo volverán a coincidir?",
-    "difficulty": 850,
-    "topic": "MCM y calendario",
-    "options": [
-      "3 de febrero",
-      "2 de febrero",
-      "4 de febrero",
-      "1 de febrero"
-    ],
-    "correct_option": "3 de febrero"
-  },
-  {
-    "id": "ars_45_06",
-    "content": "El día 9 de septiembre, el caracol Fito cae a un pozo de 30 m. Cada día sube tantos metros como días lleva en el pozo. De noche desciende la mitad si el día fue par, y 1 metro si fue impar. ¿Qué día sale Fito del pozo?",
-    "difficulty": 1000,
-    "topic": "Simulación aritmética",
-    "options": [
-      "14 de septiembre",
-      "15 de septiembre",
-      "16 de septiembre",
-      "17 de septiembre"
-    ],
-    "correct_option": "16 de septiembre"
-  },
-  {
-    "id": "ars_45_07",
-    "content": "Julián nota que cada 3 minutos aterrizan 5 aviones y cada 2 minutos despegan 4. A las 9:00 AM hay 35 aviones en pista. ¿Cuántos aviones hay a las 9:30 AM?",
-    "difficulty": 950,
-    "topic": "Razones y tasas",
-    "options": [
-      "15",
-      "20",
-      "25",
-      "30"
-    ],
-    "correct_option": "25"
-  },
-  {
-    "id": "ars_p_01",
-    "content": "Pedro piensa un número de dos dígitos. Al 100 le suma el número pensado y como puede dividir por 2 el resultado, lo hace. ¿Cuál es el mayor número que Pedro puede obtener?",
-    "difficulty": 800,
-    "topic": "Operaciones y optimización",
-    "options": [
-      "99",
-      "100",
-      "$\\frac{190}{2}$",
-      "98"
-    ],
-    "correct_option": "99"
-  },
-  {
-    "id": "ars_p_02",
-    "content": "En la guardería, tres gatos, dos gallinas, un pájaro y varias ovejas tienen 26 patas en total. ¿Cuántas ovejas hay?",
-    "difficulty": 800,
-    "topic": "Ecuaciones aritméticas",
-    "options": [
-      "2",
-      "5",
-      "3",
-      "1"
-    ],
-    "correct_option": "2"
-  },
-  {
-    "id": "ars_p_03",
-    "content": "El ganador de una elección con 6 candidatos recibió la mitad de 200 votos. El candidato con menos votos recibió 9. Si cada candidato recibió votos diferentes, ¿cuál es el máximo de votos que pudo recibir el segundo lugar?",
-    "difficulty": 950,
-    "topic": "Optimización con restricciones",
-    "options": [
-      "64",
-      "25",
-      "58",
-      "55"
-    ],
-    "correct_option": "58"
-  }
+    {
+        "id": "ars_6_01",
+        "content": "En una clase de 36 alumnos, la mitad juega fútbol, un tercio juega baloncesto y el 25% juega ambos deportes. ¿Cuál es el número de alumnos que no juegan a ninguno de los dos deportes?",
+        "difficulty": 850,
+        "topic": "Conjuntos y conteo",
+        "options": [
+            "8",
+            "10",
+            "12",
+            "15"
+        ],
+        "correct_option": "12",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ars_45_01",
+        "content": "Con los números $\\{2, 4, 5, 7, 8, 9\\}$, Roberto forma parejitas de fichas para obtener números de dos cifras, y luego suma los tres números. ¿Cuál es el menor valor posible para la suma?",
+        "difficulty": 900,
+        "topic": "Optimización aritmética",
+        "options": [
+            "147",
+            "159",
+            "163",
+            "177"
+        ],
+        "correct_option": "159",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ars_45_02",
+        "content": "Con los números $\\{2, 4, 5, 7, 8, 9\\}$, Roberto forma parejitas de fichas para obtener números de dos cifras, y luego suma los tres números. ¿Cuál es el mayor valor posible para la suma?",
+        "difficulty": 900,
+        "topic": "Optimización aritmética",
+        "options": [
+            "217",
+            "237",
+            "243",
+            "252"
+        ],
+        "correct_option": "237",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ars_45_03",
+        "content": "Annie escribió números de 4 cifras divisibles por 15. Su hermanita borró la cifra de las centenas y las unidades, quedando: $2\\_6\\_$. ¿Cuántos números posibles escribió Annie?",
+        "difficulty": 950,
+        "topic": "Divisibilidad",
+        "options": [
+            "1",
+            "2",
+            "3",
+            "4"
+        ],
+        "correct_option": "2",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ars_45_04",
+        "content": "Si un ciclista el primer día recorre 96 km y cada día recorre la mitad de lo que recorrió el día anterior, ¿cuántos km habrá recorrido cuando transcurran 6 días?",
+        "difficulty": 850,
+        "topic": "Series geométricas",
+        "options": [
+            "186",
+            "189",
+            "190",
+            "192"
+        ],
+        "correct_option": "189",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Sucesiones y Series]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ars_45_05",
+        "content": "Camila va al gimnasio cada 3 días, Andrea cada 2 días y María cada 5 días. Si coincidieron el martes 4 de enero, ¿cuándo volverán a coincidir?",
+        "difficulty": 850,
+        "topic": "MCM y calendario",
+        "options": [
+            "3 de febrero",
+            "2 de febrero",
+            "4 de febrero",
+            "1 de febrero"
+        ],
+        "correct_option": "3 de febrero",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Teoría de Números]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ars_45_06",
+        "content": "El día 9 de septiembre, el caracol Fito cae a un pozo de 30 m. Cada día sube tantos metros como días lleva en el pozo. De noche desciende la mitad si el día fue par, y 1 metro si fue impar. ¿Qué día sale Fito del pozo?",
+        "difficulty": 1000,
+        "topic": "Simulación aritmética",
+        "options": [
+            "14 de septiembre",
+            "15 de septiembre",
+            "16 de septiembre",
+            "17 de septiembre"
+        ],
+        "correct_option": "16 de septiembre",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ars_45_07",
+        "content": "Julián nota que cada 3 minutos aterrizan 5 aviones y cada 2 minutos despegan 4. A las 9:00 AM hay 35 aviones en pista. ¿Cuántos aviones hay a las 9:30 AM?",
+        "difficulty": 950,
+        "topic": "Razones y tasas",
+        "options": [
+            "15",
+            "20",
+            "25",
+            "30"
+        ],
+        "correct_option": "25",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Proporcionalidad y Porcentajes]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ars_p_01",
+        "content": "Pedro piensa un número de dos dígitos. Al 100 le suma el número pensado y como puede dividir por 2 el resultado, lo hace. ¿Cuál es el mayor número que Pedro puede obtener?",
+        "difficulty": 800,
+        "topic": "Operaciones y optimización",
+        "options": [
+            "99",
+            "100",
+            "$\\frac{190}{2}$",
+            "98"
+        ],
+        "correct_option": "99",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ley de los Signos y Jerarquía]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ars_p_02",
+        "content": "En la guardería, tres gatos, dos gallinas, un pájaro y varias ovejas tienen 26 patas en total. ¿Cuántas ovejas hay?",
+        "difficulty": 800,
+        "topic": "Ecuaciones aritméticas",
+        "options": [
+            "2",
+            "5",
+            "3",
+            "1"
+        ],
+        "correct_option": "2",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ars_p_03",
+        "content": "El ganador de una elección con 6 candidatos recibió la mitad de 200 votos. El candidato con menos votos recibió 9. Si cada candidato recibió votos diferentes, ¿cuál es el máximo de votos que pudo recibir el segundo lugar?",
+        "difficulty": 950,
+        "topic": "Optimización con restricciones",
+        "options": [
+            "64",
+            "25",
+            "58",
+            "55"
+        ],
+        "correct_option": "58",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Operaciones con Racionales]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Sexto_Aritmetica_2012_F1_Q2",
+        "content": "Juliana va a visitar a Luisa que vive a medio kilómetro de su casa. Si Juliana da pasos de 40 cm, entonces la cantidad de pasos que da Juliana para llegar a la casa de Luisa es:",
+        "difficulty": 600,
+        "topic": "Aritmética",
+        "options": [
+            "1000",
+            "1250",
+            "1500",
+            "2000"
+        ],
+        "correct_option": "1250",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Sexto_Aritmetica_2012_F1_Q6",
+        "content": "Se reparte chocolate en dos vasos iguales, el primero se llena hasta la mitad y el segundo hasta una tercera parte. Si se junta el chocolate en uno solo de los vasos, la fracción que representa el contenido del vaso es:",
+        "difficulty": 650,
+        "topic": "Aritmética",
+        "options": [
+            "$\\frac{5}{6}$",
+            "$\\frac{3}{4}$",
+            "$\\frac{2}{5}$",
+            "$\\frac{5}{2}$"
+        ],
+        "correct_option": "$\\frac{5}{6}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Sexto_Aritmetica_2012_F1_Q7",
+        "content": "Alejandra y Esteban van a comprar unos libros de dibujo y de cuentos. Se sabe que cada libro de dibujo cuesta \\$10.000 y que los de cuentos cuestan todos lo mismo. Alejandra compró 2 libros de dibujo y 4 de cuentos y por ellos pagó \\$48.000. Si Esteban compró 2 libros de dibujo y 3 de cuentos, entonces Esteban pagó:",
+        "difficulty": 700,
+        "topic": "Aritmética",
+        "options": [
+            "\\$41.000",
+            "\\$39.000",
+            "\\$45.000",
+            "\\$40.000"
+        ],
+        "correct_option": "\\$41.000",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Sexto_Aritmetica_2012_F1_Q8",
+        "content": "A la fiesta de doña Fabiola en la isla Acertijo asistieron 300 invitados. Si el 33% de ellos fue de corbata, entonces el número de invitados que no tenía corbata es:",
+        "difficulty": 650,
+        "topic": "Aritmética",
+        "options": [
+            "100",
+            "200",
+            "201",
+            "99"
+        ],
+        "correct_option": "201",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Proporcionalidad y Porcentajes]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Sexto_Aritmetica_2013_F1_Q1",
+        "content": "Un libro cuesta \\$10 más que la mitad de su precio. El precio del libro es:",
+        "difficulty": 650,
+        "topic": "Aritmética",
+        "options": [
+            "30",
+            "20",
+            "5",
+            "15"
+        ],
+        "correct_option": "20",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Sexto_Aritmetica_2013_F1_Q5",
+        "content": "En cierta escuela cada clase dura 45 minutos y cada descanso dura 20 minutos. Si las clases empezaron a las 6:45am, han pasado dos descansos y está comenzando la séptima clase, la hora actual es:",
+        "difficulty": 750,
+        "topic": "Aritmética",
+        "options": [
+            "10:30am",
+            "11:55am",
+            "12:40pm",
+            "1:15pm"
+        ],
+        "correct_option": "11:55am",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Proporcionalidad y Porcentajes]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Sexto_Aritmetica_2013_F1_Q7",
+        "content": "Las edades de Ana, Luis y Jaime suman 32 años, la suma de sus edades dentro de 3 años será:",
+        "difficulty": 550,
+        "topic": "Aritmética",
+        "options": [
+            "41",
+            "39",
+            "35",
+            "36"
+        ],
+        "correct_option": "41",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Sexto_Aritmetica_2013_F2_Q4",
+        "content": "Al realizar el producto $111111112 \\times 111111115$, el número que forman los últimos cuatro dígitos es:",
+        "difficulty": 800,
+        "topic": "Aritmética",
+        "options": [
+            "1150",
+            "9880",
+            "8880",
+            "7880"
+        ],
+        "correct_option": "8880",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]",
+            "[General: Pensamiento Lateral]"
+        ]
+    },
+    {
+        "id": "Sexto_Aritmetica_2013_F2_Q5",
+        "content": "En una librería, Isabel compra un libro con la tercera parte de su dinero y una revista con las dos terceras partes de lo que le quedaba. Si al salir de la librería tenía 12000 pesos, el dinero que tenía inicialmente Isabel en pesos es:",
+        "difficulty": 850,
+        "topic": "Aritmética",
+        "options": [
+            "42000",
+            "18000",
+            "54000",
+            "36000"
+        ],
+        "correct_option": "54000",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Aritmetica_Q3_6",
+        "content": "Representamos por $n!$ el producto de los números naturales de 1 hasta $n$. Por ejemplo, $6! = 6 \\times 5 \\times 4 \\times 3 \\times 2 \\times 1 = 720$. Calculando la suma $1! + 2! + 3! + 4! + 5! + \\cdots + 2014!$, ¿cuál es la cifra de las unidades del resultado obtenido?",
+        "difficulty": 800,
+        "topic": "Aritmética",
+        "options": [
+            "1",
+            "4",
+            "7",
+            "3",
+            "9"
+        ],
+        "correct_option": "3",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Aritmetica_Q4_6",
+        "content": "De las siguientes opciones determine cuál es un divisor de $3^5 \\times 4^4 \\times 5^3$:",
+        "difficulty": 700,
+        "topic": "Aritmética",
+        "options": [
+            "52",
+            "42",
+            "45",
+            "85",
+            "105"
+        ],
+        "correct_option": "45",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Aritmetica_Q5_6",
+        "content": "En una repostería, una bolsa de 200g de harina de trigo cuesta \\$3.000 pesos, una bolsa de 400g cuesta \\$5.000 pesos y la de 800g cuesta \\$9.000 pesos. Laura necesita 1.2 kg de harina de trigo para hacer una gran torta. ¿Cuál de las opciones a seguir es la más económica para comprar 1.2 kg de harina de trigo?",
+        "difficulty": 650,
+        "topic": "Aritmética",
+        "options": [
+            "6 bolsas de 200g",
+            "1 bolsa de 400g y 1 bolsa de 800g",
+            "4 bolsas de 200g y 1 bolsa de 400g",
+            "2 bolsas de 200g y 1 bolsa de 800g",
+            "2 bolsas de 200g y 2 bolsas de 400g"
+        ],
+        "correct_option": "1 bolsa de 400g y 1 bolsa de 800g",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    }
 ]

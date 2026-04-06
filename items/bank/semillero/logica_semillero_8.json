@@ -1,41 +1,228 @@
 [
-  {
-    "id": "ls_8_01",
-    "content": "Alejandra, Sara y Tatiana tienen diferentes edades. Exactamente una de las siguientes afirmaciones es verdadera: 1) Sara es la mayor. 2) Alejandra no es la mayor. 3) Tatiana no es la más joven. ¿Quién es la menor?",
-    "difficulty": 1000,
-    "topic": "Lógica proposicional",
-    "options": [
-      "Alejandra",
-      "Sara",
-      "Tatiana",
-      "No se puede determinar"
-    ],
-    "correct_option": "Sara"
-  },
-  {
-    "id": "ls_8_02",
-    "content": "Se tiene un objeto del cual sabemos que: si es verde, entonces es plano; si es triangular, entonces es negro; el objeto es verde o blanco; si es blanco entonces es triangular; de su forma, es triangular o plano. Esto significa:",
-    "difficulty": 1050,
-    "topic": "Lógica proposicional",
-    "options": [
-      "Es blanco y triangular",
-      "Es negro y plano",
-      "Es verde y plano",
-      "Es blanco y plano"
-    ],
-    "correct_option": "Es negro y plano"
-  },
-  {
-    "id": "ls_8_03",
-    "content": "Alejandro, Benjamín y Carlos son atletas de velocidad a velocidad constante pero diferente. Cuando Alejandro ha recorrido 100 metros, está 20 m al frente de Benjamín y 50 m al frente de Carlos. Cuando Benjamín haya recorrido 100 metros, ¿cuántos metros de diferencia le llevará a Carlos?",
-    "difficulty": 1100,
-    "topic": "Razonamiento proporcional",
-    "options": [
-      "20 m",
-      "25.5 m",
-      "30 m",
-      "37.5 m"
-    ],
-    "correct_option": "37.5 m"
-  }
+    {
+        "id": "ls_8_01",
+        "content": "Alejandra, Sara y Tatiana tienen diferentes edades. Exactamente una de las siguientes afirmaciones es verdadera: 1) Sara es la mayor. 2) Alejandra no es la mayor. 3) Tatiana no es la más joven. ¿Quién es la menor?",
+        "difficulty": 1000,
+        "topic": "Lógica proposicional",
+        "options": [
+            "Alejandra",
+            "Sara",
+            "Tatiana",
+            "No se puede determinar"
+        ],
+        "correct_option": "Sara",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[General: Inferencia y Deducción Lógica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ls_8_02",
+        "content": "Se tiene un objeto del cual sabemos que: si es verde, entonces es plano; si es triangular, entonces es negro; el objeto es verde o blanco; si es blanco entonces es triangular; de su forma, es triangular o plano. Esto significa:",
+        "difficulty": 1050,
+        "topic": "Lógica proposicional",
+        "options": [
+            "Es blanco y triangular",
+            "Es negro y plano",
+            "Es verde y plano",
+            "Es blanco y plano"
+        ],
+        "correct_option": "Es negro y plano",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Inferencia y Deducción Lógica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ls_8_03",
+        "content": "Alejandro, Benjamín y Carlos son atletas de velocidad a velocidad constante pero diferente. Cuando Alejandro ha recorrido 100 metros, está 20 m al frente de Benjamín y 50 m al frente de Carlos. Cuando Benjamín haya recorrido 100 metros, ¿cuántos metros de diferencia le llevará a Carlos?",
+        "difficulty": 1100,
+        "topic": "Razonamiento proporcional",
+        "options": [
+            "20 m",
+            "25.5 m",
+            "30 m",
+            "37.5 m"
+        ],
+        "correct_option": "37.5 m",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[General: Inferencia y Deducción Lógica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Octavo_Logica_2012_F1_Q8",
+        "content": "En la cuadrícula de 2cm por 3cm se desea ir del punto P al punto T utilizando caminos de 5cm. Si solo se puede desplazar sobre las líneas, el número de caminos posibles es:",
+        "difficulty": 750,
+        "topic": "Lógica",
+        "options": [
+            "9",
+            "10",
+            "11",
+            "12"
+        ],
+        "correct_option": "12",
+        "image_url": "items/images/Octavo_Logica_2012_F1_Q8.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Octavo_Logica_2012_F1_Q9",
+        "content": "Cuatro famosos futbolistas discuten sobre quién fue el autor del último gol. Falcao dice 'Hugo es el autor'. Hugo dice 'James es el autor'. James dice que Hugo mintió. Freddy dice que él no marcó. Sabiendo que sólo uno de ellos dice la verdad, determine el autor del gol.",
+        "difficulty": 850,
+        "topic": "Lógica",
+        "options": [
+            "Falcao",
+            "Hugo",
+            "James",
+            "Freddy"
+        ],
+        "correct_option": "Freddy",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Octavo_Logica_2013_F1_Q6",
+        "content": "En una caja grande hay 6 cajas medianas, dentro de cada una hay tres cajas pequeñas y dentro de estas, hay dos cajas más pequeñas. El número total de cajas es:",
+        "difficulty": 700,
+        "topic": "Lógica",
+        "options": [
+            "60",
+            "62",
+            "61",
+            "63"
+        ],
+        "correct_option": "61",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Octavo_Logica_2013_F1_Q14",
+        "content": "A continuación se muestra el árbol genealógico de Carlos, en el cual sólo se muestran hombres. Las flechas son dirijidas de padres a hijos. El nombre del hijo del hermano del abuelo del hermano del padre de Carlos es:",
+        "difficulty": 650,
+        "topic": "Lógica",
+        "options": [
+            "Mario",
+            "Gabriel",
+            "Roger",
+            "Norberto"
+        ],
+        "correct_option": "Gabriel",
+        "image_url": "items/images/Octavo_Logica_2013_F1_Q14.png",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Octavo_Logica_2013_F2_Q4",
+        "content": "En el siguiente mini sudoku se debe llenar cada casilla de tal manera que cada fila, columna y cuadrado de 2x2 contenga los números del 1 al 4. El número de soluciones de este es:",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "2",
+            "3",
+            "4",
+            "5"
+        ],
+        "correct_option": "4",
+        "image_url": "items/images/Octavo_Logica_2013_F2_Q4.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Logica_Q1",
+        "content": "Una gran empresa posee 84 funcionarios y cada uno de ellos habla por lo menos una de las lenguas entre Español e Inglés. Por otro lado, 20% de los que hablan Español también hablan Inglés y 80% de los que hablan Inglés también hablan Español. ¿Cuántos funcionarios hablan las dos lenguas?",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "12",
+            "14",
+            "15",
+            "16",
+            "18"
+        ],
+        "correct_option": "16",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Logica_Q2",
+        "content": "Patricia lanzó un dado 10 veces y obtuvo 57 como suma de todos los puntos obtenidos en esos lanzamientos. Por lo menos, ¿cuántas veces salieron los 6 puntos?",
+        "difficulty": 750,
+        "topic": "Lógica",
+        "options": [
+            "5",
+            "7",
+            "8",
+            "6",
+            "9"
+        ],
+        "correct_option": "7",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Logica_Q3",
+        "content": "En una fila para comprar boletas para un juego de la selección Colombia, habían 49 personas: 25 hinchas del Nacional, 14 hinchas del Medellín y 10 hinchas del Envigado. Si cada persona de la fila es hincha fiel de un único equipo y dos hinchas del mismo equipo no están en posiciones consecutivas, podemos concluir que:",
+        "difficulty": 850,
+        "topic": "Lógica",
+        "options": [
+            "Tal fila no existe.",
+            "Algún de los hinchas de las extremidades de la fila es del Envigado.",
+            "Algún de los hinchas de las extremidades de la fila es del Medellín.",
+            "Algún hincha del Medellín es vecino de un hincha del Envigado.",
+            "Algún hincha del Envigado es vecino de dos hinchas del Nacional."
+        ],
+        "correct_option": "Algún hincha del Envigado es vecino de dos hinchas del Nacional.",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Logica_Q4",
+        "content": "El profesor Buenapapa aplicó un examen de 6 preguntas para 18 estudiantes. Cada pregunta vale 0 o 1 punto; no hay puntuaciones parciales. Buenapapa verificó que cada estudiante respondió acertadamente 4 preguntas y que cada pregunta tuvo una misma cantidad m de aciertos. ¿Cuál es el valor de m?",
+        "difficulty": 800,
+        "topic": "Lógica",
+        "options": [
+            "6",
+            "9",
+            "10",
+            "12",
+            "14"
+        ],
+        "correct_option": "12",
+        "image_url": "items/images/Taller2014_Nivel2_Logica_Q4.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    }
 ]

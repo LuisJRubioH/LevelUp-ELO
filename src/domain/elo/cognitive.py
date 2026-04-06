@@ -19,13 +19,15 @@ class CognitiveAnalyzer:
         Retorna un diccionario con modificadores y clasificaciones.
         """
         if not response_text or len(response_text.strip()) < 5:
-            # Si no hay texto suficiente, dependemos solo del tiempo
-            time_mod = self.compute_time_modifier(time_taken, is_correct)
+            # Sin texto de razonamiento (flujo estándar de radio button):
+            # usar impact_modifier=1.0 para que el ELO coincida exactamente
+            # con el preview mostrado al estudiante antes de responder.
+            # El time_modifier solo aplica cuando hay texto cognitivo que analizar.
             return {
                 "confidence_score": 0.5,
                 "error_type": "N/A",
-                "impact_modifier": time_mod,
-                "reasoning": "Texto insuficiente para análisis de IA."
+                "impact_modifier": 1.0,
+                "reasoning": "Sin razonamiento escrito — impacto estándar."
             }
 
         ai_data = self._call_ai_analyzer(response_text, is_correct)

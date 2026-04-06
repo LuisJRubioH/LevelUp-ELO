@@ -1,28 +1,132 @@
 [
-  {
-    "id": "ccs_9_01",
-    "content": "Se tienen los dígitos 0, 1, 2, 3, 4 y 5 y se forman números de tres dígitos (cada dígito se usa una sola vez). ¿Cuántos de estos números son mayores que 240?",
-    "difficulty": 1200,
-    "topic": "Conteo ordenado",
-    "options": [
-      "80",
-      "37",
-      "83",
-      "67"
-    ],
-    "correct_option": "83"
-  },
-  {
-    "id": "ccs_9_02",
-    "content": "Camila crea el 3-cambio: tomar $abc$ y crear $cab$. Si la unidad es 2 y el 3-cambio es 36 unidades menor que el original, ¿cuánto es la suma de los dígitos?",
-    "difficulty": 1250,
-    "topic": "Valor posicional",
-    "options": [
-      "5",
-      "8",
-      "9",
-      "11"
-    ],
-    "correct_option": "9"
-  }
+    {
+        "id": "ccs_9_01",
+        "content": "Se tienen los dígitos 0, 1, 2, 3, 4 y 5 y se forman números de tres dígitos (cada dígito se usa una sola vez). ¿Cuántos de estos números son mayores que 240?",
+        "difficulty": 1200,
+        "topic": "Conteo ordenado",
+        "options": [
+            "80",
+            "37",
+            "83",
+            "67"
+        ],
+        "correct_option": "83",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ccs_9_02",
+        "content": "Camila crea el 3-cambio: tomar $abc$ y crear $cab$. Si la unidad es 2 y el 3-cambio es 36 unidades menor que el original, ¿cuánto es la suma de los dígitos?",
+        "difficulty": 1250,
+        "topic": "Valor posicional",
+        "options": [
+            "5",
+            "8",
+            "9",
+            "11"
+        ],
+        "correct_option": "9",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Noveno_Conteo_2013_F1_Q2",
+        "content": "Carlos tiene un candado en forma de cadena el cual se asegura por código, el código del candado es un número de 2 cifras y se sabe que: el producto de los dígitos es impar y la suma es un cuadrado perfecto. El número de códigos posibles es:",
+        "difficulty": 750,
+        "topic": "Conteo y combinatoria",
+        "options": [
+            "6",
+            "4",
+            "3",
+            "5"
+        ],
+        "correct_option": "4",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Conteo y Combinatoria]"
+        ]
+    },
+    {
+        "id": "Noveno_Conteo_2013_F1_Q9",
+        "content": "Las páginas de un libro están numeradas del 1 al 500. El número de veces que aparece el número 5 es:",
+        "difficulty": 800,
+        "topic": "Conteo y combinatoria",
+        "options": [
+            "51",
+            "81",
+            "101",
+            "210"
+        ],
+        "correct_option": "101",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Conteo y Combinatoria]"
+        ]
+    },
+    {
+        "id": "Noveno_Conteo_2013_F1_Q16",
+        "content": "Un número se llama 'Cuatreado' si al multiplicar sus cifras el resultado es un número que es múltiplo de 4. La cantidad de números de dos cifras que NO son 'cuatreados' es:",
+        "difficulty": 850,
+        "topic": "Conteo y combinatoria",
+        "options": [
+            "35",
+            "55",
+            "50",
+            "45"
+        ],
+        "correct_option": "55",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]"
+        ]
+    },
+    {
+        "id": "Noveno_Conteo_2013_F2_Q12",
+        "content": "Determine el número de formas en que se pueden sentar tres hombres y tres mujeres en una mesa circular, de modo que queden intercalados por género.",
+        "difficulty": 900,
+        "topic": "Conteo y combinatoria",
+        "options": [
+            "6",
+            "12",
+            "18",
+            "24"
+        ],
+        "correct_option": "12",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Conteo_Q1_9",
+        "content": "¿Cuántos enteros positivos menores que 500 tienen exactamente 15 divisores enteros positivos?",
+        "difficulty": 900,
+        "topic": "Conteo y combinatoria",
+        "options": [
+            "0",
+            "2",
+            "3",
+            "4",
+            "5"
+        ],
+        "correct_option": "3",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[Específica: Teoría de Números]"
+        ]
+    }
 ]

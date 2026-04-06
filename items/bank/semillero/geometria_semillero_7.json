@@ -1,29 +1,212 @@
 [
-  {
-    "id": "gs_7_01",
-    "content": "Dos cuadrados de lados 6 cm y 4 cm se superponen. ¿Cuál es la suma entre las áreas que no se superponen?",
-    "difficulty": 1000,
-    "topic": "Áreas y superposición",
-    "options": [
-      "58 cm²",
-      "57 cm²",
-      "51 cm²",
-      "73 cm²"
-    ],
-    "correct_option": "51 cm²",
-    "image_path": "items/images/septimo_q14_cuadrados.png"
-  },
-  {
-    "id": "gs_7_02",
-    "content": "Camilo posee dos terrenos cuadrados. Aunque aumentara 2 km a cada lado del de Bello, el de Caldas tendría 44 km² más. Cercó ambos terrenos gastando 80 km de malla. ¿Cuántos km² posee Camilo en total?",
-    "difficulty": 1050,
-    "topic": "Ecuaciones y áreas",
-    "options": [
-      "200 km²",
-      "208 km²",
-      "320 km²",
-      "4200 km²"
-    ],
-    "correct_option": "320 km²"
-  }
+    {
+        "id": "gs_7_01",
+        "content": "Dos cuadrados de lados 6 cm y 4 cm se superponen. ¿Cuál es la suma entre las áreas que no se superponen?",
+        "difficulty": 1000,
+        "topic": "Áreas y superposición",
+        "options": [
+            "$58 \\text{ cm}^2$",
+            "$57 \\text{ cm}^2$",
+            "$51 \\text{ cm}^2$",
+            "$73 \\text{ cm}^2$"
+        ],
+        "correct_option": "$51 \\text{ cm}^2$",
+        "image_path": "items/images/septimo_q14_cuadrados.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ],
+        "image_url": "items/images/septimo_q13_superposicion.png"
+    },
+    {
+        "id": "gs_7_02",
+        "content": "Camilo posee dos terrenos cuadrados. Aunque aumentara 2 km a cada lado del de Bello, el de Caldas tendría $44 \\text{ km}^2$ más. Cercó ambos terrenos gastando 80 km de malla. ¿Cuántos $\\text{km}^2$ posee Camilo en total?",
+        "difficulty": 1050,
+        "topic": "Ecuaciones y áreas",
+        "options": [
+            "$200 \\text{ km}^2$",
+            "$208 \\text{ km}^2$",
+            "$320 \\text{ km}^2$",
+            "$4200 \\text{ km}^2$"
+        ],
+        "correct_option": "$320 \\text{ km}^2$",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Perímetros y Áreas]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Septimo_Geometria_2012_F1_Q5",
+        "content": "Para las siguientes figuras regulares f1, f2 y f3 representan la fracción sombreada de las figuras 1, 2 y 3 respectivamente. De las siguientes afirmaciones la única verdadera es:",
+        "difficulty": 700,
+        "topic": "Geometría",
+        "options": [
+            "$f_1 > f_2 > f_3$",
+            "$f_2 > f_1 > f_3$",
+            "$f_3 > f_1 > f_2$",
+            "$f_2 > f_3 > f_1$"
+        ],
+        "correct_option": "$f_2 > f_3 > f_1$",
+        "image_url": "items/images/Septimo_Geometria_2012_F1_Q5.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]",
+            "[Enfoque: Saber]"
+        ]
+    },
+    {
+        "id": "Septimo_Geometria_2012_F1_Q6",
+        "content": "Cuatro vecinos tienen parcelas rectangulares iguales. Cada uno de ellos levanta una cerca de alambre en su parcela para proteger la parte que tiene flores como se muestra en la figura. El vecino que más alambre necesita es:",
+        "difficulty": 750,
+        "topic": "Geometría",
+        "options": [
+            "Gonzalo",
+            "Andres",
+            "Felipe",
+            "Carlos"
+        ],
+        "correct_option": "Felipe",
+        "image_url": "items/images/Septimo_Geometria_2012_F1_Q6.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]",
+            "[Enfoque: Saber]"
+        ]
+    },
+    {
+        "id": "Septimo_Geometria_2012_F1_Q9",
+        "content": "Determine el área sombreada de la figura, en unidades cuadradas (Pregunta abierta).",
+        "difficulty": 900,
+        "topic": "Geometría",
+        "options": [
+            "2",
+            "4",
+            "6",
+            "8"
+        ],
+        "correct_option": "4",
+        "image_url": "items/images/Septimo_Geometria_2012_F1_Q9.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]",
+            "[Enfoque: Saber]"
+        ]
+    },
+    {
+        "id": "Septimo_Geometria_2013_F1_Q9",
+        "content": "La figura está compuesta de tres cuadrados. Si el área del cuadrado $A$ es $49 \\text{ cm}^2$ y el lado del cuadrado $B$ mide 3 cm, el perímetro del cuadrado $C$, en cm, es:",
+        "difficulty": 750,
+        "topic": "Geometría",
+        "options": [
+            "14",
+            "15",
+            "16",
+            "17"
+        ],
+        "correct_option": "16",
+        "image_url": "items/images/Septimo_Geometria_2013_F1_Q9.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]",
+            "[Enfoque: Saber]"
+        ]
+    },
+    {
+        "id": "Septimo_Geometria_2013_F1_Q12",
+        "content": "El número de triángulos que hay en la figura es:",
+        "difficulty": 650,
+        "topic": "Geometría",
+        "options": [
+            "9",
+            "10",
+            "11",
+            "12"
+        ],
+        "correct_option": "12",
+        "image_url": "items/images/Septimo_Geometria_2013_F1_Q12.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]",
+            "[Enfoque: Saber]"
+        ]
+    },
+    {
+        "id": "Septimo_Geometria_2013_F2_Q2",
+        "content": "En la figura el ángulo AFC es tres veces el ángulo AFB y los ángulos AFC y CFD son iguales. Si el ángulo AFB mide 20°, el ángulo AFD mide:",
+        "difficulty": 600,
+        "topic": "Geometría",
+        "options": [
+            "120°",
+            "140°",
+            "150°",
+            "160°"
+        ],
+        "correct_option": "120°",
+        "image_url": "items/images/Septimo_Geometria_2013_F2_Q2.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Semejanza y Congruencia]",
+            "[Enfoque: Saber]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Geometria_Q1",
+        "content": "Con palitos de un centímetro de longitud podemos formar triángulos. Por ejemplo, con 9 palitos podemos formar un triángulo equilátero con lados de 3 cms de longitud. ¿Con cuál cantidad de palitos es imposible formar un triángulo?",
+        "difficulty": 750,
+        "topic": "Geometría",
+        "options": [
+            "4",
+            "5",
+            "6",
+            "7",
+            "8"
+        ],
+        "correct_option": "4",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Geometria_Q2",
+        "content": "En la figura, $C$ es un punto en el segmento $BD$ tal que $ACDE$ es un rectángulo y $ABCE$ es un paralelogramo de área $22 \\text{ cm}^2$. ¿Cuál es el área de $ABDE$ en $\\text{cm}^2$?",
+        "difficulty": 800,
+        "topic": "Geometría",
+        "options": [
+            "28",
+            "33",
+            "36",
+            "42",
+            "44"
+        ],
+        "correct_option": "33",
+        "image_url": "items/images/Taller2014_Nivel1_Geometria_Q2.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]",
+            "[Enfoque: Saber]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Geometria_Q4",
+        "content": "Un cubo de madera pintado de azul fue cortado en 27 cubos de menor tamaño todos iguales, y las caras de estos cubos que no fueron pintadas están en blanco. ¿Cuál es la razón entre las áreas de la superficie total pintada de azul y el área total de la superficie en blanco?",
+        "difficulty": 850,
+        "topic": "Geometría",
+        "options": [
+            "1:2",
+            "1:1",
+            "2:1",
+            "1:3",
+            "2:3"
+        ],
+        "correct_option": "1:2",
+        "image_url": "items/images/Taller2014_Nivel1_Geometria_Q4.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ]
+    }
 ]

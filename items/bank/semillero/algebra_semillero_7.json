@@ -1,41 +1,996 @@
 [
-  {
-    "id": "as_7_01",
-    "content": "La suma de dos enteros positivos es 4 veces el número más pequeño. La diferencia positiva de sus cuadrados es 8 veces el número más grande. ¿Cuál es el producto de los dos números?",
-    "difficulty": 1000,
-    "topic": "Ecuaciones",
-    "options": [
-      "12",
-      "13",
-      "15",
-      "27"
-    ],
-    "correct_option": "27"
-  },
-  {
-    "id": "as_7_02",
-    "content": "Una caja rectangular cerrada tiene superficie de 1000 cm². Su longitud es el doble del ancho y su altura es seis veces su ancho. ¿Cuál es el volumen de la caja?",
-    "difficulty": 1050,
-    "topic": "Ecuaciones y volumen",
-    "options": [
-      "1000 cm³",
-      "1500 cm³",
-      "1700 cm³",
-      "2000 cm³"
-    ],
-    "correct_option": "1500 cm³"
-  },
-  {
-    "id": "as_7_03",
-    "content": "Si $\\frac{x-y}{x+y} = \\frac{9}{13}$, encuentre el valor de $\\frac{x^2}{y^2}$.",
-    "difficulty": 1100,
-    "topic": "Proporciones y álgebra",
-    "options": [
-      "$\\frac{121}{4}$",
-      "$\\frac{120}{7}$",
-      "$\\frac{123}{2}$",
-      "$\\frac{25}{4}$"
-    ],
-    "correct_option": "$\\frac{121}{4}$"
-  }
+    {
+        "id": "as_7_01",
+        "content": "La suma de dos enteros positivos es 4 veces el número más pequeño. La diferencia positiva de sus cuadrados es 8 veces el número más grande. ¿Cuál es el producto de los dos números?",
+        "difficulty": 1000,
+        "topic": "Ecuaciones",
+        "options": [
+            "12",
+            "13",
+            "15",
+            "27"
+        ],
+        "correct_option": "27",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "as_7_02",
+        "content": "Una caja rectangular cerrada tiene superficie de 1000 cm². Su longitud es el doble del ancho y su altura es seis veces su ancho. ¿Cuál es el volumen de la caja?",
+        "difficulty": 1050,
+        "topic": "Ecuaciones y volumen",
+        "options": [
+            "1000 cm³",
+            "1500 cm³",
+            "1700 cm³",
+            "2000 cm³"
+        ],
+        "correct_option": "1500 cm³",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Perímetros y Áreas]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "as_7_03",
+        "content": "Si $\\frac{x-y}{x+y} = \\frac{9}{13}$, encuentre el valor de $\\frac{x^2}{y^2}$.",
+        "difficulty": 1100,
+        "topic": "Proporciones y álgebra",
+        "options": [
+            "$\\frac{121}{4}$",
+            "$\\frac{120}{7}$",
+            "$\\frac{123}{2}$",
+            "$\\frac{25}{4}$"
+        ],
+        "correct_option": "$\\frac{121}{4}$",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Modelación Algebraica]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "as_7_04",
+        "content": "Factorice por completo la expresión: $3(2x - 1)^2(2)(x + 3)^{1/2} + (2x - 1)^3\\left(\\frac{1}{2}\\right)(x + 3)^{-1/2}$",
+        "difficulty": 1100,
+        "topic": "Factorización",
+        "options": [
+            "$\\frac{7}{2} (2x - 1)^2 (2x + 5) (x + 3)^{-1/2}$",
+            "$7(2x - 1)^2 (2x + 5) (x + 3)^{-1/2}$",
+            "$\\frac{7}{2} (2x - 1)^2 (x + 3)^{-1/2}$",
+            "$\\frac{7}{2} (2x - 1)^2 (2x + 5) (x + 3)^{1/2}$"
+        ],
+        "correct_option": "$\\frac{7}{2} (2x - 1)^2 (2x + 5) (x + 3)^{-1/2}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Factorización y Simplificación]"
+        ]
+    },
+    {
+        "id": "as_7_05",
+        "content": "Factorice por completo la expresión: $(x^2 + 3)^{-1/3} - \\frac{2}{3}x^2(x^2 + 3)^{-4/3}$",
+        "difficulty": 1050,
+        "topic": "Factorización",
+        "options": [
+            "$\\frac{x^2 + 9}{3} (x^2 + 3)^{-4/3}$",
+            "$\\frac{x^2 + 9}{3} (x^2 + 3)^{-1/3}$",
+            "$(x^2 + 9)(x^2 + 3)^{-4/3}$",
+            "$\\frac{x^2 + 9}{3} (x^2 + 3)^{4/3}$"
+        ],
+        "correct_option": "$\\frac{x^2 + 9}{3} (x^2 + 3)^{-4/3}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Factorización y Simplificación]"
+        ]
+    },
+    {
+        "id": "as_7_06",
+        "content": "Factorice por completo la expresión: $\\frac{1}{2}x^{-1/2}(3x + 4)^{1/2} - \\frac{3}{2}x^{1/2}(3x + 4)^{-1/2}$",
+        "difficulty": 1050,
+        "topic": "Factorización",
+        "options": [
+            "$2x^{-1/2}(3x + 4)^{-1/2}$",
+            "$2x^{1/2}(3x + 4)^{-1/2}$",
+            "$2x^{-1/2}(3x + 4)^{1/2}$",
+            "$\\frac{1}{2}x^{-1/2}(3x + 4)^{-1/2}$"
+        ],
+        "correct_option": "$2x^{-1/2}(3x + 4)^{-1/2}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Factorización y Simplificación]"
+        ]
+    },
+    {
+        "id": "as_7_07",
+        "content": "Factorice por completo la expresión: $(x - 1)(x + 2)^2 - (x - 1)^2(x + 2)$",
+        "difficulty": 700,
+        "topic": "Factorización",
+        "options": [
+            "$3(x - 1)(x + 2)$",
+            "$(x - 1)(x + 2)^2$",
+            "$(x - 1)^2(x + 2)$",
+            "$3(x - 1)^2(x + 2)^2$"
+        ],
+        "correct_option": "$3(x - 1)(x + 2)$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Factorización y Simplificación]"
+        ]
+    },
+    {
+        "id": "as_7_08",
+        "content": "Factorice por completo la expresión: $y^4(y + 2)^3 + y^5(y + 2)^4$",
+        "difficulty": 700,
+        "topic": "Factorización",
+        "options": [
+            "$y^4(y + 2)^3 (y + 1)^2$",
+            "$y^4(y + 2)^3 (y^2 + 2y + 1)$",
+            "$y^5(y + 2)^4$",
+            "$y^4(y + 2)^3 (y + 1)^2$"
+        ],
+        "correct_option": "$y^4(y + 2)^3 (y + 1)^2$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Factorización y Simplificación]"
+        ]
+    },
+    {
+        "id": "as_7_09",
+        "content": "Factorice por completo la expresión: $(a^2 + 1)^2 - 7(a^2 + 1) + 10$",
+        "difficulty": 750,
+        "topic": "Factorización",
+        "options": [
+            "$(a - 1)(a + 1)(a - 2)(a + 2)$",
+            "$(a^2 - 1)(a^2 - 4)$",
+            "$(a - 1)(a + 1)(a^2 - 4)$",
+            "$(a^2 - 1)(a - 2)(a + 2)$"
+        ],
+        "correct_option": "$(a - 1)(a + 1)(a - 2)(a + 2)$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Factorización y Simplificación]"
+        ]
+    },
+    {
+        "id": "as_7_10",
+        "content": "Factorice por completo la expresión: $(a^2 + 2a)^2 - 2(a^2 + 2a) - 3$",
+        "difficulty": 750,
+        "topic": "Factorización",
+        "options": [
+            "$(a + 3)(a - 1)(a + 1)^2$",
+            "$(a^2 + 2a - 3)(a + 1)^2$",
+            "$(a + 3)(a - 1)(a^2 + 2a + 1)$",
+            "$(a + 3)(a - 1)(a + 1)^2$"
+        ],
+        "correct_option": "$(a + 3)(a - 1)(a + 1)^2$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Factorización y Simplificación]"
+        ]
+    },
+    {
+        "id": "as_7_11",
+        "content": "La ecuación dada es lineal o equivalente a una ecuación lineal. Resuelva la ecuación: $\\frac{1}{x} = \\frac{4}{3x} + 1$",
+        "difficulty": 650,
+        "topic": "Ecuaciones",
+        "options": [
+            "$x = \\frac{1}{3}$",
+            "$x = -\\frac{1}{3}$",
+            "$x = 3$",
+            "$x = -3$"
+        ],
+        "correct_option": "$x = -\\frac{1}{3}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_12",
+        "content": "De la siguiente ecuación, despeje la variable indicada: $V = \\frac{1}{3}\\pi r^2 h$; despeje $r$.",
+        "difficulty": 650,
+        "topic": "Ecuaciones",
+        "options": [
+            "$r = \\sqrt{\\frac{3V}{\\pi h}}$",
+            "$r = \\frac{3V}{\\pi h}$",
+            "$r = \\sqrt{\\frac{V}{3\\pi h}}$",
+            "$r = \\frac{\\sqrt{3V}}{\\pi h}$"
+        ],
+        "correct_option": "$r = \\sqrt{\\frac{3V}{\\pi h}}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_13",
+        "content": "De la siguiente ecuación, despeje la variable indicada: $F = G\\frac{mM}{r^2}$; despeje $r$.",
+        "difficulty": 650,
+        "topic": "Ecuaciones",
+        "options": [
+            "$r = \\sqrt{\\frac{G m M}{F}}$",
+            "$r = \\frac{G m M}{F}$",
+            "$r = \\sqrt{\\frac{F}{G m M}}$",
+            "$r = \\frac{\\sqrt{G m M}}{F}$"
+        ],
+        "correct_option": "$r = \\sqrt{\\frac{G m M}{F}}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_14",
+        "content": "De la siguiente ecuación, despeje la variable indicada: $a^2 + b^2 = c^2$; despeje $b$.",
+        "difficulty": 550,
+        "topic": "Ecuaciones",
+        "options": [
+            "$b = \\sqrt{c^2 - a^2}$",
+            "$b = c - a$",
+            "$b = \\sqrt{a^2 - c^2}$",
+            "$b = \\sqrt{c^2 + a^2}$"
+        ],
+        "correct_option": "$b = \\sqrt{c^2 - a^2}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_15",
+        "content": "De la siguiente ecuación, despeje la variable indicada: $A = P\\left(1 + \\frac{i}{100}\\right)^2$; despeje $i$.",
+        "difficulty": 750,
+        "topic": "Ecuaciones",
+        "options": [
+            "$i = 100\\left(\\sqrt{\\frac{A}{P}} - 1\\right)$",
+            "$i = \\sqrt{\\frac{A}{P}} - 1$",
+            "$i = 100\\left(\\sqrt{\\frac{A}{P}} + 1\\right)$",
+            "$i = \\frac{\\sqrt{A} - \\sqrt{P}}{100}$"
+        ],
+        "correct_option": "$i = 100\\left(\\sqrt{\\frac{A}{P}} - 1\\right)$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_16",
+        "content": "De la siguiente ecuación, despeje la variable indicada: $h = \\frac{1}{2}gt^2 + v_0t$; despeje $t$.",
+        "difficulty": 800,
+        "topic": "Ecuaciones",
+        "options": [
+            "$t = \\frac{-v_0 + \\sqrt{v_0^2 + 2gh}}{g}$",
+            "$t = \\frac{v_0 \\pm \\sqrt{v_0^2 + 2gh}}{g}$",
+            "$t = \\frac{-v_0 \\pm \\sqrt{v_0^2 + 2gh}}{g}$",
+            "$t = \\frac{v_0 \\pm \\sqrt{v_0^2 - 2gh}}{g}$"
+        ],
+        "correct_option": "$t = \\frac{-v_0 \\pm \\sqrt{v_0^2 + 2gh}}{g}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_17",
+        "content": "De la siguiente ecuación, despeje la variable indicada: $S = \\frac{n(n + 1)}{2}$; despeje $n$.",
+        "difficulty": 700,
+        "topic": "Ecuaciones",
+        "options": [
+            "$n = \\frac{-1 + \\sqrt{1 + 8S}}{2}$",
+            "$n = \\frac{1 + \\sqrt{1 + 8S}}{2}$",
+            "$n = \\frac{-1 \\pm \\sqrt{1 + 8S}}{2}$",
+            "$n = \\frac{1 \\pm \\sqrt{1 - 8S}}{2}$"
+        ],
+        "correct_option": "$n = \\frac{-1 \\pm \\sqrt{1 + 8S}}{2}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_18",
+        "content": "Una compañía que renta vehículos cobra $\\$65$ al día y 20 centavos por milla por rentar un camión. Miguel rentó un camión durante 3 días y su cuenta fue de $\\$275$. ¿Cuántas millas recorrió?",
+        "difficulty": 600,
+        "topic": "Ecuaciones",
+        "options": [
+            "350",
+            "380",
+            "400",
+            "420"
+        ],
+        "correct_option": "400",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_19",
+        "content": "Una compañía de telefonía celular cobra una cuota mensual de $\\$10$ por los primeros 1000 mensajes de texto y 10 centavos por cada mensaje adicional. La cuenta de Miriam por mensajes de texto para el mes de junio es de $\\$38.50$. ¿Cuántos mensajes de texto envió ella ese mes?",
+        "difficulty": 650,
+        "topic": "Paridad e imparidad",
+        "options": [
+            "1250",
+            "1285",
+            "1300",
+            "1350"
+        ],
+        "correct_option": "1285",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "as_7_20",
+        "content": "Felicia invirtió $\\$12{,}000$, una parte al $\\frac{4}{5}\\%$ anual y el resto al $4\\%$ anual. Después de 1 año, el interés total fue de $\\$525$. ¿Cuánto invirtió a cada tasa?",
+        "difficulty": 800,
+        "topic": "Paridad e imparidad",
+        "options": [
+            "$\\$1{,}500$ al 0.8%, $\\$10{,}500$ al 4%",
+            "$\\$1{,}406.25$ al 0.8%, $\\$10{,}593.75$ al 4%",
+            "$\\$1{,}200$ al 0.8%, $\\$10{,}800$ al 4%",
+            "$\\$1{,}800$ al 0.8%, $\\$10{,}200$ al 4%"
+        ],
+        "correct_option": "$\\$1{,}406.25$ al 0.8%, $\\$10{,}593.75$ al 4%",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "as_7_21",
+        "content": "¿Qué tasa anual de interés debe ganar una persona sobre una inversión de $\\$3500$ para recibir $\\$262.50$ de interés después de 1 año?",
+        "difficulty": 550,
+        "topic": "Álgebra aplicada",
+        "options": [
+            "5.5%",
+            "6.5%",
+            "7.5%",
+            "8.5%"
+        ],
+        "correct_option": "7.5%",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "as_7_22",
+        "content": "Una mujer gana 15% más que su esposo. Juntos ganan $\\$69{,}875$ al año. ¿Cuál es el salario anual del esposo?",
+        "difficulty": 600,
+        "topic": "Álgebra aplicada",
+        "options": [
+            "$\\$30{,}000$",
+            "$\\$31{,}500$",
+            "$\\$32{,}500$",
+            "$\\$33{,}500$"
+        ],
+        "correct_option": "$\\$32{,}500$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "as_7_23",
+        "content": "Camilo hereda dinero, lo combina con sus $\\$22{,}000$ ahorrados, duplica el total y termina con $\\$134{,}000$. ¿Cuánto heredó?",
+        "difficulty": 600,
+        "topic": "Ecuaciones",
+        "options": [
+            "$\\$40{,}000$",
+            "$\\$43{,}000$",
+            "$\\$45{,}000$",
+            "$\\$48{,}000$"
+        ],
+        "correct_option": "$\\$45{,}000$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_24",
+        "content": "Elena gana $\\$7.50$ por hora, pero si trabaja más de 35 horas a la semana le pagan 1.5 veces su salario regular por las horas extra. En una semana gana $\\$352.50$. ¿Cuántas horas extra trabajó?",
+        "difficulty": 650,
+        "topic": "Álgebra aplicada",
+        "options": [
+            "6",
+            "7",
+            "8",
+            "9"
+        ],
+        "correct_option": "8",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "as_7_25",
+        "content": "Un plomero cobra $\\$45$/h y su ayudante $\\$25$/h. El plomero trabaja el doble de tiempo que el ayudante, y el cobro total es $\\$4025$. ¿Cuántas horas trabajó cada uno?",
+        "difficulty": 700,
+        "topic": "Álgebra aplicada",
+        "options": [
+            "Ayudante 30h, Plomero 60h",
+            "Ayudante 35h, Plomero 70h",
+            "Ayudante 40h, Plomero 80h",
+            "Ayudante 25h, Plomero 50h"
+        ],
+        "correct_option": "Ayudante 35h, Plomero 70h",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "as_7_26",
+        "content": "Un padre tiene cuatro veces la edad de su hija; en 6 años, tendrá tres veces la edad que actualmente tiene su hija. ¿Cuál es la edad actual de la hija?",
+        "difficulty": 650,
+        "topic": "Álgebra aplicada",
+        "options": [
+            "10",
+            "11",
+            "12",
+            "13"
+        ],
+        "correct_option": "12",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "as_7_27",
+        "content": "Hace siete años, un actor tenía 11 veces la edad de su hija; ahora tiene cuatro veces su edad. ¿Cuál es la edad del actor?",
+        "difficulty": 700,
+        "topic": "Álgebra aplicada",
+        "options": [
+            "35",
+            "38",
+            "40",
+            "42"
+        ],
+        "correct_option": "40",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "as_7_28",
+        "content": "Hank Aaron conectó 41 cuadrangulares más que Babe Ruth. Juntos conectaron 1469. ¿Cuántos conectó Babe Ruth?",
+        "difficulty": 550,
+        "topic": "Ecuaciones",
+        "options": [
+            "700",
+            "707",
+            "714",
+            "721"
+        ],
+        "correct_option": "714",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_29",
+        "content": "Un monedero contiene igual número de monedas de 1, 5 y 10 centavos. El valor total es $\\$1.44$. ¿Cuántas monedas de cada tipo contiene?",
+        "difficulty": 600,
+        "topic": "Ecuaciones",
+        "options": [
+            "8",
+            "9",
+            "10",
+            "12"
+        ],
+        "correct_option": "9",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_30",
+        "content": "Mary tiene $\\$3.00$ en monedas de 5, 10 y 25 centavos. Ella tiene el doble de monedas de 10 que de 25, y cinco más de monedas de 5 que de 10 centavos. ¿Cuántas monedas de cada tipo tiene?",
+        "difficulty": 750,
+        "topic": "Ecuaciones",
+        "options": [
+            "5¢: 15, 10¢: 10, 25¢: 5",
+            "5¢: 10, 10¢: 5, 25¢: 10",
+            "5¢: 12, 10¢: 8, 25¢: 6",
+            "5¢: 15, 10¢: 12, 25¢: 6"
+        ],
+        "correct_option": "5¢: 15, 10¢: 10, 25¢: 5",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_31",
+        "content": "Una botella contiene 750 mL de jugo de frutas con concentración 50%. Jill quita 100 mL y agrega 100 mL de otro ponche, reduciendo la concentración al 48%. ¿Cuál era la concentración del ponche que agregó?",
+        "difficulty": 800,
+        "topic": "Ecuaciones",
+        "options": [
+            "30%",
+            "35%",
+            "40%",
+            "45%"
+        ],
+        "correct_option": "35%",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_32",
+        "content": "Un comerciante mezcla té de $\\$3.00$/lb con té de $\\$2.75$/lb para obtener 80 lb de mezcla a $\\$2.90$/lb. ¿Cuántas libras de cada tipo debe usar?",
+        "difficulty": 650,
+        "topic": "Paridad e imparidad",
+        "options": [
+            "$\\$3.00$: 40 lb, $\\$2.75$: 40 lb",
+            "$\\$3.00$: 48 lb, $\\$2.75$: 32 lb",
+            "$\\$3.00$: 50 lb, $\\$2.75$: 30 lb",
+            "$\\$3.00$: 45 lb, $\\$2.75$: 35 lb"
+        ],
+        "correct_option": "$\\$3.00$: 48 lb, $\\$2.75$: 32 lb",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "as_7_33",
+        "content": "Candy tarda 70 minutos en entregar todos los periódicos; Tim tarda 80 minutos. ¿Cuánto tiempo les lleva a los dos cuando trabajan juntos?",
+        "difficulty": 650,
+        "topic": "Álgebra aplicada",
+        "options": [
+            "35 min",
+            "$\\frac{112}{3}$ min",
+            "38 min",
+            "40 min"
+        ],
+        "correct_option": "$\\frac{112}{3}$ min",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "as_7_34",
+        "content": "Stan e Hilda podan el césped juntos en 40 minutos. Hilda trabaja el doble de rápido que Stan. ¿Cuánto tiempo le lleva a Stan podar el césped solo?",
+        "difficulty": 700,
+        "topic": "Álgebra aplicada",
+        "options": [
+            "90 min",
+            "100 min",
+            "120 min",
+            "150 min"
+        ],
+        "correct_option": "120 min",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "as_7_35",
+        "content": "Betty y Karen pintan juntas una casa en dos tercios del tiempo que tarda Karen sola. Betty tarda 6 horas sola. ¿Cuánto tarda Karen sola?",
+        "difficulty": 800,
+        "topic": "Álgebra aplicada",
+        "options": [
+            "2 h",
+            "3 h",
+            "4 h",
+            "5 h"
+        ],
+        "correct_option": "3 h",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "as_7_36",
+        "content": "Un vendedor viaja 120 millas a velocidad constante, luego 150 millas a 10 mi/h más. El segundo tramo tomó 6 minutos más que el primero. ¿Cuál fue su velocidad en el primer tramo?",
+        "difficulty": 850,
+        "topic": "Álgebra aplicada",
+        "options": [
+            "40 mi/h",
+            "45 mi/h",
+            "50 mi/h",
+            "55 mi/h"
+        ],
+        "correct_option": "50 mi/h",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "as_7_37",
+        "content": "Kiran viajó 250 millas, luego 360 millas a 10 mi/h más. El viaje total tomó 11 horas. ¿Cuál fue su velocidad en el primer tramo?",
+        "difficulty": 850,
+        "topic": "Álgebra aplicada",
+        "options": [
+            "45 mi/h",
+            "48 mi/h",
+            "50 mi/h",
+            "52 mi/h"
+        ],
+        "correct_option": "50 mi/h",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "as_7_38",
+        "content": "A una tripulación les tomó 2 h 40 min remar 6 km corriente arriba y regresar. Si la rapidez de la corriente era de 3 km/h, ¿cuál era la velocidad de remar de la tripulación en aguas tranquilas?",
+        "difficulty": 800,
+        "topic": "Álgebra aplicada",
+        "options": [
+            "4 km/h",
+            "5 km/h",
+            "6 km/h",
+            "7 km/h"
+        ],
+        "correct_option": "6 km/h",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "as_7_39",
+        "content": "Simplifique la expresión: $\\frac{3(x + 2)^2(x - 3)^2 - (x + 2)^3(2)(x - 3)}{(x - 3)^4}$",
+        "difficulty": 900,
+        "topic": "Ecuaciones",
+        "options": [
+            "$\\frac{(x + 2)^2 (x - 13)}{(x - 3)^3}$",
+            "$\\frac{(x + 2)^2 (x - 13)}{(x - 3)^4}$",
+            "$\\frac{(x + 2)^2 (x - 13)}{(x - 3)^2}$",
+            "$\\frac{(x + 2)^2 (x - 13)}{(x - 3)}$"
+        ],
+        "correct_option": "$\\frac{(x + 2)^2 (x - 13)}{(x - 3)^3}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_40",
+        "content": "Simplifique la expresión: $\\frac{2x(x + 6)^4 - x^2(4)(x + 6)^3}{(x + 6)^8}$",
+        "difficulty": 900,
+        "topic": "Ecuaciones",
+        "options": [
+            "$\\frac{2x(6 - x)}{(x + 6)^5}$",
+            "$\\frac{2x(6 - x)}{(x + 6)^4}$",
+            "$\\frac{2x(6 - x)}{(x + 6)^6}$",
+            "$\\frac{2x(6 - x)}{(x + 6)^3}$"
+        ],
+        "correct_option": "$\\frac{2x(6 - x)}{(x + 6)^5}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_41",
+        "content": "Simplifique la expresión: $\\frac{2(1 + x)^{1/2} - x(1 + x)^{-1/2}}{x + 1}$",
+        "difficulty": 850,
+        "topic": "Ecuaciones",
+        "options": [
+            "$\\frac{x + 2}{(1 + x)^{3/2}}$",
+            "$\\frac{x + 2}{(1 + x)^{1/2}}$",
+            "$\\frac{x + 2}{(1 + x)^{5/2}}$",
+            "$\\frac{x + 2}{(1 + x)^{2}}$"
+        ],
+        "correct_option": "$\\frac{x + 2}{(1 + x)^{3/2}}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_42",
+        "content": "Simplifique la expresión: $\\frac{(1 - x^2)^{1/2} + x^2(1 - x^2)^{-1/2}}{1 - x^2}$",
+        "difficulty": 850,
+        "topic": "Ecuaciones",
+        "options": [
+            "$\\frac{1}{(1 - x^2)^{1/2}}$",
+            "$\\frac{1}{(1 - x^2)^{3/2}}$",
+            "$\\frac{1}{(1 - x^2)^{5/2}}$",
+            "$\\frac{1}{(1 - x^2)^{2}}$"
+        ],
+        "correct_option": "$\\frac{1}{(1 - x^2)^{3/2}}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_43",
+        "content": "Simplifique la expresión: $\\frac{3(1 + x)^{1/3} - x(1 + x)^{-2/3}}{(1 + x)^{2/3}}$",
+        "difficulty": 850,
+        "topic": "Ecuaciones",
+        "options": [
+            "$\\frac{3 + 2x}{(1 + x)^{2/3}}$",
+            "$\\frac{3 + 2x}{(1 + x)^{4/3}}$",
+            "$\\frac{3 + 2x}{(1 + x)^{5/3}}$",
+            "$\\frac{3 + 2x}{(1 + x)^{1/3}}$"
+        ],
+        "correct_option": "$\\frac{3 + 2x}{(1 + x)^{4/3}}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_44",
+        "content": "Simplifique la expresión: $\\frac{(7 - 3x)^{1/2} + \\frac{3}{2}x(7 - 3x)^{-1/2}}{7 - 3x}$",
+        "difficulty": 900,
+        "topic": "Ecuaciones",
+        "options": [
+            "$\\frac{14 - 3x}{2(7 - 3x)^{3/2}}$",
+            "$\\frac{14 - 3x}{2(7 - 3x)^{1/2}}$",
+            "$\\frac{14 - 3x}{(7 - 3x)^{3/2}}$",
+            "$\\frac{14 - 3x}{2(7 - 3x)^{5/2}}$"
+        ],
+        "correct_option": "$\\frac{14 - 3x}{2(7 - 3x)^{3/2}}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_45",
+        "content": "Simplifique la expresión: $\\frac{4x(2x - 1)^{3/2} + 3(2x - 1)^{1/2} \\cdot x^2}{(2x - 1)^{5/2}}$",
+        "difficulty": 1100,
+        "topic": "Ecuaciones",
+        "options": [
+            "$\\frac{x(11x - 4)}{(2x - 1)^{2}}$",
+            "$\\frac{x(11x - 4)}{(2x - 1)^{3}}$",
+            "$\\frac{x(11x - 4)}{(2x - 1)^{1/2}}$",
+            "$\\frac{x(11x - 4)}{(2x - 1)^{5/2}}$"
+        ],
+        "correct_option": "$\\frac{x(11x - 4)}{(2x - 1)^{2}}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_46",
+        "content": "Un recipiente con 200 L de solución al 25% de alcohol. Se extraen 50 L y se reemplazan con solución al 40%. Se repite dos veces más. ¿Cuál es el porcentaje final de alcohol después de la tercera extracción?",
+        "difficulty": 1150,
+        "topic": "Ecuaciones",
+        "options": [
+            "31.56%",
+            "32.50%",
+            "33.67%",
+            "34.25%"
+        ],
+        "correct_option": "33.67%",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "as_7_47",
+        "content": "Encuentre todos los valores reales de $k$ para los cuales la ecuación $\\frac{x}{x - 3} + \\frac{k}{x + 2} = \\frac{4}{x^2 - x - 6}$ no tiene solución real.",
+        "difficulty": 1200,
+        "topic": "Paridad e imparidad",
+        "options": [
+            "$(-\\infty, -14.63) \\cup (-1.37, \\infty)$",
+            "$(-14.63, -1.37)$",
+            "$\\{-0.8\\}$",
+            "Ninguno"
+        ],
+        "correct_option": "$(-14.63, -1.37)$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "as_7_48",
+        "content": "Dos grifos llenan un depósito juntos en 3 horas. El grifo A, funcionando solo, tarda 2 horas menos que el grifo B solo. Si se abre primero el grifo A durante un tiempo t, luego se cierra y se abre el grifo B durante el mismo tiempo t, y al final queda vacío aún un cuarto del depósito, ¿cuánto tiempo t transcurrió?",
+        "difficulty": 1250,
+        "topic": "Álgebra aplicada",
+        "options": [
+            "1 h 30 min",
+            "2 h",
+            "2 h 15 min",
+            "2 h 30 min"
+        ],
+        "correct_option": "2 h 15 min",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "Septimo_Algebra_2012_F1_Q7",
+        "content": "Se tiene cierta cantidad de fichas en una bolsa, David saca la mitad de las fichas y cada minuto devuelve una, si después de 19 minutos todavía tiene 3 fichas en la mano, el número de fichas que había inicialmente en la bolsa es:",
+        "difficulty": 800,
+        "topic": "Álgebra",
+        "options": [
+            "38",
+            "44",
+            "32",
+            "41"
+        ],
+        "correct_option": "44",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Modelación Algebraica]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Septimo_Algebra_2013_F1_Q1",
+        "content": "Un libro cuesta $\\$10$ más que la mitad de su precio. El precio del libro es:",
+        "difficulty": 700,
+        "topic": "Álgebra",
+        "options": [
+            "30",
+            "20",
+            "5",
+            "15"
+        ],
+        "correct_option": "20",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Modelación Algebraica]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Septimo_Algebra_2013_F1_Q18",
+        "content": "Jorge y María tienen la misma cantidad de caramelos y Camilo tiene un caramelo más que Jorge. De las siguientes, la que podría ser la cantidad de caramelos que tienen los tres juntos es:",
+        "difficulty": 750,
+        "topic": "Álgebra",
+        "options": [
+            "35",
+            "32",
+            "37",
+            "39"
+        ],
+        "correct_option": "37",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Modelación Algebraica]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Septimo_Algebra_2013_F1_Q20",
+        "content": "Si △ ⊕ ◯ = 4, △ ⊕ △ = 6, ◯ ⊕ □ = 7 y □ ⊕ □ = ★, entonces el valor de ★ es:",
+        "difficulty": 700,
+        "topic": "Lógica",
+        "options": [
+            "12",
+            "6",
+            "9",
+            "10"
+        ],
+        "correct_option": "12",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Modelación Algebraica]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Algebra_2013_F2_Q6",
+        "content": "Si se define la operación $A * B = \\dfrac{A + B}{2B}$, el valor de $6 * (3 * 1)$ es:",
+        "difficulty": 850,
+        "topic": "Álgebra",
+        "options": [
+            "2",
+            "4",
+            "5",
+            "8"
+        ],
+        "correct_option": "2",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Algebra_Q1",
+        "content": "Si $a=2^{40}$, $b=3^{20}$ y $c=7^{10}$ entonces se tiene:",
+        "difficulty": 750,
+        "topic": "Álgebra",
+        "options": [
+            "$a>b>c$",
+            "$a<c<b$",
+            "$b<a<c$",
+            "$a>c>b$",
+            "$c<a<b$"
+        ],
+        "correct_option": "$a>b>c$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Potenciación y Radicación]"
+        ]
+    }
 ]

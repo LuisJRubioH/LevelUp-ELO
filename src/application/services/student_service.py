@@ -93,12 +93,15 @@ class StudentService:
         cog_data = self.cognitive_analyzer.analyze_cognition(reasoning, is_correct, time_taken)
 
         # 2. Actualizar ELO del estudiante (usando la clave unificada del curso)
+        # impact_modifier=1.0 siempre: el análisis cognitivo por texto/tiempo
+        # fue una feature abandonada; el modificador causaba discrepancias entre
+        # el preview de puntos y el resultado real para el estudiante.
         result = 1.0 if is_correct else 0.0
         new_r, new_rd = vector_rating.update(
             _topic_key,
             item_data['difficulty'],
             result,
-            impact_modifier=cog_data['impact_modifier']
+            impact_modifier=1.0
         )
 
         # 3. Actualizar ELO del ítem (Simetría)

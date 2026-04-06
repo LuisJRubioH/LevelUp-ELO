@@ -23,6 +23,7 @@ Plataforma de **aprendizaje adaptativo** construida con Python y Streamlit que u
 - [Instalación y ejecución](#instalación-y-ejecución)
 - [Configuración de IA en la UI](#configuración-de-ia-en-la-ui)
 - [Agregar preguntas](#agregar-preguntas)
+- [KatIA — Tutora socrática](#katia--tutora-socrática)
 - [Dependencias](#dependencias)
 
 ---
@@ -47,11 +48,20 @@ Plataforma de **aprendizaje adaptativo** construida con Python y Streamlit que u
 - **Badges de notificación**: el docente ve cuántos procedimientos tiene pendientes de revisar; el estudiante ve cuántas revisiones nuevas tiene sin leer.
 - **Anti-plagio SHA-256**: cada archivo subido se hashea y se compara contra envíos previos del mismo estudiante y ejercicio para detectar duplicados.
 - **Validación de relevancia de procedimientos**: antes de enviar, la IA verifica que el archivo corresponda al ejercicio actual; tras 3 intentos fallidos se ofrecen opciones alternativas.
-- **Racha de estudio**: el sistema calcula días consecutivos de actividad y lo muestra en la sala de estudio y estadísticas.
+- **Racha de estudio por materia**: cada curso tiene su propia racha de días consecutivos, completamente independiente de otras materias. Solo se activa y avanza cuando el estudiante practica ese curso específico; si no entra un día, se reinicia únicamente la racha de ese curso.
+- **Escala de dificultad visual**: cada pregunta muestra 5 estrellas donde las activas se iluminan en amarillo y las restantes en gris, acompañadas de una etiqueta ordinal (Fácil / Básico / Intermedio / Difícil / Experto) y el valor ELO numérico como referencia técnica.
+- **Sistema de reportes técnicos**: los estudiantes pueden describir problemas directamente desde la sidebar. El administrador recibe una notificación prominente con todos los reportes pendientes y los puede marcar como resueltos.
 - **Ranking ELO de 16 niveles**: desde Aspirante (0–399) hasta Leyenda Suprema (2500+), con nombre y rango dinámico según el ELO global.
 - **Rankings separados por nivel educativo**: los rankings globales filtran por nivel (Universidad, Colegio, Concursos, Semillero), evitando mezclar estudiantes de contextos diferentes. El nivel Semillero filtra además por grado (6°–11°). Incluye ranking por curso y posición individual.
+- **Acceso especial inter-nivel via código de invitación**: un docente puede dar a un estudiante de cualquier nivel acceso a un curso de otro nivel compartiendo el código del grupo. El alumno usa el código en la pestaña "Código de acceso" de Matrículas y el curso aparece marcado con `📌 Acceso especial` en su sala de estudio. La separación de niveles se preserva en todos los demás flujos (exploración, rankings).
 - **Celebración persistente**: al alcanzar rachas de 5 respuestas correctas consecutivas, pantalla completa con animación, ELO actual y botón "SEGUIR PRACTICANDO" que permanece hasta que el estudiante decide continuar.
 - **Retroalimentación sin auto-avance**: tras responder, el estudiante ve si acertó o falló con un botón "SIGUIENTE PREGUNTA", permitiendo reflexionar antes de avanzar.
+- **KatIA — Tutora socrática con personalidad**: gata cyborg con mensajes predefinidos por contexto (bienvenida, calificación por rango, rachas de aciertos, fin de módulo/curso). GIFs animados durante la revisión de procedimientos: animación de "revisando" mientras la IA trabaja, luego GIF de celebración (score >= 91) o de errores (score < 91) según el resultado.
+- **Registro guiado con wizard multi-paso**: paso 1 selecciona rol (Estudiante/Profesor), paso 2 recoge datos de cuenta con campos contextuales (nivel, grado, etc.). Reemplaza el formulario de registro plano.
+- **Códigos de invitación para acceso inter-nivel**: los docentes generan un código único por grupo; los estudiantes lo usan en la pestaña "Código de acceso" de Matrículas para unirse a cursos de otro nivel educativo.
+- **Tags de taxonomía en preguntas**: cada ítem puede llevar un array JSON de tags con tres dimensiones (cognitiva, general, específica) que se muestran como badges en la UI.
+- **Temporizadores en tiempo real**: dos cronómetros JavaScript que se actualizan segundo a segundo sin depender de reruns de Streamlit: uno de sesión (sidebar, gris, compacto) que mide el tiempo total conectado, y otro por pregunta (sobre el enunciado, grande, dorado) que se reinicia con cada nueva pregunta. Ideales para estudiantes que practican con tiempo limitado (olimpiadas, exámenes).
+- **Exportación CSV/XLSX para docentes**: descarga completa de datos de estudiantes en formato CSV o Excel multi-hoja (intentos con tiempo por pregunta y RD, matrículas, procedimientos). Diseñado para análisis estadístico posterior con herramientas externas.
 - **Panel de ranking docente**: tres modos de visualización — por nivel educativo, por curso y por grupo — con selectores dinámicos.
 - **Imágenes en preguntas**: los ítems del banco pueden incluir `image_url` (URL externa) o `image_path` (ruta local relativa al repo). Las figuras geométricas del bloque Semillero se extraen directamente de los PDFs originales de las Olimpiadas UdeA 2020 con PyMuPDF.
 
@@ -68,8 +78,10 @@ src/
 │   │   ├── model.py         # Factor K dinámico, ELO clásico, dataclasses Item/StudentELO
 │   │   ├── vector_elo.py    # VectorRating: ELO + RD por tópico
 │   │   ├── uncertainty.py   # RatingModel (Glicko-simplificado)
-│   │   ├── cognitive.py     # CognitiveAnalyzer: clasifica respuestas con IA local
+│   │   ├── cognitive.py     # CognitiveAnalyzer: clasifica respuestas con IA local (impact_modifier fijado en 1.0)
 │   │   └── zdp.py           # Cálculo del intervalo ZDP
+│   ├── katia/
+│   │   └── katia_messages.py # Bancos de mensajes de KatIA (tutora socrática gata cyborg)
 │   └── selector/
 │       └── item_selector.py # AdaptiveItemSelector: selección por Fisher Information
 │
@@ -143,7 +155,14 @@ LevelUp-ELO/
 │   │       ├── logica_semillero_6.json ...
 │   │       ├── conteo_combinatoria_semillero_6.json ...
 │   │       └── probabilidad_semillero_6.json ...
-│   └── images/             # Figuras geométricas extraídas de PDFs (33 PNGs)
+│   └── images/             # Figuras geométricas extraídas de PDFs (86 PNGs)
+├── KatIA/                  # Assets de la tutora socrática
+│   ├── katIA.png               # Avatar estático (6.5 MB)
+│   ├── correcto.gif            # GIF original celebración (2.3 MB)
+│   ├── correcto_compressed.gif # GIF comprimido (698 KB) — usado en app
+│   ├── errores.gif             # GIF original errores (69 MB)
+│   ├── errores_compressed.gif  # GIF comprimido (1.8 MB) — usado en app
+│   └── instrucciones_katia.md  # Manual con bancos de mensajes
 ├── Semillero/
 │   └── OLIMPIADAS-2020/    # PDFs originales de los Talleres UdeA 2020
 ├── scripts/
@@ -232,6 +251,8 @@ aggregate_global_elo(vector)
 ## Analizador Cognitivo con IA
 
 `CognitiveAnalyzer` (`domain/elo/cognitive.py`) llama a la IA local para enriquecer el impacto de cada respuesta. El resultado modifica el delta ELO mediante `impact_modifier ∈ [0.5, 1.5]`.
+
+> **Nota**: en la implementación actual, `student_service.py` pasa `impact_modifier=1.0` siempre. El análisis cognitivo por texto/tiempo fue desactivado porque causaba discrepancias entre el preview de puntos mostrado al estudiante y el resultado real. El `CognitiveAnalyzer` sigue existiendo como módulo pero su output no escala el delta ELO.
 
 ### Componentes del modificador
 
@@ -419,8 +440,9 @@ Ambos backends exponen la misma API pública y ejecutan las mismas migraciones, 
 | `teacher_id` | INTEGER FK | Docente propietario |
 | `course_id` | TEXT FK | Curso vinculado (catálogo) |
 | `name_normalized` | TEXT | Nombre en minúsculas para unicidad |
+| `invite_code` | TEXT | Código de invitación único (generado por docente para acceso inter-nivel) |
 
-Restricción: **índice único** en `(teacher_id, name_normalized)` — un profesor no puede crear dos grupos con el mismo nombre (case-insensitive).
+Restricciones: **índice único** en `(teacher_id, name_normalized)` — un profesor no puede crear dos grupos con el mismo nombre (case-insensitive). **Índice único** en `invite_code` (parcial: WHERE NOT NULL).
 
 **`items`**
 | Campo | Tipo | Descripción |
@@ -433,6 +455,7 @@ Restricción: **índice único** en `(teacher_id, name_normalized)` — un profe
 | `difficulty` | REAL | Rating ELO del ítem |
 | `rating_deviation` | REAL | Incertidumbre del ítem |
 | `image_url` | TEXT | URL de imagen complementaria (opcional) |
+| `tags` | TEXT | JSON array de tags de taxonomía (cognitiva, general, específica) |
 
 **`attempts`**
 | Campo | Tipo | Descripción |
@@ -477,11 +500,20 @@ Restricción: **índice único** en `(teacher_id, name_normalized)` — un profe
 | `elo_delta` | REAL | Ajuste ELO calculado: `(final_score - 50) * 0.2` |
 | `file_hash` | TEXT | SHA-256 del archivo subido (detección anti-plagio) |
 
+**`problem_reports`**
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | INTEGER PK | Identificador |
+| `user_id` | INTEGER FK | Usuario que reporta |
+| `description` | TEXT | Descripción del problema (máx 500 caracteres en UI) |
+| `status` | TEXT | `pending` (nuevo) / `resolved` (resuelto por admin) |
+| `created_at` | TIMESTAMP | Fecha y hora del reporte |
+
 **`audit_group_changes`**: log de reasignaciones de grupo (admin), con usuario, grupo anterior/nuevo y timestamp.
 
 ### Migraciones
 
-Las migraciones son **aditivas** (`ALTER TABLE ADD COLUMN IF NOT EXISTS`). No hay migraciones destructivas. Se ejecutan automáticamente en `__init__()` de ambos repositorios. El repositorio PostgreSQL usa `pg_try_advisory_lock(12345)` (no-bloqueante) para que solo una instancia ejecute las migraciones cuando Streamlit arranca en paralelo; las demás retornan inmediatamente si el lock está tomado. Para ejecutar migraciones manualmente: `python migrate.py`.
+Las migraciones son **aditivas** (`ALTER TABLE ADD COLUMN IF NOT EXISTS` y `CREATE TABLE IF NOT EXISTS`). No hay migraciones destructivas. Se ejecutan automáticamente en `__init__()` de ambos repositorios. El repositorio PostgreSQL usa `pg_try_advisory_lock(12345)` (no-bloqueante) para que solo una instancia ejecute las migraciones cuando Streamlit arranca en paralelo; las demás retornan inmediatamente si el lock está tomado. Para ejecutar migraciones manualmente: `python migrate.py`.
 
 ### Usuario admin
 
@@ -511,34 +543,38 @@ El nivel **Semillero** corresponde al programa de olimpiadas matemáticas de la 
 
 El catálogo se genera automáticamente desde los archivos JSON en `items/bank/`. La asignación curso-bloque se define en `_COURSE_BLOCK_MAP` dentro de `sqlite_repository.py` y `postgres_repository.py`.
 
-Los estudiantes se **matriculan** en cursos de su nivel y se unen a un **grupo** creado por un docente para ese curso.
+Los estudiantes se **matriculan** en cursos de su nivel y se unen a un **grupo** creado por un docente para ese curso. Excepción: si un docente comparte un código de grupo de otro nivel, el estudiante puede unirse usando la pestaña **"Código de acceso"** en Matrículas. Esos cursos aparecen marcados con `📌 Acceso especial` y son visibles solo porque tienen `group_id` asignado; las matrículas legacy sin grupo de otro nivel permanecen ocultas.
 
 ---
 
 ## Roles de usuario
 
 ### Estudiante
-- Selecciona su **nivel educativo** al registrarse: Universidad, Colegio, Concursos o Semillero de Matemáticas. Los estudiantes de Semillero también seleccionan su **grado** (6°–11°).
-- Se matricula en **cursos** del catálogo correspondiente a su nivel y se une a un grupo del docente.
-- Accede al **modo práctica**: responde preguntas adaptativas, ve retroalimentación socrática con IA, rastrea su ELO por tópico.
-- Puede subir **procedimientos manuscritos** (imagen o PDF) para revisión (IA o docente), con validación de relevancia y detección de duplicados.
-- Puede ver su **dashboard de estadísticas**: historial de intentos, evolución del ELO, racha de estudio, ranking de 16 niveles, y recomendaciones generadas con IA.
+- Selecciona su **nivel educativo** al registrarse mediante un **wizard multi-paso**: paso 1 elige rol (Estudiante/Profesor), paso 2 recoge datos de cuenta (usuario, contraseña, nivel, grado). Los estudiantes de Semillero también seleccionan su **grado** (6°–11°).
+- Se matricula en **cursos** mediante un flujo de 3 tabs: Explorar (catálogo del nivel), Mis matrículas (gestión), Código de acceso (acceso inter-nivel vía código de invitación del docente).
+- Accede al **modo práctica**: responde preguntas adaptativas con tags de taxonomía visibles, ve retroalimentación socrática con IA (KatIA), rastrea su ELO por tópico.
+- Puede subir **procedimientos manuscritos** (imagen o PDF) para revisión (IA o docente), con GIFs animados de KatIA durante el análisis y según el resultado, validación de relevancia y detección de duplicados.
+- Puede ver su **dashboard de estadísticas**: historial de intentos, evolución del ELO, racha de estudio **por materia** (independiente por curso), ranking de 16 niveles, tiempo promedio por pregunta, y recomendaciones generadas con IA.
+- **Temporizadores en tiempo real**: cronómetro de sesión en sidebar (tiempo total conectado) y cronómetro por pregunta (sobre el enunciado, grande y visible). Ambos se actualizan segundo a segundo vía JavaScript — no dependen de reruns de Streamlit.
 - **Centro de feedback**: consulta notas numéricas (IA y docente), comentarios y estado de cada procedimiento enviado, con notificación de revisiones nuevas.
+- **Reportar problemas**: puede describir problemas técnicos directamente desde el sidebar; el reporte llega al administrador con nombre de usuario y marca de tiempo.
 
 ### Docente
 - Requiere aprobación del admin tras el registro.
-- Crea y gestiona **grupos de alumnos** vinculados a cursos del catálogo.
+- Crea y gestiona **grupos de alumnos** vinculados a cursos del catálogo. Puede generar **códigos de invitación** únicos por grupo para dar acceso inter-nivel a estudiantes de otros bloques.
 - Los nombres de grupo son **únicos por profesor** (case-insensitive); el sistema rechaza duplicados.
 - Accede al **dashboard docente** con **filtros cascada** (Grupo → Nivel → Materia): ELO por tópico de cada alumno, tasa de acierto reciente, probabilidades de fallo por pregunta, historial de intentos.
 - **Panel de rankings** con tres modos: por nivel educativo, por curso y por grupo — cada uno con selectores dinámicos.
 - Revisa y califica **procedimientos** enviados por alumnos (con propuesta de la IA como referencia). Badge de notificación con cantidad de pendientes.
 - Puede generar **análisis pedagógico con IA** sobre cualquier alumno (con ELO desglosado por tópico y tiempo promedio de respuesta).
+- **Exportación CSV/XLSX**: descarga datos completos de todos sus estudiantes (intentos con tiempo por pregunta y rating deviation, matrículas, procedimientos) para análisis estadístico con herramientas externas. Excel incluye hojas separadas por tipo de dato.
 
 ### Admin
 - Aprueba o rechaza solicitudes de docentes.
 - Reasigna alumnos entre grupos (con log de auditoría).
 - **Elimina grupos**: desvincula estudiantes y matrículas sin perder datos históricos.
 - **Da de baja estudiantes y docentes** (`active = 0`): impide login conservando todo el historial. Puede reactivarlos.
+- **Notificaciones de problemas técnicos**: al inicio del panel de admin aparece una sección con todos los reportes pendientes enviados por estudiantes, cada uno con usuario, fecha y descripción. El admin puede marcarlos como resueltos.
 - Todas las acciones destructivas requieren **confirmación** en la UI.
 - Acceso completo a todos los datos.
 
@@ -688,6 +724,7 @@ Las preguntas se organizan en **`items/bank/`**, un archivo JSON por curso. El n
 | `options` | Sí | Lista de 2 a 4 opciones (soportan LaTeX) |
 | `correct_option` | Sí | Debe coincidir **exactamente** con uno de los strings en `options` |
 | `image_url` | No | URL o ruta de imagen complementaria (se muestra debajo del enunciado) |
+| `tags` | No | JSON array de tags de taxonomía (3 dimensiones: cognitiva, general, específica). Se muestran como badges en la UI |
 
 ### Preguntas con imágenes
 
@@ -781,6 +818,42 @@ Los archivos del bloque **Semillero** se encuentran en `items/bank/semillero/` (
 
 ---
 
+## KatIA — Tutora socrática
+
+KatIA es una gata cyborg (mitad gata, mitad robot) que actúa como tutora socrática de la plataforma. Tiene una personalidad coherente y amigable definida por bancos de mensajes predefinidos — no genera su personalidad con IA.
+
+### Personalidad y mensajes
+
+Los mensajes de KatIA están organizados en `src/domain/katia/katia_messages.py`:
+
+| Contexto | Función | Descripción |
+|---|---|---|
+| Bienvenida | `MENSAJES_BIENVENIDA` | Saludo aleatorio al iniciar sesión |
+| Procedimiento 0–59 | `RESPUESTAS_TUTORIA` | Invita al chat socrático |
+| Procedimiento 60–90 | `RESPUESTAS_MEDIA` | Reconoce buen trabajo + detalle |
+| Procedimiento 91–100 | `RESPUESTAS_ALTA` | Celebración pura |
+| Racha de 5 | `FELICITACIONES_RACHA_5` | Calentamiento |
+| Racha de 10 | `FELICITACIONES_RACHA_10` | Nivel experto |
+| Racha de 20 | `FELICITACIONES_RACHA_20` | Nivel legendario |
+
+### GIFs animados en revisión de procedimientos
+
+Cuando un estudiante sube un procedimiento y solicita calificación con IA:
+
+1. **Durante el análisis**: aparece `correcto_compressed.gif` (KatIA escribiendo) como animación de carga junto al spinner.
+2. **Resultado correcto** (score >= 91): se muestra `correcto_compressed.gif` + frase celebratoria de KatIA.
+3. **Resultado con errores** (score < 91): se muestra `errores_compressed.gif` + frase de KatIA con invitación a tutoría + diagnóstico técnico generado por el LLM.
+
+Los GIFs originales (`correcto.gif` 2.3MB, `errores.gif` 69MB) se comprimieron a 698KB y 1.8MB respectivamente para rendimiento web. La app siempre usa las versiones `*_compressed.gif`.
+
+### Integración con el flujo de calificación
+
+La estructura de la respuesta al estudiante sigue la **Regla de Oro** del manual de KatIA:
+- **Score 0–90**: `[Frase estática KatIA] + [Diagnóstico del LLM]` (máx 2 líneas señalando el error)
+- **Score 91–100**: `[Frase estática KatIA]` (solo celebración, sin diagnóstico)
+
+---
+
 ## Dependencias
 
 | Paquete | Uso |
@@ -796,3 +869,5 @@ Los archivos del bloque **Semillero** se encuentran en `items/bank/semillero/` (
 | `PyMuPDF` | Renderizado de PDF a imagen para revisión de procedimientos |
 | `sympy` | Verificación simbólica de equivalencias algebraicas en el pipeline matemático |
 | `psycopg2-binary` | Driver PostgreSQL para el backend de producción (Supabase) |
+| `openpyxl` | Exportación Excel multi-hoja (.xlsx) para el panel docente |
+| `Pillow` | Procesamiento de imágenes (compresión de GIFs de KatIA) |

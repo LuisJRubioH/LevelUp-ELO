@@ -1,54 +1,428 @@
 [
-  {
-    "id": "as_9_01",
-    "content": "$2x^4-3x^3+ax^2+7x+b$ es divisible por $x^2+x-2$. El valor de $\\frac{a}{b}$ es:",
-    "difficulty": 1200,
-    "topic": "División de polinomios",
-    "options": [
-      "-2",
-      "$-\\frac{3}{2}$",
-      "$\\frac{3}{5}$",
-      "1"
-    ],
-    "correct_option": "1"
-  },
-  {
-    "id": "as_9_02",
-    "content": "Dado que $2^x = 8^{y+1}$ y $9^y = 3^{x-9}$. ¿Cuál es el valor de $x+y$?",
-    "difficulty": 1200,
-    "topic": "Ecuaciones exponenciales",
-    "options": [
-      "15",
-      "18",
-      "20",
-      "27"
-    ],
-    "correct_option": "27"
-  },
-  {
-    "id": "as_9_03",
-    "content": "El valor del producto $\\left(1-\\frac{1}{2^2}\\right)\\left(1-\\frac{1}{3^2}\\right)\\cdots\\left(1-\\frac{1}{9^2}\\right)\\left(1-\\frac{1}{10^2}\\right)$ es:",
-    "difficulty": 1250,
-    "topic": "Productos telescópicos",
-    "options": [
-      "$-\\frac{7}{18}$",
-      "$\\frac{11}{10}$",
-      "$\\frac{11}{20}$",
-      "$\\frac{9}{23}$"
-    ],
-    "correct_option": "$\\frac{11}{20}$"
-  },
-  {
-    "id": "as_9_04",
-    "content": "Una función $f(n)$ definida para todo entero positivo cumple $f(m)+f(n)=f(mn)$. Si $f(2)=\\frac{19}{3}$, $f(3)=200$ y $f(5)=500$. ¿Cuál es el valor de $f(9000)$?",
-    "difficulty": 1300,
-    "topic": "Funciones y propiedades",
-    "options": [
-      "2019",
-      "2020",
-      "1919",
-      "2222"
-    ],
-    "correct_option": "2020"
-  }
+    {
+        "id": "as_9_01",
+        "content": "$2x^4-3x^3+ax^2+7x+b$ es divisible por $x^2+x-2$. El valor de $\\frac{a}{b}$ es:",
+        "difficulty": 1200,
+        "topic": "División de polinomios",
+        "options": [
+            "-2",
+            "$-\\frac{3}{2}$",
+            "$\\frac{3}{5}$",
+            "1"
+        ],
+        "correct_option": "1",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operatoria de Polinomios]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "as_9_02",
+        "content": "Dado que $2^x = 8^{y+1}$ y $9^y = 3^{x-9}$. ¿Cuál es el valor de $x+y$?",
+        "difficulty": 1200,
+        "topic": "Ecuaciones exponenciales",
+        "options": [
+            "15",
+            "18",
+            "20",
+            "27"
+        ],
+        "correct_option": "27",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Familias de Funciones]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "as_9_03",
+        "content": "El valor del producto $\\left(1-\\frac{1}{2^2}\\right)\\left(1-\\frac{1}{3^2}\\right)\\cdots\\left(1-\\frac{1}{9^2}\\right)\\left(1-\\frac{1}{10^2}\\right)$ es:",
+        "difficulty": 1250,
+        "topic": "Productos telescópicos",
+        "options": [
+            "$-\\frac{7}{18}$",
+            "$\\frac{11}{10}$",
+            "$\\frac{11}{20}$",
+            "$\\frac{9}{23}$"
+        ],
+        "correct_option": "$\\frac{11}{20}$",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[General: Pensamiento Lateral]",
+            "[Específica: Operatoria de Polinomios]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "as_9_04",
+        "content": "Una función $f(n)$ definida para todo entero positivo cumple $f(m)+f(n)=f(mn)$. Si $f(2)=\\frac{19}{3}$, $f(3)=200$ y $f(5)=500$. ¿Cuál es el valor de $f(9000)$?",
+        "difficulty": 1300,
+        "topic": "Funciones y propiedades",
+        "options": [
+            "2019",
+            "2020",
+            "1919",
+            "2222"
+        ],
+        "correct_option": "2020",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Familias de Funciones]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Noveno_Algebra_2012_F1_Q1",
+        "content": "Mi tía Rosa se reduce la edad en 5 años y mi tía Marta se reduce la edad en 7 años. Cierto día, cuando las fui a visitar, les pregunté sus edades. Según lo que me dijeron, resultó que la diferencia de sus edades era 11 años. Si mi tía Marta es la mayor, la verdadera diferencia entre sus edades es:",
+        "difficulty": 700,
+        "topic": "Álgebra",
+        "options": [
+            "12",
+            "6",
+            "13",
+            "11"
+        ],
+        "correct_option": "13",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[General: Inferencia y Deducción Lógica]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "Noveno_Algebra_2012_F1_Q4",
+        "content": "En un garaje hay 16 vehículos entre bicicletas y carros. Si el número de ruedas es 52. la cantidad de carros y bicicletas que hay en el garaje es:",
+        "difficulty": 650,
+        "topic": "Álgebra",
+        "options": [
+            "10 bicicletas y 6 carros",
+            "8 bicicletas y 8 carros",
+            "7 bicicletas y 9 carros",
+            "6 bicicletas y 10 carros"
+        ],
+        "correct_option": "6 bicicletas y 10 carros",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "Noveno_Algebra_2012_F1_Q10",
+        "content": "En un curso hay 45 alumnos entre chicos y chicas. El 32% de los chicos y el 60% de las chicas estudian francés, siendo en total 20 los alumnos que estudian francés. Determine la cantidad de chicos y chicas que hay en la clase.",
+        "difficulty": 850,
+        "topic": "Álgebra",
+        "options": [
+            "20 chicos y 25 chicas",
+            "25 chicos y 20 chicas",
+            "15 chicos y 30 chicas",
+            "30 chicos y 15 chicas"
+        ],
+        "correct_option": "25 chicos y 20 chicas",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "Noveno_Algebra_2013_F1_Q1",
+        "content": "El número positivo que debe ocupar el lugar $X$ para que se tenga la igualdad en la suma $\\frac{X}{3} + \\frac{X}{6} = 2$, es:",
+        "difficulty": 600,
+        "topic": "Álgebra",
+        "options": [
+            "1",
+            "2",
+            "5",
+            "4"
+        ],
+        "correct_option": "4",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "Noveno_Algebra_2013_F1_Q3",
+        "content": "Cincuenta y seis galletas han de servir de comida a diez animales; cada animal es un perro o un gato. Cada perro ha de obtener seis galletas y cada gato cinco. La cantidad de perros y gatos que hay, es respectivamente:",
+        "difficulty": 700,
+        "topic": "Álgebra",
+        "options": [
+            "7 y 3",
+            "2 y 8",
+            "5 y 5",
+            "6 y 4"
+        ],
+        "correct_option": "6 y 4",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "Noveno_Algebra_2013_F1_Q7",
+        "content": "En un campeonato, cada equipo jugó 24 partidos. Al final del campeonato el equipo A no empató ningún partido y ganó 10 más de los que perdió; el equipo B no perdió ningún partido y empató 6 más de los que ganó. El número de partidos ganados entre A y B fue:",
+        "difficulty": 800,
+        "topic": "Álgebra",
+        "options": [
+            "10",
+            "26",
+            "19",
+            "24"
+        ],
+        "correct_option": "26",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Modelación Algebraica]"
+        ]
+    },
+    {
+        "id": "Noveno_Algebra_2013_F1_Q11",
+        "content": "Si $n$ es un número par, entonces de las siguientes expresiones la única que es siempre par es:",
+        "difficulty": 750,
+        "topic": "Álgebra",
+        "options": [
+            "$\\frac{n}{2}$",
+            "$n^2 + 3n$",
+            "$(n+1)^2$",
+            "$\\frac{n(n+1)}{2}$"
+        ],
+        "correct_option": "$n^2 + 3n$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "Noveno_Algebra_2013_F1_Q13",
+        "content": "Si $a < 0$ la única expresión negativa es:",
+        "difficulty": 650,
+        "topic": "Álgebra",
+        "options": [
+            "$a^3$",
+            "$-a^3$",
+            "$a^4$",
+            "$-\\frac{1}{a}$"
+        ],
+        "correct_option": "$a^3$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Saber]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "Noveno_Algebra_2013_F1_Q15",
+        "content": "Sean $x, y$ dos números reales tales que $x^2 = y^2$ pero $x \\neq y$. El valor de $x^2 - 5x + 7 - y^2 - 5y$ es:",
+        "difficulty": 850,
+        "topic": "Álgebra",
+        "options": [
+            "$0$",
+            "$-3$",
+            "$7$",
+            "$2$"
+        ],
+        "correct_option": "$7$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "Noveno_Algebra_2013_F1_Q20",
+        "content": "Carlos, Alberto, Fabian, Lucas y Roberto son futbolistas con diferente cantidad de goles convertidos. Se sabe que: Carlos tiene dos goles más que Alberto, Fabian tiene dos goles más que Roberto pero uno menos que Alberto, y Lucas más goles que Roberto pero menos que Alberto. La diferencia entre los goles de Carlos y Lucas es:",
+        "difficulty": 800,
+        "topic": "Álgebra",
+        "options": [
+            "1",
+            "3",
+            "2",
+            "4"
+        ],
+        "correct_option": "4",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "Noveno_Algebra_2013_F2_Q3",
+        "content": "Si $a$, $b$ y $c$ son tres números que cumplen que: $a + b = 3$, $ac + b = 18$, $bc + a = 6$ entonces el valor de $c$ es:",
+        "difficulty": 800,
+        "topic": "Álgebra",
+        "options": [
+            "2",
+            "6",
+            "3",
+            "7"
+        ],
+        "correct_option": "7",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "Noveno_Algebra_2013_F2_Q5",
+        "content": "La ecuación $y=ax^2+bx+c$ se utilizó para hacer las siguientes relaciones: si $x=0$, $y=3$ y si $x=-2$, $y=5$. El valor de $2a - b$ es:",
+        "difficulty": 850,
+        "topic": "Álgebra",
+        "options": [
+            "$-1$",
+            "$1$",
+            "$-3$",
+            "$3$"
+        ],
+        "correct_option": "$1$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "Noveno_Algebra_2013_F2_Q10",
+        "content": "Si $f(x)$ es un polinomio que satisface que $f(x^2 + 1) = x^4 + 5x^2 + 3$, calcule $f(x^2 - 1)$.",
+        "difficulty": 950,
+        "topic": "Álgebra",
+        "options": [
+            "$x^4 - 2x^2 + 3$",
+            "$x^4 + x^2 - 3$",
+            "$x^4 - 3x^2 + 1$",
+            "$x^4 + 3x^2 - 1$"
+        ],
+        "correct_option": "$x^4 + x^2 - 3$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Algebra_Q1_9",
+        "content": "Un número de 3 cifras es 629 veces menor que la suma de todos los otros números de 3 cifras. Este número es:",
+        "difficulty": 850,
+        "topic": "Álgebra",
+        "options": [
+            "450",
+            "785",
+            "430",
+            "471",
+            "525"
+        ],
+        "correct_option": "785",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Algebra_Q2_9",
+        "content": "Los números $a$ y $b$ son reales no-negativos tales que $a^3+a < b-b^3$. Entonces:",
+        "difficulty": 900,
+        "topic": "Álgebra",
+        "options": [
+            "$b<a<1$",
+            "$a=b=1$",
+            "$a<1<b$",
+            "$a<b<1$",
+            "$1<a<b$"
+        ],
+        "correct_option": "$a<b<1$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Potenciación y Radicación]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Algebra_Q3_9",
+        "content": "Diana comenzó a bajar una escalera de 30 escalones en el mismo instante en que Sandra comenzó a subirla. Diana había bajado $\\frac{3}{4}$ de la escalera cuando se encontró con Sandra. En el momento en que Diana acabe de bajar, ¿cuántos escalones le restan por subir a Sandra?",
+        "difficulty": 800,
+        "topic": "Álgebra",
+        "options": [
+            "2",
+            "8",
+            "20",
+            "10",
+            "16"
+        ],
+        "correct_option": "20",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Modelación Algebraica]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Algebra_Q4_9",
+        "content": "¿Cuál es el valor de la expresión $20142014^2 + 20142006 - 16 \\times 20142010$?",
+        "difficulty": 850,
+        "topic": "Álgebra",
+        "options": [
+            "$2 \\times 20142010^2$",
+            "$2 \\times 20142014^2$",
+            "$2 \\times 20142006^2$",
+            "$2 \\times 20142010$",
+            "$2 \\times 20142014$"
+        ],
+        "correct_option": "$2 \\times 20142006^2$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Potenciación y Radicación]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Algebra_Q32_9",
+        "content": "¿Cuántos son los pares de enteros positivos $(x, y)$ tales que $x^2 - y^2 = 2^{2014}$?",
+        "difficulty": 950,
+        "topic": "Álgebra",
+        "options": [
+            "1003",
+            "1004",
+            "1005",
+            "1006",
+            "1007"
+        ],
+        "correct_option": "1006",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel2_Algebra_Q42_9",
+        "content": "Si $\\dfrac{1}{x+5} = 4$ entonces el valor de $\\dfrac{x+6}{25-x^2}$ es igual a:",
+        "difficulty": 800,
+        "topic": "Álgebra",
+        "options": [
+            "$\\dfrac{20}{39}$",
+            "$\\dfrac{39}{20}$",
+            "$-20$",
+            "$80$",
+            "$\\dfrac{80}{39}$"
+        ],
+        "correct_option": "$\\dfrac{20}{39}$",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Ecuaciones e Inecuaciones]"
+        ]
+    }
 ]

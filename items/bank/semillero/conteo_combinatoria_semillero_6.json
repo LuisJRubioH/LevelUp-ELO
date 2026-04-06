@@ -1,67 +1,211 @@
 [
-  {
-    "id": "ccs_6_01",
-    "content": "De tres dados idénticos, cada uno tiene dos caras con el 2, dos con el 4 y dos con el 6. Si se lanzan y se suman los 3 números obtenidos, ¿cuántas sumas diferentes son posibles?",
-    "difficulty": 850,
-    "topic": "Conteo de casos",
-    "options": [
-      "6",
-      "7",
-      "9",
-      "10"
-    ],
-    "correct_option": "7"
-  },
-  {
-    "id": "ccs_6_02",
-    "content": "Sandra visita un restaurante cada 2 días; Carlos cada 3; Andrés cada 4; Felipe cada 5; Óscar cada 6 y Tatiana cada 7. Hoy están todos. ¿Cuántos días pasarán hasta la próxima vez que se encuentren todos?",
-    "difficulty": 900,
-    "topic": "MCM",
-    "options": [
-      "21",
-      "42",
-      "120",
-      "420"
-    ],
-    "correct_option": "420"
-  },
-  {
-    "id": "ccs_6_03",
-    "content": "Se construye una figura alternando cuadrados blancos y negros en cada fila horizontal (la fila 1 tiene 1 cuadrado blanco). Cada fila empieza y termina con cuadrado blanco. ¿Cuántos cuadrados negros hay en la fila 55?",
-    "difficulty": 900,
-    "topic": "Patrones y sucesiones",
-    "options": [
-      "53",
-      "54",
-      "55",
-      "56"
-    ],
-    "correct_option": "54"
-  },
-  {
-    "id": "ccs_6_04",
-    "content": "¿Cuántas combinaciones diferentes de billetes de \\$5000 y \\$2000 pueden usarse para acumular exactamente \\$17000? (Los billetes de igual denominación se consideran iguales).",
-    "difficulty": 850,
-    "topic": "Conteo de combinaciones",
-    "options": [
-      "2",
-      "3",
-      "4",
-      "5"
-    ],
-    "correct_option": "2"
-  },
-  {
-    "id": "ccs_p_01",
-    "content": "Una bolsa contiene un gran número de pelotas que pueden repartirse en partes iguales entre 4, 5, 6, 7 o 9 personas sin que sobren. ¿Cuál es el menor número de pelotas?",
-    "difficulty": 900,
-    "topic": "MCM",
-    "options": [
-      "1260",
-      "840",
-      "7560",
-      "180"
-    ],
-    "correct_option": "1260"
-  }
+    {
+        "id": "ccs_6_01",
+        "content": "De tres dados idénticos, cada uno tiene dos caras con el 2, dos con el 4 y dos con el 6. Si se lanzan y se suman los 3 números obtenidos, ¿cuántas sumas diferentes son posibles?",
+        "difficulty": 850,
+        "topic": "Conteo de casos",
+        "options": [
+            "6",
+            "7",
+            "9",
+            "10"
+        ],
+        "correct_option": "7",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ccs_6_02",
+        "content": "Sandra visita un restaurante cada 2 días; Carlos cada 3; Andrés cada 4; Felipe cada 5; Óscar cada 6 y Tatiana cada 7. Hoy están todos. ¿Cuántos días pasarán hasta la próxima vez que se encuentren todos?",
+        "difficulty": 900,
+        "topic": "MCM",
+        "options": [
+            "21",
+            "42",
+            "120",
+            "420"
+        ],
+        "correct_option": "420",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Teoría de Números]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ccs_6_03",
+        "content": "Se construye una figura alternando cuadrados blancos y negros en cada fila horizontal (la fila 1 tiene 1 cuadrado blanco). Cada fila empieza y termina con cuadrado blanco. ¿Cuántos cuadrados negros hay en la fila 55?",
+        "difficulty": 900,
+        "topic": "Patrones y sucesiones",
+        "options": [
+            "53",
+            "54",
+            "55",
+            "56"
+        ],
+        "correct_option": "54",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Pensamiento Lateral]",
+            "[Específica: Conteo y Combinatoria]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ccs_6_04",
+        "content": "¿Cuántas combinaciones diferentes de billetes de \\$5000 y \\$2000 pueden usarse para acumular exactamente \\$17000? (Los billetes de igual denominación se consideran iguales).",
+        "difficulty": 850,
+        "topic": "Conteo de combinaciones",
+        "options": [
+            "2",
+            "3",
+            "4",
+            "5"
+        ],
+        "correct_option": "2",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ccs_p_01",
+        "content": "Una bolsa contiene un gran número de pelotas que pueden repartirse en partes iguales entre 4, 5, 6, 7 o 9 personas sin que sobren. ¿Cuál es el menor número de pelotas?",
+        "difficulty": 900,
+        "topic": "MCM",
+        "options": [
+            "1260",
+            "840",
+            "7560",
+            "180"
+        ],
+        "correct_option": "1260",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Resolución de Problemas Aplicados]",
+            "[Específica: Teoría de Números]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Sexto_Conteo_2012_F1_Q4",
+        "content": "Las olimpiadas de matemáticas decidieron crear su bandera con los colores amarillo, verde y negro. Si la bandera tiene 3 franjas, la cantidad de banderas posibles de tres colores es:",
+        "difficulty": 600,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "3",
+            "6",
+            "9",
+            "12"
+        ],
+        "correct_option": "6",
+        "image_url": "items/images/Sexto_Conteo_2012_F1_Q4.png",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Conteo_2013_F1_Q10",
+        "content": "Un equipo de fútbol jugó 7 partidos y en todos marcó un número impar de goles. De las siguientes, una posible cantidad de goles marcados en total por el equipo es:",
+        "difficulty": 700,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "20",
+            "5",
+            "12",
+            "15"
+        ],
+        "correct_option": "15",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Conteo_2013_F1_Q16",
+        "content": "Se tiene 1 libro de sociales, 1 de matemáticas, 1 de español y un diccionario. El número de formas en que se pueden organizar todos en un estante, de modo tal que los libros de matemáticas y de español siempre estén juntos, es:",
+        "difficulty": 750,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "6",
+            "10",
+            "12",
+            "24"
+        ],
+        "correct_option": "12",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Sexto_Conteo_2013_F2_Q8",
+        "content": "En las olimpiadas de matemáticas quedaron 4 finalistas: Andrea, Bruno, Carmen y Danilo, entre los cuales salen los ganadores de las tres medallas (oro, plata y bronce). El número de formas distintas en que se pueden entregar las medallas es:",
+        "difficulty": 700,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "6",
+            "12",
+            "18",
+            "24"
+        ],
+        "correct_option": "24",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Pensamiento Lateral]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Conteo_Q1_6",
+        "content": "¿Cuántos números naturales menores que 30 tienen exactamente 4 divisores positivos?",
+        "difficulty": 800,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "13",
+            "12",
+            "11",
+            "10",
+            "9"
+        ],
+        "correct_option": "9",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Pensamiento Lateral]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Conteo_Q3_6",
+        "content": "Un número natural A de 3 cifras domina a otro número natural B de 3 cifras si cada cifra de A es mayor que cada cifra correspondiente de B. Por ejemplo, 786 domina a 453, pero 615 no domina a 524 ya que 1 < 2. ¿Cuántos números de 3 cifras dominan a 314?",
+        "difficulty": 850,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "120",
+            "240",
+            "480",
+            "360",
+            "600"
+        ],
+        "correct_option": "240",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Pensamiento Lateral]"
+        ]
+    }
 ]

@@ -1,41 +1,211 @@
 [
-  {
-    "id": "ccs_7_01",
-    "content": "Los números 9, $b$, $c$, $d$, 9 son los primeros cinco términos de una secuencia. A partir de $c$, cada término es la suma de los dos anteriores. Encuentre el valor de $d$.",
-    "difficulty": 1000,
-    "topic": "Sucesiones recurrentes",
-    "options": [
-      "3",
-      "5",
-      "8",
-      "11"
-    ],
-    "correct_option": "3"
-  },
-  {
-    "id": "ccs_7_02",
-    "content": "Si $a_n = \\frac{1}{n} - \\frac{1}{n+1}$ para cada $n \\geq 1$, el valor de $a_1+a_2+a_3+\\cdots+a_{2019}$ es:",
-    "difficulty": 1050,
-    "topic": "Sumas telescópicas",
-    "options": [
-      "2019",
-      "$\\frac{2017}{2018}$",
-      "$\\frac{2018}{2019}$",
-      "$\\frac{2019}{2020}$"
-    ],
-    "correct_option": "$\\frac{2019}{2020}$"
-  },
-  {
-    "id": "ccs_7_03",
-    "content": "En una caja grande hay 6 cajas medianas, dentro de cada una hay 3 cajas pequeñas y dentro de estas hay 2 cajas más pequeñas. El número total de cajas es:",
-    "difficulty": 950,
-    "topic": "Conteo por niveles",
-    "options": [
-      "60",
-      "61",
-      "62",
-      "63"
-    ],
-    "correct_option": "61"
-  }
+    {
+        "id": "ccs_7_01",
+        "content": "Los números 9, $b$, $c$, $d$, 9 son los primeros cinco términos de una secuencia. A partir de $c$, cada término es la suma de los dos anteriores. Encuentre el valor de $d$.",
+        "difficulty": 1000,
+        "topic": "Sucesiones recurrentes",
+        "options": [
+            "3",
+            "5",
+            "8",
+            "11"
+        ],
+        "correct_option": "3",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Sucesiones y Series]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ccs_7_02",
+        "content": "Si $a_n = \\frac{1}{n} - \\frac{1}{n+1}$ para cada $n \\geq 1$, el valor de $a_1+a_2+a_3+\\cdots+a_{2019}$ es:",
+        "difficulty": 1050,
+        "topic": "Sumas telescópicas",
+        "options": [
+            "2019",
+            "$\\frac{2017}{2018}$",
+            "$\\frac{2018}{2019}$",
+            "$\\frac{2019}{2020}$"
+        ],
+        "correct_option": "$\\frac{2019}{2020}$",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[General: Pensamiento Lateral]",
+            "[Específica: Sucesiones y Series]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "ccs_7_03",
+        "content": "En una caja grande hay 6 cajas medianas, dentro de cada una hay 3 cajas pequeñas y dentro de estas hay 2 cajas más pequeñas. El número total de cajas es:",
+        "difficulty": 950,
+        "topic": "Conteo por niveles",
+        "options": [
+            "60",
+            "61",
+            "62",
+            "63"
+        ],
+        "correct_option": "61",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Septimo_Conteo_2012_F1_Q12",
+        "content": "Encuentre todos los números pares de cinco cifras que se pueden formar con los dígitos 1, 1, 0, 4, 3.",
+        "difficulty": 850,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "21",
+            "24",
+            "18",
+            "15"
+        ],
+        "correct_option": "21",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Conteo_2013_F1_Q2",
+        "content": "De los siguientes números, el que cumple que: todos sus dígitos son diferentes, el dígito en el lugar de la unidad de mil es tres veces el dígito en el lugar de la decena, el número es impar, la suma de sus dígitos es 27, es:",
+        "difficulty": 850,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "6927",
+            "9738",
+            "9837",
+            "6829"
+        ],
+        "correct_option": "9837",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Conteo_2013_F1_Q10",
+        "content": "Un equipo de fútbol jugó 7 partidos y en todos marcó un número impar de goles. De las siguientes, una posible cantidad de goles marcados en total por el equipo es:",
+        "difficulty": 700,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "20",
+            "5",
+            "12",
+            "15"
+        ],
+        "correct_option": "15",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Conteo_2013_F1_Q16",
+        "content": "Se tiene 1 libro de sociales, 1 de matemáticas, 1 de español y un diccionario. El número de formas en que se pueden organizar todos en un estante, de modo tal que los libros de matemáticas y de español siempre estén juntos, es:",
+        "difficulty": 750,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "6",
+            "10",
+            "12",
+            "24"
+        ],
+        "correct_option": "12",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Septimo_Conteo_2013_F2_Q8",
+        "content": "En las olimpiadas de matemáticas quedaron 4 finalistas: Andrea, Bruno, Carmen y Danilo, entre los cuales salen los ganadores de las tres medallas (oro, plata y bronce). El número de formas distintas en que se pueden entregar las medallas es:",
+        "difficulty": 700,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "6",
+            "12",
+            "18",
+            "24"
+        ],
+        "correct_option": "24",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Pensamiento Lateral]"
+        ]
+    },
+    {
+        "id": "Septimo_Conteo_2013_F2_Q12",
+        "content": "Se desea pintar un cubo de modo tal que cada cara quede negra o blanca. Dos formas de pintar el cubo se consideran iguales cuando al girarlo se llega de una forma a la otra. Determine la cantidad de formas distintas en que se puede pintar el cubo.",
+        "difficulty": 950,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "10",
+            "12",
+            "8",
+            "16"
+        ],
+        "correct_option": "10",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Pensamiento Lateral]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Conteo_Q1",
+        "content": "¿Cuántos números naturales menores que 30 tienen exactamente 4 divisores positivos?",
+        "difficulty": 800,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "13",
+            "12",
+            "11",
+            "10",
+            "9"
+        ],
+        "correct_option": "9",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Conteo_Q3",
+        "content": "Un número natural A de 3 cifras domina a otro número natural B de 3 cifras si cada cifra de A es mayor que cada cifra correspondiente de B. Por ejemplo, 786 domina a 453, pero 615 no domina a 524 ya que 1 < 2. ¿Cuántos números de 3 cifras dominan a 314?",
+        "difficulty": 850,
+        "topic": "Conteo y Combinatoria",
+        "options": [
+            "120",
+            "240",
+            "480",
+            "360",
+            "600"
+        ],
+        "correct_option": "240",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Conteo y Combinatoria]",
+            "[General: Inferencia y Deducción Lógica]"
+        ]
+    }
 ]

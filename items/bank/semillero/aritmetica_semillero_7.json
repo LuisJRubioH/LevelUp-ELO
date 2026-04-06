@@ -1,15 +1,229 @@
 [
-  {
-    "id": "ars_7_01",
-    "content": "Sara escribía en un tablero 95×95 los múltiplos positivos de 4 en orden ascendente (primera fila: 4, 8, ..., 380; segunda fila inversa: 760, 756, ..., 384; etc.). El número en la posición $U$ (última fila, última columna) es:",
-    "difficulty": 1100,
-    "topic": "Patrones numéricos",
-    "options": [
-      "35192",
-      "35196",
-      "36100",
-      "36104"
-    ],
-    "correct_option": "36100"
-  }
+    {
+        "id": "ars_7_01",
+        "content": "Sara escribía en un tablero 95×95 los múltiplos positivos de 4 en orden ascendente (primera fila: 4, 8, ..., 380; segunda fila inversa: 760, 756, ..., 384; etc.). El número en la posición $U$ (última fila, última columna) es:",
+        "difficulty": 1100,
+        "topic": "Patrones numéricos",
+        "options": [
+            "35192",
+            "35196",
+            "36100",
+            "36104"
+        ],
+        "correct_option": "36100",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Sucesiones y Series]"
+        ],
+        "image_url": ""
+    },
+    {
+        "id": "Septimo_Aritmetica_2012_F1_Q2",
+        "content": "Alberto vende dulces, tiene 60 galletas y 132 chocolates. Alberto quiere empacar sus dulces en pequeños paquetes que contengan o galletas o chocolates, pero no ambos, pero en todos los paquetes debe haber el mismo número de dulces. Si Alberto quiere además que la cantidad de paquetes que forme sea la menor posible, la cantidad de dulces que debe incluir en cada paquete es:",
+        "difficulty": 700,
+        "topic": "Aritmética",
+        "options": [
+            "15",
+            "9",
+            "12",
+            "6"
+        ],
+        "correct_option": "12",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Septimo_Aritmetica_2012_F1_Q4",
+        "content": "La cantidad de números del 1 al 2012 que son simultáneamente divisibles por 2, 3 y 5 es:",
+        "difficulty": 750,
+        "topic": "Aritmética",
+        "options": [
+            "380",
+            "210",
+            "33",
+            "67"
+        ],
+        "correct_option": "67",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "Septimo_Aritmetica_2013_F1_Q5",
+        "content": "En cierta escuela cada clase dura 45 minutos y cada descanso dura 20 minutos. Si las clases empezaron a las 6:45am, han pasado dos descansos y está comenzando la séptima clase, la hora actual es:",
+        "difficulty": 750,
+        "topic": "Aritmética",
+        "options": [
+            "10:30am",
+            "11:55am",
+            "12:40pm",
+            "1:15pm"
+        ],
+        "correct_option": "11:55am",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Proporcionalidad y Porcentajes]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Septimo_Aritmetica_2013_F1_Q7",
+        "content": "Las edades de Ana, Luis y Jaime suman 32 años, la suma de sus edades dentro de 3 años será:",
+        "difficulty": 550,
+        "topic": "Aritmética",
+        "options": [
+            "41",
+            "39",
+            "35",
+            "36"
+        ],
+        "correct_option": "41",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Septimo_Aritmetica_2013_F1_Q11",
+        "content": "En clase de español, el profesor pidió a los estudiantes leer un libro, si David ha leído $\\frac{3}{5}$ del libro, Esteban $\\frac{4}{7}$, Mary $\\frac{1}{2}$ y Fernando $\\frac{3}{4}$ quien ha leido la mayor parte del libro es:",
+        "difficulty": 650,
+        "topic": "Aritmética",
+        "options": [
+            "David",
+            "Esteban",
+            "Mary",
+            "Fernando"
+        ],
+        "correct_option": "Fernando",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Septimo_Aritmetica_2013_F2_Q4",
+        "content": "Al realizar el producto $111111112 \\times 111111115$, el número que forman los últimos cuatro dígitos es:",
+        "difficulty": 800,
+        "topic": "Aritmética",
+        "options": [
+            "1150",
+            "9880",
+            "8880",
+            "7880"
+        ],
+        "correct_option": "8880",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]",
+            "[General: Pensamiento Lateral]"
+        ]
+    },
+    {
+        "id": "Septimo_Aritmetica_2013_F2_Q5",
+        "content": "En una librería, Isabel compra un libro con la tercera parte de su dinero y una revista con las dos terceras partes de lo que le quedaba. Si al salir de la librería tenía 12000 pesos, el dinero que tenía inicialmente Isabel en pesos es:",
+        "difficulty": 850,
+        "topic": "Aritmética",
+        "options": [
+            "42000",
+            "18000",
+            "54000",
+            "36000"
+        ],
+        "correct_option": "54000",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Septimo_Aritmetica_2013_F2_Q10",
+        "content": "Ricardo tiene una colección de menos de 100 carros en miniatura, entre los cuales hay algunos negros y algunos blancos. Al organizarlos nota que: si los coloca en filas de a 4 le sobra un carro, si los coloca en filas de a 5 le sobra uno, si los coloca en filas de a 6 le sobra uno. Determine el número de carros en la colección de Ricardo.",
+        "difficulty": 850,
+        "topic": "Aritmética",
+        "options": [
+            "61",
+            "81",
+            "91",
+            "41"
+        ],
+        "correct_option": "61",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Aritmetica_Q3",
+        "content": "Representamos por $n!$ el producto de los números naturales de 1 hasta $n$. Por ejemplo, $6! = 6 \\times 5 \\times 4 \\times 3 \\times 2 \\times 1 = 720$. Calculando la suma $1! + 2! + 3! + 4! + 5! + \\cdots + 2014!$, ¿cuál es la cifra de las unidades del resultado obtenido?",
+        "difficulty": 800,
+        "topic": "Aritmética",
+        "options": [
+            "1",
+            "4",
+            "7",
+            "3",
+            "9"
+        ],
+        "correct_option": "3",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Aritmetica_Q4",
+        "content": "De las siguientes opciones determine cuál es un divisor de $3^5 \\times 4^4 \\times 5^3$:",
+        "difficulty": 700,
+        "topic": "Aritmética",
+        "options": [
+            "52",
+            "42",
+            "45",
+            "85",
+            "105"
+        ],
+        "correct_option": "45",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Teoría de Números]"
+        ]
+    },
+    {
+        "id": "Taller2014_Nivel1_Aritmetica_Q5",
+        "content": "En una repostería, una bolsa de 200g de harina de trigo cuesta \\$3.000 pesos, una bolsa de 400g cuesta \\$5.000 pesos y la de 800g cuesta \\$9.000 pesos. Laura necesita 1.2 kg de harina de trigo para hacer una gran torta. ¿Cuál de las opciones a seguir es la más económica para comprar 1.2 kg de harina de trigo?",
+        "difficulty": 650,
+        "topic": "Aritmética",
+        "options": [
+            "6 bolsas de 200g",
+            "1 bolsa de 400g y 1 bolsa de 800g",
+            "4 bolsas de 200g y 1 bolsa de 400g",
+            "2 bolsas de 200g y 1 bolsa de 800g",
+            "2 bolsas de 200g y 2 bolsas de 400g"
+        ],
+        "correct_option": "1 bolsa de 400g y 1 bolsa de 800g",
+        "image_url": "",
+        "tags": [
+            "[Enfoque: Hacer]",
+            "[Específica: Operaciones con Racionales]",
+            "[General: Resolución de Problemas Aplicados]"
+        ]
+    }
 ]

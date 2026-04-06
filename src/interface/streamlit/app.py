@@ -57,6 +57,56 @@ validate_socratic_response = _router_mod.validate_socratic_response
 math_pipeline_analyze = _pipeline_mod.analyze_with_llm_data
 import time
 import extra_streamlit_components as stx
+from streamlit.components.v1 import html as st_html
+
+
+_TIMER_ID_COUNTER = [0]  # mutable counter for unique timer IDs
+
+def _render_live_timer(start_epoch: float, label: str = "",
+                       font_size: str = "1.1rem", height: int = 40,
+                       color: str = "#FFD700", bold: bool = True,
+                       align: str = "right"):
+    """Renderiza un temporizador en tiempo real usando JavaScript puro.
+
+    El timer corre segundo a segundo sin necesidad de rerun de Streamlit.
+    """
+    _TIMER_ID_COUNTER[0] += 1
+    _tid = f"tmr_{_TIMER_ID_COUNTER[0]}"
+    _w = "font-weight:700;" if bold else ""
+    _html = f"""
+    <style>
+      body {{ margin:0; padding:0; background:transparent; overflow:hidden; }}
+    </style>
+    <div style="text-align:{align};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+      <span style="color:{color};font-size:{font_size};{_w}letter-spacing:0.5px;">
+        {label}<span id="{_tid}">0:00</span>
+      </span>
+    </div>
+    <script>
+    (function() {{
+      var start = {start_epoch} * 1000;
+      var el = document.getElementById('{_tid}');
+      function tick() {{
+        var diff = Math.floor((Date.now() - start) / 1000);
+        if (diff < 0) diff = 0;
+        var h = Math.floor(diff / 3600);
+        var m = Math.floor((diff % 3600) / 60);
+        var s = diff % 60;
+        if (h > 0) {{
+          el.textContent = h + 'h ' + String(m).padStart(2,'0') + 'm ' + String(s).padStart(2,'0') + 's';
+        }} else if (m > 0) {{
+          el.textContent = m + ':' + String(s).padStart(2,'0');
+        }} else {{
+          el.textContent = s + 's';
+        }}
+      }}
+      tick();
+      setInterval(tick, 1000);
+    }})();
+    </script>
+    """
+    st_html(_html, height=height)
+
 
 # Configuración de página
 st.set_page_config(page_title="LevelUp ELO — Evaluación Adaptativa", layout="wide", page_icon="🎓")
@@ -150,6 +200,21 @@ def _load_katia_image():
         return None
 
 _KATIA_IMG = _load_katia_image()
+
+# ── GIFs animados de KatIA (revisión de procedimientos) ───────────────────
+_KATIA_GIF_CORRECTO_PATH = os.path.join(base_path, "KatIA", "correcto_compressed.gif")
+_KATIA_GIF_ERRORES_PATH = os.path.join(base_path, "KatIA", "errores_compressed.gif")
+
+@st.cache_resource
+def _load_katia_gif(path: str):
+    try:
+        with open(path, "rb") as f:
+            return f.read()
+    except FileNotFoundError:
+        return None
+
+_KATIA_GIF_CORRECTO = _load_katia_gif(_KATIA_GIF_CORRECTO_PATH)
+_KATIA_GIF_ERRORES = _load_katia_gif(_KATIA_GIF_ERRORES_PATH)
 
 # Inicializar Base de Datos
 # Si DATABASE_URL está definida → PostgreSQL; si no → SQLite local
@@ -329,6 +394,7 @@ st.markdown("""
 # --- GESTIÓN DE SESIÓN ---
 def login():
     st.session_state.logged_in = True
+    st.session_state.session_start_time = time.time()
 
 def logout():
     token = cookie_manager.get("elo_auth_token")
@@ -353,6 +419,8 @@ if not st.session_state.logged_in:
             st.session_state.user_id = user['id']
             st.session_state.username = user['username']
             st.session_state.role = user['role']
+            if 'session_start_time' not in st.session_state:
+                st.session_state.session_start_time = time.time()
         else:
             cookie_manager.delete("elo_auth_token")
 
@@ -360,10 +428,34 @@ if not st.session_state.logged_in:
 # PÁGINA DE LOGIN / REGISTRO
 # ══════════════════════════════════════════════════════════════════════════════
 if not st.session_state.logged_in:
+    # ── Estado del wizard de registro ────────────────────────────────────────
+    if 'reg_step' not in st.session_state:
+        st.session_state.reg_step = 1
+    if 'reg_chosen_role' not in st.session_state:
+        st.session_state.reg_chosen_role = None
+
     _logo_col1, _logo_col2, _logo_col3 = st.columns([1, 2, 1])
     with _logo_col2:
         st.image(_get_logo(), width='stretch')
-    st.markdown("<p style='text-align: center; color: #aaa; font-size: 1.2rem; margin-bottom: 40px;'>Plataforma de evaluación y aprendizaje adaptativo basada en el sistema ELO</p>", unsafe_allow_html=True)
+    st.markdown("""
+        <div style='text-align:center; margin-bottom:24px;'>
+            <p style='color:#aaa; font-size:1.1rem; margin-bottom:10px;'>
+                Plataforma de evaluación y aprendizaje adaptativo basada en el sistema ELO
+            </p>
+            <span style='display:inline-block; background:#1E1E2E; border:1px solid #333;
+                         border-radius:20px; padding:5px 14px; font-size:0.82rem; color:#aaa; margin:3px;'>
+                📚 +5.000 preguntas adaptativas
+            </span>
+            <span style='display:inline-block; background:#1E1E2E; border:1px solid #333;
+                         border-radius:20px; padding:5px 14px; font-size:0.82rem; color:#aaa; margin:3px;'>
+                🎯 Sistema ELO por materia
+            </span>
+            <span style='display:inline-block; background:#1E1E2E; border:1px solid #333;
+                         border-radius:20px; padding:5px 14px; font-size:0.82rem; color:#aaa; margin:3px;'>
+                🤖 IA pedagógica integrada
+            </span>
+        </div>
+    """, unsafe_allow_html=True)
 
     col_info, col_login = st.columns([1.4, 1])
 
@@ -374,38 +466,40 @@ if not st.session_state.logged_in:
             <p>LevelUp ELO es una plataforma académica de evaluación adaptativa que utiliza el <b>sistema de calificación ELO</b> —originalmente diseñado para el ajedrez— para medir con precisión el nivel de dominio de cada estudiante en distintas materias.</p>
             <p style="margin-top:10px;">A diferencia de los exámenes tradicionales, el sistema se adapta continuamente: <b>la dificultad de cada ejercicio se ajusta en tiempo real</b> según el rendimiento del estudiante, maximizando el aprendizaje efectivo.</p>
         </div>
+        """, unsafe_allow_html=True)
 
-        <div class="elo-card" style="text-align: left; padding: 30px;">
-            <h3>⚙️ ¿Cómo funciona?</h3>
-            <ul style="margin-top: 10px; line-height: 2;">
+        with st.expander("⚙️ ¿Cómo funciona?"):
+            st.markdown("""
+            <ul style="margin-top: 6px; line-height: 2; color:#e0e0e0;">
                 <li><b>Puntuación ELO por materia:</b> Cada estudiante tiene un índice numérico por área temática que sube o baja según sus respuestas correctas e incorrectas.</li>
-                <li><b>Selección adaptativa de ejercicios:</b> El sistema elige automáticamente preguntas que se encuentran en la <em>zona de desarrollo óptimo</em> del estudiante, ni demasiado fáciles ni inalcanzables.</li>
-                <li><b>Seguimiento del progreso:</b> Los profesores pueden consultar la evolución de cada estudiante por tema, junto con métricas de probabilidad de acierto por ejercicio.</li>
-                <li><b>Recomendaciones con IA:</b> Un asistente inteligente analiza el historial del estudiante y genera recomendaciones de estudio personalizadas.</li>
+                <li><b>Selección adaptativa de ejercicios:</b> El sistema elige automáticamente preguntas en la <em>zona de desarrollo óptimo</em> del estudiante, ni demasiado fáciles ni inalcanzables.</li>
+                <li><b>Seguimiento del progreso:</b> Los profesores consultan la evolución de cada estudiante por tema, con métricas de probabilidad de acierto por ejercicio.</li>
+                <li><b>Recomendaciones con IA:</b> Un asistente inteligente analiza el historial y genera recomendaciones de estudio personalizadas.</li>
             </ul>
-        </div>
+            """, unsafe_allow_html=True)
 
-        <div class="elo-card" style="text-align: left; padding: 30px;">
-            <h3>👥 Roles en la plataforma</h3>
-            <ul style="margin-top: 10px; line-height: 2;">
+        with st.expander("👥 Roles en la plataforma"):
+            st.markdown("""
+            <ul style="margin-top: 6px; line-height: 2; color:#e0e0e0;">
                 <li><b>🎓 Estudiante:</b> Accede a ejercicios adaptativos y consulta sus estadísticas de progreso.</li>
-                <li><b>🏫 Profesor:</b> Visualiza el rendimiento de todos los estudiantes y sus métricas detalladas por tema. Requiere aprobación del administrador.</li>
+                <li><b>🏫 Profesor:</b> Visualiza el rendimiento de sus estudiantes con métricas detalladas por tema.
+                    <span style='color:#f0ad4e;'> Requiere aprobación del administrador.</span></li>
                 <li><b>🛡️ Administrador:</b> Gestiona las cuentas de profesores y estudiantes en la plataforma.</li>
             </ul>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
     with col_login:
         with st.container(border=True):
             st.markdown("### 🔐 Acceso a la Plataforma")
-            tab1, tab2 = st.tabs(["INICIAR SESIÓN", "REGISTRARSE"])
+            tab1, tab2 = st.tabs(["🔑 Iniciar Sesión", "✨ Crear Cuenta"])
 
             with tab1:
                 username = st.text_input("Usuario", key="login_user")
                 password = st.text_input("Contraseña", type="password", key="login_pass")
                 st.write("")
-                if st.button("Iniciar Sesión", type="primary"):
-                    user = st.session_state.db.login_user(username, password)
+                if st.button("Iniciar Sesión", type="primary", use_container_width=True):
+                    with st.spinner("Verificando..."):
+                        user = st.session_state.db.login_user(username, password)
                     if user:
                         user_id, uname, role, approved = user
                         if role == 'teacher' and not approved:
@@ -422,55 +516,109 @@ if not st.session_state.logged_in:
                         st.error("Credenciales inválidas. Verifique su usuario y contraseña.")
 
             with tab2:
-                new_user = st.text_input("Nombre de usuario", key="reg_user")
-                new_pass = st.text_input("Contraseña", type="password", key="reg_pass")
-                new_role = st.selectbox("Tipo de cuenta", ["Estudiante", "Profesor"], key="reg_role")
+                # ── Wizard paso 1: selección de rol ──────────────────────────
+                if st.session_state.reg_step == 1:
+                    st.markdown("#### ¿Cómo usarás LevelUp ELO?")
+                    _wiz_s, _wiz_p = st.columns(2)
+                    with _wiz_s:
+                        with st.container(border=True):
+                            st.markdown("**🎓 Estudiante**")
+                            st.caption("Practica materias y sigue tu progreso ELO.")
+                            if st.button("Soy Estudiante", use_container_width=True,
+                                         type="primary", key="wizard_student"):
+                                st.session_state.reg_chosen_role = "Estudiante"
+                                st.session_state.reg_step = 2
+                                st.rerun()
+                    with _wiz_p:
+                        with st.container(border=True):
+                            st.markdown("**🏫 Profesor**")
+                            st.caption("Gestiona grupos y monitorea alumnos.")
+                            if st.button("Soy Profesor", use_container_width=True,
+                                         key="wizard_teacher"):
+                                st.session_state.reg_chosen_role = "Profesor"
+                                st.session_state.reg_step = 2
+                                st.rerun()
 
-                education_level = None
-                grade = None
-                if new_role == "Estudiante":
-                    level_label = st.selectbox(
-                        "Nivel Educativo *",
-                        ["Universidad", "Colegio", "Concursos", "Semillero de Matemáticas"],
-                        key="reg_level",
-                        help="Determina qué catálogo de cursos podrás ver."
-                    )
-                    education_level = "semillero" if level_label == "Semillero de Matemáticas" else level_label.lower()
-                    if education_level == "semillero":
-                        grade_label = st.selectbox(
-                            "Grado *",
-                            ["6°", "7°", "8°", "9°", "10°", "11°"],
-                            key="reg_grade",
-                            help="Grado escolar (6° a 11° bachillerato)."
+                # ── Wizard paso 2: datos de la cuenta ────────────────────────
+                elif st.session_state.reg_step == 2:
+                    _role_icon = "🎓" if st.session_state.reg_chosen_role == "Estudiante" else "🏫"
+                    _role_lbl  = st.session_state.reg_chosen_role
+                    st.markdown(f"**{_role_icon} Registro como {_role_lbl}**")
+
+                    if st.session_state.reg_chosen_role == "Profesor":
+                        st.warning("⏳ Las cuentas de profesor requieren aprobación del administrador antes de poder acceder.")
+
+                    if st.button("← Cambiar tipo de cuenta", key="wizard_back"):
+                        st.session_state.reg_step = 1
+                        st.rerun()
+
+                    new_user = st.text_input("Nombre de usuario", key="reg_user")
+                    st.caption("Solo letras, números y guion bajo. Sin espacios ni tildes. Ej: juan_perez")
+
+                    new_pass = st.text_input("Contraseña", type="password", key="reg_pass")
+                    st.caption("Mínimo 6 caracteres. Ej: Mate2024! · ProfeGrupo3#")
+
+                    education_level = None
+                    grade = None
+                    if st.session_state.reg_chosen_role == "Estudiante":
+                        level_label = st.selectbox(
+                            "Nivel Educativo *",
+                            ["Universidad", "Colegio", "Concursos", "Semillero de Matemáticas"],
+                            index=None,
+                            placeholder="— Selecciona tu nivel —",
+                            key="reg_level",
+                            help="Determina qué catálogo de cursos verás."
                         )
-                        grade = grade_label.replace("°", "")
+                        st.caption("* Campo obligatorio — debes seleccionar tu nivel educativo para continuar.")
+                        education_level = None if level_label is None else ("semillero" if level_label == "Semillero de Matemáticas" else level_label.lower())
+                        if education_level == "semillero":
+                            grade_label = st.selectbox(
+                                "Grado",
+                                ["6°", "7°", "8°", "9°", "10°", "11°"],
+                                key="reg_grade",
+                                help="Grado escolar (6° a 11° bachillerato)."
+                            )
+                            grade = grade_label.replace("°", "")
 
-                st.write("")
-                if st.button("Crear Cuenta"):
-                    role_map = {"Estudiante": "student", "Profesor": "teacher"}
-                    chosen_role = role_map[new_role]
+                    st.write("")
+                    if st.button("Crear Cuenta", type="primary", use_container_width=True):
+                        role_map = {"Estudiante": "student", "Profesor": "teacher"}
+                        chosen_role = role_map[st.session_state.reg_chosen_role]
 
-                    # Validaciones de contraseña en UI
-                    _pass_stripped = (new_pass or "").strip()
-                    if not _pass_stripped:
-                        st.error("La contraseña es obligatoria.")
-                    elif len(_pass_stripped) < 6:
-                        st.error("La contraseña debe tener al menos 6 caracteres.")
-                    elif chosen_role == 'student' and not education_level:
-                        st.error("Debes seleccionar tu nivel educativo.")
-                    else:
-                        success, message = st.session_state.db.register_user(
-                            new_user, new_pass, chosen_role,
-                            education_level=education_level,
-                            grade=grade
-                        )
-                        if success:
-                            if chosen_role == 'teacher':
-                                st.info(f"✅ {message} Espera la aprobación del administrador.")
-                            else:
-                                st.success(f"✅ {message} Ya puede iniciar sesión.")
+                        _pass_stripped = (new_pass or "").strip()
+                        if not (new_user or "").strip():
+                            st.error("El nombre de usuario es obligatorio.")
+                        elif not _pass_stripped:
+                            st.error("La contraseña es obligatoria.")
+                        elif len(_pass_stripped) < 6:
+                            st.error("La contraseña debe tener al menos 6 caracteres.")
+                        elif chosen_role == 'student' and not education_level:
+                            st.error("Debes seleccionar tu nivel educativo.")
                         else:
-                            st.error(message)
+                            success, message = st.session_state.db.register_user(
+                                new_user, new_pass, chosen_role,
+                                education_level=education_level,
+                                grade=grade
+                            )
+                            if success:
+                                if chosen_role == 'teacher':
+                                    st.info(f"✅ {message} Espera la aprobación del administrador.")
+                                else:
+                                    st.success(
+                                        f"✅ ¡Cuenta creada exitosamente! "
+                                        f"Ve a **🔑 Iniciar Sesión** y entra con tu usuario **{new_user}**. "
+                                        f"Luego comparte ese usuario con tu profesor para que te agregue a su grupo."
+                                    )
+                                st.session_state.reg_step = 1
+                                st.session_state.reg_chosen_role = None
+                            else:
+                                st.error(message)
+
+        st.markdown("""
+            <p style='text-align:center; color:#666; font-size:0.78rem; margin-top:18px;'>
+                ¿Problemas para acceder? Contacta a tu administrador.
+            </p>
+        """, unsafe_allow_html=True)
 
 else:
     # ══════════════════════════════════════════════════════════════════════════
@@ -485,6 +633,22 @@ else:
                 logout()
 
         st.title("🛡️ Panel de Administración")
+
+        # ── Reportes de problemas técnicos ────────────────────────────────────
+        _pending_reports = st.session_state.db.get_problem_reports(status='pending')
+        if _pending_reports:
+            st.subheader(f"🔔 Problemas Técnicos — {len(_pending_reports)} pendiente{'s' if len(_pending_reports) != 1 else ''}")
+            for _rpt in _pending_reports:
+                with st.container(border=True):
+                    col_rpt_info, col_rpt_btn = st.columns([4, 1])
+                    with col_rpt_info:
+                        st.write(f"**{_rpt['username']}** — {str(_rpt['created_at'])[:16]}")
+                        st.caption(_rpt['description'])
+                    with col_rpt_btn:
+                        if st.button("✅ Resuelto", key=f"resolve_report_{_rpt['id']}"):
+                            st.session_state.db.mark_problem_resolved(_rpt['id'])
+                            st.rerun()
+            st.markdown("---")
 
         # ── Profesores pendientes ──────────────────────────────────────────────
         st.subheader("⏳ Solicitudes de Profesores Pendientes")
@@ -1046,15 +1210,24 @@ else:
             st.markdown("**Mis grupos actuales**")
             _my_groups = st.session_state.teacher_service.get_teacher_groups(st.session_state.user_id)
             if _my_groups:
-                _tbl_groups = [
-                    {
-                        "Grupo": g['name'],
-                        "Curso": g['course_name'],
-                        "Creado": str(g['created_at'])[:10],
-                    }
-                    for g in _my_groups
-                ]
-                st.dataframe(pd.DataFrame(_tbl_groups), width='stretch', hide_index=True)
+                for _mg in _my_groups:
+                    with st.container(border=True):
+                        _mg_c1, _mg_c2 = st.columns([3, 2])
+                        with _mg_c1:
+                            st.write(f"**{_mg['name']}** — {_mg['course_name']}")
+                            st.caption(f"Creado: {str(_mg['created_at'])[:10]}")
+                        with _mg_c2:
+                            _active_code = st.session_state.get(f'gen_code_{_mg["id"]}') or _mg.get('invite_code')
+                            if _active_code:
+                                st.code(_active_code, language=None)
+                                st.caption("Comparte este código con tus estudiantes")
+                            if st.button("🔑 Generar código", key=f"gen_code_btn_{_mg['id']}"):
+                                try:
+                                    _new_code = repo.generate_group_invite_code(_mg['id'])
+                                    st.session_state[f'gen_code_{_mg["id"]}'] = _new_code
+                                    st.rerun()
+                                except Exception as _ce:
+                                    st.error(str(_ce))
             else:
                 st.info("No tienes grupos creados aún.")
 
@@ -1301,10 +1474,14 @@ else:
 
                     # ── Cabecera del estudiante ────────────────────────────────
                     st.subheader(f"🔍 Detalle: **{_sel_name}**")
-                    _mc1, _mc2, _mc3 = st.columns(3)
+                    _mc1, _mc2, _mc3, _mc4 = st.columns(4)
                     _mc1.metric("🏆 ELO Global", f"{_global_elo:.1f}", delta=_rank_n)
                     _mc2.metric("📊 Intentos Totales", _elo_sum['attempts_count'])
                     _mc3.metric("🎯 Precisión Reciente", f"{_elo_sum['recent_accuracy']:.1%}")
+                    # Tiempo promedio por pregunta
+                    _times_list = [a.get('time_taken') for a in _att_list if a.get('time_taken') and a['time_taken'] > 0]
+                    _avg_time_s = sum(_times_list) / len(_times_list) if _times_list else 0
+                    _mc4.metric("⏱️ Tiempo Prom.", f"{_avg_time_s:.0f}s" if _avg_time_s else "—")
 
                     st.markdown("---")
 
@@ -1400,15 +1577,23 @@ else:
                                 _pm3.metric("Preguntas difíciles (<50%)", int((_df_prob['prob_success'] < 0.5).sum()))
 
                         with st.expander("📄 Historial de Intentos"):
-                            st.dataframe(
-                                _df_att[['intento', 'topic', 'difficulty', 'resultado', 'elo_after', 'prob_failure', 'timestamp']]
-                                .rename(columns={
-                                    'intento': '#', 'topic': 'Tema', 'difficulty': 'Dificultad',
-                                    'resultado': 'Res.', 'elo_after': 'ELO', 'prob_failure': 'P.Fallo',
-                                    'timestamp': 'Fecha',
-                                }),
-                                width='stretch',
-                            )
+                            _hist_cols = ['intento', 'topic', 'difficulty', 'resultado',
+                                          'elo_after', 'rating_deviation', 'prob_failure',
+                                          'time_taken', 'timestamp']
+                            _hist_cols = [c for c in _hist_cols if c in _df_att.columns]
+                            _df_hist_v = _df_att[_hist_cols].copy()
+                            if 'time_taken' in _df_hist_v.columns:
+                                _df_hist_v['time_taken'] = _df_hist_v['time_taken'].apply(
+                                    lambda x: f"{x:.1f}s" if pd.notna(x) and x > 0 else "—"
+                                )
+                            _rename_map = {
+                                'intento': '#', 'topic': 'Tema', 'difficulty': 'Dificultad',
+                                'resultado': 'Res.', 'elo_after': 'ELO',
+                                'rating_deviation': 'RD ±', 'prob_failure': 'P.Fallo',
+                                'time_taken': 'Tiempo', 'timestamp': 'Fecha',
+                            }
+                            _df_hist_v.rename(columns=_rename_map, inplace=True)
+                            st.dataframe(_df_hist_v, width='stretch')
                     else:
                         st.info(f"{_sel_name} aún no ha respondido ninguna pregunta.")
 
@@ -1448,6 +1633,127 @@ else:
                                     st.markdown(_analysis)
                         except (ConnectionError, TimeoutError):
                             st.error("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.")
+
+        # ── Exportar datos de estudiantes (CSV / Excel) ──────────────────────
+        st.markdown("---")
+        with st.expander("📥 Exportar datos de estudiantes"):
+            st.caption(
+                "Descarga todos los datos de tus estudiantes para análisis externo. "
+                "Incluye intentos, tiempo por pregunta, RD, probabilidad de fallo, "
+                "matrículas y procedimientos."
+            )
+            _export_scope = "del grupo seleccionado" if _sel_grp_sidebar_id else "de todos tus grupos"
+            st.info(f"📊 Se exportarán datos **{_export_scope}**.")
+
+            _exp_fmt = st.radio(
+                "Formato", ["CSV", "Excel (.xlsx)"],
+                horizontal=True, key="tch_export_fmt",
+            )
+
+            if st.button("📥 Generar archivo de exportación", key="tch_export_btn", type="primary"):
+                with st.spinner("Recopilando datos..."):
+                    _exp_attempts = repo.export_teacher_student_data(
+                        st.session_state.user_id,
+                        group_id=_sel_grp_sidebar_id,
+                    )
+                    _exp_enrollments = repo.export_teacher_enrollments(
+                        st.session_state.user_id,
+                        group_id=_sel_grp_sidebar_id,
+                    )
+                    _exp_procedures = repo.export_teacher_procedures(
+                        st.session_state.user_id,
+                        group_id=_sel_grp_sidebar_id,
+                    )
+
+                if not _exp_attempts and not _exp_enrollments:
+                    st.warning("No hay datos para exportar.")
+                else:
+                    _df_att_exp = pd.DataFrame(_exp_attempts) if _exp_attempts else pd.DataFrame()
+                    _df_enr_exp = pd.DataFrame(_exp_enrollments) if _exp_enrollments else pd.DataFrame()
+                    _df_proc_exp = pd.DataFrame(_exp_procedures) if _exp_procedures else pd.DataFrame()
+
+                    # Renombrar columnas a español
+                    _col_map_att = {
+                        'student_id': 'ID Estudiante', 'username': 'Usuario',
+                        'education_level': 'Nivel', 'grade': 'Grado',
+                        'group_name': 'Grupo', 'course_name': 'Curso',
+                        'course_block': 'Bloque', 'attempt_id': 'ID Intento',
+                        'item_id': 'ID Pregunta', 'topic': 'Tema',
+                        'item_content': 'Enunciado', 'item_difficulty': 'Dificultad Ítem',
+                        'is_correct': 'Correcto', 'elo_after': 'ELO Después',
+                        'attempt_rd': 'RD', 'prob_failure': 'P. Fallo',
+                        'expected_score': 'P. Éxito Esperada',
+                        'time_taken': 'Tiempo (s)', 'confidence_score': 'Confianza IA',
+                        'error_type': 'Tipo Error', 'attempt_timestamp': 'Fecha',
+                    }
+                    _col_map_enr = {
+                        'student_id': 'ID Estudiante', 'username': 'Usuario',
+                        'education_level': 'Nivel', 'grade': 'Grado',
+                        'group_name': 'Grupo', 'course_id': 'ID Curso',
+                        'course_name': 'Curso', 'course_block': 'Bloque',
+                        'enrolled_at': 'Fecha Matrícula',
+                    }
+                    _col_map_proc = {
+                        'student_id': 'ID Estudiante', 'username': 'Usuario',
+                        'group_name': 'Grupo', 'item_id': 'ID Pregunta',
+                        'item_content': 'Enunciado',
+                        'status': 'Estado', 'ai_proposed_score': 'Nota IA',
+                        'teacher_score': 'Nota Docente', 'final_score': 'Nota Final',
+                        'elo_delta': 'Delta ELO', 'submitted_at': 'Fecha Envío',
+                        'reviewed_at': 'Fecha Revisión',
+                    }
+                    if not _df_att_exp.empty:
+                        _df_att_exp.rename(columns=_col_map_att, inplace=True)
+                    if not _df_enr_exp.empty:
+                        _df_enr_exp.rename(columns=_col_map_enr, inplace=True)
+                    if not _df_proc_exp.empty:
+                        _df_proc_exp.rename(columns=_col_map_proc, inplace=True)
+
+                    _grp_label = _sel_grp_sidebar.replace(' ', '_') if _sel_grp_sidebar_id else "todos"
+                    _ts_label = pd.Timestamp.now().strftime('%Y%m%d')
+
+                    if _exp_fmt == "CSV":
+                        import io as _io
+                        _csv_buf = _io.StringIO()
+                        _csv_buf.write("# === INTENTOS ===\n")
+                        if not _df_att_exp.empty:
+                            _df_att_exp.to_csv(_csv_buf, index=False)
+                        _csv_buf.write("\n# === MATRÍCULAS ===\n")
+                        if not _df_enr_exp.empty:
+                            _df_enr_exp.to_csv(_csv_buf, index=False)
+                        _csv_buf.write("\n# === PROCEDIMIENTOS ===\n")
+                        if not _df_proc_exp.empty:
+                            _df_proc_exp.to_csv(_csv_buf, index=False)
+                        st.download_button(
+                            "⬇️ Descargar CSV",
+                            data=_csv_buf.getvalue(),
+                            file_name=f"LevelUp_datos_{_grp_label}_{_ts_label}.csv",
+                            mime="text/csv",
+                            key="tch_dl_csv",
+                        )
+                    else:
+                        import io as _io
+                        _xlsx_buf = _io.BytesIO()
+                        with pd.ExcelWriter(_xlsx_buf, engine='openpyxl') as _writer:
+                            if not _df_att_exp.empty:
+                                _df_att_exp.to_excel(_writer, sheet_name='Intentos', index=False)
+                            if not _df_enr_exp.empty:
+                                _df_enr_exp.to_excel(_writer, sheet_name='Matrículas', index=False)
+                            if not _df_proc_exp.empty:
+                                _df_proc_exp.to_excel(_writer, sheet_name='Procedimientos', index=False)
+                        st.download_button(
+                            "⬇️ Descargar Excel",
+                            data=_xlsx_buf.getvalue(),
+                            file_name=f"LevelUp_datos_{_grp_label}_{_ts_label}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            key="tch_dl_xlsx",
+                        )
+
+                    st.success(
+                        f"✅ Datos listos: {len(_exp_attempts)} intentos, "
+                        f"{len(_exp_enrollments)} matrículas, "
+                        f"{len(_exp_procedures)} procedimientos."
+                    )
 
     # ══════════════════════════════════════════════════════════════════════════
     # VISTA: ESTUDIANTE (sin cambios funcionales)
@@ -1517,8 +1823,9 @@ else:
             st.stop()
 
         # Cargar cursos matriculados filtrados por nivel educativo del estudiante.
-        # Sin este filtro, matrículas legacy en cursos de otro bloque aparecerían
-        # en «Practicar» y «Mis Cursos».
+        # Regla: se muestran cursos del bloque propio + cursos de otro bloque solo si
+        # tienen group_id (matrícula con permiso especial vía código de profesor).
+        # Las matrículas legacy sin grupo (group_id=None) de otro bloque se ocultan.
         _level = st.session_state.education_level or 'universidad'
         if _level == 'semillero':
             _sem_grade_blk = st.session_state.get('student_grade') or repo.get_grade(st.session_state.user_id)
@@ -1529,8 +1836,21 @@ else:
         _enrolled = [
             c for c in cached('cache_enrollments',
                               lambda: repo.get_user_enrollments(st.session_state.user_id))
-            if c.get('block') == _student_block
+            if c.get('block') == _student_block                                          # nivel propio
+            or (c.get('block') != _student_block and c.get('group_id') is not None)     # acceso especial vía código
         ]
+
+        # ── Banner "sin grupo asignado" ──────────────────────────────────────
+        # Se muestra si el estudiante no tiene ninguna matrícula con grupo asignado
+        _all_enroll = cached('cache_all_enrollments',
+                             lambda: repo.get_user_enrollments(st.session_state.user_id))
+        _has_group = any(e.get('group_id') for e in _all_enroll)
+        if not _has_group:
+            st.info(
+                f"👋 Aún no perteneces a ningún grupo. "
+                f"Comparte tu nombre de usuario **{st.session_state.username}** "
+                f"con tu profesor para que te agregue y puedas acceder a tus cursos."
+            )
 
         # Defaults para variables usadas en las vistas
         selected_course_id = None
@@ -1551,10 +1871,18 @@ else:
         with st.sidebar:
             st.image(_get_logo(), width=180)
             st.write(f"### Hola, **{st.session_state.username}**")
+            # ── Temporizador de sesión (tiempo real) ──────────────────────────
+            _sess_start = st.session_state.get('session_start_time')
+            if _sess_start:
+                _render_live_timer(
+                    _sess_start, label="⏱️ Sesión: ",
+                    font_size="0.85rem", height=30, color="#aaa", bold=False,
+                )
             mode = st.radio(
                 "Modo",
                 ["📝 Practicar", "📊 Estadísticas", "🎓 Mis Cursos", f"💬 Feedback{_fb_badge}"],
                 label_visibility="collapsed",
+                key="student_mode_radio",
             )
             st.caption("Navegación Principal")
 
@@ -1674,6 +2002,23 @@ else:
                     else:
                         st.caption("Pulsa 'Detectar modelos' para listar los disponibles")
 
+            with st.expander("🔧 Reportar un problema"):
+                _report_desc = st.text_area(
+                    "Describe el problema",
+                    placeholder="Ej: No puedo ver las imágenes de las preguntas...",
+                    max_chars=500,
+                    key="problem_report_desc",
+                    label_visibility="collapsed",
+                )
+                if st.button("Enviar reporte", key="btn_send_report"):
+                    if _report_desc and len(_report_desc.strip()) >= 10:
+                        repo.save_problem_report(st.session_state.user_id, _report_desc.strip())
+                        st.success("Reporte enviado. El administrador lo revisará pronto.")
+                        st.session_state.pop('problem_report_desc', None)
+                        st.rerun()
+                    else:
+                        st.warning("Describe el problema con al menos 10 caracteres.")
+
             if st.button("Cerrar Sesión"):
                 if _KATIA_IMG:
                     st.toast(get_random_message(MENSAJES_DESPEDIDA), icon="🐱")
@@ -1712,7 +2057,9 @@ else:
                 st.session_state.session_wrong_timestamps[item_data['id']] = float(st.session_state.session_questions_count)
 
             # Invalidar caches afectados por save_attempt
-            invalidate_cache('cache_answered_ids', 'cache_elo_by_topic', 'cache_streak', 'cache_weekly_ranking', 'cache_course_ranking')
+            invalidate_cache('cache_answered_ids', 'cache_elo_by_topic', 'cache_streak',
+                             f'cache_streak_{selected_course_id}', 'cache_weekly_ranking',
+                             'cache_course_ranking', 'cache_teachers_groups')
 
             st.session_state.question_start_time = None
             # Marcar que estamos mostrando el resultado (no avanzar automáticamente)
@@ -1722,12 +2069,75 @@ else:
             st.rerun()
 
         # --- VISTAS ---
-        if mode == "📝 Practicar" and not _enrolled:
+        # ── Pantalla de bienvenida (primer acceso sin matrículas) ───────────
+        if not _enrolled and not st.session_state.get('welcome_dismissed'):
+            st.markdown("""
+                <div style='text-align:center; padding:2rem 1rem;'>
+                    <div style='font-size:4rem;'>🎓</div>
+                    <h1 style='font-size:2rem; margin:0.5rem 0;'>¡Bienvenido a LevelUp-ELO!</h1>
+                    <p style='color:#aaa; font-size:1rem; max-width:600px; margin:0.5rem auto;'>
+                        La plataforma que adapta cada pregunta a tu nivel usando el sistema de rating ELO
+                        — el mismo del ajedrez competitivo. Cuanto más practiques, más preciso se vuelve.
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
+
+            _wc1, _wc2, _wc3 = st.columns(3)
+            with _wc1:
+                st.markdown("""
+                    <div style='background:#1a1a2e; border-radius:12px; padding:1.2rem; text-align:center;'>
+                        <div style='font-size:2rem;'>📚</div>
+                        <b>1. Elige tu profesor</b>
+                        <p style='color:#aaa; font-size:0.85rem; margin-top:0.5rem;'>
+                            Ve a <b>Mis Cursos</b> y explora los profesores disponibles para tu nivel.
+                            Elige el que prefieras para cada materia.
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)
+            with _wc2:
+                st.markdown("""
+                    <div style='background:#1a1a2e; border-radius:12px; padding:1.2rem; text-align:center;'>
+                        <div style='font-size:2rem;'>⚡</div>
+                        <b>2. Practica a tu ritmo</b>
+                        <p style='color:#aaa; font-size:0.85rem; margin-top:0.5rem;'>
+                            El sistema selecciona preguntas en tu zona de desarrollo óptimo:
+                            ni muy fáciles ni imposibles.
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)
+            with _wc3:
+                st.markdown("""
+                    <div style='background:#1a1a2e; border-radius:12px; padding:1.2rem; text-align:center;'>
+                        <div style='font-size:2rem;'>📈</div>
+                        <b>3. Sube tu rating</b>
+                        <p style='color:#aaa; font-size:0.85rem; margin-top:0.5rem;'>
+                            Cada respuesta actualiza tu ELO en tiempo real.
+                            Escala los 16 niveles desde Aspirante hasta Leyenda Suprema.
+                        </p>
+                    </div>
+                """, unsafe_allow_html=True)
+
+            st.write("")
+            _wb1, _wb2, _wb3 = st.columns([2, 2, 1])
+            with _wb1:
+                if st.button("🎓 Ir a Mis Cursos", type="primary", use_container_width=True, key="welcome_goto_courses"):
+                    st.session_state.welcome_dismissed = True
+                    st.session_state.student_mode_radio = "🎓 Mis Cursos"
+                    st.rerun()
+            with _wb2:
+                if st.button("🔑 Tengo un código de invitación", use_container_width=True, key="welcome_goto_code"):
+                    st.session_state.welcome_dismissed = True
+                    st.session_state.student_mode_radio = "🎓 Mis Cursos"
+                    st.session_state.welcome_open_code_tab = True
+                    st.rerun()
+            with _wb3:
+                if st.button("Explorar primero", use_container_width=True, key="welcome_dismiss"):
+                    st.session_state.welcome_dismissed = True
+                    st.rerun()
+
+        elif mode == "📝 Practicar" and not _enrolled:
             st.title("🚀 Sala de Estudio")
-            st.info(
-                "📚 Aún no tienes cursos inscritos. "
-                "Ve a **🎓 Mis Cursos** en el menú lateral para matricularte."
-            )
+            st.info("📚 Aún no tienes cursos inscritos. Ve a **🎓 Mis Cursos** en el menú lateral para matricularte.")
         elif mode == "📝 Practicar" and 'selected_course' not in st.session_state:
             # ── Pantalla de selección de curso ──────────────────────────────
             st.title("🚀 Sala de Estudio")
@@ -1735,7 +2145,7 @@ else:
                 _sem_grade = st.session_state.get('student_grade') or repo.get_grade(st.session_state.user_id)
                 st.session_state['student_grade'] = _sem_grade
                 _grade_label = f" — Grado {_sem_grade}°" if _sem_grade else ""
-                st.markdown(f"### 🏅 Semillero de Matemáticas — Olimpiadas UdeA{_grade_label}")
+                st.markdown(f"### 🏅 Semillero de Matemáticas — Preparación Olimpiadas de Matemáticas{_grade_label}")
                 st.markdown("---")
             st.markdown("#### Selecciona la materia que deseas practicar")
             st.markdown("")
@@ -1751,29 +2161,29 @@ else:
                     _c_rank_info = repo.get_student_rank(st.session_state.user_id, course['id'])
                     _c_rank_text = (f"📊 Tu posición: #{_c_rank_info['rank']} de {_c_rank_info['total_students']} estudiantes"
                                     if _c_rank_info else "Sin posición aún")
+                    _c_special = course.get('block') != _student_block
+                    _c_special_html = '<p style="color:#FFD700; font-size:0.7rem; margin:4px 0 0;">📌 Acceso especial</p>' if _c_special else ''
                     with cols[col_idx]:
-                        st.markdown(f"""
-                        <div style="
-                            padding: 24px; border-radius: 16px;
-                            background: rgba(38, 39, 48, 0.95);
-                            border: 1px solid {c_color}44;
-                            box-shadow: 0 4px 20px {c_color}22;
-                            text-align: center; margin-bottom: 12px;
-                        ">
-                            <h3 style="color: #fff !important; margin: 0 0 12px 0;
-                                border-left: none; padding-left: 0;
-                                background: linear-gradient(90deg, #00C9FF, #92FE9D);
-                                -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                                {c_name}
-                            </h3>
-                            <p style="color: {c_color}; font-size: 0.9rem; margin: 0;">{c_rank}</p>
-                            <p style="color: #fff; font-size: 2.4rem; font-weight: 700; margin: 4px 0;">
-                                {c_elo:.0f}
-                            </p>
-                            <p style="color: #888; font-size: 0.8rem; margin: 0;">Puntos ELO</p>
-                            <p style="color: #aaa; font-size: 0.8rem; margin: 6px 0 0;">{_c_rank_text}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        _card_html = (
+                            f'<div style="padding:24px;border-radius:16px;'
+                            f'background:rgba(38,39,48,0.95);'
+                            f'border:1px solid {c_color}44;'
+                            f'box-shadow:0 4px 20px {c_color}22;'
+                            f'text-align:center;margin-bottom:12px;">'
+                            f'<h3 style="color:#fff!important;margin:0 0 12px 0;'
+                            f'border-left:none;padding-left:0;'
+                            f'background:linear-gradient(90deg,#00C9FF,#92FE9D);'
+                            f'-webkit-background-clip:text;-webkit-text-fill-color:transparent;">'
+                            f'{c_name}</h3>'
+                            + _c_special_html +
+                            f'<p style="color:{c_color};font-size:0.9rem;margin:0;">{c_rank}</p>'
+                            f'<p style="color:#fff;font-size:2.4rem;font-weight:700;margin:4px 0;">'
+                            f'{c_elo:.0f}</p>'
+                            f'<p style="color:#888;font-size:0.8rem;margin:0;">Puntos ELO</p>'
+                            f'<p style="color:#aaa;font-size:0.8rem;margin:6px 0 0;">{_c_rank_text}</p>'
+                            f'</div>'
+                        )
+                        st.markdown(_card_html, unsafe_allow_html=True)
                         if st.button(f"Practicar", key=f"sel_course_{course['id']}",
                                      width='stretch'):
                             st.session_state.selected_course = course
@@ -1841,13 +2251,13 @@ else:
                     <div class="elo-card">
                         <p style="color: #aaa; margin-bottom: 5px; font-weight: 600;">NIVEL ACTUAL</p>
                         <h2 style="color: {rank_color}; margin: 0; text-shadow: 0 0 10px {rank_color};">{rank_name}</h2>
-                        <h1 style="font-size: 3.5rem; margin: 10px 0; color: white;">{current_elo_display:.0f} <span style="font-size: 1.2rem; color: #888;">± {current_rd_display:.0f}</span></h1>
-                        <p style="color: #aaa; font-size: 0.9rem;">Puntos ELO en {topic_display_name} (± RD)</p>
+                        <h1 style="font-size: 3.5rem; margin: 10px 0; color: white;">{current_elo_display:.0f}</h1>
+                        <p style="color: #aaa; font-size: 0.9rem;">Puntos ELO · {topic_display_name}</p>
                     </div>
                 """, unsafe_allow_html=True)
-                # T8c: racha de estudio (días consecutivos con actividad)
-                _streak = cached('cache_streak',
-                                lambda: repo.get_study_streak(st.session_state.user_id))
+                # T8c: racha de estudio (días consecutivos en este curso)
+                _streak = cached(f'cache_streak_{selected_course_id}',
+                                lambda: repo.get_study_streak(st.session_state.user_id, selected_course_id))
                 if _streak == 0:
                     st.markdown("""
                         <div style="text-align:center; padding:12px 8px; background:linear-gradient(135deg,#1a1a2e,#16213e);
@@ -1972,12 +2382,17 @@ else:
 
                 # ── Pantalla de resultado (después de responder) ─────────
                 elif st.session_state.get('show_result'):
-                    _res_item = st.session_state.get('last_result_item', {})
                     _res_correct = st.session_state.get('last_result_correct', False)
+                    _res_elo_before = st.session_state.get('last_result_elo_before', current_elo_display)
+                    _res_elo_after = st.session_state.vector.get(selected_topic)
+                    _res_delta = _res_elo_after - _res_elo_before
+                    _delta_str = f"+{_res_delta:.0f}" if _res_delta >= 0 else f"{_res_delta:.0f}"
+
                     if _res_correct:
-                        st.success("¡Respuesta correcta! Excelente análisis. 🎓")
+                        st.success(f"¡Respuesta correcta! 🎓   {_delta_str} pts  ·  Tu ELO: **{_res_elo_after:.0f}**")
                     else:
-                        st.error(f"Respuesta incorrecta. La opción correcta era: **{_res_item.get('correct_option') or '—'}**")
+                        st.error(f"Respuesta incorrecta.   {_delta_str} pts  ·  Tu ELO: **{_res_elo_after:.0f}**")
+                        st.info("💡 ¿Quieres entender el concepto? Pregúntale a KatIA abajo — te guiará sin revelar la respuesta.")
 
                     st.write("")
                     if st.button("▶️ SIGUIENTE PREGUNTA", width='stretch', type="primary", key="btn_next_question"):
@@ -1985,6 +2400,7 @@ else:
                         st.session_state.pop('current_question', None)
                         st.session_state.pop('last_result_item', None)
                         st.session_state.pop('last_result_correct', None)
+                        st.session_state.pop('last_result_elo_before', None)
                         st.session_state.pop('katia_chat_history', None)
                         st.rerun()
 
@@ -2014,21 +2430,62 @@ else:
                         if st.session_state.question_start_time is None:
                             st.session_state.question_start_time = time.time()
 
-                        with st.container(border=True):
-                            # Color dinámico por dificultad
-                            diff = item_data.get('difficulty') or 1000
-                            if diff < 800:
-                                diff_color = "#92FE9D"
-                            elif diff < 1100:
-                                diff_color = "#FFD700"
-                            elif diff < 1400:
-                                diff_color = "#FF8C00"
-                            else:
-                                diff_color = "#FF4B4B"
+                        # ── Temporizador en tiempo real por pregunta ───────────
+                        _render_live_timer(
+                            st.session_state.question_start_time,
+                            label="⏱️ ",
+                            font_size="1.3rem", height=45, color="#FFD700", bold=True,
+                        )
 
+                        with st.container(border=True):
+                            diff = item_data.get('difficulty') or 1000
+
+                            def get_difficulty_label(d):
+                                if d < 750:  return 1, "Fácil"
+                                if d < 950:  return 2, "Básico"
+                                if d < 1150: return 3, "Intermedio"
+                                if d < 1400: return 4, "Difícil"
+                                return 5, "Experto"
+
+                            _nstars, _dlabel = get_difficulty_label(diff)
+                            _filled = "★" * _nstars
+                            _empty  = "★" * (5 - _nstars)
                             _item_topic = item_data.get('topic') or selected_topic or ''
                             st.caption(f"Área: {selected_topic} | Tema: {_item_topic}")
-                            st.markdown(f"<span style='color: {diff_color}; font-weight: 700; font-size: 0.9rem;'>⚡ Dificultad {diff:.0f}</span>", unsafe_allow_html=True)
+                            # ── Tag badges (3 dimensiones de la taxonomía) ────────────────
+                            _tags = item_data.get('tags') or []
+                            if _tags:
+                                def _tag_style(tag):
+                                    if tag.startswith('[Enfoque:'):
+                                        return '#1565C0', '#E3F2FD'   # azul — cognitivo
+                                    if tag.startswith('[General:'):
+                                        return '#2E7D32', '#E8F5E9'   # verde — transversal
+                                    if tag.startswith('[Específica:'):
+                                        return '#B45309', '#FFF8E1'   # ámbar — conocimiento
+                                    return '#555555', '#EEEEEE'
+                                _badges = ''.join(
+                                    '<span style="'
+                                    f'background:{_tag_style(t)[1]};'
+                                    f'color:{_tag_style(t)[0]};'
+                                    f'border:1px solid {_tag_style(t)[0]};'
+                                    'border-radius:4px;padding:2px 8px;'
+                                    'font-size:0.72rem;font-weight:600;'
+                                    'margin-right:4px;margin-bottom:4px;'
+                                    'display:inline-block;line-height:1.6;'
+                                    f'">{t[1:-1]}</span>'
+                                    for t in _tags
+                                )
+                                st.markdown(
+                                    f'<div style="margin:4px 0 6px 0;">{_badges}</div>',
+                                    unsafe_allow_html=True
+                                )
+                            st.markdown(
+                                f"<span style='color:#FFD700; font-weight:700; font-size:1rem;'>{_filled}</span>"
+                                f"<span style='color:#444; font-weight:700; font-size:1rem;'>{_empty}</span>"
+                                f"<span style='font-weight:600; font-size:0.9rem;'> {_dlabel}</span>"
+                                f"<span style='color:#888; font-size:0.8rem;'> · {diff:.0f}</span>",
+                                unsafe_allow_html=True
+                            )
                             st.markdown(f"### {item_data.get('content') or ''}")
 
                             _img_url = item_data.get('image_url') or item_data.get('image_path')
@@ -2049,6 +2506,27 @@ else:
                                     pass
 
                             st.write("")
+
+                            # ── Stakes preview (puntos en juego) ─────────────
+                            # K_BASE = 32.0 según RatingModel en uncertainty.py (fuente de verdad)
+                            _p_win = expected_score(current_elo_display, item_data.get('difficulty') or 1000)
+                            _k_est = 32.0 * (current_rd_display / 350.0)
+                            _pts_up = max(1, round(_k_est * (1 - _p_win)))
+                            _pts_dn = max(1, round(_k_est * _p_win))
+                            st.markdown(f"""
+                            <div style="display:flex; gap:10px; margin:0 0 14px 0;">
+                                <span style="background:rgba(76,175,80,0.12); border:1px solid rgba(76,175,80,0.4);
+                                             border-radius:8px; padding:4px 14px; color:#66BB6A;
+                                             font-size:0.85rem; font-weight:600;">
+                                    ✅ +{_pts_up} pts si aciertas
+                                </span>
+                                <span style="background:rgba(255,75,75,0.10); border:1px solid rgba(255,75,75,0.35);
+                                             border-radius:8px; padding:4px 14px; color:#EF5350;
+                                             font-size:0.85rem; font-weight:600;">
+                                    ❌ −{_pts_dn} pts si fallas
+                                </span>
+                            </div>
+                            """, unsafe_allow_html=True)
 
                             if item_data.get('options'):
                                 shuffled_options = item_data['options'].copy()
@@ -2081,6 +2559,7 @@ else:
                                 )
 
                                 if submit_button:
+                                    st.session_state.last_result_elo_before = current_elo_display
                                     is_correct = (selected_option == item_data.get('correct_option'))
                                     if is_correct:
                                         st.session_state.streak_correct += 1
@@ -2302,6 +2781,13 @@ else:
                                         st.error("No se pudo cargar el contenido de la pregunta. Intenta recargar.")
                                         st.stop()
 
+                                    # ── GIF de KatIA revisando mientras la IA analiza ──
+                                    _katia_review_placeholder = st.empty()
+                                    if _KATIA_GIF_CORRECTO:
+                                        _katia_review_placeholder.image(
+                                            _KATIA_GIF_CORRECTO, width=220,
+                                            caption="KatIA está revisando tu procedimiento... 🔍",
+                                        )
                                     _spinner_msg = (
                                         "Analizando con rigor matemático (Llama 4 Scout)..."
                                         if _is_groq else "Analizando procedimiento..."
@@ -2415,14 +2901,25 @@ else:
                                             except Exception:
                                                 st.session_state[f'proc_no_vision_{_iid}'] = True
 
+                                    # Limpiar GIF de "revisando" al terminar el análisis
+                                    _katia_review_placeholder.empty()
+
                                 if st.session_state.get(f'proc_no_vision_{_iid}'):
                                     st.info("El profesor revisará el archivo y proporcionará la retroalimentación.")
 
                                 # ── Resultado: revisión matemática rigurosa (Groq) ──
                                 _math_review = st.session_state.get(f'proc_review_{_iid}')
                                 if _math_review:
-                                    # ── Comentario de KatIA sobre el procedimiento ──
+                                    # ── GIF de KatIA según resultado ──
                                     _pscore_v = _math_review.get('score_procedimiento', 0)
+                                    _katia_result_gif = (
+                                        _KATIA_GIF_CORRECTO if _pscore_v >= 91
+                                        else _KATIA_GIF_ERRORES
+                                    )
+                                    if _katia_result_gif:
+                                        st.image(_katia_result_gif, width=220)
+
+                                    # ── Comentario de KatIA sobre el procedimiento ──
                                     _katia_proc_msg = get_procedure_comment(_pscore_v)
                                     _katia_proc_avatar = _KATIA_IMG or "🐱"
                                     with st.chat_message("assistant", avatar=_katia_proc_avatar):
@@ -2619,7 +3116,7 @@ else:
             # Cargar scores de procedimientos una sola vez para toda la sección
             _proc_scores = st.session_state.db.get_student_procedure_scores(st.session_state.user_id)
 
-            m1, m2, m3, m4 = st.columns(4)
+            m1, m2, m3, m4, m5 = st.columns(5)
             with m1:
                 st.metric("Ejercicios Resueltos", len(history_full), delta=f"+{len(attempts_data)} recientes")
             with m2:
@@ -2633,12 +3130,17 @@ else:
                 rank_n, rank_c = get_rank(global_elo)
                 st.metric("Nivel Global", f"{global_elo:.0f}", delta=rank_n)
             with m4:
+                # Tiempo promedio por pregunta
+                _st_times = [a.get('time_taken') for a in history_full if a.get('time_taken') and a['time_taken'] > 0]
+                _st_avg_t = sum(_st_times) / len(_st_times) if _st_times else 0
+                st.metric("⏱️ Tiempo Prom.", f"{_st_avg_t:.0f}s" if _st_avg_t else "—")
+            with m5:
                 if _proc_scores:
                     avg_proc = sum(s['score'] for s in _proc_scores) / len(_proc_scores)
-                    st.metric("📝 Calidad de Procedimientos", f"{avg_proc:.1f} / 100",
+                    st.metric("📝 Procedimientos", f"{avg_proc:.1f}/100",
                               delta=f"{len(_proc_scores)} evaluado(s)")
                 else:
-                    st.metric("📝 Calidad de Procedimientos", "Sin datos")
+                    st.metric("📝 Procedimientos", "Sin datos")
 
             if not _proc_scores:
                 st.info(
@@ -2790,92 +3292,122 @@ else:
                                 st.markdown(f"**🔢 Meta sugerida:** {ejercicios} ejercicios")
 
         elif mode == "🎓 Mis Cursos":
-            st.title("🎓 Catálogo de Cursos")
+            st.title("🎓 Mis Cursos")
 
-            # ── Badge de nivel educativo (SOLO LECTURA — inmutable desde la UI) ─
-            # El nivel se asigna en el registro y es la fuente de verdad para el
-            # catálogo. get_available_courses() lo lee desde DB, nunca desde sesión.
-            # No existe ningún mecanismo en la UI para cambiarlo.
             _level = st.session_state.education_level or 'universidad'
-            _level_labels = {'universidad': "🎓 Universidad", 'colegio': "🏫 Colegio", 'concursos': "🏆 Concursos", 'semillero': "🏅 Semillero de Matemáticas"}
+            _level_labels = {'universidad': "🎓 Universidad", 'colegio': "🏫 Colegio",
+                             'concursos': "🏆 Concursos", 'semillero': "🏅 Semillero de Matemáticas"}
             _level_label = _level_labels.get(_level, "🎓 Universidad")
             st.markdown(f"**Nivel académico:** {_level_label}")
             st.caption("Tu nivel se fijó al registrarte y determina qué cursos puedes ver.")
 
-            st.markdown("---")
-
-            # ── Catálogo filtrado estrictamente por nivel (vía servicio) ─────
-            # get_available_courses lee el nivel desde DB, nunca desde sesión.
-            _all_courses  = st.session_state.student_service.get_available_courses(
-                st.session_state.user_id
-            )
             _enrolled_ids = {c['id'] for c in _enrolled}
 
-            if not _all_courses:
-                st.info(f"No hay cursos disponibles para el nivel {_level_label} aún.")
-            else:
-                st.subheader(f"📚 Cursos disponibles — {_level_label}")
-                for _course in _all_courses:
-                    with st.container(border=True):
-                        if _course['id'] in _enrolled_ids:
-                            # ── Curso ya inscrito ────────────────────────────
-                            _cc1, _cc2 = st.columns([4, 1])
-                            with _cc1:
-                                st.markdown(f"**{_course['name']} ✅ Inscrito**")
-                                st.caption(_course['description'])
-                            with _cc2:
-                                if st.button("Desmatricular", key=f"unenroll_{_course['id']}"):
-                                    repo.unenroll_user(st.session_state.user_id, _course['id'])
-                                    invalidate_cache('cache_enrollments')
+            # Noticia si el usuario llegó desde "Tengo un código" en la bienvenida
+            _came_from_code_btn = st.session_state.pop('welcome_open_code_tab', False)
+            if _came_from_code_btn:
+                st.info("👇 Haz clic en la pestaña **🔑 Código de invitación** para ingresar el código de tu profesor.")
+
+            _tab_explore, _tab_enrolled, _tab_code = st.tabs([
+                "🔍 Explorar profesores",
+                f"📋 Mis matrículas ({len(_enrolled)})",
+                "🔑 Código de invitación",
+            ])
+
+            # ── Tab 1: Explorar por profesor ──────────────────────────────────
+            with _tab_explore:
+                _sem_grade_exp = st.session_state.get('student_grade') if _level == 'semillero' else None
+                _teachers_data = cached('cache_teachers_groups',
+                    lambda: repo.get_teachers_with_groups_and_courses(_level, grade=_sem_grade_exp))
+
+                if not _teachers_data:
+                    st.info("No hay profesores con grupos disponibles para tu nivel aún. "
+                            "Si tu profesor ya creó un grupo, pídele el código de invitación (Tab 🔑).")
+                else:
+                    st.caption("Elige el profesor de tu preferencia para cada materia y haz clic en **Matricular**.")
+                    for _tch in _teachers_data:
+                        st.markdown(f"### 👤 Prof. {_tch['teacher_name']}")
+                        for _grp in _tch['groups']:
+                            with st.container(border=True):
+                                _tc1, _tc2 = st.columns([5, 1])
+                                with _tc1:
+                                    st.markdown(f"**{_grp['course_name']}**")
+                                    st.caption(f"Grupo: {_grp['group_name']} · {_grp['student_count']} estudiante(s) matriculado(s)")
+                                with _tc2:
+                                    if _grp['course_id'] in _enrolled_ids:
+                                        st.markdown("✅ Matriculado")
+                                    else:
+                                        if st.button("Matricular", key=f"enroll_tch_{_grp['group_id']}", type="primary"):
+                                            repo.enroll_user(st.session_state.user_id, _grp['course_id'], _grp['group_id'])
+                                            invalidate_cache('cache_enrollments', 'cache_teachers_groups')
+                                            st.session_state.welcome_dismissed = True
+                                            st.rerun()
+
+            # ── Tab 2: Mis matrículas ──────────────────────────────────────────
+            with _tab_enrolled:
+                if not _enrolled:
+                    st.info("Aún no estás matriculado en ningún curso. Ve a **Explorar profesores** para comenzar.")
+                else:
+                    st.caption("Puedes desmatricularte y volver a matricularte con otro profesor cuando quieras.")
+                    for _ec in _enrolled:
+                        with st.container(border=True):
+                            _ec1, _ec2 = st.columns([5, 1])
+                            with _ec1:
+                                st.markdown(f"**{_ec['name']}**")
+                                _grp_label = _ec.get('group_name', '')
+                                _is_cross = _ec.get('block') != _student_block
+                                _cap = f"Grupo: {_grp_label}" if _grp_label else f"Bloque: {_ec['block']}"
+                                if _is_cross:
+                                    _cap += " · 📌 Acceso especial"
+                                st.caption(_cap)
+                            with _ec2:
+                                if st.button("Desmatricular", key=f"unenroll_tab_{_ec['id']}"):
+                                    repo.unenroll_user(st.session_state.user_id, _ec['id'])
+                                    invalidate_cache('cache_enrollments', 'cache_teachers_groups')
                                     st.session_state.pop('current_question', None)
                                     st.session_state.pop('selected_course', None)
                                     st.rerun()
-                        else:
-                            # ── Curso disponible: verificar grupos ──────────
-                            _avail_groups = st.session_state.student_service.get_groups_for_course(
-                                _course['id']
-                            )
-                            _cc1, _cc2 = st.columns([4, 1])
-                            with _cc1:
-                                st.markdown(f"**{_course['name']}**")
-                                st.caption(_course['description'])
-                                if not _avail_groups:
-                                    st.caption("⚠️ Sin grupos disponibles actualmente.")
-                                else:
-                                    _grp_opts = {
-                                        f"{g['name']} (Prof. {g['teacher_name']})": g['id']
-                                        for g in _avail_groups
-                                    }
-                                    _sel_grp_label = st.selectbox(
-                                        "Grupo",
-                                        list(_grp_opts.keys()),
-                                        key=f"grp_sel_{_course['id']}",
-                                        label_visibility="collapsed",
-                                    )
-                                    _sel_grp_id = _grp_opts[_sel_grp_label]
-                            with _cc2:
-                                if _avail_groups:
-                                    if st.button(
-                                        "Matricularse",
-                                        key=f"enroll_{_course['id']}",
-                                        type="primary",
-                                    ):
-                                        st.session_state.student_service.enroll_in_course(
-                                            st.session_state.user_id,
-                                            _course['id'],
-                                            _sel_grp_id,
-                                        )
-                                        invalidate_cache('cache_enrollments')
-                                        st.rerun()
 
-            # ── Resumen de matrículas activas ─────────────────────────────────
-            if _enrolled:
-                st.markdown("---")
-                st.subheader("📋 Mis Cursos Inscritos")
-                for _ec in _enrolled:
-                    _grp_label = _ec.get('group_name', '')
-                    _suffix = f"— {_grp_label}" if _grp_label else f"— {_ec['block']}"
-                    st.markdown(f"- **{_ec['name']}** {_suffix}")
+            # ── Tab 3: Código de invitación ────────────────────────────────────
+            with _tab_code:
+                st.markdown("Si tu profesor te compartió un código, ingrésalo aquí para unirte directamente a su grupo.")
+                _code_raw = st.text_input(
+                    "Código de invitación",
+                    placeholder="Ej: ALG3B7",
+                    max_chars=6,
+                    key="invite_code_input",
+                )
+                _code_upper = (_code_raw or "").upper().strip()
+                if st.button("🔍 Buscar grupo", key="btn_lookup_code"):
+                    if len(_code_upper) >= 4:
+                        _found = repo.get_group_by_invite_code(_code_upper)
+                        if _found:
+                            st.session_state['code_group_found'] = _found
+                        else:
+                            st.session_state.pop('code_group_found', None)
+                            st.error("Código no encontrado. Verifica que esté escrito correctamente.")
+                    else:
+                        st.warning("El código debe tener al menos 4 caracteres.")
+
+                _cg = st.session_state.get('code_group_found')
+                if _cg:
+                    if _cg['course_id'] in _enrolled_ids:
+                        st.warning(f"Ya estás matriculado en **{_cg['course_name']}**. Si quieres cambiar de profesor, desmatricúlate primero desde la pestaña 📋.")
+                    else:
+                        st.success(
+                            f"✅ Grupo encontrado\n\n"
+                            f"**Curso:** {_cg['course_name']}  \n"
+                            f"**Grupo:** {_cg['group_name']}  \n"
+                            f"**Profesor:** {_cg['teacher_name']}"
+                        )
+                        if _cg.get('block') and _cg['block'] != _student_block:
+                            st.info("📌 Este curso es de un nivel diferente al tuyo. Tu profesor te ha dado acceso especial — podrás practicarlo junto a tus cursos normales.")
+                        if st.button("Confirmar matrícula", key="btn_confirm_code_enroll", type="primary"):
+                            repo.enroll_user(st.session_state.user_id, _cg['course_id'], _cg['group_id'])
+                            invalidate_cache('cache_enrollments', 'cache_teachers_groups')
+                            st.session_state.pop('code_group_found', None)
+                            st.session_state.welcome_dismissed = True
+                            st.rerun()
 
         # ── MODO: Centro de Feedback (solo lectura) ───────────────────────────
         elif mode.startswith("💬 Feedback"):
