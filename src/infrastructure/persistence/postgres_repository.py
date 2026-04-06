@@ -177,7 +177,7 @@ class PostgresRepository:
         _conn_mode = "pooler" if _is_pooler else "directa"
         print(f"[DB] Modo de conexión: {_conn_mode} ({host}:{port})")
         try:
-            self._pool = psycopg2.pool.SimpleConnectionPool(
+            self._pool = psycopg2.pool.ThreadedConnectionPool(
                 minconn=1, maxconn=5, **self._conn_kwargs
             )
         except psycopg2.OperationalError as exc:
@@ -216,15 +216,27 @@ class PostgresRepository:
         print("_seed_test_students OK")
 
     def get_connection(self):
-        """Obtiene una conexión del pool. Caller debe devolverla con put_connection()."""
-        conn = self._pool.getconn()
-        try:
-            # Verificar que la conexión siga viva; si no, el pool la reemplaza
-            conn.isolation_level
-        except psycopg2.OperationalError:
-            self._pool.putconn(conn, close=True)
-            conn = self._pool.getconn()
-        return conn
+        """Obtiene una conexión del pool. Caller debe devolverla con put_connection().
+
+        Reintenta hasta 3 veces con espera breve si el pool está agotado
+        temporalmente (todas las conexiones en uso por otras peticiones).
+        """
+        max_retries = 3
+        for attempt in range(max_retries + 1):
+            try:
+                conn = self._pool.getconn()
+            except psycopg2.pool.PoolError:
+                if attempt < max_retries:
+                    time.sleep(0.3 * (attempt + 1))
+                    continue
+                raise
+            try:
+                # Verificar que la conexión siga viva; si no, el pool la reemplaza
+                conn.isolation_level
+            except psycopg2.OperationalError:
+                self._pool.putconn(conn, close=True)
+                conn = self._pool.getconn()
+            return conn
 
     def resolve_storage_image(self, storage_url: str) -> bytes | None:
         """Download procedure image bytes from Supabase Storage.
