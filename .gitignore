@@ -37,3 +37,28 @@ Nuevo Documento de texto.txt
 KatIA/*.md
 KatIA/*.txt
 instrucciones_katia.md
+
+# GIFs originales de KatIA (solo se usan los *_compressed.gif)
+KatIA/correcto.gif
+KatIA/errores.gif
+
+# Node / Playwright MCP (no es parte de la app Python)
+node_modules/
+package.json
+package-lock.json
+.playwright-mcp/
+
+# Screenshots y capturas temporales
+screenshot-*.png
+verify-*.png
+
+# Carpetas de trabajo ya integradas
+nuvos_bugs/
+Semillero/para poblar/
+Semillero/poblar_octavo/
+Semillero/bank_semillero/
+
+# Prompts one-shot (tareas ya completadas)
+PROMPT_CORREGIR_FIGURAS.md
+Semillero/PROMPT_DEFINITIVO_SEMILLERO.md
+Semillero/prompt_semillero.md
