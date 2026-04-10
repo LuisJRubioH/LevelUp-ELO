@@ -703,6 +703,24 @@ class PostgresRepository:
                 ON weekly_rankings(week_start, group_id)
             ''')
 
+            # ── Tabla katia_interactions (registro de interacciones con KatIA) ──
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS katia_interactions (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(id),
+                    course_id TEXT,
+                    item_id TEXT,
+                    item_topic TEXT,
+                    student_message TEXT NOT NULL,
+                    katia_response TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            cursor.execute('''
+                CREATE INDEX IF NOT EXISTS idx_katia_interactions_user
+                ON katia_interactions(user_id)
+            ''')
+
             conn.commit()
 
         except Exception:
@@ -805,9 +823,13 @@ class PostgresRepository:
         admin_hash = self.hashing.hash_password(admin_password)
 
         conn = self.get_connection()
+        locked = False
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute("SELECT pg_advisory_xact_lock(12346)")
+            cursor.execute("SELECT pg_try_advisory_lock(12346)")
+            locked = cursor.fetchone()['pg_try_advisory_lock']
+            if not locked:
+                return
             try:
                 cursor.execute("SELECT id FROM users WHERE username = %s", (admin_user,))
                 if not cursor.fetchone():
@@ -823,6 +845,12 @@ class PostgresRepository:
                     pass
                 raise
         finally:
+            if locked:
+                try:
+                    cursor.execute("SELECT pg_advisory_unlock(12346)")
+                    conn.commit()
+                except Exception:
+                    pass
             self.put_connection(conn)
 
     def _seed_demo_data(self):
@@ -830,9 +858,13 @@ class PostgresRepository:
         demo_hash = self.hashing.hash_password("demo1234")
 
         conn = self.get_connection()
+        locked = False
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute("SELECT pg_advisory_xact_lock(12347)")
+            cursor.execute("SELECT pg_try_advisory_lock(12347)")
+            locked = cursor.fetchone()['pg_try_advisory_lock']
+            if not locked:
+                return
             try:
 
                 # Profesor demo
@@ -928,6 +960,12 @@ class PostgresRepository:
                     pass
                 raise
         finally:
+            if locked:
+                try:
+                    cursor.execute("SELECT pg_advisory_unlock(12347)")
+                    conn.commit()
+                except Exception:
+                    pass
             self.put_connection(conn)
 
     def _update_password_hash(self, user_id, password):
@@ -1123,6 +1161,71 @@ class PostgresRepository:
                 (report_id,)
             )
             conn.commit()
+        finally:
+            self.put_connection(conn)
+
+    # ── KatIA interactions ──────────────────────────────────────────────
+
+    def save_katia_interaction(self, user_id: int, course_id: str, item_id: str,
+                               item_topic: str, student_message: str,
+                               katia_response: str = None) -> None:
+        """Registra una interacción del estudiante con el chat socrático de KatIA."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "INSERT INTO katia_interactions (user_id, course_id, item_id, item_topic, "
+                "student_message, katia_response) VALUES (%s, %s, %s, %s, %s, %s)",
+                (user_id, course_id, item_id, item_topic, student_message, katia_response),
+            )
+            conn.commit()
+        finally:
+            self.put_connection(conn)
+
+    def get_katia_interactions(self, user_id: int, limit: int = 200) -> list:
+        """Retorna las interacciones de un estudiante con KatIA."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute('''
+                SELECT ki.id, ki.course_id, c.name AS course_name,
+                       ki.item_id, ki.item_topic, ki.student_message,
+                       ki.katia_response, ki.created_at
+                FROM katia_interactions ki
+                LEFT JOIN courses c ON c.id = ki.course_id
+                WHERE ki.user_id = %s
+                ORDER BY ki.created_at DESC
+                LIMIT %s
+            ''', (user_id, limit))
+            rows = cursor.fetchall()
+            return [dict(r) for r in rows]
+        finally:
+            self.put_connection(conn)
+
+    def export_teacher_katia_interactions(self, teacher_id: int, group_id: int = None) -> list:
+        """Exporta interacciones de KatIA de los estudiantes del docente."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            _filter = ""
+            _params = [teacher_id]
+            if group_id:
+                _filter = "AND u.group_id = %s"
+                _params.append(group_id)
+            cursor.execute(f'''
+                SELECT u.id AS student_id, u.username, g.name AS group_name,
+                       ki.course_id, c.name AS course_name,
+                       ki.item_topic, ki.student_message,
+                       ki.katia_response, ki.created_at
+                FROM katia_interactions ki
+                JOIN users u ON u.id = ki.user_id
+                JOIN groups g ON g.id = u.group_id
+                LEFT JOIN courses c ON c.id = ki.course_id
+                WHERE g.teacher_id = %s {_filter}
+                ORDER BY ki.created_at DESC
+            ''', _params)
+            rows = cursor.fetchall()
+            return [dict(r) for r in rows]
         finally:
             self.put_connection(conn)
 
@@ -2206,9 +2309,13 @@ class PostgresRepository:
             return
 
         conn = self.get_connection()
+        locked = False
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute("SELECT pg_advisory_xact_lock(12348)")
+            cursor.execute("SELECT pg_try_advisory_lock(12348)")
+            locked = cursor.fetchone()['pg_try_advisory_lock']
+            if not locked:
+                return
             try:
 
                 # 1. Obtener todos los IDs existentes en una sola query
@@ -2296,6 +2403,12 @@ class PostgresRepository:
                     pass
                 raise
         finally:
+            if locked:
+                try:
+                    cursor.execute("SELECT pg_advisory_unlock(12348)")
+                    conn.commit()
+                except Exception:
+                    pass
             self.put_connection(conn)
 
     def _seed_test_students(self):
@@ -2315,9 +2428,13 @@ class PostgresRepository:
         ]
 
         conn = self.get_connection()
+        locked = False
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute("SELECT pg_advisory_xact_lock(12349)")
+            cursor.execute("SELECT pg_try_advisory_lock(12349)")
+            locked = cursor.fetchone()['pg_try_advisory_lock']
+            if not locked:
+                return
             try:
 
                 # ── Salida rápida: si todos ya existen, no hay nada que hacer ────
@@ -2422,6 +2539,12 @@ class PostgresRepository:
                     pass
                 raise
         finally:
+            if locked:
+                try:
+                    cursor.execute("SELECT pg_advisory_unlock(12349)")
+                    conn.commit()
+                except Exception:
+                    pass
             self.put_connection(conn)
 
     @_timing

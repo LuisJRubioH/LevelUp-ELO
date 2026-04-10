@@ -430,6 +430,25 @@ class SQLiteRepository:
             ON weekly_rankings(week_start, group_id)
         ''')
 
+        # ── Tabla katia_interactions (registro de interacciones con KatIA) ──
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS katia_interactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                course_id TEXT,
+                item_id TEXT,
+                item_topic TEXT,
+                student_message TEXT NOT NULL,
+                katia_response TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_katia_interactions_user
+            ON katia_interactions(user_id)
+        ''')
+
         conn.commit()
         conn.close()
 
@@ -816,6 +835,75 @@ class SQLiteRepository:
         cursor.execute("UPDATE problem_reports SET status = 'resolved' WHERE id = ?", (report_id,))
         conn.commit()
         conn.close()
+
+    # ── KatIA interactions ──────────────────────────────────────────────
+
+    def save_katia_interaction(self, user_id: int, course_id: str, item_id: str,
+                               item_topic: str, student_message: str,
+                               katia_response: str = None) -> None:
+        """Registra una interacción del estudiante con el chat socrático de KatIA."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO katia_interactions (user_id, course_id, item_id, item_topic, "
+            "student_message, katia_response) VALUES (?, ?, ?, ?, ?, ?)",
+            (user_id, course_id, item_id, item_topic, student_message, katia_response),
+        )
+        conn.commit()
+        conn.close()
+
+    def get_katia_interactions(self, user_id: int, limit: int = 200) -> list:
+        """Retorna las interacciones de un estudiante con KatIA."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT ki.id, ki.course_id, c.name AS course_name,
+                   ki.item_id, ki.item_topic, ki.student_message,
+                   ki.katia_response, ki.created_at
+            FROM katia_interactions ki
+            LEFT JOIN courses c ON c.id = ki.course_id
+            WHERE ki.user_id = ?
+            ORDER BY ki.created_at DESC
+            LIMIT ?
+        ''', (user_id, limit))
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {'id': r[0], 'course_id': r[1], 'course_name': r[2],
+             'item_id': r[3], 'item_topic': r[4], 'student_message': r[5],
+             'katia_response': r[6], 'created_at': r[7]}
+            for r in rows
+        ]
+
+    def export_teacher_katia_interactions(self, teacher_id: int, group_id: int = None) -> list:
+        """Exporta interacciones de KatIA de los estudiantes del docente."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        _filter = ""
+        _params = [teacher_id]
+        if group_id:
+            _filter = "AND u.group_id = ?"
+            _params.append(group_id)
+        cursor.execute(f'''
+            SELECT u.id AS student_id, u.username, g.name AS group_name,
+                   ki.course_id, c.name AS course_name,
+                   ki.item_topic, ki.student_message,
+                   ki.katia_response, ki.created_at
+            FROM katia_interactions ki
+            JOIN users u ON u.id = ki.user_id
+            JOIN groups g ON g.id = u.group_id
+            LEFT JOIN courses c ON c.id = ki.course_id
+            WHERE g.teacher_id = ? {_filter}
+            ORDER BY ki.created_at DESC
+        ''', _params)
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {'student_id': r[0], 'username': r[1], 'group_name': r[2],
+             'course_id': r[3], 'course_name': r[4], 'item_topic': r[5],
+             'student_message': r[6], 'katia_response': r[7], 'created_at': r[8]}
+            for r in rows
+        ]
 
     def get_weekly_ranking(self, group_id, limit=5):
         """Top estudiantes del grupo por ELO promedio, con actividad en los últimos 7 días."""

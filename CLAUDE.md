@@ -125,7 +125,7 @@ Clean Architecture con cuatro capas dentro de `src/`:
   - `external_api/math_analysis_pipeline.py` — Pipeline completo: OCR → pasos → verificación simbólica → feedback.
   - `security/hashing_service.py` — Argon2id + migración transparente desde SHA-256 legacy.
 
-- **`interface/streamlit/app.py`** — UI monolítica: login (con wizard de registro multi-paso), panel estudiante, dashboard docente, panel admin. GIFs animados de KatIA para revisión de procedimientos. Temporizadores en tiempo real (JavaScript vía `st.components.v1.html`): sesión global + por pregunta. Exportación CSV/XLSX de datos de estudiantes para el docente.
+- **`interface/streamlit/app.py`** — UI monolítica: login (con wizard de registro multi-paso), panel estudiante, dashboard docente, panel admin. GIFs animados de KatIA para revisión de procedimientos. Temporizadores en tiempo real (JavaScript vía `st.components.v1.html`): sesión global + por pregunta. Exportación CSV/XLSX de datos de estudiantes para el docente. Banners pixel art por materia en tarjetas de curso (`Banners/`). Registro de interacciones con KatIA en DB + visualización en dashboard docente.
 
 ### Flujo de datos al responder una pregunta
 
@@ -177,7 +177,7 @@ Lee env var `DATABASE_URL` (formato: `postgresql://user:pass@host:port/dbname`).
 `init_db()` → `_migrate_db()` → `_seed_admin()` → `_seed_demo_data()` → `_backfill_prob_failure()` → `sync_items_from_bank_folder()` → `_seed_test_students()`
 
 - Migraciones **solo aditivas** (`ALTER TABLE ADD COLUMN IF NOT EXISTS`).
-- PostgreSQL: `pg_try_advisory_lock(12345)` (no-bloqueante) en `_migrate_db()` — si otra instancia ya tiene el lock, la actual retorna inmediatamente sin bloquear. Lock liberado con `pg_advisory_unlock(12345)` en `finally`. **No usar** `pg_advisory_lock` (bloqueante) ni `pg_advisory_xact_lock` — causan `QueryCanceled` por `statement_timeout`.
+- PostgreSQL: `pg_try_advisory_lock` (no-bloqueante) en `_migrate_db()` (lock 12345), `_seed_admin()` (12346), `_seed_demo_data()` (12347), `sync_items_from_bank_folder()` (12348) y `_seed_test_students()` (12349). Si otra instancia ya tiene el lock, la actual retorna inmediatamente sin bloquear. Lock liberado con `pg_advisory_unlock()` en `finally`. **No usar** `pg_advisory_lock` (bloqueante) ni `pg_advisory_xact_lock` — causan `QueryCanceled` por `statement_timeout`.
 - Admin solo se crea si la env var `ADMIN_PASSWORD` está seteada (`ADMIN_USER` default `"admin"`). Sin credenciales hardcodeadas.
 
 ### Tablas principales
@@ -192,6 +192,7 @@ Lee env var `DATABASE_URL` (formato: `postgresql://user:pass@host:port/dbname`).
 | `enrollments` | `user_id`, `course_id`, `group_id` |
 | `procedure_submissions` | `image_data` (BLOB/BYTEA fallback), `storage_url` (path en Supabase Storage, ej: `38/alb31/hash.jpg`), `procedure_image_path` (ruta local legacy), `status` (pending/reviewed/PENDING_TEACHER_VALIDATION/VALIDATED_BY_TEACHER), `ai_proposed_score` (nunca afecta ELO), `teacher_score` (oficial), `final_score` = teacher_score, `elo_delta` = (final_score−50)×0.2, `file_hash` (SHA-256 anti-plagio), `mime_type` |
 | `problem_reports` | `user_id` FK, `description` TEXT, `status` (`pending`/`resolved`), `created_at`. Métodos: `save_problem_report()`, `get_problem_reports(status=None)`, `mark_problem_resolved()` |
+| `katia_interactions` | `user_id`, `course_id`, `item_id`, `item_topic`, `student_message`, `katia_response`, `created_at`. Registro de interacciones del estudiante con el chat socrático de KatIA. Métodos: `save_katia_interaction()`, `get_katia_interactions()`, `export_teacher_katia_interactions()` |
 | `audit_group_changes` | Log de reasignaciones de grupo por admin |
 
 ---
@@ -326,7 +327,7 @@ Todas las funciones de IA **degradan con gracia** si no están disponibles (fall
 
 **Validación socrática** (`validate_socratic_response()`): post-generación verifica que la respuesta no revele la respuesta y tenga ≤3 oraciones. `SOCRATIC_MAX_TOKENS = 120`.
 
-**Revisión de procedimientos** (`math_procedure_review.py`): solo Groq, usa `meta-llama/llama-4-scout-17b-16e-instruct`. Retorna JSON con evaluación por pasos y `score_procedimiento` (0–100). Ajuste ELO: `(score − 50) × 0.2`. Aplicado una vez por ítem (flag `proc_elo_applied_{item_id}`). El `ai_proposed_score` **nunca** afecta el ELO directamente — solo `teacher_score` lo hace.
+**Revisión de procedimientos** (`math_procedure_review.py`): solo Groq, usa `meta-llama/llama-4-scout-17b-16e-instruct`. Retorna JSON con evaluación por pasos y `score_procedimiento` (0–100). Ajuste ELO: `(score − 50) × 0.2`. Aplicado una vez por ítem (flag `proc_elo_applied_{item_id}`). El `ai_proposed_score` **nunca** afecta el ELO directamente — solo `teacher_score` lo hace. `_parse_json_response()` incluye fallback para escapar backslashes LaTeX no válidos en JSON (`\frac`, `\sin`, etc.) que el LLM genera sin escapar.
 
 ---
 
@@ -394,7 +395,7 @@ KatIA es una gata cyborg que actúa como tutora socrática del estudiante. Tiene
 
 - **Dual DB**: `DATABASE_URL` → PostgreSQL (Supabase); ausente → SQLite local. Ambos repos tienen API pública idéntica.
 - **Pool PostgreSQL**: `SimpleConnectionPool(1–5)`. Supabase free tier: NUNCA subir maxconn a más de 5. Nunca `conn.close()` — usar `self.put_connection(conn)`.
-- **Advisory locks**: `_migrate_db()` usa `pg_try_advisory_lock(12345)` (no-bloqueante). Si no obtiene el lock, retorna sin hacer nada. Lock liberado siempre en `finally` con `pg_advisory_unlock(12345)`. Nunca usar `pg_advisory_lock` (bloqueante).
+- **Advisory locks**: todas las funciones de seed/migración usan `pg_try_advisory_lock(N)` (no-bloqueante) con IDs 12345–12349. Si no obtiene el lock, retorna sin hacer nada. Lock liberado siempre en `finally` con `pg_advisory_unlock(N)`. Nunca usar `pg_advisory_lock` (bloqueante) ni `pg_advisory_xact_lock`.
 - **PostgreSQL usa `RealDictCursor`**: acceso siempre por `row['column_name']`, nunca `row[0]`. Fechas son objetos `datetime` — envolver con `str()` antes de slicear.
 - **`_COURSE_BLOCK_MAP`** existe en ambos repositorios — sincronizar al agregar cursos.
 - **`is_test_user=1`**: estos estudiantes están protegidos contra borrado.
@@ -413,4 +414,7 @@ KatIA es una gata cyborg que actúa como tutora socrática del estudiante. Tiene
 - **Tags de taxonomía**: columna `items.tags` (TEXT, JSON array). Tres dimensiones: cognitiva, general y específica. Se muestran como badges en la UI de la pregunta.
 - **impact_modifier desactivado**: `student_service.py` pasa `impact_modifier=1.0` siempre. El `CognitiveAnalyzer` sigue existiendo pero su output no escala el delta ELO. Razón: el preview de puntos que se muestra al estudiante antes de responder no podía predecir el modifier, causando confusión.
 - **Temporizadores en tiempo real**: implementados con `st.components.v1.html()` + JavaScript `setInterval(tick, 1000)` para actualización segundo a segundo sin reruns de Streamlit. Timer de sesión en sidebar (gris, compacto) y timer por pregunta sobre el enunciado (1.3rem, dorado, bold). `session_start_time` se setea en login manual y en restauración por cookie. `question_start_time` se resetea al cargar cada pregunta. IDs únicos vía `_TIMER_ID_COUNTER` para evitar colisiones DOM.
-- **Exportación CSV/XLSX del docente**: 3 métodos en ambos repos (`export_teacher_student_data()`, `export_teacher_enrollments()`, `export_teacher_procedures()`). El Excel tiene una hoja por dataset. Incluye `time_taken` y `rating_deviation` por intento. Botones en expander "📥 Exportar datos de estudiantes" del panel docente. Dependencia: `openpyxl`.
+- **Exportación CSV/XLSX del docente**: 4 métodos en ambos repos (`export_teacher_student_data()`, `export_teacher_enrollments()`, `export_teacher_procedures()`, `export_teacher_katia_interactions()`). El Excel tiene una hoja por dataset (Intentos, Matrículas, Procedimientos, KatIA). Incluye `time_taken` y `rating_deviation` por intento. Botones en expander "📥 Exportar datos de estudiantes" del panel docente. Dependencia: `openpyxl`.
+- **Banners pixel art de cursos**: imágenes PNG en `Banners/` (geometria, aritmetica, logica, conteo_combinatoria, probabilidad, algebra). Se cargan como base64 con `@st.cache_resource` y se muestran en las tarjetas de curso del estudiante. Matching por keyword en el nombre del curso.
+- **Registro de interacciones KatIA**: cada pregunta del estudiante al chat socrático se guarda en `katia_interactions` con contexto (curso, ítem, tema). El docente ve un resumen (temas más consultados, historial de conversaciones) en el dashboard por estudiante. Se incluye en la exportación CSV/XLSX.
+- **Fallback en procedimientos**: si la revisión de IA falla con `ValueError`/`ConnectionError`, el procedimiento se guarda de todas formas para revisión del docente (sin score de IA).

@@ -220,6 +220,48 @@ def _load_katia_gif_b64(path: str):
 _KATIA_GIF_CORRECTO_HTML = _load_katia_gif_b64(_KATIA_GIF_CORRECTO_PATH)
 _KATIA_GIF_ERRORES_HTML = _load_katia_gif_b64(_KATIA_GIF_ERRORES_PATH)
 
+# ── Banners pixel art para tarjetas de curso ────────────────────────────
+_BANNERS_DIR = os.path.join(base_path, "Banners")
+
+@st.cache_resource
+def _load_course_banners():
+    """Carga los banners como base64 y retorna dict {keyword: b64_str}."""
+    import base64
+    _files = {
+        'geometr': 'geometria.png',
+        'aritm':   'aritmetica.png',
+        'logic':   'logica.png',
+        'lógic':   'logica.png',
+        'conteo':  'conteo_combinatoria.png',
+        'combinat': 'conteo_combinatoria.png',
+        'probab':  'probabilidad.png',
+        'álgebra': 'algebra.png',
+        'algebra': 'algebra.png',
+        'trigon':  'algebra.png',
+    }
+    banners = {}
+    for kw, fname in _files.items():
+        if kw in banners:
+            continue
+        fpath = os.path.join(_BANNERS_DIR, fname)
+        try:
+            with open(fpath, "rb") as f:
+                b64 = base64.b64encode(f.read()).decode()
+            banners[kw] = b64
+        except FileNotFoundError:
+            banners[kw] = None
+    return banners
+
+_COURSE_BANNERS = _load_course_banners()
+
+def _get_banner_b64(course_name: str):
+    """Retorna el base64 del banner que corresponda al nombre del curso, o None."""
+    name_lower = course_name.lower()
+    for kw, b64 in _COURSE_BANNERS.items():
+        if kw in name_lower:
+            return b64
+    return None
+
 # Inicializar Base de Datos
 # Si DATABASE_URL está definida → PostgreSQL; si no → SQLite local
 if 'db' not in st.session_state:
@@ -1601,6 +1643,53 @@ else:
                     else:
                         st.info(f"{_sel_name} aún no ha respondido ninguna pregunta.")
 
+                    # ── Interacciones con KatIA ────────────────────────────────
+                    st.markdown("---")
+                    with st.expander("🐾 Interacciones con KatIA (Tutor Socrático)"):
+                        _katia_data = repo.get_katia_interactions(_sel_stu['id'])
+                        if _katia_data:
+                            # Resumen
+                            _ki_total = len(_katia_data)
+                            _ki_topics = {}
+                            _ki_courses = {}
+                            for _ki in _katia_data:
+                                _t = _ki.get('item_topic') or 'Sin tema'
+                                _ki_topics[_t] = _ki_topics.get(_t, 0) + 1
+                                _cn = _ki.get('course_name') or _ki.get('course_id') or 'Sin curso'
+                                _ki_courses[_cn] = _ki_courses.get(_cn, 0) + 1
+
+                            _km1, _km2 = st.columns(2)
+                            _km1.metric("Total de preguntas a KatIA", _ki_total)
+                            _top_topic = max(_ki_topics, key=_ki_topics.get)
+                            _km2.metric("Tema más consultado", _top_topic, delta=f"{_ki_topics[_top_topic]} preguntas")
+
+                            # Tabla de temas consultados
+                            st.markdown("**Temas consultados:**")
+                            _topic_rows = sorted(_ki_topics.items(), key=lambda x: -x[1])
+                            _topic_df = pd.DataFrame(_topic_rows, columns=["Tema", "Consultas"])
+                            st.dataframe(_topic_df, width='stretch', hide_index=True)
+
+                            # Por materia
+                            if len(_ki_courses) > 1:
+                                st.markdown("**Por materia:**")
+                                _course_rows = sorted(_ki_courses.items(), key=lambda x: -x[1])
+                                _course_df = pd.DataFrame(_course_rows, columns=["Materia", "Consultas"])
+                                st.dataframe(_course_df, width='stretch', hide_index=True)
+
+                            # Historial detallado
+                            st.markdown("**Historial de conversaciones:**")
+                            for _ki in _katia_data[:50]:
+                                _ki_date = str(_ki.get('created_at', ''))[:16]
+                                _ki_course = _ki.get('course_name') or _ki.get('course_id') or ''
+                                _ki_topic = _ki.get('item_topic') or ''
+                                _ki_label = f"{_ki_date} · {_ki_course} · {_ki_topic}" if _ki_course else _ki_date
+                                with st.expander(_ki_label, expanded=False):
+                                    st.markdown(f"**Estudiante:** {_ki.get('student_message', '')}")
+                                    if _ki.get('katia_response'):
+                                        st.markdown(f"**KatIA:** {_ki['katia_response']}")
+                        else:
+                            st.caption(f"{_sel_name} no ha interactuado con KatIA aún.")
+
                     # ── Análisis Pedagógico con IA ─────────────────────────────
                     st.markdown("---")
                     _ai_disabled = not st.session_state.ai_available
@@ -1644,7 +1733,7 @@ else:
             st.caption(
                 "Descarga todos los datos de tus estudiantes para análisis externo. "
                 "Incluye intentos, tiempo por pregunta, RD, probabilidad de fallo, "
-                "matrículas y procedimientos."
+                "matrículas, procedimientos e interacciones con KatIA."
             )
             _export_scope = "del grupo seleccionado" if _sel_grp_sidebar_id else "de todos tus grupos"
             st.info(f"📊 Se exportarán datos **{_export_scope}**.")
@@ -1668,6 +1757,10 @@ else:
                         st.session_state.user_id,
                         group_id=_sel_grp_sidebar_id,
                     )
+                    _exp_katia = repo.export_teacher_katia_interactions(
+                        st.session_state.user_id,
+                        group_id=_sel_grp_sidebar_id,
+                    )
 
                 if not _exp_attempts and not _exp_enrollments:
                     st.warning("No hay datos para exportar.")
@@ -1675,6 +1768,7 @@ else:
                     _df_att_exp = pd.DataFrame(_exp_attempts) if _exp_attempts else pd.DataFrame()
                     _df_enr_exp = pd.DataFrame(_exp_enrollments) if _exp_enrollments else pd.DataFrame()
                     _df_proc_exp = pd.DataFrame(_exp_procedures) if _exp_procedures else pd.DataFrame()
+                    _df_katia_exp = pd.DataFrame(_exp_katia) if _exp_katia else pd.DataFrame()
 
                     # Renombrar columnas a español
                     _col_map_att = {
@@ -1706,12 +1800,22 @@ else:
                         'elo_delta': 'Delta ELO', 'submitted_at': 'Fecha Envío',
                         'reviewed_at': 'Fecha Revisión',
                     }
+                    _col_map_katia = {
+                        'student_id': 'ID Estudiante', 'username': 'Usuario',
+                        'group_name': 'Grupo', 'course_name': 'Materia',
+                        'course_id': 'ID Curso', 'item_topic': 'Tema Específico',
+                        'student_message': 'Pregunta del Estudiante',
+                        'katia_response': 'Respuesta de KatIA',
+                        'created_at': 'Fecha',
+                    }
                     if not _df_att_exp.empty:
                         _df_att_exp.rename(columns=_col_map_att, inplace=True)
                     if not _df_enr_exp.empty:
                         _df_enr_exp.rename(columns=_col_map_enr, inplace=True)
                     if not _df_proc_exp.empty:
                         _df_proc_exp.rename(columns=_col_map_proc, inplace=True)
+                    if not _df_katia_exp.empty:
+                        _df_katia_exp.rename(columns=_col_map_katia, inplace=True)
 
                     _grp_label = _sel_grp_sidebar.replace(' ', '_') if _sel_grp_sidebar_id else "todos"
                     _ts_label = pd.Timestamp.now().strftime('%Y%m%d')
@@ -1728,6 +1832,9 @@ else:
                         _csv_buf.write("\n# === PROCEDIMIENTOS ===\n")
                         if not _df_proc_exp.empty:
                             _df_proc_exp.to_csv(_csv_buf, index=False)
+                        _csv_buf.write("\n# === INTERACCIONES KATIA ===\n")
+                        if not _df_katia_exp.empty:
+                            _df_katia_exp.to_csv(_csv_buf, index=False)
                         st.download_button(
                             "⬇️ Descargar CSV",
                             data=_csv_buf.getvalue(),
@@ -1745,6 +1852,8 @@ else:
                                 _df_enr_exp.to_excel(_writer, sheet_name='Matrículas', index=False)
                             if not _df_proc_exp.empty:
                                 _df_proc_exp.to_excel(_writer, sheet_name='Procedimientos', index=False)
+                            if not _df_katia_exp.empty:
+                                _df_katia_exp.to_excel(_writer, sheet_name='KatIA', index=False)
                         st.download_button(
                             "⬇️ Descargar Excel",
                             data=_xlsx_buf.getvalue(),
@@ -1756,7 +1865,8 @@ else:
                     st.success(
                         f"✅ Datos listos: {len(_exp_attempts)} intentos, "
                         f"{len(_exp_enrollments)} matrículas, "
-                        f"{len(_exp_procedures)} procedimientos."
+                        f"{len(_exp_procedures)} procedimientos, "
+                        f"{len(_exp_katia)} interacciones KatIA."
                     )
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -1882,9 +1992,15 @@ else:
                     _sess_start, label="⏱️ Sesión: ",
                     font_size="0.85rem", height=30, color="#aaa", bold=False,
                 )
+            _mode_options = ["📝 Practicar", "📊 Estadísticas", "🎓 Mis Cursos", f"💬 Feedback{_fb_badge}"]
+            _pending = st.session_state.pop("_pending_student_mode", None)
+            _default_idx = 0
+            if _pending and _pending in _mode_options:
+                _default_idx = _mode_options.index(_pending)
             mode = st.radio(
                 "Modo",
-                ["📝 Practicar", "📊 Estadísticas", "🎓 Mis Cursos", f"💬 Feedback{_fb_badge}"],
+                _mode_options,
+                index=_default_idx,
                 label_visibility="collapsed",
                 key="student_mode_radio",
             )
@@ -2126,12 +2242,12 @@ else:
             with _wb1:
                 if st.button("🎓 Ir a Mis Cursos", type="primary", use_container_width=True, key="welcome_goto_courses"):
                     st.session_state.welcome_dismissed = True
-                    st.session_state.student_mode_radio = "🎓 Mis Cursos"
+                    st.session_state._pending_student_mode = "🎓 Mis Cursos"
                     st.rerun()
             with _wb2:
                 if st.button("🔑 Tengo un código de invitación", use_container_width=True, key="welcome_goto_code"):
                     st.session_state.welcome_dismissed = True
-                    st.session_state.student_mode_radio = "🎓 Mis Cursos"
+                    st.session_state._pending_student_mode = "🎓 Mis Cursos"
                     st.session_state.welcome_open_code_tab = True
                     st.rerun()
             with _wb3:
@@ -2168,12 +2284,20 @@ else:
                     _c_special = course.get('block') != _student_block
                     _c_special_html = '<p style="color:#FFD700; font-size:0.7rem; margin:4px 0 0;">📌 Acceso especial</p>' if _c_special else ''
                     with cols[col_idx]:
+                        _banner_b64 = _get_banner_b64(c_name)
+                        _banner_html = (
+                            f'<img src="data:image/png;base64,{_banner_b64}" '
+                            f'style="width:100%;border-radius:16px 16px 0 0;display:block;">'
+                        ) if _banner_b64 else ''
+                        _top_radius = '0' if _banner_b64 else '16px'
                         _card_html = (
-                            f'<div style="padding:24px;border-radius:16px;'
+                            f'<div style="border-radius:16px;'
                             f'background:rgba(38,39,48,0.95);'
                             f'border:1px solid {c_color}44;'
                             f'box-shadow:0 4px 20px {c_color}22;'
-                            f'text-align:center;margin-bottom:12px;">'
+                            f'overflow:hidden;margin-bottom:12px;">'
+                            + _banner_html +
+                            f'<div style="padding:20px 24px;text-align:center;">'
                             f'<h3 style="color:#fff!important;margin:0 0 12px 0;'
                             f'border-left:none;padding-left:0;'
                             f'background:linear-gradient(90deg,#00C9FF,#92FE9D);'
@@ -2185,6 +2309,7 @@ else:
                             f'{c_elo:.0f}</p>'
                             f'<p style="color:#888;font-size:0.8rem;margin:0;">Puntos ELO</p>'
                             f'<p style="color:#aaa;font-size:0.8rem;margin:6px 0 0;">{_c_rank_text}</p>'
+                            f'</div>'
                             f'</div>'
                         )
                         st.markdown(_card_html, unsafe_allow_html=True)
@@ -2637,6 +2762,18 @@ else:
                                         if not validate_socratic_response(_katia_resp):
                                             st.warning("La respuesta fue filtrada por revelar demasiada información.")
                                         st.session_state.katia_chat_history.append({"role": "assistant", "content": _katia_resp})
+                                        # Registrar interacción con KatIA
+                                        try:
+                                            repo.save_katia_interaction(
+                                                user_id=st.session_state.user_id,
+                                                course_id=selected_course_id,
+                                                item_id=item_data.get('id', ''),
+                                                item_topic=item_data.get('topic', ''),
+                                                student_message=_katia_input,
+                                                katia_response=_katia_resp,
+                                            )
+                                        except Exception:
+                                            pass  # No bloquear la UX si falla el registro
                                 except (ConnectionError, TimeoutError):
                                     st.error("No se pudo conectar al modelo. Intenta de nuevo en unos segundos.")
                                 except Exception:
@@ -2891,6 +3028,18 @@ else:
                                                         st.session_state[f'proc_ai_saved_{_iid}'] = True
                                             except (ValueError, ConnectionError) as _exc:
                                                 st.error(f"Error en la revisión matemática: {_exc}")
+                                                # Guardar para revisión del profesor aunque la IA falle
+                                                if not st.session_state.get(f'proc_ai_saved_{_iid}', False):
+                                                    try:
+                                                        repo.save_procedure_submission(
+                                                            _uid, _iid, _q_content,
+                                                            _file_bytes, _mime,
+                                                            file_hash=_file_hash,
+                                                        )
+                                                        st.session_state[f'proc_ai_saved_{_iid}'] = True
+                                                    except Exception:
+                                                        pass
+                                                st.session_state[f'proc_no_vision_{_iid}'] = True
                                         else:
                                             # Proveedor no-Groq, procedimiento relevante
                                             st.session_state[_fail_key] = 0

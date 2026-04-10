@@ -61,7 +61,9 @@ Plataforma de **aprendizaje adaptativo** construida con Python y Streamlit que u
 - **Códigos de invitación para acceso inter-nivel**: los docentes generan un código único por grupo; los estudiantes lo usan en la pestaña "Código de acceso" de Matrículas para unirse a cursos de otro nivel educativo.
 - **Tags de taxonomía en preguntas**: cada ítem puede llevar un array JSON de tags con tres dimensiones (cognitiva, general, específica) que se muestran como badges en la UI.
 - **Temporizadores en tiempo real**: dos cronómetros JavaScript que se actualizan segundo a segundo sin depender de reruns de Streamlit: uno de sesión (sidebar, gris, compacto) que mide el tiempo total conectado, y otro por pregunta (sobre el enunciado, grande, dorado) que se reinicia con cada nueva pregunta. Ideales para estudiantes que practican con tiempo limitado (olimpiadas, exámenes).
-- **Exportación CSV/XLSX para docentes**: descarga completa de datos de estudiantes en formato CSV o Excel multi-hoja (intentos con tiempo por pregunta y RD, matrículas, procedimientos). Diseñado para análisis estadístico posterior con herramientas externas.
+- **Exportación CSV/XLSX para docentes**: descarga completa de datos de estudiantes en formato CSV o Excel multi-hoja (intentos con tiempo por pregunta y RD, matrículas, procedimientos, interacciones con KatIA). Diseñado para análisis estadístico posterior con herramientas externas.
+- **Registro de interacciones con KatIA**: cada pregunta del estudiante al chat socrático se guarda en base de datos con contexto completo (curso, ítem, tema). El docente ve un resumen por estudiante (temas más consultados, historial de conversaciones) en el dashboard y puede exportar los datos.
+- **Banners pixel art en tarjetas de curso**: las tarjetas de curso del estudiante muestran banners temáticos (geometría, aritmética, lógica, combinatoria, probabilidad, álgebra) que se cargan como base64 desde `Banners/`.
 - **Panel de ranking docente**: tres modos de visualización — por nivel educativo, por curso y por grupo — con selectores dinámicos.
 - **Imágenes en preguntas**: los ítems del banco pueden incluir `image_url` (URL externa) o `image_path` (ruta local relativa al repo). Las figuras geométricas del bloque Semillero se extraen directamente de los PDFs originales de las Olimpiadas UdeA 2020 con PyMuPDF.
 
@@ -156,6 +158,7 @@ LevelUp-ELO/
 │   │       ├── conteo_combinatoria_semillero_6.json ...
 │   │       └── probabilidad_semillero_6.json ...
 │   └── images/             # Figuras geométricas extraídas de PDFs (86 PNGs)
+├── Banners/                # Banners pixel art por materia (PNG) para tarjetas de curso
 ├── KatIA/                  # Assets de la tutora socrática
 │   ├── katIA.png               # Avatar estático (6.5 MB)
 │   ├── correcto.gif            # GIF original celebración (2.3 MB)
@@ -319,7 +322,7 @@ Servicio dedicado que se activa automáticamente cuando el proveedor es **Groq**
 **Flujo:**
 1. La imagen del procedimiento se envía en base64 a `https://api.groq.com/openai/v1`.
 2. El modelo transcribe el contenido, evalúa cada paso y asigna un `score_procedimiento` (0–100).
-3. En caso de JSON inválido, se reintenta una vez; si falla de nuevo, se lanza un `ValueError` controlado.
+3. En caso de JSON inválido, se escapan automáticamente los backslashes LaTeX no válidos (`\frac` → `\\frac`, etc.) que el LLM genera sin escapar, y se reintenta el parsing. Si falla de nuevo, se lanza un `ValueError` controlado y el procedimiento se guarda para revisión del docente.
 4. El score ajusta el ELO del estudiante en el tópico activo como factor secundario:
 
 ```
@@ -509,11 +512,23 @@ Restricciones: **índice único** en `(teacher_id, name_normalized)` — un prof
 | `status` | TEXT | `pending` (nuevo) / `resolved` (resuelto por admin) |
 | `created_at` | TIMESTAMP | Fecha y hora del reporte |
 
+**`katia_interactions`**
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | INTEGER PK | Identificador |
+| `user_id` | INTEGER FK | Estudiante que interactúa |
+| `course_id` | TEXT | Curso activo al momento de la interacción |
+| `item_id` | TEXT | Pregunta activa |
+| `item_topic` | TEXT | Tema de la pregunta |
+| `student_message` | TEXT | Pregunta del estudiante a KatIA |
+| `katia_response` | TEXT | Respuesta generada por el tutor socrático |
+| `created_at` | TIMESTAMP | Fecha y hora de la interacción |
+
 **`audit_group_changes`**: log de reasignaciones de grupo (admin), con usuario, grupo anterior/nuevo y timestamp.
 
 ### Migraciones
 
-Las migraciones son **aditivas** (`ALTER TABLE ADD COLUMN IF NOT EXISTS` y `CREATE TABLE IF NOT EXISTS`). No hay migraciones destructivas. Se ejecutan automáticamente en `__init__()` de ambos repositorios. El repositorio PostgreSQL usa `pg_try_advisory_lock(12345)` (no-bloqueante) para que solo una instancia ejecute las migraciones cuando Streamlit arranca en paralelo; las demás retornan inmediatamente si el lock está tomado. Para ejecutar migraciones manualmente: `python migrate.py`.
+Las migraciones son **aditivas** (`ALTER TABLE ADD COLUMN IF NOT EXISTS` y `CREATE TABLE IF NOT EXISTS`). No hay migraciones destructivas. Se ejecutan automáticamente en `__init__()` de ambos repositorios. El repositorio PostgreSQL usa `pg_try_advisory_lock(N)` (no-bloqueante) en todas las funciones de inicialización (migraciones, seeds de admin/demo/test, sincronización de ítems) con IDs 12345–12349, para que solo una instancia ejecute cada operación cuando Streamlit arranca en paralelo; las demás retornan inmediatamente si el lock está tomado. Para ejecutar migraciones manualmente: `python migrate.py`.
 
 ### Usuario admin
 
@@ -567,7 +582,8 @@ Los estudiantes se **matriculan** en cursos de su nivel y se unen a un **grupo**
 - **Panel de rankings** con tres modos: por nivel educativo, por curso y por grupo — cada uno con selectores dinámicos.
 - Revisa y califica **procedimientos** enviados por alumnos (con propuesta de la IA como referencia). Badge de notificación con cantidad de pendientes.
 - Puede generar **análisis pedagógico con IA** sobre cualquier alumno (con ELO desglosado por tópico y tiempo promedio de respuesta).
-- **Exportación CSV/XLSX**: descarga datos completos de todos sus estudiantes (intentos con tiempo por pregunta y rating deviation, matrículas, procedimientos) para análisis estadístico con herramientas externas. Excel incluye hojas separadas por tipo de dato.
+- **Exportación CSV/XLSX**: descarga datos completos de todos sus estudiantes (intentos con tiempo por pregunta y rating deviation, matrículas, procedimientos, interacciones con KatIA) para análisis estadístico con herramientas externas. Excel incluye hojas separadas por tipo de dato.
+- Visualiza **interacciones con KatIA** de cada estudiante: resumen de temas más consultados e historial de conversaciones con el tutor socrático.
 
 ### Admin
 - Aprueba o rechaza solicitudes de docentes.

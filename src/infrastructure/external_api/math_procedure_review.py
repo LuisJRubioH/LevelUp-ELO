@@ -86,7 +86,18 @@ def _parse_json_response(content: str) -> dict:
     if start == -1 or end == -1 or end <= start:
         raise ValueError("La respuesta no contiene un objeto JSON válido.")
 
-    return json.loads(content[start:end + 1])
+    json_str = content[start:end + 1]
+    try:
+        return json.loads(json_str)
+    except json.JSONDecodeError:
+        # El LLM genera LaTeX con backslashes sin escapar (\frac, \sin, \alpha, etc.)
+        # que rompen json.loads. Escapar backslashes no válidos en JSON.
+        json_str = re.sub(
+            r'\\(?!["\\/bfnrtu])',
+            r'\\\\',
+            json_str,
+        )
+        return json.loads(json_str)
 
 
 def review_math_procedure(
