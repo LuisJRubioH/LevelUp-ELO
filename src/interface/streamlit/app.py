@@ -2745,22 +2745,26 @@ else:
                                     'correct_option': item_data.get('correct_option') or '',
                                 }
                                 try:
+                                    # Recolectar respuesta sin mostrarla para validar primero
+                                    with st.spinner("KatIA está pensando..."):
+                                        _katia_resp = "".join(
+                                            get_katia_chat_stream(
+                                                messages=st.session_state.katia_chat_history,
+                                                question_context=_q_ctx,
+                                                base_url=st.session_state.ai_url,
+                                                model_name=_soc_model,
+                                                api_key=st.session_state.cloud_api_key,
+                                                provider=st.session_state.get('ai_provider'),
+                                            )
+                                        )
+                                    # Validar antes de mostrar — si revela la respuesta, sustituir
+                                    if isinstance(_katia_resp, str) and not validate_socratic_response(_katia_resp):
+                                        _katia_resp = "¿Qué pasos has intentado hasta ahora? ¿Qué parte del problema te genera más dudas?"
                                     with _chat_container:
                                         st.chat_message("user").markdown(_katia_input)
                                         with st.chat_message("assistant", avatar=_katia_avatar):
-                                            _katia_resp = st.write_stream(
-                                                get_katia_chat_stream(
-                                                    messages=st.session_state.katia_chat_history,
-                                                    question_context=_q_ctx,
-                                                    base_url=st.session_state.ai_url,
-                                                    model_name=_soc_model,
-                                                    api_key=st.session_state.cloud_api_key,
-                                                    provider=st.session_state.get('ai_provider'),
-                                                )
-                                            )
+                                            st.markdown(_katia_resp)
                                     if isinstance(_katia_resp, str):
-                                        if not validate_socratic_response(_katia_resp):
-                                            st.warning("La respuesta fue filtrada por revelar demasiada información.")
                                         st.session_state.katia_chat_history.append({"role": "assistant", "content": _katia_resp})
                                         # Registrar interacción con KatIA
                                         try:
