@@ -89,6 +89,21 @@ Consultar la skill correspondiente **antes de empezar** cuando la tarea entre en
 | Crear o editar ítems, agregar cursos, modificar banco de preguntas | `.claude/skills/items-bank.md` |
 | Después de modificar cualquier repositorio | `.claude/skills/db-sync-checker.md` + `python scripts/db_sync_check.py` |
 
+### Plan V1.0 — Skills por sprint
+
+**OBLIGATORIO**: Antes de implementar cualquier tarea del Plan V1.0, leer el skill del sprint correspondiente **completo** antes de escribir una sola línea de código.
+
+| Sprint | Tarea | Skill — LEER ANTES DE EMPEZAR |
+|---|---|---|
+| Sprint 1 | Fix encoding banco, logging carga JSON, validate_bank.py | `.claude/skills/v1-sprint1-bank-integrity.md` |
+| Sprint 2 | Eliminar importlib.reload, feature flag CognitiveAnalyzer, transacciones atómicas, Protocol interfaces, zdp_interval, requirements | `.claude/skills/v1-sprint2-technical-debt.md` |
+| Sprint 3 | logging_config.py, reemplazar except silenciosos, feedback diferenciado usuario | `.claude/skills/v1-sprint3-logging-errors.md` |
+| Sprint 4 | Modularizar app.py en vistas, state.py, assets.py, timers.py | `.claude/skills/v1-sprint4-modularization.md` |
+| Sprint 5 | Tests unitarios dominio ELO, selector, student_service, banco, integración SQLite | `.claude/skills/v1-sprint5-testing.md` |
+| Sprint 6 | pre-commit hooks, GitHub Actions CI, __version__.py, CHANGELOG.md, tag v1.0.0 | `.claude/skills/v1-sprint6-cicd.md` |
+
+**Regla de los sprints**: implementar en orden (1 → 2 → 3 → 4 → 5 → 6). Cada sprint tiene un checklist de completitud al final del skill — no pasar al siguiente hasta que todos los ítems estén marcados.
+
 ---
 
 ## Arquitectura
