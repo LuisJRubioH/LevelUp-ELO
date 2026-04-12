@@ -25,6 +25,7 @@ _SYSTEM_PROMPT = (
     "Evalúa únicamente lo que aparece en la imagen."
 )
 
+
 def _build_user_prompt(question_content: str = "") -> str:
     """Construye el prompt de usuario incluyendo la pregunta de referencia si se provee."""
     if question_content:
@@ -77,16 +78,16 @@ No incluyas texto fuera del JSON."""
 
 def _parse_json_response(content: str) -> dict:
     """Extrae y parsea el JSON de la respuesta del modelo."""
-    content = re.sub(r'```json\s*', '', content)
-    content = re.sub(r'```\s*', '', content)
+    content = re.sub(r"```json\s*", "", content)
+    content = re.sub(r"```\s*", "", content)
     content = content.strip()
 
-    start = content.find('{')
-    end = content.rfind('}')
+    start = content.find("{")
+    end = content.rfind("}")
     if start == -1 or end == -1 or end <= start:
         raise ValueError("La respuesta no contiene un objeto JSON válido.")
 
-    json_str = content[start:end + 1]
+    json_str = content[start : end + 1]
     try:
         return json.loads(json_str)
     except json.JSONDecodeError:
@@ -94,7 +95,7 @@ def _parse_json_response(content: str) -> dict:
         # que rompen json.loads. Escapar backslashes no válidos en JSON.
         json_str = re.sub(
             r'\\(?!["\\/bfnrtu])',
-            r'\\\\',
+            r"\\\\",
             json_str,
         )
         return json.loads(json_str)
@@ -129,7 +130,7 @@ def review_math_procedure(
     """
     from openai import OpenAI
 
-    b64 = base64.b64encode(image_bytes).decode('utf-8')
+    b64 = base64.b64encode(image_bytes).decode("utf-8")
     client = OpenAI(api_key=api_key, base_url=GROQ_BASE_URL)
     user_prompt = _build_user_prompt(question_content)
 
@@ -164,7 +165,7 @@ def review_math_procedure(
             result = _parse_json_response(content)
             # Verificar correspondencia: si el modelo detectó que no corresponde,
             # retornar score=0 con el mensaje específico sin evaluar contenido.
-            if question_content and not result.get('corresponde_a_pregunta', True):
+            if question_content and not result.get("corresponde_a_pregunta", True):
                 return {
                     "corresponde_a_pregunta": False,
                     "transcripcion": "",
@@ -185,8 +186,7 @@ def review_math_procedure(
                 continue  # un reintento con el mismo prompt
 
     raise ValueError(
-        f"La respuesta del modelo no es JSON válido tras dos intentos. "
-        f"Error: {last_error}"
+        f"La respuesta del modelo no es JSON válido tras dos intentos. " f"Error: {last_error}"
     )
 
 

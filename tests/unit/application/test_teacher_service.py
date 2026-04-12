@@ -4,6 +4,7 @@ tests/unit/application/test_teacher_service.py
 Pruebas unitarias de TeacherService.
 Usa repositorio mock — sin acceso a BD real ni IA real.
 """
+
 import pytest
 from unittest.mock import MagicMock, patch
 from src.application.services.teacher_service import TeacherService
@@ -125,10 +126,8 @@ class TestGenerateAiAnalysis:
         repo.get_latest_elo_by_topic.return_value = {}
         with patch(
             "src.application.services.teacher_service.get_pedagogical_analysis",
-            return_value="Análisis generado"
+            return_value="Análisis generado",
         ) as mock_ai:
-            result = service.generate_ai_analysis(
-                student_id=1, global_elo=1200, api_key="test_key"
-            )
+            result = service.generate_ai_analysis(student_id=1, global_elo=1200, api_key="test_key")
         mock_ai.assert_called_once()
         assert result == "Análisis generado"

@@ -1,0 +1,74 @@
+# .pre-commit-config.yaml
+# Pre-commit hooks para LevelUp-ELO.
+# Instalar con: pip install pre-commit && pre-commit install
+#
+# Hooks que se ejecutan en cada commit:
+#   1. validate-bank   → integridad del banco de preguntas
+#   2. db-sync-check   → paridad SQLite/PostgreSQL
+#   3. black           → formateo de código Python
+#   4. trailing-ws     → espacios finales (built-in)
+#
+# Hook que se ejecuta en git push:
+#   5. pytest-unit     → suite de tests unitarios (sin DB, rápida)
+
+default_stages: [pre-commit]
+
+repos:
+  # ── Hooks built-in (no requieren instalación externa) ──────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: "Eliminar espacios finales"
+      - id: end-of-file-fixer
+        name: "Asegurar newline al final del archivo"
+      - id: check-json
+        name: "Validar sintaxis JSON"
+        files: ^items/bank/
+      - id: check-merge-conflict
+        name: "Detectar marcadores de conflicto"
+
+  # ── Black (formateo Python) ────────────────────────────────────────────
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
+    hooks:
+      - id: black
+        name: "Formatear Python con Black"
+        language_version: python3
+        args: ["--line-length=100"]
+
+  # ── Validador del banco de preguntas ──────────────────────────────────
+  - repo: local
+    hooks:
+      - id: validate-bank
+        name: "Validar banco de preguntas"
+        entry: python scripts/validate_bank.py
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: ^items/bank/.*\.json$
+        # Solo se ejecuta si algún JSON del banco cambió
+
+  # ── Paridad SQLite/PostgreSQL ─────────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: db-sync-check
+        name: "Verificar paridad DB (SQLite == PostgreSQL)"
+        entry: python scripts/db_sync_check.py
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: >
+          ^src/infrastructure/persistence/(sqlite|postgres)_repository\.py$
+        # Solo se ejecuta si se modificó alguno de los dos repos
+
+  # ── Tests unitarios (pre-push, no pre-commit) ─────────────────────────
+  - repo: local
+    hooks:
+      - id: pytest-unit
+        name: "Tests unitarios (pytest tests/unit/)"
+        entry: python -m pytest tests/unit/ -q --tb=short
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        # Más lento → solo bloquea el push, no el commit

@@ -17,13 +17,13 @@ _TEST_PASSWORD = "test1234"
 
 _TEST_STUDENTS = [
     # (username, education_level, grade)
-    ("estudiante_colegio_1",      LEVEL_COLEGIO,     None),
-    ("estudiante_colegio_2",      LEVEL_COLEGIO,     None),
-    ("estudiante_colegio_3",      LEVEL_COLEGIO,     None),
-    ("estudiante_universidad_1",  LEVEL_UNIVERSIDAD, None),
-    ("estudiante_universidad_2",  LEVEL_UNIVERSIDAD, None),
-    ("estudiante_semillero_1",    LEVEL_SEMILLERO,   "9"),
-    ("estudiante_semillero_2",    LEVEL_SEMILLERO,   "11"),
+    ("estudiante_colegio_1", LEVEL_COLEGIO, None),
+    ("estudiante_colegio_2", LEVEL_COLEGIO, None),
+    ("estudiante_colegio_3", LEVEL_COLEGIO, None),
+    ("estudiante_universidad_1", LEVEL_UNIVERSIDAD, None),
+    ("estudiante_universidad_2", LEVEL_UNIVERSIDAD, None),
+    ("estudiante_semillero_1", LEVEL_SEMILLERO, "9"),
+    ("estudiante_semillero_2", LEVEL_SEMILLERO, "11"),
 ]
 
 
@@ -41,7 +41,7 @@ def seed_test_students(repo):
     # ── Salida rápida: si todos ya existen, no hay nada que hacer ────────
     cursor.execute(
         "SELECT username FROM users WHERE username IN ({})".format(
-            ','.join('?' * len(_TEST_STUDENTS))
+            ",".join("?" * len(_TEST_STUDENTS))
         ),
         [s[0] for s in _TEST_STUDENTS],
     )
@@ -65,9 +65,9 @@ def seed_test_students(repo):
 
     # Grupos de prueba por nivel (uno por bloque educativo)
     _level_groups = {
-        LEVEL_COLEGIO:     ("Grupo Prueba - Colegio",     None),
+        LEVEL_COLEGIO: ("Grupo Prueba - Colegio", None),
         LEVEL_UNIVERSIDAD: ("Grupo Prueba - Universidad", None),
-        LEVEL_SEMILLERO:   ("Grupo Prueba - Semillero",   None),
+        LEVEL_SEMILLERO: ("Grupo Prueba - Semillero", None),
     }
     for level, (g_name, _) in _level_groups.items():
         g_norm = g_name.strip().lower()
@@ -79,7 +79,7 @@ def seed_test_students(repo):
         if not row:
             # Para semillero, usar cualquier bloque de grado para encontrar un curso
             if level == LEVEL_SEMILLERO:
-                block_pattern = 'Semillero %'
+                block_pattern = "Semillero %"
                 cursor.execute(
                     "SELECT id FROM courses WHERE block LIKE ? ORDER BY name ASC LIMIT 1",
                     (block_pattern,),
@@ -121,7 +121,7 @@ def seed_test_students(repo):
 
         # Para semillero: filtrar por bloque específico del grado
         if edu_level == LEVEL_SEMILLERO and _grade:
-            block = f'Semillero {_grade}°'
+            block = f"Semillero {_grade}°"
         else:
             block = LEVEL_TO_BLOCK[edu_level]
 

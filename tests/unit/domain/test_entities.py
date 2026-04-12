@@ -5,6 +5,7 @@ Pruebas de los dataclasses de dominio:
 - Student: validación de nivel educativo, propiedades block y level_label
 - ProcedureSubmission: validación de status, propiedades is_pending_validation / is_validated
 """
+
 import pytest
 from src.domain.entities import (
     Student,
@@ -70,8 +71,7 @@ class TestProcedureSubmission:
     def test_valid_pending_validation_status(self):
         """Status PENDING_TEACHER_VALIDATION → creación exitosa."""
         sub = ProcedureSubmission(
-            id=2, student_id=10, item_id="item_01",
-            status=PROC_STATUS_PENDING_VALIDATION
+            id=2, student_id=10, item_id="item_01", status=PROC_STATUS_PENDING_VALIDATION
         )
         assert sub.is_pending_validation is True
         assert sub.is_validated is False
@@ -87,9 +87,7 @@ class TestProcedureSubmission:
     def test_invalid_status_raises_value_error(self):
         """Status no reconocido → ValueError."""
         with pytest.raises(ValueError, match="inválido"):
-            ProcedureSubmission(
-                id=4, student_id=10, item_id="item_01", status="desconocido"
-            )
+            ProcedureSubmission(id=4, student_id=10, item_id="item_01", status="desconocido")
 
     def test_optional_fields_default_to_none(self):
         """ai_proposed_score, teacher_score y final_score son opcionales."""

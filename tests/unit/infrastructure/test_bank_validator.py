@@ -6,6 +6,7 @@ Pruebas del validador de banco de preguntas (scripts/validate_bank.py).
 El validador usa listas globales `errors` y `warnings` que se reinician
 en cada test vía setup_method para evitar contaminación entre pruebas.
 """
+
 import json
 import sys
 import pytest
@@ -21,6 +22,7 @@ class TestValidateItem:
     def setup_method(self):
         """Limpiar estado global del validador antes de cada test."""
         import validate_bank
+
         validate_bank.errors.clear()
         validate_bank.warnings.clear()
         self.validate_item = validate_bank.validate_item
@@ -65,8 +67,7 @@ class TestValidateItem:
         }
         self.validate_item(item, "test.json")
         assert len(self.errors) > 0
-        assert any("difficulty" in e.lower() or "faltan" in e.lower()
-                   for e in self.errors)
+        assert any("difficulty" in e.lower() or "faltan" in e.lower() for e in self.errors)
 
     def test_single_option_is_error(self):
         """Solo 1 opción → error (mínimo 2 opciones)."""
@@ -79,8 +80,7 @@ class TestValidateItem:
             "correct_option": "Solo una",
         }
         self.validate_item(item, "test.json")
-        assert any("opci" in e.lower() or "option" in e.lower()
-                   for e in self.errors)
+        assert any("opci" in e.lower() or "option" in e.lower() for e in self.errors)
 
     def test_out_of_range_difficulty_is_warning_not_error(self):
         """Dificultad fuera de [100, 3000] → advertencia, no error crítico."""
@@ -128,6 +128,7 @@ class TestValidateFile:
 
     def setup_method(self):
         import validate_bank
+
         validate_bank.errors.clear()
         validate_bank.warnings.clear()
         self.validate_file = validate_bank.validate_file
@@ -157,10 +158,7 @@ class TestValidateFile:
         json_file.write_bytes(b'[{"id": "bad", "content": "\x8d\x9d"}]')
         result = self.validate_file(json_file)
         assert result == []
-        assert any(
-            "encoding" in e.lower() or "unicode" in e.lower()
-            for e in self.errors
-        )
+        assert any("encoding" in e.lower() or "unicode" in e.lower() for e in self.errors)
 
     def test_invalid_json_produces_error(self, tmp_path):
         """JSON con sintaxis inválida → error, retorna lista vacía."""

@@ -21,6 +21,7 @@ SpeedTier = Literal["fast", "medium", "slow"]
 @dataclass(frozen=True)
 class ModelCapabilities:
     """Capacidades conocidas de un modelo de IA."""
+
     text: bool = True
     vision: bool = False
     reasoning: bool = False
@@ -33,53 +34,50 @@ class ModelCapabilities:
 
 _MODEL_REGISTRY: dict[str, ModelCapabilities] = {
     # ── Modelos matemáticos sin visión ──
-    "qwen2.5-math":        ModelCapabilities(vision=False, reasoning=True,  speed="fast"),
-    "deepseek-r1":         ModelCapabilities(vision=False, reasoning=True,  speed="medium"),
-
+    "qwen2.5-math": ModelCapabilities(vision=False, reasoning=True, speed="fast"),
+    "deepseek-r1": ModelCapabilities(vision=False, reasoning=True, speed="medium"),
     # ── Modelos con visión + razonamiento ──
-    "qwen2.5-vl":          ModelCapabilities(vision=True,  reasoning=True,  speed="medium"),
-    "qwen-2-vl":           ModelCapabilities(vision=True,  reasoning=True,  speed="medium"),
-    "gpt-4o":              ModelCapabilities(vision=True,  reasoning=True,  speed="fast"),
-    "gpt-4.1":             ModelCapabilities(vision=True,  reasoning=True,  speed="fast"),
-    "gpt-4-turbo":         ModelCapabilities(vision=True,  reasoning=True,  speed="medium"),
-    "claude-sonnet":       ModelCapabilities(vision=True,  reasoning=True,  speed="fast"),
-    "claude-opus":         ModelCapabilities(vision=True,  reasoning=True,  speed="slow"),
-    "claude-haiku":        ModelCapabilities(vision=True,  reasoning=True,  speed="fast"),
-    "gemini-2":            ModelCapabilities(vision=True,  reasoning=True,  speed="fast"),
-    "gemini-1.5":          ModelCapabilities(vision=True,  reasoning=True,  speed="medium"),
-    "llama-4":             ModelCapabilities(vision=True,  reasoning=True,  speed="medium"),
-    "llama4":              ModelCapabilities(vision=True,  reasoning=True,  speed="medium"),
-    "mistral-3":           ModelCapabilities(vision=True,  reasoning=True,  speed="medium"),
-    "mistral3":            ModelCapabilities(vision=True,  reasoning=True,  speed="medium"),
-    "ministral-3":         ModelCapabilities(vision=True,  reasoning=True,  speed="medium"),
-    "pixtral":             ModelCapabilities(vision=True,  reasoning=True,  speed="medium"),
-
+    "qwen2.5-vl": ModelCapabilities(vision=True, reasoning=True, speed="medium"),
+    "qwen-2-vl": ModelCapabilities(vision=True, reasoning=True, speed="medium"),
+    "gpt-4o": ModelCapabilities(vision=True, reasoning=True, speed="fast"),
+    "gpt-4.1": ModelCapabilities(vision=True, reasoning=True, speed="fast"),
+    "gpt-4-turbo": ModelCapabilities(vision=True, reasoning=True, speed="medium"),
+    "claude-sonnet": ModelCapabilities(vision=True, reasoning=True, speed="fast"),
+    "claude-opus": ModelCapabilities(vision=True, reasoning=True, speed="slow"),
+    "claude-haiku": ModelCapabilities(vision=True, reasoning=True, speed="fast"),
+    "gemini-2": ModelCapabilities(vision=True, reasoning=True, speed="fast"),
+    "gemini-1.5": ModelCapabilities(vision=True, reasoning=True, speed="medium"),
+    "llama-4": ModelCapabilities(vision=True, reasoning=True, speed="medium"),
+    "llama4": ModelCapabilities(vision=True, reasoning=True, speed="medium"),
+    "mistral-3": ModelCapabilities(vision=True, reasoning=True, speed="medium"),
+    "mistral3": ModelCapabilities(vision=True, reasoning=True, speed="medium"),
+    "ministral-3": ModelCapabilities(vision=True, reasoning=True, speed="medium"),
+    "pixtral": ModelCapabilities(vision=True, reasoning=True, speed="medium"),
     # ── Modelos con visión pero razonamiento limitado ──
-    "gemma-3":             ModelCapabilities(vision=True,  reasoning=False, speed="fast"),
-    "gemma3":              ModelCapabilities(vision=True,  reasoning=False, speed="fast"),
-    "moondream":           ModelCapabilities(vision=True,  reasoning=False, speed="fast"),
-    "minicpm-v":           ModelCapabilities(vision=True,  reasoning=False, speed="fast"),
-    "llava":               ModelCapabilities(vision=True,  reasoning=False, speed="fast"),
-
+    "gemma-3": ModelCapabilities(vision=True, reasoning=False, speed="fast"),
+    "gemma3": ModelCapabilities(vision=True, reasoning=False, speed="fast"),
+    "moondream": ModelCapabilities(vision=True, reasoning=False, speed="fast"),
+    "minicpm-v": ModelCapabilities(vision=True, reasoning=False, speed="fast"),
+    "llava": ModelCapabilities(vision=True, reasoning=False, speed="fast"),
     # ── Modelos de texto rápidos (sin visión) ──
-    "llama-3.1-8b":        ModelCapabilities(vision=False, reasoning=True,  speed="fast"),
-    "llama-3.3-70b":       ModelCapabilities(vision=False, reasoning=True,  speed="medium"),
-    "qwen2.5-7b":          ModelCapabilities(vision=False, reasoning=True,  speed="fast"),
-    "qwen2.5-9b":          ModelCapabilities(vision=False, reasoning=True,  speed="fast"),
-    "qwen2.5-14b":         ModelCapabilities(vision=False, reasoning=True,  speed="medium"),
-    "qwen2.5-72b":         ModelCapabilities(vision=False, reasoning=True,  speed="slow"),
-    "gpt-4o-mini":         ModelCapabilities(vision=True,  reasoning=True,  speed="fast"),
-    "gemini-2.0-flash":    ModelCapabilities(vision=True,  reasoning=True,  speed="fast"),
-    "mistral-small":       ModelCapabilities(vision=False, reasoning=False, speed="fast"),
+    "llama-3.1-8b": ModelCapabilities(vision=False, reasoning=True, speed="fast"),
+    "llama-3.3-70b": ModelCapabilities(vision=False, reasoning=True, speed="medium"),
+    "qwen2.5-7b": ModelCapabilities(vision=False, reasoning=True, speed="fast"),
+    "qwen2.5-9b": ModelCapabilities(vision=False, reasoning=True, speed="fast"),
+    "qwen2.5-14b": ModelCapabilities(vision=False, reasoning=True, speed="medium"),
+    "qwen2.5-72b": ModelCapabilities(vision=False, reasoning=True, speed="slow"),
+    "gpt-4o-mini": ModelCapabilities(vision=True, reasoning=True, speed="fast"),
+    "gemini-2.0-flash": ModelCapabilities(vision=True, reasoning=True, speed="fast"),
+    "mistral-small": ModelCapabilities(vision=False, reasoning=False, speed="fast"),
 }
 
 # ── Capacidades por defecto según proveedor cloud ────────────────────────────
 # Se usan cuando el modelo no aparece en el registro explícito.
 _PROVIDER_DEFAULTS: dict[str, ModelCapabilities] = {
-    "anthropic": ModelCapabilities(vision=True,  reasoning=True,  speed="fast"),
-    "gemini":    ModelCapabilities(vision=True,  reasoning=True,  speed="fast"),
-    "openai":    ModelCapabilities(vision=True,  reasoning=True,  speed="fast"),
-    "groq":      ModelCapabilities(vision=False, reasoning=True,  speed="fast"),
+    "anthropic": ModelCapabilities(vision=True, reasoning=True, speed="fast"),
+    "gemini": ModelCapabilities(vision=True, reasoning=True, speed="fast"),
+    "openai": ModelCapabilities(vision=True, reasoning=True, speed="fast"),
+    "groq": ModelCapabilities(vision=False, reasoning=True, speed="fast"),
 }
 
 
@@ -123,6 +121,7 @@ def detect_model_capabilities(
         from src.infrastructure.external_api.model_capability_detector import (
             detect_capabilities_from_name,
         )
+
         return detect_capabilities_from_name(model_name)
     except ImportError:
         pass
@@ -263,7 +262,8 @@ def validate_socratic_response(response: str) -> bool:
 
     # Contar oraciones (separadas por . ! ?)
     import re
-    sentences = [s.strip() for s in re.split(r'[.!?]+', response) if s.strip()]
+
+    sentences = [s.strip() for s in re.split(r"[.!?]+", response) if s.strip()]
     if len(sentences) > _SOCRATIC_MAX_SENTENCES:
         return False
 

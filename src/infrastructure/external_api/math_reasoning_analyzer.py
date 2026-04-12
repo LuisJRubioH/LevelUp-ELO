@@ -21,6 +21,7 @@ from src.infrastructure.external_api.symbolic_math_verifier import (
 @dataclass
 class StepAnalysis:
     """Resultado del análisis de un paso individual."""
+
     step: int
     expression: str
     valid: bool
@@ -31,6 +32,7 @@ class StepAnalysis:
 @dataclass
 class ProcedureAnalysis:
     """Resultado completo del análisis de un procedimiento."""
+
     steps: list[StepAnalysis] = field(default_factory=list)
     total_steps: int = 0
     valid_steps: int = 0
@@ -117,7 +119,8 @@ def analyze_steps(steps: list[MathStep]) -> ProcedureAnalysis:
         base_score = (analysis.valid_steps / analysis.total_steps) * 100
         # Penalización extra por errores de signo y distributiva (errores conceptuales)
         conceptual_errors = sum(
-            1 for s in analysis.steps
+            1
+            for s in analysis.steps
             if s.error_type in ("sign_error", "incorrect_distributive", "unlike_terms_combined")
         )
         penalty = conceptual_errors * 10
@@ -132,8 +135,7 @@ def analyze_steps(steps: list[MathStep]) -> ProcedureAnalysis:
         errors = [s for s in analysis.steps if not s.valid]
         error_nums = ", ".join(str(s.step) for s in errors)
         analysis.summary = (
-            f"Se detectaron {analysis.invalid_steps} error(es) "
-            f"en los pasos: {error_nums}."
+            f"Se detectaron {analysis.invalid_steps} error(es) " f"en los pasos: {error_nums}."
         )
 
     return analysis

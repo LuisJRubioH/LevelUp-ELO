@@ -6,6 +6,7 @@ Verifican el ciclo completo sin tocar la DB de desarrollo.
 
 El fixture `repo` usa tmp_path de pytest → la DB se elimina al terminar el test.
 """
+
 import json
 import pytest
 from src.infrastructure.persistence.sqlite_repository import SQLiteRepository
@@ -56,7 +57,9 @@ class TestAtomicTransaction:
         """save_answer_transaction persiste el intento en la tabla attempts."""
         # Registrar un usuario y obtener su ID
         ok, msg = repo.register_user(
-            "test_student", "password123", "student",
+            "test_student",
+            "password123",
+            "student",
             education_level="universidad",
         )
         assert ok, f"No se pudo registrar el usuario: {msg}"
@@ -117,7 +120,9 @@ class TestAtomicTransaction:
     def test_register_and_login_roundtrip(self, repo):
         """Registro + login devuelven el mismo usuario."""
         ok, _ = repo.register_user(
-            "rondtrip_user", "pass1234", "student",
+            "rondtrip_user",
+            "pass1234",
+            "student",
             education_level="colegio",
         )
         assert ok

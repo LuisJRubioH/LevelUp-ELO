@@ -4,6 +4,7 @@ tests/unit/domain/test_katia_messages.py
 Pruebas de las funciones de mensajes de KatIA.
 Son funciones puras — sin mocks, sin I/O.
 """
+
 import pytest
 from src.domain.katia.katia_messages import (
     get_random_message,

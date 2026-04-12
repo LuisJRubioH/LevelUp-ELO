@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 @dataclass
 class OCRResult:
     """Resultado del OCR matemático."""
+
     raw_text: str
     latex_expressions: list[str] = field(default_factory=list)
     backend_used: str = "none"
@@ -29,14 +30,14 @@ class OCRResult:
 # Patrones que identifican expresiones matemáticas en texto plano
 _MATH_PATTERNS = [
     # LaTeX delimitado: $...$, $$...$$, \(...\), \[...\]
-    re.compile(r'\$\$(.+?)\$\$', re.DOTALL),
-    re.compile(r'\$(.+?)\$'),
-    re.compile(r'\\\((.+?)\\\)'),
-    re.compile(r'\\\[(.+?)\\\]', re.DOTALL),
+    re.compile(r"\$\$(.+?)\$\$", re.DOTALL),
+    re.compile(r"\$(.+?)\$"),
+    re.compile(r"\\\((.+?)\\\)"),
+    re.compile(r"\\\[(.+?)\\\]", re.DOTALL),
     # Ecuaciones con = (ej: "2x + 3 = 7")
-    re.compile(r'[0-9a-zA-Z\s\+\-\*/\^\(\)]+\s*=\s*[0-9a-zA-Z\s\+\-\*/\^\(\)]+'),
+    re.compile(r"[0-9a-zA-Z\s\+\-\*/\^\(\)]+\s*=\s*[0-9a-zA-Z\s\+\-\*/\^\(\)]+"),
     # Expresiones con operadores matemáticos comunes
-    re.compile(r'(?:sin|cos|tan|log|ln|lim|int|sum|sqrt)\s*[\(\[{].+?[\)\]}]'),
+    re.compile(r"(?:sin|cos|tan|log|ln|lim|int|sum|sqrt)\s*[\(\[{].+?[\)\]}]"),
 ]
 
 

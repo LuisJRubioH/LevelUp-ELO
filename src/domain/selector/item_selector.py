@@ -9,7 +9,7 @@ from src.domain.elo.zdp import zdp_interval
 class AdaptiveItemSelector:
     """
     Selector experto basado en la Zona de Desarrollo Próximo (ZDP).
-    
+
     LÓGICA MATEMÁTICA:
     1. Probabilidad Esperada (P): Se utiliza el modelo logístico de ELO/IRT:
        P = 1 / (1 + 10^((Dificultad - Rating) / 400))
@@ -18,9 +18,10 @@ class AdaptiveItemSelector:
        - P < 0.4: Demasiado difícil (Frustration).
     3. Información de Fisher: Entre candidatos válidos, se maximiza I(P) = P * (1-P).
        Esto asegura una convergencia más rápida del ELO al elegir ítems cerca de P=0.5.
-    4. Expansión Progresiva: Si el banco es limitado, se relajan los límites de P 
+    4. Expansión Progresiva: Si el banco es limitado, se relajan los límites de P
        progresivamente (±0.05) hasta encontrar un ítem.
     """
+
     def __init__(self, target_low: float = 0.4, target_high: float = 0.75):
         self.target_low = target_low
         self.target_high = target_high
@@ -65,8 +66,6 @@ class AdaptiveItemSelector:
             candidates = [(i, expected_score(student_rating, i.difficulty)) for i in pool]
 
         # Priorizar por máxima información (Fisher Information) y peso del ítem
-        return max(
-            candidates,
-            key=lambda c: self.information(c[1]) * getattr(c[0], 'weight', 1.0)
-        )[0]
-
+        return max(candidates, key=lambda c: self.information(c[1]) * getattr(c[0], "weight", 1.0))[
+            0
+        ]

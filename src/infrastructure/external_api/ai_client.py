@@ -20,11 +20,11 @@ def _normalize_latex(text: str) -> str:
     if not text:
         return text
     # \[...\] → $$...$$  (bloque)
-    text = re.sub(r'\\\[', '$$', text)
-    text = re.sub(r'\\\]', '$$', text)
+    text = re.sub(r"\\\[", "$$", text)
+    text = re.sub(r"\\\]", "$$", text)
     # \(...\) → $...$  (inline)
-    text = re.sub(r'\\\(', '$', text)
-    text = re.sub(r'\\\)', '$', text)
+    text = re.sub(r"\\\(", "$", text)
+    text = re.sub(r"\\\)", "$", text)
     return text
 
 
@@ -33,9 +33,11 @@ def _normalize_latex_stream(chunk_generator):
     for chunk in chunk_generator:
         yield _normalize_latex(chunk)
 
+
 # Cargar variables de entorno desde .env si python-dotenv está instalado
 try:
     from dotenv import load_dotenv as _load_dotenv
+
     _load_dotenv()
 except ImportError:
     pass
@@ -98,11 +100,11 @@ PROVIDERS = {
 
 _KEY_PREFIXES = [
     ("sk-ant-", "anthropic"),
-    ("gsk_",    "groq"),
-    ("AIzaSy",  "gemini"),
-    ("hf_",     "huggingface"),
-    ("sk-proj-","openai"),
-    ("sk-",     "openai"),
+    ("gsk_", "groq"),
+    ("AIzaSy", "gemini"),
+    ("hf_", "huggingface"),
+    ("sk-proj-", "openai"),
+    ("sk-", "openai"),
 ]
 
 
@@ -132,12 +134,13 @@ def get_active_models(base_url="http://localhost:1234/v1"):
         response = requests.get(f"{base_url.rstrip('/')}/models", timeout=5)
         if response.status_code == 200:
             data = response.json()
-            return [m['id'] for m in data.get('data', [])]
+            return [m["id"] for m in data.get("data", [])]
     except Exception as e:
         logger.warning(
             "No se pudo obtener lista de modelos desde '%s': %s. "
             "Continuando sin detección automática de modelos.",
-            base_url, e,
+            base_url,
+            e,
         )
     return []
 
@@ -145,7 +148,7 @@ def get_active_models(base_url="http://localhost:1234/v1"):
 def detect_lmstudio(base_url="http://localhost:1234/v1"):
     """Detecta si LM Studio (u Ollama) está activo y retorna sus modelos disponibles."""
     models = get_active_models(base_url)
-    return {'available': bool(models), 'models': models}
+    return {"available": bool(models), "models": models}
 
 
 def select_best_model(models):
@@ -156,7 +159,7 @@ def select_best_model(models):
         return None
     if len(models) == 1:
         return models[0]
-    preferred_sizes = ['8b', '7b', '9b', '4b', '3b', '12b', '13b', '14b', '72b', '70b']
+    preferred_sizes = ["8b", "7b", "9b", "4b", "3b", "12b", "13b", "14b", "72b", "70b"]
     for size in preferred_sizes:
         for model in models:
             if size in model.lower():
@@ -189,6 +192,7 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
         # ── Anthropic Claude SDK ─────────────────────────────────────────────
         try:
             import anthropic
+
             client = anthropic.Anthropic(api_key=api_key)
             resp = client.messages.create(
                 model=model_name,
@@ -205,7 +209,9 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
             if "429" in err_str or "rate_limit" in err_str.lower():
                 return "ERROR_429: ⏳ Límite de solicitudes alcanzado. Espera un momento antes de continuar."
             if "timeout" in err_str.lower() or "connection" in err_str.lower():
-                raise ConnectionError("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.") from e
+                raise ConnectionError(
+                    "⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos."
+                ) from e
             return f"❌ Error inesperado: {type(e).__name__}. Contacta al administrador."
 
     elif api_key:
@@ -215,10 +221,13 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
             _base = base_url
         try:
             from openai import OpenAI
+
             client = OpenAI(api_key=api_key, base_url=_base)
             response = client.chat.completions.create(
-                model=model_name, messages=messages,
-                temperature=temperature, max_tokens=4096,
+                model=model_name,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=4096,
             )
             content = response.choices[0].message.content
             return strip_thinking_tags(content)
@@ -226,53 +235,83 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
             global _AI_KEY_ERROR
             err_str = str(e)
             # T9c: mapeo estandarizado de errores HTTP a mensajes en español
-            if "401" in err_str or "invalid_api_key" in err_str.lower() or "authentication" in err_str.lower():
+            if (
+                "401" in err_str
+                or "invalid_api_key" in err_str.lower()
+                or "authentication" in err_str.lower()
+            ):
                 _AI_KEY_ERROR = (
                     f"❌ API Key inválida o expirada para {provider or 'proveedor cloud'}. "
                     "Verifica tu clave en el panel lateral (⚙️ Configuración IA)."
                 )
                 return f"ERROR_401: {_AI_KEY_ERROR}"
-            if "429" in err_str or "rate_limit" in err_str.lower() or "too many requests" in err_str.lower():
+            if (
+                "429" in err_str
+                or "rate_limit" in err_str.lower()
+                or "too many requests" in err_str.lower()
+            ):
                 return "ERROR_429: ⏳ Límite de solicitudes alcanzado. Espera un momento antes de continuar."
             if "timeout" in err_str.lower() or "timed out" in err_str.lower():
-                raise TimeoutError("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.") from e
+                raise TimeoutError(
+                    "⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos."
+                ) from e
             if "connection" in err_str.lower():
-                raise ConnectionError("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.") from e
+                raise ConnectionError(
+                    "⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos."
+                ) from e
             return f"❌ Error inesperado: {type(e).__name__}. Contacta al administrador."
     else:
         # ── LM Studio / Ollama local ─────────────────────────────────────────
         payload = {
-            "model": model_name, "messages": messages,
-            "temperature": temperature, "max_tokens": 4096, "stream": False,
+            "model": model_name,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": 4096,
+            "stream": False,
         }
         try:
             response = requests.post(
                 f"{base_url.rstrip('/')}/chat/completions",
-                json=payload, headers={"Content-Type": "application/json"}, timeout=180,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+                timeout=180,
             )
             # Si el servidor rechaza max_tokens, reintentar sin ese campo
             if response.status_code == 400:
                 payload.pop("max_tokens", None)
                 response = requests.post(
                     f"{base_url.rstrip('/')}/chat/completions",
-                    json=payload, headers={"Content-Type": "application/json"}, timeout=180,
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                    timeout=180,
                 )
             if response.status_code == 200:
-                content = response.json()['choices'][0]['message']['content']
+                content = response.json()["choices"][0]["message"]["content"]
                 return strip_thinking_tags(content)
             # T9c: mensajes estandarizados para errores del servidor local
             if response.status_code == 429:
                 return "ERROR_429: ⏳ Límite de solicitudes alcanzado. Espera un momento antes de continuar."
             return f"❌ Error HTTP {response.status_code} del servidor local."
         except requests.exceptions.ConnectionError as e:
-            raise ConnectionError("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.") from e
+            raise ConnectionError(
+                "⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos."
+            ) from e
         except requests.exceptions.Timeout as e:
-            raise TimeoutError("⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos.") from e
+            raise TimeoutError(
+                "⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos."
+            ) from e
         except Exception as e:
             return f"❌ Error inesperado: {type(e).__name__}. Contacta al administrador."
 
 
-def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", api_key=None, provider=None, max_tokens=4096):
+def stream_ai_response(
+    prompt,
+    model_name,
+    base_url="http://localhost:1234/v1",
+    api_key=None,
+    provider=None,
+    max_tokens=4096,
+):
     """Genera respuesta de IA en streaming. Soporta todos los proveedores."""
     system_instr = (
         "Responde EXCLUSIVAMENTE con el contenido solicitado. "
@@ -289,6 +328,7 @@ def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", 
         # ── Anthropic SDK streaming ──────────────────────────────────────────
         try:
             import anthropic
+
             client = anthropic.Anthropic(api_key=api_key)
             with client.messages.stream(
                 model=model_name,
@@ -307,10 +347,14 @@ def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", 
             _base = base_url
         try:
             from openai import OpenAI
+
             client = OpenAI(api_key=api_key, base_url=_base)
             stream = client.chat.completions.create(
-                model=model_name, messages=messages,
-                temperature=0.3, max_tokens=max_tokens, stream=True,
+                model=model_name,
+                messages=messages,
+                temperature=0.3,
+                max_tokens=max_tokens,
+                stream=True,
             )
             for chunk in stream:
                 delta = chunk.choices[0].delta.content
@@ -321,22 +365,29 @@ def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", 
     else:
         # ── LM Studio / Ollama local streaming (SSE) ─────────────────────────
         payload = {
-            "model": model_name, "messages": messages,
-            "temperature": 0.3, "max_tokens": max_tokens, "stream": True,
+            "model": model_name,
+            "messages": messages,
+            "temperature": 0.3,
+            "max_tokens": max_tokens,
+            "stream": True,
         }
         try:
             response = requests.post(
                 f"{base_url.rstrip('/')}/chat/completions",
-                json=payload, headers={"Content-Type": "application/json"},
-                timeout=180, stream=True,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+                timeout=180,
+                stream=True,
             )
             # Si el servidor rechaza max_tokens, reintentar sin ese campo
             if response.status_code == 400:
                 payload.pop("max_tokens", None)
                 response = requests.post(
                     f"{base_url.rstrip('/')}/chat/completions",
-                    json=payload, headers={"Content-Type": "application/json"},
-                    timeout=180, stream=True,
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                    timeout=180,
+                    stream=True,
                 )
             response.raise_for_status()
             for line in response.iter_lines():
@@ -360,10 +411,23 @@ def stream_ai_response(prompt, model_name, base_url="http://localhost:1234/v1", 
         except requests.exceptions.Timeout as e:
             raise TimeoutError(f"Tiempo de espera agotado: {e}") from e
         except requests.exceptions.HTTPError as e:
-            raise ConnectionError(f"Error del servidor local ({e.response.status_code}): {e}") from e
+            raise ConnectionError(
+                f"Error del servidor local ({e.response.status_code}): {e}"
+            ) from e
 
 
-def get_socratic_guidance(student_rating, topic, content, student_answer, correct_answer, all_options, base_url="http://localhost:1234/v1", model_name="google/gemma-3-4b", api_key=None, provider=None):
+def get_socratic_guidance(
+    student_rating,
+    topic,
+    content,
+    student_answer,
+    correct_answer,
+    all_options,
+    base_url="http://localhost:1234/v1",
+    model_name="google/gemma-3-4b",
+    api_key=None,
+    provider=None,
+):
     """Genera una guía socrática adaptativa y altamente alineada para el estudiante."""
     options_str = "\n".join([f"- {opt}" for opt in all_options])
     prompt = f"""Eres KatIA, una tutora socrática mitad gata, mitad cyborg. Tu personalidad:
@@ -398,7 +462,18 @@ INSTRUCCIONES CRÍTICAS DE ALINEACIÓN:
     return _call_ai_api(prompt, model_name, base_url, api_key=api_key, provider=provider)
 
 
-def get_socratic_guidance_stream(student_rating, topic, content, student_answer, correct_answer, all_options, base_url="http://localhost:1234/v1", model_name="google/gemma-3-4b", api_key=None, provider=None):
+def get_socratic_guidance_stream(
+    student_rating,
+    topic,
+    content,
+    student_answer,
+    correct_answer,
+    all_options,
+    base_url="http://localhost:1234/v1",
+    model_name="google/gemma-3-4b",
+    api_key=None,
+    provider=None,
+):
     """Versión streaming de get_socratic_guidance. Retorna generador de chunks."""
     options_str = "\n".join([f"- {opt}" for opt in all_options])
     prompt = f"""Eres KatIA, una tutora socrática mitad gata, mitad cyborg. Tu personalidad:
@@ -442,9 +517,17 @@ EJEMPLO DE MALA RESPUESTA (NO hacer esto):
     # Filtrar tags de pensamiento y normalizar LaTeX del streaming
     # Limitar tokens para reducir latencia (respuestas socrátivas son breves)
     from src.infrastructure.external_api.model_router import SOCRATIC_MAX_TOKENS
+
     yield from _normalize_latex_stream(
         strip_thinking_tags_stream(
-            stream_ai_response(prompt, model_name, base_url, api_key=api_key, provider=provider, max_tokens=SOCRATIC_MAX_TOKENS)
+            stream_ai_response(
+                prompt,
+                model_name,
+                base_url,
+                api_key=api_key,
+                provider=provider,
+                max_tokens=SOCRATIC_MAX_TOKENS,
+            )
         )
     )
 
@@ -468,15 +551,21 @@ REGLAS ABSOLUTAS:
 3. Guía ÚNICAMENTE mediante preguntas socráticas y pistas conceptuales."""
 
 
-def get_katia_chat_stream(messages, question_context, base_url="http://localhost:1234/v1",
-                          model_name="google/gemma-3-4b", api_key=None, provider=None):
+def get_katia_chat_stream(
+    messages,
+    question_context,
+    base_url="http://localhost:1234/v1",
+    model_name="google/gemma-3-4b",
+    api_key=None,
+    provider=None,
+):
     """Chat conversacional multi-turno con KatIA. Retorna generador de tokens."""
     ctx = question_context or {}
-    q_text = ctx.get('content') or ''
-    q_topic = ctx.get('topic') or ''
-    q_options = ctx.get('options') or []
-    q_selected = ctx.get('selected_option') or 'Aún no seleccionada'
-    q_correct = ctx.get('correct_option') or ''
+    q_text = ctx.get("content") or ""
+    q_topic = ctx.get("topic") or ""
+    q_options = ctx.get("options") or []
+    q_selected = ctx.get("selected_option") or "Aún no seleccionada"
+    q_correct = ctx.get("correct_option") or ""
 
     options_str = "\n".join([f"- {opt}" for opt in q_options])
     system = f"""{_KATIA_SYSTEM_PROMPT}
@@ -494,11 +583,13 @@ Respuesta CORRECTA (NUNCA revelar): "{q_correct}"
         provider = detect_provider_from_key(api_key)
 
     from src.infrastructure.external_api.model_router import SOCRATIC_MAX_TOKENS
+
     _max_tokens = SOCRATIC_MAX_TOKENS * 2  # chat multi-turno necesita más margen
 
     if provider == "anthropic":
         try:
             import anthropic
+
             client = anthropic.Anthropic(api_key=api_key)
             with client.messages.stream(
                 model=model_name,
@@ -517,11 +608,15 @@ Respuesta CORRECTA (NUNCA revelar): "{q_correct}"
             _base = base_url
         try:
             from openai import OpenAI
+
             client = OpenAI(api_key=api_key, base_url=_base)
             api_messages = [{"role": "system", "content": system}] + messages
             stream = client.chat.completions.create(
-                model=model_name, messages=api_messages,
-                temperature=0.3, max_tokens=_max_tokens, stream=True,
+                model=model_name,
+                messages=api_messages,
+                temperature=0.3,
+                max_tokens=_max_tokens,
+                stream=True,
             )
             for chunk in stream:
                 delta = chunk.choices[0].delta.content
@@ -532,21 +627,28 @@ Respuesta CORRECTA (NUNCA revelar): "{q_correct}"
     else:
         api_messages = [{"role": "system", "content": system}] + messages
         payload = {
-            "model": model_name, "messages": api_messages,
-            "temperature": 0.3, "max_tokens": _max_tokens, "stream": True,
+            "model": model_name,
+            "messages": api_messages,
+            "temperature": 0.3,
+            "max_tokens": _max_tokens,
+            "stream": True,
         }
         try:
             response = requests.post(
                 f"{base_url.rstrip('/')}/chat/completions",
-                json=payload, headers={"Content-Type": "application/json"},
-                timeout=180, stream=True,
+                json=payload,
+                headers={"Content-Type": "application/json"},
+                timeout=180,
+                stream=True,
             )
             if response.status_code == 400:
                 payload.pop("max_tokens", None)
                 response = requests.post(
                     f"{base_url.rstrip('/')}/chat/completions",
-                    json=payload, headers={"Content-Type": "application/json"},
-                    timeout=180, stream=True,
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                    timeout=180,
+                    stream=True,
                 )
             response.raise_for_status()
             for line in response.iter_lines():
@@ -570,7 +672,9 @@ Respuesta CORRECTA (NUNCA revelar): "{q_correct}"
         except requests.exceptions.Timeout as e:
             raise TimeoutError(f"Tiempo de espera agotado: {e}") from e
         except requests.exceptions.HTTPError as e:
-            raise ConnectionError(f"Error del servidor local ({e.response.status_code}): {e}") from e
+            raise ConnectionError(
+                f"Error del servidor local ({e.response.status_code}): {e}"
+            ) from e
 
 
 # T11: prompt del análisis pedagógico extraído a constante para mantenimiento centralizado.
@@ -605,16 +709,24 @@ REGLA ESTRICTA DE FORMATO: Escribe TODA expresion matematica en LaTeX usando $..
 """
 
 
-def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None, procedure_stats=None, procedure_stats_by_course=None):
+def get_pedagogical_analysis(
+    student_data,
+    base_url="http://localhost:1234/v1",
+    model_name="llama-3.1-8b-instant",
+    api_key=None,
+    provider=None,
+    procedure_stats=None,
+    procedure_stats_by_course=None,
+):
     """Genera un análisis pedagógico detallado para el profesor.
     procedure_stats (opcional): dict con 'count', 'avg_score', 'scores'.
     procedure_stats_by_course (opcional): dict {course_id: {course_name, avg_score, count}}.
     """
     # Construir línea e instrucción de procedimientos con etiquetas cualitativas
-    if procedure_stats and procedure_stats.get('count', 0) > 0:
-        _pc = procedure_stats['count']
-        _pavg = procedure_stats['avg_score']
-        _pscores = procedure_stats.get('scores', [])
+    if procedure_stats and procedure_stats.get("count", 0) > 0:
+        _pc = procedure_stats["count"]
+        _pavg = procedure_stats["avg_score"]
+        _pscores = procedure_stats.get("scores", [])
         _quality = _proc_quality_label(_pavg)
         _proc_line = (
             f"{_pc} procedimiento(s) evaluado(s). Calidad global: {_quality}. "
@@ -653,27 +765,32 @@ def get_pedagogical_analysis(student_data, base_url="http://localhost:1234/v1", 
                 f"({cdata['count']} envío(s))"
             )
         _course_proc_section = (
-            "\n- Calidad de procedimientos por curso:\n" + "\n".join(lines) +
-            "\n  ANALISIS COMPARATIVO: Si el ELO es alto en un curso pero el procedimiento es "
+            "\n- Calidad de procedimientos por curso:\n"
+            + "\n".join(lines)
+            + "\n  ANALISIS COMPARATIVO: Si el ELO es alto en un curso pero el procedimiento es "
             "Deficiente o Regular, podria indicar que el alumno adivina respuestas en lugar de "
             "razonar. Señalarlo explicitamente si es el caso."
         )
 
     # T11: ELO desglosado por tópico (si viene en student_data)
-    _elo_by_topic = student_data.get('elo_by_topic', {})
+    _elo_by_topic = student_data.get("elo_by_topic", {})
     _elo_topic_section = ""
     if _elo_by_topic:
-        _elo_lines = [f"    - {t}: {e}" for t, e in sorted(_elo_by_topic.items(), key=lambda x: -x[1])]
+        _elo_lines = [
+            f"    - {t}: {e}" for t, e in sorted(_elo_by_topic.items(), key=lambda x: -x[1])
+        ]
         _elo_topic_section = "\n  ELO por tópico:\n" + "\n".join(_elo_lines)
 
     # T11: tiempo promedio de respuesta (si viene en student_data)
-    _avg_time = student_data.get('avg_response_time')
-    _time_section = f"\n- Tiempo promedio de respuesta: {_avg_time:.1f} segundos" if _avg_time else ""
+    _avg_time = student_data.get("avg_response_time")
+    _time_section = (
+        f"\n- Tiempo promedio de respuesta: {_avg_time:.1f} segundos" if _avg_time else ""
+    )
 
     prompt = _PEDAGOGICAL_PROMPT.format(
         elo_global=f"{student_data['elo_global']:.1f}",
-        attempts_count=student_data['attempts_count'],
-        topics=', '.join(student_data['topics']),
+        attempts_count=student_data["attempts_count"],
+        topics=", ".join(student_data["topics"]),
         recent_accuracy=f"{student_data['recent_accuracy']:.1%}",
         proc_line=_proc_line,
         course_proc_section=_course_proc_section,
@@ -706,7 +823,16 @@ _FALLBACK_RECOMMENDATIONS = [
 ]
 
 
-def analyze_performance_local(history_data, current_elo, base_url="http://localhost:1234/v1", model_name="llama-3.1-8b-instant", api_key=None, provider=None, procedure_stats=None, procedure_stats_by_course=None):
+def analyze_performance_local(
+    history_data,
+    current_elo,
+    base_url="http://localhost:1234/v1",
+    model_name="llama-3.1-8b-instant",
+    api_key=None,
+    provider=None,
+    procedure_stats=None,
+    procedure_stats_by_course=None,
+):
     """
     Analiza el rendimiento del estudiante y devuelve EXACTAMENTE 3 recomendaciones
     con estructura fija: [fortalezas, áreas regulares, áreas críticas].
@@ -718,17 +844,17 @@ def analyze_performance_local(history_data, current_elo, base_url="http://localh
         return _FALLBACK_RECOMMENDATIONS
 
     total = len(history_data)
-    correct_count = sum(1 for h in history_data if h['is_correct'])
+    correct_count = sum(1 for h in history_data if h["is_correct"])
     accuracy = correct_count / total if total > 0 else 0
-    correct_topics = sorted({h['topic'] for h in history_data if h['is_correct']})
-    incorrect_topics = sorted({h['topic'] for h in history_data if not h['is_correct']})
-    avg_difficulty = sum(h['difficulty'] for h in history_data) / total
+    correct_topics = sorted({h["topic"] for h in history_data if h["is_correct"]})
+    incorrect_topics = sorted({h["topic"] for h in history_data if not h["is_correct"]})
+    avg_difficulty = sum(h["difficulty"] for h in history_data) / total
 
     # Construir línea de hábito de procedimientos con etiquetas cualitativas
-    if procedure_stats and procedure_stats.get('count', 0) > 0:
-        _pc = procedure_stats['count']
-        _pavg = procedure_stats['avg_score']
-        _pscores = procedure_stats.get('scores', [])
+    if procedure_stats and procedure_stats.get("count", 0) > 0:
+        _pc = procedure_stats["count"]
+        _pavg = procedure_stats["avg_score"]
+        _pscores = procedure_stats.get("scores", [])
         _quality = _proc_quality_label(_pavg)
         _pline = (
             f"{_pc} procedimiento(s) evaluado(s). Calidad: {_quality}. "
@@ -779,17 +905,19 @@ INSTRUCCION CRITICA: Responde UNICAMENTE con el siguiente JSON, sin ningun texto
   }}
 ]"""
 
-    content = _call_ai_api(prompt, model_name, base_url, json_mode=True, api_key=api_key, provider=provider)
+    content = _call_ai_api(
+        prompt, model_name, base_url, json_mode=True, api_key=api_key, provider=provider
+    )
 
     try:
-        content = re.sub(r'```json\s*', '', content)
-        content = re.sub(r'```\s*', '', content)
+        content = re.sub(r"```json\s*", "", content)
+        content = re.sub(r"```\s*", "", content)
         # Buscar el array JSON usando [{ para no confundir con corchetes en texto
-        match = re.search(r'\[[\s\n]*\{', content)
-        start = match.start() if match else content.find('[')
-        end = content.rfind(']')
+        match = re.search(r"\[[\s\n]*\{", content)
+        start = match.start() if match else content.find("[")
+        end = content.rfind("]")
         if start != -1 and end != -1 and end > start:
-            parsed = json.loads(content[start:end + 1])
+            parsed = json.loads(content[start : end + 1])
             if isinstance(parsed, list):
                 # Descartar cualquier elemento que no sea dict (strings de intro, nulls, etc.)
                 dict_items = [_normalize_rec(item) for item in parsed if isinstance(item, dict)]
@@ -808,20 +936,38 @@ INSTRUCCION CRITICA: Responde UNICAMENTE con el siguiente JSON, sin ningun texto
 
 def _normalize_rec(rec: dict) -> dict:
     """Normaliza claves alternativas que distintos modelos pueden devolver."""
-    diagnostico = (rec.get('diagnostico') or rec.get('descripcion') or
-                   rec.get('description') or rec.get('diagnosis') or 'N/A')
-    accion = (rec.get('accion') or rec.get('acción') or rec.get('recomendacion') or
-              rec.get('recomendación') or rec.get('recommendation') or
-              rec.get('action') or rec.get('consejo') or 'N/A')
-    justificacion = (rec.get('justificacion') or rec.get('justificación') or
-                     rec.get('justification') or rec.get('razon') or
-                     rec.get('razón') or rec.get('why') or 'N/A')
-    ejercicios = rec.get('ejercicios') or rec.get('exercises') or rec.get('meta') or 0
+    diagnostico = (
+        rec.get("diagnostico")
+        or rec.get("descripcion")
+        or rec.get("description")
+        or rec.get("diagnosis")
+        or "N/A"
+    )
+    accion = (
+        rec.get("accion")
+        or rec.get("acción")
+        or rec.get("recomendacion")
+        or rec.get("recomendación")
+        or rec.get("recommendation")
+        or rec.get("action")
+        or rec.get("consejo")
+        or "N/A"
+    )
+    justificacion = (
+        rec.get("justificacion")
+        or rec.get("justificación")
+        or rec.get("justification")
+        or rec.get("razon")
+        or rec.get("razón")
+        or rec.get("why")
+        or "N/A"
+    )
+    ejercicios = rec.get("ejercicios") or rec.get("exercises") or rec.get("meta") or 0
     return {
-        'diagnostico': diagnostico,
-        'accion': accion,
-        'justificacion': justificacion,
-        'ejercicios': ejercicios,
+        "diagnostico": diagnostico,
+        "accion": accion,
+        "justificacion": justificacion,
+        "ejercicios": ejercicios,
     }
 
 
@@ -832,25 +978,49 @@ def _normalize_rec(rec: dict) -> dict:
 # Incluye modelos cloud y locales populares con capacidad multimodal.
 _VISION_KEYWORDS = [
     # OpenAI
-    'gpt-4o', 'gpt-4-vision', 'gpt-4-turbo', 'gpt-4.1',
+    "gpt-4o",
+    "gpt-4-vision",
+    "gpt-4-turbo",
+    "gpt-4.1",
     # Google / Anthropic
-    'gemini', 'claude',
+    "gemini",
+    "claude",
     # Meta Llama 4+ (visión nativa)
-    'llama-4', 'llama4',
+    "llama-4",
+    "llama4",
     # Mistral con visión (Mistral 3+, Pixtral)
-    'mistral-3', 'mistral3', 'pixtral',
+    "mistral-3",
+    "mistral3",
+    "pixtral",
     # Qwen con visión (múltiples convenciones de nombre)
-    'qwen-vl', 'qwen2-vl', 'qwen2.5-vl', 'qwen-2-vl', 'qwen2.5-v',
+    "qwen-vl",
+    "qwen2-vl",
+    "qwen2.5-vl",
+    "qwen-2-vl",
+    "qwen2.5-v",
     # Google Gemma 3+ (visión nativa desde Gemma 3)
-    'gemma-3', 'gemma3',
+    "gemma-3",
+    "gemma3",
     # GML (variante de Gemma con visión)
-    'gml-',
+    "gml-",
     # Keyword genérico: cualquier modelo con "vision" o "vl" en el nombre
-    'vision', 'llava', '-vl-', '-vl:',
+    "vision",
+    "llava",
+    "-vl-",
+    "-vl:",
     # Otros modelos locales populares con visión
-    'minicpm-v', 'internvl', 'cogvlm', 'moondream',
-    'deepseek-vl', 'phi-3-vision', 'phi-3.5-vision', 'phi-4-vision',
-    'molmo', 'ovis', 'mantis', 'idefics',
+    "minicpm-v",
+    "internvl",
+    "cogvlm",
+    "moondream",
+    "deepseek-vl",
+    "phi-3-vision",
+    "phi-3.5-vision",
+    "phi-4-vision",
+    "molmo",
+    "ovis",
+    "mantis",
+    "idefics",
 ]
 
 _VISION_PROMPT = """Eres un profesor de matemáticas revisando el procedimiento manuscrito de un estudiante.
@@ -871,9 +1041,9 @@ Sé específico, directo y pedagógico."""
 # Modelos que matchean keywords de visión pero son solo texto.
 # Se excluyen explícitamente para evitar falsos positivos.
 _VISION_EXCLUSIONS = [
-    'qwen2.5-math',      # modelo matemático sin visión
-    'qwen2.5-coder',     # modelo de código sin visión
-    'gemma-3-1b',        # Gemma 3 1B no tiene visión (solo 4B+)
+    "qwen2.5-math",  # modelo matemático sin visión
+    "qwen2.5-coder",  # modelo de código sin visión
+    "gemma-3-1b",  # Gemma 3 1B no tiene visión (solo 4B+)
 ]
 
 
@@ -883,7 +1053,7 @@ def _model_supports_vision(model_name: str, provider: str) -> bool:
     Usa una lista de keywords conocidos de modelos con visión y
     una lista de exclusión para falsos positivos.
     """
-    if provider in ('anthropic', 'gemini'):
+    if provider in ("anthropic", "gemini"):
         return True
     if model_name:
         model_lower = model_name.lower()
@@ -892,6 +1062,7 @@ def _model_supports_vision(model_name: str, provider: str) -> bool:
             return False
         return any(kw in model_lower for kw in _VISION_KEYWORDS)
     return False
+
 
 # T6a: alias público para detección de capacidad de visión (fail-safe: False por defecto)
 check_vision_support = _model_supports_vision
@@ -914,7 +1085,7 @@ def select_best_math_model(available_models: list, provider: str = None) -> str 
     coincida (por substring). Retorna None si ningún modelo preferido está disponible.
     Solo aplica para proveedores locales (Ollama, LM Studio).
     """
-    if provider not in ('ollama', 'lmstudio', None):
+    if provider not in ("ollama", "lmstudio", None):
         return None
     for preferred in _MATH_REASONING_PREFERENCE:
         for model in available_models:
@@ -943,7 +1114,7 @@ def validate_procedure_relevance(
     if not _model_supports_vision(model_name, provider):
         return True  # sin visión no se puede validar, asumimos que es válido
 
-    b64 = base64.b64encode(image_bytes).decode('utf-8')
+    b64 = base64.b64encode(image_bytes).decode("utf-8")
     _val_prompt = (
         f"PREGUNTA ASIGNADA AL ESTUDIANTE:\n{question_content}\n\n"
         "¿El procedimiento visible en la imagen corresponde a la pregunta anterior? "
@@ -952,20 +1123,26 @@ def validate_procedure_relevance(
 
     try:
         from openai import OpenAI
+
         _url = base_url or "http://localhost:1234/v1"
         _key = api_key or "not-needed"
         if provider in PROVIDERS:
-            _url = PROVIDERS[provider].get('base_url', _url)
+            _url = PROVIDERS[provider].get("base_url", _url)
         client = OpenAI(api_key=_key, base_url=_url)
         resp = client.chat.completions.create(
             model=model_name or "default",
-            messages=[{
-                "role": "user",
-                "content": [
-                    {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{b64}"}},
-                    {"type": "text", "text": _val_prompt},
-                ],
-            }],
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:{mime_type};base64,{b64}"},
+                        },
+                        {"type": "text", "text": _val_prompt},
+                    ],
+                }
+            ],
             max_tokens=10,
             temperature=0.0,
         )
@@ -1001,30 +1178,33 @@ def analyze_procedure_image(
     if not _model_supports_vision(model_name, provider):
         return "VISION_NOT_SUPPORTED"
 
-    b64 = base64.b64encode(image_bytes).decode('utf-8')
+    b64 = base64.b64encode(image_bytes).decode("utf-8")
     prompt = _VISION_PROMPT.format(question=question_content)
 
-    if provider == 'anthropic':
+    if provider == "anthropic":
         try:
             import anthropic
+
             client = anthropic.Anthropic(api_key=api_key)
             resp = client.messages.create(
                 model=model_name,
                 max_tokens=1024,
-                messages=[{
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image",
-                            "source": {
-                                "type": "base64",
-                                "media_type": mime_type,
-                                "data": b64,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": mime_type,
+                                    "data": b64,
+                                },
                             },
-                        },
-                        {"type": "text", "text": prompt},
-                    ],
-                }],
+                            {"type": "text", "text": prompt},
+                        ],
+                    }
+                ],
             )
             return resp.content[0].text.strip()
         except Exception as e:
@@ -1037,30 +1217,37 @@ def analyze_procedure_image(
             _base = base_url
         try:
             from openai import OpenAI
+
             client = OpenAI(api_key=api_key or "no-key", base_url=_base)
             response = client.chat.completions.create(
                 model=model_name,
                 max_tokens=1024,
-                messages=[{
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": f"data:{mime_type};base64,{b64}"},
-                        },
-                        {"type": "text", "text": prompt},
-                    ],
-                }],
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:{mime_type};base64,{b64}"},
+                            },
+                            {"type": "text", "text": prompt},
+                        ],
+                    }
+                ],
             )
             return response.choices[0].message.content.strip()
         except Exception as e:
             err = str(e).lower()
-            if any(kw in err for kw in ('vision', 'image', 'multimodal', 'unsupported', 'does not support')):
+            if any(
+                kw in err
+                for kw in ("vision", "image", "multimodal", "unsupported", "does not support")
+            ):
                 return "VISION_NOT_SUPPORTED"
             return f"Error al analizar la imagen: {str(e)}"
 
 
 # ── AIClient Strategy Pattern ─────────────────────────────────────────────────
+
 
 class AIClient:
     """Cliente de IA con auto-detección y fallback entre proveedores.
@@ -1073,11 +1260,11 @@ class AIClient:
     """
 
     _ENV_PROVIDERS = [
-        ('GROQ_API_KEY',      'groq'),
-        ('OPENAI_API_KEY',    'openai'),
-        ('ANTHROPIC_API_KEY', 'anthropic'),
-        ('GOOGLE_API_KEY',    'gemini'),
-        ('HF_TOKEN',          'huggingface'),
+        ("GROQ_API_KEY", "groq"),
+        ("OPENAI_API_KEY", "openai"),
+        ("ANTHROPIC_API_KEY", "anthropic"),
+        ("GOOGLE_API_KEY", "gemini"),
+        ("HF_TOKEN", "huggingface"),
     ]
 
     def __init__(self, lmstudio_url: str = ""):
@@ -1088,16 +1275,17 @@ class AIClient:
 
         # 1. Intentar LM Studio local
         detection = detect_lmstudio(lmstudio_url)
-        if detection['available']:
-            self._provider = 'lmstudio'
+        if detection["available"]:
+            self._provider = "lmstudio"
             self._base_url = lmstudio_url
-            self._models = detection['models']
+            self._models = detection["models"]
             return
 
         # 2. Buscar API key en variables de entorno (load_dotenv ya fue llamado al importar)
         _secrets = {}
         try:
             import streamlit as _st
+
             _secrets = _st.secrets
         except Exception as e:
             logger.debug(
@@ -1115,13 +1303,14 @@ class AIClient:
                     logger.debug(
                         "No se encontró '%s' en Streamlit secrets: %s. "
                         "Usando configuración manual del sidebar.",
-                        env_name, e,
+                        env_name,
+                        e,
                     )
             if key:
                 self._provider = provider
                 self._api_key = key
                 pinfo = PROVIDERS.get(provider, {})
-                self._base_url = pinfo.get('base_url') or lmstudio_url
+                self._base_url = pinfo.get("base_url") or lmstudio_url
                 return
 
         # 3. Sin backend
@@ -1129,10 +1318,10 @@ class AIClient:
 
     @property
     def active_backend_name(self) -> str:
-        if self._provider == 'lmstudio':
+        if self._provider == "lmstudio":
             return "🖥️ LM Studio Local"
         if self._provider:
-            return PROVIDERS.get(self._provider, {}).get('label', self._provider)
+            return PROVIDERS.get(self._provider, {}).get("label", self._provider)
         return "Ninguno"
 
     @property

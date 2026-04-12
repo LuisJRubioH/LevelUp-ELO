@@ -16,6 +16,7 @@ GROWTH_RATING_THRESHOLD = 1400
 STABILITY_ERROR_THRESHOLD = 0.15
 STABILITY_SAMPLE_SIZE = 20
 
+
 @dataclass
 class Item:
     difficulty: float
@@ -30,20 +31,22 @@ class StudentELO:
 @dataclass
 class User:
     """Modelo de dominio para un usuario del sistema LMS."""
+
     id: int
     username: str
-    role: str                               # 'student' | 'teacher' | 'admin'
-    education_level: str = 'universidad'    # 'universidad' | 'colegio'
+    role: str  # 'student' | 'teacher' | 'admin'
+    education_level: str = "universidad"  # 'universidad' | 'colegio'
     enrolled_courses: list = field(default_factory=list)  # lista de course_id
 
 
 @dataclass
 class Course:
     """Representa un curso (unidad de contenido del LMS)."""
-    id: str           # slug derivado del nombre de archivo, ej: 'algebra_lineal'
-    name: str         # nombre legible, ej: 'Álgebra Lineal'
-    block: str        # 'Universidad' | 'Colegio'
-    description: str = ''
+
+    id: str  # slug derivado del nombre de archivo, ej: 'algebra_lineal'
+    name: str  # nombre legible, ej: 'Álgebra Lineal'
+    block: str  # 'Universidad' | 'Colegio'
+    description: str = ""
 
 
 def expected_score(rating_a: float, rating_b: float) -> float:
@@ -52,7 +55,7 @@ def expected_score(rating_a: float, rating_b: float) -> float:
     según el modelo ELO clásico.
     """
     exponent = (rating_b - rating_a) / 400
-    return 1.0 / (1.0 + 10 ** exponent)
+    return 1.0 / (1.0 + 10**exponent)
 
 
 def _calculate_average_error(recent_results: list[tuple[float, float]]) -> float:
@@ -62,15 +65,13 @@ def _calculate_average_error(recent_results: list[tuple[float, float]]) -> float
     """
     if not recent_results:
         return 1.0  # Error máximo asumido ante falta de datos
-    
+
     errors = [abs(actual - expected) for actual, expected in recent_results]
     return statistics.mean(errors)
 
 
 def calculate_dynamic_k(
-    attempts: int,
-    rating: float,
-    recent_results: list[tuple[float, float]]
+    attempts: int, rating: float, recent_results: list[tuple[float, float]]
 ) -> float:
     """
     Calcula el Factor K dinámico basado en la experiencia, nivel y estabilidad del estudiante.
@@ -79,22 +80,24 @@ def calculate_dynamic_k(
     # 1. Fase Inicial (Búsqueda rápida de nivel)
     if attempts < INITIAL_ATTEMPTS_THRESHOLD:
         return INITIAL_K
-    
+
     # 2. Fase de Crecimiento (Niveles básicos)
     if rating < GROWTH_RATING_THRESHOLD:
         return GROWTH_K
-    
+
     # 3. Fase de Estabilidad (Consistencia demostrada)
     if len(recent_results) >= STABILITY_SAMPLE_SIZE:
         avg_error = _calculate_average_error(recent_results)
         if avg_error < STABILITY_ERROR_THRESHOLD:
             return STABLE_K
-            
+
     # 4. Caso base (Estándar de producción)
     return DEFAULT_K
 
 
-def update_elo(student: StudentELO, item: Item, result: float, k: float, impact_modifier: float = 1.0) -> float:
+def update_elo(
+    student: StudentELO, item: Item, result: float, k: float, impact_modifier: float = 1.0
+) -> float:
     """
     Actualiza el rating del estudiante usando ELO.
     Retorna el nuevo rating. El impact_modifier escala el cambio final.

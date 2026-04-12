@@ -14,13 +14,19 @@ import re
 import sys
 from pathlib import Path
 
+# Fix Windows console encoding for Unicode output
+if sys.platform == "win32":
+    import io
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
 SQLITE_PATH = Path("src/infrastructure/persistence/sqlite_repository.py")
 POSTGRES_PATH = Path("src/infrastructure/persistence/postgres_repository.py")
 
-RED   = "\033[91m"
+RED = "\033[91m"
 GREEN = "\033[92m"
 YELLOW = "\033[93m"
-BOLD  = "\033[1m"
+BOLD = "\033[1m"
 RESET = "\033[0m"
 
 errors = []
@@ -44,6 +50,7 @@ def warn(label: str, detail: str = ""):
 
 
 # ─── Lectura de archivos ──────────────────────────────────────────────────────
+
 
 def read(path: Path) -> str:
     if not path.exists():
@@ -95,20 +102,26 @@ def get_migrations(source: str) -> list[str]:
 
 # ─── Verificaciones ───────────────────────────────────────────────────────────
 
+
 def check_methods(sqlite_src: str, pg_src: str):
     print(f"\n{BOLD}1. Métodos públicos{RESET}")
     sqlite_methods = get_public_methods(sqlite_src)
-    pg_methods     = get_public_methods(pg_src)
+    pg_methods = get_public_methods(pg_src)
 
-    only_sqlite = set(sqlite_methods) - set(pg_methods)
-    only_pg     = set(pg_methods) - set(sqlite_methods)
-    in_both     = set(sqlite_methods) & set(pg_methods)
+    # Excluir helpers internos del pool de conexiones (solo en PostgreSQL)
+    _PG_INTERNAL = {"put_connection", "get_connection", "decorator", "wrapper"}
+    only_sqlite = set(sqlite_methods) - set(pg_methods) - _PG_INTERNAL
+    only_pg = set(pg_methods) - set(sqlite_methods) - _PG_INTERNAL
+    in_both = set(sqlite_methods) & set(pg_methods)
 
     check(
         "Todos los métodos presentes en ambos repos",
         not only_sqlite and not only_pg,
-        f"Solo en SQLite: {sorted(only_sqlite)} | Solo en PG: {sorted(only_pg)}"
-        if only_sqlite or only_pg else ""
+        (
+            f"Solo en SQLite: {sorted(only_sqlite)} | Solo en PG: {sorted(only_pg)}"
+            if only_sqlite or only_pg
+            else ""
+        ),
     )
 
     # Verificar firmas de métodos compartidos
@@ -122,7 +135,7 @@ def check_methods(sqlite_src: str, pg_src: str):
     check(
         "Firmas de métodos coinciden",
         not mismatched,
-        " | ".join(mismatched[:3]) + (" ..." if len(mismatched) > 3 else "")
+        " | ".join(mismatched[:3]) + (" ..." if len(mismatched) > 3 else ""),
     )
 
     return only_sqlite, only_pg
@@ -131,44 +144,49 @@ def check_methods(sqlite_src: str, pg_src: str):
 def check_course_map(sqlite_src: str, pg_src: str):
     print(f"\n{BOLD}2. _COURSE_BLOCK_MAP{RESET}")
     sqlite_map = get_course_block_map(sqlite_src)
-    pg_map     = get_course_block_map(pg_src)
+    pg_map = get_course_block_map(pg_src)
 
     only_sqlite = {k: v for k, v in sqlite_map.items() if k not in pg_map}
-    only_pg     = {k: v for k, v in pg_map.items() if k not in sqlite_map}
-    conflicts   = {k for k in sqlite_map if k in pg_map and sqlite_map[k] != pg_map[k]}
+    only_pg = {k: v for k, v in pg_map.items() if k not in sqlite_map}
+    conflicts = {k for k in sqlite_map if k in pg_map and sqlite_map[k] != pg_map[k]}
 
     check("_COURSE_BLOCK_MAP presente en ambos repos", bool(sqlite_map) and bool(pg_map))
     check(
         "Mismas claves en ambos mapas",
         not only_sqlite and not only_pg,
-        f"Solo en SQLite: {only_sqlite} | Solo en PG: {only_pg}"
-        if only_sqlite or only_pg else ""
+        f"Solo en SQLite: {only_sqlite} | Solo en PG: {only_pg}" if only_sqlite or only_pg else "",
     )
     check(
         "Sin conflictos de valor",
         not conflicts,
-        f"Claves con valores distintos: {conflicts}" if conflicts else ""
+        f"Claves con valores distintos: {conflicts}" if conflicts else "",
     )
 
 
 def check_migrations(sqlite_src: str, pg_src: str):
     print(f"\n{BOLD}3. Migraciones (_migrate_db){RESET}")
     sqlite_migs = get_migrations(sqlite_src)
-    pg_migs     = get_migrations(pg_src)
+    pg_migs = get_migrations(pg_src)
 
     check(
         "Mismo número de operaciones DDL",
         len(sqlite_migs) == len(pg_migs),
-        f"SQLite: {len(sqlite_migs)} operaciones | PG: {len(pg_migs)} operaciones"
+        f"SQLite: {len(sqlite_migs)} operaciones | PG: {len(pg_migs)} operaciones",
     )
 
     if len(sqlite_migs) != len(pg_migs):
-        extra_sqlite = [m for m in sqlite_migs if not any(
-            re.sub(r"[\?\%]s", "X", m) in re.sub(r"[\?\%]s", "X", p) for p in pg_migs
-        )]
-        extra_pg = [m for m in pg_migs if not any(
-            re.sub(r"[\?\%]s", "X", p) in re.sub(r"[\?\%]s", "X", s) for s in sqlite_migs
-        )]
+        extra_sqlite = [
+            m
+            for m in sqlite_migs
+            if not any(re.sub(r"[\?\%]s", "X", m) in re.sub(r"[\?\%]s", "X", p) for p in pg_migs)
+        ]
+        extra_pg = [
+            m
+            for m in pg_migs
+            if not any(
+                re.sub(r"[\?\%]s", "X", p) in re.sub(r"[\?\%]s", "X", s) for s in sqlite_migs
+            )
+        ]
         if extra_sqlite:
             warn("Migraciones en SQLite sin equivalente en PG:", "\n       ".join(extra_sqlite[:3]))
         if extra_pg:
@@ -184,23 +202,15 @@ def check_placeholders(sqlite_src: str, pg_src: str):
         for i, l in enumerate(sqlite_src.splitlines())
         if "%s" in l and "execute" in l and not l.strip().startswith("#")
     ]
-    check(
-        "SQLite usa ? (no %s)",
-        not sqlite_bad,
-        " | ".join(sqlite_bad[:2])
-    )
+    check("SQLite usa ? (no %s)", not sqlite_bad, " | ".join(sqlite_bad[:2]))
 
     # PostgreSQL no debe tener ? en queries (excepto en strings/comentarios)
     pg_bad = [
         f"línea {i+1}: {l.strip()}"
         for i, l in enumerate(pg_src.splitlines())
-        if re.search(r'execute\([^)]*\?', l) and not l.strip().startswith("#")
+        if re.search(r"execute\([^)]*\?", l) and not l.strip().startswith("#")
     ]
-    check(
-        "PostgreSQL usa %s (no ?)",
-        not pg_bad,
-        " | ".join(pg_bad[:2])
-    )
+    check("PostgreSQL usa %s (no ?)", not pg_bad, " | ".join(pg_bad[:2]))
 
 
 def check_row_access(pg_src: str):
@@ -209,25 +219,21 @@ def check_row_access(pg_src: str):
     bad_index = [
         f"línea {i+1}: {l.strip()}"
         for i, l in enumerate(pg_src.splitlines())
-        if re.search(r'\brow\s*\[\s*\d+\s*\]', l) and not l.strip().startswith("#")
+        if re.search(r"\brow\s*\[\s*\d+\s*\]", l) and not l.strip().startswith("#")
     ]
-    check(
-        "Sin acceso por índice numérico (row[0])",
-        not bad_index,
-        " | ".join(bad_index[:3])
-    )
+    check("Sin acceso por índice numérico (row[0])", not bad_index, " | ".join(bad_index[:3]))
 
     date_slices = [
         f"línea {i+1}: {l.strip()}"
         for i, l in enumerate(pg_src.splitlines())
         if re.search(r"row\[['\"][^'\"]*date[^'\"]*['\"]\]\[:10\]", l)
-        and "str(" not in l and not l.strip().startswith("#")
+        and "str(" not in l
+        and not l.strip().startswith("#")
     ]
     check(
         "Fechas envueltas en str() antes de slicear",
         not date_slices,
-        "Usar str(row['created_at'])[:10] no row['created_at'][:10]"
-        if date_slices else ""
+        "Usar str(row['created_at'])[:10] no row['created_at'][:10]" if date_slices else "",
     )
 
 
@@ -239,11 +245,7 @@ def check_connection_pool(pg_src: str):
         for i, l in enumerate(pg_src.splitlines())
         if "conn.close()" in l and not l.strip().startswith("#")
     ]
-    check(
-        "Sin conn.close() (usar put_connection())",
-        not conn_close,
-        " | ".join(conn_close[:3])
-    )
+    check("Sin conn.close() (usar put_connection())", not conn_close, " | ".join(conn_close[:3]))
 
     # Verificar que todo get_connection() tiene put_connection() en finally
     get_count = pg_src.count("self.get_connection()")
@@ -251,8 +253,11 @@ def check_connection_pool(pg_src: str):
     check(
         "get_connection() y put_connection() balanceados",
         abs(get_count - put_count) <= 1,
-        f"get_connection: {get_count} veces | put_connection: {put_count} veces"
-        if abs(get_count - put_count) > 1 else ""
+        (
+            f"get_connection: {get_count} veces | put_connection: {put_count} veces"
+            if abs(get_count - put_count) > 1
+            else ""
+        ),
     )
 
 
@@ -261,24 +266,19 @@ def check_idempotent_seeds(sqlite_src: str, pg_src: str):
 
     for name, src in [("SQLite", sqlite_src), ("PostgreSQL", pg_src)]:
         # Buscar inserts sin guard de existencia
-        raw_inserts = re.findall(
-            r'cursor\.execute\(["\']INSERT INTO \w+[^"\']*["\']',
-            src
-        )
-        unsafe = [
-            i for i in raw_inserts
-            if "OR IGNORE" not in i and "ON CONFLICT" not in i
-        ]
+        raw_inserts = re.findall(r'cursor\.execute\(["\']INSERT INTO \w+[^"\']*["\']', src)
+        unsafe = [i for i in raw_inserts if "OR IGNORE" not in i and "ON CONFLICT" not in i]
         if unsafe:
             warn(
                 f"{name}: {len(unsafe)} INSERT sin idempotencia",
-                "Considerar INSERT OR IGNORE / ON CONFLICT DO NOTHING"
+                "Considerar INSERT OR IGNORE / ON CONFLICT DO NOTHING",
             )
         else:
             print(f"  {GREEN}✓{RESET}  {name}: seeds idempotentes")
 
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
+
 
 def main():
     print(f"\n{BOLD}{'═'*55}{RESET}")
@@ -288,7 +288,7 @@ def main():
     print(f"  PostgreSQL: {POSTGRES_PATH}")
 
     sqlite_src = read(SQLITE_PATH)
-    pg_src     = read(POSTGRES_PATH)
+    pg_src = read(POSTGRES_PATH)
 
     check_methods(sqlite_src, pg_src)
     check_course_map(sqlite_src, pg_src)

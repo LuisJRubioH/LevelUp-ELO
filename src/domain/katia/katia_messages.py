@@ -2,6 +2,7 @@
 Bancos de mensajes de KatIA — tutora socrática mitad gata, mitad cyborg.
 Capa domain: sin dependencias externas, solo import random.
 """
+
 import random
 
 

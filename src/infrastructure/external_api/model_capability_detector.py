@@ -20,35 +20,77 @@ from src.infrastructure.external_api.model_router import ModelCapabilities
 
 # Keywords que indican soporte de visión (case-insensitive)
 _VISION_KEYWORDS = [
-    "vision", "vl", "gpt-4o", "gpt-4.1", "llava", "qwen-vl", "qwen2-vl",
-    "qwen2.5-vl", "moondream", "fuyu", "minicpm-v", "pixtral", "gemma-3",
-    "gemma3", "llama-4", "llama4", "mistral-3", "mistral3",
-    "internvl", "cogvlm", "phi-3-vision", "phi-4-vision",
-    "molmo", "ovis", "idefics", "deepseek-vl",
+    "vision",
+    "vl",
+    "gpt-4o",
+    "gpt-4.1",
+    "llava",
+    "qwen-vl",
+    "qwen2-vl",
+    "qwen2.5-vl",
+    "moondream",
+    "fuyu",
+    "minicpm-v",
+    "pixtral",
+    "gemma-3",
+    "gemma3",
+    "llama-4",
+    "llama4",
+    "mistral-3",
+    "mistral3",
+    "internvl",
+    "cogvlm",
+    "phi-3-vision",
+    "phi-4-vision",
+    "molmo",
+    "ovis",
+    "idefics",
+    "deepseek-vl",
 ]
 
 # Keywords que indican capacidad de razonamiento matemático
 _REASONING_KEYWORDS = [
-    "math", "instruct", "reason", "-r1", "-r2",
-    "deepseek", "qwen", "gpt-4", "gpt-3.5", "llama-3", "llama-4",
-    "mistral", "mixtral", "gemma", "phi-3", "phi-4", "claude",
+    "math",
+    "instruct",
+    "reason",
+    "-r1",
+    "-r2",
+    "deepseek",
+    "qwen",
+    "gpt-4",
+    "gpt-3.5",
+    "llama-3",
+    "llama-4",
+    "mistral",
+    "mixtral",
+    "gemma",
+    "phi-3",
+    "phi-4",
+    "claude",
 ]
 
 # Keywords de exclusión para razonamiento (modelos demasiado simples)
 _REASONING_EXCLUSIONS = [
-    "embed", "embedding", "tts", "whisper", "dall-e",
-    "text-to-speech", "moderation",
+    "embed",
+    "embedding",
+    "tts",
+    "whisper",
+    "dall-e",
+    "text-to-speech",
+    "moderation",
 ]
 
 # Keywords de exclusión para visión (falsos positivos conocidos)
 _VISION_EXCLUSIONS = [
-    "qwen2.5-math", "qwen2.5-coder", "gemma-3-1b",
+    "qwen2.5-math",
+    "qwen2.5-coder",
+    "gemma-3-1b",
 ]
 
 # Regex para extraer tamaño del modelo en billones de parámetros
-_SIZE_PATTERN = re.compile(r'(\d+\.?\d*)[bB]')
+_SIZE_PATTERN = re.compile(r"(\d+\.?\d*)[bB]")
 # Patrón MoE: "8x7b" → interpreta como >14b efectivo
-_MOE_PATTERN = re.compile(r'(\d+)x(\d+\.?\d*)[bB]', re.IGNORECASE)
+_MOE_PATTERN = re.compile(r"(\d+)x(\d+\.?\d*)[bB]", re.IGNORECASE)
 # Nombres conocidos de modelos lentos (MoE o muy grandes)
 _SLOW_KEYWORDS = ["mixtral", "110b", "70b", "72b", "65b"]
 
@@ -153,7 +195,4 @@ def detect_all_capabilities(
     except Exception:
         return {}
 
-    return {
-        model_id: detect_capabilities_from_name(model_id)
-        for model_id in models
-    }
+    return {model_id: detect_capabilities_from_name(model_id) for model_id in models}

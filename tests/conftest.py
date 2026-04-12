@@ -4,6 +4,7 @@ tests/conftest.py
 Fixtures compartidos para toda la suite de pruebas.
 Disponibles automáticamente en todos los tests sin importar.
 """
+
 import pytest
 from unittest.mock import MagicMock
 
@@ -13,6 +14,7 @@ from src.domain.elo.model import Item
 
 
 # ── Fixtures de dominio ──────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def student_vector() -> VectorRating:
@@ -88,16 +90,18 @@ def item_pool(easy_item, medium_item, hard_item) -> list:
     """Pool de 10 ítems con dificultades variadas para pruebas del selector."""
     items = [easy_item, medium_item, hard_item]
     for i in range(7):
-        items.append({
-            "id": f"pool_{i:02d}",
-            "content": f"Pregunta {i}",
-            "difficulty": 700.0 + i * 120,
-            "rating_deviation": 200.0,
-            "topic": "Álgebra",
-            "options": ["A", "B", "C", "D"],
-            "correct_option": "A",
-            "course_id": "algebra_basica",
-        })
+        items.append(
+            {
+                "id": f"pool_{i:02d}",
+                "content": f"Pregunta {i}",
+                "difficulty": 700.0 + i * 120,
+                "rating_deviation": 200.0,
+                "topic": "Álgebra",
+                "options": ["A", "B", "C", "D"],
+                "correct_option": "A",
+                "course_id": "algebra_basica",
+            }
+        )
     return items
 
 
@@ -108,6 +112,7 @@ def item_pool_objs(item_pool) -> list:
 
 
 # ── Fixtures de infraestructura ──────────────────────────────────────────────
+
 
 @pytest.fixture
 def mock_repository() -> MagicMock:

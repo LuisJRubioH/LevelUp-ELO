@@ -8,7 +8,7 @@ import sys
 import os
 
 # Resolver imports del proyecto (ejecutar desde la raíz del repo)
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.infrastructure.persistence.sqlite_repository import SQLiteRepository
 
@@ -29,7 +29,7 @@ def main():
 
     conn.close()
 
-    repo.register_user(_USERNAME, _PASSWORD, role='admin')
+    repo.register_user(_USERNAME, _PASSWORD, role="admin")
 
     # Asegurar aprobación (register_user pone approved=0 para teachers, 1 para students)
     conn = repo.get_connection()

@@ -10,6 +10,7 @@ API real:
 
 Nota: select_optimal_item recibe objetos Item(difficulty=...), no dicts.
 """
+
 import pytest
 from src.domain.elo.model import Item, expected_score
 from src.domain.selector.item_selector import AdaptiveItemSelector

@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+
 load_dotenv()  # debe ser lo primero
 
 import os
@@ -18,11 +19,12 @@ class SupabaseStorage:
 
     def __init__(self):
         self._client = None
-        url = os.environ.get('SUPABASE_URL')
-        key = os.environ.get('SUPABASE_KEY')
+        url = os.environ.get("SUPABASE_URL")
+        key = os.environ.get("SUPABASE_KEY")
         if url and key:
             try:
                 from supabase import create_client
+
                 self._client = create_client(url, key)
             except Exception as exc:
                 print(f"[SupabaseStorage] init failed: {exc}")
@@ -33,8 +35,9 @@ class SupabaseStorage:
 
     # ── public API ──────────────────────────────────────────────────────────
 
-    def upload_file(self, bucket: str, path: str, file_bytes: bytes,
-                    mime_type: str = 'image/jpeg') -> str | None:
+    def upload_file(
+        self, bucket: str, path: str, file_bytes: bytes, mime_type: str = "image/jpeg"
+    ) -> str | None:
         """Upload *file_bytes* and return the storage *path* (not a URL).
 
         Previous versions returned a public URL, but the bucket is private
@@ -43,7 +46,9 @@ class SupabaseStorage:
         """
         if not self.available:
             return None
-        print(f"[STORAGE UPLOAD] bucket={bucket}, path={path}, size={len(file_bytes)} bytes, mime={mime_type}")
+        print(
+            f"[STORAGE UPLOAD] bucket={bucket}, path={path}, size={len(file_bytes)} bytes, mime={mime_type}"
+        )
         try:
             storage = self._client.storage.from_(bucket)
             # Remove existing file at same path (idempotent re-upload)
@@ -76,16 +81,15 @@ class SupabaseStorage:
         marker = f"/object/public/{bucket}/"
         idx = storage_url.find(marker)
         if idx != -1:
-            return storage_url[idx + len(marker):]
+            return storage_url[idx + len(marker) :]
         # Case (c): path starts with bucket name
         prefix = f"{bucket}/"
         if storage_url.startswith(prefix):
-            return storage_url[len(prefix):]
+            return storage_url[len(prefix) :]
         # Case (b): already a plain path
         return storage_url
 
-    def create_signed_url(self, bucket: str, path: str,
-                          expires_in: int = 3600) -> str | None:
+    def create_signed_url(self, bucket: str, path: str, expires_in: int = 3600) -> str | None:
         """Create a signed URL valid for *expires_in* seconds, or None."""
         if not self.available:
             return None
@@ -96,7 +100,7 @@ class SupabaseStorage:
             resp = storage.create_signed_url(clean_path, expires_in)
             # supabase-py returns {'signedURL': '...'} or a dict with 'signedUrl'
             if isinstance(resp, dict):
-                return resp.get('signedURL') or resp.get('signedUrl')
+                return resp.get("signedURL") or resp.get("signedUrl")
             return resp
         except Exception as exc:
             print(f"[SupabaseStorage] signed-url error: {exc}")

@@ -26,6 +26,7 @@ StepType = Literal[
 @dataclass
 class MathStep:
     """Un paso individual del procedimiento matemático."""
+
     step: int
     expression: str
     step_type: StepType = "unknown"
@@ -36,19 +37,19 @@ class MathStep:
 
 # Patrón para detectar separadores entre pasos
 _STEP_SEPARATORS = re.compile(
-    r'(?:'
-    r'\n\s*\n'           # doble salto de línea
-    r'|(?<=\S)\s*→\s*'   # flecha →
-    r'|(?<=\S)\s*⇒\s*'   # flecha ⇒
-    r'|(?<=\S)\s*\\to\s*' # \to (LaTeX)
-    r'|(?<=\S)\s*\\Rightarrow\s*'  # \Rightarrow (LaTeX)
-    r'|\n\s*(?=\d+[\.\)]\s)'  # numeración explícita (1. o 1))
-    r'|\n\s*(?=(?i:paso)\s+\d+)'  # "Paso N" (case-insensitive)
-    r')',
+    r"(?:"
+    r"\n\s*\n"  # doble salto de línea
+    r"|(?<=\S)\s*→\s*"  # flecha →
+    r"|(?<=\S)\s*⇒\s*"  # flecha ⇒
+    r"|(?<=\S)\s*\\to\s*"  # \to (LaTeX)
+    r"|(?<=\S)\s*\\Rightarrow\s*"  # \Rightarrow (LaTeX)
+    r"|\n\s*(?=\d+[\.\)]\s)"  # numeración explícita (1. o 1))
+    r"|\n\s*(?=(?i:paso)\s+\d+)"  # "Paso N" (case-insensitive)
+    r")",
 )
 
 # Patrón para limpiar prefijos de numeración
-_NUMBERING_PREFIX = re.compile(r'^\s*(?:paso\s+)?(\d+)[\.\):\-]\s*', re.IGNORECASE)
+_NUMBERING_PREFIX = re.compile(r"^\s*(?:paso\s+)?(\d+)[\.\):\-]\s*", re.IGNORECASE)
 
 
 # ── Clasificadores de tipo de paso ───────────────────────────────────────────
@@ -75,7 +76,7 @@ def _classify_step(expression: str, raw_line: str = "") -> StepType:
 
 def _split_by_equals(text: str) -> list[str]:
     """Divide texto en líneas separadas por '=', preservando ecuaciones completas."""
-    lines = text.split('\n')
+    lines = text.split("\n")
     result = []
     for line in lines:
         stripped = line.strip()
@@ -113,7 +114,7 @@ def extract_steps(text: str) -> list[MathStep]:
             continue
 
         # Limpiar prefijo de numeración
-        clean = _NUMBERING_PREFIX.sub('', part).strip()
+        clean = _NUMBERING_PREFIX.sub("", part).strip()
         if not clean:
             clean = part
 
@@ -145,12 +146,14 @@ def extract_steps_from_llm_transcription(transcription: str, pasos: list[dict]) 
         steps = []
         for p in pasos:
             contenido = p.get("contenido", "")
-            steps.append(MathStep(
-                step=p.get("numero", len(steps) + 1),
-                expression=contenido,
-                step_type=_classify_step(contenido),
-                raw_line=contenido,
-            ))
+            steps.append(
+                MathStep(
+                    step=p.get("numero", len(steps) + 1),
+                    expression=contenido,
+                    step_type=_classify_step(contenido),
+                    raw_line=contenido,
+                )
+            )
         return steps
 
     # Fallback: extraer de la transcripción directa

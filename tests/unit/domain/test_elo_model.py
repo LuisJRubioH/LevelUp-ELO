@@ -9,6 +9,7 @@ API real:
   calculate_dynamic_k(attempts, rating, recent_results) -> float
   update_elo(student, item, result, k, impact_modifier) -> float
 """
+
 import pytest
 from src.domain.elo.model import (
     expected_score,
@@ -38,7 +39,11 @@ class TestExpectedScore:
     def test_probability_always_in_valid_range(self):
         """La probabilidad siempre está en (0, 1) — nunca 0 ni 1 exacto."""
         extreme_cases = [
-            (0, 3000), (3000, 0), (1000, 1000), (500, 2500), (2500, 500),
+            (0, 3000),
+            (3000, 0),
+            (1000, 1000),
+            (500, 2500),
+            (2500, 500),
         ]
         for student, item in extreme_cases:
             p = expected_score(student, item)
@@ -70,7 +75,8 @@ class TestDynamicKFactor:
     def test_growing_student_gets_k32(self):
         """30+ intentos y rating < 1400 → K = 32."""
         k = calculate_dynamic_k(
-            attempts=50, rating=1200,
+            attempts=50,
+            rating=1200,
             recent_results=[(1, 0.5)] * 50,
         )
         assert k == 32

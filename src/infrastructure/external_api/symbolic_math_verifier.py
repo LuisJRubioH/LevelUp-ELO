@@ -16,21 +16,22 @@ from functools import lru_cache
 from typing import Literal
 
 ErrorType = Literal[
-    "none",                       # sin error
-    "incorrect_distributive",     # distributiva incorrecta
-    "unlike_terms_combined",      # suma de términos no semejantes
-    "sign_error",                 # error de signo
-    "fraction_simplification",    # fracción mal simplificada
-    "algebraic_error",            # error algebraico genérico
-    "not_equivalent",             # pasos no son equivalentes
-    "parse_error",                # no se pudo parsear la expresión
-    "unavailable",                # SymPy no disponible
+    "none",  # sin error
+    "incorrect_distributive",  # distributiva incorrecta
+    "unlike_terms_combined",  # suma de términos no semejantes
+    "sign_error",  # error de signo
+    "fraction_simplification",  # fracción mal simplificada
+    "algebraic_error",  # error algebraico genérico
+    "not_equivalent",  # pasos no son equivalentes
+    "parse_error",  # no se pudo parsear la expresión
+    "unavailable",  # SymPy no disponible
 ]
 
 
 @dataclass
 class VerificationResult:
     """Resultado de la verificación de un paso."""
+
     valid: bool
     error_type: ErrorType = "none"
     detail: str = ""
@@ -47,6 +48,7 @@ try:
         implicit_multiplication_application,
         convert_xor,
     )
+
     _SYMPY_AVAILABLE = True
 except ImportError:
     pass
@@ -58,6 +60,7 @@ def is_available() -> bool:
 
 
 # ── Cache de simplificación (T4) ─────────────────────────────────────────────
+
 
 @lru_cache(maxsize=256)
 def _simplify_cached(expr):
@@ -75,26 +78,26 @@ def _expand_cached(expr):
 
 # Patrones LaTeX → notación Python/SymPy
 _LATEX_REPLACEMENTS = [
-    (re.compile(r'\\frac\{([^}]+)\}\{([^}]+)\}'), r'((\1)/(\2))'),
-    (re.compile(r'\\sqrt\{([^}]+)\}'), r'sqrt(\1)'),
-    (re.compile(r'\\sqrt\[(\d+)\]\{([^}]+)\}'), r'(\2)**(1/\1)'),
-    (re.compile(r'\\left\s*'), ''),
-    (re.compile(r'\\right\s*'), ''),
-    (re.compile(r'\\cdot'), '*'),
-    (re.compile(r'\\times'), '*'),
-    (re.compile(r'\\div'), '/'),
-    (re.compile(r'\\pm'), '+-'),
-    (re.compile(r'\\pi'), 'pi'),
-    (re.compile(r'\\infty'), 'oo'),
-    (re.compile(r'\\sin'), 'sin'),
-    (re.compile(r'\\cos'), 'cos'),
-    (re.compile(r'\\tan'), 'tan'),
-    (re.compile(r'\\log'), 'log'),
-    (re.compile(r'\\ln'), 'ln'),
-    (re.compile(r'\\exp'), 'exp'),
-    (re.compile(r'\^'), '**'),
-    (re.compile(r'[{}]'), ''),
-    (re.compile(r'\$'), ''),
+    (re.compile(r"\\frac\{([^}]+)\}\{([^}]+)\}"), r"((\1)/(\2))"),
+    (re.compile(r"\\sqrt\{([^}]+)\}"), r"sqrt(\1)"),
+    (re.compile(r"\\sqrt\[(\d+)\]\{([^}]+)\}"), r"(\2)**(1/\1)"),
+    (re.compile(r"\\left\s*"), ""),
+    (re.compile(r"\\right\s*"), ""),
+    (re.compile(r"\\cdot"), "*"),
+    (re.compile(r"\\times"), "*"),
+    (re.compile(r"\\div"), "/"),
+    (re.compile(r"\\pm"), "+-"),
+    (re.compile(r"\\pi"), "pi"),
+    (re.compile(r"\\infty"), "oo"),
+    (re.compile(r"\\sin"), "sin"),
+    (re.compile(r"\\cos"), "cos"),
+    (re.compile(r"\\tan"), "tan"),
+    (re.compile(r"\\log"), "log"),
+    (re.compile(r"\\ln"), "ln"),
+    (re.compile(r"\\exp"), "exp"),
+    (re.compile(r"\^"), "**"),
+    (re.compile(r"[{}]"), ""),
+    (re.compile(r"\$"), ""),
 ]
 
 
@@ -105,7 +108,7 @@ def _clean_expression(expr: str) -> str:
         result = pattern.sub(replacement, result)
     # Eliminar texto descriptivo al inicio (ej: "simplificamos: ")
     # Solo eliminar si es una palabra de 3+ letras seguida de espacio/dos puntos
-    result = re.sub(r'^[a-záéíóúñ]{3,}[\s:]+', '', result, flags=re.IGNORECASE).strip()
+    result = re.sub(r"^[a-záéíóúñ]{3,}[\s:]+", "", result, flags=re.IGNORECASE).strip()
     return result
 
 
@@ -126,8 +129,8 @@ def parse_expression(expr_str: str) -> object | None:
         return None
 
     # Si tiene '=', tomar el lado derecho (resultado del paso)
-    if '=' in cleaned:
-        parts = cleaned.split('=')
+    if "=" in cleaned:
+        parts = cleaned.split("=")
         cleaned = parts[-1].strip()
 
     try:
@@ -142,6 +145,7 @@ def parse_expression(expr_str: str) -> object | None:
 
 # ── Equivalencia con valor absoluto (T1) ─────────────────────────────────────
 
+
 def _check_abs_equivalence(e1, e2) -> bool:
     """Verifica equivalencia considerando valor absoluto.
 
@@ -154,8 +158,10 @@ def _check_abs_equivalence(e1, e2) -> bool:
     try:
         # Solo aplicar si alguna expresión contiene sqrt o Pow (raíces)
         has_sqrt_or_pow = (
-            e1.has(sympy.sqrt) or e2.has(sympy.sqrt)
-            or e1.has(sympy.Abs) or e2.has(sympy.Abs)
+            e1.has(sympy.sqrt)
+            or e2.has(sympy.sqrt)
+            or e1.has(sympy.Abs)
+            or e2.has(sympy.Abs)
             or any(
                 isinstance(a, sympy.Pow) and not a.exp.is_Integer
                 for a in sympy.preorder_traversal(e1)
@@ -227,6 +233,7 @@ def _check_numeric_equivalence(e1, e2) -> bool:
 
 # ── Verificación principal ───────────────────────────────────────────────────
 
+
 def check_equivalence(expr1_str: str, expr2_str: str) -> VerificationResult:
     """Verifica si dos expresiones son algebraicamente equivalentes.
 
@@ -295,9 +302,7 @@ def check_equivalence(expr1_str: str, expr2_str: str) -> VerificationResult:
         )
 
 
-def _diagnose_error(
-    e1: object, e2: object, diff: object
-) -> ErrorType:
+def _diagnose_error(e1: object, e2: object, diff: object) -> ErrorType:
     """Intenta clasificar el tipo de error algebraico."""
     if not _SYMPY_AVAILABLE:
         return "algebraic_error"
@@ -314,7 +319,11 @@ def _diagnose_error(
                 if diff.is_Rational and not diff.is_Integer:
                     return "fraction_simplification"
                 if e1.is_number and e2.is_number:
-                    return "fraction_simplification" if (diff.is_Rational and not diff.is_Integer) else "not_equivalent"
+                    return (
+                        "fraction_simplification"
+                        if (diff.is_Rational and not diff.is_Integer)
+                        else "not_equivalent"
+                    )
         except Exception:
             pass
 
@@ -359,7 +368,7 @@ def compare_steps(
         )
 
     # Si ambos son ecuaciones, comparar ambos lados
-    if '=' in step1_expr and '=' in step2_expr:
+    if "=" in step1_expr and "=" in step2_expr:
         return _compare_equations(step1_expr, step2_expr)
 
     return check_equivalence(step1_expr, step2_expr)
@@ -367,8 +376,8 @@ def compare_steps(
 
 def _compare_equations(eq1_str: str, eq2_str: str) -> VerificationResult:
     """Compara dos ecuaciones verificando que la transformación sea válida."""
-    parts1 = eq1_str.split('=', 1)
-    parts2 = eq2_str.split('=', 1)
+    parts1 = eq1_str.split("=", 1)
+    parts2 = eq2_str.split("=", 1)
 
     if len(parts1) != 2 or len(parts2) != 2:
         return check_equivalence(eq1_str, eq2_str)

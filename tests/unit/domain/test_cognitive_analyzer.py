@@ -7,6 +7,7 @@ Solo se prueban los caminos que NO requieren llamada a IA externa:
 - analyze_cognition con texto vacío/corto (short-circuit)
 - compute_time_modifier (lógica pura de tiempo)
 """
+
 import pytest
 from src.domain.elo.cognitive import CognitiveAnalyzer
 

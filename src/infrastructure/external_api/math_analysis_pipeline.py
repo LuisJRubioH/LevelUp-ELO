@@ -33,6 +33,7 @@ from src.infrastructure.external_api.pedagogical_feedback import (
 @dataclass
 class PipelineResult:
     """Resultado completo del pipeline de análisis."""
+
     ocr: OCRResult | None = None
     steps: list[MathStep] = field(default_factory=list)
     analysis: ProcedureAnalysis | None = None

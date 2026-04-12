@@ -10,6 +10,7 @@ API real:
   v.update(concept, difficulty, result, impact_modifier) -> (new_r, new_rd)
   aggregate_global_elo(vector) -> float
 """
+
 import pytest
 from src.domain.elo.vector_elo import VectorRating, aggregate_global_elo
 

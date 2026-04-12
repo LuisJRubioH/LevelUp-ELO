@@ -70,7 +70,9 @@ def generate_feedback(analysis: ProcedureAnalysis) -> str:
         Texto markdown con la retroalimentación pedagógica.
     """
     if not analysis.steps:
-        return "No se detectaron pasos en tu procedimiento. Intenta mostrar tu desarrollo paso a paso."
+        return (
+            "No se detectaron pasos en tu procedimiento. Intenta mostrar tu desarrollo paso a paso."
+        )
 
     lines: list[str] = []
 

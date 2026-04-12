@@ -4,15 +4,21 @@ src/interface/streamlit/components/timers.py
 Componente de temporizador en tiempo real vía JavaScript puro.
 El timer corre segundo a segundo sin necesidad de rerun de Streamlit.
 """
+
 from streamlit.components.v1 import html as st_html
 
 _TIMER_ID_COUNTER = [0]  # mutable counter para IDs únicos de timers
 
 
-def _render_live_timer(start_epoch: float, label: str = "",
-                       font_size: str = "1.1rem", height: int = 40,
-                       color: str = "#FFD700", bold: bool = True,
-                       align: str = "right"):
+def _render_live_timer(
+    start_epoch: float,
+    label: str = "",
+    font_size: str = "1.1rem",
+    height: int = 40,
+    color: str = "#FFD700",
+    bold: bool = True,
+    align: str = "right",
+):
     """Renderiza un temporizador en tiempo real usando JavaScript puro.
 
     El timer corre segundo a segundo sin necesidad de rerun de Streamlit.

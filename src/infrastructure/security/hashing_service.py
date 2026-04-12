@@ -1,18 +1,20 @@
 from passlib.context import CryptContext
 import hashlib
 
+
 class HashingService:
     """
     Servicio de infraestructura para la gestión de hashing de contraseñas.
     Encapsula Argon2id y soporte para hashes legados SHA-256.
     """
+
     def __init__(self):
         self.pwd_context = CryptContext(
             schemes=["argon2"],
             argon2__memory_cost=65536,
             argon2__parallelism=4,
             argon2__time_cost=2,
-            deprecated="auto"
+            deprecated="auto",
         )
 
     def hash_password(self, password: str) -> str:

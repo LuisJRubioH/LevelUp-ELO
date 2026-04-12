@@ -4,6 +4,7 @@ src/interface/streamlit/assets.py
 Carga y cache de assets estáticos (logos, GIFs, banners) y estilos CSS globales.
 Todos los assets se cargan una sola vez con @st.cache_resource.
 """
+
 import base64
 import os
 import streamlit as st
@@ -16,7 +17,7 @@ BASE_PATH = os.path.dirname(
 _BASE = BASE_PATH  # alias de compatibilidad interna
 
 _LOGO_LIGHT = os.path.join(_BASE, "logo-elo-light.png")
-_LOGO_DARK  = os.path.join(_BASE, "logo-elo2-dark.png")
+_LOGO_DARK = os.path.join(_BASE, "logo-elo2-dark.png")
 
 
 # ── Logos ────────────────────────────────────────────────────────────────────
@@ -85,16 +86,16 @@ _BANNERS_DIR = os.path.join(_BASE, "Banners")
 def _load_course_banners():
     """Carga los banners como base64 y retorna dict {keyword: b64_str}."""
     _files = {
-        'geometr': 'geometria.png',
-        'aritm':   'aritmetica.png',
-        'logic':   'logica.png',
-        'lógic':   'logica.png',
-        'conteo':  'conteo_combinatoria.png',
-        'combinat': 'conteo_combinatoria.png',
-        'probab':  'probabilidad.png',
-        'álgebra': 'algebra.png',
-        'algebra': 'algebra.png',
-        'trigon':  'algebra.png',
+        "geometr": "geometria.png",
+        "aritm": "aritmetica.png",
+        "logic": "logica.png",
+        "lógic": "logica.png",
+        "conteo": "conteo_combinatoria.png",
+        "combinat": "conteo_combinatoria.png",
+        "probab": "probabilidad.png",
+        "álgebra": "algebra.png",
+        "algebra": "algebra.png",
+        "trigon": "algebra.png",
     }
     banners = {}
     for kw, fname in _files.items():
@@ -130,7 +131,8 @@ def apply_global_css():
     """Aplica los estilos CSS globales de la aplicación. Llamar una vez en app.py."""
 
     # CSS: radio button seleccionado en verde
-    st.markdown("""
+    st.markdown(
+        """
 <style>
 div[data-testid="stRadio"] div[role="radiogroup"] label[data-baseweb="radio"] input:checked + div {
     background-color: #00CC66 !important;
@@ -169,10 +171,13 @@ div[data-testid="stRadio"] {
     border-color: #00CC66 !important;
 }
 </style>
-""", unsafe_allow_html=True)
+""",
+        unsafe_allow_html=True,
+    )
 
     # CSS principal: tipografía, cards, botones, inputs, tabs
-    st.markdown("""
+    st.markdown(
+        """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
     html, body, [class*="css"] { font-family: 'Outfit', sans-serif; }
@@ -231,4 +236,6 @@ div[data-testid="stRadio"] {
     div[data-testid="stMetricValue"] { font-size: 2rem; font-weight: 700; color: #00C9FF; }
     .sidebar-text { color: #aaa; font-size: 0.9rem; }
     </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )

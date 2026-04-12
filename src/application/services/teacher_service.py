@@ -1,9 +1,11 @@
 from src.infrastructure.external_api.ai_client import get_pedagogical_analysis
 
+
 class TeacherService:
     """
     Servicio de aplicación que orquesta los casos de uso del profesor.
     """
+
     def __init__(self, repository):
         self.repository = repository
 
@@ -40,13 +42,14 @@ class TeacherService:
         Retorna dict con: elo_summary, procedure_stats_by_course, attempts.
         """
         return {
-            'elo_summary': self.repository.get_student_elo_summary(student_id),
-            'procedure_stats_by_course': self.repository.get_procedure_stats_by_course(student_id),
-            'attempts': self.repository.get_student_attempts_detail(student_id),
+            "elo_summary": self.repository.get_student_elo_summary(student_id),
+            "procedure_stats_by_course": self.repository.get_procedure_stats_by_course(student_id),
+            "attempts": self.repository.get_student_attempts_detail(student_id),
         }
 
-    def validate_procedure(self, submission_id: int,
-                           teacher_score: float, feedback: str = "") -> None:
+    def validate_procedure(
+        self, submission_id: int, teacher_score: float, feedback: str = ""
+    ) -> None:
         """Valida la calificación de un procedimiento y persiste la nota final oficial.
 
         teacher_score (0.0-100.0) se copia a final_score; el status pasa a
@@ -59,9 +62,17 @@ class TeacherService:
             )
         self.repository.validate_procedure_submission(submission_id, teacher_score, feedback)
 
-    def generate_ai_analysis(self, student_id, global_elo, api_key=None, provider=None,
-                             base_url=None, model_name=None,
-                             procedure_stats=None, procedure_stats_by_course=None):
+    def generate_ai_analysis(
+        self,
+        student_id,
+        global_elo,
+        api_key=None,
+        provider=None,
+        base_url=None,
+        model_name=None,
+        procedure_stats=None,
+        procedure_stats_by_course=None,
+    ):
         """Orquesta la generación del análisis pedagógico con IA.
         Requiere un mínimo de 3 intentos para producir un análisis significativo.
         """
@@ -73,15 +84,23 @@ class TeacherService:
             )
 
         recent_attempts = attempts[-10:]
-        recent_acc = sum(1 for a in recent_attempts if a['is_correct']) / len(recent_attempts) if recent_attempts else 0
-        topics_unique = list(set([a['topic'] for a in attempts]))
+        recent_acc = (
+            sum(1 for a in recent_attempts if a["is_correct"]) / len(recent_attempts)
+            if recent_attempts
+            else 0
+        )
+        topics_unique = list(set([a["topic"] for a in attempts]))
 
         # T11: ELO desglosado por tópico para análisis pedagógico más preciso
         elo_by_topic = self.repository.get_latest_elo_by_topic(student_id)
-        elo_topic_summary = {t: round(e, 1) for t, (e, _rd) in elo_by_topic.items()} if elo_by_topic else {}
+        elo_topic_summary = (
+            {t: round(e, 1) for t, (e, _rd) in elo_by_topic.items()} if elo_by_topic else {}
+        )
 
         # T11: tiempo promedio de respuesta (solo intentos con time_taken registrado)
-        _times = [a.get('time_taken') for a in attempts if a.get('time_taken') and a['time_taken'] > 0]
+        _times = [
+            a.get("time_taken") for a in attempts if a.get("time_taken") and a["time_taken"] > 0
+        ]
         avg_time = round(sum(_times) / len(_times), 1) if _times else None
 
         student_data = {
@@ -100,8 +119,8 @@ class TeacherService:
             procedure_stats_by_course=procedure_stats_by_course,
         )
         if base_url:
-            kwargs['base_url'] = base_url
+            kwargs["base_url"] = base_url
         if model_name:
-            kwargs['model_name'] = model_name
+            kwargs["model_name"] = model_name
 
         return get_pedagogical_analysis(student_data, **kwargs)

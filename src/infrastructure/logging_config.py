@@ -14,6 +14,7 @@ Uso desde cualquier módulo:
     logger.warning("Advertencia con contexto")
     logger.error("Error con traceback", exc_info=True)
 """
+
 import logging
 import os
 import sys
