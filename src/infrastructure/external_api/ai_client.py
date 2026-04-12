@@ -3,8 +3,11 @@ import requests
 import json
 import re
 import base64
+import logging
 
 from src.utils import strip_thinking_tags, strip_thinking_tags_stream
+
+logger = logging.getLogger(__name__)
 
 
 def _normalize_latex(text: str) -> str:
@@ -130,8 +133,12 @@ def get_active_models(base_url="http://localhost:1234/v1"):
         if response.status_code == 200:
             data = response.json()
             return [m['id'] for m in data.get('data', [])]
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(
+            "No se pudo obtener lista de modelos desde '%s': %s. "
+            "Continuando sin detección automática de modelos.",
+            base_url, e,
+        )
     return []
 
 
@@ -789,8 +796,12 @@ INSTRUCCION CRITICA: Responde UNICAMENTE con el siguiente JSON, sin ningun texto
                 while len(dict_items) < 3:
                     dict_items.append(_FALLBACK_RECOMMENDATIONS[len(dict_items)])
                 return dict_items[:3]
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(
+            "Parseo de recomendaciones pedagógicas falló: %s. "
+            "Se usan recomendaciones de fallback predefinidas.",
+            e,
+        )
 
     return _FALLBACK_RECOMMENDATIONS
 
@@ -961,8 +972,13 @@ def validate_procedure_relevance(
         answer = (resp.choices[0].message.content or "").strip().upper()
         # Considerar variantes: SÍ, SI, YES → True; NO → False
         return "NO" not in answer
-    except Exception:
-        return True  # en caso de error, beneficio de la duda
+    except Exception as e:
+        logger.warning(
+            "Validación de relevancia de procedimiento falló: %s. "
+            "Se asume relevante (beneficio de la duda) para no bloquear al estudiante.",
+            e,
+        )
+        return True  # Mantener comportamiento de degradación
 
 
 def analyze_procedure_image(
@@ -1083,16 +1099,24 @@ class AIClient:
         try:
             import streamlit as _st
             _secrets = _st.secrets
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(
+                "No se pudo acceder a st.secrets en AIClient.__init__: %s. "
+                "Usando configuración manual del sidebar.",
+                e,
+            )
 
         for env_name, provider in self._ENV_PROVIDERS:
             key = os.environ.get(env_name)
             if not key:
                 try:
                     key = _secrets.get(env_name)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(
+                        "No se encontró '%s' en Streamlit secrets: %s. "
+                        "Usando configuración manual del sidebar.",
+                        env_name, e,
+                    )
             if key:
                 self._provider = provider
                 self._api_key = key

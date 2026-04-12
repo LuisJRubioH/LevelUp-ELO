@@ -9,6 +9,10 @@ base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
 if base_path not in sys.path:
     sys.path.append(base_path)
 
+from src.infrastructure.logging_config import configure_logging, get_logger
+configure_logging(level="INFO")
+_app_logger = get_logger(__name__)
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
@@ -2774,10 +2778,23 @@ else:
                                             )
                                         except Exception:
                                             pass  # No bloquear la UX si falla el registro
-                                except (ConnectionError, TimeoutError):
-                                    st.error("No se pudo conectar al modelo. Intenta de nuevo en unos segundos.")
-                                except Exception:
-                                    st.error("El modelo no pudo procesar la solicitud. Verifica que esté cargado correctamente.")
+                                except ConnectionError:
+                                    st.warning(
+                                        "⚠️ No se pudo conectar con el servidor de IA. "
+                                        "Verifica que esté activo o revisa tu conexión."
+                                    )
+                                except TimeoutError:
+                                    st.warning(
+                                        "⏱️ La IA tardó demasiado en responder. "
+                                        "Puedes intentar de nuevo o continuar sin asistencia."
+                                    )
+                                except Exception as _katia_err:
+                                    st.error("❌ Error inesperado al contactar la IA.")
+                                    _app_logger.error(
+                                        "Error en chat socrático KatIA (usuario=%s): %s",
+                                        st.session_state.get("username", "desconocido"),
+                                        _katia_err, exc_info=True,
+                                    )
                                 st.rerun()
 
                             if not item_data.get('options'):
@@ -3056,7 +3073,18 @@ else:
                                                     st.session_state[f'proc_no_vision_{_iid}'] = True
                                                 else:
                                                     st.session_state[f'proc_fb_{_iid}'] = result
-                                            except Exception:
+                                            except ConnectionError:
+                                                st.warning("⚠️ No se pudo conectar con la IA para revisar el procedimiento.")
+                                                st.session_state[f'proc_no_vision_{_iid}'] = True
+                                            except TimeoutError:
+                                                st.warning("⏱️ La IA tardó demasiado. El procedimiento se enviará al profesor.")
+                                                st.session_state[f'proc_no_vision_{_iid}'] = True
+                                            except Exception as _proc_err:
+                                                _app_logger.error(
+                                                    "Error en análisis de procedimiento (usuario=%s, ítem=%s): %s",
+                                                    st.session_state.get("username", "desconocido"),
+                                                    _iid, _proc_err, exc_info=True,
+                                                )
                                                 st.session_state[f'proc_no_vision_{_iid}'] = True
 
                                     # Esperar a que el GIF complete al menos un loop
@@ -3167,8 +3195,12 @@ else:
                                                 elif _sym_result.analysis.valid_steps > 1:
                                                     with st.expander("🧮 Verificación simbólica"):
                                                         st.markdown("Todos los pasos verificados son algebraicamente correctos.")
-                                        except Exception:
-                                            pass  # T10: fallback silencioso, no interrumpir flujo
+                                        except Exception as _sym_err:
+                                            _app_logger.warning(
+                                                "Verificación simbólica falló: %s. "
+                                                "Se omite la sección de verificación algebraica.",
+                                                _sym_err,
+                                            )
 
                                 # ── Resultado: revisión genérica (otros proveedores) ──
                                 _ai_fb = st.session_state.get(f'proc_fb_{_iid}')

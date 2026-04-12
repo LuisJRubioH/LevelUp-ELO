@@ -5,8 +5,11 @@ import requests
 import json
 import time
 import re
+import logging
 
 from src.utils import strip_thinking_tags
+
+logger = logging.getLogger(__name__)
 
 class CognitiveAnalyzer:
     def __init__(self, base_url="", model_name="google/gemma-3-4b"):
@@ -106,12 +109,18 @@ class CognitiveAnalyzer:
                 match = re.search(r'\{.*\}', content, re.DOTALL)
                 if match:
                     return json.loads(match.group(0))
-        except:
-            pass
+        except Exception as e:
+            logger.warning(
+                "Análisis cognitivo falló en _call_ai_analyzer: %s. "
+                "Se retornan valores neutros (impact_modifier=1.0) "
+                "para no interrumpir la sesión del estudiante.",
+                e,
+            )
 
         # Fallback neutro
         return {
-            "confidence": 0.5,
-            "error_type": "conceptual" if not is_correct else "none",
-            "explanation": "Análisis IA no disponible (Modo Offline)"
+            "confidence_score": None,
+            "error_type": "none",
+            "impact_modifier": 1.0,
+            "reasoning": "Análisis cognitivo no disponible",
         }
