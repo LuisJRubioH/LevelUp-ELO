@@ -1,6 +1,9 @@
 import os
 import sqlite3
+import logging
 from src.infrastructure.security.hashing_service import HashingService
+
+logger = logging.getLogger(__name__)
 
 # TODO: reemplazar SQLite por DB externa (PostgreSQL, etc.) en producción
 class SQLiteRepository:
@@ -2010,9 +2013,29 @@ class SQLiteRepository:
         for filepath in json_files:
             # course_id = nombre del archivo sin extensión (ej: 'algebra_lineal')
             course_id = os.path.splitext(os.path.basename(filepath))[0]
+            _fname = os.path.basename(filepath)
 
-            with open(filepath, 'r', encoding='utf-8') as f:
-                items_list = json.load(f)
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    items_list = json.load(f)
+            except UnicodeDecodeError as e:
+                logger.error(
+                    "Error de encoding en '%s': %s. "
+                    "Asegúrate de que el archivo sea UTF-8 sin BOM. "
+                    "Ejecuta: python scripts/validate_bank.py",
+                    _fname, e
+                )
+                continue
+            except json.JSONDecodeError as e:
+                logger.error(
+                    "JSON inválido en '%s': %s. "
+                    "Verifica la sintaxis con un linter JSON.",
+                    _fname, e
+                )
+                continue
+            except FileNotFoundError:
+                logger.warning("Archivo no encontrado: '%s'. Ignorando.", filepath)
+                continue
 
             if not items_list:
                 continue

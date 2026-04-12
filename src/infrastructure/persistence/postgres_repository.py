@@ -2,6 +2,7 @@ import os
 import re
 import time
 import functools
+import logging
 import psycopg2
 import psycopg2.errors
 import psycopg2.extras
@@ -10,6 +11,9 @@ from psycopg2.extras import RealDictCursor
 from src.infrastructure.security.hashing_service import HashingService
 from src.infrastructure.storage.supabase_storage import SupabaseStorage
 from src.domain.elo.model import expected_score
+
+
+logger = logging.getLogger(__name__)
 
 
 def _timing(func):
@@ -2312,8 +2316,28 @@ class PostgresRepository:
         courses_data = []
         for filepath in json_files:
             course_id = os.path.splitext(os.path.basename(filepath))[0]
-            with open(filepath, 'r', encoding='utf-8') as f:
-                items_list = json.load(f)
+            _fname = os.path.basename(filepath)
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    items_list = json.load(f)
+            except UnicodeDecodeError as e:
+                logger.error(
+                    "Error de encoding en '%s': %s. "
+                    "Asegúrate de que el archivo sea UTF-8 sin BOM. "
+                    "Ejecuta: python scripts/validate_bank.py",
+                    _fname, e
+                )
+                continue
+            except json.JSONDecodeError as e:
+                logger.error(
+                    "JSON inválido en '%s': %s. "
+                    "Verifica la sintaxis con un linter JSON.",
+                    _fname, e
+                )
+                continue
+            except FileNotFoundError:
+                logger.warning("Archivo no encontrado: '%s'. Ignorando.", filepath)
+                continue
             if items_list:
                 courses_data.append((course_id, items_list))
 
