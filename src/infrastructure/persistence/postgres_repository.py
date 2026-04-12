@@ -2153,9 +2153,9 @@ class PostgresRepository:
                     tags = json.loads(row.pop('item_tags') or '[]')
                 except Exception:
                     tags = []
-                row['item_area'] = next((t.split(':', 1)[1].rstrip(']').strip() for t in tags if t.startswith('[General:')), '')
-                row['item_enfoque'] = next((t.split(':', 1)[1].rstrip(']').strip() for t in tags if t.startswith('[Enfoque:')), '')
-                row['item_componente'] = next((t.split(':', 1)[1].rstrip(']').strip() for t in tags if t.startswith('[Específica:')), '')
+                row['item_area'] = next((t.split(':', 1)[1].rstrip(']').strip() for t in tags if t.startswith('[General:')), 'Sin registro')
+                row['item_enfoque'] = next((t.split(':', 1)[1].rstrip(']').strip() for t in tags if t.startswith('[Enfoque:')), 'Sin registro')
+                row['item_componente'] = next((t.split(':', 1)[1].rstrip(']').strip() for t in tags if t.startswith('[Específica:')), 'Sin registro')
             return result
         finally:
             self.put_connection(conn)
