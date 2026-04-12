@@ -32,32 +32,37 @@ class AdaptiveItemSelector:
     def select_optimal_item(self, student_rating: float, items: List[Item]) -> Item:
         """
         Selecciona el ítem estadísticamente más informativo dentro del rango de probabilidad.
+        Pre-filtra por ventana ZDP en espacio de rating antes del filtro de probabilidad.
         """
         if not items:
             return None
 
+        # Pre-filtro por ventana ZDP en espacio de rating [rating-250, rating+250]
+        zdp_low, zdp_high = zdp_interval(student_rating, delta=250)
+        zdp_pool = [i for i in items if zdp_low <= i.difficulty <= zdp_high]
+        pool = zdp_pool if zdp_pool else items  # fallback al pool completo
+
         p_low = self.target_low
         p_high = self.target_high
         steps = 0
-        max_expansion_steps = 10 
-        
+        max_expansion_steps = 10
+
         candidates = []
-        
+
         while not candidates and steps < max_expansion_steps:
-            for item in items:
-                # Calc probabilidad de éxito usando la función logística de ELO
+            for item in pool:
                 p = expected_score(student_rating, item.difficulty)
                 if p_low <= p <= p_high:
                     candidates.append((item, p))
-            
+
             if not candidates:
                 # Expansión sutil del rango de probabilidad ±5%
                 p_low = max(0.01, p_low - 0.05)
                 p_high = min(0.99, p_high + 0.05)
                 steps += 1
-        
+
         if not candidates:
-            candidates = [(i, expected_score(student_rating, i.difficulty)) for i in items]
+            candidates = [(i, expected_score(student_rating, i.difficulty)) for i in pool]
 
         # Priorizar por máxima información (Fisher Information) y peso del ítem
         return max(

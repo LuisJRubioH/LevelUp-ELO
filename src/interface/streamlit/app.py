@@ -15,7 +15,6 @@ import plotly.graph_objects as go
 import requests
 import json
 import random
-import importlib
 try:
     from psycopg2.extras import RealDictCursor
 except ImportError:
@@ -26,12 +25,6 @@ import src.infrastructure.external_api.ai_client as ai_mod
 import src.infrastructure.external_api.math_procedure_review as _math_review_mod
 import src.infrastructure.external_api.model_router as _router_mod
 import src.infrastructure.external_api.math_analysis_pipeline as _pipeline_mod
-importlib.reload(db_mod)
-importlib.reload(pg_mod)
-importlib.reload(ai_mod)
-importlib.reload(_math_review_mod)
-importlib.reload(_router_mod)
-importlib.reload(_pipeline_mod)
 
 from src.domain.elo.vector_elo import VectorRating, aggregate_global_elo, aggregate_global_rd
 from src.domain.elo.model import expected_score, calculate_dynamic_k, Item
@@ -275,13 +268,14 @@ if 'db' not in st.session_state:
         st.session_state.db = SQLiteRepository()
 repo = st.session_state.db
 cookie_manager = stx.CookieManager()
-# Inicializar Servicios (Re-instanciar en cada recarga para capturar cambios en código)
+# Inicializar Servicios
 import src.application.services.student_service as ss_mod
 import src.application.services.teacher_service as ts_mod
-importlib.reload(ss_mod)
-importlib.reload(ts_mod)
 
-st.session_state.student_service = ss_mod.StudentService(st.session_state.db)
+st.session_state.student_service = ss_mod.StudentService(
+    st.session_state.db,
+    enable_cognitive_modifier=False,  # Explícito y buscable con grep
+)
 st.session_state.teacher_service = ts_mod.TeacherService(st.session_state.db)
 
 # Inicializar Configuración de IA

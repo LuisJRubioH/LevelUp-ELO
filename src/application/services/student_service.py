@@ -1,17 +1,22 @@
 from src.domain.elo.model import expected_score
-from src.domain.elo.cognitive import CognitiveAnalyzer
 from src.domain.selector.item_selector import AdaptiveItemSelector
 from src.domain.entities import VALID_LEVELS, LEVEL_UNIVERSIDAD, LEVEL_SEMILLERO
 from src.infrastructure.external_api.ai_client import get_socratic_guidance
+from src.application.interfaces.repositories import IStudentRepository
 
 class StudentService:
     """
     Servicio de aplicación que orquesta los casos de uso del estudiante.
     """
-    def __init__(self, repository, ai_client=None):
+    def __init__(self, repository: IStudentRepository, ai_client=None, enable_cognitive_modifier: bool = False):
         self.repository = repository
         self.ai_client = ai_client
-        self.cognitive_analyzer = CognitiveAnalyzer()
+        self.enable_cognitive_modifier = enable_cognitive_modifier
+        if enable_cognitive_modifier:
+            from src.domain.elo.cognitive import CognitiveAnalyzer
+            self.cognitive_analyzer = CognitiveAnalyzer()
+        else:
+            self.cognitive_analyzer = None
 
     def get_next_question(self, student_id, topic, vector_rating,
                           session_correct_ids=None, session_wrong_timestamps=None,
@@ -84,41 +89,59 @@ class StudentService:
             el nombre del curso para que el ELO se consolide en una sola clave.
         """
         is_correct = (selected_option == item_data['correct_option'])
-        # Usar elo_topic (nombre del curso) si se proporciona, de lo contrario
-        # usar el topic del ítem (retrocompatible con cursos de tema único)
         _topic_key = elo_topic or item_data['topic']
         current_elo = vector_rating.get(_topic_key)
 
-        # 1. Análisis Cognitivo
-        cog_data = self.cognitive_analyzer.analyze_cognition(reasoning, is_correct, time_taken)
+        # 1. Análisis cognitivo — controlado por feature flag
+        if self.enable_cognitive_modifier and self.cognitive_analyzer is not None:
+            cog_data = self.cognitive_analyzer.analyze_cognition(reasoning, is_correct, time_taken)
+            impact_modifier = cog_data.get("impact_modifier", 1.0)
+        else:
+            # Feature flag desactivado — neutro explícito
+            impact_modifier = 1.0
+            cog_data = {
+                "confidence_score": None,
+                "error_type": "none",
+                "impact_modifier": 1.0,
+                "reasoning": "Análisis cognitivo desactivado",
+            }
 
-        # 2. Actualizar ELO del estudiante (usando la clave unificada del curso)
-        # impact_modifier=1.0 siempre: el análisis cognitivo por texto/tiempo
-        # fue una feature abandonada; el modificador causaba discrepancias entre
-        # el preview de puntos y el resultado real para el estudiante.
+        # 2. Actualizar ELO del estudiante
         result = 1.0 if is_correct else 0.0
         new_r, new_rd = vector_rating.update(
             _topic_key,
             item_data['difficulty'],
             result,
-            impact_modifier=1.0
+            impact_modifier=impact_modifier,
         )
 
-        # 3. Actualizar ELO del ítem (Simetría)
-        self.repository.update_item_rating(item_data['id'], current_elo, result)
-
-        # 4. Guardar intento (persiste _topic_key para que get_latest_elo_by_topic
-        #    reconstruya correctamente el vector al re-iniciar sesión)
+        # 3. Calcular nueva dificultad del ítem (ELO simétrico)
         p_success = expected_score(current_elo, item_data['difficulty'])
-        self.repository.save_attempt(
-            user_id, item_data['id'], is_correct, item_data['difficulty'],
-            _topic_key, new_r,
-            prob_failure=1.0 - p_success,
-            expected_score=p_success,
-            time_taken=time_taken,
-            confidence_score=cog_data['confidence_score'],
-            error_type=cog_data['error_type'],
-            rating_deviation=new_rd
+        item_score = 1.0 - result
+        p_item_wins = 1.0 - p_success
+        k_item = 32.0
+        new_item_difficulty = item_data['difficulty'] + k_item * (item_score - p_item_wins)
+        item_rd_current = item_data.get('rating_deviation', 350.0)
+
+        # 4. Persistir ítem + intento de forma atómica
+        attempt_data = {
+            'is_correct': is_correct,
+            'difficulty': item_data['difficulty'],
+            'topic': _topic_key,
+            'elo_after': new_r,
+            'prob_failure': 1.0 - p_success,
+            'expected_score': p_success,
+            'time_taken': time_taken,
+            'confidence_score': cog_data['confidence_score'],
+            'error_type': cog_data['error_type'],
+            'rating_deviation': new_rd,
+        }
+        self.repository.save_answer_transaction(
+            user_id=user_id,
+            item_id=item_data['id'],
+            item_difficulty_new=new_item_difficulty,
+            item_rd_new=item_rd_current,
+            attempt_data=attempt_data,
         )
 
         return is_correct, cog_data

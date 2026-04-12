@@ -1073,6 +1073,53 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    def save_answer_transaction(
+        self,
+        user_id: int,
+        item_id: str,
+        item_difficulty_new: float,
+        item_rd_new: float,
+        attempt_data: dict,
+    ) -> None:
+        """
+        Persiste el resultado de una respuesta de forma atómica.
+        Ver sqlite_repository.py para documentación completa.
+        """
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "UPDATE items SET difficulty = %s, rating_deviation = %s WHERE id = %s",
+                (item_difficulty_new, item_rd_new, item_id),
+            )
+            cursor.execute(
+                """INSERT INTO attempts
+                   (user_id, item_id, is_correct, difficulty, topic, elo_after,
+                    prob_failure, expected_score, time_taken, confidence_score,
+                    error_type, rating_deviation)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                (
+                    user_id,
+                    item_id,
+                    attempt_data["is_correct"],
+                    attempt_data.get("difficulty"),
+                    attempt_data.get("topic"),
+                    attempt_data["elo_after"],
+                    attempt_data.get("prob_failure"),
+                    attempt_data.get("expected_score"),
+                    attempt_data.get("time_taken"),
+                    attempt_data.get("confidence_score"),
+                    attempt_data.get("error_type"),
+                    attempt_data.get("rating_deviation"),
+                ),
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
     @_timing
     def get_study_streak(self, user_id, course_id=None):
         """Calcula la racha de días consecutivos de estudio del estudiante.
