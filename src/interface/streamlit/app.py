@@ -1777,6 +1777,8 @@ else:
                         'group_name': 'Grupo', 'course_name': 'Curso',
                         'course_block': 'Bloque', 'attempt_id': 'ID Intento',
                         'item_id': 'ID Pregunta', 'topic': 'Tema',
+                        'item_area': 'Área', 'item_enfoque': 'Enfoque',
+                        'item_componente': 'Componente Específica',
                         'item_content': 'Enunciado', 'item_difficulty': 'Dificultad Ítem',
                         'is_correct': 'Correcto', 'elo_after': 'ELO Después',
                         'attempt_rd': 'RD', 'prob_failure': 'P. Fallo',

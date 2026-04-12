@@ -2064,6 +2064,7 @@ class PostgresRepository:
 
     def export_teacher_student_data(self, teacher_id, group_id=None):
         """Exporta TODOS los datos de estudiantes del profesor para análisis externo."""
+        import json
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -2097,7 +2098,8 @@ class PostgresRepository:
                     a.time_taken,
                     a.confidence_score,
                     a.error_type,
-                    a.timestamp AS attempt_timestamp
+                    a.timestamp AS attempt_timestamp,
+                    i.tags AS item_tags
                 FROM attempts a
                 JOIN users u ON a.user_id = u.id
                 JOIN items i ON a.item_id = i.id
@@ -2130,7 +2132,8 @@ class PostgresRepository:
                     a.time_taken,
                     a.confidence_score,
                     a.error_type,
-                    a.timestamp AS attempt_timestamp
+                    a.timestamp AS attempt_timestamp,
+                    i.tags AS item_tags
                 FROM attempts a
                 JOIN users u ON a.user_id = u.id
                 JOIN items i ON a.item_id = i.id
@@ -2144,7 +2147,16 @@ class PostgresRepository:
                 ORDER BY username ASC, attempt_timestamp ASC
             ''', tuple(_params + _params2))
             rows = cursor.fetchall()
-            return [dict(row) for row in rows]
+            result = [dict(row) for row in rows]
+            for row in result:
+                try:
+                    tags = json.loads(row.pop('item_tags') or '[]')
+                except Exception:
+                    tags = []
+                row['item_area'] = next((t.split(':', 1)[1].rstrip(']').strip() for t in tags if t.startswith('[General:')), '')
+                row['item_enfoque'] = next((t.split(':', 1)[1].rstrip(']').strip() for t in tags if t.startswith('[Enfoque:')), '')
+                row['item_componente'] = next((t.split(':', 1)[1].rstrip(']').strip() for t in tags if t.startswith('[Específica:')), '')
+            return result
         finally:
             self.put_connection(conn)
 
