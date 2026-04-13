@@ -247,21 +247,21 @@ def render_teacher():
                                     st.image(
                                         _img_bytes,
                                         caption="Procedimiento del estudiante",
-                                        width="stretch",
+                                        use_container_width=True,
                                     )
                                     _img_shown = True
                             if not _img_shown and _img_path and os.path.exists(_img_path):
                                 st.image(
                                     _img_path,
                                     caption="Procedimiento del estudiante",
-                                    width="stretch",
+                                    use_container_width=True,
                                 )
                                 _img_shown = True
                             if not _img_shown and _sub.get("image_data"):
                                 st.image(
                                     bytes(_sub["image_data"]),
                                     caption="Procedimiento del estudiante",
-                                    width="stretch",
+                                    use_container_width=True,
                                 )
                                 _img_shown = True
                             if not _img_shown:
@@ -308,7 +308,7 @@ def render_teacher():
                                 if st.button(
                                     "✅ Validar y Guardar Calificación",
                                     key=f"validate_btn_{_sub['id']}",
-                                    width="stretch",
+                                    use_container_width=True,
                                     disabled=_is_validated,
                                 ):
                                     try:
@@ -353,7 +353,7 @@ def render_teacher():
                                 if st.button(
                                     "✅ Enviar retroalimentación",
                                     key=f"fb_submit_{_sub['id']}",
-                                    width="stretch",
+                                    use_container_width=True,
                                     disabled=not _can_submit,
                                 ):
                                     _fb_img_data = _fb_img.getvalue() if _fb_img else None
@@ -698,7 +698,7 @@ def render_teacher():
             ] + _active_topic_cols
             _df_sum = _df_sum[_ordered]
 
-            st.dataframe(_df_sum, width="stretch")
+            st.dataframe(_df_sum, use_container_width=True)
 
             st.markdown("---")
 
@@ -744,7 +744,9 @@ def render_teacher():
                                 _elo_sum["elo_by_topic"].items(), key=lambda x: -x[1][0]
                             )
                         ]
-                        st.dataframe(pd.DataFrame(_elo_rows), width="stretch", hide_index=True)
+                        st.dataframe(
+                            pd.DataFrame(_elo_rows), use_container_width=True, hide_index=True
+                        )
                     else:
                         st.caption("Sin datos de ELO por tópico.")
 
@@ -759,7 +761,9 @@ def render_teacher():
                             }
                             for v in _proc_by_course.values()
                         ]
-                        st.dataframe(pd.DataFrame(_proc_rows), width="stretch", hide_index=True)
+                        st.dataframe(
+                            pd.DataFrame(_proc_rows), use_container_width=True, hide_index=True
+                        )
                     else:
                         st.caption("Sin procedimientos evaluados.")
 
@@ -792,7 +796,7 @@ def render_teacher():
                         legend=dict(bgcolor="rgba(38,39,48,0.8)", bordercolor="gray"),
                         margin=dict(t=10),
                     )
-                    st.plotly_chart(_fig_evo, width="stretch")
+                    st.plotly_chart(_fig_evo, use_container_width=True)
 
                     with st.expander("🎯 Probabilidad de Acierto por Intento"):
                         _df_prob = _df_att.dropna(subset=["prob_failure"]).copy()
@@ -828,7 +832,7 @@ def render_teacher():
                                 yaxis_title="Prob. de Acierto",
                                 yaxis=dict(range=[0, 1]),
                             )
-                            st.plotly_chart(_fig_p, width="stretch")
+                            st.plotly_chart(_fig_p, use_container_width=True)
                             _pm1, _pm2, _pm3 = st.columns(3)
                             _pm1.metric("Promedio", f"{_df_prob['prob_success'].mean():.1%}")
                             _pm2.metric("Máximo", f"{_df_prob['prob_success'].max():.1%}")
@@ -867,7 +871,7 @@ def render_teacher():
                             "timestamp": "Fecha",
                         }
                         _df_hist_v.rename(columns=_rename_map, inplace=True)
-                        st.dataframe(_df_hist_v, width="stretch")
+                        st.dataframe(_df_hist_v, use_container_width=True)
                 else:
                     st.info(f"{_sel_name} aún no ha respondido ninguna pregunta.")
 
@@ -899,7 +903,7 @@ def render_teacher():
                         st.markdown("**Temas consultados:**")
                         _topic_rows = sorted(_ki_topics.items(), key=lambda x: -x[1])
                         _topic_df = pd.DataFrame(_topic_rows, columns=["Tema", "Consultas"])
-                        st.dataframe(_topic_df, width="stretch", hide_index=True)
+                        st.dataframe(_topic_df, use_container_width=True, hide_index=True)
 
                         # Por materia
                         if len(_ki_courses) > 1:
@@ -908,7 +912,7 @@ def render_teacher():
                             _course_df = pd.DataFrame(
                                 _course_rows, columns=["Materia", "Consultas"]
                             )
-                            st.dataframe(_course_df, width="stretch", hide_index=True)
+                            st.dataframe(_course_df, use_container_width=True, hide_index=True)
 
                         # Historial detallado
                         st.markdown("**Historial de conversaciones:**")
@@ -935,7 +939,7 @@ def render_teacher():
                 if st.button(
                     "🧠 Generar Análisis Pedagógico con IA",
                     key=f"ai_anal_{_sel_stu['id']}",
-                    width="stretch",
+                    use_container_width=True,
                     disabled=_ai_disabled,
                     help=_ai_help_txt,
                 ):

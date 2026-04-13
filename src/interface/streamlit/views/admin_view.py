@@ -203,7 +203,7 @@ def render_admin():
             )
 
             st.write("")
-            if st.button("🚀 Aplicar Cambio de Grupo", type="primary", width="stretch"):
+            if st.button("🚀 Aplicar Cambio de Grupo", type="primary", use_container_width=True):
                 student_id = student_options[sel_student_name]
                 new_group_id = group_options[sel_group_label]
 

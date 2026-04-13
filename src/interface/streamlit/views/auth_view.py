@@ -25,7 +25,7 @@ def render_auth(cookie_manager):
 
     _logo_col1, _logo_col2, _logo_col3 = st.columns([1, 2, 1])
     with _logo_col2:
-        st.image(_get_logo(), width="stretch")
+        st.image(_get_logo(), use_container_width=True)
     st.markdown(
         """
         <div style='text-align:center; margin-bottom:24px;'>

@@ -108,7 +108,9 @@ def render_student():
                 st.markdown("#### 🎓 Universidad")
                 st.write("Cálculo, Álgebra Lineal, EDO, Probabilidad, Estadística")
                 st.write("")
-                if st.button("Soy universitario", width="stretch", type="primary", key="onb_uni"):
+                if st.button(
+                    "Soy universitario", use_container_width=True, type="primary", key="onb_uni"
+                ):
                     repo.set_education_level(st.session_state.user_id, "universidad")
                     st.session_state.education_level = "universidad"
                     st.rerun()
@@ -117,7 +119,7 @@ def render_student():
                 st.markdown("#### 🏫 Colegio")
                 st.write("Álgebra Básica, Aritmética, Trigonometría, Geometría")
                 st.write("")
-                if st.button("Soy de colegio", width="stretch", key="onb_col"):
+                if st.button("Soy de colegio", use_container_width=True, key="onb_col"):
                     repo.set_education_level(st.session_state.user_id, "colegio")
                     st.session_state.education_level = "colegio"
                     st.rerun()
@@ -126,7 +128,7 @@ def render_student():
                 st.markdown("#### 🏆 Concursos")
                 st.write("Preparación para concursos públicos: DIAN, SENA y más")
                 st.write("")
-                if st.button("Preparo concursos", width="stretch", key="onb_con"):
+                if st.button("Preparo concursos", use_container_width=True, key="onb_con"):
                     repo.set_education_level(st.session_state.user_id, "concursos")
                     st.session_state.education_level = "concursos"
                     st.rerun()
@@ -595,7 +597,9 @@ def render_student():
                         f"</div>"
                     )
                     st.markdown(_card_html, unsafe_allow_html=True)
-                    if st.button(f"Practicar", key=f"sel_course_{course['id']}", width="stretch"):
+                    if st.button(
+                        f"Practicar", key=f"sel_course_{course['id']}", use_container_width=True
+                    ):
                         st.session_state.selected_course = course
                         st.session_state.question_start_time = None
                         st.session_state.pop("current_question", None)
@@ -826,7 +830,10 @@ def render_student():
                 )
                 st.write("")
                 if st.button(
-                    "🐾 SEGUIR PRACTICANDO", width="stretch", type="primary", key="btn_continue_cel"
+                    "🐾 SEGUIR PRACTICANDO",
+                    use_container_width=True,
+                    type="primary",
+                    key="btn_continue_cel",
                 ):
                     st.session_state.show_celebration = False
                     st.session_state.pop("current_question", None)
@@ -857,7 +864,10 @@ def render_student():
 
                 st.write("")
                 if st.button(
-                    "▶️ SIGUIENTE PREGUNTA", width="stretch", type="primary", key="btn_next_question"
+                    "▶️ SIGUIENTE PREGUNTA",
+                    use_container_width=True,
+                    type="primary",
+                    key="btn_next_question",
                 ):
                     st.session_state.show_result = False
                     st.session_state.pop("current_question", None)
@@ -1037,7 +1047,7 @@ def render_student():
                             st.write("")
                             submit_button = st.button(
                                 label="📝 Enviar Respuesta",
-                                width="stretch",
+                                use_container_width=True,
                                 disabled=(selected_option is None),
                             )
 
@@ -1247,7 +1257,7 @@ def render_student():
                                 "para esta pregunta."
                             )
 
-                        st.image(_file_bytes, width="stretch")
+                        st.image(_file_bytes, use_container_width=True)
 
                         # Groq activo → revisión matemática rigurosa con Llama 4 Scout
                         _is_groq = st.session_state.get("ai_provider") == "groq" and bool(
@@ -1316,7 +1326,7 @@ def render_student():
                             if st.button(
                                 _btn_label,
                                 key=f"analyze_proc_{_iid}",
-                                width="stretch",
+                                use_container_width=True,
                                 disabled=not st.session_state.ai_available or _plagiarism_detected,
                             ):
                                 _q_content = item_data.get("content") or ""
@@ -1683,13 +1693,13 @@ def render_student():
                                     st.image(
                                         _fb_path,
                                         caption="Procedimiento calificado",
-                                        width="stretch",
+                                        use_container_width=True,
                                     )
                                 elif _sub.get("feedback_image"):
                                     st.image(
                                         bytes(_sub["feedback_image"]),
                                         caption="Procedimiento calificado",
-                                        width="stretch",
+                                        use_container_width=True,
                                     )
 
                         elif _sub_status in ("pending", "reviewed"):
@@ -1710,13 +1720,13 @@ def render_student():
                                         st.image(
                                             _fb_path,
                                             caption="Procedimiento calificado",
-                                            width="stretch",
+                                            use_container_width=True,
                                         )
                                     elif _sub.get("feedback_image"):
                                         st.image(
                                             bytes(_sub["feedback_image"]),
                                             caption="Procedimiento calificado",
-                                            width="stretch",
+                                            use_container_width=True,
                                         )
 
                         else:
@@ -1732,7 +1742,7 @@ def render_student():
                                 if st.button(
                                     "📤 Enviar al profesor para revisión",
                                     key=f"send_teacher_{_iid}",
-                                    width="stretch",
+                                    use_container_width=True,
                                 ):
                                     print(
                                         f"[UPLOAD] Llamando save_procedure_submission con image_data={len(_file_bytes) if _file_bytes else 'None'} bytes"
@@ -1879,7 +1889,7 @@ def render_student():
                     yaxis_title="ELO",
                     yaxis=dict(range=[max(0, min(elos_list) - 50), None]),
                 )
-                st.plotly_chart(fig_bar, width="stretch")
+                st.plotly_chart(fig_bar, use_container_width=True)
             except Exception as e:
                 st.error(f"Error visualizando gráfica: {str(e)}")
         else:
@@ -1909,7 +1919,7 @@ def render_student():
                 yaxis_title="Nivel ELO",
                 legend=dict(bgcolor="rgba(38,39,48,0.8)", bordercolor="gray"),
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
         else:
             st.write("Sin datos históricos.")
 
@@ -2230,14 +2240,20 @@ def render_student():
                         if _fb_img_bytes:
                             st.markdown("**Archivo enviado:**")
                             st.image(
-                                _fb_img_bytes, caption="Procedimiento enviado", width="stretch"
+                                _fb_img_bytes,
+                                caption="Procedimiento enviado",
+                                use_container_width=True,
                             )
                             _fb_img_shown = True
                     if not _fb_img_shown and _img_path and os.path.isfile(_img_path):
                         st.markdown("**Archivo enviado:**")
-                        st.image(_img_path, caption="Procedimiento enviado", width="stretch")
+                        st.image(
+                            _img_path, caption="Procedimiento enviado", use_container_width=True
+                        )
 
                     _fb_img_path = _fb.get("feedback_image_path")
                     if _fb_img_path and os.path.isfile(_fb_img_path):
                         st.markdown("**Corrección del docente:**")
-                        st.image(_fb_img_path, caption="Archivo corregido", width="stretch")
+                        st.image(
+                            _fb_img_path, caption="Archivo corregido", use_container_width=True
+                        )
