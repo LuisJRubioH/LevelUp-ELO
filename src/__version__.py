@@ -8,9 +8,9 @@ Convención: MAJOR.MINOR.PATCH
   MINOR: nuevas funcionalidades retrocompatibles (nuevos cursos, nuevos paneles)
   PATCH: bug fixes y mejoras menores
 
-Próxima versión planificada: 2.0.0 (migración FastAPI + React)
-Ver ROADMAP_V2.md para el plan completo.
+V2.0.0: migración a FastAPI + React + nuevas features (PWA, Examen, Logros, Notificaciones WS)
+Ver ROADMAP_V2.md y CHANGELOG.md para el historial completo.
 """
 
-__version__ = "1.0.0"
-__version_info__ = (1, 0, 0)
+__version__ = "2.0.0"
+__version_info__ = (2, 0, 0)

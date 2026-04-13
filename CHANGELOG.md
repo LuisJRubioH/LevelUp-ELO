@@ -6,6 +6,56 @@ Versioning basado en [Semantic Versioning](https://semver.org/lang/es/).
 
 ---
 
+## [2.0.0] — 2026-04-13
+
+### Segunda versión — React + FastAPI
+
+#### Nuevas features
+
+**Fase 1 — API FastAPI (39 endpoints REST+WS)**
+- JWT con python-jose: access token (15 min) + refresh token (7 días) en HttpOnly cookie
+- Routers: `/auth`, `/student`, `/teacher`, `/admin`, `/ai`, `/ws`
+- WebSocket: sala de notificaciones por usuario (`teacher_{id}`, `student_{id}`)
+- Rate limiting listo para integrar (slowapi)
+- OpenAPI docs en `/docs`
+
+**Fase 2–3 — Frontend React + TypeScript**
+- SPA con Vite + Tailwind CSS + React Router + Zustand + React Query
+- Páginas: Login/Register (wizard), Practice, Stats, Courses, Exam
+- Paneles docente: Dashboard (filtros cascada), Grupos, Procedimientos, Exportación
+- Panel admin: Usuarios, Grupos, Reportes
+- Chat socrático con SSE streaming
+- LaTeX en tiempo real con react-katex
+- Timer nativo de React (useInterval) — sin JS externo
+- Upload de procedimientos con react-dropzone
+
+**Fase 4 — Nuevas features V2.0**
+- F1: Notificaciones WebSocket en tiempo real (badge en sidebar al calificar procedimiento)
+- F3: Modo examen cronometrado — N preguntas con timer regresivo, mapa visual de preguntas, resultados por ítem
+- F5: Sistema de logros/badges (8 badges: first_correct, ELO thresholds, rachas, intentos) — tabla `achievements` en ambos repos
+- F8: Progressive Web App — manifest.json, Service Worker con Workbox, cache de preguntas
+
+**Fase 5 — QA y tests**
+- 64 tests de integración API (54 originales + 10 nuevos para exam y achievements)
+- 176 tests totales (112 unitarios + 64 API)
+- CI actualizado: Job 6 (test-api) + Job 7 (build-frontend)
+- Todos los tests pasan (64 API, 112 unit = 176 total)
+
+#### Fixes incluidos en V2
+- `correct_option` se obtiene siempre desde DB al responder (seguridad)
+- `create_group` retorna 3-tupla `(ok, msg, group_id)` — antes 2-tupla
+- `difficulty` en schemas: float en lugar de int
+- Placeholder SQL compatible SQLite (`?`) y PostgreSQL (`%s`)
+- `get_item_by_id()` en ambos repositorios
+- Login: token se guarda antes de llamar `/me`
+
+#### Arquitectura
+- Backend FastAPI envuelve el dominio V1 sin modificarlo
+- Frontend React desacopla UI de lógica de negocio
+- Migración gradual: Streamlit V1 sigue funcionando en paralelo
+
+---
+
 ## [1.0.0] — 2026-04-12
 
 ### Primera versión estable
