@@ -84,12 +84,22 @@ def answer(body: AnswerRequest, user: CurrentUser, repo: RepoDep):
     service = _make_service(repo)
     vector = build_vector_rating(user["user_id"], repo)
 
-    elo_topic = body.elo_topic or body.item_data.get("topic", body.item_id)
+    # Recuperar correct_option desde DB — el cliente no la envía (seguridad)
+    item_db = repo.get_item_by_id(body.item_id)
+    if not item_db:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Ítem '{body.item_id}' no encontrado.",
+        )
+    # Fusionar datos del cliente con datos canónicos de la DB
+    item_data = {**body.item_data, "correct_option": item_db["correct_option"]}
+
+    elo_topic = body.elo_topic or item_data.get("topic", body.item_id)
     elo_before = vector.get(elo_topic)
 
     is_correct, cog_data = service.process_answer(
         user_id=user["user_id"],
-        item_data=body.item_data,
+        item_data=item_data,
         selected_option=body.selected_option,
         reasoning=body.reasoning or "",
         time_taken=body.time_taken,
@@ -149,7 +159,7 @@ def courses(user: CurrentUser, repo: RepoDep):
     """Catálogo de cursos disponibles para el nivel educativo del estudiante."""
     service = _make_service(repo)
     available = service.get_available_courses(user["user_id"])
-    enrolled_ids = {e["course_id"] for e in repo.get_user_enrollments(user["user_id"])}
+    enrolled_ids = {e["id"] for e in repo.get_user_enrollments(user["user_id"])}
 
     return [
         CourseResponse(
@@ -166,6 +176,14 @@ def courses(user: CurrentUser, repo: RepoDep):
 @router.post("/enroll", status_code=status.HTTP_201_CREATED)
 def enroll(body: EnrollRequest, user: CurrentUser, repo: RepoDep):
     """Matricula al estudiante en un curso."""
+    # Validar que el curso existe
+    courses = repo.get_courses()
+    valid_ids = {c["id"] if isinstance(c, dict) else c[0] for c in courses}
+    if body.course_id not in valid_ids:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El curso '{body.course_id}' no existe.",
+        )
     service = _make_service(repo)
     service.enroll_in_course(user["user_id"], body.course_id, body.group_id)
     return {"message": f"Matriculado en {body.course_id} correctamente."}

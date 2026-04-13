@@ -1678,7 +1678,7 @@ class SQLiteRepository:
     def create_group(self, name, teacher_id, course_id=None):
         """Crea un nuevo grupo para un profesor, opcionalmente vinculado a un curso.
 
-        Returns (True, msg) si fue creado, (False, msg) si hay duplicado u otro error.
+        Returns (True, msg, group_id) si fue creado, (False, msg, None) si hay error.
         """
         name_normalized = name.strip().lower()
         conn = self.get_connection()
@@ -1689,9 +1689,9 @@ class SQLiteRepository:
                 (name, teacher_id, course_id, name_normalized),
             )
             conn.commit()
-            return True, f"Grupo '{name}' creado exitosamente."
+            return True, f"Grupo '{name}' creado exitosamente.", cursor.lastrowid
         except sqlite3.IntegrityError:
-            return False, "Ya existe un grupo con ese nombre."
+            return False, "Ya existe un grupo con ese nombre.", None
         finally:
             conn.close()
 
@@ -2751,6 +2751,34 @@ class SQLiteRepository:
                 }
             )
         return items
+
+    def get_item_by_id(self, item_id: str) -> dict | None:
+        """Retorna el ítem completo (incluido correct_option) por su ID."""
+        import json
+
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags, course_id "
+            "FROM items WHERE id = ?",
+            (item_id,),
+        )
+        r = cursor.fetchone()
+        conn.close()
+        if not r:
+            return None
+        return {
+            "id": r[0],
+            "topic": r[1],
+            "content": r[2],
+            "options": json.loads(r[3]),
+            "correct_option": r[4],
+            "difficulty": r[5],
+            "rating_deviation": r[6],
+            "image_url": r[7],
+            "tags": json.loads(r[8]) if r[8] else [],
+            "course_id": r[9],
+        }
 
     def update_item_rating(self, item_id, student_rating, actual_score, k_item=32.0):
         """

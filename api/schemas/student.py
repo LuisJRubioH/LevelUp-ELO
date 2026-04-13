@@ -27,7 +27,7 @@ class NextQuestionRequest(BaseModel):
 class ItemResponse(BaseModel):
     id: str
     content: str
-    difficulty: int
+    difficulty: float
     topic: str
     options: list[str]
     image_url: str | None = None

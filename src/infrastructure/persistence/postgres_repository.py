@@ -2073,20 +2073,25 @@ class PostgresRepository:
 
     @_timing
     def create_group(self, name, teacher_id, course_id=None):
-        """Crea un nuevo grupo para un profesor, opcionalmente vinculado a un curso."""
+        """Crea un nuevo grupo para un profesor, opcionalmente vinculado a un curso.
+
+        Returns (True, msg, group_id) si fue creado, (False, msg, None) si hay error.
+        """
         name_normalized = name.strip().lower()
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
-                "INSERT INTO groups (name, teacher_id, course_id, name_normalized) VALUES (%s, %s, %s, %s)",
+                "INSERT INTO groups (name, teacher_id, course_id, name_normalized) VALUES (%s, %s, %s, %s) RETURNING id",
                 (name, teacher_id, course_id, name_normalized),
             )
+            row = cursor.fetchone()
+            group_id = row["id"] if row else None
             conn.commit()
-            return True, f"Grupo '{name}' creado exitosamente."
+            return True, f"Grupo '{name}' creado exitosamente.", group_id
         except psycopg2.IntegrityError:
             conn.rollback()
-            return False, "Ya existe un grupo con ese nombre."
+            return False, "Ya existe un grupo con ese nombre.", None
         finally:
             self.put_connection(conn)
 
@@ -3288,6 +3293,44 @@ class PostgresRepository:
                     }
                 )
             return items
+        finally:
+            self.put_connection(conn)
+
+    def get_item_by_id(self, item_id: str) -> dict | None:
+        """Retorna el ítem completo (incluido correct_option) por su ID."""
+        import json
+
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags, course_id "
+                "FROM items WHERE id = %s",
+                (item_id,),
+            )
+            r = cursor.fetchone()
+            if not r:
+                return None
+            return {
+                "id": r["id"],
+                "topic": r["topic"],
+                "content": r["content"],
+                "options": (
+                    r["options"] if isinstance(r["options"], list) else json.loads(r["options"])
+                ),
+                "correct_option": r["correct_option"],
+                "difficulty": float(r["difficulty"]),
+                "rating_deviation": (
+                    float(r["rating_deviation"]) if r["rating_deviation"] else 350.0
+                ),
+                "image_url": r.get("image_url"),
+                "tags": (
+                    r["tags"]
+                    if isinstance(r["tags"], list)
+                    else (json.loads(r["tags"]) if r["tags"] else [])
+                ),
+                "course_id": r.get("course_id"),
+            }
         finally:
             self.put_connection(conn)
 

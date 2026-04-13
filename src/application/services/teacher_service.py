@@ -18,13 +18,13 @@ class TeacherService:
     def create_new_group(self, teacher_id: int, course_id: str, group_name: str) -> tuple:
         """Valida y crea un nuevo grupo vinculado a un curso del catálogo.
 
-        Returns (True, mensaje_ok) o (False, mensaje_error).
+        Returns (True, mensaje_ok, group_id) o (False, mensaje_error, None).
         """
         group_name = group_name.strip() if group_name else ""
         if not group_name:
-            return False, "El nombre del grupo no puede estar vacío."
+            return False, "El nombre del grupo no puede estar vacío.", None
         if not course_id:
-            return False, "Debes seleccionar un curso."
+            return False, "Debes seleccionar un curso.", None
         return self.repository.create_group(group_name, teacher_id, course_id)
 
     def get_teacher_groups(self, teacher_id: int) -> list:

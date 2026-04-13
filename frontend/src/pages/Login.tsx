@@ -42,6 +42,14 @@ export function Login() {
     setLoading(true);
     try {
       const res = await authApi.login(loginData);
+      // Guardar token antes de llamar me() para que el cliente HTTP lo incluya en el header
+      setAuth(res.access_token, {
+        user_id: res.user_id,
+        username: res.username,
+        role: res.role as AuthUser["role"],
+        education_level: null,
+        grade: null,
+      });
       const profile = await authApi.me();
       setAuth(res.access_token, profile as AuthUser);
       navigate(res.role === "teacher" ? "/teacher" : res.role === "admin" ? "/admin" : "/student");
@@ -66,6 +74,13 @@ export function Login() {
       const res = await authApi.login({
         username: regData.username,
         password: regData.password,
+      });
+      setAuth(res.access_token, {
+        user_id: res.user_id,
+        username: res.username,
+        role: res.role as AuthUser["role"],
+        education_level: null,
+        grade: null,
       });
       const profile = await authApi.me();
       setAuth(res.access_token, profile as AuthUser);

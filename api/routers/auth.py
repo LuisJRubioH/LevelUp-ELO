@@ -159,9 +159,11 @@ def _get_profile_row(repo, user_id: int) -> dict | None:
         conn = repo.get_connection()
         try:
             cur = conn.cursor()
+            # PostgreSQL usa %s, SQLite usa ? como placeholder
+            ph = "%s" if hasattr(repo, "put_connection") else "?"
             cur.execute(
-                "SELECT username, role, approved, education_level, grade "
-                "FROM users WHERE id = ? AND active = 1",
+                f"SELECT username, role, approved, education_level, grade "
+                f"FROM users WHERE id = {ph} AND active = 1",
                 (user_id,),
             )
             row = cur.fetchone()

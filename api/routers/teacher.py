@@ -49,8 +49,8 @@ def _svc(repo) -> TeacherService:
 def dashboard(user: CurrentUser, repo: RepoDep):
     """Resumen de grupos, ELO promedio y últimos intentos de los estudiantes."""
     svc = _svc(repo)
-    data = svc.get_dashboard_data(user["user_id"])
-    return data
+    students, groups = svc.get_dashboard_data(user["user_id"])
+    return {"students": students, "groups": groups}
 
 
 # ── Grupos ────────────────────────────────────────────────────────────────────

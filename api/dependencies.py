@@ -40,7 +40,7 @@ def get_repository():
     if _repo_instance is not None:
         return _repo_instance
 
-    if os.environ.get("DATABASE_URL") or settings.database_url:
+    if os.environ.get("DATABASE_URL"):
         from src.infrastructure.persistence.postgres_repository import PostgresRepository
 
         _repo_instance = PostgresRepository()
@@ -151,14 +151,21 @@ def build_vector_rating(user_id: int, repo) -> object:
 
     vector = VectorRating()
     topic_elos = repo.get_latest_elo_by_topic(user_id)
-    for row in topic_elos:
-        topic = row["topic"] if isinstance(row, dict) else row[0]
-        elo = row["elo_after"] if isinstance(row, dict) else row[1]
-        rd = (
-            row["rating_deviation"]
-            if isinstance(row, dict)
-            else (row[2] if len(row) > 2 else 350.0)
-        )
-        # Inyectar directamente en el dict interno (sin pasar por update)
-        vector.ratings[topic] = (float(elo), float(rd) if rd else 350.0)
+
+    # get_latest_elo_by_topic retorna un dict {topic: (elo, rd)}
+    if isinstance(topic_elos, dict):
+        for topic, (elo, rd) in topic_elos.items():
+            vector.ratings[topic] = (float(elo), float(rd) if rd else 350.0)
+    else:
+        # Fallback: lista de rows (tuples o dicts)
+        for row in topic_elos:
+            topic = row["topic"] if isinstance(row, dict) else row[0]
+            elo = row["elo_after"] if isinstance(row, dict) else row[1]
+            rd = (
+                row["rating_deviation"]
+                if isinstance(row, dict)
+                else (row[2] if len(row) > 2 else 350.0)
+            )
+            vector.ratings[topic] = (float(elo), float(rd) if rd else 350.0)
+
     return vector
