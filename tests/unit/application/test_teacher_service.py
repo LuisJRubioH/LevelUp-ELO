@@ -48,20 +48,23 @@ class TestGetDashboardData:
 class TestCreateNewGroup:
     def test_empty_name_returns_error(self, service):
         """Nombre vacío → False con mensaje de error."""
-        ok, msg = service.create_new_group(teacher_id=1, course_id="algebra", group_name="")
+        ok, msg, gid = service.create_new_group(teacher_id=1, course_id="algebra", group_name="")
         assert ok is False
         assert "vacío" in msg
+        assert gid is None
 
     def test_whitespace_name_returns_error(self, service):
         """Nombre de solo espacios → False."""
-        ok, msg = service.create_new_group(teacher_id=1, course_id="algebra", group_name="   ")
+        ok, msg, gid = service.create_new_group(teacher_id=1, course_id="algebra", group_name="   ")
         assert ok is False
+        assert gid is None
 
     def test_missing_course_returns_error(self, service):
         """Sin course_id → False con mensaje."""
-        ok, msg = service.create_new_group(teacher_id=1, course_id="", group_name="Grupo A")
+        ok, msg, gid = service.create_new_group(teacher_id=1, course_id="", group_name="Grupo A")
         assert ok is False
         assert "curso" in msg.lower()
+        assert gid is None
 
     def test_valid_group_delegates_to_repo(self, service, repo):
         """Datos válidos → delega al repositorio."""
@@ -70,10 +73,11 @@ class TestCreateNewGroup:
 
     def test_valid_group_returns_repo_result(self, service, repo):
         """El resultado es el devuelto por el repositorio."""
-        repo.create_group.return_value = (True, "OK")
-        ok, msg = service.create_new_group(teacher_id=1, course_id="algebra", group_name="G1")
+        repo.create_group.return_value = (True, "OK", 42)
+        ok, msg, gid = service.create_new_group(teacher_id=1, course_id="algebra", group_name="G1")
         assert ok is True
         assert msg == "OK"
+        assert gid == 42
 
     def test_group_name_is_stripped(self, service, repo):
         """Los espacios al inicio/fin del nombre se eliminan antes de crear."""
