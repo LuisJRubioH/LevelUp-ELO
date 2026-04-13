@@ -1,0 +1,38 @@
+## render.yaml — Configuración del servicio backend en Render.com
+## Documentación: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: levelup-elo-api
+    runtime: python
+    pythonVersion: "3.11.9"
+    buildCommand: pip install -r requirements-api.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+    envVars:
+      # ── Base de datos (Supabase) ──────────────────────────────────────────
+      - key: DATABASE_URL
+        sync: false  # Valor secreto — pegar en el dashboard de Render
+
+      # ── Supabase Storage (procedimientos) ────────────────────────────────
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+
+      # ── JWT — generar con: python -c "import secrets; print(secrets.token_hex(32))"
+      - key: JWT_SECRET_KEY
+        generateValue: true  # Render genera uno seguro automáticamente
+
+      # ── Admin seed ───────────────────────────────────────────────────────
+      - key: ADMIN_USER
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false  # Valor secreto
+
+      # ── CORS — debe incluir el dominio exacto de Vercel ──────────────────
+      # Formato JSON: '["https://levelup-elo.vercel.app","https://tu-dominio.com"]'
+      - key: CORS_ORIGINS
+        value: '["https://levelup-elo.vercel.app","http://localhost:5173"]'

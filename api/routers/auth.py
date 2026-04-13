@@ -58,7 +58,7 @@ def login(body: LoginRequest, response: Response, repo: RepoDep):
         value=refresh_token,
         httponly=True,
         secure=True,
-        samesite="lax",
+        samesite="none",  # cross-origin (frontend Vercel ↔ backend Render)
         max_age=settings.refresh_token_expire_days * 86400,
         path="/auth",
     )
@@ -114,7 +114,7 @@ def refresh_token(body: RefreshRequest, response: Response, repo: RepoDep):
         value=new_refresh,
         httponly=True,
         secure=True,
-        samesite="lax",
+        samesite="none",  # cross-origin (frontend Vercel ↔ backend Render)
         max_age=settings.refresh_token_expire_days * 86400,
         path="/auth",
     )

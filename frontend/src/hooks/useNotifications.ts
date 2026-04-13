@@ -28,7 +28,14 @@ export function useNotifications({ room, onEvent, enabled = true }: UseNotificat
   const connect = useCallback(() => {
     if (!accessToken || !enabled) return;
 
-    const wsUrl = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/api/ws/notifications/${room}`;
+    // En producción (Vercel + Render separados) VITE_API_URL = "https://levelup-elo.onrender.com"
+    // → wsBase = "wss://levelup-elo.onrender.com"
+    // En dev (proxy Vite a localhost:8000), VITE_API_URL="" → usa el mismo host
+    const apiBase = import.meta.env.VITE_API_URL as string | undefined;
+    const wsBase = apiBase
+      ? apiBase.replace(/^https/, "wss").replace(/^http(?!s)/, "ws")
+      : `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`;
+    const wsUrl = `${wsBase}/api/ws/notifications/${room}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 

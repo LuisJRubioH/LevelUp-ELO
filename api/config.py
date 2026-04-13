@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = [
         "http://localhost:5173",  # Vite dev server
         "http://localhost:3000",  # React dev alternativo
-        "https://levelup-elo.vercel.app",  # producción (ajustar)
+        "https://levelup-elo.vercel.app",  # frontend en Vercel (producción)
     ]
 
     # ── Rate limiting (slowapi) ───────────────────────────────────────────────
