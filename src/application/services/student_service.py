@@ -172,7 +172,115 @@ class StudentService:
             attempt_data=attempt_data,
         )
 
+        # 5. Verificar y otorgar logros (no bloquea si falla)
+        try:
+            new_badges = self._check_and_award_achievements(
+                user_id=user_id,
+                is_correct=is_correct,
+                new_elo=new_r,
+            )
+            if new_badges:
+                cog_data["new_badges"] = new_badges
+        except Exception:
+            pass
+
         return is_correct, cog_data
+
+    # ── CATÁLOGO DE BADGES ────────────────────────────────────────────────────
+    # Definición: (badge_id, label, descripción, check_fn(user_id, is_correct, new_elo, repo))
+
+    _BADGE_CATALOG = [
+        {
+            "badge_id": "first_correct",
+            "label": "Primera respuesta correcta",
+            "icon": "⭐",
+            "desc": "Respondiste correctamente tu primera pregunta",
+        },
+        {
+            "badge_id": "elo_1000",
+            "label": "ELO 1000",
+            "icon": "🥈",
+            "desc": "Alcanzaste ELO 1000 en un tópico",
+        },
+        {
+            "badge_id": "elo_1500",
+            "label": "ELO 1500",
+            "icon": "🥇",
+            "desc": "Alcanzaste ELO 1500 en un tópico",
+        },
+        {
+            "badge_id": "elo_2000",
+            "label": "ELO 2000",
+            "icon": "🏆",
+            "desc": "Alcanzaste ELO 2000 en un tópico — Maestro",
+        },
+        {
+            "badge_id": "streak_5",
+            "label": "Racha de 5 días",
+            "icon": "🔥",
+            "desc": "Estudiaste 5 días seguidos",
+        },
+        {
+            "badge_id": "streak_10",
+            "label": "Racha de 10 días",
+            "icon": "🔥🔥",
+            "desc": "Estudiaste 10 días seguidos",
+        },
+        {
+            "badge_id": "attempts_100",
+            "label": "100 respuestas",
+            "icon": "💯",
+            "desc": "Respondiste 100 preguntas en total",
+        },
+        {
+            "badge_id": "attempts_500",
+            "label": "500 respuestas",
+            "icon": "🚀",
+            "desc": "Respondiste 500 preguntas en total",
+        },
+    ]
+
+    def _check_and_award_achievements(
+        self, user_id: int, is_correct: bool, new_elo: float
+    ) -> list[dict]:
+        """Verifica qué badges debe recibir el usuario y los otorga si aplica.
+
+        Retorna la lista de badges recién desbloqueados (vacía si ninguno nuevo).
+        """
+        repo = self.repository
+        awarded_now = []
+
+        # ─ first_correct
+        if is_correct:
+            if repo.award_achievement(user_id, "first_correct"):
+                awarded_now.append("first_correct")
+
+        # ─ ELO thresholds (basado en el ELO de este tópico)
+        for threshold, badge_id in [(2000, "elo_2000"), (1500, "elo_1500"), (1000, "elo_1000")]:
+            if new_elo >= threshold:
+                if repo.award_achievement(user_id, badge_id):
+                    awarded_now.append(badge_id)
+                break  # Solo otorgar el más alto nuevo
+
+        # ─ Rachas
+        streak = repo.get_study_streak(user_id)
+        for days, badge_id in [(10, "streak_10"), (5, "streak_5")]:
+            if streak >= days:
+                if repo.award_achievement(user_id, badge_id):
+                    awarded_now.append(badge_id)
+                break  # Solo otorgar el más alto nuevo
+
+        # ─ Total de intentos
+        total = repo.get_total_attempts_count(user_id)
+        for count, badge_id in [(500, "attempts_500"), (100, "attempts_100")]:
+            if total >= count:
+                if repo.award_achievement(user_id, badge_id):
+                    awarded_now.append(badge_id)
+                break  # Solo otorgar el más alto nuevo
+
+        # Mapear badge_ids a info completa
+        catalog_map = {b["badge_id"]: b for b in self._BADGE_CATALOG}
+        return [catalog_map[bid] for bid in awarded_now if bid in catalog_map]
 
     def get_groups_for_course(self, course_id: str) -> list:
         """Devuelve los grupos disponibles para inscribirse en un curso específico."""

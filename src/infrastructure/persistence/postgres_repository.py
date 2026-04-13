@@ -798,6 +798,25 @@ class PostgresRepository:
             """
             )
 
+            # ── Tabla achievements (logros/badges del estudiante) ─────────────
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS achievements (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(id),
+                    badge_id TEXT NOT NULL,
+                    earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, badge_id)
+                )
+            """
+            )
+            cursor.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_achievements_user
+                ON achievements(user_id)
+            """
+            )
+
             conn.commit()
 
         except Exception:
@@ -3331,6 +3350,41 @@ class PostgresRepository:
                 ),
                 "course_id": r.get("course_id"),
             }
+        finally:
+            self.put_connection(conn)
+
+    # ── Achievements / Logros ─────────────────────────────────────────────────
+
+    def get_achievements(self, user_id: int) -> list[dict]:
+        """Retorna todos los logros desbloqueados por el usuario."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT badge_id, earned_at FROM achievements WHERE user_id = %s ORDER BY earned_at",
+                (user_id,),
+            )
+            rows = cursor.fetchall()
+            return [
+                {"badge_id": r["badge_id"], "earned_at": str(r["earned_at"])[:19]} for r in rows
+            ]
+        finally:
+            self.put_connection(conn)
+
+    def award_achievement(self, user_id: int, badge_id: str) -> bool:
+        """
+        Otorga un logro al usuario si no lo tiene ya.
+        Retorna True si fue otorgado por primera vez, False si ya lo tenía.
+        """
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO achievements (user_id, badge_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                (user_id, badge_id),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
         finally:
             self.put_connection(conn)
 

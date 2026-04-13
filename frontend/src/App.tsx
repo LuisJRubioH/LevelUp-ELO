@@ -15,6 +15,7 @@ import { Login } from "./pages/Login";
 import { Practice } from "./pages/Student/Practice";
 import { Stats } from "./pages/Student/Stats";
 import { Courses } from "./pages/Student/Courses";
+import { Exam } from "./pages/Student/Exam";
 
 // Docente
 import { TeacherDashboard } from "./pages/Teacher/Dashboard";
@@ -102,6 +103,10 @@ export default function App() {
           <Route
             path="/student/courses"
             element={<StudentRoute><Courses /></StudentRoute>}
+          />
+          <Route
+            path="/student/exam"
+            element={<StudentRoute><Exam /></StudentRoute>}
           />
 
           {/* ── Docente ────────────────────────────────────────────── */}

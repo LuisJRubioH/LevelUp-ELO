@@ -507,6 +507,26 @@ class SQLiteRepository:
         """
         )
 
+        # ── Tabla achievements (logros/badges del estudiante) ─────────────
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS achievements (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                badge_id TEXT NOT NULL,
+                earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id),
+                UNIQUE(user_id, badge_id)
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_achievements_user
+            ON achievements(user_id)
+        """
+        )
+
         conn.commit()
         conn.close()
 
@@ -2779,6 +2799,37 @@ class SQLiteRepository:
             "tags": json.loads(r[8]) if r[8] else [],
             "course_id": r[9],
         }
+
+    # ── Achievements / Logros ─────────────────────────────────────────────────
+
+    def get_achievements(self, user_id: int) -> list[dict]:
+        """Retorna todos los logros desbloqueados por el usuario."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT badge_id, earned_at FROM achievements WHERE user_id = ? ORDER BY earned_at",
+            (user_id,),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [{"badge_id": r[0], "earned_at": str(r[1])} for r in rows]
+
+    def award_achievement(self, user_id: int, badge_id: str) -> bool:
+        """
+        Otorga un logro al usuario si no lo tiene ya.
+        Retorna True si fue otorgado por primera vez, False si ya lo tenía.
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "INSERT OR IGNORE INTO achievements (user_id, badge_id) VALUES (?, ?)",
+                (user_id, badge_id),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+        finally:
+            conn.close()
 
     def update_item_rating(self, item_id, student_rating, actual_score, k_item=32.0):
         """

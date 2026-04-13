@@ -1,13 +1,22 @@
 /**
  * pages/Student/Stats.tsx
  * ========================
- * Estadísticas del estudiante: ELO global, por tópico, racha, historial.
+ * Estadísticas del estudiante: ELO global, por tópico, racha, historial y logros.
  */
 
 import { useQuery } from "@tanstack/react-query";
 import { studentApi } from "../../api/student";
 import { ELOChart } from "../../components/ELO/ELOChart";
 import { RankBadge } from "../../components/ELO/RankBadge";
+import { apiClient } from "../../api/client";
+
+interface Achievement {
+  badge_id: string;
+  label: string;
+  icon: string;
+  desc: string;
+  earned_at: string;
+}
 
 export function Stats() {
   const { data: stats, isLoading } = useQuery({
@@ -18,6 +27,12 @@ export function Stats() {
   const { data: history } = useQuery({
     queryKey: ["student-history"],
     queryFn: () => studentApi.history(),
+  });
+
+  const { data: achievementsData } = useQuery({
+    queryKey: ["student-achievements"],
+    queryFn: () =>
+      apiClient.get<{ achievements: Achievement[]; catalog: Achievement[] }>("/student/achievements"),
   });
 
   if (isLoading || !stats) {
@@ -91,6 +106,46 @@ export function Stats() {
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* Logros / Badges */}
+      <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+        <h3 className="text-sm font-medium text-slate-400 mb-3">
+          Logros {achievementsData && `(${achievementsData.achievements.length}/${achievementsData.catalog.length})`}
+        </h3>
+        {achievementsData ? (
+          <div className="grid grid-cols-2 gap-2">
+            {achievementsData.catalog.map((badge) => {
+              const earned = achievementsData.achievements.find(
+                (a) => a.badge_id === badge.badge_id
+              );
+              return (
+                <div
+                  key={badge.badge_id}
+                  className={[
+                    "flex items-center gap-3 rounded-lg px-3 py-2 border transition-all",
+                    earned
+                      ? "border-violet-600 bg-violet-900/30"
+                      : "border-slate-700 bg-slate-900/30 opacity-40",
+                  ].join(" ")}
+                  title={badge.desc}
+                >
+                  <span className="text-xl">{badge.icon}</span>
+                  <div>
+                    <p className="text-xs font-medium text-slate-200">{badge.label}</p>
+                    {earned && (
+                      <p className="text-xs text-slate-500">
+                        {new Date(earned.earned_at).toLocaleDateString("es-CO")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-slate-500 text-sm">Cargando logros…</p>
         )}
       </div>
     </div>

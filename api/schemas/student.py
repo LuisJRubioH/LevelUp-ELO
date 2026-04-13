@@ -114,6 +114,43 @@ class ProcedureSubmitResponse(BaseModel):
     status: str
 
 
+# ── Modo Examen ───────────────────────────────────────────────────────────────
+
+
+class ExamStartRequest(BaseModel):
+    course_id: str = Field(..., description="Curso para el examen")
+    n_questions: int = Field(default=10, ge=1, le=30, description="Número de preguntas (máx 30)")
+    time_limit_minutes: int = Field(
+        default=20, ge=5, le=180, description="Minutos disponibles para el examen"
+    )
+
+
+class ExamStartResponse(BaseModel):
+    items: list[ItemResponse]
+    n_questions: int
+    time_limit_seconds: int
+    course_id: str
+
+
+class ExamAnswerItem(BaseModel):
+    item_id: str
+    selected_option: str
+    time_taken: float | None = None
+
+
+class ExamSubmitRequest(BaseModel):
+    answers: list[ExamAnswerItem] = Field(..., description="Respuestas del estudiante")
+    total_time_taken: float | None = Field(None, description="Tiempo total en segundos")
+
+
+class ExamSubmitResponse(BaseModel):
+    results: list[dict]
+    correct_count: int
+    total_questions: int
+    score_pct: float
+    global_elo_after: float
+
+
 # ── Socrático ─────────────────────────────────────────────────────────────────
 
 

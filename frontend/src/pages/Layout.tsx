@@ -11,6 +11,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { authApi } from "../api/auth";
 import { useAuthStore } from "../stores/authStore";
 import { useSettingsStore } from "../stores/settingsStore";
+import { useNotifications } from "../hooks/useNotifications";
 
 interface NavItem {
   path: string;
@@ -48,6 +49,24 @@ export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const [showIAConfig, setShowIAConfig] = useState(false);
 
+  // Notificaciones en tiempo real según rol
+  const wsRoom = user
+    ? user.role === "teacher"
+      ? `teacher_${user.user_id}`
+      : `student_${user.user_id}`
+    : "";
+
+  const { unreadCount, clearUnread } = useNotifications({
+    room: wsRoom,
+    enabled: !!user,
+    onEvent: (evt) => {
+      // Las notificaciones de procedimiento calificado/enviado se muestran como badge
+      if (evt.type === "procedure_graded" || evt.type === "procedure_submitted") {
+        // El badge se incrementa automáticamente en useNotifications
+      }
+    },
+  });
+
   const navItems =
     user?.role === "admin" ? adminNav : user?.role === "teacher" ? teacherNav : studentNav;
 
@@ -77,10 +96,15 @@ export function Layout({ children }: LayoutProps) {
         <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
+            const isProcedures = item.path.includes("procedures");
+            const showBadge = isProcedures && unreadCount > 0;
             return (
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => {
+                  if (isProcedures) clearUnread();
+                }}
                 className={[
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
                   active
@@ -89,7 +113,12 @@ export function Layout({ children }: LayoutProps) {
                 ].join(" ")}
               >
                 <span>{item.icon}</span>
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {showBadge && (
+                  <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}

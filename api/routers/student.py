@@ -5,11 +5,14 @@ Endpoints del flujo de práctica del estudiante:
   POST /student/next-question  → siguiente pregunta adaptativa
   POST /student/answer         → procesar respuesta + actualizar ELO
   GET  /student/stats          → ELO global, por tópico, racha
+  GET  /student/achievements   → logros/badges desbloqueados
   GET  /student/courses        → catálogo de cursos disponibles
   POST /student/enroll         → matricularse en un curso
   POST /student/enroll-by-code → acceso especial por código de invitación
   DELETE /student/enroll/{course_id} → darse de baja
   GET  /student/history        → historial de intentos
+  POST /student/exam/start     → inicia sesión de examen cronometrado
+  POST /student/exam/submit    → envía respuestas del examen y obtiene resultados
 """
 
 from fastapi import APIRouter, HTTPException, status
@@ -21,6 +24,10 @@ from api.schemas.student import (
     CourseResponse,
     EnrollByCodeRequest,
     EnrollRequest,
+    ExamStartRequest,
+    ExamStartResponse,
+    ExamSubmitRequest,
+    ExamSubmitResponse,
     ItemResponse,
     NextQuestionRequest,
     NextQuestionResponse,
@@ -223,6 +230,148 @@ def history(user: CurrentUser, repo: RepoDep):
     """Últimos 20 intentos del estudiante (para el gráfico de ELO en el frontend)."""
     attempts = repo.get_latest_attempts(user["user_id"], limit=20)
     return {"attempts": attempts}
+
+
+# ── Logros / Achievements ─────────────────────────────────────────────────────
+
+
+@router.get("/achievements")
+def achievements(user: CurrentUser, repo: RepoDep):
+    """Retorna los logros/badges desbloqueados por el estudiante."""
+    earned = repo.get_achievements(user["user_id"])
+    # Enriquecer con metadatos del catálogo
+    svc = _make_service(repo)
+    catalog_map = {b["badge_id"]: b for b in svc._BADGE_CATALOG}
+    result = []
+    for a in earned:
+        info = catalog_map.get(a["badge_id"], {})
+        result.append(
+            {
+                "badge_id": a["badge_id"],
+                "label": info.get("label", a["badge_id"]),
+                "icon": info.get("icon", "🏅"),
+                "desc": info.get("desc", ""),
+                "earned_at": a["earned_at"],
+            }
+        )
+    return {"achievements": result, "catalog": svc._BADGE_CATALOG}
+
+
+# ── Modo Examen ───────────────────────────────────────────────────────────────
+
+
+@router.post("/exam/start", response_model=ExamStartResponse)
+def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
+    """
+    Inicia una sesión de examen cronometrado.
+    Selecciona N preguntas adaptativas del curso dado y las devuelve de una vez.
+    El estudiante tiene `time_limit_minutes` para responderlas todas.
+    """
+    service = _make_service(repo)
+    vector = build_vector_rating(user["user_id"], repo)
+
+    topic = body.course_id
+    n = min(body.n_questions, 30)  # máximo 30 preguntas por examen
+
+    items = []
+    session_correct_ids: set[str] = set()
+
+    for _ in range(n):
+        item, status_str = service.get_next_question(
+            student_id=user["user_id"],
+            topic=topic,
+            vector_rating=vector,
+            session_correct_ids=session_correct_ids,
+            session_wrong_timestamps={},
+            session_questions_count=len(items),
+            course_id=body.course_id,
+        )
+        if item is None:
+            break
+        session_correct_ids.add(item["id"])  # evitar duplicados en el examen
+        items.append(
+            ItemResponse(
+                id=item["id"],
+                content=item["content"],
+                difficulty=item["difficulty"],
+                topic=item["topic"],
+                options=item["options"],
+                image_url=item.get("image_url"),
+                tags=item.get("tags") or [],
+            )
+        )
+
+    if not items:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No hay preguntas disponibles para este curso.",
+        )
+
+    return ExamStartResponse(
+        items=items,
+        n_questions=len(items),
+        time_limit_seconds=body.time_limit_minutes * 60,
+        course_id=body.course_id,
+    )
+
+
+@router.post("/exam/submit", response_model=ExamSubmitResponse)
+def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
+    """
+    Recibe las respuestas del examen y calcula los resultados.
+    Actualiza el ELO por cada respuesta (igual que el modo práctica).
+    """
+    service = _make_service(repo)
+    vector = build_vector_rating(user["user_id"], repo)
+
+    results = []
+    correct_count = 0
+
+    for ans in body.answers:
+        item_db = repo.get_item_by_id(ans.item_id)
+        if not item_db:
+            continue
+
+        is_correct = ans.selected_option == item_db["correct_option"]
+        if is_correct:
+            correct_count += 1
+
+        elo_topic = item_db.get("topic", ans.item_id)
+        elo_before = vector.get(elo_topic)
+
+        item_data = {**item_db}
+        service.process_answer(
+            user_id=user["user_id"],
+            item_data=item_data,
+            selected_option=ans.selected_option,
+            reasoning="",
+            time_taken=ans.time_taken or 0.0,
+            vector_rating=vector,
+            elo_topic=elo_topic,
+        )
+
+        elo_after = vector.get(elo_topic)
+        results.append(
+            {
+                "item_id": ans.item_id,
+                "is_correct": is_correct,
+                "correct_option": item_db["correct_option"],
+                "selected_option": ans.selected_option,
+                "elo_delta": round(elo_after - elo_before, 2),
+            }
+        )
+
+    from src.domain.elo.vector_elo import aggregate_global_elo
+
+    score_pct = round(correct_count / len(body.answers) * 100, 1) if body.answers else 0.0
+
+    return ExamSubmitResponse(
+        results=results,
+        correct_count=correct_count,
+        total_questions=len(body.answers),
+        score_pct=score_pct,
+        global_elo_after=round(aggregate_global_elo(vector), 2),
+    )
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

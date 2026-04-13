@@ -147,6 +147,27 @@ def grade_procedure(body: GradeRequest, user: CurrentUser, repo: RepoDep):
     )
     if not ok:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+
+    # Notificar al estudiante en tiempo real (WebSocket)
+    try:
+        submission = repo.get_procedure_submission(body.submission_id)
+        if submission:
+            student_id = submission["user_id"] if isinstance(submission, dict) else submission[1]
+            from api.websocket.notifications import notify_sync
+
+            notify_sync(
+                room=f"student_{student_id}",
+                event="procedure_graded",
+                data={
+                    "submission_id": body.submission_id,
+                    "teacher_score": body.teacher_score,
+                    "elo_delta": elo_delta or 0.0,
+                    "feedback": body.teacher_feedback or "",
+                },
+            )
+    except Exception:
+        pass  # No fallar el endpoint si la notificación falla
+
     return GradeResponse(
         submission_id=body.submission_id,
         teacher_score=body.teacher_score,

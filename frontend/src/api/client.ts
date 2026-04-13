@@ -65,3 +65,6 @@ export const api = {
   patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
   delete: <T>(path: string) => request<T>("DELETE", path),
 };
+
+// Alias para uso directo en componentes sin importar `api`
+export const apiClient = api;
