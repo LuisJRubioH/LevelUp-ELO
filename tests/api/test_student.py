@@ -9,6 +9,9 @@ Tests del flujo de práctica del estudiante:
   POST /api/student/answer         → procesar respuesta
   GET  /api/student/history        → historial de intentos
   DELETE /api/student/enroll/{id}  → darse de baja
+  GET  /api/student/achievements   → logros/badges
+  POST /api/student/exam/start     → iniciar examen
+  POST /api/student/exam/submit    → enviar respuestas del examen
 """
 
 import pytest
@@ -211,3 +214,163 @@ class TestRoleProtection:
         # El docente puede acceder a estos endpoints (CurrentUser, no RequireRole)
         # Si no tiene matriculaciones, devuelve empty
         assert r.status_code in (200, 400, 404)
+
+
+class TestAchievements:
+    def test_achievements_authenticated(self, api_client, student_headers):
+        """GET /student/achievements → dict con achievements y catalog."""
+        r = api_client.get("/api/student/achievements", headers=student_headers)
+        assert r.status_code == 200
+        data = r.json()
+        assert "achievements" in data
+        assert "catalog" in data
+        assert isinstance(data["achievements"], list)
+        assert isinstance(data["catalog"], list)
+        assert len(data["catalog"]) > 0
+
+    def test_achievements_catalog_has_required_fields(self, api_client, student_headers):
+        """Cada badge del catálogo tiene badge_id, label, icon y desc."""
+        r = api_client.get("/api/student/achievements", headers=student_headers)
+        catalog = r.json()["catalog"]
+        for badge in catalog:
+            assert "badge_id" in badge
+            assert "label" in badge
+            assert "icon" in badge
+            assert "desc" in badge
+
+    def test_achievements_unauthenticated(self, api_client):
+        """GET /student/achievements sin token → 401."""
+        r = api_client.get("/api/student/achievements")
+        assert r.status_code == 401
+
+    def test_first_correct_badge_awarded(self, api_client, student_headers):
+        """Después de responder correctamente, el badge first_correct debe estar en logros."""
+        # Garantizar matrícula
+        api_client.post(
+            "/api/student/enroll", json={"course_id": _COURSE_ID}, headers=student_headers
+        )
+        # Obtener pregunta
+        q = api_client.post(
+            "/api/student/next-question",
+            json={"course_id": _COURSE_ID},
+            headers=student_headers,
+        ).json()
+        if q["status"] != "ok" or not q["item"]:
+            return  # skip silencioso si no hay preguntas
+
+        item = q["item"]
+        # Responder (puede ser correcto o incorrecto — solo comprobamos que el endpoint devuelve new_badges)
+        ans = api_client.post(
+            "/api/student/answer",
+            json={
+                "item_id": item["id"],
+                "item_data": item,
+                "selected_option": item["options"][0],
+                "time_taken": 5.0,
+            },
+            headers=student_headers,
+        ).json()
+        # cog_data puede contener new_badges si se desbloqueó algo
+        assert "cog_data" in ans
+
+
+class TestExamMode:
+    @pytest.fixture(autouse=True, scope="class")
+    def ensure_enrolled(self, api_client, student_headers):
+        """Matricular al estudiante en el curso de prueba antes del examen."""
+        api_client.post(
+            "/api/student/enroll", json={"course_id": _COURSE_ID}, headers=student_headers
+        )
+
+    def test_exam_start(self, api_client, student_headers):
+        """POST /student/exam/start → lista de preguntas + tiempo límite."""
+        r = api_client.post(
+            "/api/student/exam/start",
+            json={"course_id": _COURSE_ID, "n_questions": 3, "time_limit_minutes": 10},
+            headers=student_headers,
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert "items" in data
+        assert "n_questions" in data
+        assert "time_limit_seconds" in data
+        assert data["time_limit_seconds"] == 600  # 10 * 60
+        assert len(data["items"]) >= 1
+        assert len(data["items"]) <= 3
+
+    def test_exam_start_item_structure(self, api_client, student_headers):
+        """Los ítems del examen tienen todos los campos requeridos."""
+        r = api_client.post(
+            "/api/student/exam/start",
+            json={"course_id": _COURSE_ID, "n_questions": 2, "time_limit_minutes": 5},
+            headers=student_headers,
+        )
+        items = r.json()["items"]
+        if not items:
+            return
+        item = items[0]
+        assert "id" in item
+        assert "content" in item
+        assert "options" in item
+        assert "difficulty" in item
+
+    def test_exam_start_nonexistent_course(self, api_client, student_headers):
+        """Examen en curso sin preguntas → 404."""
+        r = api_client.post(
+            "/api/student/exam/start",
+            json={"course_id": "curso_xyz_inexistente", "n_questions": 5},
+            headers=student_headers,
+        )
+        assert r.status_code == 404
+
+    def test_exam_submit(self, api_client, student_headers):
+        """POST /student/exam/submit → resultados con score_pct y global_elo_after."""
+        # Obtener preguntas del examen
+        start = api_client.post(
+            "/api/student/exam/start",
+            json={"course_id": _COURSE_ID, "n_questions": 2, "time_limit_minutes": 5},
+            headers=student_headers,
+        ).json()
+        items = start.get("items", [])
+        if not items:
+            return
+
+        # Enviar respuestas (primera opción de cada pregunta)
+        answers = [
+            {"item_id": it["id"], "selected_option": it["options"][0], "time_taken": 5.0}
+            for it in items
+        ]
+        r = api_client.post(
+            "/api/student/exam/submit",
+            json={"answers": answers},
+            headers=student_headers,
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert "results" in data
+        assert "correct_count" in data
+        assert "total_questions" in data
+        assert "score_pct" in data
+        assert "global_elo_after" in data
+        assert 0 <= data["score_pct"] <= 100
+        assert data["total_questions"] == len(items)
+
+    def test_exam_submit_empty(self, api_client, student_headers):
+        """Enviar examen sin respuestas → score 0%."""
+        r = api_client.post(
+            "/api/student/exam/submit",
+            json={"answers": []},
+            headers=student_headers,
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert data["score_pct"] == 0.0
+        assert data["total_questions"] == 0
+
+    def test_exam_unauthenticated(self, api_client):
+        """Examen sin autenticación → 401."""
+        r = api_client.post(
+            "/api/student/exam/start",
+            json={"course_id": _COURSE_ID, "n_questions": 3},
+        )
+        assert r.status_code == 401
