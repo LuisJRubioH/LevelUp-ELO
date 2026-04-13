@@ -26,7 +26,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
 
       - name: Ejecutar validador del banco
         run: python scripts/validate_bank.py
@@ -69,7 +68,7 @@ jobs:
           cache: pip
 
       - name: Instalar dependencias
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt pytest pytest-cov
 
       - name: Ejecutar tests unitarios con cobertura
         run: |
@@ -104,7 +103,7 @@ jobs:
           cache: pip
 
       - name: Instalar dependencias
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt pytest
 
       - name: Ejecutar tests de integración (SQLite en archivo temporal)
         run: |

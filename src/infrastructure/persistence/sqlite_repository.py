@@ -558,6 +558,8 @@ class SQLiteRepository:
     def _backfill_prob_failure(self):
         """Rellena prob_failure para intentos históricos que tienen NULL.
         Reconstruye el ELO por tópico en orden cronológico para cada estudiante."""
+        from src.domain.elo.model import expected_score
+
         conn = self.get_connection()
         cursor = conn.cursor()
 

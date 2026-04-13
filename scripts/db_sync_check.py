@@ -184,7 +184,7 @@ def check_migrations(sqlite_src: str, pg_src: str):
             m
             for m in pg_migs
             if not any(
-                re.sub(r"[\?\%]s", "X", p) in re.sub(r"[\?\%]s", "X", s) for s in sqlite_migs
+                re.sub(r"[\?\%]s", "X", m) in re.sub(r"[\?\%]s", "X", s) for s in sqlite_migs
             )
         ]
         if extra_sqlite:
