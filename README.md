@@ -1,889 +1,326 @@
 # LevelUp-ELO
 
-Plataforma de **aprendizaje adaptativo** construida con Python y Streamlit que usa el **sistema de rating ELO** (el mismo del ajedrez competitivo) para medir y ajustar en tiempo real el nivel académico de los estudiantes. Cada pregunta respondida actualiza el rating del alumno y el de la pregunta simultáneamente, garantizando que el sistema siempre sirva el reto correcto.
+> Plataforma de evaluación y aprendizaje adaptativo basada en el sistema de rating **ELO** — el mismo del ajedrez competitivo — aplicado a la educación matemática.
+
+[![CI](https://github.com/LuisJRubioH/LevelUp-ELO/actions/workflows/ci.yml/badge.svg)](https://github.com/LuisJRubioH/LevelUp-ELO/actions/workflows/ci.yml)
+[![Versión](https://img.shields.io/badge/versión-1.0.0-blue)](https://github.com/LuisJRubioH/LevelUp-ELO/releases/tag/v1.0.0)
+[![Python](https://img.shields.io/badge/python-3.11+-green)](https://www.python.org/)
+[![Licencia](https://img.shields.io/badge/licencia-MIT-orange)](LICENSE)
+
+**Demo en producción**: [levelup-elo.streamlit.app](https://levelup-elo-9yg9ewez4smvlylgwcls2q.streamlit.app)
 
 ---
 
 ## Tabla de contenidos
 
+- [Qué es](#qué-es)
 - [Características principales](#características-principales)
 - [Arquitectura](#arquitectura)
-- [Estructura de archivos](#estructura-de-archivos)
-- [Motor ELO — Detalle técnico](#motor-elo--detalle-técnico)
-- [Selector adaptativo ZDP](#selector-adaptativo-zdp)
-- [Analizador Cognitivo con IA](#analizador-cognitivo-con-ia)
-- [Integración multi-proveedor de IA](#integración-multi-proveedor-de-ia)
-  - [Model Router inteligente](#model-router-inteligente-model_routerpy)
-  - [Detección automática de capacidades](#detección-automática-de-capacidades-model_capability_detectorpy)
-  - [Pipeline de verificación simbólica](#pipeline-de-verificación-simbólica)
-- [Base de datos](#base-de-datos)
-- [Niveles educativos y catálogo de cursos](#niveles-educativos-y-catálogo-de-cursos)
+- [Motor ELO — Cómo funciona](#motor-elo--cómo-funciona)
+- [Banco de preguntas](#banco-de-preguntas)
 - [Roles de usuario](#roles-de-usuario)
-- [Seguridad](#seguridad)
-- [Instalación y ejecución](#instalación-y-ejecución)
-- [Configuración de IA en la UI](#configuración-de-ia-en-la-ui)
-- [Agregar preguntas](#agregar-preguntas)
-- [KatIA — Tutora socrática](#katia--tutora-socrática)
-- [Dependencias](#dependencias)
+- [Instalación local](#instalación-local)
+- [Despliegue en producción](#despliegue-en-producción)
+- [Variables de entorno](#variables-de-entorno)
+- [Agregar preguntas al banco](#agregar-preguntas-al-banco)
+- [CI/CD](#cicd)
+- [Tests](#tests)
+- [Usuarios de prueba](#usuarios-de-prueba)
+- [Roadmap](#roadmap)
+
+---
+
+## Qué es
+
+LevelUp-ELO mide el nivel de cada estudiante en tiempo real: cada respuesta actualiza simultáneamente el rating del alumno y el de la pregunta. El sistema siempre sirve el reto correcto — ni tan fácil que aburra, ni tan difícil que frustre — usando la **Zona de Desarrollo Próximo (ZDP)** como criterio de selección.
+
+Incluye tres roles (estudiante, docente, admin), un banco de +1.900 preguntas, revisión de procedimientos manuscritos con IA y KatIA, una tutora socrática con personalidad propia.
 
 ---
 
 ## Características principales
 
-- **Rating ELO vectorial**: cada estudiante mantiene un ELO independiente por tema (no uno global), lo que permite detectar fortalezas y debilidades con precisión quirúrgica.
-- **Factor K dinámico**: el peso de cada respuesta cambia según la experiencia y la estabilidad del estudiante, acelerando la convergencia del rating.
-- **Incertidumbre tipo Glicko**: el sistema rastrea un *Rating Deviation* (RD) por tópico. A mayor RD, mayor variación del rating tras cada respuesta; se reduce con la experiencia.
-- **Selector ZDP (Zona de Desarrollo Próximo)**: elige la pregunta que maximiza el aprendizaje — ni tan fácil que aburra, ni tan difícil que frustre.
-- **Analizador cognitivo**: la IA clasifica la respuesta del alumno (confianza alta/baja, error conceptual vs. superficial) y escala el impacto en el ELO.
-- **Tutor socrático con streaming**: guía al estudiante mediante preguntas sin revelar la respuesta.
-- **Dashboard docente**: los profesores visualizan ELO por tópico, tasa de error reciente, probabilidad de fallo por pregunta y pueden generar reportes con IA.
-- **Soporte multi-proveedor de IA**: Groq, OpenAI, Anthropic Claude, Google Gemini, HuggingFace, LM Studio local, Ollama local — detección automática por prefijo de API key.
-- **Model Router inteligente**: selección automática del mejor modelo por tarea (tutor socrático → rápido + razonamiento, análisis de imagen → visión + razonamiento, chat general → modelo del usuario). Registro manual de capacidades + detección heurística automática desde endpoints `/v1/models`.
-- **Pipeline de verificación simbólica**: verificación algebraica con SymPy en 4 capas (simplificación → expansión → equivalencia con valor absoluto → fallback numérico), diagnóstico de errores (distributiva incorrecta, error de signo, fracción mal simplificada) y feedback pedagógico socrático por tipo de error.
-- **Sin infraestructura externa obligatoria**: funciona completamente offline con LM Studio u Ollama; las funciones de IA degradan con gracia si no hay servidor disponible.
-- **Revisión matemática rigurosa de procedimientos**: cuando el proveedor activo es Groq, el sistema analiza imágenes de desarrollos manuscritos con `meta-llama/llama-4-scout-17b-16e-instruct` y devuelve una corrección paso a paso en JSON con un score 0–100 que ajusta el ELO del estudiante de forma secundaria.
-- **Soporte PDF en procedimientos**: los estudiantes pueden subir procedimientos en formato PDF además de imágenes; el sistema renderiza la primera página con PyMuPDF para análisis visual.
-- **Centro de feedback del estudiante**: los alumnos consultan notas numéricas (IA y docente) y comentarios de cada procedimiento enviado, con badge de notificación para revisiones nuevas.
-- **Filtros cascada en dashboard docente**: Grupo → Nivel → Materia, con opciones dinámicas que se actualizan según la selección.
-- **Badges de notificación**: el docente ve cuántos procedimientos tiene pendientes de revisar; el estudiante ve cuántas revisiones nuevas tiene sin leer.
-- **Anti-plagio SHA-256**: cada archivo subido se hashea y se compara contra envíos previos del mismo estudiante y ejercicio para detectar duplicados.
-- **Validación de relevancia de procedimientos**: antes de enviar, la IA verifica que el archivo corresponda al ejercicio actual; tras 3 intentos fallidos se ofrecen opciones alternativas.
-- **Racha de estudio por materia**: cada curso tiene su propia racha de días consecutivos, completamente independiente de otras materias. Solo se activa y avanza cuando el estudiante practica ese curso específico; si no entra un día, se reinicia únicamente la racha de ese curso.
-- **Escala de dificultad visual**: cada pregunta muestra 5 estrellas donde las activas se iluminan en amarillo y las restantes en gris, acompañadas de una etiqueta ordinal (Fácil / Básico / Intermedio / Difícil / Experto) y el valor ELO numérico como referencia técnica.
-- **Sistema de reportes técnicos**: los estudiantes pueden describir problemas directamente desde la sidebar. El administrador recibe una notificación prominente con todos los reportes pendientes y los puede marcar como resueltos.
-- **Ranking ELO de 16 niveles**: desde Aspirante (0–399) hasta Leyenda Suprema (2500+), con nombre y rango dinámico según el ELO global.
-- **Rankings separados por nivel educativo**: los rankings globales filtran por nivel (Universidad, Colegio, Concursos, Semillero), evitando mezclar estudiantes de contextos diferentes. El nivel Semillero filtra además por grado (6°–11°). Incluye ranking por curso y posición individual.
-- **Acceso especial inter-nivel via código de invitación**: un docente puede dar a un estudiante de cualquier nivel acceso a un curso de otro nivel compartiendo el código del grupo. El alumno usa el código en la pestaña "Código de acceso" de Matrículas y el curso aparece marcado con `📌 Acceso especial` en su sala de estudio. La separación de niveles se preserva en todos los demás flujos (exploración, rankings).
-- **Celebración persistente**: al alcanzar rachas de 5 respuestas correctas consecutivas, pantalla completa con animación, ELO actual y botón "SEGUIR PRACTICANDO" que permanece hasta que el estudiante decide continuar.
-- **Retroalimentación sin auto-avance**: tras responder, el estudiante ve si acertó o falló con un botón "SIGUIENTE PREGUNTA", permitiendo reflexionar antes de avanzar.
-- **KatIA — Tutora socrática con personalidad**: gata cyborg con mensajes predefinidos por contexto (bienvenida, calificación por rango, rachas de aciertos, fin de módulo/curso). GIFs animados durante la revisión de procedimientos: animación de "revisando" mientras la IA trabaja, luego GIF de celebración (score >= 91) o de errores (score < 91) según el resultado.
-- **Registro guiado con wizard multi-paso**: paso 1 selecciona rol (Estudiante/Profesor), paso 2 recoge datos de cuenta con campos contextuales (nivel, grado, etc.). Reemplaza el formulario de registro plano.
-- **Códigos de invitación para acceso inter-nivel**: los docentes generan un código único por grupo; los estudiantes lo usan en la pestaña "Código de acceso" de Matrículas para unirse a cursos de otro nivel educativo.
-- **Tags de taxonomía en preguntas**: cada ítem puede llevar un array JSON de tags con tres dimensiones (cognitiva, general, específica) que se muestran como badges en la UI.
-- **Temporizadores en tiempo real**: dos cronómetros JavaScript que se actualizan segundo a segundo sin depender de reruns de Streamlit: uno de sesión (sidebar, gris, compacto) que mide el tiempo total conectado, y otro por pregunta (sobre el enunciado, grande, dorado) que se reinicia con cada nueva pregunta. Ideales para estudiantes que practican con tiempo limitado (olimpiadas, exámenes).
-- **Exportación CSV/XLSX para docentes**: descarga completa de datos de estudiantes en formato CSV o Excel multi-hoja (intentos con tiempo por pregunta y RD, matrículas, procedimientos, interacciones con KatIA). Diseñado para análisis estadístico posterior con herramientas externas.
-- **Registro de interacciones con KatIA**: cada pregunta del estudiante al chat socrático se guarda en base de datos con contexto completo (curso, ítem, tema). El docente ve un resumen por estudiante (temas más consultados, historial de conversaciones) en el dashboard y puede exportar los datos.
-- **Banners pixel art en tarjetas de curso**: las tarjetas de curso del estudiante muestran banners temáticos (geometría, aritmética, lógica, combinatoria, probabilidad, álgebra) que se cargan como base64 desde `Banners/`.
-- **Panel de ranking docente**: tres modos de visualización — por nivel educativo, por curso y por grupo — con selectores dinámicos.
-- **Imágenes en preguntas**: los ítems del banco pueden incluir `image_url` (URL externa) o `image_path` (ruta local relativa al repo). Las figuras geométricas del bloque Semillero se extraen directamente de los PDFs originales de las Olimpiadas UdeA 2020 con PyMuPDF.
+### Motor ELO adaptativo
+- **ELO vectorial por tópico**: cada estudiante mantiene un rating independiente por tema, no uno global. Detecta fortalezas y debilidades con precisión quirúrgica.
+- **Factor K dinámico**: el peso de cada respuesta cambia según la experiencia del estudiante (K=40 → 32 → 16/24), acelerando la convergencia.
+- **Rating Deviation tipo Glicko**: incertidumbre por tópico (RD inicial=350, mín=30). A mayor RD, mayor variación del rating; decrece con la práctica.
+- **Selector ZDP con Fisher Information**: elige la pregunta que maximiza el aprendizaje. P(éxito) objetivo: [0.40, 0.75]. Expansión progresiva si no hay candidatos.
+
+### IA pedagógica
+- **KatIA — tutora socrática**: gata cyborg con mensajes predefinidos por contexto (bienvenida, calificación por rango, rachas). GIFs animados durante revisión de procedimientos.
+- **Revisión de procedimientos manuscritos**: Groq + Llama 4 Scout analiza imágenes/PDFs paso a paso, genera score 0–100 y ajusta el ELO (`(score − 50) × 0.2`).
+- **Chat socrático con streaming**: guía al estudiante mediante preguntas sin revelar la respuesta. Post-generación verifica que no filtre la solución.
+- **Multi-proveedor**: Anthropic, Groq, OpenAI, Google Gemini, HuggingFace, LM Studio, Ollama — detección automática por prefijo de API key.
+- **Model Router inteligente**: selecciona el mejor modelo por tarea (socrático → rápido+razonamiento, imagen → visión+razonamiento).
+
+### Plataforma completa
+- **Dual DB**: SQLite local y PostgreSQL (Supabase) con API pública idéntica. Selección automática por `DATABASE_URL`.
+- **Tres roles**: estudiante, docente, admin con flujos completos.
+- **Dashboard docente**: ELO por tópico, tasa de error, análisis pedagógico con IA, exportación CSV/XLSX.
+- **Supabase Storage**: procedimientos en bucket privado con fallback BYTEA en DB.
+- **Seguridad**: Argon2id para contraseñas, migración transparente desde SHA-256 legacy, API keys solo en session_state.
+- **Temporizadores en tiempo real**: JavaScript `setInterval` — cronómetro de sesión + cronómetro por pregunta, sin reruns de Streamlit.
+- **Ranking de 16 niveles**: Aspirante (0–399) → Leyenda Suprema (2500+), separado por nivel educativo.
+- **Anti-plagio SHA-256**: detecta procedimientos duplicados del mismo estudiante en el mismo ejercicio.
 
 ---
 
 ## Arquitectura
 
-El proyecto sigue **Clean Architecture** con cuatro capas bien definidas:
+**Clean Architecture** con cuatro capas:
 
 ```
 src/
-├── domain/              # Reglas de negocio puras — sin dependencias externas
+├── domain/                      # Lógica de negocio pura — sin dependencias externas
 │   ├── elo/
-│   │   ├── model.py         # Factor K dinámico, ELO clásico, dataclasses Item/StudentELO
-│   │   ├── vector_elo.py    # VectorRating: ELO + RD por tópico
-│   │   ├── uncertainty.py   # RatingModel (Glicko-simplificado)
-│   │   ├── cognitive.py     # CognitiveAnalyzer: clasifica respuestas con IA local (impact_modifier fijado en 1.0)
-│   │   └── zdp.py           # Cálculo del intervalo ZDP
+│   │   ├── model.py             # Factor K dinámico, ELO clásico
+│   │   ├── vector_elo.py        # VectorRating: ELO + RD por tópico
+│   │   ├── uncertainty.py       # RatingModel (Glicko simplificado)
+│   │   ├── cognitive.py         # CognitiveAnalyzer (desactivado en producción)
+│   │   └── zdp.py               # Cálculo del intervalo ZDP
+│   ├── selector/
+│   │   └── item_selector.py     # AdaptiveItemSelector (Fisher Information)
 │   ├── katia/
-│   │   └── katia_messages.py # Bancos de mensajes de KatIA (tutora socrática gata cyborg)
-│   └── selector/
-│       └── item_selector.py # AdaptiveItemSelector: selección por Fisher Information
+│   │   └── katia_messages.py    # Bancos de mensajes de KatIA
+│   └── entities.py              # Constantes y dataclasses de dominio
 │
-├── application/             # Casos de uso — orquestan dominio e infraestructura
+├── application/
+│   ├── interfaces/
+│   │   └── repositories.py      # Protocolos ISP: IStudentRepository, ITeacherRepository, IAdminRepository
 │   └── services/
-│       ├── student_service.py   # process_answer, get_next_question, get_socratic_help
-│       └── teacher_service.py   # análisis y reportes para el panel docente
+│       ├── student_service.py   # process_answer(), get_next_question(), get_socratic_help()
+│       └── teacher_service.py   # Análisis pedagógico con IA
 │
-├── infrastructure/          # Implementaciones concretas (detalles técnicos)
+├── infrastructure/
 │   ├── persistence/
-│   │   ├── sqlite_repository.py    # SQLite: esquema, migraciones, seed, queries (desarrollo local)
-│   │   ├── postgres_repository.py  # PostgreSQL: port completo para producción (Supabase)
-│   │   └── seed_test_students.py   # Seed idempotente de 7 estudiantes de prueba (incl. 2 Semillero)
-│   ├── external_api/
-│   │   ├── ai_client.py                 # Cliente universal multi-proveedor de IA
-│   │   ├── math_procedure_review.py     # Revisión matemática rigurosa (Groq + Llama 4 Scout)
-│   │   ├── model_router.py             # Router inteligente: selección de modelo por tarea
-│   │   ├── model_capability_detector.py # Detección automática de capacidades desde nombre
-│   │   ├── symbolic_math_verifier.py   # Verificador simbólico con SymPy (4 capas)
-│   │   ├── math_step_extractor.py      # Extracción estructurada de pasos matemáticos
-│   │   ├── math_ocr.py                 # OCR matemático (pix2tex > tesseract > regex)
-│   │   ├── math_reasoning_analyzer.py  # Análisis de razonamiento paso a paso
-│   │   ├── pedagogical_feedback.py     # Feedback pedagógico socrático por error
-│   │   └── math_analysis_pipeline.py   # Pipeline completo: OCR → pasos → verificación → feedback
+│   │   ├── sqlite_repository.py    # SQLite: esquema, migraciones, seed (~1200 líneas)
+│   │   └── postgres_repository.py  # PostgreSQL (psycopg2): port completo para Supabase
 │   ├── storage/
-│   │   └── supabase_storage.py   # Cliente Supabase Storage (bucket privado 'procedimientos')
+│   │   └── supabase_storage.py     # Cliente Supabase Storage (bucket privado)
+│   ├── external_api/
+│   │   ├── ai_client.py            # Cliente multi-proveedor de IA
+│   │   ├── math_procedure_review.py # Revisión manuscritos (Groq + Llama 4 Scout)
+│   │   ├── model_router.py         # Selección inteligente de modelo por tarea
+│   │   └── pedagogical_feedback.py # Hints socráticos por tipo de error
 │   └── security/
-│       └── hashing_service.py    # Argon2id + migración desde SHA-256 legacy
+│       └── hashing_service.py      # Argon2id + migración SHA-256
 │
 └── interface/
     └── streamlit/
-        └── app.py           # UI completa: login, paneles de estudiante, docente y admin
+        ├── app.py               # Punto de entrada (167 líneas) — setup + routing
+        ├── state.py             # login(), logout(), helpers de session_state
+        ├── assets.py            # CSS global, logo, banners pixel art
+        ├── timers.py            # Componentes JavaScript de temporizadores
+        └── views/
+            ├── auth_view.py     # Login + wizard de registro multi-paso
+            ├── student_view.py  # Práctica, estadísticas, procedimientos, feedback
+            ├── teacher_view.py  # Dashboard, revisión de procedimientos, exportación
+            └── admin_view.py    # Gestión de usuarios, grupos, reportes técnicos
 ```
 
-### Flujo de datos al responder una pregunta
+### Regla de dependencia
 
 ```
-app.py
-  └─→ StudentService.process_answer()
-        ├─→ CognitiveAnalyzer.analyze_cognition()   ← IA local clasifica el razonamiento
-        ├─→ VectorRating.update()                   ← aplica ELO delta con impact_modifier
-        ├─→ Repository.update_item_rating()          ← actualiza dificultad del ítem (SQLite o PostgreSQL)
-        └─→ Repository.save_attempt()                ← persiste todos los metadatos del intento
+domain/ ← application/ ← infrastructure/ ← interface/
 ```
+
+Nunca al revés. El dominio no importa nada de infraestructura. Los servicios reciben los repositorios por constructor (DI).
 
 ---
 
-## Estructura de archivos
+## Motor ELO — Cómo funciona
+
+### Flujo al responder una pregunta
 
 ```
-LevelUp-ELO/
-├── src/                    # Código fuente (ver árbol de arriba)
-├── items/
-│   ├── bank/               # Banco de preguntas por curso (1 JSON por curso)
-│   │   ├── algebra_lineal.json
-│   │   ├── calculo_diferencial.json
-│   │   ├── calculo_integral.json
-│   │   ├── calculo_varias_variables.json
-│   │   ├── ecuaciones_diferenciales.json
-│   │   ├── probabilidad.json
-│   │   ├── algebra_basica.json
-│   │   ├── aritmetica_basica.json
-│   │   ├── trigonometria.json
-│   │   ├── geometria.json
-│   │   ├── DIAN.json
-│   │   ├── SENA.json
-│   │   └── semillero/      # Olimpiadas UdeA — un JSON por materia×grado (6°–11°)
-│   │       ├── algebra_semillero_6.json ... algebra_semillero_11.json
-│   │       ├── aritmetica_semillero_6.json ... (×6 archivos)
-│   │       ├── geometria_semillero_6.json ...
-│   │       ├── logica_semillero_6.json ...
-│   │       ├── conteo_combinatoria_semillero_6.json ...
-│   │       └── probabilidad_semillero_6.json ...
-│   └── images/             # Figuras geométricas extraídas de PDFs (86 PNGs)
-├── Banners/                # Banners pixel art por materia (PNG) para tarjetas de curso
-├── KatIA/                  # Assets de la tutora socrática
-│   ├── katIA.png               # Avatar estático (6.5 MB)
-│   ├── correcto.gif            # GIF original celebración (2.3 MB)
-│   ├── correcto_compressed.gif # GIF comprimido (698 KB) — usado en app
-│   ├── errores.gif             # GIF original errores (69 MB)
-│   ├── errores_compressed.gif  # GIF comprimido (1.8 MB) — usado en app
-│   └── instrucciones_katia.md  # Manual con bancos de mensajes
-├── Semillero/
-│   └── OLIMPIADAS-2020/    # PDFs originales de los Talleres UdeA 2020
-├── scripts/
-│   ├── create_local_admin.py        # Crear admin local para desarrollo
-│   ├── db_sync_check.py             # Verificar sincronía entre repositorios SQLite/PostgreSQL
-│   └── extract_figures_from_pdfs.py # Extraer figuras geométricas de los PDFs de Olimpiadas
-├── migrate.py              # Ejecutar migraciones PostgreSQL manualmente (python migrate.py)
-├── data/
-│   └── elo_database.db     # Base de datos SQLite (generada en el primer arranque)
-└── requirements.txt        # Dependencias Python
+app.py → StudentService.process_answer()
+           ├→ VectorRating.update()          ← aplica delta ELO al tópico
+           ├→ Repository.update_item_rating() ← actualiza dificultad del ítem
+           └→ Repository.save_attempt()       ← persiste metadatos del intento
 ```
 
----
+Todo ocurre en una **transacción atómica** (`save_answer_transaction`) — si falla el update del ítem, el intento tampoco se guarda.
 
-## Motor ELO — Detalle técnico
-
-### ELO clásico
-
-La probabilidad esperada de que el estudiante (rating `R`) resuelva un ítem de dificultad `D` es:
+### Fórmula ELO
 
 ```
-P(R, D) = 1 / (1 + 10^((D - R) / 400))
+P(éxito) = 1 / (1 + 10^((dificultad_ítem - rating_estudiante) / 400))
+
+delta = K_eff × (resultado - P(éxito))
+K_eff = K_base × (RD / RD_base)
 ```
 
-El delta de rating tras una respuesta es:
-
-```
-Δ = K × (resultado - P) × impact_modifier
-```
-
-donde `resultado` es 1.0 (acierto) o 0.0 (fallo), y `impact_modifier` proviene del analizador cognitivo.
-
-### Factor K dinámico (`model.py`)
-
-| Fase | Condición | K |
-|---|---|---|
-| Inicial | < 30 intentos | **40** — búsqueda rápida del nivel real |
-| Crecimiento | rating < 1400 | **32** — convergencia estable en niveles bajos |
-| Estabilidad | error medio < 15 % en últimas 20 respuestas | **16** — protege ratings maduros |
-| Base | cualquier otro caso | **24** |
-
-### Rating Deviation — Incertidumbre tipo Glicko (`uncertainty.py`)
-
-Cada tópico tiene asociado un `RD` (Rating Deviation). El sistema usa un `RatingModel` con:
-
-- **RD inicial**: 350 (máxima incertidumbre)
-- **RD mínimo**: 30 (estabilidad máxima)
-- **Decaimiento**: `RD_nuevo = max(30, RD × 0.95)` por cada intento
-- **Escala de impacto**: `K_efectiva = K_BASE × (RD / RD_BASE)`, lo que amplifica los cambios cuando el sistema aún no conoce bien al estudiante
-
-### ELO simétrico de los ítems
-
-Cuando el estudiante gana, la dificultad del ítem baja (el ítem "perdió"). Cuando el estudiante falla, la dificultad sube. Esto calibra automáticamente el banco de preguntas con el tiempo.
-
-### Vector ELO (`vector_elo.py`)
-
-```python
-vector_rating.update(topic, difficulty, result, impact_modifier)
-# → actualiza (rating, RD) del tópico de forma independiente
-
-aggregate_global_elo(vector)
-# → promedio de todos los ratings por tópico → ELO global para mostrar
-```
-
----
-
-## Selector adaptativo ZDP
-
-`AdaptiveItemSelector` implementa la **Zona de Desarrollo Próximo** de Vygotsky en términos matemáticos:
-
-1. **Probabilidad óptima**: selecciona ítems donde `0.4 ≤ P ≤ 0.75`
-   - `P > 0.75` → demasiado fácil (aburrimiento)
-   - `P < 0.4` → demasiado difícil (frustración)
-
-2. **Fisher Information**: entre los candidatos válidos, elige el que maximiza `I(P) = P × (1 − P)`, que es máximo en P = 0.5. Esto garantiza que el rating converja más rápido.
-
-3. **Expansión progresiva**: si no hay candidatos en el rango inicial, el intervalo se relaja ±0.05 por paso (hasta 10 pasos) hasta encontrar al menos un ítem. Como último recurso, evalúa todo el banco.
-
-4. **Priorización de novedades**:
-   - Preguntas nunca vistas (máxima prioridad)
-   - Preguntas falladas en sesión con cooldown de ≥ 3 preguntas
-   - Preguntas del historial de sesiones anteriores
-
----
-
-## Analizador Cognitivo con IA
-
-`CognitiveAnalyzer` (`domain/elo/cognitive.py`) llama a la IA local para enriquecer el impacto de cada respuesta. El resultado modifica el delta ELO mediante `impact_modifier ∈ [0.5, 1.5]`.
-
-> **Nota**: en la implementación actual, `student_service.py` pasa `impact_modifier=1.0` siempre. El análisis cognitivo por texto/tiempo fue desactivado porque causaba discrepancias entre el preview de puntos mostrado al estudiante y el resultado real. El `CognitiveAnalyzer` sigue existiendo como módulo pero su output no escala el delta ELO.
-
-### Componentes del modificador
-
-| Factor | Cálculo | Efecto |
-|---|---|---|
-| Confianza (IA) | `0.8 + confianza × 0.4` → [0.8, 1.2] | Alta confianza amplifica el cambio |
-| Tipo de error (IA) | Superficial: 0.7 / Conceptual: 1.2 | Descuido penaliza menos que ignorancia |
-| Velocidad de respuesta | Acierto <5s: 1.2 / >30s: 0.8 / Fallo <3s: 0.7 | Maestría vs. duda vs. click accidental |
-
-El modificador final es el **producto** de los tres factores, recortado al intervalo [0.5, 1.5].
-
-### Prompt a la IA (resumen)
-
-La IA recibe el texto de razonamiento del alumno y devuelve JSON:
-
-```json
-{"confidence": 0.85, "error_type": "superficial", "explanation": "El alumno domina el concepto pero cometió un error aritmético."}
-```
-
-Si la IA no está disponible, el sistema cae back a valores neutros (`confidence: 0.5`, `impact_modifier: 1.0`) sin interrumpir la sesión.
-
----
-
-## Integración multi-proveedor de IA
-
-`ai_client.py` expone un cliente universal con soporte para 7 proveedores:
-
-| Proveedor | Modelo cognitivo (rápido) | Modelo análisis (potente) | Tipo |
-|---|---|---|---|
-| **Groq** | `llama-3.1-8b-instant` | `llama-3.3-70b-versatile` | Cloud |
-| **OpenAI** | `gpt-4o-mini` | `gpt-4o` | Cloud |
-| **Anthropic** | `claude-haiku-4-5-20251001` | `claude-sonnet-4-6` | Cloud (SDK nativo) |
-| **Google Gemini** | `gemini-2.0-flash` | `gemini-2.0-flash` | Cloud (OpenAI-compat.) |
-| **HuggingFace** | `meta-llama/Llama-3.1-8B-Instruct` | `meta-llama/Llama-3.3-70B-Instruct` | Cloud |
-| **LM Studio** | Detectado automáticamente | Detectado automáticamente | Local |
-| **Ollama** | Detectado automáticamente | Detectado automáticamente | Local |
-
-### Detección automática de proveedor
-
-El proveedor se infiere del prefijo de la API key ingresada en la sidebar:
-
-| Prefijo | Proveedor |
+**Factor K dinámico:**
+| Condición | K |
 |---|---|
-| `sk-ant-` | Anthropic |
-| `gsk_` | Groq |
-| `AIzaSy` | Google Gemini |
-| `hf_` | HuggingFace |
-| `sk-proj-` / `sk-` | OpenAI |
-| (sin key) | LM Studio / Ollama local |
+| < 30 intentos (novato) | 40 |
+| ELO < 1400 | 32 |
+| Estable (error < 15% en últimos 20) | 16 |
+| Default | 24 |
 
-### Funciones de IA
+### Selector adaptativo
 
-- **`get_socratic_guidance()`** / **`get_socratic_guidance_stream()`**: tutor socrático que guía al alumno con preguntas sin revelar la respuesta. Soporta streaming token a token.
-- **`get_pedagogical_analysis()`**: análisis profundo del desempeño de un estudiante para el docente.
-- **`analyze_performance_local()`**: genera 3 recomendaciones en JSON para el dashboard de estadísticas del alumno.
-- **`analyze_procedure_image()`**: revisión visual genérica de procedimientos usando el modelo activo (para OpenAI, Anthropic, Gemini y modelos locales con visión).
-- **`validate_procedure_relevance()`**: verificación ligera (SÍ/NO) de que el archivo subido corresponde al ejercicio actual.
-- **`select_best_math_model()`**: selecciona el mejor modelo disponible para razonamiento matemático entre los cargados en servidores locales.
+`AdaptiveItemSelector` busca preguntas donde `P(éxito) ∈ [0.40, 0.75]` — el rango ZDP. Si no hay candidatos, expande ±0.05 por paso (hasta 10 pasos). Prioriza preguntas no vistas, luego falladas con ≥3 intentos de cooldown.
 
-### Revisión matemática rigurosa (`math_procedure_review.py`)
+---
 
-Servicio dedicado que se activa automáticamente cuando el proveedor es **Groq**. Usa el modelo de visión `meta-llama/llama-4-scout-17b-16e-instruct` con temperatura 0.1 y fuerza respuesta en JSON estricto.
+## Banco de preguntas
 
-**Flujo:**
-1. La imagen del procedimiento se envía en base64 a `https://api.groq.com/openai/v1`.
-2. El modelo transcribe el contenido, evalúa cada paso y asigna un `score_procedimiento` (0–100).
-3. En caso de JSON inválido, se escapan automáticamente los backslashes LaTeX no válidos (`\frac` → `\\frac`, etc.) que el LLM genera sin escapar, y se reintenta el parsing. Si falla de nuevo, se lanza un `ValueError` controlado y el procedimiento se guarda para revisión del docente.
-4. El score ajusta el ELO del estudiante en el tópico activo como factor secundario:
++1.900 ítems en `items/bank/` organizados por curso:
 
-```
-ELO_final = ELO_base + (score_procedimiento − 50) × 0.2
-```
+| Bloque | Cursos |
+|---|---|
+| **Universidad** | Álgebra Lineal, Cálculo Diferencial, Integral, Varias Variables, Ecuaciones Diferenciales, Probabilidad |
+| **Colegio** | Álgebra Básica, Aritmética Básica, Trigonometría, Geometría |
+| **Concursos** | DIAN — Gestor I, SENA — Profesional 10 |
+| **Semillero** | Álgebra, Aritmética, Geometría, Lógica, Conteo y Combinatoria, Probabilidad — grados 6°–11° |
 
-Ejemplos de ajuste: score 100 → +10 ELO · score 50 → 0 · score 0 → −10 ELO.
-
-**JSON de respuesta:**
+### Formato de un ítem
 
 ```json
 {
-  "transcripcion": "...",
-  "pasos": [
-    { "numero": 1, "contenido": "...", "evaluacion": "Valido | Algebraicamente incorrecto | Conceptualmente incorrecto | Incompleto", "comentario": "..." }
-  ],
-  "errores_detectados": [],
-  "saltos_logicos": [],
-  "resultado_correcto": true,
-  "evaluacion_global": "...",
-  "score_procedimiento": 85
+  "id": "cd_01",
+  "content": "¿Cuál es la derivada de $f(x) = x^2$?",
+  "difficulty": 800,
+  "topic": "Derivadas básicas",
+  "options": ["$2x$", "$x^2$", "$2$", "$x$"],
+  "correct_option": "$2x$",
+  "tags": ["recordar", "derivadas", "potencia"]
 }
 ```
 
-El ajuste ELO se aplica una sola vez por ejercicio (flag de sesión `proc_elo_applied_{item_id}`) y se muestra al alumno junto con el detalle de la revisión en la interfaz.
+### Agregar preguntas al banco
 
-### Model Router inteligente (`model_router.py`)
-
-Selecciona automáticamente el mejor modelo disponible según el tipo de tarea, eliminando la necesidad de usar un solo modelo para todo.
-
-**Tareas soportadas:**
-
-| Tarea | Requisitos | Prioridad |
-|---|---|---|
-| `tutor_socratic` | Razonamiento + velocidad rápida | Excluye modelos lentos; prioriza `fast` + `reasoning` |
-| `image_procedure_analysis` | Visión + razonamiento | Retorna `None` si no hay modelo con visión |
-| `general_chat` | Texto | Usa el modelo seleccionado por el usuario |
-
-**Fuentes de capacidades (en orden de prioridad):**
-1. Registro manual (`_MODEL_REGISTRY`) — modelos cloud conocidos (GPT-4o, Claude, Llama, etc.)
-2. Valores por defecto del proveedor — cada proveedor tiene capacidades típicas
-3. Detección heurística automática — análisis del nombre del modelo
-
-**Validación socrática:** `validate_socratic_response()` verifica post-generación que la respuesta no revele la solución directa (detecta patrones como "la respuesta es", "la solución es", etc.) y que sea concisa (≤ 3 oraciones). Límite de tokens: `SOCRATIC_MAX_TOKENS = 120`.
-
-### Detección automática de capacidades (`model_capability_detector.py`)
-
-Infiere visión, razonamiento y velocidad a partir del nombre del modelo mediante heurísticas:
-
-- **Visión**: detecta keywords como `vision`, `vl`, `llava`, `gpt-4o`, `gemma-3`, `llama-4`, `pixtral`, `moondream`, `fuyu`, etc.
-- **Razonamiento**: detecta `math`, `instruct`, `reason`, `-r1`, `deepseek`, `qwen`, `gpt-4`, `phi-3`, `claude`, etc.
-- **Velocidad**: `≤9B → fast`, `≤14B → medium`, `>14B/MoE/mixtral/70b → slow`
-
-`detect_all_capabilities(base_url)` consulta `GET /v1/models` y retorna las capacidades de todos los modelos disponibles en servidores OpenAI-compatibles (LM Studio, Ollama).
-
-### Pipeline de verificación simbólica
-
-Cadena de 4 módulos que complementa el análisis LLM con verificación algebraica formal:
-
-```
-OCR (math_ocr.py) → Extracción de pasos (math_step_extractor.py)
-    → Verificación simbólica (symbolic_math_verifier.py)
-        → Feedback pedagógico (pedagogical_feedback.py)
-```
-
-**Verificador simbólico (`symbolic_math_verifier.py`)** — Verificación en 4 capas:
-
-1. `simplify(e1 - e2) == 0` — equivalencia algebraica directa
-2. `expand(e1 - e2) == 0` — equivalencia tras expansión
-3. Equivalencia con valor absoluto — acepta `sqrt(x²) = x` en contexto escolar (variables positivas)
-4. Verificación numérica — sustituye valores de prueba (`x=2, 3, -2`) como fallback
-
-Diagnóstico de errores: `incorrect_distributive`, `sign_error`, `fraction_simplification`, `not_equivalent`. Soporte para ecuaciones (verifica múltiplos escalares: `3x=9 ↔ x=3`).
-
-Optimizaciones: `@lru_cache(maxsize=256)` en `simplify` y `expand`; limpieza LaTeX→SymPy con 18 patrones de reemplazo; SymPy como dependencia opcional (degrada con gracia).
-
-**Extractor de pasos (`math_step_extractor.py`)** — Detecta separadores naturales (saltos de línea, flechas `→/⇒`, numeración `1.`, prefijos `Paso N`) y clasifica cada paso en: `equation`, `simplification`, `substitution`, `factoring`, `derivative`, `integral`, `limit`, `definition`.
-
-**Feedback pedagógico (`pedagogical_feedback.py`)** — Genera pistas socráticas rotativas según el tipo de error detectado, sin revelar la respuesta.
-
-**Pipeline completo (`math_analysis_pipeline.py`)** — Orquesta los 4 módulos con fallback independiente por etapa. Se invoca automáticamente tras la revisión LLM de procedimientos en la UI.
-
----
-
-## Base de datos
-
-**Doble backend** — la aplicación selecciona automáticamente según el entorno:
-
-| Entorno | Backend | Detalle |
-|---|---|---|
-| `DATABASE_URL` definida | **PostgreSQL** (Supabase) | Pool de conexiones (`SimpleConnectionPool 1–5`), `sslmode=require`, `statement_timeout=60s` |
-| `DATABASE_URL` ausente | **SQLite** (local) | Archivo `data/elo_database.db`, ruta fija. Override con `DB_PATH` |
-
-Ambos backends exponen la misma API pública y ejecutan las mismas migraciones, seeds y sincronización de ítems al arrancar. La carpeta `data/` se genera automáticamente si no existe (solo SQLite).
-
-### Esquema principal
-
-**`users`**
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `id` | INTEGER PK | Identificador |
-| `username` | TEXT UNIQUE | Nombre de usuario |
-| `password_hash` | TEXT | Hash Argon2id |
-| `role` | TEXT | `student` / `teacher` / `admin` |
-| `approved` | INTEGER | 0 = pendiente de aprobación (docentes) |
-| `active` | INTEGER | 0 = desactivado por admin |
-| `group_id` | INTEGER FK | Grupo asignado (estudiantes) |
-| `education_level` | TEXT | `universidad` / `colegio` / `concursos` / `semillero` |
-| `grade` | TEXT | Grado escolar (`'6'`–`'11'`); solo aplica cuando `education_level = 'semillero'` |
-| `is_test_user` | INTEGER | 1 = estudiante de prueba (protegido contra eliminación) |
-| `rating_deviation` | REAL | RD global (promedio de tópicos) |
-
-**`groups`**
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `id` | INTEGER PK | Identificador |
-| `name` | TEXT | Nombre del grupo |
-| `teacher_id` | INTEGER FK | Docente propietario |
-| `course_id` | TEXT FK | Curso vinculado (catálogo) |
-| `name_normalized` | TEXT | Nombre en minúsculas para unicidad |
-| `invite_code` | TEXT | Código de invitación único (generado por docente para acceso inter-nivel) |
-
-Restricciones: **índice único** en `(teacher_id, name_normalized)` — un profesor no puede crear dos grupos con el mismo nombre (case-insensitive). **Índice único** en `invite_code` (parcial: WHERE NOT NULL).
-
-**`items`**
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `id` | TEXT PK | ID único (ej. `q1`) |
-| `topic` | TEXT | Tema |
-| `content` | TEXT | Enunciado (soporta LaTeX) |
-| `options` | TEXT | JSON array de opciones |
-| `correct_option` | TEXT | Opción correcta exacta |
-| `difficulty` | REAL | Rating ELO del ítem |
-| `rating_deviation` | REAL | Incertidumbre del ítem |
-| `image_url` | TEXT | URL de imagen complementaria (opcional) |
-| `tags` | TEXT | JSON array de tags de taxonomía (cognitiva, general, específica) |
-
-**`attempts`**
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `user_id` | INTEGER FK | Alumno |
-| `item_id` | TEXT | Pregunta |
-| `is_correct` | BOOLEAN | Resultado |
-| `elo_after` | REAL | Rating del alumno post-respuesta |
-| `prob_failure` | REAL | `1 − P(éxito)` calculada antes de responder |
-| `expected_score` | REAL | `P(éxito)` según ELO |
-| `time_taken` | REAL | Segundos en responder |
-| `confidence_score` | REAL | Confianza detectada por IA [0, 1] |
-| `error_type` | TEXT | `conceptual` / `superficial` / `none` |
-| `rating_deviation` | REAL | RD del alumno en ese tópico tras el intento |
-
-**`courses`**
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `id` | TEXT PK | Slug del archivo JSON (ej. `calculo_diferencial`) |
-| `name` | TEXT | Nombre legible del curso |
-| `block` | TEXT | `Universidad` / `Colegio` / `Concursos` / `Semillero` |
-| `description` | TEXT | Descripción del curso |
-
-**`enrollments`**
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `user_id` | INTEGER FK | Estudiante |
-| `course_id` | TEXT FK | Curso matriculado |
-| `group_id` | INTEGER FK | Grupo asociado a la matrícula |
-
-**`procedure_submissions`**
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `id` | INTEGER PK | Identificador |
-| `student_id` | INTEGER FK | Estudiante que envía |
-| `item_id` | TEXT | Pregunta asociada |
-| `image_data` | BLOB / BYTEA | Imagen del procedimiento |
-| `status` | TEXT | `pending` / `PENDING_TEACHER_VALIDATION` / `VALIDATED_BY_TEACHER` / `reviewed` |
-| `ai_proposed_score` | REAL | Score propuesto por IA (nunca afecta ELO directamente) |
-| `teacher_score` | REAL | Calificación oficial del docente (0–100) |
-| `final_score` | REAL | Nota final = teacher_score (única que afecta ELO) |
-| `elo_delta` | REAL | Ajuste ELO calculado: `(final_score - 50) * 0.2` |
-| `file_hash` | TEXT | SHA-256 del archivo subido (detección anti-plagio) |
-
-**`problem_reports`**
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `id` | INTEGER PK | Identificador |
-| `user_id` | INTEGER FK | Usuario que reporta |
-| `description` | TEXT | Descripción del problema (máx 500 caracteres en UI) |
-| `status` | TEXT | `pending` (nuevo) / `resolved` (resuelto por admin) |
-| `created_at` | TIMESTAMP | Fecha y hora del reporte |
-
-**`katia_interactions`**
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `id` | INTEGER PK | Identificador |
-| `user_id` | INTEGER FK | Estudiante que interactúa |
-| `course_id` | TEXT | Curso activo al momento de la interacción |
-| `item_id` | TEXT | Pregunta activa |
-| `item_topic` | TEXT | Tema de la pregunta |
-| `student_message` | TEXT | Pregunta del estudiante a KatIA |
-| `katia_response` | TEXT | Respuesta generada por el tutor socrático |
-| `created_at` | TIMESTAMP | Fecha y hora de la interacción |
-
-**`audit_group_changes`**: log de reasignaciones de grupo (admin), con usuario, grupo anterior/nuevo y timestamp.
-
-### Migraciones
-
-Las migraciones son **aditivas** (`ALTER TABLE ADD COLUMN IF NOT EXISTS` y `CREATE TABLE IF NOT EXISTS`). No hay migraciones destructivas. Se ejecutan automáticamente en `__init__()` de ambos repositorios. El repositorio PostgreSQL usa `pg_try_advisory_lock(N)` (no-bloqueante) en todas las funciones de inicialización (migraciones, seeds de admin/demo/test, sincronización de ítems) con IDs 12345–12349, para que solo una instancia ejecute cada operación cuando Streamlit arranca en paralelo; las demás retornan inmediatamente si el lock está tomado. Para ejecutar migraciones manualmente: `python migrate.py`.
-
-### Usuario admin
-
-El usuario admin se crea al primer arranque **sólo si la variable de entorno `ADMIN_PASSWORD` está definida**:
-
-```bash
-export ADMIN_USER=admin          # opcional, valor por defecto: "admin"
-export ADMIN_PASSWORD=tu_clave   # obligatorio para crear el admin
-```
-
-Si `ADMIN_PASSWORD` no está definida, no se crea ningún usuario admin automáticamente. No hay credenciales por defecto en el código.
-
----
-
-## Niveles educativos y catálogo de cursos
-
-Al registrarse, cada estudiante selecciona su **nivel educativo**, que determina qué cursos puede ver:
-
-| Nivel | Bloque | Cursos |
-|---|---|---|
-| Universidad | `Universidad` | Álgebra Lineal, Cálculo Diferencial, Cálculo Integral, Cálculo de Varias Variables, Ecuaciones Diferenciales, Probabilidad |
-| Colegio | `Colegio` | Álgebra Básica, Aritmética Básica, Trigonometría, Geometría |
-| Concursos | `Concursos` | DIAN — Gestor I, SENA — Profesional 10 |
-| Semillero de Matemáticas | `Semillero` | Álgebra, Aritmética, Geometría, Lógica, Conteo y Combinatoria, Probabilidad (por grado 6°–11°) |
-
-El nivel **Semillero** corresponde al programa de olimpiadas matemáticas de la UdeA para grados 6° a 11°. Al registrarse, el estudiante selecciona su grado (`grade`), que determina qué banco de preguntas ve (archivos `semillero/*_semillero_{grado}.json`) y separa los rankings dentro del bloque.
-
-El catálogo se genera automáticamente desde los archivos JSON en `items/bank/`. La asignación curso-bloque se define en `_COURSE_BLOCK_MAP` dentro de `sqlite_repository.py` y `postgres_repository.py`.
-
-Los estudiantes se **matriculan** en cursos de su nivel y se unen a un **grupo** creado por un docente para ese curso. Excepción: si un docente comparte un código de grupo de otro nivel, el estudiante puede unirse usando la pestaña **"Código de acceso"** en Matrículas. Esos cursos aparecen marcados con `📌 Acceso especial` y son visibles solo porque tienen `group_id` asignado; las matrículas legacy sin grupo de otro nivel permanecen ocultas.
+1. Crear o editar `items/bank/<course_id>.json`
+2. Agregar `'<course_id>': 'Bloque'` en `_COURSE_BLOCK_MAP` de **ambos** repositorios
+3. Correr `python scripts/validate_bank.py`
+4. Reiniciar la app — `sync_items_from_bank_folder()` carga automáticamente
 
 ---
 
 ## Roles de usuario
 
-### Estudiante
-- Selecciona su **nivel educativo** al registrarse mediante un **wizard multi-paso**: paso 1 elige rol (Estudiante/Profesor), paso 2 recoge datos de cuenta (usuario, contraseña, nivel, grado). Los estudiantes de Semillero también seleccionan su **grado** (6°–11°).
-- Se matricula en **cursos** mediante un flujo de 3 tabs: Explorar (catálogo del nivel), Mis matrículas (gestión), Código de acceso (acceso inter-nivel vía código de invitación del docente).
-- Accede al **modo práctica**: responde preguntas adaptativas con tags de taxonomía visibles, ve retroalimentación socrática con IA (KatIA), rastrea su ELO por tópico.
-- Puede subir **procedimientos manuscritos** (imagen o PDF) para revisión (IA o docente), con GIFs animados de KatIA durante el análisis y según el resultado, validación de relevancia y detección de duplicados.
-- Puede ver su **dashboard de estadísticas**: historial de intentos, evolución del ELO, racha de estudio **por materia** (independiente por curso), ranking de 16 niveles, tiempo promedio por pregunta, y recomendaciones generadas con IA.
-- **Temporizadores en tiempo real**: cronómetro de sesión en sidebar (tiempo total conectado) y cronómetro por pregunta (sobre el enunciado, grande y visible). Ambos se actualizan segundo a segundo vía JavaScript — no dependen de reruns de Streamlit.
-- **Centro de feedback**: consulta notas numéricas (IA y docente), comentarios y estado de cada procedimiento enviado, con notificación de revisiones nuevas.
-- **Reportar problemas**: puede describir problemas técnicos directamente desde el sidebar; el reporte llega al administrador con nombre de usuario y marca de tiempo.
-
-### Docente
-- Requiere aprobación del admin tras el registro.
-- Crea y gestiona **grupos de alumnos** vinculados a cursos del catálogo. Puede generar **códigos de invitación** únicos por grupo para dar acceso inter-nivel a estudiantes de otros bloques.
-- Los nombres de grupo son **únicos por profesor** (case-insensitive); el sistema rechaza duplicados.
-- Accede al **dashboard docente** con **filtros cascada** (Grupo → Nivel → Materia): ELO por tópico de cada alumno, tasa de acierto reciente, probabilidades de fallo por pregunta, historial de intentos.
-- **Panel de rankings** con tres modos: por nivel educativo, por curso y por grupo — cada uno con selectores dinámicos.
-- Revisa y califica **procedimientos** enviados por alumnos (con propuesta de la IA como referencia). Badge de notificación con cantidad de pendientes.
-- Puede generar **análisis pedagógico con IA** sobre cualquier alumno (con ELO desglosado por tópico y tiempo promedio de respuesta).
-- **Exportación CSV/XLSX**: descarga datos completos de todos sus estudiantes (intentos con tiempo por pregunta y rating deviation, matrículas, procedimientos, interacciones con KatIA) para análisis estadístico con herramientas externas. Excel incluye hojas separadas por tipo de dato.
-- Visualiza **interacciones con KatIA** de cada estudiante: resumen de temas más consultados e historial de conversaciones con el tutor socrático.
-
-### Admin
-- Aprueba o rechaza solicitudes de docentes.
-- Reasigna alumnos entre grupos (con log de auditoría).
-- **Elimina grupos**: desvincula estudiantes y matrículas sin perder datos históricos.
-- **Da de baja estudiantes y docentes** (`active = 0`): impide login conservando todo el historial. Puede reactivarlos.
-- **Notificaciones de problemas técnicos**: al inicio del panel de admin aparece una sección con todos los reportes pendientes enviados por estudiantes, cada uno con usuario, fecha y descripción. El admin puede marcarlos como resueltos.
-- Todas las acciones destructivas requieren **confirmación** en la UI.
-- Acceso completo a todos los datos.
+| Rol | Acceso |
+|---|---|
+| **Estudiante** | Práctica adaptativa, estadísticas, procedimientos, chat con KatIA, racha por materia, ranking |
+| **Docente** | Dashboard ELO por alumno/tópico, revisión de procedimientos, análisis con IA, exportación CSV/XLSX, códigos de invitación inter-nivel |
+| **Admin** | Aprobación de docentes, reasignación de estudiantes (auditada), gestión de usuarios, reportes técnicos |
 
 ---
 
-## Seguridad
-
-- **Argon2id** como algoritmo de hashing de contraseñas (vía `passlib[argon2]`).
-- **Migración automática** desde hashes SHA-256 legacy: en el próximo login del usuario, el hash antiguo se reemplaza por Argon2id de forma transparente.
-- **Contraseña obligatoria** en el registro: mínimo 6 caracteres, validada en UI y backend. La columna `password_hash` es `NOT NULL`.
-- **Cuentas con contraseña inválida** (vacía, nula o solo espacios) se desactivan automáticamente en la migración de base de datos.
-- **Login bloqueado** para cuentas con hash vacío o nulo.
-- Las contraseñas nunca se almacenan en texto plano ni en logs.
-- Las API keys de los proveedores de IA se gestionan solo en memoria de sesión (sidebar de Streamlit); nunca se persisten en base de datos.
-- Las credenciales del admin se configuran exclusivamente vía **variables de entorno** (`ADMIN_PASSWORD`, `ADMIN_USER`); no hay credenciales hardcodeadas.
-
----
-
-## Instalación y ejecución
-
-**Requisitos**: Python 3.10+
+## Instalación local
 
 ```bash
-# 1. Clonar el repositorio
-git clone <url-del-repo>
+# Clonar el repositorio
+git clone https://github.com/LuisJRubioH/LevelUp-ELO.git
 cd LevelUp-ELO
 
-# 2. Crear entorno virtual e instalar dependencias
+# Crear entorno virtual e instalar dependencias
 python -m venv venv
-source venv/Scripts/activate   # Windows (Git Bash)
-# source venv/bin/activate     # Linux / macOS
+source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-# 3. Ejecutar (siempre desde la raíz del proyecto)
+# Instalar pre-commit hooks (opcional, recomendado)
+pip install pre-commit
+pre-commit install
+
+# Ejecutar la app (siempre desde la raíz del repo)
 streamlit run src/interface/streamlit/app.py
 ```
 
-> **Importante**: la app debe lanzarse desde la raíz del repositorio porque `app.py` inyecta el directorio raíz en `sys.path` en tiempo de ejecución para resolver el paquete `src/`.
+Sin `DATABASE_URL`, usa SQLite local (`data/elo_database.db`). La base de datos se crea automáticamente con datos demo.
 
-### Modo local (SQLite)
+---
 
-Sin configuración adicional, la base de datos `data/elo_database.db` se crea automáticamente en el primer arranque junto con el usuario admin, las preguntas del banco y los usuarios de prueba.
+## Despliegue en producción
 
-### Modo producción (PostgreSQL / Supabase)
+La app está desplegada en **Streamlit Cloud** con **Supabase** como backend.
 
-Definir la variable de entorno `DATABASE_URL` antes de ejecutar:
+### Streamlit Cloud
+
+1. Conectar el repositorio en [share.streamlit.io](https://share.streamlit.io)
+2. Main file: `src/interface/streamlit/app.py`
+3. Configurar secrets (ver Variables de entorno)
+
+### Variables de entorno
+
+| Variable | Descripción | Requerida |
+|---|---|---|
+| `DATABASE_URL` | URL PostgreSQL Supabase (`postgresql://...`) | Sí (producción) |
+| `ADMIN_PASSWORD` | Contraseña del usuario admin | Sí |
+| `ADMIN_USER` | Nombre del admin (default: `admin`) | No |
+| `SUPABASE_URL` | URL del proyecto Supabase | Sí (Storage) |
+| `SUPABASE_KEY` | Publishable key de Supabase | Sí (Storage) |
+
+> **Nota Supabase**: usar el **connection pooler** (puerto 6543, `aws-...pooler.supabase.com`) en lugar de la conexión directa (puerto 5432). El pool interno usa `ThreadedConnectionPool(minconn=1, maxconn=5)` — nunca subir `maxconn` más de 5 en el free tier.
+
+---
+
+## CI/CD
+
+GitHub Actions con 5 jobs en cada push a `main`:
+
+| Job | Qué verifica |
+|---|---|
+| `validate-bank` | `python scripts/validate_bank.py` — estructura e integridad de los 1.900+ ítems |
+| `lint` | Black (line-length=100) + Flake8 (E9, F63, F7, F82) |
+| `test-unit` | `pytest tests/unit/` — 108 tests, cobertura ≥80% |
+| `test-integration` | `pytest tests/integration/` — 4 tests SQLite end-to-end |
+| `db-sync` | `python scripts/db_sync_check.py` — paridad de API SQLite ↔ PostgreSQL |
+
+Pre-commit hooks locales: validate-bank, db-sync-check, Black, pytest-unit.
+
+---
+
+## Tests
 
 ```bash
-export DATABASE_URL="postgresql://user:password@host:5432/dbname"
-streamlit run src/interface/streamlit/app.py
+# Tests unitarios con cobertura
+python -m pytest tests/unit/ -v --cov=src/domain --cov=src/application --cov-fail-under=80
+
+# Tests de integración
+python -m pytest tests/integration/ -v
+
+# Validar banco de preguntas
+python scripts/validate_bank.py
+
+# Verificar paridad SQLite/PostgreSQL
+python scripts/db_sync_check.py
 ```
 
-La app detecta `DATABASE_URL` y usa `PostgresRepository` con pool de conexiones (`psycopg2`, SSL requerido). Si la variable no está definida, cae automáticamente a SQLite local.
-
-### Usuarios de prueba
-
-Al primer arranque se crean automáticamente los siguientes usuarios demo:
-
-**Usuarios demo** (contraseña: `demo1234`):
-
-| Usuario | Rol | Detalle |
-|---|---|---|
-| `profesor1` | Docente | Pre-aprobado, con grupos demo vinculados a cursos |
-| `estudiante1` | Estudiante | Nivel **Universidad**, matriculado en Cálculo Diferencial |
-| `estudiante2` | Estudiante | Nivel **Colegio**, matriculado en Álgebra Básica |
-
-**Estudiantes de prueba persistentes** (contraseña: `test1234`, `is_test_user=1`):
-
-| Usuario | Nivel | Cursos matriculados |
-|---|---|---|
-| `estudiante_colegio_1` | Colegio | Todos los cursos de Colegio |
-| `estudiante_colegio_2` | Colegio | Todos los cursos de Colegio |
-| `estudiante_colegio_3` | Colegio | Todos los cursos de Colegio |
-| `estudiante_universidad_1` | Universidad | Todos los cursos de Universidad |
-| `estudiante_universidad_2` | Universidad | Todos los cursos de Universidad |
-| `estudiante_semillero_1` | Semillero — Grado 9° | Todos los cursos de Semillero |
-| `estudiante_semillero_2` | Semillero — Grado 11° | Todos los cursos de Semillero |
-
-El seed de estudiantes de prueba (`seed_test_students.py`) es estrictamente idempotente: solo crea usuarios si no existen, nunca modifica progreso, intentos, matrículas ni ELO existentes. El flag `is_test_user=1` los protege contra eliminación accidental.
-
-Los estudiantes pueden iniciar su estudio inmediatamente tras el login — cada uno ve el catálogo de cursos de su nivel educativo.
+**Cobertura actual**: 85% (dominio + servicios de aplicación).
 
 ---
 
-## Configuración de IA en la UI
+## Usuarios de prueba
 
-En el **panel lateral (sidebar)** de Streamlit:
-
-1. **Proveedor**: se detecta automáticamente al pegar la API key. Para proveedores locales (LM Studio / Ollama) no se necesita key.
-2. **URL del servidor**: para LM Studio/Ollama, configurable (por defecto `http://localhost:1234/v1`).
-3. **Modelo**: se puede escribir manualmente o, para servidores locales, se detectan los modelos cargados vía `/models`.
-
-Si no se configura ningún proveedor, todas las funciones de IA retornan valores por defecto y la aplicación funciona completamente sin IA.
+| Usuario | Contraseña | Rol / Nivel |
+|---|---|---|
+| `admin` | (variable de entorno) | Admin |
+| `profesor1` | `demo1234` | Docente (pre-aprobado) |
+| `estudiante1` | `demo1234` | Estudiante — Universidad |
+| `estudiante2` | `demo1234` | Estudiante — Colegio |
+| `estudiante_colegio_1..3` | `test1234` | Estudiante Colegio (is_test_user=1) |
+| `estudiante_universidad_1..2` | `test1234` | Estudiante Universidad (is_test_user=1) |
+| `estudiante_semillero_1` | `test1234` | Estudiante Semillero grado 9 |
+| `estudiante_semillero_2` | `test1234` | Estudiante Semillero grado 11 |
 
 ---
 
-## Agregar preguntas
+## Roadmap
 
-Las preguntas se organizan en **`items/bank/`**, un archivo JSON por curso. El nombre del archivo (sin extensión) se convierte en el `course_id`. Al arrancar, `sync_items_from_bank_folder()` registra cada archivo como curso y sincroniza sus ítems a la base de datos **sin sobrescribir** los ratings ELO que ya hubieran acumulado.
+**V1.0.0** (actual) — Plataforma Streamlit estable con Clean Architecture, CI/CD, 85% cobertura de tests.
 
-### Crear un nuevo curso
+**V2.0** (en desarrollo) — Migración a FastAPI + React:
+- API REST + WebSocket (39 endpoints, ya implementados en `api/`)
+- Frontend React + TypeScript + Tailwind + shadcn/ui
+- El motor ELO, dominio y IA se reutilizan sin cambios
+- Deploy: Railway (API) + Vercel (frontend)
 
-1. Crea un archivo `items/bank/mi_curso.json` con un array de ítems.
-2. Agrega la entrada en `_COURSE_BLOCK_MAP` en **ambos** repositorios (`sqlite_repository.py` y `postgres_repository.py`):
-   ```python
-   'mi_curso': 'Universidad',  # o 'Colegio', 'Concursos' o 'Semillero'
-   ```
-3. Reinicia la app. El curso y sus ítems aparecerán en el catálogo.
-
-### Formato de cada ítem
-
-**Pregunta de solo texto (sin imagen):**
-
-```json
-{
-    "id": "cd_01",
-    "content": "Derivada de $\\sin(x)$.",
-    "difficulty": 650,
-    "topic": "Cálculo Diferencial",
-    "options": ["$\\cos(x)$", "-$\\cos(x)$", "$\\sin(x)$", "-$\\sin(x)$"],
-    "correct_option": "$\\cos(x)$"
-}
-```
-
-**Pregunta con imagen:**
-
-```json
-{
-    "id": "geo_01",
-    "content": "Observa la siguiente figura y calcula el área sombreada.",
-    "difficulty": 1200,
-    "topic": "Geometría",
-    "options": ["$12\\pi$", "$8\\pi$", "$16\\pi$", "$4\\pi$"],
-    "correct_option": "$12\\pi$",
-    "image_url": "https://ejemplo.com/area_sombreada.png"
-}
-```
-
-### Campos del ítem
-
-| Campo | Requerido | Descripción |
-|---|---|---|
-| `id` | Sí | String único en todo el banco (ej. `cd_01`, `geo_15`) |
-| `content` | Sí | Enunciado; usar `$...$` para LaTeX inline y `$$...$$` para bloque |
-| `difficulty` | Sí | Rating ELO inicial del ítem (rango recomendado: 600–1800) |
-| `topic` | Sí | Tema dentro del curso (ej. "Derivadas", "Áreas") |
-| `options` | Sí | Lista de 2 a 4 opciones (soportan LaTeX) |
-| `correct_option` | Sí | Debe coincidir **exactamente** con uno de los strings en `options` |
-| `image_url` | No | URL o ruta de imagen complementaria (se muestra debajo del enunciado) |
-| `tags` | No | JSON array de tags de taxonomía (3 dimensiones: cognitiva, general, específica). Se muestran como badges en la UI |
-
-### Preguntas con imágenes
-
-Muchas preguntas de matemáticas, geometría o concursos necesitan una figura, gráfica o diagrama que el estudiante debe analizar para responder. El campo `image_url` (o su alias `image_path`) permite asociar una imagen a cualquier pregunta. La imagen se renderiza debajo del enunciado, antes de las opciones de respuesta.
-
-#### Formas de integrar imágenes
-
-**1. URL externa (hosting de imágenes)**
-
-La forma más simple. Sube la imagen a cualquier servicio de hosting (GitHub, Imgur, Google Drive público, servidor propio) y usa la URL directa:
-
-```json
-{
-    "id": "tri_05",
-    "content": "¿Cuál es el valor del ángulo $\\alpha$ en el triángulo mostrado?",
-    "difficulty": 900,
-    "topic": "Trigonometría",
-    "options": ["$30°$", "$45°$", "$60°$", "$90°$"],
-    "correct_option": "$45°$",
-    "image_url": "https://raw.githubusercontent.com/tu-usuario/tu-repo/main/images/triangulo_alpha.png"
-}
-```
-
-> La URL debe apuntar directamente al archivo de imagen (terminando en `.png`, `.jpg`, `.svg`, etc.), no a una página HTML que contenga la imagen.
-
-**2. Ruta local relativa al proyecto**
-
-Si prefieres no depender de servicios externos, coloca las imágenes en una carpeta dentro del proyecto (por ejemplo `items/images/`) y referénciala con una ruta relativa:
-
-```json
-{
-    "id": "geo_03",
-    "content": "Calcula el perímetro de la figura.",
-    "difficulty": 1100,
-    "topic": "Geometría",
-    "options": ["$24$ cm", "$18$ cm", "$30$ cm", "$12$ cm"],
-    "correct_option": "$24$ cm",
-    "image_path": "items/images/perimetro_figura.png"
-}
-```
-
-> Usa `image_path` o `image_url` indistintamente — el sistema acepta ambos campos. Si ambos están presentes, `image_url` tiene prioridad.
-
-**3. Usando GitHub como hosting gratuito**
-
-Sube las imágenes a tu repositorio y usa la URL raw de GitHub:
-
-1. Crea una carpeta `items/images/` en tu repositorio.
-2. Sube las imágenes ahí.
-3. Usa la URL raw: `https://raw.githubusercontent.com/<usuario>/<repo>/main/items/images/mi_imagen.png`
-
-#### Recomendaciones para imágenes
-
-- **Formatos soportados**: PNG, JPG, SVG, GIF, WebP.
-- **Tamaño recomendado**: entre 400px y 1200px de ancho. La imagen se ajusta automáticamente al ancho del contenedor.
-- **Fondo**: preferir fondo blanco o transparente (PNG) para buena legibilidad.
-- **Resolución**: suficiente para que fórmulas y números sean legibles. Mínimo 150 DPI si la imagen contiene texto.
-- **Nombre del archivo**: usar nombres descriptivos (`triangulo_rectangulo_30_60.png` en lugar de `img1.png`).
-- **Sin imagen**: si el campo `image_url`/`image_path` no existe, está vacío o la URL no carga, la pregunta se muestra normalmente solo con texto — la imagen es siempre opcional y nunca rompe la UI.
-
-### Notas importantes sobre el formato JSON
-
-- Los **backslashes de LaTeX** deben estar escapados en JSON: usar `\\frac`, `\\sin`, `\\alpha`, etc. Un `\f` sin escapar causa `JSONDecodeError`.
-- Las **opciones de respuesta** también soportan LaTeX: `"$\\frac{1}{2}$"`.
-- El campo `correct_option` debe coincidir **carácter por carácter** con uno de los strings en `options`, incluyendo espacios y signos LaTeX.
-
-### Cursos disponibles
-
-| Archivo | Curso | Bloque |
-|---|---|---|
-| `algebra_lineal.json` | Álgebra Lineal | Universidad |
-| `calculo_diferencial.json` | Cálculo Diferencial | Universidad |
-| `calculo_integral.json` | Cálculo Integral | Universidad |
-| `calculo_varias_variables.json` | Cálculo de Varias Variables | Universidad |
-| `ecuaciones_diferenciales.json` | Ecuaciones Diferenciales | Universidad |
-| `probabilidad.json` | Probabilidad | Universidad |
-| `algebra_basica.json` | Álgebra Básica | Colegio |
-| `aritmetica_basica.json` | Aritmética Básica | Colegio |
-| `trigonometria.json` | Trigonometría | Colegio |
-| `geometria.json` | Geometría | Colegio |
-| `DIAN.json` | Concurso DIAN — Gestor I | Concursos |
-| `SENA.json` | Concurso SENA — Profesional 10 | Concursos |
-| `semillero/algebra_semillero_6..11.json` | Álgebra Semillero (por grado) | Semillero |
-| `semillero/aritmetica_semillero_6..11.json` | Aritmética Semillero (por grado) | Semillero |
-| `semillero/geometria_semillero_6..11.json` | Geometría Semillero (por grado) | Semillero |
-| `semillero/logica_semillero_6..11.json` | Lógica Semillero (por grado) | Semillero |
-| `semillero/conteo_combinatoria_semillero_6..11.json` | Conteo y Combinatoria (por grado) | Semillero |
-| `semillero/probabilidad_semillero_6..11.json` | Probabilidad Semillero (por grado) | Semillero |
-
-Los archivos del bloque **Semillero** se encuentran en `items/bank/semillero/` (subdirectorio). Las preguntas de geometría con figura referencia imágenes en `items/images/` extraídas directamente de los PDFs originales de las Olimpiadas UdeA 2020 (`Semillero/OLIMPIADAS-2020/`). Para regenerar las figuras: `venv/Scripts/python.exe scripts/extract_figures_from_pdfs.py`.
+Ver [`ROADMAP_V2.md`](ROADMAP_V2.md) para el plan completo.
 
 ---
 
-## KatIA — Tutora socrática
+## Licencia
 
-KatIA es una gata cyborg (mitad gata, mitad robot) que actúa como tutora socrática de la plataforma. Tiene una personalidad coherente y amigable definida por bancos de mensajes predefinidos — no genera su personalidad con IA.
-
-### Personalidad y mensajes
-
-Los mensajes de KatIA están organizados en `src/domain/katia/katia_messages.py`:
-
-| Contexto | Función | Descripción |
-|---|---|---|
-| Bienvenida | `MENSAJES_BIENVENIDA` | Saludo aleatorio al iniciar sesión |
-| Procedimiento 0–59 | `RESPUESTAS_TUTORIA` | Invita al chat socrático |
-| Procedimiento 60–90 | `RESPUESTAS_MEDIA` | Reconoce buen trabajo + detalle |
-| Procedimiento 91–100 | `RESPUESTAS_ALTA` | Celebración pura |
-| Racha de 5 | `FELICITACIONES_RACHA_5` | Calentamiento |
-| Racha de 10 | `FELICITACIONES_RACHA_10` | Nivel experto |
-| Racha de 20 | `FELICITACIONES_RACHA_20` | Nivel legendario |
-
-### GIFs animados en revisión de procedimientos
-
-Cuando un estudiante sube un procedimiento y solicita calificación con IA:
-
-1. **Durante el análisis**: aparece `correcto_compressed.gif` (KatIA escribiendo) como animación de carga junto al spinner.
-2. **Resultado correcto** (score >= 91): se muestra `correcto_compressed.gif` + frase celebratoria de KatIA.
-3. **Resultado con errores** (score < 91): se muestra `errores_compressed.gif` + frase de KatIA con invitación a tutoría + diagnóstico técnico generado por el LLM.
-
-Los GIFs originales (`correcto.gif` 2.3MB, `errores.gif` 69MB) se comprimieron a 698KB y 1.8MB respectivamente para rendimiento web. La app siempre usa las versiones `*_compressed.gif`.
-
-### Integración con el flujo de calificación
-
-La estructura de la respuesta al estudiante sigue la **Regla de Oro** del manual de KatIA:
-- **Score 0–90**: `[Frase estática KatIA] + [Diagnóstico del LLM]` (máx 2 líneas señalando el error)
-- **Score 91–100**: `[Frase estática KatIA]` (solo celebración, sin diagnóstico)
-
----
-
-## Dependencias
-
-| Paquete | Uso |
-|---|---|
-| `streamlit` | Framework de UI |
-| `pandas` | Manipulación de datos en dashboards |
-| `plotly` | Gráficos interactivos de ELO y estadísticas |
-| `matplotlib` | Gráficos complementarios |
-| `passlib[argon2]` | Hashing de contraseñas con Argon2id |
-| `openai>=1.0.0` | Cliente OpenAI-compatible (Groq, Gemini, HF, LM Studio, Ollama) |
-| `anthropic>=0.40.0` | SDK nativo de Anthropic Claude |
-| `extra-streamlit-components` | Componentes adicionales de UI |
-| `PyMuPDF` | Renderizado de PDF a imagen para revisión de procedimientos |
-| `sympy` | Verificación simbólica de equivalencias algebraicas en el pipeline matemático |
-| `psycopg2-binary` | Driver PostgreSQL para el backend de producción (Supabase) |
-| `openpyxl` | Exportación Excel multi-hoja (.xlsx) para el panel docente |
-| `Pillow` | Procesamiento de imágenes (compresión de GIFs de KatIA) |
+MIT — ver [LICENSE](LICENSE).

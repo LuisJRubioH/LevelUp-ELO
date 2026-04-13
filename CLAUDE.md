@@ -11,7 +11,9 @@ pip install -r requirements.txt
 streamlit run src/interface/streamlit/app.py
 ```
 
-Ejecutar siempre desde la **raíz del repo** — `app.py` inyecta el root en `sys.path` en runtime. No hay tests ni linting configurados.
+Ejecutar siempre desde la **raíz del repo** — `app.py` inyecta el root en `sys.path` usando `sys.path.insert(0, base_path)` ANTES de cualquier import de `src.*`.
+
+Tests y linting están configurados: `pytest tests/unit/`, `black --check --line-length=100 src/ tests/ scripts/`, `flake8 src/ tests/ scripts/ --select=E9,F63,F7,F82`.
 
 ---
 
@@ -57,6 +59,7 @@ Solo `ALTER TABLE ADD COLUMN IF NOT EXISTS`. Nunca `DROP COLUMN`, `DROP TABLE`, 
 `upload_file()` debe retornar SOLO el path relativo (ej: `38/alb31/hash.jpg`), NUNCA una URL completa (`https://xxx.supabase.co/storage/v1/...`). El bucket `procedimientos` es PRIVADO — las URLs públicas no funcionan. Para mostrar imágenes, descargar los bytes con `get_file()` y pasarlos a `st.image()`. Si el upload falla, guardar en `image_data` (BYTEA) como fallback. Nunca dejar ambos (`storage_url` e `image_data`) en NULL.
 
 ### Regla #10 — st.markdown con HTML: sin indentación profunda
+
 En Streamlit 1.55+ el parser CommonMark interpreta cualquier línea con 4+ espacios de indentación como bloque de código, no como HTML. Resultado: el tag `<div>` queda invisible y los `<p>` internos aparecen como texto crudo.
 
 **Regla:** cuando `st.markdown` renderiza HTML, construir el string de forma que el tag de apertura (`<div>`, `<p>`, etc.) quede en la posición 0 del string (sin espacios previos).
@@ -74,6 +77,40 @@ _html = (
     f'</div>'
 )
 st.markdown(_html, unsafe_allow_html=True)
+```
+
+### Regla #11 — Streamlit Cloud: `use_container_width` no `width="stretch"`
+`st.image()`, `st.button()`, `st.plotly_chart()` y `st.dataframe()` NO aceptan `width="stretch"` en Streamlit < 1.45. Usar siempre `use_container_width=True`.
+
+```python
+# MAL
+st.image(img, width="stretch")
+st.button("OK", width="stretch")
+
+# BIEN
+st.image(img, use_container_width=True)
+st.button("OK", use_container_width=True)
+```
+
+### Regla #12 — PostgresRepository: singleton por proceso
+`PostgresRepository` se crea UNA SOLA VEZ por proceso en `app.py` (variable `_REPO_SINGLETON` a nivel de módulo, protegida por `threading.Lock`). Nunca crear una nueva instancia por sesión o por request — cada instancia abre su propio `ThreadedConnectionPool(1, 5)` y Supabase free tier se agota rápido con múltiples pools.
+
+### Regla #13 — CognitiveAnalyzer puede ser None
+`StudentService.cognitive_analyzer` es `None` cuando `enable_cognitive_modifier=False` (modo producción). Siempre verificar antes de acceder:
+
+```python
+if st.session_state.student_service.cognitive_analyzer is not None:
+    st.session_state.student_service.cognitive_analyzer.model_name = ...
+```
+
+### Regla #14 — imports en funciones `_backfill_*` y similares
+Los imports locales dentro de funciones de migración/backfill deben estar DENTRO de la función, no a nivel de módulo. Ejemplo correcto en `_backfill_prob_failure()`:
+
+```python
+def _backfill_prob_failure(self):
+    from src.domain.elo.model import expected_score  # import local aquí
+    conn = self.get_connection()
+    ...
 ```
 
 ---
