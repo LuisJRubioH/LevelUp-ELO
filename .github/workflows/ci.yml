@@ -146,7 +146,7 @@ jobs:
           cache: pip
 
       - name: Instalar dependencias
-        run: pip install -r requirements.txt pytest httpx
+        run: pip install -r requirements-api.txt
 
       - name: Ejecutar tests de integración de la API
         run: |

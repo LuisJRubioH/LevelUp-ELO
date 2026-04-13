@@ -23,8 +23,8 @@ class SQLiteRepository:
         self.sync_items_from_bank_folder()
         self._seed_test_students()
 
-    def get_connection(self):
-        return sqlite3.connect(self.db_name, timeout=10.0)
+    def get_connection(self, timeout: float = 30.0):
+        return sqlite3.connect(self.db_name, timeout=timeout)
 
     def init_db(self):
         conn = self.get_connection()

@@ -530,6 +530,11 @@ class PostgresRepository:
             # Asegurar índices si no existen
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)")
+            # Índice compuesto para get_latest_elo_by_topic() — MAX(timestamp) por (user_id, topic)
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_attempts_user_topic_ts "
+                "ON attempts(user_id, topic, timestamp DESC)"
+            )
 
             # Migración: vincular grupos a un curso del catálogo (course_id nullable)
             self._add_column_if_not_exists(cursor, "groups", "course_id", "TEXT")
