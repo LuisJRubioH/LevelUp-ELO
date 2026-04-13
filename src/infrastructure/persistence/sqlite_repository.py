@@ -238,6 +238,11 @@ class SQLiteRepository:
         # Asegurar índices si no existen
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)")
+        # Índice compuesto para get_latest_elo_by_topic() — MAX(timestamp) por (user_id, topic)
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_attempts_user_topic_ts "
+            "ON attempts(user_id, topic, timestamp DESC)"
+        )
 
         # Migración: vincular grupos a un curso del catálogo (course_id nullable)
         self._add_column_if_not_exists(cursor, "groups", "course_id", "TEXT REFERENCES courses(id)")
@@ -1560,10 +1565,16 @@ class SQLiteRepository:
         conn = self.get_connection()
         cursor = conn.cursor()
 
-        # 1. ELO base desde los intentos de preguntas
+        # 1. ELO base: solo el último intento por tópico
         cursor.execute(
-            "SELECT topic, elo_after, rating_deviation "
-            "FROM attempts WHERE user_id = ? ORDER BY timestamp ASC",
+            """
+            SELECT topic, elo_after, rating_deviation
+            FROM attempts
+            WHERE user_id = ? AND timestamp = (
+                SELECT MAX(a2.timestamp) FROM attempts a2
+                WHERE a2.user_id = attempts.user_id AND a2.topic = attempts.topic
+            )
+            """,
             (user_id,),
         )
         elo_map = {}

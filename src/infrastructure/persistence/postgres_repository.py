@@ -222,21 +222,23 @@ class PostgresRepository:
         self._seed_test_students()
         print("_seed_test_students OK")
 
-    def get_connection(self):
+    def get_connection(self, timeout: float = 30.0):
         """Obtiene una conexión del pool. Caller debe devolverla con put_connection().
 
-        Reintenta hasta 3 veces con espera breve si el pool está agotado
-        temporalmente (todas las conexiones en uso por otras peticiones).
+        Reintenta durante `timeout` segundos si el pool está agotado (todas las
+        conexiones en uso por otras peticiones concurrentes de FastAPI).
         """
-        max_retries = 3
-        for attempt in range(max_retries + 1):
+        deadline = time.monotonic() + timeout
+        sleep_interval = 0.1
+        while True:
             try:
                 conn = self._pool.getconn()
             except psycopg2.pool.PoolError:
-                if attempt < max_retries:
-                    time.sleep(0.3 * (attempt + 1))
-                    continue
-                raise
+                if time.monotonic() >= deadline:
+                    raise
+                time.sleep(sleep_interval)
+                sleep_interval = min(sleep_interval * 1.5, 1.0)  # backoff hasta 1s
+                continue
             try:
                 # Verificar que la conexión siga viva; si no, el pool la reemplaza
                 conn.isolation_level
@@ -361,6 +363,12 @@ class PostgresRepository:
 
             # ── Índices para acelerar JOINs y filtros frecuentes ─────────
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_attempts_user_id ON attempts(user_id)")
+            # Índice compuesto para DISTINCT ON (topic) ORDER BY topic, timestamp DESC
+            # Acelera get_latest_elo_by_topic() de O(n_intentos) a O(log n)
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_attempts_user_topic_ts "
+                "ON attempts(user_id, topic, timestamp DESC)"
+            )
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_enrollments_user_id ON enrollments(user_id)"
             )
@@ -1900,10 +1908,14 @@ class PostgresRepository:
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-            # 1. ELO base desde los intentos de preguntas
+            # 1. ELO base: solo el último intento por tópico (DISTINCT ON es O(log n) con índice)
             cursor.execute(
-                "SELECT topic, elo_after, rating_deviation "
-                "FROM attempts WHERE user_id = %s ORDER BY timestamp ASC",
+                """
+                SELECT DISTINCT ON (topic) topic, elo_after, rating_deviation
+                FROM attempts
+                WHERE user_id = %s
+                ORDER BY topic, timestamp DESC
+                """,
                 (user_id,),
             )
             elo_map = {}
