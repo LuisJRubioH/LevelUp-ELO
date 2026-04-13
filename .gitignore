@@ -44,9 +44,13 @@ KatIA/errores.gif
 
 # Node / Playwright MCP (no es parte de la app Python)
 node_modules/
-package.json
-package-lock.json
+# Ignorar solo los del raíz (MCP), no los del frontend
+/package.json
+/package-lock.json
 .playwright-mcp/
+# Re-incluir explícitamente los del frontend
+!frontend/package.json
+!frontend/package-lock.json
 
 # Screenshots y capturas temporales
 screenshot-*.png
