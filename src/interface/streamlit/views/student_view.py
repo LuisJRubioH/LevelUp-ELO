@@ -389,8 +389,11 @@ def render_student():
             time_taken = time.time() - st.session_state.question_start_time
 
         # Configurar el servicio con los parámetros de IA de la sesión
-        st.session_state.student_service.cognitive_analyzer.base_url = st.session_state.ai_url
-        st.session_state.student_service.cognitive_analyzer.model_name = st.session_state.model_cog
+        if st.session_state.student_service.cognitive_analyzer is not None:
+            st.session_state.student_service.cognitive_analyzer.base_url = st.session_state.ai_url
+            st.session_state.student_service.cognitive_analyzer.model_name = (
+                st.session_state.model_cog
+            )
 
         # Delegar procesamiento al servicio.
         _elo_topic = st.session_state.selected_course["name"]

@@ -10,14 +10,15 @@ import os
 import sys
 import time
 
+# Parche para resolver imports desde la raíz del proyecto
+# DEBE ir antes de cualquier import de src.*
+base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+if base_path not in sys.path:
+    sys.path.insert(0, base_path)
+
 from src.__version__ import __version__
 
 print(f"[APP VERSION] LevelUp-ELO v{__version__}")
-
-# Parche para resolver imports desde la raíz del proyecto
-base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
-if base_path not in sys.path:
-    sys.path.append(base_path)
 
 from src.infrastructure.logging_config import configure_logging, get_logger
 

@@ -23,21 +23,33 @@ from api.config import settings
 _bearer_scheme = HTTPBearer(auto_error=False)
 
 
-# ── Repositorio ───────────────────────────────────────────────────────────────
+# ── Repositorio (singleton por proceso) ──────────────────────────────────────
+
+_repo_instance = None
 
 
 def get_repository():
     """
-    Retorna la instancia correcta del repositorio según el entorno.
+    Retorna la instancia singleton del repositorio.
+    La instancia se crea una sola vez por proceso; init_db() solo corre al
+    arrancar (en el lifespan de main.py), no en cada petición.
+
     DATABASE_URL presente → PostgresRepository; ausente → SQLiteRepository.
     """
+    global _repo_instance
+    if _repo_instance is not None:
+        return _repo_instance
+
     if os.environ.get("DATABASE_URL") or settings.database_url:
         from src.infrastructure.persistence.postgres_repository import PostgresRepository
 
-        return PostgresRepository()
-    from src.infrastructure.persistence.sqlite_repository import SQLiteRepository
+        _repo_instance = PostgresRepository()
+    else:
+        from src.infrastructure.persistence.sqlite_repository import SQLiteRepository
 
-    return SQLiteRepository()
+        _repo_instance = SQLiteRepository()
+
+    return _repo_instance
 
 
 RepoDep = Annotated[object, Depends(get_repository)]
