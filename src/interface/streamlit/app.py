@@ -47,16 +47,34 @@ from src.interface.streamlit.assets import apply_global_css
 
 apply_global_css()
 
-# ── Base de datos ─────────────────────────────────────────────────────────────
+# ── Base de datos (singleton por proceso, compartido entre sesiones) ───────────
+# _REPO_SINGLETON vive en el módulo, no en session_state, para que todas las
+# sesiones de Streamlit compartan UN solo pool de conexiones (maxconn=5 total).
+import threading as _threading
+
+_REPO_LOCK = _threading.Lock()
+_REPO_SINGLETON = None  # type: ignore[assignment]
+
+
+def _get_repo():
+    global _REPO_SINGLETON
+    if _REPO_SINGLETON is not None:
+        return _REPO_SINGLETON
+    with _REPO_LOCK:
+        if _REPO_SINGLETON is None:
+            if os.environ.get("DATABASE_URL"):
+                _REPO_SINGLETON = PostgresRepository()
+            else:
+                _REPO_SINGLETON = SQLiteRepository()
+    return _REPO_SINGLETON
+
+
 if "db" not in st.session_state:
-    if os.environ.get("DATABASE_URL"):
-        try:
-            st.session_state.db = PostgresRepository()
-        except RuntimeError as _db_err:
-            st.error(f"Error al conectar con la base de datos: {_db_err}")
-            st.stop()
-    else:
-        st.session_state.db = SQLiteRepository()
+    try:
+        st.session_state.db = _get_repo()
+    except RuntimeError as _db_err:
+        st.error(f"Error al conectar con la base de datos: {_db_err}")
+        st.stop()
 
 repo = st.session_state.db
 
