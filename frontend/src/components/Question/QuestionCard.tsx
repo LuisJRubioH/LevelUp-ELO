@@ -12,6 +12,7 @@ interface QuestionCardProps {
   content: string;
   topic: string;
   difficulty: number;
+  tags?: string[];
   imageUrl?: string;
   timerFormatted: string;
   questionNumber: number;
@@ -55,6 +56,7 @@ export function QuestionCard({
   content,
   topic,
   difficulty,
+  tags,
   imageUrl,
   timerFormatted,
   questionNumber,
@@ -79,6 +81,20 @@ export function QuestionCard({
           </span>
         </div>
       </div>
+
+      {/* Tags de habilidades / taxonomía */}
+      {tags && tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className="text-xs text-slate-400 bg-slate-700/60 border border-slate-600 px-2 py-0.5 rounded-full"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Enunciado */}
       <p className="text-base leading-relaxed text-slate-100 mb-4">

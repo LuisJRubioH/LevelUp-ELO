@@ -2,7 +2,7 @@
  * pages/Student/Practice.tsx
  * ===========================
  * Sala de práctica adaptativa: pregunta + opciones + feedback KatIA + timer.
- * Cuando el estudiante elige un curso → empieza la sesión adaptativa.
+ * Flujo: seleccionar opción → botón "Enviar respuesta" → feedback + KatIA.
  */
 
 import { useEffect, useState } from "react";
@@ -25,7 +25,11 @@ export function Practice() {
   const { apiKey, provider } = useSettingsStore();
 
   const [courses, setCourses] = useState<Course[]>([]);
+  // Opción seleccionada por el estudiante (antes de enviar)
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  // Si la respuesta ya fue enviada (esperando o recibida)
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [globalElo, setGlobalElo] = useState(1000);
   const [rankLabel, setRankLabel] = useState("Aspirante");
   const [deltaElo, setDeltaElo] = useState<number | undefined>(undefined);
@@ -50,24 +54,37 @@ export function Practice() {
     }
   }, [courseId, phase, loadNextQuestion]);
 
-  // Resetear timer y selected option al cargar nueva pregunta
+  // Resetear estado local al cargar nueva pregunta
   useEffect(() => {
     if (phase === "question") {
       timer.reset();
       timer.start();
       setSelectedOption(null);
+      setSubmitted(false);
+      setSubmitting(false);
+      setShowChat(false);
     }
   }, [currentItem?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSelectOption = (option: string) => {
-    if (selectedOption || lastAnswer) return;
+    // Solo permite cambiar opción si no se ha enviado aún
+    if (submitted) return;
     setSelectedOption(option);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedOption || submitted) return;
     timer.stop();
-    submitAnswer(option);
+    setSubmitted(true);
+    setSubmitting(true);
+    await submitAnswer(selectedOption);
+    setSubmitting(false);
   };
 
   const handleNext = () => {
     setSelectedOption(null);
+    setSubmitted(false);
+    setSubmitting(false);
     setDeltaElo(undefined);
     setShowChat(false);
     loadNextQuestion();
@@ -78,6 +95,7 @@ export function Practice() {
     if (lastAnswer) {
       setDeltaElo(lastAnswer.deltaElo);
       setGlobalElo(lastAnswer.eloAfter);
+      setSubmitting(false);
     }
   }, [lastAnswer]);
 
@@ -135,6 +153,10 @@ export function Practice() {
   }
 
   // ── Pregunta activa ───────────────────────────────────────────────────────
+  // Estado de la respuesta: null = sin respuesta, lastAnswer = recibida, submitted+!lastAnswer = enviando
+  const answerReceived = submitted && !!lastAnswer;
+  const answerFailed = submitted && !submitting && !lastAnswer;
+
   return (
     <div className="max-w-2xl mx-auto py-6 px-4 space-y-4">
       {/* Header: ELO global + rango */}
@@ -153,6 +175,7 @@ export function Practice() {
         content={currentItem.content}
         topic={currentItem.topic}
         difficulty={currentItem.difficulty}
+        tags={currentItem.tags}
         imageUrl={currentItem.image_url}
         timerFormatted={timer.formatted}
         questionNumber={sessionQuestionsCount + 1}
@@ -162,12 +185,41 @@ export function Practice() {
       <AnswerOptions
         options={currentItem.options}
         selectedOption={selectedOption}
-        correctOption={lastAnswer?.correctOption ?? null}
+        correctOption={answerReceived ? (lastAnswer?.correctOption ?? null) : null}
         onSelect={handleSelectOption}
+        disabled={submitted}
       />
 
+      {/* Botón enviar — visible cuando hay opción seleccionada y no se ha enviado aún */}
+      {selectedOption && !submitted && (
+        <Button
+          onClick={handleSubmit}
+          size="lg"
+          className="w-full"
+        >
+          Enviar respuesta
+        </Button>
+      )}
+
+      {/* Enviando (spinner) */}
+      {submitting && (
+        <div className="text-center text-slate-400 text-sm animate-pulse py-2">
+          Enviando respuesta...
+        </div>
+      )}
+
+      {/* Error al enviar — permite continuar */}
+      {answerFailed && (
+        <div className="rounded-xl p-4 border border-yellow-600 bg-yellow-900/20 space-y-2">
+          <p className="text-sm text-yellow-300">No se pudo registrar la respuesta (error de conexión).</p>
+          <Button onClick={handleNext} size="sm" variant="secondary">
+            Siguiente pregunta →
+          </Button>
+        </div>
+      )}
+
       {/* Feedback post-respuesta */}
-      {lastAnswer && (
+      {answerReceived && lastAnswer && (
         <div className="fade-in space-y-3">
           <div
             className={`rounded-xl p-4 border ${
@@ -181,9 +233,7 @@ export function Practice() {
             </p>
             <p className="text-xs text-slate-400 mt-1">
               ELO: {Math.round(lastAnswer.eloBefore)} →{" "}
-              <span
-                className={lastAnswer.deltaElo >= 0 ? "text-green-400" : "text-red-400"}
-              >
+              <span className={lastAnswer.deltaElo >= 0 ? "text-green-400" : "text-red-400"}>
                 {Math.round(lastAnswer.eloAfter)}
               </span>{" "}
               ({lastAnswer.deltaElo >= 0 ? "+" : ""}
@@ -191,48 +241,52 @@ export function Practice() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* KatIA + controles */}
+          <div className="flex items-start gap-3">
             <KatIAAvatar
               state={lastAnswer.isCorrect ? "correct" : "error"}
               message={
                 lastAnswer.isCorrect
-                  ? "¡Excelente razonamiento!"
-                  : "Analiza bien cada opción. ¿Quieres ayuda del chat socrático?"
+                  ? "¡Excelente! ¿Quieres explorar más con KatIA?"
+                  : "¡No te rindas! KatIA puede ayudarte a entender este problema."
               }
               size="sm"
             />
             <div className="flex-1 flex flex-col gap-2">
-              {!lastAnswer.isCorrect && apiKey && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setShowChat((v) => !v)}
-                >
-                  {showChat ? "Ocultar chat KatIA" : "🐱 Preguntar a KatIA"}
-                </Button>
-              )}
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowChat((v) => !v)}
+              >
+                {showChat ? "Ocultar chat KatIA" : "🐱 Preguntar a KatIA"}
+              </Button>
               <Button onClick={handleNext} size="lg">
                 Siguiente pregunta →
               </Button>
             </div>
           </div>
 
-          {/* Chat socrático — visible solo si el estudiante lo abre y tiene API key */}
-          {showChat && currentItem && apiKey && (
-            <SocraticChat
-              itemId={currentItem.id}
-              itemContent={currentItem.content}
-              courseId={courseId ?? ""}
-              apiKey={apiKey}
-              provider={provider}
-            />
-          )}
-
-          {/* Aviso si no hay API key configurada */}
-          {!lastAnswer.isCorrect && !apiKey && (
-            <p className="text-xs text-slate-500 text-center">
-              Configura una API key de IA en el sidebar para usar el chat socrático de KatIA.
-            </p>
+          {/* Chat socrático */}
+          {showChat && (
+            apiKey ? (
+              <SocraticChat
+                itemId={currentItem.id}
+                itemContent={currentItem.content}
+                courseId={courseId ?? ""}
+                apiKey={apiKey}
+                provider={provider}
+              />
+            ) : (
+              <div className="bg-slate-800 rounded-2xl border border-slate-700 p-4 text-center space-y-2">
+                <p className="text-violet-400 font-medium text-sm">🐱 Chat con KatIA</p>
+                <p className="text-xs text-slate-400">
+                  Configura una API key de IA en el panel lateral (▼ API de IA) para activar el chat socrático.
+                </p>
+                <p className="text-xs text-slate-500">
+                  Compatible con Groq (gratis), Anthropic, OpenAI y más.
+                </p>
+              </div>
+            )
           )}
         </div>
       )}
