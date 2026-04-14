@@ -1825,13 +1825,13 @@ class PostgresRepository:
 
     @_timing
     def get_latest_attempts(self, user_id, limit=20):
-        """Retorna los últimos N intentos con el resultado real y el esperado."""
+        """Retorna los últimos N intentos con el resultado real, esperado, ELO y timestamp."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 """
-                SELECT is_correct, expected_score, prob_failure
+                SELECT is_correct, expected_score, prob_failure, elo_after, timestamp
                 FROM attempts
                 WHERE user_id = %s
                 ORDER BY timestamp DESC
@@ -1848,12 +1848,21 @@ class PostgresRepository:
             is_correct = row["is_correct"]
             expected = row["expected_score"]
             prob_fail = row["prob_failure"]
+            elo_after = row["elo_after"]
+            timestamp = row["timestamp"]
             actual = 1.0 if is_correct else 0.0
             if expected is None and prob_fail is not None:
                 expected = 1.0 - prob_fail
             elif expected is None:
                 expected = 0.5
-            results.append({"actual": actual, "expected": expected})
+            results.append(
+                {
+                    "actual": actual,
+                    "expected": expected,
+                    "elo_after": elo_after,
+                    "timestamp": str(timestamp)[:10] if timestamp else None,
+                }
+            )
         return results
 
     @_timing

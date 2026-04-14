@@ -43,13 +43,21 @@ export function Stats() {
     );
   }
 
-  // Preparar datos del gráfico ELO desde historial de intentos
+  // Preparar datos del gráfico ELO (los más recientes al final — API retorna DESC)
   const chartData = ((history?.attempts ?? []) as Record<string, unknown>[])
-    .slice(-20)
-    .map((a, i) => ({
-      label: `#${i + 1}`,
-      elo: typeof a["elo_after"] === "number" ? a["elo_after"] : 1000,
-    }));
+    .slice(0, 20)
+    .reverse()
+    .map((a, i) => {
+      const ts = typeof a["timestamp"] === "string" ? a["timestamp"] : null;
+      // Formato: "13/04" si hay fecha, "#N" si no
+      const label = ts
+        ? `${ts.slice(8, 10)}/${ts.slice(5, 7)}`
+        : `#${i + 1}`;
+      return {
+        label,
+        elo: typeof a["elo_after"] === "number" ? a["elo_after"] : 1000,
+      };
+    });
 
   return (
     <div className="max-w-2xl mx-auto py-6 px-4 space-y-6">

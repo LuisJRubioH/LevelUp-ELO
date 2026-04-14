@@ -185,8 +185,14 @@ export function Layout({ children }: LayoutProps) {
 
         {/* Usuario + timer + logout */}
         <div className="px-4 py-4 border-t border-slate-700">
-          <div className="text-xs text-slate-400 truncate mb-0.5">{user?.username}</div>
-          <div className="text-xs text-slate-600 mb-2">{user?.role}</div>
+          <div className="text-xs text-slate-300 font-medium truncate mb-0.5">{user?.username}</div>
+          <div className="text-xs text-slate-600 mb-0.5">{user?.role}</div>
+          {user?.education_level && (
+            <div className="text-xs text-slate-600 mb-2">
+              {user.education_level}
+              {user.grade ? ` · Grado ${user.grade}` : ""}
+            </div>
+          )}
           {/* Timer de sesión global */}
           {user?.role === "student" && (
             <div className="flex items-center gap-1.5 mb-3 bg-slate-900 rounded-lg px-2 py-1">

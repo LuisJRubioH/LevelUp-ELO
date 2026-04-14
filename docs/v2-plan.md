@@ -112,6 +112,8 @@ Deploy actual:
 - [ ] 1.5 Fechas reales en gráfico ELO de Stats
 - [ ] 1.6 Perfil visible en sidebar (nivel/grado)
 
+**Completadas:** 1.1, 1.2, 1.3, 1.4 (commit 1046421)
+
 ## Checklist Sprint 2
 
 - [ ] 2.1 Radar chart por tópico

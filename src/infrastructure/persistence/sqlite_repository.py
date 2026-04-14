@@ -1485,12 +1485,12 @@ class SQLiteRepository:
         return count
 
     def get_latest_attempts(self, user_id, limit=20):
-        """Retorna los últimos N intentos con el resultado real y el esperado."""
+        """Retorna los últimos N intentos con el resultado real, esperado, ELO y timestamp."""
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT is_correct, expected_score, prob_failure
+            SELECT is_correct, expected_score, prob_failure, elo_after, timestamp
             FROM attempts
             WHERE user_id = ?
             ORDER BY timestamp DESC
@@ -1502,7 +1502,7 @@ class SQLiteRepository:
         conn.close()
 
         results = []
-        for is_correct, expected, prob_fail in rows:
+        for is_correct, expected, prob_fail, elo_after, timestamp in rows:
             actual = 1.0 if is_correct else 0.0
             # Si expected_score es NULL (intentos viejos), lo derivamos de prob_failure
             if expected is None and prob_fail is not None:
@@ -1510,7 +1510,14 @@ class SQLiteRepository:
             elif expected is None:
                 expected = 0.5  # Valor neutro por defecto si no hay datos
 
-            results.append({"actual": actual, "expected": expected})
+            results.append(
+                {
+                    "actual": actual,
+                    "expected": expected,
+                    "elo_after": elo_after,
+                    "timestamp": str(timestamp)[:10] if timestamp else None,
+                }
+            )
         return results
 
     def get_user_history_elo(self, user_id):
