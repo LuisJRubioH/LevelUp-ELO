@@ -5,7 +5,7 @@
  * Los hijos se renderizan en el área de contenido central.
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { authApi } from "../api/auth";
@@ -42,12 +42,30 @@ interface LayoutProps {
   children: ReactNode;
 }
 
+function useSessionTimer(sessionStartTime: number | null) {
+  const [elapsed, setElapsed] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (!sessionStartTime) return;
+    const tick = () => setElapsed(Math.floor((Date.now() - sessionStartTime) / 1000));
+    tick();
+    intervalRef.current = setInterval(tick, 1000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [sessionStartTime]);
+
+  const m = Math.floor(elapsed / 60).toString().padStart(2, "0");
+  const s = (elapsed % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
+
 export function Layout({ children }: LayoutProps) {
-  const { user, clearAuth } = useAuthStore();
+  const { user, sessionStartTime, clearAuth } = useAuthStore();
   const { apiKey, provider, setApiKey, setProvider } = useSettingsStore();
   const location = useLocation();
   const navigate = useNavigate();
   const [showIAConfig, setShowIAConfig] = useState(false);
+  const sessionFormatted = useSessionTimer(sessionStartTime ?? null);
 
   // Notificaciones en tiempo real según rol
   const wsRoom = user
@@ -165,10 +183,18 @@ export function Layout({ children }: LayoutProps) {
           )}
         </div>
 
-        {/* Usuario + logout */}
+        {/* Usuario + timer + logout */}
         <div className="px-4 py-4 border-t border-slate-700">
-          <div className="text-xs text-slate-400 truncate mb-2">{user?.username}</div>
-          <div className="text-xs text-slate-600 mb-3">{user?.role}</div>
+          <div className="text-xs text-slate-400 truncate mb-0.5">{user?.username}</div>
+          <div className="text-xs text-slate-600 mb-2">{user?.role}</div>
+          {/* Timer de sesión global */}
+          {user?.role === "student" && (
+            <div className="flex items-center gap-1.5 mb-3 bg-slate-900 rounded-lg px-2 py-1">
+              <span className="text-slate-500 text-xs">⏱</span>
+              <span className="text-slate-400 text-xs font-mono">{sessionFormatted}</span>
+              <span className="text-slate-600 text-xs ml-auto">sesión</span>
+            </div>
+          )}
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"

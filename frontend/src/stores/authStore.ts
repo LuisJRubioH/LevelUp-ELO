@@ -20,6 +20,7 @@ interface AuthState {
   accessToken: string | null;
   user: AuthUser | null;
   isAuthenticated: boolean;
+  sessionStartTime: number | null; // timestamp ms al hacer login
 
   setAuth: (token: string, user: AuthUser) => void;
   clearAuth: () => void;
@@ -32,12 +33,13 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       user: null,
       isAuthenticated: false,
+      sessionStartTime: null,
 
       setAuth: (token, user) =>
-        set({ accessToken: token, user, isAuthenticated: true }),
+        set({ accessToken: token, user, isAuthenticated: true, sessionStartTime: Date.now() }),
 
       clearAuth: () =>
-        set({ accessToken: null, user: null, isAuthenticated: false }),
+        set({ accessToken: null, user: null, isAuthenticated: false, sessionStartTime: null }),
 
       updateUser: (partial) =>
         set((state) => ({
@@ -51,6 +53,7 @@ export const useAuthStore = create<AuthState>()(
         accessToken: state.accessToken,
         user: state.user,
         isAuthenticated: state.isAuthenticated,
+        sessionStartTime: state.sessionStartTime,
       }),
     },
   ),

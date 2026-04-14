@@ -31,7 +31,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,gif,woff2}"],
+        // katIA.png es 6.5MB — excluirlo del precaché (se carga bajo demanda)
+        globPatterns: ["**/*.{js,css,html,ico,svg,woff2}"],
+        globIgnores: ["katia/**"],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB
         runtimeCaching: [
           {
             // Cache de la API de cursos y stats (actualizados en background)

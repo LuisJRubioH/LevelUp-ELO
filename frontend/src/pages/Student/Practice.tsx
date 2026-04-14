@@ -5,7 +5,7 @@
  * Flujo: seleccionar opción → botón "Enviar respuesta" → feedback + KatIA.
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { studentApi, type Course } from "../../api/student";
 import { AnswerOptions } from "../../components/Question/AnswerOptions";
 import { QuestionCard } from "../../components/Question/QuestionCard";
@@ -13,10 +13,22 @@ import { KatIAAvatar } from "../../components/KatIA/KatIAAvatar";
 import { SocraticChat } from "../../components/KatIA/SocraticChat";
 import { RankBadge } from "../../components/ELO/RankBadge";
 import { Button } from "../../components/ui/Button";
+import { StreakToast } from "../../components/ui/StreakToast";
 import { useStudentSession } from "../../hooks/useStudentSession";
 import { useTimer } from "../../hooks/useTimer";
 import { usePracticeStore } from "../../stores/practiceStore";
 import { useSettingsStore } from "../../stores/settingsStore";
+
+/** Estima delta ELO antes de enviar (K=24, fórmula ELO clásica). */
+function estimateEloDelta(studentElo: number, itemDifficulty: number) {
+  const expected = 1 / (1 + Math.pow(10, (itemDifficulty - studentElo) / 400));
+  const K = studentElo < 1400 ? 32 : 24;
+  const onCorrect = +(K * (1 - expected)).toFixed(1);
+  const onWrong = +(K * (0 - expected)).toFixed(1);
+  return { onCorrect, onWrong };
+}
+
+const STREAK_MILESTONES = [5, 10, 20];
 
 export function Practice() {
   const { courseId, startSession, resetSession } = usePracticeStore();
@@ -34,6 +46,9 @@ export function Practice() {
   const [rankLabel, setRankLabel] = useState("Aspirante");
   const [deltaElo, setDeltaElo] = useState<number | undefined>(undefined);
   const [showChat, setShowChat] = useState(false);
+  // Racha de respuestas correctas consecutivas
+  const [_consecutiveCorrect, setConsecutiveCorrect] = useState(0);
+  const [streakToast, setStreakToast] = useState<number | null>(null);
 
   // Timer por pregunta — se resetea al cargar la nueva pregunta
   const timer = useTimer({ autoStart: true });
@@ -90,14 +105,24 @@ export function Practice() {
     loadNextQuestion();
   };
 
-  // Mostrar delta ELO al recibir respuesta
+  // Mostrar delta ELO al recibir respuesta + actualizar racha
   useEffect(() => {
     if (lastAnswer) {
       setDeltaElo(lastAnswer.deltaElo);
       setGlobalElo(lastAnswer.eloAfter);
       setSubmitting(false);
+
+      setConsecutiveCorrect((prev) => {
+        const next = lastAnswer.isCorrect ? prev + 1 : 0;
+        if (lastAnswer.isCorrect && STREAK_MILESTONES.includes(next)) {
+          setStreakToast(next);
+        }
+        return next;
+      });
     }
   }, [lastAnswer]);
+
+  const dismissStreakToast = useCallback(() => setStreakToast(null), []);
 
   // ── Sin curso seleccionado: selector de cursos ────────────────────────────
   if (!courseId) {
@@ -157,8 +182,18 @@ export function Practice() {
   const answerReceived = submitted && !!lastAnswer;
   const answerFailed = submitted && !submitting && !lastAnswer;
 
+  // Cálculo ELO preview (estimado, antes de enviar)
+  const eloPreview = currentItem && selectedOption && !submitted
+    ? estimateEloDelta(globalElo, currentItem.difficulty)
+    : null;
+
   return (
     <div className="max-w-2xl mx-auto py-6 px-4 space-y-4">
+      {/* Toast de racha */}
+      {streakToast && (
+        <StreakToast streak={streakToast} onDismiss={dismissStreakToast} />
+      )}
+
       {/* Header: ELO global + rango */}
       <div className="flex items-center justify-between">
         <button
@@ -190,15 +225,24 @@ export function Practice() {
         disabled={submitted}
       />
 
-      {/* Botón enviar — visible cuando hay opción seleccionada y no se ha enviado aún */}
+      {/* Preview ELO + botón enviar */}
       {selectedOption && !submitted && (
-        <Button
-          onClick={handleSubmit}
-          size="lg"
-          className="w-full"
-        >
-          Enviar respuesta
-        </Button>
+        <div className="space-y-2">
+          {eloPreview && (
+            <div className="flex justify-center gap-4 text-xs">
+              <span className="text-green-400">
+                Si aciertas: <strong>+{eloPreview.onCorrect}</strong>
+              </span>
+              <span className="text-slate-500">|</span>
+              <span className="text-red-400">
+                Si fallas: <strong>{eloPreview.onWrong}</strong>
+              </span>
+            </div>
+          )}
+          <Button onClick={handleSubmit} size="lg" className="w-full">
+            Enviar respuesta
+          </Button>
+        </div>
       )}
 
       {/* Enviando (spinner) */}
