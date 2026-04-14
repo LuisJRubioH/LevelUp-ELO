@@ -19,11 +19,19 @@ interface UseNotificationsOptions {
   enabled?: boolean;
 }
 
+const MAX_RETRIES = 8;
+const BASE_DELAY_MS = 2000;
+
 export function useNotifications({ room, onEvent, enabled = true }: UseNotificationsOptions) {
   const { accessToken } = useAuthStore();
   const wsRef = useRef<WebSocket | null>(null);
+  const retryCountRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [connected, setConnected] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  // Stable ref for onEvent — avoids recreating connect on every parent render
+  const onEventRef = useRef(onEvent);
+  useEffect(() => { onEventRef.current = onEvent; }, [onEvent]);
 
   const connect = useCallback(() => {
     if (!accessToken || !enabled) return;
@@ -40,7 +48,7 @@ export function useNotifications({ room, onEvent, enabled = true }: UseNotificat
     wsRef.current = ws;
 
     ws.onopen = () => {
-      // Autenticarse con el JWT como primer mensaje
+      retryCountRef.current = 0; // reset backoff on successful open
       ws.send(JSON.stringify({ token: accessToken }));
     };
 
@@ -53,7 +61,7 @@ export function useNotifications({ room, onEvent, enabled = true }: UseNotificat
           ws.send(JSON.stringify({ type: "pong" }));
         } else {
           setUnreadCount((n) => n + 1);
-          onEvent?.(msg);
+          onEventRef.current?.(msg);
         }
       } catch {
         /* ignorar mensajes malformados */
@@ -62,16 +70,21 @@ export function useNotifications({ room, onEvent, enabled = true }: UseNotificat
 
     ws.onclose = () => {
       setConnected(false);
-      // Reconexión automática después de 5 s
-      setTimeout(() => connect(), 5000);
+      if (retryCountRef.current >= MAX_RETRIES) return; // stop retrying
+      // Exponential backoff: 2s, 4s, 8s, 16s, 32s, 60s cap
+      const delay = Math.min(BASE_DELAY_MS * Math.pow(2, retryCountRef.current), 60000);
+      retryCountRef.current += 1;
+      retryTimerRef.current = setTimeout(() => connect(), delay);
     };
 
     ws.onerror = () => ws.close();
-  }, [accessToken, room, enabled, onEvent]);
+  }, [accessToken, room, enabled]); // onEvent removed — use ref instead
 
   useEffect(() => {
+    retryCountRef.current = 0;
     connect();
     return () => {
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       wsRef.current?.close();
     };
   }, [connect]);

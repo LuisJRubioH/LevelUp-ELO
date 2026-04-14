@@ -30,9 +30,10 @@ interface RankEntry {
 }
 
 export function Stats() {
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading, isError } = useQuery({
     queryKey: ["student-stats"],
     queryFn: () => studentApi.stats(),
+    retry: 2,
   });
 
   const { data: history } = useQuery({
@@ -55,12 +56,24 @@ export function Stats() {
     queryKey: ["student-group-ranking"],
     queryFn: () =>
       apiClient.get<{ ranking: RankEntry[]; my_rank: number | null }>("/api/student/group-ranking"),
+    retry: 1,
   });
 
-  if (isLoading || !stats) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-pulse text-slate-400">Cargando estadísticas...</div>
+      </div>
+    );
+  }
+
+  if (isError || !stats) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-slate-400 mb-2">No se pudieron cargar las estadísticas.</p>
+          <p className="text-slate-500 text-sm">El servidor puede estar iniciando. Intenta recargar la página.</p>
+        </div>
       </div>
     );
   }

@@ -55,11 +55,15 @@ export function Practice() {
 
   // Cargar cursos disponibles al montar
   useEffect(() => {
-    studentApi.courses().then((c) => setCourses(c.filter((x) => x.enrolled)));
-    studentApi.stats().then((s) => {
-      setGlobalElo(s.global_elo);
-      setRankLabel(s.rank_label ?? "Aspirante");
-    });
+    studentApi.courses()
+      .then((c) => setCourses(c.filter((x) => x.enrolled)))
+      .catch(() => {/* silencioso — el backend puede estar durmiendo */});
+    studentApi.stats()
+      .then((s) => {
+        setGlobalElo(s.global_elo);
+        setRankLabel(s.rank_label ?? "Aspirante");
+      })
+      .catch(() => {/* silencioso */});
   }, []);
 
   // Cargar primera pregunta cuando el curso está seleccionado

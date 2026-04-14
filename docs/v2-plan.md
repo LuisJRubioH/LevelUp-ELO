@@ -1,7 +1,7 @@
 # Plan V2 — LevelUp-ELO: React + FastAPI
 
-Fecha: 2026-04-13
-Estado: **En ejecución — Sprint 1**
+Fecha: 2026-04-14
+Estado: **En ejecución — Sprint 3 (parcial)**
 
 ## Contexto
 
@@ -109,28 +109,32 @@ Deploy actual:
 - [x] 1.2 Timer global de sesión en Layout sidebar
 - [x] 1.3 Preview ELO ("Si aciertas +X / Si fallas -Y") en Practice
 - [x] 1.4 Toast de racha (5/10/20 correctas consecutivas)
-- [ ] 1.5 Fechas reales en gráfico ELO de Stats
-- [ ] 1.6 Perfil visible en sidebar (nivel/grado)
+- [x] 1.5 Fechas reales en gráfico ELO de Stats
+- [x] 1.6 Perfil visible en sidebar (nivel/grado)
 
-**Completadas:** 1.1, 1.2, 1.3, 1.4 (commit 1046421)
+**Completadas:** todas — commits 1046421 y 82578e6
 
 ## Checklist Sprint 2
 
-- [ ] 2.1 Radar chart por tópico
-- [ ] 2.2 Heatmap de actividad
-- [ ] 2.3 Racha por curso
-- [ ] 2.4 Ranking semanal del grupo
-- [ ] 2.5 Logros animados
-- [ ] 2.6 Envío de procedimientos
+- [x] 2.1 Radar chart por tópico
+- [x] 2.2 Heatmap de actividad
+- [x] 2.3 Racha por curso
+- [x] 2.4 Ranking semanal del grupo
+- [x] 2.5 Logros animados
+- [x] 2.6 Envío de procedimientos
+
+**Completadas:** todas — commit da4c0e7
 
 ## Checklist Sprint 3
 
-- [ ] 3.1 ELO temporal por estudiante
-- [ ] 3.2 Análisis pedagógico IA
-- [ ] 3.3 Historial KatIA
-- [ ] 3.4 Visor de imagen de procedimiento
-- [ ] 3.5 Filtros en cascada
-- [ ] 3.6 Ranking del grupo
+- [x] 3.1 ELO temporal por estudiante
+- [x] 3.2 Análisis pedagógico IA
+- [x] 3.3 Historial KatIA
+- [ ] 3.4 Visor de imagen de procedimiento (Supabase Storage)
+- [ ] 3.5 Filtros en cascada: Grupo → Nivel → Materia
+- [ ] 3.6 Ranking del grupo en el dashboard
+
+**Parcial:** 3.1, 3.2, 3.3 implementadas — commit c17c24d. Pendientes: 3.4, 3.5, 3.6
 
 ## Checklist Sprint 4
 

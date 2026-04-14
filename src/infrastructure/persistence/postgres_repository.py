@@ -1368,7 +1368,7 @@ class PostgresRepository:
                     FROM users u
                     LEFT JOIN attempts a ON a.user_id = u.id
                     LEFT JOIN items i ON i.id = a.item_id AND i.course_id = %s
-                    WHERE u.group_id = %s AND u.role = 'student' AND u.active = TRUE
+                    WHERE u.group_id = %s AND u.role = 'student' AND u.active = 1
                     GROUP BY u.id, u.username
                     ORDER BY elo DESC
                 """,
@@ -1382,7 +1382,7 @@ class PostgresRepository:
                            COUNT(a.id) AS attempts
                     FROM users u
                     LEFT JOIN attempts a ON a.user_id = u.id
-                    WHERE u.group_id = %s AND u.role = 'student' AND u.active = TRUE
+                    WHERE u.group_id = %s AND u.role = 'student' AND u.active = 1
                     GROUP BY u.id, u.username
                     ORDER BY elo DESC
                 """,
