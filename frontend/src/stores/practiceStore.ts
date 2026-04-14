@@ -29,7 +29,7 @@ interface PracticeState {
 
   // Estado UI
   isLoading: boolean;
-  phase: "loading" | "question" | "feedback" | "empty";
+  phase: "loading" | "question" | "feedback" | "empty" | "error";
 
   // Acciones
   startSession: (courseId: string) => void;

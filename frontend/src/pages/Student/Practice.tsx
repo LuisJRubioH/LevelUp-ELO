@@ -31,7 +31,7 @@ function estimateEloDelta(studentElo: number, itemDifficulty: number) {
 const STREAK_MILESTONES = [5, 10, 20];
 
 export function Practice() {
-  const { courseId, startSession, resetSession } = usePracticeStore();
+  const { courseId, startSession, resetSession, setPhase } = usePracticeStore();
   const { currentItem, lastAnswer, phase, isLoading, sessionQuestionsCount, loadNextQuestion, submitAnswer } =
     useStudentSession();
   const { apiKey, provider } = useSettingsStore();
@@ -168,6 +168,24 @@ export function Practice() {
         <Button className="mt-6" variant="secondary" onClick={() => resetSession()}>
           Cambiar curso
         </Button>
+      </div>
+    );
+  }
+
+  // ── Error de red / servidor ───────────────────────────────────────────────
+  if (phase === "error") {
+    return (
+      <div className="max-w-xl mx-auto py-8 px-4 text-center space-y-4">
+        <KatIAAvatar state="error" message="No se pudo cargar la pregunta. ¿Tienes conexión?" size="lg" />
+        <Button onClick={() => setPhase("loading")} variant="secondary">
+          Reintentar
+        </Button>
+        <button
+          onClick={() => resetSession()}
+          className="block mx-auto text-xs text-slate-500 hover:text-slate-400"
+        >
+          ← Cambiar curso
+        </button>
       </div>
     );
   }

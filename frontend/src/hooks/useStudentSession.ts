@@ -30,7 +30,7 @@ export function useStudentSession() {
       }
     } catch (err) {
       console.error("Error al cargar pregunta:", err);
-      store.setPhase("empty");
+      store.setPhase("error");
     } finally {
       store.setLoading(false);
     }
