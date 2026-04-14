@@ -23,6 +23,7 @@ const studentNav: NavItem[] = [
   { path: "/student", label: "Practicar", icon: "🎯" },
   { path: "/student/stats", label: "Estadísticas", icon: "📈" },
   { path: "/student/courses", label: "Cursos", icon: "📚" },
+  { path: "/student/procedure", label: "Procedimientos", icon: "✍️" },
 ];
 
 const teacherNav: NavItem[] = [

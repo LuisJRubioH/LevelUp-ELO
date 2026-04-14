@@ -793,6 +793,26 @@ class SQLiteRepository:
         finally:
             conn.close()
 
+    def get_user_by_id(self, user_id: int) -> dict | None:
+        """Retorna datos básicos de un usuario por su ID."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, username, role, group_id, education_level FROM users WHERE id = ?",
+            (user_id,),
+        )
+        row = cursor.fetchone()
+        conn.close()
+        if not row:
+            return None
+        return {
+            "id": row[0],
+            "username": row[1],
+            "role": row[2],
+            "group_id": row[3],
+            "education_level": row[4],
+        }
+
     def login_user(self, username, password):
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -966,6 +986,73 @@ class SQLiteRepository:
             elif d_str < str(expected):
                 break
         return streak
+
+    def get_activity_heatmap(self, user_id: int, days: int = 70) -> dict:
+        """Retorna {date: count} con el número de intentos por día (últimos N días)."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT DATE(timestamp) AS d, COUNT(*) AS cnt
+            FROM attempts
+            WHERE user_id = ? AND timestamp >= DATE('now', ? || ' days')
+            GROUP BY d
+        """,
+            (user_id, f"-{days}"),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return {row[0]: row[1] for row in rows}
+
+    def get_group_ranking(self, group_id: int, course_id: str | None = None) -> list:
+        """Retorna el ranking ELO de los estudiantes de un grupo.
+
+        Si course_id se proporciona, calcula el ELO promedio solo para ese curso.
+        Retorna lista de {user_id, username, global_elo, total_attempts, rank_pos}.
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        if course_id:
+            cursor.execute(
+                """
+                SELECT u.id, u.username,
+                       COALESCE(AVG(a.elo_after), 1000) AS elo,
+                       COUNT(a.id) AS attempts
+                FROM users u
+                LEFT JOIN attempts a ON a.user_id = u.id
+                LEFT JOIN items i ON i.id = a.item_id AND i.course_id = ?
+                WHERE u.group_id = ? AND u.role = 'student' AND u.active = 1
+                GROUP BY u.id, u.username
+                ORDER BY elo DESC
+            """,
+                (course_id, group_id),
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT u.id, u.username,
+                       COALESCE(AVG(a.elo_after), 1000) AS elo,
+                       COUNT(a.id) AS attempts
+                FROM users u
+                LEFT JOIN attempts a ON a.user_id = u.id
+                WHERE u.group_id = ? AND u.role = 'student' AND u.active = 1
+                GROUP BY u.id, u.username
+                ORDER BY elo DESC
+            """,
+                (group_id,),
+            )
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {
+                "user_id": r[0],
+                "username": r[1],
+                "global_elo": round(r[2], 1),
+                "total_attempts": r[3],
+                "rank_pos": i + 1,
+            }
+            for i, r in enumerate(rows)
+        ]
 
     def save_problem_report(self, user_id: int, description: str) -> None:
         """Guarda un reporte de problema técnico enviado por un usuario."""

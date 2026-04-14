@@ -15,7 +15,9 @@ Endpoints del flujo de práctica del estudiante:
   POST /student/exam/submit    → envía respuestas del examen y obtiene resultados
 """
 
-from fastapi import APIRouter, HTTPException, status
+import hashlib
+
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
 
 from api.dependencies import CurrentUser, RepoDep, build_vector_rating
 from api.schemas.student import (
@@ -31,6 +33,7 @@ from api.schemas.student import (
     ItemResponse,
     NextQuestionRequest,
     NextQuestionResponse,
+    ProcedureSubmitResponse,
     StudentStatsResponse,
     TopicELO,
 )
@@ -232,6 +235,35 @@ def history(user: CurrentUser, repo: RepoDep):
     return {"attempts": attempts}
 
 
+@router.get("/activity")
+def activity(user: CurrentUser, repo: RepoDep, days: int = 70):
+    """Heatmap de actividad diaria: {date: count} de intentos por día (últimos N días)."""
+    data = repo.get_activity_heatmap(user["user_id"], days=days)
+    return {"activity": data}
+
+
+@router.get("/streak/{course_id}")
+def streak_by_course(course_id: str, user: CurrentUser, repo: RepoDep):
+    """Racha de estudio para un curso específico."""
+    streak = repo.get_study_streak(user["user_id"], course_id=course_id)
+    return {"course_id": course_id, "streak": streak}
+
+
+@router.get("/group-ranking")
+def group_ranking(user: CurrentUser, repo: RepoDep, course_id: str | None = None):
+    """Ranking ELO de los compañeros del grupo del estudiante."""
+    user_data = repo.get_user_by_id(user["user_id"])
+    if not user_data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado.")
+    group_id = user_data.get("group_id") if isinstance(user_data, dict) else None
+    if not group_id:
+        return {"ranking": [], "my_rank": None}
+    ranking = repo.get_group_ranking(group_id, course_id=course_id)
+    # Encontrar la posición del usuario actual
+    my_rank = next((r["rank_pos"] for r in ranking if r["user_id"] == user["user_id"]), None)
+    return {"ranking": ranking, "my_rank": my_rank}
+
+
 # ── Logros / Achievements ─────────────────────────────────────────────────────
 
 
@@ -255,6 +287,58 @@ def achievements(user: CurrentUser, repo: RepoDep):
             }
         )
     return {"achievements": result, "catalog": svc._BADGE_CATALOG}
+
+
+# ── Procedimientos manuscritos ────────────────────────────────────────────────
+
+
+@router.post("/procedure", response_model=ProcedureSubmitResponse)
+async def submit_procedure(
+    user: CurrentUser,
+    repo: RepoDep,
+    item_id: str = Form(...),
+    item_content: str = Form(default=""),
+    file: UploadFile = File(...),
+):
+    """Recibe y persiste un procedimiento manuscrito del estudiante.
+
+    El archivo se almacena en disco (SQLite) o Supabase Storage (PostgreSQL).
+    Retorna el submission_id y el estado del procesamiento.
+    El score de IA (ai_proposed_score) NO afecta el ELO — solo teacher_score lo hace.
+    """
+    # Validar tipo de archivo
+    allowed = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
+    mime = file.content_type or "image/jpeg"
+    if mime not in allowed:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail=f"Tipo de archivo no soportado: {mime}. Usa JPEG, PNG, WebP o PDF.",
+        )
+
+    image_data = await file.read()
+    if len(image_data) > 10 * 1024 * 1024:  # 10MB límite
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="El archivo excede el límite de 10 MB.",
+        )
+
+    file_hash = hashlib.sha256(image_data).hexdigest()
+
+    repo.save_procedure_submission(
+        student_id=user["user_id"],
+        item_id=item_id,
+        item_content=item_content,
+        image_data=image_data,
+        mime_type=mime,
+        file_hash=file_hash,
+    )
+
+    return ProcedureSubmitResponse(
+        submission_id=0,  # SQLite no retorna el ID; suficiente para el frontend
+        ai_score=None,
+        ai_feedback=None,
+        status="pending",
+    )
 
 
 # ── Modo Examen ───────────────────────────────────────────────────────────────

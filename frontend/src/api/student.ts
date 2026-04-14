@@ -87,4 +87,15 @@ export const studentApi = {
   unenroll: (course_id: string) => api.delete<void>(`/api/student/enroll/${course_id}`),
 
   history: () => api.get<{ attempts: unknown[] }>("/api/student/history"),
+
+  activity: (days = 70) =>
+    api.get<{ activity: Record<string, number> }>(`/api/student/activity?days=${days}`),
+
+  streakByCourse: (course_id: string) =>
+    api.get<{ course_id: string; streak: number }>(`/api/student/streak/${course_id}`),
+
+  groupRanking: (course_id?: string) => {
+    const q = course_id ? `?course_id=${course_id}` : "";
+    return api.get<{ ranking: unknown[]; my_rank: number | null }>(`/api/student/group-ranking${q}`);
+  },
 };

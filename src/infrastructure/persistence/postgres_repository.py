@@ -1123,6 +1123,28 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    def get_user_by_id(self, user_id: int) -> dict | None:
+        """Retorna datos básicos de un usuario por su ID."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT id, username, role, group_id, education_level FROM users WHERE id = %s",
+                (user_id,),
+            )
+            row = cursor.fetchone()
+        finally:
+            self.put_connection(conn)
+        if not row:
+            return None
+        return {
+            "id": row["id"],
+            "username": row["username"],
+            "role": row["role"],
+            "group_id": row["group_id"],
+            "education_level": row["education_level"],
+        }
+
     @_timing
     def login_user(self, username, password):
         conn = self.get_connection()
@@ -1308,6 +1330,77 @@ class PostgresRepository:
             elif d_str < str(expected):
                 break
         return streak
+
+    def get_activity_heatmap(self, user_id: int, days: int = 70) -> dict:
+        """Retorna {date: count} con el número de intentos por día (últimos N días)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                """
+                SELECT DATE(timestamp) AS d, COUNT(*) AS cnt
+                FROM attempts
+                WHERE user_id = %s AND timestamp >= NOW() - INTERVAL '%s days'
+                GROUP BY d
+            """,
+                (user_id, days),
+            )
+            rows = cursor.fetchall()
+        finally:
+            self.put_connection(conn)
+        return {str(row["d"]): row["cnt"] for row in rows}
+
+    def get_group_ranking(self, group_id: int, course_id: str | None = None) -> list:
+        """Retorna el ranking ELO de los estudiantes de un grupo.
+
+        Si course_id se proporciona, calcula el ELO promedio solo para ese curso.
+        Retorna lista de {user_id, username, global_elo, total_attempts, rank_pos}.
+        """
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            if course_id:
+                cursor.execute(
+                    """
+                    SELECT u.id, u.username,
+                           COALESCE(AVG(a.elo_after), 1000) AS elo,
+                           COUNT(a.id) AS attempts
+                    FROM users u
+                    LEFT JOIN attempts a ON a.user_id = u.id
+                    LEFT JOIN items i ON i.id = a.item_id AND i.course_id = %s
+                    WHERE u.group_id = %s AND u.role = 'student' AND u.active = TRUE
+                    GROUP BY u.id, u.username
+                    ORDER BY elo DESC
+                """,
+                    (course_id, group_id),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT u.id, u.username,
+                           COALESCE(AVG(a.elo_after), 1000) AS elo,
+                           COUNT(a.id) AS attempts
+                    FROM users u
+                    LEFT JOIN attempts a ON a.user_id = u.id
+                    WHERE u.group_id = %s AND u.role = 'student' AND u.active = TRUE
+                    GROUP BY u.id, u.username
+                    ORDER BY elo DESC
+                """,
+                    (group_id,),
+                )
+            rows = cursor.fetchall()
+        finally:
+            self.put_connection(conn)
+        return [
+            {
+                "user_id": row["id"],
+                "username": row["username"],
+                "global_elo": round(float(row["elo"]), 1),
+                "total_attempts": row["attempts"],
+                "rank_pos": i + 1,
+            }
+            for i, row in enumerate(rows)
+        ]
 
     def save_problem_report(self, user_id: int, description: str) -> None:
         """Guarda un reporte de problema técnico enviado por un usuario."""
