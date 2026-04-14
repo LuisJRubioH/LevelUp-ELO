@@ -3,11 +3,13 @@
 > Plataforma de evaluación y aprendizaje adaptativo basada en el sistema de rating **ELO** — el mismo del ajedrez competitivo — aplicado a la educación matemática.
 
 [![CI](https://github.com/LuisJRubioH/LevelUp-ELO/actions/workflows/ci.yml/badge.svg)](https://github.com/LuisJRubioH/LevelUp-ELO/actions/workflows/ci.yml)
-[![Versión](https://img.shields.io/badge/versión-1.0.0-blue)](https://github.com/LuisJRubioH/LevelUp-ELO/releases/tag/v1.0.0)
+[![Versión](https://img.shields.io/badge/versión-1.0.0--v2--dev-blue)](https://github.com/LuisJRubioH/LevelUp-ELO)
 [![Python](https://img.shields.io/badge/python-3.11+-green)](https://www.python.org/)
+[![React](https://img.shields.io/badge/react-19-61DAFB)](https://react.dev/)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-orange)](LICENSE)
 
-**Demo en producción**: [levelup-elo.streamlit.app](https://levelup-elo-9yg9ewez4smvlylgwcls2q.streamlit.app)
+**V1 (Streamlit):** [levelup-elo-9yg9ewez4smvlylgwcls2q.streamlit.app](https://levelup-elo-9yg9ewez4smvlylgwcls2q.streamlit.app)
+**V2 (React + FastAPI):** [luislevelupelo.vercel.app](https://luislevelupelo.vercel.app)
 
 ---
 
@@ -22,11 +24,10 @@
 - [Instalación local](#instalación-local)
 - [Despliegue en producción](#despliegue-en-producción)
 - [Variables de entorno](#variables-de-entorno)
-- [Agregar preguntas al banco](#agregar-preguntas-al-banco)
 - [CI/CD](#cicd)
 - [Tests](#tests)
 - [Usuarios de prueba](#usuarios-de-prueba)
-- [Roadmap](#roadmap)
+- [Versiones](#versiones)
 
 ---
 
@@ -51,71 +52,37 @@ Incluye tres roles (estudiante, docente, admin), un banco de +1.900 preguntas, r
 - **Revisión de procedimientos manuscritos**: Groq + Llama 4 Scout analiza imágenes/PDFs paso a paso, genera score 0–100 y ajusta el ELO (`(score − 50) × 0.2`).
 - **Chat socrático con streaming**: guía al estudiante mediante preguntas sin revelar la respuesta. Post-generación verifica que no filtre la solución.
 - **Multi-proveedor**: Anthropic, Groq, OpenAI, Google Gemini, HuggingFace, LM Studio, Ollama — detección automática por prefijo de API key.
-- **Model Router inteligente**: selecciona el mejor modelo por tarea (socrático → rápido+razonamiento, imagen → visión+razonamiento).
 
 ### Plataforma completa
 - **Dual DB**: SQLite local y PostgreSQL (Supabase) con API pública idéntica. Selección automática por `DATABASE_URL`.
 - **Tres roles**: estudiante, docente, admin con flujos completos.
-- **Dashboard docente**: ELO por tópico, tasa de error, análisis pedagógico con IA, exportación CSV/XLSX.
+- **Dashboard docente**: ELO temporal por alumno, radar por tópico, historial KatIA, análisis pedagógico con IA, exportación CSV/XLSX.
 - **Supabase Storage**: procedimientos en bucket privado con fallback BYTEA en DB.
-- **Seguridad**: Argon2id para contraseñas, migración transparente desde SHA-256 legacy, API keys solo en session_state.
-- **Temporizadores en tiempo real**: JavaScript `setInterval` — cronómetro de sesión + cronómetro por pregunta, sin reruns de Streamlit.
-- **Ranking de 16 niveles**: Aspirante (0–399) → Leyenda Suprema (2500+), separado por nivel educativo.
-- **Anti-plagio SHA-256**: detecta procedimientos duplicados del mismo estudiante en el mismo ejercicio.
+- **Seguridad**: Argon2id para contraseñas, migración transparente desde SHA-256 legacy.
+- **Ranking de 16 niveles**: Aspirante (0–399) → Leyenda Suprema (2500+).
+- **Anti-plagio SHA-256**: detecta procedimientos duplicados del mismo estudiante.
 
 ---
 
 ## Arquitectura
 
-**Clean Architecture** con cuatro capas:
+El proyecto tiene **dos interfaces** que comparten el mismo núcleo de lógica de negocio:
 
 ```
-src/
-├── domain/                      # Lógica de negocio pura — sin dependencias externas
-│   ├── elo/
-│   │   ├── model.py             # Factor K dinámico, ELO clásico
-│   │   ├── vector_elo.py        # VectorRating: ELO + RD por tópico
-│   │   ├── uncertainty.py       # RatingModel (Glicko simplificado)
-│   │   ├── cognitive.py         # CognitiveAnalyzer (desactivado en producción)
-│   │   └── zdp.py               # Cálculo del intervalo ZDP
-│   ├── selector/
-│   │   └── item_selector.py     # AdaptiveItemSelector (Fisher Information)
-│   ├── katia/
-│   │   └── katia_messages.py    # Bancos de mensajes de KatIA
-│   └── entities.py              # Constantes y dataclasses de dominio
-│
-├── application/
-│   ├── interfaces/
-│   │   └── repositories.py      # Protocolos ISP: IStudentRepository, ITeacherRepository, IAdminRepository
-│   └── services/
-│       ├── student_service.py   # process_answer(), get_next_question(), get_socratic_help()
-│       └── teacher_service.py   # Análisis pedagógico con IA
-│
-├── infrastructure/
-│   ├── persistence/
-│   │   ├── sqlite_repository.py    # SQLite: esquema, migraciones, seed (~1200 líneas)
-│   │   └── postgres_repository.py  # PostgreSQL (psycopg2): port completo para Supabase
-│   ├── storage/
-│   │   └── supabase_storage.py     # Cliente Supabase Storage (bucket privado)
-│   ├── external_api/
-│   │   ├── ai_client.py            # Cliente multi-proveedor de IA
-│   │   ├── math_procedure_review.py # Revisión manuscritos (Groq + Llama 4 Scout)
-│   │   ├── model_router.py         # Selección inteligente de modelo por tarea
-│   │   └── pedagogical_feedback.py # Hints socráticos por tipo de error
-│   └── security/
-│       └── hashing_service.py      # Argon2id + migración SHA-256
-│
-└── interface/
-    └── streamlit/
-        ├── app.py               # Punto de entrada (167 líneas) — setup + routing
-        ├── state.py             # login(), logout(), helpers de session_state
-        ├── assets.py            # CSS global, logo, banners pixel art
-        ├── timers.py            # Componentes JavaScript de temporizadores
-        └── views/
-            ├── auth_view.py     # Login + wizard de registro multi-paso
-            ├── student_view.py  # Práctica, estadísticas, procedimientos, feedback
-            ├── teacher_view.py  # Dashboard, revisión de procedimientos, exportación
-            └── admin_view.py    # Gestión de usuarios, grupos, reportes técnicos
+src/                              ← Núcleo compartido (V1 y V2)
+├── domain/                       # Lógica de negocio pura
+│   ├── elo/                      # ELO, VectorRating, Glicko, ZDP
+│   ├── selector/                 # AdaptiveItemSelector (Fisher Information)
+│   └── katia/                    # Mensajes de KatIA
+├── application/services/         # StudentService, TeacherService
+└── infrastructure/
+    ├── persistence/              # SQLiteRepository + PostgresRepository
+    ├── storage/                  # Supabase Storage
+    └── external_api/             # AI client multi-proveedor
+
+src/interface/streamlit/          ← Interfaz V1 (Streamlit)
+api/                              ← Backend V2 (FastAPI REST + WebSocket)
+frontend/                         ← Frontend V2 (React + TypeScript + Vite)
 ```
 
 ### Regla de dependencia
@@ -126,6 +93,41 @@ domain/ ← application/ ← infrastructure/ ← interface/
 
 Nunca al revés. El dominio no importa nada de infraestructura. Los servicios reciben los repositorios por constructor (DI).
 
+### V1 — Streamlit (producción estable)
+
+```
+src/interface/streamlit/
+├── app.py               # Entrada — 167 líneas
+├── state.py             # login(), logout(), session_state helpers
+├── assets.py            # CSS, logos, banners
+├── timers.py            # Timers JavaScript (setInterval)
+└── views/
+    ├── auth_view.py     # Login + wizard registro
+    ├── student_view.py  # Práctica, stats, procedimientos
+    ├── teacher_view.py  # Dashboard, revisión, exportación
+    └── admin_view.py    # Usuarios, grupos, reportes
+```
+
+### V2 — React + FastAPI (en desarrollo)
+
+```
+api/                     # FastAPI — 39+ endpoints REST + WebSocket
+├── routers/
+│   ├── auth.py          # JWT access token + HttpOnly refresh cookie
+│   ├── student.py       # Práctica, stats, cursos, procedimientos
+│   ├── teacher.py       # Dashboard, grupos, revisión, análisis IA
+│   └── admin.py         # Usuarios, grupos, reportes
+└── websocket/           # Notificaciones en tiempo real por room
+
+frontend/                # React 19 + TypeScript + Vite
+├── src/
+│   ├── stores/          # Zustand: auth, practice, settings
+│   ├── hooks/           # useTimer, useStudentSession, useNotifications
+│   ├── components/      # ELO charts, KatIA, Question, UI
+│   └── pages/           # Student/, Teacher/, Admin/
+└── vercel.json          # Deploy Vercel con rewrite SPA
+```
+
 ---
 
 ## Motor ELO — Cómo funciona
@@ -133,13 +135,13 @@ Nunca al revés. El dominio no importa nada de infraestructura. Los servicios re
 ### Flujo al responder una pregunta
 
 ```
-app.py → StudentService.process_answer()
-           ├→ VectorRating.update()          ← aplica delta ELO al tópico
-           ├→ Repository.update_item_rating() ← actualiza dificultad del ítem
-           └→ Repository.save_attempt()       ← persiste metadatos del intento
+StudentService.process_answer()
+  ├→ VectorRating.update()          ← aplica delta ELO al tópico
+  ├→ Repository.update_item_rating() ← actualiza dificultad del ítem
+  └→ Repository.save_attempt()       ← persiste metadatos del intento
 ```
 
-Todo ocurre en una **transacción atómica** (`save_answer_transaction`) — si falla el update del ítem, el intento tampoco se guarda.
+Todo ocurre en una **transacción atómica** — si falla el update del ítem, el intento tampoco se guarda.
 
 ### Fórmula ELO
 
@@ -151,6 +153,7 @@ K_eff = K_base × (RD / RD_base)
 ```
 
 **Factor K dinámico:**
+
 | Condición | K |
 |---|---|
 | < 30 intentos (novato) | 40 |
@@ -175,20 +178,6 @@ K_eff = K_base × (RD / RD_base)
 | **Concursos** | DIAN — Gestor I, SENA — Profesional 10 |
 | **Semillero** | Álgebra, Aritmética, Geometría, Lógica, Conteo y Combinatoria, Probabilidad — grados 6°–11° |
 
-### Formato de un ítem
-
-```json
-{
-  "id": "cd_01",
-  "content": "¿Cuál es la derivada de $f(x) = x^2$?",
-  "difficulty": 800,
-  "topic": "Derivadas básicas",
-  "options": ["$2x$", "$x^2$", "$2$", "$x$"],
-  "correct_option": "$2x$",
-  "tags": ["recordar", "derivadas", "potencia"]
-}
-```
-
 ### Agregar preguntas al banco
 
 1. Crear o editar `items/bank/<course_id>.json`
@@ -202,47 +191,67 @@ K_eff = K_base × (RD / RD_base)
 
 | Rol | Acceso |
 |---|---|
-| **Estudiante** | Práctica adaptativa, estadísticas, procedimientos, chat con KatIA, racha por materia, ranking |
-| **Docente** | Dashboard ELO por alumno/tópico, revisión de procedimientos, análisis con IA, exportación CSV/XLSX, códigos de invitación inter-nivel |
+| **Estudiante** | Práctica adaptativa, estadísticas, procedimientos, chat con KatIA, racha por materia, ranking del grupo |
+| **Docente** | Dashboard ELO temporal por alumno, radar por tópico, historial KatIA, análisis IA, revisión de procedimientos, exportación CSV/XLSX, códigos de invitación inter-nivel |
 | **Admin** | Aprobación de docentes, reasignación de estudiantes (auditada), gestión de usuarios, reportes técnicos |
 
 ---
 
 ## Instalación local
 
+### V1 (Streamlit)
+
 ```bash
-# Clonar el repositorio
 git clone https://github.com/LuisJRubioH/LevelUp-ELO.git
 cd LevelUp-ELO
 
-# Crear entorno virtual e instalar dependencias
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-# Instalar pre-commit hooks (opcional, recomendado)
-pip install pre-commit
-pre-commit install
-
-# Ejecutar la app (siempre desde la raíz del repo)
 streamlit run src/interface/streamlit/app.py
 ```
 
-Sin `DATABASE_URL`, usa SQLite local (`data/elo_database.db`). La base de datos se crea automáticamente con datos demo.
+Sin `DATABASE_URL`, usa SQLite local. La base de datos se crea automáticamente con datos demo.
+
+### V2 (React + FastAPI)
+
+```bash
+# Terminal 1 — Backend FastAPI
+pip install -r requirements-api.txt
+uvicorn api.main:app --reload --port 8000
+
+# Terminal 2 — Frontend React
+cd frontend
+npm install --legacy-peer-deps
+npm run dev
+# → http://localhost:5173 (proxy /api → localhost:8000)
+```
 
 ---
 
 ## Despliegue en producción
 
-La app está desplegada en **Streamlit Cloud** con **Supabase** como backend.
-
-### Streamlit Cloud
+### V1 — Streamlit Cloud + Supabase
 
 1. Conectar el repositorio en [share.streamlit.io](https://share.streamlit.io)
 2. Main file: `src/interface/streamlit/app.py`
 3. Configurar secrets (ver Variables de entorno)
 
-### Variables de entorno
+### V2 — Vercel + Render
+
+| Servicio | Plataforma | Config |
+|---|---|---|
+| Frontend | Vercel | `frontend/vercel.json` — framework Vite, rewrites SPA |
+| Backend | Render | `Procfile` — `uvicorn api.main:app --host 0.0.0.0 --port $PORT` |
+
+Ambos hacen deploy automático en cada push a `main`.
+
+---
+
+## Variables de entorno
+
+### Compartidas (V1 y V2)
 
 | Variable | Descripción | Requerida |
 |---|---|---|
@@ -252,23 +261,38 @@ La app está desplegada en **Streamlit Cloud** con **Supabase** como backend.
 | `SUPABASE_URL` | URL del proyecto Supabase | Sí (Storage) |
 | `SUPABASE_KEY` | Publishable key de Supabase | Sí (Storage) |
 
-> **Nota Supabase**: usar el **connection pooler** (puerto 6543, `aws-...pooler.supabase.com`) en lugar de la conexión directa (puerto 5432). El pool interno usa `ThreadedConnectionPool(minconn=1, maxconn=5)` — nunca subir `maxconn` más de 5 en el free tier.
+### Solo V2 (backend Render)
+
+| Variable | Descripción |
+|---|---|
+| `SECRET_KEY` | Clave secreta para firmar JWT |
+| `CORS_ORIGINS` | `["https://luislevelupelo.vercel.app"]` |
+
+### Solo V2 (frontend Vercel)
+
+| Variable | Descripción |
+|---|---|
+| `VITE_API_URL` | URL del backend Render |
+
+> **Nota Supabase**: usar el **connection pooler** (puerto 6543, `aws-...pooler.supabase.com`). El pool interno usa `SimpleConnectionPool(minconn=1, maxconn=5)` — nunca subir `maxconn` más de 5 en el free tier.
 
 ---
 
 ## CI/CD
 
-GitHub Actions con 5 jobs en cada push a `main`:
+GitHub Actions con 7 jobs en cada push a `main`:
 
 | Job | Qué verifica |
 |---|---|
 | `validate-bank` | `python scripts/validate_bank.py` — estructura e integridad de los 1.900+ ítems |
 | `lint` | Black (line-length=100) + Flake8 (E9, F63, F7, F82) |
-| `test-unit` | `pytest tests/unit/` — 108 tests, cobertura ≥80% |
-| `test-integration` | `pytest tests/integration/` — 4 tests SQLite end-to-end |
+| `test-unit` | `pytest tests/unit/` — cobertura ≥70% en domain + application |
+| `test-integration` | `pytest tests/integration/` — tests SQLite end-to-end |
 | `db-sync` | `python scripts/db_sync_check.py` — paridad de API SQLite ↔ PostgreSQL |
+| `test-api` | `pytest tests/api/` — tests de integración FastAPI con httpx |
+| `build-frontend` | `tsc + vite build` — compilación TypeScript + React |
 
-Pre-commit hooks locales: validate-bank, db-sync-check, Black, pytest-unit.
+Pre-commit hooks locales: validate-bank, db-sync-check, Black.
 
 ---
 
@@ -276,10 +300,13 @@ Pre-commit hooks locales: validate-bank, db-sync-check, Black, pytest-unit.
 
 ```bash
 # Tests unitarios con cobertura
-python -m pytest tests/unit/ -v --cov=src/domain --cov=src/application --cov-fail-under=80
+python -m pytest tests/unit/ -v --cov=src/domain --cov=src/application --cov-fail-under=70
 
 # Tests de integración
 python -m pytest tests/integration/ -v
+
+# Tests de integración API
+python -m pytest tests/api/ -v
 
 # Validar banco de preguntas
 python scripts/validate_bank.py
@@ -287,8 +314,6 @@ python scripts/validate_bank.py
 # Verificar paridad SQLite/PostgreSQL
 python scripts/db_sync_check.py
 ```
-
-**Cobertura actual**: 85% (dominio + servicios de aplicación).
 
 ---
 
@@ -300,24 +325,27 @@ python scripts/db_sync_check.py
 | `profesor1` | `demo1234` | Docente (pre-aprobado) |
 | `estudiante1` | `demo1234` | Estudiante — Universidad |
 | `estudiante2` | `demo1234` | Estudiante — Colegio |
-| `estudiante_colegio_1..3` | `test1234` | Estudiante Colegio (is_test_user=1) |
-| `estudiante_universidad_1..2` | `test1234` | Estudiante Universidad (is_test_user=1) |
+| `estudiante_colegio_1..3` | `test1234` | Estudiante Colegio (protegidos) |
+| `estudiante_universidad_1..2` | `test1234` | Estudiante Universidad (protegidos) |
 | `estudiante_semillero_1` | `test1234` | Estudiante Semillero grado 9 |
 | `estudiante_semillero_2` | `test1234` | Estudiante Semillero grado 11 |
 
 ---
 
-## Roadmap
+## Versiones
 
-**V1.0.0** (actual) — Plataforma Streamlit estable con Clean Architecture, CI/CD, 85% cobertura de tests.
+### V1.0.0 (producción)
+Plataforma Streamlit estable con Clean Architecture, CI/CD completo, 85% cobertura de tests, +1.900 ítems, KatIA tutora socrática, revisión de procedimientos con IA.
 
-**V2.0** (en desarrollo) — Migración a FastAPI + React:
-- API REST + WebSocket (39 endpoints, ya implementados en `api/`)
-- Frontend React + TypeScript + Tailwind + shadcn/ui
-- El motor ELO, dominio y IA se reutilizan sin cambios
-- Deploy: Railway (API) + Vercel (frontend)
+### V2.0 (en desarrollo activo)
+Reescritura a React 19 + FastAPI. El motor ELO, dominio y banco de preguntas se reutilizan sin cambios. Nueva interfaz moderna, mobile-ready y PWA.
 
-Ver [`ROADMAP_V2.md`](ROADMAP_V2.md) para el plan completo.
+**Estado actual de V2:** Sprints 1 y 2 completos.
+- ✅ Sprint 1: KatIA GIFs, timer de sesión, preview ELO, toasts de racha, fechas en gráficos, perfil en sidebar
+- ✅ Sprint 2: Radar chart, heatmap de actividad, ranking del grupo, logros animados, envío de procedimientos
+- 🔄 Sprint 3: Panel docente completo (gráfico ELO temporal, historial KatIA, análisis IA)
+- ⏳ Sprint 4: Admin completions
+- ⏳ Sprint 5: Mobile, PWA, offline, tema claro/oscuro
 
 ---
 

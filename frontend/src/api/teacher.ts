@@ -125,6 +125,20 @@ export const teacherApi = {
   studentReport: (student_id: number) =>
     api.get<Record<string, unknown>>(`/api/teacher/student/${student_id}`),
 
+  studentEloHistory: (student_id: number) =>
+    api.get<{ attempts: Record<string, unknown>[] }>(`/api/teacher/student/${student_id}/elo-history`),
+
+  studentKatiaHistory: (student_id: number) =>
+    api.get<{ interactions: Record<string, unknown>[] }>(
+      `/api/teacher/student/${student_id}/katia-history`,
+    ),
+
+  studentAiAnalysis: (student_id: number, api_key?: string, provider = "groq") =>
+    api.post<{ analysis: string }>(`/api/teacher/student/${student_id}/ai-analysis`, {
+      api_key,
+      provider,
+    }),
+
   downloadCsv: () => _downloadBlob("/api/teacher/export/csv", "levelup_intentos.csv"),
 
   downloadXlsx: () => _downloadBlob("/api/teacher/export/xlsx", "levelup_datos_completos.xlsx"),

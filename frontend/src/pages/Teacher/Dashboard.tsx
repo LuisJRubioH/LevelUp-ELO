@@ -5,9 +5,11 @@
  */
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { teacherApi } from "../../api/teacher";
 import type { StudentSummary } from "../../api/teacher";
+import { ELOChart } from "../../components/ELO/ELOChart";
+import { useSettingsStore } from "../../stores/settingsStore";
 
 function EloBar({ elo }: { elo: number }) {
   const pct = Math.min(100, Math.round((elo / 2500) * 100));
@@ -72,6 +74,8 @@ function StudentRow({
   );
 }
 
+type DetailTab = "elo" | "topics" | "katia" | "ai";
+
 function StudentDetailPanel({
   studentId,
   onClose,
@@ -79,10 +83,47 @@ function StudentDetailPanel({
   studentId: number;
   onClose: () => void;
 }) {
+  const [tab, setTab] = useState<DetailTab>("elo");
+  const [aiResult, setAiResult] = useState<string | null>(null);
+  const { apiKey, provider } = useSettingsStore();
+
   const { data, isLoading } = useQuery({
     queryKey: ["teacher-student", studentId],
     queryFn: () => teacherApi.studentReport(studentId),
   });
+
+  const { data: eloHistory } = useQuery({
+    queryKey: ["teacher-student-elo", studentId],
+    queryFn: () => teacherApi.studentEloHistory(studentId),
+    enabled: tab === "elo",
+  });
+
+  const { data: katiaHistory } = useQuery({
+    queryKey: ["teacher-student-katia", studentId],
+    queryFn: () => teacherApi.studentKatiaHistory(studentId),
+    enabled: tab === "katia",
+  });
+
+  const aiMutation = useMutation({
+    mutationFn: () => teacherApi.studentAiAnalysis(studentId, apiKey || undefined, provider),
+    onSuccess: (res) => setAiResult(res.analysis),
+  });
+
+  // Preparar datos ELO chart
+  const chartData = (eloHistory?.attempts ?? []).map((a, i) => {
+    const ts = typeof a["timestamp"] === "string" ? a["timestamp"] : null;
+    return {
+      label: ts ? `${ts.slice(8, 10)}/${ts.slice(5, 7)}` : `#${i + 1}`,
+      elo: typeof a["elo_after"] === "number" ? a["elo_after"] : 1000,
+    };
+  });
+
+  const tabs: { id: DetailTab; label: string }[] = [
+    { id: "elo", label: "📈 ELO" },
+    { id: "topics", label: "📚 Tópicos" },
+    { id: "katia", label: "🐱 KatIA" },
+    { id: "ai", label: "🤖 Análisis IA" },
+  ];
 
   return (
     <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
@@ -93,38 +134,122 @@ function StudentDetailPanel({
         </button>
       </div>
 
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-slate-700 pb-2">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={[
+              "text-xs px-2.5 py-1 rounded-lg transition-colors",
+              tab === t.id
+                ? "bg-violet-600/30 text-violet-300"
+                : "text-slate-500 hover:text-slate-300",
+            ].join(" ")}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       {isLoading && <p className="text-slate-400 text-sm animate-pulse">Cargando...</p>}
 
-      {data && (
-        <div className="space-y-2 text-sm">
-          <p className="text-slate-300">
-            <span className="text-slate-500">ELO global:</span>{" "}
-            <span className="font-medium text-white">
-              {Math.round((data.global_elo as number) ?? 0)}
-            </span>
-          </p>
+      {/* Tab: ELO temporal */}
+      {tab === "elo" && (
+        <ELOChart
+          data={chartData}
+          title={`Evolución ELO (últimos ${chartData.length} intentos)`}
+        />
+      )}
 
+      {/* Tab: Tópicos */}
+      {tab === "topics" && data && (
+        <div className="space-y-2 text-sm">
+          <p className="text-slate-300 text-xs">
+            ELO global:{" "}
+            <span className="font-bold text-white">{Math.round((data.global_elo as number) ?? 0)}</span>
+          </p>
           {(() => {
             const breakdown = data.topic_breakdown as Record<string, Record<string, number>> | undefined;
-            if (!breakdown || Object.keys(breakdown).length === 0) return null;
+            if (!breakdown || Object.keys(breakdown).length === 0)
+              return <p className="text-slate-500 text-xs">Sin datos de tópicos.</p>;
             return (
-              <div>
-                <p className="text-slate-500 mb-1">Tópicos:</p>
-                <div className="grid grid-cols-2 gap-1">
-                  {Object.entries(breakdown)
-                    .slice(0, 6)
-                    .map(([topic, info]) => (
-                      <div key={topic} className="bg-slate-900 rounded px-2 py-1">
-                        <div className="text-xs text-slate-400 truncate">{topic}</div>
-                        <div className="text-white text-xs font-medium">
-                          {Math.round(info.rating ?? 0)}
-                        </div>
-                      </div>
-                    ))}
-                </div>
+              <div className="grid grid-cols-2 gap-1 max-h-48 overflow-y-auto">
+                {Object.entries(breakdown).map(([topic, info]) => (
+                  <div key={topic} className="bg-slate-900 rounded px-2 py-1">
+                    <div className="text-xs text-slate-400 truncate" title={topic}>{topic}</div>
+                    <div className="text-white text-xs font-medium">
+                      {Math.round(info.rating ?? 0)}
+                    </div>
+                  </div>
+                ))}
               </div>
             );
           })()}
+        </div>
+      )}
+
+      {/* Tab: KatIA */}
+      {tab === "katia" && (
+        <div className="max-h-64 overflow-y-auto space-y-2">
+          {!katiaHistory || katiaHistory.interactions.length === 0 ? (
+            <p className="text-slate-500 text-sm">Sin interacciones con KatIA registradas.</p>
+          ) : (
+            katiaHistory.interactions.slice(0, 20).map((k, i) => (
+              <div key={i} className="bg-slate-900 rounded-lg p-2 space-y-0.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-violet-400">{String(k["item_topic"] ?? "—")}</span>
+                  <span className="text-xs text-slate-600">
+                    {typeof k["created_at"] === "string" ? k["created_at"].slice(0, 10) : ""}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">
+                  👤 {String(k["student_message"] ?? "").slice(0, 80)}
+                </p>
+                <p className="text-xs text-slate-500">
+                  🐱 {String(k["katia_response"] ?? "").slice(0, 80)}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Tab: Análisis IA */}
+      {tab === "ai" && (
+        <div className="space-y-3">
+          {!aiResult && (
+            <>
+              {!apiKey && (
+                <p className="text-xs text-slate-500">
+                  Configura una API key en el panel lateral para usar el análisis IA.
+                </p>
+              )}
+              <button
+                onClick={() => aiMutation.mutate()}
+                disabled={aiMutation.isPending || !apiKey}
+                className="w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm transition-colors"
+              >
+                {aiMutation.isPending ? "Generando análisis…" : "🤖 Generar análisis pedagógico"}
+              </button>
+            </>
+          )}
+          {aiMutation.isError && (
+            <p className="text-xs text-red-400">Error al generar el análisis.</p>
+          )}
+          {aiResult && (
+            <div className="bg-slate-900 rounded-xl p-3 text-xs text-slate-300 whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
+              {aiResult}
+            </div>
+          )}
+          {aiResult && (
+            <button
+              onClick={() => { setAiResult(null); aiMutation.reset(); }}
+              className="text-xs text-slate-500 hover:text-slate-400"
+            >
+              Regenerar análisis
+            </button>
+          )}
         </div>
       )}
     </div>

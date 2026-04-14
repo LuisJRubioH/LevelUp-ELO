@@ -186,6 +186,61 @@ def student_report(student_id: int, user: CurrentUser, repo: RepoDep):
     return svc.get_student_dashboard(student_id)
 
 
+@router.get("/student/{student_id}/elo-history")
+def student_elo_history(student_id: int, user: CurrentUser, repo: RepoDep, limit: int = 20):
+    """Historial de ELO del estudiante para el gráfico temporal."""
+    attempts = repo.get_latest_attempts(student_id, limit=limit)
+    return {"attempts": list(reversed(attempts))}
+
+
+@router.get("/student/{student_id}/katia-history")
+def student_katia_history(student_id: int, user: CurrentUser, repo: RepoDep):
+    """Historial de interacciones socrátidas del estudiante con KatIA."""
+    rows = repo.get_katia_interactions(student_id)
+    return {"interactions": [dict(r) if not isinstance(r, dict) else r for r in (rows or [])]}
+
+
+@router.post("/student/{student_id}/ai-analysis")
+def student_ai_analysis(
+    student_id: int,
+    user: CurrentUser,
+    repo: RepoDep,
+    api_key: str | None = None,
+    provider: str = "groq",
+):
+    """Genera un análisis pedagógico del estudiante (requiere API key de IA del docente)."""
+    svc = _svc(repo)
+    from src.domain.elo.vector_elo import aggregate_global_elo
+    from api.dependencies import build_vector_rating
+
+    vector = build_vector_rating(student_id, repo)
+    global_elo = aggregate_global_elo(vector)
+
+    analysis = svc.generate_ai_analysis(
+        student_id=student_id,
+        global_elo=global_elo,
+        api_key=api_key,
+        provider=provider,
+    )
+    return {"analysis": analysis}
+
+
+@router.get("/student/{student_id}/ranking")
+def student_group_ranking(student_id: int, user: CurrentUser, repo: RepoDep):
+    """Ranking del grupo al que pertenece el estudiante."""
+    student = repo.get_user_by_id(student_id)
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Estudiante no encontrado."
+        )
+    group_id = student.get("group_id")
+    if not group_id:
+        return {"ranking": [], "my_rank": None}
+    ranking = repo.get_group_ranking(group_id)
+    my_rank = next((r["rank_pos"] for r in ranking if r["user_id"] == student_id), None)
+    return {"ranking": ranking, "my_rank": my_rank}
+
+
 # ── Exportación ───────────────────────────────────────────────────────────────
 
 
