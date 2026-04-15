@@ -30,6 +30,8 @@ import { AdminGroups } from "./pages/Admin/Groups";
 import { AdminReports } from "./pages/Admin/Reports";
 import { AdminAudit } from "./pages/Admin/Audit";
 
+import { PWAPrompt } from "./components/ui/PWAPrompt";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -88,6 +90,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
+        <PWAPrompt />
         <Routes>
           {/* Público */}
           <Route path="/login" element={<Login />} />

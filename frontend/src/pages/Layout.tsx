@@ -101,9 +101,33 @@ export function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="flex h-screen bg-slate-900 overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-56 bg-slate-800 border-r border-slate-700 flex flex-col shrink-0">
+    <div className="flex flex-col md:flex-row h-screen bg-slate-900 overflow-hidden">
+      {/* Top bar móvil (solo visible en mobile) */}
+      <header className="md:hidden bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="text-base font-bold text-white">
+            Level<span className="text-violet-400">Up</span>
+          </div>
+          {user?.role === "student" && sessionStartTime && (
+            <span className="ml-2 text-xs text-slate-500 font-mono bg-slate-900 rounded px-2 py-0.5">
+              ⏱ {sessionFormatted}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-slate-400 truncate max-w-[80px]">{user?.username}</span>
+          <button
+            onClick={handleLogout}
+            className="text-xs text-slate-500 hover:text-red-400 transition-colors"
+            aria-label="Cerrar sesión"
+          >
+            Salir →
+          </button>
+        </div>
+      </header>
+
+      {/* Sidebar — oculta en mobile */}
+      <aside className="hidden md:flex w-56 bg-slate-800 border-r border-slate-700 flex-col shrink-0">
         {/* Logo */}
         <div className="px-4 py-5 border-b border-slate-700">
           <div className="text-lg font-bold text-white">
@@ -213,7 +237,37 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Contenido */}
-      <main className="flex-1 overflow-y-auto">{children}</main>
+      <main className="flex-1 overflow-y-auto pb-16 md:pb-0">{children}</main>
+
+      {/* Bottom nav móvil */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-slate-800 border-t border-slate-700 flex justify-around items-stretch z-30">
+        {navItems.map((item) => {
+          const active = location.pathname === item.path;
+          const isProcedures = item.path.includes("procedures");
+          const showBadge = isProcedures && unreadCount > 0;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              onClick={() => {
+                if (isProcedures) clearUnread();
+              }}
+              className={[
+                "relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition-colors",
+                active ? "text-violet-300" : "text-slate-400 hover:text-slate-200",
+              ].join(" ")}
+            >
+              <span className="text-lg leading-none">{item.icon}</span>
+              <span className="truncate max-w-full px-1">{item.label}</span>
+              {showBadge && (
+                <span className="absolute top-1 right-1/4 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }

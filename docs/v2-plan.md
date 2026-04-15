@@ -148,9 +148,9 @@ Deploy actual:
 
 ## Checklist Sprint 5
 
-- [ ] 5.1 Navegación móvil
-- [ ] 5.2 PWA install prompt
-- [ ] 5.3 Caché offline
-- [ ] 5.4 Selector de modelo IA
+- [x] 5.1 Navegación móvil (bottom nav + top bar)
+- [x] 5.2 PWA install prompt
+- [x] 5.3 Caché offline (vite-plugin-pwa runtimeCaching)
+- [ ] 5.4 Selector de modelo IA (provider ya está — falta elección de modelo específico)
 - [ ] 5.5 Transiciones Framer Motion
 - [ ] 5.6 Tema claro/oscuro
