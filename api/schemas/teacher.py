@@ -33,6 +33,10 @@ class StudentSummary(BaseModel):
     total_attempts: int
     accuracy: float  # 0.0–1.0
     last_activity: str | None
+    # Campos para filtros cascada (opcionales para compatibilidad)
+    group_id: int | None = None
+    group_name: str | None = None
+    education_level: str | None = None
 
 
 class DashboardResponse(BaseModel):
@@ -66,6 +70,7 @@ class PendingProcedure(BaseModel):
     ai_score: float | None
     status: str
     created_at: str
+    has_image: bool = False  # True si hay imagen disponible para ver
 
 
 # ── Reporte por estudiante ────────────────────────────────────────────────────

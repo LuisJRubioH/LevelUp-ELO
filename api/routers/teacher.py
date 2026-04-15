@@ -48,8 +48,8 @@ def _svc(repo) -> TeacherService:
 @router.get("/dashboard")
 def dashboard(user: CurrentUser, repo: RepoDep):
     """Resumen de grupos, ELO promedio y últimos intentos de los estudiantes."""
-    svc = _svc(repo)
-    students, groups = svc.get_dashboard_data(user["user_id"])
+    students = repo.get_teacher_dashboard_stats(user["user_id"])
+    _, groups = _svc(repo).get_dashboard_data(user["user_id"])
     return {"students": students, "groups": groups}
 
 
@@ -120,19 +120,63 @@ def pending_procedures(user: CurrentUser, repo: RepoDep):
         row = dict(r) if isinstance(r, dict) else {}
         if not row:
             continue
+        has_image = bool(
+            row.get("storage_url") or row.get("image_data") or row.get("procedure_image_path")
+        )
         result.append(
             PendingProcedure(
                 submission_id=row.get("id", 0),
-                student_id=row.get("user_id", 0),
-                student_username=row.get("username", ""),
+                student_id=row.get("student_id") or row.get("user_id", 0),
+                student_username=row.get("student_name") or row.get("username", ""),
                 item_id=row.get("item_id", ""),
                 item_content=row.get("item_content"),
                 ai_score=row.get("ai_proposed_score"),
                 status=row.get("status", "pending"),
-                created_at=str(row.get("created_at", "")),
+                created_at=str(row.get("submitted_at") or row.get("created_at", "")),
+                has_image=has_image,
             )
         )
     return result
+
+
+@router.get("/procedures/{submission_id}/image")
+def procedure_image(submission_id: int, user: CurrentUser, repo: RepoDep):
+    """Retorna la imagen de un procedimiento (desde Supabase Storage o BYTEA)."""
+    from fastapi.responses import Response as FastAPIResponse
+
+    rows = repo.get_pending_submissions_for_teacher(user["user_id"])
+    row = next(
+        (
+            dict(r)
+            for r in rows
+            if (dict(r) if isinstance(r, dict) else {}).get("id") == submission_id
+        ),
+        None,
+    )
+    if row is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Procedimiento no encontrado."
+        )
+
+    image_bytes: bytes | None = None
+    mime = row.get("mime_type") or "image/jpeg"
+
+    # Intentar desde Supabase Storage primero
+    storage_url = row.get("storage_url")
+    if storage_url and hasattr(repo, "resolve_storage_image"):
+        try:
+            image_bytes = repo.resolve_storage_image(storage_url)
+        except Exception:
+            pass
+
+    # Fallback a BYTEA en DB
+    if not image_bytes:
+        image_bytes = row.get("image_data")
+
+    if not image_bytes:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Imagen no disponible.")
+
+    return FastAPIResponse(content=bytes(image_bytes), media_type=mime)
 
 
 @router.post("/procedures/grade", response_model=GradeResponse)

@@ -25,6 +25,9 @@ export interface StudentSummary {
   total_attempts: number;
   accuracy: number;
   last_activity: string | null;
+  group_id?: number | null;
+  group_name?: string | null;
+  education_level?: string | null;
 }
 
 export interface DashboardData {
@@ -42,6 +45,7 @@ export interface PendingProcedure {
   ai_score: number | null;
   status: string;
   created_at: string;
+  has_image: boolean;
 }
 
 export interface GradeResult {
@@ -138,6 +142,18 @@ export const teacherApi = {
       api_key,
       provider,
     }),
+
+  procedureImage: async (submission_id: number): Promise<string> => {
+    const { useAuthStore } = await import("../stores/authStore");
+    const token = useAuthStore.getState().accessToken;
+    const r = await fetch(`${API_BASE}/api/teacher/procedures/${submission_id}/image`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      credentials: "include",
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const blob = await r.blob();
+    return URL.createObjectURL(blob);
+  },
 
   downloadCsv: () => _downloadBlob("/api/teacher/export/csv", "levelup_intentos.csv"),
 

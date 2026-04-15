@@ -2488,6 +2488,66 @@ class PostgresRepository:
             self.put_connection(conn)
 
     @_timing
+    def get_teacher_dashboard_stats(self, teacher_id):
+        """Retorna estadísticas consolidadas por estudiante para el dashboard docente.
+
+        Cada fila es (estudiante, grupo). Incluye ELO actual, intentos totales,
+        acierto promedio y última actividad.
+        """
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                """
+                WITH teacher_students AS (
+                    SELECT DISTINCT u.id AS user_id, u.username, u.education_level,
+                           g.id AS group_id, g.name AS group_name
+                    FROM users u
+                    JOIN groups g ON u.group_id = g.id
+                    WHERE g.teacher_id = %s AND u.active = 1 AND u.role = 'student'
+
+                    UNION
+
+                    SELECT DISTINCT u.id AS user_id, u.username, u.education_level,
+                           g.id AS group_id, g.name AS group_name
+                    FROM enrollments e
+                    JOIN users u ON e.user_id = u.id
+                    JOIN groups g ON e.group_id = g.id
+                    WHERE g.teacher_id = %s AND u.active = 1 AND u.role = 'student'
+                )
+                SELECT ts.user_id, ts.username, ts.education_level, ts.group_id, ts.group_name,
+                       COALESCE(MAX(a.elo_after), 1000.0) AS global_elo,
+                       COUNT(a.id) AS total_attempts,
+                       CASE WHEN COUNT(a.id) > 0
+                            THEN SUM(CASE WHEN a.is_correct THEN 1.0 ELSE 0.0 END) / COUNT(a.id)
+                            ELSE 0.0 END AS accuracy,
+                       MAX(a.timestamp) AS last_activity
+                FROM teacher_students ts
+                LEFT JOIN attempts a ON a.user_id = ts.user_id
+                GROUP BY ts.user_id, ts.username, ts.education_level, ts.group_id, ts.group_name
+                ORDER BY ts.username ASC
+            """,
+                (teacher_id, teacher_id),
+            )
+            rows = cursor.fetchall()
+            return [
+                {
+                    "user_id": r["user_id"],
+                    "username": r["username"],
+                    "education_level": r["education_level"],
+                    "group_id": r["group_id"],
+                    "group_name": r["group_name"],
+                    "global_elo": float(r["global_elo"]),
+                    "total_attempts": int(r["total_attempts"]),
+                    "accuracy": float(r["accuracy"]),
+                    "last_activity": str(r["last_activity"])[:10] if r["last_activity"] else None,
+                }
+                for r in rows
+            ]
+        finally:
+            self.put_connection(conn)
+
+    @_timing
     def get_students_by_group(self, group_id, teacher_id):
         """Retorna estudiantes de un grupo específico, validando que sea del profesor."""
         conn = self.get_connection()

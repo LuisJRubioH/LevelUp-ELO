@@ -10,6 +10,38 @@ import { teacherApi } from "../../api/teacher";
 import type { PendingProcedure, GradeResult } from "../../api/teacher";
 import { Button } from "../../components/ui/Button";
 
+function ProcedureImageViewer({ submissionId }: { submissionId: number }) {
+  const { data: imageUrl, isLoading, isError } = useQuery({
+    queryKey: ["procedure-image", submissionId],
+    queryFn: () => teacherApi.procedureImage(submissionId),
+    staleTime: Infinity, // imagen no cambia
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-40 bg-slate-900 rounded-lg border border-slate-700">
+        <span className="text-slate-400 text-sm animate-pulse">Cargando imagen...</span>
+      </div>
+    );
+  }
+
+  if (isError || !imageUrl) {
+    return (
+      <div className="flex items-center justify-center h-24 bg-slate-900 rounded-lg border border-slate-700">
+        <span className="text-slate-500 text-xs">Imagen no disponible</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={imageUrl}
+      alt="Procedimiento del estudiante"
+      className="w-full rounded-lg border border-slate-600 object-contain max-h-96"
+    />
+  );
+}
+
 function ScoreSlider({
   value,
   onChange,
@@ -48,6 +80,7 @@ function ProcedureCard({ proc }: { proc: PendingProcedure }) {
   const [score, setScore] = useState(proc.ai_score ? Math.round(proc.ai_score) : 70);
   const [feedback, setFeedback] = useState("");
   const [result, setResult] = useState<GradeResult | null>(null);
+  const [showImage, setShowImage] = useState(false);
 
   const gradeMutation = useMutation({
     mutationFn: () => teacherApi.gradeProcedure(proc.submission_id, score, feedback || undefined),
@@ -99,6 +132,19 @@ function ProcedureCard({ proc }: { proc: PendingProcedure }) {
         <div className="bg-slate-900 rounded-lg px-3 py-2 text-xs text-slate-400 border border-slate-700 line-clamp-2">
           <span className="text-slate-500 mr-1">Ejercicio:</span>
           {proc.item_content}
+        </div>
+      )}
+
+      {/* Visor de imagen */}
+      {proc.has_image && (
+        <div>
+          <button
+            onClick={() => setShowImage((v) => !v)}
+            className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+          >
+            {showImage ? "▲ Ocultar imagen" : "🖼️ Ver imagen del procedimiento"}
+          </button>
+          {showImage && <div className="mt-2"><ProcedureImageViewer submissionId={proc.submission_id} /></div>}
         </div>
       )}
 

@@ -7,7 +7,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { teacherApi } from "../../api/teacher";
-import type { StudentSummary } from "../../api/teacher";
 import { ELOChart } from "../../components/ELO/ELOChart";
 import { useSettingsStore } from "../../stores/settingsStore";
 
@@ -35,44 +34,6 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
   );
 }
 
-function StudentRow({
-  student,
-  onSelect,
-}: {
-  student: StudentSummary;
-  onSelect: (id: number) => void;
-}) {
-  return (
-    <tr
-      className="hover:bg-slate-700/50 cursor-pointer transition-colors"
-      onClick={() => onSelect(student.user_id)}
-    >
-      <td className="px-4 py-3">
-        <div className="font-medium text-slate-100">{student.username}</div>
-      </td>
-      <td className="px-4 py-3 w-40">
-        <EloBar elo={student.global_elo} />
-      </td>
-      <td className="px-4 py-3 text-center text-slate-300 text-sm">{student.total_attempts}</td>
-      <td className="px-4 py-3 text-center">
-        <span
-          className={`text-sm font-medium ${
-            student.accuracy >= 0.7
-              ? "text-green-400"
-              : student.accuracy >= 0.5
-                ? "text-yellow-400"
-                : "text-red-400"
-          }`}
-        >
-          {(student.accuracy * 100).toFixed(0)}%
-        </span>
-      </td>
-      <td className="px-4 py-3 text-sm text-slate-500">
-        {student.last_activity ? student.last_activity.slice(0, 10) : "—"}
-      </td>
-    </tr>
-  );
-}
 
 type DetailTab = "elo" | "topics" | "katia" | "ai";
 
@@ -256,9 +217,63 @@ function StudentDetailPanel({
   );
 }
 
+// ── Tab de ranking del grupo ────────────────────────────────────────────────
+
+function GroupRankingSection({ students }: { students: import("../../api/teacher").StudentSummary[] }) {
+  // Deduplica por user_id y ordena por ELO DESC
+  const uniqueById = new Map<number, import("../../api/teacher").StudentSummary>();
+  for (const s of students) {
+    const existing = uniqueById.get(s.user_id);
+    if (!existing || s.global_elo > existing.global_elo) uniqueById.set(s.user_id, s);
+  }
+  const ranked = [...uniqueById.values()].sort((a, b) => b.global_elo - a.global_elo);
+
+  if (ranked.length === 0) {
+    return <p className="text-slate-500 text-sm py-4">Sin datos de ranking.</p>;
+  }
+
+  const medal = (pos: number) => pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : null;
+
+  return (
+    <div className="space-y-1.5">
+      {ranked.map((s, i) => {
+        const pos = i + 1;
+        const m = medal(pos);
+        return (
+          <div
+            key={s.user_id}
+            className="flex items-center gap-3 rounded-lg px-3 py-2 bg-slate-900/60 border border-slate-700/50"
+          >
+            <span className="text-xs text-slate-500 w-7 text-center font-mono">
+              {m ?? `#${pos}`}
+            </span>
+            <span className="text-xs text-slate-300 flex-1 truncate">{s.username}</span>
+            {s.group_name && (
+              <span className="text-xs text-slate-600 hidden sm:block">{s.group_name}</span>
+            )}
+            <span className="text-xs font-mono text-slate-300 w-14 text-right">
+              {Math.round(s.global_elo)}
+            </span>
+            <span className={`text-xs w-12 text-right ${s.accuracy >= 0.7 ? "text-green-400" : s.accuracy >= 0.5 ? "text-yellow-400" : "text-red-400"}`}>
+              {(s.accuracy * 100).toFixed(0)}%
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Dashboard principal ─────────────────────────────────────────────────────
+
+type DashboardView = "students" | "ranking";
+
 export function TeacherDashboard() {
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+  const [filterGroup, setFilterGroup] = useState<string>("all");
+  const [filterLevel, setFilterLevel] = useState<string>("all");
+  const [view, setView] = useState<DashboardView>("students");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["teacher-dashboard"],
@@ -282,31 +297,49 @@ export function TeacherDashboard() {
     );
   }
 
-  const avgElo =
-    data.students.length > 0
-      ? data.students.reduce((s, u) => s + u.global_elo, 0) / data.students.length
-      : 0;
+  // Filtros disponibles derivados de los datos
+  const groupOptions = Array.from(
+    new Map(data.students.filter((s) => s.group_id).map((s) => [s.group_id, s.group_name])).entries()
+  );
+  const levelOptions = Array.from(
+    new Set(data.students.map((s) => s.education_level).filter(Boolean)) as Set<string>
+  );
 
-  const avgAccuracy =
-    data.students.length > 0
-      ? data.students.reduce((s, u) => s + u.accuracy, 0) / data.students.length
-      : 0;
+  // Aplicar filtros en cascada
+  const afterGroupFilter =
+    filterGroup === "all"
+      ? data.students
+      : data.students.filter((s) => String(s.group_id) === filterGroup);
 
-  const filtered = data.students.filter((s) =>
+  const afterLevelFilter =
+    filterLevel === "all"
+      ? afterGroupFilter
+      : afterGroupFilter.filter((s) => s.education_level === filterLevel);
+
+  const filtered = afterLevelFilter.filter((s) =>
     s.username.toLowerCase().includes(search.toLowerCase()),
   );
+
+  // Stats sobre los estudiantes visibles (deduplicados por user_id para los promedios)
+  const uniqueStudents = Array.from(new Map(data.students.map((s) => [s.user_id, s])).values());
+  const avgElo = uniqueStudents.length > 0
+    ? uniqueStudents.reduce((s, u) => s + u.global_elo, 0) / uniqueStudents.length
+    : 0;
+  const avgAccuracy = uniqueStudents.length > 0
+    ? uniqueStudents.reduce((s, u) => s + u.accuracy, 0) / uniqueStudents.length
+    : 0;
 
   return (
     <div className="max-w-5xl mx-auto py-6 px-4 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-white">Panel Docente</h2>
-        <span className="text-xs text-slate-500">{data.students.length} estudiantes</span>
+        <span className="text-xs text-slate-500">{uniqueStudents.length} estudiantes</span>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard label="Grupos activos" value={data.groups.length} />
-        <StatCard label="Estudiantes" value={data.students.length} />
+        <StatCard label="Estudiantes" value={uniqueStudents.length} />
         <StatCard label="ELO promedio" value={Math.round(avgElo)} />
         <StatCard label="Acierto promedio" value={`${(avgAccuracy * 100).toFixed(0)}%`} />
       </div>
@@ -334,42 +367,140 @@ export function TeacherDashboard() {
         />
       )}
 
-      {/* Tabla de estudiantes */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
-          <h3 className="text-sm font-semibold text-slate-300">Estudiantes</h3>
-          <input
-            type="text"
-            placeholder="Buscar por nombre..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="bg-slate-900 border border-slate-600 rounded px-3 py-1 text-sm text-slate-200 focus:outline-none focus:border-violet-500 placeholder-slate-600"
-          />
-        </div>
-
-        {filtered.length === 0 ? (
-          <p className="text-slate-500 text-sm text-center py-8">Sin estudiantes registrados.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-xs text-slate-500 border-b border-slate-700">
-                  <th className="px-4 py-2 text-left">Estudiante</th>
-                  <th className="px-4 py-2 text-left">ELO</th>
-                  <th className="px-4 py-2 text-center">Intentos</th>
-                  <th className="px-4 py-2 text-center">Acierto</th>
-                  <th className="px-4 py-2 text-left">Última actividad</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700/50">
-                {filtered.map((s) => (
-                  <StudentRow key={s.user_id} student={s} onSelect={setSelectedStudentId} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+      {/* Tabs: Estudiantes | Ranking */}
+      <div className="flex gap-1 border-b border-slate-700 pb-2">
+        {(["students", "ranking"] as DashboardView[]).map((v) => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            className={[
+              "text-sm px-3 py-1.5 rounded-lg transition-colors",
+              view === v ? "bg-violet-600/30 text-violet-300" : "text-slate-500 hover:text-slate-300",
+            ].join(" ")}
+          >
+            {v === "students" ? "👥 Estudiantes" : "🏆 Ranking"}
+          </button>
+        ))}
       </div>
+
+      {/* Vista: Tabla de estudiantes */}
+      {view === "students" && (
+        <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+          {/* Filtros */}
+          <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-slate-700">
+            <h3 className="text-sm font-semibold text-slate-300 mr-auto">Estudiantes</h3>
+
+            {/* Filtro Grupo */}
+            {groupOptions.length > 1 && (
+              <select
+                value={filterGroup}
+                onChange={(e) => { setFilterGroup(e.target.value); setFilterLevel("all"); }}
+                className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-violet-500"
+              >
+                <option value="all">Todos los grupos</option>
+                {groupOptions.map(([id, name]) => (
+                  <option key={id} value={String(id)}>{name}</option>
+                ))}
+              </select>
+            )}
+
+            {/* Filtro Nivel (solo si hay más de uno disponible en el grupo seleccionado) */}
+            {levelOptions.length > 1 && (
+              <select
+                value={filterLevel}
+                onChange={(e) => setFilterLevel(e.target.value)}
+                className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-violet-500"
+              >
+                <option value="all">Todos los niveles</option>
+                {levelOptions.map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+            )}
+
+            {/* Búsqueda por nombre */}
+            <input
+              type="text"
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="bg-slate-900 border border-slate-600 rounded px-3 py-1 text-sm text-slate-200 focus:outline-none focus:border-violet-500 placeholder-slate-600 w-36"
+            />
+          </div>
+
+          {filtered.length === 0 ? (
+            <p className="text-slate-500 text-sm text-center py-8">Sin estudiantes para los filtros aplicados.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-xs text-slate-500 border-b border-slate-700">
+                    <th className="px-4 py-2 text-left">Estudiante</th>
+                    <th className="px-4 py-2 text-left hidden sm:table-cell">Grupo</th>
+                    <th className="px-4 py-2 text-left">ELO</th>
+                    <th className="px-4 py-2 text-center">Intentos</th>
+                    <th className="px-4 py-2 text-center">Acierto</th>
+                    <th className="px-4 py-2 text-left">Última actividad</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700/50">
+                  {filtered.map((s) => (
+                    <tr
+                      key={`${s.user_id}-${s.group_id}`}
+                      className="hover:bg-slate-700/50 cursor-pointer transition-colors"
+                      onClick={() => setSelectedStudentId(s.user_id)}
+                    >
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-slate-100">{s.username}</div>
+                        {s.education_level && (
+                          <div className="text-xs text-slate-600">{s.education_level}</div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-500 hidden sm:table-cell">
+                        {s.group_name ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 w-40">
+                        <EloBar elo={s.global_elo} />
+                      </td>
+                      <td className="px-4 py-3 text-center text-slate-300 text-sm">{s.total_attempts}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`text-sm font-medium ${s.accuracy >= 0.7 ? "text-green-400" : s.accuracy >= 0.5 ? "text-yellow-400" : "text-red-400"}`}>
+                          {(s.accuracy * 100).toFixed(0)}%
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-500">
+                        {s.last_activity ?? "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Vista: Ranking */}
+      {view === "ranking" && (
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-slate-300">Ranking de estudiantes</h3>
+            {groupOptions.length > 1 && (
+              <select
+                value={filterGroup}
+                onChange={(e) => setFilterGroup(e.target.value)}
+                className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-violet-500"
+              >
+                <option value="all">Todos los grupos</option>
+                {groupOptions.map(([id, name]) => (
+                  <option key={id} value={String(id)}>{name}</option>
+                ))}
+              </select>
+            )}
+          </div>
+          <GroupRankingSection students={afterGroupFilter} />
+        </div>
+      )}
     </div>
   );
 }
