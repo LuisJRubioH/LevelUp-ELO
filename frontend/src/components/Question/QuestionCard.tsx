@@ -5,7 +5,7 @@
  * y una imagen opcional.
  */
 
-import InlineMath from "react-katex";
+import { InlineMath } from "react-katex";
 import "katex/dist/katex.min.css";
 
 interface QuestionCardProps {
