@@ -110,7 +110,7 @@
     {
         "id": "as_8_07",
         "content": "Sean $a$, $b$ y $c$ enteros positivos que satisfacen $7a^2 - 3b^2 + 4c^2 = 8$ y $16a^2 - 7b^2 + 9c^2 = -3$. Encuentre $a^2 + b^2 + c^2$.",
-        "difficulty": 1000,
+        "difficulty": 1200,
         "topic": "Sistemas de ecuaciones",
         "options": [
             "145",
@@ -1111,7 +1111,7 @@
     {
         "id": "as_8_62",
         "content": "Sean $a, b$ y $c$ enteros positivos que satisfacen $7a^2 - 3b^2 + 4c^2 = 8$ y $16a^2 - 7b^2 + 9c^2 = -3$. Encuentre $a^2 + b^2 + c^2$.",
-        "difficulty": 1000,
+        "difficulty": 1200,
         "topic": "Ecuaciones",
         "options": [
             "145",
@@ -1440,7 +1440,7 @@
     {
         "id": "Taller2014_Nivel2_Algebra_Q4",
         "content": "¿Cuál es el valor de la expresión $20142014^2 + 20142006 - 16 \\times 20142010$?",
-        "difficulty": 850,
+        "difficulty": 1150,
         "topic": "Álgebra",
         "options": [
             "$2 \\times 20142010^2$",
@@ -1459,7 +1459,7 @@
     {
         "id": "Taller2014_Nivel2_Algebra_Q32",
         "content": "¿Cuántos son los pares de enteros positivos $(x, y)$ tales que $x^2 - y^2 = 2^{2014}$?",
-        "difficulty": 950,
+        "difficulty": 1200,
         "topic": "Álgebra",
         "options": [
             "1003",

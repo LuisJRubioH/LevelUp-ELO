@@ -69,3 +69,12 @@ Semillero/prompt_semillero.md
 
 # Documentación V2 en progreso (se publicará en v2.0.0)
 docs/v2-tecnico.md
+
+# Validación offline de ELO — contiene PII de estudiantes (nombres en PNG/CSV)
+VALIDACION_ELO/
+
+# Secretos y artefactos locales
+.env.prod
+.coverage
+.agents/
+skills-lock.json

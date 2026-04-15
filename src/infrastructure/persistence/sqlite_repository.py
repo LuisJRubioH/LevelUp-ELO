@@ -1210,7 +1210,9 @@ class SQLiteRepository:
             JOIN users u ON u.id = ki.user_id
             JOIN groups g ON g.id = u.group_id
             LEFT JOIN courses c ON c.id = ki.course_id
-            WHERE g.teacher_id = ? {_filter}
+            WHERE g.teacher_id = ?
+              AND COALESCE(u.is_test_user, 0) = 0
+              {_filter}
             ORDER BY ki.created_at DESC
         """,
             _params,
@@ -2234,6 +2236,7 @@ class SQLiteRepository:
             LEFT JOIN courses c ON i.course_id = c.id
             LEFT JOIN groups g ON u.group_id = g.id
             WHERE u.active = 1
+              AND COALESCE(u.is_test_user, 0) = 0
               AND g.teacher_id = ?
               {_group_filter.replace('?', '?') if group_id else ''}
 
@@ -2269,6 +2272,7 @@ class SQLiteRepository:
             JOIN enrollments e ON e.user_id = u.id
             JOIN groups g ON e.group_id = g.id
             WHERE u.active = 1
+              AND COALESCE(u.is_test_user, 0) = 0
               AND g.teacher_id = ?
               {_group_filter.replace('?', '?') if group_id else ''}
 
@@ -2326,6 +2330,7 @@ class SQLiteRepository:
             JOIN groups g ON e.group_id = g.id
             LEFT JOIN courses c ON e.course_id = c.id
             WHERE u.active = 1
+              AND COALESCE(u.is_test_user, 0) = 0
               AND g.teacher_id = ?
               {_gf}
             ORDER BY u.username ASC, c.name ASC
@@ -2362,6 +2367,7 @@ class SQLiteRepository:
             JOIN users u ON ps.student_id = u.id
             LEFT JOIN groups g ON u.group_id = g.id
             WHERE u.active = 1
+              AND COALESCE(u.is_test_user, 0) = 0
               AND g.teacher_id = ?
               {_gf}
             ORDER BY u.username ASC, ps.submitted_at ASC

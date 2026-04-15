@@ -185,6 +185,16 @@ K_eff = K_base × (RD / RD_base)
 3. Correr `python scripts/validate_bank.py`
 4. Reiniciar la app — `sync_items_from_bank_folder()` carga automáticamente
 
+### Calibración de dificultad
+
+Fórmula usada para alinear `difficulty` con el ELO medio del grupo (`R_medio`) y la tasa objetivo de éxito `P*`:
+
+```
+D*(R_medio, P*) = R_medio + 400 × log10((1 − P*) / P*)
+```
+
+Rango válido para bancos semillero: **600–1200**. Redondeo a múltiplos de 50. Ver `.claude/skills/item-calibration/SKILL.md` para el protocolo completo.
+
 ---
 
 ## Roles de usuario
@@ -192,7 +202,7 @@ K_eff = K_base × (RD / RD_base)
 | Rol | Acceso |
 |---|---|
 | **Estudiante** | Práctica adaptativa, estadísticas, procedimientos, chat con KatIA, racha por materia, ranking del grupo |
-| **Docente** | Dashboard ELO temporal por alumno, radar por tópico, historial KatIA, análisis IA, revisión de procedimientos, exportación CSV/XLSX, códigos de invitación inter-nivel |
+| **Docente** | Dashboard ELO temporal por alumno, radar por tópico, historial KatIA, análisis IA, revisión de procedimientos, exportación CSV/XLSX (filtrada: excluye usuarios con `is_test_user=1`), códigos de invitación inter-nivel |
 | **Admin** | Aprobación de docentes, reasignación de estudiantes (auditada), gestión de usuarios, reportes técnicos |
 
 ---

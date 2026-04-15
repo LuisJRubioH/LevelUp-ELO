@@ -167,7 +167,7 @@
     {
         "id": "Octavo_Conteo_2013_F2_Q12",
         "content": "Determine el número de formas en que se pueden sentar tres hombres y tres mujeres en una mesa circular, de modo que queden intercalados por género.",
-        "difficulty": 900,
+        "difficulty": 1150,
         "topic": "Conteo y combinatoria",
         "options": [
             "6",

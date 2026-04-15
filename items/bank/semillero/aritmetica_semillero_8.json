@@ -131,7 +131,7 @@
     {
         "id": "ars_8_08",
         "content": "¿Cuántos números primos $p$ satisfacen que $p + 2$ y $p^2 + 2$ también son primos?",
-        "difficulty": 1000,
+        "difficulty": 1200,
         "topic": "Números primos",
         "options": [
             "0",
@@ -149,7 +149,7 @@
     {
         "id": "ars_8_09",
         "content": "¿Para cuántos valores de $n$ es $n^2 - 3n + 2$ un número primo?",
-        "difficulty": 950,
+        "difficulty": 1150,
         "topic": "Números primos",
         "options": [
             "0",

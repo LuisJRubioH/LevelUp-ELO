@@ -2,7 +2,7 @@
     {
         "id": "ars_6_01",
         "content": "En una clase de 36 alumnos, la mitad juega fútbol, un tercio juega baloncesto y el 25% juega ambos deportes. ¿Cuál es el número de alumnos que no juegan a ninguno de los dos deportes?",
-        "difficulty": 850,
+        "difficulty": 1000,
         "topic": "Conjuntos y conteo",
         "options": [
             "8",
@@ -20,7 +20,7 @@
     {
         "id": "ars_45_01",
         "content": "Con los números $\\{2, 4, 5, 7, 8, 9\\}$, Roberto forma parejitas de fichas para obtener números de dos cifras, y luego suma los tres números. ¿Cuál es el menor valor posible para la suma?",
-        "difficulty": 900,
+        "difficulty": 1150,
         "topic": "Optimización aritmética",
         "options": [
             "147",
@@ -93,7 +93,7 @@
     {
         "id": "ars_45_05",
         "content": "Camila va al gimnasio cada 3 días, Andrea cada 2 días y María cada 5 días. Si coincidieron el martes 4 de enero, ¿cuándo volverán a coincidir?",
-        "difficulty": 850,
+        "difficulty": 1000,
         "topic": "MCM y calendario",
         "options": [
             "3 de febrero",
@@ -131,7 +131,7 @@
     {
         "id": "ars_45_07",
         "content": "Julián nota que cada 3 minutos aterrizan 5 aviones y cada 2 minutos despegan 4. A las 9:00 AM hay 35 aviones en pista. ¿Cuántos aviones hay a las 9:30 AM?",
-        "difficulty": 950,
+        "difficulty": 1150,
         "topic": "Razones y tasas",
         "options": [
             "15",
@@ -168,7 +168,7 @@
     {
         "id": "ars_p_02",
         "content": "En la guardería, tres gatos, dos gallinas, un pájaro y varias ovejas tienen 26 patas en total. ¿Cuántas ovejas hay?",
-        "difficulty": 800,
+        "difficulty": 1000,
         "topic": "Ecuaciones aritméticas",
         "options": [
             "2",
@@ -338,7 +338,7 @@
     {
         "id": "Sexto_Aritmetica_2013_F2_Q4",
         "content": "Al realizar el producto $111111112 \\times 111111115$, el número que forman los últimos cuatro dígitos es:",
-        "difficulty": 800,
+        "difficulty": 1000,
         "topic": "Aritmética",
         "options": [
             "1150",
@@ -346,7 +346,7 @@
             "8880",
             "7880"
         ],
-        "correct_option": "8880",
+        "correct_option": "9880",
         "image_url": "",
         "tags": [
             "[Enfoque: Hacer]",
@@ -357,7 +357,7 @@
     {
         "id": "Sexto_Aritmetica_2013_F2_Q5",
         "content": "En una librería, Isabel compra un libro con la tercera parte de su dinero y una revista con las dos terceras partes de lo que le quedaba. Si al salir de la librería tenía 12000 pesos, el dinero que tenía inicialmente Isabel en pesos es:",
-        "difficulty": 850,
+        "difficulty": 1000,
         "topic": "Aritmética",
         "options": [
             "42000",
@@ -376,7 +376,7 @@
     {
         "id": "Taller2014_Nivel1_Aritmetica_Q3_6",
         "content": "Representamos por $n!$ el producto de los números naturales de 1 hasta $n$. Por ejemplo, $6! = 6 \\times 5 \\times 4 \\times 3 \\times 2 \\times 1 = 720$. Calculando la suma $1! + 2! + 3! + 4! + 5! + \\cdots + 2014!$, ¿cuál es la cifra de las unidades del resultado obtenido?",
-        "difficulty": 800,
+        "difficulty": 1000,
         "topic": "Aritmética",
         "options": [
             "1",
@@ -395,7 +395,7 @@
     {
         "id": "Taller2014_Nivel1_Aritmetica_Q4_6",
         "content": "De las siguientes opciones determine cuál es un divisor de $3^5 \\times 4^4 \\times 5^3$:",
-        "difficulty": 700,
+        "difficulty": 1000,
         "topic": "Aritmética",
         "options": [
             "52",
@@ -414,7 +414,7 @@
     {
         "id": "Taller2014_Nivel1_Aritmetica_Q5_6",
         "content": "En una repostería, una bolsa de 200g de harina de trigo cuesta \\$3.000 pesos, una bolsa de 400g cuesta \\$5.000 pesos y la de 800g cuesta \\$9.000 pesos. Laura necesita 1.2 kg de harina de trigo para hacer una gran torta. ¿Cuál de las opciones a seguir es la más económica para comprar 1.2 kg de harina de trigo?",
-        "difficulty": 650,
+        "difficulty": 1000,
         "topic": "Aritmética",
         "options": [
             "6 bolsas de 200g",

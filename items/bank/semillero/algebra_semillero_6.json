@@ -20,7 +20,7 @@
     {
         "id": "as_6_02",
         "content": "Si $2^{19} + 2^{18} + 2^{17} + 2^{17} = 2^n$, entonces $n$ es:",
-        "difficulty": 900,
+        "difficulty": 1000,
         "topic": "Potencias",
         "options": [
             "72",
@@ -28,7 +28,7 @@
             "21",
             "20"
         ],
-        "correct_option": "21",
+        "correct_option": "20",
         "tags": [
             "[Enfoque: Hacer]",
             "[Específica: Potenciación y Radicación]"
@@ -55,7 +55,7 @@
     },
     {
         "id": "as_6_04",
-        "content": "Al resolver $\\left(1-\\frac{1}{2}\\right)\\left(1-\\frac{1}{3}\\right)\\left(1-\\frac{1}{5}\\right)\\cdots\\left(1-\\frac{1}{2019}\\right)$ se obtiene:",
+        "content": "Al resolver $\\left(1-\\frac{1}{2}\\right)\\left(1-\\frac{1}{3}\\right)\\left(1-\\frac{1}{4}\\right)\\cdots\\left(1-\\frac{1}{2019}\\right)$ se obtiene:",
         "difficulty": 950,
         "topic": "Productos telescópicos",
         "options": [
