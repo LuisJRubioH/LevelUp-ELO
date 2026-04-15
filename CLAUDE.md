@@ -560,9 +560,15 @@ black --check --line-length=100 src/ api/
 ADMIN_PASSWORD=testadmin123 python -m pytest tests/api/ -v
 ```
 
-### Estado de V2 al 2026-04-13
+### Estado de V2 al 2026-04-15
 
-- Sprints 1 y 2 completos (ver `docs/v2-plan.md`)
-- Sprint 3 en progreso (panel docente)
-- Deploy funcional en Vercel + Render
-- CI con 7 jobs verdes
+- Sprints 1-5 completos (ver `docs/v2-plan.md`)
+- Paridad funcional ~90% con V1; fix de seguridad desplegado (commit `62ddf48`: la API ya no envía `correct_option` y la UI no revela la respuesta correcta aun si el estudiante falla)
+- Deploy funcional en Vercel + Render, CI con 7 jobs verdes
+- Sprints 6-8 planificados para cerrar paridad total, calidad y pulido:
+  - **Sprint 6 — Paridad V1 faltante:** banners pixel art, centro de feedback bidireccional, reporte de problemas, GIFs KatIA en revisión de procedimientos
+  - **Sprint 7 — Calidad:** tests E2E (Playwright), code splitting, error boundaries, skeleton loaders
+  - **Sprint 8 — Pulido:** modo examen end-to-end, accesibilidad, tema claro/oscuro (ex-5.6), métricas docentes
+
+### Regla V2-R9 — Nunca revelar la respuesta correcta al estudiante
+Las preguntas pueden repetirse. La API (`AnswerResponse`, `/exam/submit`) no debe incluir `correct_option`. En la UI, al responder solo se colorea la opción elegida (verde si acertó, rojo si falló) — ninguna otra opción debe marcarse como correcta. Si el estudiante falla, solo ve "Incorrecto" sin saber cuál era la respuesta. Aplica a `AnswerOptions.tsx`, `Practice.tsx`, `Exam.tsx` y cualquier vista futura que muestre feedback de respuesta.

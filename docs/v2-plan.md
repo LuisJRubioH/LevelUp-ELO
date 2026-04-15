@@ -1,7 +1,7 @@
 # Plan V2 — LevelUp-ELO: React + FastAPI
 
-Fecha: 2026-04-14
-Estado: **V2 completo — 5/5 sprints cerrados (5.6 tema claro/oscuro fuera de alcance)**
+Fecha: 2026-04-14 (última revisión 2026-04-15)
+Estado: **Sprints 1-5 cerrados — se agregan Sprints 6-8 para paridad V1 completa, calidad y pulido**
 
 ## Contexto
 
@@ -92,6 +92,38 @@ Deploy actual:
 | 5.5 | Transiciones de página (Framer Motion) | `App.tsx` + rutas |
 | 5.6 | Tema claro / oscuro | `ThemeToggle.tsx` + Tailwind |
 
+### Sprint 6 — Paridad V1 faltante (crítico)
+**Objetivo:** cerrar los huecos visuales y de flujo que V1 tiene y V2 aún no.
+
+| # | Tarea | Archivo(s) |
+|---|---|---|
+| 6.1 | Banners pixel art en tarjetas de curso (geometria, aritmetica, logica, conteo_combinatoria, probabilidad, algebra) | `Courses.tsx` + copiar `Banners/` a `frontend/public/banners/` |
+| 6.2 | Centro de feedback del estudiante con badge de no leídos (mensajes bidireccionales docente↔estudiante) | nuevo `FeedbackCenter.tsx` + endpoint `GET/PATCH /student/feedback` + tabla `feedback_messages` (o reutilizar notifications) |
+| 6.3 | Formulario de reporte de problemas técnicos en sidebar del estudiante (expander con textarea, mín 10 chars) | `Layout.tsx` + endpoint `POST /student/report` (tabla `problem_reports` ya existe) |
+| 6.4 | Revisión de procedimiento con IA en tiempo real + GIFs animados de KatIA (revisando → resultado por rango) | `ProcedureUpload.tsx` — wire endpoint `POST /student/procedure/analyze` con streaming/spinner + GIFs |
+
+### Sprint 7 — Calidad y producción
+**Objetivo:** poner V2 al nivel de confiabilidad de V1 para uso real por estudiantes.
+
+| # | Tarea | Archivo(s) |
+|---|---|---|
+| 7.1 | Tests E2E con Playwright (login, práctica, stats, procedimiento) | `tests/e2e/` + `playwright.config.ts` + job CI |
+| 7.2 | Code splitting por ruta (`React.lazy` + `Suspense`) — bundle inicial ~200 kB | `App.tsx` — lazy-load cada página |
+| 7.3 | Error boundaries + pantalla de error amigable con botón "recargar" | nuevo `ErrorBoundary.tsx` wrap en `App.tsx` |
+| 7.4 | Skeleton loaders reemplazan "Cargando..." plano en listas y charts | `components/ui/Skeleton.tsx` + aplicar en Stats, Dashboard, Courses |
+| 7.5 | Tests de integración de rutas protegidas (RequireAuth, RequireRole) | `tests/api/test_auth_flow.py` + frontend tests Vitest |
+
+### Sprint 8 — Pulido y accesibilidad (deseable)
+**Objetivo:** cerrar detalles finos que hacen la diferencia entre "funciona" y "producto profesional".
+
+| # | Tarea | Archivo(s) |
+|---|---|---|
+| 8.1 | Modo examen end-to-end: selector de cursos, N preguntas, timer global, resumen final sin revelar correctas | `Exam.tsx` + endpoints ya existentes + tests |
+| 8.2 | Accesibilidad: aria-labels en botones icono-only, focus states visibles, navegación por teclado | auditoría en `Layout.tsx`, `AnswerOptions.tsx`, modales |
+| 8.3 | Tema claro / oscuro (ex-5.6) con CSS variables y `dark:` strategy | `ThemeToggle.tsx` + refactor ~40 componentes |
+| 8.4 | Internacionalización (es/en) con `react-i18next` (opcional, si hay demanda) | `i18n/` + claves |
+| 8.5 | Métricas de uso (tiempo promedio por pregunta, tasa de abandono) en dashboard docente | endpoint + `Dashboard.tsx` tab "Métricas" |
+
 ---
 
 ## Reglas de desarrollo V2
@@ -153,4 +185,27 @@ Deploy actual:
 - [x] 5.3 Caché offline (vite-plugin-pwa runtimeCaching)
 - [x] 5.4 Selector de modelo IA (provider ya está — falta elección de modelo específico)
 - [x] 5.5 Transiciones Framer Motion
-- [~] 5.6 Tema claro/oscuro — **fuera de alcance V2** (costo alto, valor bajo; refactor de ~40 componentes)
+- [→] 5.6 Tema claro/oscuro — **movido a Sprint 8.3** (costo alto; se pospone hasta después de cerrar paridad y calidad)
+
+## Checklist Sprint 6 — Paridad V1 faltante
+
+- [ ] 6.1 Banners pixel art en tarjetas de curso
+- [ ] 6.2 Centro de feedback del estudiante (bidireccional con badge)
+- [ ] 6.3 Formulario de reporte de problemas técnicos
+- [ ] 6.4 Revisión de procedimiento con IA + GIFs animados de KatIA en tiempo real
+
+## Checklist Sprint 7 — Calidad y producción
+
+- [ ] 7.1 Tests E2E con Playwright
+- [ ] 7.2 Code splitting por ruta (`React.lazy`)
+- [ ] 7.3 Error boundaries + pantalla de error amigable
+- [ ] 7.4 Skeleton loaders en listas y charts
+- [ ] 7.5 Tests de integración de rutas protegidas
+
+## Checklist Sprint 8 — Pulido y accesibilidad
+
+- [ ] 8.1 Modo examen end-to-end
+- [ ] 8.2 Accesibilidad (aria-labels, focus, keyboard nav)
+- [ ] 8.3 Tema claro / oscuro
+- [ ] 8.4 Internacionalización es/en (opcional)
+- [ ] 8.5 Métricas de uso en dashboard docente

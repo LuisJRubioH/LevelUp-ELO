@@ -340,12 +340,17 @@ Plataforma Streamlit estable con Clean Architecture, CI/CD completo, 85% cobertu
 ### V2.0 (en desarrollo activo)
 Reescritura a React 19 + FastAPI. El motor ELO, dominio y banco de preguntas se reutilizan sin cambios. Nueva interfaz moderna, mobile-ready y PWA.
 
-**Estado actual de V2:** Sprints 1 y 2 completos.
+**Estado actual de V2:** Sprints 1-5 completos. Paridad funcional ~90% con V1.
 - ✅ Sprint 1: KatIA GIFs, timer de sesión, preview ELO, toasts de racha, fechas en gráficos, perfil en sidebar
 - ✅ Sprint 2: Radar chart, heatmap de actividad, ranking del grupo, logros animados, envío de procedimientos
-- 🔄 Sprint 3: Panel docente completo (gráfico ELO temporal, historial KatIA, análisis IA)
-- ⏳ Sprint 4: Admin completions
-- ⏳ Sprint 5: Mobile, PWA, offline, tema claro/oscuro
+- ✅ Sprint 3: Panel docente completo (gráfico ELO temporal, historial KatIA, análisis IA, filtros cascada)
+- ✅ Sprint 4: Admin completions (reportes, auditoría, activación, grupos, códigos invitación)
+- ✅ Sprint 5: Mobile, PWA, offline, transiciones Framer Motion, selector de modelo IA
+- ⏳ Sprint 6: Paridad V1 faltante (banners, centro de feedback, reporte problemas, GIFs KatIA en procedimientos)
+- ⏳ Sprint 7: Calidad y producción (E2E Playwright, code splitting, error boundaries, skeletons)
+- ⏳ Sprint 8: Pulido y accesibilidad (modo examen, a11y, tema claro/oscuro, métricas)
+
+Ver plan detallado en `docs/v2-plan.md`.
 
 ---
 
