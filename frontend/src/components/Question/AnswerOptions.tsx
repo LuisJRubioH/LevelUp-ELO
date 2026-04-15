@@ -4,7 +4,7 @@
  * Botones de opciones de respuesta con feedback visual post-respuesta.
  */
 
-import { InlineMath } from "react-katex";
+import katex from "katex";
 import "katex/dist/katex.min.css";
 
 /** Renderiza texto con LaTeX inline: $expr$ */
@@ -13,15 +13,28 @@ function RenderOption({ text }: { text: string }) {
   if (parts.length === 1) return <>{text}</>;
   return (
     <>
-      {parts.map((part, i) =>
-        part.startsWith("$") && part.endsWith("$") ? (
-          <span key={i} className="inline-block align-middle">
-            <InlineMath math={part.slice(1, -1)} errorColor="#ef4444" />
-          </span>
-        ) : (
-          <span key={i}>{part}</span>
-        ),
-      )}
+      {parts.map((part, i) => {
+        if (part.startsWith("$") && part.endsWith("$")) {
+          const math = part.slice(1, -1);
+          try {
+            const html = katex.renderToString(math, {
+              displayMode: false,
+              throwOnError: false,
+              errorColor: "#ef4444",
+            });
+            return (
+              <span
+                key={i}
+                className="inline-block align-middle"
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
+            );
+          } catch {
+            return <span key={i} className="text-red-400">{part}</span>;
+          }
+        }
+        return <span key={i}>{part}</span>;
+      })}
     </>
   );
 }

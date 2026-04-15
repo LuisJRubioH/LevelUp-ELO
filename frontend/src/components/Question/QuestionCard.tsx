@@ -5,7 +5,7 @@
  * y una imagen opcional.
  */
 
-import { InlineMath } from "react-katex";
+import katex from "katex";
 import "katex/dist/katex.min.css";
 
 interface QuestionCardProps {
@@ -26,11 +26,22 @@ function RenderContent({ text }: { text: string }) {
       {parts.map((part, i) => {
         if (part.startsWith("$") && part.endsWith("$")) {
           const math = part.slice(1, -1);
-          return (
-            <span key={i} className="inline-block align-middle">
-              <InlineMath math={math} errorColor="#ef4444" />
-            </span>
-          );
+          try {
+            const html = katex.renderToString(math, {
+              displayMode: false,
+              throwOnError: false,
+              errorColor: "#ef4444",
+            });
+            return (
+              <span
+                key={i}
+                className="inline-block align-middle"
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
+            );
+          } catch {
+            return <span key={i} className="text-red-400">{part}</span>;
+          }
         }
         return <span key={i}>{part}</span>;
       })}
