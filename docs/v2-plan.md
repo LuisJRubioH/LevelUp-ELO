@@ -1,7 +1,7 @@
 # Plan V2 — LevelUp-ELO: React + FastAPI
 
 Fecha: 2026-04-14
-Estado: **En ejecución — Sprint 3 (parcial)**
+Estado: **V2 completo — 5/5 sprints cerrados (5.6 tema claro/oscuro fuera de alcance)**
 
 ## Contexto
 
@@ -153,4 +153,4 @@ Deploy actual:
 - [x] 5.3 Caché offline (vite-plugin-pwa runtimeCaching)
 - [x] 5.4 Selector de modelo IA (provider ya está — falta elección de modelo específico)
 - [x] 5.5 Transiciones Framer Motion
-- [ ] 5.6 Tema claro/oscuro
+- [~] 5.6 Tema claro/oscuro — **fuera de alcance V2** (costo alto, valor bajo; refactor de ~40 componentes)
