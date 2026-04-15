@@ -122,7 +122,7 @@ def answer(body: AnswerRequest, user: CurrentUser, repo: RepoDep):
 
     return AnswerResponse(
         is_correct=is_correct,
-        correct_option=body.item_data.get("correct_option", ""),
+        correct_option=item_db["correct_option"],
         elo_before=round(elo_before, 2),
         elo_after=round(elo_after, 2),
         rd_after=round(rd_after, 2),
