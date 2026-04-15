@@ -8,9 +8,11 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import { PageTransition } from "../components/ui/PageTransition";
 import { authApi } from "../api/auth";
 import { useAuthStore } from "../stores/authStore";
-import { useSettingsStore } from "../stores/settingsStore";
+import { useSettingsStore, PROVIDER_MODELS } from "../stores/settingsStore";
 import { useNotifications } from "../hooks/useNotifications";
 
 interface NavItem {
@@ -63,7 +65,8 @@ function useSessionTimer(sessionStartTime: number | null) {
 
 export function Layout({ children }: LayoutProps) {
   const { user, sessionStartTime, clearAuth } = useAuthStore();
-  const { apiKey, provider, setApiKey, setProvider } = useSettingsStore();
+  const { apiKey, provider, model, setApiKey, setProvider, setModel } = useSettingsStore();
+  const availableModels = PROVIDER_MODELS[provider] ?? [];
   const location = useLocation();
   const navigate = useNavigate();
   const [showIAConfig, setShowIAConfig] = useState(false);
@@ -192,6 +195,21 @@ export function Layout({ children }: LayoutProps) {
                   <option value="google">Google Gemini</option>
                 </select>
               </div>
+              {availableModels.length > 0 && (
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Modelo</label>
+                  <select
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-600 rounded text-xs text-slate-300 px-2 py-1 focus:outline-none focus:border-violet-500"
+                  >
+                    <option value="">Auto (recomendado)</option>
+                    {availableModels.map((m) => (
+                      <option key={m.id} value={m.id}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="block text-xs text-slate-500 mb-1">API Key</label>
                 <input
@@ -237,7 +255,11 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Contenido */}
-      <main className="flex-1 overflow-y-auto pb-16 md:pb-0">{children}</main>
+      <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+        <AnimatePresence mode="wait">
+          <PageTransition key={location.pathname}>{children}</PageTransition>
+        </AnimatePresence>
+      </main>
 
       {/* Bottom nav móvil */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 bg-slate-800 border-t border-slate-700 flex justify-around items-stretch z-30">
