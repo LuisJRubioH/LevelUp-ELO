@@ -37,6 +37,7 @@ export function Practice() {
   const { apiKey, provider } = useSettingsStore();
 
   const [courses, setCourses] = useState<Course[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
   // Opción seleccionada por el estudiante (antes de enviar)
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   // Si la respuesta ya fue enviada (esperando o recibida)
@@ -57,7 +58,8 @@ export function Practice() {
   useEffect(() => {
     studentApi.courses()
       .then((c) => setCourses(c.filter((x) => x.enrolled)))
-      .catch(() => {/* silencioso — el backend puede estar durmiendo */});
+      .catch(() => {/* silencioso — el backend puede estar durmiendo */})
+      .finally(() => setCoursesLoading(false));
     studentApi.stats()
       .then((s) => {
         setGlobalElo(s.global_elo);
@@ -135,7 +137,9 @@ export function Practice() {
         <h2 className="text-xl font-bold text-white mb-2">Sala de Práctica</h2>
         <p className="text-slate-400 text-sm mb-6">Selecciona un curso para empezar.</p>
 
-        {courses.length === 0 ? (
+        {coursesLoading ? (
+          <div className="text-center text-slate-500 animate-pulse py-8">Cargando cursos...</div>
+        ) : courses.length === 0 ? (
           <div className="bg-slate-800 rounded-2xl p-8 text-center border border-slate-700">
             <p className="text-slate-400">No estás matriculado en ningún curso aún.</p>
             <a href="/student/courses" className="text-violet-400 text-sm mt-2 block hover:underline">
