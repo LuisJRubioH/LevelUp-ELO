@@ -26,7 +26,6 @@ interface ExamItem {
 interface ExamResult {
   item_id: string;
   is_correct: boolean;
-  correct_option: string;
   selected_option: string;
   elo_delta: number;
 }
@@ -261,11 +260,6 @@ export function Exam() {
                     <p className="text-sm text-slate-300 leading-snug">
                       {item ? renderMath(item.content) : r.item_id}
                     </p>
-                    {!r.is_correct && (
-                      <p className="text-xs text-emerald-400 mt-2">
-                        Respuesta correcta: {renderMath(r.correct_option)}
-                      </p>
-                    )}
                     {r.elo_delta !== 0 && (
                       <p
                         className={[

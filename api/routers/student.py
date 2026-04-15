@@ -122,7 +122,6 @@ def answer(body: AnswerRequest, user: CurrentUser, repo: RepoDep):
 
     return AnswerResponse(
         is_correct=is_correct,
-        correct_option=item_db["correct_option"],
         elo_before=round(elo_before, 2),
         elo_after=round(elo_after, 2),
         rd_after=round(rd_after, 2),
@@ -439,7 +438,6 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
             {
                 "item_id": ans.item_id,
                 "is_correct": is_correct,
-                "correct_option": item_db["correct_option"],
                 "selected_option": ans.selected_option,
                 "elo_delta": round(elo_after - elo_before, 2),
             }

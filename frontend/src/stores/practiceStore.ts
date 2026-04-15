@@ -20,7 +20,6 @@ interface PracticeState {
   // Resultado de la última respuesta
   lastAnswer: {
     isCorrect: boolean;
-    correctOption: string;
     selectedOption: string;
     eloBefore: number;
     eloAfter: number;
@@ -37,7 +36,6 @@ interface PracticeState {
   recordAnswer: (
     itemId: string,
     isCorrect: boolean,
-    correctOption: string,
     selectedOption: string,
     eloBefore: number,
     eloAfter: number,
@@ -79,7 +77,7 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
       lastAnswer: null,
     }),
 
-  recordAnswer: (itemId, isCorrect, correctOption, selectedOption, eloBefore, eloAfter, deltaElo) =>
+  recordAnswer: (itemId, isCorrect, selectedOption, eloBefore, eloAfter, deltaElo) =>
     set((state) => {
       const count = state.sessionQuestionsCount + 1;
       const newCorrectIds = isCorrect
@@ -95,7 +93,6 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
         sessionQuestionsCount: count,
         lastAnswer: {
           isCorrect,
-          correctOption,
           selectedOption,
           eloBefore,
           eloAfter,

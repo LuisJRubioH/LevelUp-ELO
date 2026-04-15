@@ -58,7 +58,6 @@ class AnswerRequest(BaseModel):
 
 class AnswerResponse(BaseModel):
     is_correct: bool
-    correct_option: str
     elo_before: float
     elo_after: float
     rd_after: float

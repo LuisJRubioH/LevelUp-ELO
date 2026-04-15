@@ -23,7 +23,6 @@ export interface NextQuestionResponse {
 
 export interface AnswerResponse {
   is_correct: boolean;
-  correct_option: string;
   elo_before: number;
   elo_after: number;
   rd_after: number;

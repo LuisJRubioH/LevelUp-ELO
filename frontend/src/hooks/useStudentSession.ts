@@ -70,7 +70,6 @@ export function useStudentSession() {
         usePracticeStore.getState().recordAnswer(
           store.currentItem.id,
           res.is_correct,
-          res.correct_option,
           selectedOption,
           res.elo_before,
           res.elo_after,

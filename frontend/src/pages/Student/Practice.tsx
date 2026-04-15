@@ -246,7 +246,7 @@ export function Practice() {
       <AnswerOptions
         options={currentItem.options}
         selectedOption={selectedOption}
-        correctOption={answerReceived ? (lastAnswer?.correctOption ?? null) : null}
+        isCorrect={answerReceived ? (lastAnswer?.isCorrect ?? null) : null}
         onSelect={handleSelectOption}
         disabled={submitted}
       />
