@@ -6,6 +6,7 @@ Instrucciones para Claude Code al trabajar en este repositorio.
 
 ## Inicio rápido
 
+### V1 — Streamlit (producción)
 ```bash
 pip install -r requirements.txt
 streamlit run src/interface/streamlit/app.py
@@ -13,7 +14,25 @@ streamlit run src/interface/streamlit/app.py
 
 Ejecutar siempre desde la **raíz del repo** — `app.py` inyecta el root en `sys.path` usando `sys.path.insert(0, base_path)` ANTES de cualquier import de `src.*`.
 
-Tests y linting están configurados: `pytest tests/unit/`, `black --check --line-length=100 src/ tests/ scripts/`, `flake8 src/ tests/ scripts/ --select=E9,F63,F7,F82`.
+Tests y linting: `pytest tests/unit/`, `black --check --line-length=100 src/ tests/ scripts/`, `flake8 src/ tests/ scripts/ --select=E9,F63,F7,F82`.
+
+### V2 — React + FastAPI (en desarrollo)
+```bash
+# Backend FastAPI (terminal 1)
+pip install -r requirements-api.txt
+uvicorn api.main:app --reload --port 8000
+
+# Frontend React (terminal 2)
+cd frontend && npm install --legacy-peer-deps && npm run dev
+# → http://localhost:5173
+```
+
+**Deploys automáticos en push a main:**
+- Frontend → Vercel: `https://luislevelupelo.vercel.app`
+- Backend → Render: `https://levelup-elo.onrender.com`
+
+**Documento técnico V2:** `docs/v2-tecnico.md` (gitignoreado, actualizar con cada sprint)
+**Plan de sprints:** `docs/v2-plan.md` (en repo, actualizar al completar tareas)
 
 ---
 
@@ -470,3 +489,80 @@ KatIA es una gata cyborg que actúa como tutora socrática del estudiante. Tiene
 - **Banners pixel art de cursos**: imágenes PNG en `Banners/` (geometria, aritmetica, logica, conteo_combinatoria, probabilidad, algebra). Se cargan como base64 con `@st.cache_resource` y se muestran en las tarjetas de curso del estudiante. Matching por keyword en el nombre del curso.
 - **Registro de interacciones KatIA**: cada pregunta del estudiante al chat socrático se guarda en `katia_interactions` con contexto (curso, ítem, tema). El docente ve un resumen (temas más consultados, historial de conversaciones) en el dashboard por estudiante. Se incluye en la exportación CSV/XLSX.
 - **Fallback en procedimientos**: si la revisión de IA falla con `ValueError`/`ConnectionError`, el procedimiento se guarda de todas formas para revisión del docente (sin score de IA).
+
+
+---
+
+## V2 — React + FastAPI (sección adicional)
+
+### Reglas específicas de V2
+
+**V2-R1 — No tocar V1 sin necesidad**
+Los cambios en `src/`, `items/`, `scripts/` afectan tanto V1 como V2. No modificar la lógica de V1 a menos que sea un bug real. Si un cambio es solo para V2, va en `api/` o `frontend/`.
+
+**V2-R2 — Dual DB sigue siendo obligatorio**
+Todo método nuevo en los repositorios debe estar en **ambos** (`sqlite_repository.py` Y `postgres_repository.py`). Correr `python scripts/db_sync_check.py` antes de cada commit que toque los repos.
+
+**V2-R3 — El ELO preview es una estimación**
+`estimateEloDelta()` en `Practice.tsx` usa K=24 fijo. No intentar replicar el K dinámico real del backend — la discrepancia menor es aceptable para un preview informativo.
+
+**V2-R4 — JWT: access token en memoria, refresh en cookie**
+El access token vive en Zustand (`authStore`) y en localStorage. El refresh token es HttpOnly cookie. Nunca loggear ni imprimir tokens. `credentials: "include"` en todos los fetch para que la cookie viaje.
+
+**V2-R5 — apiClient.postForm para multipart**
+Los uploads de procedimientos usan `apiClient.postForm()`. No establecer `Content-Type` manualmente en multipart — el navegador lo hace con el boundary correcto.
+
+**V2-R6 — GIFs de KatIA: siempre los comprimidos**
+Los archivos en `frontend/public/katia/` son los comprimidos. No reemplazar con los originales (errores.gif es 69MB). Si se agregan GIFs nuevos, comprimir primero.
+
+**V2-R7 — `--legacy-peer-deps` siempre en npm**
+`vite-plugin-pwa@1.2.0` requiere vite ^3-7 pero el proyecto usa vite@8. Siempre usar `npm install --legacy-peer-deps`. En CI y en `vercel.json` está configurado.
+
+**V2-R8 — `sessionStartTime` persiste entre reloads**
+`sessionStartTime` está en `authStore` y se persiste en localStorage. Se setea en `setAuth()` (login). Se resetea en `clearAuth()` (logout). El timer de sesión en Layout.tsx lo lee directamente de ahí.
+
+### Estructura de archivos V2 clave
+
+```
+api/main.py                          # FastAPI app, CORS, routers, WebSocket
+api/dependencies.py                  # CurrentUser, RepoDep, require_role, build_vector_rating
+api/routers/student.py               # 16 endpoints del estudiante
+api/routers/teacher.py               # 13 endpoints del docente
+api/routers/auth.py                  # 4 endpoints de autenticación
+api/schemas/student.py               # Pydantic schemas del estudiante
+frontend/src/stores/authStore.ts     # Zustand auth (token + user + sessionStartTime)
+frontend/src/stores/practiceStore.ts # Zustand sesión de práctica
+frontend/src/api/client.ts           # HTTP client base (get/post/patch/delete/postForm)
+frontend/src/pages/Student/Practice.tsx    # Sala de práctica (flujo principal del estudiante)
+frontend/src/pages/Student/Stats.tsx       # Estadísticas con radar + heatmap + ranking
+frontend/src/pages/Teacher/Dashboard.tsx  # Panel docente con detalle por estudiante (4 tabs)
+frontend/src/components/ui/StreakToast.tsx # Toast de racha (5/10/20)
+frontend/src/components/ui/ActivityHeatmap.tsx # Heatmap actividad semanal
+frontend/src/components/ELO/TopicRadarChart.tsx # Radar chart recharts
+docs/v2-plan.md                      # Checklist de sprints (en repo)
+docs/v2-tecnico.md                   # Documento técnico completo (gitignoreado)
+```
+
+### Comandos útiles V2
+
+```bash
+# Verificar build TypeScript
+cd frontend && npm run build
+
+# Verificar paridad DB (obligatorio tras cambios en repositorios)
+python scripts/db_sync_check.py
+
+# Lint Python (api/ incluido)
+flake8 src/ api/ --max-line-length=100 --select=E9,F63,F7,F82
+black --check --line-length=100 src/ api/
+
+# Tests API
+ADMIN_PASSWORD=testadmin123 python -m pytest tests/api/ -v
+```
+
+### Estado de V2 al 2026-04-13
+
+- Sprints 1 y 2 completos (ver `docs/v2-plan.md`)
+- Sprint 3 en progreso (panel docente)
+- Deploy funcional en Vercel + Render
+- CI con 7 jobs verdes

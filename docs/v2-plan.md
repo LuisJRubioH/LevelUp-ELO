@@ -130,11 +130,11 @@ Deploy actual:
 - [x] 3.1 ELO temporal por estudiante
 - [x] 3.2 Análisis pedagógico IA
 - [x] 3.3 Historial KatIA
-- [ ] 3.4 Visor de imagen de procedimiento (Supabase Storage)
-- [ ] 3.5 Filtros en cascada: Grupo → Nivel → Materia
-- [ ] 3.6 Ranking del grupo en el dashboard
+- [x] 3.4 Visor de imagen de procedimiento (Supabase Storage)
+- [x] 3.5 Filtros en cascada: Grupo → Nivel → Materia
+- [x] 3.6 Ranking del grupo en el dashboard
 
-**Parcial:** 3.1, 3.2, 3.3 implementadas — commit c17c24d. Pendientes: 3.4, 3.5, 3.6
+**Completadas:** todas — commit b9f98f0
 
 ## Checklist Sprint 4
 
