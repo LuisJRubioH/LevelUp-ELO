@@ -3,6 +3,11 @@
  * ==========================
  * Hook que orquesta la sesión de práctica: fetch de pregunta, submit de
  * respuesta, actualización del store. Desacopla la lógica de los componentes.
+ *
+ * Usa `usePracticeStore.getState()` dentro de los callbacks para leer el estado
+ * sin crear dependencias reactivas — evita el loop infinito que ocurre cuando
+ * `[store]` se usa como dep de useCallback y cada setLoading() dispara un nuevo
+ * render que recrea el callback y vuelve a disparar el useEffect.
  */
 
 import { useCallback } from "react";
@@ -10,9 +15,16 @@ import { studentApi } from "../api/student";
 import { usePracticeStore } from "../stores/practiceStore";
 
 export function useStudentSession() {
-  const store = usePracticeStore();
+  // Solo lecturas reactivas para el render — no pasan como deps a useCallback
+  const currentItem = usePracticeStore((s) => s.currentItem);
+  const lastAnswer = usePracticeStore((s) => s.lastAnswer);
+  const phase = usePracticeStore((s) => s.phase);
+  const isLoading = usePracticeStore((s) => s.isLoading);
+  const sessionQuestionsCount = usePracticeStore((s) => s.sessionQuestionsCount);
 
   const loadNextQuestion = useCallback(async () => {
+    // Lee estado actual al momento de la llamada — sin crear subscripción reactiva
+    const store = usePracticeStore.getState();
     if (!store.courseId) return;
     store.setLoading(true);
     try {
@@ -24,20 +36,21 @@ export function useStudentSession() {
       });
 
       if (!res.item || res.status !== "ok") {
-        store.setPhase("empty");
+        usePracticeStore.getState().setPhase("empty");
       } else {
-        store.setCurrentItem(res.item);
+        usePracticeStore.getState().setCurrentItem(res.item);
       }
     } catch (err) {
       console.error("Error al cargar pregunta:", err);
-      store.setPhase("error");
+      usePracticeStore.getState().setPhase("error");
     } finally {
-      store.setLoading(false);
+      usePracticeStore.getState().setLoading(false);
     }
-  }, [store]);
+  }, []); // Sin deps — lee getState() en runtime
 
   const submitAnswer = useCallback(
     async (selectedOption: string, reasoning = "") => {
+      const store = usePracticeStore.getState();
       if (!store.currentItem) return;
 
       const timeTaken = store.questionStartTime
@@ -54,7 +67,7 @@ export function useStudentSession() {
           elo_topic: store.courseId ?? undefined,
         });
 
-        store.recordAnswer(
+        usePracticeStore.getState().recordAnswer(
           store.currentItem.id,
           res.is_correct,
           res.correct_option,
@@ -67,15 +80,15 @@ export function useStudentSession() {
         console.error("Error al enviar respuesta:", err);
       }
     },
-    [store],
+    [], // Sin deps — lee getState() en runtime
   );
 
   return {
-    currentItem: store.currentItem,
-    lastAnswer: store.lastAnswer,
-    phase: store.phase,
-    isLoading: store.isLoading,
-    sessionQuestionsCount: store.sessionQuestionsCount,
+    currentItem,
+    lastAnswer,
+    phase,
+    isLoading,
+    sessionQuestionsCount,
     loadNextQuestion,
     submitAnswer,
   };
