@@ -12,6 +12,7 @@ Endpoints del panel de administración:
   DELETE /admin/groups/{id}      → eliminar grupo
   GET  /admin/reports            → reportes de problemas técnicos pendientes
   PATCH /admin/reports/{id}/resolve → marcar reporte como resuelto
+  GET  /admin/audit              → log de reasignaciones de grupo
 """
 
 from fastapi import APIRouter, HTTPException, status
@@ -116,6 +117,16 @@ def problem_reports(user: CurrentUser, repo: RepoDep):
 def resolve_report(report_id: int, user: CurrentUser, repo: RepoDep):
     """Marca un reporte técnico como resuelto."""
     repo.mark_problem_resolved(report_id)
+
+
+# ── Auditoría ─────────────────────────────────────────────────────────────────
+
+
+@router.get("/audit")
+def audit_group_changes(user: CurrentUser, repo: RepoDep, limit: int = 100):
+    """Log de reasignaciones de grupo (admin_id, student_id, old/new, timestamp)."""
+    rows = repo.get_audit_group_changes(limit=limit)
+    return {"entries": [dict(r) if isinstance(r, dict) else _row_to_dict(r) for r in rows]}
 
 
 # ── helper ────────────────────────────────────────────────────────────────────

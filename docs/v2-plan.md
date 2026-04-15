@@ -138,11 +138,13 @@ Deploy actual:
 
 ## Checklist Sprint 4
 
-- [ ] 4.1 Reportes técnicos
-- [ ] 4.2 Log de auditoría
-- [ ] 4.3 Activar/desactivar usuarios
-- [ ] 4.4 Eliminar grupos
-- [ ] 4.5 Códigos de invitación
+- [x] 4.1 Reportes técnicos
+- [x] 4.2 Log de auditoría
+- [x] 4.3 Activar/desactivar usuarios
+- [x] 4.4 Eliminar grupos
+- [x] 4.5 Códigos de invitación
+
+**Completadas:** todas — 4.1/4.3/4.4/4.5 ya estaban; 4.2 agregada en este sprint
 
 ## Checklist Sprint 5
 

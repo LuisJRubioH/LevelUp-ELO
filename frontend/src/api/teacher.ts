@@ -83,6 +83,19 @@ export interface ProblemReport {
   created_at: string;
 }
 
+export interface AuditEntry {
+  id: number;
+  student_id: number;
+  student_username?: string;
+  old_group_id: number | null;
+  old_group_name: string | null;
+  new_group_id: number | null;
+  new_group_name: string | null;
+  admin_id: number;
+  admin_username?: string;
+  timestamp: string;
+}
+
 // ── Descarga de archivos (blob) ───────────────────────────────────────────────
 
 async function _downloadBlob(path: string, filename: string): Promise<void> {
@@ -187,4 +200,7 @@ export const adminApi = {
 
   resolveReport: (report_id: number) =>
     api.patch<void>(`/api/admin/reports/${report_id}/resolve`),
+
+  audit: (limit: number = 100) =>
+    api.get<{ entries: AuditEntry[] }>(`/api/admin/audit?limit=${limit}`),
 };

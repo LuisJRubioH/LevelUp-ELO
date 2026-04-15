@@ -1456,6 +1456,38 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    def get_audit_group_changes(self, limit: int = 100) -> list:
+        """Devuelve las reasignaciones de grupo auditadas, más recientes primero."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                """
+                SELECT a.id, a.student_id, s.username AS student_username,
+                       a.old_group_id, og.name AS old_group_name,
+                       a.new_group_id, ng.name AS new_group_name,
+                       a.admin_id, ad.username AS admin_username,
+                       a.timestamp
+                FROM audit_group_changes a
+                LEFT JOIN users s ON s.id = a.student_id
+                LEFT JOIN users ad ON ad.id = a.admin_id
+                LEFT JOIN groups og ON og.id = a.old_group_id
+                LEFT JOIN groups ng ON ng.id = a.new_group_id
+                ORDER BY a.timestamp DESC
+                LIMIT %s
+            """,
+                (limit,),
+            )
+            rows = []
+            for r in cursor.fetchall():
+                d = dict(r)
+                if d.get("timestamp") is not None:
+                    d["timestamp"] = str(d["timestamp"])
+                rows.append(d)
+            return rows
+        finally:
+            self.put_connection(conn)
+
     # ── KatIA interactions ──────────────────────────────────────────────
 
     def save_katia_interaction(

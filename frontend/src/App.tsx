@@ -28,6 +28,7 @@ import { TeacherExport } from "./pages/Teacher/Export";
 import { AdminUsers } from "./pages/Admin/Users";
 import { AdminGroups } from "./pages/Admin/Groups";
 import { AdminReports } from "./pages/Admin/Reports";
+import { AdminAudit } from "./pages/Admin/Audit";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -144,6 +145,10 @@ export default function App() {
           <Route
             path="/admin/reports"
             element={<AdminRoute><AdminReports /></AdminRoute>}
+          />
+          <Route
+            path="/admin/audit"
+            element={<AdminRoute><AdminAudit /></AdminRoute>}
           />
 
           {/* 404 */}

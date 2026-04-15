@@ -37,6 +37,7 @@ const adminNav: NavItem[] = [
   { path: "/admin", label: "Usuarios", icon: "👤" },
   { path: "/admin/groups", label: "Grupos", icon: "🏫" },
   { path: "/admin/reports", label: "Reportes", icon: "🔔" },
+  { path: "/admin/audit", label: "Auditoría", icon: "📜" },
 ];
 
 interface LayoutProps {
