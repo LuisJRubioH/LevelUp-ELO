@@ -32,7 +32,10 @@ async def socratic(body: SocraticRequest, user: CurrentUser, repo: RepoDep):
 
     La API key viaja en el body (nunca se persiste).
     """
+    from api.config import settings
     from src.infrastructure.external_api.ai_client import get_socratic_guidance
+
+    effective_key = settings.get_ai_key("katia", body.api_key or "")
 
     # Construcción del contexto del ítem
     item_context = {
@@ -42,7 +45,6 @@ async def socratic(body: SocraticRequest, user: CurrentUser, repo: RepoDep):
 
     async def _generate() -> AsyncGenerator[str, None]:
         try:
-            # get_socratic_guidance es síncrono → ejecutar en threadpool
             import asyncio
             from functools import partial
 
@@ -53,7 +55,7 @@ async def socratic(body: SocraticRequest, user: CurrentUser, repo: RepoDep):
                     get_socratic_guidance,
                     body.student_message,
                     item_context,
-                    body.api_key,
+                    effective_key,
                     body.provider,
                 ),
             )
@@ -100,27 +102,31 @@ async def socratic(body: SocraticRequest, user: CurrentUser, repo: RepoDep):
 async def review_procedure(
     file: UploadFile,
     item_id: str,
-    api_key: str,
-    user: CurrentUser,
-    repo: RepoDep,
+    api_key: str = "",
+    user: CurrentUser = None,
+    repo: RepoDep = None,
 ):
     """
     Revisa un procedimiento manuscrito con IA (Groq + Llama 4 Scout).
 
-    Retorna:
-    - transcripcion: texto extraído
-    - pasos: lista de pasos evaluados
-    - score_procedimiento: 0–100
-    - errores_detectados: lista de errores
-    - evaluacion_global: texto de evaluación
+    La API key se resuelve por prioridad: usuario > AI_KEY_PROCEDURE > SYSTEM_AI_API_KEY.
     """
+    from api.config import settings
+
+    effective_key = settings.get_ai_key("procedure", api_key)
+    if not effective_key:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No hay API key de IA configurada.",
+        )
+
     if file.content_type not in ("image/jpeg", "image/png", "image/webp", "application/pdf"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Tipo de archivo no soportado. Usa JPG, PNG, WebP o PDF.",
         )
 
-    MAX_SIZE = 10 * 1024 * 1024  # 10 MB
+    MAX_SIZE = 10 * 1024 * 1024
     contents = await file.read()
     if len(contents) > MAX_SIZE:
         raise HTTPException(
@@ -131,7 +137,7 @@ async def review_procedure(
     try:
         from src.infrastructure.external_api.math_procedure_review import review_math_procedure
 
-        result = review_math_procedure(contents, file.content_type, api_key)
+        result = review_math_procedure(contents, file.content_type, effective_key)
         return result
     except Exception as exc:
         raise HTTPException(

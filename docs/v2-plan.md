@@ -189,10 +189,10 @@ Deploy actual:
 
 ## Checklist Sprint 6 — Paridad V1 faltante
 
-- [ ] 6.1 Banners pixel art en tarjetas de curso
-- [ ] 6.2 Centro de feedback del estudiante (bidireccional con badge)
-- [ ] 6.3 Formulario de reporte de problemas técnicos
-- [ ] 6.4 Revisión de procedimiento con IA + GIFs animados de KatIA en tiempo real
+- [x] 6.1 Banners pixel art en tarjetas de curso
+- [x] 6.2 Centro de feedback del estudiante (bidireccional con badge)
+- [x] 6.3 Formulario de reporte de problemas técnicos
+- [x] 6.4 Revisión de procedimiento con IA + GIFs animados de KatIA en tiempo real
 
 ## Checklist Sprint 7 — Calidad y producción
 

@@ -408,6 +408,46 @@ class PostgresRepository:
             self.put_connection(conn)
 
     @_timing
+    def get_student_procedure_submissions(self, student_id, limit: int = 50):
+        """Lista los últimos procedimientos enviados por el estudiante con
+        estado, score docente, comentario y delta ELO. Usado por la vista
+        de Feedback. NUNCA expone respuestas correctas (no aplica a procedimientos)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                """
+                SELECT id AS submission_id, item_id, item_content, status,
+                       ai_proposed_score, teacher_score, final_score,
+                       teacher_feedback, elo_delta, submitted_at, reviewed_at
+                FROM procedure_submissions
+                WHERE student_id = %s
+                ORDER BY submitted_at DESC
+                LIMIT %s
+                """,
+                (student_id, limit),
+            )
+            rows = cursor.fetchall()
+            return [
+                {
+                    "submission_id": r["submission_id"],
+                    "item_id": r["item_id"],
+                    "item_content": r["item_content"],
+                    "status": r["status"],
+                    "ai_proposed_score": r["ai_proposed_score"],
+                    "teacher_score": r["teacher_score"],
+                    "final_score": r["final_score"],
+                    "teacher_feedback": r["teacher_feedback"],
+                    "elo_delta": r["elo_delta"],
+                    "submitted_at": str(r["submitted_at"]) if r["submitted_at"] else None,
+                    "reviewed_at": str(r["reviewed_at"]) if r["reviewed_at"] else None,
+                }
+                for r in rows
+            ]
+        finally:
+            self.put_connection(conn)
+
+    @_timing
     def get_procedure_stats_by_course(self, student_id):
         """Retorna dict {course_id: {'course_name', 'avg_score', 'count'}} con el
         promedio de notas de procedimiento agrupadas por curso del estudiante."""

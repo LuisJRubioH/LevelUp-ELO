@@ -17,6 +17,7 @@ import { Stats } from "./pages/Student/Stats";
 import { Courses } from "./pages/Student/Courses";
 import { Exam } from "./pages/Student/Exam";
 import { ProcedureUpload } from "./pages/Student/ProcedureUpload";
+import { Feedback } from "./pages/Student/Feedback";
 
 // Docente
 import { TeacherDashboard } from "./pages/Teacher/Dashboard";
@@ -116,6 +117,10 @@ export default function App() {
           <Route
             path="/student/procedure"
             element={<StudentRoute><ProcedureUpload /></StudentRoute>}
+          />
+          <Route
+            path="/student/feedback"
+            element={<StudentRoute><Feedback /></StudentRoute>}
           />
 
           {/* ── Docente ────────────────────────────────────────────── */}

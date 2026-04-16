@@ -14,6 +14,7 @@ import { authApi } from "../api/auth";
 import { useAuthStore } from "../stores/authStore";
 import { useSettingsStore, PROVIDER_MODELS } from "../stores/settingsStore";
 import { useNotifications } from "../hooks/useNotifications";
+import { ReportProblemButton } from "../components/ReportProblem/ReportProblemButton";
 
 interface NavItem {
   path: string;
@@ -26,6 +27,7 @@ const studentNav: NavItem[] = [
   { path: "/student/stats", label: "Estadísticas", icon: "📈" },
   { path: "/student/courses", label: "Cursos", icon: "📚" },
   { path: "/student/procedure", label: "Procedimientos", icon: "✍️" },
+  { path: "/student/feedback", label: "Retroalimentación", icon: "💬" },
 ];
 
 const teacherNav: NavItem[] = [
@@ -243,6 +245,11 @@ export function Layout({ children }: LayoutProps) {
               <span className="text-slate-500 text-xs">⏱</span>
               <span className="text-slate-400 text-xs font-mono">{sessionFormatted}</span>
               <span className="text-slate-600 text-xs ml-auto">sesión</span>
+            </div>
+          )}
+          {user?.role === "student" && (
+            <div className="mb-2">
+              <ReportProblemButton />
             </div>
           )}
           <button

@@ -146,6 +146,43 @@ class SQLiteRepository:
         conn.close()
         return [{"score": row[0], "submitted_at": row[1]} for row in rows]
 
+    def get_student_procedure_submissions(self, student_id, limit: int = 50):
+        """Lista los últimos procedimientos enviados por el estudiante con
+        estado, score docente, comentario y delta ELO. Usado por la vista
+        de Feedback. NUNCA expone respuestas correctas (no aplica a procedimientos)."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, item_id, item_content, status, ai_proposed_score,
+                   teacher_score, final_score, teacher_feedback, elo_delta,
+                   submitted_at, reviewed_at
+            FROM procedure_submissions
+            WHERE student_id = ?
+            ORDER BY submitted_at DESC
+            LIMIT ?
+            """,
+            (student_id, limit),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {
+                "submission_id": r[0],
+                "item_id": r[1],
+                "item_content": r[2],
+                "status": r[3],
+                "ai_proposed_score": r[4],
+                "teacher_score": r[5],
+                "final_score": r[6],
+                "teacher_feedback": r[7],
+                "elo_delta": r[8],
+                "submitted_at": r[9],
+                "reviewed_at": r[10],
+            }
+            for r in rows
+        ]
+
     def get_procedure_stats_by_course(self, student_id):
         """Retorna dict {course_id: {'course_name', 'avg_score', 'count'}} con el
         promedio de notas de procedimiento agrupadas por curso del estudiante."""

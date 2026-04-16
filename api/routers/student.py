@@ -298,14 +298,15 @@ async def submit_procedure(
     item_id: str = Form(...),
     item_content: str = Form(default=""),
     file: UploadFile = File(...),
+    ai_proposed_score: float | None = Form(default=None),
+    ai_feedback: str | None = Form(default=None),
 ):
     """Recibe y persiste un procedimiento manuscrito del estudiante.
 
-    El archivo se almacena en disco (SQLite) o Supabase Storage (PostgreSQL).
-    Retorna el submission_id y el estado del procesamiento.
+    Si vienen ai_proposed_score/ai_feedback (del endpoint /procedure/analyze),
+    se guardan en la submission para que el docente los vea como sugerencia.
     El score de IA (ai_proposed_score) NO afecta el ELO — solo teacher_score lo hace.
     """
-    # Validar tipo de archivo
     allowed = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
     mime = file.content_type or "image/jpeg"
     if mime not in allowed:
@@ -315,7 +316,7 @@ async def submit_procedure(
         )
 
     image_data = await file.read()
-    if len(image_data) > 10 * 1024 * 1024:  # 10MB límite
+    if len(image_data) > 10 * 1024 * 1024:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail="El archivo excede el límite de 10 MB.",
@@ -332,12 +333,183 @@ async def submit_procedure(
         file_hash=file_hash,
     )
 
+    if ai_proposed_score is not None:
+        try:
+            repo.save_ai_proposed_score(
+                user["user_id"],
+                item_id,
+                float(ai_proposed_score),
+                ai_feedback=ai_feedback or "",
+            )
+        except Exception:
+            pass
+
     return ProcedureSubmitResponse(
-        submission_id=0,  # SQLite no retorna el ID; suficiente para el frontend
-        ai_score=None,
-        ai_feedback=None,
-        status="pending",
+        submission_id=0,
+        ai_score=ai_proposed_score,
+        ai_feedback=ai_feedback,
+        status="pending" if ai_proposed_score is None else "PENDING_TEACHER_VALIDATION",
     )
+
+
+@router.get("/ai-status")
+def ai_status():
+    """Indica al frontend si el servidor tiene IA configurada (sin revelar keys)."""
+    from api.config import settings
+    from src.infrastructure.external_api.ai_client import detect_provider_from_key
+
+    procedure_key = settings.get_ai_key("procedure")
+    if not procedure_key:
+        return {"available": False, "provider": None}
+    provider = settings.system_ai_provider or detect_provider_from_key(procedure_key) or "unknown"
+    return {"available": True, "provider": provider}
+
+
+@router.post("/procedure/analyze")
+async def analyze_procedure(
+    user: CurrentUser,
+    item_id: str = Form(...),
+    item_content: str = Form(default=""),
+    api_key: str = Form(default=""),
+    file: UploadFile = File(...),
+):
+    """Analiza un procedimiento con IA SIN PERSISTIR.
+
+    Prioridad de API key: la del estudiante (si la envía) > la del sistema
+    (env SYSTEM_AI_API_KEY). Soporta Groq (revisión rigurosa con Llama 4 Scout)
+    y otros proveedores (revisión genérica con visión).
+    """
+    from api.config import settings
+    from src.infrastructure.external_api.ai_client import detect_provider_from_key
+
+    effective_key = settings.get_ai_key("procedure", api_key)
+    if not effective_key:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No hay API key de IA configurada. Pide al administrador que configure SYSTEM_AI_API_KEY.",
+        )
+
+    provider = detect_provider_from_key(effective_key)
+    if settings.system_ai_provider and not api_key.strip():
+        provider = settings.system_ai_provider
+
+    allowed = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
+    mime = file.content_type or "image/jpeg"
+    if mime not in allowed:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail=f"Tipo de archivo no soportado: {mime}.",
+        )
+
+    image_data = await file.read()
+    if len(image_data) > 10 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="El archivo excede el límite de 10 MB.",
+        )
+
+    if mime == "application/pdf":
+        try:
+            import fitz  # PyMuPDF
+
+            pdf_doc = fitz.open(stream=image_data, filetype="pdf")
+            page = pdf_doc[0]
+            pix = page.get_pixmap(dpi=200)
+            image_data = pix.tobytes("png")
+            mime = "image/png"
+            pdf_doc.close()
+        except Exception as pdf_err:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"No se pudo procesar el PDF: {pdf_err}",
+            )
+
+    if provider == "groq":
+        from src.infrastructure.external_api.math_procedure_review import (
+            review_math_procedure,
+        )
+
+        try:
+            review = review_math_procedure(
+                image_data,
+                mime,
+                api_key=effective_key,
+                question_content=item_content or "",
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=502, detail=f"Respuesta inválida de la IA: {exc}")
+        except ConnectionError as exc:
+            raise HTTPException(status_code=503, detail=f"Error de red con Groq: {exc}")
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"Error al revisar procedimiento: {exc}")
+
+        return {"item_id": item_id, "provider": "groq", "review": review}
+
+    else:
+        from src.infrastructure.external_api.ai_client import analyze_procedure_image
+
+        try:
+            result = analyze_procedure_image(
+                image_data,
+                mime,
+                question_content=item_content or "",
+                model_name="",
+                api_key=effective_key,
+                provider=provider,
+            )
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"Error al analizar procedimiento: {exc}")
+
+        if result == "VISION_NOT_SUPPORTED":
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="El modelo configurado no soporta visión. Usa Groq o un modelo con visión.",
+            )
+
+        return {
+            "item_id": item_id,
+            "provider": provider or "unknown",
+            "review": {
+                "score_procedimiento": None,
+                "evaluacion_global": result,
+                "transcripcion": None,
+                "pasos": [],
+                "errores_detectados": [],
+                "saltos_logicos": [],
+                "resultado_correcto": None,
+                "corresponde_a_pregunta": None,
+            },
+        }
+
+
+@router.get("/procedures")
+def list_my_procedures(user: CurrentUser, repo: RepoDep, limit: int = 50):
+    """Lista los procedimientos enviados por el estudiante actual con su
+    estado y, si están validados, score docente, comentario y delta ELO.
+    Nunca incluye contenido sensible (R9/V2-R9: solo aplica a items, no a procedimientos)."""
+    rows = repo.get_student_procedure_submissions(user["user_id"], limit=limit)
+    return {"submissions": rows}
+
+
+# ── Reportes técnicos ─────────────────────────────────────────────────────────
+
+
+@router.post("/problems", status_code=status.HTTP_201_CREATED)
+def submit_problem_report(body: dict, user: CurrentUser, repo: RepoDep):
+    """Crea un reporte de problema técnico (mínimo 10 caracteres en la descripción)."""
+    description = (body.get("description") or "").strip()
+    if len(description) < 10:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La descripción debe tener al menos 10 caracteres.",
+        )
+    if len(description) > 2000:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La descripción no puede exceder 2000 caracteres.",
+        )
+    repo.save_problem_report(user_id=user["user_id"], description=description)
+    return {"message": "Reporte enviado. Gracias por avisarnos."}
 
 
 # ── Modo Examen ───────────────────────────────────────────────────────────────

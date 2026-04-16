@@ -53,6 +53,38 @@ export interface Course {
   group_id?: number;
 }
 
+export interface ProcedureSubmissionRow {
+  submission_id: number;
+  item_id: string;
+  item_content: string | null;
+  status: string;
+  ai_proposed_score: number | null;
+  teacher_score: number | null;
+  final_score: number | null;
+  teacher_feedback: string | null;
+  elo_delta: number | null;
+  submitted_at: string | null;
+  reviewed_at: string | null;
+}
+
+export interface ProcedureStep {
+  numero?: number;
+  contenido?: string;
+  evaluacion?: string;
+  comentario?: string;
+}
+
+export interface ProcedureReview {
+  corresponde_a_pregunta?: boolean;
+  transcripcion?: string;
+  pasos?: ProcedureStep[];
+  errores_detectados?: string[];
+  saltos_logicos?: string[];
+  resultado_correcto?: boolean;
+  evaluacion_global?: string;
+  score_procedimiento?: number;
+}
+
 export const studentApi = {
   nextQuestion: (body: {
     course_id: string;
@@ -84,6 +116,34 @@ export const studentApi = {
     }),
 
   unenroll: (course_id: string) => api.delete<void>(`/api/student/enroll/${course_id}`),
+
+  myProcedures: () =>
+    api.get<{ submissions: ProcedureSubmissionRow[] }>("/api/student/procedures"),
+
+  reportProblem: (description: string) =>
+    api.post<{ message: string }>("/api/student/problems", { description }),
+
+  aiStatus: () =>
+    api.get<{ available: boolean; provider: string | null }>("/api/student/ai-status"),
+
+  analyzeProcedure: async (params: {
+    item_id: string;
+    item_content: string;
+    api_key?: string;
+    file: File;
+  }): Promise<{ review: ProcedureReview; provider: string }> => {
+    const fd = new FormData();
+    fd.append("item_id", params.item_id);
+    fd.append("item_content", params.item_content);
+    if (params.api_key) fd.append("api_key", params.api_key);
+    fd.append("file", params.file);
+    const res = await api.postForm<{
+      item_id: string;
+      provider: string;
+      review: ProcedureReview;
+    }>("/api/student/procedure/analyze", fd);
+    return { review: res.review, provider: res.provider };
+  },
 
   history: () => api.get<{ attempts: unknown[] }>("/api/student/history"),
 

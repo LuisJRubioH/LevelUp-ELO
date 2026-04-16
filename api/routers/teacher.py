@@ -252,10 +252,14 @@ def student_ai_analysis(
     api_key: str | None = None,
     provider: str = "groq",
 ):
-    """Genera un análisis pedagógico del estudiante (requiere API key de IA del docente)."""
+    """Genera un análisis pedagógico del estudiante. Key: docente > AI_KEY_TEACHER_ANALYSIS > general."""
+    from api.config import settings
+
     svc = _svc(repo)
     from src.domain.elo.vector_elo import aggregate_global_elo
     from api.dependencies import build_vector_rating
+
+    effective_key = settings.get_ai_key("teacher_analysis", api_key or "")
 
     vector = build_vector_rating(student_id, repo)
     global_elo = aggregate_global_elo(vector)
@@ -263,7 +267,7 @@ def student_ai_analysis(
     analysis = svc.generate_ai_analysis(
         student_id=student_id,
         global_elo=global_elo,
-        api_key=api_key,
+        api_key=effective_key,
         provider=provider,
     )
     return {"analysis": analysis}

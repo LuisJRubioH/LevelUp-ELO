@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { studentApi, type Course } from "../../api/student";
 import { Button } from "../../components/ui/Button";
+import { CourseBanner } from "../../components/CourseCard/CourseBanner";
 
 export function Courses() {
   const qc = useQueryClient();
@@ -50,7 +51,7 @@ export function Courses() {
     tab === "enrolled" ? courses.filter((c) => c.enrolled) : courses;
 
   return (
-    <div className="max-w-2xl mx-auto py-6 px-4">
+    <div className="max-w-5xl mx-auto py-6 px-4">
       <h2 className="text-xl font-bold text-white mb-6">Cursos</h2>
 
       {/* Tabs */}
@@ -114,42 +115,50 @@ export function Courses() {
                 : "No hay cursos disponibles para tu nivel."}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {displayed.map((c) => (
-                <div
+                <article
                   key={c.id}
-                  className="bg-slate-800 rounded-xl px-4 py-4 border border-slate-700 flex items-center justify-between"
+                  className="group flex flex-col rounded-xl border border-slate-800 bg-[#12121A] overflow-hidden transition-transform duration-200 hover:-translate-y-0.5 hover:border-slate-700"
                 >
-                  <div>
-                    <div className="font-medium text-white text-sm">{c.name}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">{c.block}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {c.enrolled ? (
-                      <>
-                        <span className="text-xs text-green-400 bg-green-900/30 px-2 py-0.5 rounded-full">
-                          Matriculado
-                        </span>
+                  <CourseBanner courseName={c.name} />
+                  <div className="flex flex-col gap-3 px-4 pt-3 pb-4">
+                    <div>
+                      <h3 className="text-[15px] font-semibold text-slate-100 leading-snug">
+                        {c.name}
+                      </h3>
+                      <p className="text-[11px] uppercase tracking-wider text-slate-500 mt-1">
+                        {c.block}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 pt-1">
+                      {c.enrolled ? (
+                        <>
+                          <span className="text-[11px] font-medium text-emerald-400">
+                            Matriculado
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => unenrollMutation.mutate(c.id)}
+                            loading={unenrollMutation.isPending}
+                          >
+                            Salir
+                          </Button>
+                        </>
+                      ) : (
                         <Button
-                          variant="ghost"
                           size="sm"
-                          onClick={() => unenrollMutation.mutate(c.id)}
-                          loading={unenrollMutation.isPending}
+                          onClick={() => enrollMutation.mutate(c.id)}
+                          loading={enrollMutation.isPending}
+                          className="ml-auto"
                         >
-                          Salir
+                          Matricularme
                         </Button>
-                      </>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => enrollMutation.mutate(c.id)}
-                        loading={enrollMutation.isPending}
-                      >
-                        Matricularme
-                      </Button>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
+                </article>
               ))}
             </div>
           )}
