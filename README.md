@@ -111,19 +111,21 @@ src/interface/streamlit/
 ### V2 — React + FastAPI (en desarrollo)
 
 ```
-api/                     # FastAPI — 39+ endpoints REST + WebSocket
+api/                     # FastAPI — 42+ endpoints REST + WebSocket
+├── config.py            # pydantic-settings: JWT, DB, IA keys por función
 ├── routers/
 │   ├── auth.py          # JWT access token + HttpOnly refresh cookie
-│   ├── student.py       # Práctica, stats, cursos, procedimientos
+│   ├── student.py       # Práctica, stats, cursos, procedimientos, analyze IA
 │   ├── teacher.py       # Dashboard, grupos, revisión, análisis IA
-│   └── admin.py         # Usuarios, grupos, reportes
+│   ├── admin.py         # Usuarios, grupos, reportes
+│   └── ai.py            # Chat socrático SSE, revisión procedimientos
 └── websocket/           # Notificaciones en tiempo real por room
 
 frontend/                # React 19 + TypeScript + Vite
 ├── src/
 │   ├── stores/          # Zustand: auth, practice, settings
 │   ├── hooks/           # useTimer, useStudentSession, useNotifications
-│   ├── components/      # ELO charts, KatIA, Question, UI
+│   ├── components/      # ELO charts, KatIA, CourseCard, ReportProblem, UI
 │   └── pages/           # Student/, Teacher/, Admin/
 └── vercel.json          # Deploy Vercel con rewrite SPA
 ```
@@ -273,10 +275,16 @@ Ambos hacen deploy automático en cada push a `main`.
 
 ### Solo V2 (backend Render)
 
-| Variable | Descripción |
-|---|---|
-| `SECRET_KEY` | Clave secreta para firmar JWT |
-| `CORS_ORIGINS` | `["https://luislevelupelo.vercel.app"]` |
+| Variable | Descripción | Requerida |
+|---|---|---|
+| `JWT_SECRET_KEY` | Clave secreta para firmar JWT | Sí |
+| `CORS_ORIGINS` | `["https://luislevelupelo.vercel.app"]` | Sí |
+| `SYSTEM_AI_API_KEY` | API key de IA del sistema (Groq, Anthropic, OpenAI, etc.) — todos los estudiantes la usan automáticamente | Sí |
+| `SYSTEM_AI_PROVIDER` | Proveedor explícito (`groq`, `anthropic`, `openai`, `google`). Auto-detectado si vacío | No |
+| `AI_KEY_KATIA` | Key específica para chat socrático KatIA. Si vacía, usa `SYSTEM_AI_API_KEY` | No |
+| `AI_KEY_PROCEDURE` | Key específica para revisión de procedimientos. Si vacía, usa `SYSTEM_AI_API_KEY` | No |
+| `AI_KEY_STUDENT_ANALYSIS` | Key específica para análisis del estudiante. Si vacía, usa `SYSTEM_AI_API_KEY` | No |
+| `AI_KEY_TEACHER_ANALYSIS` | Key específica para análisis docente. Si vacía, usa `SYSTEM_AI_API_KEY` | No |
 
 ### Solo V2 (frontend Vercel)
 
@@ -350,13 +358,13 @@ Plataforma Streamlit estable con Clean Architecture, CI/CD completo, 85% cobertu
 ### V2.0 (en desarrollo activo)
 Reescritura a React 19 + FastAPI. El motor ELO, dominio y banco de preguntas se reutilizan sin cambios. Nueva interfaz moderna, mobile-ready y PWA.
 
-**Estado actual de V2:** Sprints 1-5 completos. Paridad funcional ~90% con V1.
+**Estado actual de V2:** Sprints 1–6 completos. Paridad funcional ~95% con V1.
 - ✅ Sprint 1: KatIA GIFs, timer de sesión, preview ELO, toasts de racha, fechas en gráficos, perfil en sidebar
 - ✅ Sprint 2: Radar chart, heatmap de actividad, ranking del grupo, logros animados, envío de procedimientos
 - ✅ Sprint 3: Panel docente completo (gráfico ELO temporal, historial KatIA, análisis IA, filtros cascada)
 - ✅ Sprint 4: Admin completions (reportes, auditoría, activación, grupos, códigos invitación)
 - ✅ Sprint 5: Mobile, PWA, offline, transiciones Framer Motion, selector de modelo IA
-- ⏳ Sprint 6: Paridad V1 faltante (banners, centro de feedback, reporte problemas, GIFs KatIA en procedimientos)
+- ✅ Sprint 6: Banners pixel art, centro de feedback bidireccional, reporte problemas, revisión IA en vivo con KatIA, API keys del sistema por función
 - ⏳ Sprint 7: Calidad y producción (E2E Playwright, code splitting, error boundaries, skeletons)
 - ⏳ Sprint 8: Pulido y accesibilidad (modo examen, a11y, tema claro/oscuro, métricas)
 

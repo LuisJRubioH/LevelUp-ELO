@@ -1,7 +1,7 @@
 # Plan V2 — LevelUp-ELO: React + FastAPI
 
 Fecha: 2026-04-14 (última revisión 2026-04-15)
-Estado: **Sprints 1-5 cerrados — se agregan Sprints 6-8 para paridad V1 completa, calidad y pulido**
+Estado: **Sprints 1-6 cerrados — Sprint 7 (calidad) y Sprint 8 (pulido) pendientes**
 
 ## Contexto
 
@@ -193,6 +193,8 @@ Deploy actual:
 - [x] 6.2 Centro de feedback del estudiante (bidireccional con badge)
 - [x] 6.3 Formulario de reporte de problemas técnicos
 - [x] 6.4 Revisión de procedimiento con IA + GIFs animados de KatIA en tiempo real
+
+**Completadas:** todas — commit d4bdf1d (banners, feedback, reportes, IA en vivo) + keys del sistema por función
 
 ## Checklist Sprint 7 — Calidad y producción
 
