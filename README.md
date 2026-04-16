@@ -56,8 +56,9 @@ Incluye tres roles (estudiante, docente, admin), un banco de +1.900 preguntas, r
 ### Plataforma completa
 - **Dual DB**: SQLite local y PostgreSQL (Supabase) con API pública idéntica. Selección automática por `DATABASE_URL`.
 - **ELO consultable**: tabla `student_topic_elo` con ELO actual por materia + campo `users.current_elo` global. Se actualizan automáticamente al responder y al validar procedimientos.
+- **Login por email**: registro con correo electrónico, login por username o email, actualización desde perfil.
 - **Tres roles**: estudiante, docente, admin con flujos completos.
-- **Dashboard docente**: ELO temporal por alumno, radar por tópico, historial KatIA, análisis pedagógico con IA, exportación CSV/XLSX.
+- **Dashboard docente**: ELO temporal por alumno (deduplicado), radar por tópico, historial KatIA, análisis pedagógico con IA, exportación CSV/XLSX con `cursos_matriculados`.
 - **Supabase Storage**: procedimientos en bucket privado con fallback BYTEA en DB.
 - **Seguridad**: Argon2id para contraseñas, migración transparente desde SHA-256 legacy.
 - **Ranking de 16 niveles**: Aspirante (0–399) → Leyenda Suprema (2500+).
@@ -370,6 +371,7 @@ Reescritura a React 19 + FastAPI. El motor ELO, dominio y banco de preguntas se 
 - ✅ Sprint 5: Mobile, PWA, offline, transiciones Framer Motion, selector de modelo IA
 - ✅ Sprint 6: Banners pixel art, centro de feedback, reporte problemas, revisión IA en vivo, API keys por función
 - ✅ Post-Sprint 6: KatIA socrático funcional con avatar, procedimiento integrado en práctica, tabla `student_topic_elo`
+- ✅ Email login + deduplicación de estudiantes en dashboard/exports docente
 - ⏳ Sprint 7: Calidad y producción (E2E Playwright, code splitting, error boundaries, skeletons)
 - ⏳ Sprint 8: Pulido y accesibilidad (modo examen, a11y, tema claro/oscuro, métricas)
 

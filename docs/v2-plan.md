@@ -1,7 +1,7 @@
 # Plan V2 — LevelUp-ELO: React + FastAPI
 
 Fecha: 2026-04-14 (última revisión 2026-04-16)
-Estado: **Sprints 1-6 cerrados + fixes post-Sprint 6 — Sprint 7 (calidad) y Sprint 8 (pulido) pendientes**
+Estado: **Sprints 1-6 cerrados + fixes post-Sprint 6 + email/dedup — Sprint 7 (calidad) y Sprint 8 (pulido) pendientes**
 
 ## Contexto
 
@@ -206,6 +206,16 @@ Deploy actual:
 - [x] Nueva tabla `student_topic_elo`: PK `(user_id, topic)`, `current_elo`, `rd`, `updated_at` — ELO por materia consultable directamente
 - [x] Campo `users.current_elo`: ELO global (promedio de `student_topic_elo`), actualizado automáticamente en `save_attempt`, `save_answer_transaction`, `validate_procedure_submission`
 - [x] Backfill `_backfill_current_elo()`: pobla `student_topic_elo` y `users.current_elo` para usuarios existentes al iniciar la app
+- [x] Fix deduplicación: `get_teacher_dashboard_stats` devuelve 1 fila por estudiante (GROUP BY u.id, no group_id)
+- [x] Fix deduplicación: `export_teacher_student_data` reemplaza UNION ALL por CTE — cada intento aparece 1 sola vez
+- [x] Fix deduplicación: `student_count` usa `COUNT(DISTINCT e.user_id)` en vez de `COUNT(*)`
+- [x] Columna `cursos_matriculados` en export (GROUP_CONCAT SQLite / STRING_AGG PostgreSQL)
+- [x] Campo `users.email`: TEXT con UNIQUE parcial (NULL OK), login por username O email
+- [x] Métodos: `get_user_by_login()`, `email_exists()`, `update_user_email()`, `_valid_email_format()`
+- [x] `register_user()` acepta `email` opcional, validación de formato y unicidad
+- [x] `PATCH /student/profile` para actualizar email (409 si ya existe, 422 si formato inválido)
+- [x] V2 Frontend: campo email obligatorio en registro, login por email, banner + form en sidebar para usuarios sin email
+- [x] V1 Streamlit: campo email opcional en registro, label "Usuario o correo electrónico" en login
 
 ## Checklist Sprint 7 — Calidad y producción
 
