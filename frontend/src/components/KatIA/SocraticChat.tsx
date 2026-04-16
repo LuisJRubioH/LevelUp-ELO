@@ -2,10 +2,11 @@
  * components/KatIA/SocraticChat.tsx
  * ===================================
  * Chat socrático con KatIA usando SSE streaming desde /api/ai/socratic.
- * El estudiante escribe su pregunta y ve la respuesta token a token.
+ * Muestra el avatar de KatIA (gata cyborg) junto a cada mensaje.
+ * Personalidad: metáforas felinas + tecnológicas, socrática, nunca revela respuestas.
  */
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useAuthStore } from "../../stores/authStore";
 import { Button } from "../ui/Button";
@@ -24,6 +25,19 @@ interface SocraticChatProps {
   provider?: string;
 }
 
+/** Mensajes de bienvenida con personalidad KatIA (selección del banco domain). */
+const WELCOME_MESSAGES = [
+  "Mis sensores detectan que tienes una duda interesante. Desenredemos este ovillo juntos... ¿qué parte del problema te tiene pensando?",
+  "Mis bigotes vibran de emoción al verte aquí. Como decía Sócrates, la sabiduría comienza con buenas preguntas. ¿Cuál es la tuya?",
+  "Purrr... acabo de calibrar mis circuitos para este tema. ¿En qué parte del problema necesitas que afilemos las garras?",
+  "Bip, bip. Protocolos de tutoría activados. Estoy aquí para guiarte, no para darte la respuesta. ¿Qué te tiene atrapado?",
+  "Mis procesadores están listos y mi curiosidad felina al máximo. ¿Qué parte de este problema quieres explorar conmigo?",
+];
+
+function randomWelcome() {
+  return WELCOME_MESSAGES[Math.floor(Math.random() * WELCOME_MESSAGES.length)];
+}
+
 export function SocraticChat({
   itemId,
   itemContent,
@@ -32,18 +46,23 @@ export function SocraticChat({
   provider = "groq",
 }: SocraticChatProps) {
   const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "katia",
-      text: "¡Hola! Soy KatIA 🐱 ¿En qué parte de este problema necesitas ayuda?",
-    },
+    { role: "katia", text: randomWelcome() },
   ]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { accessToken } = useAuthStore();
 
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
+  }, []);
+
+  // Auto-focus input on mount
+  useEffect(() => {
+    inputRef.current?.focus();
   }, []);
 
   const sendMessage = useCallback(
@@ -55,9 +74,8 @@ export function SocraticChat({
       setInput("");
       setSending(true);
       setMessages((prev) => [...prev, { role: "student", text }]);
-
-      // Agregar mensaje vacío de KatIA que se irá llenando
       setMessages((prev) => [...prev, { role: "katia", text: "", streaming: true }]);
+      scrollToBottom();
 
       try {
         const res = await fetch("/api/ai/socratic", {
@@ -66,6 +84,7 @@ export function SocraticChat({
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
+          credentials: "include",
           body: JSON.stringify({
             item_id: itemId,
             item_content: itemContent,
@@ -104,6 +123,20 @@ export function SocraticChat({
                 );
                 scrollToBottom();
               }
+              if (data.error) {
+                setMessages((prev) =>
+                  prev.map((m, i) =>
+                    i === prev.length - 1
+                      ? {
+                          role: "katia",
+                          text: "Miau... mis circuitos tuvieron un cortocircuito. ¿Puedes intentarlo de nuevo?",
+                          streaming: false,
+                        }
+                      : m,
+                  ),
+                );
+                break;
+              }
               if (data.done) {
                 setMessages((prev) =>
                   prev.map((m, i) =>
@@ -116,48 +149,77 @@ export function SocraticChat({
             }
           }
         }
-      } catch (err) {
+      } catch {
         setMessages((prev) =>
           prev.map((m, i) =>
             i === prev.length - 1
-              ? { role: "katia", text: "Lo siento, ocurrió un error. ¿Puedes intentarlo de nuevo?" }
+              ? {
+                  role: "katia",
+                  text: "Purrr... parece que perdí la conexión. ¿Puedes intentarlo de nuevo?",
+                  streaming: false,
+                }
               : m,
           ),
         );
       } finally {
         setSending(false);
         scrollToBottom();
+        inputRef.current?.focus();
       }
     },
     [input, sending, itemId, itemContent, courseId, apiKey, provider, accessToken, scrollToBottom],
   );
 
   return (
-    <div className="flex flex-col h-80 bg-slate-900 rounded-2xl border border-slate-700">
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-slate-700 flex items-center gap-2">
-        <span className="text-violet-400 font-medium text-sm">🐱 Chat con KatIA</span>
-        <span className="text-xs text-slate-500">(socrático — no da la respuesta)</span>
+    <div className="flex flex-col h-96 bg-[#0A0A0F] rounded-2xl border border-slate-700 overflow-hidden">
+      {/* Header con avatar de KatIA */}
+      <div className="px-4 py-2.5 border-b border-slate-700/80 flex items-center gap-3 bg-[#12121A]">
+        <img
+          src="/katia/katIA.png"
+          alt="KatIA"
+          className="w-8 h-8 rounded-full object-contain ring-2 ring-violet-500/40"
+        />
+        <div className="flex flex-col">
+          <span className="text-violet-300 font-semibold text-sm leading-tight">
+            KatIA
+          </span>
+          <span className="text-[10px] text-slate-500 leading-tight">
+            Tutora socrática — te guía sin dar la respuesta
+          </span>
+        </div>
+        {sending && (
+          <span className="ml-auto text-[10px] text-violet-400 animate-pulse">
+            pensando...
+          </span>
+        )}
       </div>
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
         {messages.map((msg, i) => (
           <div
             key={i}
-            className={`flex ${msg.role === "student" ? "justify-end" : "justify-start"}`}
+            className={`flex gap-2 ${msg.role === "student" ? "justify-end" : "justify-start"}`}
           >
+            {/* Avatar de KatIA junto a sus mensajes */}
+            {msg.role === "katia" && (
+              <img
+                src={msg.streaming ? "/katia/correcto_compressed.gif" : "/katia/katIA.png"}
+                alt="KatIA"
+                className="w-7 h-7 rounded-full object-contain flex-shrink-0 mt-0.5"
+              />
+            )}
             <div
               className={[
-                "max-w-[80%] px-3 py-2 rounded-xl text-sm",
+                "max-w-[80%] px-3 py-2 rounded-xl text-sm leading-relaxed",
                 msg.role === "student"
-                  ? "bg-violet-700 text-white"
-                  : "bg-slate-800 text-slate-200 border border-slate-700",
+                  ? "bg-violet-600/80 text-white rounded-br-sm"
+                  : "bg-slate-800/80 text-slate-200 border border-slate-700/60 rounded-bl-sm",
               ].join(" ")}
             >
-              {msg.text}
+              {msg.text || (msg.streaming ? "" : "...")}
               {msg.streaming && (
-                <span className="inline-block w-1 h-4 bg-violet-400 animate-pulse ml-1" />
+                <span className="inline-block w-1.5 h-4 bg-violet-400 animate-pulse ml-0.5 rounded-sm align-text-bottom" />
               )}
             </div>
           </div>
@@ -166,13 +228,17 @@ export function SocraticChat({
       </div>
 
       {/* Input */}
-      <form onSubmit={sendMessage} className="px-4 py-3 border-t border-slate-700 flex gap-2">
+      <form
+        onSubmit={sendMessage}
+        className="px-3 py-2.5 border-t border-slate-700/80 flex gap-2 bg-[#12121A]"
+      >
         <input
+          ref={inputRef}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="¿Qué no entiendes del problema?"
-          className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-violet-500"
+          placeholder="Escribe tu pregunta a KatIA..."
+          className="flex-1 bg-slate-800/60 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-violet-500/70 transition-colors"
           disabled={sending}
         />
         <Button type="submit" size="sm" loading={sending} disabled={!input.trim()}>

@@ -171,7 +171,8 @@ PostgreSQL: `pg_try_advisory_lock` (no-bloqueante) con IDs 12345–12349. Nunca 
 
 | Tabla | Campos clave |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation` |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` |
+| `student_topic_elo` | PK `(user_id, topic)`, `current_elo`, `rd`, `updated_at` — ELO actual por materia, consultable directamente |
 | `groups` | índice único `(teacher_id, name_normalized)`, `invite_code` (inter-nivel) |
 | `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array taxonomía) |
 | `attempts` | `elo_after`, `prob_failure`, `expected_score`, `time_taken`, `confidence_score`, `error_type` |
@@ -304,8 +305,10 @@ frontend/src/stores/practiceStore.ts     # Zustand: ítem actual, historial sesi
 frontend/src/api/client.ts               # HTTP client (get/post/patch/delete/postForm)
 frontend/src/pages/Student/Practice.tsx  # Sala de práctica
 frontend/src/pages/Student/Stats.tsx     # Estadísticas: radar + heatmap + ranking
-frontend/src/pages/Student/ProcedureUpload.tsx # Subida + revisión IA en vivo
+frontend/src/pages/Student/ProcedureUpload.tsx # Procedimiento abierto (ejercicios de desarrollo)
 frontend/src/pages/Student/Feedback.tsx  # Historial de procedimientos + KatIA
+frontend/src/components/Procedure/ProcedureSection.tsx # Procedimiento inline en Practice (vinculado a pregunta)
+frontend/src/components/KatIA/SocraticChat.tsx # Chat socrático con avatar KatIA
 frontend/src/pages/Teacher/Dashboard.tsx # Panel docente (4 tabs)
 docs/v2-plan.md                          # Checklist de sprints
 ```
@@ -333,8 +336,13 @@ Sprint 6 completado:
 Fixes post-Sprint 6:
 - KatIA chat disponible antes Y después de responder (no solo en feedback)
 - "Explorar" → practicar cursos matriculados / matricularse en nuevos; "Mis matrículas" → gestión
-- Procedimiento auto-vinculado a la pregunta actual del practiceStore
 - KatIA socrático funciona sin API key del usuario (fallback a `SYSTEM_AI_API_KEY`)
+- Fix: endpoint `/ai/socratic` pasaba parámetros incorrectos a `get_socratic_guidance()` — ahora consulta ítem desde DB, calcula ELO del estudiante, y pasa los 10 parámetros correctos
+- KatIA avatar visible en SocraticChat (foto estática + GIF animado mientras piensa)
+- Procedimiento manuscrito integrado en Practice.tsx (vinculado a pregunta actual, como V1)
+- ProcedureUpload.tsx convertida a "Procedimiento abierto" para ejercicios de desarrollo
+- Tabla `student_topic_elo`: ELO actual por materia consultable directamente en DB
+- Campo `users.current_elo`: ELO global actualizado automáticamente al responder/validar
 
 Pendiente:
 - **Sprint 7**: E2E Playwright, code splitting, error boundaries, skeletons

@@ -18,6 +18,7 @@ import { useStudentSession } from "../../hooks/useStudentSession";
 import { useTimer } from "../../hooks/useTimer";
 import { usePracticeStore } from "../../stores/practiceStore";
 import { useSettingsStore } from "../../stores/settingsStore";
+import { ProcedureSection } from "../../components/Procedure/ProcedureSection";
 
 /** Estima delta ELO antes de enviar (K=24, fórmula ELO clásica). */
 function estimateEloDelta(studentElo: number, itemDifficulty: number) {
@@ -370,6 +371,13 @@ export function Practice() {
           )}
         </div>
       )}
+
+      {/* Procedimiento manuscrito — vinculado a la pregunta actual (como V1) */}
+      <ProcedureSection
+        itemId={currentItem.id}
+        itemContent={currentItem.content}
+        courseId={courseId ?? ""}
+      />
     </div>
   );
 }

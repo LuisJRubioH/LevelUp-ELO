@@ -1,7 +1,7 @@
 # Plan V2 — LevelUp-ELO: React + FastAPI
 
-Fecha: 2026-04-14 (última revisión 2026-04-15)
-Estado: **Sprints 1-6 cerrados — Sprint 7 (calidad) y Sprint 8 (pulido) pendientes**
+Fecha: 2026-04-14 (última revisión 2026-04-16)
+Estado: **Sprints 1-6 cerrados + fixes post-Sprint 6 — Sprint 7 (calidad) y Sprint 8 (pulido) pendientes**
 
 ## Contexto
 
@@ -195,6 +195,17 @@ Deploy actual:
 - [x] 6.4 Revisión de procedimiento con IA + GIFs animados de KatIA en tiempo real
 
 **Completadas:** todas — commit d4bdf1d (banners, feedback, reportes, IA en vivo) + keys del sistema por función
+
+## Fixes post-Sprint 6
+
+- [x] Fix `/ai/socratic`: endpoint pasaba 4 args incorrectos a `get_socratic_guidance()` (10 params). Ahora consulta ítem desde DB, calcula ELO del estudiante, auto-detecta proveedor/modelo
+- [x] KatIA SocraticChat: avatar visible (foto estática + GIF animado mientras piensa), mensajes de bienvenida con personalidad, manejo de errores SSE
+- [x] Procedimiento manuscrito integrado en `Practice.tsx` como sección colapsable (`ProcedureSection.tsx`), auto-vinculado al `currentItem`
+- [x] `ProcedureUpload.tsx` convertida a "Procedimiento abierto" para ejercicios de desarrollo / preguntas abiertas
+- [x] Menú: "Procedimientos" renombrado a "Proc. abierto" para evitar confusión
+- [x] Nueva tabla `student_topic_elo`: PK `(user_id, topic)`, `current_elo`, `rd`, `updated_at` — ELO por materia consultable directamente
+- [x] Campo `users.current_elo`: ELO global (promedio de `student_topic_elo`), actualizado automáticamente en `save_attempt`, `save_answer_transaction`, `validate_procedure_submission`
+- [x] Backfill `_backfill_current_elo()`: pobla `student_topic_elo` y `users.current_elo` para usuarios existentes al iniciar la app
 
 ## Checklist Sprint 7 — Calidad y producción
 

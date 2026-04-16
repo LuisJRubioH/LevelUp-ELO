@@ -221,6 +221,9 @@ class PostgresRepository:
         print("Iniciando _seed_test_students...")
         self._seed_test_students()
         print("_seed_test_students OK")
+        print("Iniciando _backfill_current_elo...")
+        self._backfill_current_elo()
+        print("_backfill_current_elo OK")
 
     def get_connection(self, timeout: float = 30.0):
         """Obtiene una conexión del pool. Caller debe devolverla con put_connection().
@@ -566,6 +569,8 @@ class PostgresRepository:
             self._add_column_if_not_exists(cursor, "users", "is_test_user", "INTEGER DEFAULT 0")
             # Grado escolar (solo para education_level = 'semillero'; valores '6'–'11')
             self._add_column_if_not_exists(cursor, "users", "grade", "TEXT")
+            # ELO actual del estudiante — se actualiza al responder y al validar procedimientos
+            self._add_column_if_not_exists(cursor, "users", "current_elo", "REAL DEFAULT 1000.0")
 
             # Asegurar índices si no existen
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
@@ -867,6 +872,26 @@ class PostgresRepository:
                 """
                 CREATE INDEX IF NOT EXISTS idx_achievements_user
                 ON achievements(user_id)
+            """
+            )
+
+            # ── Tabla student_topic_elo (ELO actual por materia, consultable) ──
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS student_topic_elo (
+                    user_id INTEGER NOT NULL REFERENCES users(id),
+                    topic TEXT NOT NULL,
+                    current_elo REAL NOT NULL DEFAULT 1000.0,
+                    rd REAL NOT NULL DEFAULT 350.0,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (user_id, topic)
+                )
+            """
+            )
+            cursor.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_student_topic_elo_topic
+                ON student_topic_elo(topic)
             """
             )
 
@@ -1268,6 +1293,8 @@ class PostgresRepository:
                     rating_deviation,
                 ),
             )
+            # Actualizar current_elo en users (promedio de últimos ELO por tópico)
+            self._update_current_elo(cursor, user_id)
             conn.commit()
         finally:
             self.put_connection(conn)
@@ -1312,6 +1339,8 @@ class PostgresRepository:
                     attempt_data.get("rating_deviation"),
                 ),
             )
+            # Actualizar current_elo en users dentro de la misma transacción
+            self._update_current_elo(cursor, user_id)
             conn.commit()
         except Exception:
             conn.rollback()
@@ -2129,6 +2158,103 @@ class PostgresRepository:
                     elo_map[topic] = (round(1000.0 + total_delta, 2), 350.0)
 
             return elo_map
+        finally:
+            self.put_connection(conn)
+
+    def _update_current_elo(self, cursor, user_id):
+        """Recalcula y persiste ELO por tópico y global tras cada respuesta/validación.
+
+        Actualiza:
+          1. student_topic_elo — fila por cada tópico (UPSERT)
+          2. users.current_elo — promedio global derivado
+
+        Se invoca dentro de transacciones existentes (save_attempt,
+        save_answer_transaction, validate_procedure_submission).
+        No abre ni cierra conexión — recibe el cursor de la transacción padre.
+        """
+        # 1. Upsert ELO por tópico en student_topic_elo
+        cursor.execute(
+            """
+            INSERT INTO student_topic_elo (user_id, topic, current_elo, rd, updated_at)
+            SELECT %s, topic, elo_after, COALESCE(rating_deviation, 350.0), CURRENT_TIMESTAMP
+            FROM (
+                SELECT DISTINCT ON (topic) topic, elo_after, rating_deviation
+                FROM attempts
+                WHERE user_id = %s
+                ORDER BY topic, timestamp DESC
+            ) latest
+            ON CONFLICT (user_id, topic) DO UPDATE
+                SET current_elo = EXCLUDED.current_elo,
+                    rd          = EXCLUDED.rd,
+                    updated_at  = CURRENT_TIMESTAMP
+            """,
+            (user_id, user_id),
+        )
+
+        # 2. Actualizar users.current_elo como promedio de student_topic_elo
+        cursor.execute(
+            """
+            UPDATE users SET current_elo = COALESCE((
+                SELECT ROUND(AVG(current_elo)::numeric, 2)
+                FROM student_topic_elo
+                WHERE user_id = %s
+            ), 1000.0)
+            WHERE id = %s
+            """,
+            (user_id, user_id),
+        )
+
+    def _backfill_current_elo(self):
+        """Rellena student_topic_elo y users.current_elo para usuarios existentes.
+
+        Se ejecuta una sola vez en init_db(). Idempotente: solo inserta filas
+        que no existan aún en student_topic_elo.
+        """
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+            # 1. Poblar student_topic_elo desde attempts (UPSERT masivo)
+            cursor.execute(
+                """
+                INSERT INTO student_topic_elo (user_id, topic, current_elo, rd, updated_at)
+                SELECT user_id, topic, elo_after, COALESCE(rating_deviation, 350.0),
+                       CURRENT_TIMESTAMP
+                FROM (
+                    SELECT DISTINCT ON (user_id, topic)
+                           user_id, topic, elo_after, rating_deviation
+                    FROM attempts
+                    ORDER BY user_id, topic, timestamp DESC
+                ) latest
+                ON CONFLICT (user_id, topic) DO NOTHING
+                """
+            )
+            inserted = cursor.rowcount
+
+            # 2. Actualizar users.current_elo como promedio de student_topic_elo
+            cursor.execute(
+                """
+                UPDATE users u SET current_elo = sub.avg_elo
+                FROM (
+                    SELECT user_id, ROUND(AVG(current_elo)::numeric, 2) AS avg_elo
+                    FROM student_topic_elo
+                    GROUP BY user_id
+                ) sub
+                WHERE u.id = sub.user_id
+                  AND (u.current_elo IS NULL OR u.current_elo = 1000.0)
+                """
+            )
+            updated = cursor.rowcount
+            conn.commit()
+            if inserted > 0 or updated > 0:
+                logger.info(
+                    "_backfill_current_elo: %d filas topic_elo, %d usuarios actualizados",
+                    inserted,
+                    updated,
+                )
+        except Exception as e:
+            conn.rollback()
+            logger.warning("_backfill_current_elo falló: %s", e)
         finally:
             self.put_connection(conn)
 
@@ -4090,9 +4216,13 @@ class PostgresRepository:
                     status           = 'VALIDATED_BY_TEACHER',
                     reviewed_at      = CURRENT_TIMESTAMP
                 WHERE id = %s
+                RETURNING student_id
             """,
                 (teacher_score, teacher_score, feedback or None, elo_delta, submission_id),
             )
+            row = cursor.fetchone()
+            if row:
+                self._update_current_elo(cursor, row["student_id"])
             conn.commit()
         finally:
             self.put_connection(conn)

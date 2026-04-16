@@ -1,8 +1,9 @@
 /**
  * pages/Student/ProcedureUpload.tsx
  * ===================================
- * Subida de procedimiento con revisión IA en vivo (paridad con V1).
- * Máquina de estados: idle → analyzing (KatIA revisando) → result → sent.
+ * Subida de procedimiento para preguntas abiertas / ejercicios externos.
+ * Para procedimientos vinculados a preguntas de selección múltiple,
+ * el estudiante usa la sección integrada en Practice.tsx.
  */
 
 import { useRef, useState } from "react";
@@ -13,7 +14,6 @@ import { Button } from "../../components/ui/Button";
 import { studentApi, type ProcedureReview } from "../../api/student";
 import { apiClient } from "../../api/client";
 import { useSettingsStore } from "../../stores/settingsStore";
-import { usePracticeStore } from "../../stores/practiceStore";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 const MAX_SIZE_MB = 10;
@@ -27,20 +27,21 @@ function scoreColor(score: number): string {
 }
 
 function katiaMessage(score: number): string {
-  if (score >= 91) return "¡Excelente procedimiento! Tu razonamiento es claro y riguroso. 🎉";
-  if (score >= 60) return "Vas bien — hay algunos pasos que puedes afinar. Revisa los comentarios.";
-  return "Hay errores importantes. No te rindas: revisa los pasos marcados y vuelve a intentarlo.";
+  if (score >= 91)
+    return "Miau-ravilloso! Tu procedimiento es una obra de arte. Mis procesadores ronronean de alegría.";
+  if (score >= 60)
+    return "Casi purrr-fecto! Solo nos faltó afinar un detallito. Revisa los comentarios abajo.";
+  return "Detecto un pequeño enredo en los cables de este procedimiento. Revisa los pasos marcados y vuelve a intentarlo.";
 }
 
 export function ProcedureUpload() {
   const fileRef = useRef<HTMLInputElement>(null);
   const { apiKey } = useSettingsStore();
-  const practiceItem = usePracticeStore((s) => s.currentItem);
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [selectedItem, setSelectedItem] = useState<string>(practiceItem?.id ?? "");
-  const [itemContent, setItemContent] = useState<string>(practiceItem?.content ?? "");
+  const [selectedItem, setSelectedItem] = useState<string>("");
+  const [itemContent, setItemContent] = useState<string>("");
   const [stage, setStage] = useState<Stage>("idle");
   const [error, setError] = useState<string | null>(null);
   const [review, setReview] = useState<ProcedureReview | null>(null);
@@ -130,10 +131,10 @@ export function ProcedureUpload() {
   if (stage === "sent") {
     return (
       <div className="max-w-xl mx-auto py-8 px-4 space-y-6">
-        <h2 className="text-xl font-bold text-white">Enviar procedimiento</h2>
+        <h2 className="text-xl font-bold text-white">Procedimiento enviado</h2>
         <KatIAAvatar
           state="correct"
-          message="¡Recibido! Tu docente revisará tu procedimiento pronto. Sigue practicando 🐱"
+          message="Recibido! Tu docente revisará tu procedimiento pronto. Sigue practicando."
           size="md"
         />
         <Button variant="secondary" onClick={resetAll} className="w-full">
@@ -145,12 +146,16 @@ export function ProcedureUpload() {
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4 space-y-6">
-      <h2 className="text-xl font-bold text-white">Enviar procedimiento</h2>
-      <p className="text-sm text-slate-400">
-        Sube tu procedimiento manuscrito. {canAnalyze
-          ? "La IA lo revisará en vivo antes de enviar al docente."
-          : "Tu docente lo revisará y asignará un puntaje."}
-      </p>
+      <h2 className="text-xl font-bold text-white">Procedimiento abierto</h2>
+      <div className="rounded-xl border border-slate-700/50 bg-[#12121A] p-4 space-y-1">
+        <p className="text-sm text-slate-300">
+          Sube el procedimiento de un ejercicio de desarrollo o pregunta abierta.
+        </p>
+        <p className="text-xs text-slate-500">
+          Si estás respondiendo una pregunta de selección múltiple, usa el botón
+          "Subir procedimiento manuscrito" que aparece debajo de la pregunta en la sala de práctica.
+        </p>
+      </div>
 
       {/* Identificación del ejercicio */}
       {stage === "idle" && (
@@ -159,19 +164,13 @@ export function ProcedureUpload() {
             <label className="block text-xs text-slate-400 mb-1.5">
               Identificador del ejercicio <span className="text-red-400">*</span>
             </label>
-
             <input
               type="text"
               value={selectedItem}
               onChange={(e) => setSelectedItem(e.target.value)}
-              placeholder="ej: cd_14, alg_07 (ID del ítem)"
+              placeholder="ej: ejercicio_1, taller_3_p5, parcial_2_p3"
               className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500"
             />
-            {practiceItem && selectedItem === practiceItem.id && (
-              <p className="text-xs text-emerald-400 mt-1">
-                ✓ Asociado a la pregunta que estás practicando
-              </p>
-            )}
             {enrolled.length > 0 && (
               <p className="text-xs text-slate-600 mt-1">
                 Cursos matriculados: {enrolled.map((c) => c.name).join(", ")}
@@ -182,13 +181,13 @@ export function ProcedureUpload() {
           {canAnalyze && (
             <div>
               <label className="block text-xs text-slate-400 mb-1.5">
-                Enunciado del ejercicio (opcional, mejora el análisis)
+                Enunciado del ejercicio (mejora el análisis de la IA)
               </label>
               <textarea
                 value={itemContent}
                 onChange={(e) => setItemContent(e.target.value)}
-                rows={2}
-                placeholder="Pega el enunciado para que la IA verifique que tu procedimiento corresponde…"
+                rows={3}
+                placeholder="Pega el enunciado del ejercicio para que la IA verifique que tu procedimiento corresponde..."
                 className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500 resize-none"
               />
             </div>
@@ -290,7 +289,6 @@ export function ProcedureUpload() {
               </Button>
               <p className="text-xs text-slate-500 text-center">
                 La revisión automática con IA no está disponible en este momento.
-                Tu docente revisará el procedimiento manualmente.
               </p>
             </>
           )}
@@ -309,7 +307,7 @@ export function ProcedureUpload() {
             KatIA está revisando tu procedimiento…
           </p>
           <p className="text-xs text-slate-500">
-            Analizando con rigor matemático (Llama 4 Scout). Suele tardar 10–30 s.
+            Analizando con rigor matemático. Suele tardar 10–30 s.
           </p>
           <div className="flex justify-center">
             <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
@@ -353,8 +351,7 @@ export function ProcedureUpload() {
             {review.corresponde_a_pregunta === false && (
               <div className="rounded-xl border border-amber-600 bg-amber-900/20 p-3">
                 <p className="text-sm text-amber-300">
-                  ⚠️ El procedimiento no corresponde al enunciado proporcionado. Revisa antes de
-                  enviar.
+                  ⚠️ El procedimiento no corresponde al enunciado proporcionado.
                 </p>
               </div>
             )}
@@ -362,7 +359,9 @@ export function ProcedureUpload() {
             <div className="rounded-2xl border border-slate-700 bg-[#12121A] p-5 space-y-4">
               <div className="flex items-baseline justify-between">
                 <h3 className="text-sm font-semibold text-slate-200">
-                  {usedProvider === "groq" ? "🔬 Revisión Matemática Rigurosa" : "🔍 Retroalimentación de la IA"}
+                  {usedProvider === "groq"
+                    ? "🔬 Revisión Matemática Rigurosa"
+                    : "🔍 Retroalimentación de la IA"}
                 </h3>
                 {review.score_procedimiento != null && (
                   <span
@@ -373,8 +372,7 @@ export function ProcedureUpload() {
                 )}
               </div>
               <p className="text-xs text-slate-500">
-                ⏳ Nota propuesta por IA — pendiente de validación docente. El ELO solo se ajusta
-                con la calificación del profesor.
+                Nota propuesta por IA — el ELO solo se ajusta con la calificación del profesor.
               </p>
 
               {review.transcripcion && (
@@ -396,11 +394,12 @@ export function ProcedureUpload() {
                   <ul className="mt-2 space-y-2">
                     {review.pasos.map((p, i) => {
                       const ev = (p.evaluacion ?? "").toLowerCase();
-                      const color = ev === "valido"
-                        ? "text-emerald-400"
-                        : ev.includes("incorrecto")
-                          ? "text-rose-400"
-                          : "text-amber-400";
+                      const color =
+                        ev === "valido"
+                          ? "text-emerald-400"
+                          : ev.includes("incorrecto")
+                            ? "text-rose-400"
+                            : "text-amber-400";
                       return (
                         <li
                           key={i}
@@ -409,7 +408,9 @@ export function ProcedureUpload() {
                           <div className="font-medium text-slate-200">
                             Paso {p.numero ?? i + 1}
                           </div>
-                          {p.contenido && <div className="text-slate-400">{p.contenido}</div>}
+                          {p.contenido && (
+                            <div className="text-slate-400">{p.contenido}</div>
+                          )}
                           <div className={color}>▶ {p.evaluacion}</div>
                           {p.comentario && (
                             <div className="text-slate-500 italic">{p.comentario}</div>

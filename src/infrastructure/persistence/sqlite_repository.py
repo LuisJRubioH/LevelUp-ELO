@@ -22,6 +22,7 @@ class SQLiteRepository:
         self._backfill_prob_failure()
         self.sync_items_from_bank_folder()
         self._seed_test_students()
+        self._backfill_current_elo()
 
     def get_connection(self, timeout: float = 30.0):
         return sqlite3.connect(self.db_name, timeout=timeout)
@@ -271,6 +272,8 @@ class SQLiteRepository:
         self._add_column_if_not_exists(cursor, "users", "is_test_user", "INTEGER DEFAULT 0")
         # Grado escolar (solo para education_level = 'semillero'; valores '6'–'11')
         self._add_column_if_not_exists(cursor, "users", "grade", "TEXT")
+        # ELO actual del estudiante — se actualiza al responder y al validar procedimientos
+        self._add_column_if_not_exists(cursor, "users", "current_elo", "REAL DEFAULT 1000.0")
 
         # Asegurar índices si no existen
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
@@ -566,6 +569,27 @@ class SQLiteRepository:
             """
             CREATE INDEX IF NOT EXISTS idx_achievements_user
             ON achievements(user_id)
+        """
+        )
+
+        # ── Tabla student_topic_elo (ELO actual por materia, consultable) ──
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS student_topic_elo (
+                user_id INTEGER NOT NULL,
+                topic TEXT NOT NULL,
+                current_elo REAL NOT NULL DEFAULT 1000.0,
+                rd REAL NOT NULL DEFAULT 350.0,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, topic),
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_student_topic_elo_topic
+            ON student_topic_elo(topic)
         """
         )
 
@@ -923,6 +947,8 @@ class SQLiteRepository:
                 rating_deviation,
             ),
         )
+        # Actualizar current_elo en users (promedio de últimos ELO por tópico)
+        self._update_current_elo(cursor, user_id)
         conn.commit()
         conn.close()
 
@@ -967,6 +993,8 @@ class SQLiteRepository:
                     attempt_data.get("rating_deviation"),
                 ),
             )
+            # Actualizar current_elo en users dentro de la misma transacción
+            self._update_current_elo(cursor, user_id)
             conn.commit()
         except Exception:
             conn.rollback()
@@ -1762,6 +1790,87 @@ class SQLiteRepository:
 
         conn.close()
         return elo_map
+
+    def _update_current_elo(self, cursor, user_id):
+        """Recalcula y persiste ELO por tópico y global tras cada respuesta/validación.
+
+        Actualiza:
+          1. student_topic_elo — fila por cada tópico (UPSERT)
+          2. users.current_elo — promedio global derivado
+
+        Se invoca dentro de transacciones existentes (save_attempt,
+        save_answer_transaction, validate_procedure_submission).
+        No abre ni cierra conexión — recibe el cursor de la transacción padre.
+        """
+        # 1. Upsert ELO por tópico en student_topic_elo
+        cursor.execute(
+            """
+            INSERT OR REPLACE INTO student_topic_elo (user_id, topic, current_elo, rd, updated_at)
+            SELECT ?, a1.topic, a1.elo_after, COALESCE(a1.rating_deviation, 350.0),
+                   CURRENT_TIMESTAMP
+            FROM attempts a1
+            WHERE a1.user_id = ?
+              AND a1.timestamp = (
+                  SELECT MAX(a2.timestamp) FROM attempts a2
+                  WHERE a2.user_id = a1.user_id AND a2.topic = a1.topic
+              )
+            """,
+            (user_id, user_id),
+        )
+
+        # 2. Actualizar users.current_elo como promedio de student_topic_elo
+        cursor.execute(
+            """
+            UPDATE users SET current_elo = COALESCE((
+                SELECT ROUND(AVG(current_elo), 2)
+                FROM student_topic_elo
+                WHERE user_id = ?
+            ), 1000.0)
+            WHERE id = ?
+            """,
+            (user_id, user_id),
+        )
+
+    def _backfill_current_elo(self):
+        """Rellena student_topic_elo y users.current_elo para usuarios existentes.
+
+        Idempotente: usa INSERT OR IGNORE para no sobreescribir datos existentes.
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            # 1. Poblar student_topic_elo desde attempts
+            cursor.execute(
+                """
+                INSERT OR IGNORE INTO student_topic_elo
+                    (user_id, topic, current_elo, rd, updated_at)
+                SELECT a1.user_id, a1.topic, a1.elo_after,
+                       COALESCE(a1.rating_deviation, 350.0), CURRENT_TIMESTAMP
+                FROM attempts a1
+                WHERE a1.timestamp = (
+                    SELECT MAX(a2.timestamp) FROM attempts a2
+                    WHERE a2.user_id = a1.user_id AND a2.topic = a1.topic
+                )
+                """
+            )
+
+            # 2. Actualizar users.current_elo como promedio
+            cursor.execute(
+                """
+                UPDATE users SET current_elo = (
+                    SELECT ROUND(AVG(current_elo), 2)
+                    FROM student_topic_elo
+                    WHERE user_id = users.id
+                )
+                WHERE (current_elo IS NULL OR current_elo = 1000.0)
+                  AND EXISTS (SELECT 1 FROM student_topic_elo WHERE user_id = users.id)
+                """
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+        finally:
+            conn.close()
 
     def get_user_history_full(self, user_id):
         """Devuelve historial completo para gráficas: [{'timestamp':..., 'topic':..., 'elo':..., 'time_taken':...}]"""
@@ -3445,7 +3554,8 @@ class SQLiteRepository:
         elo_delta = round((teacher_score - 50.0) * 0.2, 4)
 
         conn = self.get_connection()
-        conn.execute(
+        cursor = conn.cursor()
+        cursor.execute(
             """
             UPDATE procedure_submissions
             SET teacher_score    = ?,
@@ -3458,6 +3568,14 @@ class SQLiteRepository:
         """,
             (teacher_score, teacher_score, feedback or None, elo_delta, submission_id),
         )
+        # Recalcular current_elo del estudiante
+        cursor.execute(
+            "SELECT student_id FROM procedure_submissions WHERE id = ?",
+            (submission_id,),
+        )
+        row = cursor.fetchone()
+        if row:
+            self._update_current_elo(cursor, row[0])
         conn.commit()
         conn.close()
 

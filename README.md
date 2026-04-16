@@ -55,6 +55,7 @@ Incluye tres roles (estudiante, docente, admin), un banco de +1.900 preguntas, r
 
 ### Plataforma completa
 - **Dual DB**: SQLite local y PostgreSQL (Supabase) con API pública idéntica. Selección automática por `DATABASE_URL`.
+- **ELO consultable**: tabla `student_topic_elo` con ELO actual por materia + campo `users.current_elo` global. Se actualizan automáticamente al responder y al validar procedimientos.
 - **Tres roles**: estudiante, docente, admin con flujos completos.
 - **Dashboard docente**: ELO temporal por alumno, radar por tópico, historial KatIA, análisis pedagógico con IA, exportación CSV/XLSX.
 - **Supabase Storage**: procedimientos en bucket privado con fallback BYTEA en DB.
@@ -125,7 +126,7 @@ frontend/                # React 19 + TypeScript + Vite
 ├── src/
 │   ├── stores/          # Zustand: auth, practice, settings
 │   ├── hooks/           # useTimer, useStudentSession, useNotifications
-│   ├── components/      # ELO charts, KatIA, CourseCard, ReportProblem, UI
+│   ├── components/      # ELO, KatIA (avatar+chat), Procedure, CourseCard, UI
 │   └── pages/           # Student/, Teacher/, Admin/
 └── vercel.json          # Deploy Vercel con rewrite SPA
 ```
@@ -140,7 +141,10 @@ frontend/                # React 19 + TypeScript + Vite
 StudentService.process_answer()
   ├→ VectorRating.update()          ← aplica delta ELO al tópico
   ├→ Repository.update_item_rating() ← actualiza dificultad del ítem
-  └→ Repository.save_attempt()       ← persiste metadatos del intento
+  └→ Repository.save_answer_transaction()
+       ├→ INSERT attempts            ← persiste metadatos del intento
+       ├→ UPSERT student_topic_elo   ← ELO actual por materia
+       └→ UPDATE users.current_elo   ← ELO global promedio
 ```
 
 Todo ocurre en una **transacción atómica** — si falla el update del ítem, el intento tampoco se guarda.
@@ -358,13 +362,14 @@ Plataforma Streamlit estable con Clean Architecture, CI/CD completo, 85% cobertu
 ### V2.0 (en desarrollo activo)
 Reescritura a React 19 + FastAPI. El motor ELO, dominio y banco de preguntas se reutilizan sin cambios. Nueva interfaz moderna, mobile-ready y PWA.
 
-**Estado actual de V2:** Sprints 1–6 completos. Paridad funcional ~95% con V1.
+**Estado actual de V2:** Sprints 1–6 completos. Paridad funcional ~98% con V1.
 - ✅ Sprint 1: KatIA GIFs, timer de sesión, preview ELO, toasts de racha, fechas en gráficos, perfil en sidebar
 - ✅ Sprint 2: Radar chart, heatmap de actividad, ranking del grupo, logros animados, envío de procedimientos
 - ✅ Sprint 3: Panel docente completo (gráfico ELO temporal, historial KatIA, análisis IA, filtros cascada)
 - ✅ Sprint 4: Admin completions (reportes, auditoría, activación, grupos, códigos invitación)
 - ✅ Sprint 5: Mobile, PWA, offline, transiciones Framer Motion, selector de modelo IA
-- ✅ Sprint 6: Banners pixel art, centro de feedback bidireccional, reporte problemas, revisión IA en vivo con KatIA, API keys del sistema por función
+- ✅ Sprint 6: Banners pixel art, centro de feedback, reporte problemas, revisión IA en vivo, API keys por función
+- ✅ Post-Sprint 6: KatIA socrático funcional con avatar, procedimiento integrado en práctica, tabla `student_topic_elo`
 - ⏳ Sprint 7: Calidad y producción (E2E Playwright, code splitting, error boundaries, skeletons)
 - ⏳ Sprint 8: Pulido y accesibilidad (modo examen, a11y, tema claro/oscuro, métricas)
 
