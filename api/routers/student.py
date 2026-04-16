@@ -512,6 +512,30 @@ def submit_problem_report(body: dict, user: CurrentUser, repo: RepoDep):
     return {"message": "Reporte enviado. Gracias por avisarnos."}
 
 
+# ── Perfil ───────────────────────────────────────────────────────────────────
+
+
+@router.patch("/profile")
+def update_profile(body: dict, user: CurrentUser, repo: RepoDep):
+    """Actualiza el correo electrónico del estudiante."""
+    email = (body.get("email") or "").strip()
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="El correo electrónico es obligatorio.",
+        )
+    try:
+        repo.update_user_email(user["user_id"], email)
+    except ValueError as e:
+        code = (
+            status.HTTP_409_CONFLICT
+            if "registrado" in str(e)
+            else status.HTTP_422_UNPROCESSABLE_ENTITY
+        )
+        raise HTTPException(status_code=code, detail=str(e))
+    return {"message": "Correo actualizado correctamente."}
+
+
 # ── Modo Examen ───────────────────────────────────────────────────────────────
 
 

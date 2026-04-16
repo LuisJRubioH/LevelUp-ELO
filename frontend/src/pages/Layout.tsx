@@ -11,6 +11,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "../components/ui/PageTransition";
 import { authApi } from "../api/auth";
+import { api } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
 import { useSettingsStore, PROVIDER_MODELS } from "../stores/settingsStore";
 import { useNotifications } from "../hooks/useNotifications";
@@ -68,11 +69,39 @@ function useSessionTimer(sessionStartTime: number | null) {
 export function Layout({ children }: LayoutProps) {
   const { user, sessionStartTime, clearAuth } = useAuthStore();
   const { apiKey, provider, model, setApiKey, setProvider, setModel } = useSettingsStore();
+  const updateUser = useAuthStore((s) => s.updateUser);
   const availableModels = PROVIDER_MODELS[provider] ?? [];
   const location = useLocation();
   const navigate = useNavigate();
   const [showIAConfig, setShowIAConfig] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
   const sessionFormatted = useSessionTimer(sessionStartTime ?? null);
+
+  const handleSaveEmail = async () => {
+    setEmailError("");
+    if (!emailInput.includes("@") || !emailInput.includes(".")) {
+      setEmailError("Ingresa un correo válido.");
+      return;
+    }
+    setEmailSaving(true);
+    try {
+      await api.patch("/api/student/profile", { email: emailInput });
+      updateUser({ email: emailInput });
+      setShowEmailForm(false);
+      setEmailInput("");
+    } catch (err: unknown) {
+      setEmailError(err instanceof Error ? err.message : "Error al guardar.");
+    } finally {
+      setEmailSaving(false);
+    }
+  };
+
+  const maskedEmail = user?.email
+    ? user.email.replace(/^(.{2})(.*)(@.*)$/, (_, a, b, c) => a + b.replace(/./g, "*") + c)
+    : null;
 
   // Notificaciones en tiempo real según rol
   const wsRoom = user
@@ -234,9 +263,56 @@ export function Layout({ children }: LayoutProps) {
           <div className="text-xs text-slate-300 font-medium truncate mb-0.5">{user?.username}</div>
           <div className="text-xs text-slate-600 mb-0.5">{user?.role}</div>
           {user?.education_level && (
-            <div className="text-xs text-slate-600 mb-2">
+            <div className="text-xs text-slate-600 mb-1">
               {user.education_level}
               {user.grade ? ` · Grado ${user.grade}` : ""}
+            </div>
+          )}
+          {/* Email */}
+          {user && !user.email && !showEmailForm && (
+            <button
+              onClick={() => setShowEmailForm(true)}
+              className="w-full text-left text-xs bg-amber-500/10 text-amber-400 rounded px-2 py-1.5 mb-2 hover:bg-amber-500/20 transition-colors"
+            >
+              Agrega tu correo para no perder acceso
+            </button>
+          )}
+          {user?.email && !showEmailForm && (
+            <div className="flex items-center gap-1 mb-2">
+              <span className="text-xs text-slate-600 truncate">{maskedEmail}</span>
+              <button
+                onClick={() => { setShowEmailForm(true); setEmailInput(""); setEmailError(""); }}
+                className="text-xs text-violet-400 hover:text-violet-300 shrink-0"
+              >
+                Cambiar
+              </button>
+            </div>
+          )}
+          {showEmailForm && (
+            <div className="mb-2 space-y-1">
+              <input
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="correo@ejemplo.com"
+                className="w-full bg-slate-900 border border-slate-600 rounded text-xs text-slate-300 px-2 py-1 focus:outline-none focus:border-violet-500 placeholder-slate-600"
+              />
+              {emailError && <p className="text-xs text-red-400">{emailError}</p>}
+              <div className="flex gap-1">
+                <button
+                  onClick={handleSaveEmail}
+                  disabled={emailSaving}
+                  className="flex-1 text-xs bg-violet-600 hover:bg-violet-500 text-white rounded px-2 py-1 disabled:opacity-50"
+                >
+                  {emailSaving ? "..." : "Guardar"}
+                </button>
+                <button
+                  onClick={() => setShowEmailForm(false)}
+                  className="text-xs text-slate-500 hover:text-slate-400 px-2 py-1"
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           )}
           {/* Timer de sesión global */}

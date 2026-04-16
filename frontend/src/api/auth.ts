@@ -17,6 +17,7 @@ export interface RegisterRequest {
   role: "student" | "teacher";
   education_level?: "universidad" | "colegio" | "semillero";
   grade?: string;
+  email?: string;
 }
 
 export interface TokenResponse {
@@ -35,6 +36,7 @@ export interface UserProfile {
   approved: boolean;
   education_level: string | null;
   grade: string | null;
+  email: string | null;
 }
 
 export const authApi = {

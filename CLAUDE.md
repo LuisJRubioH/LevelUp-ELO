@@ -171,7 +171,7 @@ PostgreSQL: `pg_try_advisory_lock` (no-bloqueante) con IDs 12345–12349. Nunca 
 
 | Tabla | Campos clave |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo`, `email` (UNIQUE parcial, NULL OK) |
 | `student_topic_elo` | PK `(user_id, topic)`, `current_elo`, `rd`, `updated_at` — ELO actual por materia, consultable directamente |
 | `groups` | índice único `(teacher_id, name_normalized)`, `invite_code` (inter-nivel) |
 | `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array taxonomía) |
@@ -343,6 +343,8 @@ Fixes post-Sprint 6:
 - ProcedureUpload.tsx convertida a "Procedimiento abierto" para ejercicios de desarrollo
 - Tabla `student_topic_elo`: ELO actual por materia consultable directamente en DB
 - Campo `users.current_elo`: ELO global actualizado automáticamente al responder/validar
+- Fix: deduplicación de estudiantes en dashboard docente — GROUP BY u.id, COUNT(DISTINCT), cursos_matriculados
+- Email de usuario: campo `email` con UNIQUE parcial, login por username o email, PATCH /student/profile
 
 Pendiente:
 - **Sprint 7**: E2E Playwright, code splitting, error boundaries, skeletons

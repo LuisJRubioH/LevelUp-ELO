@@ -18,6 +18,7 @@ class RegisterRequest(BaseModel):
     role: str = Field(default="student", pattern="^(student|teacher)$")
     education_level: str | None = Field(default=None, pattern="^(universidad|colegio|semillero)$")
     grade: str | None = Field(default=None, pattern="^([6-9]|10|11)$")
+    email: str | None = Field(default=None, max_length=254)
 
 
 class TokenResponse(BaseModel):
@@ -40,3 +41,4 @@ class UserProfile(BaseModel):
     approved: bool
     education_level: str | None
     grade: str | None
+    email: str | None = None

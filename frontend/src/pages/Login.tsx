@@ -32,6 +32,7 @@ export function Login() {
   const [regData, setRegData] = useState({
     username: "",
     password: "",
+    email: "",
     education_level: "colegio" as "universidad" | "colegio" | "semillero",
     grade: "9",
   });
@@ -49,6 +50,7 @@ export function Login() {
         role: res.role as AuthUser["role"],
         education_level: null,
         grade: null,
+        email: null,
       });
       const profile = await authApi.me();
       setAuth(res.access_token, profile as AuthUser);
@@ -66,8 +68,11 @@ export function Login() {
     setLoading(true);
     try {
       await authApi.register({
-        ...regData,
+        username: regData.username,
+        password: regData.password,
+        email: regData.email || undefined,
         role: selectedRole,
+        education_level: regData.education_level,
         grade: regData.education_level === "semillero" ? regData.grade : undefined,
       });
       // Auto-login tras registro
@@ -81,6 +86,7 @@ export function Login() {
         role: res.role as AuthUser["role"],
         education_level: null,
         grade: null,
+        email: null,
       });
       const profile = await authApi.me();
       setAuth(res.access_token, profile as AuthUser);
@@ -116,12 +122,13 @@ export function Login() {
               <h2 className="text-xl font-semibold text-white mb-6">Iniciar sesión</h2>
 
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Usuario</label>
+                <label className="block text-sm text-slate-400 mb-1">Usuario o correo electrónico</label>
                 <input
                   type="text"
                   value={loginData.username}
                   onChange={(e) => setLoginData((d) => ({ ...d, username: e.target.value }))}
-                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500"
+                  placeholder="usuario o correo@ejemplo.com"
+                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500 placeholder-slate-600"
                   required
                 />
               </div>
@@ -226,6 +233,18 @@ export function Login() {
                   onChange={(e) => setRegData((d) => ({ ...d, password: e.target.value }))}
                   minLength={6}
                   className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Correo electrónico *</label>
+                <input
+                  type="email"
+                  value={regData.email}
+                  onChange={(e) => setRegData((d) => ({ ...d, email: e.target.value }))}
+                  placeholder="correo@ejemplo.com"
+                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500 placeholder-slate-600"
                   required
                 />
               </div>

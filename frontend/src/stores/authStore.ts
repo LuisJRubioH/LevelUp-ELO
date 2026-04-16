@@ -14,6 +14,7 @@ export interface AuthUser {
   role: "student" | "teacher" | "admin";
   education_level: string | null;
   grade: string | null;
+  email: string | null;
 }
 
 interface AuthState {

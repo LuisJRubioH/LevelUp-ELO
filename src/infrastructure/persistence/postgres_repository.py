@@ -571,6 +571,14 @@ class PostgresRepository:
             self._add_column_if_not_exists(cursor, "users", "grade", "TEXT")
             # ELO actual del estudiante — se actualiza al responder y al validar procedimientos
             self._add_column_if_not_exists(cursor, "users", "current_elo", "REAL DEFAULT 1000.0")
+            # Correo electrónico — NULL para usuarios existentes, UNIQUE parcial (solo no-NULL)
+            self._add_column_if_not_exists(cursor, "users", "email", "TEXT")
+            cursor.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
+                ON users(email) WHERE email IS NOT NULL
+            """
+            )
 
             # Asegurar índices si no existen
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
@@ -1159,16 +1167,32 @@ class PostgresRepository:
 
     @_timing
     def register_user(
-        self, username, password, role="student", group_id=None, education_level=None, grade=None
+        self,
+        username,
+        password,
+        role="student",
+        group_id=None,
+        education_level=None,
+        grade=None,
+        email=None,
     ):
         """Registra un nuevo usuario.
 
         `grade` solo aplica cuando education_level = 'semillero' ('6'–'11').
+        `email` opcional — si se provee, se valida formato y unicidad.
         """
         if not password or not password.strip():
             return False, "La contraseña es obligatoria."
         if len(password.strip()) < 6:
             return False, "La contraseña debe tener al menos 6 caracteres."
+        # Validar email si se provee
+        if email is not None:
+            email = email.strip() or None
+        if email is not None:
+            if not self._valid_email_format(email):
+                return False, "Formato de correo inválido."
+            if self.email_exists(email):
+                return False, "Este correo ya está registrado."
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -1176,9 +1200,10 @@ class PostgresRepository:
             approved = 0 if role == "teacher" else 1
             _grade = grade if education_level == "semillero" else None
             cursor.execute(
-                "INSERT INTO users (username, password_hash, role, approved, group_id, rating_deviation, education_level, grade) "
-                "VALUES (%s, %s, %s, %s, %s, 350.0, %s, %s)",
-                (username, password_hash, role, approved, group_id, education_level, _grade),
+                "INSERT INTO users (username, password_hash, role, approved, group_id, "
+                "rating_deviation, education_level, grade, email) "
+                "VALUES (%s, %s, %s, %s, %s, 350.0, %s, %s, %s)",
+                (username, password_hash, role, approved, group_id, education_level, _grade, email),
             )
             conn.commit()
             return True, "Registro exitoso."
@@ -1215,9 +1240,12 @@ class PostgresRepository:
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
+            # Buscar por username O email
             cursor.execute(
-                "SELECT id, username, role, approved, password_hash FROM users WHERE username = %s AND active = 1",
-                (username,),
+                "SELECT id, username, role, approved, password_hash "
+                "FROM users WHERE (username = %s OR (email = %s AND email IS NOT NULL)) AND active = 1 "
+                "LIMIT 1",
+                (username, username),
             )
             row = cursor.fetchone()
         finally:
@@ -1251,6 +1279,54 @@ class PostgresRepository:
                 return (user_id, uname, role, approved)
 
         return None  # Credenciales inválidas o usuario inactivo
+
+    # ── Email helpers ────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _valid_email_format(email: str) -> bool:
+        import re
+
+        return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email))
+
+    def get_user_by_login(self, login: str):
+        """Busca usuario por username O email. Retorna dict o None."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT id, username, role, approved, password_hash "
+                "FROM users WHERE (username = %s OR (email = %s AND email IS NOT NULL)) AND active = 1 "
+                "LIMIT 1",
+                (login, login),
+            )
+            return cursor.fetchone()
+        finally:
+            self.put_connection(conn)
+
+    def email_exists(self, email: str) -> bool:
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT COUNT(*) AS cnt FROM users WHERE email = %s AND email IS NOT NULL",
+                (email,),
+            )
+            return cursor.fetchone()["cnt"] > 0
+        finally:
+            self.put_connection(conn)
+
+    def update_user_email(self, user_id: int, email: str) -> None:
+        if not self._valid_email_format(email):
+            raise ValueError("Formato de correo inválido")
+        if self.email_exists(email):
+            raise ValueError("Este correo ya está registrado")
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute("UPDATE users SET email = %s WHERE id = %s", (email, user_id))
+            conn.commit()
+        finally:
+            self.put_connection(conn)
 
     @_timing
     def save_attempt(
@@ -2483,7 +2559,7 @@ class PostgresRepository:
                     """
                     SELECT g.id AS group_id, g.name AS group_name, g.course_id,
                            c.name AS course_name, u.id AS teacher_id, u.username AS teacher_name,
-                           (SELECT COUNT(*) FROM enrollments e WHERE e.group_id = g.id) AS student_count
+                           (SELECT COUNT(DISTINCT e.user_id) FROM enrollments e WHERE e.group_id = g.id) AS student_count
                     FROM groups g
                     JOIN users u ON g.teacher_id = u.id
                     JOIN courses c ON g.course_id = c.id
@@ -2498,7 +2574,7 @@ class PostgresRepository:
                     """
                     SELECT g.id AS group_id, g.name AS group_name, g.course_id,
                            c.name AS course_name, u.id AS teacher_id, u.username AS teacher_name,
-                           (SELECT COUNT(*) FROM enrollments e WHERE e.group_id = g.id) AS student_count
+                           (SELECT COUNT(DISTINCT e.user_id) FROM enrollments e WHERE e.group_id = g.id) AS student_count
                     FROM groups g
                     JOIN users u ON g.teacher_id = u.id
                     JOIN courses c ON g.course_id = c.id
@@ -2691,41 +2767,45 @@ class PostgresRepository:
     def get_teacher_dashboard_stats(self, teacher_id):
         """Retorna estadísticas consolidadas por estudiante para el dashboard docente.
 
-        Cada fila es (estudiante, grupo). Incluye ELO actual, intentos totales,
-        acierto promedio y última actividad.
+        Un estudiante aparece UNA sola vez, sin importar cuántos cursos
+        tenga matriculados. Se usa su grupo primario (users.group_id).
+        Incluye ELO actual, intentos totales, acierto promedio y última actividad.
         """
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 """
-                WITH teacher_students AS (
-                    SELECT DISTINCT u.id AS user_id, u.username, u.education_level,
-                           g.id AS group_id, g.name AS group_name
+                WITH teacher_student_ids AS (
+                    SELECT DISTINCT u.id AS user_id
                     FROM users u
                     JOIN groups g ON u.group_id = g.id
                     WHERE g.teacher_id = %s AND u.active = 1 AND u.role = 'student'
+                      AND COALESCE(u.is_test_user, 0) = 0
 
                     UNION
 
-                    SELECT DISTINCT u.id AS user_id, u.username, u.education_level,
-                           g.id AS group_id, g.name AS group_name
+                    SELECT DISTINCT e.user_id
                     FROM enrollments e
-                    JOIN users u ON e.user_id = u.id
                     JOIN groups g ON e.group_id = g.id
+                    JOIN users u ON e.user_id = u.id
                     WHERE g.teacher_id = %s AND u.active = 1 AND u.role = 'student'
+                      AND COALESCE(u.is_test_user, 0) = 0
                 )
-                SELECT ts.user_id, ts.username, ts.education_level, ts.group_id, ts.group_name,
-                       COALESCE(MAX(a.elo_after), 1000.0) AS global_elo,
+                SELECT u.id AS user_id, u.username, u.education_level,
+                       u.group_id, COALESCE(g.name, 'Sin grupo') AS group_name,
+                       COALESCE(u.current_elo, 1000.0) AS global_elo,
                        COUNT(a.id) AS total_attempts,
                        CASE WHEN COUNT(a.id) > 0
                             THEN SUM(CASE WHEN a.is_correct THEN 1.0 ELSE 0.0 END) / COUNT(a.id)
                             ELSE 0.0 END AS accuracy,
                        MAX(a.timestamp) AS last_activity
-                FROM teacher_students ts
+                FROM teacher_student_ids ts
+                JOIN users u ON u.id = ts.user_id
+                LEFT JOIN groups g ON u.group_id = g.id
                 LEFT JOIN attempts a ON a.user_id = ts.user_id
-                GROUP BY ts.user_id, ts.username, ts.education_level, ts.group_id, ts.group_name
-                ORDER BY ts.username ASC
+                GROUP BY u.id, u.username, u.education_level, u.group_id, g.name
+                ORDER BY u.username ASC
             """,
                 (teacher_id, teacher_id),
             )
@@ -2793,28 +2873,52 @@ class PostgresRepository:
             self.put_connection(conn)
 
     def export_teacher_student_data(self, teacher_id, group_id=None):
-        """Exporta TODOS los datos de estudiantes del profesor para análisis externo."""
+        """Exporta datos de intentos de los estudiantes del profesor para análisis externo.
+
+        Cada intento aparece UNA sola vez. Incluye columna 'cursos_matriculados'
+        con la lista de cursos del estudiante (separados por coma).
+        Si group_id se proporciona, filtra solo ese grupo.
+        """
         import json
 
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            _gf = "AND g.id = %s" if group_id else ""
+            _gf1 = "AND g.id = %s" if group_id else ""
+            _gf2 = "AND g2.id = %s" if group_id else ""
             _params = [teacher_id]
             if group_id:
                 _params.append(group_id)
-            _params2 = [teacher_id]
+            _params.append(teacher_id)
             if group_id:
-                _params2.append(group_id)
+                _params.append(group_id)
 
             cursor.execute(
                 f"""
+                WITH teacher_student_ids AS (
+                    SELECT DISTINCT u.id AS user_id
+                    FROM users u
+                    JOIN groups g ON u.group_id = g.id
+                    WHERE g.teacher_id = %s AND u.active = 1 AND u.role = 'student'
+                      AND COALESCE(u.is_test_user, 0) = 0
+                      {_gf1}
+
+                    UNION
+
+                    SELECT DISTINCT e.user_id
+                    FROM enrollments e
+                    JOIN groups g ON e.group_id = g.id
+                    JOIN users u ON e.user_id = u.id
+                    WHERE g.teacher_id = %s AND u.active = 1 AND u.role = 'student'
+                      AND COALESCE(u.is_test_user, 0) = 0
+                      {_gf2}
+                )
                 SELECT
                     u.id AS student_id,
                     u.username,
                     u.education_level,
                     u.grade,
-                    g.name AS group_name,
+                    COALESCE(pg.name, 'Sin grupo') AS group_name,
                     c.name AS course_name,
                     c.block AS course_block,
                     a.id AS attempt_id,
@@ -2831,56 +2935,23 @@ class PostgresRepository:
                     a.confidence_score,
                     a.error_type,
                     a.timestamp AS attempt_timestamp,
-                    i.tags AS item_tags
-                FROM attempts a
-                JOIN users u ON a.user_id = u.id
+                    i.tags AS item_tags,
+                    COALESCE(
+                        (SELECT STRING_AGG(DISTINCT c2.name, ', ')
+                         FROM enrollments e2
+                         LEFT JOIN courses c2 ON e2.course_id = c2.id
+                         WHERE e2.user_id = u.id),
+                        ''
+                    ) AS cursos_matriculados
+                FROM teacher_student_ids ts
+                JOIN users u ON u.id = ts.user_id
+                LEFT JOIN groups pg ON u.group_id = pg.id
+                JOIN attempts a ON a.user_id = ts.user_id
                 JOIN items i ON a.item_id = i.id
                 LEFT JOIN courses c ON i.course_id = c.id
-                LEFT JOIN groups g ON u.group_id = g.id
-                WHERE u.active = 1
-                  AND COALESCE(u.is_test_user, 0) = 0
-                  AND g.teacher_id = %s
-                  {_gf}
-
-                UNION ALL
-
-                SELECT
-                    u.id AS student_id,
-                    u.username,
-                    u.education_level,
-                    u.grade,
-                    g.name AS group_name,
-                    c.name AS course_name,
-                    c.block AS course_block,
-                    a.id AS attempt_id,
-                    a.item_id,
-                    i.topic,
-                    i.content AS item_content,
-                    a.difficulty AS item_difficulty,
-                    a.is_correct,
-                    a.elo_after,
-                    a.rating_deviation AS attempt_rd,
-                    a.prob_failure,
-                    a.expected_score,
-                    a.time_taken,
-                    a.confidence_score,
-                    a.error_type,
-                    a.timestamp AS attempt_timestamp,
-                    i.tags AS item_tags
-                FROM attempts a
-                JOIN users u ON a.user_id = u.id
-                JOIN items i ON a.item_id = i.id
-                LEFT JOIN courses c ON i.course_id = c.id
-                JOIN enrollments e ON e.user_id = u.id
-                JOIN groups g ON e.group_id = g.id
-                WHERE u.active = 1
-                  AND COALESCE(u.is_test_user, 0) = 0
-                  AND g.teacher_id = %s
-                  {_gf}
-
-                ORDER BY username ASC, attempt_timestamp ASC
+                ORDER BY u.username ASC, a.timestamp ASC
             """,
-                tuple(_params + _params2),
+                tuple(_params),
             )
             rows = cursor.fetchall()
             result = [dict(row) for row in rows]

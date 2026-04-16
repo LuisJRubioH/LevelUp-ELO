@@ -95,7 +95,7 @@ def render_auth(cookie_manager):
             tab1, tab2 = st.tabs(["🔑 Iniciar Sesión", "✨ Crear Cuenta"])
 
             with tab1:
-                username = st.text_input("Usuario", key="login_user")
+                username = st.text_input("Usuario o correo electrónico", key="login_user")
                 password = st.text_input("Contraseña", type="password", key="login_pass")
                 st.write("")
                 if st.button("Iniciar Sesión", type="primary", use_container_width=True):
@@ -170,6 +170,12 @@ def render_auth(cookie_manager):
                     new_pass = st.text_input("Contraseña", type="password", key="reg_pass")
                     st.caption("Mínimo 6 caracteres. Ej: Mate2024! · ProfeGrupo3#")
 
+                    new_email = st.text_input(
+                        "Correo electrónico (opcional para cuentas existentes)",
+                        key="reg_email",
+                    )
+                    st.caption("Para recuperar tu cuenta si olvidas el usuario.")
+
                     education_level = None
                     grade = None
                     if st.session_state.reg_chosen_role == "Estudiante":
@@ -217,12 +223,14 @@ def render_auth(cookie_manager):
                         elif chosen_role == "student" and not education_level:
                             st.error("Debes seleccionar tu nivel educativo.")
                         else:
+                            _email = (new_email or "").strip() or None
                             success, message = st.session_state.db.register_user(
                                 new_user,
                                 new_pass,
                                 chosen_role,
                                 education_level=education_level,
                                 grade=grade,
+                                email=_email,
                             )
                             if success:
                                 if chosen_role == "teacher":

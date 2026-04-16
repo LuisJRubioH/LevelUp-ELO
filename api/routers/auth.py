@@ -81,6 +81,7 @@ def register(body: RegisterRequest, repo: RepoDep):
         role=body.role,
         education_level=body.education_level,
         grade=body.grade,
+        email=body.email,
     )
     if not ok:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
@@ -147,6 +148,7 @@ def me(user: CurrentUser, repo: RepoDep):
         approved=bool(profile.get("approved", True)),
         education_level=profile.get("education_level"),
         grade=profile.get("grade"),
+        email=profile.get("email"),
     )
 
 
@@ -154,7 +156,7 @@ def me(user: CurrentUser, repo: RepoDep):
 
 
 def _get_profile_row(repo, user_id: int) -> dict | None:
-    """Lee username/role/approved/education_level/grade para un user_id activo."""
+    """Lee username/role/approved/education_level/grade/email para un user_id activo."""
     try:
         conn = repo.get_connection()
         try:
@@ -162,7 +164,7 @@ def _get_profile_row(repo, user_id: int) -> dict | None:
             # PostgreSQL usa %s, SQLite usa ? como placeholder
             ph = "%s" if hasattr(repo, "put_connection") else "?"
             cur.execute(
-                f"SELECT username, role, approved, education_level, grade "
+                f"SELECT username, role, approved, education_level, grade, email "
                 f"FROM users WHERE id = {ph} AND active = 1",
                 (user_id,),
             )
@@ -188,4 +190,5 @@ def _get_profile_row(repo, user_id: int) -> dict | None:
         "approved": row[2],
         "education_level": row[3],
         "grade": row[4],
+        "email": row[5],
     }
