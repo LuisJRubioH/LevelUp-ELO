@@ -37,10 +37,9 @@ function katiaMessage(score: number): string {
 interface ProcedureSectionProps {
   itemId: string;
   itemContent: string;
-  courseId: string;
 }
 
-export function ProcedureSection({ itemId, itemContent, courseId }: ProcedureSectionProps) {
+export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const { apiKey } = useSettingsStore();
 

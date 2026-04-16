@@ -376,7 +376,6 @@ export function Practice() {
       <ProcedureSection
         itemId={currentItem.id}
         itemContent={currentItem.content}
-        courseId={courseId ?? ""}
       />
     </div>
   );
