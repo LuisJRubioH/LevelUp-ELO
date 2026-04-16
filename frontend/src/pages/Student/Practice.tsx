@@ -251,6 +251,28 @@ export function Practice() {
         disabled={submitted}
       />
 
+      {/* KatIA pre-answer: pedir ayuda antes de responder */}
+      {!submitted && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => setShowChat((v) => !v)}
+            className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+          >
+            {showChat ? "Ocultar chat KatIA" : "🐱 ¿Necesitas ayuda? Pregúntale a KatIA"}
+          </button>
+        </div>
+      )}
+
+      {!submitted && showChat && (
+        <SocraticChat
+          itemId={currentItem.id}
+          itemContent={currentItem.content}
+          courseId={courseId ?? ""}
+          apiKey={apiKey}
+          provider={provider}
+        />
+      )}
+
       {/* Preview ELO + botón enviar */}
       {selectedOption && !submitted && (
         <div className="space-y-2">
@@ -338,25 +360,13 @@ export function Practice() {
 
           {/* Chat socrático */}
           {showChat && (
-            apiKey ? (
-              <SocraticChat
-                itemId={currentItem.id}
-                itemContent={currentItem.content}
-                courseId={courseId ?? ""}
-                apiKey={apiKey}
-                provider={provider}
-              />
-            ) : (
-              <div className="bg-slate-800 rounded-2xl border border-slate-700 p-4 text-center space-y-2">
-                <p className="text-violet-400 font-medium text-sm">🐱 Chat con KatIA</p>
-                <p className="text-xs text-slate-400">
-                  Configura una API key de IA en el panel lateral (▼ API de IA) para activar el chat socrático.
-                </p>
-                <p className="text-xs text-slate-500">
-                  Compatible con Groq (gratis), Anthropic, OpenAI y más.
-                </p>
-              </div>
-            )
+            <SocraticChat
+              itemId={currentItem.id}
+              itemContent={currentItem.content}
+              courseId={courseId ?? ""}
+              apiKey={apiKey}
+              provider={provider}
+            />
           )}
         </div>
       )}

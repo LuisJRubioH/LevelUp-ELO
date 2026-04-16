@@ -13,6 +13,7 @@ import { Button } from "../../components/ui/Button";
 import { studentApi, type ProcedureReview } from "../../api/student";
 import { apiClient } from "../../api/client";
 import { useSettingsStore } from "../../stores/settingsStore";
+import { usePracticeStore } from "../../stores/practiceStore";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 const MAX_SIZE_MB = 10;
@@ -34,11 +35,12 @@ function katiaMessage(score: number): string {
 export function ProcedureUpload() {
   const fileRef = useRef<HTMLInputElement>(null);
   const { apiKey } = useSettingsStore();
+  const practiceItem = usePracticeStore((s) => s.currentItem);
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [selectedItem, setSelectedItem] = useState<string>("");
-  const [itemContent, setItemContent] = useState<string>("");
+  const [selectedItem, setSelectedItem] = useState<string>(practiceItem?.id ?? "");
+  const [itemContent, setItemContent] = useState<string>(practiceItem?.content ?? "");
   const [stage, setStage] = useState<Stage>("idle");
   const [error, setError] = useState<string | null>(null);
   const [review, setReview] = useState<ProcedureReview | null>(null);
@@ -157,6 +159,7 @@ export function ProcedureUpload() {
             <label className="block text-xs text-slate-400 mb-1.5">
               Identificador del ejercicio <span className="text-red-400">*</span>
             </label>
+
             <input
               type="text"
               value={selectedItem}
@@ -164,6 +167,11 @@ export function ProcedureUpload() {
               placeholder="ej: cd_14, alg_07 (ID del ítem)"
               className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500"
             />
+            {practiceItem && selectedItem === practiceItem.id && (
+              <p className="text-xs text-emerald-400 mt-1">
+                ✓ Asociado a la pregunta que estás practicando
+              </p>
+            )}
             {enrolled.length > 0 && (
               <p className="text-xs text-slate-600 mt-1">
                 Cursos matriculados: {enrolled.map((c) => c.name).join(", ")}

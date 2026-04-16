@@ -1,17 +1,21 @@
 /**
  * pages/Student/Courses.tsx
  * ==========================
- * Catálogo de cursos: explorar, matricularse, acceso por código.
+ * Catálogo de cursos: explorar + practicar, gestionar matrículas, acceso por código.
  */
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { studentApi, type Course } from "../../api/student";
 import { Button } from "../../components/ui/Button";
 import { CourseBanner } from "../../components/CourseCard/CourseBanner";
+import { usePracticeStore } from "../../stores/practiceStore";
 
 export function Courses() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
+  const startSession = usePracticeStore((s) => s.startSession);
   const [tab, setTab] = useState<"explore" | "enrolled" | "code">("explore");
   const [inviteCode, setInviteCode] = useState("");
   const [codeMsg, setCodeMsg] = useState("");
@@ -41,14 +45,19 @@ export function Courses() {
     onError: (err: Error) => setCodeMsg(`❌ ${err.message}`),
   });
 
+  const handlePractice = (courseId: string) => {
+    startSession(courseId);
+    navigate("/student");
+  };
+
   const tabs = [
     { id: "explore" as const, label: "Explorar" },
     { id: "enrolled" as const, label: "Mis matrículas" },
     { id: "code" as const, label: "Código de acceso" },
   ];
 
-  const displayed: Course[] =
-    tab === "enrolled" ? courses.filter((c) => c.enrolled) : courses;
+  const enrolled = courses.filter((c) => c.enrolled);
+  const displayed: Course[] = tab === "enrolled" ? enrolled : courses;
 
   return (
     <div className="max-w-5xl mx-auto py-6 px-4">
@@ -68,6 +77,9 @@ export function Courses() {
             ].join(" ")}
           >
             {t.label}
+            {t.id === "enrolled" && enrolled.length > 0 && (
+              <span className="ml-1.5 text-xs opacity-70">({enrolled.length})</span>
+            )}
           </button>
         ))}
       </div>
@@ -106,6 +118,17 @@ export function Courses() {
       {/* Lista de cursos */}
       {tab !== "code" && (
         <>
+          {tab === "explore" && (
+            <p className="text-sm text-slate-400 mb-4">
+              Elige un curso para practicar. Si aún no estás matriculado, inscríbete primero.
+            </p>
+          )}
+          {tab === "enrolled" && (
+            <p className="text-sm text-slate-400 mb-4">
+              Gestiona tus matrículas. Puedes darte de baja de un curso en cualquier momento.
+            </p>
+          )}
+
           {isLoading ? (
             <div className="animate-pulse text-slate-400 text-sm">Cargando cursos...</div>
           ) : displayed.length === 0 ? (
@@ -131,32 +154,48 @@ export function Courses() {
                         {c.block}
                       </p>
                     </div>
-                    <div className="flex items-center justify-between gap-2 pt-1">
-                      {c.enrolled ? (
-                        <>
-                          <span className="text-[11px] font-medium text-emerald-400">
-                            Matriculado
-                          </span>
+
+                    {tab === "explore" && (
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        {c.enrolled ? (
                           <Button
-                            variant="ghost"
                             size="sm"
-                            onClick={() => unenrollMutation.mutate(c.id)}
-                            loading={unenrollMutation.isPending}
+                            onClick={() => handlePractice(c.id)}
+                            className="w-full"
                           >
-                            Salir
+                            Practicar →
                           </Button>
-                        </>
-                      ) : (
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => enrollMutation.mutate(c.id)}
+                            loading={enrollMutation.isPending}
+                            className="w-full"
+                          >
+                            Matricularme
+                          </Button>
+                        )}
+                      </div>
+                    )}
+
+                    {tab === "enrolled" && (
+                      <div className="flex items-center justify-between gap-2 pt-1">
                         <Button
                           size="sm"
-                          onClick={() => enrollMutation.mutate(c.id)}
-                          loading={enrollMutation.isPending}
-                          className="ml-auto"
+                          onClick={() => handlePractice(c.id)}
                         >
-                          Matricularme
+                          Practicar →
                         </Button>
-                      )}
-                    </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => unenrollMutation.mutate(c.id)}
+                          loading={unenrollMutation.isPending}
+                        >
+                          Salir
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </article>
               ))}

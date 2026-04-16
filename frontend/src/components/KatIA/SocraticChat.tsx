@@ -20,7 +20,7 @@ interface SocraticChatProps {
   itemId: string;
   itemContent: string;
   courseId: string;
-  apiKey: string;
+  apiKey?: string;
   provider?: string;
 }
 
@@ -28,7 +28,7 @@ export function SocraticChat({
   itemId,
   itemContent,
   courseId,
-  apiKey,
+  apiKey = "",
   provider = "groq",
 }: SocraticChatProps) {
   const [messages, setMessages] = useState<Message[]>([

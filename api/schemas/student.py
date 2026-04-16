@@ -158,5 +158,8 @@ class SocraticRequest(BaseModel):
     item_content: str
     student_message: str = Field(..., min_length=1, max_length=1000)
     course_id: str | None = None
-    api_key: str = Field(..., description="API key del proveedor de IA (solo viaja en el body)")
+    api_key: str = Field(
+        default="",
+        description="API key del proveedor de IA (opcional — usa la del sistema si vacía)",
+    )
     provider: str = Field(default="groq", description="Proveedor: groq, anthropic, openai, etc.")

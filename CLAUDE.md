@@ -330,6 +330,12 @@ Sprint 6 completado:
 - 6.4: Revisión IA en vivo (`POST /student/procedure/analyze`, KatIA revisando → resultado, multi-proveedor)
 - IA del sistema: `SYSTEM_AI_API_KEY` + keys opcionales por función con fallback encadenado
 
+Fixes post-Sprint 6:
+- KatIA chat disponible antes Y después de responder (no solo en feedback)
+- "Explorar" → practicar cursos matriculados / matricularse en nuevos; "Mis matrículas" → gestión
+- Procedimiento auto-vinculado a la pregunta actual del practiceStore
+- KatIA socrático funciona sin API key del usuario (fallback a `SYSTEM_AI_API_KEY`)
+
 Pendiente:
 - **Sprint 7**: E2E Playwright, code splitting, error boundaries, skeletons
 - **Sprint 8**: modo examen, accesibilidad, tema claro/oscuro, métricas docentes
