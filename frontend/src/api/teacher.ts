@@ -36,6 +36,22 @@ export interface DashboardData {
   students: StudentSummary[];
 }
 
+export interface TopicStat {
+  topic: string;
+  attempts: number;
+  accuracy: number;
+  avg_time: number;
+}
+
+export interface TeacherMetrics {
+  total_attempts: number;
+  avg_time_seconds: number;
+  abandonment_rate: number;
+  topic_stats: TopicStat[];
+  daily_attempts: { date: string; count: number }[];
+  hourly_distribution: { hour: number; count: number }[];
+}
+
 export interface PendingProcedure {
   submission_id: number;
   student_id: number;
@@ -167,6 +183,8 @@ export const teacherApi = {
     const blob = await r.blob();
     return URL.createObjectURL(blob);
   },
+
+  metrics: () => api.get<TeacherMetrics>("/api/teacher/metrics"),
 
   downloadCsv: () => _downloadBlob("/api/teacher/export/csv", "levelup_intentos.csv"),
 

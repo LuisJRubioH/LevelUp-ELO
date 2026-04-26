@@ -2467,6 +2467,109 @@ class SQLiteRepository:
         conn.close()
         return [dict(zip(columns, row)) for row in rows]
 
+    def get_teacher_metrics(self, teacher_id):
+        """Métricas de uso del grupo del docente: tiempo promedio, abandono, temas, actividad diaria."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cte = """
+            WITH teacher_students AS (
+                SELECT DISTINCT u.id AS user_id
+                FROM users u
+                JOIN groups g ON u.group_id = g.id
+                WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
+                  AND COALESCE(u.is_test_user, 0) = 0
+                UNION
+                SELECT DISTINCT e.user_id
+                FROM enrollments e
+                JOIN groups g ON e.group_id = g.id
+                JOIN users u ON e.user_id = u.id
+                WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
+                  AND COALESCE(u.is_test_user, 0) = 0
+            )
+        """
+        cursor.execute(
+            cte
+            + """
+            SELECT
+                COUNT(*) AS total_attempts,
+                AVG(CASE WHEN a.time_taken BETWEEN 3 AND 600 THEN a.time_taken END) AS avg_time,
+                CAST(SUM(CASE WHEN a.time_taken IS NOT NULL
+                              AND (a.time_taken < 3 OR a.time_taken > 600) THEN 1 ELSE 0 END)
+                     AS REAL) / NULLIF(COUNT(*), 0) AS abandonment_rate
+            FROM attempts a
+            JOIN teacher_students ts ON a.user_id = ts.user_id
+        """,
+            (teacher_id, teacher_id),
+        )
+        row = cursor.fetchone()
+        totals = {
+            "total_attempts": int(row[0] or 0),
+            "avg_time_seconds": round(float(row[1] or 0), 1),
+            "abandonment_rate": round(float(row[2] or 0), 4),
+        }
+
+        cursor.execute(
+            cte
+            + """
+            SELECT a.topic,
+                   COUNT(*) AS attempts,
+                   CAST(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS REAL) / COUNT(*) AS accuracy,
+                   AVG(CASE WHEN a.time_taken BETWEEN 3 AND 600 THEN a.time_taken END) AS avg_time
+            FROM attempts a
+            JOIN teacher_students ts ON a.user_id = ts.user_id
+            WHERE a.topic IS NOT NULL AND a.topic != ''
+            GROUP BY a.topic
+            ORDER BY attempts DESC
+            LIMIT 10
+        """,
+            (teacher_id, teacher_id),
+        )
+        topic_stats = [
+            {
+                "topic": r[0],
+                "attempts": int(r[1]),
+                "accuracy": round(float(r[2] or 0), 3),
+                "avg_time": round(float(r[3] or 0), 1),
+            }
+            for r in cursor.fetchall()
+        ]
+
+        cursor.execute(
+            cte
+            + """
+            SELECT strftime('%Y-%m-%d', a.timestamp) AS date, COUNT(*) AS count
+            FROM attempts a
+            JOIN teacher_students ts ON a.user_id = ts.user_id
+            WHERE a.timestamp >= date('now', '-30 days')
+            GROUP BY date
+            ORDER BY date ASC
+        """,
+            (teacher_id, teacher_id),
+        )
+        daily_attempts = [{"date": r[0], "count": int(r[1])} for r in cursor.fetchall()]
+
+        cursor.execute(
+            cte
+            + """
+            SELECT CAST(strftime('%H', a.timestamp) AS INTEGER) AS hour, COUNT(*) AS count
+            FROM attempts a
+            JOIN teacher_students ts ON a.user_id = ts.user_id
+            GROUP BY hour
+            ORDER BY hour ASC
+        """,
+            (teacher_id, teacher_id),
+        )
+        hourly = {r[0]: int(r[1]) for r in cursor.fetchall()}
+        hourly_distribution = [{"hour": h, "count": hourly.get(h, 0)} for h in range(24)]
+
+        conn.close()
+        return {
+            **totals,
+            "topic_stats": topic_stats,
+            "daily_attempts": daily_attempts,
+            "hourly_distribution": hourly_distribution,
+        }
+
     def export_teacher_student_data(self, teacher_id, group_id=None):
         """Exporta datos de intentos de los estudiantes del profesor para análisis externo.
 

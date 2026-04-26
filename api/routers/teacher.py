@@ -273,6 +273,12 @@ def student_ai_analysis(
     return {"analysis": analysis}
 
 
+@router.get("/metrics")
+def teacher_metrics(user: CurrentUser, repo: RepoDep):
+    """Métricas de uso del grupo: tiempo promedio por pregunta, tasa de abandono, temas top, actividad."""
+    return repo.get_teacher_metrics(user["user_id"])
+
+
 @router.get("/student/{student_id}/ranking")
 def student_group_ranking(student_id: int, user: CurrentUser, repo: RepoDep):
     """Ranking del grupo al que pertenece el estudiante."""

@@ -6,6 +6,9 @@
 
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+} from "recharts";
 import { teacherApi } from "../../api/teacher";
 import { ELOChart } from "../../components/ELO/ELOChart";
 import { useSettingsStore } from "../../stores/settingsStore";
@@ -224,6 +227,169 @@ function StudentDetailPanel({
   );
 }
 
+// ── Tab de métricas de uso ─────────────────────────────────────────────────
+
+function MetricsView() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["teacher-metrics"],
+    queryFn: teacherApi.metrics,
+    staleTime: 120_000,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 w-full rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return <p className="text-slate-500 text-sm py-4">No se pudieron cargar las métricas.</p>;
+  }
+
+  const peakHour = data.hourly_distribution.reduce(
+    (max, h) => (h.count > max.count ? h : max),
+    { hour: 0, count: 0 },
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* KPIs principales */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <StatCard
+          label="Total intentos"
+          value={data.total_attempts.toLocaleString()}
+        />
+        <StatCard
+          label="Tiempo promedio"
+          value={`${data.avg_time_seconds}s`}
+          sub="por pregunta (válidos)"
+        />
+        <StatCard
+          label="Tasa de abandono"
+          value={`${(data.abandonment_rate * 100).toFixed(1)}%`}
+          sub="fuera de 3–600s"
+        />
+        <StatCard
+          label="Hora pico"
+          value={`${peakHour.hour}:00`}
+          sub={`${peakHour.count} intentos`}
+        />
+      </div>
+
+      {/* Actividad diaria (últimos 30 días) */}
+      {data.daily_attempts.length > 0 && (
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <h4 className="text-sm font-semibold text-slate-300 mb-3">
+            Actividad diaria — últimos 30 días
+          </h4>
+          <ResponsiveContainer width="100%" height={120}>
+            <BarChart data={data.daily_attempts} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 9, fill: "#64748b" }}
+                tickFormatter={(v: string) => v.slice(5)}
+                interval="preserveStartEnd"
+              />
+              <YAxis tick={{ fontSize: 9, fill: "#64748b" }} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 8, fontSize: 12 }}
+                labelStyle={{ color: "#94a3b8" }}
+                itemStyle={{ color: "#a78bfa" }}
+              />
+              <Bar dataKey="count" name="Intentos" fill="#6c63ff" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Top temas */}
+      {data.topic_stats.length > 0 && (
+        <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-700">
+            <h4 className="text-sm font-semibold text-slate-300">Temas más practicados</h4>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="text-xs text-slate-500 border-b border-slate-700">
+                  <th className="px-4 py-2 text-left">Tema</th>
+                  <th className="px-4 py-2 text-right">Intentos</th>
+                  <th className="px-4 py-2 text-right">Acierto</th>
+                  <th className="px-4 py-2 text-right hidden sm:table-cell">Tiempo prom.</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-700/50">
+                {data.topic_stats.map((t) => (
+                  <tr key={t.topic} className="hover:bg-slate-700/30 transition-colors">
+                    <td className="px-4 py-2.5 text-sm text-slate-300 max-w-[160px] truncate">
+                      {t.topic}
+                    </td>
+                    <td className="px-4 py-2.5 text-sm text-slate-300 text-right tabular-nums">
+                      {t.attempts}
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      <span
+                        className={`text-sm font-medium ${
+                          t.accuracy >= 0.7
+                            ? "text-emerald-400"
+                            : t.accuracy >= 0.5
+                            ? "text-amber-400"
+                            : "text-red-400"
+                        }`}
+                      >
+                        {(t.accuracy * 100).toFixed(0)}%
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-sm text-slate-500 text-right tabular-nums hidden sm:table-cell">
+                      {t.avg_time > 0 ? `${t.avg_time.toFixed(0)}s` : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Distribución horaria */}
+      <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+        <h4 className="text-sm font-semibold text-slate-300 mb-3">
+          Distribución horaria de actividad
+        </h4>
+        <ResponsiveContainer width="100%" height={100}>
+          <BarChart data={data.hourly_distribution} margin={{ top: 0, right: 0, bottom: 0, left: -30 }}>
+            <XAxis
+              dataKey="hour"
+              tick={{ fontSize: 9, fill: "#64748b" }}
+              tickFormatter={(v: number) => `${v}h`}
+              interval={3}
+            />
+            <YAxis tick={{ fontSize: 9, fill: "#64748b" }} allowDecimals={false} />
+            <Tooltip
+              contentStyle={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 8, fontSize: 12 }}
+              labelStyle={{ color: "#94a3b8" }}
+              itemStyle={{ color: "#a78bfa" }}
+              labelFormatter={(v) => `${v}:00 h`}
+            />
+            <Bar dataKey="count" name="Intentos" radius={[2, 2, 0, 0]}>
+              {data.hourly_distribution.map((h) => (
+                <Cell
+                  key={h.hour}
+                  fill={h.hour === peakHour.hour ? "#a78bfa" : "#6c63ff"}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
 // ── Tab de ranking del grupo ────────────────────────────────────────────────
 
 function GroupRankingSection({ students }: { students: import("../../api/teacher").StudentSummary[] }) {
@@ -273,7 +439,7 @@ function GroupRankingSection({ students }: { students: import("../../api/teacher
 
 // ── Dashboard principal ─────────────────────────────────────────────────────
 
-type DashboardView = "students" | "ranking";
+type DashboardView = "students" | "ranking" | "metrics";
 
 export function TeacherDashboard() {
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
@@ -370,18 +536,23 @@ export function TeacherDashboard() {
         />
       )}
 
-      {/* Tabs: Estudiantes | Ranking */}
+      {/* Tabs: Estudiantes | Ranking | Métricas */}
       <div className="flex gap-1 border-b border-slate-700 pb-2">
-        {(["students", "ranking"] as DashboardView[]).map((v) => (
+        {([
+          { id: "students", label: "👥 Estudiantes" },
+          { id: "ranking", label: "🏆 Ranking" },
+          { id: "metrics", label: "📊 Métricas" },
+        ] as { id: DashboardView; label: string }[]).map(({ id, label }) => (
           <button
-            key={v}
-            onClick={() => setView(v)}
+            key={id}
+            onClick={() => setView(id)}
+            aria-current={view === id ? "true" : undefined}
             className={[
               "text-sm px-3 py-1.5 rounded-lg transition-colors",
-              view === v ? "bg-violet-600/30 text-violet-300" : "text-slate-500 hover:text-slate-300",
+              view === id ? "bg-violet-600/30 text-violet-300" : "text-slate-500 hover:text-slate-300",
             ].join(" ")}
           >
-            {v === "students" ? "👥 Estudiantes" : "🏆 Ranking"}
+            {label}
           </button>
         ))}
       </div>
@@ -504,6 +675,9 @@ export function TeacherDashboard() {
           <GroupRankingSection students={afterGroupFilter} />
         </div>
       )}
+
+      {/* Vista: Métricas */}
+      {view === "metrics" && <MetricsView />}
     </div>
   );
 }
