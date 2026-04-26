@@ -496,7 +496,12 @@ export function Exam() {
         </div>
 
         {/* Timer */}
-        <div className={`text-xl md:text-2xl font-mono font-bold tabular-nums ${timerColor}`}>
+        <div
+          className={`text-xl md:text-2xl font-mono font-bold tabular-nums ${timerColor}`}
+          aria-live={timeLeft < 60 ? "assertive" : "off"}
+          aria-label={`Tiempo restante: ${formatTime(timeLeft)}`}
+          role="timer"
+        >
           {formatTime(timeLeft)}
         </div>
 
@@ -524,7 +529,8 @@ export function Exam() {
               <button
                 key={item.id}
                 onClick={() => goToQuestion(idx)}
-                title={`Pregunta ${idx + 1}`}
+                aria-label={`Pregunta ${idx + 1}${answered ? " (respondida)" : ""}${active ? ", actual" : ""}`}
+                aria-current={active ? "true" : undefined}
                 className={[
                   "w-full h-8 rounded text-xs font-bold transition-all",
                   active

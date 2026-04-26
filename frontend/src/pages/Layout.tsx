@@ -184,6 +184,7 @@ export function Layout({ children }: LayoutProps) {
                 onClick={() => {
                   if (isProcedures) clearUnread();
                 }}
+                aria-current={active ? "page" : undefined}
                 className={[
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
                   active
@@ -191,10 +192,13 @@ export function Layout({ children }: LayoutProps) {
                     : "text-slate-400 hover:bg-slate-700 hover:text-slate-200",
                 ].join(" ")}
               >
-                <span>{item.icon}</span>
+                <span aria-hidden="true">{item.icon}</span>
                 <span className="flex-1">{item.label}</span>
                 {showBadge && (
-                  <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                  <span
+                    className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
+                    aria-label={`${unreadCount > 99 ? "más de 99" : unreadCount} notificaciones`}
+                  >
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
@@ -208,12 +212,14 @@ export function Layout({ children }: LayoutProps) {
           <button
             onClick={() => setShowIAConfig((v) => !v)}
             className="flex items-center justify-between w-full text-xs text-slate-400 hover:text-slate-200 transition-colors"
+            aria-expanded={showIAConfig}
+            aria-controls="ia-config-panel"
           >
             <span>🤖 API de IA</span>
-            <span>{showIAConfig ? "▲" : "▼"}</span>
+            <span aria-hidden="true">{showIAConfig ? "▲" : "▼"}</span>
           </button>
           {showIAConfig && (
-            <div className="mt-2 space-y-2">
+            <div id="ia-config-panel" className="mt-2 space-y-2">
               <div>
                 <label className="block text-xs text-slate-500 mb-1">Proveedor</label>
                 <select
@@ -358,15 +364,20 @@ export function Layout({ children }: LayoutProps) {
               onClick={() => {
                 if (isProcedures) clearUnread();
               }}
+              aria-current={active ? "page" : undefined}
+              aria-label={showBadge ? `${item.label}, ${unreadCount > 9 ? "más de 9" : unreadCount} notificaciones` : item.label}
               className={[
                 "relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition-colors",
                 active ? "text-violet-300" : "text-slate-400 hover:text-slate-200",
               ].join(" ")}
             >
-              <span className="text-lg leading-none">{item.icon}</span>
-              <span className="truncate max-w-full px-1">{item.label}</span>
+              <span className="text-lg leading-none" aria-hidden="true">{item.icon}</span>
+              <span className="truncate max-w-full px-1" aria-hidden="true">{item.label}</span>
               {showBadge && (
-                <span className="absolute top-1 right-1/4 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1">
+                <span
+                  className="absolute top-1 right-1/4 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1"
+                  aria-hidden="true"
+                >
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}

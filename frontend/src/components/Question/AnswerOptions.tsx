@@ -89,25 +89,42 @@ export function AnswerOptions({
 }: AnswerOptionsProps) {
   const answered = isCorrect !== null;
   return (
-    <div className="flex flex-col gap-3 mt-4">
-      {options.map((option, idx) => (
-        <button
-          key={idx}
-          className={optionClass(option, selectedOption, isCorrect)}
-          onClick={() => onSelect(option)}
-          disabled={disabled || answered}
-        >
-          <span className="inline-block w-6 h-6 rounded-full bg-slate-700 text-slate-300 text-xs font-bold text-center leading-6 mr-3">
-            {LABELS[idx] ?? idx + 1}
-          </span>
-          <RenderOption text={option} />
-          {answered && option === selectedOption && (
-            <span className={`ml-2 ${isCorrect ? "text-green-400" : "text-red-400"}`}>
-              {isCorrect ? "✓" : "✗"}
+    <div className="flex flex-col gap-3 mt-4" role="group" aria-label="Opciones de respuesta">
+      {options.map((option, idx) => {
+        const label = LABELS[idx] ?? String(idx + 1);
+        const isSelected = option === selectedOption;
+        let ariaLabel = `Opción ${label}`;
+        if (answered && isSelected) {
+          ariaLabel += isCorrect ? " — Correcto" : " — Incorrecto";
+        }
+        return (
+          <button
+            key={idx}
+            className={optionClass(option, selectedOption, isCorrect)}
+            onClick={() => onSelect(option)}
+            disabled={disabled || answered}
+            aria-pressed={isSelected}
+            aria-label={ariaLabel}
+            aria-disabled={disabled || answered}
+          >
+            <span
+              className="inline-block w-6 h-6 rounded-full bg-slate-700 text-slate-300 text-xs font-bold text-center leading-6 mr-3"
+              aria-hidden="true"
+            >
+              {label}
             </span>
-          )}
-        </button>
-      ))}
+            <RenderOption text={option} />
+            {answered && isSelected && (
+              <span
+                className={`ml-2 ${isCorrect ? "text-green-400" : "text-red-400"}`}
+                aria-hidden="true"
+              >
+                {isCorrect ? "✓" : "✗"}
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }
