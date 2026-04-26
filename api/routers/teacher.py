@@ -75,7 +75,7 @@ def get_groups(user: CurrentUser, repo: RepoDep):
         )
         result.append(
             GroupResponse(
-                group_id=row["id"],
+                group_id=row.get("group_id") or row.get("id"),  # both keys present
                 name=row["name"],
                 course_id=row.get("course_id"),
                 invite_code=row.get("invite_code"),

@@ -2568,8 +2568,11 @@ class PostgresRepository:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 """
-                SELECT g.id, g.name, g.course_id, COALESCE(c.name, '—') AS course_name, g.created_at,
-                       COALESCE(c.block, 'Universidad') AS block, g.invite_code
+                SELECT g.id AS group_id, g.name, g.course_id, COALESCE(c.name, '—') AS course_name,
+                       g.created_at, COALESCE(c.block, 'Universidad') AS block, g.invite_code,
+                       (SELECT COUNT(*) FROM users u2
+                        WHERE u2.group_id = g.id AND u2.active = 1 AND u2.role = 'student'
+                          AND COALESCE(u2.is_test_user, 0) = 0) AS student_count
                 FROM groups g
                 LEFT JOIN courses c ON g.course_id = c.id
                 WHERE g.teacher_id = %s
@@ -2580,13 +2583,15 @@ class PostgresRepository:
             rows = cursor.fetchall()
             return [
                 {
-                    "id": r["id"],
+                    "id": r["group_id"],
+                    "group_id": r["group_id"],
                     "name": r["name"],
                     "course_id": r["course_id"],
                     "course_name": r["course_name"],
                     "created_at": str(r["created_at"])[:10],
                     "block": r["block"],
                     "invite_code": r["invite_code"],
+                    "student_count": int(r["student_count"]),
                 }
                 for r in rows
             ]
@@ -2845,7 +2850,10 @@ class PostgresRepository:
                 )
                 SELECT u.id AS user_id, u.username, u.education_level,
                        u.group_id, COALESCE(g.name, 'Sin grupo') AS group_name,
-                       COALESCE(u.current_elo, 1000.0) AS global_elo,
+                       COALESCE(
+                           (SELECT AVG(ste.current_elo) FROM student_topic_elo ste WHERE ste.user_id = u.id),
+                           u.current_elo, 1000.0
+                       ) AS global_elo,
                        COUNT(a.id) AS total_attempts,
                        CASE WHEN COUNT(a.id) > 0
                             THEN SUM(CASE WHEN a.is_correct THEN 1.0 ELSE 0.0 END) / COUNT(a.id)
