@@ -220,14 +220,14 @@ Deploy actual:
 ## Checklist Sprint 7 — Calidad y producción
 
 - [ ] 7.1 Tests E2E con Playwright
-- [ ] 7.2 Code splitting por ruta (`React.lazy`)
-- [ ] 7.3 Error boundaries + pantalla de error amigable
-- [ ] 7.4 Skeleton loaders en listas y charts
+- [x] 7.2 Code splitting por ruta (`React.lazy`) — commit d8d5291
+- [x] 7.3 Error boundaries + pantalla de error amigable — commit d8d5291
+- [x] 7.4 Skeleton loaders en listas y charts — commit 28ad50f
 - [ ] 7.5 Tests de integración de rutas protegidas
 
 ## Checklist Sprint 8 — Pulido y accesibilidad
 
-- [ ] 8.1 Modo examen end-to-end
+- [x] 8.1 Modo examen end-to-end — commit pendiente
 - [ ] 8.2 Accesibilidad (aria-labels, focus, keyboard nav)
 - [ ] 8.3 Tema claro / oscuro
 - [ ] 8.4 Internacionalización es/en (opcional)
