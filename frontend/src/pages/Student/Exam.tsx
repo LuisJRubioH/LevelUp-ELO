@@ -57,7 +57,7 @@ function formatTime(seconds: number) {
 
 // ── Pantalla de configuración ─────────────────────────────────────────────────
 
-function ExamSetup({ onStart }: { onStart: (courseId: string, n: number, t: number) => void }) {
+function ExamSetup({ onStart }: { onStart: (courseId: string, courseName: string, n: number, t: number) => void }) {
   const [selectedCourse, setSelectedCourse] = useState("");
   const [nQuestions, setNQuestions] = useState(10);
   const [timeLimitMin, setTimeLimitMin] = useState(20);
@@ -171,7 +171,10 @@ function ExamSetup({ onStart }: { onStart: (courseId: string, n: number, t: numb
         )}
 
         <button
-          onClick={() => onStart(selectedCourse, nQuestions, timeLimitMin)}
+          onClick={() => {
+            const name = enrolled.find((c) => c.id === selectedCourse)?.name ?? selectedCourse;
+            onStart(selectedCourse, name, nQuestions, timeLimitMin);
+          }}
           disabled={!selectedCourse}
           className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-xl text-sm transition-colors"
         >
@@ -194,6 +197,7 @@ export function Exam() {
 
   const [phase, setPhase] = useState<ExamPhase>(courseIdParam ? "loading" : "setup");
   const [courseId, setCourseId] = useState(courseIdParam);
+  const [courseName, setCourseName] = useState(courseIdParam);
   const [nQuestions, setNQuestions] = useState(nParam);
   const [timeLimitMin, setTimeLimitMin] = useState(tParam);
 
@@ -209,8 +213,9 @@ export function Exam() {
   const itemTimes = useRef<Record<string, number>>({});
   const submitRef = useRef<(() => void) | null>(null);
 
-  const handleStart = useCallback((cId: string, n: number, t: number) => {
+  const handleStart = useCallback((cId: string, cName: string, n: number, t: number) => {
     setCourseId(cId);
+    setCourseName(cName);
     setNQuestions(n);
     setTimeLimitMin(t);
     setItems([]);
@@ -486,7 +491,7 @@ export function Exam() {
         <div className="min-w-0">
           <span className="text-[10px] text-slate-500 uppercase tracking-wide">Examen</span>
           <p className="text-sm text-slate-300 font-medium truncate max-w-[120px] md:max-w-none">
-            {courseId}
+            {courseName}
           </p>
         </div>
 
