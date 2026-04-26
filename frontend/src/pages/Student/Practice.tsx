@@ -135,7 +135,7 @@ export function Practice() {
   if (!courseId) {
     return (
       <div className="max-w-xl mx-auto py-8 px-4">
-        <h2 className="text-xl font-bold text-white mb-2">Sala de Práctica</h2>
+        <h2 className="text-xl font-bold text-slate-100 mb-2">Sala de Práctica</h2>
         <p className="text-slate-400 text-sm mb-6">Selecciona un curso para empezar.</p>
 
         {coursesLoading ? (
@@ -155,7 +155,7 @@ export function Practice() {
                 onClick={() => startSession(c.id)}
                 className="w-full text-left bg-slate-800 hover:bg-slate-700 rounded-xl px-4 py-4 border border-slate-700 hover:border-violet-500 transition-all"
               >
-                <div className="font-medium text-white">{c.name}</div>
+                <div className="font-medium text-slate-100">{c.name}</div>
                 <div className="text-xs text-slate-500 mt-1">{c.block}</div>
               </button>
             ))}

@@ -45,7 +45,7 @@ export function CourseBanner({ courseName, className = "" }: Props) {
   if (src) {
     return (
       <div
-        className={`relative w-full aspect-[16/7] overflow-hidden rounded-t-xl bg-[#0A0A0F] ${className}`}
+        className={`relative w-full aspect-[16/7] overflow-hidden rounded-t-xl bg-[var(--canvas)] ${className}`}
       >
         <img
           src={src}

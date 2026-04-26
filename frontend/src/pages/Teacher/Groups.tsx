@@ -42,7 +42,7 @@ function GroupCard({
     <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
       <div className="flex items-start justify-between">
         <div>
-          <h4 className="font-semibold text-white">{group.name}</h4>
+          <h4 className="font-semibold text-slate-100">{group.name}</h4>
           {group.course_id && (
             <p className="text-xs text-slate-500 mt-0.5">{group.course_id}</p>
           )}
@@ -141,7 +141,7 @@ export function TeacherGroups() {
   return (
     <div className="max-w-3xl mx-auto py-6 px-4 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white">Mis Grupos</h2>
+        <h2 className="text-xl font-bold text-slate-100">Mis Grupos</h2>
         <Button size="sm" onClick={() => { setShowForm(true); setFormError(""); }}>
           + Nuevo grupo
         </Button>

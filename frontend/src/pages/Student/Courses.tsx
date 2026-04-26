@@ -62,7 +62,7 @@ export function Courses() {
 
   return (
     <div className="max-w-5xl mx-auto py-6 px-4">
-      <h2 className="text-xl font-bold text-white mb-6">Cursos</h2>
+      <h2 className="text-xl font-bold text-slate-100 mb-6">Cursos</h2>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-slate-700 pb-2">
@@ -73,8 +73,8 @@ export function Courses() {
             className={[
               "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
               tab === t.id
-                ? "bg-violet-600 text-white"
-                : "text-slate-400 hover:text-white",
+                ? "bg-violet-600 text-slate-100"
+                : "text-slate-400 hover:text-slate-100",
             ].join(" ")}
           >
             {t.label}
@@ -143,7 +143,7 @@ export function Courses() {
               {displayed.map((c) => (
                 <article
                   key={c.id}
-                  className="group flex flex-col rounded-xl border border-slate-800 bg-[#12121A] overflow-hidden transition-transform duration-200 hover:-translate-y-0.5 hover:border-slate-700"
+                  className="group flex flex-col rounded-xl border border-slate-800 bg-[var(--surface)] overflow-hidden transition-transform duration-200 hover:-translate-y-0.5 hover:border-slate-700"
                 >
                   <CourseBanner courseName={c.name} />
                   <div className="flex flex-col gap-3 px-4 pt-3 pb-4">

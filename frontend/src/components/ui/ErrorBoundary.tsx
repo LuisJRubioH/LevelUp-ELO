@@ -24,7 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (!this.state.hasError) return this.props.children;
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#0A0A0F] p-8 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[var(--canvas)] p-8 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-3xl">
           ⚠
         </div>
@@ -43,7 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
         </div>
         <button
           onClick={() => window.location.reload()}
-          className="rounded-lg bg-[#6C63FF] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#5a52d5] active:scale-95"
+          className="rounded-lg bg-[#6C63FF] px-5 py-2.5 text-sm font-medium text-slate-100 transition hover:bg-[#5a52d5] active:scale-95"
         >
           Recargar página
         </button>

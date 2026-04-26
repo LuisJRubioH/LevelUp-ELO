@@ -74,7 +74,7 @@ export function ReportProblemButton() {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white text-sm px-4 py-2 rounded-lg shadow-lg"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-slate-100 text-sm px-4 py-2 rounded-lg shadow-lg"
         >
           {toast}
         </div>
@@ -89,7 +89,7 @@ export function ReportProblemButton() {
           onClick={closeModal}
         >
           <div
-            className="w-full max-w-md rounded-xl border border-slate-700 bg-[#12121A] p-5 space-y-4"
+            className="w-full max-w-md rounded-xl border border-slate-700 bg-[var(--surface)] p-5 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             <header className="flex items-start justify-between gap-2">
@@ -153,7 +153,7 @@ export function ReportProblemButton() {
                 onClick={handleSubmit}
                 disabled={!valid || submitting}
                 aria-disabled={!valid || submitting}
-                className="px-4 py-1.5 text-sm font-medium rounded-lg bg-violet-600 text-white hover:bg-violet-500 transition-colors disabled:bg-slate-700 disabled:text-slate-500"
+                className="px-4 py-1.5 text-sm font-medium rounded-lg bg-violet-600 text-slate-100 hover:bg-violet-500 transition-colors disabled:bg-slate-700 disabled:text-slate-500"
               >
                 {submitting ? "Enviando…" : "Enviar"}
               </button>

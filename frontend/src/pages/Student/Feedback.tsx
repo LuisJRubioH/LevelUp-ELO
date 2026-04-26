@@ -75,7 +75,7 @@ function ValidatedCard({ row }: { row: ProcedureSubmissionRow }) {
   const katia = katiaForScore(score);
   const delta = row.elo_delta ?? 0;
   return (
-    <article className="rounded-xl border border-slate-800 bg-[#12121A] overflow-hidden">
+    <article className="rounded-xl border border-slate-800 bg-[var(--surface)] overflow-hidden">
       <div className="flex flex-col sm:flex-row gap-4 p-4">
         <div
           className={`shrink-0 w-24 h-24 sm:w-28 sm:h-28 rounded-lg overflow-hidden ring-2 ${katia.ringTone}`}
@@ -121,7 +121,7 @@ function ValidatedCard({ row }: { row: ProcedureSubmissionRow }) {
 
 function PendingCard({ row, kind }: { row: ProcedureSubmissionRow; kind: StatusKind }) {
   return (
-    <article className="rounded-xl border border-slate-800 bg-[#12121A] p-4 flex items-center gap-4">
+    <article className="rounded-xl border border-slate-800 bg-[var(--surface)] p-4 flex items-center gap-4">
       <div className="shrink-0 w-12 h-12 rounded-lg bg-slate-900 flex items-center justify-center text-slate-500 text-xl">
         ⌛
       </div>

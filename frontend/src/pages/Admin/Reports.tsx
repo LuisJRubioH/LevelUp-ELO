@@ -80,9 +80,9 @@ export function AdminReports() {
   return (
     <div className="max-w-2xl mx-auto py-6 px-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white">Reportes de Problemas</h2>
+        <h2 className="text-xl font-bold text-slate-100">Reportes de Problemas</h2>
         {reports.length > 0 && (
-          <span className="text-xs bg-amber-700 text-white px-2.5 py-1 rounded-full font-medium">
+          <span className="text-xs bg-amber-700 text-slate-100 px-2.5 py-1 rounded-full font-medium">
             {reports.length} pendiente{reports.length !== 1 ? "s" : ""}
           </span>
         )}

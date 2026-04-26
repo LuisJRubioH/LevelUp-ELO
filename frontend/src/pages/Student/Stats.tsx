@@ -94,12 +94,12 @@ export function Stats() {
 
   return (
     <div className="max-w-2xl mx-auto py-6 px-4 space-y-6">
-      <h2 className="text-xl font-bold text-white">Mis Estadísticas</h2>
+      <h2 className="text-xl font-bold text-slate-100">Mis Estadísticas</h2>
 
       {/* Resumen top */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
-          <div className="text-2xl font-bold text-white">{Math.round(stats.global_elo)}</div>
+          <div className="text-2xl font-bold text-slate-100">{Math.round(stats.global_elo)}</div>
           <div className="text-xs text-slate-400 mt-1">ELO Global</div>
         </div>
         <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">

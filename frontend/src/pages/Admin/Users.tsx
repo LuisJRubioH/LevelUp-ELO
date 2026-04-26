@@ -63,7 +63,7 @@ function PendingTeachersSection() {
               className="flex items-center justify-between bg-slate-800 rounded-lg px-3 py-2 border border-slate-700"
             >
               <div>
-                <span className="text-white font-medium text-sm">{t.username}</span>
+                <span className="text-slate-100 font-medium text-sm">{t.username}</span>
                 <span className="text-xs text-slate-500 ml-2">docente</span>
               </div>
               <div className="flex gap-2">
@@ -168,7 +168,7 @@ export function AdminUsers() {
   return (
     <div className="max-w-5xl mx-auto py-6 px-4 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white">Gestión de Usuarios</h2>
+        <h2 className="text-xl font-bold text-slate-100">Gestión de Usuarios</h2>
         <span className="text-xs text-slate-500">{users.length} usuarios en total</span>
       </div>
 

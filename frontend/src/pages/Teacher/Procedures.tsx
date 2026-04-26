@@ -97,11 +97,11 @@ function ProcedureCard({ proc }: { proc: PendingProcedure }) {
         <div className="flex items-center gap-2">
           <span className="text-green-400">✓</span>
           <span className="text-sm text-slate-300 font-medium">
-            Procedimiento de <strong className="text-white">{proc.student_username}</strong> calificado
+            Procedimiento de <strong className="text-slate-100">{proc.student_username}</strong> calificado
           </span>
         </div>
         <div className="text-sm text-slate-400">
-          Puntaje: <strong className="text-white">{result.teacher_score}</strong>
+          Puntaje: <strong className="text-slate-100">{result.teacher_score}</strong>
           {" · "}
           Delta ELO:{" "}
           <span className={delta >= 0 ? "text-green-400" : "text-red-400"}>
@@ -118,7 +118,7 @@ function ProcedureCard({ proc }: { proc: PendingProcedure }) {
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div>
-          <span className="text-sm font-semibold text-white">{proc.student_username}</span>
+          <span className="text-sm font-semibold text-slate-100">{proc.student_username}</span>
           <span className="text-xs text-slate-500 ml-2">#{proc.submission_id}</span>
         </div>
         <div className="text-right">
@@ -207,9 +207,9 @@ export function TeacherProcedures() {
   return (
     <div className="max-w-3xl mx-auto py-6 px-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white">Revisión de Procedimientos</h2>
+        <h2 className="text-xl font-bold text-slate-100">Revisión de Procedimientos</h2>
         {procedures.length > 0 && (
-          <span className="text-xs bg-violet-700 text-white px-2.5 py-1 rounded-full font-medium">
+          <span className="text-xs bg-violet-700 text-slate-100 px-2.5 py-1 rounded-full font-medium">
             {procedures.length} pendiente{procedures.length !== 1 ? "s" : ""}
           </span>
         )}

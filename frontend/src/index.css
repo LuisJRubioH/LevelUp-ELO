@@ -1,44 +1,83 @@
 @import "tailwindcss";
 
+/* Habilitar dark: variant por clase (para uso futuro con dark: prefix) */
+@variant dark (&:where(.dark, .dark *));
+
 /* Fuente pixel-art para KatIA y badges de rango */
 @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap");
 
+/* ── Variables semánticas de tema ─────────────────────────────────────────── */
+
 :root {
+  /* Colores de dominio que no dependen del tema */
   --color-elo-gold: #ffd700;
   --color-katia-purple: #8b5cf6;
   --color-correct: #22c55e;
   --color-wrong: #ef4444;
-  --color-bg: #0f172a;
-  --color-surface: #1e293b;
-  --color-border: #334155;
+
+  /* Custom surface colors (dark = default) */
+  --surface: #12121a;
+  --canvas: #0a0a0f;
 }
+
+/* ── Modo claro: invertir paleta slate ───────────────────────────────────── */
+/*
+ * Tailwind v4 expone los colores slate como CSS custom properties.
+ * Al sobreescribirlos aquí, todos los componentes que usan bg-slate-900,
+ * text-slate-400, border-slate-700, etc. se adaptan automáticamente.
+ *
+ * Mapeo: dark-slate-N ↔ light-slate-(1000-N)
+ */
+
+html.light {
+  /* Fondos oscuros → fondos claros */
+  --color-slate-900: oklch(97% 0.007 247.896);   /* era slate-100 */
+  --color-slate-800: oklch(92.9% 0.013 255.508); /* era slate-200 */
+  --color-slate-700: oklch(86.9% 0.022 252.894); /* era slate-300 */
+  --color-slate-600: oklch(70.4% 0.04 256.788);  /* era slate-400 */
+  /* slate-500 permanece (punto medio neutro) */
+  --color-slate-400: oklch(44.6% 0.043 257.281); /* era slate-600 */
+  --color-slate-300: oklch(37.2% 0.044 257.287); /* era slate-700 */
+  --color-slate-200: oklch(27.9% 0.041 260.031); /* era slate-800 */
+  --color-slate-100: oklch(20.8% 0.042 265.755); /* era slate-900 */
+
+  /* Surface colors para los custom hex */
+  --surface: #ffffff;
+  --canvas: #f8fafc;
+}
+
+/* ── Body ─────────────────────────────────────────────────────────────────── */
 
 body {
   margin: 0;
-  background-color: #0f172a;
-  color: #f1f5f9;
+  /* Usar CSS var para que cambie con el tema */
+  background-color: var(--color-slate-900);
+  color: var(--color-slate-100);
   font-family: "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbar personalizado */
+/* ── Scrollbar personalizado ──────────────────────────────────────────────── */
+
 ::-webkit-scrollbar {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-surface);
+  background: var(--color-slate-800);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--color-slate-700);
   border-radius: 3px;
 }
 
-/* LaTeX rendering */
+/* ── LaTeX rendering ──────────────────────────────────────────────────────── */
+
 .katex {
   font-size: 1.1em;
 }
 
-/* Animación de entrada suave */
+/* ── Animación de entrada suave ───────────────────────────────────────────── */
+
 .fade-in {
   animation: fadeIn 0.3s ease-in;
 }

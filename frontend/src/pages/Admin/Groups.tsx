@@ -93,7 +93,7 @@ export function AdminGroups() {
   return (
     <div className="max-w-4xl mx-auto py-6 px-4 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white">Grupos del Sistema</h2>
+        <h2 className="text-xl font-bold text-slate-100">Grupos del Sistema</h2>
         <span className="text-xs text-slate-500">{groups.length} grupos</span>
       </div>
 

@@ -109,7 +109,7 @@ export function Login() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">
+          <h1 className="text-3xl font-bold text-slate-100">
             Level<span className="text-violet-400">Up</span>
           </h1>
           <p className="text-slate-400 text-sm mt-1">Plataforma educativa adaptativa con ELO</p>
@@ -119,7 +119,7 @@ export function Login() {
           {/* ── LOGIN ─────────────────────────────────────────────── */}
           {view === "login" && (
             <form onSubmit={handleLogin} className="space-y-4">
-              <h2 className="text-xl font-semibold text-white mb-6">Iniciar sesión</h2>
+              <h2 className="text-xl font-semibold text-slate-100 mb-6">Iniciar sesión</h2>
 
               <div>
                 <label className="block text-sm text-slate-400 mb-1">Usuario o correo electrónico</label>
@@ -165,7 +165,7 @@ export function Login() {
           {/* ── REGISTRO PASO 1: ROL ──────────────────────────────── */}
           {view === "register-role" && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-white mb-2">¿Quién eres?</h2>
+              <h2 className="text-xl font-semibold text-slate-100 mb-2">¿Quién eres?</h2>
               <p className="text-slate-400 text-sm mb-6">Selecciona tu rol en la plataforma.</p>
 
               <div className="grid grid-cols-2 gap-4">
@@ -182,7 +182,7 @@ export function Login() {
                     ].join(" ")}
                   >
                     <div className="text-2xl mb-2">{role === "student" ? "🎓" : "👨‍🏫"}</div>
-                    <div className="text-sm font-medium text-white">
+                    <div className="text-sm font-medium text-slate-100">
                       {role === "student" ? "Estudiante" : "Docente"}
                     </div>
                   </button>
@@ -210,7 +210,7 @@ export function Login() {
           {/* ── REGISTRO PASO 2: DATOS ────────────────────────────── */}
           {view === "register-form" && (
             <form onSubmit={handleRegister} className="space-y-4">
-              <h2 className="text-xl font-semibold text-white mb-2">
+              <h2 className="text-xl font-semibold text-slate-100 mb-2">
                 Crear cuenta de {selectedRole === "student" ? "estudiante" : "docente"}
               </h2>
 

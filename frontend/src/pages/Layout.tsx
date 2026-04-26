@@ -16,6 +16,7 @@ import { useAuthStore } from "../stores/authStore";
 import { useSettingsStore, PROVIDER_MODELS } from "../stores/settingsStore";
 import { useNotifications } from "../hooks/useNotifications";
 import { ReportProblemButton } from "../components/ReportProblem/ReportProblemButton";
+import { ThemeToggle } from "../components/ui/ThemeToggle";
 
 interface NavItem {
   path: string;
@@ -140,7 +141,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Top bar móvil (solo visible en mobile) */}
       <header className="md:hidden bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <div className="text-base font-bold text-white">
+          <div className="text-base font-bold text-slate-100">
             Level<span className="text-violet-400">Up</span>
           </div>
           {user?.role === "student" && sessionStartTime && (
@@ -165,7 +166,7 @@ export function Layout({ children }: LayoutProps) {
       <aside className="hidden md:flex w-56 bg-slate-800 border-r border-slate-700 flex-col shrink-0">
         {/* Logo */}
         <div className="px-4 py-5 border-b border-slate-700">
-          <div className="text-lg font-bold text-white">
+          <div className="text-lg font-bold text-slate-100">
             Level<span className="text-violet-400">Up</span>
           </div>
           <div className="text-xs text-slate-500 mt-0.5">v1.0.0 ELO</div>
@@ -196,7 +197,7 @@ export function Layout({ children }: LayoutProps) {
                 <span className="flex-1">{item.label}</span>
                 {showBadge && (
                   <span
-                    className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
+                    className="ml-auto bg-red-500 text-slate-100 text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
                     aria-label={`${unreadCount > 99 ? "más de 99" : unreadCount} notificaciones`}
                   >
                     {unreadCount > 99 ? "99+" : unreadCount}
@@ -309,7 +310,7 @@ export function Layout({ children }: LayoutProps) {
                 <button
                   onClick={handleSaveEmail}
                   disabled={emailSaving}
-                  className="flex-1 text-xs bg-violet-600 hover:bg-violet-500 text-white rounded px-2 py-1 disabled:opacity-50"
+                  className="flex-1 text-xs bg-violet-600 hover:bg-violet-500 text-slate-100 rounded px-2 py-1 disabled:opacity-50"
                 >
                   {emailSaving ? "..." : "Guardar"}
                 </button>
@@ -335,6 +336,9 @@ export function Layout({ children }: LayoutProps) {
               <ReportProblemButton />
             </div>
           )}
+          <div className="mb-2">
+            <ThemeToggle />
+          </div>
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"
@@ -375,7 +379,7 @@ export function Layout({ children }: LayoutProps) {
               <span className="truncate max-w-full px-1" aria-hidden="true">{item.label}</span>
               {showBadge && (
                 <span
-                  className="absolute top-1 right-1/4 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1"
+                  className="absolute top-1 right-1/4 bg-red-500 text-slate-100 text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1"
                   aria-hidden="true"
                 >
                   {unreadCount > 9 ? "9+" : unreadCount}

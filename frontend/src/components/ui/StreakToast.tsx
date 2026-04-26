@@ -59,7 +59,7 @@ export function StreakToast({ streak, onDismiss }: StreakToastProps) {
       <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-2xl px-6 py-4 shadow-2xl border border-violet-400/30 flex items-center gap-4">
         <span className="text-3xl">{data.emoji}</span>
         <div>
-          <div className="text-white font-bold text-base">{data.title}</div>
+          <div className="text-slate-100 font-bold text-base">{data.title}</div>
           <div className="text-violet-200 text-sm">{data.subtitle}</div>
         </div>
       </div>

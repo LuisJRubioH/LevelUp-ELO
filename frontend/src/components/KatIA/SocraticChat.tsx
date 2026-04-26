@@ -171,9 +171,9 @@ export function SocraticChat({
   );
 
   return (
-    <div className="flex flex-col h-96 bg-[#0A0A0F] rounded-2xl border border-slate-700 overflow-hidden">
+    <div className="flex flex-col h-96 bg-[var(--canvas)] rounded-2xl border border-slate-700 overflow-hidden">
       {/* Header con avatar de KatIA */}
-      <div className="px-4 py-2.5 border-b border-slate-700/80 flex items-center gap-3 bg-[#12121A]">
+      <div className="px-4 py-2.5 border-b border-slate-700/80 flex items-center gap-3 bg-[var(--surface)]">
         <img
           src="/katia/katIA.png"
           alt="KatIA"
@@ -213,7 +213,7 @@ export function SocraticChat({
               className={[
                 "max-w-[80%] px-3 py-2 rounded-xl text-sm leading-relaxed",
                 msg.role === "student"
-                  ? "bg-violet-600/80 text-white rounded-br-sm"
+                  ? "bg-violet-600/80 text-slate-100 rounded-br-sm"
                   : "bg-slate-800/80 text-slate-200 border border-slate-700/60 rounded-bl-sm",
               ].join(" ")}
             >
@@ -230,7 +230,7 @@ export function SocraticChat({
       {/* Input */}
       <form
         onSubmit={sendMessage}
-        className="px-3 py-2.5 border-t border-slate-700/80 flex gap-2 bg-[#12121A]"
+        className="px-3 py-2.5 border-t border-slate-700/80 flex gap-2 bg-[var(--surface)]"
       >
         <input
           ref={inputRef}

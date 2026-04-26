@@ -131,7 +131,7 @@ export function ProcedureUpload() {
   if (stage === "sent") {
     return (
       <div className="max-w-xl mx-auto py-8 px-4 space-y-6">
-        <h2 className="text-xl font-bold text-white">Procedimiento enviado</h2>
+        <h2 className="text-xl font-bold text-slate-100">Procedimiento enviado</h2>
         <KatIAAvatar
           state="correct"
           message="Recibido! Tu docente revisará tu procedimiento pronto. Sigue practicando."
@@ -146,8 +146,8 @@ export function ProcedureUpload() {
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4 space-y-6">
-      <h2 className="text-xl font-bold text-white">Procedimiento abierto</h2>
-      <div className="rounded-xl border border-slate-700/50 bg-[#12121A] p-4 space-y-1">
+      <h2 className="text-xl font-bold text-slate-100">Procedimiento abierto</h2>
+      <div className="rounded-xl border border-slate-700/50 bg-[var(--surface)] p-4 space-y-1">
         <p className="text-sm text-slate-300">
           Sube el procedimiento de un ejercicio de desarrollo o pregunta abierta.
         </p>
@@ -300,7 +300,7 @@ export function ProcedureUpload() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-slate-700 bg-[#12121A] p-8 text-center space-y-4"
+          className="rounded-2xl border border-slate-700 bg-[var(--surface)] p-8 text-center space-y-4"
         >
           <KatIAAvatar state="thinking" size="lg" />
           <p className="text-sm text-slate-300 font-medium">
@@ -356,7 +356,7 @@ export function ProcedureUpload() {
               </div>
             )}
 
-            <div className="rounded-2xl border border-slate-700 bg-[#12121A] p-5 space-y-4">
+            <div className="rounded-2xl border border-slate-700 bg-[var(--surface)] p-5 space-y-4">
               <div className="flex items-baseline justify-between">
                 <h3 className="text-sm font-semibold text-slate-200">
                   {usedProvider === "groq"

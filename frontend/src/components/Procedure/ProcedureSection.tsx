@@ -141,7 +141,7 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
   }
 
   return (
-    <div className="rounded-2xl border border-slate-700/60 bg-[#12121A] overflow-hidden">
+    <div className="rounded-2xl border border-slate-700/60 bg-[var(--surface)] overflow-hidden">
       {/* Toggle header */}
       <button
         onClick={() => setExpanded((v) => !v)}

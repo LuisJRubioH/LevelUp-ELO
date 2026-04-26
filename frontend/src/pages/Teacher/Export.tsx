@@ -42,7 +42,7 @@ function ExportCard({ icon, title, description, sheets, buttonLabel, onDownload 
       <div className="flex items-start gap-4">
         <div className="text-3xl">{icon}</div>
         <div className="flex-1">
-          <h3 className="font-semibold text-white text-base">{title}</h3>
+          <h3 className="font-semibold text-slate-100 text-base">{title}</h3>
           <p className="text-slate-400 text-sm mt-1">{description}</p>
           {sheets && (
             <div className="flex flex-wrap gap-1.5 mt-3">
@@ -78,7 +78,7 @@ export function TeacherExport() {
   return (
     <div className="max-w-2xl mx-auto py-6 px-4 space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-white">Exportar Datos</h2>
+        <h2 className="text-xl font-bold text-slate-100">Exportar Datos</h2>
         <p className="text-slate-400 text-sm mt-1">
           Descarga los datos de tus estudiantes para análisis estadístico externo.
           Los datos incluyen solo los estudiantes de tus grupos.

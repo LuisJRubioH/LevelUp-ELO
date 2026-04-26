@@ -54,7 +54,7 @@ export function PWAPrompt() {
       <div className="flex items-start gap-3">
         <span className="text-2xl">📱</span>
         <div className="flex-1">
-          <p className="text-sm font-medium text-white">Instalar LevelUp ELO</p>
+          <p className="text-sm font-medium text-slate-100">Instalar LevelUp ELO</p>
           <p className="text-xs text-slate-400 mt-0.5">
             Accede más rápido desde tu pantalla de inicio y úsalo offline.
           </p>
