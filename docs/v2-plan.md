@@ -227,8 +227,8 @@ Deploy actual:
 
 ## Checklist Sprint 8 — Pulido y accesibilidad
 
-- [x] 8.1 Modo examen end-to-end — commit pendiente
-- [ ] 8.2 Accesibilidad (aria-labels, focus, keyboard nav)
-- [ ] 8.3 Tema claro / oscuro
+- [x] 8.1 Modo examen end-to-end
+- [x] 8.2 Accesibilidad (aria-labels, focus, keyboard nav)
+- [x] 8.3 Tema claro / oscuro (CSS variable palette inversion, FOUC-safe)
 - [ ] 8.4 Internacionalización es/en (opcional)
-- [ ] 8.5 Métricas de uso en dashboard docente
+- [x] 8.5 Métricas de uso en dashboard docente
