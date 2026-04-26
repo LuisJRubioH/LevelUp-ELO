@@ -613,6 +613,9 @@ class PostgresRepository:
             self._add_column_if_not_exists(cursor, "attempts", "confidence_score", "REAL")
             self._add_column_if_not_exists(cursor, "attempts", "error_type", "TEXT")
             self._add_column_if_not_exists(cursor, "attempts", "rating_deviation", "REAL")
+            # 1 = intento con tiempo válido (3-600s) → actualiza ELO
+            # 0 = adivinanza (<3s) o sesión abandonada (>600s) → no actualiza ELO
+            self._add_column_if_not_exists(cursor, "attempts", "elo_valid", "INTEGER DEFAULT 1")
 
             # Asegurar tabla items
             cursor.execute(
@@ -1375,6 +1378,12 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    def _tiempo_valido(self, time_taken: float) -> bool:
+        """Rango válido para actualizar ELO: [3s, 600s].
+        <3s = adivinanza sin leer; >600s = sesión abandonada.
+        """
+        return 3.0 <= time_taken <= 600.0
+
     def save_answer_transaction(
         self,
         user_id: int,
@@ -1385,21 +1394,23 @@ class PostgresRepository:
     ) -> None:
         """
         Persiste el resultado de una respuesta de forma atómica.
-        Ver sqlite_repository.py para documentación completa.
+        El intento siempre se guarda. La actualización de ELO (ítem +
+        current_elo del usuario) solo ocurre si el tiempo de respuesta
+        está en el rango válido [3s, 600s] (elo_valid=1).
         """
+        time_taken = attempt_data.get("time_taken", 30.0) or 30.0
+        elo_valid = 1 if self._tiempo_valido(time_taken) else 0
+
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute(
-                "UPDATE items SET difficulty = %s, rating_deviation = %s WHERE id = %s",
-                (item_difficulty_new, item_rd_new, item_id),
-            )
+            # Siempre registrar el intento
             cursor.execute(
                 """INSERT INTO attempts
                    (user_id, item_id, is_correct, difficulty, topic, elo_after,
                     prob_failure, expected_score, time_taken, confidence_score,
-                    error_type, rating_deviation)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                    error_type, rating_deviation, elo_valid)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                 (
                     user_id,
                     item_id,
@@ -1413,14 +1424,54 @@ class PostgresRepository:
                     attempt_data.get("confidence_score"),
                     attempt_data.get("error_type"),
                     attempt_data.get("rating_deviation"),
+                    elo_valid,
                 ),
             )
-            # Actualizar current_elo en users dentro de la misma transacción
-            self._update_current_elo(cursor, user_id)
+            # Solo actualizar ELO si el tiempo de respuesta es válido
+            if elo_valid:
+                cursor.execute(
+                    "UPDATE items SET difficulty = %s, rating_deviation = %s WHERE id = %s",
+                    (item_difficulty_new, item_rd_new, item_id),
+                )
+                self._update_current_elo(cursor, user_id)
             conn.commit()
         except Exception:
             conn.rollback()
             raise
+        finally:
+            self.put_connection(conn)
+
+    def get_all_attempts_for_calibration(
+        self,
+        education_level: str = None,
+        exclude_test_users: bool = True,
+    ) -> list:
+        """Retorna intentos filtrados para calibración ML.
+
+        Filtra elo_valid=1 y opcionalmente is_test_user=0.
+        luisito-s y torieg (is_test_user=1) siempre excluidos en análisis.
+        """
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            params = []
+            where = ["a.elo_valid = 1"]
+            if exclude_test_users:
+                where.append("COALESCE(u.is_test_user, 0) = 0")
+            if education_level:
+                where.append("u.education_level = %s")
+                params.append(education_level)
+            cursor.execute(
+                f"""SELECT a.id, a.user_id, a.item_id, a.is_correct,
+                           a.expected_score, a.elo_valid, a.time_taken,
+                           u.education_level
+                    FROM attempts a
+                    JOIN users u ON a.user_id = u.id
+                    WHERE {' AND '.join(where)}
+                    ORDER BY a.timestamp""",
+                params,
+            )
+            return [dict(row) for row in cursor.fetchall()]
         finally:
             self.put_connection(conn)
 

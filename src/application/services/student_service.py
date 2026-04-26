@@ -1,4 +1,5 @@
 from src.domain.elo.model import expected_score
+from src.domain.elo.calibration import IsotonicCalibrator
 from src.domain.selector.item_selector import AdaptiveItemSelector
 from src.domain.entities import VALID_LEVELS, LEVEL_UNIVERSIDAD, LEVEL_SEMILLERO
 from src.infrastructure.external_api.ai_client import get_socratic_guidance
@@ -25,6 +26,12 @@ class StudentService:
             self.cognitive_analyzer = CognitiveAnalyzer()
         else:
             self.cognitive_analyzer = None
+
+        # Calibrador isotónico: corrige sesgo en expected_score guardado en DB.
+        # Si no hay modelo entrenado, degrada con gracia (retorna p_raw).
+        # El delta ELO siempre usa p_raw — nunca el valor calibrado.
+        self._calibrator = IsotonicCalibrator()
+        self._calibrator.load()
 
     def get_next_question(
         self,
@@ -151,14 +158,18 @@ class StudentService:
         new_item_difficulty = item_data["difficulty"] + k_item * (item_score - p_item_wins)
         item_rd_current = item_data.get("rating_deviation", 350.0)
 
+        # Calibrar expected_score para el dashboard (no afecta el delta ELO).
+        # El delta siempre usa p_success raw — regla crítica del calibrador.
+        p_success_display = self._calibrator.predict(p_success)
+
         # 4. Persistir ítem + intento de forma atómica
         attempt_data = {
             "is_correct": is_correct,
             "difficulty": item_data["difficulty"],
             "topic": _topic_key,
             "elo_after": new_r,
-            "prob_failure": 1.0 - p_success,
-            "expected_score": p_success,
+            "prob_failure": 1.0 - p_success_display,
+            "expected_score": p_success_display,
             "time_taken": time_taken,
             "confidence_score": cog_data["confidence_score"],
             "error_type": cog_data["error_type"],

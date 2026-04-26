@@ -78,3 +78,7 @@ VALIDACION_ELO/
 .coverage
 .agents/
 skills-lock.json
+
+# Modelos ML entrenados (binarios, no versionables)
+models/*.pkl
+models/*.json
