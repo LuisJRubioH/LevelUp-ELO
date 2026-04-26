@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { studentApi, type Course } from "../../api/student";
 import { Button } from "../../components/ui/Button";
+import { CoursesSkeleton } from "../../components/ui/Skeleton";
 import { CourseBanner } from "../../components/CourseCard/CourseBanner";
 import { usePracticeStore } from "../../stores/practiceStore";
 
@@ -130,7 +131,7 @@ export function Courses() {
           )}
 
           {isLoading ? (
-            <div className="animate-pulse text-slate-400 text-sm">Cargando cursos...</div>
+            <CoursesSkeleton />
           ) : displayed.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
               {tab === "enrolled"

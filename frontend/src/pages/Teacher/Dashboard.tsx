@@ -9,6 +9,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { teacherApi } from "../../api/teacher";
 import { ELOChart } from "../../components/ELO/ELOChart";
 import { useSettingsStore } from "../../stores/settingsStore";
+import { DashboardSkeleton, Skeleton } from "../../components/ui/Skeleton";
 
 function EloBar({ elo }: { elo: number }) {
   const pct = Math.min(100, Math.round((elo / 2500) * 100));
@@ -113,7 +114,13 @@ function StudentDetailPanel({
         ))}
       </div>
 
-      {isLoading && <p className="text-slate-400 text-sm animate-pulse">Cargando...</p>}
+      {isLoading && (
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-4 w-full" />
+          ))}
+        </div>
+      )}
 
       {/* Tab: ELO temporal */}
       {tab === "elo" && (
@@ -282,11 +289,7 @@ export function TeacherDashboard() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-slate-400 animate-pulse">Cargando dashboard...</p>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error || !data) {

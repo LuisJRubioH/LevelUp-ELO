@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { studentApi } from "../../api/student";
 import { ELOChart } from "../../components/ELO/ELOChart";
+import { StatsSkeleton } from "../../components/ui/Skeleton";
 import { RankBadge } from "../../components/ELO/RankBadge";
 import { TopicRadarChart } from "../../components/ELO/TopicRadarChart";
 import { ActivityHeatmap } from "../../components/ui/ActivityHeatmap";
@@ -60,11 +61,7 @@ export function Stats() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-pulse text-slate-400">Cargando estadísticas...</div>
-      </div>
-    );
+    return <StatsSkeleton />;
   }
 
   if (isError || !stats) {
