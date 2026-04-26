@@ -626,8 +626,8 @@ Crear `.claude/skills/irt-calibration/SKILL.md`.
 |---|---|---|---|---|
 | ML-1 | Filtro elo_valid outliers time_taken | P0 URGENTE | 1–2 h | ✅ 2026-04-25 |
 | ML-2 | Isotonic Regression + monthly_metrics | P1 | 2–3 h | ✅ 2026-04-25 |
-| V2-7.2 | Code splitting React.lazy | P1 | 1–2 h | ❌ |
-| V2-7.3 | Error boundaries | P1 | 1–2 h | ❌ |
+| V2-7.2 | Code splitting React.lazy | P1 | 1–2 h | ✅ 2026-04-25 |
+| V2-7.3 | Error boundaries | P1 | 1–2 h | ✅ 2026-04-25 |
 | V2-7.4 | Skeleton loaders | P1 | 2–3 h | ❌ |
 | V2-7.1 | Tests E2E Playwright | P2 | 4–6 h | ❌ |
 | V2-7.5 | Tests integración rutas protegidas | P2 | 2–3 h | ❌ |
