@@ -219,11 +219,11 @@ Deploy actual:
 
 ## Checklist Sprint 7 — Calidad y producción
 
-- [ ] 7.1 Tests E2E con Playwright
+- [x] 7.1 Tests E2E con Playwright (auth, práctica, stats, rutas protegidas) — `frontend/e2e/`
 - [x] 7.2 Code splitting por ruta (`React.lazy`) — commit d8d5291
 - [x] 7.3 Error boundaries + pantalla de error amigable — commit d8d5291
 - [x] 7.4 Skeleton loaders en listas y charts — commit 28ad50f
-- [ ] 7.5 Tests de integración de rutas protegidas
+- [x] 7.5 Tests de integración de rutas protegidas — `tests/api/test_protected_routes.py` (48 tests, 100%)
 
 ## Checklist Sprint 8 — Pulido y accesibilidad
 
