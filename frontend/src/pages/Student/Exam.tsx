@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { InlineMath } from "react-katex";
+import katex from "katex";
 import "katex/dist/katex.min.css";
 import { studentApi } from "../../api/student";
 import { api } from "../../api/client";
@@ -35,18 +35,35 @@ type ExamPhase = "setup" | "loading" | "answering" | "submitting" | "results" | 
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function renderMath(text: string) {
+function RenderMath({ text }: { text: string }) {
   const parts = text.split(/(\$[^$]+\$)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith("$") && part.endsWith("$")) {
-      return (
-        <span key={i}>
-          <InlineMath math={part.slice(1, -1)} />
-        </span>
-      );
-    }
-    return <span key={i}>{part}</span>;
-  });
+  if (parts.length === 1) return <>{text}</>;
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith("$") && part.endsWith("$")) {
+          const math = part.slice(1, -1);
+          try {
+            const html = katex.renderToString(math, {
+              displayMode: false,
+              throwOnError: false,
+              errorColor: "#ef4444",
+            });
+            return (
+              <span
+                key={i}
+                className="inline-block align-middle"
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
+            );
+          } catch {
+            return <span key={i}>{part}</span>;
+          }
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
 }
 
 function formatTime(seconds: number) {
@@ -439,7 +456,7 @@ export function Exam() {
                     Pregunta {i + 1}
                   </p>
                   <p className="text-sm text-slate-300 leading-snug line-clamp-2">
-                    {item ? renderMath(item.content) : r.item_id}
+                    {item ? <RenderMath text={item.content} /> : r.item_id}
                   </p>
                 </div>
                 {r.elo_delta !== 0 && (
@@ -556,7 +573,7 @@ export function Exam() {
 
               <div className="bg-slate-800 rounded-xl p-5 mb-5 border border-slate-700">
                 <p className="text-slate-200 leading-relaxed text-[15px]">
-                  {renderMath(currentItem.content)}
+                  <RenderMath text={currentItem.content} />
                 </p>
                 {currentItem.image_url && (
                   <img
@@ -581,7 +598,7 @@ export function Exam() {
                           : "border-slate-600 bg-slate-800/60 text-slate-300 hover:border-slate-500 hover:bg-slate-700/60",
                       ].join(" ")}
                     >
-                      {renderMath(opt)}
+                      <RenderMath text={opt} />
                     </button>
                   );
                 })}
