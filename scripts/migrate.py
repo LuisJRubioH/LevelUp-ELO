@@ -12,7 +12,7 @@ Solo afecta la base de datos PostgreSQL definida en DATABASE_URL.
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 
 def run_migrations():
@@ -31,7 +31,7 @@ def run_migrations():
         sys.exit(1)
 
     print(f"Conectando a: {database_url[:30]}...")
-    repo = PostgresRepository()   # init_db() + _migrate_db() ya se ejecutan aquí
+    repo = PostgresRepository()  # init_db() + _migrate_db() ya se ejecutan aquí
     print("Migraciones completadas.")
 
 

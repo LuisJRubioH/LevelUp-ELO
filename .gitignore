@@ -55,6 +55,9 @@ node_modules/
 # Screenshots y capturas temporales
 screenshot-*.png
 verify-*.png
+test-*.png
+katia-working.png
+page-*.png
 
 # Carpetas de trabajo ya integradas
 nuvos_bugs/
