@@ -3,7 +3,7 @@
 > Plataforma de evaluación y aprendizaje adaptativo basada en el sistema de rating **ELO** — el mismo del ajedrez competitivo — aplicado a la educación matemática.
 
 [![CI](https://github.com/LuisJRubioH/LevelUp-ELO/actions/workflows/ci.yml/badge.svg)](https://github.com/LuisJRubioH/LevelUp-ELO/actions/workflows/ci.yml)
-[![Versión](https://img.shields.io/badge/versión-1.0.0--v2--dev-blue)](https://github.com/LuisJRubioH/LevelUp-ELO)
+[![Versión](https://img.shields.io/badge/versión-2.0.0-blue)](https://github.com/LuisJRubioH/LevelUp-ELO)
 [![Python](https://img.shields.io/badge/python-3.11+-green)](https://www.python.org/)
 [![React](https://img.shields.io/badge/react-19-61DAFB)](https://react.dev/)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-orange)](LICENSE)
@@ -360,10 +360,10 @@ python scripts/db_sync_check.py
 ### V1.0.0 (producción)
 Plataforma Streamlit estable con Clean Architecture, CI/CD completo, 85% cobertura de tests, +1.900 ítems, KatIA tutora socrática, revisión de procedimientos con IA.
 
-### V2.0 (en desarrollo activo)
-Reescritura a React 19 + FastAPI. El motor ELO, dominio y banco de preguntas se reutilizan sin cambios. Nueva interfaz moderna, mobile-ready y PWA.
+### V2.0.0 (producción)
+Reescritura a React 19 + FastAPI. Motor ELO, dominio y banco de preguntas reutilizados sin cambios. Nueva interfaz moderna, mobile-ready, PWA, internacionalización es/en, tema claro/oscuro, modo examen, tests E2E con Playwright. Deploy en Vercel + Render.
 
-**Estado actual de V2:** Sprints 1–8 completos (excl. E2E, i18n). Paridad funcional ~100% con V1.
+**Estado actual de V2:** Sprints 1–8 completos. Paridad funcional 100% con V1.
 - ✅ Sprint 1: KatIA GIFs, timer de sesión, preview ELO, toasts de racha, fechas en gráficos, perfil en sidebar
 - ✅ Sprint 2: Radar chart, heatmap de actividad, ranking del grupo, logros animados, envío de procedimientos
 - ✅ Sprint 3: Panel docente completo (gráfico ELO temporal, historial KatIA, análisis IA, filtros cascada)
@@ -371,9 +371,8 @@ Reescritura a React 19 + FastAPI. El motor ELO, dominio y banco de preguntas se 
 - ✅ Sprint 5: Mobile, PWA, offline, transiciones Framer Motion, selector de modelo IA
 - ✅ Sprint 6: Banners pixel art, centro de feedback, reporte problemas, revisión IA en vivo, API keys por función
 - ✅ Post-Sprint 6: KatIA socrático con avatar, procedimiento integrado en práctica, `student_topic_elo`, email login
-- ✅ Sprint 7 (parcial): code splitting (`React.lazy` por ruta), error boundaries, skeleton loaders
-- ✅ Sprint 8: modo examen, accesibilidad ARIA, tema claro/oscuro, métricas de uso docente
-- ⏳ Pendiente: E2E Playwright (7.1), tests de rutas protegidas (7.5), internacionalización es/en (8.4, opcional)
+- ✅ Sprint 7: E2E Playwright (`frontend/e2e/`), code splitting (`React.lazy`), error boundaries, skeleton loaders, tests de rutas protegidas (48 tests, 100%)
+- ✅ Sprint 8: modo examen E2E, accesibilidad ARIA, tema claro/oscuro, internacionalización es/en (`react-i18next`), métricas de uso docente
 
 Ver plan detallado en `docs/v2-plan.md`.
 

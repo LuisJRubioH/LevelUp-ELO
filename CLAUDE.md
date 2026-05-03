@@ -289,6 +289,7 @@ Mensajes: `get_procedure_comment(score)` → ALTA (≥91) / MEDIA (60–90) / TU
 - **V2-R7**: siempre `npm install --legacy-peer-deps` (vite-plugin-pwa@1.2.0 vs vite@8).
 - **V2-R8**: `sessionStartTime` en `authStore`, persiste en localStorage, se resetea en logout.
 - **V2-R9**: respuesta correcta **nunca** viaja al frontend. Sin `correct_option` en ningún response de `/answer` ni `/exam/submit`.
+- **V2-R10**: cualquier `fetch()` directo (fuera de `api/client.ts`) debe usar el prefijo `import.meta.env.VITE_API_URL ?? ""` para funcionar en Vercel production. Ver `SocraticChat.tsx` como ejemplo — Vercel sirve la SPA y no tiene proxy inverso a Render.
 
 ### Archivos clave V2
 
@@ -308,8 +309,12 @@ frontend/src/pages/Student/Stats.tsx     # Estadísticas: radar + heatmap + rank
 frontend/src/pages/Student/ProcedureUpload.tsx # Procedimiento abierto (ejercicios de desarrollo)
 frontend/src/pages/Student/Feedback.tsx  # Historial de procedimientos + KatIA
 frontend/src/components/Procedure/ProcedureSection.tsx # Procedimiento inline en Practice (vinculado a pregunta)
-frontend/src/components/KatIA/SocraticChat.tsx # Chat socrático con avatar KatIA
+frontend/src/components/KatIA/SocraticChat.tsx # Chat socrático con avatar KatIA — usa API_BASE (V2-R10)
 frontend/src/pages/Teacher/Dashboard.tsx # Panel docente (4 tabs)
+frontend/src/i18n/index.ts               # i18next: es/en, detección localStorage "levelup-lang"
+frontend/src/i18n/locales/es.ts          # Traducciones ES (fuente de verdad, DeepString<T> type)
+frontend/src/i18n/locales/en.ts          # Traducciones EN (satisface DeepString<typeof es>)
+frontend/src/components/ui/LanguageToggle.tsx # Toggle 🌐 ES/EN en sidebar
 docs/v2-plan.md                          # Checklist de sprints
 ```
 
@@ -322,33 +327,28 @@ flake8 src/ api/ --max-line-length=100 --select=E9,F63,F7,F82
 ADMIN_PASSWORD=testadmin123 python -m pytest tests/api/ -v
 ```
 
-### Estado V2 — abril 2026
+### Estado V2 — mayo 2026
 
-Sprints 1–6 completos. Paridad funcional ~95% con V1. Deploy en Vercel + Render, CI con 7 jobs verdes.
+**Sprints 1–8 completos. Paridad funcional 100% con V1.** Deploy en Vercel + Render, CI con 7 jobs verdes.
 
-Sprint 6 completado:
-- 6.1: Banners pixel art en tarjetas de curso (`CourseBanner.tsx`, grid responsive, deburr para acentos)
-- 6.2: Centro de feedback bidireccional (`Feedback.tsx`, GIFs KatIA por score, badge de procedimientos)
-- 6.3: Reporte de problemas técnicos (`ReportProblemButton.tsx`, modal + `POST /student/problems`)
-- 6.4: Revisión IA en vivo (`POST /student/procedure/analyze`, KatIA revisando → resultado, multi-proveedor)
-- IA del sistema: `SYSTEM_AI_API_KEY` + keys opcionales por función con fallback encadenado
+Sprints 7–8 completados:
+- 7.1: Tests E2E Playwright — `frontend/e2e/` (auth, practice, stats, protected routes)
+- 7.2: Code splitting por ruta (`React.lazy` + `Suspense`) — bundle inicial <220 kB
+- 7.3: Error boundaries — pantalla de recuperación con botón "Recargar"
+- 7.4: Skeleton loaders en Stats, Courses y Dashboard
+- 7.5: Tests de integración de rutas protegidas — `tests/api/test_protected_routes.py` (48 tests, 100%)
+- 8.1: Modo examen end-to-end (`Exam.tsx`: N preguntas, timer global, mapa de respuestas, resumen final)
+- 8.2: Accesibilidad ARIA — `aria-label`, `aria-pressed`, `aria-live`, `role="dialog"`, `role="timer"`
+- 8.3: Tema claro/oscuro — inversión de paleta CSS Tailwind v4 via CSS vars (FOUC-safe)
+- 8.4: Internacionalización es/en con `react-i18next` — Login, Layout, Practice, ThemeToggle; `LanguageToggle` 🌐 en sidebar
+- 8.5: Métricas de uso en dashboard docente — tiempo promedio, abandono, distribución horaria
 
-Fixes post-Sprint 6:
-- KatIA chat disponible antes Y después de responder (no solo en feedback)
-- "Explorar" → practicar cursos matriculados / matricularse en nuevos; "Mis matrículas" → gestión
-- KatIA socrático funciona sin API key del usuario (fallback a `SYSTEM_AI_API_KEY`)
-- Fix: endpoint `/ai/socratic` pasaba parámetros incorrectos a `get_socratic_guidance()` — ahora consulta ítem desde DB, calcula ELO del estudiante, y pasa los 10 parámetros correctos
-- KatIA avatar visible en SocraticChat (foto estática + GIF animado mientras piensa)
-- Procedimiento manuscrito integrado en Practice.tsx (vinculado a pregunta actual, como V1)
-- ProcedureUpload.tsx convertida a "Procedimiento abierto" para ejercicios de desarrollo
-- Tabla `student_topic_elo`: ELO actual por materia consultable directamente en DB
-- Campo `users.current_elo`: ELO global actualizado automáticamente al responder/validar
-- Fix: deduplicación de estudiantes en dashboard docente — GROUP BY u.id, COUNT(DISTINCT), cursos_matriculados
-- Email de usuario: campo `email` con UNIQUE parcial, login por username o email, PATCH /student/profile
+Fixes de producción (mayo 2026):
+- **KatIA SSE**: `SocraticChat.tsx` usaba URL relativa `/api/ai/socratic` — en Vercel esto llega al rewrite SPA en lugar de Render. Fix: `${VITE_API_URL}/api/ai/socratic` (ver V2-R10)
+- CORS: corregida origin `luislevelupelo.vercel.app` en `api/config.py`
+- i18n TypeScript: `DeepString<T>` en `es.ts` para que `en.ts` pueda usar valores de string distintos sin errores de tipo literal
 
-Pendiente:
-- **Sprint 7**: E2E Playwright, code splitting, error boundaries, skeletons
-- **Sprint 8**: modo examen, accesibilidad, tema claro/oscuro, métricas docentes
+No hay pendientes de desarrollo. V2 lista para etiquetar `v2.0.0`.
 
 ---
 
