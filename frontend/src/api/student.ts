@@ -85,6 +85,17 @@ export interface ProcedureReview {
   score_procedimiento?: number;
 }
 
+export interface ExamSession {
+  id: number;
+  course_id: string;
+  course_name: string;
+  n_questions: number;
+  correct_count: number;
+  score_pct: number;
+  global_elo_after: number;
+  created_at: string;
+}
+
 export const studentApi = {
   nextQuestion: (body: {
     course_id: string;
@@ -146,6 +157,8 @@ export const studentApi = {
   },
 
   history: () => api.get<{ attempts: unknown[] }>("/api/student/history"),
+
+  examHistory: () => api.get<ExamSession[]>("/api/student/exam/history"),
 
   activity: (days = 70) =>
     api.get<{ activity: Record<string, number> }>(`/api/student/activity?days=${days}`),

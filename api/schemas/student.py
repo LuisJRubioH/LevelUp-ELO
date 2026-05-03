@@ -140,6 +140,8 @@ class ExamAnswerItem(BaseModel):
 class ExamSubmitRequest(BaseModel):
     answers: list[ExamAnswerItem] = Field(..., description="Respuestas del estudiante")
     total_time_taken: float | None = Field(None, description="Tiempo total en segundos")
+    course_id: str = Field(default="", description="ID del curso examinado")
+    course_name: str = Field(default="", description="Nombre del curso examinado")
 
 
 class ExamSubmitResponse(BaseModel):

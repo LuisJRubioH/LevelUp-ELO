@@ -642,14 +642,34 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
     from src.domain.elo.vector_elo import aggregate_global_elo
 
     score_pct = round(correct_count / len(body.answers) * 100, 1) if body.answers else 0.0
+    global_elo = round(aggregate_global_elo(vector), 2)
+
+    try:
+        repo.save_exam_session(
+            user_id=user["user_id"],
+            course_id=body.course_id,
+            course_name=body.course_name,
+            n_questions=len(body.answers),
+            correct_count=correct_count,
+            score_pct=score_pct,
+            global_elo_after=global_elo,
+        )
+    except Exception:
+        pass
 
     return ExamSubmitResponse(
         results=results,
         correct_count=correct_count,
         total_questions=len(body.answers),
         score_pct=score_pct,
-        global_elo_after=round(aggregate_global_elo(vector), 2),
+        global_elo_after=global_elo,
     )
+
+
+@router.get("/exam/history")
+def exam_history(user: CurrentUser, repo: RepoDep):
+    """Historial de intentos de examen del estudiante (últimos 20)."""
+    return repo.get_exam_history(user["user_id"], limit=20)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

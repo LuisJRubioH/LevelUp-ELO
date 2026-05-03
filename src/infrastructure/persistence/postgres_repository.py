@@ -906,6 +906,23 @@ class PostgresRepository:
             """
             )
 
+            # ── Tabla exam_sessions (historial de exámenes del estudiante) ────
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS exam_sessions (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    course_id TEXT NOT NULL,
+                    course_name TEXT NOT NULL DEFAULT '',
+                    n_questions INTEGER NOT NULL,
+                    correct_count INTEGER NOT NULL,
+                    score_pct REAL NOT NULL,
+                    global_elo_after REAL NOT NULL DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+
             conn.commit()
 
         except Exception:
@@ -4509,5 +4526,61 @@ class PostgresRepository:
                 ),
             )
             conn.commit()
+        finally:
+            self.put_connection(conn)
+
+    def save_exam_session(
+        self,
+        user_id: int,
+        course_id: str,
+        course_name: str,
+        n_questions: int,
+        correct_count: int,
+        score_pct: float,
+        global_elo_after: float,
+    ) -> int:
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """INSERT INTO exam_sessions
+                       (user_id, course_id, course_name, n_questions, correct_count, score_pct, global_elo_after)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s)
+                       RETURNING id""",
+                    (
+                        user_id,
+                        course_id,
+                        course_name,
+                        n_questions,
+                        correct_count,
+                        score_pct,
+                        global_elo_after,
+                    ),
+                )
+                row = cursor.fetchone()
+                conn.commit()
+                return row["id"]
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def get_exam_history(self, user_id: int, limit: int = 20) -> list[dict]:
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """SELECT id, course_id, course_name, n_questions, correct_count,
+                              score_pct, global_elo_after,
+                              to_char(created_at, 'YYYY-MM-DD HH24:MI') AS created_at
+                       FROM exam_sessions
+                       WHERE user_id = %s
+                       ORDER BY created_at DESC
+                       LIMIT %s""",
+                    (user_id, limit),
+                )
+                rows = cursor.fetchall()
+                return [dict(r) for r in rows]
         finally:
             self.put_connection(conn)

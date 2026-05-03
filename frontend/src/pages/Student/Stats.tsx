@@ -7,6 +7,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { studentApi } from "../../api/student";
+import type { ExamSession } from "../../api/student";
 import { ELOChart } from "../../components/ELO/ELOChart";
 import { StatsSkeleton } from "../../components/ui/Skeleton";
 import { RankBadge } from "../../components/ELO/RankBadge";
@@ -58,6 +59,11 @@ export function Stats() {
     queryFn: () =>
       apiClient.get<{ ranking: RankEntry[]; my_rank: number | null }>("/api/student/group-ranking"),
     retry: 1,
+  });
+
+  const { data: examHistory = [] } = useQuery<ExamSession[]>({
+    queryKey: ["examHistory"],
+    queryFn: () => studentApi.examHistory(),
   });
 
   if (isLoading) {
@@ -257,6 +263,45 @@ export function Stats() {
           </div>
         ) : (
           <p className="text-slate-500 text-sm">Cargando logros…</p>
+        )}
+      </div>
+
+      {/* Historial de exámenes */}
+      <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+        <h3 className="text-sm font-medium text-slate-400 mb-3">Historial de exámenes</h3>
+        {examHistory.length === 0 ? (
+          <p className="text-slate-500 text-sm">Aún no has completado ningún examen.</p>
+        ) : (
+          <div className="space-y-2">
+            {examHistory.map((session) => {
+              const scoreColor =
+                session.score_pct >= 70
+                  ? "text-emerald-400"
+                  : session.score_pct >= 50
+                  ? "text-amber-400"
+                  : "text-red-400";
+              return (
+                <div
+                  key={session.id}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 bg-slate-900/40 border border-slate-700/50"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-slate-300 font-medium truncate">
+                      {session.course_name || session.course_id}
+                    </p>
+                    <p className="text-[10px] text-slate-500">{session.created_at}</p>
+                  </div>
+                  <span className={`text-sm font-semibold ${scoreColor} tabular-nums`}>
+                    {session.correct_count}/{session.n_questions}
+                    <span className="text-xs font-normal ml-1">({session.score_pct}%)</span>
+                  </span>
+                  <span className="text-xs text-violet-400 font-mono tabular-nums w-14 text-right">
+                    ELO {Math.round(session.global_elo_after)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

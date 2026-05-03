@@ -225,6 +225,7 @@ export function Exam() {
   const [results, setResults] = useState<ExamResult[]>([]);
   const [score, setScore] = useState({ correct: 0, total: 0, pct: 0, eloAfter: 0 });
   const [error, setError] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const itemStartTime = useRef<number>(Date.now());
   const itemTimes = useRef<Record<string, number>>({});
@@ -282,6 +283,8 @@ export function Exam() {
     }
 
     const payload = {
+      course_id: courseId,
+      course_name: courseName,
       answers: items.map((item) => ({
         item_id: item.id,
         selected_option: answers[item.id] ?? "",
@@ -390,7 +393,7 @@ export function Exam() {
           <div className="text-4xl mb-3">⚠️</div>
           <p className="text-slate-300 mb-4 text-sm">{error}</p>
           <button
-            onClick={() => setPhase("setup")}
+            onClick={() => { setPhase("setup"); setAnswers({}); setItems([]); setCurrentIdx(0); }}
             className="bg-violet-600 hover:bg-violet-700 text-slate-100 px-5 py-2 rounded-xl text-sm transition-colors"
           >
             Volver a configuración
@@ -433,6 +436,9 @@ export function Exam() {
           </div>
           <p className="text-sm text-violet-400 mt-4">
             ELO global actualizado: <span className="font-semibold">{score.eloAfter}</span>
+          </p>
+          <p className="text-xs text-slate-500 mt-1">
+            Calificado automáticamente · las respuestas correctas provienen del banco de preguntas
           </p>
         </div>
 
@@ -477,7 +483,7 @@ export function Exam() {
 
         <div className="flex flex-wrap gap-3 justify-center">
           <button
-            onClick={() => setPhase("setup")}
+            onClick={() => { setPhase("setup"); setAnswers({}); setItems([]); setCurrentIdx(0); }}
             className="bg-slate-700 hover:bg-slate-600 text-slate-100 px-5 py-2 rounded-xl text-sm transition-colors"
           >
             Nuevo examen
@@ -523,16 +529,9 @@ export function Exam() {
         </div>
 
         <div className="text-right">
-          <p className="text-[10px] text-slate-500 mb-1">
+          <p className="text-[10px] text-slate-500">
             {answeredCount}/{items.length} respondidas
           </p>
-          <button
-            onClick={handleSubmit}
-            disabled={phase === "submitting"}
-            className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-slate-100 text-xs px-3 py-1 rounded-lg transition-colors"
-          >
-            {phase === "submitting" ? "Enviando…" : "Finalizar"}
-          </button>
         </div>
       </div>
 
@@ -562,6 +561,36 @@ export function Exam() {
             );
           })}
         </div>
+
+        {/* Modal de confirmación */}
+        {showConfirm && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+              <h3 className="text-lg font-bold text-slate-100 mb-2">¿Finalizar examen?</h3>
+              <div className="text-sm text-slate-400 space-y-1 mb-5">
+                <p>Respondidas: <span className="text-emerald-400 font-semibold">{answeredCount}</span> de {items.length}</p>
+                {answeredCount < items.length && (
+                  <p className="text-amber-400">⚠️ {items.length - answeredCount} pregunta{items.length - answeredCount !== 1 ? "s" : ""} sin responder</p>
+                )}
+                <p className="text-slate-500 text-xs mt-2">Las respuestas en blanco cuentan como incorrectas.</p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 py-2.5 rounded-xl text-sm transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => { setShowConfirm(false); handleSubmit(); }}
+                  className="flex-1 bg-violet-600 hover:bg-violet-700 text-slate-100 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                >
+                  Sí, finalizar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Pregunta actual */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6">
@@ -604,24 +633,39 @@ export function Exam() {
                 })}
               </div>
 
-              {/* Navegación prev / next */}
-              <div className="flex gap-3 mt-6">
-                {currentIdx > 0 && (
+              {/* Navegación + finalizar */}
+              <div className="mt-6 space-y-3">
+                <div className="flex gap-3">
+                  {currentIdx > 0 && (
+                    <button
+                      onClick={() => goToQuestion(currentIdx - 1)}
+                      className="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-lg text-sm transition-colors"
+                    >
+                      ← Anterior
+                    </button>
+                  )}
+                  {currentIdx < items.length - 1 && (
+                    <button
+                      onClick={() => goToQuestion(currentIdx + 1)}
+                      className="ml-auto bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-lg text-sm transition-colors"
+                    >
+                      Siguiente →
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-slate-700">
+                  <span className="text-xs text-slate-500">
+                    {answeredCount}/{items.length} respondidas
+                  </span>
                   <button
-                    onClick={() => goToQuestion(currentIdx - 1)}
-                    className="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-lg text-sm transition-colors"
+                    onClick={() => setShowConfirm(true)}
+                    disabled={phase === "submitting"}
+                    className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-slate-100 text-sm px-5 py-2 rounded-xl transition-colors font-medium"
                   >
-                    ← Anterior
+                    {phase === "submitting" ? "Enviando…" : "Finalizar examen"}
                   </button>
-                )}
-                {currentIdx < items.length - 1 && (
-                  <button
-                    onClick={() => goToQuestion(currentIdx + 1)}
-                    className="ml-auto bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-lg text-sm transition-colors"
-                  >
-                    Siguiente →
-                  </button>
-                )}
+                </div>
               </div>
             </div>
           )}

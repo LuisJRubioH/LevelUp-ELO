@@ -604,6 +604,23 @@ class SQLiteRepository:
         """
         )
 
+        # ── Tabla exam_sessions (historial de exámenes del estudiante) ────────
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS exam_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                course_name TEXT NOT NULL DEFAULT '',
+                n_questions INTEGER NOT NULL,
+                correct_count INTEGER NOT NULL,
+                score_pct REAL NOT NULL,
+                global_elo_after REAL NOT NULL DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+
         conn.commit()
         conn.close()
 
@@ -3847,3 +3864,63 @@ class SQLiteRepository:
         )
         conn.commit()
         conn.close()
+
+    def save_exam_session(
+        self,
+        user_id: int,
+        course_id: str,
+        course_name: str,
+        n_questions: int,
+        correct_count: int,
+        score_pct: float,
+        global_elo_after: float,
+    ) -> int:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """INSERT INTO exam_sessions
+               (user_id, course_id, course_name, n_questions, correct_count, score_pct, global_elo_after)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
+                user_id,
+                course_id,
+                course_name,
+                n_questions,
+                correct_count,
+                score_pct,
+                global_elo_after,
+            ),
+        )
+        conn.commit()
+        row_id = cursor.lastrowid
+        conn.close()
+        return row_id
+
+    def get_exam_history(self, user_id: int, limit: int = 20) -> list[dict]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """SELECT id, course_id, course_name, n_questions, correct_count,
+                      score_pct, global_elo_after,
+                      strftime('%Y-%m-%d %H:%M', created_at) AS created_at
+               FROM exam_sessions
+               WHERE user_id = ?
+               ORDER BY created_at DESC
+               LIMIT ?""",
+            (user_id, limit),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {
+                "id": r[0],
+                "course_id": r[1],
+                "course_name": r[2],
+                "n_questions": r[3],
+                "correct_count": r[4],
+                "score_pct": r[5],
+                "global_elo_after": r[6],
+                "created_at": r[7],
+            }
+            for r in rows
+        ]
