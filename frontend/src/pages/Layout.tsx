@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { PageTransition } from "../components/ui/PageTransition";
 import { authApi } from "../api/auth";
 import { api } from "../api/client";
@@ -17,6 +18,7 @@ import { useSettingsStore, PROVIDER_MODELS } from "../stores/settingsStore";
 import { useNotifications } from "../hooks/useNotifications";
 import { ReportProblemButton } from "../components/ReportProblem/ReportProblemButton";
 import { ThemeToggle } from "../components/ui/ThemeToggle";
+import { LanguageToggle } from "../components/ui/LanguageToggle";
 
 interface NavItem {
   path: string;
@@ -25,26 +27,26 @@ interface NavItem {
 }
 
 const studentNav: NavItem[] = [
-  { path: "/student", label: "Practicar", icon: "🎯" },
-  { path: "/student/stats", label: "Estadísticas", icon: "📈" },
-  { path: "/student/courses", label: "Cursos", icon: "📚" },
-  { path: "/student/exam", label: "Examen", icon: "📋" },
-  { path: "/student/procedure", label: "Proc. abierto", icon: "✍️" },
-  { path: "/student/feedback", label: "Retroalimentación", icon: "💬" },
+  { path: "/student", label: "nav.practice", icon: "🎯" },
+  { path: "/student/stats", label: "nav.stats", icon: "📈" },
+  { path: "/student/courses", label: "nav.courses", icon: "📚" },
+  { path: "/student/exam", label: "nav.exam", icon: "📋" },
+  { path: "/student/procedure", label: "nav.procedure", icon: "✍️" },
+  { path: "/student/feedback", label: "nav.feedback", icon: "💬" },
 ];
 
 const teacherNav: NavItem[] = [
-  { path: "/teacher", label: "Dashboard", icon: "📊" },
-  { path: "/teacher/groups", label: "Grupos", icon: "👥" },
-  { path: "/teacher/procedures", label: "Procedimientos", icon: "📝" },
-  { path: "/teacher/export", label: "Exportar datos", icon: "📥" },
+  { path: "/teacher", label: "nav.dashboard", icon: "📊" },
+  { path: "/teacher/groups", label: "nav.groups", icon: "👥" },
+  { path: "/teacher/procedures", label: "nav.procedures", icon: "📝" },
+  { path: "/teacher/export", label: "nav.export", icon: "📥" },
 ];
 
 const adminNav: NavItem[] = [
-  { path: "/admin", label: "Usuarios", icon: "👤" },
-  { path: "/admin/groups", label: "Grupos", icon: "🏫" },
-  { path: "/admin/reports", label: "Reportes", icon: "🔔" },
-  { path: "/admin/audit", label: "Auditoría", icon: "📜" },
+  { path: "/admin", label: "nav.users", icon: "👤" },
+  { path: "/admin/groups", label: "nav.groups", icon: "🏫" },
+  { path: "/admin/reports", label: "nav.reports", icon: "🔔" },
+  { path: "/admin/audit", label: "nav.audit", icon: "📜" },
 ];
 
 interface LayoutProps {
@@ -69,6 +71,7 @@ function useSessionTimer(sessionStartTime: number | null) {
 }
 
 export function Layout({ children }: LayoutProps) {
+  const { t } = useTranslation();
   const { user, sessionStartTime, clearAuth } = useAuthStore();
   const { apiKey, provider, model, setApiKey, setProvider, setModel } = useSettingsStore();
   const updateUser = useAuthStore((s) => s.updateUser);
@@ -155,9 +158,9 @@ export function Layout({ children }: LayoutProps) {
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"
-            aria-label="Cerrar sesión"
+            aria-label={t("layout.logout")}
           >
-            Salir →
+            {t("layout.logoutMobile")}
           </button>
         </div>
       </header>
@@ -194,11 +197,11 @@ export function Layout({ children }: LayoutProps) {
                 ].join(" ")}
               >
                 <span aria-hidden="true">{item.icon}</span>
-                <span className="flex-1">{item.label}</span>
+                <span className="flex-1">{t(item.label)}</span>
                 {showBadge && (
                   <span
                     className="ml-auto bg-red-500 text-slate-100 text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
-                    aria-label={`${unreadCount > 99 ? "más de 99" : unreadCount} notificaciones`}
+                    aria-label={`${unreadCount > 99 ? t("layout.moreThan99") : unreadCount} ${t("layout.notifications")}`}
                   >
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
@@ -216,13 +219,13 @@ export function Layout({ children }: LayoutProps) {
             aria-expanded={showIAConfig}
             aria-controls="ia-config-panel"
           >
-            <span>🤖 API de IA</span>
+            <span>🤖 {t("layout.aiConfig")}</span>
             <span aria-hidden="true">{showIAConfig ? "▲" : "▼"}</span>
           </button>
           {showIAConfig && (
             <div id="ia-config-panel" className="mt-2 space-y-2">
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Proveedor</label>
+                <label className="block text-xs text-slate-500 mb-1">{t("layout.provider")}</label>
                 <select
                   value={provider}
                   onChange={(e) => setProvider(e.target.value)}
@@ -236,13 +239,13 @@ export function Layout({ children }: LayoutProps) {
               </div>
               {availableModels.length > 0 && (
                 <div>
-                  <label className="block text-xs text-slate-500 mb-1">Modelo</label>
+                  <label className="block text-xs text-slate-500 mb-1">{t("layout.model")}</label>
                   <select
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
                     className="w-full bg-slate-900 border border-slate-600 rounded text-xs text-slate-300 px-2 py-1 focus:outline-none focus:border-violet-500"
                   >
-                    <option value="">Auto (recomendado)</option>
+                    <option value="">{t("layout.modelAuto")}</option>
                     {availableModels.map((m) => (
                       <option key={m.id} value={m.id}>{m.label}</option>
                     ))}
@@ -250,7 +253,7 @@ export function Layout({ children }: LayoutProps) {
                 </div>
               )}
               <div>
-                <label className="block text-xs text-slate-500 mb-1">API Key</label>
+                <label className="block text-xs text-slate-500 mb-1">{t("layout.apiKey")}</label>
                 <input
                   type="password"
                   value={apiKey}
@@ -260,7 +263,7 @@ export function Layout({ children }: LayoutProps) {
                 />
               </div>
               {apiKey && (
-                <p className="text-xs text-green-500">✓ Clave configurada</p>
+                <p className="text-xs text-green-500">{t("layout.keyConfigured")}</p>
               )}
             </div>
           )}
@@ -273,7 +276,7 @@ export function Layout({ children }: LayoutProps) {
           {user?.education_level && (
             <div className="text-xs text-slate-600 mb-1">
               {user.education_level}
-              {user.grade ? ` · Grado ${user.grade}` : ""}
+              {user.grade ? ` · ${t("layout.grade")} ${user.grade}` : ""}
             </div>
           )}
           {/* Email */}
@@ -282,7 +285,7 @@ export function Layout({ children }: LayoutProps) {
               onClick={() => setShowEmailForm(true)}
               className="w-full text-left text-xs bg-amber-500/10 text-amber-400 rounded px-2 py-1.5 mb-2 hover:bg-amber-500/20 transition-colors"
             >
-              Agrega tu correo para no perder acceso
+              {t("layout.addEmail")}
             </button>
           )}
           {user?.email && !showEmailForm && (
@@ -292,7 +295,7 @@ export function Layout({ children }: LayoutProps) {
                 onClick={() => { setShowEmailForm(true); setEmailInput(""); setEmailError(""); }}
                 className="text-xs text-violet-400 hover:text-violet-300 shrink-0"
               >
-                Cambiar
+                {t("layout.changeEmail")}
               </button>
             </div>
           )}
@@ -302,7 +305,7 @@ export function Layout({ children }: LayoutProps) {
                 type="email"
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
-                placeholder="correo@ejemplo.com"
+                placeholder={t("layout.emailPlaceholder")}
                 className="w-full bg-slate-900 border border-slate-600 rounded text-xs text-slate-300 px-2 py-1 focus:outline-none focus:border-violet-500 placeholder-slate-600"
               />
               {emailError && <p className="text-xs text-red-400">{emailError}</p>}
@@ -312,13 +315,13 @@ export function Layout({ children }: LayoutProps) {
                   disabled={emailSaving}
                   className="flex-1 text-xs bg-violet-600 hover:bg-violet-500 text-slate-100 rounded px-2 py-1 disabled:opacity-50"
                 >
-                  {emailSaving ? "..." : "Guardar"}
+                  {emailSaving ? "..." : t("layout.saveEmail")}
                 </button>
                 <button
                   onClick={() => setShowEmailForm(false)}
                   className="text-xs text-slate-500 hover:text-slate-400 px-2 py-1"
                 >
-                  Cancelar
+                  {t("layout.cancel")}
                 </button>
               </div>
             </div>
@@ -328,7 +331,7 @@ export function Layout({ children }: LayoutProps) {
             <div className="flex items-center gap-1.5 mb-3 bg-slate-900 rounded-lg px-2 py-1">
               <span className="text-slate-500 text-xs">⏱</span>
               <span className="text-slate-400 text-xs font-mono">{sessionFormatted}</span>
-              <span className="text-slate-600 text-xs ml-auto">sesión</span>
+              <span className="text-slate-600 text-xs ml-auto">{t("layout.session")}</span>
             </div>
           )}
           {user?.role === "student" && (
@@ -336,14 +339,17 @@ export function Layout({ children }: LayoutProps) {
               <ReportProblemButton />
             </div>
           )}
-          <div className="mb-2">
+          <div className="mb-1">
             <ThemeToggle />
+          </div>
+          <div className="mb-2">
+            <LanguageToggle />
           </div>
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"
           >
-            Cerrar sesión →
+            {t("layout.logout")}
           </button>
         </div>
       </aside>
@@ -369,14 +375,14 @@ export function Layout({ children }: LayoutProps) {
                 if (isProcedures) clearUnread();
               }}
               aria-current={active ? "page" : undefined}
-              aria-label={showBadge ? `${item.label}, ${unreadCount > 9 ? "más de 9" : unreadCount} notificaciones` : item.label}
+              aria-label={showBadge ? `${t(item.label)}, ${unreadCount > 9 ? t("layout.moreThan9") : unreadCount} ${t("layout.notifications")}` : t(item.label)}
               className={[
                 "relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition-colors",
                 active ? "text-violet-300" : "text-slate-400 hover:text-slate-200",
               ].join(" ")}
             >
               <span className="text-lg leading-none" aria-hidden="true">{item.icon}</span>
-              <span className="truncate max-w-full px-1" aria-hidden="true">{item.label}</span>
+              <span className="truncate max-w-full px-1" aria-hidden="true">{t(item.label)}</span>
               {showBadge && (
                 <span
                   className="absolute top-1 right-1/4 bg-red-500 text-slate-100 text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1"

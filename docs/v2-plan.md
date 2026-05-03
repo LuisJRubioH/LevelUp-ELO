@@ -230,5 +230,5 @@ Deploy actual:
 - [x] 8.1 Modo examen end-to-end
 - [x] 8.2 Accesibilidad (aria-labels, focus, keyboard nav)
 - [x] 8.3 Tema claro / oscuro (CSS variable palette inversion, FOUC-safe)
-- [ ] 8.4 Internacionalización es/en (opcional)
+- [x] 8.4 Internacionalización es/en con react-i18next — Login, Layout, Practice, ThemeToggle; LanguageToggle 🌐 en sidebar
 - [x] 8.5 Métricas de uso en dashboard docente

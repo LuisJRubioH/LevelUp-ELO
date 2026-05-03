@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { studentApi, type Course } from "../../api/student";
 import { AnswerOptions } from "../../components/Question/AnswerOptions";
 import { QuestionCard } from "../../components/Question/QuestionCard";
@@ -32,6 +33,7 @@ function estimateEloDelta(studentElo: number, itemDifficulty: number) {
 const STREAK_MILESTONES = [5, 10, 20];
 
 export function Practice() {
+  const { t } = useTranslation();
   const { courseId, startSession, resetSession, setPhase } = usePracticeStore();
   const { currentItem, lastAnswer, phase, isLoading, sessionQuestionsCount, loadNextQuestion, submitAnswer } =
     useStudentSession();
@@ -135,16 +137,16 @@ export function Practice() {
   if (!courseId) {
     return (
       <div className="max-w-xl mx-auto py-8 px-4">
-        <h2 className="text-xl font-bold text-slate-100 mb-2">Sala de Práctica</h2>
-        <p className="text-slate-400 text-sm mb-6">Selecciona un curso para empezar.</p>
+        <h2 className="text-xl font-bold text-slate-100 mb-2">{t("practice.title")}</h2>
+        <p className="text-slate-400 text-sm mb-6">{t("practice.subtitle")}</p>
 
         {coursesLoading ? (
-          <div className="text-center text-slate-500 animate-pulse py-8">Cargando cursos...</div>
+          <div className="text-center text-slate-500 animate-pulse py-8">{t("practice.loadingCourses")}</div>
         ) : courses.length === 0 ? (
           <div className="bg-slate-800 rounded-2xl p-8 text-center border border-slate-700">
-            <p className="text-slate-400">No estás matriculado en ningún curso aún.</p>
+            <p className="text-slate-400">{t("practice.noCourses")}</p>
             <a href="/student/courses" className="text-violet-400 text-sm mt-2 block hover:underline">
-              → Ver catálogo de cursos
+              {t("practice.browseCourses")}
             </a>
           </div>
         ) : (
@@ -169,7 +171,7 @@ export function Practice() {
   if (phase === "empty") {
     return (
       <div className="max-w-xl mx-auto py-8 px-4 text-center">
-        <KatIAAvatar state="correct" message="¡Has completado todas las preguntas disponibles hoy! Vuelve mañana 🎉" size="lg" />
+        <KatIAAvatar state="correct" message={t("practice.noMoreQuestions")} size="lg" />
         <Button className="mt-6" variant="secondary" onClick={() => resetSession()}>
           Cambiar curso
         </Button>
@@ -181,15 +183,15 @@ export function Practice() {
   if (phase === "error") {
     return (
       <div className="max-w-xl mx-auto py-8 px-4 text-center space-y-4">
-        <KatIAAvatar state="error" message="No se pudo cargar la pregunta. ¿Tienes conexión?" size="lg" />
+        <KatIAAvatar state="error" message={t("practice.errorLoading")} size="lg" />
         <Button onClick={() => setPhase("loading")} variant="secondary">
-          Reintentar
+          {t("practice.retry")}
         </Button>
         <button
           onClick={() => resetSession()}
           className="block mx-auto text-xs text-slate-500 hover:text-slate-400"
         >
-          ← Cambiar curso
+          {t("practice.changeCourse")}
         </button>
       </div>
     );
@@ -199,7 +201,7 @@ export function Practice() {
   if (isLoading || !currentItem) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-pulse text-slate-400">Cargando pregunta...</div>
+        <div className="animate-pulse text-slate-400">{t("practice.loadingQuestion")}</div>
       </div>
     );
   }
@@ -227,7 +229,7 @@ export function Practice() {
           onClick={() => resetSession()}
           className="text-xs text-slate-500 hover:text-slate-400"
         >
-          ← Cambiar curso
+          {t("practice.changeCourse")}
         </button>
         <RankBadge elo={globalElo} rankLabel={rankLabel} deltaElo={deltaElo} />
       </div>
@@ -259,7 +261,7 @@ export function Practice() {
             onClick={() => setShowChat((v) => !v)}
             className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
           >
-            {showChat ? "Ocultar chat KatIA" : "🐱 ¿Necesitas ayuda? Pregúntale a KatIA"}
+            {showChat ? t("practice.hideChat") : t("practice.katiaHelp")}
           </button>
         </div>
       )}
@@ -280,16 +282,16 @@ export function Practice() {
           {eloPreview && (
             <div className="flex justify-center gap-4 text-xs">
               <span className="text-green-400">
-                Si aciertas: <strong>+{eloPreview.onCorrect}</strong>
+                {t("practice.ifCorrect")} <strong>+{eloPreview.onCorrect}</strong>
               </span>
               <span className="text-slate-500">|</span>
               <span className="text-red-400">
-                Si fallas: <strong>{eloPreview.onWrong}</strong>
+                {t("practice.ifWrong")} <strong>{eloPreview.onWrong}</strong>
               </span>
             </div>
           )}
           <Button onClick={handleSubmit} size="lg" className="w-full">
-            Enviar respuesta
+            {t("practice.sendAnswer")}
           </Button>
         </div>
       )}
@@ -297,16 +299,16 @@ export function Practice() {
       {/* Enviando (spinner) */}
       {submitting && (
         <div className="text-center text-slate-400 text-sm animate-pulse py-2">
-          Enviando respuesta...
+          {t("practice.sending")}
         </div>
       )}
 
       {/* Error al enviar — permite continuar */}
       {answerFailed && (
         <div className="rounded-xl p-4 border border-yellow-600 bg-yellow-900/20 space-y-2">
-          <p className="text-sm text-yellow-300">No se pudo registrar la respuesta (error de conexión).</p>
+          <p className="text-sm text-yellow-300">{t("practice.connectionError")}</p>
           <Button onClick={handleNext} size="sm" variant="secondary">
-            Siguiente pregunta →
+            {t("practice.nextQuestion")}
           </Button>
         </div>
       )}
@@ -351,10 +353,10 @@ export function Practice() {
                 size="sm"
                 onClick={() => setShowChat((v) => !v)}
               >
-                {showChat ? "Ocultar chat KatIA" : "🐱 Preguntar a KatIA"}
+                {showChat ? t("practice.hideChat") : t("practice.katiaHelp")}
               </Button>
               <Button onClick={handleNext} size="lg">
-                Siguiente pregunta →
+                {t("practice.nextQuestion")}
               </Button>
             </div>
           </div>

@@ -9,6 +9,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { authApi } from "../api/auth";
 import { Button } from "../components/ui/Button";
 import { useAuthStore } from "../stores/authStore";
@@ -18,6 +19,7 @@ type View = "login" | "register-role" | "register-form";
 
 export function Login() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const setAuth = useAuthStore((s) => s.setAuth);
 
   const [view, setView] = useState<View>("login");
@@ -25,10 +27,8 @@ export function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Login form
   const [loginData, setLoginData] = useState({ username: "", password: "" });
 
-  // Register form
   const [regData, setRegData] = useState({
     username: "",
     password: "",
@@ -43,7 +43,6 @@ export function Login() {
     setLoading(true);
     try {
       const res = await authApi.login(loginData);
-      // Guardar token antes de llamar me() para que el cliente HTTP lo incluya en el header
       setAuth(res.access_token, {
         user_id: res.user_id,
         username: res.username,
@@ -56,7 +55,7 @@ export function Login() {
       setAuth(res.access_token, profile as AuthUser);
       navigate(res.role === "teacher" ? "/teacher" : res.role === "admin" ? "/admin" : "/student");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Credenciales inválidas.");
+      setError(err instanceof Error ? err.message : t("login.error.invalid"));
     } finally {
       setLoading(false);
     }
@@ -75,7 +74,6 @@ export function Login() {
         education_level: regData.education_level,
         grade: regData.education_level === "semillero" ? regData.grade : undefined,
       });
-      // Auto-login tras registro
       const res = await authApi.login({
         username: regData.username,
         password: regData.password,
@@ -91,7 +89,6 @@ export function Login() {
       const profile = await authApi.me();
       setAuth(res.access_token, profile as AuthUser);
       if (selectedRole === "teacher") {
-        // Docente pendiente de aprobación
         setView("login");
         setError("Registro exitoso. Tu cuenta de docente está pendiente de aprobación.");
       } else {
@@ -119,21 +116,21 @@ export function Login() {
           {/* ── LOGIN ─────────────────────────────────────────────── */}
           {view === "login" && (
             <form onSubmit={handleLogin} className="space-y-4">
-              <h2 className="text-xl font-semibold text-slate-100 mb-6">Iniciar sesión</h2>
+              <h2 className="text-xl font-semibold text-slate-100 mb-6">{t("login.title")}</h2>
 
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Usuario o correo electrónico</label>
+                <label className="block text-sm text-slate-400 mb-1">{t("login.usernameLabel")}</label>
                 <input
                   type="text"
                   value={loginData.username}
                   onChange={(e) => setLoginData((d) => ({ ...d, username: e.target.value }))}
-                  placeholder="usuario o correo@ejemplo.com"
+                  placeholder={t("login.usernamePlaceholder")}
                   className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500 placeholder-slate-600"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Contraseña</label>
+                <label className="block text-sm text-slate-400 mb-1">{t("login.passwordLabel")}</label>
                 <input
                   type="password"
                   value={loginData.password}
@@ -146,17 +143,17 @@ export function Login() {
               {error && <p className="text-red-400 text-sm">{error}</p>}
 
               <Button type="submit" className="w-full" loading={loading} size="lg">
-                Entrar
+                {t("login.submit")}
               </Button>
 
               <p className="text-center text-sm text-slate-500">
-                ¿Sin cuenta?{" "}
+                {t("login.noAccount")}{" "}
                 <button
                   type="button"
                   onClick={() => { setView("register-role"); setError(""); }}
                   className="text-violet-400 hover:text-violet-300"
                 >
-                  Registrarse
+                  {t("login.register")}
                 </button>
               </p>
             </form>
@@ -165,8 +162,10 @@ export function Login() {
           {/* ── REGISTRO PASO 1: ROL ──────────────────────────────── */}
           {view === "register-role" && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-slate-100 mb-2">¿Quién eres?</h2>
-              <p className="text-slate-400 text-sm mb-6">Selecciona tu rol en la plataforma.</p>
+              <h2 className="text-xl font-semibold text-slate-100 mb-2">
+                {t("login.registerStep1.title")}
+              </h2>
+              <p className="text-slate-400 text-sm mb-6">{t("login.registerStep1.subtitle")}</p>
 
               <div className="grid grid-cols-2 gap-4">
                 {(["student", "teacher"] as const).map((role) => (
@@ -183,18 +182,16 @@ export function Login() {
                   >
                     <div className="text-2xl mb-2">{role === "student" ? "🎓" : "👨‍🏫"}</div>
                     <div className="text-sm font-medium text-slate-100">
-                      {role === "student" ? "Estudiante" : "Docente"}
+                      {role === "student"
+                        ? t("login.registerStep1.student")
+                        : t("login.registerStep1.teacher")}
                     </div>
                   </button>
                 ))}
               </div>
 
-              <Button
-                className="w-full"
-                size="lg"
-                onClick={() => setView("register-form")}
-              >
-                Continuar →
+              <Button className="w-full" size="lg" onClick={() => setView("register-form")}>
+                {t("login.registerStep1.next")}
               </Button>
 
               <button
@@ -202,7 +199,7 @@ export function Login() {
                 onClick={() => setView("login")}
                 className="w-full text-center text-sm text-slate-500 hover:text-slate-400"
               >
-                ← Volver al login
+                {t("login.backToLogin")}
               </button>
             </div>
           )}
@@ -211,22 +208,27 @@ export function Login() {
           {view === "register-form" && (
             <form onSubmit={handleRegister} className="space-y-4">
               <h2 className="text-xl font-semibold text-slate-100 mb-2">
-                Crear cuenta de {selectedRole === "student" ? "estudiante" : "docente"}
+                {t("login.registerStep2.title")}
               </h2>
 
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Nombre de usuario</label>
+                <label className="block text-sm text-slate-400 mb-1">
+                  {t("login.registerStep2.usernameLabel")}
+                </label>
                 <input
                   type="text"
                   value={regData.username}
                   onChange={(e) => setRegData((d) => ({ ...d, username: e.target.value }))}
+                  placeholder={t("login.registerStep2.usernamePlaceholder")}
                   minLength={3}
-                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500"
+                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500 placeholder-slate-600"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Contraseña</label>
+                <label className="block text-sm text-slate-400 mb-1">
+                  {t("login.registerStep2.passwordLabel")}
+                </label>
                 <input
                   type="password"
                   value={regData.password}
@@ -238,20 +240,24 @@ export function Login() {
               </div>
 
               <div>
-                <label className="block text-sm text-slate-400 mb-1">Correo electrónico *</label>
+                <label className="block text-sm text-slate-400 mb-1">
+                  {t("login.registerStep2.emailLabel")}{" "}
+                  <span className="text-slate-600">({t("login.registerStep2.emailOptional")})</span>
+                </label>
                 <input
                   type="email"
                   value={regData.email}
                   onChange={(e) => setRegData((d) => ({ ...d, email: e.target.value }))}
-                  placeholder="correo@ejemplo.com"
+                  placeholder={t("login.registerStep2.emailPlaceholder")}
                   className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500 placeholder-slate-600"
-                  required
                 />
               </div>
 
               {selectedRole === "student" && (
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">Nivel educativo</label>
+                  <label className="block text-sm text-slate-400 mb-1">
+                    {t("login.registerStep2.levelLabel")}
+                  </label>
                   <select
                     value={regData.education_level}
                     onChange={(e) =>
@@ -262,16 +268,18 @@ export function Login() {
                     }
                     className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500"
                   >
-                    <option value="colegio">Colegio</option>
-                    <option value="universidad">Universidad</option>
-                    <option value="semillero">Semillero</option>
+                    <option value="colegio">{t("login.registerStep2.levels.colegio")}</option>
+                    <option value="universidad">{t("login.registerStep2.levels.universidad")}</option>
+                    <option value="semillero">{t("login.registerStep2.levels.semillero")}</option>
                   </select>
                 </div>
               )}
 
               {selectedRole === "student" && regData.education_level === "semillero" && (
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">Grado</label>
+                  <label className="block text-sm text-slate-400 mb-1">
+                    {t("login.registerStep2.gradeLabel")}
+                  </label>
                   <select
                     value={regData.grade}
                     onChange={(e) => setRegData((d) => ({ ...d, grade: e.target.value }))}
@@ -279,17 +287,23 @@ export function Login() {
                   >
                     {["6", "7", "8", "9", "10", "11"].map((g) => (
                       <option key={g} value={g}>
-                        Grado {g}°
+                        {t("login.registerStep2.gradeLabel")} {g}°
                       </option>
                     ))}
                   </select>
                 </div>
               )}
 
+              {selectedRole === "teacher" && (
+                <p className="text-xs text-amber-400 bg-amber-500/10 rounded px-3 py-2">
+                  {t("login.registerStep2.teacherNote")}
+                </p>
+              )}
+
               {error && <p className="text-red-400 text-sm">{error}</p>}
 
               <Button type="submit" className="w-full" size="lg" loading={loading}>
-                Registrarse
+                {t("login.registerStep2.submit")}
               </Button>
 
               <button
@@ -297,7 +311,7 @@ export function Login() {
                 onClick={() => setView("register-role")}
                 className="w-full text-center text-sm text-slate-500 hover:text-slate-400"
               >
-                ← Volver
+                {t("login.backToLogin")}
               </button>
             </form>
           )}
