@@ -25,7 +25,8 @@ class Settings(BaseSettings):
     cors_origins: list[str] = [
         "http://localhost:5173",  # Vite dev server
         "http://localhost:3000",  # React dev alternativo
-        "https://luislevelupelo.vercel.app",  # frontend en Vercel (producción)
+        "https://luislevelupelo.vercel.app",  # frontend Vercel — producción
+        "https://luislevelupelo-git-main-luisjrubiohs-projects.vercel.app",  # preview rama main
     ]
 
     # ── IA del sistema ─────────────────────────────────────────────────────────
