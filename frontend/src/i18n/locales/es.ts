@@ -155,4 +155,6 @@ const es = {
 } as const;
 
 export default es;
-export type TranslationKeys = typeof es;
+
+type DeepString<T> = { [K in keyof T]: T[K] extends object ? DeepString<T[K]> : string };
+export type TranslationKeys = DeepString<typeof es>;
