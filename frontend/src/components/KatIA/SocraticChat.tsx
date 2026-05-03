@@ -97,9 +97,15 @@ export function SocraticChat({
           }),
         });
 
-        if (!res.ok || !res.body) {
-          throw new Error("Error en streaming");
+        if (!res.ok) {
+          let detail = `Error ${res.status}`;
+          try {
+            const errBody = await res.json();
+            detail = errBody.detail ?? detail;
+          } catch { /* ignore */ }
+          throw new Error(detail);
         }
+        if (!res.body) throw new Error("Sin respuesta del servidor");
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
@@ -151,15 +157,15 @@ export function SocraticChat({
             }
           }
         }
-      } catch {
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : "";
+        const text = detail
+          ? `Purrr... error: ${detail}`
+          : "Purrr... parece que perdí la conexión. ¿Puedes intentarlo de nuevo?";
         setMessages((prev) =>
           prev.map((m, i) =>
             i === prev.length - 1
-              ? {
-                  role: "katia",
-                  text: "Purrr... parece que perdí la conexión. ¿Puedes intentarlo de nuevo?",
-                  streaming: false,
-                }
+              ? { role: "katia", text, streaming: false }
               : m,
           ),
         );
