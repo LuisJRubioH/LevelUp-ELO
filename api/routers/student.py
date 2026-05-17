@@ -553,21 +553,29 @@ def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
     n = min(body.n_questions, 30)  # máximo 30 preguntas por examen
 
     items = []
-    session_correct_ids: set[str] = set()
+    seen_ids: set[str] = set()
+    # session_correct_ids hace que el selector adaptativo evite repetir; pero como
+    # defensa adicional (por si el selector devuelve un duplicado en bucle) llevamos
+    # un set local `seen_ids` y un contador de intentos máximos para no caer en loop.
+    max_attempts = n * 3
+    attempts = 0
 
-    for _ in range(n):
+    while len(items) < n and attempts < max_attempts:
+        attempts += 1
         item, status_str = service.get_next_question(
             student_id=user["user_id"],
             topic=topic,
             vector_rating=vector,
-            session_correct_ids=session_correct_ids,
+            session_correct_ids=seen_ids,
             session_wrong_timestamps={},
             session_questions_count=len(items),
             course_id=body.course_id,
         )
         if item is None:
             break
-        session_correct_ids.add(item["id"])  # evitar duplicados en el examen
+        if item["id"] in seen_ids:
+            continue  # selector devolvió un duplicado — intentar de nuevo
+        seen_ids.add(item["id"])
         items.append(
             ItemResponse(
                 id=item["id"],

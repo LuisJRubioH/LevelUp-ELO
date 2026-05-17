@@ -19,6 +19,28 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * fetch con un único reintento ante cold start del backend (Render free tier).
+ * Reintenta en errores de red (fetch lanza TypeError) y en 502/503/504.
+ * Espera 3s entre intentos para darle tiempo al servidor de despertar.
+ */
+async function fetchWithRetry(url: string, opts: RequestInit, retries = 1): Promise<Response> {
+  try {
+    const res = await fetch(url, opts);
+    if ((res.status === 502 || res.status === 503 || res.status === 504) && retries > 0) {
+      await new Promise((r) => setTimeout(r, 3000));
+      return fetchWithRetry(url, opts, retries - 1);
+    }
+    return res;
+  } catch (err) {
+    if (retries > 0) {
+      await new Promise((r) => setTimeout(r, 3000));
+      return fetchWithRetry(url, opts, retries - 1);
+    }
+    throw err;
+  }
+}
+
 async function request<T>(
   method: string,
   path: string,
@@ -35,7 +57,7 @@ async function request<T>(
   };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetchWithRetry(`${API_BASE}${path}`, {
     method,
     headers,
     credentials: "include", // para la cookie de refresh
@@ -67,7 +89,7 @@ async function requestForm<T>(path: string, formData: FormData): Promise<T> {
   if (token) headers["Authorization"] = `Bearer ${token}`;
   // No establecer Content-Type — el navegador lo hace automáticamente con el boundary
 
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetchWithRetry(`${API_BASE}${path}`, {
     method: "POST",
     headers,
     credentials: "include",
@@ -99,3 +121,19 @@ export const api = {
 
 // Alias para uso directo en componentes sin importar `api`
 export const apiClient = api;
+
+/**
+ * Resuelve la URL de una imagen de item del banco.
+ * - "" o null → undefined (sin imagen)
+ * - "http://…" o "https://…" → tal cual (URL absoluta)
+ * - "items/images/foo.png" → "${API_BASE}/items/images/foo.png"
+ * - "/items/images/foo.png" → "${API_BASE}/items/images/foo.png"
+ */
+export function resolveImageUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  const trimmed = url.trim();
+  if (!trimmed) return undefined;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  const path = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  return `${API_BASE}${path}`;
+}

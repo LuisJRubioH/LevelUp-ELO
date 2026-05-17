@@ -1694,16 +1694,16 @@
     },
     {
         "id": "ars_8_94",
-        "content": "Ana invierte \\$500,000 a una tasa de interés compuesto anual del 8%. ¿Cuánto dinero tendrá después de 3 años? (Redondee al peso más cercano)",
+        "content": "Ana invierte $\\$500,000$ a una tasa de interés compuesto anual del 8%. ¿Cuánto dinero tendrá después de 3 años? (Redondee al peso más cercano)",
         "difficulty": 1100,
         "topic": "Porcentajes",
         "options": [
-            "\\$620,000",
-            "\\$629,856",
-            "\\$640,000",
-            "\\$600,000"
+            "$\\$620,000$",
+            "$\\$629,856$",
+            "$\\$640,000$",
+            "$\\$600,000$"
         ],
-        "correct_option": "\\$629,856",
+        "correct_option": "$\\$629,856$",
         "image_url": "",
         "tags": [
             "[Enfoque: Hacer]",
@@ -1824,7 +1824,7 @@
     },
     {
         "id": "ars_8_101",
-        "content": "Por cada tres chocolates que Miguel compra por su precio regular, él compra el cuarto por 250 pesos. Miguel compró 12 chocolates y pagó en total \\$6,150 pesos. ¿Cuál es el precio regular en centavos de un chocolate?",
+        "content": "Por cada tres chocolates que Miguel compra por su precio regular, él compra el cuarto por 250 pesos. Miguel compró 12 chocolates y pagó en total $\\$6,150$ pesos. ¿Cuál es el precio regular en centavos de un chocolate?",
         "difficulty": 700,
         "topic": "Aritmética aplicada",
         "options": [
@@ -1843,16 +1843,16 @@
     },
     {
         "id": "ars_8_102",
-        "content": "Un triciclo en una tienda A cuesta \\$20,000. El precio del mismo triciclo en la tienda B es 15% más alto que el precio de la tienda A. Si el triciclo es vendido en la tienda B con un 10% de descuento al precio regular de la tienda, ¿cuál es el precio de venta del triciclo en la tienda B?",
+        "content": "Un triciclo en una tienda A cuesta $\\$20,000.$ El precio del mismo triciclo en la tienda B es 15% más alto que el precio de la tienda A. Si el triciclo es vendido en la tienda B con un 10% de descuento al precio regular de la tienda, ¿cuál es el precio de venta del triciclo en la tienda B?",
         "difficulty": 650,
         "topic": "Porcentajes",
         "options": [
-            "\\$19,500",
-            "\\$20,000",
-            "\\$20,700",
-            "\\$21,500"
+            "$\\$19,500$",
+            "$\\$20,000$",
+            "$\\$20,700$",
+            "$\\$21,500$"
         ],
-        "correct_option": "\\$20,700",
+        "correct_option": "$\\$20,700$",
         "image_url": "",
         "tags": [
             "[Enfoque: Hacer]",
@@ -1899,7 +1899,7 @@
     },
     {
         "id": "ars_8_105",
-        "content": "Carlos paga \\$2,400 pesos por un litro de gasolina. En promedio él usa un litro de gasolina para conducir 12.5 kilómetros. ¿Cuántos litros de gasolina debe comprar Carlos para conducir 50 kilómetros?",
+        "content": "Carlos paga $\\$2,400$ pesos por un litro de gasolina. En promedio él usa un litro de gasolina para conducir 12.5 kilómetros. ¿Cuántos litros de gasolina debe comprar Carlos para conducir 50 kilómetros?",
         "difficulty": 550,
         "topic": "Promedios",
         "options": [

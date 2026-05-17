@@ -22,6 +22,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 # ── Path setup (ejecutar desde raíz del repo) ─────────────────────────────────
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -84,6 +85,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── Estáticos: imágenes de items del banco ────────────────────────────────────
+_IMAGES_DIR = os.path.join(_ROOT, "items", "images")
+if os.path.isdir(_IMAGES_DIR):
+    app.mount("/items/images", StaticFiles(directory=_IMAGES_DIR), name="item-images")
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(auth.router, prefix="/api")

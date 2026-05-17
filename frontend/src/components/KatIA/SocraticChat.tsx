@@ -8,8 +8,42 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import katex from "katex";
+import "katex/dist/katex.min.css";
 import { useAuthStore } from "../../stores/authStore";
 import { Button } from "../ui/Button";
+
+/** Renderiza texto que puede contener LaTeX inline: $expr$ */
+function RenderMath({ text }: { text: string }) {
+  const parts = text.split(/(\$[^$]+\$)/g);
+  if (parts.length === 1) return <>{text}</>;
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith("$") && part.endsWith("$")) {
+          const math = part.slice(1, -1);
+          try {
+            const html = katex.renderToString(math, {
+              displayMode: false,
+              throwOnError: false,
+              errorColor: "#ef4444",
+            });
+            return (
+              <span
+                key={i}
+                className="inline-block align-middle"
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
+            );
+          } catch {
+            return <span key={i}>{part}</span>;
+          }
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
+}
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
@@ -225,7 +259,7 @@ export function SocraticChat({
                   : "bg-slate-800/80 text-slate-200 border border-slate-700/60 rounded-bl-sm",
               ].join(" ")}
             >
-              {msg.text || (msg.streaming ? "" : "...")}
+              {msg.text ? <RenderMath text={msg.text} /> : (msg.streaming ? "" : "...")}
               {msg.streaming && (
                 <span className="inline-block w-1.5 h-4 bg-violet-400 animate-pulse ml-0.5 rounded-sm align-text-bottom" />
               )}

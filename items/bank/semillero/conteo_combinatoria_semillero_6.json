@@ -57,7 +57,7 @@
     },
     {
         "id": "ccs_6_04",
-        "content": "¿Cuántas combinaciones diferentes de billetes de \\$5000 y \\$2000 pueden usarse para acumular exactamente \\$17000? (Los billetes de igual denominación se consideran iguales).",
+        "content": "¿Cuántas combinaciones diferentes de billetes de \\$5000 y \\$2000 pueden usarse para acumular exactamente $\\$17000$? (Los billetes de igual denominación se consideran iguales).",
         "difficulty": 850,
         "topic": "Conteo de combinaciones",
         "options": [

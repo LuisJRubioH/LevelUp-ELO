@@ -208,7 +208,7 @@
     },
     {
         "id": "Taller2014_Nivel1_Aritmetica_Q5",
-        "content": "En una repostería, una bolsa de 200g de harina de trigo cuesta \\$3.000 pesos, una bolsa de 400g cuesta \\$5.000 pesos y la de 800g cuesta \\$9.000 pesos. Laura necesita 1.2 kg de harina de trigo para hacer una gran torta. ¿Cuál de las opciones a seguir es la más económica para comprar 1.2 kg de harina de trigo?",
+        "content": "En una repostería, una bolsa de 200g de harina de trigo cuesta \\$3.000 pesos, una bolsa de 400g cuesta \\$5.000 pesos y la de 800g cuesta $\\$9.000$ pesos. Laura necesita 1.2 kg de harina de trigo para hacer una gran torta. ¿Cuál de las opciones a seguir es la más económica para comprar 1.2 kg de harina de trigo?",
         "difficulty": 650,
         "topic": "Aritmética",
         "options": [

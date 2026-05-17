@@ -37,7 +37,7 @@
     },
     {
         "id": "ls_10_03",
-        "content": "En una papelería: fotocopias a \\$70; desde 75 en adelante, todas a \\$50. Un amigo necesita fotocopiar 58 páginas pero dice que no puede porque solo tiene \\$3850. Yo le respondo que sí puede y le sobra dinero. ¿Cuánto le sobra?",
+        "content": "En una papelería: fotocopias a \\$70; desde 75 en adelante, todas a \\$50. Un amigo necesita fotocopiar 58 páginas pero dice que no puede porque solo tiene $\\$3850.$ Yo le respondo que sí puede y le sobra dinero. ¿Cuánto le sobra?",
         "difficulty": 1250,
         "topic": "Razonamiento lógico",
         "options": [

@@ -19,7 +19,7 @@
     },
     {
         "id": "ps_6_01",
-        "content": "El Grado Quinto B vende limonadas: básica a \\$4000 y con miel a \\$5000. Si recogieron \\$79000, el menor número posible de clientes fue:",
+        "content": "El Grado Quinto B vende limonadas: básica a \\$4000 y con miel a \\$5000. Si recogieron $\\$79000,$ el menor número posible de clientes fue:",
         "difficulty": 950,
         "topic": "Optimización discreta",
         "options": [

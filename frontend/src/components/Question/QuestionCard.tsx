@@ -7,6 +7,7 @@
 
 import katex from "katex";
 import "katex/dist/katex.min.css";
+import { resolveImageUrl } from "../../api/client";
 
 interface QuestionCardProps {
   content: string;
@@ -113,9 +114,9 @@ export function QuestionCard({
       </p>
 
       {/* Imagen opcional */}
-      {imageUrl && (
+      {resolveImageUrl(imageUrl) && (
         <img
-          src={imageUrl}
+          src={resolveImageUrl(imageUrl)}
           alt="Figura del problema"
           className="max-w-full rounded-lg border border-slate-600 mt-2"
         />

@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import { studentApi } from "../../api/student";
-import { api } from "../../api/client";
+import { api, resolveImageUrl } from "../../api/client";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -442,6 +442,24 @@ export function Exam() {
           </p>
         </div>
 
+        {/* Mini-mapa de resultados */}
+        <div className="flex flex-wrap gap-1.5 justify-center mb-6 max-w-md mx-auto" role="group" aria-label="Resumen de respuestas">
+          {results.map((r, i) => (
+            <span
+              key={r.item_id}
+              title={`Pregunta ${i + 1}: ${r.is_correct ? "correcta" : "incorrecta"}`}
+              className={[
+                "w-8 h-8 rounded text-xs font-bold flex items-center justify-center border",
+                r.is_correct
+                  ? "bg-emerald-600 text-slate-100 border-emerald-400"
+                  : "bg-red-600 text-slate-100 border-red-400",
+              ].join(" ")}
+            >
+              {i + 1}
+            </span>
+          ))}
+        </div>
+
         {/* Detalle por pregunta */}
         <div className="space-y-2 mb-8">
           {results.map((r, i) => {
@@ -548,12 +566,12 @@ export function Exam() {
                 aria-label={`Pregunta ${idx + 1}${answered ? " (respondida)" : ""}${active ? ", actual" : ""}`}
                 aria-current={active ? "true" : undefined}
                 className={[
-                  "w-full h-8 rounded text-xs font-bold transition-all",
+                  "w-full h-8 rounded text-xs font-bold transition-all border",
                   active
-                    ? "bg-violet-600 text-slate-100 ring-2 ring-violet-400"
+                    ? "bg-violet-600 text-slate-100 border-violet-400 ring-2 ring-violet-400"
                     : answered
-                    ? "bg-emerald-700 text-slate-100"
-                    : "bg-slate-700 text-slate-400 hover:bg-slate-600",
+                    ? "bg-amber-500 text-slate-900 border-amber-400 hover:bg-amber-400"
+                    : "bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600",
                 ].join(" ")}
               >
                 {idx + 1}
@@ -604,9 +622,9 @@ export function Exam() {
                 <p className="text-slate-200 leading-relaxed text-[15px]">
                   <RenderMath text={currentItem.content} />
                 </p>
-                {currentItem.image_url && (
+                {resolveImageUrl(currentItem.image_url) && (
                   <img
-                    src={currentItem.image_url}
+                    src={resolveImageUrl(currentItem.image_url)}
                     alt="Figura"
                     className="mt-4 max-w-full rounded-lg"
                   />

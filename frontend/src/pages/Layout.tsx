@@ -172,7 +172,7 @@ export function Layout({ children }: LayoutProps) {
           <div className="text-lg font-bold text-slate-100">
             Level<span className="text-violet-400">Up</span>
           </div>
-          <div className="text-xs text-slate-500 mt-0.5">v1.0.0 ELO</div>
+          <div className="text-xs text-slate-500 mt-0.5">v2.0.0 ELO</div>
         </div>
 
         {/* Nav */}
