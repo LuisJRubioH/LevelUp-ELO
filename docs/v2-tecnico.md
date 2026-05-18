@@ -1,10 +1,10 @@
 # Documento Técnico — LevelUp-ELO V2
 
-**Estado:** Sprints 1-8 completos ✅ — paridad funcional 100% con V1. Listo para `v2.0.0`.
-**Última actualización:** 2026-05-02
+**Estado:** Sprints 1-8 + Sprint C completos ✅ — V2 etiquetada como `v2.0.0` (commit `c791054`, 2026-05-18).
+**Última actualización:** 2026-05-18
 **Autor:** Luis Rubio
 
-> Este documento es de trabajo interno. No se sube a GitHub hasta que V2 esté completamente implementada.
+> Documento técnico de referencia del backend FastAPI + frontend React + flujos de datos. Complementa el `README.md` (visión general) y `docs/v2-plan.md` (checklist por sprint).
 
 ---
 
@@ -131,7 +131,10 @@ frontend/                         # Frontend React
 │   │   │   └── SocraticChat.tsx   # Chat socrático SSE — usa `${VITE_API_URL}/api/ai/socratic` (no relativo)
 │   │   └── Question/
 │   │       ├── QuestionCard.tsx   # Enunciado + LaTeX + timer por pregunta + tags
+│   │       ├── QuestionImage.tsx  # <img> con fallback amigable + botón reintentar (post-QA mayo)
 │   │       └── AnswerOptions.tsx  # Opciones con estado (selected/correct/wrong)
+│   ├── lib/
+│   │   └── staleChunk.ts          # Recuperación 3-tier para chunks viejos tras deploy Vercel
 │   ├── pages/
 │   │   ├── Login.tsx             # Login + registro multi-paso (estudiante/docente)
 │   │   ├── Layout.tsx            # Sidebar nav por rol + timer sesión + perfil + ThemeToggle
@@ -139,11 +142,12 @@ frontend/                         # Frontend React
 │   │   │   ├── Practice.tsx       # Sala de práctica (selector curso → pregunta → feedback + KatIA)
 │   │   │   ├── Stats.tsx          # ELO chart + radar + heatmap + ranking grupo + logros
 │   │   │   ├── Courses.tsx        # Catálogo + matrícula + código de invitación
-│   │   │   ├── Exam.tsx           # Modo examen cronometrado con mapa de respuestas
+│   │   │   ├── Exam.tsx           # Modo examen cronometrado + borrador localStorage + retry submit
 │   │   │   ├── Feedback.tsx       # Historial de procedimientos enviados + score KatIA
 │   │   │   └── ProcedureUpload.tsx # Procedimiento abierto (drag&drop, multipart, SHA-256)
 │   │   ├── Teacher/
 │   │   │   ├── Dashboard.tsx      # 3 tabs: Estudiantes · Ranking · Métricas de uso
+│   │   │   ├── Exams.tsx          # Builder de plantillas de examen (Sprint C) — ~450 líneas
 │   │   │   ├── Groups.tsx         # Crear/gestionar grupos + códigos de invitación
 │   │   │   ├── Procedures.tsx     # Cola de revisión de procedimientos
 │   │   │   └── Export.tsx         # Descarga CSV/XLSX
@@ -187,8 +191,10 @@ frontend/                         # Frontend React
 | POST | `/student/enroll-by-code` | Acceso inter-nivel por código de invitación |
 | DELETE | `/student/enroll/{course_id}` | Darse de baja de un curso |
 | POST | `/student/procedure` | Subir procedimiento manuscrito (multipart) |
-| POST | `/student/exam/start` | Inicia examen cronometrado (N preguntas) |
+| POST | `/student/exam/start` | Inicia examen cronometrado. Acepta `template_id` opcional (Sprint C) |
 | POST | `/student/exam/submit` | Envía respuestas del examen |
+| GET | `/student/exam/templates` | Plantillas de examen del docente disponibles para el curso (Sprint C) |
+| GET | `/student/exam/history` | Historial de exámenes presentados |
 | POST | `/student/procedure/analyze` | Revisión IA del procedimiento (KatIA + score) |
 | PATCH | `/student/profile` | Actualizar email del perfil |
 | POST | `/student/problems` | Reportar problema técnico |
@@ -213,6 +219,11 @@ frontend/                         # Frontend React
 | POST | `/teacher/student/{id}/ai-analysis` | Análisis pedagógico con IA |
 | GET | `/teacher/student/{id}/ranking` | Ranking del grupo del estudiante |
 | GET | `/teacher/metrics` | Métricas de uso: tiempos, abandono, distribución horaria |
+| GET | `/teacher/items` | Catálogo de ítems del curso (para builder de exámenes, Sprint C) |
+| GET | `/teacher/exam-templates` | Plantillas de examen del docente (Sprint C) |
+| POST | `/teacher/exam-templates` | Crear plantilla de examen (Sprint C) |
+| PATCH | `/teacher/exam-templates/{id}` | Editar plantilla (título, tiempo, items) (Sprint C) |
+| DELETE | `/teacher/exam-templates/{id}` | Archivar plantilla (soft delete) (Sprint C) |
 | GET | `/teacher/export/csv` | Exportar intentos como CSV |
 | GET | `/teacher/export/xlsx` | Exportar datos completos (4 hojas) |
 
@@ -358,7 +369,8 @@ user: CurrentUser  # dict con estas claves
 - Estadísticas: ELO chart temporal, radar chart top-8 tópicos, heatmap de actividad
 - Ranking del grupo + logros/badges animados con Framer Motion
 - Catálogo de cursos + matrícula + acceso por código de invitación inter-nivel
-- Modo examen cronometrado con mapa de respuestas y resultados
+- Modo examen cronometrado con mapa de respuestas y resultados — soporta plantillas del docente (Sprint C) o muestreo automático estándar 30/40/30 (Sprint B)
+- **Borrador de examen en `localStorage`** + retry de submit con backoff (resistente a caídas de red)
 - Reporte de problemas técnicos desde sidebar
 - Actualizar email de perfil desde sidebar
 
@@ -368,6 +380,7 @@ user: CurrentUser  # dict con estas claves
 - Revisión y calificación de procedimientos (aplica ELO al aprobar)
 - Generación de códigos de invitación de grupo
 - Exportación CSV/XLSX (filtrada: excluye is_test_user=1)
+- **Exámenes manuales (Sprint C):** builder de plantillas, selector de ítems del catálogo, edición/archivado — `Teacher/Exams.tsx`
 
 **Admin:**
 - Aprobación de docentes + activar/desactivar usuarios
@@ -509,13 +522,184 @@ Ver `docs/v2-plan.md` para el checklist completo por sprint.
 | Post-6 | KatIA socrático con avatar, procedimiento integrado en práctica, `student_topic_elo`, email login | ✅ |
 | 7 | E2E Playwright, code splitting, error boundaries, skeleton loaders, tests rutas protegidas | ✅ |
 | 8 | Modo examen E2E, accesibilidad ARIA, tema claro/oscuro, i18n es/en, métricas docente | ✅ |
+| C | Exámenes manuales del docente (templates) — tabla `exam_templates` aditiva (R1), CRUD docente, selector estudiante | ✅ |
 
 ---
 
-## 14. Próximos pasos
+## 14. Sprint C — Exámenes manuales del docente
 
-V2 está lista para tagging. Tareas de cierre opcionales:
+**Objetivo:** que el docente arme exámenes con ítems seleccionados a mano (no solo el muestreo automático 30/40/30 de Sprint B).
 
-1. Etiquetar `v2.0.0` en git (`git tag v2.0.0 && git push origin v2.0.0`)
-2. Hacer público `docs/v2-tecnico.md` en el repositorio (actualmente gitignoreado)
-3. Migrar el backend Render a un plan de pago si hay uso real de estudiantes (sleep tras 15 min en free tier)
+### Esquema de datos
+
+Nueva tabla `exam_templates` en SQLite y PostgreSQL (R1 — Dual DB):
+
+```sql
+CREATE TABLE IF NOT EXISTS exam_templates (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    teacher_id      INTEGER NOT NULL REFERENCES users(id),
+    course_id       TEXT NOT NULL,
+    title           TEXT NOT NULL,
+    time_limit_min  INTEGER NOT NULL,
+    item_ids        TEXT NOT NULL,    -- JSON array de strings
+    archived        INTEGER DEFAULT 0,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_exam_templates_course ON exam_templates(course_id, archived);
+```
+
+Columna nueva en `exam_sessions`:
+```sql
+ALTER TABLE exam_sessions ADD COLUMN exam_template_id INTEGER NULL;
+```
+
+### Métodos CRUD (firma idéntica en ambos repos)
+
+```python
+create_exam_template(teacher_id, course_id, title, time_limit_min, item_ids) -> int
+get_exam_template(template_id) -> dict | None
+list_exam_templates(course_id, include_archived=False) -> list[dict]
+update_exam_template(template_id, title=None, time_limit_min=None, item_ids=None) -> bool
+archive_exam_template(template_id) -> bool   # soft delete: archived = 1
+```
+
+### Endpoints
+
+**Docente** (`api/routers/teacher.py`):
+- `GET /teacher/exam-templates?course_id=&include_archived=` — listar
+- `POST /teacher/exam-templates` — crear (valida que todos los `item_ids` pertenezcan al `course_id`)
+- `PATCH /teacher/exam-templates/{id}` — editar título, tiempo o items
+- `DELETE /teacher/exam-templates/{id}` — archivar (solo el dueño o admin)
+- `GET /teacher/items?course_id=` — catálogo de ítems del curso para el builder
+
+**Estudiante** (`api/routers/student.py`):
+- `GET /student/exam/templates?course_id=` — plantillas disponibles (no archivadas)
+- `POST /student/exam/start` ahora acepta `template_id` opcional:
+  - Con `template_id`: usa los items del template en el orden definido y `time_limit_min` del template (ignora N y tiempo del request).
+  - Sin `template_id`: examen estándar 30/40/30 (Sprint B sin cambios).
+
+### Frontend
+
+- `frontend/src/pages/Teacher/Exams.tsx` (~450 líneas) — listado de plantillas con builder, editor de título/tiempo, selector de ítems del catálogo, archivar/restaurar.
+- `frontend/src/pages/Student/Exam.tsx` ampliado — pantalla de setup ahora ofrece tipos de examen **"Estándar (auto)"** y **"Del docente"** (selector de plantilla). Si elige template, los sliders de N preguntas y tiempo se ocultan (los define el template).
+- `frontend/src/api/student.ts` — `studentApi.examTemplates(course_id)` + tipo `ExamTemplateSummary`.
+- `frontend/src/api/teacher.ts` — `teacherApi` con `examTemplates()`, `createExamTemplate()`, `updateExamTemplate()`, `archiveExamTemplate()`, `courseItems()`.
+- i18n: `nav.exams` agregada en `es.ts` y `en.ts`.
+
+**Sin tocar:** lógica ELO (`domain/elo/*`), `exam_submit` (sigue desacoplado del ELO según Sprint B), endpoints de práctica.
+
+**Validación:** 112 tests API verdes, `db_sync_check` verde.
+
+---
+
+## 15. Fixes post-Sprint C — QA mayo 2026
+
+Capturas reportadas por estudiantes durante uso real (13 imágenes en `bugs/`, ahora gitignoreado). Triadas y cerradas en sesión 2026-05-18 con 10 commits (`7cbea93` → `71398cb`).
+
+### Resiliencia del flujo de examen (commit 7cbea93)
+
+`frontend/src/pages/Student/Exam.tsx` — el estudiante perdía un examen completo si fallaba el POST `/exam/submit`. Cambios:
+
+- **Borrador en `localStorage`** (`levelup-exam-draft`, TTL 6h): se guarda en cada respuesta y cambio de navegación. Sobrevive recargas y caídas de red.
+- **Retry con backoff** dentro de `handleSubmit`: 3 intentos a 0s / 3s / 8s. Sumado al retry interno de `api.post` (cold start), son hasta 6 llamadas reales antes de rendirse.
+- **Banner inline** de error con botón **"Reintentar enviar"** (antes el botón salía sin label). Se mantiene en phase `answering` con el estado intacto en vez de pasar a `error`.
+- **Banner de progreso** "Reintentando envío (intento N de 3)…" durante los reintentos.
+- **Banner en setup** "Tienes un examen pendiente" con botones Continuar / Descartar al volver a `/student/exam` si existe un draft válido.
+- `handleResume()` restaura items + answers + itemTimes y recalcula `timeLeft = max(0, startedAt + timeLimitSeconds - now)`.
+- `itemStartTime` se resetea tras computar el tiempo del ítem actual al enviar, para que reintentos no dupliquen el tiempo en pantalla.
+- `clearDraft()` en submit exitoso o al descartar manualmente.
+
+### Auto-recuperación de chunks stale (commit f3234a2)
+
+Tras un deploy en Vercel los clientes con la SPA vieja intentaban cargar chunks con hash que ya no existe ("Failed to fetch dynamically imported module"). La protección anterior solo recargaba una vez por sesión; el flag quedaba pegado.
+
+Nuevo módulo `frontend/src/lib/staleChunk.ts` con recuperación escalonada en **3 tiers**:
+
+1. **1ª vez en la sesión** → `window.location.reload()` simple.
+2. **2ª vez en la sesión** → `navigator.serviceWorker.getRegistrations() + r.unregister()` + `caches.keys() + caches.delete(k)`, luego reload.
+3. **3ª vez en adelante** → se rinde, deja que la UI muestre el error.
+
+`main.tsx` ahora escucha tanto `unhandledrejection` como `error` (en algunos navegadores los chunks fallidos se reportan vía el segundo). `startStaleChunkFlagCleanup()` borra los flags 5s después del `load` para que un segundo incidente en la misma sesión vuelva a tener todos los tiers disponibles. `ErrorBoundary` delega en el mismo módulo (DRY).
+
+Patrones detectados:
+```ts
+msg.includes("Failed to fetch dynamically imported module")
+msg.includes("Importing a module script failed")
+msg.includes("error loading dynamically imported module")
+msg.includes("Loading chunk")
+msg.includes("Loading CSS chunk")
+```
+
+### NetworkError amigable (commit caa2ed6)
+
+`frontend/src/api/client.ts` — antes `TypeError: Failed to fetch` se propagaba crudo. Ahora:
+
+```ts
+export class NetworkError extends ApiError {
+  constructor(detail = "No pudimos conectar con el servidor. Puede estar iniciando — inténtalo de nuevo en unos segundos.") {
+    super(0, detail);  // status=0 lo diferencia de HTTP
+    this.name = "NetworkError";
+  }
+}
+```
+
+`safeFetchWithRetry()` envuelve `fetchWithRetry` y, si lanza `TypeError`, re-lanza `NetworkError`. Aplica a `request<T>` y `requestForm<T>`.
+
+### Retry global + cold start (commit 59afcea)
+
+`App.tsx` — `queryClient` con backoff progresivo:
+
+```ts
+retry: (failureCount, error) => {
+  const status = (error as { status?: number } | null)?.status ?? 0;
+  if (status >= 400 && status < 500) return false;  // 4xx no se reintenta
+  return failureCount < 3;
+},
+retryDelay: (attemptIndex) => Math.min(2000 * 2 ** attemptIndex, 15_000),
+```
+
+`Stats.tsx` lee `failureCount` y muestra banner ámbar "El servidor está iniciando (intento N de 4)…" mientras reintenta, en vez del skeleton estático.
+
+### Banco de preguntas (commit 95df6ad)
+
+- 7 ítems con opciones literalmente duplicadas (la opción correcta repetida): reemplazadas por distractores matemáticamente distintos.
+  - `calculo_diferencial.json q25`, `ecuaciones_diferenciales.json ed55/ed85/ed86`
+  - `semillero/algebra_semillero_7.json as_7_08/as_7_10`
+  - `semillero/conteo_combinatoria_semillero_10.json ccs_10_02`
+- 8 ítems en `algebra_semillero_7.json` (`as_7_18, 19, 20, 21, 23, 24, 25, 32`) usaban `$\\$NUMBER$` (math mode con `\$` escapado). El regex de `RenderMath` no maneja `\$` dentro de math mode → rompía el split y dejaba prosa española dentro de math (variables itálicas pegadas sin espacios). Reescritos a `USD NUMBER` (texto plano, sin `$` delimitador).
+- Nueva utilidad `scripts/scan_dollar_prices.py` para detectar futuras regresiones (regex + heurística de prosa española).
+- `scripts/validate_bank.py`: 1971 IDs únicos, validación verde.
+
+### QuestionImage con fallback (commit 8db971e)
+
+`frontend/src/components/Question/QuestionImage.tsx` — antes el `<img alt="Figura">` mostraba el alt text como contenido cuando fallaba a cargar (los estudiantes pensaban que era parte del enunciado). Ahora:
+
+- Si la imagen carga → `<img>` normal.
+- Si dispara `onError` → banner ámbar "No se pudo cargar la imagen del problema" + botón **"Reintentar"** que fuerza nuevo fetch vía cambio de `key`.
+- Si `imageUrl` es null/vacío → no renderiza nada.
+
+Reemplaza el `<img>` directo en `Exam.tsx` y `QuestionCard.tsx`.
+
+### CVEs npm (commit 71398cb)
+
+`npm audit fix --legacy-peer-deps` — 4 devDependencies transitivas:
+
+| Paquete | Fix | Severidad | GHSA |
+|---|---|---|---|
+| `@babel/plugin-transform-modules-systemjs` | 7.29.0 → 7.29.4 | high | GHSA-fv7c-fp4j-7gwp |
+| `brace-expansion` | 5.0.5 → 5.0.6 | moderate | GHSA-jxxr-4gwj-5jf2 |
+| `fast-uri` | 3.1.0 → 3.1.2 | high | GHSA-q3j6-qgpj-74h6 + GHSA-v39h-62p7-jpjc |
+| `postcss` | 8.5.9 → 8.5.14 | moderate | GHSA-qx2v-qp2m-jg93 |
+
+Solo `package-lock.json` cambió; sin impacto en runtime.
+
+---
+
+## 16. Próximos pasos
+
+V2 fue etiquetada como `v2.0.0` (commit `c791054`, tag pusheado a `origin`). Tareas opcionales:
+
+1. **Convertir el tag en GitHub Release** con notas formateadas: visitar la URL del tag y clickear "Create release from tag". El mensaje del tag ya está en markdown con resumen completo.
+2. **QA manual en producción** — smoke test end-to-end en `luislevelupelo.vercel.app` para confirmar que los 13 fixes resuelven los reportes del QA de mayo (registro, examen, KatIA, procedimiento).
+3. **Migrar el backend a plan de pago en Render** — el sleep tras 15 min en free tier impacta la primera carga (~30s de cold start). Los fixes #2/#7/#9 mitigan pero no eliminan.
+4. **Considerar branch protection** en `main` ahora que está en producción — exigir CI verde y al menos 1 review antes de merge.

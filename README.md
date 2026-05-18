@@ -110,7 +110,7 @@ src/interface/streamlit/
     └── admin_view.py    # Usuarios, grupos, reportes
 ```
 
-### V2 — React + FastAPI (en desarrollo)
+### V2 — React + FastAPI (producción, `v2.0.0`)
 
 ```
 api/                     # FastAPI — 42+ endpoints REST + WebSocket
@@ -363,7 +363,10 @@ Plataforma Streamlit estable con Clean Architecture, CI/CD completo, 85% cobertu
 ### V2.0.0 (producción)
 Reescritura a React 19 + FastAPI. Motor ELO, dominio y banco de preguntas reutilizados sin cambios. Nueva interfaz moderna, mobile-ready, PWA, internacionalización es/en, tema claro/oscuro, modo examen, tests E2E con Playwright. Deploy en Vercel + Render.
 
-**Estado actual de V2:** Sprints 1–8 completos. Paridad funcional 100% con V1.
+**Tag publicado:** `v2.0.0` en [GitHub Releases](https://github.com/LuisJRubioH/LevelUp-ELO/releases/tag/v2.0.0).
+
+**Estado actual de V2:** Sprints 1–8 + Sprint C completos. Paridad funcional 100% con V1 + 1 feature exclusiva V2 (exámenes manuales del docente).
+
 - ✅ Sprint 1: KatIA GIFs, timer de sesión, preview ELO, toasts de racha, fechas en gráficos, perfil en sidebar
 - ✅ Sprint 2: Radar chart, heatmap de actividad, ranking del grupo, logros animados, envío de procedimientos
 - ✅ Sprint 3: Panel docente completo (gráfico ELO temporal, historial KatIA, análisis IA, filtros cascada)
@@ -373,8 +376,21 @@ Reescritura a React 19 + FastAPI. Motor ELO, dominio y banco de preguntas reutil
 - ✅ Post-Sprint 6: KatIA socrático con avatar, procedimiento integrado en práctica, `student_topic_elo`, email login
 - ✅ Sprint 7: E2E Playwright (`frontend/e2e/`), code splitting (`React.lazy`), error boundaries, skeleton loaders, tests de rutas protegidas (48 tests, 100%)
 - ✅ Sprint 8: modo examen E2E, accesibilidad ARIA, tema claro/oscuro, internacionalización es/en (`react-i18next`), métricas de uso docente
+- ✅ Sprint C: Exámenes manuales del docente — tabla `exam_templates` aditiva (R1), builder en `Teacher/Exams.tsx`, selector "Estándar (auto)" vs "Del docente" en `Student/Exam.tsx`
 
-Ver plan detallado en `docs/v2-plan.md`.
+### Fixes post-Sprint C — QA mayo 2026
+
+Capturas reportadas por estudiantes durante uso real. 13 bugs cerrados en 10 commits (`7cbea93` → `71398cb`):
+
+- **Examen resiliente:** borrador en `localStorage` + retry con backoff 0/3/8s + banner "Reintentar enviar" inline. Los estudiantes ya no pierden el intento si falla el submit.
+- **Auto-recover de chunks stale post-deploy Vercel:** recuperación escalonada en 3 tiers (reload → SW+caches cleanup → giveup) en `frontend/src/lib/staleChunk.ts`.
+- **`NetworkError` amigable:** `TypeError: Failed to fetch` se traduce a mensaje en español apto para mostrar.
+- **Retry global de cold start:** `queryClient` con `retry: 3, retryDelay: exponencial 2s→15s` + banner "El servidor está iniciando…" en Stats.
+- **Banco depurado:** 7 ítems con opciones duplicadas + 8 ítems con precios `$\$N$` que rompían `RenderMath` (reescritos a `USD N`). Nueva utilidad `scripts/scan_dollar_prices.py`.
+- **`<QuestionImage>` con fallback:** banner "No se pudo cargar la imagen" + botón reintentar (antes mostraba `alt="Figura"` sin contexto).
+- **CVEs npm devDeps:** `npm audit fix` resolvió 4 vulnerabilidades transitivas (babel/systemjs, brace-expansion, fast-uri, postcss).
+
+Ver plan detallado en [`docs/v2-plan.md`](docs/v2-plan.md) y documentación técnica en [`docs/v2-tecnico.md`](docs/v2-tecnico.md).
 
 ---
 
