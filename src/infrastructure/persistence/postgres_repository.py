@@ -3411,11 +3411,16 @@ class PostgresRepository:
                 cursor.execute("SELECT id FROM courses")
                 existing_course_ids = {row["id"] for row in cursor.fetchall()}
 
-                # 2. Construir listas de courses e items nuevos, y actualizar campos de existentes
+                # 2. Construir listas de courses/items nuevos y de UPDATEs para existentes
                 new_courses_params = []
                 new_items_params = []
-                update_image_params = []  # ítems existentes con imagen en JSON pero NULL en DB
-                update_tags_params = []  # ítems existentes sin tags en DB
+                # Para ítems ya existentes: sincronizar content/options/correct_option/
+                # topic/course_id/image_url/tags desde el JSON del banco. NO se toca
+                # difficulty ni rating_deviation (preservan la calibración por uso).
+                # Antes solo se actualizaba image_url (si era NULL) y tags — eso
+                # dejaba content/options viejos en prod tras correcciones del banco
+                # (paridad rota con SQLite). Ver bug #14 del QA de mayo 2026.
+                update_static_params = []
 
                 for course_id, items_list in courses_data:
                     course_name = self._COURSE_NAME_MAP.get(course_id) or items_list[0].get(
@@ -3431,13 +3436,14 @@ class PostgresRepository:
                     for item in items_list:
                         img = item.get("image_url") or item.get("image_path")
                         tags_json = json.dumps(item.get("tags") or [])
+                        options_json = json.dumps(item["options"])
                         if item["id"] not in existing_item_ids:
                             new_items_params.append(
                                 (
                                     item["id"],
                                     item["topic"],
                                     item["content"],
-                                    json.dumps(item["options"]),
+                                    options_json,
                                     item["correct_option"],
                                     item["difficulty"],
                                     course_id,
@@ -3446,20 +3452,22 @@ class PostgresRepository:
                                 )
                             )
                         else:
-                            # Ítem existente: actualizar image_url si está NULL
-                            if img:
-                                update_image_params.append((img, item["id"]))
-                            # Siempre actualizar tags (sincroniza cambios del JSON)
-                            if item.get("tags"):
-                                update_tags_params.append((tags_json, item["id"]))
+                            # Ítem ya existe → re-sincronizar metadatos estáticos.
+                            update_static_params.append(
+                                (
+                                    item["content"],
+                                    options_json,
+                                    item["correct_option"],
+                                    item["topic"],
+                                    course_id,
+                                    img,
+                                    tags_json,
+                                    item["id"],
+                                )
+                            )
 
                 # 3. Si no hay nada que hacer, salir
-                if (
-                    not new_courses_params
-                    and not new_items_params
-                    and not update_image_params
-                    and not update_tags_params
-                ):
+                if not new_courses_params and not new_items_params and not update_static_params:
                     return  # finally blocks devuelven conexión y liberan lock
 
                 # 4. Insertar/actualizar
@@ -3481,15 +3489,20 @@ class PostgresRepository:
                         new_items_params,
                     )
 
-                if update_image_params:
+                if update_static_params:
                     cursor.executemany(
-                        "UPDATE items SET image_url = %s WHERE id = %s AND image_url IS NULL",
-                        update_image_params,
-                    )
-
-                if update_tags_params:
-                    cursor.executemany(
-                        "UPDATE items SET tags = %s WHERE id = %s", update_tags_params
+                        """
+                        UPDATE items SET
+                            content = %s,
+                            options = %s,
+                            correct_option = %s,
+                            topic = %s,
+                            course_id = %s,
+                            image_url = %s,
+                            tags = %s
+                        WHERE id = %s
+                        """,
+                        update_static_params,
                     )
 
                 conn.commit()
