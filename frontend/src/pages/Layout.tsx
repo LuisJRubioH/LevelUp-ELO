@@ -16,6 +16,7 @@ import { api } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
 import { useSettingsStore, PROVIDER_MODELS } from "../stores/settingsStore";
 import { useNotifications } from "../hooks/useNotifications";
+import { usePWAInstall } from "../hooks/usePWAInstall";
 import { ReportProblemButton } from "../components/ReportProblem/ReportProblemButton";
 import { ThemeToggle } from "../components/ui/ThemeToggle";
 import { LanguageToggle } from "../components/ui/LanguageToggle";
@@ -78,6 +79,7 @@ export function Layout({ children }: LayoutProps) {
   const availableModels = PROVIDER_MODELS[provider] ?? [];
   const location = useLocation();
   const navigate = useNavigate();
+  const { canInstall, promptInstall } = usePWAInstall();
   const [showIAConfig, setShowIAConfig] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailInput, setEmailInput] = useState("");
@@ -342,9 +344,19 @@ export function Layout({ children }: LayoutProps) {
           <div className="mb-1">
             <ThemeToggle />
           </div>
-          <div className="mb-2">
+          <div className="mb-1">
             <LanguageToggle />
           </div>
+          {canInstall && (
+            <button
+              onClick={promptInstall}
+              className="flex items-center gap-2 w-full text-xs text-slate-500 hover:text-violet-400 transition-colors px-1 py-1.5 mb-1"
+              title="Instala LevelUp como aplicación para acceso rápido y uso offline"
+            >
+              <span aria-hidden="true">📱</span>
+              <span>Instalar app</span>
+            </button>
+          )}
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"
