@@ -73,7 +73,7 @@ export function Courses() {
             className={[
               "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
               tab === t.id
-                ? "bg-violet-600 text-slate-100"
+                ? "bg-violet-600 text-white"
                 : "text-slate-400 hover:text-slate-100",
             ].join(" ")}
           >

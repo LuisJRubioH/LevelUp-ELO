@@ -1,0 +1,19 @@
+{
+  "name": "LevelUp ELO — Plataforma Adaptativa",
+  "short_name": "LevelUp",
+  "description": "Practica matemáticas con ELO adaptativo y tutoría socrática de KatIA",
+  "theme_color": "#7c3aed",
+  "background_color": "#0f172a",
+  "display": "standalone",
+  "orientation": "portrait",
+  "start_url": "/student",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icons.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

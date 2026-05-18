@@ -13,25 +13,46 @@ import "katex/dist/katex.min.css";
 import { useAuthStore } from "../../stores/authStore";
 import { Button } from "../ui/Button";
 
-/** Renderiza texto que puede contener LaTeX inline: $expr$ */
+/**
+ * Renderiza texto con LaTeX. Soporta:
+ *   - $$expr$$  (display mode)
+ *   - $expr$    (inline)
+ *   - \(expr\)  (inline alternativo)
+ *   - \[expr\]  (display alternativo)
+ * Filtra `$` sueltos durante el streaming para evitar delimitadores literales.
+ */
 function RenderMath({ text }: { text: string }) {
-  const parts = text.split(/(\$[^$]+\$)/g);
+  // Orden importa: matchear primero $$...$$ y \[...\] antes que $...$ y \(...\).
+  const regex = /(\$\$[^$]+\$\$|\\\[[\s\S]+?\\\]|\$[^$\n]+\$|\\\([\s\S]+?\\\))/g;
+  const parts = text.split(regex);
   if (parts.length === 1) return <>{text}</>;
   return (
     <>
       {parts.map((part, i) => {
-        if (part.startsWith("$") && part.endsWith("$")) {
-          const math = part.slice(1, -1);
+        let math: string | null = null;
+        let displayMode = false;
+        if (part.startsWith("$$") && part.endsWith("$$") && part.length >= 4) {
+          math = part.slice(2, -2);
+          displayMode = true;
+        } else if (part.startsWith("\\[") && part.endsWith("\\]")) {
+          math = part.slice(2, -2);
+          displayMode = true;
+        } else if (part.startsWith("$") && part.endsWith("$") && part.length >= 2) {
+          math = part.slice(1, -1);
+        } else if (part.startsWith("\\(") && part.endsWith("\\)")) {
+          math = part.slice(2, -2);
+        }
+        if (math !== null) {
           try {
             const html = katex.renderToString(math, {
-              displayMode: false,
+              displayMode,
               throwOnError: false,
               errorColor: "#ef4444",
             });
             return (
               <span
                 key={i}
-                className="inline-block align-middle"
+                className={displayMode ? "block my-1" : "inline-block align-middle"}
                 dangerouslySetInnerHTML={{ __html: html }}
               />
             );
@@ -255,7 +276,7 @@ export function SocraticChat({
               className={[
                 "max-w-[80%] px-3 py-2 rounded-xl text-sm leading-relaxed",
                 msg.role === "student"
-                  ? "bg-violet-600/80 text-slate-100 rounded-br-sm"
+                  ? "bg-violet-600/80 text-white rounded-br-sm"
                   : "bg-slate-800/80 text-slate-200 border border-slate-700/60 rounded-bl-sm",
               ].join(" ")}
             >

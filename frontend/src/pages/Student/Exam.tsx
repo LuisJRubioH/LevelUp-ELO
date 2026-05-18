@@ -193,7 +193,7 @@ function ExamSetup({ onStart }: { onStart: (courseId: string, courseName: string
             onStart(selectedCourse, name, nQuestions, timeLimitMin);
           }}
           disabled={!selectedCourse}
-          className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-100 font-medium py-2.5 rounded-xl text-sm transition-colors"
+          className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-xl text-sm transition-colors"
         >
           Iniciar examen →
         </button>
@@ -394,7 +394,7 @@ export function Exam() {
           <p className="text-slate-300 mb-4 text-sm">{error}</p>
           <button
             onClick={() => { setPhase("setup"); setAnswers({}); setItems([]); setCurrentIdx(0); }}
-            className="bg-violet-600 hover:bg-violet-700 text-slate-100 px-5 py-2 rounded-xl text-sm transition-colors"
+            className="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl text-sm transition-colors"
           >
             Volver a configuración
           </button>
@@ -451,8 +451,8 @@ export function Exam() {
               className={[
                 "w-8 h-8 rounded text-xs font-bold flex items-center justify-center border",
                 r.is_correct
-                  ? "bg-emerald-600 text-slate-100 border-emerald-400"
-                  : "bg-red-600 text-slate-100 border-red-400",
+                  ? "bg-emerald-600 text-white border-emerald-400"
+                  : "bg-red-600 text-white border-red-400",
               ].join(" ")}
             >
               {i + 1}
@@ -514,7 +514,7 @@ export function Exam() {
           </button>
           <button
             onClick={() => navigate("/student/stats")}
-            className="bg-violet-600 hover:bg-violet-700 text-slate-100 px-5 py-2 rounded-xl text-sm transition-colors"
+            className="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl text-sm transition-colors"
           >
             Ver estadísticas →
           </button>
@@ -568,7 +568,7 @@ export function Exam() {
                 className={[
                   "w-full h-8 rounded text-xs font-bold transition-all border",
                   active
-                    ? "bg-violet-600 text-slate-100 border-violet-400 ring-2 ring-violet-400"
+                    ? "bg-violet-600 text-white border-violet-400 ring-2 ring-violet-400"
                     : answered
                     ? "bg-amber-500 text-slate-900 border-amber-400 hover:bg-amber-400"
                     : "bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600",
@@ -601,7 +601,7 @@ export function Exam() {
                 </button>
                 <button
                   onClick={() => { setShowConfirm(false); handleSubmit(); }}
-                  className="flex-1 bg-violet-600 hover:bg-violet-700 text-slate-100 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                  className="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-2.5 rounded-xl text-sm font-medium transition-colors"
                 >
                   Sí, finalizar
                 </button>
@@ -679,7 +679,7 @@ export function Exam() {
                   <button
                     onClick={() => setShowConfirm(true)}
                     disabled={phase === "submitting"}
-                    className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-slate-100 text-sm px-5 py-2 rounded-xl transition-colors font-medium"
+                    className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm px-5 py-2 rounded-xl transition-colors font-medium"
                   >
                     {phase === "submitting" ? "Enviando…" : "Finalizar examen"}
                   </button>

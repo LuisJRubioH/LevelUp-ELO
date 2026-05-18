@@ -199,7 +199,7 @@ function StudentDetailPanel({
               <button
                 onClick={() => aiMutation.mutate()}
                 disabled={aiMutation.isPending || !apiKey}
-                className="w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-slate-100 text-sm transition-colors"
+                className="w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm transition-colors"
               >
                 {aiMutation.isPending ? "Generando análisis…" : "🤖 Generar análisis pedagógico"}
               </button>

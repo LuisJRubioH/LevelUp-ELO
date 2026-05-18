@@ -192,7 +192,7 @@ export function Layout({ children }: LayoutProps) {
                 className={[
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
                   active
-                    ? "bg-violet-600/30 text-violet-300 font-medium"
+                    ? "bg-violet-600 text-white font-medium shadow-sm"
                     : "text-slate-400 hover:bg-slate-700 hover:text-slate-200",
                 ].join(" ")}
               >
@@ -200,7 +200,7 @@ export function Layout({ children }: LayoutProps) {
                 <span className="flex-1">{t(item.label)}</span>
                 {showBadge && (
                   <span
-                    className="ml-auto bg-red-500 text-slate-100 text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
+                    className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
                     aria-label={`${unreadCount > 99 ? t("layout.moreThan99") : unreadCount} ${t("layout.notifications")}`}
                   >
                     {unreadCount > 99 ? "99+" : unreadCount}
@@ -283,7 +283,7 @@ export function Layout({ children }: LayoutProps) {
           {user && !user.email && !showEmailForm && (
             <button
               onClick={() => setShowEmailForm(true)}
-              className="w-full text-left text-xs bg-amber-500/10 text-amber-400 rounded px-2 py-1.5 mb-2 hover:bg-amber-500/20 transition-colors"
+              className="w-full text-left text-xs bg-amber-500 text-slate-900 font-medium rounded px-2 py-1.5 mb-2 hover:bg-amber-400 transition-colors"
             >
               {t("layout.addEmail")}
             </button>
@@ -313,7 +313,7 @@ export function Layout({ children }: LayoutProps) {
                 <button
                   onClick={handleSaveEmail}
                   disabled={emailSaving}
-                  className="flex-1 text-xs bg-violet-600 hover:bg-violet-500 text-slate-100 rounded px-2 py-1 disabled:opacity-50"
+                  className="flex-1 text-xs bg-violet-600 hover:bg-violet-500 text-white rounded px-2 py-1 disabled:opacity-50"
                 >
                   {emailSaving ? "..." : t("layout.saveEmail")}
                 </button>
@@ -385,7 +385,7 @@ export function Layout({ children }: LayoutProps) {
               <span className="truncate max-w-full px-1" aria-hidden="true">{t(item.label)}</span>
               {showBadge && (
                 <span
-                  className="absolute top-1 right-1/4 bg-red-500 text-slate-100 text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1"
+                  className="absolute top-1 right-1/4 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1"
                   aria-hidden="true"
                 >
                   {unreadCount > 9 ? "9+" : unreadCount}
