@@ -70,7 +70,16 @@ const AdminAudit = lazy(() =>
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      // 3 reintentos con backoff exponencial (≈ 2s, 4s, 8s) — el cold start
+      // de Render free tier puede tardar hasta 30s. No reintentes errores
+      // 4xx (auth/validación): no van a desaparecer con un reintento.
+      retry: (failureCount, error) => {
+        const status = (error as { status?: number } | null)?.status ?? 0;
+        if (status >= 400 && status < 500) return false;
+        return failureCount < 3;
+      },
+      retryDelay: (attemptIndex) =>
+        Math.min(2000 * 2 ** attemptIndex, 15_000),
       staleTime: 30_000,
     },
   },

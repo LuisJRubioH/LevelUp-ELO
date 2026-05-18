@@ -32,10 +32,9 @@ interface RankEntry {
 }
 
 export function Stats() {
-  const { data: stats, isLoading, isError } = useQuery({
+  const { data: stats, isLoading, isError, failureCount } = useQuery({
     queryKey: ["student-stats"],
     queryFn: () => studentApi.stats(),
-    retry: 2,
   });
 
   const { data: history } = useQuery({
@@ -67,15 +66,39 @@ export function Stats() {
   });
 
   if (isLoading) {
-    return <StatsSkeleton />;
+    return (
+      <div>
+        {failureCount > 0 && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="max-w-3xl mx-auto mt-4 mb-2 px-4"
+          >
+            <div className="text-xs text-amber-400/90 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+              <span className="inline-block w-2 h-2 mr-2 bg-amber-400 rounded-full animate-pulse align-middle" />
+              El servidor está iniciando (intento {failureCount + 1} de 4)…
+            </div>
+          </div>
+        )}
+        <StatsSkeleton />
+      </div>
+    );
   }
 
   if (isError || !stats) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-center">
+        <div className="text-center max-w-sm">
           <p className="text-slate-400 mb-2">No se pudieron cargar las estadísticas.</p>
-          <p className="text-slate-500 text-sm">El servidor puede estar iniciando. Intenta recargar la página.</p>
+          <p className="text-slate-500 text-sm mb-4">
+            Reintentamos varias veces sin éxito. El servidor puede seguir iniciando — espera unos segundos y recarga.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-violet-600 hover:bg-violet-500 text-white text-sm px-4 py-2 rounded-lg transition-colors"
+          >
+            Recargar página
+          </button>
         </div>
       </div>
     );
