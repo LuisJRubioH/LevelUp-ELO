@@ -189,7 +189,62 @@ export const teacherApi = {
   downloadCsv: () => _downloadBlob("/api/teacher/export/csv", "levelup_intentos.csv"),
 
   downloadXlsx: () => _downloadBlob("/api/teacher/export/xlsx", "levelup_datos_completos.xlsx"),
+
+  // ── Sprint C: plantillas de examen del docente ───────────────────────────
+  allCourses: () => api.get<{ id: string; name: string; block: string }[]>("/api/teacher/courses"),
+
+  examTemplates: (course_id?: string, include_archived = false) => {
+    const qs = new URLSearchParams();
+    if (course_id) qs.set("course_id", course_id);
+    if (include_archived) qs.set("include_archived", "true");
+    return api.get<ExamTemplate[]>(
+      `/api/teacher/exam-templates${qs.toString() ? "?" + qs.toString() : ""}`,
+    );
+  },
+
+  createExamTemplate: (input: {
+    course_id: string;
+    title: string;
+    time_limit_min: number;
+    item_ids: string[];
+  }) => api.post<ExamTemplate>("/api/teacher/exam-templates", input),
+
+  updateExamTemplate: (
+    id: number,
+    patch: {
+      title?: string;
+      time_limit_min?: number;
+      item_ids?: string[];
+    },
+  ) => api.patch<ExamTemplate>(`/api/teacher/exam-templates/${id}`, patch),
+
+  archiveExamTemplate: (id: number) =>
+    api.delete<void>(`/api/teacher/exam-templates/${id}`),
+
+  itemsCatalog: (course_id: string) =>
+    api.get<ItemCatalogEntry[]>(
+      `/api/teacher/items?course_id=${encodeURIComponent(course_id)}`,
+    ),
 };
+
+export interface ExamTemplate {
+  id: number;
+  teacher_id: number;
+  course_id: string;
+  title: string;
+  time_limit_min: number;
+  item_ids: string[];
+  archived: boolean;
+  created_at: string;
+}
+
+export interface ItemCatalogEntry {
+  id: string;
+  content: string;
+  difficulty: number;
+  topic: string;
+  tags: string[];
+}
 
 // ── API Admin ─────────────────────────────────────────────────────────────────
 

@@ -10,6 +10,7 @@ const es = {
     dashboard: "Dashboard",
     groups: "Grupos",
     procedures: "Procedimientos",
+    exams: "Exámenes",
     export: "Exportar datos",
     users: "Usuarios",
     reports: "Reportes",

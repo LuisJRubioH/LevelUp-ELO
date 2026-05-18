@@ -470,6 +470,20 @@ def archive_exam_template(template_id: int, user: CurrentUser, repo: RepoDep):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+@router.get("/courses")
+def list_all_courses(repo: RepoDep, user: CurrentUser):
+    """Lista todos los cursos del banco — para que el docente arme exámenes."""
+    courses = repo.get_courses()
+    return [
+        {
+            "id": c["id"] if isinstance(c, dict) else c[0],
+            "name": c["name"] if isinstance(c, dict) else c[1],
+            "block": c["block"] if isinstance(c, dict) else c[2],
+        }
+        for c in courses
+    ]
+
+
 @router.get("/items", response_model=list[ItemCatalogEntry])
 def list_items_catalog(
     repo: RepoDep,

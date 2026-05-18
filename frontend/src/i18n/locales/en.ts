@@ -12,6 +12,7 @@ const en: TranslationKeys = {
     dashboard: "Dashboard",
     groups: "Groups",
     procedures: "Procedures",
+    exams: "Exams",
     export: "Export data",
     users: "Users",
     reports: "Reports",

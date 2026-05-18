@@ -74,17 +74,36 @@ function formatTime(seconds: number) {
 
 // ── Pantalla de configuración ─────────────────────────────────────────────────
 
-function ExamSetup({ onStart }: { onStart: (courseId: string, courseName: string, n: number, t: number) => void }) {
+function ExamSetup({
+  onStart,
+}: {
+  onStart: (
+    courseId: string,
+    courseName: string,
+    n: number,
+    t: number,
+    templateId?: number,
+  ) => void;
+}) {
   const [selectedCourse, setSelectedCourse] = useState("");
   const [nQuestions, setNQuestions] = useState(10);
   const [timeLimitMin, setTimeLimitMin] = useState(20);
+  const [mode, setMode] = useState<"standard" | "template">("standard");
+  const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
 
   const { data: courses = [], isLoading } = useQuery({
     queryKey: ["courses"],
     queryFn: () => studentApi.courses(),
   });
 
+  const { data: templates = [], isLoading: loadingTemplates } = useQuery({
+    queryKey: ["exam-templates", selectedCourse],
+    queryFn: () => studentApi.examTemplates(selectedCourse),
+    enabled: !!selectedCourse,
+  });
+
   const enrolled = courses.filter((c) => c.enrolled);
+  const activeTemplate = templates.find((t) => t.id === selectedTemplate) ?? null;
 
   return (
     <div className="max-w-md mx-auto py-10 px-4">
@@ -125,49 +144,120 @@ function ExamSetup({ onStart }: { onStart: (courseId: string, courseName: string
           )}
         </div>
 
-        {/* Número de preguntas */}
-        <div>
-          <label className="block text-xs text-slate-400 mb-1.5">
-            Preguntas:{" "}
-            <span className="text-violet-400 font-semibold">{nQuestions}</span>
-          </label>
-          <input
-            type="range"
-            min={5}
-            max={30}
-            step={5}
-            value={nQuestions}
-            onChange={(e) => setNQuestions(Number(e.target.value))}
-            className="w-full accent-violet-500"
-          />
-          <div className="flex justify-between text-[10px] text-slate-600 mt-1">
-            {[5, 10, 15, 20, 25, 30].map((v) => (
-              <span key={v}>{v}</span>
-            ))}
+        {/* Selector de tipo de examen — visible solo si hay curso elegido */}
+        {selectedCourse && (
+          <div>
+            <label className="block text-xs text-slate-400 mb-1.5">Tipo de examen</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => { setMode("standard"); setSelectedTemplate(null); }}
+                className={[
+                  "text-xs px-3 py-2 rounded-lg border transition-colors",
+                  mode === "standard"
+                    ? "bg-violet-600 border-violet-500 text-white font-medium"
+                    : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700",
+                ].join(" ")}
+              >
+                Estándar (auto)
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("template")}
+                disabled={!loadingTemplates && templates.length === 0}
+                className={[
+                  "text-xs px-3 py-2 rounded-lg border transition-colors",
+                  mode === "template"
+                    ? "bg-violet-600 border-violet-500 text-white font-medium"
+                    : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700",
+                  "disabled:opacity-40 disabled:cursor-not-allowed",
+                ].join(" ")}
+                title={templates.length === 0 ? "El docente no ha creado exámenes para este curso" : ""}
+              >
+                Del docente
+                {!loadingTemplates && (
+                  <span className="text-[10px] ml-1 opacity-80">
+                    ({templates.length})
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Tiempo límite */}
-        <div>
-          <label className="block text-xs text-slate-400 mb-1.5">
-            Tiempo límite:{" "}
-            <span className="text-violet-400 font-semibold">{timeLimitMin} min</span>
-          </label>
-          <input
-            type="range"
-            min={5}
-            max={60}
-            step={5}
-            value={timeLimitMin}
-            onChange={(e) => setTimeLimitMin(Number(e.target.value))}
-            className="w-full accent-violet-500"
-          />
-          <div className="flex justify-between text-[10px] text-slate-600 mt-1">
-            <span>5 min</span>
-            <span>30 min</span>
-            <span>60 min</span>
+        {/* Dropdown de plantillas (solo modo template) */}
+        {selectedCourse && mode === "template" && (
+          <div>
+            <label className="block text-xs text-slate-400 mb-1.5">Examen del docente</label>
+            {loadingTemplates ? (
+              <div className="h-10 bg-slate-800 rounded-lg animate-pulse" />
+            ) : templates.length === 0 ? (
+              <p className="text-xs text-slate-500 italic">
+                El docente aún no ha publicado exámenes para este curso.
+              </p>
+            ) : (
+              <select
+                value={selectedTemplate ?? ""}
+                onChange={(e) => setSelectedTemplate(e.target.value ? Number(e.target.value) : null)}
+                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-200 text-sm focus:outline-none focus:border-violet-500 transition-colors"
+              >
+                <option value="">Selecciona un examen…</option>
+                {templates.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title} · {t.n_questions} preg · {t.time_limit_min} min
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
-        </div>
+        )}
+
+        {/* Sliders solo en modo estándar */}
+        {mode === "standard" && (
+          <>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1.5">
+                Preguntas:{" "}
+                <span className="text-violet-400 font-semibold">{nQuestions}</span>
+              </label>
+              <input
+                type="range"
+                min={5}
+                max={30}
+                step={5}
+                value={nQuestions}
+                onChange={(e) => setNQuestions(Number(e.target.value))}
+                className="w-full accent-violet-500"
+              />
+              <div className="flex justify-between text-[10px] text-slate-600 mt-1">
+                {[5, 10, 15, 20, 25, 30].map((v) => (
+                  <span key={v}>{v}</span>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-slate-400 mb-1.5">
+                Tiempo límite:{" "}
+                <span className="text-violet-400 font-semibold">{timeLimitMin} min</span>
+              </label>
+              <input
+                type="range"
+                min={5}
+                max={60}
+                step={5}
+                value={timeLimitMin}
+                onChange={(e) => setTimeLimitMin(Number(e.target.value))}
+                className="w-full accent-violet-500"
+              />
+              <div className="flex justify-between text-[10px] text-slate-600 mt-1">
+                <span>5 min</span>
+                <span>30 min</span>
+                <span>60 min</span>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Resumen */}
         {selectedCourse && (
@@ -178,23 +268,59 @@ function ExamSetup({ onStart }: { onStart: (courseId: string, courseName: string
                 {enrolled.find((c) => c.id === selectedCourse)?.name ?? selectedCourse}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span>Preguntas</span>
-              <span className="text-slate-200">{nQuestions}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Tiempo</span>
-              <span className="text-slate-200">{timeLimitMin} minutos</span>
-            </div>
+            {mode === "template" && activeTemplate ? (
+              <>
+                <div className="flex justify-between">
+                  <span>Examen del docente</span>
+                  <span className="text-slate-200">{activeTemplate.title}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Preguntas</span>
+                  <span className="text-slate-200">{activeTemplate.n_questions}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Tiempo</span>
+                  <span className="text-slate-200">{activeTemplate.time_limit_min} minutos</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex justify-between">
+                  <span>Modo</span>
+                  <span className="text-slate-200">Estándar (curva 30/40/30)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Preguntas</span>
+                  <span className="text-slate-200">{nQuestions}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Tiempo</span>
+                  <span className="text-slate-200">{timeLimitMin} minutos</span>
+                </div>
+              </>
+            )}
           </div>
         )}
 
         <button
           onClick={() => {
             const name = enrolled.find((c) => c.id === selectedCourse)?.name ?? selectedCourse;
-            onStart(selectedCourse, name, nQuestions, timeLimitMin);
+            if (mode === "template" && activeTemplate) {
+              onStart(
+                selectedCourse,
+                name,
+                activeTemplate.n_questions,
+                activeTemplate.time_limit_min,
+                activeTemplate.id,
+              );
+            } else {
+              onStart(selectedCourse, name, nQuestions, timeLimitMin);
+            }
           }}
-          disabled={!selectedCourse}
+          disabled={
+            !selectedCourse ||
+            (mode === "template" && !activeTemplate)
+          }
           className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-xl text-sm transition-colors"
         >
           Iniciar examen →
@@ -228,22 +354,27 @@ export function Exam() {
   const [score, setScore] = useState({ correct: 0, total: 0, pct: 0, eloAfter: 0 });
   const [error, setError] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
+  const [templateId, setTemplateId] = useState<number | null>(null);
 
   const itemStartTime = useRef<number>(Date.now());
   const itemTimes = useRef<Record<string, number>>({});
   const submitRef = useRef<(() => void) | null>(null);
 
-  const handleStart = useCallback((cId: string, cName: string, n: number, t: number) => {
-    setCourseId(cId);
-    setCourseName(cName);
-    setNQuestions(n);
-    setTimeLimitMin(t);
-    setItems([]);
-    setCurrentIdx(0);
-    setAnswers({});
-    itemTimes.current = {};
-    setPhase("loading");
-  }, []);
+  const handleStart = useCallback(
+    (cId: string, cName: string, n: number, t: number, tplId?: number) => {
+      setCourseId(cId);
+      setCourseName(cName);
+      setNQuestions(n);
+      setTimeLimitMin(t);
+      setTemplateId(tplId ?? null);
+      setItems([]);
+      setCurrentIdx(0);
+      setAnswers({});
+      itemTimes.current = {};
+      setPhase("loading");
+    },
+    [],
+  );
 
   // ── Cargar examen ──────────────────────────────────────────────────────────
 
@@ -260,6 +391,7 @@ export function Exam() {
         course_id: courseId,
         n_questions: nQuestions,
         time_limit_minutes: timeLimitMin,
+        template_id: templateId ?? undefined,
       })
       .then((data) => {
         setItems(data.items);
@@ -271,7 +403,7 @@ export function Exam() {
         setError("No se pudo iniciar el examen. Intenta de nuevo.");
         setPhase("error");
       });
-  }, [phase, courseId, nQuestions, timeLimitMin]);
+  }, [phase, courseId, nQuestions, timeLimitMin, templateId]);
 
   // ── Enviar examen ──────────────────────────────────────────────────────────
 

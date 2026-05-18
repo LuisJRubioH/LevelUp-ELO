@@ -49,6 +49,9 @@ const TeacherProcedures = lazy(() =>
 const TeacherExport = lazy(() =>
   import("./pages/Teacher/Export").then((m) => ({ default: m.TeacherExport }))
 );
+const TeacherExams = lazy(() =>
+  import("./pages/Teacher/Exams").then((m) => ({ default: m.TeacherExams }))
+);
 
 // Admin — cargado bajo demanda
 const AdminUsers = lazy(() =>
@@ -172,6 +175,10 @@ export default function App() {
               <Route
                 path="/teacher/export"
                 element={<TeacherRoute><TeacherExport /></TeacherRoute>}
+              />
+              <Route
+                path="/teacher/exams"
+                element={<TeacherRoute><TeacherExams /></TeacherRoute>}
               />
 
               {/* ── Admin ──────────────────────────────────────────────── */}

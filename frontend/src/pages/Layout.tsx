@@ -40,6 +40,7 @@ const teacherNav: NavItem[] = [
   { path: "/teacher", label: "nav.dashboard", icon: "📊" },
   { path: "/teacher/groups", label: "nav.groups", icon: "👥" },
   { path: "/teacher/procedures", label: "nav.procedures", icon: "📝" },
+  { path: "/teacher/exams", label: "nav.exams", icon: "📋" },
   { path: "/teacher/export", label: "nav.export", icon: "📥" },
 ];
 
@@ -79,7 +80,9 @@ export function Layout({ children }: LayoutProps) {
   const availableModels = PROVIDER_MODELS[provider] ?? [];
   const location = useLocation();
   const navigate = useNavigate();
-  const { canInstall, promptInstall } = usePWAInstall();
+  // Suprime el banner automático de instalación PWA. Botón en sidebar
+  // está oculto temporalmente — para reactivar, ver más abajo.
+  usePWAInstall();
   const [showIAConfig, setShowIAConfig] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailInput, setEmailInput] = useState("");

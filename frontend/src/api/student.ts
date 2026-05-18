@@ -96,6 +96,15 @@ export interface ExamSession {
   created_at: string;
 }
 
+export interface ExamTemplateSummary {
+  id: number;
+  title: string;
+  course_id: string;
+  n_questions: number;
+  time_limit_min: number;
+  created_at: string;
+}
+
 export const studentApi = {
   nextQuestion: (body: {
     course_id: string;
@@ -159,6 +168,11 @@ export const studentApi = {
   history: () => api.get<{ attempts: unknown[] }>("/api/student/history"),
 
   examHistory: () => api.get<ExamSession[]>("/api/student/exam/history"),
+
+  examTemplates: (course_id: string) =>
+    api.get<ExamTemplateSummary[]>(
+      `/api/student/exam/templates?course_id=${encodeURIComponent(course_id)}`,
+    ),
 
   activity: (days = 70) =>
     api.get<{ activity: Record<string, number> }>(`/api/student/activity?days=${days}`),
