@@ -549,7 +549,9 @@ export function TeacherDashboard() {
             aria-current={view === id ? "true" : undefined}
             className={[
               "text-sm px-3 py-1.5 rounded-lg transition-colors",
-              view === id ? "bg-violet-600/30 text-violet-300" : "text-slate-500 hover:text-slate-300",
+              view === id
+                ? "bg-violet-600 text-white font-medium"
+                : "text-slate-500 hover:text-slate-300",
             ].join(" ")}
           >
             {label}

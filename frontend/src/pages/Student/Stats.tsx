@@ -291,7 +291,12 @@ export function Stats() {
 
       {/* Historial de exámenes */}
       <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-        <h3 className="text-sm font-medium text-slate-400 mb-3">Historial de exámenes</h3>
+        <div className="flex items-baseline justify-between mb-3">
+          <h3 className="text-sm font-medium text-slate-400">Historial de exámenes</h3>
+          <p className="text-[10px] text-slate-500 italic">
+            Los exámenes no modifican el ELO
+          </p>
+        </div>
         {examHistory.length === 0 ? (
           <p className="text-slate-500 text-sm">Aún no has completado ningún examen.</p>
         ) : (
@@ -317,9 +322,6 @@ export function Stats() {
                   <span className={`text-sm font-semibold ${scoreColor} tabular-nums`}>
                     {session.correct_count}/{session.n_questions}
                     <span className="text-xs font-normal ml-1">({session.score_pct}%)</span>
-                  </span>
-                  <span className="text-xs text-violet-400 font-mono tabular-nums w-14 text-right">
-                    ELO {Math.round(session.global_elo_after)}
                   </span>
                 </div>
               );
