@@ -6,6 +6,7 @@ elo_project.db
 data/
 uploads/
 bugs-errores-inconsistencias/
+bugs/
 
 # Entornos virtuales
 .venv/
