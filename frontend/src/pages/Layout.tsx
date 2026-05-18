@@ -347,16 +347,9 @@ export function Layout({ children }: LayoutProps) {
           <div className="mb-1">
             <LanguageToggle />
           </div>
-          {canInstall && (
-            <button
-              onClick={promptInstall}
-              className="flex items-center gap-2 w-full text-xs text-slate-500 hover:text-violet-400 transition-colors px-1 py-1.5 mb-1"
-              title="Instala LevelUp como aplicación para acceso rápido y uso offline"
-            >
-              <span aria-hidden="true">📱</span>
-              <span>Instalar app</span>
-            </button>
-          )}
+          {/* Botón "Instalar app" oculto temporalmente — el hook usePWAInstall
+              sigue activo y suprime el banner automático del navegador.
+              Para reactivar, restaurar el bloque y mantener canInstall && (...). */}
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"

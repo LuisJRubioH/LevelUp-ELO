@@ -106,3 +106,40 @@ class ApproveTeacherRequest(BaseModel):
 class ChangeGroupRequest(BaseModel):
     student_id: int
     new_group_id: int | None
+
+
+# ── Sprint C: Plantillas de examen del docente ───────────────────────────────
+
+
+class ExamTemplateCreateRequest(BaseModel):
+    course_id: str = Field(..., min_length=1)
+    title: str = Field(..., min_length=1, max_length=140)
+    time_limit_min: int = Field(default=20, ge=5, le=180)
+    item_ids: list[str] = Field(..., min_length=1, max_length=60)
+
+
+class ExamTemplatePatchRequest(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=140)
+    time_limit_min: int | None = Field(default=None, ge=5, le=180)
+    item_ids: list[str] | None = Field(default=None, min_length=1, max_length=60)
+
+
+class ExamTemplateResponse(BaseModel):
+    id: int
+    teacher_id: int
+    course_id: str
+    title: str
+    time_limit_min: int
+    item_ids: list[str]
+    archived: bool
+    created_at: str
+
+
+class ItemCatalogEntry(BaseModel):
+    """Resumen de item para que el docente lo seleccione al armar el examen."""
+
+    id: str
+    content: str
+    difficulty: float
+    topic: str
+    tags: list[str] = []

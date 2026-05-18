@@ -22,9 +22,13 @@ from api.schemas.teacher import (
     ApproveTeacherRequest,
     ChangeGroupRequest,
     CreateGroupRequest,
+    ExamTemplateCreateRequest,
+    ExamTemplatePatchRequest,
+    ExamTemplateResponse,
     GradeRequest,
     GradeResponse,
     GroupResponse,
+    ItemCatalogEntry,
     PendingProcedure,
     StudentReportResponse,
     UserAdminRow,
@@ -362,3 +366,126 @@ def export_xlsx(user: CurrentUser, repo: RepoDep):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": "attachment; filename=levelup_data.xlsx"},
     )
+
+
+# ── Sprint C: Plantillas de examen del docente ───────────────────────────────
+
+
+def _template_to_response(t: dict) -> ExamTemplateResponse:
+    return ExamTemplateResponse(
+        id=t["id"],
+        teacher_id=t["teacher_id"],
+        course_id=t["course_id"],
+        title=t["title"],
+        time_limit_min=t["time_limit_min"],
+        item_ids=t["item_ids"],
+        archived=t["archived"],
+        created_at=t["created_at"],
+    )
+
+
+@router.get("/exam-templates", response_model=list[ExamTemplateResponse])
+def list_exam_templates(
+    user: CurrentUser,
+    repo: RepoDep,
+    course_id: str | None = None,
+    include_archived: bool = False,
+):
+    """Lista las plantillas creadas por el docente actual (filtrable por curso)."""
+    templates = repo.list_exam_templates(
+        course_id=course_id,
+        teacher_id=user["user_id"],
+        include_archived=include_archived,
+    )
+    return [_template_to_response(t) for t in templates]
+
+
+@router.post(
+    "/exam-templates",
+    response_model=ExamTemplateResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_exam_template(body: ExamTemplateCreateRequest, user: CurrentUser, repo: RepoDep):
+    """Crea una plantilla de examen manual."""
+    # Validar que todos los item_ids existan en el curso indicado
+    bank_items = repo.get_items_from_db(course_id=body.course_id)
+    valid_ids = {it["id"] for it in bank_items}
+    invalid = [i for i in body.item_ids if i not in valid_ids]
+    if invalid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Items no encontrados en el curso: {invalid[:5]}",
+        )
+    template_id = repo.create_exam_template(
+        teacher_id=user["user_id"],
+        course_id=body.course_id,
+        title=body.title,
+        time_limit_min=body.time_limit_min,
+        item_ids=body.item_ids,
+    )
+    created = repo.get_exam_template(template_id)
+    return _template_to_response(created)
+
+
+@router.patch("/exam-templates/{template_id}", response_model=ExamTemplateResponse)
+def update_exam_template(
+    template_id: int,
+    body: ExamTemplatePatchRequest,
+    user: CurrentUser,
+    repo: RepoDep,
+):
+    """Actualiza campos puntuales de una plantilla propia."""
+    template = repo.get_exam_template(template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Plantilla no encontrada.")
+    if template["teacher_id"] != user["user_id"] and user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="No es tu plantilla.")
+    if body.item_ids is not None:
+        bank_items = repo.get_items_from_db(course_id=template["course_id"])
+        valid_ids = {it["id"] for it in bank_items}
+        invalid = [i for i in body.item_ids if i not in valid_ids]
+        if invalid:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Items no encontrados en el curso: {invalid[:5]}",
+            )
+    repo.update_exam_template(
+        template_id,
+        title=body.title,
+        time_limit_min=body.time_limit_min,
+        item_ids=body.item_ids,
+    )
+    return _template_to_response(repo.get_exam_template(template_id))
+
+
+@router.delete("/exam-templates/{template_id}", status_code=status.HTTP_204_NO_CONTENT)
+def archive_exam_template(template_id: int, user: CurrentUser, repo: RepoDep):
+    """Archiva (soft delete) una plantilla propia."""
+    template = repo.get_exam_template(template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Plantilla no encontrada.")
+    if template["teacher_id"] != user["user_id"] and user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="No es tu plantilla.")
+    repo.archive_exam_template(template_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/items", response_model=list[ItemCatalogEntry])
+def list_items_catalog(
+    repo: RepoDep,
+    user: CurrentUser,
+    course_id: str,
+):
+    """Catálogo de items de un curso — para que el docente arme exámenes."""
+    items = repo.get_items_from_db(course_id=course_id)
+    items.sort(key=lambda it: it["difficulty"])
+    return [
+        ItemCatalogEntry(
+            id=it["id"],
+            content=it["content"],
+            difficulty=it["difficulty"],
+            topic=it["topic"],
+            tags=it.get("tags") or [],
+        )
+        for it in items
+    ]

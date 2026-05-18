@@ -31,6 +31,7 @@ from api.schemas.student import (
     ExamStartResponse,
     ExamSubmitRequest,
     ExamSubmitResponse,
+    ExamTemplateSummary,
     ItemResponse,
     NextQuestionRequest,
     NextQuestionResponse,
@@ -582,19 +583,69 @@ def _build_standard_exam(repo, course_id: str, n: int) -> list[dict]:
     return pool[:n]
 
 
+def _items_from_template(repo, template: dict) -> list[dict]:
+    """Carga los items de una plantilla preservando el orden definido por el docente."""
+    by_id = {it["id"]: it for it in repo.get_items_from_db(course_id=template["course_id"])}
+    return [by_id[i] for i in template["item_ids"] if i in by_id]
+
+
+@router.get("/exam/templates", response_model=list[ExamTemplateSummary])
+def list_exam_templates_for_student(
+    repo: RepoDep,
+    user: CurrentUser,
+    course_id: str,
+):
+    """Plantillas de examen creadas por el docente para este curso."""
+    templates = repo.list_exam_templates(course_id=course_id, include_archived=False)
+    return [
+        ExamTemplateSummary(
+            id=t["id"],
+            title=t["title"],
+            course_id=t["course_id"],
+            n_questions=len(t["item_ids"]),
+            time_limit_min=t["time_limit_min"],
+            created_at=t["created_at"],
+        )
+        for t in templates
+    ]
+
+
 @router.post("/exam/start", response_model=ExamStartResponse)
 def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
     """
-    Inicia una sesión de examen estándar (curva fija de dificultad, sin ELO).
-    Devuelve N preguntas distribuidas 30/40/30 entre bandas fácil/media/difícil.
+    Inicia una sesión de examen.
+
+    Modos:
+      - Con `template_id`: usa exactamente los items de la plantilla del docente
+        en el orden definido. Ignora n_questions y time_limit_minutes (toma los
+        del template).
+      - Sin `template_id`: examen estándar con curva de dificultad 30/40/30.
+
+    En ambos casos, NO afecta el ELO del estudiante.
     """
-    n = min(body.n_questions, 30)
-    selected = _build_standard_exam(repo, body.course_id, n)
+    if body.template_id is not None:
+        template = repo.get_exam_template(body.template_id)
+        if not template or template.get("archived"):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Plantilla no encontrada o archivada.",
+            )
+        if template["course_id"] != body.course_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="La plantilla no corresponde al curso indicado.",
+            )
+        selected = _items_from_template(repo, template)
+        time_limit_seconds = template["time_limit_min"] * 60
+    else:
+        n = min(body.n_questions, 30)
+        selected = _build_standard_exam(repo, body.course_id, n)
+        time_limit_seconds = body.time_limit_minutes * 60
 
     if not selected:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No hay preguntas disponibles para este curso.",
+            detail="No hay preguntas disponibles para este examen.",
         )
 
     items = [
@@ -613,7 +664,7 @@ def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
     return ExamStartResponse(
         items=items,
         n_questions=len(items),
-        time_limit_seconds=body.time_limit_minutes * 60,
+        time_limit_seconds=time_limit_seconds,
         course_id=body.course_id,
     )
 

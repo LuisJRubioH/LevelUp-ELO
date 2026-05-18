@@ -675,6 +675,9 @@ class PostgresRepository:
             self._add_column_if_not_exists(cursor, "procedure_submissions", "ai_feedback", "TEXT")
             # v6 — hash SHA-256 del archivo subido para detección anti-plagio
             self._add_column_if_not_exists(cursor, "procedure_submissions", "file_hash", "TEXT")
+            # v7 — Sprint C: examen manual del docente (exam_templates)
+            # Vincula sesiones de examen con la plantilla usada (NULL = examen estándar).
+            self._add_column_if_not_exists(cursor, "exam_sessions", "exam_template_id", "INTEGER")
             # v7 — URL de Supabase Storage (reemplaza BYTEA para nuevos registros)
             self._add_column_if_not_exists(cursor, "procedure_submissions", "storage_url", "TEXT")
             # v7b — image_data ya no es obligatorio (NULL cuando se usa Storage)
@@ -918,9 +921,29 @@ class PostgresRepository:
                     correct_count INTEGER NOT NULL,
                     score_pct REAL NOT NULL,
                     global_elo_after REAL NOT NULL DEFAULT 0,
+                    exam_template_id INTEGER,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """
+            )
+            # ── Tabla exam_templates (plantillas de examen del docente) ──────
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS exam_templates (
+                    id SERIAL PRIMARY KEY,
+                    teacher_id INTEGER NOT NULL,
+                    course_id TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    time_limit_min INTEGER NOT NULL DEFAULT 20,
+                    item_ids TEXT NOT NULL DEFAULT '[]',
+                    archived BOOLEAN NOT NULL DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_exam_templates_course "
+                "ON exam_templates(course_id, archived)"
             )
 
             conn.commit()
@@ -4582,5 +4605,154 @@ class PostgresRepository:
                 )
                 rows = cursor.fetchall()
                 return [dict(r) for r in rows]
+        finally:
+            self.put_connection(conn)
+
+    # ── Sprint C: plantillas de examen del docente ────────────────────────────
+
+    def create_exam_template(
+        self,
+        teacher_id: int,
+        course_id: str,
+        title: str,
+        time_limit_min: int,
+        item_ids: list[str],
+    ) -> int:
+        import json
+
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """INSERT INTO exam_templates
+                       (teacher_id, course_id, title, time_limit_min, item_ids)
+                       VALUES (%s, %s, %s, %s, %s)
+                       RETURNING id""",
+                    (teacher_id, course_id, title, time_limit_min, json.dumps(item_ids)),
+                )
+                row = cursor.fetchone()
+                conn.commit()
+                return row["id"]
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def get_exam_template(self, template_id: int) -> dict | None:
+        import json
+
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """SELECT id, teacher_id, course_id, title, time_limit_min, item_ids,
+                              archived,
+                              to_char(created_at, 'YYYY-MM-DD HH24:MI') AS created_at
+                       FROM exam_templates WHERE id = %s""",
+                    (template_id,),
+                )
+                r = cursor.fetchone()
+                if not r:
+                    return None
+                d = dict(r)
+                d["item_ids"] = json.loads(d["item_ids"]) if d.get("item_ids") else []
+                d["archived"] = bool(d.get("archived"))
+                return d
+        finally:
+            self.put_connection(conn)
+
+    def list_exam_templates(
+        self,
+        course_id: str | None = None,
+        teacher_id: int | None = None,
+        include_archived: bool = False,
+    ) -> list[dict]:
+        import json
+
+        clauses = []
+        params: list = []
+        if course_id is not None:
+            clauses.append("course_id = %s")
+            params.append(course_id)
+        if teacher_id is not None:
+            clauses.append("teacher_id = %s")
+            params.append(teacher_id)
+        if not include_archived:
+            clauses.append("archived = FALSE")
+        where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    f"""SELECT id, teacher_id, course_id, title, time_limit_min, item_ids,
+                               archived,
+                               to_char(created_at, 'YYYY-MM-DD HH24:MI') AS created_at
+                        FROM exam_templates {where}
+                        ORDER BY created_at DESC""",
+                    tuple(params),
+                )
+                rows = cursor.fetchall()
+                result = []
+                for r in rows:
+                    d = dict(r)
+                    d["item_ids"] = json.loads(d["item_ids"]) if d.get("item_ids") else []
+                    d["archived"] = bool(d.get("archived"))
+                    result.append(d)
+                return result
+        finally:
+            self.put_connection(conn)
+
+    def update_exam_template(
+        self,
+        template_id: int,
+        title: str | None = None,
+        time_limit_min: int | None = None,
+        item_ids: list[str] | None = None,
+    ) -> bool:
+        import json
+
+        sets = []
+        params: list = []
+        if title is not None:
+            sets.append("title = %s")
+            params.append(title)
+        if time_limit_min is not None:
+            sets.append("time_limit_min = %s")
+            params.append(time_limit_min)
+        if item_ids is not None:
+            sets.append("item_ids = %s")
+            params.append(json.dumps(item_ids))
+        if not sets:
+            return False
+        params.append(template_id)
+        conn = self.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"UPDATE exam_templates SET {', '.join(sets)} WHERE id = %s",
+                    tuple(params),
+                )
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def archive_exam_template(self, template_id: int) -> bool:
+        conn = self.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE exam_templates SET archived = TRUE WHERE id = %s",
+                    (template_id,),
+                )
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception:
+            conn.rollback()
+            raise
         finally:
             self.put_connection(conn)

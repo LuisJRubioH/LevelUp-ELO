@@ -616,10 +616,34 @@ class SQLiteRepository:
                 correct_count INTEGER NOT NULL,
                 score_pct REAL NOT NULL,
                 global_elo_after REAL NOT NULL DEFAULT 0,
+                exam_template_id INTEGER,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """
         )
+
+        # ── Tabla exam_templates (plantillas de examen del docente) ──────────
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS exam_templates (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                teacher_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                time_limit_min INTEGER NOT NULL DEFAULT 20,
+                item_ids TEXT NOT NULL DEFAULT '[]',
+                archived INTEGER NOT NULL DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_exam_templates_course "
+            "ON exam_templates(course_id, archived)"
+        )
+
+        # v7 — Sprint C: examen manual del docente (vincula sessions con templates).
+        self._add_column_if_not_exists(cursor, "exam_sessions", "exam_template_id", "INTEGER")
 
         conn.commit()
         conn.close()
@@ -3924,3 +3948,148 @@ class SQLiteRepository:
             }
             for r in rows
         ]
+
+    # ── Sprint C: plantillas de examen del docente ────────────────────────────
+
+    def create_exam_template(
+        self,
+        teacher_id: int,
+        course_id: str,
+        title: str,
+        time_limit_min: int,
+        item_ids: list[str],
+    ) -> int:
+        """Crea una plantilla de examen manual y devuelve el id generado."""
+        import json
+
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """INSERT INTO exam_templates (teacher_id, course_id, title, time_limit_min, item_ids)
+               VALUES (?, ?, ?, ?, ?)""",
+            (teacher_id, course_id, title, time_limit_min, json.dumps(item_ids)),
+        )
+        conn.commit()
+        row_id = cursor.lastrowid
+        conn.close()
+        return row_id
+
+    def get_exam_template(self, template_id: int) -> dict | None:
+        """Obtiene una plantilla por id (incluye archivadas)."""
+        import json
+
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """SELECT id, teacher_id, course_id, title, time_limit_min, item_ids,
+                      archived, strftime('%Y-%m-%d %H:%M', created_at) AS created_at
+               FROM exam_templates WHERE id = ?""",
+            (template_id,),
+        )
+        r = cursor.fetchone()
+        conn.close()
+        if not r:
+            return None
+        return {
+            "id": r[0],
+            "teacher_id": r[1],
+            "course_id": r[2],
+            "title": r[3],
+            "time_limit_min": r[4],
+            "item_ids": json.loads(r[5]) if r[5] else [],
+            "archived": bool(r[6]),
+            "created_at": r[7],
+        }
+
+    def list_exam_templates(
+        self,
+        course_id: str | None = None,
+        teacher_id: int | None = None,
+        include_archived: bool = False,
+    ) -> list[dict]:
+        """Lista plantillas filtrando por curso, docente o estado archivado."""
+        import json
+
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        clauses = []
+        params: list = []
+        if course_id is not None:
+            clauses.append("course_id = ?")
+            params.append(course_id)
+        if teacher_id is not None:
+            clauses.append("teacher_id = ?")
+            params.append(teacher_id)
+        if not include_archived:
+            clauses.append("archived = 0")
+        where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+        cursor.execute(
+            f"""SELECT id, teacher_id, course_id, title, time_limit_min, item_ids,
+                       archived, strftime('%Y-%m-%d %H:%M', created_at) AS created_at
+                FROM exam_templates {where}
+                ORDER BY created_at DESC""",
+            tuple(params),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {
+                "id": r[0],
+                "teacher_id": r[1],
+                "course_id": r[2],
+                "title": r[3],
+                "time_limit_min": r[4],
+                "item_ids": json.loads(r[5]) if r[5] else [],
+                "archived": bool(r[6]),
+                "created_at": r[7],
+            }
+            for r in rows
+        ]
+
+    def update_exam_template(
+        self,
+        template_id: int,
+        title: str | None = None,
+        time_limit_min: int | None = None,
+        item_ids: list[str] | None = None,
+    ) -> bool:
+        """Actualiza campos puntuales. Retorna True si afectó una fila."""
+        import json
+
+        sets = []
+        params: list = []
+        if title is not None:
+            sets.append("title = ?")
+            params.append(title)
+        if time_limit_min is not None:
+            sets.append("time_limit_min = ?")
+            params.append(time_limit_min)
+        if item_ids is not None:
+            sets.append("item_ids = ?")
+            params.append(json.dumps(item_ids))
+        if not sets:
+            return False
+        params.append(template_id)
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            f"UPDATE exam_templates SET {', '.join(sets)} WHERE id = ?",
+            tuple(params),
+        )
+        conn.commit()
+        affected = cursor.rowcount
+        conn.close()
+        return affected > 0
+
+    def archive_exam_template(self, template_id: int) -> bool:
+        """Marca la plantilla como archivada (soft delete)."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE exam_templates SET archived = 1 WHERE id = ?",
+            (template_id,),
+        )
+        conn.commit()
+        affected = cursor.rowcount
+        conn.close()
+        return affected > 0

@@ -122,6 +122,25 @@ class ExamStartRequest(BaseModel):
     time_limit_minutes: int = Field(
         default=20, ge=5, le=180, description="Minutos disponibles para el examen"
     )
+    template_id: int | None = Field(
+        default=None,
+        description=(
+            "ID de plantilla de examen creada por el docente. Si se proporciona, "
+            "se usa esa lista de items y se ignoran n_questions y time_limit_minutes. "
+            "Si es None, se genera un examen estándar con curva de dificultad."
+        ),
+    )
+
+
+class ExamTemplateSummary(BaseModel):
+    """Resumen visible al estudiante: solo título + nº de preguntas + tiempo."""
+
+    id: int
+    title: str
+    course_id: str
+    n_questions: int
+    time_limit_min: int
+    created_at: str
 
 
 class ExamStartResponse(BaseModel):
