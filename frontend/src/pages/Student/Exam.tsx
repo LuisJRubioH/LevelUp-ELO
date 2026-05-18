@@ -33,6 +33,57 @@ interface ExamResult {
 
 type ExamPhase = "setup" | "loading" | "answering" | "submitting" | "results" | "error";
 
+// ── Persistencia de borrador (sobrevive recarga si falla el submit) ──────────
+
+const DRAFT_KEY = "levelup-exam-draft";
+const DRAFT_MAX_AGE_MS = 6 * 60 * 60 * 1000; // 6 horas
+
+interface ExamDraft {
+  courseId: string;
+  courseName: string;
+  nQuestions: number;
+  timeLimitMin: number;
+  templateId: number | null;
+  items: ExamItem[];
+  answers: Record<string, string>;
+  itemTimes: Record<string, number>;
+  startedAt: number; // ms epoch al recibir items del backend
+  timeLimitSeconds: number; // tiempo total inicial
+  savedAt: number;
+}
+
+function readDraft(): ExamDraft | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw) as ExamDraft;
+    if (!d || typeof d !== "object" || !Array.isArray(d.items)) return null;
+    if (Date.now() - d.savedAt > DRAFT_MAX_AGE_MS) {
+      localStorage.removeItem(DRAFT_KEY);
+      return null;
+    }
+    return d;
+  } catch {
+    return null;
+  }
+}
+
+function writeDraft(d: ExamDraft) {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...d, savedAt: Date.now() }));
+  } catch {
+    // QuotaExceeded u otro — silencioso, el examen puede continuar igual
+  }
+}
+
+function clearDraft() {
+  try {
+    localStorage.removeItem(DRAFT_KEY);
+  } catch {
+    /* noop */
+  }
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function RenderMath({ text }: { text: string }) {
@@ -76,6 +127,7 @@ function formatTime(seconds: number) {
 
 function ExamSetup({
   onStart,
+  onResume,
 }: {
   onStart: (
     courseId: string,
@@ -84,12 +136,14 @@ function ExamSetup({
     t: number,
     templateId?: number,
   ) => void;
+  onResume: (draft: ExamDraft) => void;
 }) {
   const [selectedCourse, setSelectedCourse] = useState("");
   const [nQuestions, setNQuestions] = useState(10);
   const [timeLimitMin, setTimeLimitMin] = useState(20);
   const [mode, setMode] = useState<"standard" | "template">("standard");
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
+  const [pendingDraft, setPendingDraft] = useState<ExamDraft | null>(() => readDraft());
 
   const { data: courses = [], isLoading } = useQuery({
     queryKey: ["courses"],
@@ -114,6 +168,48 @@ function ExamSetup({
         <span className="text-amber-400">El examen no afecta tu ELO</span> — es una
         evaluación. El ELO se ajusta solo en la sala de práctica.
       </p>
+
+      {pendingDraft && (
+        <div
+          role="alert"
+          className="mb-6 border border-amber-500/40 bg-amber-500/10 rounded-xl p-4"
+        >
+          <p className="text-sm font-medium text-amber-200">
+            Tienes un examen pendiente
+          </p>
+          <p className="text-xs text-amber-300/80 mt-1 mb-3">
+            {pendingDraft.courseName} ·{" "}
+            {Object.keys(pendingDraft.answers).length}/{pendingDraft.items.length} respondidas
+            · guardado{" "}
+            {(() => {
+              const mins = Math.max(
+                0,
+                Math.round((Date.now() - pendingDraft.savedAt) / 60000),
+              );
+              return mins === 0 ? "ahora" : `hace ${mins} min`;
+            })()}
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => onResume(pendingDraft)}
+              className="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-900 font-medium text-xs py-2 rounded-lg transition-colors"
+            >
+              Continuar examen
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                clearDraft();
+                setPendingDraft(null);
+              }}
+              className="px-3 text-xs text-amber-300/70 hover:text-amber-200 transition-colors"
+            >
+              Descartar
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-5">
         {/* Selector de curso */}
@@ -340,7 +436,12 @@ export function Exam() {
   const nParam = parseInt(searchParams.get("n") ?? "10", 10);
   const tParam = parseInt(searchParams.get("t") ?? "20", 10);
 
-  const [phase, setPhase] = useState<ExamPhase>(courseIdParam ? "loading" : "setup");
+  // Si hay un borrador pendiente, siempre arrancar en setup para que el
+  // estudiante decida si continuar o descartar — los params de URL pueden
+  // llevarlo a un examen nuevo y perder lo que tenía guardado.
+  const [phase, setPhase] = useState<ExamPhase>(() =>
+    readDraft() ? "setup" : courseIdParam ? "loading" : "setup",
+  );
   const [courseId, setCourseId] = useState(courseIdParam);
   const [courseName, setCourseName] = useState(courseIdParam);
   const [nQuestions, setNQuestions] = useState(nParam);
@@ -355,10 +456,14 @@ export function Exam() {
   const [error, setError] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const [templateId, setTemplateId] = useState<number | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitAttempt, setSubmitAttempt] = useState(0);
 
   const itemStartTime = useRef<number>(Date.now());
   const itemTimes = useRef<Record<string, number>>({});
   const submitRef = useRef<(() => void) | null>(null);
+  const startedAtRef = useRef<number>(Date.now());
+  const timeLimitSecondsRef = useRef<number>(0);
 
   const handleStart = useCallback(
     (cId: string, cName: string, n: number, t: number, tplId?: number) => {
@@ -371,10 +476,32 @@ export function Exam() {
       setCurrentIdx(0);
       setAnswers({});
       itemTimes.current = {};
+      setSubmitError(null);
+      setSubmitAttempt(0);
       setPhase("loading");
     },
     [],
   );
+
+  const handleResume = useCallback((draft: ExamDraft) => {
+    setCourseId(draft.courseId);
+    setCourseName(draft.courseName);
+    setNQuestions(draft.nQuestions);
+    setTimeLimitMin(draft.timeLimitMin);
+    setTemplateId(draft.templateId);
+    setItems(draft.items);
+    setAnswers(draft.answers);
+    itemTimes.current = { ...draft.itemTimes };
+    startedAtRef.current = draft.startedAt;
+    timeLimitSecondsRef.current = draft.timeLimitSeconds;
+    const elapsedSeconds = (Date.now() - draft.startedAt) / 1000;
+    setTimeLeft(Math.max(0, Math.floor(draft.timeLimitSeconds - elapsedSeconds)));
+    setCurrentIdx(0);
+    itemStartTime.current = Date.now();
+    setSubmitError(null);
+    setSubmitAttempt(0);
+    setPhase("answering");
+  }, []);
 
   // ── Cargar examen ──────────────────────────────────────────────────────────
 
@@ -397,6 +524,8 @@ export function Exam() {
         setItems(data.items);
         setTimeLeft(data.time_limit_seconds);
         itemStartTime.current = Date.now();
+        startedAtRef.current = Date.now();
+        timeLimitSecondsRef.current = data.time_limit_seconds;
         setPhase("answering");
       })
       .catch(() => {
@@ -405,16 +534,37 @@ export function Exam() {
       });
   }, [phase, courseId, nQuestions, timeLimitMin, templateId]);
 
+  // ── Auto-guardar borrador para resistir caídas de red al enviar ──────────
+  useEffect(() => {
+    if (phase !== "answering" || items.length === 0) return;
+    writeDraft({
+      courseId,
+      courseName,
+      nQuestions,
+      timeLimitMin,
+      templateId,
+      items,
+      answers,
+      itemTimes: itemTimes.current,
+      startedAt: startedAtRef.current,
+      timeLimitSeconds: timeLimitSecondsRef.current,
+      savedAt: Date.now(),
+    });
+  }, [phase, items, answers, currentIdx, courseId, courseName, nQuestions, timeLimitMin, templateId]);
+
   // ── Enviar examen ──────────────────────────────────────────────────────────
 
   const handleSubmit = useCallback(async () => {
     setPhase("submitting");
+    setSubmitError(null);
 
     const elapsed = (Date.now() - itemStartTime.current) / 1000;
     if (items[currentIdx]) {
       itemTimes.current[items[currentIdx].id] =
         (itemTimes.current[items[currentIdx].id] ?? 0) + elapsed;
     }
+    // Reset para que reintentos posteriores no doble-cuenten el tiempo en pantalla
+    itemStartTime.current = Date.now();
 
     const payload = {
       course_id: courseId,
@@ -426,28 +576,51 @@ export function Exam() {
       })),
     };
 
-    try {
-      const res = await api.post<{
-        results: ExamResult[];
-        correct_count: number;
-        total_questions: number;
-        score_pct: number;
-        global_elo_after: number;
-      }>("/api/student/exam/submit", payload);
+    // Reintentos con backoff: 0s, 3s, 8s. Cada api.post ya añade su propio retry
+    // de cold start, así que en el peor caso son 3 × (1 + 1 cold) = 6 intentos.
+    const backoffs = [0, 3000, 8000];
+    let lastError: unknown = null;
 
-      setResults(res.results);
-      setScore({
-        correct: res.correct_count,
-        total: res.total_questions,
-        pct: res.score_pct,
-        eloAfter: res.global_elo_after,
-      });
-      setPhase("results");
-    } catch {
-      setError("Error al enviar el examen. Intenta recargar.");
-      setPhase("error");
+    for (let attempt = 0; attempt < backoffs.length; attempt++) {
+      if (backoffs[attempt] > 0) {
+        await new Promise((r) => setTimeout(r, backoffs[attempt]));
+      }
+      setSubmitAttempt(attempt + 1);
+      try {
+        const res = await api.post<{
+          results: ExamResult[];
+          correct_count: number;
+          total_questions: number;
+          score_pct: number;
+          global_elo_after: number;
+        }>("/api/student/exam/submit", payload);
+
+        setResults(res.results);
+        setScore({
+          correct: res.correct_count,
+          total: res.total_questions,
+          pct: res.score_pct,
+          eloAfter: res.global_elo_after,
+        });
+        clearDraft();
+        setSubmitAttempt(0);
+        setPhase("results");
+        return;
+      } catch (err) {
+        lastError = err;
+      }
     }
-  }, [items, currentIdx, answers]);
+
+    // Los 3 intentos fallaron — mantener al estudiante en "answering" con
+    // el banner de error visible. El borrador sigue en localStorage, así
+    // que aunque recargue la página puede reintentar.
+    void lastError;
+    setSubmitError(
+      "No pudimos enviar tu examen tras varios intentos. Tus respuestas siguen guardadas — puedes reintentar.",
+    );
+    setSubmitAttempt(0);
+    setPhase("answering");
+  }, [items, currentIdx, answers, courseId, courseName]);
 
   // Mantener ref estable para el timer
   useEffect(() => {
@@ -503,7 +676,7 @@ export function Exam() {
 
   // ── Render: setup ──────────────────────────────────────────────────────────
 
-  if (phase === "setup") return <ExamSetup onStart={handleStart} />;
+  if (phase === "setup") return <ExamSetup onStart={handleStart} onResume={handleResume} />;
 
   // ── Render: cargando ───────────────────────────────────────────────────────
 
@@ -661,6 +834,42 @@ export function Exam() {
 
   return (
     <div className="h-full flex flex-col">
+      {/* Banner de error de envío — visible si fallaron los reintentos */}
+      {submitError && (
+        <div
+          role="alert"
+          className="px-4 md:px-6 py-3 border-b border-red-700/50 bg-red-900/30 flex items-center justify-between gap-3 shrink-0"
+        >
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-red-200">
+              No se pudo enviar el examen
+            </p>
+            <p className="text-xs text-red-300/80 mt-0.5 truncate">
+              {submitError}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={phase === "submitting"}
+            className="shrink-0 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            Reintentar enviar
+          </button>
+        </div>
+      )}
+
+      {/* Banner de progreso de reintentos */}
+      {phase === "submitting" && submitAttempt > 1 && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="px-4 md:px-6 py-2 border-b border-amber-700/50 bg-amber-900/30 text-xs text-amber-200 shrink-0"
+        >
+          Reintentando envío (intento {submitAttempt} de 3)…
+        </div>
+      )}
+
       {/* Header con timer */}
       <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-slate-700 bg-slate-800/80 backdrop-blur-sm shrink-0">
         <div className="min-w-0">
