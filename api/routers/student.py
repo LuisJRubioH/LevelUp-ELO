@@ -16,6 +16,7 @@ Endpoints del flujo de práctica del estudiante:
 """
 
 import hashlib
+import random
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
 
@@ -539,60 +540,75 @@ def update_profile(body: dict, user: CurrentUser, repo: RepoDep):
 # ── Modo Examen ───────────────────────────────────────────────────────────────
 
 
+def _build_standard_exam(repo, course_id: str, n: int) -> list[dict]:
+    """
+    Construye un examen estándar de N preguntas con curva de dificultad fija.
+
+    Distribución por bandas:
+      - 30% fácil (cuartil bajo de difficulty)
+      - 40% media
+      - 30% difícil
+    Mezcla aleatoria dentro de cada banda, orden global ascendente.
+    Sin selector adaptativo y sin tocar el ELO del estudiante.
+    """
+    all_items = repo.get_items_from_db(course_id=course_id)
+    if not all_items:
+        return []
+
+    sorted_items = sorted(all_items, key=lambda it: it["difficulty"])
+    total = len(sorted_items)
+    third = max(1, total // 3)
+    band_easy = sorted_items[:third]
+    band_mid = sorted_items[third : 2 * third]
+    band_hard = sorted_items[2 * third :]
+
+    n_easy = max(1, round(n * 0.30))
+    n_hard = max(1, round(n * 0.30))
+    n_mid = max(0, n - n_easy - n_hard)
+
+    pool: list[dict] = []
+    pool += random.sample(band_easy, min(n_easy, len(band_easy)))
+    pool += random.sample(band_mid, min(n_mid, len(band_mid)))
+    pool += random.sample(band_hard, min(n_hard, len(band_hard)))
+
+    # Si alguna banda quedó corta, rellenar con items no usados de cualquier banda
+    used_ids = {it["id"] for it in pool}
+    remaining = [it for it in sorted_items if it["id"] not in used_ids]
+    random.shuffle(remaining)
+    while len(pool) < n and remaining:
+        pool.append(remaining.pop())
+
+    pool.sort(key=lambda it: it["difficulty"])
+    return pool[:n]
+
+
 @router.post("/exam/start", response_model=ExamStartResponse)
 def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
     """
-    Inicia una sesión de examen cronometrado.
-    Selecciona N preguntas adaptativas del curso dado y las devuelve de una vez.
-    El estudiante tiene `time_limit_minutes` para responderlas todas.
+    Inicia una sesión de examen estándar (curva fija de dificultad, sin ELO).
+    Devuelve N preguntas distribuidas 30/40/30 entre bandas fácil/media/difícil.
     """
-    service = _make_service(repo)
-    vector = build_vector_rating(user["user_id"], repo)
+    n = min(body.n_questions, 30)
+    selected = _build_standard_exam(repo, body.course_id, n)
 
-    topic = body.course_id
-    n = min(body.n_questions, 30)  # máximo 30 preguntas por examen
-
-    items = []
-    seen_ids: set[str] = set()
-    # session_correct_ids hace que el selector adaptativo evite repetir; pero como
-    # defensa adicional (por si el selector devuelve un duplicado en bucle) llevamos
-    # un set local `seen_ids` y un contador de intentos máximos para no caer en loop.
-    max_attempts = n * 3
-    attempts = 0
-
-    while len(items) < n and attempts < max_attempts:
-        attempts += 1
-        item, status_str = service.get_next_question(
-            student_id=user["user_id"],
-            topic=topic,
-            vector_rating=vector,
-            session_correct_ids=seen_ids,
-            session_wrong_timestamps={},
-            session_questions_count=len(items),
-            course_id=body.course_id,
-        )
-        if item is None:
-            break
-        if item["id"] in seen_ids:
-            continue  # selector devolvió un duplicado — intentar de nuevo
-        seen_ids.add(item["id"])
-        items.append(
-            ItemResponse(
-                id=item["id"],
-                content=item["content"],
-                difficulty=item["difficulty"],
-                topic=item["topic"],
-                options=item["options"],
-                image_url=item.get("image_url"),
-                tags=item.get("tags") or [],
-            )
-        )
-
-    if not items:
+    if not selected:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No hay preguntas disponibles para este curso.",
         )
+
+    items = [
+        ItemResponse(
+            id=it["id"],
+            content=it["content"],
+            difficulty=it["difficulty"],
+            topic=it["topic"],
+            options=it["options"],
+            image_url=it.get("image_url"),
+            tags=it.get("tags") or [],
+        )
+        for it in selected
+    ]
 
     return ExamStartResponse(
         items=items,
@@ -605,12 +621,14 @@ def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
 @router.post("/exam/submit", response_model=ExamSubmitResponse)
 def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
     """
-    Recibe las respuestas del examen y calcula los resultados.
-    Actualiza el ELO por cada respuesta (igual que el modo práctica).
-    """
-    service = _make_service(repo)
-    vector = build_vector_rating(user["user_id"], repo)
+    Recibe las respuestas del examen y devuelve la calificación.
 
+    El examen es EVALUATIVO, no formativo: NO actualiza el ELO del estudiante
+    ni la dificultad del ítem. Solo cuenta correctas/incorrectas y persiste
+    la sesión en `exam_sessions` para el historial.
+
+    El ELO solo cambia en la sala de práctica.
+    """
     results = []
     correct_count = 0
 
@@ -623,32 +641,17 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
         if is_correct:
             correct_count += 1
 
-        elo_topic = item_db.get("topic", ans.item_id)
-        elo_before = vector.get(elo_topic)
-
-        item_data = {**item_db}
-        service.process_answer(
-            user_id=user["user_id"],
-            item_data=item_data,
-            selected_option=ans.selected_option,
-            reasoning="",
-            time_taken=ans.time_taken or 0.0,
-            vector_rating=vector,
-            elo_topic=elo_topic,
-        )
-
-        elo_after = vector.get(elo_topic)
         results.append(
             {
                 "item_id": ans.item_id,
                 "is_correct": is_correct,
                 "selected_option": ans.selected_option,
-                "elo_delta": round(elo_after - elo_before, 2),
+                "elo_delta": 0.0,  # examen no afecta ELO
             }
         )
 
-    from src.domain.elo.vector_elo import aggregate_global_elo
-
+    # ELO global actual (sin modificación, solo para mostrar en results)
+    vector = build_vector_rating(user["user_id"], repo)
     score_pct = round(correct_count / len(body.answers) * 100, 1) if body.answers else 0.0
     global_elo = round(aggregate_global_elo(vector), 2)
 

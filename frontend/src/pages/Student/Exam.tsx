@@ -90,8 +90,10 @@ function ExamSetup({ onStart }: { onStart: (courseId: string, courseName: string
     <div className="max-w-md mx-auto py-10 px-4">
       <h2 className="text-xl font-bold text-slate-100 mb-1">Modo Examen</h2>
       <p className="text-sm text-slate-400 mb-6">
-        Responde N preguntas adaptativas con tiempo límite. Sin pistas ni retroalimentación
-        inmediata. El ELO se actualiza al finalizar.
+        Responde N preguntas con tiempo límite y curva de dificultad estándar
+        (fácil → difícil). Sin pistas ni retroalimentación inmediata.{" "}
+        <span className="text-amber-400">El examen no afecta tu ELO</span> — es una
+        evaluación. El ELO se ajusta solo en la sala de práctica.
       </p>
 
       <div className="space-y-5">
@@ -434,11 +436,11 @@ export function Exam() {
               <p className="text-xs text-slate-500 mt-0.5">incorrectas</p>
             </div>
           </div>
-          <p className="text-sm text-violet-400 mt-4">
-            ELO global actualizado: <span className="font-semibold">{score.eloAfter}</span>
+          <p className="text-xs text-slate-500 mt-4">
+            Calificado automáticamente · las respuestas correctas provienen del banco de preguntas.
           </p>
-          <p className="text-xs text-slate-500 mt-1">
-            Calificado automáticamente · las respuestas correctas provienen del banco de preguntas
+          <p className="text-xs text-amber-400 mt-1">
+            Este examen no modificó tu ELO. Para subir tu rating, practica en la sala adaptativa.
           </p>
         </div>
 
