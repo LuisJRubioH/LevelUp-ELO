@@ -1145,7 +1145,7 @@
     },
     {
         "id": "ab89",
-        "content": "Escribe 3.2 × 10^5 en notación decimal.",
+        "content": "Escribe $3.2 \\times 10^5$ en notación decimal.",
         "difficulty": 740,
         "topic": "Aritmética Básica",
         "options": [
