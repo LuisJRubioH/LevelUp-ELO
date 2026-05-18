@@ -1,7 +1,7 @@
 # Plan V2 — LevelUp-ELO: React + FastAPI
 
-Fecha: 2026-04-14 (última revisión 2026-04-16)
-Estado: **Sprints 1-6 cerrados + fixes post-Sprint 6 + email/dedup — Sprint 7 (calidad) y Sprint 8 (pulido) pendientes**
+Fecha: 2026-04-14 (última revisión 2026-05-18)
+Estado: **Sprints 1-8 + Sprint C completos + fixes QA mayo 2026 + CVEs resueltas — V2 lista para etiquetar `v2.0.0`**
 
 ## Contexto
 
@@ -232,3 +232,45 @@ Deploy actual:
 - [x] 8.3 Tema claro / oscuro (CSS variable palette inversion, FOUC-safe)
 - [x] 8.4 Internacionalización es/en con react-i18next — Login, Layout, Practice, ThemeToggle; LanguageToggle 🌐 en sidebar
 - [x] 8.5 Métricas de uso en dashboard docente
+
+## Checklist Sprint C — Exámenes manuales del docente
+
+**Objetivo:** que el docente arme exámenes personalizados (seleccionando ítems del curso) en vez de depender solo del muestreo automático estándar 30/40/30 de Sprint B.
+
+**Backend (commit cd397af):**
+
+- [x] C.1 Tabla `exam_templates` aditiva en SQLite + PostgreSQL (R1): `id, teacher_id, course_id, title, time_limit_min, item_ids (JSON), archived, created_at` + índice `(course_id, archived)`. Columna `exam_template_id INTEGER NULL` agregada a `exam_sessions`.
+- [x] C.1 Métodos CRUD en ambos repos con firma idéntica: `create_exam_template`, `get_exam_template`, `list_exam_templates`, `update_exam_template`, `archive_exam_template`. `db_sync_check` verde.
+- [x] C.2 Endpoints docente (`api/routers/teacher.py`):
+  - `GET /api/teacher/exam-templates?course_id=&include_archived=`
+  - `POST /api/teacher/exam-templates` (crea)
+  - `PATCH /api/teacher/exam-templates/{id}` (edita título/tiempo/items)
+  - `DELETE /api/teacher/exam-templates/{id}` (archiva — soft delete)
+  - `GET /api/teacher/items?course_id=` (catálogo para armar examen)
+- [x] C.2 Schemas: `ExamTemplateCreateRequest`, `ExamTemplatePatchRequest`, `ExamTemplateResponse`, `ItemCatalogEntry`. Validación: todos los `item_ids` deben pertenecer al curso. Autorización: solo el dueño (o admin) puede editar/archivar.
+- [x] C.3 Endpoints estudiante (`api/routers/student.py`):
+  - `GET /api/student/exam/templates?course_id=` (plantillas disponibles, no archivadas)
+  - `POST /api/student/exam/start` ahora acepta `template_id` opcional: con template usa los items del template en orden definido y `time_limit_min` del template; sin template mantiene el flujo estándar de Sprint B.
+
+**Frontend (commit 23df646):**
+
+- [x] C.4 Nueva pantalla `Teacher/Exams.tsx` (~450 líneas): listado de plantillas, builder con selector de ítems del catálogo, editor de título y duración, archivar/restaurar. Entry en sidebar docente con i18n `nav.exams`.
+- [x] C.4 `studentApi.examTemplates(course_id)` + tipo `ExamTemplateSummary`. `teacherApi` con métodos CRUD completos.
+- [x] C.5 `Student/Exam.tsx` ampliado: en la pantalla de setup el estudiante elige entre **"Estándar (auto)"** o **"Del docente"** (selector de plantilla); si elige template, los sliders de N preguntas y tiempo se ocultan (los define el template). El payload pasa `template_id` opcional al backend.
+
+**Sin tocar:** lógica ELO (`domain/elo/*`), `exam_submit` (sigue desacoplado del ELO según Sprint B), endpoints de práctica. 112 tests API verdes, `db_sync_check` verde.
+
+## Fixes post-Sprint C — QA mayo 2026
+
+Capturas reportadas por estudiantes durante uso real (13 imágenes en `bugs/`). Triadas y cerradas en sesión 2026-05-18 (commits `7cbea93` → `71398cb`):
+
+- [x] Examen no enviaba si el POST fallaba (estudiante perdía intento completo) → borrador en `localStorage` + retry con backoff 0/3/8s + banner "Reintentar enviar" inline (commit 7cbea93)
+- [x] `Failed to fetch dynamically imported module` tras deploy de Vercel → recuperación escalonada en 3 tiers: reload simple → SW+caches cleanup → giveup, con `frontend/src/lib/staleChunk.ts` compartido entre `main.tsx` y `ErrorBoundary` (commit f3234a2)
+- [x] `TypeError: Failed to fetch` crudo en UI → nueva `NetworkError extends ApiError(status=0)` con mensaje en español apto para mostrar (commit caa2ed6)
+- [x] Stats sin retry automático de cold start → queryClient global con `retry: 3, retryDelay: exponencial 2s→15s` + banner "El servidor está iniciando (intento N de 4)…" en `Stats.tsx` (commit 59afcea)
+- [x] Banco: 7 ítems con opciones literalmente duplicadas (correct_option × 2) → distractores matemáticamente distintos (commit 95df6ad)
+- [x] Banco: 8 ítems en `algebra_semillero_7.json` con precios `$\$NUMBER$` que rompían el regex de RenderMath → reescritos a `USD NUMBER` (commit 95df6ad)
+- [x] Imagen del problema mostraba `alt="Figura"` cuando fallaba la carga (confundía al estudiante) → nuevo `<QuestionImage>` con banner "No se pudo cargar la imagen del problema" + botón Reintentar (commit 8db971e)
+- [x] LaTeX en chat KatIA → ya estaba resuelto en commit edf6602 (Sprint A.1 B4); regex de `RenderMath` valida `$x$`, `$x^2$`, `$(24)(35)(46)(57)$`
+- [x] CVEs npm transitivas (4: babel/systemjs, brace-expansion, fast-uri, postcss) → `npm audit fix --legacy-peer-deps` (commit 71398cb)
+- [x] `bugs/` carpeta de capturas QA agregada al `.gitignore` (commit f82b020)
