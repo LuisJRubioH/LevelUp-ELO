@@ -141,9 +141,38 @@ def stats(user: CurrentUser, repo: RepoDep):
     vector = build_vector_rating(user["user_id"], repo)
     global_elo = aggregate_global_elo(vector)
 
+    # Consolidar tópicos duplicados.
+    #
+    # Algunos estudiantes tienen intentos con `attempts.topic = item.topic` (flujo
+    # viejo) y otros con `attempts.topic = course_id` (flujo actual con elo_topic).
+    # Ambos persisten en student_topic_elo y aparecen como tópicos distintos en
+    # vector.ratings, confundiendo al estudiante (ver bug #7 del QA de mayo 2026).
+    #
+    # Fix: usar el catálogo de cursos para mapear slugs (course_id) a nombre
+    # legible. Si el mismo curso aparece como slug Y como nombre, conservar la
+    # entrada del slug (refleja el flujo actual) y descartar el twin viejo.
+    courses_catalog = repo.get_courses() if hasattr(repo, "get_courses") else []
+    course_id_to_name = {c["id"]: c["name"] for c in courses_catalog}
+    # Nombre humano → slug, para detectar twins (case-insensitive)
+    name_lower_to_id = {c["name"].lower(): c["id"] for c in courses_catalog}
+
+    consolidated: dict[str, tuple[float, float]] = {}
+    for topic, (r, rd) in vector.ratings.items():
+        if topic in course_id_to_name:
+            # Es un slug — el display es el nombre del curso.
+            display = course_id_to_name[topic]
+            consolidated[display] = (r, rd)
+        else:
+            # Posible nombre humano. Si su slug equivalente ya está en
+            # vector.ratings, omitir esta entrada (la del slug gana).
+            twin_slug = name_lower_to_id.get(topic.lower())
+            if twin_slug and twin_slug in vector.ratings:
+                continue
+            consolidated[topic] = (r, rd)
+
     topic_elos = [
         TopicELO(topic=t, rating=round(r, 2), rd=round(rd, 2))
-        for t, (r, rd) in sorted(vector.ratings.items())
+        for t, (r, rd) in sorted(consolidated.items())
     ]
 
     total = repo.get_total_attempts_count(user["user_id"])
