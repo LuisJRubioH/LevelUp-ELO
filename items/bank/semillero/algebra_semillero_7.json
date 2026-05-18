@@ -135,7 +135,7 @@
             "$y^4(y + 2)^3 (y + 1)^2$",
             "$y^4(y + 2)^3 (y^2 + 2y + 1)$",
             "$y^5(y + 2)^4$",
-            "$y^4(y + 2)^3 (y + 1)^2$"
+            "$y^4(y + 2)^3 (y - 1)^2$"
         ],
         "correct_option": "$y^4(y + 2)^3 (y + 1)^2$",
         "image_url": "",
@@ -171,7 +171,7 @@
             "$(a + 3)(a - 1)(a + 1)^2$",
             "$(a^2 + 2a - 3)(a + 1)^2$",
             "$(a + 3)(a - 1)(a^2 + 2a + 1)$",
-            "$(a + 3)(a - 1)(a + 1)^2$"
+            "$(a + 3)(a + 1)(a - 1)^2$"
         ],
         "correct_option": "$(a + 3)(a - 1)(a + 1)^2$",
         "image_url": "",
@@ -308,7 +308,7 @@
     },
     {
         "id": "as_7_18",
-        "content": "Una compañía que renta vehículos cobra $\\$65$ al día y 20 centavos por milla por rentar un camión. Miguel rentó un camión durante 3 días y su cuenta fue de $\\$275$. ¿Cuántas millas recorrió?",
+        "content": "Una compañía que renta vehículos cobra USD 65 al día y 20 centavos por milla por rentar un camión. Miguel rentó un camión durante 3 días y su cuenta fue de USD 275. ¿Cuántas millas recorrió?",
         "difficulty": 600,
         "topic": "Ecuaciones",
         "options": [
@@ -327,7 +327,7 @@
     },
     {
         "id": "as_7_19",
-        "content": "Una compañía de telefonía celular cobra una cuota mensual de $\\$10$ por los primeros 1000 mensajes de texto y 10 centavos por cada mensaje adicional. La cuenta de Miriam por mensajes de texto para el mes de junio es de $\\$38.50$. ¿Cuántos mensajes de texto envió ella ese mes?",
+        "content": "Una compañía de telefonía celular cobra una cuota mensual de USD 10 por los primeros 1000 mensajes de texto y 10 centavos por cada mensaje adicional. La cuenta de Miriam por mensajes de texto para el mes de junio es de USD 38.50. ¿Cuántos mensajes de texto envió ella ese mes?",
         "difficulty": 650,
         "topic": "Paridad e imparidad",
         "options": [
@@ -345,7 +345,7 @@
     },
     {
         "id": "as_7_20",
-        "content": "Felicia invirtió $\\$12{,}000$, una parte al $\\frac{4}{5}\\%$ anual y el resto al $4\\%$ anual. Después de 1 año, el interés total fue de $\\$525$. ¿Cuánto invirtió a cada tasa?",
+        "content": "Felicia invirtió USD 12,000, una parte al $\\frac{4}{5}\\%$ anual y el resto al $4\\%$ anual. Después de 1 año, el interés total fue de USD 525. ¿Cuánto invirtió a cada tasa?",
         "difficulty": 800,
         "topic": "Paridad e imparidad",
         "options": [
@@ -363,7 +363,7 @@
     },
     {
         "id": "as_7_21",
-        "content": "¿Qué tasa anual de interés debe ganar una persona sobre una inversión de $\\$3500$ para recibir $\\$262.50$ de interés después de 1 año?",
+        "content": "¿Qué tasa anual de interés debe ganar una persona sobre una inversión de USD 3500 para recibir USD 262.50 de interés después de 1 año?",
         "difficulty": 550,
         "topic": "Álgebra aplicada",
         "options": [
@@ -401,7 +401,7 @@
     },
     {
         "id": "as_7_23",
-        "content": "Camilo hereda dinero, lo combina con sus $\\$22{,}000$ ahorrados, duplica el total y termina con $\\$134{,}000$. ¿Cuánto heredó?",
+        "content": "Camilo hereda dinero, lo combina con sus USD 22,000 ahorrados, duplica el total y termina con USD 134,000. ¿Cuánto heredó?",
         "difficulty": 600,
         "topic": "Ecuaciones",
         "options": [
@@ -420,7 +420,7 @@
     },
     {
         "id": "as_7_24",
-        "content": "Elena gana $\\$7.50$ por hora, pero si trabaja más de 35 horas a la semana le pagan 1.5 veces su salario regular por las horas extra. En una semana gana $\\$352.50$. ¿Cuántas horas extra trabajó?",
+        "content": "Elena gana USD 7.50 por hora, pero si trabaja más de 35 horas a la semana le pagan 1.5 veces su salario regular por las horas extra. En una semana gana USD 352.50. ¿Cuántas horas extra trabajó?",
         "difficulty": 650,
         "topic": "Álgebra aplicada",
         "options": [
@@ -439,7 +439,7 @@
     },
     {
         "id": "as_7_25",
-        "content": "Un plomero cobra $\\$45$/h y su ayudante $\\$25$/h. El plomero trabaja el doble de tiempo que el ayudante, y el cobro total es $\\$4025$. ¿Cuántas horas trabajó cada uno?",
+        "content": "Un plomero cobra USD 45/h y su ayudante USD 25/h. El plomero trabaja el doble de tiempo que el ayudante, y el cobro total es USD 4025. ¿Cuántas horas trabajó cada uno?",
         "difficulty": 700,
         "topic": "Álgebra aplicada",
         "options": [
@@ -569,7 +569,7 @@
     },
     {
         "id": "as_7_32",
-        "content": "Un comerciante mezcla té de $\\$3.00$/lb con té de $\\$2.75$/lb para obtener 80 lb de mezcla a $\\$2.90$/lb. ¿Cuántas libras de cada tipo debe usar?",
+        "content": "Un comerciante mezcla té de USD 3.00/lb con té de USD 2.75/lb para obtener 80 lb de mezcla a USD 2.90/lb. ¿Cuántas libras de cada tipo debe usar?",
         "difficulty": 650,
         "topic": "Paridad e imparidad",
         "options": [
