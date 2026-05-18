@@ -127,6 +127,7 @@ export function Login() {
                   placeholder={t("login.usernamePlaceholder")}
                   className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500 placeholder-slate-600"
                   required
+                  autoComplete="username"
                 />
               </div>
               <div>
@@ -137,6 +138,7 @@ export function Login() {
                   onChange={(e) => setLoginData((d) => ({ ...d, password: e.target.value }))}
                   className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500"
                   required
+                  autoComplete="current-password"
                 />
               </div>
 
@@ -236,6 +238,7 @@ export function Login() {
                   minLength={6}
                   className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500"
                   required
+                  autoComplete="new-password"
                 />
               </div>
 
