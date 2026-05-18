@@ -11,7 +11,8 @@ import { useQuery } from "@tanstack/react-query";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import { studentApi } from "../../api/student";
-import { api, resolveImageUrl } from "../../api/client";
+import { api } from "../../api/client";
+import { QuestionImage } from "../../components/Question/QuestionImage";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -965,13 +966,8 @@ export function Exam() {
                 <p className="text-slate-200 leading-relaxed text-[15px]">
                   <RenderMath text={currentItem.content} />
                 </p>
-                {resolveImageUrl(currentItem.image_url) && (
-                  <img
-                    src={resolveImageUrl(currentItem.image_url)}
-                    alt="Figura"
-                    className="mt-4 max-w-full rounded-lg"
-                  />
-                )}
+                <QuestionImage imageUrl={currentItem.image_url} />
+
               </div>
 
               <div className="space-y-3">
