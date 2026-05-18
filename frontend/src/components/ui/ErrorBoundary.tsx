@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { isStaleChunkError, recoverFromStaleChunk } from "../../lib/staleChunk";
 
 interface Props {
   children: ReactNode;
@@ -7,20 +8,6 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
-}
-
-const RELOAD_FLAG = "levelup-chunk-reload";
-
-/** Detecta errores de chunks dinámicos viejos tras un deploy nuevo de Vercel. */
-function isStaleChunkError(error: Error | null): boolean {
-  if (!error) return false;
-  const msg = error.message || "";
-  return (
-    msg.includes("Failed to fetch dynamically imported module") ||
-    msg.includes("Importing a module script failed") ||
-    msg.includes("Loading chunk") ||
-    msg.includes("Loading CSS chunk")
-  );
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -32,10 +19,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("[ErrorBoundary]", error, info.componentStack);
-    // Auto-recarga una vez si el error es por un chunk viejo (deploy nuevo en Vercel).
-    if (isStaleChunkError(error) && !sessionStorage.getItem(RELOAD_FLAG)) {
-      sessionStorage.setItem(RELOAD_FLAG, "1");
-      window.location.reload();
+    if (isStaleChunkError(error)) {
+      // Si dispara una recarga, no hace falta renderizar la UI de error.
+      recoverFromStaleChunk();
     }
   }
 
