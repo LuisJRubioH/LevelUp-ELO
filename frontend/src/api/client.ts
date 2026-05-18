@@ -20,6 +20,23 @@ export class ApiError extends Error {
 }
 
 /**
+ * Error de red. Se lanza cuando `fetch` falla por TypeError (sin conexión,
+ * DNS, CORS o servidor caído) tras agotar los reintentos. Usa `status = 0`
+ * para diferenciar de errores HTTP. El mensaje ya está en español y es
+ * apto para mostrar al usuario.
+ */
+export class NetworkError extends ApiError {
+  constructor(detail = "No pudimos conectar con el servidor. Puede estar iniciando — inténtalo de nuevo en unos segundos.") {
+    super(0, detail);
+    this.name = "NetworkError";
+  }
+}
+
+export function isNetworkError(err: unknown): err is NetworkError {
+  return err instanceof NetworkError;
+}
+
+/**
  * fetch con un único reintento ante cold start del backend (Render free tier).
  * Reintenta en errores de red (fetch lanza TypeError) y en 502/503/504.
  * Espera 3s entre intentos para darle tiempo al servidor de despertar.
@@ -41,6 +58,24 @@ async function fetchWithRetry(url: string, opts: RequestInit, retries = 1): Prom
   }
 }
 
+async function safeFetchWithRetry(
+  url: string,
+  opts: RequestInit,
+  retries = 1,
+): Promise<Response> {
+  try {
+    return await fetchWithRetry(url, opts, retries);
+  } catch (err) {
+    // fetchWithRetry agotó sus reintentos y volvió a lanzar la TypeError
+    // original. La traducimos a un NetworkError con mensaje en español
+    // que ya es apto para mostrar al usuario.
+    if (err instanceof TypeError) {
+      throw new NetworkError();
+    }
+    throw err;
+  }
+}
+
 async function request<T>(
   method: string,
   path: string,
@@ -57,7 +92,7 @@ async function request<T>(
   };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetchWithRetry(`${API_BASE}${path}`, {
+  const res = await safeFetchWithRetry(`${API_BASE}${path}`, {
     method,
     headers,
     credentials: "include", // para la cookie de refresh
@@ -89,7 +124,7 @@ async function requestForm<T>(path: string, formData: FormData): Promise<T> {
   if (token) headers["Authorization"] = `Bearer ${token}`;
   // No establecer Content-Type — el navegador lo hace automáticamente con el boundary
 
-  const res = await fetchWithRetry(`${API_BASE}${path}`, {
+  const res = await safeFetchWithRetry(`${API_BASE}${path}`, {
     method: "POST",
     headers,
     credentials: "include",
