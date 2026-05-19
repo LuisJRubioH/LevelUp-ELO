@@ -334,7 +334,7 @@ export function Practice() {
             }`}
           >
             <p className="text-sm font-medium">
-              {lastAnswer.isCorrect ? "✅ ¡Correcto!" : "❌ Incorrecto"}
+              {lastAnswer.isCorrect ? t("practice.feedbackCorrect") : t("practice.feedbackWrong")}
             </p>
             <p className="text-xs text-slate-400 mt-1">
               {t("practice.topicEloLabel")} ({currentItem.topic}):{" "}
@@ -356,8 +356,8 @@ export function Practice() {
               state={lastAnswer.isCorrect ? "correct" : "error"}
               message={
                 lastAnswer.isCorrect
-                  ? "¡Excelente! ¿Quieres explorar más con KatIA?"
-                  : "¡No te rindas! KatIA puede ayudarte a entender este problema."
+                  ? t("practice.katiaCorrect")
+                  : t("practice.katiaWrong")
               }
               size="sm"
             />

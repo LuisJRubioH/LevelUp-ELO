@@ -9,6 +9,7 @@
 import { useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { KatIAAvatar } from "../../components/KatIA/KatIAAvatar";
 import { Button } from "../../components/ui/Button";
 import { studentApi, type ProcedureReview } from "../../api/student";
@@ -26,17 +27,16 @@ function scoreColor(score: number): string {
   return "text-emerald-400";
 }
 
-function katiaMessage(score: number): string {
-  if (score >= 91)
-    return "Miau-ravilloso! Tu procedimiento es una obra de arte. Mis procesadores ronronean de alegría.";
-  if (score >= 60)
-    return "Casi purrr-fecto! Solo nos faltó afinar un detallito. Revisa los comentarios abajo.";
-  return "Detecto un pequeño enredo en los cables de este procedimiento. Revisa los pasos marcados y vuelve a intentarlo.";
-}
-
 export function ProcedureUpload() {
+  const { t } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
   const { apiKey } = useSettingsStore();
+
+  const katiaMessage = (score: number): string => {
+    if (score >= 91) return t("procedure.katiaHigh");
+    if (score >= 60) return t("procedure.katiaMid");
+    return t("procedure.katiaLow");
+  };
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -65,11 +65,11 @@ export function ProcedureUpload() {
     setError(null);
     setReview(null);
     if (!ALLOWED_TYPES.includes(f.type)) {
-      setError(`Tipo no soportado: ${f.type}. Usa JPEG, PNG, WebP o PDF.`);
+      setError(t("procedure.typeNotSupported", { type: f.type }));
       return;
     }
     if (f.size > MAX_SIZE_MB * 1024 * 1024) {
-      setError(`El archivo supera el límite de ${MAX_SIZE_MB} MB.`);
+      setError(t("procedure.fileTooBig", { max: MAX_SIZE_MB }));
       return;
     }
     setFile(f);
@@ -102,8 +102,8 @@ export function ProcedureUpload() {
       setUsedProvider(provider);
       setStage("result");
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Error desconocido";
-      setError(`No se pudo analizar: ${msg}`);
+      const msg = e instanceof Error ? e.message : t("procedure.unknownError");
+      setError(t("procedure.couldNotAnalyze", { msg }));
       setStage("idle");
     }
   };
@@ -123,22 +123,22 @@ export function ProcedureUpload() {
       await apiClient.postForm("/api/student/procedure", fd);
       setStage("sent");
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Error desconocido";
-      setError(`No se pudo enviar: ${msg}`);
+      const msg = e instanceof Error ? e.message : t("procedure.unknownError");
+      setError(t("procedure.couldNotSend", { msg }));
     }
   };
 
   if (stage === "sent") {
     return (
       <div className="max-w-xl mx-auto py-8 px-4 space-y-6">
-        <h2 className="text-xl font-bold text-slate-100">Procedimiento enviado</h2>
+        <h2 className="text-xl font-bold text-slate-100">{t("procedure.sentTitle")}</h2>
         <KatIAAvatar
           state="correct"
-          message="Recibido! Tu docente revisará tu procedimiento pronto. Sigue practicando."
+          message={t("procedure.sentMessage")}
           size="md"
         />
         <Button variant="secondary" onClick={resetAll} className="w-full">
-          Enviar otro
+          {t("procedure.sendAnother")}
         </Button>
       </div>
     );
@@ -146,15 +146,10 @@ export function ProcedureUpload() {
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4 space-y-6">
-      <h2 className="text-xl font-bold text-slate-100">Procedimiento abierto</h2>
+      <h2 className="text-xl font-bold text-slate-100">{t("procedure.title")}</h2>
       <div className="rounded-xl border border-slate-700/50 bg-[var(--surface)] p-4 space-y-1">
-        <p className="text-sm text-slate-300">
-          Sube el procedimiento de un ejercicio de desarrollo o pregunta abierta.
-        </p>
-        <p className="text-xs text-slate-500">
-          Si estás respondiendo una pregunta de selección múltiple, usa el botón
-          "Subir procedimiento manuscrito" que aparece debajo de la pregunta en la sala de práctica.
-        </p>
+        <p className="text-sm text-slate-300">{t("procedure.intro")}</p>
+        <p className="text-xs text-slate-500">{t("procedure.introHint")}</p>
       </div>
 
       {/* Identificación del ejercicio */}
@@ -162,18 +157,20 @@ export function ProcedureUpload() {
         <>
           <div>
             <label className="block text-xs text-slate-400 mb-1.5">
-              Identificador del ejercicio <span className="text-red-400">*</span>
+              {t("procedure.exerciseIdLabel")} <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
               value={selectedItem}
               onChange={(e) => setSelectedItem(e.target.value)}
-              placeholder="ej: ejercicio_1, taller_3_p5, parcial_2_p3"
+              placeholder={t("procedure.exerciseIdPlaceholder")}
               className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500"
             />
             {enrolled.length > 0 && (
               <p className="text-xs text-slate-600 mt-1">
-                Cursos matriculados: {enrolled.map((c) => c.name).join(", ")}
+                {t("procedure.enrolledCourses", {
+                  courses: enrolled.map((c) => c.name).join(", "),
+                })}
               </p>
             )}
           </div>
@@ -181,13 +178,13 @@ export function ProcedureUpload() {
           {canAnalyze && (
             <div>
               <label className="block text-xs text-slate-400 mb-1.5">
-                Enunciado del ejercicio (mejora el análisis de la IA)
+                {t("procedure.statementLabel")}
               </label>
               <textarea
                 value={itemContent}
                 onChange={(e) => setItemContent(e.target.value)}
                 rows={3}
-                placeholder="Pega el enunciado del ejercicio para que la IA verifique que tu procedimiento corresponde..."
+                placeholder={t("procedure.statementPlaceholder")}
                 className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500 resize-none"
               />
             </div>
@@ -212,18 +209,18 @@ export function ProcedureUpload() {
             {preview ? (
               <img
                 src={preview}
-                alt="Previsualización"
+                alt={t("procedure.preview")}
                 className="max-h-64 mx-auto rounded-lg object-contain"
               />
             ) : (
               <div className="space-y-2">
                 <div className="text-4xl">📷</div>
                 <p className="text-slate-400 text-sm">
-                  Arrastra tu imagen aquí o{" "}
-                  <span className="text-violet-400 underline">haz clic para seleccionar</span>
+                  {t("procedure.dropFile")}{" "}
+                  <span className="text-violet-400 underline">{t("procedure.clickToSelect")}</span>
                 </p>
                 <p className="text-xs text-slate-600">
-                  JPEG, PNG, WebP o PDF · Máx. {MAX_SIZE_MB} MB
+                  {t("procedure.fileTypes", { max: MAX_SIZE_MB })}
                 </p>
               </div>
             )}
@@ -246,7 +243,7 @@ export function ProcedureUpload() {
               <button
                 onClick={() => { setFile(null); setPreview(null); }}
                 className="text-slate-500 hover:text-red-400 text-xs"
-                aria-label="Quitar archivo"
+                aria-label={t("procedure.removeFile")}
               >
                 ✕
               </button>
@@ -267,14 +264,14 @@ export function ProcedureUpload() {
                 size="lg"
                 className="w-full"
               >
-                🔬 Analizar con IA
+                {t("procedure.analyzeWithAI")}
               </Button>
               <button
                 onClick={() => handleSendToTeacher()}
                 disabled={!file || !selectedItem}
                 className="w-full text-xs text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-50"
               >
-                O enviar directo al docente sin análisis →
+                {t("procedure.sendDirectly")}
               </button>
             </div>
           ) : (
@@ -285,11 +282,9 @@ export function ProcedureUpload() {
                 size="lg"
                 className="w-full"
               >
-                📤 Enviar al docente
+                {t("procedure.sendToTeacher")}
               </Button>
-              <p className="text-xs text-slate-500 text-center">
-                La revisión automática con IA no está disponible en este momento.
-              </p>
+              <p className="text-xs text-slate-500 text-center">{t("procedure.aiNotAvailable")}</p>
             </>
           )}
         </>
@@ -303,12 +298,8 @@ export function ProcedureUpload() {
           className="rounded-2xl border border-slate-700 bg-[var(--surface)] p-8 text-center space-y-4"
         >
           <KatIAAvatar state="thinking" size="lg" />
-          <p className="text-sm text-slate-300 font-medium">
-            KatIA está revisando tu procedimiento…
-          </p>
-          <p className="text-xs text-slate-500">
-            Analizando con rigor matemático. Suele tardar 10–30 s.
-          </p>
+          <p className="text-sm text-slate-300 font-medium">{t("procedure.katiaReviewing")}</p>
+          <p className="text-xs text-slate-500">{t("procedure.katiaReviewingHint")}</p>
           <div className="flex justify-center">
             <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
           </div>
@@ -327,7 +318,7 @@ export function ProcedureUpload() {
             {preview && (
               <img
                 src={preview}
-                alt="Procedimiento"
+                alt={t("procedure.procedureAlt")}
                 className="max-h-56 mx-auto rounded-lg object-contain border border-slate-700"
               />
             )}
@@ -342,7 +333,7 @@ export function ProcedureUpload() {
               }
               message={
                 review.score_procedimiento == null
-                  ? "La IA revisó tu procedimiento. Revisa los comentarios abajo."
+                  ? t("procedure.katiaDefaultMessage")
                   : katiaMessage(review.score_procedimiento)
               }
               size="md"
@@ -350,9 +341,7 @@ export function ProcedureUpload() {
 
             {review.corresponde_a_pregunta === false && (
               <div className="rounded-xl border border-amber-600 bg-amber-900/20 p-3">
-                <p className="text-sm text-amber-300">
-                  ⚠️ El procedimiento no corresponde al enunciado proporcionado.
-                </p>
+                <p className="text-sm text-amber-300">{t("procedure.notMatchingStatement")}</p>
               </div>
             )}
 
@@ -360,8 +349,8 @@ export function ProcedureUpload() {
               <div className="flex items-baseline justify-between">
                 <h3 className="text-sm font-semibold text-slate-200">
                   {usedProvider === "groq"
-                    ? "🔬 Revisión Matemática Rigurosa"
-                    : "🔍 Retroalimentación de la IA"}
+                    ? t("procedure.reviewRigorous")
+                    : t("procedure.reviewGeneric")}
                 </h3>
                 {review.score_procedimiento != null && (
                   <span
@@ -371,14 +360,12 @@ export function ProcedureUpload() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500">
-                Nota propuesta por IA — el ELO solo se ajusta con la calificación del profesor.
-              </p>
+              <p className="text-xs text-slate-500">{t("procedure.aiScoreNote")}</p>
 
               {review.transcripcion && (
                 <details className="group">
                   <summary className="cursor-pointer text-xs text-slate-400 hover:text-slate-200">
-                    📝 Transcripción del procedimiento
+                    {t("procedure.transcription")}
                   </summary>
                   <p className="mt-2 text-xs text-slate-300 whitespace-pre-wrap">
                     {review.transcripcion}
@@ -389,7 +376,7 @@ export function ProcedureUpload() {
               {review.pasos && review.pasos.length > 0 && (
                 <details>
                   <summary className="cursor-pointer text-xs text-slate-400 hover:text-slate-200">
-                    🔢 Pasos analizados ({review.pasos.length})
+                    {t("procedure.stepsAnalyzed", { count: review.pasos.length })}
                   </summary>
                   <ul className="mt-2 space-y-2">
                     {review.pasos.map((p, i) => {
@@ -406,7 +393,7 @@ export function ProcedureUpload() {
                           className="text-xs text-slate-300 border-l-2 border-slate-700 pl-3 py-1"
                         >
                           <div className="font-medium text-slate-200">
-                            Paso {p.numero ?? i + 1}
+                            {t("procedure.stepLabel", { n: p.numero ?? i + 1 })}
                           </div>
                           {p.contenido && (
                             <div className="text-slate-400">{p.contenido}</div>
@@ -425,7 +412,7 @@ export function ProcedureUpload() {
               {review.errores_detectados && review.errores_detectados.length > 0 && (
                 <details>
                   <summary className="cursor-pointer text-xs text-rose-400 hover:text-rose-300">
-                    ⚠️ Errores detectados ({review.errores_detectados.length})
+                    {t("procedure.errorsDetected", { count: review.errores_detectados.length })}
                   </summary>
                   <ul className="mt-2 space-y-1 text-xs text-slate-300 list-disc list-inside">
                     {review.errores_detectados.map((err, i) => (
@@ -438,7 +425,7 @@ export function ProcedureUpload() {
               {review.saltos_logicos && review.saltos_logicos.length > 0 && (
                 <details>
                   <summary className="cursor-pointer text-xs text-amber-400 hover:text-amber-300">
-                    🔗 Saltos lógicos ({review.saltos_logicos.length})
+                    {t("procedure.logicalGaps", { count: review.saltos_logicos.length })}
                   </summary>
                   <ul className="mt-2 space-y-1 text-xs text-slate-300 list-disc list-inside">
                     {review.saltos_logicos.map((s, i) => (
@@ -449,12 +436,12 @@ export function ProcedureUpload() {
               )}
 
               <div className="pt-2 border-t border-slate-800 text-xs text-slate-400">
-                <strong className="text-slate-300">Resultado final:</strong>{" "}
-                {review.resultado_correcto ? "✅ Correcto" : "❌ Incorrecto"}
+                <strong className="text-slate-300">{t("procedure.finalResult")}</strong>{" "}
+                {review.resultado_correcto ? t("procedure.correctResult") : t("procedure.incorrectResult")}
               </div>
               {review.evaluacion_global && (
                 <p className="text-xs text-slate-400">
-                  <strong className="text-slate-300">Evaluación global:</strong>{" "}
+                  <strong className="text-slate-300">{t("procedure.overallEvaluation")}</strong>{" "}
                   {review.evaluacion_global}
                 </p>
               )}
@@ -472,10 +459,10 @@ export function ProcedureUpload() {
                 size="lg"
                 className="flex-1"
               >
-                📤 Enviar al docente para validar
+                {t("procedure.sendForValidation")}
               </Button>
               <Button variant="secondary" onClick={resetAll} className="sm:w-auto">
-                Subir otro
+                {t("procedure.uploadAnother")}
               </Button>
             </div>
           </motion.div>
