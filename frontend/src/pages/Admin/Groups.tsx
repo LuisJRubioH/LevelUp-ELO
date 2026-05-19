@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { adminApi } from "../../api/teacher";
 import type { AdminGroup } from "../../api/teacher";
 import { Button } from "../../components/ui/Button";
@@ -19,6 +20,7 @@ function GroupRow({
   onDelete: (id: number) => void;
   deleting: boolean;
 }) {
+  const { t } = useTranslation();
   const [confirm, setConfirm] = useState(false);
 
   return (
@@ -29,22 +31,22 @@ function GroupRow({
       <td className="px-4 py-3">
         {confirm ? (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-red-400">¿Confirmar?</span>
+            <span className="text-xs text-red-400">{t("adminGroups.confirmDelete")}</span>
             <Button
               size="sm"
               variant="danger"
               loading={deleting}
               onClick={() => onDelete(group.id)}
             >
-              Sí, eliminar
+              {t("adminGroups.confirmYes")}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setConfirm(false)}>
-              Cancelar
+              {t("adminGroups.cancel")}
             </Button>
           </div>
         ) : (
           <Button size="sm" variant="danger" onClick={() => setConfirm(true)}>
-            Eliminar
+            {t("adminGroups.delete")}
           </Button>
         )}
       </td>
@@ -53,6 +55,7 @@ function GroupRow({
 }
 
 export function AdminGroups() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -80,7 +83,7 @@ export function AdminGroups() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-slate-400 animate-pulse">Cargando grupos...</p>
+        <p className="text-slate-400 animate-pulse">{t("adminGroups.loading")}</p>
       </div>
     );
   }
@@ -93,17 +96,17 @@ export function AdminGroups() {
   return (
     <div className="max-w-4xl mx-auto py-6 px-4 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-100">Grupos del Sistema</h2>
-        <span className="text-xs text-slate-500">{groups.length} grupos</span>
+        <h2 className="text-xl font-bold text-slate-100">{t("adminGroups.title")}</h2>
+        <span className="text-xs text-slate-500">{t("adminGroups.count", { count: groups.length })}</span>
       </div>
 
       <div className="bg-amber-900/20 border border-amber-700/30 rounded-lg px-4 py-2 text-xs text-amber-300">
-        ⚠ Eliminar un grupo desvincula a sus estudiantes. Esta acción queda registrada en la auditoría.
+        {t("adminGroups.warning")}
       </div>
 
       <input
         type="text"
-        placeholder="Buscar grupo..."
+        placeholder={t("adminGroups.searchPlaceholder")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-violet-500 placeholder-slate-600"
@@ -114,17 +117,17 @@ export function AdminGroups() {
           <table className="w-full">
             <thead>
               <tr className="text-xs text-slate-500 border-b border-slate-700">
-                <th className="px-4 py-2 text-left">Nombre del grupo</th>
-                <th className="px-4 py-2 text-left">Docente</th>
-                <th className="px-4 py-2 text-center">Estudiantes</th>
-                <th className="px-4 py-2 text-left">Acción</th>
+                <th className="px-4 py-2 text-left">{t("adminGroups.colName")}</th>
+                <th className="px-4 py-2 text-left">{t("adminGroups.colTeacher")}</th>
+                <th className="px-4 py-2 text-center">{t("adminGroups.colStudents")}</th>
+                <th className="px-4 py-2 text-left">{t("adminGroups.colAction")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700/50">
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="text-center text-slate-500 text-sm py-8">
-                    Sin grupos registrados.
+                    {t("adminGroups.empty")}
                   </td>
                 </tr>
               ) : (

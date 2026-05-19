@@ -5,11 +5,13 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { adminApi } from "../../api/teacher";
 import type { ProblemReport } from "../../api/teacher";
 import { Button } from "../../components/ui/Button";
 
 function ReportCard({ report }: { report: ProblemReport }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
 
   const resolveMutation = useMutation({
@@ -25,7 +27,7 @@ function ReportCard({ report }: { report: ProblemReport }) {
             <span className="text-xs text-slate-500">#{report.id}</span>
             <span className="text-xs text-slate-400">·</span>
             <span className="text-xs font-medium text-slate-300">
-              {report.username ?? `Usuario ${report.user_id}`}
+              {report.username ?? t("adminReports.unknownUser", { id: report.user_id })}
             </span>
             <span className="text-xs text-slate-500">·</span>
             <span className="text-xs text-slate-500">
@@ -41,7 +43,9 @@ function ReportCard({ report }: { report: ProblemReport }) {
               : "bg-green-900/40 text-green-400"
           }`}
         >
-          {report.status === "pending" ? "pendiente" : "resuelto"}
+          {report.status === "pending"
+            ? t("adminReports.statusPending")
+            : t("adminReports.statusResolved")}
         </span>
       </div>
 
@@ -53,7 +57,7 @@ function ReportCard({ report }: { report: ProblemReport }) {
           onClick={() => resolveMutation.mutate()}
           className="w-full"
         >
-          ✓ Marcar como resuelto
+          {t("adminReports.resolve")}
         </Button>
       )}
     </div>
@@ -61,6 +65,7 @@ function ReportCard({ report }: { report: ProblemReport }) {
 }
 
 export function AdminReports() {
+  const { t } = useTranslation();
   const { data, isLoading } = useQuery({
     queryKey: ["admin-reports"],
     queryFn: adminApi.reports,
@@ -70,7 +75,7 @@ export function AdminReports() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-slate-400 animate-pulse">Cargando reportes...</p>
+        <p className="text-slate-400 animate-pulse">{t("adminReports.loading")}</p>
       </div>
     );
   }
@@ -80,10 +85,12 @@ export function AdminReports() {
   return (
     <div className="max-w-2xl mx-auto py-6 px-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-100">Reportes de Problemas</h2>
+        <h2 className="text-xl font-bold text-slate-100">{t("adminReports.title")}</h2>
         {reports.length > 0 && (
           <span className="text-xs bg-amber-700 text-slate-100 px-2.5 py-1 rounded-full font-medium">
-            {reports.length} pendiente{reports.length !== 1 ? "s" : ""}
+            {t(reports.length === 1 ? "adminReports.pending" : "adminReports.pendingPlural", {
+              count: reports.length,
+            })}
           </span>
         )}
       </div>
@@ -91,10 +98,8 @@ export function AdminReports() {
       {reports.length === 0 ? (
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-12 text-center">
           <div className="text-3xl mb-3">✅</div>
-          <p className="text-slate-300 font-medium">Sin reportes pendientes</p>
-          <p className="text-slate-600 text-sm mt-1">
-            Los reportes técnicos de estudiantes aparecerán aquí.
-          </p>
+          <p className="text-slate-300 font-medium">{t("adminReports.emptyTitle")}</p>
+          <p className="text-slate-600 text-sm mt-1">{t("adminReports.emptyHint")}</p>
         </div>
       ) : (
         <div className="space-y-3">

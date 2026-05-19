@@ -5,6 +5,7 @@
  */
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { teacherApi } from "../../api/teacher";
 import { Button } from "../../components/ui/Button";
 
@@ -18,6 +19,7 @@ interface ExportCardProps {
 }
 
 function ExportCard({ icon, title, description, sheets, buttonLabel, onDownload }: ExportCardProps) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -31,7 +33,7 @@ function ExportCard({ icon, title, description, sheets, buttonLabel, onDownload 
       setDone(true);
       setTimeout(() => setDone(false), 3000);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al descargar.");
+      setError(err instanceof Error ? err.message : t("teacherExport.downloadError"));
     } finally {
       setLoading(false);
     }
@@ -60,7 +62,7 @@ function ExportCard({ icon, title, description, sheets, buttonLabel, onDownload 
       </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
-      {done && <p className="text-green-400 text-sm">✓ Descarga iniciada</p>}
+      {done && <p className="text-green-400 text-sm">{t("teacherExport.downloadStarted")}</p>}
 
       <Button
         onClick={handleClick}
@@ -68,64 +70,67 @@ function ExportCard({ icon, title, description, sheets, buttonLabel, onDownload 
         variant={done ? "secondary" : "primary"}
         className="w-full"
       >
-        {done ? "✓ Descargado" : buttonLabel}
+        {done ? t("teacherExport.downloaded") : buttonLabel}
       </Button>
     </div>
   );
 }
 
 export function TeacherExport() {
+  const { t } = useTranslation();
   return (
     <div className="max-w-2xl mx-auto py-6 px-4 space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-slate-100">Exportar Datos</h2>
-        <p className="text-slate-400 text-sm mt-1">
-          Descarga los datos de tus estudiantes para análisis estadístico externo.
-          Los datos incluyen solo los estudiantes de tus grupos.
-        </p>
+        <h2 className="text-xl font-bold text-slate-100">{t("teacherExport.title")}</h2>
+        <p className="text-slate-400 text-sm mt-1">{t("teacherExport.intro")}</p>
       </div>
 
       <div className="space-y-4">
         <ExportCard
           icon="📄"
-          title="CSV — Intentos de práctica"
-          description="Tabla plana con todos los intentos de tus estudiantes: ELO antes/después, tópico, tiempo, acierto, desviación de rating."
-          buttonLabel="⬇ Descargar CSV"
+          title={t("teacherExport.csvTitle")}
+          description={t("teacherExport.csvDesc")}
+          buttonLabel={t("teacherExport.csvButton")}
           onDownload={teacherApi.downloadCsv}
         />
 
         <ExportCard
           icon="📊"
-          title="Excel — Dataset completo (4 hojas)"
-          description="Archivo Excel con cuatro hojas de datos: intentos de práctica, matrículas por curso, procedimientos matemáticos y conversaciones con KatIA."
-          sheets={["Intentos", "Matrículas", "Procedimientos", "KatIA"]}
-          buttonLabel="⬇ Descargar Excel (.xlsx)"
+          title={t("teacherExport.xlsxTitle")}
+          description={t("teacherExport.xlsxDesc")}
+          sheets={[
+            t("teacherExport.sheetAttempts"),
+            t("teacherExport.sheetEnrollments"),
+            t("teacherExport.sheetProcedures"),
+            t("teacherExport.sheetKatia"),
+          ]}
+          buttonLabel={t("teacherExport.xlsxButton")}
           onDownload={teacherApi.downloadXlsx}
         />
       </div>
 
       <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-        <h4 className="text-sm font-semibold text-slate-300 mb-2">¿Qué incluye cada campo?</h4>
+        <h4 className="text-sm font-semibold text-slate-300 mb-2">{t("teacherExport.fieldsTitle")}</h4>
         <ul className="text-xs text-slate-400 space-y-1">
           <li>
-            <span className="text-slate-300 font-medium">elo_before / elo_after:</span> ELO del
-            estudiante antes y después de responder.
+            <span className="text-slate-300 font-medium">elo_before / elo_after:</span>{" "}
+            {t("teacherExport.fieldEloBeforeAfter")}
           </li>
           <li>
-            <span className="text-slate-300 font-medium">time_taken:</span> Segundos que tardó en
-            responder la pregunta.
+            <span className="text-slate-300 font-medium">time_taken:</span>{" "}
+            {t("teacherExport.fieldTimeTaken")}
           </li>
           <li>
-            <span className="text-slate-300 font-medium">rating_deviation:</span> Incertidumbre del
-            ELO (Glicko). Menor = más confiable.
+            <span className="text-slate-300 font-medium">rating_deviation:</span>{" "}
+            {t("teacherExport.fieldRD")}
           </li>
           <li>
-            <span className="text-slate-300 font-medium">prob_failure:</span> Probabilidad estimada
-            de fallo al momento de responder (1 − P_ZDP).
+            <span className="text-slate-300 font-medium">prob_failure:</span>{" "}
+            {t("teacherExport.fieldProbFailure")}
           </li>
           <li>
-            <span className="text-slate-300 font-medium">confidence_score:</span> Confianza estimada
-            por el análisis cognitivo de IA (0–1).
+            <span className="text-slate-300 font-medium">confidence_score:</span>{" "}
+            {t("teacherExport.fieldConfidence")}
           </li>
         </ul>
       </div>

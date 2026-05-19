@@ -6,11 +6,13 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { teacherApi } from "../../api/teacher";
 import type { PendingProcedure, GradeResult } from "../../api/teacher";
 import { Button } from "../../components/ui/Button";
 
 function ProcedureImageViewer({ submissionId }: { submissionId: number }) {
+  const { t } = useTranslation();
   const { data: imageUrl, isLoading, isError } = useQuery({
     queryKey: ["procedure-image", submissionId],
     queryFn: () => teacherApi.procedureImage(submissionId),
@@ -20,7 +22,7 @@ function ProcedureImageViewer({ submissionId }: { submissionId: number }) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-40 bg-slate-900 rounded-lg border border-slate-700">
-        <span className="text-slate-400 text-sm animate-pulse">Cargando imagen...</span>
+        <span className="text-slate-400 text-sm animate-pulse">{t("teacherProcedures.loadingImage")}</span>
       </div>
     );
   }
@@ -28,7 +30,7 @@ function ProcedureImageViewer({ submissionId }: { submissionId: number }) {
   if (isError || !imageUrl) {
     return (
       <div className="flex items-center justify-center h-24 bg-slate-900 rounded-lg border border-slate-700">
-        <span className="text-slate-500 text-xs">Imagen no disponible</span>
+        <span className="text-slate-500 text-xs">{t("teacherProcedures.imageNotAvailable")}</span>
       </div>
     );
   }
@@ -36,7 +38,7 @@ function ProcedureImageViewer({ submissionId }: { submissionId: number }) {
   return (
     <img
       src={imageUrl}
-      alt="Procedimiento del estudiante"
+      alt={t("teacherProcedures.imageAlt")}
       className="w-full rounded-lg border border-slate-600 object-contain max-h-96"
     />
   );
@@ -49,12 +51,13 @@ function ScoreSlider({
   value: number;
   onChange: (v: number) => void;
 }) {
+  const { t } = useTranslation();
   const color =
     value >= 91 ? "text-green-400" : value >= 60 ? "text-yellow-400" : "text-red-400";
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <label className="text-xs text-slate-400">Puntaje (0–100)</label>
+        <label className="text-xs text-slate-400">{t("teacherProcedures.scoreLabel")}</label>
         <span className={`text-lg font-bold ${color}`}>{value}</span>
       </div>
       <input
@@ -67,15 +70,16 @@ function ScoreSlider({
         className="w-full accent-violet-500"
       />
       <div className="flex justify-between text-xs text-slate-600">
-        <span>0 — Incompleto</span>
-        <span>50 — Básico</span>
-        <span>100 — Perfecto</span>
+        <span>{t("teacherProcedures.scoreLow")}</span>
+        <span>{t("teacherProcedures.scoreMid")}</span>
+        <span>{t("teacherProcedures.scoreHigh")}</span>
       </div>
     </div>
   );
 }
 
 function ProcedureCard({ proc }: { proc: PendingProcedure }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [score, setScore] = useState(proc.ai_score ? Math.round(proc.ai_score) : 70);
   const [feedback, setFeedback] = useState("");
@@ -97,13 +101,14 @@ function ProcedureCard({ proc }: { proc: PendingProcedure }) {
         <div className="flex items-center gap-2">
           <span className="text-green-400">✓</span>
           <span className="text-sm text-slate-300 font-medium">
-            Procedimiento de <strong className="text-slate-100">{proc.student_username}</strong> calificado
+            {t("teacherProcedures.procedureOf", { student: proc.student_username })}
           </span>
         </div>
         <div className="text-sm text-slate-400">
-          Puntaje: <strong className="text-slate-100">{result.teacher_score}</strong>
+          {t("teacherProcedures.scoreResult")}{" "}
+          <strong className="text-slate-100">{result.teacher_score}</strong>
           {" · "}
-          Delta ELO:{" "}
+          {t("teacherProcedures.eloDelta")}{" "}
           <span className={delta >= 0 ? "text-green-400" : "text-red-400"}>
             {delta >= 0 ? "+" : ""}
             {delta.toFixed(1)}
@@ -122,7 +127,7 @@ function ProcedureCard({ proc }: { proc: PendingProcedure }) {
           <span className="text-xs text-slate-500 ml-2">#{proc.submission_id}</span>
         </div>
         <div className="text-right">
-          <div className="text-xs text-slate-500">Subido</div>
+          <div className="text-xs text-slate-500">{t("teacherProcedures.uploaded")}</div>
           <div className="text-xs text-slate-400">{proc.created_at.slice(0, 10)}</div>
         </div>
       </div>
@@ -130,7 +135,7 @@ function ProcedureCard({ proc }: { proc: PendingProcedure }) {
       {/* Ítem */}
       {proc.item_content && (
         <div className="bg-slate-900 rounded-lg px-3 py-2 text-xs text-slate-400 border border-slate-700 line-clamp-2">
-          <span className="text-slate-500 mr-1">Ejercicio:</span>
+          <span className="text-slate-500 mr-1">{t("teacherProcedures.exerciseLabel")}</span>
           {proc.item_content}
         </div>
       )}
@@ -142,7 +147,7 @@ function ProcedureCard({ proc }: { proc: PendingProcedure }) {
             onClick={() => setShowImage((v) => !v)}
             className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
           >
-            {showImage ? "▲ Ocultar imagen" : "🖼️ Ver imagen del procedimiento"}
+            {showImage ? t("teacherProcedures.hideImage") : t("teacherProcedures.viewImage")}
           </button>
           {showImage && <div className="mt-2"><ProcedureImageViewer submissionId={proc.submission_id} /></div>}
         </div>
@@ -151,9 +156,9 @@ function ProcedureCard({ proc }: { proc: PendingProcedure }) {
       {/* Score propuesto por IA */}
       {proc.ai_score !== null && (
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-slate-500">Score propuesto por IA:</span>
+          <span className="text-slate-500">{t("teacherProcedures.aiProposedScore")}</span>
           <span className="text-violet-300 font-semibold">{proc.ai_score.toFixed(0)}</span>
-          <span className="text-slate-600 italic">(solo referencia — no afecta ELO)</span>
+          <span className="text-slate-600 italic">{t("teacherProcedures.aiScoreNote")}</span>
         </div>
       )}
 
@@ -162,13 +167,13 @@ function ProcedureCard({ proc }: { proc: PendingProcedure }) {
         <ScoreSlider value={score} onChange={setScore} />
         <div>
           <label className="block text-xs text-slate-400 mb-1">
-            Comentario para el estudiante (opcional)
+            {t("teacherProcedures.feedbackLabel")}
           </label>
           <textarea
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
             rows={2}
-            placeholder="Escribe un comentario de retroalimentación..."
+            placeholder={t("teacherProcedures.feedbackPlaceholder")}
             className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500 resize-none"
           />
         </div>
@@ -182,7 +187,7 @@ function ProcedureCard({ proc }: { proc: PendingProcedure }) {
           loading={gradeMutation.isPending}
           className="w-full"
         >
-          Calificar procedimiento
+          {t("teacherProcedures.gradeButton")}
         </Button>
       </div>
     </div>
@@ -190,6 +195,7 @@ function ProcedureCard({ proc }: { proc: PendingProcedure }) {
 }
 
 export function TeacherProcedures() {
+  const { t } = useTranslation();
   const { data: procedures = [], isLoading } = useQuery({
     queryKey: ["teacher-procedures"],
     queryFn: teacherApi.procedures,
@@ -199,7 +205,7 @@ export function TeacherProcedures() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-slate-400 animate-pulse">Cargando procedimientos...</p>
+        <p className="text-slate-400 animate-pulse">{t("teacherProcedures.loading")}</p>
       </div>
     );
   }
@@ -207,10 +213,12 @@ export function TeacherProcedures() {
   return (
     <div className="max-w-3xl mx-auto py-6 px-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-100">Revisión de Procedimientos</h2>
+        <h2 className="text-xl font-bold text-slate-100">{t("teacherProcedures.title")}</h2>
         {procedures.length > 0 && (
           <span className="text-xs bg-violet-700 text-slate-100 px-2.5 py-1 rounded-full font-medium">
-            {procedures.length} pendiente{procedures.length !== 1 ? "s" : ""}
+            {t(procedures.length === 1 ? "teacherProcedures.pending" : "teacherProcedures.pendingPlural", {
+              count: procedures.length,
+            })}
           </span>
         )}
       </div>
@@ -218,8 +226,8 @@ export function TeacherProcedures() {
       {procedures.length === 0 ? (
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-12 text-center">
           <div className="text-3xl mb-3">✅</div>
-          <p className="text-slate-300 font-medium">Sin procedimientos pendientes</p>
-          <p className="text-slate-600 text-sm mt-1">Los nuevos envíos de estudiantes aparecerán aquí.</p>
+          <p className="text-slate-300 font-medium">{t("teacherProcedures.emptyTitle")}</p>
+          <p className="text-slate-600 text-sm mt-1">{t("teacherProcedures.emptyHint")}</p>
         </div>
       ) : (
         <div className="space-y-4">

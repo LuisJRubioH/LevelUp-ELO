@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { adminApi } from "../../api/teacher";
 import type { AdminUser } from "../../api/teacher";
 import { Button } from "../../components/ui/Button";
@@ -24,6 +25,7 @@ function RoleBadge({ role }: { role: string }) {
 }
 
 function PendingTeachersSection() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
 
   const { data } = useQuery({
@@ -51,20 +53,20 @@ function PendingTeachersSection() {
       <div className="flex items-center gap-2">
         <span className="text-amber-400">🔔</span>
         <h3 className="text-sm font-semibold text-amber-300">
-          Docentes pendientes de aprobación ({teachers.length})
+          {t("adminUsers.pendingTeachersTitle", { count: teachers.length })}
         </h3>
       </div>
       <div className="space-y-2">
-        {teachers.map((t) => {
-          const uid = getUserId(t);
+        {teachers.map((tch) => {
+          const uid = getUserId(tch);
           return (
             <div
               key={uid}
               className="flex items-center justify-between bg-slate-800 rounded-lg px-3 py-2 border border-slate-700"
             >
               <div>
-                <span className="text-slate-100 font-medium text-sm">{t.username}</span>
-                <span className="text-xs text-slate-500 ml-2">docente</span>
+                <span className="text-slate-100 font-medium text-sm">{tch.username}</span>
+                <span className="text-xs text-slate-500 ml-2">{t("adminUsers.teacherRoleLabel")}</span>
               </div>
               <div className="flex gap-2">
                 <Button
@@ -73,7 +75,7 @@ function PendingTeachersSection() {
                   loading={approveMutation.isPending}
                   onClick={() => approveMutation.mutate({ user_id: uid, action: "approve" })}
                 >
-                  ✓ Aprobar
+                  {t("adminUsers.approve")}
                 </Button>
                 <Button
                   size="sm"
@@ -81,7 +83,7 @@ function PendingTeachersSection() {
                   loading={approveMutation.isPending}
                   onClick={() => approveMutation.mutate({ user_id: uid, action: "reject" })}
                 >
-                  ✕ Rechazar
+                  {t("adminUsers.reject")}
                 </Button>
               </div>
             </div>
@@ -93,6 +95,7 @@ function PendingTeachersSection() {
 }
 
 function UserRow({ user }: { user: AdminUser }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
 
   const isActive = !!user.active;
@@ -123,7 +126,7 @@ function UserRow({ user }: { user: AdminUser }) {
             isActive ? "bg-green-900/40 text-green-400" : "bg-red-900/40 text-red-400"
           }`}
         >
-          {isActive ? "activo" : "inactivo"}
+          {isActive ? t("adminUsers.statusActive") : t("adminUsers.statusInactive")}
         </span>
       </td>
       <td className="px-4 py-3">
@@ -133,7 +136,7 @@ function UserRow({ user }: { user: AdminUser }) {
           loading={toggleMutation.isPending}
           onClick={() => toggleMutation.mutate()}
         >
-          {isActive ? "Desactivar" : "Activar"}
+          {isActive ? t("adminUsers.deactivate") : t("adminUsers.activate")}
         </Button>
       </td>
     </tr>
@@ -141,6 +144,7 @@ function UserRow({ user }: { user: AdminUser }) {
 }
 
 export function AdminUsers() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
 
@@ -153,7 +157,7 @@ export function AdminUsers() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-slate-400 animate-pulse">Cargando usuarios...</p>
+        <p className="text-slate-400 animate-pulse">{t("adminUsers.loading")}</p>
       </div>
     );
   }
@@ -168,8 +172,8 @@ export function AdminUsers() {
   return (
     <div className="max-w-5xl mx-auto py-6 px-4 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-100">Gestión de Usuarios</h2>
-        <span className="text-xs text-slate-500">{users.length} usuarios en total</span>
+        <h2 className="text-xl font-bold text-slate-100">{t("adminUsers.title")}</h2>
+        <span className="text-xs text-slate-500">{t("adminUsers.totalUsers", { count: users.length })}</span>
       </div>
 
       {/* Docentes pendientes */}
@@ -179,7 +183,7 @@ export function AdminUsers() {
       <div className="flex gap-3 flex-wrap">
         <input
           type="text"
-          placeholder="Buscar usuario..."
+          placeholder={t("adminUsers.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-violet-500 placeholder-slate-600"
@@ -189,10 +193,10 @@ export function AdminUsers() {
           onChange={(e) => setRoleFilter(e.target.value)}
           className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-violet-500"
         >
-          <option value="all">Todos los roles</option>
-          <option value="student">Estudiantes</option>
-          <option value="teacher">Docentes</option>
-          <option value="admin">Admin</option>
+          <option value="all">{t("adminUsers.allRoles")}</option>
+          <option value="student">{t("adminUsers.students")}</option>
+          <option value="teacher">{t("adminUsers.teachers")}</option>
+          <option value="admin">{t("adminUsers.admins")}</option>
         </select>
       </div>
 
@@ -202,19 +206,19 @@ export function AdminUsers() {
           <table className="w-full">
             <thead>
               <tr className="text-xs text-slate-500 border-b border-slate-700">
-                <th className="px-4 py-2 text-left">Usuario</th>
-                <th className="px-4 py-2 text-left">Rol</th>
-                <th className="px-4 py-2 text-left">Nivel</th>
-                <th className="px-4 py-2 text-left">Grupo</th>
-                <th className="px-4 py-2 text-left">Estado</th>
-                <th className="px-4 py-2 text-left">Acción</th>
+                <th className="px-4 py-2 text-left">{t("adminUsers.colUser")}</th>
+                <th className="px-4 py-2 text-left">{t("adminUsers.colRole")}</th>
+                <th className="px-4 py-2 text-left">{t("adminUsers.colLevel")}</th>
+                <th className="px-4 py-2 text-left">{t("adminUsers.colGroup")}</th>
+                <th className="px-4 py-2 text-left">{t("adminUsers.colStatus")}</th>
+                <th className="px-4 py-2 text-left">{t("adminUsers.colAction")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700/50">
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center text-slate-500 text-sm py-8">
-                    Sin usuarios que coincidan.
+                    {t("adminUsers.noMatches")}
                   </td>
                 </tr>
               ) : (

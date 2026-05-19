@@ -6,11 +6,13 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { teacherApi } from "../../api/teacher";
 import { studentApi } from "../../api/student";
 import { Button } from "../../components/ui/Button";
 
 function CopyButton({ text }: { text: string }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -24,7 +26,7 @@ function CopyButton({ text }: { text: string }) {
       onClick={handleCopy}
       className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-2 py-1 rounded transition-colors"
     >
-      {copied ? "✓ Copiado" : "Copiar"}
+      {copied ? t("teacherGroups.copied") : t("teacherGroups.copy")}
     </button>
   );
 }
@@ -38,6 +40,7 @@ function GroupCard({
   onGenerateCode: (id: number) => void;
   loadingCode: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
       <div className="flex items-start justify-between">
@@ -48,13 +51,13 @@ function GroupCard({
           )}
         </div>
         <span className="text-sm text-slate-400 bg-slate-700 px-2 py-0.5 rounded-full">
-          {group.student_count} estudiantes
+          {t("teacherGroups.students", { count: group.student_count })}
         </span>
       </div>
 
       {/* Código de invitación */}
       <div className="border-t border-slate-700 pt-3">
-        <p className="text-xs text-slate-500 mb-2">Código de acceso inter-nivel</p>
+        <p className="text-xs text-slate-500 mb-2">{t("teacherGroups.inviteCodeLabel")}</p>
         {group.invite_code ? (
           <div className="flex items-center gap-2">
             <code className="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-1.5 text-sm text-violet-300 font-mono tracking-wider">
@@ -63,7 +66,7 @@ function GroupCard({
             <CopyButton text={group.invite_code} />
           </div>
         ) : (
-          <p className="text-xs text-slate-600 italic mb-2">Sin código generado</p>
+          <p className="text-xs text-slate-600 italic mb-2">{t("teacherGroups.noCode")}</p>
         )}
         <Button
           variant="ghost"
@@ -72,7 +75,7 @@ function GroupCard({
           loading={loadingCode}
           onClick={() => onGenerateCode(group.group_id)}
         >
-          {group.invite_code ? "🔄 Regenerar código" : "✨ Generar código"}
+          {group.invite_code ? t("teacherGroups.regenerate") : t("teacherGroups.generate")}
         </Button>
       </div>
     </div>
@@ -80,6 +83,7 @@ function GroupCard({
 }
 
 export function TeacherGroups() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ course_id: "", group_name: "" });
@@ -124,7 +128,7 @@ export function TeacherGroups() {
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.course_id || !formData.group_name.trim()) {
-      setFormError("Selecciona un curso y escribe un nombre de grupo.");
+      setFormError(t("teacherGroups.needCourseAndName"));
       return;
     }
     createMutation.mutate();
@@ -133,7 +137,7 @@ export function TeacherGroups() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-slate-400 animate-pulse">Cargando grupos...</p>
+        <p className="text-slate-400 animate-pulse">{t("teacherGroups.loading")}</p>
       </div>
     );
   }
@@ -141,38 +145,38 @@ export function TeacherGroups() {
   return (
     <div className="max-w-3xl mx-auto py-6 px-4 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-100">Mis Grupos</h2>
+        <h2 className="text-xl font-bold text-slate-100">{t("teacherGroups.title")}</h2>
         <Button size="sm" onClick={() => { setShowForm(true); setFormError(""); }}>
-          + Nuevo grupo
+          {t("teacherGroups.newGroup")}
         </Button>
       </div>
 
       {/* Formulario de creación */}
       {showForm && (
         <div className="bg-slate-800 border border-violet-600/40 rounded-xl p-4 space-y-4">
-          <h3 className="text-sm font-semibold text-violet-300">Crear grupo nuevo</h3>
+          <h3 className="text-sm font-semibold text-violet-300">{t("teacherGroups.createTitle")}</h3>
           <form onSubmit={handleCreateSubmit} className="space-y-3">
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Nombre del grupo</label>
+              <label className="block text-xs text-slate-400 mb-1">{t("teacherGroups.groupName")}</label>
               <input
                 type="text"
                 value={formData.group_name}
                 onChange={(e) => setFormData((d) => ({ ...d, group_name: e.target.value }))}
-                placeholder="Ej: Cálculo 2025-A"
+                placeholder={t("teacherGroups.groupNamePlaceholder")}
                 maxLength={80}
                 className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 text-sm focus:outline-none focus:border-violet-500"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Curso</label>
+              <label className="block text-xs text-slate-400 mb-1">{t("teacherGroups.course")}</label>
               <select
                 value={formData.course_id}
                 onChange={(e) => setFormData((d) => ({ ...d, course_id: e.target.value }))}
                 className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 text-sm focus:outline-none focus:border-violet-500"
                 required
               >
-                <option value="">— Seleccionar curso —</option>
+                <option value="">{t("teacherGroups.selectCourse")}</option>
                 {allCourses.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.block})
@@ -183,7 +187,7 @@ export function TeacherGroups() {
             {formError && <p className="text-red-400 text-xs">{formError}</p>}
             <div className="flex gap-2">
               <Button type="submit" size="sm" loading={createMutation.isPending}>
-                Crear
+                {t("teacherGroups.create")}
               </Button>
               <Button
                 type="button"
@@ -191,7 +195,7 @@ export function TeacherGroups() {
                 size="sm"
                 onClick={() => { setShowForm(false); setFormError(""); }}
               >
-                Cancelar
+                {t("teacherGroups.cancel")}
               </Button>
             </div>
           </form>
@@ -201,8 +205,8 @@ export function TeacherGroups() {
       {/* Lista de grupos */}
       {groups.length === 0 ? (
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center">
-          <p className="text-slate-400 mb-2">No tienes grupos creados.</p>
-          <p className="text-slate-600 text-sm">Crea un grupo para empezar a gestionar estudiantes.</p>
+          <p className="text-slate-400 mb-2">{t("teacherGroups.empty")}</p>
+          <p className="text-slate-600 text-sm">{t("teacherGroups.emptyHint")}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
