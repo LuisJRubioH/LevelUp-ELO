@@ -231,10 +231,30 @@ def make_banner(
           ecuación.
     """
     if base_image is not None:
-        # Modo (b): cargar imagen base y solo añadir overlay LaTeX.
+        # Modo (b): cargar imagen base, normalizar a 16:7 (1536x672) y luego
+        # añadir overlay LaTeX. La normalización es importante porque el
+        # componente React renderiza con aspect-[16/7] + object-cover, así
+        # que cualquier imagen con otro ratio se recorta arriba/abajo y la
+        # fórmula se pierde.
         with Image.open(base_image) as src:
-            final = src.convert("RGBA").copy()
-        canvas_w, canvas_h = final.size
+            raw = src.convert("RGBA").copy()
+        # Crop centrado al ratio target, luego resize a (FINAL_W, FINAL_H).
+        target_ratio = FINAL_W / FINAL_H
+        src_w, src_h = raw.size
+        src_ratio = src_w / src_h
+        if src_ratio > target_ratio:
+            # Más ancha que target — recortar a los lados
+            new_w = int(src_h * target_ratio)
+            offset = (src_w - new_w) // 2
+            raw = raw.crop((offset, 0, offset + new_w, src_h))
+        elif src_ratio < target_ratio:
+            # Más alta que target — recortar arriba/abajo. Como los títulos
+            # suelen estar centrados verticalmente, esto es no destructivo.
+            new_h = int(src_w / target_ratio)
+            offset = (src_h - new_h) // 2
+            raw = raw.crop((0, offset, src_w, offset + new_h))
+        final = raw.resize((FINAL_W, FINAL_H), Image.LANCZOS)
+        canvas_w, canvas_h = FINAL_W, FINAL_H
     else:
         # Modo (a): generar canvas pixel-art.
         assert (
@@ -378,23 +398,61 @@ BANNERS: list[dict] = [
         "latex": None,
     },
     # ── Overlays sobre banners user-supplied (preservando arte original) ────
+    # Aritmética básica: regla de exponentes (producto de potencias).
+    {
+        "course_id": "aritmetica",
+        "base_image": "frontend/public/banners/_originals/aritmetica.png",
+        "latex": r"a^{m} \cdot a^{n} = a^{m+n}",
+        "latex_fontsize": 56,
+        "overlay_y_ratio": 0.55,
+        "overlay_h_ratio": 0.40,
+    },
+    # Álgebra básica: fórmula general (cuadrática) — la fórmula icónica.
+    {
+        "course_id": "algebra",
+        "base_image": "frontend/public/banners/_originals/algebra.png",
+        "latex": r"x = \dfrac{-b \pm \sqrt{b^{2} - 4ac}}{2a}",
+        "latex_fontsize": 38,
+        "overlay_y_ratio": 0.55,
+        "overlay_h_ratio": 0.40,
+    },
+    # Geometría: teorema de Pitágoras.
+    {
+        "course_id": "geometria",
+        "base_image": "frontend/public/banners/_originals/geometria.png",
+        "latex": r"a^{2} + b^{2} = c^{2}",
+        "latex_fontsize": 60,
+        "overlay_y_ratio": 0.55,
+        "overlay_h_ratio": 0.40,
+    },
+    # Lógica y conjuntos: ley de De Morgan.
+    {
+        "course_id": "logica",
+        "base_image": "frontend/public/banners/_originals/logica.png",
+        "latex": r"\overline{A \cup B} = \overline{A} \cap \overline{B}",
+        "latex_fontsize": 48,
+        "overlay_y_ratio": 0.55,
+        "overlay_h_ratio": 0.40,
+    },
     # Conteo y combinatoria: número de combinaciones C(n,k).
+    # Título original de 3 líneas (Conteo / y / Combinatoria) — overlay
+    # más bajo para no solaparse con el bloque de título.
     {
         "course_id": "conteo_combinatoria",
         "base_image": "frontend/public/banners/_originals/conteo_combinatoria.png",
         "latex": r"\binom{n}{k} = \dfrac{n!}{k!\,(n-k)!}",
-        "latex_fontsize": 42,
-        "overlay_y_ratio": 0.62,
-        "overlay_h_ratio": 0.34,
+        "latex_fontsize": 38,
+        "overlay_y_ratio": 0.72,
+        "overlay_h_ratio": 0.26,
     },
-    # Probabilidad: teorema de Bayes.
+    # Probabilidad: teorema de Bayes (mismo caso: título de 3 líneas).
     {
         "course_id": "probabilidad",
         "base_image": "frontend/public/banners/_originals/probabilidad.png",
         "latex": r"P(A \mid B) = \dfrac{P(B \mid A)\, P(A)}{P(B)}",
-        "latex_fontsize": 40,
-        "overlay_y_ratio": 0.62,
-        "overlay_h_ratio": 0.34,
+        "latex_fontsize": 36,
+        "overlay_y_ratio": 0.72,
+        "overlay_h_ratio": 0.26,
     },
 ]
 

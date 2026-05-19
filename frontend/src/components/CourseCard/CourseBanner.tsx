@@ -66,11 +66,13 @@ export function CourseBanner({ courseName, className = "" }: Props) {
           style={{ imageRendering: "pixelated" }}
           loading="lazy"
         />
+        {/* Gradiente sutil inferior: fade decorativo que no oscurece la
+            zona de la fórmula matemática (que ya tiene su propio backdrop). */}
         <div
-          className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none"
+          className="absolute inset-x-0 bottom-0 h-[18%] pointer-events-none"
           style={{
             background:
-              "linear-gradient(180deg, transparent 0%, rgba(10,10,15,0.85) 100%)",
+              "linear-gradient(180deg, transparent 0%, rgba(10,10,15,0.45) 100%)",
           }}
         />
       </div>
