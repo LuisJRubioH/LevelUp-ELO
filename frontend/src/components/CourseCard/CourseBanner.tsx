@@ -9,13 +9,24 @@ type Props = {
   className?: string;
 };
 
+// Orden importa: los más específicos primero (e.g., "Álgebra Lineal" antes
+// que "Álgebra" genérica, "Cálculo Integral" antes que "Cálculo Diferencial").
 const BANNER_RULES: Array<{ test: RegExp; file: string }> = [
   { test: /geometr|geometry/i, file: "geometria.png" },
   { test: /aritm|arithm/i, file: "aritmetica.png" },
+  { test: /algebra\s*lineal|linear\s*algebra/i, file: "algebra_lineal.png" },
   { test: /algebra/i, file: "algebra.png" },
   { test: /logic/i, file: "logica.png" },
   { test: /conteo|combinat/i, file: "conteo_combinatoria.png" },
   { test: /probabil/i, file: "probabilidad.png" },
+  // Cursos de Universidad — nuevos banners pixel-art
+  { test: /calculo.*integral|integral.*calculo/i, file: "calculo_integral.png" },
+  { test: /varias\s*variables|multivariable|multivariate/i, file: "calculo_varias_variables.png" },
+  { test: /calculo.*diferencial|calculus/i, file: "calculo_diferencial.png" },
+  { test: /ecuaciones\s*diferenciales|differential\s*equations/i, file: "ecuaciones_diferenciales.png" },
+  { test: /trigonometr/i, file: "trigonometria.png" },
+  { test: /dian/i, file: "DIAN.png" },
+  { test: /sena/i, file: "SENA.png" },
 ];
 
 // Strip diacritics so "Geometría" / "Lógica" / "Álgebra" match plain ASCII keywords.

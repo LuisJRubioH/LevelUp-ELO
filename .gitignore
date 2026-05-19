@@ -57,8 +57,12 @@ node_modules/
 screenshot-*.png
 verify-*.png
 test-*.png
+qa-*.png
 katia-working.png
 page-*.png
+
+# Carpetas de banners en bruto (las versiones publicadas viven en frontend/public/banners/)
+/Banners/
 
 # Carpetas de trabajo ya integradas
 nuvos_bugs/
