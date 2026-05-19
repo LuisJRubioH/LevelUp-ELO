@@ -3,7 +3,7 @@
 > Plataforma de evaluación y aprendizaje adaptativo basada en el sistema de rating **ELO** — el mismo del ajedrez competitivo — aplicado a la educación matemática.
 
 [![CI](https://github.com/LuisJRubioH/LevelUp-ELO/actions/workflows/ci.yml/badge.svg)](https://github.com/LuisJRubioH/LevelUp-ELO/actions/workflows/ci.yml)
-[![Versión](https://img.shields.io/badge/versión-2.0.0-blue)](https://github.com/LuisJRubioH/LevelUp-ELO)
+[![Versión](https://img.shields.io/badge/versión-2.0.1-blue)](https://github.com/LuisJRubioH/LevelUp-ELO)
 [![Python](https://img.shields.io/badge/python-3.11+-green)](https://www.python.org/)
 [![React](https://img.shields.io/badge/react-19-61DAFB)](https://react.dev/)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-orange)](LICENSE)
@@ -365,7 +365,11 @@ Reescritura a React 19 + FastAPI. Motor ELO, dominio y banco de preguntas reutil
 
 **Tag publicado:** `v2.0.0` en [GitHub Releases](https://github.com/LuisJRubioH/LevelUp-ELO/releases/tag/v2.0.0).
 
-**Estado actual de V2:** Sprints 1–8 + Sprint C completos. Paridad funcional 100% con V1 + 1 feature exclusiva V2 (exámenes manuales del docente).
+### V2.0.1 (mayo 2026 — pulido UX)
+
+Sesión de QA con tres frentes cerrados (commits `13e1ab3` → `256d7e7`): consistencia ELO header/feedback en Practice, i18n ES/EN completa cubriendo todo el flujo del estudiante + dashboard docente, y unificación visual de banners (LaTeX mathtext crisp + aspect ratio 16:7 uniforme + ajuste del gradiente React). Verificado en producción sin hallazgos nuevos.
+
+**Estado actual de V2:** Sprints 1–8 + Sprint C completos + sesión de pulido. Paridad funcional 100% con V1 + 1 feature exclusiva V2 (exámenes manuales del docente).
 
 - ✅ Sprint 1: KatIA GIFs, timer de sesión, preview ELO, toasts de racha, fechas en gráficos, perfil en sidebar
 - ✅ Sprint 2: Radar chart, heatmap de actividad, ranking del grupo, logros animados, envío de procedimientos
@@ -389,6 +393,14 @@ Capturas reportadas por estudiantes durante uso real. 13 bugs cerrados en 10 com
 - **Banco depurado:** 7 ítems con opciones duplicadas + 8 ítems con precios `$\$N$` que rompían `RenderMath` (reescritos a `USD N`). Nueva utilidad `scripts/scan_dollar_prices.py`.
 - **`<QuestionImage>` con fallback:** banner "No se pudo cargar la imagen" + botón reintentar (antes mostraba `alt="Figura"` sin contexto).
 - **CVEs npm devDeps:** `npm audit fix` resolvió 4 vulnerabilidades transitivas (babel/systemjs, brace-expansion, fast-uri, postcss).
+
+### Sesión de pulido — 2026-05-19 (`v2.0.1`)
+
+8 commits (`13e1ab3` → `256d7e7`) cubriendo 3 frentes:
+
+- **Consistencia ELO en Practice (#5):** el header (`RankBadge`) ya no se pisa con el ELO del tópico tras responder. Refresca `/stats` para mantener el global; el feedback ahora etiqueta `ELO en este tema (<curso>): X → Y` con nota explicando que el global del header promedia todos los temas.
+- **i18n ES/EN completa (#9):** Courses, Stats, Exam (incl. modal de confirmación con highlight verde), ProcedureUpload, Feedback (con 3 estados KatIA por puntaje), ReportProblem modal, AnswerOptions (aria-labels Opción A/B/C/D), ProcedureSection inline, **y Teacher Dashboard** (KPIs, tabla, filtros, métricas, detalle de estudiante con 4 tabs). Toggle 🌐 funciona sin recargar. Pantallas Groups/Procedures/Exams/Export del docente + Users/Reports/Audit del admin siguen en español (uso interno).
+- **Banners unificados con LaTeX mathtext:** los 14 banners ahora son 1536×672 idénticos (16:7) con fórmula matemática crisp anti-aliased renderizada por `matplotlib.mathtext` y backdrop semi-transparente. Modo `base_image` en `scripts/generate_banners.py` para preservar arte user-supplied y aplicar overlay LaTeX (originales en `_originals/` gitignored). Gradiente del componente React reducido (`h-1/3/0.85` → `h-[18%]/0.45`) para no oscurecer la ecuación. Verificación QA en producción con Playwright sin hallazgos.
 
 Ver plan detallado en [`docs/v2-plan.md`](docs/v2-plan.md) y documentación técnica en [`docs/v2-tecnico.md`](docs/v2-tecnico.md).
 

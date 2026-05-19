@@ -1,7 +1,7 @@
 # Plan V2 — LevelUp-ELO: React + FastAPI
 
-Fecha: 2026-04-14 (última revisión 2026-05-18)
-Estado: **Sprints 1-8 + Sprint C completos + fixes QA mayo 2026 + CVEs resueltas — V2 lista para etiquetar `v2.0.0`**
+Fecha: 2026-04-14 (última revisión 2026-05-19)
+Estado: **Sprints 1-8 + Sprint C completos + QA mayo 2026 + sesión de pulido 2026-05-19 (i18n completo, banners unificados, fix consistencia ELO) — V2 lista para etiquetar `v2.0.1`**
 
 ## Contexto
 
@@ -274,3 +274,58 @@ Capturas reportadas por estudiantes durante uso real (13 imágenes en `bugs/`). 
 - [x] LaTeX en chat KatIA → ya estaba resuelto en commit edf6602 (Sprint A.1 B4); regex de `RenderMath` valida `$x$`, `$x^2$`, `$(24)(35)(46)(57)$`
 - [x] CVEs npm transitivas (4: babel/systemjs, brace-expansion, fast-uri, postcss) → `npm audit fix --legacy-peer-deps` (commit 71398cb)
 - [x] `bugs/` carpeta de capturas QA agregada al `.gitignore` (commit f82b020)
+
+## Sesión de pulido — 2026-05-19
+
+Continuación del QA: 2 hallazgos UX (#5 inconsistencia ELO, #9 i18n parcial) + 1 mejora visual (estilo banners). Verificado en producción con Playwright.
+
+**Fix de consistencia ELO entre header y feedback (commit `13e1ab3`):**
+
+- [x] `Practice.tsx` pisaba el ELO global del header (`RankBadge`) con `lastAnswer.eloAfter` tras cada respuesta. El problema: `eloAfter` es el ELO del TÓPICO (devuelto por `/answer`), no el global (que se obtiene de `/stats`). Resultado: sidebar mostraba 1022, feedback mostraba 1009 — el estudiante percibía inconsistencia.
+- [x] Solución: tras cada respuesta, refresca `/stats` para obtener el ELO global actualizado en lugar de pisarlo con el del tópico. El feedback ahora etiqueta claramente: `ELO en este tema (Cálculo Diferencial): 1010 → 1015 (+5.1)` con nota italic explicando que el global del header promedia todos los temas.
+
+**Internacionalización completa del flujo estudiante + docente (commits `407a3dc` → `74b18c2`, `ff1b950`):**
+
+Cobertura previa: solo Login + Sidebar + Practice. Cerrado en esta sesión:
+
+- [x] **Estudiante**: Courses (tabs, intros, CTAs), Stats (radar/ranking/historial/logros), Exam (setup completo + modal de confirmación con número resaltado en verde vía `confirmAnsweredPrefix`/`Suffix`), ProcedureUpload (dropzone + estados KatIA por score + secciones de revisión), Feedback (histórico de procedimientos con 3 estados KatIA por puntaje), ReportProblem modal, AnswerOptions (aria-labels de Opción A/B/C/D + sufijos Correcto/Incorrecto), ProcedureSection inline.
+- [x] **Docente**: Teacher Dashboard completo — KPIs (Total intentos, Tiempo promedio, Tasa de abandono, Hora pico), tabs (Estudiantes/Ranking/Métricas), tabla con filtros (Todos los grupos, Todos los niveles, Buscar), detalle de estudiante (tabs ELO/Tópicos/KatIA/Análisis IA con sus textos de vacío y errores), gráficos de actividad diaria + distribución horaria.
+- [x] Toggle 🌐 ES↔EN funciona en ambos sentidos sin recargar la página.
+- [x] Pantallas docente Groups/Procedures/Exams/Export y admin Users/Reports/Audit quedan en español — uso interno, fuera del alcance original del Sprint 8.4.
+
+**Unificación visual de banners — pixel-art + LaTeX mathtext (commits `90e124c`, `256d7e7`):**
+
+- [x] Problema: las fórmulas con caracteres Unicode (∫, ∂, →, ²) renderizaban roto en fuente Consolas Bold del generador. Además, los banners user-supplied (1689×843, 1514×757, etc.) tenían aspect ratios distintos al 16:7 del componente `CourseBanner.tsx`, causando recortes que cortaban la fórmula. Por encima, un gradiente del 33% inferior al 85% de opacidad oscurecía la zona de la ecuación.
+- [x] `scripts/generate_banners.py` refactorizado:
+  - **Modo generativo**: canvas pequeño (256×112) con montañas/estrellas/título pixel-art → NEAREST upscale a 1536×672. La fórmula se renderiza por separado con `matplotlib.mathtext` en resolución final (anti-aliased crisp) y se compone con backdrop rounded box semi-transparente.
+  - **Modo overlay** (parámetro `base_image`): carga banner user-supplied, hace **crop centrado al ratio 16:7 + LANCZOS resize a 1536×672**, luego añade overlay LaTeX. Originales en `frontend/public/banners/_originals/` (gitignored) como fuente idempotente.
+- [x] Fórmulas elegidas por curso:
+  - Aritmética: `a^m · a^n = a^{m+n}` (regla de exponentes)
+  - Álgebra: `x = (-b ± √(b²-4ac)) / 2a` (cuadrática)
+  - Geometría: `a² + b² = c²` (Pitágoras)
+  - Lógica: `\overline{A ∪ B} = \overline{A} ∩ \overline{B}` (De Morgan)
+  - Conteo: `C(n,k) = n! / (k!(n-k)!)` (binomial)
+  - Probabilidad: teorema de Bayes
+  - Cálculo Diferencial: definición de derivada por límite
+  - Cálculo Integral: teorema fundamental del cálculo
+  - Varias Variables: regla de la cadena multivariable
+  - Ecuaciones Diferenciales: transformada de Laplace
+  - Álgebra Lineal: `Av = λv` (autovalores — más limpio que un determinante 2×2)
+  - Trigonometría: identidad pitagórica
+- [x] `CourseBanner.tsx`: gradiente inferior reducido de `h-1/3 / 0.85` a `h-[18%] / 0.45` — fade decorativo sutil que ya no oscurece la fórmula (que tiene su propio backdrop).
+- [x] **Resultado:** los 14 banners (8 generados + 6 con overlay sobre arte original) ahora son **1536×672 idénticos**, sin recortes en la grilla de cursos. Título y fórmula completamente visibles al entrar a la plataforma.
+
+**Verificación QA en navegador (Playwright):**
+
+- [x] Login + sidebar + toggle 🌐 ES/EN
+- [x] Practice: header ELO global ≠ feedback ELO tópico (con nota explicativa). LaTeX renderiza en pregunta + opciones.
+- [x] Grilla de cursos universidad (estudiante1): 6 banners visibles con título + fórmula
+- [x] Grilla de cursos colegio (estudiante2): 4 banners visibles con título + fórmula
+- [x] Stats: KPIs, evolución ELO, heatmap, radar, ranking grupo, logros, historial exámenes (todo en EN al toggle)
+- [x] Exam: setup → pregunta con LaTeX → modal de confirmación con highlight verde + pluralización
+- [x] ProcedureUpload: textos + dropzone + interpolación de cursos matriculados
+- [x] Feedback empty state: emptyTitle/emptyHint/emptySection (bold) renderizado correcto
+- [x] ReportProblem modal: title + description + placeholder + contador + botones (todo en ES/EN)
+- [x] Teacher Dashboard: grupos, tabs, tabla, filtros, métricas con chart de actividad diaria — todo en ES y EN
+
+**Sin bugs nuevos encontrados.** Cambios desplegados en Vercel + Render.
