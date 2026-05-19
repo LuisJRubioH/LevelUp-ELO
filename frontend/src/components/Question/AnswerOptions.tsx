@@ -11,6 +11,7 @@
 
 import katex from "katex";
 import "katex/dist/katex.min.css";
+import { useTranslation } from "react-i18next";
 
 /** Renderiza texto con LaTeX inline: $expr$ */
 function RenderOption({ text }: { text: string }) {
@@ -87,15 +88,16 @@ export function AnswerOptions({
   onSelect,
   disabled = false,
 }: AnswerOptionsProps) {
+  const { t } = useTranslation();
   const answered = isCorrect !== null;
   return (
-    <div className="flex flex-col gap-3 mt-4" role="group" aria-label="Opciones de respuesta">
+    <div className="flex flex-col gap-3 mt-4" role="group" aria-label={t("answers.groupLabel")}>
       {options.map((option, idx) => {
         const label = LABELS[idx] ?? String(idx + 1);
         const isSelected = option === selectedOption;
-        let ariaLabel = `Opción ${label}`;
+        let ariaLabel = t("answers.option", { letter: label });
         if (answered && isSelected) {
-          ariaLabel += isCorrect ? " — Correcto" : " — Incorrecto";
+          ariaLabel += " " + (isCorrect ? t("answers.correctSuffix") : t("answers.incorrectSuffix"));
         }
         return (
           <button
