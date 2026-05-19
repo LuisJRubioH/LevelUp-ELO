@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
@@ -48,6 +49,7 @@ function StudentDetailPanel({
   studentId: number;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<DetailTab>("elo");
   const [aiResult, setAiResult] = useState<string | null>(null);
   const { apiKey, provider } = useSettingsStore();
@@ -84,18 +86,18 @@ function StudentDetailPanel({
   });
 
   const tabs: { id: DetailTab; label: string }[] = [
-    { id: "elo", label: "📈 ELO" },
-    { id: "topics", label: "📚 Tópicos" },
-    { id: "katia", label: "🐱 KatIA" },
-    { id: "ai", label: "🤖 Análisis IA" },
+    { id: "elo", label: t("teacher.tabElo") },
+    { id: "topics", label: t("teacher.tabTopics") },
+    { id: "katia", label: t("teacher.tabKatia") },
+    { id: "ai", label: t("teacher.tabAI") },
   ];
 
   return (
     <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="font-semibold text-slate-100">Detalle del estudiante</h4>
+        <h4 className="font-semibold text-slate-100">{t("teacher.detailTitle")}</h4>
         <button onClick={onClose} className="text-slate-500 hover:text-slate-300 text-sm">
-          ✕ Cerrar
+          {t("teacher.close")}
         </button>
       </div>
 
@@ -129,7 +131,7 @@ function StudentDetailPanel({
       {tab === "elo" && (
         <ELOChart
           data={chartData}
-          title={`Evolución ELO (últimos ${chartData.length} intentos)`}
+          title={t("teacher.eloEvolution", { count: chartData.length })}
         />
       )}
 
@@ -137,13 +139,13 @@ function StudentDetailPanel({
       {tab === "topics" && data && (
         <div className="space-y-2 text-sm">
           <p className="text-slate-300 text-xs">
-            ELO global:{" "}
+            {t("teacher.globalElo")}{" "}
             <span className="font-bold text-slate-100">{Math.round((data.global_elo as number) ?? 0)}</span>
           </p>
           {(() => {
             const breakdown = data.topic_breakdown as Record<string, Record<string, number>> | undefined;
             if (!breakdown || Object.keys(breakdown).length === 0)
-              return <p className="text-slate-500 text-xs">Sin datos de tópicos.</p>;
+              return <p className="text-slate-500 text-xs">{t("teacher.noTopics")}</p>;
             return (
               <div className="grid grid-cols-2 gap-1 max-h-48 overflow-y-auto">
                 {Object.entries(breakdown).map(([topic, info]) => (
@@ -164,7 +166,7 @@ function StudentDetailPanel({
       {tab === "katia" && (
         <div className="max-h-64 overflow-y-auto space-y-2">
           {!katiaHistory || katiaHistory.interactions.length === 0 ? (
-            <p className="text-slate-500 text-sm">Sin interacciones con KatIA registradas.</p>
+            <p className="text-slate-500 text-sm">{t("teacher.noKatiaInteractions")}</p>
           ) : (
             katiaHistory.interactions.slice(0, 20).map((k, i) => (
               <div key={i} className="bg-slate-900 rounded-lg p-2 space-y-0.5">
@@ -192,21 +194,19 @@ function StudentDetailPanel({
           {!aiResult && (
             <>
               {!apiKey && (
-                <p className="text-xs text-slate-500">
-                  Configura una API key en el panel lateral para usar el análisis IA.
-                </p>
+                <p className="text-xs text-slate-500">{t("teacher.aiConfigKey")}</p>
               )}
               <button
                 onClick={() => aiMutation.mutate()}
                 disabled={aiMutation.isPending || !apiKey}
                 className="w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm transition-colors"
               >
-                {aiMutation.isPending ? "Generando análisis…" : "🤖 Generar análisis pedagógico"}
+                {aiMutation.isPending ? t("teacher.aiGenerating") : t("teacher.aiGenerate")}
               </button>
             </>
           )}
           {aiMutation.isError && (
-            <p className="text-xs text-red-400">Error al generar el análisis.</p>
+            <p className="text-xs text-red-400">{t("teacher.aiError")}</p>
           )}
           {aiResult && (
             <div className="bg-slate-900 rounded-xl p-3 text-xs text-slate-300 whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
@@ -218,7 +218,7 @@ function StudentDetailPanel({
               onClick={() => { setAiResult(null); aiMutation.reset(); }}
               className="text-xs text-slate-500 hover:text-slate-400"
             >
-              Regenerar análisis
+              {t("teacher.aiRegenerate")}
             </button>
           )}
         </div>
@@ -230,6 +230,7 @@ function StudentDetailPanel({
 // ── Tab de métricas de uso ─────────────────────────────────────────────────
 
 function MetricsView() {
+  const { t } = useTranslation();
   const { data, isLoading, error } = useQuery({
     queryKey: ["teacher-metrics"],
     queryFn: teacherApi.metrics,
@@ -247,7 +248,7 @@ function MetricsView() {
   }
 
   if (error || !data) {
-    return <p className="text-slate-500 text-sm py-4">No se pudieron cargar las métricas.</p>;
+    return <p className="text-slate-500 text-sm py-4">{t("teacher.metricsError")}</p>;
   }
 
   const peakHour = data.hourly_distribution.reduce(
@@ -260,23 +261,23 @@ function MetricsView() {
       {/* KPIs principales */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard
-          label="Total intentos"
+          label={t("teacher.metricTotalAttempts")}
           value={data.total_attempts.toLocaleString()}
         />
         <StatCard
-          label="Tiempo promedio"
+          label={t("teacher.metricAvgTime")}
           value={`${data.avg_time_seconds}s`}
-          sub="por pregunta (válidos)"
+          sub={t("teacher.metricAvgTimeSub")}
         />
         <StatCard
-          label="Tasa de abandono"
+          label={t("teacher.metricAbandonment")}
           value={`${(data.abandonment_rate * 100).toFixed(1)}%`}
-          sub="fuera de 3–600s"
+          sub={t("teacher.metricAbandonmentSub")}
         />
         <StatCard
-          label="Hora pico"
+          label={t("teacher.metricPeakHour")}
           value={`${peakHour.hour}:00`}
-          sub={`${peakHour.count} intentos`}
+          sub={t("teacher.metricPeakHourSub", { count: peakHour.count })}
         />
       </div>
 
@@ -284,7 +285,7 @@ function MetricsView() {
       {data.daily_attempts.length > 0 && (
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
           <h4 className="text-sm font-semibold text-slate-300 mb-3">
-            Actividad diaria — últimos 30 días
+            {t("teacher.metricDailyActivity")}
           </h4>
           <ResponsiveContainer width="100%" height={120}>
             <BarChart data={data.daily_attempts} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
@@ -300,7 +301,7 @@ function MetricsView() {
                 labelStyle={{ color: "#94a3b8" }}
                 itemStyle={{ color: "#a78bfa" }}
               />
-              <Bar dataKey="count" name="Intentos" fill="#6c63ff" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="count" name={t("teacher.attemptsLegend")} fill="#6c63ff" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -310,16 +311,16 @@ function MetricsView() {
       {data.topic_stats.length > 0 && (
         <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-700">
-            <h4 className="text-sm font-semibold text-slate-300">Temas más practicados</h4>
+            <h4 className="text-sm font-semibold text-slate-300">{t("teacher.metricTopTopics")}</h4>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="text-xs text-slate-500 border-b border-slate-700">
-                  <th className="px-4 py-2 text-left">Tema</th>
-                  <th className="px-4 py-2 text-right">Intentos</th>
-                  <th className="px-4 py-2 text-right">Acierto</th>
-                  <th className="px-4 py-2 text-right hidden sm:table-cell">Tiempo prom.</th>
+                  <th className="px-4 py-2 text-left">{t("teacher.metricTopicCol")}</th>
+                  <th className="px-4 py-2 text-right">{t("teacher.metricAttemptsCol")}</th>
+                  <th className="px-4 py-2 text-right">{t("teacher.metricAccuracyCol")}</th>
+                  <th className="px-4 py-2 text-right hidden sm:table-cell">{t("teacher.metricAvgTimeCol")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700/50">
@@ -358,7 +359,7 @@ function MetricsView() {
       {/* Distribución horaria */}
       <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
         <h4 className="text-sm font-semibold text-slate-300 mb-3">
-          Distribución horaria de actividad
+          {t("teacher.metricHourlyDistribution")}
         </h4>
         <ResponsiveContainer width="100%" height={100}>
           <BarChart data={data.hourly_distribution} margin={{ top: 0, right: 0, bottom: 0, left: -30 }}>
@@ -375,7 +376,7 @@ function MetricsView() {
               itemStyle={{ color: "#a78bfa" }}
               labelFormatter={(v) => `${v}:00 h`}
             />
-            <Bar dataKey="count" name="Intentos" radius={[2, 2, 0, 0]}>
+            <Bar dataKey="count" name={t("teacher.attemptsLegend")} radius={[2, 2, 0, 0]}>
               {data.hourly_distribution.map((h) => (
                 <Cell
                   key={h.hour}
@@ -393,6 +394,7 @@ function MetricsView() {
 // ── Tab de ranking del grupo ────────────────────────────────────────────────
 
 function GroupRankingSection({ students }: { students: import("../../api/teacher").StudentSummary[] }) {
+  const { t } = useTranslation();
   // Deduplica por user_id y ordena por ELO DESC
   const uniqueById = new Map<number, import("../../api/teacher").StudentSummary>();
   for (const s of students) {
@@ -402,7 +404,7 @@ function GroupRankingSection({ students }: { students: import("../../api/teacher
   const ranked = [...uniqueById.values()].sort((a, b) => b.global_elo - a.global_elo);
 
   if (ranked.length === 0) {
-    return <p className="text-slate-500 text-sm py-4">Sin datos de ranking.</p>;
+    return <p className="text-slate-500 text-sm py-4">{t("teacher.rankingEmpty")}</p>;
   }
 
   const medal = (pos: number) => pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : null;
@@ -442,6 +444,7 @@ function GroupRankingSection({ students }: { students: import("../../api/teacher
 type DashboardView = "students" | "ranking" | "metrics";
 
 export function TeacherDashboard() {
+  const { t } = useTranslation();
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [filterGroup, setFilterGroup] = useState<string>("all");
@@ -461,7 +464,7 @@ export function TeacherDashboard() {
   if (error || !data) {
     return (
       <div className="max-w-2xl mx-auto py-8 px-4 text-center">
-        <p className="text-red-400">Error al cargar el dashboard. Verifica tu sesión.</p>
+        <p className="text-red-400">{t("teacher.loadError")}</p>
       </div>
     );
   }
@@ -501,16 +504,16 @@ export function TeacherDashboard() {
   return (
     <div className="max-w-5xl mx-auto py-6 px-4 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-100">Panel Docente</h2>
-        <span className="text-xs text-slate-500">{uniqueStudents.length} estudiantes</span>
+        <h2 className="text-xl font-bold text-slate-100">{t("teacher.title")}</h2>
+        <span className="text-xs text-slate-500">{t("teacher.studentsCount", { count: uniqueStudents.length })}</span>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label="Grupos activos" value={data.groups.length} />
-        <StatCard label="Estudiantes" value={uniqueStudents.length} />
-        <StatCard label="ELO promedio" value={Math.round(avgElo)} />
-        <StatCard label="Acierto promedio" value={`${(avgAccuracy * 100).toFixed(0)}%`} />
+        <StatCard label={t("teacher.activeGroups")} value={data.groups.length} />
+        <StatCard label={t("teacher.students")} value={uniqueStudents.length} />
+        <StatCard label={t("teacher.avgElo")} value={Math.round(avgElo)} />
+        <StatCard label={t("teacher.avgAccuracy")} value={`${(avgAccuracy * 100).toFixed(0)}%`} />
       </div>
 
       {/* Grupos resumen */}
@@ -522,7 +525,9 @@ export function TeacherDashboard() {
               className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm"
             >
               <span className="text-slate-100 font-medium">{g.name}</span>
-              <span className="text-slate-500 ml-2">· {g.student_count} estudiantes</span>
+              <span className="text-slate-500 ml-2">
+                {t("teacher.groupStudents", { count: g.student_count })}
+              </span>
             </div>
           ))}
         </div>
@@ -539,9 +544,9 @@ export function TeacherDashboard() {
       {/* Tabs: Estudiantes | Ranking | Métricas */}
       <div className="flex gap-1 border-b border-slate-700 pb-2">
         {([
-          { id: "students", label: "👥 Estudiantes" },
-          { id: "ranking", label: "🏆 Ranking" },
-          { id: "metrics", label: "📊 Métricas" },
+          { id: "students", label: t("teacher.tabStudents") },
+          { id: "ranking", label: t("teacher.tabRanking") },
+          { id: "metrics", label: t("teacher.tabMetrics") },
         ] as { id: DashboardView; label: string }[]).map(({ id, label }) => (
           <button
             key={id}
@@ -564,7 +569,7 @@ export function TeacherDashboard() {
         <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
           {/* Filtros */}
           <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-slate-700">
-            <h3 className="text-sm font-semibold text-slate-300 mr-auto">Estudiantes</h3>
+            <h3 className="text-sm font-semibold text-slate-300 mr-auto">{t("teacher.studentsTitle")}</h3>
 
             {/* Filtro Grupo */}
             {groupOptions.length > 1 && (
@@ -573,7 +578,7 @@ export function TeacherDashboard() {
                 onChange={(e) => { setFilterGroup(e.target.value); setFilterLevel("all"); }}
                 className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-violet-500"
               >
-                <option value="all">Todos los grupos</option>
+                <option value="all">{t("teacher.allGroups")}</option>
                 {groupOptions.map(([id, name]) => (
                   <option key={id} value={String(id)}>{name}</option>
                 ))}
@@ -587,7 +592,7 @@ export function TeacherDashboard() {
                 onChange={(e) => setFilterLevel(e.target.value)}
                 className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-violet-500"
               >
-                <option value="all">Todos los niveles</option>
+                <option value="all">{t("teacher.allLevels")}</option>
                 {levelOptions.map((l) => (
                   <option key={l} value={l}>{l}</option>
                 ))}
@@ -597,7 +602,7 @@ export function TeacherDashboard() {
             {/* Búsqueda por nombre */}
             <input
               type="text"
-              placeholder="Buscar..."
+              placeholder={t("teacher.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-slate-900 border border-slate-600 rounded px-3 py-1 text-sm text-slate-200 focus:outline-none focus:border-violet-500 placeholder-slate-600 w-36"
@@ -605,18 +610,18 @@ export function TeacherDashboard() {
           </div>
 
           {filtered.length === 0 ? (
-            <p className="text-slate-500 text-sm text-center py-8">Sin estudiantes para los filtros aplicados.</p>
+            <p className="text-slate-500 text-sm text-center py-8">{t("teacher.noStudentsFilter")}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="text-xs text-slate-500 border-b border-slate-700">
-                    <th className="px-4 py-2 text-left">Estudiante</th>
-                    <th className="px-4 py-2 text-left hidden sm:table-cell">Grupo</th>
-                    <th className="px-4 py-2 text-left">ELO</th>
-                    <th className="px-4 py-2 text-center">Intentos</th>
-                    <th className="px-4 py-2 text-center">Acierto</th>
-                    <th className="px-4 py-2 text-left">Última actividad</th>
+                    <th className="px-4 py-2 text-left">{t("teacher.colStudent")}</th>
+                    <th className="px-4 py-2 text-left hidden sm:table-cell">{t("teacher.colGroup")}</th>
+                    <th className="px-4 py-2 text-left">{t("teacher.colElo")}</th>
+                    <th className="px-4 py-2 text-center">{t("teacher.colAttempts")}</th>
+                    <th className="px-4 py-2 text-center">{t("teacher.colAccuracy")}</th>
+                    <th className="px-4 py-2 text-left">{t("teacher.colLastActivity")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/50">
@@ -660,14 +665,14 @@ export function TeacherDashboard() {
       {view === "ranking" && (
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-slate-300">Ranking de estudiantes</h3>
+            <h3 className="text-sm font-semibold text-slate-300">{t("teacher.rankingTitle")}</h3>
             {groupOptions.length > 1 && (
               <select
                 value={filterGroup}
                 onChange={(e) => setFilterGroup(e.target.value)}
                 className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-violet-500"
               >
-                <option value="all">Todos los grupos</option>
+                <option value="all">{t("teacher.allGroups")}</option>
                 {groupOptions.map(([id, name]) => (
                   <option key={id} value={String(id)}>{name}</option>
                 ))}
