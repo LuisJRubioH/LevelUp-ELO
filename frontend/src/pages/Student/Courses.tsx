@@ -7,6 +7,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { studentApi, type Course } from "../../api/student";
 import { Button } from "../../components/ui/Button";
 import { CoursesSkeleton } from "../../components/ui/Skeleton";
@@ -14,6 +15,7 @@ import { CourseBanner } from "../../components/CourseCard/CourseBanner";
 import { usePracticeStore } from "../../stores/practiceStore";
 
 export function Courses() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const startSession = usePracticeStore((s) => s.startSession);
@@ -39,7 +41,7 @@ export function Courses() {
   const codeMutation = useMutation({
     mutationFn: (code: string) => studentApi.enrollByCode(code),
     onSuccess: (data) => {
-      setCodeMsg(`✅ Acceso especial activado para ${data.course_id}`);
+      setCodeMsg(`✅ ${t("courses.codeActivated", { course: data.course_id })}`);
       qc.invalidateQueries({ queryKey: ["courses"] });
       setInviteCode("");
     },
@@ -52,9 +54,9 @@ export function Courses() {
   };
 
   const tabs = [
-    { id: "explore" as const, label: "Explorar" },
-    { id: "enrolled" as const, label: "Mis matrículas" },
-    { id: "code" as const, label: "Código de acceso" },
+    { id: "explore" as const, label: t("courses.tabExplore") },
+    { id: "enrolled" as const, label: t("courses.tabEnrolled") },
+    { id: "code" as const, label: t("courses.tabCode") },
   ];
 
   const enrolled = courses.filter((c) => c.enrolled);
@@ -62,7 +64,7 @@ export function Courses() {
 
   return (
     <div className="max-w-5xl mx-auto py-6 px-4">
-      <h2 className="text-xl font-bold text-slate-100 mb-6">Cursos</h2>
+      <h2 className="text-xl font-bold text-slate-100 mb-6">{t("courses.title")}</h2>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-slate-700 pb-2">
@@ -88,16 +90,13 @@ export function Courses() {
       {/* Código de acceso */}
       {tab === "code" && (
         <div className="space-y-4">
-          <p className="text-sm text-slate-400">
-            Usa el código de invitación que te compartió tu docente para acceder a
-            un curso de otro nivel educativo.
-          </p>
+          <p className="text-sm text-slate-400">{t("courses.codeIntro")}</p>
           <div className="flex gap-3">
             <input
               type="text"
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value.trim().toUpperCase())}
-              placeholder="Ej: ABC123"
+              placeholder={t("courses.codePlaceholder")}
               className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500"
             />
             <Button
@@ -105,7 +104,7 @@ export function Courses() {
               loading={codeMutation.isPending}
               disabled={!inviteCode}
             >
-              Acceder
+              {t("courses.accessButton")}
             </Button>
           </div>
           {codeMsg && (
@@ -120,23 +119,17 @@ export function Courses() {
       {tab !== "code" && (
         <>
           {tab === "explore" && (
-            <p className="text-sm text-slate-400 mb-4">
-              Elige un curso para practicar. Si aún no estás matriculado, inscríbete primero.
-            </p>
+            <p className="text-sm text-slate-400 mb-4">{t("courses.exploreIntro")}</p>
           )}
           {tab === "enrolled" && (
-            <p className="text-sm text-slate-400 mb-4">
-              Gestiona tus matrículas. Puedes darte de baja de un curso en cualquier momento.
-            </p>
+            <p className="text-sm text-slate-400 mb-4">{t("courses.enrolledIntro")}</p>
           )}
 
           {isLoading ? (
             <CoursesSkeleton />
           ) : displayed.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
-              {tab === "enrolled"
-                ? "No estás matriculado en ningún curso aún."
-                : "No hay cursos disponibles para tu nivel."}
+              {tab === "enrolled" ? t("courses.noEnrolled") : t("courses.noAvailable")}
             </div>
           ) : (
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -164,7 +157,7 @@ export function Courses() {
                             onClick={() => handlePractice(c.id)}
                             className="w-full"
                           >
-                            Practicar →
+                            {t("courses.practice")}
                           </Button>
                         ) : (
                           <Button
@@ -173,7 +166,7 @@ export function Courses() {
                             loading={enrollMutation.isPending}
                             className="w-full"
                           >
-                            Matricularme
+                            {t("courses.enroll")}
                           </Button>
                         )}
                       </div>
@@ -185,7 +178,7 @@ export function Courses() {
                           size="sm"
                           onClick={() => handlePractice(c.id)}
                         >
-                          Practicar →
+                          {t("courses.practice")}
                         </Button>
                         <Button
                           variant="ghost"
@@ -193,7 +186,7 @@ export function Courses() {
                           onClick={() => unenrollMutation.mutate(c.id)}
                           loading={unenrollMutation.isPending}
                         >
-                          Salir
+                          {t("courses.unenroll")}
                         </Button>
                       </div>
                     )}

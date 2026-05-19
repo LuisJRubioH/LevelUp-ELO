@@ -6,6 +6,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { studentApi } from "../../api/student";
 import type { ExamSession } from "../../api/student";
 import { ELOChart } from "../../components/ELO/ELOChart";
@@ -32,6 +33,7 @@ interface RankEntry {
 }
 
 export function Stats() {
+  const { t, i18n } = useTranslation();
   const { data: stats, isLoading, isError, failureCount } = useQuery({
     queryKey: ["student-stats"],
     queryFn: () => studentApi.stats(),
@@ -76,7 +78,7 @@ export function Stats() {
           >
             <div className="text-xs text-amber-400/90 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
               <span className="inline-block w-2 h-2 mr-2 bg-amber-400 rounded-full animate-pulse align-middle" />
-              El servidor está iniciando (intento {failureCount + 1} de 4)…
+              {t("stats.serverWaking", { current: failureCount + 1 })}
             </div>
           </div>
         )}
@@ -89,15 +91,13 @@ export function Stats() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center max-w-sm">
-          <p className="text-slate-400 mb-2">No se pudieron cargar las estadísticas.</p>
-          <p className="text-slate-500 text-sm mb-4">
-            Reintentamos varias veces sin éxito. El servidor puede seguir iniciando — espera unos segundos y recarga.
-          </p>
+          <p className="text-slate-400 mb-2">{t("stats.error")}</p>
+          <p className="text-slate-500 text-sm mb-4">{t("stats.errorHint")}</p>
           <button
             onClick={() => window.location.reload()}
             className="bg-violet-600 hover:bg-violet-500 text-white text-sm px-4 py-2 rounded-lg transition-colors"
           >
-            Recargar página
+            {t("stats.reload")}
           </button>
         </div>
       </div>
@@ -123,39 +123,39 @@ export function Stats() {
 
   return (
     <div className="max-w-2xl mx-auto py-6 px-4 space-y-6">
-      <h2 className="text-xl font-bold text-slate-100">Mis Estadísticas</h2>
+      <h2 className="text-xl font-bold text-slate-100">{t("stats.title")}</h2>
 
       {/* Resumen top */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
           <div className="text-2xl font-bold text-slate-100">{Math.round(stats.global_elo)}</div>
-          <div className="text-xs text-slate-400 mt-1">ELO Global</div>
+          <div className="text-xs text-slate-400 mt-1">{t("stats.globalElo")}</div>
         </div>
         <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
           <div className="text-2xl font-bold text-amber-400">{stats.study_streak}</div>
-          <div className="text-xs text-slate-400 mt-1">🔥 Racha</div>
+          <div className="text-xs text-slate-400 mt-1">{t("stats.streakFire")}</div>
         </div>
         <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
           <div className="text-2xl font-bold text-violet-400">{stats.total_attempts}</div>
-          <div className="text-xs text-slate-400 mt-1">Intentos</div>
+          <div className="text-xs text-slate-400 mt-1">{t("stats.attempts")}</div>
         </div>
       </div>
 
       {/* Rango */}
       <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-        <p className="text-xs text-slate-400 mb-2">Rango actual</p>
+        <p className="text-xs text-slate-400 mb-2">{t("stats.currentRank")}</p>
         <RankBadge elo={stats.global_elo} rankLabel={stats.rank_label ?? "Aspirante"} />
       </div>
 
       {/* Gráfico de evolución ELO */}
       <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-        <ELOChart data={chartData} title="Evolución ELO (últimos 20 intentos)" />
+        <ELOChart data={chartData} title={t("stats.eloEvolution")} />
       </div>
 
       {/* Heatmap de actividad */}
       {activityData && (
         <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-          <h3 className="text-sm font-medium text-slate-400 mb-3">Actividad semanal</h3>
+          <h3 className="text-sm font-medium text-slate-400 mb-3">{t("stats.weeklyActivity")}</h3>
           <ActivityHeatmap data={activityData.activity} />
         </div>
       )}
@@ -163,17 +163,17 @@ export function Stats() {
       {/* Radar chart de tópicos */}
       {stats.topic_elos.length >= 3 && (
         <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-          <h3 className="text-sm font-medium text-slate-400 mb-1">Rendimiento por tópico</h3>
-          <p className="text-xs text-slate-600 mb-2">Top 8 tópicos más practicados</p>
+          <h3 className="text-sm font-medium text-slate-400 mb-1">{t("stats.topicPerformance")}</h3>
+          <p className="text-xs text-slate-600 mb-2">{t("stats.topicPerformanceHint")}</p>
           <TopicRadarChart topics={stats.topic_elos} />
         </div>
       )}
 
       {/* ELO por tópico (barras) */}
       <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-        <h3 className="text-sm font-medium text-slate-400 mb-3">ELO por tópico</h3>
+        <h3 className="text-sm font-medium text-slate-400 mb-3">{t("stats.topicElo")}</h3>
         {stats.topic_elos.length === 0 ? (
-          <p className="text-slate-500 text-sm">Sin datos de tópicos aún.</p>
+          <p className="text-slate-500 text-sm">{t("stats.topicEloEmpty")}</p>
         ) : (
           <div className="space-y-2">
             {stats.topic_elos.map((t) => (
@@ -200,10 +200,10 @@ export function Stats() {
       {rankingData && rankingData.ranking.length > 0 && (
         <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-slate-400">Ranking del grupo</h3>
+            <h3 className="text-sm font-medium text-slate-400">{t("stats.groupRanking")}</h3>
             {rankingData.my_rank && (
               <span className="text-xs text-violet-400 font-medium">
-                Tu posición: #{rankingData.my_rank}
+                {t("stats.yourPosition")}: #{rankingData.my_rank}
               </span>
             )}
           </div>
@@ -226,7 +226,7 @@ export function Stats() {
                     {medal ?? `#${r.rank_pos}`}
                   </span>
                   <span className={`text-xs flex-1 ${isMe ? "text-violet-300 font-medium" : "text-slate-300"}`}>
-                    {r.username} {isMe && "(tú)"}
+                    {r.username} {isMe && t("stats.you")}
                   </span>
                   <span className="text-xs text-slate-400 font-mono">
                     {Math.round(r.global_elo)}
@@ -241,7 +241,7 @@ export function Stats() {
       {/* Logros / Badges — animados con Framer Motion */}
       <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
         <h3 className="text-sm font-medium text-slate-400 mb-3">
-          Logros{" "}
+          {t("stats.achievements")}{" "}
           {achievementsData &&
             `(${achievementsData.achievements.length}/${achievementsData.catalog.length})`}
         </h3>
@@ -272,7 +272,9 @@ export function Stats() {
                       <p className="text-xs font-medium text-slate-200">{badge.label}</p>
                       {earned && earnedAt && (
                         <p className="text-xs text-slate-500">
-                          {new Date(earnedAt).toLocaleDateString("es-CO")}
+                          {new Date(earnedAt).toLocaleDateString(
+                            i18n.language === "en" ? "en-US" : "es-CO",
+                          )}
                         </p>
                       )}
                       {!earned && (
@@ -285,20 +287,18 @@ export function Stats() {
             </AnimatePresence>
           </div>
         ) : (
-          <p className="text-slate-500 text-sm">Cargando logros…</p>
+          <p className="text-slate-500 text-sm">{t("stats.achievementsLoading")}</p>
         )}
       </div>
 
       {/* Historial de exámenes */}
       <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
         <div className="flex items-baseline justify-between mb-3">
-          <h3 className="text-sm font-medium text-slate-400">Historial de exámenes</h3>
-          <p className="text-[10px] text-slate-500 italic">
-            Los exámenes no modifican el ELO
-          </p>
+          <h3 className="text-sm font-medium text-slate-400">{t("stats.examHistory")}</h3>
+          <p className="text-[10px] text-slate-500 italic">{t("stats.examNoElo")}</p>
         </div>
         {examHistory.length === 0 ? (
-          <p className="text-slate-500 text-sm">Aún no has completado ningún examen.</p>
+          <p className="text-slate-500 text-sm">{t("stats.noExams")}</p>
         ) : (
           <div className="space-y-2">
             {examHistory.map((session) => {

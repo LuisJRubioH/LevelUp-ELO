@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import { studentApi } from "../../api/student";
@@ -139,6 +140,7 @@ function ExamSetup({
   ) => void;
   onResume: (draft: ExamDraft) => void;
 }) {
+  const { t } = useTranslation();
   const [selectedCourse, setSelectedCourse] = useState("");
   const [nQuestions, setNQuestions] = useState(10);
   const [timeLimitMin, setTimeLimitMin] = useState(20);
@@ -162,12 +164,11 @@ function ExamSetup({
 
   return (
     <div className="max-w-md mx-auto py-10 px-4">
-      <h2 className="text-xl font-bold text-slate-100 mb-1">Modo Examen</h2>
+      <h2 className="text-xl font-bold text-slate-100 mb-1">{t("exam.title")}</h2>
       <p className="text-sm text-slate-400 mb-6">
-        Responde N preguntas con tiempo límite y curva de dificultad estándar
-        (fácil → difícil). Sin pistas ni retroalimentación inmediata.{" "}
-        <span className="text-amber-400">El examen no afecta tu ELO</span> — es una
-        evaluación. El ELO se ajusta solo en la sala de práctica.
+        {t("exam.description")}{" "}
+        <span className="text-amber-400">{t("exam.noEloWarning")}</span>
+        {t("exam.noEloExplain")}
       </p>
 
       {pendingDraft && (
@@ -176,18 +177,21 @@ function ExamSetup({
           className="mb-6 border border-amber-500/40 bg-amber-500/10 rounded-xl p-4"
         >
           <p className="text-sm font-medium text-amber-200">
-            Tienes un examen pendiente
+            {t("exam.pendingTitle")}
           </p>
           <p className="text-xs text-amber-300/80 mt-1 mb-3">
-            {pendingDraft.courseName} ·{" "}
-            {Object.keys(pendingDraft.answers).length}/{pendingDraft.items.length} respondidas
-            · guardado{" "}
             {(() => {
               const mins = Math.max(
                 0,
                 Math.round((Date.now() - pendingDraft.savedAt) / 60000),
               );
-              return mins === 0 ? "ahora" : `hace ${mins} min`;
+              const time = mins === 0 ? t("exam.timeNow") : t("exam.timeAgo", { mins });
+              return t("exam.pendingMeta", {
+                course: pendingDraft.courseName,
+                answered: Object.keys(pendingDraft.answers).length,
+                total: pendingDraft.items.length,
+                time,
+              });
             })()}
           </p>
           <div className="flex gap-2">
@@ -196,7 +200,7 @@ function ExamSetup({
               onClick={() => onResume(pendingDraft)}
               className="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-900 font-medium text-xs py-2 rounded-lg transition-colors"
             >
-              Continuar examen
+              {t("exam.resume")}
             </button>
             <button
               type="button"
@@ -206,7 +210,7 @@ function ExamSetup({
               }}
               className="px-3 text-xs text-amber-300/70 hover:text-amber-200 transition-colors"
             >
-              Descartar
+              {t("exam.discard")}
             </button>
           </div>
         </div>
@@ -215,14 +219,14 @@ function ExamSetup({
       <div className="space-y-5">
         {/* Selector de curso */}
         <div>
-          <label className="block text-xs text-slate-400 mb-1.5">Curso</label>
+          <label className="block text-xs text-slate-400 mb-1.5">{t("exam.courseLabel")}</label>
           {isLoading ? (
             <div className="h-10 bg-slate-800 rounded-lg animate-pulse" />
           ) : enrolled.length === 0 ? (
             <p className="text-sm text-slate-500 italic">
-              No estás matriculado en ningún curso.{" "}
+              {t("exam.noEnrolledCourses")}{" "}
               <a href="/student/courses" className="text-violet-400 hover:underline">
-                Ir a cursos →
+                {t("exam.goToCourses")}
               </a>
             </p>
           ) : (
@@ -231,7 +235,7 @@ function ExamSetup({
               onChange={(e) => setSelectedCourse(e.target.value)}
               className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-200 text-sm focus:outline-none focus:border-violet-500 transition-colors"
             >
-              <option value="">Selecciona un curso…</option>
+              <option value="">{t("exam.coursePlaceholder")}</option>
               {enrolled.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -244,7 +248,7 @@ function ExamSetup({
         {/* Selector de tipo de examen — visible solo si hay curso elegido */}
         {selectedCourse && (
           <div>
-            <label className="block text-xs text-slate-400 mb-1.5">Tipo de examen</label>
+            <label className="block text-xs text-slate-400 mb-1.5">{t("exam.typeLabel")}</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -256,7 +260,7 @@ function ExamSetup({
                     : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700",
                 ].join(" ")}
               >
-                Estándar (auto)
+                {t("exam.typeStandard")}
               </button>
               <button
                 type="button"
@@ -269,9 +273,9 @@ function ExamSetup({
                     : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700",
                   "disabled:opacity-40 disabled:cursor-not-allowed",
                 ].join(" ")}
-                title={templates.length === 0 ? "El docente no ha creado exámenes para este curso" : ""}
+                title={templates.length === 0 ? t("exam.typeTemplateDisabled") : ""}
               >
-                Del docente
+                {t("exam.typeTemplate")}
                 {!loadingTemplates && (
                   <span className="text-[10px] ml-1 opacity-80">
                     ({templates.length})
@@ -285,23 +289,21 @@ function ExamSetup({
         {/* Dropdown de plantillas (solo modo template) */}
         {selectedCourse && mode === "template" && (
           <div>
-            <label className="block text-xs text-slate-400 mb-1.5">Examen del docente</label>
+            <label className="block text-xs text-slate-400 mb-1.5">{t("exam.teacherExamLabel")}</label>
             {loadingTemplates ? (
               <div className="h-10 bg-slate-800 rounded-lg animate-pulse" />
             ) : templates.length === 0 ? (
-              <p className="text-xs text-slate-500 italic">
-                El docente aún no ha publicado exámenes para este curso.
-              </p>
+              <p className="text-xs text-slate-500 italic">{t("exam.teacherExamEmpty")}</p>
             ) : (
               <select
                 value={selectedTemplate ?? ""}
                 onChange={(e) => setSelectedTemplate(e.target.value ? Number(e.target.value) : null)}
                 className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-200 text-sm focus:outline-none focus:border-violet-500 transition-colors"
               >
-                <option value="">Selecciona un examen…</option>
-                {templates.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title} · {t.n_questions} preg · {t.time_limit_min} min
+                <option value="">{t("exam.teacherExamPlaceholder")}</option>
+                {templates.map((tpl) => (
+                  <option key={tpl.id} value={tpl.id}>
+                    {tpl.title} · {tpl.n_questions} · {tpl.time_limit_min} {t("exam.minutes")}
                   </option>
                 ))}
               </select>
@@ -314,7 +316,7 @@ function ExamSetup({
           <>
             <div>
               <label className="block text-xs text-slate-400 mb-1.5">
-                Preguntas:{" "}
+                {t("exam.questionsLabel")}:{" "}
                 <span className="text-violet-400 font-semibold">{nQuestions}</span>
               </label>
               <input
@@ -335,8 +337,8 @@ function ExamSetup({
 
             <div>
               <label className="block text-xs text-slate-400 mb-1.5">
-                Tiempo límite:{" "}
-                <span className="text-violet-400 font-semibold">{timeLimitMin} min</span>
+                {t("exam.timeLimitLabel")}:{" "}
+                <span className="text-violet-400 font-semibold">{timeLimitMin} {t("exam.minutes")}</span>
               </label>
               <input
                 type="range"
@@ -348,9 +350,9 @@ function ExamSetup({
                 className="w-full accent-violet-500"
               />
               <div className="flex justify-between text-[10px] text-slate-600 mt-1">
-                <span>5 min</span>
-                <span>30 min</span>
-                <span>60 min</span>
+                <span>5 {t("exam.minutes")}</span>
+                <span>30 {t("exam.minutes")}</span>
+                <span>60 {t("exam.minutes")}</span>
               </div>
             </div>
           </>
@@ -360,7 +362,7 @@ function ExamSetup({
         {selectedCourse && (
           <div className="bg-slate-800/60 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-400 space-y-1">
             <div className="flex justify-between">
-              <span>Curso</span>
+              <span>{t("exam.courseLabel")}</span>
               <span className="text-slate-200">
                 {enrolled.find((c) => c.id === selectedCourse)?.name ?? selectedCourse}
               </span>
@@ -368,31 +370,31 @@ function ExamSetup({
             {mode === "template" && activeTemplate ? (
               <>
                 <div className="flex justify-between">
-                  <span>Examen del docente</span>
+                  <span>{t("exam.teacherExamLabel")}</span>
                   <span className="text-slate-200">{activeTemplate.title}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Preguntas</span>
+                  <span>{t("exam.questionsLabel")}</span>
                   <span className="text-slate-200">{activeTemplate.n_questions}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Tiempo</span>
-                  <span className="text-slate-200">{activeTemplate.time_limit_min} minutos</span>
+                  <span>{t("exam.timeLimitLabel")}</span>
+                  <span className="text-slate-200">{activeTemplate.time_limit_min} {t("exam.minutesFull")}</span>
                 </div>
               </>
             ) : (
               <>
                 <div className="flex justify-between">
-                  <span>Modo</span>
-                  <span className="text-slate-200">Estándar (curva 30/40/30)</span>
+                  <span>{t("exam.summaryMode")}</span>
+                  <span className="text-slate-200">{t("exam.summaryCurve")}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Preguntas</span>
+                  <span>{t("exam.questionsLabel")}</span>
                   <span className="text-slate-200">{nQuestions}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Tiempo</span>
-                  <span className="text-slate-200">{timeLimitMin} minutos</span>
+                  <span>{t("exam.timeLimitLabel")}</span>
+                  <span className="text-slate-200">{timeLimitMin} {t("exam.minutesFull")}</span>
                 </div>
               </>
             )}
@@ -420,7 +422,7 @@ function ExamSetup({
           }
           className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-xl text-sm transition-colors"
         >
-          Iniciar examen →
+          {t("exam.start")}
         </button>
       </div>
     </div>
@@ -430,6 +432,7 @@ function ExamSetup({
 // ── Componente principal ───────────────────────────────────────────────────────
 
 export function Exam() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -530,10 +533,10 @@ export function Exam() {
         setPhase("answering");
       })
       .catch(() => {
-        setError("No se pudo iniciar el examen. Intenta de nuevo.");
+        setError(t("exam.errorStart"));
         setPhase("error");
       });
-  }, [phase, courseId, nQuestions, timeLimitMin, templateId]);
+  }, [phase, courseId, nQuestions, timeLimitMin, templateId, t]);
 
   // ── Auto-guardar borrador para resistir caídas de red al enviar ──────────
   useEffect(() => {
@@ -616,12 +619,10 @@ export function Exam() {
     // el banner de error visible. El borrador sigue en localStorage, así
     // que aunque recargue la página puede reintentar.
     void lastError;
-    setSubmitError(
-      "No pudimos enviar tu examen tras varios intentos. Tus respuestas siguen guardadas — puedes reintentar.",
-    );
+    setSubmitError(t("exam.submitErrorDetail"));
     setSubmitAttempt(0);
     setPhase("answering");
-  }, [items, currentIdx, answers, courseId, courseName]);
+  }, [items, currentIdx, answers, courseId, courseName, t]);
 
   // Mantener ref estable para el timer
   useEffect(() => {
@@ -686,7 +687,7 @@ export function Exam() {
       <div className="flex items-center justify-center h-full text-slate-400">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm">Preparando examen…</p>
+          <p className="text-sm">{t("exam.preparing")}</p>
         </div>
       </div>
     );
@@ -704,7 +705,7 @@ export function Exam() {
             onClick={() => { setPhase("setup"); setAnswers({}); setItems([]); setCurrentIdx(0); }}
             className="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl text-sm transition-colors"
           >
-            Volver a configuración
+            {t("exam.backToSetup")}
           </button>
         </div>
       </div>
@@ -716,7 +717,7 @@ export function Exam() {
   if (phase === "results") {
     const emoji = score.pct >= 80 ? "🏆" : score.pct >= 60 ? "🎯" : "📚";
     const label =
-      score.pct >= 80 ? "¡Excelente trabajo!" : score.pct >= 60 ? "¡Buen resultado!" : "Sigue practicando";
+      score.pct >= 80 ? t("exam.excellent") : score.pct >= 60 ? t("exam.goodResult") : t("exam.keepPracticing");
 
     return (
       <div className="max-w-2xl mx-auto p-6">
@@ -727,35 +728,31 @@ export function Exam() {
           <div className="flex items-center justify-center gap-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-slate-100 tabular-nums">{score.pct}%</p>
-              <p className="text-xs text-slate-500 mt-0.5">puntuación</p>
+              <p className="text-xs text-slate-500 mt-0.5">{t("exam.score")}</p>
             </div>
             <div className="w-px h-10 bg-slate-700" />
             <div className="text-center">
               <p className="text-3xl font-bold text-emerald-400 tabular-nums">{score.correct}</p>
-              <p className="text-xs text-slate-500 mt-0.5">correctas</p>
+              <p className="text-xs text-slate-500 mt-0.5">{t("exam.correctAnswers")}</p>
             </div>
             <div className="w-px h-10 bg-slate-700" />
             <div className="text-center">
               <p className="text-3xl font-bold text-red-400 tabular-nums">
                 {score.total - score.correct}
               </p>
-              <p className="text-xs text-slate-500 mt-0.5">incorrectas</p>
+              <p className="text-xs text-slate-500 mt-0.5">{t("exam.incorrectAnswers")}</p>
             </div>
           </div>
-          <p className="text-xs text-slate-500 mt-4">
-            Calificado automáticamente · las respuestas correctas provienen del banco de preguntas.
-          </p>
-          <p className="text-xs text-amber-400 mt-1">
-            Este examen no modificó tu ELO. Para subir tu rating, practica en la sala adaptativa.
-          </p>
+          <p className="text-xs text-slate-500 mt-4">{t("exam.autoGraded")}</p>
+          <p className="text-xs text-amber-400 mt-1">{t("exam.examNoEloNote")}</p>
         </div>
 
         {/* Mini-mapa de resultados */}
-        <div className="flex flex-wrap gap-1.5 justify-center mb-6 max-w-md mx-auto" role="group" aria-label="Resumen de respuestas">
+        <div className="flex flex-wrap gap-1.5 justify-center mb-6 max-w-md mx-auto" role="group" aria-label={t("exam.answersSummary")}>
           {results.map((r, i) => (
             <span
               key={r.item_id}
-              title={`Pregunta ${i + 1}: ${r.is_correct ? "correcta" : "incorrecta"}`}
+              title={r.is_correct ? t("exam.questionCorrect", { n: i + 1 }) : t("exam.questionIncorrect", { n: i + 1 })}
               className={[
                 "w-8 h-8 rounded text-xs font-bold flex items-center justify-center border",
                 r.is_correct
@@ -785,7 +782,7 @@ export function Exam() {
                 <span className="text-base shrink-0 mt-0.5">{r.is_correct ? "✅" : "❌"}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] text-slate-500 mb-0.5 uppercase tracking-wide">
-                    Pregunta {i + 1}
+                    {t("exam.questionShort")} {i + 1}
                   </p>
                   <p className="text-sm text-slate-300 leading-snug line-clamp-2">
                     {item ? <RenderMath text={item.content} /> : r.item_id}
@@ -812,19 +809,19 @@ export function Exam() {
             onClick={() => { setPhase("setup"); setAnswers({}); setItems([]); setCurrentIdx(0); }}
             className="bg-slate-700 hover:bg-slate-600 text-slate-100 px-5 py-2 rounded-xl text-sm transition-colors"
           >
-            Nuevo examen
+            {t("exam.newExam")}
           </button>
           <button
             onClick={() => navigate("/student")}
             className="bg-slate-700 hover:bg-slate-600 text-slate-100 px-5 py-2 rounded-xl text-sm transition-colors"
           >
-            Practicar
+            {t("exam.practiceCta")}
           </button>
           <button
             onClick={() => navigate("/student/stats")}
             className="bg-violet-600 hover:bg-violet-700 text-white px-5 py-2 rounded-xl text-sm transition-colors"
           >
-            Ver estadísticas →
+            {t("exam.viewStats")}
           </button>
         </div>
       </div>
@@ -842,12 +839,8 @@ export function Exam() {
           className="px-4 md:px-6 py-3 border-b border-red-700/50 bg-red-900/30 flex items-center justify-between gap-3 shrink-0"
         >
           <div className="min-w-0">
-            <p className="text-sm font-medium text-red-200">
-              No se pudo enviar el examen
-            </p>
-            <p className="text-xs text-red-300/80 mt-0.5 truncate">
-              {submitError}
-            </p>
+            <p className="text-sm font-medium text-red-200">{t("exam.submitError")}</p>
+            <p className="text-xs text-red-300/80 mt-0.5 truncate">{submitError}</p>
           </div>
           <button
             type="button"
@@ -855,7 +848,7 @@ export function Exam() {
             disabled={phase === "submitting"}
             className="shrink-0 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors"
           >
-            Reintentar enviar
+            {t("exam.retrySubmit")}
           </button>
         </div>
       )}
@@ -867,14 +860,14 @@ export function Exam() {
           aria-live="polite"
           className="px-4 md:px-6 py-2 border-b border-amber-700/50 bg-amber-900/30 text-xs text-amber-200 shrink-0"
         >
-          Reintentando envío (intento {submitAttempt} de 3)…
+          {t("exam.retrying", { current: submitAttempt })}
         </div>
       )}
 
       {/* Header con timer */}
       <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-slate-700 bg-slate-800/80 backdrop-blur-sm shrink-0">
         <div className="min-w-0">
-          <span className="text-[10px] text-slate-500 uppercase tracking-wide">Examen</span>
+          <span className="text-[10px] text-slate-500 uppercase tracking-wide">{t("exam.examLabel")}</span>
           <p className="text-sm text-slate-300 font-medium truncate max-w-[120px] md:max-w-none">
             {courseName}
           </p>
@@ -884,7 +877,7 @@ export function Exam() {
         <div
           className={`text-xl md:text-2xl font-mono font-bold tabular-nums ${timerColor}`}
           aria-live={timeLeft < 60 ? "assertive" : "off"}
-          aria-label={`Tiempo restante: ${formatTime(timeLeft)}`}
+          aria-label={t("exam.timeRemaining", { time: formatTime(timeLeft) })}
           role="timer"
         >
           {formatTime(timeLeft)}
@@ -892,7 +885,7 @@ export function Exam() {
 
         <div className="text-right">
           <p className="text-[10px] text-slate-500">
-            {answeredCount}/{items.length} respondidas
+            {t("exam.answeredOfTotal", { answered: answeredCount, total: items.length })}
           </p>
         </div>
       </div>
@@ -907,7 +900,13 @@ export function Exam() {
               <button
                 key={item.id}
                 onClick={() => goToQuestion(idx)}
-                aria-label={`Pregunta ${idx + 1}${answered ? " (respondida)" : ""}${active ? ", actual" : ""}`}
+                aria-label={
+                  active
+                    ? t("exam.questionAriaCurrent", { n: idx + 1 })
+                    : answered
+                      ? t("exam.questionAriaAnswered", { n: idx + 1 })
+                      : `${t("exam.questionShort")} ${idx + 1}`
+                }
                 aria-current={active ? "true" : undefined}
                 className={[
                   "w-full h-8 rounded text-xs font-bold transition-all border",
@@ -928,26 +927,35 @@ export function Exam() {
         {showConfirm && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
             <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
-              <h3 className="text-lg font-bold text-slate-100 mb-2">¿Finalizar examen?</h3>
+              <h3 className="text-lg font-bold text-slate-100 mb-2">{t("exam.confirmTitle")}</h3>
               <div className="text-sm text-slate-400 space-y-1 mb-5">
-                <p>Respondidas: <span className="text-emerald-400 font-semibold">{answeredCount}</span> de {items.length}</p>
+                <p>
+                  {t("exam.confirmAnsweredPrefix")}{" "}
+                  <span className="text-emerald-400 font-semibold">{answeredCount}</span>{" "}
+                  {t("exam.confirmAnsweredSuffix", { total: items.length })}
+                </p>
                 {answeredCount < items.length && (
-                  <p className="text-amber-400">⚠️ {items.length - answeredCount} pregunta{items.length - answeredCount !== 1 ? "s" : ""} sin responder</p>
+                  <p className="text-amber-400">
+                    {t("exam.confirmUnanswered", {
+                      count: items.length - answeredCount,
+                      plural: items.length - answeredCount !== 1 ? "s" : "",
+                    })}
+                  </p>
                 )}
-                <p className="text-slate-500 text-xs mt-2">Las respuestas en blanco cuentan como incorrectas.</p>
+                <p className="text-slate-500 text-xs mt-2">{t("exam.confirmBlankNote")}</p>
               </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowConfirm(false)}
                   className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 py-2.5 rounded-xl text-sm transition-colors"
                 >
-                  Cancelar
+                  {t("exam.confirmCancel")}
                 </button>
                 <button
                   onClick={() => { setShowConfirm(false); handleSubmit(); }}
                   className="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-2.5 rounded-xl text-sm font-medium transition-colors"
                 >
-                  Sí, finalizar
+                  {t("exam.confirmYes")}
                 </button>
               </div>
             </div>
@@ -959,7 +967,7 @@ export function Exam() {
           {currentItem && (
             <div className="max-w-2xl mx-auto">
               <p className="text-[10px] text-slate-500 mb-3 uppercase tracking-wide">
-                Pregunta {currentIdx + 1} de {items.length}
+                {t("exam.questionLabel", { n: currentIdx + 1, total: items.length })}
               </p>
 
               <div className="bg-slate-800 rounded-xl p-5 mb-5 border border-slate-700">
@@ -998,7 +1006,7 @@ export function Exam() {
                       onClick={() => goToQuestion(currentIdx - 1)}
                       className="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-lg text-sm transition-colors"
                     >
-                      ← Anterior
+                      {t("exam.previous")}
                     </button>
                   )}
                   {currentIdx < items.length - 1 && (
@@ -1006,21 +1014,21 @@ export function Exam() {
                       onClick={() => goToQuestion(currentIdx + 1)}
                       className="ml-auto bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-lg text-sm transition-colors"
                     >
-                      Siguiente →
+                      {t("exam.next")}
                     </button>
                   )}
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-slate-700">
                   <span className="text-xs text-slate-500">
-                    {answeredCount}/{items.length} respondidas
+                    {t("exam.answeredOfTotal", { answered: answeredCount, total: items.length })}
                   </span>
                   <button
                     onClick={() => setShowConfirm(true)}
                     disabled={phase === "submitting"}
                     className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm px-5 py-2 rounded-xl transition-colors font-medium"
                   >
-                    {phase === "submitting" ? "Enviando…" : "Finalizar examen"}
+                    {phase === "submitting" ? t("exam.finishing") : t("exam.finishExam")}
                   </button>
                 </div>
               </div>
