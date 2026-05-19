@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { studentApi } from "../../api/student";
 
 const MIN_LENGTH = 10;
@@ -12,6 +13,7 @@ const MAX_LENGTH = 2000;
 const DIALOG_TITLE_ID = "report-dialog-title";
 
 export function ReportProblemButton() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -50,9 +52,9 @@ export function ReportProblemButton() {
       const r = await studentApi.reportProblem(trimmed);
       setOpen(false);
       setText("");
-      setToast(r.message ?? "Reporte enviado. Gracias.");
+      setToast(r.message ?? t("report.success"));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo enviar el reporte.");
+      setError(e instanceof Error ? e.message : t("report.failure"));
     } finally {
       setSubmitting(false);
     }
@@ -67,7 +69,7 @@ export function ReportProblemButton() {
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        Reportar un problema
+        {t("report.button")}
       </button>
 
       {toast && (
@@ -95,15 +97,13 @@ export function ReportProblemButton() {
             <header className="flex items-start justify-between gap-2">
               <div>
                 <h3 id={DIALOG_TITLE_ID} className="text-base font-semibold text-slate-100">
-                  Reportar un problema
+                  {t("report.dialogTitle")}
                 </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Cuéntanos qué pasó. Nuestro equipo lo revisará lo antes posible.
-                </p>
+                <p className="text-xs text-slate-500 mt-1">{t("report.description")}</p>
               </div>
               <button
                 onClick={closeModal}
-                aria-label="Cerrar modal"
+                aria-label={t("report.closeModal")}
                 className="shrink-0 text-slate-500 hover:text-slate-300 transition-colors mt-0.5"
               >
                 ✕
@@ -118,9 +118,9 @@ export function ReportProblemButton() {
               }}
               rows={5}
               maxLength={MAX_LENGTH}
-              placeholder="Describe el problema con tantos detalles como puedas (mínimo 10 caracteres)…"
+              placeholder={t("report.placeholder")}
               className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500 resize-none"
-              aria-label="Descripción del problema"
+              aria-label={t("report.descriptionAriaLabel")}
               aria-required="true"
               aria-invalid={trimmed.length > 0 && trimmed.length < MIN_LENGTH}
               autoFocus
@@ -136,7 +136,7 @@ export function ReportProblemButton() {
                       : "text-slate-500"
                 }
               >
-                {trimmed.length}/{MAX_LENGTH} {trimmed.length < MIN_LENGTH && "(mín. 10)"}
+                {trimmed.length}/{MAX_LENGTH} {trimmed.length < MIN_LENGTH && t("report.minCharsHint")}
               </span>
               {error && <span role="alert" className="text-rose-400">{error}</span>}
             </div>
@@ -147,7 +147,7 @@ export function ReportProblemButton() {
                 disabled={submitting}
                 className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors"
               >
-                Cancelar
+                {t("report.cancel")}
               </button>
               <button
                 onClick={handleSubmit}
@@ -155,7 +155,7 @@ export function ReportProblemButton() {
                 aria-disabled={!valid || submitting}
                 className="px-4 py-1.5 text-sm font-medium rounded-lg bg-violet-600 text-white hover:bg-violet-500 transition-colors disabled:bg-slate-700 disabled:text-slate-500"
               >
-                {submitting ? "Enviando…" : "Enviar"}
+                {submitting ? t("report.sending") : t("report.send")}
               </button>
             </div>
           </div>

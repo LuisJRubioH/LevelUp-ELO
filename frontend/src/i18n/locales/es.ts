@@ -168,6 +168,47 @@ const es = {
     join: "Unirse",
   },
 
+  // ── Retroalimentación (histórico de procedimientos) ────────────────────────
+  feedback: {
+    title: "Retroalimentación",
+    submissionsCount: "{{count}} envío(s)",
+    loadError: "No pude cargar tus procedimientos. Reintenta.",
+    emptyTitle: "Aún no enviaste ningún procedimiento.",
+    emptyHint: "Sube una foto desde la sección",
+    emptySection: "Procedimientos",
+    emptyHintSuffix: "y aquí verás la retroalimentación de tu docente.",
+    exerciseLabel: "Ejercicio",
+    handwrittenProcedure: "Procedimiento manuscrito",
+    statusPending: "En cola",
+    statusAIReviewed: "Revisado por IA",
+    statusValidated: "Calificado",
+    statusUnknown: "—",
+    submittedOn: "Enviado el {{date}}",
+    aiSuggests: "IA sugiere {{score}}",
+    katiaHigh: "¡Excelente trabajo! Tu procedimiento está muy bien resuelto. Sigue así.",
+    katiaMid: "Vas bien, pero hay detalles que pulir. Revisa los pasos donde te marcaron y vuelve a intentarlo.",
+    katiaLow: "Necesitamos repasar este tema juntas. Vuelve a la teoría y prueba un ejercicio más sencillo antes de reintentar.",
+    teacherComment: "Comentario del docente",
+    eloLabel: "ELO",
+    gradedOn: "Calificado el {{date}}",
+  },
+
+  // ── Reportar un problema ───────────────────────────────────────────────────
+  report: {
+    button: "Reportar un problema",
+    dialogTitle: "Reportar un problema",
+    description: "Cuéntanos qué pasó. Nuestro equipo lo revisará lo antes posible.",
+    closeModal: "Cerrar modal",
+    placeholder: "Describe el problema con tantos detalles como puedas (mínimo 10 caracteres)…",
+    descriptionAriaLabel: "Descripción del problema",
+    minCharsHint: "(mín. 10)",
+    cancel: "Cancelar",
+    sending: "Enviando…",
+    send: "Enviar",
+    success: "Reporte enviado. Gracias.",
+    failure: "No se pudo enviar el reporte.",
+  },
+
   // ── Procedimiento abierto ───────────────────────────────────────────────────
   procedure: {
     title: "Procedimiento abierto",

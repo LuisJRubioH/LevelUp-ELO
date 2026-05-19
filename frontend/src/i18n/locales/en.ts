@@ -170,6 +170,47 @@ const en: TranslationKeys = {
     join: "Join",
   },
 
+  // ── Feedback (procedure history) ───────────────────────────────────────────
+  feedback: {
+    title: "Feedback",
+    submissionsCount: "{{count}} submission(s)",
+    loadError: "Could not load your procedures. Retry.",
+    emptyTitle: "You haven't submitted any procedure yet.",
+    emptyHint: "Upload a photo from the",
+    emptySection: "Procedures",
+    emptyHintSuffix: "section and your teacher's feedback will appear here.",
+    exerciseLabel: "Exercise",
+    handwrittenProcedure: "Handwritten procedure",
+    statusPending: "Pending",
+    statusAIReviewed: "AI reviewed",
+    statusValidated: "Graded",
+    statusUnknown: "—",
+    submittedOn: "Submitted on {{date}}",
+    aiSuggests: "AI suggests {{score}}",
+    katiaHigh: "Excellent work! Your procedure is very well done. Keep it up.",
+    katiaMid: "You're doing well, but there are details to polish. Review the marked steps and try again.",
+    katiaLow: "We need to review this topic together. Go back to the theory and try a simpler exercise before retrying.",
+    teacherComment: "Teacher's comment",
+    eloLabel: "ELO",
+    gradedOn: "Graded on {{date}}",
+  },
+
+  // ── Report a problem ───────────────────────────────────────────────────────
+  report: {
+    button: "Report a problem",
+    dialogTitle: "Report a problem",
+    description: "Tell us what happened. Our team will review it as soon as possible.",
+    closeModal: "Close modal",
+    placeholder: "Describe the problem with as much detail as you can (minimum 10 characters)…",
+    descriptionAriaLabel: "Problem description",
+    minCharsHint: "(min. 10)",
+    cancel: "Cancel",
+    sending: "Sending…",
+    send: "Send",
+    success: "Report sent. Thanks.",
+    failure: "Could not send the report.",
+  },
+
   // ── Open procedure ─────────────────────────────────────────────────────────
   procedure: {
     title: "Open procedure",
