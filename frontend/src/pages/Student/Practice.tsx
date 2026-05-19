@@ -115,11 +115,21 @@ export function Practice() {
   };
 
   // Mostrar delta ELO al recibir respuesta + actualizar racha
+  // OJO: lastAnswer.eloAfter es el ELO del TÓPICO, no el ELO GLOBAL.
+  // El header (RankBadge) muestra ELO global, así que lo refrescamos desde
+  // /stats en lugar de pisarlo con el del tópico (causaba la inconsistencia
+  // entre sidebar 1022 vs feedback 1009).
   useEffect(() => {
     if (lastAnswer) {
       setDeltaElo(lastAnswer.deltaElo);
-      setGlobalElo(lastAnswer.eloAfter);
       setSubmitting(false);
+
+      studentApi.stats()
+        .then((s) => {
+          setGlobalElo(s.global_elo);
+          setRankLabel(s.rank_label ?? rankLabel);
+        })
+        .catch(() => {/* silencioso — siguiente respuesta volverá a intentar */});
 
       setConsecutiveCorrect((prev) => {
         const next = lastAnswer.isCorrect ? prev + 1 : 0;
@@ -129,7 +139,7 @@ export function Practice() {
         return next;
       });
     }
-  }, [lastAnswer]);
+  }, [lastAnswer]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const dismissStreakToast = useCallback(() => setStreakToast(null), []);
 
@@ -327,12 +337,16 @@ export function Practice() {
               {lastAnswer.isCorrect ? "✅ ¡Correcto!" : "❌ Incorrecto"}
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              ELO: {Math.round(lastAnswer.eloBefore)} →{" "}
+              {t("practice.topicEloLabel")} ({currentItem.topic}):{" "}
+              {Math.round(lastAnswer.eloBefore)} →{" "}
               <span className={lastAnswer.deltaElo >= 0 ? "text-green-400" : "text-red-400"}>
                 {Math.round(lastAnswer.eloAfter)}
               </span>{" "}
               ({lastAnswer.deltaElo >= 0 ? "+" : ""}
               {lastAnswer.deltaElo.toFixed(1)})
+            </p>
+            <p className="text-[10px] text-slate-500 mt-1 italic">
+              {t("practice.topicEloNote")}
             </p>
           </div>
 

@@ -103,6 +103,8 @@ const en: TranslationKeys = {
     katiaHelp: "🐱 Need help? Ask KatIA",
     hideChat: "Hide KatIA chat",
     question: "Question",
+    topicEloLabel: "ELO in this topic",
+    topicEloNote: "The global ELO in the header averages every topic; this only shows this topic's ELO.",
   },
 
   // ── Statistics ────────────────────────────────────────────────────────────────

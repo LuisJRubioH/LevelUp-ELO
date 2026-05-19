@@ -101,6 +101,8 @@ const es = {
     katiaHelp: "🐱 ¿Necesitas ayuda? Pregúntale a KatIA",
     hideChat: "Ocultar chat KatIA",
     question: "Pregunta",
+    topicEloLabel: "ELO en este tema",
+    topicEloNote: "El ELO global del header promedia todos los temas; aquí ves solo el de este tema.",
   },
 
   // ── Estadísticas ──────────────────────────────────────────────────────────────
