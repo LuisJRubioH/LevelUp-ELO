@@ -63,6 +63,9 @@ page-*.png
 
 # Carpetas de banners en bruto (las versiones publicadas viven en frontend/public/banners/)
 /Banners/
+# Originales user-supplied (fuentes para generate_banners.py — los finales con overlay LaTeX
+# se publican directamente en frontend/public/banners/<course_id>.png)
+frontend/public/banners/_originals/
 
 # Carpetas de trabajo ya integradas
 nuvos_bugs/
