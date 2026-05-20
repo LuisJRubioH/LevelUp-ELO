@@ -8,7 +8,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { teacherApi } from "../../api/teacher";
-import { studentApi } from "../../api/student";
 import { Button } from "../../components/ui/Button";
 
 function CopyButton({ text }: { text: string }) {
@@ -97,9 +96,11 @@ export function TeacherGroups() {
   });
 
   // Lista de cursos para el selector al crear grupo
+  // Usamos teacherApi.allCourses() para que el docente vea TODOS los cursos
+  // (Colegio, Universidad, Concursos, Semillero), no solo los de su nivel.
   const { data: allCourses = [] } = useQuery({
-    queryKey: ["all-courses"],
-    queryFn: () => studentApi.courses(),
+    queryKey: ["teacher-all-courses"],
+    queryFn: () => teacherApi.allCourses(),
     staleTime: 300_000,
   });
 
@@ -177,11 +178,31 @@ export function TeacherGroups() {
                 required
               >
                 <option value="">{t("teacherGroups.selectCourse")}</option>
-                {allCourses.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.block})
-                  </option>
-                ))}
+                {(() => {
+                  const blockOrder = ["Colegio", "Universidad", "Concursos", "Semillero"];
+                  const byBlock = new Map<string, typeof allCourses>();
+                  for (const c of allCourses) {
+                    const k = c.block || "Otros";
+                    if (!byBlock.has(k)) byBlock.set(k, [] as typeof allCourses);
+                    byBlock.get(k)!.push(c);
+                  }
+                  const sortedBlocks = [...byBlock.keys()].sort(
+                    (a, b) => blockOrder.indexOf(a) - blockOrder.indexOf(b),
+                  );
+                  return sortedBlocks.map((block) => (
+                    <optgroup key={block} label={block}>
+                      {byBlock
+                        .get(block)!
+                        .slice()
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                    </optgroup>
+                  ));
+                })()}
               </select>
             </div>
             {formError && <p className="text-red-400 text-xs">{formError}</p>}
