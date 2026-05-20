@@ -22,6 +22,8 @@ from api.schemas.teacher import (
     ApproveTeacherRequest,
     ChangeGroupRequest,
     CreateGroupRequest,
+    ExamAssignmentCreateRequest,
+    ExamAssignmentResponse,
     ExamTemplateCreateRequest,
     ExamTemplatePatchRequest,
     ExamTemplateResponse,
@@ -467,6 +469,79 @@ def archive_exam_template(template_id: int, user: CurrentUser, repo: RepoDep):
     if template["teacher_id"] != user["user_id"] and user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="No es tu plantilla.")
     repo.archive_exam_template(template_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ── Asignación de plantillas a grupos + ventana de tiempo ────────────────────
+
+
+def _ensure_owns_template(repo, template_id: int, user: dict) -> dict:
+    """Carga la plantilla y verifica autoría (o rol admin). Lanza HTTPException."""
+    template = repo.get_exam_template(template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Plantilla no encontrada.")
+    if template["teacher_id"] != user["user_id"] and user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="No es tu plantilla.")
+    return template
+
+
+@router.get(
+    "/exam-templates/{template_id}/assignments",
+    response_model=list[ExamAssignmentResponse],
+)
+def list_template_assignments(template_id: int, user: CurrentUser, repo: RepoDep):
+    """Lista a qué grupos está asignada esta plantilla y sus ventanas de tiempo."""
+    _ensure_owns_template(repo, template_id, user)
+    rows = repo.list_assignments_for_template(template_id)
+    return [ExamAssignmentResponse(**r) for r in rows]
+
+
+@router.post(
+    "/exam-templates/{template_id}/assignments",
+    response_model=list[ExamAssignmentResponse],
+    status_code=status.HTTP_201_CREATED,
+)
+def create_template_assignments(
+    template_id: int,
+    body: ExamAssignmentCreateRequest,
+    user: CurrentUser,
+    repo: RepoDep,
+):
+    """Asigna la plantilla a uno o varios grupos. Upsert por (template, group)."""
+    _ensure_owns_template(repo, template_id, user)
+    # Validar que el docente sea dueño de los grupos (o admin)
+    if user.get("role") != "admin":
+        teacher_groups = {g["group_id"] for g in repo.get_groups_by_teacher(user["user_id"])}
+        invalid = [gid for gid in body.group_ids if gid not in teacher_groups]
+        if invalid:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Grupos no autorizados: {invalid}",
+            )
+    for gid in body.group_ids:
+        repo.create_exam_assignment(
+            template_id=template_id,
+            group_id=gid,
+            starts_at=body.starts_at,
+            ends_at=body.ends_at,
+        )
+    rows = repo.list_assignments_for_template(template_id)
+    return [ExamAssignmentResponse(**r) for r in rows]
+
+
+@router.delete(
+    "/exam-templates/{template_id}/assignments/{assignment_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_template_assignment(
+    template_id: int,
+    assignment_id: int,
+    user: CurrentUser,
+    repo: RepoDep,
+):
+    """Elimina una asignación específica."""
+    _ensure_owns_template(repo, template_id, user)
+    repo.delete_exam_assignment(assignment_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

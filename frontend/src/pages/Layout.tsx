@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { PageTransition } from "../components/ui/PageTransition";
 import { authApi } from "../api/auth";
 import { api } from "../api/client";
+import { studentApi } from "../api/student";
 import { useAuthStore } from "../stores/authStore";
 import { useSettingsStore, PROVIDER_MODELS } from "../stores/settingsStore";
 import { useNotifications } from "../hooks/useNotifications";
@@ -131,6 +132,30 @@ export function Layout({ children }: LayoutProps) {
     },
   });
 
+  // Plantillas de examen pendientes (estudiantes) — polling cada 60s
+  const [pendingExamsCount, setPendingExamsCount] = useState(0);
+  useEffect(() => {
+    if (user?.role !== "student") {
+      setPendingExamsCount(0);
+      return;
+    }
+    let alive = true;
+    const refresh = async () => {
+      try {
+        const list = await studentApi.examPending();
+        if (alive) setPendingExamsCount(list.length);
+      } catch {
+        /* silencioso — un fallo no debe romper el layout */
+      }
+    };
+    refresh();
+    const id = setInterval(refresh, 60_000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, [user?.role, user?.user_id]);
+
   const navItems =
     user?.role === "admin" ? adminNav : user?.role === "teacher" ? teacherNav : studentNav;
 
@@ -185,7 +210,10 @@ export function Layout({ children }: LayoutProps) {
           {navItems.map((item) => {
             const active = location.pathname === item.path;
             const isProcedures = item.path.includes("procedures");
-            const showBadge = isProcedures && unreadCount > 0;
+            const isStudentExam = item.path === "/student/exam";
+            const procedureBadge = isProcedures && unreadCount > 0 ? unreadCount : 0;
+            const examBadge = isStudentExam && pendingExamsCount > 0 ? pendingExamsCount : 0;
+            const badgeCount = procedureBadge || examBadge;
             return (
               <Link
                 key={item.path}
@@ -203,12 +231,14 @@ export function Layout({ children }: LayoutProps) {
               >
                 <span aria-hidden="true">{item.icon}</span>
                 <span className="flex-1">{t(item.label)}</span>
-                {showBadge && (
+                {badgeCount > 0 && (
                   <span
                     className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
-                    aria-label={`${unreadCount > 99 ? t("layout.moreThan99") : unreadCount} ${t("layout.notifications")}`}
+                    aria-label={`${badgeCount > 99 ? t("layout.moreThan99") : badgeCount} ${
+                      isStudentExam ? t("layout.examPending") : t("layout.notifications")
+                    }`}
                   >
-                    {unreadCount > 99 ? "99+" : unreadCount}
+                    {badgeCount > 99 ? "99+" : badgeCount}
                   </span>
                 )}
               </Link>
@@ -374,7 +404,10 @@ export function Layout({ children }: LayoutProps) {
         {navItems.map((item) => {
           const active = location.pathname === item.path;
           const isProcedures = item.path.includes("procedures");
-          const showBadge = isProcedures && unreadCount > 0;
+          const isStudentExam = item.path === "/student/exam";
+          const procedureBadge = isProcedures && unreadCount > 0 ? unreadCount : 0;
+          const examBadge = isStudentExam && pendingExamsCount > 0 ? pendingExamsCount : 0;
+          const badgeCount = procedureBadge || examBadge;
           return (
             <Link
               key={item.path}
@@ -383,7 +416,13 @@ export function Layout({ children }: LayoutProps) {
                 if (isProcedures) clearUnread();
               }}
               aria-current={active ? "page" : undefined}
-              aria-label={showBadge ? `${t(item.label)}, ${unreadCount > 9 ? t("layout.moreThan9") : unreadCount} ${t("layout.notifications")}` : t(item.label)}
+              aria-label={
+                badgeCount > 0
+                  ? `${t(item.label)}, ${badgeCount > 9 ? t("layout.moreThan9") : badgeCount} ${
+                      isStudentExam ? t("layout.examPending") : t("layout.notifications")
+                    }`
+                  : t(item.label)
+              }
               className={[
                 "relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition-colors",
                 active ? "text-violet-300" : "text-slate-400 hover:text-slate-200",
@@ -391,12 +430,12 @@ export function Layout({ children }: LayoutProps) {
             >
               <span className="text-lg leading-none" aria-hidden="true">{item.icon}</span>
               <span className="truncate max-w-full px-1" aria-hidden="true">{t(item.label)}</span>
-              {showBadge && (
+              {badgeCount > 0 && (
                 <span
                   className="absolute top-1 right-1/4 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1"
                   aria-hidden="true"
                 >
-                  {unreadCount > 9 ? "9+" : unreadCount}
+                  {badgeCount > 9 ? "9+" : badgeCount}
                 </span>
               )}
             </Link>

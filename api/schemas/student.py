@@ -141,6 +141,17 @@ class ExamTemplateSummary(BaseModel):
     n_questions: int
     time_limit_min: int
     created_at: str
+    window_ends_at: str | None = None  # si la asignación tiene ends_at, lo expone
+
+
+class PendingExam(BaseModel):
+    """Resumen para el badge de notificación en el sidebar."""
+
+    template_id: int
+    title: str
+    course_id: str
+    course_name: str
+    time_limit_min: int
 
 
 class ExamStartResponse(BaseModel):

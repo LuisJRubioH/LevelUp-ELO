@@ -12,7 +12,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import katex from "katex";
 import "katex/dist/katex.min.css";
-import { teacherApi, type ExamTemplate, type ItemCatalogEntry } from "../../api/teacher";
+import {
+  teacherApi,
+  type ExamAssignment,
+  type ExamTemplate,
+  type Group,
+  type ItemCatalogEntry,
+} from "../../api/teacher";
 
 type Tab = "list" | "form";
 
@@ -77,6 +83,16 @@ export function TeacherExams() {
   const [formItemIds, setFormItemIds] = useState<string[]>([]);
   const [catalog, setCatalog] = useState<ItemCatalogEntry[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(false);
+
+  // Asignación a grupos
+  const [assigningTo, setAssigningTo] = useState<ExamTemplate | null>(null);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [assignments, setAssignments] = useState<ExamAssignment[]>([]);
+  const [assignGroupIds, setAssignGroupIds] = useState<number[]>([]);
+  const [assignStartsAt, setAssignStartsAt] = useState("");
+  const [assignEndsAt, setAssignEndsAt] = useState("");
+  const [assignSaving, setAssignSaving] = useState(false);
+  const [assignError, setAssignError] = useState("");
   const [filterTopic, setFilterTopic] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -165,6 +181,81 @@ export function TeacherExams() {
     } catch {
       setError(t("teacherExams.errorArchive"));
     }
+  };
+
+  // ── Modal de asignación a grupos ────────────────────────────────────────
+  const openAssign = async (tpl: ExamTemplate) => {
+    setAssigningTo(tpl);
+    setAssignError("");
+    setAssignGroupIds([]);
+    setAssignStartsAt("");
+    setAssignEndsAt("");
+    try {
+      const [grps, assigns] = await Promise.all([
+        teacherApi.groups(),
+        teacherApi.listAssignments(tpl.id),
+      ]);
+      setGroups(grps);
+      setAssignments(assigns);
+    } catch {
+      setAssignError(t("teacherExams.errorLoadAssignments"));
+    }
+  };
+
+  const closeAssign = () => {
+    setAssigningTo(null);
+    setAssignments([]);
+    setAssignGroupIds([]);
+    setAssignStartsAt("");
+    setAssignEndsAt("");
+    setAssignError("");
+  };
+
+  const submitAssignments = async () => {
+    if (!assigningTo || assignGroupIds.length === 0) {
+      setAssignError(t("teacherExams.errorAssignNoGroups"));
+      return;
+    }
+    setAssignSaving(true);
+    setAssignError("");
+    try {
+      const updated = await teacherApi.createAssignments(assigningTo.id, {
+        group_ids: assignGroupIds,
+        starts_at: assignStartsAt ? new Date(assignStartsAt).toISOString() : null,
+        ends_at: assignEndsAt ? new Date(assignEndsAt).toISOString() : null,
+      });
+      setAssignments(updated);
+      setAssignGroupIds([]);
+      setAssignStartsAt("");
+      setAssignEndsAt("");
+    } catch (e) {
+      setAssignError(e instanceof Error ? e.message : t("teacherExams.errorAssignSave"));
+    } finally {
+      setAssignSaving(false);
+    }
+  };
+
+  const removeAssignment = async (assignmentId: number) => {
+    if (!assigningTo) return;
+    if (!confirm(t("teacherExams.confirmRemoveAssignment"))) return;
+    try {
+      await teacherApi.deleteAssignment(assigningTo.id, assignmentId);
+      setAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
+    } catch {
+      setAssignError(t("teacherExams.errorRemoveAssignment"));
+    }
+  };
+
+  const formatDateTime = (iso: string | null): string => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    return d.toLocaleString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const submitForm = async () => {
@@ -297,6 +388,12 @@ export function TeacherExams() {
                       )}
                     </p>
                   </div>
+                  <button
+                    onClick={() => openAssign(tpl)}
+                    className="text-xs text-emerald-400 hover:text-emerald-300 px-2 py-1"
+                  >
+                    {t("teacherExams.assign")}
+                  </button>
                   <button
                     onClick={() => startEdit(tpl)}
                     className="text-xs text-violet-400 hover:text-violet-300 px-2 py-1"
@@ -455,6 +552,172 @@ export function TeacherExams() {
                 })}
               </ul>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL DE ASIGNACIÓN A GRUPOS ──────────────────────────────────── */}
+      {assigningTo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={closeAssign}
+          role="dialog"
+          aria-label={t("teacherExams.assignModalTitle")}
+        >
+          <div
+            className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-5 border-b border-slate-700 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-bold text-slate-100">
+                  {t("teacherExams.assignModalTitle")}
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">
+                  {t("teacherExams.assignModalSubtitle", { title: assigningTo.title })}
+                </p>
+              </div>
+              <button
+                onClick={closeAssign}
+                className="text-slate-400 hover:text-slate-200 text-2xl leading-none"
+                aria-label={t("teacherExams.close")}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-5 space-y-5">
+              {assignError && (
+                <div className="text-sm text-red-400 bg-red-900/20 border border-red-800/40 rounded px-3 py-2">
+                  {assignError}
+                </div>
+              )}
+
+              {/* Asignaciones existentes */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-200 mb-2">
+                  {t("teacherExams.currentAssignments")}
+                </h3>
+                {assignments.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic">
+                    {t("teacherExams.noAssignments")}
+                  </p>
+                ) : (
+                  <ul className="space-y-1.5">
+                    {assignments.map((a) => (
+                      <li
+                        key={a.id}
+                        className="flex items-center justify-between gap-3 bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm text-slate-200 font-medium truncate">
+                            👥 {a.group_name}
+                          </p>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            {t("teacherExams.from")} {formatDateTime(a.starts_at)}{" "}
+                            · {t("teacherExams.until")} {formatDateTime(a.ends_at)}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => removeAssignment(a.id)}
+                          className="text-xs text-red-400 hover:text-red-300 px-2 py-1 shrink-0"
+                          aria-label={t("teacherExams.removeAssignment")}
+                        >
+                          ✕
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Nueva asignación */}
+              <div className="border-t border-slate-700 pt-5">
+                <h3 className="text-sm font-semibold text-slate-200 mb-3">
+                  {t("teacherExams.addAssignment")}
+                </h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1.5">
+                      {t("teacherExams.assignGroupsLabel")}
+                    </label>
+                    {groups.length === 0 ? (
+                      <p className="text-xs text-slate-500 italic">
+                        {t("teacherExams.noGroupsAvailable")}
+                      </p>
+                    ) : (
+                      <div className="space-y-1 max-h-32 overflow-y-auto bg-slate-800/40 border border-slate-700 rounded-lg p-2">
+                        {groups.map((g) => {
+                          const checked = assignGroupIds.includes(g.group_id);
+                          return (
+                            <label
+                              key={g.group_id}
+                              className="flex items-center gap-2 px-2 py-1 rounded hover:bg-slate-800 cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => {
+                                  setAssignGroupIds((prev) =>
+                                    prev.includes(g.group_id)
+                                      ? prev.filter((id) => id !== g.group_id)
+                                      : [...prev, g.group_id],
+                                  );
+                                }}
+                                className="accent-violet-500"
+                              />
+                              <span className="text-sm text-slate-200">{g.name}</span>
+                              <span className="text-[10px] text-slate-500 ml-auto">
+                                {g.student_count} {t("teacherExams.studentsShort")}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1.5">
+                        {t("teacherExams.startsAt")}
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={assignStartsAt}
+                        onChange={(e) => setAssignStartsAt(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200"
+                      />
+                      <p className="text-[10px] text-slate-500 mt-1">
+                        {t("teacherExams.emptyIsNow")}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1.5">
+                        {t("teacherExams.endsAt")}
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={assignEndsAt}
+                        onChange={(e) => setAssignEndsAt(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200"
+                      />
+                      <p className="text-[10px] text-slate-500 mt-1">
+                        {t("teacherExams.emptyIsOpen")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={submitAssignments}
+                    disabled={assignSaving || assignGroupIds.length === 0}
+                    className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                  >
+                    {assignSaving ? t("teacherExams.saving") : t("teacherExams.saveAssignments")}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

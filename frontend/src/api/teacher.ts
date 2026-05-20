@@ -225,7 +225,35 @@ export const teacherApi = {
     api.get<ItemCatalogEntry[]>(
       `/api/teacher/items?course_id=${encodeURIComponent(course_id)}`,
     ),
+
+  // ── Asignación de plantillas a grupos + ventana de tiempo ──────────────
+  listAssignments: (template_id: number) =>
+    api.get<ExamAssignment[]>(`/api/teacher/exam-templates/${template_id}/assignments`),
+
+  createAssignments: (
+    template_id: number,
+    body: { group_ids: number[]; starts_at?: string | null; ends_at?: string | null },
+  ) =>
+    api.post<ExamAssignment[]>(
+      `/api/teacher/exam-templates/${template_id}/assignments`,
+      body,
+    ),
+
+  deleteAssignment: (template_id: number, assignment_id: number) =>
+    api.delete<void>(
+      `/api/teacher/exam-templates/${template_id}/assignments/${assignment_id}`,
+    ),
 };
+
+export interface ExamAssignment {
+  id: number;
+  template_id: number;
+  group_id: number;
+  group_name: string;
+  starts_at: string | null;
+  ends_at: string | null;
+  created_at: string;
+}
 
 export interface ExamTemplate {
   id: number;

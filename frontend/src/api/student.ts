@@ -103,6 +103,15 @@ export interface ExamTemplateSummary {
   n_questions: number;
   time_limit_min: number;
   created_at: string;
+  window_ends_at?: string | null;
+}
+
+export interface PendingExam {
+  template_id: number;
+  title: string;
+  course_id: string;
+  course_name: string;
+  time_limit_min: number;
 }
 
 export const studentApi = {
@@ -173,6 +182,8 @@ export const studentApi = {
     api.get<ExamTemplateSummary[]>(
       `/api/student/exam/templates?course_id=${encodeURIComponent(course_id)}`,
     ),
+
+  examPending: () => api.get<PendingExam[]>("/api/student/exam/pending"),
 
   activity: (days = 70) =>
     api.get<{ activity: Record<string, number> }>(`/api/student/activity?days=${days}`),

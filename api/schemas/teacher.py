@@ -135,6 +135,30 @@ class ExamTemplateResponse(BaseModel):
     created_at: str
 
 
+class ExamAssignmentCreateRequest(BaseModel):
+    """Asigna una plantilla a uno o varios grupos con ventana de tiempo opcional."""
+
+    group_ids: list[int] = Field(..., min_length=1, max_length=50)
+    starts_at: str | None = Field(
+        default=None,
+        description="ISO datetime UTC. None = abierto desde ya.",
+    )
+    ends_at: str | None = Field(
+        default=None,
+        description="ISO datetime UTC. None = sin fecha de cierre.",
+    )
+
+
+class ExamAssignmentResponse(BaseModel):
+    id: int
+    template_id: int
+    group_id: int
+    group_name: str
+    starts_at: str | None
+    ends_at: str | None
+    created_at: str
+
+
 class ItemCatalogEntry(BaseModel):
     """Resumen de item para que el docente lo seleccione al armar el examen."""
 

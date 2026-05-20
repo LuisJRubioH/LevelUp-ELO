@@ -1,3 +1,4 @@
+import json
 import os
 import sqlite3
 import logging
@@ -644,6 +645,32 @@ class SQLiteRepository:
 
         # v7 — Sprint C: examen manual del docente (vincula sessions con templates).
         self._add_column_if_not_exists(cursor, "exam_sessions", "exam_template_id", "INTEGER")
+
+        # ── Tabla exam_assignments (asignaciones a grupos + ventana de tiempo) ──
+        # Sin filas para un template => visible a todos los inscritos al curso
+        # (backward-compat con plantillas creadas antes de esta tabla).
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS exam_assignments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                template_id INTEGER NOT NULL,
+                group_id INTEGER NOT NULL,
+                starts_at TEXT,
+                ends_at TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (template_id, group_id),
+                FOREIGN KEY (template_id) REFERENCES exam_templates(id) ON DELETE CASCADE,
+                FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_exam_assignments_template "
+            "ON exam_assignments(template_id)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_exam_assignments_group " "ON exam_assignments(group_id)"
+        )
 
         conn.commit()
         conn.close()
@@ -4093,3 +4120,155 @@ class SQLiteRepository:
         affected = cursor.rowcount
         conn.close()
         return affected > 0
+
+    # ── Asignación de plantillas a grupos + ventana de tiempo ────────────────
+
+    def create_exam_assignment(
+        self,
+        template_id: int,
+        group_id: int,
+        starts_at: str | None = None,
+        ends_at: str | None = None,
+    ) -> int:
+        """Asigna una plantilla a un grupo. ISO strings o None."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO exam_assignments (template_id, group_id, starts_at, ends_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(template_id, group_id) DO UPDATE
+              SET starts_at = excluded.starts_at,
+                  ends_at = excluded.ends_at
+            """,
+            (template_id, group_id, starts_at, ends_at),
+        )
+        cursor.execute(
+            "SELECT id FROM exam_assignments WHERE template_id=? AND group_id=?",
+            (template_id, group_id),
+        )
+        row = cursor.fetchone()
+        conn.commit()
+        conn.close()
+        return int(row[0])
+
+    def delete_exam_assignment(self, assignment_id: int) -> bool:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM exam_assignments WHERE id = ?", (assignment_id,))
+        conn.commit()
+        affected = cursor.rowcount
+        conn.close()
+        return affected > 0
+
+    def list_assignments_for_template(self, template_id: int) -> list[dict]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT ea.id, ea.template_id, ea.group_id, g.name,
+                   ea.starts_at, ea.ends_at, ea.created_at
+            FROM exam_assignments ea
+            JOIN groups g ON g.id = ea.group_id
+            WHERE ea.template_id = ?
+            ORDER BY ea.created_at DESC
+            """,
+            (template_id,),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {
+                "id": r[0],
+                "template_id": r[1],
+                "group_id": r[2],
+                "group_name": r[3],
+                "starts_at": r[4],
+                "ends_at": r[5],
+                "created_at": r[6],
+            }
+            for r in rows
+        ]
+
+    def list_active_templates_for_student(
+        self,
+        user_id: int,
+        course_id: str,
+    ) -> list[dict]:
+        """Plantillas activas visibles a un estudiante en un curso (SQLite)."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT et.id, et.title, et.course_id, et.item_ids,
+                   et.time_limit_min, et.created_at,
+                   MAX(ea.ends_at) AS window_ends_at
+            FROM exam_templates et
+            LEFT JOIN exam_assignments ea
+                ON ea.template_id = et.id
+               AND ea.group_id = (SELECT group_id FROM users WHERE id = ?)
+               AND (ea.starts_at IS NULL OR ea.starts_at <= datetime('now'))
+               AND (ea.ends_at IS NULL OR ea.ends_at >= datetime('now'))
+            WHERE et.archived = 0
+              AND et.course_id = ?
+              AND (
+                NOT EXISTS (SELECT 1 FROM exam_assignments WHERE template_id = et.id)
+                OR ea.id IS NOT NULL
+              )
+            GROUP BY et.id
+            ORDER BY et.created_at DESC
+            """,
+            (user_id, course_id),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {
+                "id": r[0],
+                "title": r[1],
+                "course_id": r[2],
+                "item_ids": json.loads(r[3]) if r[3] else [],
+                "time_limit_min": r[4],
+                "created_at": r[5],
+                "window_ends_at": r[6],
+            }
+            for r in rows
+        ]
+
+    def list_pending_exams_for_student(self, user_id: int) -> list[dict]:
+        """Resumen de plantillas pendientes en todos los cursos inscritos."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT et.id, et.title, et.course_id, c.name, et.time_limit_min
+            FROM exam_templates et
+            JOIN enrollments en
+                ON en.course_id = et.course_id AND en.user_id = ?
+            JOIN courses c ON c.id = et.course_id
+            LEFT JOIN exam_assignments ea
+                ON ea.template_id = et.id
+               AND ea.group_id = (SELECT group_id FROM users WHERE id = ?)
+               AND (ea.starts_at IS NULL OR ea.starts_at <= datetime('now'))
+               AND (ea.ends_at IS NULL OR ea.ends_at >= datetime('now'))
+            WHERE et.archived = 0
+              AND (
+                NOT EXISTS (SELECT 1 FROM exam_assignments WHERE template_id = et.id)
+                OR ea.id IS NOT NULL
+              )
+            ORDER BY et.created_at DESC
+            """,
+            (user_id, user_id),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {
+                "template_id": r[0],
+                "title": r[1],
+                "course_id": r[2],
+                "course_name": r[3],
+                "time_limit_min": r[4],
+            }
+            for r in rows
+        ]

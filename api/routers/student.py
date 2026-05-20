@@ -35,6 +35,7 @@ from api.schemas.student import (
     ItemResponse,
     NextQuestionRequest,
     NextQuestionResponse,
+    PendingExam,
     ProcedureSubmitResponse,
     StudentStatsResponse,
     TopicELO,
@@ -624,8 +625,14 @@ def list_exam_templates_for_student(
     user: CurrentUser,
     course_id: str,
 ):
-    """Plantillas de examen creadas por el docente para este curso."""
-    templates = repo.list_exam_templates(course_id=course_id, include_archived=False)
+    """Plantillas de examen visibles a este estudiante en el curso.
+
+    Filtrado por:
+    - Plantilla NO archivada del curso indicado
+    - Y: no tiene asignaciones (legacy/abierta) → visible a todos los inscritos
+    -    O: hay una asignación al grupo del estudiante con ventana activa
+    """
+    templates = repo.list_active_templates_for_student(user_id=user["user_id"], course_id=course_id)
     return [
         ExamTemplateSummary(
             id=t["id"],
@@ -634,9 +641,20 @@ def list_exam_templates_for_student(
             n_questions=len(t["item_ids"]),
             time_limit_min=t["time_limit_min"],
             created_at=t["created_at"],
+            window_ends_at=t.get("window_ends_at"),
         )
         for t in templates
     ]
+
+
+@router.get("/exam/pending", response_model=list[PendingExam])
+def list_pending_exams(repo: RepoDep, user: CurrentUser):
+    """Plantillas pendientes para el estudiante en TODOS sus cursos inscritos.
+
+    Se usa para el badge de notificación en el sidebar.
+    """
+    rows = repo.list_pending_exams_for_student(user_id=user["user_id"])
+    return [PendingExam(**r) for r in rows]
 
 
 @router.post("/exam/start", response_model=ExamStartResponse)
