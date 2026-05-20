@@ -91,3 +91,6 @@ skills-lock.json
 # Modelos ML entrenados (binarios, no versionables)
 models/*.pkl
 models/*.json
+
+# Backups de base de datos (contienen PII — nunca subir al repo)
+backups/
