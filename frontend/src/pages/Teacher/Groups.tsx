@@ -179,7 +179,21 @@ export function TeacherGroups() {
               >
                 <option value="">{t("teacherGroups.selectCourse")}</option>
                 {(() => {
-                  const blockOrder = ["Colegio", "Universidad", "Concursos", "Semillero"];
+                  // Orden pedagógico: Colegio → Universidad → Concursos → Semillero
+                  // (genérico) → Semillero 6° → 7° → 8° → 9° → 10° → 11°.
+                  // Cualquier otro bloque va al final.
+                  const blockRank = (block: string): number => {
+                    const base: Record<string, number> = {
+                      Colegio: 0,
+                      Universidad: 1,
+                      Concursos: 2,
+                      Semillero: 3,
+                    };
+                    if (block in base) return base[block];
+                    const m = block.match(/Semillero\s*(\d+)/);
+                    if (m) return 100 + parseInt(m[1], 10); // 106..111
+                    return 999;
+                  };
                   const byBlock = new Map<string, typeof allCourses>();
                   for (const c of allCourses) {
                     const k = c.block || "Otros";
@@ -187,7 +201,7 @@ export function TeacherGroups() {
                     byBlock.get(k)!.push(c);
                   }
                   const sortedBlocks = [...byBlock.keys()].sort(
-                    (a, b) => blockOrder.indexOf(a) - blockOrder.indexOf(b),
+                    (a, b) => blockRank(a) - blockRank(b) || a.localeCompare(b),
                   );
                   return sortedBlocks.map((block) => (
                     <optgroup key={block} label={block}>

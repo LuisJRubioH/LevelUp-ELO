@@ -17,9 +17,13 @@ export default defineConfig({
         description: "Practica matemáticas con ELO adaptativo y tutoría socrática de KatIA",
         theme_color: "#7c3aed",
         background_color: "#0f172a",
-        display: "standalone",
+        // display: "browser" + start_url: "/login" hace que el navegador
+        // NO ofrezca instalar la app (los estudiantes y docentes se confundían
+        // con el banner "Instalar LevelUp ELO"). Service worker sigue activo
+        // para caché de assets, pero la plataforma se usa solo desde browser.
+        display: "browser",
         orientation: "portrait",
-        start_url: "/student",
+        start_url: "/login",
         scope: "/",
         icons: [
           {

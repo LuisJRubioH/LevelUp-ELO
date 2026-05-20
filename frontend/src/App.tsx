@@ -14,7 +14,6 @@ import { Layout } from "./pages/Layout";
 import { Login } from "./pages/Login";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { PageSkeleton } from "./components/ui/PageSkeleton";
-import { PWAPrompt } from "./components/ui/PWAPrompt";
 
 // Estudiante — cargado bajo demanda
 const Practice = lazy(() =>
@@ -135,7 +134,6 @@ export default function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <Router>
-          <PWAPrompt />
           <Suspense fallback={<PageSkeleton />}>
             <Routes>
               {/* Público */}
