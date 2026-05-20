@@ -1,7 +1,7 @@
 # Plan V2 — LevelUp-ELO: React + FastAPI
 
-Fecha: 2026-04-14 (última revisión 2026-05-19)
-Estado: **Sprints 1-8 + Sprint C completos + QA mayo 2026 + sesión de pulido 2026-05-19 (i18n completo, banners unificados, fix consistencia ELO) — V2 lista para etiquetar `v2.0.1`**
+Fecha: 2026-04-14 (última revisión 2026-05-20)
+Estado: **Sprints 1-8 + Sprint C completos + QA mayo 2026 + sesión de pulido 2026-05-19 (`v2.0.1`) + sesión 2026-05-20 (`v2.1.0`): asignación de exámenes por grupo con ventana de tiempo + badge de notificación + guías PDF para usuarios.**
 
 ## Contexto
 
@@ -329,3 +329,127 @@ Cobertura previa: solo Login + Sidebar + Practice. Cerrado en esta sesión:
 - [x] Teacher Dashboard: grupos, tabs, tabla, filtros, métricas con chart de actividad diaria — todo en ES y EN
 
 **Sin bugs nuevos encontrados.** Cambios desplegados en Vercel + Render.
+
+## Sesión 2026-05-20 — Exámenes asignables por grupo + badge + guías PDF (`v2.1.0`)
+
+Sesión previa a una prueba real con estudiantes (6 pm hora Colombia). Tres frentes cerrados (commits `607522c` → `baeb472`).
+
+### 1. Limpieza de DB para empezar desde cero
+
+El dueño reportó inconsistencias en los usuarios reales acumulados durante QA. Se decidió **vaciar la base** y arrancar la sesión de tarde con cuentas frescas creadas por los propios estudiantes.
+
+- **Backup completo a archivo SQL local** (`backups/db-backup-2026-05-20.sql`, 65 MB, 4745 filas) generado con `backups/_dump.py` — script reutilizable con parseo manual de `DATABASE_URL` para evitar choque con caracteres especiales (`%`) en la password.
+- **TRUNCATE CASCADE** de 12 tablas de datos vía MCP Supabase: `users`, `groups`, `attempts`, `sessions`, `enrollments`, `student_topic_elo`, `procedure_submissions`, `katia_interactions`, `problem_reports`, `audit_group_changes`, `weekly_rankings`, `exam_sessions`. Preservadas: `items` (2002), `courses` (54), `exam_templates`, `achievements` (vacía como instancias; el catálogo vive en código).
+- **`backups/` agregado al `.gitignore`** para no subir PII al repo público.
+- Al despertar Render por el ping inicial, `init_db()` re-sembró `admin` + `profesor1` + `estudiante1/2` + `estudiante_*_N` (test users con `is_test_user=1`). Comportamiento idempotente, como esperado.
+
+### 2. Feature: `exam_assignments` — visibilidad granular por grupo + ventana de tiempo
+
+**Limitación pre-existente:** una plantilla de examen creada por el docente quedaba visible a todos los estudiantes inscritos al curso, sin posibilidad de filtrar por grupo, programar fechas o notificar al estudiante.
+
+#### Modelo de datos (aditivo)
+
+```sql
+CREATE TABLE exam_assignments (
+    id           SERIAL PRIMARY KEY,
+    template_id  INTEGER NOT NULL REFERENCES exam_templates(id) ON DELETE CASCADE,
+    group_id     INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    starts_at    TIMESTAMP NULL,
+    ends_at      TIMESTAMP NULL,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (template_id, group_id)
+);
+```
+
+**Backward-compat:** una plantilla SIN asignaciones es visible a todos los inscritos del curso (comportamiento previo). Una plantilla CON asignaciones es visible solo a los grupos asignados dentro de su ventana de tiempo.
+
+#### Lógica de visibilidad (SQL)
+
+```sql
+SELECT et.* FROM exam_templates et
+LEFT JOIN exam_assignments ea
+  ON ea.template_id = et.id
+ AND ea.group_id = (SELECT group_id FROM users WHERE id = :user_id)
+ AND (ea.starts_at IS NULL OR ea.starts_at <= NOW())
+ AND (ea.ends_at IS NULL OR ea.ends_at >= NOW())
+WHERE et.archived = FALSE
+  AND et.course_id = :course_id
+  AND (
+    NOT EXISTS (SELECT 1 FROM exam_assignments WHERE template_id = et.id)
+    OR ea.id IS NOT NULL
+  )
+```
+
+#### Cambios en repositorios (dual DB R1)
+
+| Método | postgres_repository.py | sqlite_repository.py |
+|---|---|---|
+| `create_exam_assignment(template_id, group_id, starts_at, ends_at)` | ✓ upsert con `ON CONFLICT` | ✓ upsert con `ON CONFLICT` (placeholder `excluded.`) |
+| `delete_exam_assignment(assignment_id)` | ✓ | ✓ |
+| `list_assignments_for_template(template_id)` | ✓ JOIN con `groups` para nombre | ✓ |
+| `list_active_templates_for_student(user_id, course_id)` | ✓ | ✓ (usa `datetime('now')`) |
+| `list_pending_exams_for_student(user_id)` | ✓ multi-curso para badge | ✓ |
+
+#### Endpoints nuevos
+
+| Método | Path | Cliente |
+|---|---|---|
+| GET | `/api/teacher/exam-templates/{id}/assignments` | `teacherApi.listAssignments(id)` |
+| POST | `/api/teacher/exam-templates/{id}/assignments` | `teacherApi.createAssignments(id, body)` |
+| DELETE | `/api/teacher/exam-templates/{id}/assignments/{aid}` | `teacherApi.deleteAssignment(id, aid)` |
+| GET | `/api/student/exam/pending` | `studentApi.examPending()` (badge) |
+
+`/api/student/exam/templates?course_id=X` modificado: ahora usa `list_active_templates_for_student` en lugar del listado plano, aplicando la lógica de visibilidad.
+
+#### UI docente — modal de asignación en `Teacher/Exams.tsx`
+
+- Botón verde **Assign** en cada fila de plantilla, entre Edit y Archive.
+- Modal con `role="dialog"` y `aria-label`:
+  - Sección "Current assignments" con lista y botón ✕ para quitar.
+  - Sección "Add assignment": multi-select de grupos del docente (checkboxes), datetime-local para From / Until, contadores de estudiantes por grupo.
+  - Validación backend: el docente solo puede asignar a sus propios grupos (`get_groups_by_teacher`); admin bypassa.
+- Modal cierra con clic fuera, botón ✕ o no-bubble en cambios internos (`stopPropagation`).
+
+#### UI estudiante — badge de notificación en `Layout.tsx`
+
+- `useEffect` que llama `studentApi.examPending()` cada 60s (solo para rol `student`).
+- Sobre el ítem **Exam** del sidebar: badge rojo con conteo numérico.
+- Mismo badge replicado en bottom nav móvil con `aria-label` accesible.
+- Mensaje i18n: `layout.examPending` ("examen(es) pendiente(s)" / "pending exam(s)").
+
+#### i18n — 24 claves nuevas en `teacherExams.*` + `layout.examPending`
+
+ES y EN: `assign`, `assignModalTitle`, `assignModalSubtitle`, `close`, `currentAssignments`, `noAssignments`, `addAssignment`, `assignGroupsLabel`, `noGroupsAvailable`, `startsAt`, `endsAt`, `emptyIsNow`, `emptyIsOpen`, `saveAssignments`, `studentsShort`, `from`, `until`, `removeAssignment`, `confirmRemoveAssignment`, `errorAssignNoGroups`, `errorAssignSave`, `errorLoadAssignments`, `errorRemoveAssignment`.
+
+#### Bug encontrado durante QA en producción
+
+- **Síntoma:** `GET /api/student/exam/templates?course_id=X` → 500 Internal Server Error → CORS error visible en consola del frontend (las respuestas 500 no incluyen `Access-Control-Allow-Origin`).
+- **Causa raíz:** `list_active_templates_for_student` y `list_pending_exams_for_student` usaban `json.loads(r["item_ids"])` pero `json` no estaba importado a nivel de módulo en `postgres_repository.py`. El resto del archivo usa el patrón `import json` LOCAL en cada función (regla R14 CLAUDE.md). Mi código nuevo no lo seguía.
+- **Fix:** `import json` global en línea 1 de `postgres_repository.py` (commit `baeb472`). No interfiere con los imports locales existentes (son redundantes pero válidos).
+- **Lección:** seguir el patrón establecido del módulo, o al menos validar localmente con un script de smoke-test que invoque cada método nuevo contra la DB antes del deploy.
+
+#### Verificación QA en producción (Playwright)
+
+| Check | Resultado |
+|---|---|
+| Login `profesor1` → Exams → Create exam | ✓ |
+| Click **Assign** abre modal con 4 grupos | ✓ |
+| Marcar "Grupo Demo - Álgebra" + asignar | ✓ persistido (`exam_assignments(id=1, template_id=2, group_id=2)`) |
+| Lista "Current assignments" actualizada | ✓ |
+| Sign out, login `estudiante2` (grupo 2) | ✓ |
+| Badge rojo "1" sobre Exam en sidebar | ✓ |
+| Página Exam → toggle "From teacher (1)" | ✓ |
+| Dropdown muestra "Prueba grupos QA · 2 · 20 min" | ✓ value=2 |
+
+### 3. Guías PDF auto-contenidas para usuarios finales
+
+`scripts/generate_user_guides.py` produce dos PDFs con `reportlab`:
+
+- **`guia_docente.pdf`** (91 KB · 5 páginas): panel principal, gestión de grupos, revisión de procedimientos, creación de exámenes manuales con asignación, análisis individual, descarga de reportes (CSV/XLSX), métricas globales, buenas prácticas pedagógicas, resolución de problemas comunes.
+- **`guia_estudiante.pdf`** (90 KB · 5 páginas): registro, inscripción a cursos, sala de práctica con KatIA, subida de procedimientos (vinculados + open), estadísticas, modo examen (standard vs from teacher), KatIA socrática, configuración personal, consejos pedagógicos.
+
+Técnicamente: fuente Segoe UI registrada como TTF para soporte UTF-8 completo (caracteres `→`, `±`, etc.), Consolas para fórmulas, callouts con borde lateral de color (acento/éxito/warning/danger), tablas con grid sutil, header morado con paleta V2 (`#6C63FF`), footer con número de página.
+
+### Estado de la sesión
+
+Backend, frontend, DB y docs alineados con la nueva feature. **V2 lista para etiquetar `v2.1.0`** después de la prueba real de hoy 6 pm.

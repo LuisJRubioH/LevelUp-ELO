@@ -3,7 +3,7 @@
 > Plataforma de evaluación y aprendizaje adaptativo basada en el sistema de rating **ELO** — el mismo del ajedrez competitivo — aplicado a la educación matemática.
 
 [![CI](https://github.com/LuisJRubioH/LevelUp-ELO/actions/workflows/ci.yml/badge.svg)](https://github.com/LuisJRubioH/LevelUp-ELO/actions/workflows/ci.yml)
-[![Versión](https://img.shields.io/badge/versión-2.0.1-blue)](https://github.com/LuisJRubioH/LevelUp-ELO)
+[![Versión](https://img.shields.io/badge/versión-2.1.0-blue)](https://github.com/LuisJRubioH/LevelUp-ELO)
 [![Python](https://img.shields.io/badge/python-3.11+-green)](https://www.python.org/)
 [![React](https://img.shields.io/badge/react-19-61DAFB)](https://react.dev/)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-orange)](LICENSE)
@@ -403,6 +403,15 @@ Capturas reportadas por estudiantes durante uso real. 13 bugs cerrados en 10 com
 - **Banners unificados con LaTeX mathtext:** los 14 banners ahora son 1536×672 idénticos (16:7) con fórmula matemática crisp anti-aliased renderizada por `matplotlib.mathtext` y backdrop semi-transparente. Modo `base_image` en `scripts/generate_banners.py` para preservar arte user-supplied y aplicar overlay LaTeX (originales en `_originals/` gitignored). Gradiente del componente React reducido (`h-1/3/0.85` → `h-[18%]/0.45`) para no oscurecer la ecuación. Verificación QA en producción con Playwright sin hallazgos.
 
 Ver plan detallado en [`docs/v2-plan.md`](docs/v2-plan.md) y documentación técnica en [`docs/v2-tecnico.md`](docs/v2-tecnico.md).
+
+### V2.1.0 (mayo 2026 — exámenes asignables + guías PDF)
+
+Sesión `2026-05-20` previa a prueba real con estudiantes. 3 commits (`607522c` → `baeb472`):
+
+- **Exámenes asignables por grupo con ventana de tiempo:** nueva tabla aditiva `exam_assignments(template_id, group_id, starts_at, ends_at)` + 4 endpoints (3 docente + 1 estudiante para badge). Backward-compat: plantillas sin asignaciones siguen visibles a todos los inscritos del curso. Modal en `Teacher/Exams.tsx` con multi-select de grupos + datetime-local From/Until. Polling cada 60s en `Layout.tsx` para alimentar badge rojo con conteo sobre el ítem Exam del sidebar (también en bottom nav móvil). 24 claves nuevas en i18n ES/EN. Verificación end-to-end en producción con Playwright.
+- **Fix:** `import json` faltante en `postgres_repository.py` rompía `/api/student/exam/templates` con 500 silencioso (los nuevos métodos siguen la regla R14 pero el patrón global del repo era importar localmente; ahora ambos válidos).
+- **Guías PDF auto-contenidas:** `guia_docente.pdf` y `guia_estudiante.pdf` (Segoe UI, paleta V2, callouts con borde lateral de color, generadas por `scripts/generate_user_guides.py`). Cubren cada funcionalidad real con ejemplos y consejos pedagógicos.
+- **DB reseteada** desde cero antes de la sesión real (backup completo en `backups/` gitignoreado; TRUNCATE CASCADE de 12 tablas; preservados items/courses; re-seed automático de admin + test users al reiniciar Render).
 
 ---
 
