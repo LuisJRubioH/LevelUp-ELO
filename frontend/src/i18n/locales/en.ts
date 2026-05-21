@@ -87,6 +87,11 @@ const en: TranslationKeys = {
   practice: {
     title: "Practice Room",
     subtitle: "Select a course to start.",
+    subtitleAvailable: "Select a course to enroll and start.",
+    availableMore: "Other courses available for your level",
+    availableEnroll: "Courses available for your level",
+    enrollAndStart: "Enroll and start →",
+    enrolling: "Enrolling...",
     loadingCourses: "Loading courses...",
     noCourses: "You are not enrolled in any course yet.",
     browseCourses: "→ Browse course catalog",

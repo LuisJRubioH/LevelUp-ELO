@@ -39,8 +39,13 @@ export function Practice() {
     useStudentSession();
   const { apiKey, provider } = useSettingsStore();
 
-  const [courses, setCourses] = useState<Course[]>([]);
+  // Cursos matriculados (enrolled=true) y disponibles (enrolled=false).
+  // Mostramos AMBOS en la pantalla inicial: matriculados primero (entrada
+  // directa a sesión) y disponibles abajo (matrícula + entrada en un click).
+  const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
+  const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
   // Opción seleccionada por el estudiante (antes de enviar)
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   // Si la respuesta ya fue enviada (esperando o recibida)
@@ -60,7 +65,10 @@ export function Practice() {
   // Cargar cursos disponibles al montar
   useEffect(() => {
     studentApi.courses()
-      .then((c) => setCourses(c.filter((x) => x.enrolled)))
+      .then((c) => {
+        setEnrolledCourses(c.filter((x) => x.enrolled));
+        setAvailableCourses(c.filter((x) => !x.enrolled));
+      })
       .catch(() => {/* silencioso — el backend puede estar durmiendo */})
       .finally(() => setCoursesLoading(false));
     studentApi.stats()
@@ -143,16 +151,32 @@ export function Practice() {
 
   const dismissStreakToast = useCallback(() => setStreakToast(null), []);
 
+  // Click en curso disponible: matricula + arranca sesión en un solo paso.
+  const enrollAndStart = async (cid: string) => {
+    setEnrollingCourseId(cid);
+    try {
+      await studentApi.enroll(cid);
+      startSession(cid);
+    } catch (e) {
+      console.error("Error matriculando en curso", e);
+      setEnrollingCourseId(null);
+    }
+  };
+
   // ── Sin curso seleccionado: selector de cursos ────────────────────────────
   if (!courseId) {
+    const hasEnrolled = enrolledCourses.length > 0;
+    const hasAvailable = availableCourses.length > 0;
     return (
       <div className="max-w-xl mx-auto py-8 px-4">
         <h2 className="text-xl font-bold text-slate-100 mb-2">{t("practice.title")}</h2>
-        <p className="text-slate-400 text-sm mb-6">{t("practice.subtitle")}</p>
+        <p className="text-slate-400 text-sm mb-6">
+          {hasEnrolled ? t("practice.subtitle") : t("practice.subtitleAvailable")}
+        </p>
 
         {coursesLoading ? (
           <div className="text-center text-slate-500 animate-pulse py-8">{t("practice.loadingCourses")}</div>
-        ) : courses.length === 0 ? (
+        ) : !hasEnrolled && !hasAvailable ? (
           <div className="bg-slate-800 rounded-2xl p-8 text-center border border-slate-700">
             <p className="text-slate-400">{t("practice.noCourses")}</p>
             <a href="/student/courses" className="text-violet-400 text-sm mt-2 block hover:underline">
@@ -160,17 +184,53 @@ export function Practice() {
             </a>
           </div>
         ) : (
-          <div className="grid gap-3">
-            {courses.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => startSession(c.id)}
-                className="w-full text-left bg-slate-800 hover:bg-slate-700 rounded-xl px-4 py-4 border border-slate-700 hover:border-violet-500 transition-all"
-              >
-                <div className="font-medium text-slate-100">{c.name}</div>
-                <div className="text-xs text-slate-500 mt-1">{c.block}</div>
-              </button>
-            ))}
+          <div className="space-y-6">
+            {hasEnrolled && (
+              <div className="grid gap-3">
+                {enrolledCourses.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => startSession(c.id)}
+                    className="w-full text-left bg-slate-800 hover:bg-slate-700 rounded-xl px-4 py-4 border border-slate-700 hover:border-violet-500 transition-all"
+                  >
+                    <div className="font-medium text-slate-100">{c.name}</div>
+                    <div className="text-xs text-slate-500 mt-1">{c.block}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+            {hasAvailable && (
+              <div>
+                <p className="text-xs uppercase tracking-wider text-slate-500 mb-2">
+                  {hasEnrolled
+                    ? t("practice.availableMore")
+                    : t("practice.availableEnroll")}
+                </p>
+                <div className="grid gap-3">
+                  {availableCourses.map((c) => {
+                    const loading = enrollingCourseId === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        disabled={loading}
+                        onClick={() => enrollAndStart(c.id)}
+                        className="w-full text-left bg-slate-900/60 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-wait rounded-xl px-4 py-4 border border-violet-700/40 hover:border-violet-500 transition-all"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div>
+                            <div className="font-medium text-slate-100">{c.name}</div>
+                            <div className="text-xs text-slate-500 mt-1">{c.block}</div>
+                          </div>
+                          <span className="text-xs text-violet-300 font-medium whitespace-nowrap">
+                            {loading ? t("practice.enrolling") : t("practice.enrollAndStart")}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

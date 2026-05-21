@@ -85,6 +85,11 @@ const es = {
   practice: {
     title: "Sala de Práctica",
     subtitle: "Selecciona un curso para empezar.",
+    subtitleAvailable: "Selecciona un curso para matricularte y empezar.",
+    availableMore: "Otros cursos disponibles para tu nivel",
+    availableEnroll: "Cursos disponibles para tu nivel",
+    enrollAndStart: "Matricularme y empezar →",
+    enrolling: "Matriculando...",
     loadingCourses: "Cargando cursos...",
     noCourses: "No estás matriculado en ningún curso aún.",
     browseCourses: "→ Ver catálogo de cursos",
