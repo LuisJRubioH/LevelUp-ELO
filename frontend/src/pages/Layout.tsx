@@ -17,7 +17,6 @@ import { studentApi } from "../api/student";
 import { useAuthStore } from "../stores/authStore";
 import { useSettingsStore, PROVIDER_MODELS } from "../stores/settingsStore";
 import { useNotifications } from "../hooks/useNotifications";
-import { usePWAInstall } from "../hooks/usePWAInstall";
 import { ReportProblemButton } from "../components/ReportProblem/ReportProblemButton";
 import { ThemeToggle } from "../components/ui/ThemeToggle";
 import { LanguageToggle } from "../components/ui/LanguageToggle";
@@ -81,9 +80,6 @@ export function Layout({ children }: LayoutProps) {
   const availableModels = PROVIDER_MODELS[provider] ?? [];
   const location = useLocation();
   const navigate = useNavigate();
-  // Suprime el banner automático de instalación PWA. Botón en sidebar
-  // está oculto temporalmente — para reactivar, ver más abajo.
-  usePWAInstall();
   const [showIAConfig, setShowIAConfig] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailInput, setEmailInput] = useState("");
@@ -380,9 +376,8 @@ export function Layout({ children }: LayoutProps) {
           <div className="mb-1">
             <LanguageToggle />
           </div>
-          {/* Botón "Instalar app" oculto temporalmente — el hook usePWAInstall
-              sigue activo y suprime el banner automático del navegador.
-              Para reactivar, restaurar el bloque y mantener canInstall && (...). */}
+          {/* PWA install deshabilitada — la plataforma se usa solo desde
+              navegador. Ver guard global en App.tsx (beforeinstallprompt). */}
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"

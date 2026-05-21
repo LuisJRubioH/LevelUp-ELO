@@ -6,7 +6,7 @@
  * Code splitting: cada página se carga bajo demanda (React.lazy).
  */
 
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "./stores/authStore";
@@ -130,6 +130,20 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  // Guard global: cancela cualquier intento del navegador de mostrar
+  // el banner "Instalar app". Combinado con manifest display:"browser"
+  // y la ausencia del componente PWAPrompt, evita que aparezca por
+  // cualquier camino — los usuarios solo deben usar la plataforma desde
+  // el navegador (estudiantes y docentes se confundían con la instalación).
+  useEffect(() => {
+    const blockInstall = (e: Event) => {
+      e.preventDefault();
+      return false;
+    };
+    window.addEventListener("beforeinstallprompt", blockInstall);
+    return () => window.removeEventListener("beforeinstallprompt", blockInstall);
+  }, []);
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
