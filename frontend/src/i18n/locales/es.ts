@@ -27,6 +27,7 @@ const es = {
     noAccount: "¿Sin cuenta?",
     register: "Registrarse",
     backToLogin: "← Volver al inicio de sesión",
+    slowConnection: "Conectando con el servidor… puede tardar hasta 30 s la primera vez.",
     error: {
       invalid: "Credenciales inválidas.",
     },

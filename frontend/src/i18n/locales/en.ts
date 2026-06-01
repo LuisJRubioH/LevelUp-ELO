@@ -29,6 +29,7 @@ const en: TranslationKeys = {
     noAccount: "No account?",
     register: "Sign up",
     backToLogin: "← Back to sign in",
+    slowConnection: "Connecting to server… first request may take up to 30 s.",
     error: {
       invalid: "Invalid credentials.",
     },

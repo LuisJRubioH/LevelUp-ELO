@@ -1,0 +1,33 @@
+# Keep-alive del backend Render (free tier).
+# Render free duerme tras 15 min sin tráfico. La primera request al despertar
+# tarda 30-60 s. Durante clase los estudiantes ven el botón "Registrarse"
+# pulsando en loading durante ese tiempo y creen que está roto.
+#
+# Este workflow hace ping cada 10 min para mantener el servicio caliente.
+# GitHub Actions cron tiene latencia variable (5-15 min), pero suele cumplir
+# bien el objetivo de no dejar dormir el servicio más de 15 min seguidos.
+
+name: keep-alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping backend
+        run: |
+          for i in 1 2 3; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 https://levelup-elo.onrender.com/) || code="000"
+            echo "Try $i: HTTP $code"
+            if [ "$code" = "200" ]; then
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "Backend no respondió 200 tras 3 intentos"
+          exit 1

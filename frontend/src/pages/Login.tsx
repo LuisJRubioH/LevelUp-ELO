@@ -6,7 +6,7 @@
  * Paso 2: datos de cuenta
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -14,6 +14,7 @@ import { authApi } from "../api/auth";
 import { Button } from "../components/ui/Button";
 import { useAuthStore } from "../stores/authStore";
 import type { AuthUser } from "../stores/authStore";
+import { isStaleChunkError, recoverFromStaleChunk } from "../lib/staleChunk";
 
 type View = "login" | "register-role" | "register-form";
 
@@ -26,6 +27,26 @@ export function Login() {
   const [selectedRole, setSelectedRole] = useState<"student" | "teacher">("student");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [slowLoading, setSlowLoading] = useState(false);
+  const slowTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (loading) {
+      slowTimerRef.current = window.setTimeout(() => setSlowLoading(true), 5000);
+    } else {
+      setSlowLoading(false);
+      if (slowTimerRef.current !== null) {
+        window.clearTimeout(slowTimerRef.current);
+        slowTimerRef.current = null;
+      }
+    }
+    return () => {
+      if (slowTimerRef.current !== null) {
+        window.clearTimeout(slowTimerRef.current);
+        slowTimerRef.current = null;
+      }
+    };
+  }, [loading]);
 
   const [loginData, setLoginData] = useState({ username: "", password: "" });
 
@@ -55,6 +76,7 @@ export function Login() {
       setAuth(res.access_token, profile as AuthUser);
       navigate(res.role === "teacher" ? "/teacher" : res.role === "admin" ? "/admin" : "/student");
     } catch (err: unknown) {
+      if (isStaleChunkError(err) && recoverFromStaleChunk()) return;
       setError(err instanceof Error ? err.message : t("login.error.invalid"));
     } finally {
       setLoading(false);
@@ -95,6 +117,7 @@ export function Login() {
         navigate("/student");
       }
     } catch (err: unknown) {
+      if (isStaleChunkError(err) && recoverFromStaleChunk()) return;
       setError(err instanceof Error ? err.message : "Error al registrarse.");
     } finally {
       setLoading(false);
@@ -143,6 +166,12 @@ export function Login() {
               </div>
 
               {error && <p className="text-red-400 text-sm">{error}</p>}
+
+              {slowLoading && (
+                <p className="text-amber-400 text-xs bg-amber-500/10 rounded px-3 py-2">
+                  {t("login.slowConnection")}
+                </p>
+              )}
 
               <Button type="submit" className="w-full" loading={loading} size="lg">
                 {t("login.submit")}
@@ -304,6 +333,12 @@ export function Login() {
               )}
 
               {error && <p className="text-red-400 text-sm">{error}</p>}
+
+              {slowLoading && (
+                <p className="text-amber-400 text-xs bg-amber-500/10 rounded px-3 py-2">
+                  {t("login.slowConnection")}
+                </p>
+              )}
 
               <Button type="submit" className="w-full" size="lg" loading={loading}>
                 {t("login.registerStep2.submit")}
