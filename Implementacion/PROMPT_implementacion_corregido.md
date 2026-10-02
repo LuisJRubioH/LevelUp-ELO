@@ -1,140 +1,142 @@
-# Prompt de implementación corregido — Niveles 1 y 2
+# Corrected implementation prompt — Levels 1 and 2
 
-Usar este prompt al implementar o reimplementar nodos de Preálgebra Nivel 1
-`B04–B13` y Nivel 2 `E00–E06`.
+> Student-facing content stays in Spanish (es-CO); this prompt only governs structure and order.
+
+Use this prompt when implementing or re-implementing Pre-algebra Level 1 nodes
+`B04–B13` and Level 2 nodes `E00–E06`.
 
 ---
 
-## Reglas críticas
+## Critical rules
 
-### Regla 1: No interrumpas la narrativa con definiciones aisladas
+### Rule 1: Do not interrupt the narrative with isolated definitions
 
-Incorrecto:
+Incorrect:
 
 ```markdown
-[Narrativa...]
-[Bloque de definición aislado]
-[Más narrativa...]
-[Ejemplos...]
+[Narrative...]
+[Isolated definition block]
+[More narrative...]
+[Examples...]
 ```
 
-Correcto:
+Correct:
 
 ```markdown
-[Apertura narrativa]
-[Descubrimiento guiado]
-[Definición integrada en la prosa]
-[Ejemplos trabajados inmediatamente después]
-[Cierre narrativo]
-[Práctica interactiva]
+[Narrative opening]
+[Guided discovery]
+[Definition integrated into the prose]
+[Worked examples immediately after]
+[Narrative closing]
+[Interactive practice]
 ```
 
-La definición puede destacarse visualmente, pero no debe cortar el flujo ni
-aparecer como un recuadro desconectado.
+The definition can be visually highlighted, but it must not break the flow or
+appear as a disconnected box.
 
-### Regla 2: Definición + ejemplos siempre antes de práctica
+### Rule 2: Definition + examples always before practice
 
-Orden obligatorio:
+Required order:
 
-1. Apertura narrativa: por qué importa el concepto.
-2. Descubrimiento guiado: ejemplos, contraste y contraejemplo.
-3. Definición formal en KaTeX integrada en la narración.
-4. Dos o tres ejemplos base con pasos.
-5. Cierre narrativo con Katia.
-6. Práctica interactiva.
+1. Narrative opening: why the concept matters.
+2. Guided discovery: examples, contrast and counterexample.
+3. Formal definition in KaTeX integrated into the narration.
+4. Two or three base examples with steps.
+5. Narrative closing with Katia.
+6. Interactive practice.
 
-No implementar:
+Do not implement:
 
-- definición como primera pantalla sin contexto,
-- ejemplos dispersos después de ejercicios,
-- práctica antes de que el estudiante entienda el por qué,
-- nodos sin Katia en la narrativa.
+- the definition as the first screen with no context,
+- examples scattered after exercises,
+- practice before the student understands the why,
+- nodes without Katia in the narrative.
 
-### Regla 3: Copiar A2 completo
+### Rule 3: Copy A2 in full
 
-A2 es la fuente de verdad del texto visible.
+A2 is the source of truth for visible text.
 
-- No resumir.
-- No comprimir por legibilidad.
-- No mover práctica antes de los ejemplos base.
-- No eliminar diálogos de Katia.
-- Si A2 tiene menos de 350 líneas en Nivel 1, detenerse y pedir corrección.
-- Si A2 tiene menos de 450 líneas en Nivel 2, detenerse y pedir corrección.
+- Do not summarize.
+- Do not compress for readability.
+- Do not move practice before the base examples.
+- Do not remove Katia's dialogue.
+- If A2 has fewer than 350 lines in Level 1, stop and ask for a correction.
+- If A2 has fewer than 450 lines in Level 2, stop and ask for a correction.
 
-### Regla 4: Jerarquía visual
+### Rule 4: Visual hierarchy
 
-- La apertura narrativa debe sentirse como una escena.
-- El descubrimiento guiado debe mostrar variación y contraste.
-- La definición formal debe renderizar en KaTeX.
-- Los ejemplos base deben ser numerados y mostrar pasos.
-- La práctica debe iniciar después de una transición clara.
-- Katia debe resumir el aprendizaje antes de pasar a la práctica o al cierre.
+- The narrative opening must feel like a scene.
+- The guided discovery must show variation and contrast.
+- The formal definition must render in KaTeX.
+- The base examples must be numbered and show steps.
+- Practice must start after a clear transition.
+- Katia must summarize what was learned before moving on to practice or the closing.
 
 ---
 
-## Plantilla mínima de A2
+## Minimal A2 template
 
 ```markdown
-### A2. Guión de pantalla (texto íntegro por pantalla)
+### A2. Screen script (full text per screen)
 
-#### 2.1 Apertura narrativa
+#### 2.1 Narrative opening
 
-[3–5 párrafos con contexto, Katia y pregunta detonadora.]
-
----
-
-#### 2.2 Descubrimiento guiado
-
-[3–5 párrafos que muestren un patrón, un segundo ejemplo y un contraejemplo.]
+[3–5 paragraphs with context, Katia and a trigger question.]
 
 ---
 
-#### 2.3 Definición formal integrada + ejemplos base
+#### 2.2 Guided discovery
 
-[Párrafo de entrada.]
-
-$$\text{definición formal en KaTeX}$$
-
-[Párrafo de lectura e interpretación.]
-
-##### Ejemplo 1 (básico)
-
-**Enunciado:**
-[Problema simple.]
-
-**Solución paso a paso:**
-[Pasos visibles.]
-
-##### Ejemplo 2 (intermedio)
-
-**Enunciado:**
-[Problema con una sutileza.]
-
-**Solución paso a paso:**
-[Pasos visibles.]
-
-##### Ejemplo 3 (trampa común o caso límite)
-
-[Opcional, pero recomendado si hay misconception frecuente.]
+[3–5 paragraphs showing a pattern, a second example and a counterexample.]
 
 ---
 
-#### 2.4 Cierre narrativo
+#### 2.3 Integrated formal definition + base examples
 
-[Katia resume y conecta con lo siguiente.]
+[Lead-in paragraph.]
+
+$$\text{formal definition in KaTeX}$$
+
+[Paragraph reading and interpreting the definition.]
+
+##### Example 1 (basic)
+
+**Statement:**
+[Simple problem.]
+
+**Step-by-step solution:**
+[Visible steps.]
+
+##### Example 2 (intermediate)
+
+**Statement:**
+[Problem with a subtlety.]
+
+**Step-by-step solution:**
+[Visible steps.]
+
+##### Example 3 (common trap or edge case)
+
+[Optional, but recommended if there is a frequent misconception.]
 
 ---
 
-#### 2.5 Práctica interactiva
+#### 2.4 Narrative closing
 
-[S1, S2, S3... u O1, O2, O3...]
+[Katia summarizes and connects to what comes next.]
+
+---
+
+#### 2.5 Interactive practice
+
+[S1, S2, S3... or O1, O2, O3...]
 ```
 
 ---
 
-## Estructura técnica obligatoria en PARTE B
+## Required technical structure in PARTE B (*Part B*)
 
-Cada nodo reparado debe exponer en JSON una sección equivalente a:
+Each repaired node must expose in JSON a section equivalent to:
 
 ```json
 {
@@ -143,19 +145,19 @@ Cada nodo reparado debe exponer en JSON una sección equivalente a:
   "sections": [
     {
       "type": "prose",
-      "content_summary": "Apertura narrativa con Katia y pregunta detonadora"
+      "content_summary": "Narrative opening with Katia and a trigger question"
     },
     {
       "type": "guided_discovery",
-      "content_summary": "Ejemplos, variación y contraejemplo"
+      "content_summary": "Examples, variation and counterexample"
     },
     {
       "type": "definition_plus_examples",
       "definition_katex": "...",
       "is_integrated": true,
       "examples": [
-        { "name": "Ejemplo 1 (básico)", "steps": [] },
-        { "name": "Ejemplo 2 (intermedio)", "steps": [] }
+        { "name": "Example 1 (basic)", "steps": [] },
+        { "name": "Example 2 (intermediate)", "steps": [] }
       ]
     }
   ],
@@ -163,27 +165,27 @@ Cada nodo reparado debe exponer en JSON una sección equivalente a:
 }
 ```
 
-Si el JSON todavía tiene `definition_block` con
-`position = "interrupts_narrative"`, debe corregirse antes de implementar UI.
+If the JSON still has `definition_block` with
+`position = "interrupts_narrative"`, it must be fixed before implementing the UI.
 
 ---
 
-## Checklist antes de entregar
+## Checklist before delivering
 
-- [ ] Katia aparece por nombre en la narrativa.
-- [ ] Hay pregunta detonadora explícita.
-- [ ] Hay descubrimiento guiado con contraste o contraejemplo.
-- [ ] La definición formal está integrada y renderiza en KaTeX.
-- [ ] Hay al menos 2 ejemplos con pasos antes de la práctica.
-- [ ] La práctica aparece después de ejemplos base.
-- [ ] A2 cumple longitud mínima.
-- [ ] PARTE B refleja `narrative_with_integrated_definition`.
-- [ ] No se introducen cambios de ELO en estos nodos formativos.
-- [ ] Si se implementa UI, se verifica con screenshots antes/después.
+- [ ] Katia appears by name in the narrative.
+- [ ] There is an explicit trigger question.
+- [ ] There is guided discovery with contrast or a counterexample.
+- [ ] The formal definition is integrated and renders in KaTeX.
+- [ ] There are at least 2 examples with steps before practice.
+- [ ] Practice appears after the base examples.
+- [ ] A2 meets the minimum length.
+- [ ] PARTE B reflects `narrative_with_integrated_definition`.
+- [ ] No ELO changes are introduced in these formative nodes.
+- [ ] If UI is implemented, it is verified with before/after screenshots.
 
 ---
 
-## Nodos ya corregidos con este prompt
+## Nodes already corrected with this prompt
 
-- `Fase_1/F1_nodo_enteros.md` — B05 Enteros.
-- `Fase_2/F2_nodo_suma.md` — E01 Suma.
+- `Fase_1/F1_nodo_enteros.md` — B05 Integers.
+- `Fase_2/F2_nodo_suma.md` — E01 Addition.

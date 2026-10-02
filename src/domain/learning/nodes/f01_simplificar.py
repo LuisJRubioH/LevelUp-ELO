@@ -80,6 +80,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/05-alg-n1-kemet/f01-simplificar-katia.png",
         "eyebrow": "KatIA · Sobre el terreno húmedo",
         "title": "El reparto que aún no se puede calcular",
         "body": (

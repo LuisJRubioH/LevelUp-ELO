@@ -303,7 +303,7 @@ uvicorn api.main:app --reload --port 8000
 ```
 
 ```bash
-cd frontend && npm install --legacy-peer-deps && npm run dev
+cd frontend && pnpm install --frozen-lockfile && pnpm run dev
 ```
 
 → http://localhost:5173 (proxy `/api` → `localhost:8000`)

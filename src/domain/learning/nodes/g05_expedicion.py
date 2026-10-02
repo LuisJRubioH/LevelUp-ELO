@@ -88,6 +88,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/07-alg-n3-caravana/g05-expedicion-katia.png",
         "eyebrow": "KatIA · En la sala de expedición",
         "title": "La guía que se firmó con la carga a medias",
         "body": (

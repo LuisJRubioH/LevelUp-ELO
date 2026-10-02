@@ -78,6 +78,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/05-alg-n1-kemet/f04-division-katia.png",
         "eyebrow": "KatIA · En el silo de simiente",
         "title": "El silo lleno que no daba ni para un saco",
         "body": (

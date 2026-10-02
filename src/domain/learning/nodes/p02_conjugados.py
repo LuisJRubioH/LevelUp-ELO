@@ -71,6 +71,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/06-alg-n2-troqueles/p02-conjugados-katia.png",
         "eyebrow": "KatIA · En el cuño de la cenefa",
         "title": "La greca que sobraba por un lado y faltaba por el otro",
         "body": (

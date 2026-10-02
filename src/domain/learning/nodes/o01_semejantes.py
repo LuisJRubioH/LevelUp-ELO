@@ -81,6 +81,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/05-alg-n1-kemet/o01-semejantes-katia.png",
         "eyebrow": "KatIA · Al pie de la rampa",
         "title": "Los dos registros del capataz",
         "body": (

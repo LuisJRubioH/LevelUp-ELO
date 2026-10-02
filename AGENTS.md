@@ -27,7 +27,7 @@ pip install -r requirements-api.txt
 uvicorn api.main:app --reload --port 8000
 
 # Terminal 2 — Frontend
-cd frontend && npm install --legacy-peer-deps && npm run dev
+cd frontend && pnpm install --frozen-lockfile && pnpm run dev
 # → http://localhost:5173
 ```
 
@@ -365,7 +365,7 @@ Mensajes: `get_procedure_comment(score)` → ALTA (≥91) / MEDIA (60–90) / TU
 - **V2-R1**: cambios en `src/`, `items/`, `scripts/` afectan V1 y V2. Modificar V1 solo si es bug real; cambios solo-V2 van en `api/` o `frontend/`.
 - **V2-R2**: Dual DB sigue obligatorio. `python scripts/db_sync_check.py` antes de cada commit que toque repos.
 - **V2-R3**: `estimateEloDelta()` en `Practice.tsx` usa K=24 fijo — la discrepancia con el K real es aceptable para un preview.
-- **V2-R7**: siempre `npm install --legacy-peer-deps` (vite-plugin-pwa@1.2.0 vs vite@8).
+- **V2-R7**: usar pnpm 11.19.0 (`packageManager`) y Node >=22.13 (CI: Node 24). Instalar con `pnpm install --frozen-lockfile`; no generar un lockfile npm. `vite-plugin-pwa` 1.3 admite Vite 8; ya no se necesita `--legacy-peer-deps`. Los overrides van en `frontend/pnpm-workspace.yaml`.
 - **V2-R8**: `sessionStartTime` en `authStore`, persiste en localStorage, se resetea en logout.
 - **V2-R9**: respuesta correcta **nunca** viaja al frontend. Sin `correct_option` en ningún response de `/answer` ni `/exam/submit`.
 - **V2-R10**: cualquier `fetch()` directo (fuera de `api/client.ts`) debe usar el prefijo `import.meta.env.VITE_API_URL ?? ""` para funcionar en Vercel production. Ver `SocraticChat.tsx` como ejemplo — Vercel sirve la SPA y no tiene proxy inverso a Render.

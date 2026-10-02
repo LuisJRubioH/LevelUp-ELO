@@ -76,6 +76,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/07-alg-n3-caravana/g02-cuadrados-katia.png",
         "eyebrow": "KatIA · En el cotejo de huellas",
         "title": "La marca que el mozo se inventó",
         "body": (

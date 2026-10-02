@@ -4,6 +4,45 @@ Fecha: 2026-09-05. Checkout: `main`, commit `07be80e` (2026-09-02), remoto `Ori-
 
 **Decisión: NO APROBADO para migración a producción.** Hay fallos reproducibles de autorización, integridad académica y operación básica. Las 461 pruebas existentes pasan, pero no cubren esos casos. Este informe complementa [la auditoría de arquitectura](auditoria-arquitectura-2026-09-05.md); no sustituye los hallazgos pendientes de esa revisión.
 
+**Reanudación y validación local (2026-09-14):** la decisión anterior corresponde al
+diagnóstico inicial; los cierres posteriores no equivalen a certificar el despliegue.
+La actualización Python sustituye `python-jose` por `PyJWT`, comparte mínimos de
+seguridad en `requirements-security.txt` y mantiene el formato HS256 de access,
+refresh y revisión de procedimientos. Las evidencias del 8 de septiembre para API
+y V1 no registran vulnerabilidades; no se presentan como una consulta actualizada
+de avisos de seguridad ni como cierre de Dependabot remoto.
+
+La ejecución actual con Python 3.11.16 aprueba **666 pruebas de API y unidad**,
+incluyendo 10 casos de compatibilidad JWT, con seis avisos de deprecación
+([JUnit](validacion-cierre-2026-09-14.xml)). El build TypeScript/Vite y la generación
+del service worker pasan. Flake8 crítico pasa sobre `src/`, `api/`, `tests/` y
+`scripts/`. Black detecta deuda previa de formato en archivos fuera de esta ronda;
+por tanto, no se declara verde el job global de formato. Los dos archivos Python
+de esta actualización se formatearon con la versión de Black usada por CI.
+Los primeros intentos de pytest y Vite fallaron por permisos del entorno aislado;
+las ejecuciones con permisos adecuados pasaron sin cambiar lógica de aplicación.
+Siguen pendientes la certificación del entorno real y la publicación de cambios.
+
+**Dependencias frontend (2026-09-08):** pnpm reparado y alineado en 11.19.0.
+La actualización anterior había dejado 14 alertas altas; tras actualizar el plugin PWA
+a 1.3.0 y aplicar overrides acotados para `brace-expansion`, `browserslist` y `fast-uri`,
+`pnpm audit --json` devuelve cero vulnerabilidades en todas las severidades
+([evidencia](auditoria-dependencias-2026-09-08.json)). Los overrides se leen desde
+`frontend/pnpm-workspace.yaml`. Instalación limpia desde el lockfile y caché aprobada
+(526 paquetes); `pnpm run build` aprobado, incluido el service worker. La generación
+PWA conserva una observación de rendimiento (~43 s en esta máquina). CI usa Node 24
+y la versión de pnpm de `packageManager`; Vercel instala con `--frozen-lockfile`.
+Esto no certifica las dependencias Python, las alertas remotas de Dependabot, ni el
+despliegue real. Se conserva la decisión de producción hasta cerrar sus demás puertas.
+
+E2E de esta actualización: **28 aprobados, 0 fallidos, 0 omitidos, sin reintentos**
+en la ejecución final (64 s), con Playwright 1.63.0 y Chrome instalado 152.0.7977.83,
+`PLAYWRIGHT_CHANNEL=chrome` y APIs simuladas
+([evidencia](auditoria-dependencias-e2e-2026-09-08.json)). La primera ejecución con
+Chrome tuvo una espera de redirección agotada; ese caso pasó aislado y luego pasó
+la suite completa, sin modificar sus aserciones ni tiempos. El Chromium versionado
+no estaba instalado y su descarga lenta se canceló; no se certifica ese navegador.
+
 **Actualización posterior a la auditoría (2026-09-07):** se introdujo variedad controlada en el selector y se corrigieron diagnóstico, datos canónicos de `/answer`, calificación, permisos docentes, sesión/revocación, idempotencia de respuestas e integridad de examen. También se endurecieron cachés por cuenta, WebSockets, configuración, readiness, rate limiting, uploads, antiplagio, procedencia de notas IA y CI. Las 20 comprobaciones automatizadas de readiness están aprobadas. Esto cierra la puerta operativa en código, pero no aprueba todavía la migración: falta la certificación final sobre instalación limpia, E2E, restauración, carga y configuración efectiva. La matriz siguiente conserva el diagnóstico original para trazabilidad. No hay despliegue de estos cambios.
 
 Validación del último ajuste: 40 pruebas de API de estudiante pasan, incluyendo manipulación de id/dificultad/tópico/RD/opciones, rechazo sin escrituras y petición mínima; TypeScript compila. El backend acepta e ignora `item_data` de clientes antiguos; el frontend nuevo ya no lo envía. Al desplegar este contrato, publicar primero el backend compatible y después el frontend. Sigue pendiente vincular la respuesta a una sesión/pregunta emitida por el servidor y deduplicar reintentos.

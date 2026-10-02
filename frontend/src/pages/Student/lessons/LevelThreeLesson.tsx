@@ -8,6 +8,7 @@ import { Button } from "../../../components/ui/Button";
 import { KatiaStorySlot } from "./KatiaStorySlot";
 import { PracticeItem, restoredAnswers, type AnswerMap, type FeedbackMap } from "./PracticeItem";
 import "./LevelThreeLesson.css";
+import { HubDestinationArt } from "./HubDestinationArt";
 // ponytail: reutiliza las clases .set-* y .n2-closure/.n2-examples del Nivel 2 (CSS global) en vez de duplicarlas
 import "./LevelTwoLesson.css";
 
@@ -193,12 +194,15 @@ function LevelThreeHub({ lesson, courseId, onBack, onFinish, finishing }: Props)
                   className="n3-machine-face"
                   disabled={mutation.isPending}
                   aria-pressed={isIntroduced}
+                  aria-label={`Explorar ${machine.station ?? machine.property}`}
                   onClick={() => {
                     if (!isIntroduced) mutation.mutate(machine.id);
                   }}
                 >
-                  <span>{machine.symbol}</span>
-                  <b>{machine.id}</b>
+                  <HubDestinationArt id={machine.id}>
+                    <span>{machine.symbol}</span>
+                    <b>{machine.id}</b>
+                  </HubDestinationArt>
                 </button>
                 <div className="n3-machine-copy">
                   <span>{machine.station ?? machine.property}</span>

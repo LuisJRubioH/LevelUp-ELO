@@ -73,6 +73,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/06-alg-n2-troqueles/p01-cuadrado-katia.png",
         "eyebrow": "KatIA · En la matriz cuadrada",
         "title": "La lámina que salió pequeña",
         "body": (

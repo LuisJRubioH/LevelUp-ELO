@@ -1,279 +1,277 @@
-# Prompts de imagen — ALG-N2 y ALG-N3 · Bagdad, la Casa de la Sabiduría
+# Image prompts — ALG-N2 and ALG-N3 · Baghdad, the House of Wisdom
 
-Cierra el hueco de arte de los dos niveles nuevos de Álgebra. **No existe ni un PNG de
-Bagdad en `frontend/public/`:** las nueve salas renderizan hoy el marcador «Imagen de KatIA
-aquí».
+Closes the art gap for the two new Algebra levels. **There is not a single Baghdad PNG in
+`frontend/public/`:** the nine rooms currently render the placeholder "KatIA image here".
 
-**10 imágenes obligatorias** (1 header de hub + 9 aperturas de KatIA, una por sala) y
-**9 opcionales** (la tarjeta de trampa de cada nodo).
+**10 required images** (1 hub header + 9 KatIA openings, one per room) and **9 optional**
+(the trap card of each node).
 
-**Los dos niveles comparten hub**, `ALG-S00-CASA-DE-LA-SABIDURIA`, porque comparten idea: en
-el taller se estampa y en el almacén se abre lo estampado. Es la misma operación en las dos
-direcciones, así que el hub tiene dos puertas y no nueve.
+**The two levels share a hub**, `ALG-S00-CASA-DE-LA-SABIDURIA`, because they share an idea:
+the workshop stamps and the warehouse opens what was stamped. It is the same operation in two
+directions, so the hub has two doors, not nine.
 
-Destino: `frontend/public/leccion/06-alg-n2-troqueles/` y `…/07-alg-n3-caravana/`. El header
-del hub va con los troqueles.
+Destination: `frontend/public/leccion/06-alg-n2-troqueles/` and `…/07-alg-n3-caravana/`. The
+hub header goes with the dies.
 
 ---
 
-## Continuidad con Kemet
+## Continuity with Kemet
 
-Mismo mundo, misma KatIA, tercer sitio. Grecia (ágora, ciudad, fábrica, puerto) → Kemet
-(las cuatro casas) → **Bagdad, siglo IX**. KatIA ha seguido la ruta de la caravana. La línea
-gráfica NO cambia: cambian la arquitectura, la luz y los materiales.
+Same world, same KatIA, third place. Greece (agora, city, factory, port) → Kemet (the four
+houses) → **Baghdad, 9th century**. KatIA has followed the caravan route. The visual line
+does NOT change: the architecture, light and materials change.
 
-**Línea gráfica obligatoria (`Implementacion/image-prompts/referencias/`):** usar como referencia directa
+**Required visual line (`Implementacion/image-prompts/referencias/`):** use as direct references
 `step-naturales.png`, `step-enteros.png`, `escalera-conjuntos.png`,
-`katia-primer-plano-enteros.png` y `caso-enteros-recta.jpg`. Antes de generar, adjuntarlas
-como referencias visuales si la herramienta lo permite; si no, copiar completa la línea
-gráfica dentro del prompt final.
+`katia-primer-plano-enteros.png` and `caso-enteros-recta.jpg`. Before generating, attach them
+as visual references if the tool allows it; otherwise, copy the whole visual line into the
+final prompt.
 
-**Estilo base (copiar tal cual en cada prompt):**
+**Base style (copy verbatim into every prompt):**
 
-`pixel-art educativo refinado, estilo 16/32-bit narrativo de alta calidad, con clusters de
-píxeles visibles, bordes pixelados limpios, sombreado por bloques y dithering sutil; NO
-pintura digital hiperrealista ni ilustración lisa. Mantener el lenguaje visual de los assets
-existentes: KatIA legible en primer/medio plano, escena contenida, pocos personajes
-secundarios, objetos pedagógicos claros sobre mesa/banco/mostrador, sombras azul noche, luz
-cálida de lámpara de aceite, acentos teal pequeños en el ocular de KatIA y en instrumentos
-mecánicos. KatIA conserva identidad: gata blanca con mancha naranja/negra en la cabeza, ojo
-verde visible, ocular mecánico teal, pata/brazo mecánico, túnica morada y ornamentos
-dorados. El espacio debe leerse como el INTERIOR de un edificio abasí del siglo IX —ladrillo
-cocido y estuco tallado, arcos apuntados, nichos hornacinados, celosías de madera torneada,
-alfombras de lana, alacenas de papel y pergamino, lámparas de bronce colgadas—, con la
-arquitectura de fondo siempre secundaria.`
+`refined educational pixel art, high-quality narrative 16/32-bit style, with visible pixel
+clusters, clean pixelated edges, block shading and subtle dithering; NO hyperrealistic
+digital painting or smooth illustration. Keep the visual language of the existing assets:
+KatIA readable in the foreground/mid-ground, contained scene, few secondary characters, clear
+teaching objects on a table/bench/counter, night-blue shadows, warm oil-lamp light, small
+teal accents on KatIA's ocular and on mechanical instruments. KatIA keeps her identity: white
+cat with an orange/black patch on her head, visible green eye, teal mechanical ocular,
+segmented mechanical arm and ear piercings; she wears an ivory linen tunic under a muted plum
+Abbasid-style overgarment, sleeves adapted so the mechanical arm stays exposed, ears
+uncovered. The space must read as the INTERIOR of a 9th-century Abbasid building — fired
+brick and carved stucco, pointed arches, recessed niches, turned-wood lattices, wool rugs,
+cupboards of paper and parchment, hanging bronze lamps —, with the background architecture
+always secondary.`
 
-**Bloque canónico de KatIA (obligatorio siempre que aparezca):** usar
-`katia-primer-plano-enteros.png` como referencia de IDENTIDAD, no solo de estilo. Gata cyborg
-adulta, serena y socrática, no mascota infantil: rostro blanco de hocico adulto redondeado,
-expresión tranquila y observadora, ojo verde almendrado visible, mancha naranja/negra
-asimétrica en frente y oreja, ocular mecánico teal con placas grises sobre el otro ojo,
-pata/brazo mecánico segmentado, túnica griega morada con ornamentos dorados. Si el encuadre
-aprieta, simplificar el entorno antes que a KatIA.
+**KatIA canonical block (required whenever she appears):** use
+`katia-primer-plano-enteros.png` as an IDENTITY reference, not just a style reference. An
+adult cyborg cat, serene and Socratic, not a childlike mascot: white face with a rounded adult
+muzzle, calm and observant expression, visible green almond-shaped eye, asymmetric
+orange/black marking on the forehead and ear, teal mechanical ocular with grey plates over
+the other eye, segmented mechanical paw/arm, ear piercings, Abbasid-context tunic and
+overgarment (see contextual wardrobe below). If the frame is tight, simplify the environment
+before simplifying KatIA.
 
-**KatIA sigue siendo forastera.** Mantiene la túnica griega morada: no se la viste de abasí,
-no lleva turbante. Es la única figura del cuadro que no pertenece al sitio, y eso debe
-notarse un poco — igual que en Kemet.
+**Contextual wardrobe (user instruction, 2026-09-16):** KatIA wears a tunic and overgarment
+suited to the Abbasid setting, adapted so the mechanical arm stays recognizable. Keep her
+face, markings, green eye, teal ocular and ear piercings; do not cover the ears. This rule
+replaces the earlier references to the Greek tunic. See
+[IDENTIDAD-KATIA.md](IDENTIDAD-KATIA.md).
 
-**Personajes secundarios:** todo rol mencionado (aprendiz, mozo, tonelero, arriero) es
-**animal antropomórfico**, preferentemente gatos bípedos con túnica corta de lino, delantal
-de cuero o chaleco acolchado; pelajes variados (atigrado, negro, gris, calicó, siamés,
-naranja, blanco moteado). Los dos guías tienen aspecto estable entre sus salas:
+**Secondary characters:** every role mentioned (apprentice, porter, cooper, muleteer) is an
+**anthropomorphic animal**, preferably bipedal cats in a short linen tunic, leather apron or
+padded vest; varied coats (tabby, black, grey, calico, Siamese, orange, spotted white). The
+two guides look the same across their rooms:
 
-| Guía | Nivel | Aspecto |
+| Guide | Level | Appearance |
 |---|---|---|
-| **Rayhana** | La sala de los troqueles (N2) | gata siamesa de porte recto, mandil de cuero con quemaduras de fragua, manguitos de lino, punzón tras la oreja |
-| **Salim** | El almacén de la caravana (N3) | gato naranja robusto y mayor, chaleco acolchado de viaje, manojo de llaves al cinto, cálamo y tablilla de albaranes bajo el brazo |
+| **Rayhana** | The Stamping-Die Room (N2) | Siamese cat with an upright bearing, leather apron with forge burns, linen sleeve cuffs, awl behind the ear |
+| **Salim** | The Caravan Warehouse (N3) | stocky, older orange cat, padded travel vest, bunch of keys at the belt, reed pen and delivery-note tablet under the arm |
 
-**Escritura árabe:** permitida como textura ambiental en frisos, lomos y estuco, **nunca
-legible ni protagonista**, y nunca sobre la superficie donde ocurre la acción pedagógica (la
-lámina, el albarán de trabajo, la mesa de despiece). Nada de cartuchos con el nombre del
-nodo. Ningún texto legible en ningún idioma, en ninguna imagen.
+**Arabic script:** allowed as ambient texture on friezes, book spines and stucco, **never
+legible or prominent**, and never on the surface where the teaching action happens (the
+sheet, the working delivery note, the breakdown table). No cartouches with the node's name.
+No legible text in any language, in any image.
 
-**Negativos de estilo:** no postal orientalista (nada de alfombras voladoras, lámparas
-mágicas, genios, harenes, bazar de cuento), no panorámica turística de cúpulas al atardecer,
-no minarete como protagonista, no caligrafía religiosa ni escena de culto, no camellos al
-atardecer, no realeza ni califa, no multitudes, no pintura digital lisa, no render suavizado,
-no neón saturado, no sci-fi duro, no anime/chibi, no humanos realistas, no convertir a KatIA
-en gata totalmente metálica.
+**Style negatives:** no Orientalist postcard (no flying carpets, magic lamps, genies, harems,
+fairy-tale bazaar), no tourist panorama of domes at sunset, no minaret as the focus, no
+religious calligraphy or worship scene, no camels at sunset, no royalty or caliph, no crowds,
+no smooth digital painting, no smoothed render, no saturated neon, no hard sci-fi, no
+anime/chibi, no realistic humans, no turning KatIA into a fully metal cat.
 
-**Regla dura:** cada prompt describe la SITUACIÓN, nunca la SOLUCIÓN. Ninguna imagen muestra
-el resultado del ejercicio ni una cantidad de objetos dispuesta de forma que se pueda
-resolver contando en la imagen. Cuando el relato trata de un error ya cometido se muestra
-**la consecuencia** (la lámina con el borde sin estampar, el cuño atascado, el bloque hueco,
-el precinto roto), nunca la cuenta correcta.
+**Hard rule:** every prompt describes the SITUATION, never the SOLUTION. No image shows the
+result of the exercise, or a quantity of objects arranged so that it could be solved by
+counting in the image. When the story is about a mistake already made, show **the
+consequence** (the sheet with an unstamped edge, the jammed stamp, the hollow block, the
+broken seal), never the correct calculation.
 
-**Paleta por nivel** (dominante + acento; el morado de KatIA se mantiene en los dos):
+**Palette per level** (dominant + accent; KatIA's purple accent stays in both):
 
-| Nivel | Dominante | Acento |
+| Level | Dominant | Accent |
 |---|---|---|
-| N2 · La sala de los troqueles | cobre y ladrillo cocido | verde cardenillo |
-| N3 · El almacén de la caravana | índigo y lana cruda | ámbar de lámpara |
+| N2 · The Stamping-Die Room | copper and fired brick | verdigris green |
+| N3 · The Caravan Warehouse | indigo and raw wool | lamp amber |
 
 ---
 
-## S00 — Hub: La Casa de la Sabiduría
-`s00-hub-patio-katia.png` · **16:9**, header de nivel (`.level-presentation-media`).
+## S00 — Hub: The House of Wisdom (*La Casa de la Sabiduría*)
+`s00-hub-patio-katia.png` · **16:9**, level header (`.level-presentation-media`).
 
-> Patio interior de una casa de estudio abasí al final de la tarde, vista contenida a media
-> distancia y ligeramente elevada. El patio es rectangular, de ladrillo cocido, con una
-> fuente baja apagada en el centro y una parra que da sombra a un lado. **Dos puertas
-> enfrentadas** en los muros largos, distintas entre sí: la de la izquierda es la boca de un
-> taller —se ve el resplandor naranja de una fragua y el brazo de una prensa de husillo— y
-> junto a ella espera una gata siamesa de porte recto con mandil de cuero quemado y punzón
-> tras la oreja (Rayhana). La de la derecha es un portón de almacén, más ancho y de madera
-> reforzada, con fardos de arpillera apilados a un lado; junto a él, un gato naranja robusto
-> y mayor con chaleco acolchado y llaves al cinto (Salim). Entre las dos puertas, en el
-> centro del patio y sin decidirse todavía, **KatIA acaba de llegar** —gata blanca con mancha
-> naranja y negra, ojo verde, ocular mecánico teal, brazo mecánico, túnica morada con
-> ornamentos dorados—, con el polvo del camino encima y una alforja al hombro. Al fondo, muy
-> secundario y sin detalle, el arco de entrada por el que sale la última mula de una
-> caravana. Luz de tarde en diagonal, ámbar cálido sobre el ladrillo y sombra azul fría bajo
-> la parra. Ningún texto, número ni símbolo legible en toda la imagen; los fardos están
-> apilados de forma irregular y no se pueden contar.
+> The inner courtyard of an Abbasid house of study in the late afternoon, contained
+> mid-distance view, slightly elevated. The courtyard is rectangular, of fired brick, with a
+> low fountain, not running, in the center and a grapevine giving shade on one side. **Two
+> facing doors** in the long walls, different from each other: the one on the left is the
+> mouth of a workshop — the orange glow of a forge and the arm of a screw press can be seen —
+> and next to it waits a Siamese cat with an upright bearing, a scorched leather apron and an
+> awl behind her ear (Rayhana). The one on the right is a warehouse gate, wider and of
+> reinforced wood, with burlap bales stacked to one side; next to it, a stocky, older orange
+> cat with a padded vest and keys at his belt (Salim). Between the two doors, in the center of
+> the courtyard and still undecided, **KatIA has just arrived** — white cat with orange and
+> black markings, green eye, teal mechanical ocular, mechanical arm and ear piercings, in an
+> ivory linen tunic under a muted plum Abbasid overgarment, ears uncovered —, with the dust of
+> the road on her and a saddlebag over her shoulder. In the background, very secondary and
+> without detail, the entrance arch through which the last mule of a caravan is leaving.
+> Slanting afternoon light, warm amber on the brick and cool blue shadow under the vine. No
+> legible text, number or symbol anywhere in the image; the bales are stacked irregularly and
+> cannot be counted.
 
-**Opcionales del hub** (1:1, mismo patrón que `e00-ice*` de N2): `s00-ice1-sacos.png` (tres
-sacos de arpillera idénticos apoyados contra un muro de ladrillo, junto a una romana) ·
-`s00-ice2-fardo-cerrado.png` (un fardo atado y precintado sobre una losa, sin etiqueta) ·
-`s00-ice3-dos-puertas.png` (las dos puertas del patio vistas de frente, una con resplandor de
-fragua y la otra en penumbra, sin personajes).
+**Hub optionals** (1:1, same pattern as N2's `e00-ice*`): `s00-ice1-sacos.png` (three
+identical burlap sacks leaning against a brick wall, next to a steelyard scale) ·
+`s00-ice2-fardo-cerrado.png` (a tied and sealed bale on a stone slab, with no label) ·
+`s00-ice3-dos-puertas.png` (the two courtyard doors seen head-on, one with a forge glow and the
+other in shadow, no characters).
 
-# ALG-N2 · La sala de los troqueles — Rayhana · cobre y ladrillo
+# ALG-N2 · The Stamping-Die Room (*La sala de los troqueles*) — Rayhana · copper and brick
 
-Un taller de estampación dentro de la Casa de la Sabiduría. Las cuatro salas comparten
-espacio y luz de fragua, pero **no comparten vocabulario**: matriz/lámina/orla (P01) ·
-cuño/cenefa/greca (P02) · molde/capa/arcilla (P03) · bandeja/casilla/pareja (P04). No mezclar
-los carriles entre imágenes.
+A stamping workshop inside the House of Wisdom. The four rooms share space and forge light,
+but **do not share vocabulary**: matrix/sheet/rim (P01) · stamp/frieze band/fret (P02) ·
+mold/layer/clay (P03) · tray/slot/pair (P04). Do not mix the lanes across images.
 
-## P01 · La matriz cuadrada
+## P01 · The Square Matrix (*La matriz cuadrada*)
 `p01-cuadrado-katia.png` · **4:3**
 
-> Interior de un taller de estampación en penumbra cálida. Sobre un banco de madera gruesa
-> descansan varias planchas de cobre cuadradas de distinto tamaño, apiladas con separadores
-> de fieltro. Una gata siamesa de porte recto con mandil de cuero quemado (Rayhana) sostiene
-> en alto una lámina de cobre recién estampada y la inclina hacia la luz: el relieve llega
-> nítido en el centro pero **una franja del borde quedó lisa, sin estampar**, con la marca
-> del troquel cortada a media orla. KatIA, de pie al otro lado del banco, mira la franja sin
-> tocarla. Al fondo, una prensa de husillo de hierro y la boca de una fragua con brasas
-> bajas. Luz naranja de brasa desde la derecha, sombra azul fría en el resto. Ningún número
-> ni letra visible en ninguna parte; las láminas no llevan cuadrícula ni marcas contables.
+> Interior of a stamping workshop in warm half-light. On a thick wooden bench rest several
+> square copper plates of different sizes, stacked with felt separators. A Siamese cat with
+> an upright bearing and a scorched leather apron (Rayhana) holds up a freshly stamped copper
+> sheet and tilts it toward the light: the relief comes out crisp in the center but **a strip
+> along the edge came out smooth, unstamped**, with the die mark cut off halfway across the
+> rim. KatIA, standing on the other side of the bench, looks at the strip without touching
+> it. In the background, an iron screw press and the mouth of a forge with low embers. Orange
+> ember light from the right, cool blue shadow everywhere else. No numbers or letters visible
+> anywhere; the sheets carry no grid or countable marks.
 
-## P02 · El cuño de la cenefa
+## P02 · The Frieze Stamp (*El cuño de la cenefa*)
 `p02-conjugados-katia.png` · **4:3**
 
-> Mesa larga de estampación de cenefas: tiras de cobre estrechas y largas extendidas a lo
-> ancho del plano, sujetas por listones. Rayhana está inclinada sobre un cuño alargado que
-> **se ha quedado atascado a medio recorrido**, torcido en su guía, con un pegote de tinta
-> negra desbordado por un lado de la tira y la greca interrumpida por el otro. Un trapo
-> manchado y un pote de tinta volcado junto al codo. KatIA se agacha a la altura de la mesa
-> para mirar el cuño de lado, con el ocular teal encendido. Al fondo, un panel de celosía de
-> madera torneada filtra la luz de la calle en franjas. La greca del cobre es ornamental y
-> geométrica, sin signos ni cifras.
+> A long table for stamping frieze bands: long, narrow copper strips laid across the width
+> of the frame, held down by battens. Rayhana leans over an elongated stamp that **has jammed
+> halfway through its stroke**, twisted in its guide, with a blob of black ink spilling over
+> one side of the strip and the fret pattern broken off on the other. A stained rag and a
+> tipped-over ink pot by her elbow. KatIA crouches to table height to look at the stamp from
+> the side, her teal ocular lit. In the background, a turned-wood lattice panel filters the
+> street light into stripes. The fret pattern on the copper is ornamental and geometric, with
+> no signs or figures.
 
-## P03 · El molde de tres capas
+## P03 · The Three-Layer Mold (*El molde de tres capas*)
 `p03-cubo-katia.png` · **4:3**
 
-> Rincón de moldeo al fondo del taller, más oscuro y más húmedo. Sobre una losa hay moldes
-> altos de barro cocido, abiertos en dos valvas, y un montón de arcilla cubierto con un paño
-> mojado. Un aprendiz gato atigrado sostiene con las dos manos un bloque cúbico recién
-> desmoldado que **se ha partido y deja ver que está hueco por dentro**, con las paredes
-> finas y el interior vacío. Rayhana señala el hueco sin regañar. KatIA, en primer plano
-> lateral, observa el corte del bloque. Suelo de ladrillo, salpicaduras de barro, una lámpara
-> de bronce colgada arriba a la izquierda. Nada escrito, ningún molde numerado.
+> A molding corner at the back of the workshop, darker and damper. On a stone slab stand
+> tall fired-clay molds, opened into two halves, and a heap of clay covered with a wet cloth.
+> A tabby apprentice cat holds in both hands a freshly unmolded cubic block that **has cracked
+> open and shows it is hollow inside**, with thin walls and an empty interior. Rayhana points
+> at the hollow without scolding. KatIA, in the side foreground, studies the broken section of
+> the block. Brick floor, mud splatters, a bronze lamp hanging at the top left. Nothing
+> written, no numbered molds.
 
-## P04 · La bandeja de parejas
+## P04 · The Pairs Tray (*La bandeja de parejas*)
 `p04-termino-comun-katia.png` · **4:3**
 
-> Última mesa de la sala, más ordenada que las anteriores. Sobre ella, bandejas de madera
-> compartimentadas en casillas rectangulares, del tipo de las cajas de tipos móviles. Un
-> juego de fichas de cobre idénticas espera en un cuenco. Rayhana sostiene un registro de
-> tapas de cuero abierto y mira la bandeja con el ceño de quien acaba de descubrir un
-> descuadre; **una franja entera de casillas quedó vacía** mientras el resto está llena.
-> KatIA está enfrente, apoyando una mano en el borde de la bandeja. Al fondo, estanterías con
-> más bandejas apiladas y, muy secundaria, la prensa del principio de la sala. Las fichas del
-> cuenco están amontonadas sin orden, imposibles de contar; las casillas vacías no forman una
-> figura que se pueda leer como cantidad.
+> The last table in the room, tidier than the previous ones. On it, wooden trays divided into
+> rectangular slots, like movable-type cases. A set of identical copper tokens waits in a
+> bowl. Rayhana holds an open leather-bound ledger and frowns at the tray like someone who
+> has just found that the count does not add up; **an entire strip of slots was left empty**
+> while the rest are full. KatIA stands opposite, resting a hand on the edge of the tray. In
+> the background, shelves with more stacked trays and, very secondary, the press from the
+> front of the room. The tokens in the bowl are heaped up in no order, impossible to count;
+> the empty slots do not form a shape that could be read as a quantity.
 
 ---
 
-# ALG-N3 · El almacén de la caravana — Salim · índigo y lana
+# ALG-N3 · The Caravan Warehouse (*El almacén de la caravana*) — Salim · indigo and wool
 
-El otro extremo del edificio: donde en los troqueles se estampaba, aquí se abre. Almacén de
-caravana con báscula en la puerta, catálogo de calcos, banco de despiece, bodega abajo y sala
-de expedición a la salida. Carriles de vocabulario: fardo/báscula/albarán (G01) ·
-huella/calco/catálogo (G02) · despiece/listón/muesca (G03) · tonel/duela/aro (G04) ·
-guía de carga/precinto/remesa (G05).
+The other end of the building: where the dies stamped, here things get opened. A caravan
+warehouse with a scale at the door, a catalog of tracings, a breakdown bench, a cellar below
+and a shipping room at the exit. Vocabulary lanes: bale/scale/delivery note (G01) ·
+imprint/tracing/catalog (G02) · breakdown/slat/notch (G03) · barrel/stave/hoop (G04) ·
+waybill/seal/consignment (G05).
 
-## G01 · El pesaje de entrada
+## G01 · The Intake Weighing (*El pesaje de entrada*)
 `g01-factor-comun-katia.png` · **4:3**
 
-> Puerta interior de un almacén de caravana, vista desde dentro. Una romana de brazo cuelga
-> del dintel y un mostrador de madera desgastada cruza el plano. Sobre el mostrador, **un
-> fardo de arpillera ya abierto y a medio desatar**, con la cuerda todavía enredada y los
-> bultos de dentro asomando sin separar del todo. Un gato naranja robusto y mayor, con
-> chaleco acolchado de viaje y llaves al cinto (Salim), sostiene una tablilla de albaranes
-> con una anotación tachada, visiblemente ilegible. KatIA está junto al fardo, con una mano
-> sobre la arpillera abierta. Al fondo, más fardos apilados contra un muro de ladrillo y el
-> hueco luminoso del patio. Ninguna cifra legible en la tablilla ni en las etiquetas de los
-> fardos; los bultos del interior están medio ocultos y no se pueden contar.
+> The inner door of a caravan warehouse, seen from inside. A steelyard scale hangs from the
+> lintel and a worn wooden counter crosses the frame. On the counter, **a burlap bale already
+> opened and half untied**, with the cord still tangled and the bundles inside poking out,
+> not fully separated. A stocky, older orange cat with a padded travel vest and keys at his
+> belt (Salim) holds a delivery-note tablet with a crossed-out note, visibly illegible. KatIA
+> stands next to the bale, with one hand on the open burlap. In the background, more bales
+> stacked against a brick wall and the bright opening of the courtyard. No legible figures on
+> the tablet or on the bale tags; the bundles inside are half hidden and cannot be counted.
 
-## G02 · El cotejo de huellas
+## G02 · The Imprint Check (*El cotejo de huellas*)
 `g02-cuadrados-katia.png` · **4:3**
 
-> Sala estrecha de cotejo, con luz de lámpara sobre una única mesa. En la pared, un panel con
-> calcos colgados de cordeles: hojas de papel con impresiones en relieve de troqueles, todas
-> distintas y ninguna legible. Sobre la mesa, un catálogo grueso abierto por la mitad y, al
-> lado, **un fardo llegado cerrado que alguien abrió a la fuerza**: la arpillera rasgada, el
-> lacre roto en dos mitades. Salim tiene un dedo apoyado en una hoja del catálogo y la mirada
-> en el fardo roto. KatIA sostiene un calco a contraluz, comparándolo con el panel. **Un
-> hueco vacío entre dos hojas colgadas del cordel**, con el cordel a la vista y sin hoja.
-> Índigo dominante, ámbar de lámpara sobre la mesa. Ninguna huella del panel es un símbolo,
-> letra ni número: son texturas de relieve geométrico.
+> A narrow matching room, with lamplight over a single table. On the wall, a panel of
+> tracings hung from strings: paper sheets with embossed die impressions, all different and
+> none legible. On the table, a thick catalog open to the middle and, next to it, **a bale
+> that arrived sealed and that someone forced open**: the burlap torn, the wax seal broken in
+> two halves. Salim has one finger resting on a catalog page and his eyes on the broken bale.
+> KatIA holds a tracing against the light, comparing it with the panel. **An empty gap between
+> two sheets hanging from the string**, with the string visible and no sheet. Dominant indigo,
+> lamp amber over the table. None of the imprints on the panel is a symbol, letter or number:
+> they are geometric relief textures.
 
-## G03 · La mesa de despiece
+## G03 · The Breakdown Table (*La mesa de despiece*)
 `g03-trinomio-katia.png` · **4:3**
 
-> Banco de trabajo largo al fondo del almacén, con una hilera de muescas talladas en el canto
-> para comprobar medidas. Sobre el banco, **dos listones de madera ya cortados que no entran
-> en la muesca**: uno queda corto y el otro sobresale, apoyados en falso sobre el borde. Junto
-> a ellos, una sierra de arco y un montón de virutas. Un mozo gato calicó se ha quedado
-> mirando el listón que sobresale, con las orejas hacia atrás. Salim, detrás, no interviene.
-> KatIA se ha agachado a la altura del canto del banco para mirar la muesca de perfil. Luz
-> lateral fría desde un ventanuco alto, ámbar de lámpara sobre el banco. Ninguna medida
-> escrita, ninguna regla graduada legible, ningún listón marcado con cifras.
+> A long workbench at the back of the warehouse, with a row of notches carved into its edge
+> for checking measurements. On the bench, **two already cut wooden slats that do not fit the
+> notch**: one falls short and the other sticks out, resting unevenly on the edge. Next to
+> them, a bow saw and a pile of wood shavings. A calico porter cat stands staring at the slat
+> that sticks out, ears flattened back. Salim, behind, does not intervene. KatIA has crouched
+> to the height of the bench edge to look at the notch in profile. Cool side light from a
+> small high window, lamp amber over the bench. No written measurements, no legible graduated
+> ruler, no slat marked with figures.
 
-## G04 · La bodega de los toneles
+## G04 · The Barrel Cellar (*La bodega de los toneles*)
 `g04-cubos-katia.png` · **4:3**
 
-> Bodega abovedada bajo el almacén, ladrillo desnudo y aire frío. Toneles de madera con aros
-> de hierro descansan en durmientes a media altura. Salim baja los últimos peldaños con una
-> lámpara de aceite en alto, y el círculo de luz cae sobre **un tonel al que le sobra líquido:
-> un reguero oscuro corre por la duela y encharca el suelo bajo la boca mal ajustada**. En la
-> pared, una anotación a tiza tachada y emborronada, ilegible. KatIA está junto al tonel que
-> gotea, mirando hacia arriba a la boca. Al fondo, la bóveda se pierde en azul oscuro. Los
-> toneles del fondo están en penumbra y no forman una fila contable; ninguna marca de la
-> pared es un número legible.
+> A vaulted cellar under the warehouse, bare brick and cold air. Wooden barrels with iron
+> hoops rest on chocks at mid-height. Salim comes down the last steps holding an oil lamp up
+> high, and the circle of light falls on **an overfilled barrel: a dark trickle runs down the
+> stave and pools on the floor under the badly fitted bung**. On the wall, a chalk note
+> crossed out and smudged, illegible. KatIA stands next to the leaking barrel, looking up at
+> the bung. In the background, the vault fades into dark blue. The barrels at the back are in
+> shadow and do not form a countable row; no mark on the wall is a legible number.
 
-## G05 · La sala de expedición
+## G05 · The Shipping Room (*La sala de expedición*)
 `g05-expedicion-katia.png` · **4:3**
 
-> Sala de salida del almacén, con el portón entreabierto al patio de carga y luz de tarde
-> entrando en diagonal. Sobre un mostrador alto, una guía de carga de papel con un sello de
-> lacre, y al lado **un precinto ya roto**: el lacre partido y la cuerda cortada sobre la
-> mesa. Detrás, una remesa de bultos preparada para salir, con **un bulto suelto a un lado
-> que quedó fuera del atado**. Salim mira el precinto roto con las manos apoyadas en el
-> mostrador. KatIA está de espaldas al portón, con la vista en el bulto suelto. Al fondo del
-> patio, muy secundarias y sin detalle, dos rutas distintas saliendo del recinto. La guía de
-> carga está escrita con trazos ilegibles; los bultos están apilados de forma irregular y no
-> se pueden contar.
+> The warehouse's outgoing room, with the gate ajar onto the loading yard and afternoon light
+> slanting in. On a high counter, a paper waybill with a wax seal, and next to it **a seal
+> already broken**: the wax split and the cord cut, lying on the table. Behind, a consignment
+> of bundles ready to leave, with **one loose bundle set to one side, left out of the tied
+> load**. Salim looks at the broken seal with his hands resting on the counter. KatIA stands
+> with her back to the gate, her eyes on the loose bundle. At the far end of the yard, very
+> secondary and without detail, two different routes leading out of the compound. The waybill
+> is written in illegible strokes; the bundles are stacked irregularly and cannot be counted.
 
 ---
 
-# Opcionales · las nueve trampas
+# Optionals · the nine traps
 
-Mismo estilo, formato **1:1**, para la tarjeta de trampa (`worked_examples` con `trap: True`).
-Todas muestran a un aprendiz o mozo **en el momento anterior a darse cuenta**, nunca la
-corrección. Ninguna lleva números ni fórmulas visibles.
+Same style, **1:1** format, for the trap card (`worked_examples` with `trap: True`). They all
+show an apprentice or porter **in the moment before realizing**, never the correction. None
+has visible numbers or formulas.
 
-| Archivo | Escena |
+| File | Scene |
 |---|---|
-| `p01-trampa-orla.png` | Un aprendiz gato deja dos piezas de cobre pequeñas sobre el banco y se retira, satisfecho, dejando el resto del banco vacío. |
-| `p02-trampa-suma.png` | Un aprendiz aprieta el cuño con las dos manos sobre una tira que ya está torcida en la guía. |
-| `p03-trampa-capas.png` | Un aprendiz cierra las dos valvas de un molde alto habiendo echado arcilla solo en el fondo y en la tapa. |
-| `p04-trampa-fila.png` | Un aprendiz sella una bandeja con una franja de casillas todavía vacía, sin mirarla. |
-| `g01-trampa-albaran.png` | Un mozo firma un albarán con el fardo aún medio atado detrás de él. |
-| `g02-trampa-catalogo.png` | Un mozo saja la arpillera de un fardo con el catálogo cerrado bajo el codo. |
-| `g03-trampa-corte.png` | Un mozo apoya la sierra tras cortar, con los dos listones sobre el banco y la muesca a la vista, sin haberlos probado. |
-| `g04-trampa-arqueo.png` | Un mozo tapa un tonel dando por bueno el arqueo, con la vara de medir todavía apoyada en la pared. |
-| `g05-trampa-precinto.png` | Un mozo estampa el lacre en la guía con un bulto suelto visible al fondo de la sala. |
+| `p01-trampa-orla.png` | An apprentice cat sets two small copper pieces on the bench and walks away, satisfied, leaving the rest of the bench empty. |
+| `p02-trampa-suma.png` | An apprentice presses the stamp down with both hands on a strip that is already crooked in the guide. |
+| `p03-trampa-capas.png` | An apprentice closes the two halves of a tall mold having poured clay only into the bottom and the lid. |
+| `p04-trampa-fila.png` | An apprentice seals a tray that still has a strip of empty slots, without looking at it. |
+| `g01-trampa-albaran.png` | A porter signs a delivery note with the bale still half tied behind him. |
+| `g02-trampa-catalogo.png` | A porter slashes open the burlap of a bale with the catalog closed under his elbow. |
+| `g03-trampa-corte.png` | A porter puts the saw down after cutting, with the two slats on the bench and the notch in view, without having tried them. |
+| `g04-trampa-arqueo.png` | A porter closes up a barrel, taking the gauging as good, with the measuring rod still leaning against the wall. |
+| `g05-trampa-precinto.png` | A porter presses the wax seal onto the waybill with a loose bundle visible at the back of the room. |
 
 ---
 
-## Checklist antes de aceptar una imagen
+## Checklist before accepting an image
 
-1. ¿KatIA se reconoce como la misma de `katia-primer-plano-enteros.png` y sigue con túnica morada griega?
-2. ¿El espacio se lee como interior abasí y **no** como postal orientalista?
-3. ¿Hay algún texto, cifra o símbolo legible? Si sí, se rechaza.
-4. ¿Se puede resolver el ejercicio contando objetos de la imagen? Si sí, se rechaza.
-5. ¿La escena muestra la **consecuencia** del error y no la cuenta correcta?
-6. ¿El vocabulario visual pisa el carril de otra sala (una cenefa en P01, un tonel en G03)? Si sí, se rechaza.
+1. Is KatIA recognizable as the same KatIA from `katia-primer-plano-enteros.png`, in Abbasid-context clothing (not the Greek toga), with the mechanical arm, ears and piercings visible?
+2. Does the space read as an Abbasid interior and **not** as an Orientalist postcard?
+3. Is there any legible text, figure or symbol? If so, reject it.
+4. Can the exercise be solved by counting objects in the image? If so, reject it.
+5. Does the scene show the **consequence** of the mistake and not the correct calculation?
+6. Does the visual vocabulary step into another room's lane (a frieze band in P01, a barrel in G03)? If so, reject it.

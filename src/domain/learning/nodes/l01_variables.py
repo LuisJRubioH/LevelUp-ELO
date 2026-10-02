@@ -81,6 +81,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/05-alg-n1-kemet/l01-variables-katia.png",
         "eyebrow": "KatIA · En la Casa de la Vida",
         "title": "El papiro que se repetía a sí mismo",
         "body": (

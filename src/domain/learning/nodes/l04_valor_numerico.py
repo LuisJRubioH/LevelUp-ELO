@@ -78,6 +78,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/05-alg-n1-kemet/l04-valor-numerico-katia.png",
         "eyebrow": "KatIA · En la cámara del recuento",
         "title": "El arqueo que no cuadró por una letra",
         "body": (

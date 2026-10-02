@@ -1,219 +1,219 @@
-# Prompt maestro para generar imagenes de la plataforma
+# Master prompt for generating platform images
 
-Usa este prompt como base para generar imagenes coherentes con KatIA y con las capturas existentes de la plataforma LevelUp-ELO.
+Use this prompt as the base for generating images consistent with KatIA and with the existing screenshots of the LevelUp-ELO platform.
 
 ```text
-Genera una imagen educativa para la plataforma LevelUp-ELO, coherente con las referencias visuales existentes de KatIA.
+Generate an educational image for the LevelUp-ELO platform, consistent with the existing visual references for KatIA.
 
-Estilo visual: pixel art detallado, 16-bit / 32-bit, acabado limpio y narrativo, iluminacion calida de lamparas de aceite, arquitectura grecorromana, marmol, columnas, anforas, pergaminos, mesas de piedra, mercado antiguo, laboratorio mecanico o puerto de polis segun el tema. Paleta compatible con la app: fondo oscuro, acentos turquesa/cian, purpura en el vestuario de KatIA, dorados suaves, piedra clara y sombras profundas. Composicion horizontal 16:9, apta para una tarjeta de leccion dentro de una interfaz oscura.
+Visual style: detailed pixel art, 16-bit / 32-bit, clean narrative finish, warm oil-lamp lighting, Greco-Roman architecture, marble, columns, amphorae, scrolls, stone tables, ancient market, mechanical laboratory or polis port depending on the topic. Palette compatible with the app: dark background, turquoise/cyan accents, purple in KatIA's clothing, soft golds, light stone and deep shadows. Horizontal 16:9 composition, suitable for a lesson card inside a dark interface.
 
-Personaje principal: KatIA, una gata blanca cyborg tutora de matematicas, con un ojo mecanico azul brillante, una pata o brazo robotico, expresion inteligente y amable, vestida con toga grecorromana blanca con manto purpura y detalles dorados. Debe aparecer integrada naturalmente en la escena, senalando, organizando objetos o guiando la situacion matematica.
+Main character: KatIA, a white cyborg cat who tutors mathematics, with one glowing blue mechanical eye, a robotic paw or arm, an intelligent and kind expression, dressed in a white Greco-Roman toga with a purple mantle and gold details. She must appear naturally integrated into the scene, pointing, arranging objects or guiding the mathematical situation.
 
-Bloqueo de identidad visual de KatIA: KatIA debe parecerse al diseno existente de referencia, no a una reinterpretacion. Es una gata adulta y serena, de rostro alargado y elegante, pelaje blanco con una pequena mancha naranja en la parte superior de la cabeza, un ojo biologico verde almendrado visible y una placa mecanica lateral azul sobre el otro ojo. Su cabeza no debe verse infantil ni redonda. El ojo mecanico no debe reemplazar toda la cara ni verse como un lente enorme. No agregar corona, diadema, joyeria excesiva, armadura, casco, cabello humano ni rasgos anime. La ropa debe ser una toga grecorromana sobria blanca sin mangas, con manto purpura, similar a las referencias existentes.
+KatIA visual identity lock: KatIA must look like the existing reference design, not a reinterpretation. She is an adult, serene cat with a long, elegant face, white fur with a small orange patch on top of her head, one visible green almond-shaped biological eye and a blue mechanical side plate over the other eye. Her head must not look childlike or round. The mechanical eye must not replace the whole face or look like a huge lens. Do not add a crown, diadem, excessive jewelry, armor, helmet, human hair or anime features. The clothing must be a sober, sleeveless white Greco-Roman toga with a purple mantle, similar to the existing references.
 
-Ropa y brazos de KatIA: la toga de KatIA no tiene mangas. Sus brazos deben quedar visibles. Los detalles dorados de los brazos son brazaletes, no mangas ni tela ajustada. No cubrir los brazos con mangas blancas, mangas doradas, armadura textil ni guantes largos. El brazo robotico puede tener piezas metalicas visibles; el brazo biologico debe verse como pelaje blanco con brazaletes dorados.
+KatIA's clothing and arms: KatIA's toga has no sleeves. Her arms must remain visible. The gold details on her arms are bracelets, not sleeves or tight fabric. Do not cover the arms with white sleeves, gold sleeves, textile armor or long gloves. The robotic arm may show visible metal parts; the biological arm must look like white fur with gold bracelets.
 
-Bloqueo de estilo grafico: mantener el pixel art narrativo de las referencias existentes, con resolucion aparente moderada, contornos suaves pero pixelados, sombreado pictorico contenido, paleta apagada y grecorromana. Evitar el acabado hiperfantasy, exceso de brillo, ojos gigantes, expresiones caricaturescas, fondos demasiado epicos o cinematograficos y personajes secundarios con estilo chibi.
+Graphic style lock: keep the narrative pixel art of the existing references, with moderate apparent resolution, soft but pixelated outlines, restrained painterly shading, a muted Greco-Roman palette. Avoid a hyper-fantasy finish, excessive glow, giant eyes, cartoonish expressions, overly epic or cinematic backgrounds and chibi-style secondary characters.
 
-Personajes secundarios: todos los personajes que acompanen a KatIA deben ser animales antropomorficos, no humanos. Deben vestir atuendos acordes al contexto grecorromano antiguo: tunicas, togas, sandalias, mantos, cinturones de cuero, accesorios de mercado, puerto o laboratorio segun la escena. Pueden ser zorros, buhos, perros, cabras, conejos u otros animales con rasgos expresivos y proporciones coherentes con el pixel art. En escenas donde KatIA ensena directamente o reparte objetos a estudiantes, los estudiantes deben ser cachorros de gato humanoides vestidos como KatIA, con togas sin mangas, mantos de distintos colores y texturas/patrones de pelaje variados. Deben participar como estudiantes, mercaderes, escribas, discipulos, marineros o aprendices segun corresponda.
+Secondary characters: every character accompanying KatIA must be an anthropomorphic animal, not a human. They must wear outfits suited to the ancient Greco-Roman context: tunics, togas, sandals, mantles, leather belts, market, port or laboratory accessories depending on the scene. They can be foxes, owls, dogs, goats, rabbits or other animals with expressive features and proportions consistent with the pixel art. In scenes where KatIA teaches directly or hands out objects to students, the students must be humanoid kittens dressed like KatIA, in sleeveless togas, mantles of different colors and varied fur textures/patterns. They should take part as students, merchants, scribes, disciples, sailors or apprentices as appropriate.
 
-Escenas de escalera: si la imagen pertenece a una secuencia de pasos, KatIA debe senalar explicitamente el escalon correcto en orden. Step 1 senala el primer escalon desde abajo; Step 2 senala el segundo escalon desde abajo; Step 3 senala el tercer escalon desde abajo; Step 4 senala el cuarto escalon desde abajo; Step 5 senala el quinto escalon desde abajo o presenta la ruta completa ya desbloqueada. La punta del dedo o mano robotica debe apuntar claramente al escalon indicado, no a otro.
+Staircase scenes: if the image belongs to a sequence of steps, KatIA must explicitly point at the correct step in order. Step 1 points at the first step from the bottom; Step 2 points at the second step from the bottom; Step 3 points at the third step from the bottom; Step 4 points at the fourth step from the bottom; Step 5 points at the fifth step from the bottom or presents the whole route already unlocked. The tip of the finger or robotic hand must clearly point at the indicated step, not another one.
 
-Tema de la imagen: [TEMA_ESPECIFICO].
-Situacion matematica: [SITUACION_ESPECIFICA].
-Objetos obligatorios: [OBJETOS].
+Image topic: [SPECIFIC_TOPIC].
+Mathematical situation: [SPECIFIC_SITUATION].
+Required objects: [OBJECTS].
 
-Representacion conceptual: mostrar visualmente la idea matematica sin depender de texto escrito. Puede incluir simbolos matematicos simples grabados en piedra o pergamino si son claros, pero evitar frases largas, etiquetas ilegibles o texto decorativo inventado.
+Conceptual representation: show the mathematical idea visually without relying on written text. It may include simple mathematical symbols carved in stone or on parchment if they are clear, but avoid long phrases, illegible labels or invented decorative text.
 
-Requisitos de composicion:
-- KatIA debe estar visible, preferiblemente a un lado, dejando espacio libre para que la interfaz pueda respirar.
-- Los objetos matematicos deben ser claros y contables.
-- La imagen debe sentirse parte del mismo mundo que las escenas de mercado, frutas, anforas, escaleras, laboratorio y puerto ya usadas.
-- Mantener coherencia con un entorno de polis antigua, mercado grecorromano, templo, laboratorio mecanico o puerto.
-- No usar estilo moderno, no usar aula escolar contemporanea, no usar fondos genericos, no usar caricatura plana, no usar render 3D.
-- No incluir humanos, estudiantes humanos, mercaderes humanos ni rostros humanos.
-- Sin marcas de agua, sin logotipos, sin texto largo, sin numeros deformes.
-- Imagen final nitida, pixel art coherente, alta calidad, 16:9.
+Composition requirements:
+- KatIA must be visible, preferably to one side, leaving free space so the interface can breathe.
+- The mathematical objects must be clear and countable.
+- The image must feel part of the same world as the market, fruit, amphora, staircase, laboratory and port scenes already in use.
+- Keep consistency with an ancient polis setting, Greco-Roman market, temple, mechanical laboratory or port.
+- No modern style, no contemporary classroom, no generic backgrounds, no flat cartoon, no 3D render.
+- No humans, human students, human merchants or human faces.
+- No watermarks, no logos, no long text, no deformed numbers.
+- Sharp final image, consistent pixel art, high quality, 16:9.
 ```
 
-## Variables recomendadas por escena
+## Recommended variables per scene
 
-### Nivel 2 - Operaciones basicas
+### Level 2 - Basic operations
 
-**Suma - Aceitunas reunidas**
+**Addition - Olives brought together**
 
 ```text
-Tema de la imagen: suma como accion de juntar cantidades en el agora.
-Situacion matematica: 3 aceitunas en una cesta y 5 aceitunas en otra se juntan para formar 8 aceitunas.
-Objetos obligatorios: dos cestas de aceitunas, mesa de piedra, pergamino pequeno con el simbolo 3 + 5 = 8, KatIA guiando la union de las cestas, animales antropomorficos como aprendices.
+Image topic: addition as the action of joining quantities in the agora.
+Mathematical situation: 3 olives in one basket and 5 olives in another are joined to make 8 olives.
+Required objects: two baskets of olives, stone table, small parchment with the symbol 3 + 5 = 8, KatIA guiding the joining of the baskets, anthropomorphic animals as apprentices.
 ```
 
-**Suma - Deuda y pago**
+**Addition - Debt and payment**
 
 ```text
-Tema de la imagen: suma de enteros mediante deuda y pago.
-Situacion matematica: KatIA registra una deuda de 3 dracmas y luego entran 5 dracmas, dejando saldo positivo de 2.
-Objetos obligatorios: monedas o dracmas, tablilla de deuda, bolsa de cuero, balanza pequena, KatIA senalando el saldo.
+Image topic: integer addition through debt and payment.
+Mathematical situation: KatIA records a debt of 3 drachmas and then 5 drachmas come in, leaving a positive balance of 2.
+Required objects: coins or drachmas, debt tablet, leather pouch, small balance scale, KatIA pointing at the balance.
 ```
 
-**Resta - Quitar sin cruzar cero**
+**Subtraction - Taking away without crossing zero**
 
 ```text
-Tema de la imagen: resta como quitar una cantidad de otra.
-Situacion matematica: hay 8 aceitunas sobre una mesa y KatIA entrega 3; quedan 5.
-Objetos obligatorios: 8 aceitunas visibles, 3 siendo retiradas o entregadas, plato con 5 restantes, mesa de mercado, aprendiz animal antropomorfico recibiendo aceitunas.
+Image topic: subtraction as taking one quantity away from another.
+Mathematical situation: there are 8 olives on a table and KatIA hands over 3; 5 remain.
+Required objects: 8 visible olives, 3 being removed or handed over, plate with the remaining 5, market table, anthropomorphic animal apprentice receiving olives.
 ```
 
-**Resta - Restar mas de lo que hay**
+**Subtraction - Subtracting more than there is**
 
 ```text
-Tema de la imagen: resta que cruza el cero y produce deuda.
-Situacion matematica: KatIA tiene 3 dracmas pero debe pagar 5, mostrando faltante de 2.
-Objetos obligatorios: tres monedas en una bolsa, cinco marcas de pago en una tablilla, indicador visual de faltante, expresion de descubrimiento, ambiente de agora.
+Image topic: subtraction that crosses zero and produces debt.
+Mathematical situation: KatIA has 3 drachmas but must pay 5, showing a shortfall of 2.
+Required objects: three coins in a pouch, five payment marks on a tablet, visual shortfall indicator, expression of discovery, agora setting.
 ```
 
-**Multiplicacion - Filas de anforas**
+**Multiplication - Rows of amphorae**
 
 ```text
-Tema de la imagen: multiplicacion como grupos iguales.
-Situacion matematica: 3 filas con 4 anforas cada una forman 12 anforas.
-Objetos obligatorios: 12 anforas ordenadas en 3 filas de 4, columnas griegas, KatIA contando grupos, aprendices animales observando.
+Image topic: multiplication as equal groups.
+Mathematical situation: 3 rows with 4 amphorae each make 12 amphorae.
+Required objects: 12 amphorae arranged in 3 rows of 4, Greek columns, KatIA counting groups, animal apprentices watching.
 ```
 
-**Multiplicacion - Deuda repetida**
+**Multiplication - Repeated debt**
 
 ```text
-Tema de la imagen: multiplicacion de enteros como deuda repetida.
-Situacion matematica: una deuda de 3 dracmas se repite 4 veces, formando una deuda total de 12.
-Objetos obligatorios: cuatro tablillas de deuda, cada una con tres marcas o monedas oscuras, KatIA agrupando las tablillas, bolsa vacia o contador de saldo negativo.
+Image topic: integer multiplication as repeated debt.
+Mathematical situation: a debt of 3 drachmas is repeated 4 times, making a total debt of 12.
+Required objects: four debt tablets, each with three marks or dark coins, KatIA grouping the tablets, empty pouch or negative-balance counter.
 ```
 
-**Division - Reparto exacto**
+**Division - Exact sharing**
 
 ```text
-Tema de la imagen: division como reparto en partes iguales.
-Situacion matematica: 12 aceitunas se reparten entre 4 discipulos animales, cada uno recibe 3.
-Objetos obligatorios: 12 aceitunas, 4 platos, 3 aceitunas en cada plato, KatIA verificando que no sobra nada.
+Image topic: division as sharing into equal parts.
+Mathematical situation: 12 olives are shared among 4 animal disciples, each receives 3.
+Required objects: 12 olives, 4 plates, 3 olives on each plate, KatIA checking that nothing is left over.
 ```
 
-**Division - Reparto con residuo**
+**Division - Sharing with a remainder**
 
 ```text
-Tema de la imagen: division con cociente y residuo.
-Situacion matematica: 27 higos se reparten entre 6 discipulos animales; cada uno recibe 4 y sobran 3.
-Objetos obligatorios: seis platos con cuatro higos cada uno, tres higos sobrantes al centro, KatIA senalando el residuo.
+Image topic: division with quotient and remainder.
+Mathematical situation: 27 figs are shared among 6 animal disciples; each receives 4 and 3 are left over.
+Required objects: six plates with four figs each, three leftover figs in the center, KatIA pointing at the remainder.
 ```
 
-**Potenciacion - Crecimiento por niveles**
+**Exponentiation - Growth by levels**
 
 ```text
-Tema de la imagen: potenciacion como crecimiento por niveles.
-Situacion matematica: una pila duplica su tamano durante 3 niveles, representando 2^3 = 8.
-Objetos obligatorios: torre escalonada de bloques o tablillas con niveles 2, 4 y 8, KatIA senalando el crecimiento, arquitectura de templo.
+Image topic: exponentiation as growth by levels.
+Mathematical situation: a stack doubles in size over 3 levels, representing 2^3 = 8.
+Required objects: stepped tower of blocks or tablets with levels 2, 4 and 8, KatIA pointing at the growth, temple architecture.
 ```
 
-**Potenciacion - Exponente negativo**
+**Exponentiation - Negative exponent**
 
 ```text
-Tema de la imagen: exponente negativo como inversion o reciproco.
-Situacion matematica: KatIA eleva 2 a -2 y muestra que se transforma en 1/4.
-Objetos obligatorios: escalera descendente, cuatro partes de una anfora o tableta dividida en cuartos, KatIA explicando la inversion, simbolo simple 2^-2 en pergamino.
+Image topic: negative exponent as inversion or reciprocal.
+Mathematical situation: KatIA raises 2 to -2 and shows that it becomes 1/4.
+Required objects: descending staircase, four parts of an amphora or a tablet divided into quarters, KatIA explaining the inversion, simple symbol 2^-2 on parchment.
 ```
 
-**Radicacion - Cuadrado perfecto**
+**Roots - Perfect square**
 
 ```text
-Tema de la imagen: raiz cuadrada como encontrar el lado de un area.
-Situacion matematica: un patio cuadrado tiene area 16 y KatIA mide que cada lado vale 4.
-Objetos obligatorios: patio cuadrado dividido en 16 baldosas, cuerda de medicion, lado marcado visualmente con 4 unidades, KatIA arrodillada o senalando el borde.
+Image topic: square root as finding the side of an area.
+Mathematical situation: a square courtyard has area 16 and KatIA measures that each side is 4.
+Required objects: square courtyard divided into 16 tiles, measuring rope, one side visually marked with 4 units, KatIA kneeling or pointing at the edge.
 ```
 
-**Radicacion - No toda raiz es entera**
+**Roots - Not every root is a whole number**
 
 ```text
-Tema de la imagen: raiz cuadrada de 2 como salto hacia los irracionales.
-Situacion matematica: KatIA calcula la raiz cuadrada de 2 y descubre que no cabe como entero.
-Objetos obligatorios: cuadrado de 1 por 1 con diagonal resaltada, regla o cuerda que no coincide con marcas enteras, brillo conceptual sobre la diagonal, KatIA observando.
+Image topic: square root of 2 as the leap to the irrationals.
+Mathematical situation: KatIA computes the square root of 2 and discovers it does not fit as a whole number.
+Required objects: 1-by-1 square with the diagonal highlighted, ruler or rope that does not line up with whole-number marks, conceptual glow on the diagonal, KatIA observing.
 ```
 
-### Nivel 3 - Propiedades
+### Level 3 - Properties
 
-**Conmutativa**
+**Commutative**
 
 ```text
-Tema de la imagen: propiedad conmutativa como intercambio de orden.
-Situacion matematica: -3 + 8 y 8 + (-3) dan el mismo resultado.
-Objetos obligatorios: dos bandejas intercambiables con dracmas positivos y negativos, flechas visuales de intercambio, KatIA comparando dos resultados iguales.
+Image topic: commutative property as swapping the order.
+Mathematical situation: -3 + 8 and 8 + (-3) give the same result.
+Required objects: two interchangeable trays with positive and negative drachmas, visual swap arrows, KatIA comparing two equal results.
 ```
 
-**Asociativa**
+**Associative**
 
 ```text
-Tema de la imagen: propiedad asociativa como cambio de agrupamiento.
-Situacion matematica: (-2 + 5) + 3 y -2 + (5 + 3) llegan al mismo total.
-Objetos obligatorios: tres grupos de monedas o anforas, arcos o cuerdas mostrando agrupamientos distintos, KatIA moviendo los separadores.
+Image topic: associative property as changing the grouping.
+Mathematical situation: (-2 + 5) + 3 and -2 + (5 + 3) reach the same total.
+Required objects: three groups of coins or amphorae, arches or ropes showing different groupings, KatIA moving the dividers.
 ```
 
-**Distributiva**
+**Distributive**
 
 ```text
-Tema de la imagen: propiedad distributiva como reparto de un factor.
-Situacion matematica: un factor negativo se reparte a cada termino de una suma, conservando signos.
-Objetos obligatorios: una maquina o balanza que divide un factor hacia dos cajas, dos grupos de objetos, KatIA activando una palanca, ambiente de laboratorio antiguo.
+Image topic: distributive property as distributing a factor.
+Mathematical situation: a negative factor is distributed to each term of a sum, keeping the signs.
+Required objects: a machine or balance that splits a factor toward two boxes, two groups of objects, KatIA pulling a lever, ancient laboratory setting.
 ```
 
-**Elemento neutro**
+**Identity element**
 
 ```text
-Tema de la imagen: elemento neutro como numero que no cambia el resultado.
-Situacion matematica: sumar 0 a un negativo no lo cambia, y multiplicar por 1 conserva la cantidad.
-Objetos obligatorios: piedra circular con 0, anfora completa con 1, cantidad principal intacta antes y despues, KatIA mostrando que nada cambia.
+Image topic: identity element as a number that does not change the result.
+Mathematical situation: adding 0 to a negative does not change it, and multiplying by 1 keeps the quantity.
+Required objects: circular stone with 0, whole amphora with 1, main quantity intact before and after, KatIA showing that nothing changes.
 ```
 
-**Inverso aditivo**
+**Additive inverse**
 
 ```text
-Tema de la imagen: inverso aditivo como cancelacion hasta llegar a cero.
-Situacion matematica: 6 y -6 se cancelan y llegan al neutro 0.
-Objetos obligatorios: seis monedas claras y seis marcas de deuda oscuras, balanza equilibrada en cero, KatIA colocando las piezas opuestas.
+Image topic: additive inverse as cancellation down to zero.
+Mathematical situation: 6 and -6 cancel out and reach the identity 0.
+Required objects: six light coins and six dark debt marks, balance level at zero, KatIA placing the opposite pieces.
 ```
 
-**Inverso multiplicativo**
+**Multiplicative inverse**
 
 ```text
-Tema de la imagen: reciproco como reconstruccion de una unidad.
-Situacion matematica: 4 multiplicado por 1/4 reconstruye una unidad.
-Objetos obligatorios: anfora o mosaico dividido en cuatro partes iguales, cuatro piezas de un cuarto uniendose en una unidad completa, KatIA guiando el armado.
+Image topic: reciprocal as rebuilding a unit.
+Mathematical situation: 4 multiplied by 1/4 rebuilds one unit.
+Required objects: amphora or mosaic divided into four equal parts, four quarter pieces joining into one complete unit, KatIA guiding the assembly.
 ```
 
-### Nivel 4 - Divisibilidad
+### Level 4 - Divisibility
 
-**Divisibilidad - Reparto exacto**
+**Divisibility - Exact sharing**
 
 ```text
-Tema de la imagen: divisibilidad como reparto exacto sin residuo.
-Situacion matematica: 36 canicas se reparten en partes iguales entre 4 amigos animales; cada uno recibe 9.
-Objetos obligatorios: 36 canicas contables agrupadas en cuatro montones iguales, cuatro personajes animales con tunicas, KatIA verificando el reparto.
+Image topic: divisibility as exact sharing with no remainder.
+Mathematical situation: 36 marbles are shared equally among 4 animal friends; each receives 9.
+Required objects: 36 countable marbles grouped into four equal piles, four animal characters in tunics, KatIA checking the sharing.
 ```
 
-**Divisibilidad - Reparto con residuo**
+**Divisibility - Sharing with a remainder**
 
 ```text
-Tema de la imagen: no divisibilidad como reparto con sobrantes.
-Situacion matematica: 23 entradas de feria se reparten entre 5 amigos animales; cada uno recibe 4 y sobran 3.
-Objetos obligatorios: cinco pilas de cuatro entradas, tres entradas sobrantes separadas, muelle o feria antigua, KatIA senalando el residuo.
+Image topic: non-divisibility as sharing with leftovers.
+Mathematical situation: 23 fair tickets are shared among 5 animal friends; each receives 4 and 3 are left over.
+Required objects: five stacks of four tickets, three leftover tickets set apart, ancient dock or fair, KatIA pointing at the remainder.
 ```
 
-**Multiplos - El corredor completo**
+**Multiples - The full runner**
 
 ```text
-Tema de la imagen: multiplos como avances repetidos.
-Situacion matematica: un corredor avanza 4 km cada hora y alcanza 8, 12, 16, 24 y 36 km tras distintos tiempos.
-Objetos obligatorios: camino de piedra con marcas repetidas de 4 en 4, corredor animal antropomorfico, KatIA con pergamino de ruta, ambiente de puerto o polis.
+Image topic: multiples as repeated advances.
+Mathematical situation: a runner advances 4 km every hour and reaches 8, 12, 16, 24 and 36 km after different times.
+Required objects: stone path with marks repeating every 4, anthropomorphic animal runner, KatIA with a route scroll, port or polis setting.
 ```
 
-## Prompt negativo corto
+## Short negative prompt
 
 ```text
-No humanos, no aula moderna, no ciudad moderna, no ropa contemporanea, no render 3D, no estilo vectorial plano, no texto largo, no letras inventadas, no numeros deformes, no marcas de agua, no logos, no personajes fuera del estilo pixel art, no KatIA chibi, no KatIA infantil, no ojos gigantes, no corona, no diadema, no armadura, no casco, no cabello humano, no rostro redondo, no estilo anime, no acabado hiperfantasy, no paleta sobresaturada, no mangas en la toga de KatIA, no brazos cubiertos por tela, no estudiantes humanos, no perros/conejos/zorros como alumnos principales en escenas de reparto cuando deben ser cachorros de gato.
+No humans, no modern classroom, no modern city, no contemporary clothing, no 3D render, no flat vector style, no long text, no invented letters, no deformed numbers, no watermarks, no logos, no characters outside the pixel-art style, no chibi KatIA, no childlike KatIA, no giant eyes, no crown, no diadem, no armor, no helmet, no human hair, no round face, no anime style, no hyper-fantasy finish, no oversaturated palette, no sleeves on KatIA's toga, no arms covered by fabric, no human students, no dogs/rabbits/foxes as the main students in sharing scenes when they should be kittens.
 ```

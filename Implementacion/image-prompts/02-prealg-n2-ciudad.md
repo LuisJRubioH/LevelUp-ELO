@@ -1,203 +1,201 @@
-# Prompts de imagen — N2 · La Ciudad de las Operaciones
+# Image prompts — N2 · The City of Operations
 
-**Reemplaza a `n2-mercado.md`.** El nivel dejó de ser un mercado de puestos: son SEIS
-EDIFICIOS con nombre propio, y se entra a uno por nodo. El arte actual
-(`frontend/public/leccion/02-prealg-n2-mercado/*-v4.png`) muestra puestos de tela y
-mostradores — hay que regenerarlo. Los nombres de archivo se conservan para no romper las
-rutas del contenido.
+**Replaces `n2-mercado.md`.** The level stopped being a market of stalls: it is SIX
+BUILDINGS with proper names, and you enter one per node. The current art
+(`frontend/public/leccion/02-prealg-n2-mercado/*-v4.png`) shows cloth stalls and counters —
+it must be regenerated. The file names are kept so the content paths do not break.
 
-| Nodo | Edificio | Oficio · qué se ve dentro |
+| Node | Building | Trade · what you see inside |
 |---|---|---|
-| E01 Suma | **El Granero Público** | dos pisos de sacos, balanza de suelo, tablilla de entradas y salidas junto a la puerta |
-| E02 Resta | **La Casa de Cuentas** | salón con arcas, muro de tablillas atravesado por una línea grabada (el cero) |
-| E03 Multiplicación | **El Taller de Mosaicos** | mesas largas, cajones de teselas por color, bodega al fondo |
-| E04 División | **El Comedor Comunal** | mesas corridas, caldero grande, cucharón, hogazas cortadas |
-| E05 Potenciación | **El Invernadero** | techo de vidrio, bandejas de germinación en filas, registro colgado en la puerta |
-| E06 Radicación | **La Cantera** | tajo de piedra a cielo abierto, poleas, cinceles, plomada colgando |
+| E01 Addition | **The Public Granary** (*El Granero Público*) | two floors of sacks, floor scale, tablet of incoming and outgoing loads next to the door |
+| E02 Subtraction | **The Counting House** (*La Casa de Cuentas*) | hall with strongboxes, a wall of tablets crossed by an engraved line (zero) |
+| E03 Multiplication | **The Mosaic Workshop** (*El Taller de Mosaicos*) | long tables, drawers of tesserae sorted by color, storeroom at the back |
+| E04 Division | **The Communal Dining Hall** (*El Comedor Comunal*) | long communal tables, a big cauldron, a ladle, sliced loaves |
+| E05 Exponentiation | **The Greenhouse** (*El Invernadero*) | glass roof, germination trays in rows, a log hanging on the door |
+| E06 Roots | **The Quarry** (*La Cantera*) | open-air stone cut, pulleys, chisels, a hanging plumb line |
 
-**Vocabulario visual del nivel:** arquitectura civil griega de uso diario — muros de
-sillería, dinteles de madera, puertas de doble hoja, patios interiores, escaleras de
-servicio, poleas, herramienta de oficio. **Cero vocabulario de mercado**: nada de puestos,
-toldos de tela, mercaderes tras un mostrador ni cestas de fruta expuestas. Cada edificio se
-debe reconocer por su OFICIO, no por un cartel con el símbolo de la operación.
+**Visual vocabulary of the level:** everyday Greek civic architecture — ashlar walls, wooden
+lintels, double-leaf doors, inner courtyards, service stairs, pulleys, trade tools. **Zero
+market vocabulary**: no stalls, cloth awnings, merchants behind a counter or displayed fruit
+baskets. Each building must be recognizable by its TRADE, not by a sign with the operation
+symbol.
 
-**Línea gráfica obligatoria (`Implementacion/image-prompts/referencias/`):** usar como referencia directa
+**Required visual line (`Implementacion/image-prompts/referencias/`):** use as direct references
 `step-naturales.png`, `step-enteros.png`, `step-racionales.png`, `step-reales.png`,
-`escalera-conjuntos.png`, `katia-primer-plano-enteros.png` y `caso-enteros-recta.jpg`.
-Antes de generar, abrir/adjuntar esas imágenes como referencias visuales si la herramienta lo
-permite; si no, copiar completa esta línea gráfica dentro del prompt final.
+`escalera-conjuntos.png`, `katia-primer-plano-enteros.png` and `caso-enteros-recta.jpg`.
+Before generating, open/attach those images as visual references if the tool allows it;
+otherwise, copy this whole visual line into the final prompt.
 
-**Estilo base:** `pixel-art educativo refinado, estilo 16/32-bit narrativo de alta calidad,
-con clusters de píxeles visibles, bordes pixelados limpios, sombreado por bloques y dithering
-sutil; NO pintura digital hiperrealista. Mantener el lenguaje visual de los assets existentes:
-KatIA legible en primer/medio plano, escena contenida, pocos personajes secundarios, objetos
-pedagógicos claros sobre mesa/suelo/banco de trabajo, sombras azul noche, luz dorada de
-lámpara, piedra cálida, acentos teal pequeños en el ocular de KatIA y en instrumentos
-mecánicos. KatIA debe conservar identidad: gata blanca con mancha naranja/negra en la cabeza,
-ojo verde visible, ocular mecánico teal, pata/brazo mecánico, túnica morada y ornamentos
-dorados. El espacio debe leerse como el INTERIOR de un edificio de oficio de una ciudad
-griega; si aparece arquitectura de fondo, es secundaria.`
+**Base style:** `refined educational pixel art, high-quality narrative 16/32-bit style,
+with visible pixel clusters, clean pixelated edges, block shading and subtle dithering; NO
+hyperrealistic digital painting. Keep the visual language of the existing assets: KatIA
+readable in the foreground/mid-ground, contained scene, few secondary characters, clear
+teaching objects on a table/floor/workbench, night-blue shadows, golden lamplight, warm
+stone, small teal accents on KatIA's ocular and on mechanical instruments. KatIA must keep
+her identity: white cat with an orange/black patch on her head, visible green eye, teal
+mechanical ocular, mechanical paw/arm, purple tunic and gold ornaments. The space must read
+as the INTERIOR of a trade building in a Greek city; if background architecture appears, it
+is secondary.`
 
-**Personajes secundarios:** cualquier rol mencionado (escriba, contador, aprendiz, cantero,
-jardinero, cocinero, cliente) se representa como animal antropomórfico. Preferencia: gatos
-bípedos con túnicas o delantales griegos, pelajes variados (atigrado, negro, gris, calicó,
-siamés, naranja, blanco moteado) y texturas diferenciadas. No humanos realistas.
+**Secondary characters:** any role mentioned (scribe, accountant, apprentice, stonecutter,
+gardener, cook, customer) is depicted as an anthropomorphic animal. Preference: bipedal cats
+in Greek tunics or aprons, varied coats (tabby, black, grey, calico, Siamese, orange,
+spotted white) and distinct textures. No realistic humans.
 
-**Escaleras y peldaños:** si aparece una escalera o peldaño, va completamente limpio: sin
-símbolos, letras, números, runas, marcas, medallones, flechas ni relieves matemáticos.
+**Stairs and steps:** if a staircase or step appears, it is completely clean: no symbols,
+letters, numbers, runes, marks, medallions, arrows or mathematical reliefs.
 
-**Negativos de estilo:** no panorámica turística, no mercado ni puestos, no multitudes, no
-plaza pública como foco, no pintura digital lisa, no neón saturado, no sci-fi duro, no
-anime/chibi, no humanos realistas, no cambiar a KatIA por una gata totalmente metálica.
+**Style negatives:** no tourist panorama, no market or stalls, no crowds, no public square
+as the focus, no smooth digital painting, no saturated neon, no hard sci-fi, no anime/chibi,
+no realistic humans, no turning KatIA into a fully metal cat.
 
-**Regla dura:** cada prompt describe la SITUACIÓN, nunca la SOLUCIÓN. Ningún prompt muestra
-el resultado numérico de un ejercicio, ni una cantidad de objetos organizada de forma que se
-pueda contar y resolver el ejercicio mirando la imagen.
-
----
-
-## E00 — Hub: La Ciudad de las Operaciones
-
-`e00-hub-mercado-v4.png` → regenerar como **ciudad de edificios** (mantener nombre de archivo).
-
-**Header de nivel** (`.level-presentation-header` + `.level-presentation-media`, ancho
-completo, 16:9).
-
-> Calle en pendiente de una ciudad griega al atardecer, vista contenida a media distancia:
-> a ambos lados se levantan seis edificios de piedra distintos entre sí, reconocibles por su
-> oficio y no por carteles — un granero de dos pisos con compuerta alta y poleas; una casa de
-> cuentas con puerta de doble hoja y ventana enrejada; un taller con mesas visibles por el
-> vano y cajones de teselas de colores; un comedor con puertas abiertas de par en par y humo
-> saliendo por un respiradero; un invernadero de techo de vidrio empañado; y al fondo, donde
-> la calle se abre, el tajo de una cantera con una polea recortada contra el cielo. KatIA en
-> primer plano sobre el empedrado, de medio cuerpo, señalando calle arriba como invitando a
-> recorrerla. Ningún puesto de mercado, ninguna tela colgada, nadie vendiendo.
-
-**Rompehielos** (mantener `e00-ice1-ladrillos-v4.png`, `e00-ice2-tejas-v4.png`,
-`e00-ice3-puestos-v4.png`): son escenas de obra en la calle, previas a entrar a cualquier
-edificio. El tercero (`ice3`) debe dejar de mostrar «puestos de la plaza» y pasar a mostrar
-**los portones de los seis edificios, unos abiertos y otros cerrados**.
+**Hard rule:** every prompt describes the SITUATION, never the SOLUTION. No prompt shows the
+numeric result of an exercise, or a quantity of objects arranged so that it could be counted
+to solve the exercise by looking at the image.
 
 ---
 
-## E01 — El Granero Público
+## E00 — Hub: The City of Operations (*La Ciudad de las Operaciones*)
 
-`e01-suma-katia-v4.png` — apertura.
+`e00-hub-mercado-v4.png` → regenerate as a **city of buildings** (keep the file name).
 
-> Interior del Granero Público de noche: nave alta de sillería con sacos apilados en dos
-> niveles, una rampa de madera, una balanza de suelo con platillos grandes y, junto a la
-> puerta, una tablilla de cera colgada de un clavo con dos columnas marcadas a cuchillo.
-> KatIA en medio plano junto a la tablilla, con el brazo mecánico apoyado en ella; a un lado,
-> un gato escriba de túnica gris con punzón, mirando la tablilla con duda. Una carreta
-> descargando al fondo, apenas sugerida. Lámpara de aceite colgante como única luz cálida.
-> No mostrar cantidades contables de sacos.
+**Level header** (`.level-presentation-header` + `.level-presentation-media`, full width,
+16:9).
 
-`e01-higos-reunidos-v4.png` → renombrar mentalmente a **«grano que entra»**: primer plano de
-la rampa del granero con sacos entrando, sin que se puedan contar.
+> A sloping street in a Greek city at dusk, seen in a contained mid-distance view: on both
+> sides rise six stone buildings, each different from the others, recognizable by their
+> trade and not by signs — a two-story granary with a high hatch and pulleys; a counting
+> house with a double-leaf door and a barred window; a workshop with tables visible through
+> the doorway and drawers of colored tesserae; a dining hall with its doors thrown wide open
+> and smoke rising from a vent; a greenhouse with a fogged glass roof; and in the
+> background, where the street opens up, the cut of a quarry with a pulley silhouetted
+> against the sky. KatIA in the foreground on the cobblestones, waist-up, pointing up the
+> street as if inviting a walk through it. No market stalls, no hanging cloth, nobody
+> selling.
 
-`e01-deuda-pago-v4.png` → **«el saco que sale»**: la misma rampa, un saco saliendo por la
-compuerta y la mano mecánica de KatIA marcando el signo contrario en la tablilla.
-
----
-
-## E02 — La Casa de Cuentas
-
-`e02-resta-katia-v4.png` — apertura.
-
-> Interior de la Casa de Cuentas: salón estrecho de piedra con dos arcas de hierro al fondo y
-> una pared cubierta de tablillas colgadas, atravesada de lado a lado por una LÍNEA HORIZONTAL
-> grabada en el muro. Algunas tablillas cuelgan por encima de la línea, otras por debajo. Un
-> gato contador anciano, atigrado, de túnica oscura, se niega a colgar una tablilla por debajo
-> y la sostiene en el aire; frente al mostrador, un gato cliente joven con una bolsa pequeña.
-> KatIA en primer plano lateral, observando la línea del muro. Lámpara de aceite, sombras
-> azules. La línea del cero debe ser el elemento gráfico más legible de la escena. Sin números
-> escritos en las tablillas.
-
-`e02-ceramica-vendida-v4.png` → **«el pago que sube»**: detalle de una tablilla pasando de
-debajo a encima de la línea.
-
-`e02-dracmas-deuda-v4.png` → **«la tablilla que cuelga debajo»**: detalle de una sola tablilla
-colgada bajo la línea grabada, con la sombra alargada.
+**Icebreakers** (keep `e00-ice1-ladrillos-v4.png`, `e00-ice2-tejas-v4.png`,
+`e00-ice3-puestos-v4.png`): they are street construction scenes, before entering any
+building. The third one (`ice3`) must stop showing "stalls in the square" and instead show
+**the gates of the six buildings, some open and some closed**.
 
 ---
 
-## E03 — El Taller de Mosaicos
+## E01 — The Public Granary (*El Granero Público*)
 
-`e03-multiplicacion-katia-v4.png` — apertura.
+`e01-suma-katia-v4.png` — opening.
 
-> Interior del Taller de Mosaicos: mesas largas de trabajo con teselas de piedra dispuestas en
-> filas y columnas incompletas, cajones abiertos separando teselas por color, y al fondo la
-> boca de una bodega con estanterías. Un gato aprendiz de delantal bajando a la bodega con una
-> cesta vacía; el maestro, un gato calicó mayor, midiendo un mosaico grande con una plantilla.
-> KatIA en medio plano junto a la mesa, con la pata mecánica sobre una plantilla de reducción
-> a media escala. Luz de lámpara rasante que hace brillar las teselas. Las filas de teselas
-> deben verse incompletas o parcialmente tapadas para que no se puedan contar.
+> Interior of the Public Granary at night: a tall ashlar hall with sacks stacked on two
+> levels, a wooden ramp, a floor scale with large pans and, next to the door, a wax tablet
+> hanging from a nail with two columns scored with a knife. KatIA in a medium shot next to
+> the tablet, with her mechanical arm resting on it; to one side, a scribe cat in a grey
+> tunic with a stylus, looking at the tablet with doubt. A cart unloading in the background,
+> barely suggested. A hanging oil lamp as the only warm light. Do not show countable
+> quantities of sacks.
 
-`e03-filas-tinajas-v4.png` → **«el mosaico por filas»**: detalle en picado de un mosaico
-parcialmente armado, con parte cubierta por un paño.
+`e01-higos-reunidos-v4.png` → mentally rename it **"grain coming in"**: close-up of the
+granary ramp with sacks coming in, without it being possible to count them.
 
-`e03-deuda-repetida-v4.png` → **«las teselas rotas»**: montoncito de teselas partidas junto al
-cincel, al borde de la mesa.
-
----
-
-## E04 — El Comedor Comunal
-
-`e04-division-katia-v4.png` — apertura.
-
-> Interior del Comedor Comunal en plena noche de servicio: mesas corridas de madera, bancos
-> largos, un caldero grande humeante sobre el fuego al fondo y un cucharón colgado. Sobre la
-> mesa del frente, hogazas de pan, algunas enteras y otras cortadas por la mitad con un
-> cuchillo apoyado al lado. Un gato cocinero de delantal indicando que corten; un gato ayudante
-> joven con cara de alarma sosteniendo una pizarra pequeña. KatIA en medio plano junto a las
-> hogazas, con la pata mecánica sobre una de las mitades. Vapor, luz cálida del fuego, sombras
-> azul noche. No mostrar un número contable de hogazas ni de comensales.
-
-`e04-reparto-exacto-v4.png` → **«raciones iguales»**: detalle de una mesa donde las porciones
-se ven equivalentes, sin que se puedan contar.
-
-`e04-reparto-residuo-v4.png` → **«lo que sobra también se reparte»**: detalle de una hogaza
-suelta junto al cuchillo, a medio partir, con manos alrededor.
+`e01-deuda-pago-v4.png` → **"the sack going out"**: the same ramp, a sack leaving through
+the hatch and KatIA's mechanical hand marking the opposite sign on the tablet.
 
 ---
 
-## E05 — El Invernadero
+## E02 — The Counting House (*La Casa de Cuentas*)
 
-`e05-potenciacion-katia-v4.png` — apertura.
+`e02-resta-katia-v4.png` — opening.
 
-> Interior del Invernadero: nave de techo de vidrio empañado sostenido por vigas de madera,
-> bandejas de germinación en filas sobre bancos de piedra, regadera de cobre y un registro de
-> madera colgado junto a la puerta con muescas talladas. Los esquejes de las bandejas del
-> fondo desbordan claramente sus bandejas y se han salido al suelo, mientras los del primer
-> plano aún caben — la escena debe hacer sentir el desborde sin que se puedan contar. Un gato
-> jardinero de delantal manchado mirando el desborde con las orejas gachas. KatIA en medio
-> plano junto al registro de la puerta. Luz de luna filtrada por el vidrio más una lámpara
-> cálida.
+> Interior of the Counting House: a narrow stone hall with two iron strongboxes at the back
+> and a wall covered with hanging tablets, crossed from side to side by a HORIZONTAL LINE
+> engraved into the wall. Some tablets hang above the line, others below it. An old tabby
+> accountant cat in a dark tunic refuses to hang a tablet below the line and holds it in the
+> air; in front of the counter, a young customer cat with a small pouch. KatIA in the side
+> foreground, looking at the line on the wall. Oil lamp, blue shadows. The zero line must be
+> the most readable graphic element in the scene. No numbers written on the tablets.
 
-`e05-crecimiento-niveles-v4.png` → **«dos bandejas, dos crecimientos»**: dos bancos
-contiguos, uno con esquejes uniformemente espaciados y otro desbordado, sin cifras.
+`e02-ceramica-vendida-v4.png` → **"the payment that rises"**: detail of a tablet moving from
+below the line to above it.
 
-`e05-exponente-negativo-v4.png` → **«el registro hacia atrás»**: detalle del registro de
-madera con muescas que se van haciendo más pequeñas hacia la izquierda.
+`e02-dracmas-deuda-v4.png` → **"the tablet hanging below"**: detail of a single tablet
+hanging below the engraved line, with a long shadow.
 
 ---
 
-## E06 — La Cantera
+## E03 — The Mosaic Workshop (*El Taller de Mosaicos*)
 
-`e06-radicacion-katia-v4.png` — apertura.
+`e03-multiplicacion-katia-v4.png` — opening.
 
-> La Cantera a cielo abierto al anochecer: un tajo de piedra clara con escalones de corte,
-> una polea de madera con cuerda tensada, cinceles y mazos apoyados en una repisa de roca, y
-> una plomada colgando quieta en primer plano. En el suelo, dos losas cuadradas de distinto
-> tamaño ya cortadas y una tercera losa mal cortada apartada a un lado, con el canto astillado.
-> Un gato cantero fornido, de pelaje gris, mirando la losa fallida con el mazo bajado. KatIA en
-> medio plano junto a la plomada, con la pata mecánica sujetando una cuerda tendida en
-> diagonal sobre una losa. Cielo azul profundo, luz de antorcha cálida. Las losas no deben
-> llevar medidas ni marcas numéricas.
+> Interior of the Mosaic Workshop: long worktables with stone tesserae laid out in incomplete
+> rows and columns, open drawers separating tesserae by color, and at the back the mouth of
+> a storeroom with shelves. An apprentice cat in an apron going down to the storeroom with an
+> empty basket; the master, an older calico cat, measuring a large mosaic with a template.
+> KatIA in a medium shot next to the table, with her mechanical paw on a half-scale
+> reduction template. Grazing lamplight that makes the tesserae shine. The rows of tesserae
+> must look incomplete or partly covered so they cannot be counted.
 
-`e06-cuadrado-perfecto-v4.png` → **«la losa que encaja»**: detalle cenital de una losa
-cuadrada asentada en su hueco.
+`e03-filas-tinajas-v4.png` → **"the mosaic row by row"**: high-angle detail of a partly
+assembled mosaic, with part of it covered by a cloth.
 
-`e06-raiz-no-entera-v4.png` → **«la diagonal con la cuerda»**: detalle de una cuerda tendida
-en diagonal sobre una losa cuadrada, mostrando que la diagonal no coincide con ninguna marca
-de la regla apoyada al lado.
+`e03-deuda-repetida-v4.png` → **"the broken tesserae"**: a small pile of split tesserae next
+to the chisel, at the edge of the table.
+
+---
+
+## E04 — The Communal Dining Hall (*El Comedor Comunal*)
+
+`e04-division-katia-v4.png` — opening.
+
+> Interior of the Communal Dining Hall in the middle of a night service: long wooden tables,
+> long benches, a big steaming cauldron over the fire at the back and a hanging ladle. On the
+> front table, loaves of bread, some whole and others cut in half with a knife lying beside
+> them. A cook cat in an apron signaling to cut; a young helper cat with an alarmed face
+> holding a small slate. KatIA in a medium shot next to the loaves, with her mechanical paw
+> on one of the halves. Steam, warm firelight, night-blue shadows. Do not show a countable
+> number of loaves or diners.
+
+`e04-reparto-exacto-v4.png` → **"equal rations"**: detail of a table where the portions look
+equivalent, without it being possible to count them.
+
+`e04-reparto-residuo-v4.png` → **"what is left over gets shared too"**: detail of a loose
+loaf next to the knife, half cut, with hands around it.
+
+---
+
+## E05 — The Greenhouse (*El Invernadero*)
+
+`e05-potenciacion-katia-v4.png` — opening.
+
+> Interior of the Greenhouse: a hall with a fogged glass roof held up by wooden beams,
+> germination trays in rows on stone benches, a copper watering can and a wooden log hanging
+> next to the door with carved notches. The cuttings in the trays at the back clearly
+> overflow their trays and have spilled onto the floor, while those in the foreground still
+> fit — the scene must convey the overflow without it being possible to count it. A gardener
+> cat in a stained apron looking at the overflow with drooping ears. KatIA in a medium shot
+> next to the log by the door. Moonlight filtered through the glass plus a warm lamp.
+
+`e05-crecimiento-niveles-v4.png` → **"two trays, two kinds of growth"**: two adjacent
+benches, one with evenly spaced cuttings and the other overflowing, no figures.
+
+`e05-exponente-negativo-v4.png` → **"the log running backwards"**: detail of the wooden log
+with notches that get smaller toward the left.
+
+---
+
+## E06 — The Quarry (*La Cantera*)
+
+`e06-radicacion-katia-v4.png` — opening.
+
+> The open-air Quarry at nightfall: a cut of pale stone with cutting steps, a wooden pulley
+> with a taut rope, chisels and mallets resting on a rock ledge, and a plumb line hanging
+> still in the foreground. On the ground, two square slabs of different sizes already cut
+> and a third, badly cut slab set aside, with a splintered edge. A burly stonecutter cat with
+> grey fur, looking at the failed slab with the mallet lowered. KatIA in a medium shot next
+> to the plumb line, with her mechanical paw holding a rope stretched diagonally across a
+> slab. Deep blue sky, warm torchlight. The slabs must not carry measurements or numeric
+> marks.
+
+`e06-cuadrado-perfecto-v4.png` → **"the slab that fits"**: top-down detail of a square slab
+seated in its hole.
+
+`e06-raiz-no-entera-v4.png` → **"the diagonal with the rope"**: detail of a rope stretched
+diagonally across a square slab, showing that the diagonal does not line up with any mark on
+the ruler lying beside it.

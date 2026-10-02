@@ -11,6 +11,7 @@ import { Button } from "../../../components/ui/Button";
 import { KatiaStorySlot } from "./KatiaStorySlot";
 import { PracticeItem, restoredAnswers, type AnswerMap, type FeedbackMap } from "./PracticeItem";
 import "./LevelFourLesson.css";
+import { HubDestinationArt } from "./HubDestinationArt";
 // ponytail: reutiliza .set-*/.n2-*/.trigger-feedback del Nivel 2 (CSS global) en vez de duplicarlas
 import "./LevelTwoLesson.css";
 
@@ -128,10 +129,13 @@ function LevelFourHub({ lesson, courseId, onBack, onFinish, finishing }: Props) 
                     if (!isOpened) cardMutation.mutate(card.id);
                   }}
                   aria-pressed={isOpened}
+                  aria-label={`Explorar ${card.destination}`}
                   disabled={cardMutation.isPending}
                 >
-                  <MathFormula math={card.symbol} />
-                  <b>{String(index + 1).padStart(2, "0")}</b>
+                  <HubDestinationArt id={card.id}>
+                    <MathFormula math={card.symbol} />
+                    <b>{String(index + 1).padStart(2, "0")}</b>
+                  </HubDestinationArt>
                 </button>
                 <div className={`n4-card-copy ${isOpened ? "revealed" : ""}`}>
                   <span>{card.destination}</span>

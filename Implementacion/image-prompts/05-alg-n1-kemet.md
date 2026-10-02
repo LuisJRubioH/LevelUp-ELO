@@ -1,310 +1,310 @@
-# Prompts de imagen — ALG-N1 · El Papiro de las Cuatro Casas (Kemet)
+# Image prompts — ALG-N1 · The Papyrus of the Four Houses (Kemet)
 
-**No existe ni un PNG de Egipto en `frontend/public/`.** Los 16 nodos renderizan el marcador
-«Imagen de KatIA aquí» y el hub apunta a un archivo que todavía no está. Este documento
-cubre las **17 imágenes obligatorias** (1 header de hub + 16 aperturas de KatIA) y deja
-listadas las **16 opcionales** de las trampas.
+**There is not a single Egypt PNG in `frontend/public/`.** The 16 nodes render the
+placeholder "KatIA image here" and the hub points to a file that does not exist yet. This
+document covers the **17 required images** (1 hub header + 16 KatIA openings) and lists the
+**16 optional** trap images.
 
-Destino: `frontend/public/leccion/05-alg-n1-kemet/`. Los nombres de archivo de este
-documento son los definitivos — el hub ya declara `a00-hub-papiro-katia.png`.
+Destination: `frontend/public/leccion/05-alg-n1-kemet/`. The file names in this document are
+final — the hub already declares `a00-hub-papiro-katia.png`.
 
 ---
 
-## Continuidad con Preálgebra
+## Continuity with Pre-algebra
 
-Es el mismo mundo y la misma KatIA, en otro sitio. Preálgebra transcurre en Grecia (ágora,
-ciudad, fábrica, puerto); aquí KatIA ha remontado el río hasta **Kemet**. La línea gráfica
-NO cambia: cambia la arquitectura, la luz y los materiales.
+It is the same world and the same KatIA, in another place. Pre-algebra takes place in Greece
+(agora, city, factory, port); here KatIA has traveled up the river to **Kemet**. The visual
+line does NOT change: the architecture, light and materials change.
 
-**Línea gráfica obligatoria (`Implementacion/image-prompts/referencias/`):** usar como referencia directa
+**Required visual line (`Implementacion/image-prompts/referencias/`):** use as direct references
 `step-naturales.png`, `step-enteros.png`, `escalera-conjuntos.png`,
-`katia-primer-plano-enteros.png` y `caso-enteros-recta.jpg`. Antes de generar, adjuntarlas
-como referencias visuales si la herramienta lo permite; si no, copiar completa la línea
-gráfica dentro del prompt final.
+`katia-primer-plano-enteros.png` and `caso-enteros-recta.jpg`. Before generating, attach them
+as visual references if the tool allows it; otherwise, copy the whole visual line into the
+final prompt.
 
-**Estilo base (copiar tal cual en cada prompt):**
+**Base style (copy verbatim into every prompt):**
 
-`pixel-art educativo refinado, estilo 16/32-bit narrativo de alta calidad, con clusters de
-píxeles visibles, bordes pixelados limpios, sombreado por bloques y dithering sutil; NO
-pintura digital hiperrealista. Mantener el lenguaje visual de los assets existentes: KatIA
-legible en primer/medio plano, escena contenida, pocos personajes secundarios, objetos
-pedagógicos claros sobre mesa/suelo/banco de trabajo, sombras azul noche, luz cálida de
-lámpara de aceite, piedra caliza y adobe, acentos teal pequeños en el ocular de KatIA y en
-instrumentos mecánicos. KatIA conserva identidad: gata blanca con mancha naranja/negra en la
-cabeza, ojo verde visible, ocular mecánico teal, pata/brazo mecánico, túnica morada y
-ornamentos dorados. El espacio debe leerse como el INTERIOR de un recinto del Antiguo Egipto
-—muros de adobe encalado, columnas papiriformes, dinteles de piedra, esteras, tinajas— con
-la arquitectura de fondo siempre secundaria.`
+`refined educational pixel art, high-quality narrative 16/32-bit style, with visible pixel
+clusters, clean pixelated edges, block shading and subtle dithering; NO hyperrealistic
+digital painting. Keep the visual language of the existing assets: KatIA readable in the
+foreground/mid-ground, contained scene, few secondary characters, clear teaching objects on
+a table/floor/workbench, night-blue shadows, warm oil-lamp light, limestone and adobe, small
+teal accents on KatIA's ocular and on mechanical instruments. KatIA keeps her identity: white
+cat with an orange/black patch on her head, visible green eye, teal mechanical ocular,
+segmented mechanical arm and ear piercings; she wears sleeveless ivory Egyptian linen, a
+teal/purple bead collar and a narrow purple waist sash. The space must read as the INTERIOR
+of an Ancient Egyptian compound — whitewashed adobe walls, papyriform columns, stone lintels,
+reed mats, storage jars — with the background architecture always secondary.`
 
-**KatIA es forastera aquí.** Sigue siendo la gata griega: túnica morada, ornamentos dorados,
-ocular teal. No se la viste de egipcia ni se le pone tocado nemes. Es la única figura del
-cuadro que no pertenece al sitio, y eso debe notarse un poco.
+**Contextual wardrobe (user instruction, 2026-09-16):** KatIA wears Egyptian linen, a bead
+collar and a belt suited to the Kemet setting. Her identity stays: face, markings, green eye,
+teal ocular, mechanical arm and ear piercings. Purple can remain as an accent on the belt. No
+nemes headdress or royal attire. This rule replaces the references to the Greek tunic in
+earlier prompts. See [IDENTIDAD-KATIA.md](IDENTIDAD-KATIA.md).
 
-**Personajes secundarios:** todo rol mencionado (escriba, capataz, tintorero, batihoja,
-aguador, aprendiz) es **animal antropomórfico**, preferentemente gatos bípedos con faldellín
-de lino, delantal o collar ancho egipcio; pelajes variados (atigrado, negro, gris, calicó,
-siamés, naranja, blanco moteado). Los cuatro guías tienen aspecto estable entre sus cuatro
-salas:
+**Secondary characters:** every role mentioned (scribe, foreman, dyer, gold beater, water
+carrier, apprentice) is an **anthropomorphic animal**, preferably bipedal cats with a linen
+kilt, apron or broad Egyptian collar; varied coats (tabby, black, grey, calico, Siamese,
+orange, spotted white). The four guides look the same across their four rooms:
 
-| Guía | Casa | Aspecto |
+| Guide | House | Appearance |
 |---|---|---|
-| **Meritka** | La Casa de la Vida | gata negra esbelta, collar ancho de cuentas azules, cálamo tras la oreja |
-| **Bakenra** | La obra de la pirámide | gato atigrado corpulento, faldellín corto de cuero, cuerda al hombro |
-| **Tabiry** | Los campos tras la crecida | gata calicó, pies descalzos embarrados, sombrero de junco trenzado |
-| **Iuty** | El taller del canon | gato gris de pelo corto, delantal manchado de pigmento, plomada al cinto |
+| **Meritka** | The House of Life | slender black cat, broad collar of blue beads, reed pen behind the ear |
+| **Bakenra** | The Pyramid Works | stocky tabby cat, short leather kilt, rope over the shoulder |
+| **Tabiry** | The Fields After the Flood | calico cat, bare muddy feet, woven reed hat |
+| **Iuty** | The Canon Workshop | short-haired grey cat, pigment-stained apron, plumb bob at the belt |
 
-**Escaleras y peldaños:** si aparece una escalera o peldaño, va completamente limpio: sin
-símbolos, letras, números, runas, marcas, medallones, flechas ni relieves matemáticos.
+**Stairs and steps:** if a staircase or step appears, it is completely clean: no symbols,
+letters, numbers, runes, marks, medallions, arrows or mathematical reliefs.
 
-**Jeroglíficos:** permitidos como textura ambiental en muros y columnas, **nunca legibles ni
-protagonistas**, y nunca sobre la superficie donde ocurre la acción pedagógica (la tablilla,
-el papiro de trabajo, la cuadrícula). Nada de cartuchos con el nombre del nodo.
+**Hieroglyphs:** allowed as ambient texture on walls and columns, **never legible or
+prominent**, and never on the surface where the teaching action happens (the tablet, the
+working papyrus, the grid). No cartouches with the node's name.
 
-**Negativos de estilo:** no panorámica turística, no pirámides al atardecer como postal, no
-Esfinge, no faraón ni realeza, no momias ni tumbas, no dioses antropomórficos egipcios
-(Anubis, Thot) — los animales antropomórficos de aquí son vecinos, no deidades —, no
-multitudes, no pintura digital lisa, no neón saturado, no sci-fi duro, no anime/chibi, no
-humanos realistas, no cambiar a KatIA por una gata totalmente metálica.
+**Style negatives:** no tourist panorama, no postcard pyramids at sunset, no Sphinx, no
+pharaoh or royalty, no mummies or tombs, no anthropomorphic Egyptian gods (Anubis, Thoth) —
+the anthropomorphic animals here are neighbors, not deities —, no crowds, no smooth digital
+painting, no saturated neon, no hard sci-fi, no anime/chibi, no realistic humans, no turning
+KatIA into a fully metal cat.
 
-**Regla dura:** cada prompt describe la SITUACIÓN, nunca la SOLUCIÓN. Ninguna imagen muestra
-el resultado numérico del ejercicio, ni una cantidad de objetos dispuesta de forma que se
-pueda resolver el ejercicio contando en la imagen. Cuando el relato trata de un error ya
-cometido, se muestra **la consecuencia** (madejas apagadas, era vacía, tinaja seca), nunca
-la cuenta correcta.
+**Hard rule:** every prompt describes the SITUATION, never the SOLUTION. No image shows the
+numeric result of the exercise, or a quantity of objects arranged so that the exercise could
+be solved by counting in the image. When the story is about a mistake already made, show
+**the consequence** (dull skeins, empty threshing floor, dry jar), never the correct
+calculation.
 
-**Paleta por casa** (dominante + acento; el morado de KatIA se mantiene en las cuatro):
+**Palette per house** (dominant + accent; KatIA's purple accent stays in all four):
 
-| Casa | Dominante | Acento |
+| House | Dominant | Accent |
 |---|---|---|
-| La Casa de la Vida | turquesa y ocre | negro de tinta |
-| La obra de la pirámide | arena y terracota | sombra azul fría |
-| Los campos tras la crecida | verde fértil y limo | agua turquesa |
-| El taller del canon | azul egipcio y cal | oro |
+| The House of Life | turquoise and ochre | ink black |
+| The Pyramid Works | sand and terracotta | cool blue shadow |
+| The Fields After the Flood | fertile green and silt | turquoise water |
+| The Canon Workshop | Egyptian blue and lime white | gold |
 
 ---
 
-## A00 — Hub: El Papiro de las Cuatro Casas
+## A00 — Hub: The Papyrus of the Four Houses (*El Papiro de las Cuatro Casas*)
 
-`a00-hub-papiro-katia.png` · **16:9**, header de nivel (`.level-presentation-media`).
+`a00-hub-papiro-katia.png` · **16:9**, level header (`.level-presentation-media`).
 
-> Interior en penumbra de una sala de archivo del Antiguo Egipto al amanecer, vista
-> contenida a media distancia. Sobre una mesa larga de madera, una gata negra esbelta con
-> collar ancho de cuentas azules (Meritka) extiende un papiro grande y visiblemente dañado:
-> le faltan cuatro secciones, cuatro huecos rasgados de bordes irregulares. Al otro lado de
-> la mesa, KatIA —gata blanca con mancha naranja y negra, ojo verde, ocular mecánico teal,
-> brazo mecánico, túnica morada con ornamentos dorados— acaba de llegar y aún lleva el
-> polvo del viaje. Por el vano abierto del fondo se ven, muy secundarias y sin detalle,
-> cuatro construcciones distintas contra el cielo: un recinto encalado, una rampa de obra,
-> unos campos anegados y un taller con andamio. Luz baja de lámpara de aceite sobre la mesa,
-> azul frío en el resto de la sala. Los huecos del papiro están vacíos: nada escrito en
-> ellos, ninguna letra ni número legible en toda la imagen.
+> Dim interior of an Ancient Egyptian archive room at dawn, contained mid-distance view. On a
+> long wooden table, a slender black cat with a broad collar of blue beads (Meritka) spreads
+> out a large, visibly damaged papyrus: four sections are missing, four torn holes with
+> irregular edges. On the other side of the table, KatIA — white cat with orange and black
+> markings, green eye, teal mechanical ocular, mechanical arm and ear piercings, in
+> sleeveless ivory Egyptian linen with a bead collar and a narrow purple sash — has just
+> arrived and still carries the dust of the journey. Through the open doorway at the back,
+> very secondary and without detail, four different buildings stand against the sky: a
+> whitewashed compound, a construction ramp, flooded fields and a workshop with scaffolding.
+> Low oil-lamp light on the table, cool blue in the rest of the room. The holes in the
+> papyrus are empty: nothing written in them, no legible letter or number anywhere in the
+> image.
 
-**Opcionales del hub** (1:1, mismo patrón que `e00-ice*` de N2): `a00-ice1-cestos.png`
-(cestos de grano apilados junto a una balanza de suelo) · `a00-ice2-registro.png` (dos
-tablillas de barro apoyadas contra un muro encalado) · `a00-ice3-hueco.png` (un papiro con
-un espacio deliberadamente en blanco en mitad de una línea de anotaciones ilegibles).
+**Hub optionals** (1:1, same pattern as N2's `e00-ice*`): `a00-ice1-cestos.png` (grain
+baskets stacked next to a floor scale) · `a00-ice2-registro.png` (two clay tablets leaning
+against a whitewashed wall) · `a00-ice3-hueco.png` (a papyrus with a deliberately blank space
+in the middle of a line of illegible notes).
 
 ---
 
-## Casa I · La Casa de la Vida — Meritka · turquesa y ocre
+## House I · The House of Life (*La Casa de la Vida*) — Meritka · turquoise and ochre
 
-### L01 · La sala de los cálamos
+### L01 · The Reed-Pen Room (*la sala de los cálamos*)
 `l01-variables-katia.png` · **4:3**
 
-> Interior de un escritorio de escribas: estantes de nichos con rollos, un cuenco de tinta
-> negra, cálamos de caña en un vaso de cerámica. Meritka sostiene en alto un papiro
-> desenrollado ante KatIA; en el papiro se ve una misma anotación breve repetida muchas
-> veces en columnas, deliberadamente ilegible (trazos de tinta, no signos reconocibles).
-> Al fondo, un cesto lleno de rollos idénticos esperando ser copiados. Luz turquesa de
-> mañana entrando por una ventana alta; ocres cálidos en los estantes.
+> Interior of a scribes' office: niche shelves with scrolls, a bowl of black ink, reed pens
+> in a ceramic cup. Meritka holds up an unrolled papyrus in front of KatIA; on the papyrus
+> the same short note is repeated many times in columns, deliberately illegible (ink
+> strokes, no recognizable signs). In the background, a basket full of identical scrolls
+> waiting to be copied. Turquoise morning light coming through a high window; warm ochres on
+> the shelves.
 
-### L02 · El estante sellado
+### L02 · The Sealed Shelf (*el estante sellado*)
 `l02-constantes-katia.png` · **4:3**
 
-> Meritka descorre un sello de arcilla roto de la puertecilla de un estante bajo. Dentro,
-> sobre una tela, tres objetos de medida patrón: una vara de madera, una cuerda con nudos
-> regulares y un peso de piedra pulida con una marca grabada. KatIA se inclina para mirar
-> sin tocar. El resto de la sala es de trabajo cotidiano y está desordenado; solo ese
-> estante está limpio y aparte. Contraste entre el turquesa frío del nicho sellado y el
-> ocre cálido de la sala.
+> Meritka pulls a broken clay seal off the small door of a low shelf. Inside, on a cloth,
+> three standard measuring objects: a wooden rod, a rope with evenly spaced knots and a
+> polished stone weight with an engraved mark. KatIA leans in to look without touching. The
+> rest of the room is an everyday workspace and is messy; only that shelf is clean and set
+> apart. Contrast between the cool turquoise of the sealed niche and the warm ochre of the
+> room.
 
-### L03 · La mesa de dictado
+### L03 · The Dictation Table (*la mesa de dictado*)
 `l03-traduccion-katia.png` · **4:3**
 
-> Mesa baja de dictado. Un mensajero (gato siamés con sandalias de viaje, aún con el manto
-> puesto) habla de pie y con prisa, una mano levantada. Sentados frente a él, dos escribas
-> jóvenes escriben a la vez sobre dos tablillas distintas; las tablillas están giradas
-> hacia el espectador lo justo para verse ocupadas, con trazos de tinta ilegibles y
-> claramente DISTINTOS entre sí. Meritka observa de pie, sin intervenir. KatIA en primer
-> plano, mirando de una tablilla a la otra. Nada legible en ninguna de las dos.
+> A low dictation table. A messenger (a Siamese cat in travel sandals, still wearing his
+> cloak) speaks standing up and in a hurry, one hand raised. Sitting in front of him, two
+> young scribes write at the same time on two different tablets; the tablets are turned
+> toward the viewer just enough to look busy, with illegible ink strokes that are clearly
+> DIFFERENT from each other. Meritka watches standing, without intervening. KatIA in the
+> foreground, looking from one tablet to the other. Nothing legible on either of them.
 
-### L04 · La cámara del recuento
+### L04 · The Tally Chamber (*la cámara del recuento*)
 `l04-valor-numerico-katia.png` · **4:3**
 
-> Cámara semisubterránea de recuento, techo bajo. Fichas de barro apiladas por columnas y
-> un cordel de conteo con nudos colgado de la pared. Meritka sostiene una tablilla; a su
-> lado, en el suelo, una fila de carros de mano de madera vacíos, muchos más de los
-> necesarios, esperando carga que no llegó. KatIA mira los carros vacíos. Luz de lámpara
-> de aceite rasante; polvo suspendido. No se ve grano, no se ve cifra alguna.
+> A half-underground tally chamber with a low ceiling. Clay tokens stacked in columns and a
+> knotted counting cord hanging on the wall. Meritka holds a tablet; next to her, on the
+> floor, a row of empty wooden handcarts, far more than needed, waiting for a load that never
+> arrived. KatIA looks at the empty carts. Grazing oil-lamp light; dust hanging in the air.
+> No grain in sight, no figures anywhere.
 
 ---
 
-## Casa II · La obra de la pirámide — Bakenra · arena y terracota
+## House II · The Pyramid Works (*La obra de la pirámide*) — Bakenra · sand and terracotta
 
-### O01 · La rampa
+### O01 · The Ramp (*la rampa*)
 `o01-semejantes-katia.png` · **4:3**
 
-> Al pie de una rampa de obra de adobe, a media mañana. Bakenra, gato atigrado corpulento
-> con faldellín de cuero y cuerda al hombro, sostiene dos tablillas de turno, una en cada
-> mano, mirándolas alternativamente. Detrás, una cuadrilla de gatos obreros espera de pie
-> junto a un trineo de madera cargado, sin avanzar. A un lado, cuerdas enrolladas; al otro,
-> mazos y herramienta apilada — dos montones claramente separados. Polvo de arena en el
-> aire, sombra azul fría bajo la rampa.
+> At the foot of an adobe construction ramp, mid-morning. Bakenra, a stocky tabby cat with a
+> leather kilt and a rope over his shoulder, holds two shift tablets, one in each hand,
+> looking from one to the other. Behind him, a crew of worker cats waits standing next to a
+> loaded wooden sledge, not moving forward. On one side, coiled ropes; on the other, mallets
+> and stacked tools — two clearly separate piles. Sand dust in the air, cool blue shadow
+> under the ramp.
 
-### O02 · El patio de aparejos
+### O02 · The Rigging Yard (*el patio de aparejos*)
 `o02-signos-katia.png` · **4:3**
 
-> Patio cerrado de almacén de aparejos: poleas de madera colgadas de una viga, sogas
-> enrolladas en el suelo, contrapesos de piedra alineados contra el muro. Bakenra sostiene
-> una tablilla de vale de devolución. En el muro del fondo, una hilera de soportes de
-> madera para contrapesos con varios huecos vacíos, evidentes. En el vano de salida, una
-> cuadrilla se aleja con las manos vacías. KatIA en primer plano junto a las poleas. Luz
-> dura de mediodía, sombras azules cortas.
+> An enclosed rigging storehouse yard: wooden pulleys hanging from a beam, ropes coiled on
+> the floor, stone counterweights lined up against the wall. Bakenra holds a return-voucher
+> tablet. On the back wall, a row of wooden racks for counterweights with several obviously
+> empty slots. In the exit doorway, a crew walks away empty-handed. KatIA in the foreground
+> next to the pulleys. Harsh midday light, short blue shadows.
 
-### O03 · El taller de cinceles
+### O03 · The Chisel Workshop (*el taller de cinceles*)
 `o03-producto-katia.png` · **4:3**
 
-> Interior del taller de talla: banco largo con cinceles alineados por tamaño, piedras de
-> afilar, virutas de piedra, plantillas de madera colgadas. Bakenra ha dejado una tablilla
-> de pedido sobre el banco y mira por el vano hacia fuera, donde se ve —muy secundaria, sin
-> detalle— una explanada de acopio prácticamente vacía con unos pocos sillares. KatIA
-> examina un cincel. Ambiente terracota, polvo blanco de piedra, acento teal en el ocular.
+> Inside the carving workshop: a long bench with chisels lined up by size, whetstones, stone
+> chips, wooden templates hanging up. Bakenra has left an order tablet on the bench and looks
+> out through the doorway, where — very secondary, without detail — an almost empty stockyard
+> with a few ashlar blocks can be seen. KatIA examines a chisel. Terracotta atmosphere, white
+> stone dust, a teal accent on the ocular.
 
-### O04 · La caseta del capataz
+### O04 · The Foreman's Hut (*la caseta del capataz*)
 `o04-cociente-katia.png` · **4:3**
 
-> Caseta de obra pequeña y sombreada, con esteras y una ventana sin postigos. Sobre una
-> repisa, el censo de la obra en tablillas. Bakenra señala una línea de una tablilla. Fuera,
-> visto por la ventana, un grupo de aguadores de pie con sus cántaros al hombro, todavía
-> llenos, sin repartir, mirando hacia la caseta. KatIA sigue el dedo de Bakenra. Calor de
-> media tarde, arena y terracota, sombra profunda dentro de la caseta.
+> A small, shaded site hut with reed mats and a shutterless window. On a shelf, the site
+> census on tablets. Bakenra points at a line on a tablet. Outside, seen through the window,
+> a group of water carriers standing with their jars on their shoulders, still full,
+> undistributed, looking toward the hut. KatIA follows Bakenra's finger. Mid-afternoon heat,
+> sand and terracotta, deep shadow inside the hut.
 
 ---
 
-## Casa III · Los campos tras la crecida — Tabiry · verde fértil y limo
+## House III · The Fields After the Flood (*Los campos tras la crecida*) — Tabiry · fertile green and silt
 
-### F01 · La parcela partida
+### F01 · The Divided Plot (*la parcela partida*)
 `f01-simplificar-katia.png` · **4:3**
 
-> Campo recién drenado tras la crecida, barro brillante y brotes verdes. Tabiry, gata
-> calicó con sombrero de junco y pies embarrados, sostiene una cuerda de agrimensor
-> extendida sobre el terreno; los mojones de lindero están caídos o desaparecidos y el
-> campo se ve como una sola extensión sin divisiones. Al fondo, un grupo pequeño de
-> familias de gatos esperando de pie con sus enseres. KatIA junto a Tabiry, con las patas
-> en el barro. Luz de mañana, verdes y ocres de limo, reflejos turquesa en los charcos.
+> A field freshly drained after the flood, shiny mud and green shoots. Tabiry, a calico cat
+> with a reed hat and muddy feet, holds a surveyor's rope stretched over the ground; the
+> boundary stones have fallen over or disappeared and the field looks like a single expanse
+> with no divisions. In the background, a small group of cat families waiting on their feet
+> with their belongings. KatIA next to Tabiry, with her paws in the mud. Morning light, greens
+> and silt ochres, turquoise reflections in the puddles.
 
-### F02 · El canal madre
+### F02 · The Mother Canal (*el canal madre*)
 `f02-suma-katia.png` · **4:3**
 
-> Junto a un canal principal de riego, con dos acequias que salen de él en direcciones
-> distintas y un azud de tablones de madera. Tabiry se ha agachado y ha hundido una mano en
-> el agua del canal. En la orilla, apoyada en una piedra, una tablilla de turnos de riego.
-> Una de las dos acequias corre visiblemente más seca que la otra. KatIA de pie en el
-> borde, mirando el agua. Verde fértil en las orillas, turquesa en el agua, cielo alto.
+> Beside a main irrigation canal, with two ditches branching off it in different directions
+> and a weir made of wooden planks. Tabiry has crouched down and plunged a hand into the
+> canal water. On the bank, leaning against a stone, a tablet of irrigation turns. One of the
+> two ditches runs visibly drier than the other. KatIA standing at the edge, looking at the
+> water. Fertile green on the banks, turquoise in the water, high sky.
 
-### F03 · La era de trilla
+### F03 · The Threshing Floor (*la era de trilla*)
 `f03-producto-katia.png` · **4:3**
 
-> Era de trilla circular de tierra apisonada, con un trillo de madera apoyado en el borde y
-> paja suelta arremolinada por el viento. La era está prácticamente vacía: apenas queda
-> parva. Tabiry sostiene una tablilla y mira la era barrida. Al fondo, la puerta de una
-> troje de adobe, abierta. KatIA junto al trillo. Luz de mediodía muy blanca, dorados de
-> paja, sombra corta.
+> A circular threshing floor of packed earth, with a wooden threshing sledge leaning at the
+> edge and loose straw swirled by the wind. The threshing floor is practically empty: hardly
+> any grain is left to thresh. Tabiry holds a tablet and looks at the swept floor. In the
+> background, the door of an adobe granary, open. KatIA next to the threshing sledge. Very
+> white midday light, straw golds, short shadow.
 
-### F04 · El silo de simiente
+### F04 · The Seed Silo (*el silo de simiente*)
 `f04-division-katia.png` · **4:3**
 
-> Interior de un silo de adobe de planta redonda, con la simiente formando un montón alto
-> hasta media pared. Contra el muro, una pila de sacos de tela vacíos y doblados, sin
-> llenar. Tabiry sostiene una tablilla de registro y señala el montón lleno con la otra
-> mano. KatIA mira los sacos vacíos. Contraste claro entre la abundancia del montón y la
-> pila de sacos sin usar. Luz que entra en haz por una tronera alta; verdes apagados y
-> tonos tierra.
+> Inside a round adobe silo, with the seed forming a tall heap up to the middle of the wall.
+> Against the wall, a stack of empty, folded cloth sacks, unfilled. Tabiry holds a record
+> tablet and points at the full heap with her other hand. KatIA looks at the empty sacks.
+> Clear contrast between the abundance of the heap and the stack of unused sacks. Light
+> entering as a beam through a high slit window; muted greens and earth tones.
 
 ---
 
-## Casa IV · El taller del canon — Iuty · azul egipcio y cal
+## House IV · The Canon Workshop (*El taller del canon*) — Iuty · Egyptian blue and lime white
 
-### R01 · La cuadrícula del canon
+### R01 · The Canon Grid (*la cuadrícula del canon*)
 `r01-razones-katia.png` · **4:3**
 
-> Taller de pintores frente a un muro encalado con una cuadrícula de cuerda tensada. En una
-> mesa, el boceto pequeño de un motivo; en el muro, la versión ampliada del mismo motivo,
-> visiblemente deformada — estirada de un lado y achatada del otro. Iuty, gato gris con
-> delantal manchado de pigmento y plomada al cinto, mira el muro con los brazos cruzados.
-> KatIA compara el boceto con el muro. Azul egipcio y cal, andamio de madera secundario.
+> A painters' workshop facing a whitewashed wall with a grid of taut string. On a table, the
+> small sketch of a motif; on the wall, the enlarged version of the same motif, visibly
+> distorted — stretched on one side and squashed on the other. Iuty, a grey cat with a
+> pigment-stained apron and a plumb bob at his belt, looks at the wall with his arms crossed.
+> KatIA compares the sketch with the wall. Egyptian blue and lime white, secondary wooden
+> scaffolding.
 
-### R02 · El tinte de lino
+### R02 · The Linen Dye (*el tinte de lino*)
 `r02-regla-de-tres-katia.png` · **4:3**
 
-> Sala del tinte: una tina grande de barro con el líquido oscuro y un banco con madejas de
-> lino. Del techo cuelgan madejas puestas a secar; unas tienen color pleno y las últimas de
-> la fila están claramente apagadas y desiguales. Iuty sostiene una tablilla con la receta.
-> KatIA toca una de las madejas descoloridas. Vapor tenue sobre la tina, suelo húmedo,
-> azules profundos y cal.
+> The dye room: a large clay vat with dark liquid and a bench with skeins of linen. Skeins
+> hang from the ceiling to dry; some have full color and the last ones in the row are clearly
+> dull and uneven. Iuty holds a tablet with the recipe. KatIA touches one of the faded skeins.
+> Faint steam over the vat, damp floor, deep blues and lime white.
 
-### R03 · El pan de oro
+### R03 · The Gold Leaf (*el pan de oro*)
 `r03-porcentajes-katia.png` · **4:3**
 
-> Obrador del batihoja: mesa de piedra pulida, mazo pequeño, pilas de hojas finísimas de
-> oro separadas por pergaminos, pinzas. Un batihoja (gato blanco moteado, manos protegidas
-> con tela) se ha apartado de la mesa con las manos abiertas y vacías, en gesto de que no
-> puede seguir. Iuty sostiene la tablilla del encargo. Sobre la mesa hay un hueco donde
-> debería continuar la pila de hojas. KatIA mira el hueco. Dorados intensos y contenidos
-> sobre azul egipcio; nada de brillo metálico exagerado.
+> A gold beater's workroom: a polished stone table, a small mallet, stacks of ultra-thin gold
+> leaves separated by parchment, tweezers. A gold beater (a spotted white cat, hands wrapped
+> in cloth) has stepped back from the table with open, empty hands, in a gesture that he
+> cannot go on. Iuty holds the commission tablet. On the table there is a gap where the stack
+> of leaves should continue. KatIA looks at the gap. Intense but restrained golds over
+> Egyptian blue; no exaggerated metallic shine.
 
-### R04 · La sala de las lámparas
+### R04 · The Lamp Room (*la sala de las lámparas*)
 `r04-variacion-katia.png` · **4:3**
 
-> Sala de trabajo nocturna del taller. Seis lámparas de aceite repartidas por la sala,
-> todas apagadas menos una que se está consumiendo, con la mecha casi al final. En el
-> centro, una tinaja grande de aceite volcada de lado y vacía. Iuty señala la tinaja. El
-> friso del muro se ve a medio terminar, en penumbra. KatIA en el círculo de luz de la
-> última llama. Escena predominantemente oscura, azul noche, un único foco cálido pequeño.
+> The workshop's night workroom. Six oil lamps spread around the room, all out except one
+> that is burning down, its wick almost spent. In the center, a large oil jar tipped over on
+> its side, empty. Iuty points at the jar. The wall frieze is half finished, in shadow. KatIA
+> in the circle of light of the last flame. A predominantly dark scene, night blue, a single
+> small warm light source.
 
 ---
 
-## Opcionales — las trampas (1:1)
+## Optionals — the traps (1:1)
 
-Una por sala, para la tarjeta `trap` de `worked_examples`. Misma línea gráfica, encuadre
-cerrado sobre el objeto, sin personajes o con uno solo. Prioridad: las cuatro marcadas con ★
-son las que más ganan con imagen.
+One per room, for the `trap` card in `worked_examples`. Same visual line, tight framing on
+the object, with no characters or just one. Priority: the four marked with ★ gain the most
+from an image.
 
-| Archivo | Qué se ve |
+| File | What you see |
 |---|---|
-| `l01-trampa-etiqueta.png` | un cálamo apoyado sobre una anotación tachada y reescrita |
-| `l02-trampa-pozo.png` ★ | el brocal circular de un pozo visto desde arriba, con una cuerda cruzándolo por el centro |
-| `l03-trampa-tablillas.png` | dos tablillas idénticas de tamaño, apoyadas una junto a otra, con trazos distintos |
-| `l04-trampa-carros.png` ★ | una fila larga de carros de mano vacíos, en perspectiva, junto a un montón de grano pequeño |
-| `o01-trampa-monton.png` | dos montones separados: cuerdas a un lado, mazos al otro, con una raya trazada en la arena entre ellos |
-| `o02-trampa-huecos.png` | soportes de contrapeso en un muro, la mitad ocupados y la mitad vacíos |
-| `o03-trampa-acopio.png` ★ | una explanada de acopio de sillares vista a media distancia, casi vacía |
-| `o04-trampa-cantaros.png` | cántaros llenos alineados y un cuenco de reparto boca abajo junto a ellos |
-| `f01-trampa-mojon.png` | un mojón de lindero caído en el barro, medio hundido |
-| `f02-trampa-acequias.png` | dos acequias que salen del mismo canal, una con agua y otra casi seca |
-| `f03-trampa-era.png` | la era de trilla barrida, con la puerta de la troje abierta al fondo |
-| `f04-trampa-sacos.png` ★ | un solo saco de tela vacío colgado de un clavo frente a un montón de simiente |
-| `r01-trampa-boceto.png` | el boceto pequeño y su copia deformada, uno al lado del otro sobre la mesa |
-| `r02-trampa-madejas.png` | una hilera de madejas colgadas, degradando de color pleno a descolorido |
-| `r03-trampa-pila.png` | una pila de hojas de oro con un hueco visible donde debería continuar |
-| `r04-trampa-lampara.png` | una sola lámpara de aceite con la mecha consumiéndose, fondo negro |
+| `l01-trampa-etiqueta.png` | a reed pen resting on a note that is crossed out and rewritten |
+| `l02-trampa-pozo.png` ★ | the circular rim of a well seen from above, with a rope crossing it through the center |
+| `l03-trampa-tablillas.png` | two tablets of identical size, leaning side by side, with different strokes |
+| `l04-trampa-carros.png` ★ | a long row of empty handcarts, in perspective, next to a small heap of grain |
+| `o01-trampa-monton.png` | two separate piles: ropes on one side, mallets on the other, with a line drawn in the sand between them |
+| `o02-trampa-huecos.png` | counterweight racks on a wall, half occupied and half empty |
+| `o03-trampa-acopio.png` ★ | an ashlar stockyard seen from mid-distance, almost empty |
+| `o04-trampa-cantaros.png` | full jars lined up and an upside-down sharing bowl next to them |
+| `f01-trampa-mojon.png` | a boundary stone fallen in the mud, half sunk |
+| `f02-trampa-acequias.png` | two ditches branching off the same canal, one with water and the other almost dry |
+| `f03-trampa-era.png` | the swept threshing floor, with the granary door open in the background |
+| `f04-trampa-sacos.png` ★ | a single empty cloth sack hanging from a peg in front of a heap of seed |
+| `r01-trampa-boceto.png` | the small sketch and its distorted copy, side by side on the table |
+| `r02-trampa-madejas.png` | a row of hanging skeins, fading from full color to washed out |
+| `r03-trampa-pila.png` | a stack of gold leaves with a visible gap where it should continue |
+| `r04-trampa-lampara.png` | a single oil lamp with its wick burning down, black background |
 
 ---
 
-## Cuando lleguen los PNG
+## When the PNGs arrive
 
-Los módulos de nodo todavía **no declaran** las rutas: hay que añadirlas a mano, una línea
-por sala, dentro de `CONTENT["katia"]`:
+The node modules do **not declare** the paths yet: they must be added by hand, one line per
+room, inside `CONTENT["katia"]`:
 
 ```python
 "katia": {
@@ -314,9 +314,9 @@ por sala, dentro de `CONTENT["katia"]`:
 }
 ```
 
-Y en la tarjeta de trampa de `worked_examples`, `"image_slot": True` más `"image": "..."`
-(ver `nodes/e05_potenciacion.py` como referencia ya cableada).
+And on the trap card in `worked_examples`, `"image_slot": True` plus `"image": "..."` (see
+`nodes/e05_potenciacion.py` as an already wired reference).
 
-El hub es la excepción: `a00_hub.py` ya declara su `image`, así que en cuanto el archivo
-exista se ve solo. Hasta entonces esa ruta **da 404 en el navegador** — es el único asset
-roto conocido del módulo.
+The hub is the exception: `a00_hub.py` already declares its `image`, so as soon as the file
+exists it shows up on its own. Until then that path **returns 404 in the browser** — it is the
+only known broken asset in the module.

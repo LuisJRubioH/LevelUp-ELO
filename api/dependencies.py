@@ -15,7 +15,8 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import InvalidTokenError
 
 from api.config import settings
 from src.application.interfaces.repositories import IRepository
@@ -87,8 +88,12 @@ def create_procedure_review_token(
     user_id: int, item_id: str, file_hash: str, score: float | None, feedback: str
 ) -> str:
     payload = {
-        "sub": str(user_id), "type": "procedure_review", "item_id": item_id,
-        "file_hash": file_hash, "score": score, "feedback": feedback[:4000],
+        "sub": str(user_id),
+        "type": "procedure_review",
+        "item_id": item_id,
+        "file_hash": file_hash,
+        "score": score,
+        "feedback": feedback[:4000],
         "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
     }
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
@@ -99,7 +104,7 @@ def decode_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
         return payload
-    except JWTError as exc:
+    except InvalidTokenError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido o expirado.",

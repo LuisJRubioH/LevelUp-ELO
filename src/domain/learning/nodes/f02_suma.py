@@ -82,6 +82,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/05-alg-n1-kemet/f02-suma-katia.png",
         "eyebrow": "KatIA · Junto al canal madre",
         "title": "El caudal que menguaba al sumarlo",
         "body": (

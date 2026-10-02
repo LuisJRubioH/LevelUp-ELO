@@ -45,6 +45,7 @@ KatIA/errores.gif
 
 # Node / Playwright MCP (no es parte de la app Python)
 node_modules/
+.pnpm-store/
 # Ignorar solo los del raíz (MCP), no los del frontend
 /package.json
 /package-lock.json

@@ -69,6 +69,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/05-alg-n1-kemet/o02-signos-katia.png",
         "eyebrow": "KatIA · En el patio de aparejos",
         "title": "El inventario que salía siempre de más",
         "body": (

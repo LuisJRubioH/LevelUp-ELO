@@ -253,7 +253,7 @@ instancias free**. Al pasar a un plan de pago, moverlo allí.
 python scripts/db_sync_check.py                                  # obligatorio si tocas repos
 python scripts/validate_bank.py                                  # si tocas items/
 ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q
-cd frontend && npm run build
+cd frontend && pnpm install --frozen-lockfile && pnpm run build
 ```
 
 ---

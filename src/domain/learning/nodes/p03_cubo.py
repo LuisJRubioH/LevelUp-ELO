@@ -72,6 +72,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/06-alg-n2-troqueles/p03-cubo-katia.png",
         "eyebrow": "KatIA · En el molde de tres capas",
         "title": "El bloque de arcilla que salió hueco",
         "body": (

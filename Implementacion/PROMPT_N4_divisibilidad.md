@@ -1,53 +1,55 @@
-# PROMPT — Enriquecer los 5 nodos restantes de N4 Divisibilidad (C02–C06)
+# PROMPT — Enrich the 5 remaining N4 Divisibility nodes (C02–C06)
 
-## Objetivo
+> Student-facing content stays in Spanish (es-CO); this prompt only governs structure, rules and checks.
 
-**C01 Divisibilidad** ya es el nodo de referencia (piloto), completo y verificado de punta a
-punta: contenido rico + `LevelFourLesson.tsx`/`.css` + ruteo + wiring de mapa + tests. Los otros
-5 conceptos (**C02 Múltiplos, C03 Primos, C04 Factorización prima, C05 MCD, C06 MCM**) hoy tienen
-contenido mínimo viable (`"validation_status": "F4_TODO_stub"` en `prealgebra.py`) — currícularmente
-correcto pero sin la riqueza de C01 (menos ejemplos, menos práctica, sin variedad de contextos).
-Este documento es la plantilla para llevarlos al mismo nivel, replicando C01 nodo por nodo.
+## Goal
 
-## Qué YA está construido — NO rehacer (reutilizar tal cual)
+**C01 Divisibility** is already the reference node (pilot), complete and verified end to
+end: rich content + `LevelFourLesson.tsx`/`.css` + routing + map wiring + tests. The other
+5 concepts (**C02 Multiples, C03 Primes, C04 Prime factorization, C05 GCD, C06 LCM**) currently have
+minimum viable content (`"validation_status": "F4_TODO_stub"` in `prealgebra.py`) — curricularly
+correct but without C01's richness (fewer examples, less practice, no variety of contexts).
+This document is the template for bringing them to the same level, replicating C01 node by node.
 
-- **Motor de evaluación backend**: `evaluate_interaction()` en `src/domain/learning/prealgebra.py`
-  ya soporta los 3 tipos que necesita N4 (`numeric`, `single_select`, `multi_select`) — **no tocar
-  esa función**.
-- **Registrador de interacciones mixtas**: `_register_mixed_interactions(node_id, concept_slug,
-  items)` (definido justo antes de `_N4_CARDS` en `prealgebra.py`). Recorre una lista de items
-  `{"id", "kind", ...}` y genera tanto `_LESSONS[node_id]["interactions"]` como
-  `_INTERACTION_RULES[...]`. Ya se usa para el icebreaker del hub y para `practice` de cada
-  concepto — reutilizar, no reescribir.
-- **Renderer frontend**: `frontend/src/pages/Student/lessons/LevelFourLesson.tsx` +
-  `LevelFourLesson.css`. Detecta `content.kind === "level_hub_port"` (hub) vs cualquier otro valor
-  (concepto) y pinta automáticamente: `KatiaStorySlot` → `[descubrimiento | definición formal]`
-  (`.set-story`/`.set-formal`) → ejemplos resueltos 2 columnas + trampa ancha
-  (`.n2-examples-2col`/`.n2-example-wide`, reutilizados de N2) → caja de formalización
-  (`.n4-formalization`) → práctica mixta (`PracticeItem`, switch por `item.kind`) → cierre → footer.
-  **El trabajo de C02–C06 es SOLO de contenido**: editar
-  `_N4_CONCEPT_CONTENT[<NODE_ID>]` en `prealgebra.py`, copiando la forma EXACTA de
-  `N4_DIVISIBILITY_NODE_ID` (C01) como plantilla.
-- **Ruteo y mapa**: `N4_IDS` en `Lesson.tsx`, inserción secuencial en `course_map`
-  (`api/routers/student.py`) — ya cablean los 7 nodos. No hace falta tocarlos al enriquecer
-  contenido (solo si se agrega un nodo nuevo, lo cual no aplica aquí).
+## What is ALREADY built — DO NOT redo (reuse as-is)
 
-## Estructura a poner en cada dict (igual que C01)
+- **Backend evaluation engine**: `evaluate_interaction()` in `src/domain/learning/prealgebra.py`
+  already supports the 3 types N4 needs (`numeric`, `single_select`, `multi_select`) — **do not touch
+  that function**.
+- **Mixed interaction registrar**: `_register_mixed_interactions(node_id, concept_slug,
+  items)` (defined right before `_N4_CARDS` in `prealgebra.py`). It walks a list of items
+  `{"id", "kind", ...}` and generates both `_LESSONS[node_id]["interactions"]` and
+  `_INTERACTION_RULES[...]`. It is already used for the hub icebreaker and for each concept's
+  `practice` — reuse it, do not rewrite it.
+- **Frontend renderer**: `frontend/src/pages/Student/lessons/LevelFourLesson.tsx` +
+  `LevelFourLesson.css`. It detects `content.kind === "level_hub_port"` (hub) vs any other value
+  (concept) and automatically renders: `KatiaStorySlot` → `[discovery | formal definition]`
+  (`.set-story`/`.set-formal`) → worked examples in 2 columns + wide trap
+  (`.n2-examples-2col`/`.n2-example-wide`, reused from N2) → formalization box
+  (`.n4-formalization`) → mixed practice (`PracticeItem`, switch on `item.kind`) → closing → footer.
+  **The work for C02–C06 is ONLY content**: edit
+  `_N4_CONCEPT_CONTENT[<NODE_ID>]` in `prealgebra.py`, copying the EXACT shape of
+  `N4_DIVISIBILITY_NODE_ID` (C01) as the template.
+- **Routing and map**: `N4_IDS` in `Lesson.tsx`, sequential insertion into `course_map`
+  (`api/routers/student.py`) — the 7 nodes are already wired. There is no need to touch them when
+  enriching content (only if a new node is added, which does not apply here).
+
+## Structure to put in each dict (same as C01)
 
 ```python
 N4_XXX_NODE_ID: {
     "kind": "divisibility_concept",
     "concept_id": "C0N",
-    "concept_slug": "...",                      # usado en default_misconception: error_<slug>
+    "concept_slug": "...",                      # used in default_misconception: error_<slug>
     "title": "...",
     "story_contract": {"type": "guided_discovery_formalization",
                         "practice_position": "after_definition_plus_examples", "is_integrated": True},
-    "katia": {"eyebrow", "title", "body", "question"},       # apertura + pregunta problematizadora
-    "discovery": {"eyebrow", "title", "body"},                # descubrimiento guiado
+    "katia": {"eyebrow", "title", "body", "question"},       # opening + problem-posing question
+    "discovery": {"eyebrow", "title", "body"},                # guided discovery
     "definition": "...", "definition_title": "...", "definition_katex": r"...",
-    "worked_examples": [ ...N normales..., {"trap": True, ...} ],  # 2-3 normales + 1 trampa
+    "worked_examples": [ ...N normal..., {"trap": True, ...} ],  # 2-3 normal + 1 trap
     "formalization": {"title", "intro", "items": [{"label", "rule", "latex"?}, ...]},
-    "practice": [                                              # 6-9 items, tipos MIXTOS
+    "practice": [                                              # 6-9 items, MIXED types
         {"id": "Q1", "kind": "numeric", "prompt": "...", "expr": r"...", "answer": "..."},
         {"id": "Q2", "kind": "single_select", "prompt": "...",
          "options": [{"id": "a", "text": "..."}, ...], "expected": "a",
@@ -60,75 +62,77 @@ N4_XXX_NODE_ID: {
          "misconception_missing": "...", "feedback_incorrect": "default",
          "misconception_incorrect": "error_<slug>"},
     ],
-    "feedback": {"correct": "...", "default": "...", "fb_xxx_qN_x": "...", ...},  # TODAS las keys usadas arriba
+    "feedback": {"correct": "...", "default": "...", "fb_xxx_qN_x": "...", ...},  # EVERY key used above
     "closing": "...",
-    "validation_status": "F4_C0N_pilot",   # cambiar de F4_TODO_stub al terminar
+    "validation_status": "F4_C0N_pilot",   # change from F4_TODO_stub when done
 }
 ```
 
-**IMPORTANTE — bug ya corregido, no reintroducir**: `valid_options`/`expected`/`trap_options` de
-`multi_select` deben ser **listas** (`[...]`), NUNCA sets (`{...}`) — viven dentro de `content`,
-que viaja al frontend como JSON, y un `set` de Python no es serializable de forma determinista.
-`_register_mixed_interactions` ya convierte la lista a `set()` internamente para las reglas del
-backend; el frontend solo necesita la lista.
+**IMPORTANT — bug already fixed, do not reintroduce**: `valid_options`/`expected`/`trap_options` in
+`multi_select` must be **lists** (`[...]`), NEVER sets (`{...}`) — they live inside `content`,
+which travels to the frontend as JSON, and a Python `set` does not serialize deterministically.
+`_register_mixed_interactions` already converts the list to a `set()` internally for the backend
+rules; the frontend only needs the list.
 
-## Reglas NO negociables
+## NON-negotiable rules
 
-1. **Escenario = Puerto de la Polis, pero solo de telón de fondo.** KatIA es la
-   funcionaria/heraldo del puerto (muelles, barcos, ánforas, rutas a Atenas/Corinto/Delos/
-   Mileto/Rodas/Esparta) — úsalo en la apertura (`katia`) de cada nodo, pero **NO fuerces cada
-   ejemplo y cada ítem de práctica a ser "barcos y ánforas"**. Esa fue la corrección explícita
-   del usuario sobre N3 ("como que no existiera más cosas en la antigua Grecia").
-2. **Banco de contextos variado — ningún objeto se repite más de 2 veces en TODO el nivel** (7
-   nodos, contando también C01). Contextos ya usados en C01: caramelos, canicas, entradas de
-   feria, sacos de trigo, remos, ánforas de aceite. Para C02–C06 usar variedad nueva: huertos/
-   filas de árboles, animales de granja, instrumentos musicales, monedas/entradas de feria (si no
-   se repite de C01), útiles escolares, distancias/corredores, torres/bloques. Antes de escribir
-   un ejemplo, revisa qué objetos ya aparecieron en los nodos anteriores.
-3. **Feedback específico y accionable, nunca "correcto/incorrecto" a secas.** Cada opción
-   incorrecta de `single_select`/`multi_select` necesita su propia entrada en `feedback_by_option`
-   / `feedback_trap`/`feedback_missing` explicando **por qué** está mal (ver los `fb_c01_qN_x` de
-   C01 como ejemplo).
-4. **La trampa (`trap: True`) es un error conceptual real**, no un despiste — en C01 fue "par ⇏
-   divisible por 4"; sigue el mismo criterio (un contraejemplo que desmiente una generalización
-   apresurada).
-5. **LaTeX explícito que compile en KaTeX**: `\dfrac`, `\sqrt`, `\times`, `\div`, `\mathbb{}`,
-   coma decimal es-CO con llave (`2{,}5`) si aplica. Revisar 0 `.katex-error` en el render real.
-6. **Práctica con respuestas numéricas tecleables**: el backend valida `numeric` con regex
-   `-?\d{1,6}(,\d{1,4})?` — solo enteros o decimales de ≤4 cifras, nunca periódicos.
+1. **Setting = the Port of the Polis, but only as a backdrop.** KatIA is the port's
+   official/herald (docks, ships, amphorae, routes to Athens/Corinth/Delos/
+   Miletus/Rhodes/Sparta) — use it in each node's opening (`katia`), but **DO NOT force every
+   example and every practice item to be "ships and amphorae"**. That was the user's explicit
+   correction on N3 ("as if nothing else existed in ancient Greece").
+2. **Varied context bank — no object repeats more than 2 times across the WHOLE level** (7
+   nodes, counting C01 too). Contexts already used in C01: candies, marbles, fair tickets,
+   wheat sacks, oars, oil amphorae. For C02–C06 use new variety: orchards/rows of trees, farm
+   animals, musical instruments, coins/fair tickets (if not repeated from C01), school
+   supplies, distances/runners, towers/blocks. Before writing an example, check which objects
+   already appeared in the previous nodes.
+3. **Specific, actionable feedback, never a bare "correct/incorrect".** Each incorrect option
+   of a `single_select`/`multi_select` needs its own entry in `feedback_by_option` /
+   `feedback_trap`/`feedback_missing` explaining **why** it is wrong (see C01's `fb_c01_qN_x`
+   as an example).
+4. **The trap (`trap: True`) is a real conceptual error**, not a slip — in C01 it was "even ⇏
+   divisible by 4"; follow the same criterion (a counterexample that refutes a hasty
+   generalization).
+5. **Explicit LaTeX that compiles in KaTeX**: `\dfrac`, `\sqrt`, `\times`, `\div`, `\mathbb{}`,
+   es-CO decimal comma wrapped in braces (`2{,}5`) where applicable. Check for 0 `.katex-error`
+   in the real render.
+6. **Practice with typeable numeric answers**: the backend validates `numeric` with the regex
+   `-?\d{1,6}(,\d{1,4})?` — only integers or decimals with ≤4 decimal digits, never repeating
+   decimals.
 
-## Mapeo del documento fuente a cada nodo
+## Mapping from the source document to each node
 
-| Nodo | Página del `.md` original | Contenido a expandir |
+| Node | Page in the original `.md` | Content to expand |
 |---|---|---|
-| **C02 Múltiplos** | Página 3 · CONCEPTO 2 | Ya tiene 1 ejemplo (torre de bloques) + 1 trampa + 1 práctica multi_select. Agregar: el ejemplo del "corredor" completo (2,3,4,6,9 horas) como situaciones numéricas adicionales, más práctica (mín. 6-8 items), formalización ya tiene las 4 propiedades del doc — verificar que estén completas. |
-| **C03 Primos** | Página 4 · CONCEPTO 3 | Ya tiene 1 ejemplo + trampa (el 1) + 1 multi_select. Agregar: la actividad de "contar divisores" de varios números (7, 12, 1, 11 del doc) como práctica numérica, más ejemplos con números primos/compuestos variados (no solo los del doc), formalización con teorema fundamental ya presente. |
-| **C04 Factorización prima** | Página 5 · CONCEPTO 5 (doc) | Ya tiene 1 ejemplo (84) + 1 trampa (36). Agregar: modelar la "división sucesiva" del doc (64, 81, 125, 630, 72, 1200) como **una interacción numérica por paso** (ver nota abajo), más práctica de "formas de descomposición" como multi_select (36, 90, 128 del doc ya tienen opciones correctas/incorrectas listas). |
-| **C05 MCD** | Página 6 · CONCEPTO 5 (doc, mal numerado como 5 otra vez) | Ya tiene 1 ejemplo (225,180) + trampa. Agregar: la tabla de pares del doc (24-36, 45-60, 28-42, 54-72, 120-180, 144-216) como práctica `single_select` (elegir el MCD correcto de opciones) o `numeric`, más el algoritmo de Euclides como método explícito en formalización (ya listado). |
-| **C06 MCM** | Página 7 · CONCEPTO 6 | Ya tiene 1 ejemplo (20,30) + trampa. Agregar: la tabla de pares del doc (16-24, 21-35, 28-40, 36-54, 132-180, 154-231) como práctica, más la relación MCD×MCM=a×b como pregunta de aplicación. |
+| **C02 Multiples** | Page 3 · CONCEPTO 2 | Already has 1 example (tower of blocks) + 1 trap + 1 multi_select practice item. Add: the full "runner" example (2, 3, 4, 6 and 9 hours) as extra numeric situations, more practice (min. 6-8 items); the formalization already has the doc's 4 properties — check that they are complete. |
+| **C03 Primes** | Page 4 · CONCEPTO 3 | Already has 1 example + trap (the number 1) + 1 multi_select. Add: the doc's "count the divisors" activity for several numbers (7, 12, 1, 11) as numeric practice, more examples with varied primes/composites (not only the doc's), formalization with the fundamental theorem already present. |
+| **C04 Prime factorization** | Page 5 · CONCEPTO 5 (doc) | Already has 1 example (84) + 1 trap (36). Add: model the doc's "successive division" (64, 81, 125, 630, 72, 1200) as **one numeric interaction per step** (see note below), plus "ways to break it down" practice as multi_select (36, 90 and 128 from the doc already have their correct/incorrect options ready). |
+| **C05 GCD** | Page 6 · CONCEPTO 5 (doc, misnumbered as 5 again) | Already has 1 example (225, 180) + trap. Add: the doc's table of pairs (24-36, 45-60, 28-42, 54-72, 120-180, 144-216) as `single_select` practice (pick the correct GCD from options) or `numeric`, plus the Euclidean algorithm as an explicit method in the formalization (already listed). |
+| **C06 LCM** | Page 7 · CONCEPTO 6 | Already has 1 example (20, 30) + trap. Add: the doc's table of pairs (16-24, 21-35, 28-40, 36-54, 132-180, 154-231) as practice, plus the relation GCD×LCM=a×b as an application question. |
 
-**Descomposición sucesiva (C04/C05/C06) — cómo modelarla sin widget nuevo**: cada paso de
-división (p. ej. `630÷2=315`, `315÷3=105`, ...) es **una interacción `numeric` independiente**
-dentro de `practice`, con su propio `id` (Q1, Q2, Q3...) y `prompt` indicando qué paso es. Se
-muestran como una lista vertical normal (reutiliza `.n4-practice-item`, sin componente de árbol).
-No es necesario mostrar todos los pasos en una sola tarjeta interactiva — el ejemplo resuelto
-(`worked_examples`) ya muestra la secuencia completa con `steps`; la práctica puede pedir 1-2
-pasos sueltos o el resultado final.
+**Successive decomposition (C04/C05/C06) — how to model it without a new widget**: each
+division step (e.g. `630÷2=315`, `315÷3=105`, ...) is **an independent `numeric` interaction**
+inside `practice`, with its own `id` (Q1, Q2, Q3...) and a `prompt` saying which step it is.
+They are shown as a normal vertical list (reuse `.n4-practice-item`, no tree component).
+There is no need to show every step in a single interactive card — the worked example
+(`worked_examples`) already shows the full sequence with `steps`; the practice can ask for 1-2
+individual steps or the final result.
 
-## Verificación (obligatoria por nodo, igual que se hizo con C01)
+## Verification (required per node, same as was done for C01)
 
-1. `python -c "import src.domain.learning.prealgebra"` — carga sin error.
-2. `python -c "import json; from src.domain.learning.prealgebra import get_lesson, N4_XXX_NODE_ID; json.dumps(get_lesson(N4_XXX_NODE_ID)['content'])"` — confirma que no se colaron `set()` en `content`.
-3. `python -m pytest tests/unit/domain/test_prealgebra_lessons.py -q` — no debe romper nada existente (agregar un caso análogo a `test_n4_divisibility_mixed_interactions` por nodo si se agregan tipos nuevos de interacción).
-4. `cd frontend && ./node_modules/.bin/tsc --noEmit` — sin errores (no debería cambiar nada de tipos, solo contenido).
-5. Reiniciar el backend **sin** `--reload` para cargar el contenido nuevo.
-6. Walk manual vía API (como se hizo con C01): login → `GET /api/student/lessons/algebra_basica/<NODE_ID>` → `POST .../interactions` por cada item de `practice` → `POST .../events {"event":"node_completed"}` → confirmar que el siguiente nodo pasa a `"available"` en `GET /api/student/map/algebra_basica`. Limpiar después las filas de prueba en `lesson_progress`/`lesson_interactions` si se usa una cuenta demo compartida.
-7. Cambiar `"validation_status"` de `"F4_TODO_stub"` a `"F4_C0N_pilot"` (o similar) al terminar cada nodo.
+1. `python -c "import src.domain.learning.prealgebra"` — loads without errors.
+2. `python -c "import json; from src.domain.learning.prealgebra import get_lesson, N4_XXX_NODE_ID; json.dumps(get_lesson(N4_XXX_NODE_ID)['content'])"` — confirms no `set()` slipped into `content`.
+3. `python -m pytest tests/unit/domain/test_prealgebra_lessons.py -q` — must not break anything that exists (add a case analogous to `test_n4_divisibility_mixed_interactions` per node if new interaction types are added).
+4. `cd frontend && ./node_modules/.bin/tsc --noEmit` — no errors (types should not change at all, only content).
+5. Restart the backend **without** `--reload` to load the new content.
+6. Manual walk-through via the API (as was done with C01): login → `GET /api/student/lessons/algebra_basica/<NODE_ID>` → `POST .../interactions` for each `practice` item → `POST .../events {"event":"node_completed"}` → confirm that the next node becomes `"available"` in `GET /api/student/map/algebra_basica`. Afterwards, clean up the test rows in `lesson_progress`/`lesson_interactions` if a shared demo account was used.
+7. Change `"validation_status"` from `"F4_TODO_stub"` to `"F4_C0N_pilot"` (or similar) when each node is done.
 
-## Orden sugerido
+## Suggested order
 
-C02 Múltiplos → C03 Primos → C04 Factorización prima → C05 MCD → C06 MCM.
+C02 Multiples → C03 Primes → C04 Prime factorization → C05 GCD → C06 LCM.
 
-Razón: Múltiplos y Primos son las más cercanas en forma a C01 (criterios/definición simple);
-Factorización, MCD y MCM comparten el patrón de "descomposición sucesiva" y conviene hacerlas
-juntas al final, una vez afinado el patrón de pasos numéricos secuenciales.
+Reason: Multiples and Primes are the closest in shape to C01 (criteria/simple definition);
+Factorization, GCD and LCM share the "successive decomposition" pattern and are best done
+together at the end, once the pattern of sequential numeric steps is refined.

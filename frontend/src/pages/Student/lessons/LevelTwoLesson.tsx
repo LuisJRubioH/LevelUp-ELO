@@ -7,6 +7,7 @@ import { Button } from "../../../components/ui/Button";
 import { KatiaStorySlot } from "./KatiaStorySlot";
 import { PracticeItem, restoredAnswers, type AnswerMap, type FeedbackMap } from "./PracticeItem";
 import "./LevelTwoLesson.css";
+import { HubDestinationArt } from "./HubDestinationArt";
 
 type Props = {
   lesson: LessonDetail;
@@ -142,10 +143,13 @@ function LevelTwoHub({ lesson, courseId, onBack, onFinish, finishing }: Props) {
                     if (!isOpened) mutation.mutate(building.id);
                   }}
                   aria-pressed={isOpened}
+                  aria-label={`Explorar ${building.operation}`}
                   disabled={mutation.isPending}
                 >
-                  <span>{building.symbol}</span>
-                  <b>{String(index + 1).padStart(2, "0")}</b>
+                  <HubDestinationArt id={building.id}>
+                    <span>{building.symbol}</span>
+                    <b>{String(index + 1).padStart(2, "0")}</b>
+                  </HubDestinationArt>
                 </button>
                 <div className={`n2-card ${isOpened ? "revealed" : ""}`}>
                   <h2>{building.operation}</h2>

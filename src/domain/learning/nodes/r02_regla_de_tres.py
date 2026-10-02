@@ -69,6 +69,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/05-alg-n1-kemet/r02-regla-de-tres-katia.png",
         "eyebrow": "KatIA · Junto a la tina de tinte",
         "title": "Las brazadas que salieron descoloridas",
         "body": (

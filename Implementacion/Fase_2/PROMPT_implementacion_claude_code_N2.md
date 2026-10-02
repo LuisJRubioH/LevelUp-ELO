@@ -1,91 +1,93 @@
-# Prompt para Claude Code — Implementación del Nivel 2 "Operaciones básicas" (LevelUpElo)
+# Prompt for Claude Code — Implementing Level 2 "Operaciones básicas" (*Basic operations*) (LevelUpElo)
 
-> Pega este prompt en Claude Code con los 7 archivos `F2_nodo_*.md` en `docs/specs/nivel-2/` del repo.
+> Paste this prompt into Claude Code with the 7 `F2_nodo_*.md` files in the repo's `docs/specs/nivel-2/`.
 >
-> **Valores por defecto (confirmar y ajustar si tu stack difiere):**
-> - **Ruta de specs:** `docs/specs/nivel-2/`
-> - **Stack asumido:** React + TypeScript (componentes `.tsx`, KaTeX para fórmulas, Framer Motion para animaciones).
-> - **Comandos:** `npm run lint` · `npm run typecheck` (o `npx tsc --noEmit`) · `npm test`. Si usas pnpm/yarn, reemplaza `npm run`/`npm` por `pnpm`/`yarn`.
+> **Defaults (confirm and adjust if your stack differs):**
+> - **Specs path:** `docs/specs/nivel-2/`
+> - **Assumed stack:** React + TypeScript (`.tsx` components, KaTeX for formulas, Framer Motion for animations).
+> - **Commands:** `npm run lint` · `npm run typecheck` (or `npx tsc --noEmit`) · `npm test`. If you use pnpm/yarn, replace `npm run`/`npm` with `pnpm`/`yarn`.
+>
+> Student-facing content stays in Spanish (es-CO). Quoted Spanish text is literal copy from the specs, with an English gloss in italics.
 
 ---
 
-## Rol y objetivo
+## Role and goal
 
-Implementa en este repositorio el **Nivel 2 — Operaciones básicas** (módulo Preálgebra) de LevelUpElo: una **ciudad 3D (hub)** con **6 edificios**, uno por operación. Trabajas a partir de 7 especificaciones de nodo. Como el nivel puede no existir aún o existir parcialmente, **primero audita** lo que haya y reconcilia; no dupliques ni sobreescribas a ciegas.
+Implement **Level 2 — Basic operations** (Pre-algebra module) of LevelUpElo in this repository: a **3D city (hub)** with **6 buildings**, one per operation. You work from 7 node specifications. Since the level may not exist yet or may exist partially, **audit first** whatever is there and reconcile; do not duplicate or blindly overwrite.
 
-## Aviso importante sobre el origen del contenido
+## Important notice about where the content comes from
 
-A diferencia del Nivel 1 (cuyo material venía maduro), el Nivel 2 se desarrolló a partir de un **borrador temprano**. En cada spec, el contenido está etiquetado:
-- **verbatim** = texto que venía en el borrador (diálogos de Katia, situaciones, formalizaciones). Respétalo tal cual.
-- **[NUEVO]** = autoría añadida para alcanzar el calibre formativo (retroalimentaciones diferenciadas, definición + ejemplos base, storyboards, diferenciación por banda, accesibilidad, JSON). **Implementa el [NUEVO] tal como está, pero deja un marcador/anotación** (p. ej. un comentario o flag de contenido) para que el equipo pedagógico pueda validarlo antes de publicar. No lo trates como contenido aprobado en firme.
+Unlike Level 1 (whose material arrived mature), Level 2 was developed from an **early draft**. In each spec, the content is tagged:
+- **verbatim** = text that came in the draft (Katia's dialogue, situations, formalizations). Respect it exactly.
+- **[NUEVO]** (*new*) = authoring added to reach formative quality (differentiated feedback, definition + base examples, storyboards, differentiation by band, accessibility, JSON). **Implement the [NUEVO] content as it is, but leave a marker/annotation** (e.g. a comment or content flag) so the pedagogy team can validate it before publishing. Do not treat it as firmly approved content.
 
-## Contexto del producto
+## Product context
 
-- Plataforma gamificada de matemáticas, 8.º grado, Colombia. Formato **es-CO** (coma decimal, punto de miles). Mascota guía: **Katia**. Personajes de situación por edificio: Felipe, Manuel, Andrea, Pablo, Juan.
-- Tres bandas de proficiencia: **Básico, Intermedio, Avanzado** (campo `level_presentation` en cada spec).
-- Cada spec tiene **PARTE A** (guión legible; A2 es la fuente de verdad del texto visible) y **PARTE B** (JSON: fuente de verdad del modelo de datos, interacciones, eventos, alertas, presentación por banda y handoff).
+- Gamified math platform, 8th grade, Colombia. **es-CO** format (decimal comma, thousands dot). Guide mascot: **Katia**. Situation characters per building: Felipe, Manuel, Andrea, Pablo, Juan.
+- Three proficiency bands: **Básico, Intermedio, Avanzado** (*Basic, Intermediate, Advanced*) (`level_presentation` field in each spec).
+- Each spec has **PARTE A** (*Part A*: readable script; A2 is the source of truth for visible text) and **PARTE B** (*Part B*: JSON — source of truth for the data model, interactions, events, alerts, per-band presentation and handoff).
 
-## Mapa archivo → node_id (orden de ruta)
+## File → node_id map (route order)
 
-| Orden | Archivo spec | node_id | Tipo |
+| Order | Spec file | node_id | Type |
 |---|---|---|---|
-| E00 | `F2_nodo_ciudad_hub.md` | `PREALG-N2-E00-CIUDAD` | Hub 3D (gating: abrir 6 carteles) |
-| E01 | `F2_nodo_suma.md` | `PREALG-N2-E01-SUMA-JUNTAR` | Edificio — manipulativo (canasta) |
-| E02 | `F2_nodo_resta.md` | `PREALG-N2-E02-RESTA-QUITAR` | Edificio — situaciones |
-| E03 | `F2_nodo_multiplicacion.md` | `PREALG-N2-E03-MULTIPLICACION-AGRUPAR` | Edificio — construcción progresiva |
-| E04 | `F2_nodo_division.md` | `PREALG-N2-E04-DIVISION-REPARTIR` | Edificio — manipulativo (pizza) |
-| E05 | `F2_nodo_potenciacion.md` | `PREALG-N2-E05-POTENCIACION-CRECER` | Edificio — tabla de crecimiento |
-| E06 | `F2_nodo_radicacion.md` | `PREALG-N2-E06-RADICACION-RAIZ` | Edificio — geométrico (cierra el nivel) |
+| E00 | `F2_nodo_ciudad_hub.md` | `PREALG-N2-E00-CIUDAD` | 3D hub (gating: open 6 signs) |
+| E01 | `F2_nodo_suma.md` | `PREALG-N2-E01-SUMA-JUNTAR` | Building — manipulative (basket) |
+| E02 | `F2_nodo_resta.md` | `PREALG-N2-E02-RESTA-QUITAR` | Building — situations |
+| E03 | `F2_nodo_multiplicacion.md` | `PREALG-N2-E03-MULTIPLICACION-AGRUPAR` | Building — progressive construction |
+| E04 | `F2_nodo_division.md` | `PREALG-N2-E04-DIVISION-REPARTIR` | Building — manipulative (pizza) |
+| E05 | `F2_nodo_potenciacion.md` | `PREALG-N2-E05-POTENCIACION-CRECER` | Building — growth table |
+| E06 | `F2_nodo_radicacion.md` | `PREALG-N2-E06-RADICACION-RAIZ` | Building — geometric (closes the level) |
 
-## FASE 1 — Auditoría y reconciliación (NO escribir código todavía)
+## PHASE 1 — Audit and reconciliation (do NOT write code yet)
 
-1. Lee los 7 specs completos.
-2. Escanea el repo: ¿existe ya estructura del Nivel 2, el hub, algún edificio, rutas, eventos o i18n `prealgebra.n2.*`?
-3. Clasifica cada nodo: **EXISTE-COINCIDE / EXISTE-REQUIERE-CAMBIOS / FALTA**. (Probablemente la mayoría sea FALTA, pero verifica scaffolding y componentes compartidos reutilizables del Nivel 1.)
-4. Entrega una **tabla de reconciliación** + un **plan por nodo** y **detente para confirmación** antes de codificar.
-5. Ante conflicto estructural (un `node_id`, una `unlock_rule`, una ruta, un evento ya consumido por analítica), **márcalo y pregunta**; no lo cambies en silencio.
+1. Read the 7 specs in full.
+2. Scan the repo: do any Level 2 structure, the hub, any building, routes, events or `prealgebra.n2.*` i18n already exist?
+3. Classify each node: **EXISTS-MATCHES / EXISTS-NEEDS-CHANGES / MISSING**. (Most will probably be MISSING, but check for scaffolding and reusable shared components from Level 1.)
+4. Deliver a **reconciliation table** + a **per-node plan** and **stop for confirmation** before coding.
+5. On a structural conflict (a `node_id`, an `unlock_rule`, a route, an event already consumed by analytics), **flag it and ask**; do not change it silently.
 
-## FASE 2 — Implementación (tras aprobación, en orden de ruta E00 → E06)
+## PHASE 2 — Implementation (after approval, in route order E00 → E06)
 
-Para cada nodo:
+For each node:
 
-- **Hub E00:** ciudad 3D con 6 edificios; cada edificio despliega un cartel (problema real). **Gating:** abrir los 6 carteles habilita la entrada a los edificios (sin penalización). Reutiliza una escena 3D existente o provee alternativa 2D accesible.
-- **Datos:** materializa la PARTE B (interacciones, `expected`/`answer`, `feedback` por caso, `misconception_tags`, `level_presentation`). Conserva `node_id` y wiring; actualiza in situ.
-- **Definición + ejemplos base (patrón obligatorio):** cada edificio muestra, **antes** de la práctica, una pantalla con la **definición de la operación** y **1–2 ejemplos resueltos** (bloque `definition_and_worked_examples` en el JSON; evento `definition_and_examples_viewed`). Va antes de las situaciones/manipulación; la **formalización con propiedades** va al final como consolidación.
-- **UI / texto:** usa el guión A2 **verbatim** para el texto visible; respeta el marcado [NUEVO]. Reutiliza componentes compartidos (diálogo de Katia, modal de retroalimentación, campo numérico, drag-and-drop, recta numérica, etc.).
-- **Mecánicas por edificio:** Suma = arrastrar frutas a canasta con contador; Resta = situaciones con campo numérico + recta (incluye deuda/negativos); Multiplicación = situaciones con intervenciones de Katia (suma repetida → conmutatividad → puente a división); División = arrastrar trozos de pizza a platos, con residuo e inversas; Potenciación = completar tabla de crecimiento por horas + curva; Radicación = situaciones geométricas (área/volumen) con raíz exacta y no exacta.
-- **Eventos y persistencia:** registra `events_to_register`; respeta `persistence_required`/`persistence_excluded`. **Nunca persistas `elo_score`** (estos nodos no afectan ELO).
-- **Diferenciación:** implementa `level_presentation` (Básico/Intermedio/Avanzado).
-- **Accesibilidad:** KaTeX con MathML/`aria-label`; drag-and-drop con alternativa tocar-para-colocar y teclado; estados no dependientes solo de color (íconos ✓/⚠); contraste ≥ 4.5:1 en claro y oscuro.
-- **i18n:** strings en recursos es-CO con el `i18n_prefix` del spec (`prealgebra.n2.e00` … `e06`).
-- **Pruebas:** lógica de evaluación, ruteo de feedback por error, gating del hub, diferenciación por banda, y el residuo/inversa en división.
+- **Hub E00:** 3D city with 6 buildings; each building unfolds a sign (a real-world problem). **Gating:** opening the 6 signs unlocks entry to the buildings (no penalty). Reuse an existing 3D scene or provide an accessible 2D alternative.
+- **Data:** materialize PARTE B (interactions, `expected`/`answer`, per-case `feedback`, `misconception_tags`, `level_presentation`). Keep the `node_id` and wiring; update in place.
+- **Definition + base examples (required pattern):** each building shows, **before** practice, a screen with the **definition of the operation** and **1–2 worked examples** (`definition_and_worked_examples` block in the JSON; `definition_and_examples_viewed` event). It goes before the situations/manipulation; the **formalization with properties** goes at the end as consolidation.
+- **UI / text:** use the A2 script **verbatim** for visible text; respect the [NUEVO] tagging. Reuse shared components (Katia dialogue, feedback modal, numeric field, drag-and-drop, number line, etc.).
+- **Mechanics per building:** Addition = drag fruit into a basket with a counter; Subtraction = situations with a numeric field + number line (includes debt/negatives); Multiplication = situations with Katia interventions (repeated addition → commutativity → bridge to division); Division = drag pizza slices onto plates, with remainder and inverses; Exponentiation = fill in a growth table by the hour + curve; Roots = geometric situations (area/volume) with exact and non-exact roots.
+- **Events and persistence:** record `events_to_register`; respect `persistence_required`/`persistence_excluded`. **Never persist `elo_score`** (these nodes do not affect ELO).
+- **Differentiation:** implement `level_presentation` (Básico/Intermedio/Avanzado).
+- **Accessibility:** KaTeX with MathML/`aria-label`; drag-and-drop with a tap-to-place and keyboard alternative; states that do not depend on color alone (✓/⚠ icons); contrast ≥ 4.5:1 in light and dark mode.
+- **i18n:** strings in es-CO resources with the spec's `i18n_prefix` (`prealgebra.n2.e00` … `e06`).
+- **Tests:** evaluation logic, feedback routing by error, hub gating, differentiation by band, and the remainder/inverse in division.
 
-## Correcciones YA aplicadas en los specs (no reintroducir desde el PDF original)
+## Corrections ALREADY applied in the specs (do not reintroduce them from the original PDF)
 
-Si comparas con el borrador/PDF original, **estas correcciones ya están en los specs y deben conservarse**:
-- **Hub:** el título interno "Nivel 1" del borrador → **Nivel 2**.
-- **Resta:** el Texto 1 decía "edificio de la suma" → **resta**.
-- **Potenciación:** "crecimiento lineal/lineal exponencial" → **exponencial**; el personaje "pablo/repartición" → **Juan/crecimiento**; modelado explícito **población(hora n) = base^(n+1)** (se parte de "base" individuos que se multiplican por "base" cada hora). *(Si prefieres potencias puras población = baseⁿ, habría que reformular el enunciado a "empieza con 1"; decisión pedagógica pendiente — respeta lo que diga el spec salvo indicación contraria.)*
-- **Radicación:** área 16 m² → lado **4 m** (no 4 cm); **es-CO** "√20 ≈ 4,4721" (coma); Texto 1 completado a "último edificio".
-- **es-CO** en todo el nivel (coma decimal).
+If you compare with the original draft/PDF, **these corrections are already in the specs and must be kept**:
+- **Hub:** the draft's internal title "Nivel 1" (*Level 1*) → **Nivel 2**.
+- **Subtraction:** Texto 1 said "edificio de la suma" (*addition building*) → **resta** (*subtraction*).
+- **Exponentiation:** "crecimiento lineal/lineal exponencial" (*linear/linear exponential growth*) → **exponencial** (*exponential*); the character "pablo/repartición" (*pablo/sharing*) → **Juan/crecimiento** (*Juan/growth*); explicit modeling **population(hour n) = base^(n+1)** (you start from "base" individuals that multiply by "base" every hour). *(If you prefer pure powers, population = baseⁿ, the statement would have to be reworded to "starts with 1"; pedagogical decision pending — respect what the spec says unless told otherwise.)*
+- **Roots:** area 16 m² → side **4 m** (not 4 cm); **es-CO** "√20 ≈ 4,4721" (comma); Texto 1 completed to "último edificio" (*last building*).
+- **es-CO** across the whole level (decimal comma).
 
-## Invariantes que NO se rompen
+## Invariants that must NOT break
 
-- **Notación es-CO** (coma decimal, punto de miles).
-- **Todos los nodos son formativos:** `safe_zone = true`, `affects_elo = false`, `skip_penalty = false`. No los conectes al ELO.
-- **Definición + ejemplos base antes de la práctica** (patrón obligatorio, ver arriba).
-- **Alertas en tres niveles:** `observation → reinforcement_suggested → teacher_intervention` (la última requiere persistencia / ≥3 ocurrencias). Hipótesis de diseño parametrizables, no umbrales calibrados.
-- **Render de KaTeX obligatorio:** respeta cada `render_blocker`. **Riesgo alto en E05 (superíndices/exponentes) y E06 (índices/radicandos del radical)** — verifícalos explícitamente; no dejes exponentes ni radicales vacíos.
-- **Lenguaje de crecimiento** en la retroalimentación; nada punitivo.
-- **Datos de menores (Ley 1581 / minimización):** no persistas texto libre crudo del estudiante como dato condicionante.
-- **Sin gating de complejos** (no aplica en este nivel). La radicación enlaza con Irracionales/Reales del Nivel 1 (raíces no exactas), pero no introduce ramas opcionales.
+- **es-CO notation** (decimal comma, thousands dot).
+- **All nodes are formative:** `safe_zone = true`, `affects_elo = false`, `skip_penalty = false`. Do not connect them to ELO.
+- **Definition + base examples before practice** (required pattern, see above).
+- **Three-level alerts:** `observation → reinforcement_suggested → teacher_intervention` (the last one requires persistence / ≥3 occurrences). Configurable design hypotheses, not calibrated thresholds.
+- **KaTeX rendering required:** respect every `render_blocker`. **High risk in E05 (superscripts/exponents) and E06 (radical indices/radicands)** — verify them explicitly; do not leave exponents or radicals empty.
+- **Growth-oriented language** in feedback; nothing punitive.
+- **Minors' data (Law 1581 / data minimization):** do not persist the student's raw free text as conditioning data.
+- **No complex-number gating** (does not apply at this level). Roots link to Level 1's Irrationals/Reals (non-exact roots), but do not introduce optional branches.
 
-## Salida esperada de esta sesión
+## Expected output of this session
 
-1. Tabla de reconciliación (existe-coincide / requiere-cambios / falta) + diffs.
-2. Plan por nodo en orden E00 → E06.
-3. Tras aprobación: implementación nodo por nodo, con resumen de qué se creó vs. actualizó, y marcadores de contenido **[NUEVO]** pendiente de validación pedagógica.
-4. Lint/typecheck/tests en verde: `npm run lint`, `npm run typecheck` (o `npx tsc --noEmit`) y `npm test` (ajusta al gestor de paquetes del repo si no es npm).
-5. Lista de conflictos o decisiones pendientes (incluida la del modelado de potenciación, si aplica).
+1. Reconciliation table (exists-matches / needs-changes / missing) + diffs.
+2. Per-node plan in order E00 → E06.
+3. After approval: node-by-node implementation, with a summary of what was created vs. updated, and **[NUEVO]** content markers pending pedagogical validation.
+4. Lint/typecheck/tests green: `npm run lint`, `npm run typecheck` (or `npx tsc --noEmit`) and `npm test` (adjust to the repo's package manager if it is not npm).
+5. List of conflicts or pending decisions (including the one about modeling exponentiation, if applicable).
 
-**No asumas que todo es nuevo sin auditar, no reintroduzcas los errores ya corregidos, y respeta el patrón definición→práctica→consolidación en cada edificio.**
+**Do not assume everything is new without auditing, do not reintroduce the errors already fixed, and respect the definition→practice→consolidation pattern in every building.**

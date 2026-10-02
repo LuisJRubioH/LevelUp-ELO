@@ -1,57 +1,57 @@
-# Correcciones puntuales - imagenes de Prealgebra
+# Spot corrections - Pre-algebra images
 
-Ruta base: `Implementacion/image-prompts/referencias/generated`
+Base path: `Implementacion/image-prompts/referencias/generated`
 
-Usa este archivo cuando las correcciones sean pequenas y especificas.
-No llenes una ficha por cada imagen: registra solo las imagenes que realmente vas a corregir.
+Use this file when the corrections are small and specific.
+Do not fill in a sheet for every image: record only the images you are actually going to correct.
 
-## Como usarlo
+## How to use it
 
-1. Escoge la imagen en el catalogo compacto.
-2. Agrega una fila en `Correcciones activas`.
-3. Copia el bloque minimo a la sesion de generacion.
-4. Genera solo esa imagen.
-5. Marca la fila como `Aprobada` cuando quede lista.
+1. Pick the image from the compact catalog.
+2. Add a row under `Active corrections`.
+3. Copy the minimal block into the generation session.
+4. Generate only that image.
+5. Mark the row as `Approved` when it is done.
 
-## Correcciones activas
+## Active corrections
 
-| Estado | Imagen | Version destino | Cambio puntual | Mantener | No hacer |
+| Status | Image | Target version | Specific change | Keep | Do not |
 |---|---|---|---|---|---|
-| Aprobada | n3-fabrica: m00-hub-fabrica-v5.png, m01-conmutativa-katia-canon-v10.png, m02-asociativa-katia-canon-v10.png, m03-distributiva-katia-canon-v10.png, m04-elemento-neutro-katia-canon-v10.png, m05-inversos-katia-canon-v10.png | v5 / canon-v10 | Se descarto regenerar a KatIA desde prompt libre. Se usaron fondos nuevos sin personaje y composicion con `Implementacion/image-prompts/referencias/katia-canon-sprite-hard.png` para conservar la identidad original. | Composicion pedagogica, maquinas de fabrica, paleta nocturna bronce/morado/teal, objetos de cada escena. | No volver a usar las v4 como referencia de personaje; no chibi/kawaii/gatita bebe; no suavizar a pintura digital; no cambiar tunica ni ocular. |
-| Aprobada | n4-puerto: c00-hub-puerto-katia-canon-v10.png, c01-divisibilidad-katia-canon-v10.png, c02-multiplos-katia-canon-v10.png, c03-primos-katia-canon-v10.png, c04-factorizacion-katia-canon-v10.png, c05-mcd-katia-canon-v10.png, c06-mcm-katia-canon-v10.png | canon-v10 | Se descarto regenerar a KatIA desde prompt libre. Se usaron fondos nuevos sin personaje y composicion con `Implementacion/image-prompts/referencias/katia-canon-sprite-hard.png` para conservar la identidad original. | Composicion pedagogica, puerto griego cercano, cargamento/rutas/tablillas, paleta nocturna farol/morado/teal. | No volver a usar las v4 como referencia de personaje; no chibi/kawaii/gatita bebe; no suavizar a pintura digital; no hacer puerto turistico ni panorama epico. |
+| Approved | n3-fabrica: m00-hub-fabrica-v5.png, m01-conmutativa-katia-canon-v10.png, m02-asociativa-katia-canon-v10.png, m03-distributiva-katia-canon-v10.png, m04-elemento-neutro-katia-canon-v10.png, m05-inversos-katia-canon-v10.png | v5 / canon-v10 | Regenerating KatIA from a free prompt was ruled out. New character-free backgrounds were used, composited with `Implementacion/image-prompts/referencias/katia-canon-sprite-hard.png` to preserve the original identity. | Teaching composition, factory machines, night bronze/purple/teal palette, the objects of each scene. | Do not use the v4 images as a character reference again; no chibi/kawaii/baby kitten; do not soften into digital painting; do not change the tunic or the ocular. |
+| Approved | n4-puerto: c00-hub-puerto-katia-canon-v10.png, c01-divisibilidad-katia-canon-v10.png, c02-multiplos-katia-canon-v10.png, c03-primos-katia-canon-v10.png, c04-factorizacion-katia-canon-v10.png, c05-mcd-katia-canon-v10.png, c06-mcm-katia-canon-v10.png | canon-v10 | Regenerating KatIA from a free prompt was ruled out. New character-free backgrounds were used, composited with `Implementacion/image-prompts/referencias/katia-canon-sprite-hard.png` to preserve the original identity. | Teaching composition, close-up Greek port, cargo/routes/tablets, night lantern/purple/teal palette. | Do not use the v4 images as a character reference again; no chibi/kawaii/baby kitten; do not soften into digital painting; no tourist port or epic panorama. |
 
-## Bloque minimo para pegar
-
-```text
-Imagen:
-Version destino:
-
-Cambio puntual:
-
-Mantener:
-
-No hacer:
-```
-
-## Prompt de control
+## Minimal block to paste
 
 ```text
-Trabaja solo la imagen indicada.
-No redisenes el set completo.
-No cambies imagenes ya aprobadas.
-Aplica unicamente el cambio puntual descrito.
-Genera una sola version nueva con el nombre indicado en Version destino.
+Image:
+Target version:
+
+Specific change:
+
+Keep:
+
+Do not:
 ```
 
-## Cambios globales aprobados
+## Control prompt
 
-Usar solo cuando una decision aplique a varias imagenes.
+```text
+Work only on the indicated image.
+Do not redesign the whole set.
+Do not change images that are already approved.
+Apply only the specific change described.
+Generate a single new version with the name given in Target version.
+```
 
-| Alcance | Decision | Excepciones |
+## Approved global changes
+
+Use only when a decision applies to several images.
+
+| Scope | Decision | Exceptions |
 |---|---|---|
-| N3/N4 con KatIA | Las v4 quedan rechazadas como referencia de identidad de KatIA. La solucion aprobada para las escenas con KatIA es generar fondos sin personaje y componer encima el sprite canonico `Implementacion/image-prompts/referencias/katia-canon-sprite-hard.png`. | Las v4 pueden usarse solo como referencia aproximada de composicion/entorno, nunca de rostro, proporcion corporal o acabado de KatIA. |
+| N3/N4 with KatIA | The v4 images are rejected as KatIA identity references. The approved solution for scenes with KatIA is to generate character-free backgrounds and composite the canonical sprite `Implementacion/image-prompts/referencias/katia-canon-sprite-hard.png` on top. | The v4 images may be used only as a rough composition/environment reference, never for KatIA's face, body proportions or finish. |
 
-## Catalogo compacto
+## Compact catalog
 
 ### n1-agora
 

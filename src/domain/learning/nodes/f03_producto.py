@@ -78,6 +78,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
+        "image": "/leccion/05-alg-n1-kemet/f03-producto-katia.png",
         "eyebrow": "KatIA · En la era de trilla",
         "title": "La troje que recibió más grano del que se trilló",
         "body": (

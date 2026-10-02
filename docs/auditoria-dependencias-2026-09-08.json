@@ -1,0 +1,49 @@
+{
+  "date": "2026-09-08",
+  "scope": "Frontend pnpm dependency audit; no Python or remote Dependabot certification",
+  "pnpm": "11.19.0",
+  "node": "v26.5.0",
+  "command": "pnpm audit --json",
+  "exitCode": 0,
+  "result": {
+    "advisories": {},
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0
+      },
+      "dependencies": 109,
+      "devDependencies": 436,
+      "optionalDependencies": 75,
+      "totalDependencies": 595
+    }
+  },
+  "cleanInstall": {
+    "command": "pnpm install --frozen-lockfile --offline",
+    "directory": "empty temporary directory with only the three project manifests",
+    "packages": 526,
+    "exitCode": 0
+  },
+  "build": {
+    "command": "pnpm run build",
+    "exitCode": 0,
+    "pwa": "1.3.0",
+    "serviceWorkerGenerated": true,
+    "observation": "PWA closeBundle took about 43 seconds"
+  },
+  "e2e": {
+    "command": "PLAYWRIGHT_CHANNEL=chrome pnpm exec playwright test --config=audit.playwright.config.ts --reporter=json",
+    "browser": "Chrome 152.0.7977.83",
+    "scope": "Mocked APIs",
+    "passed": 28,
+    "failed": 0,
+    "skipped": 0,
+    "retries": 0,
+    "durationSeconds": 64.037,
+    "evidence": "auditoria-dependencias-e2e-2026-09-08.json",
+    "initialRun": "27 passed, 1 redirect timeout; isolated rerun passed; final full run passed without test assertion or timeout changes"
+  }
+}
