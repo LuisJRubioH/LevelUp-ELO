@@ -19,6 +19,24 @@ easy or too hard and teachers act on false information.
   derived average of its topics, never stored (FR-029, FR-029a).
 - Q: Which rank scale is shared by every surface? → A: the student API's 16 levels "Aspirante →
   Leyenda Suprema"; the diagnostic league stays a separate placement label (FR-031, FR-031a).
+- Q: Which topics receive a PvP delta? → A: every topic the player has rated in the match's
+  course, shifted by the full delta, so the course average moves by exactly the delta (FR-029b).
+
+### Session 2026-10-05 (/speckit-clarify)
+
+- Q: What happens to ratings already stored under a course id or course name? → A: existing topic
+  ratings are preserved; a missing topic rating is initialized only for topics the student
+  actually practised, from the legacy course rating as an approximate baseline; legacy rows are
+  kept but excluded from active reads and averages; the migration is idempotent; if both a
+  course-id and a course-name row exist, a deterministic rule picks one and they are never added
+  together; historical attempts are not replayed (FR-033 … FR-036).
+- Q: Is the overall rating the mean of topic ratings or of course ratings? → A: mean of course
+  ratings, each the mean of its existing topic ratings; unrated topics, courses with no rated
+  topic and legacy rows excluded; fallback 1000 kept; recorded as [CHANGE] (FR-028a).
+- Q: What does a PvP result do to a player with no rated topic in the course? → A: their ratings
+  stay unchanged; an applied delta of 0 is persisted with reason `no_rated_topics` and reported;
+  the opponent's delta applies normally; completion stays idempotent; matchmaking eligibility is
+  a follow-up for spec 007 (FR-029c).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -35,7 +53,7 @@ uncertainty and item difficulty with the formulas in FR-001…FR-006.
 
 **Acceptance Scenarios**:
 
-1. **US1-AS1** — **Given** a student with no rating for the course, **When** they answer an item
+1. **US1-AS1** — **Given** a student with no rating for the item's topic, **When** they answer an item
    of difficulty 1000 correctly in 20 s, **Then** their rating becomes 1016.00 (1000 + 32 × 1 ×
    (1 − 0.5)), their uncertainty becomes 332.5, and the item's difficulty becomes 984.
 2. **US1-AS2** — **Given** the same starting point, **When** they answer incorrectly in 20 s,
@@ -152,6 +170,9 @@ each other on a draw), exactly once, and the change persists.
    marked abandoned and no rating changes.
 4. **US5-AS4** — **Given** a finished match, **When** the player answers their next practice item,
    **Then** the match's change is still reflected in their rating.
+5. **US5-AS5** — **Given** a player with no rated topic in the match's course, **When** the match
+   finishes, **Then** their ratings are unchanged, the match records and reports an applied change
+   of 0 with reason `no_rated_topics`, and the opponent's change is applied.
 
 ---
 
@@ -167,8 +188,10 @@ shows them.
 
 **Acceptance Scenarios**:
 
-1. **US6-AS1** — **Given** a student with ratings in several topics, **When** their overall
-   rating is shown, **Then** it is the average of those ratings (1000 when there are none).
+1. **US6-AS1** — **Given** a student with topic ratings 1100 and 1300 in course X and 1000 in
+   course Y, **When** their overall rating is shown, **Then** it is 1100 — the mean of course X
+   (1200) and course Y (1000), not the mean of the three topics (1133.33); with no rated topic it
+   is 1000.
 2. **US6-AS2** — **Given** a student about to answer, **When** the predicted gain/loss is shown,
    **Then** it equals the change the engine applies for that answer at that moment.
 3. **US6-AS3** — **Given** one rating, **When** its rank is shown on any surface, **Then** it is
@@ -185,6 +208,8 @@ shows them.
 - A teacher grade of 50 → zero change, but the submission is still marked as applied.
 - Procedure change on a topic with no rating → starts from 1000 and never goes below 0.
 - Course with no rated topics → its derived rating is 1000.
+- Legacy course row exists but the student practised no topic of that course → nothing is
+  created; the row stays excluded.
 - Two items with the same difficulty → the chosen one is kept by identity, not by difficulty.
 - Practice filtered to a topic that has no items → falls back to the whole course pool.
 - A retry key longer than 128 characters or empty → rejected.
@@ -198,9 +223,9 @@ shows them.
 
 - **FR-001** [AS-IS]: When a student's valid practice answer is processed, the system shall
   compute the expected success as `P = 1 / (1 + 10^((D − R) / 400))`, where R is the student's
-  current rating and D the item's current difficulty.
+  current rating in the item's topic and D the item's current difficulty.
 - **FR-002** [AS-IS]: When a valid practice answer is processed, the system shall change the
-  student's rating by `32 × (RD / 350) × (result − P)`, with result 1 for correct and 0 for
+  student's rating in the item's topic by `32 × (RD / 350) × (result − P)`, with result 1 for correct and 0 for
   incorrect, and RD the student's current uncertainty.
 - **FR-003** [AS-IS]: When a valid practice answer is processed, the system shall reduce the
   student's uncertainty to `max(30, RD × 0.95)`.
@@ -237,6 +262,9 @@ shows them.
 
 **Item selection (US2)**
 
+In FR-016 … FR-019, "the student's rating" is the **selection rating**: the topic rating when
+practising one topic, or the derived course rating (FR-029a) when practising the whole course.
+
 - **FR-016** [AS-IS]: When the next practice item is requested, the system shall exclude items
   answered correctly in the current session and choose, in order of preference, from: items never
   answered; items failed this session at least 3 questions ago; items answered before.
@@ -259,7 +287,7 @@ shows them.
 **Teacher-validated procedure (US4)**
 
 - **FR-022** [AS-IS]: When a teacher validates a pending procedure with a grade from 0 to 100, the
-  system shall add `(grade − 50) × 0.2` to the student's rating exactly once.
+  system shall add `(grade − 50) × 0.2` to the student's rating in the item's topic exactly once.
 - **FR-023** [AS-IS]: If a grade is outside 0–100, or the teacher does not own the student's group,
   or the submission is not pending, then the system shall not change any rating.
 - **FR-024** [AS-IS]: The system shall not change any rating from an AI-proposed procedure score.
@@ -277,8 +305,15 @@ shows them.
 
 **Reading the rating (US6)**
 
-- **FR-028** [AS-IS]: The system shall hold each rating in exactly one place and derive the overall
-  rating as the average of a student's ratings (1000 if none), never by replaying attempts.
+- **FR-028** [AS-IS]: The system shall hold each rating in exactly one place and derive every
+  aggregate from stored ratings, never by replaying attempts.
+- **FR-028a** [CHANGE]: The system shall derive a student's overall rating as the arithmetic mean
+  of their course ratings, each course rating being the arithmetic mean of that course's existing
+  topic ratings (FR-029a). Topics without a rating, courses without any rated topic, and legacy
+  course-keyed rows (FR-036) are excluded. A student with no rated topic has an overall rating of
+  1000. Course ratings are derived values, not a second source of rating state. *(Today: the plain
+  mean of all stored rows, legacy rows included — so a student's displayed overall rating and rank
+  may change after migration.)*
 - **FR-029** [CHANGE]: The system shall store every rating change — practice answer, diagnostic,
   procedure — under the **topic of the item involved**. There is one stored rating per student and
   topic, and no other stored rating. *(Today: course name in V1, topic or course id in V2
@@ -286,13 +321,15 @@ shows them.
 - **FR-029a** [CHANGE]: Where a rating is needed for a whole course (course-wide practice
   selection, PvP expected outcome, course display), the system shall derive it as the average of
   the student's topic ratings in that course (1000 if none), and shall never store it.
-- **FR-029b** [CHANGE]: When a PvP result is applied, the system shall apply it to topic ratings
-  only. [NEEDS CLARIFICATION: a match spans several items and topics — which topics receive the
-  delta? (A) every topic the student has a rating for in that course, shifted equally, so the
-  course average moves by exactly the delta; (B) only the topics of the items played in the
-  match, split equally; (C) PvP stops moving the rating.]
+- **FR-029b** [CHANGE]: When a PvP result is applied, the system shall add the player's PvP delta
+  to every topic rating that player has in the match's course, so the derived course rating moves
+  by exactly that delta.
+- **FR-029c** [CHANGE]: If a PvP player has no rated topic in the match's course, then the system
+  shall leave that player's ratings unchanged, persist an applied delta of 0 for that player with
+  the reason `no_rated_topics`, report that applied delta (not the computed one) in the match
+  result, and apply the opponent's delta normally. Match completion stays idempotent (FR-025).
 - **FR-030** [CHANGE]: When a predicted rating change is shown before answering, the system shall
-  show the change the engine will apply (FR-002) for that student's current rating and
+  show the change the engine will apply (FR-002) for that student's current topic rating and
   uncertainty. *(Today the preview uses its own K of 32/24 — Known Deviation D-2.)*
 - **FR-031** [CHANGE]: The system shall map a rating to a rank with one scale, defined once and
   used by every V2 surface (student, teacher, home page): the 16 levels "Aspirante → Leyenda
@@ -304,12 +341,28 @@ shows them.
   rank.
 - **FR-032** [AS-IS]: The system shall not change any rating from an exam submission.
 
+**Legacy course-keyed ratings (one-time reconciliation, FR-029)**
+
+- **FR-033** [CHANGE]: When legacy ratings are reconciled, the system shall leave every existing
+  topic rating unchanged.
+- **FR-034** [CHANGE]: When legacy ratings are reconciled, the system shall create a topic rating
+  only for a topic of that course that has no rating and on whose items the student has at least
+  one recorded practice attempt, starting it from the selected legacy course rating's value and
+  uncertainty.
+- **FR-035** [CHANGE]: If a student has both a course-id row and a course-name row for the same
+  course, then the system shall use the one updated most recently (the course-id row on a tie) and
+  shall never add or average the two.
+- **FR-036** [CHANGE]: The system shall keep legacy course-keyed rows stored but exclude them from
+  every rating read, derived course rating, overall rating and rank; reconciliation shall not
+  replay historical attempts, and running it again shall change nothing.
+
 ### Key Entities
 
 - **Topic rating**: a student's level in one topic — value, uncertainty (30–350), last update.
   The only stored rating state (FR-029).
 - **Course rating**: derived average of the student's topic ratings in a course; never stored.
-- **Overall rating**: derived average of all the student's topic ratings; never stored.
+- **Overall rating**: derived mean of the student's course ratings (FR-028a); never a source of
+  state.
 - **Item difficulty**: an item's level on the same scale; moves with every valid answer.
 - **Attempt**: log of one practice answer — correctness, time, rating before/after, validity,
   retry key. History, not state.
@@ -334,8 +387,10 @@ shows them.
   that shows them.
 - **SC-006**: The predicted change shown before an answer equals the applied change to within 0.1
   points.
-- **SC-007**: After this spec is implemented, every stored rating is keyed by a topic: 0 stored
-  ratings keyed by a course id or course name, and every new rating change lands on a topic.
+- **SC-007**: After this spec is implemented, every new rating change lands on a topic, and 0
+  legacy course-keyed rows contribute to any rating, average or rank shown.
+- **SC-008**: Running the reconciliation a second time changes 0 ratings; no student's existing
+  topic rating changes because of it.
 
 ## Assumptions
 
@@ -343,9 +398,9 @@ shows them.
   band 0.40–0.75; mastery 1800) are pinned as they are. Changing any of them is a new `[CHANGE]`.
 - V1 is frozen: its writer must follow FR-029 (a data-integrity fix — today it writes under the
   course name), but V1 screens are not required to follow FR-030 or FR-031.
-- Existing rows keyed by a course id or course name (D-1) need a one-time reconciliation into topic
-  ratings. The mechanism is a plan decision, constrained by additive-only migrations (Principle IV)
-  and by not losing practice progress.
+- Rows keyed by a course id or course name (D-1) are reconciled once per FR-033 … FR-036. Where
+  and when the reconciliation runs is a plan decision, constrained by additive-only migrations
+  (Principle IV). "Updated most recently" uses the row's last-update time.
 - FR-009 and FR-026 use the default implied by the constitution; `/speckit-clarify` may overturn
   them.
 - Unused rating code (`calculate_dynamic_k`, `update_elo`, the always-1.0 impact modifier) is
@@ -355,7 +410,8 @@ shows them.
 
 - Redesigning the rating model (Glicko/Elo variants, dynamic K, item uncertainty that shrinks —
   survey F9). This spec pins the current model.
-- PvP lobby, matchmaking and realtime events — spec 007.
+- PvP lobby, matchmaking and realtime events — spec 007. Follow-up recorded for spec 007: whether
+  a player with no rated topic in a course should be eligible for matchmaking (see FR-029c).
 - Procedure upload, AI review and the teacher review UI — spec 006 (only the rating effect is here).
 - Course map node unlocking and the 1250 "completed" threshold — spec 003 (it reads ratings
   defined here).
@@ -371,12 +427,12 @@ Filled in by `/speckit-tasks`; all rows `PENDING` at the docs stage.
 
 | Requirement / Scenario | Test |
 |---|---|
-| FR-001 … FR-032 (incl. FR-029a, FR-029b, FR-031a) | `PENDING` |
+| FR-001 … FR-036 (incl. FR-028a, FR-029a, FR-029b, FR-029c, FR-031a) | `PENDING` |
 | US1-AS1 … US1-AS7 | `PENDING` |
 | US2-AS1 … US2-AS5 | `PENDING` |
 | US3-AS1 … US3-AS4 | `PENDING` |
 | US4-AS1 … US4-AS5 | `PENDING` |
-| US5-AS1 … US5-AS4 | `PENDING` |
+| US5-AS1 … US5-AS5 | `PENDING` |
 | US6-AS1 … US6-AS4 | `PENDING` |
 
 ## Appendix — As-is evidence
