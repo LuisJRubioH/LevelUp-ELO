@@ -131,12 +131,29 @@ process.** Until that is automated, follow this sequence by hand, one commit per
 | 2 | Clarify | `/speckit-clarify` | every `[NEEDS CLARIFICATION]` resolved or deferred by the owner |
 | 3 | Checklist | `/speckit-checklist` | all requirement-quality items pass |
 | 4 | Plan | `/speckit-plan` | Constitution Check passes; owner approves |
-| 5 | Tasks | `/speckit-tasks` | every Traceability row has a test task |
+| 5 | Tasks | `/speckit-tasks` | every Traceability row has a test task; on spec 001, the first-run review below |
 | 6 | Analyze | `/speckit-analyze` | no CRITICAL findings |
 | — | **Docs PR** | — | spec + plan + tasks, no code; owner merges |
 | 7 | Implement | `/speckit-implement` | Phase 2 pins green on unchanged code before any refactor |
 | 8 | Converge | `/speckit-converge` | no new gaps (loop 7 ↔ 8 until empty) |
 | — | **Code PR** | — | no `PENDING` traceability rows; verification green; owner merges |
+
+**First-run review of `/speckit-tasks` (required checkpoint before committing spec 001's
+tasks.md).** The upstream skill still says tests are optional unless requested; the overrides make
+them requested, but generation compliance is unverified until this review passes. Check, and fix
+tasks.md by hand where it fails:
+
+1. Every FR and every acceptance scenario in spec.md maps to a concrete test task (reused or new)
+   that names its IDs — a matching label is not enough.
+2. Every `[AS-IS]` requirement the refactor touches has a characterization task in the blocking
+   phase, required to pass against the unchanged code.
+3. Every `[CHANGE]` requirement has a test task required to fail before its implementation task.
+4. Task dependencies enforce that order: pins before any refactor; each `[CHANGE]` test before
+   its implementation task.
+5. Each kind is required only where the spec has requirements of that tag — no empty phases.
+
+If the review finds systematic failures, record them in the PR and fix the override before the
+next spec; do not patch the upstream skill.
 
 Branch, commit and PR rules: constitution § AI Agent Behaviour, rule 7. Adoption plan and
 calendar: [`docs/sdd/roadmap.md`](docs/sdd/roadmap.md).

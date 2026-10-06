@@ -71,7 +71,9 @@ independently.
 ## Phase 2: Pin Current Behaviour (Blocking)
 
 **Purpose**: Characterization tests for every `[AS-IS]` requirement this feature's refactor will
-touch, so the refactor cannot change behaviour unnoticed.
+touch, so the refactor cannot change behaviour unnoticed. Omit this phase only if the spec has no
+`[AS-IS]` requirement touched by the work; likewise generate `[CHANGE]` test tasks only for
+`[CHANGE]` requirements.
 
 **⚠️ CRITICAL**: No implementation task may start until every test in this phase **passes against
 the unchanged code**. A characterization test that fails on today's code is wrong (or has found a
@@ -164,5 +166,6 @@ bug): stop and raise it in `/speckit-clarify`, do not "fix" the code here.
 - [P] tasks = different files, no dependencies
 - [Story] label + requirement IDs map each task to spec.md for traceability
 - `[AS-IS]` tests: green before and after. `[CHANGE]` tests: red before, green after.
-- Commit after each task or logical group
+- Commits follow the approved commit policy in AGENTS.md § Required sequence (one commit per
+  approved Spec Kit step) and constitution § AI Agent Behaviour, rule 7
 - Avoid: vague tasks, same-file conflicts, test tasks without requirement IDs

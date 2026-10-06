@@ -156,6 +156,9 @@
 
 ## Traceability *(mandatory)*
 
+**Automated tests are explicitly required for every functional requirement and acceptance
+scenario. Reuse adequate existing tests; create or strengthen tests where coverage is missing.**
+
 <!--
   Filled in during /speckit-tasks and kept current by /speckit-implement.
   Every FR and every acceptance scenario (US1-AS1, US1-AS2, …) maps to at least one
