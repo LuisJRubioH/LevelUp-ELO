@@ -45,6 +45,8 @@ product's production lives in `LuisJRubioH/LevelUp-ELO`. Environment variables a
 
 ### Verify before saying "done"
 
+Bash / Git Bash / CI:
+
 ```bash
 ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q   # always
 python scripts/db_sync_check.py          # if a repository changed (mandatory)
@@ -54,11 +56,90 @@ black --check --line-length=100 src/ tests/ scripts/
 flake8 src/ api/ tests/ scripts/ --max-line-length=100 --select=E9,F63,F7,F82
 ```
 
-### Spec-driven workflow
+Windows PowerShell (the maintainer's local shell):
 
-Spec Kit commands (`/speckit-specify`, `-clarify`, `-plan`, `-tasks`, `-analyze`, `-implement`,
-`-converge`) produce `specs/NNN-<area>/`. Branch, commit and PR gates: constitution § AI Agent
-Behaviour, rule 7. Adoption plan: [`docs/sdd/roadmap.md`](docs/sdd/roadmap.md).
+```powershell
+$env:ADMIN_PASSWORD = "testadmin123"; python -m pytest tests/ --ignore=tests/e2e -q
+python scripts/db_sync_check.py
+python scripts/validate_bank.py
+Push-Location frontend; pnpm run build; Pop-Location
+```
+
+`$env:` sets the variable for the rest of the session; open a new shell (or
+`Remove-Item Env:ADMIN_PASSWORD`) to clear it.
+
+---
+
+## Spec-driven development (Spec Kit)
+
+### Installation in a clean clone
+
+Supported version: **Spec Kit (`specify-cli`) 1.0.13**, recorded in `.specify/init-options.json`.
+
+| Path | Versioned? | Contents |
+|---|---|---|
+| `.specify/` | yes | scripts (PowerShell), core templates, **project template overrides**, constitution, workflow |
+| `.claude/skills/speckit-*` | **no** (`.claude/` is gitignored) | the Claude Code command skills |
+| `.agents/` or Codex equivalents | no | only if the Codex integration is installed |
+
+A clean clone has `.specify/` but **not** the commands. To get them:
+
+```bash
+uv tool install specify-cli==1.0.13                # PyPI; how the maintainer's copy was installed
+specify integration install claude --script ps     # Claude Code: creates .claude/skills/speckit-*
+specify integration install codex --script ps --force   # optional, Codex CLI (second integration)
+```
+
+Verify:
+
+```bash
+specify version                  # → 1.0.13
+specify integration status       # → claude installed (and codex, if added)
+specify check                    # → required tools found
+```
+
+Then in Claude Code the `/speckit-*` commands are available. Command availability per agent:
+
+| Agent | How commands are invoked | Requires |
+|---|---|---|
+| Claude Code | `/speckit-specify`, `/speckit-clarify`, … (skills) | `specify integration install claude` |
+| Codex CLI | the Codex integration's command files | `specify integration install codex` |
+| Anything else | not supported here; follow the manual sequence below by reading `.specify/templates/` | — |
+
+**Customized templates are preserved by living in `.specify/templates/overrides/`** — the first
+layer of Spec Kit's template resolution, which `specify integration upgrade` and re-init do not
+overwrite. Never edit the core files in `.specify/templates/` directly: an upgrade replaces them.
+Current overrides:
+- `overrides/spec-template.md` — EARS requirements tagged `[AS-IS]` / `[CHANGE]`, mandatory Out
+  of Scope and Traceability sections.
+- `overrides/tasks-template.md` — tests mandatory; `[AS-IS]` characterization tests pass on
+  unchanged code, `[CHANGE]` tests fail first; traceability closing phase.
+
+Check which file a template resolves to (PowerShell):
+`. .\.specify\scripts\powershell\common.ps1; Resolve-Template -TemplateName tasks-template -RepoRoot (Get-Location).Path`
+
+### Required sequence (manual — not enforced by tooling)
+
+The bundled workflow `.specify/workflows/speckit/workflow.yml` runs only
+specify → gate → plan → gate → tasks → implement. **It does not enforce this project's full
+process.** Until that is automated, follow this sequence by hand, one commit per approved step:
+
+| # | Step | Command | Gate before moving on |
+|---|---|---|---|
+| 0 | Survey (read-only) | — | `docs/sdd/<area>-survey.md` read by the owner |
+| 1 | Specify | `/speckit-specify` | owner approves spec.md |
+| 2 | Clarify | `/speckit-clarify` | every `[NEEDS CLARIFICATION]` resolved or deferred by the owner |
+| 3 | Checklist | `/speckit-checklist` | all requirement-quality items pass |
+| 4 | Plan | `/speckit-plan` | Constitution Check passes; owner approves |
+| 5 | Tasks | `/speckit-tasks` | every Traceability row has a test task |
+| 6 | Analyze | `/speckit-analyze` | no CRITICAL findings |
+| — | **Docs PR** | — | spec + plan + tasks, no code; owner merges |
+| 7 | Implement | `/speckit-implement` | Phase 2 pins green on unchanged code before any refactor |
+| 8 | Converge | `/speckit-converge` | no new gaps (loop 7 ↔ 8 until empty) |
+| — | **Code PR** | — | no `PENDING` traceability rows; verification green; owner merges |
+
+Branch, commit and PR rules: constitution § AI Agent Behaviour, rule 7. Adoption plan and
+calendar: [`docs/sdd/roadmap.md`](docs/sdd/roadmap.md).
 
 ---
 
@@ -127,7 +208,7 @@ in `api/dependencies.py`. Every instance opens its own pool and exhausts the Sup
 ### R13 — The CognitiveAnalyzer no longer exists
 `StudentService` has no `cognitive_analyzer` and no `enable_cognitive_modifier`. Any reference
 you find is residue: delete it (V1 once failed to start because `app.py` still passed the kwarg).
-`impact_modifier` is always `1.0` (dead parameter, removed by spec 001).
+`impact_modifier` is always `1.0`; it is a dead parameter scheduled for removal in spec 001.
 
 ### R14 — Backfill imports are local to the function
 ```python
@@ -380,7 +461,7 @@ Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectur
 
 **`domain/`**
 - `elo/model.py` — `expected_score`, `procedure_elo_delta`, dataclasses. (`calculate_dynamic_k`
-  and `update_elo` are unused — removal belongs to spec 001.)
+  and `update_elo` are unused — scheduled for removal in spec 001.)
 - `elo/uncertainty.py` — `RatingModel`: `ΔR = 32 × (RD/350) × (result − P)`; RD starts at 350,
   ×0.95 per answer, floor 30.
 - `elo/vector_elo.py` — `VectorRating` (rating + RD per key), `aggregate_global_elo`.

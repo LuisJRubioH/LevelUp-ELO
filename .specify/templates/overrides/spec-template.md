@@ -87,16 +87,30 @@
 
 ### Functional Requirements
 
-- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
-- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]
-- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
-- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
-- **FR-005**: System MUST [behavior, e.g., "log all security events"]
+<!--
+  Write every requirement in one of the five EARS patterns:
+    Ubiquitous      The system shall <response>.
+    Event-driven    When <trigger>, the system shall <response>.
+    State-driven    While <state>, the system shall <response>.
+    Unwanted        If <unwanted condition>, then the system shall <response>.
+    Optional        Where <feature is present>, the system shall <response>.
+  One requirement = one testable response. Combine patterns only as
+  "While <state>, when <trigger>, the system shall <response>."
+
+  Brownfield tag (mandatory): [AS-IS] the code does this today and a test pins it;
+  [CHANGE] behaviour decided in /speckit-clarify that the code does not have yet.
+-->
+
+- **FR-001** [AS-IS]: The system shall [response, e.g., "store every answered attempt"].
+- **FR-002** [AS-IS]: When [trigger, e.g., "a student submits an answer"], the system shall [response].
+- **FR-003** [AS-IS]: While [state, e.g., "the student has no rating for the course"], the system shall [response].
+- **FR-004** [CHANGE]: If [unwanted condition, e.g., "the response time is under 3 s"], then the system shall [response].
+- **FR-005** [AS-IS]: Where [optional feature, e.g., "a calibrator model is configured"], the system shall [response].
 
 *Example of marking unclear requirements:*
 
-- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
-- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
+- **FR-006**: When a user signs in, the system shall authenticate them via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
+- **FR-007**: The system shall retain user data for [NEEDS CLARIFICATION: retention period not specified]
 
 ### Key Entities *(include if feature involves data)*
 
@@ -128,4 +142,32 @@
 - [Assumption about target users, e.g., "Users have stable internet connectivity"]
 - [Assumption about scope boundaries, e.g., "Mobile support is out of scope for v1"]
 - [Assumption about data/environment, e.g., "Existing authentication system will be reused"]
+
+## Out of Scope *(mandatory)*
+
+<!--
+  The no-goals: what this spec deliberately does NOT cover or change, so the
+  plan and the implementing agent cannot widen the reach. Name the neighbouring
+  spec when the item belongs to one.
+-->
+
+- [Non-goal, e.g., "Changing the rating formula — this spec only pins it"]
+- [Non-goal, e.g., "Authentication — see spec 004"]
+
+## Traceability *(mandatory)*
+
+<!--
+  Filled in during /speckit-tasks and kept current by /speckit-implement.
+  Every FR and every acceptance scenario (US1-AS1, US1-AS2, …) maps to at least one
+  relevant executable test, as a pytest node id or a Playwright test title.
+  - Docs PR: a row MAY say `PENDING` (test not written yet).
+  - Code PR: no `PENDING` rows; every referenced test exists, passes and is not skipped.
+  A mapping is not proof: review checks the assertions actually prove the behaviour.
+  A row without a test is a gap for /speckit-converge.
+-->
+
+| Requirement / Scenario | Test |
+|---|---|
+| FR-001 | `tests/...::test_...` |
+| US1-AS1 | `PENDING` |
 - [Dependency on existing system/service, e.g., "Requires access to the existing user profile API"]
