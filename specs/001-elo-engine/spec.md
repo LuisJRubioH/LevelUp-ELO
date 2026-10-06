@@ -22,6 +22,22 @@ easy or too hard and teachers act on false information.
 - Q: Which topics receive a PvP delta? → A: every topic the player has rated in the match's
   course, shifted by the full delta, so the course average moves by exactly the delta (FR-029b).
 
+### Session 2026-10-06 (/speckit-plan, data contradiction found)
+
+- Q: Is a topic rating per topic name across courses, or per topic within one course? → A: per
+  course and topic. Courses are separate contexts (e.g. "Álgebra Básica" is a course level, not a
+  topic; "Geometría" in grade 6 and grade 7 are different courses a student is promoted through).
+  Identity uses stable course and topic identifiers; labels may coincide (FR-029, FR-029a,
+  FR-033 … FR-036 rewritten).
+- Q: After promotion, do previous-grade courses count in the overall rating? → A: no — only
+  enrolled courses of the current level and grade with rated topics, weighted equally; earlier
+  courses kept as history; no ratings yet → "pending diagnostic"; a lower number after promotion
+  is a new-context baseline, never shown as a loss (FR-028a, FR-028b, FR-028c).
+- Q: How certain are migrated legacy values? → A: attempts/diagnostics only establish which
+  contexts are eligible; migrated values are approximate baselines with recorded provenance,
+  never described as exact recovery; a legacy row with no eligible context stays unassigned and
+  the diagnostic initializes (FR-034, FR-034a, FR-034b).
+
 ### Session 2026-10-05 (/speckit-clarify)
 
 - Q: What happens to ratings already stored under a course id or course name? → A: existing topic
@@ -32,7 +48,8 @@ easy or too hard and teachers act on false information.
   together; historical attempts are not replayed (FR-033 … FR-036).
 - Q: Is the overall rating the mean of topic ratings or of course ratings? → A: mean of course
   ratings, each the mean of its existing topic ratings; unrated topics, courses with no rated
-  topic and legacy rows excluded; fallback 1000 kept; recorded as [CHANGE] (FR-028a).
+  topic and legacy rows excluded; recorded as [CHANGE] (FR-028a). *(Fallback refined on
+  2026-10-06: "pending diagnostic" instead of 1000.)*
 - Q: What does a PvP result do to a player with no rated topic in the course? → A: their ratings
   stay unchanged; an applied delta of 0 is persisted with reason `no_rated_topics` and reported;
   the opponent's delta applies normally; completion stays idempotent; matchmaking eligibility is
@@ -188,15 +205,21 @@ shows them.
 
 **Acceptance Scenarios**:
 
-1. **US6-AS1** — **Given** a student with topic ratings 1100 and 1300 in course X and 1000 in
-   course Y, **When** their overall rating is shown, **Then** it is 1100 — the mean of course X
-   (1200) and course Y (1000), not the mean of the three topics (1133.33); with no rated topic it
-   is 1000.
+1. **US6-AS1** — **Given** a student of the current level and grade with topic ratings 1100 and
+   1300 in course X and 1000 in course Y, **When** their overall rating is shown, **Then** it is
+   1100 — the mean of course X (1200) and course Y (1000), not the mean of the three topics
+   (1133.33).
 2. **US6-AS2** — **Given** a student about to answer, **When** the predicted gain/loss is shown,
    **Then** it equals the change the engine applies for that answer at that moment.
 3. **US6-AS3** — **Given** one rating, **When** its rank is shown on any surface, **Then** it is
    the same rank.
 4. **US6-AS4** — **Given** an exam submission, **When** it is graded, **Then** no rating changes.
+5. **US6-AS5** — **Given** a student just promoted to a grade whose courses have no rated topic,
+   **When** their overall rating is shown, **Then** it reads "pending diagnostic", not a number,
+   and no negative change is shown.
+6. **US6-AS6** — **Given** a promoted student whose new-grade diagnostic gives an overall rating
+   lower than before, **When** it is shown, **Then** no loss or negative delta is shown, and the
+   previous grade's course ratings remain viewable unchanged.
 
 ---
 
@@ -208,8 +231,9 @@ shows them.
 - A teacher grade of 50 → zero change, but the submission is still marked as applied.
 - Procedure change on a topic with no rating → starts from 1000 and never goes below 0.
 - Course with no rated topics → its derived rating is 1000.
-- Legacy course row exists but the student practised no topic of that course → nothing is
-  created; the row stays excluded.
+- Legacy row with no eligible context → kept unassigned and excluded; the diagnostic initializes.
+- Promotion → the overall rating switches to the new grade's courses; until one has a rated topic
+  it reads "pending diagnostic".
 - Two items with the same difficulty → the chosen one is kept by identity, not by difficulty.
 - Practice filtered to a topic that has no items → falls back to the whole course pool.
 - A retry key longer than 128 characters or empty → rejected.
@@ -307,20 +331,33 @@ practising one topic, or the derived course rating (FR-029a) when practising the
 
 - **FR-028** [AS-IS]: The system shall hold each rating in exactly one place and derive every
   aggregate from stored ratings, never by replaying attempts.
-- **FR-028a** [CHANGE]: The system shall derive a student's overall rating as the arithmetic mean
-  of their course ratings, each course rating being the arithmetic mean of that course's existing
-  topic ratings (FR-029a). Topics without a rating, courses without any rated topic, and legacy
-  course-keyed rows (FR-036) are excluded. A student with no rated topic has an overall rating of
-  1000. Course ratings are derived values, not a second source of rating state. *(Today: the plain
-  mean of all stored rows, legacy rows included — so a student's displayed overall rating and rank
-  may change after migration.)*
+- **FR-028a** [CHANGE]: The system shall derive a student's overall rating as the arithmetic mean,
+  each course weighted equally, of the course ratings of the courses the student is enrolled in
+  that belong to their **current education level and grade** and have at least one rated topic;
+  each course rating is the arithmetic mean of that course's existing topic ratings (FR-029a).
+  Unrated topics, courses with no rated topic, courses outside the current level and grade, and
+  legacy rows (FR-036) are excluded. Course ratings are derived values, not a second source of
+  rating state. *(Today: the plain mean of all stored rows, legacy rows included — so a student's
+  displayed overall rating and rank may change after migration.)*
+- **FR-028b** [CHANGE]: While no course of the student's current level and grade has a rated
+  topic, the system shall show the overall rating and rank as "pending diagnostic" instead of a
+  number.
+- **FR-028c** [CHANGE]: When the student's level or grade changes, the system shall keep the
+  ratings of earlier courses unchanged and viewable as history, and shall not present the
+  difference between the old and the new overall rating as a rating change or loss.
 - **FR-029** [CHANGE]: The system shall store every rating change — practice answer, diagnostic,
-  procedure — under the **topic of the item involved**. There is one stored rating per student and
-  topic, and no other stored rating. *(Today: course name in V1, topic or course id in V2
-  practice, topic for procedures and diagnostic, course id for PvP — Known Deviation D-1.)*
+  procedure — under the **course and topic of the item involved**, identified by the course's
+  stable identifier and the topic within it. There is one stored rating per student, course and
+  topic, and no other stored rating. A topic shared by several courses (e.g. "Geometría" in grades
+  6–9 and university) is a separate rating in each course. A topic label may equal a course name;
+  identity never depends on labels being distinct. *(Today: course name in V1, topic or course id in V2
+  practice, topic for procedures and diagnostic, course id for PvP, all in one store keyed by a
+  single name — Known Deviation D-1.)*
 - **FR-029a** [CHANGE]: Where a rating is needed for a whole course (course-wide practice
   selection, PvP expected outcome, course display), the system shall derive it as the average of
-  the student's topic ratings in that course (1000 if none), and shall never store it.
+  the student's topic ratings in that course, and shall never store it; with no rated topic it
+  uses 1000 for selection and PvP expectation, and displays "pending diagnostic". Practice,
+  procedures and PvP in one course never change a rating in another course.
 - **FR-029b** [CHANGE]: When a PvP result is applied, the system shall add the player's PvP delta
   to every topic rating that player has in the match's course, so the derived course rating moves
   by exactly that delta.
@@ -341,25 +378,44 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   rank.
 - **FR-032** [AS-IS]: The system shall not change any rating from an exam submission.
 
-**Legacy course-keyed ratings (one-time reconciliation, FR-029)**
+**Legacy ratings (one-time reconciliation, FR-029)**
 
-- **FR-033** [CHANGE]: When legacy ratings are reconciled, the system shall leave every existing
-  topic rating unchanged.
-- **FR-034** [CHANGE]: When legacy ratings are reconciled, the system shall create a topic rating
-  only for a topic of that course that has no rating and on whose items the student has at least
-  one recorded practice attempt, starting it from the selected legacy course rating's value and
-  uncertainty.
+Every rating stored before this spec is a **legacy row**: keyed by a single name that may be a
+topic, a course id or a course name, and ambiguous when a course name equals a topic name. A row
+is attributed to a course only by evidence: practice attempts recorded under that row's key on
+items of that course, or the student's diagnostic for that course.
+
+- **FR-033** [CHANGE]: When legacy ratings are reconciled, the system shall leave every rating
+  already stored under a course and topic unchanged.
+- **FR-034** [CHANGE]: When legacy ratings are reconciled, the system shall create a rating for a
+  course and topic that has none only if that context is **eligible** — the student practised that
+  topic in that course or took that course's diagnostic — starting it from the first available
+  source: (a) the legacy row keyed by that topic's label, if the student has practice attempts
+  under that key on items of that course or took that course's diagnostic; otherwise (b) the
+  legacy row for that course (FR-035), if the student practised that topic in that course. The
+  new rating takes the source row's value and uncertainty. Eligibility shows that a context may
+  receive a value; it does not prove what the legacy value originally meant.
+- **FR-034a** [CHANGE]: The system shall mark every rating created by reconciliation as an
+  **approximate baseline** and record its provenance (which legacy row, which rule, when). It
+  shall never present such a rating as an exact recovery of past history.
+- **FR-034b** [CHANGE]: If no eligible context can be established for a legacy row, then the system
+  shall keep that row unassigned and shall not create any rating from it; that student's ratings
+  in the affected courses start from the diagnostic (FR-020).
 - **FR-035** [CHANGE]: If a student has both a course-id row and a course-name row for the same
-  course, then the system shall use the one updated most recently (the course-id row on a tie) and
-  shall never add or average the two.
-- **FR-036** [CHANGE]: The system shall keep legacy course-keyed rows stored but exclude them from
-  every rating read, derived course rating, overall rating and rank; reconciliation shall not
-  replay historical attempts, and running it again shall change nothing.
+  course, then the system shall use the one updated most recently (the course-id row on a tie);
+  the system shall never add or average two legacy rows.
+- **FR-036** [CHANGE]: The system shall keep legacy rows stored but exclude them from every rating
+  read, derived course rating, overall rating and rank; reconciliation shall not replay historical
+  attempts, and running it again shall change nothing.
 
 ### Key Entities
 
-- **Topic rating**: a student's level in one topic — value, uncertainty (30–350), last update.
-  The only stored rating state (FR-029).
+- **Topic rating**: a student's level in one topic of one course — value, uncertainty (30–350),
+  last update. The only stored rating state (FR-029).
+- **Legacy row**: a rating stored before this spec under a single ambiguous name; kept, never read
+  as a rating (FR-036).
+- **Rating provenance**: for a topic rating, how it started — diagnostic, practice, or legacy
+  approximate baseline (with source row and rule, FR-034a).
 - **Course rating**: derived average of the student's topic ratings in a course; never stored.
 - **Overall rating**: derived mean of the student's course ratings (FR-028a); never a source of
   state.
@@ -388,7 +444,7 @@ practising one topic, or the derived course rating (FR-029a) when practising the
 - **SC-006**: The predicted change shown before an answer equals the applied change to within 0.1
   points.
 - **SC-007**: After this spec is implemented, every new rating change lands on a topic, and 0
-  legacy course-keyed rows contribute to any rating, average or rank shown.
+  legacy rows contribute to any rating, average or rank shown.
 - **SC-008**: Running the reconciliation a second time changes 0 ratings; no student's existing
   topic rating changes because of it.
 
@@ -398,7 +454,7 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   band 0.40–0.75; mastery 1800) are pinned as they are. Changing any of them is a new `[CHANGE]`.
 - V1 is frozen: its writer must follow FR-029 (a data-integrity fix — today it writes under the
   course name), but V1 screens are not required to follow FR-030 or FR-031.
-- Rows keyed by a course id or course name (D-1) are reconciled once per FR-033 … FR-036. Where
+- Legacy rows (D-1) are reconciled once per FR-033 … FR-036. Where
   and when the reconciliation runs is a plan decision, constrained by additive-only migrations
   (Principle IV). "Updated most recently" uses the row's last-update time.
 - FR-009 and FR-026 use the default implied by the constitution; `/speckit-clarify` may overturn
@@ -427,13 +483,13 @@ Filled in by `/speckit-tasks`; all rows `PENDING` at the docs stage.
 
 | Requirement / Scenario | Test |
 |---|---|
-| FR-001 … FR-036 (incl. FR-028a, FR-029a, FR-029b, FR-029c, FR-031a) | `PENDING` |
+| FR-001 … FR-036 (incl. FR-028a–c, FR-029a–c, FR-031a, FR-034a–b) | `PENDING` |
 | US1-AS1 … US1-AS7 | `PENDING` |
 | US2-AS1 … US2-AS5 | `PENDING` |
 | US3-AS1 … US3-AS4 | `PENDING` |
 | US4-AS1 … US4-AS5 | `PENDING` |
 | US5-AS1 … US5-AS5 | `PENDING` |
-| US6-AS1 … US6-AS4 | `PENDING` |
+| US6-AS1 … US6-AS6 | `PENDING` |
 
 ## Appendix — As-is evidence
 
