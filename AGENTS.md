@@ -1,511 +1,631 @@
-# AGENTS.md — LevelUp-ELO
+# AGENTS.md — Oulad
 
-Instrucciones para Codex al trabajar en este repositorio.
+Operational rules for AI agents (Claude Code, Codex) and humans working in this repository.
+
+**Read first:** [`.specify/memory/constitution.md`](.specify/memory/constitution.md). It holds the
+principles, the non-negotiables, the agent rules and the governance. This file holds the
+**how-to**: commands, patterns, file locations. Rationale and history live in
+[`docs/arquitectura.md`](docs/arquitectura.md); the behaviour of a specced area lives in its
+`specs/NNN-*/spec.md`. Where this file summarises a rule owned elsewhere, the owner wins.
+
+Rule IDs (R1…, V2-R1…, D1…) are stable: code comments cite them. Never renumber; retire a rule
+by marking it *Superseded*.
 
 ---
 
-## Inicio rápido
+## Quickstart
 
-### V1 — Streamlit (producción)
+### V2 — FastAPI + React (active)
+
+```bash
+# Backend
+pip install -r requirements-api.txt
+uvicorn api.main:app --reload --port 8000
+
+# Frontend (pnpm, Node >= 22.13)
+cd frontend && pnpm install --frozen-lockfile && pnpm run dev   # → http://localhost:5173
+```
+
+### V1 — Streamlit (frozen)
+
 ```bash
 pip install -r requirements.txt
 streamlit run src/interface/streamlit/app.py
 ```
-Ejecutar siempre desde la **raíz del repo** — `app.py` inyecta el root en `sys.path` ANTES de cualquier import de `src.*`.
 
-Tests y linting:
+Run from the **repo root**: `app.py` injects the root into `sys.path` before any `src.*` import.
+V1 is frozen — see the constitution § Stack for what that allows.
+
+### Deploy
+
+Push to `main` auto-deploys this repo's **sandbox**: frontend on Vercel, backend on Render
+(`oulad-sandbox-api`, `render.yaml`), database on a separate Supabase project. The original
+product's production lives in `LuisJRubioH/LevelUp-ELO`. Environment variables and startup order:
+[`docs/arquitectura.md` § Despliegue](docs/arquitectura.md).
+
+### Verify before saying "done"
+
+Bash / Git Bash / CI:
+
 ```bash
-pytest tests/unit/
+ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q   # always
+python scripts/db_sync_check.py          # if a repository changed (mandatory)
+python scripts/validate_bank.py          # if items/ changed
+cd frontend && pnpm run build            # if frontend/ changed
 black --check --line-length=100 src/ tests/ scripts/
-flake8 src/ tests/ scripts/ --select=E9,F63,F7,F82
+flake8 src/ api/ tests/ scripts/ --max-line-length=100 --select=E9,F63,F7,F82
 ```
 
-### V2 — React + FastAPI (en desarrollo)
-```bash
-# Terminal 1 — Backend
-pip install -r requirements-api.txt
-uvicorn api.main:app --reload --port 8000
+Windows PowerShell (the maintainer's local shell):
 
-# Terminal 2 — Frontend
-cd frontend && pnpm install --frozen-lockfile && pnpm run dev
-# → http://localhost:5173
+```powershell
+$env:ADMIN_PASSWORD = "testadmin123"; python -m pytest tests/ --ignore=tests/e2e -q
+python scripts/db_sync_check.py
+python scripts/validate_bank.py
+Push-Location frontend; pnpm run build; Pop-Location
 ```
 
-Deploys automáticos en push a `main`: Frontend → Vercel (`luislevelupelo.vercel.app`) · Backend → Render (`levelup-elo.onrender.com`)
-
-Referencia técnica vigente: **[docs/arquitectura.md](docs/arquitectura.md)** — decisiones,
-límites conocidos y procedimiento de despliegue.
-`docs/v2-tecnico.md` y `docs/v2-plan.md` están versionados pero son **históricos**
-(mayo 2026): describen el estado durante los sprints, no el de hoy.
+`$env:` sets the variable for the rest of the session; open a new shell (or
+`Remove-Item Env:ADMIN_PASSWORD`) to clear it.
 
 ---
 
-## Reglas de comportamiento — leer antes de cualquier tarea
+## Spec-driven development (Spec Kit)
 
-### R1 — Dual DB: siempre los dos o ninguno
-Cualquier cambio en `sqlite_repository.py` **debe replicarse** en `postgres_repository.py` y viceversa. API pública idéntica. Checklist obligatorio:
-- ¿Toqué un repositorio? → editar el otro también
-- ¿Agregué tabla/columna? → `ALTER TABLE ADD COLUMN IF NOT EXISTS` en ambos
-- ¿Modifiqué `_COURSE_BLOCK_MAP`? → sincronizar en ambos
+### Installation in a clean clone
 
-### R2 — Clean Architecture: no cruzar capas
+Supported version: **Spec Kit (`specify-cli`) 1.0.13**, recorded in `.specify/init-options.json`.
+
+| Path | Versioned? | Contents |
+|---|---|---|
+| `.specify/` | yes | scripts (PowerShell), core templates, **project template overrides**, constitution, workflow |
+| `.claude/skills/speckit-*` | **no** (`.claude/` is gitignored) | the Claude Code command skills |
+| `.agents/` or Codex equivalents | no | only if the Codex integration is installed |
+
+A clean clone has `.specify/` but **not** the commands. To get them:
+
+```bash
+uv tool install specify-cli==1.0.13                # PyPI; how the maintainer's copy was installed
+specify integration install claude --script ps     # Claude Code: creates .claude/skills/speckit-*
+specify integration install codex --script ps --force   # optional, Codex CLI (second integration)
 ```
-domain/         → sin imports externos ni de capas superiores
-application/    → importa domain/, NO infrastructure/ directamente
-infrastructure/ → implementa interfaces de domain/application/
-interface/      → puede importar todo, preferir application/services/
+
+Verify:
+
+```bash
+specify version                  # → 1.0.13
+specify integration status       # → claude installed (and codex, if added)
+specify check                    # → required tools found
 ```
-Lógica de negocio nueva → `domain/`. Casos de uso → `application/services/`. Nunca SQL en `domain/` ni lógica ELO en `infrastructure/`.
 
-### R3 — PostgreSQL: `row['column']` nunca `row[0]`
-Usa `RealDictCursor`. Las fechas son objetos `datetime` — siempre `str(row['created_at'])[:10]`.
+Then in Claude Code the `/speckit-*` commands are available. Command availability per agent:
 
-### R4 — Connection pool: nunca `conn.close()`
-Siempre `self.put_connection(conn)`. `conn.close()` destruye la conexión y agota el pool.
+| Agent | How commands are invoked | Requires |
+|---|---|---|
+| Claude Code | `/speckit-specify`, `/speckit-clarify`, … (skills) | `specify integration install claude` |
+| Codex CLI | the Codex integration's command files | `specify integration install codex` |
+| Anything else | not supported here; follow the manual sequence below by reading `.specify/templates/` | — |
 
-### R5 — LaTeX en JSON: backslashes doblados
-`\\frac`, `\\sin`, `\\alpha`. Un `\f` sin escapar causa `JSONDecodeError`. `correct_option` debe coincidir exactamente con uno de los strings en `options`.
+**Customized templates are preserved by living in `.specify/templates/overrides/`** — the first
+layer of Spec Kit's template resolution, which `specify integration upgrade` and re-init do not
+overwrite. Never edit the core files in `.specify/templates/` directly: an upgrade replaces them.
+Current overrides:
+- `overrides/spec-template.md` — EARS requirements tagged `[AS-IS]` / `[CHANGE]`, mandatory Out
+  of Scope and Traceability sections.
+- `overrides/tasks-template.md` — tests mandatory; `[AS-IS]` characterization tests pass on
+  unchanged code, `[CHANGE]` tests fail first; traceability closing phase.
 
-### R6 — is_test_user: nunca eliminar
-Estudiantes con `is_test_user=1` están protegidos. Nunca remover este flag.
+Check which file a template resolves to (PowerShell):
+`. .\.specify\scripts\powershell\common.ps1; Resolve-Template -TemplateName tasks-template -RepoRoot (Get-Location).Path`
 
-### R7 — API keys: nunca persistir en DB
-V1: solo en `st.session_state`. V2: `SYSTEM_AI_API_KEY` en env var del backend (nunca en frontend ni en DB). Keys de usuario en Zustand/localStorage (nunca en logs).
+### Required sequence (manual — not enforced by tooling)
 
-### R8 — Migraciones: solo aditivas
-Solo `ALTER TABLE ADD COLUMN IF NOT EXISTS`. Nunca `DROP COLUMN`, `DROP TABLE` ni cambios de tipo.
+The bundled workflow `.specify/workflows/speckit/workflow.yml` runs only
+specify → gate → plan → gate → tasks → implement. **It does not enforce this project's full
+process.** Until that is automated, follow this sequence by hand, one commit per approved step:
 
-### R9 — Supabase Storage: paths relativos, nunca URLs
-`upload_file()` retorna SOLO el path relativo (`38/alb31/hash.jpg`). El bucket `procedimientos` es PRIVADO. Para mostrar imágenes: `get_file()` → bytes → `st.image()`. Si upload falla: fallback a `image_data` (BYTEA). Nunca dejar ambos en NULL.
+| # | Step | Command | Gate before moving on |
+|---|---|---|---|
+| 0 | Survey (read-only) | — | `docs/sdd/<area>-survey.md` read by the owner |
+| 1 | Specify | `/speckit-specify` | owner approves spec.md |
+| 2 | Clarify | `/speckit-clarify` | every `[NEEDS CLARIFICATION]` resolved or deferred by the owner |
+| 3 | Checklist | `/speckit-checklist` | all requirement-quality items pass |
+| 4 | Plan | `/speckit-plan` | Constitution Check passes; owner approves |
+| 5 | Tasks | `/speckit-tasks` | every Traceability row has a test task; on spec 001, the first-run review below |
+| 6 | Analyze | `/speckit-analyze` | no CRITICAL findings |
+| — | **Docs PR** | — | spec + plan + tasks, no code; owner merges |
+| 7 | Implement | `/speckit-implement` | Phase 2 pins green on unchanged code before any refactor |
+| 8 | Converge | `/speckit-converge` | no new gaps (loop 7 ↔ 8 until empty) |
+| — | **Code PR** | — | no `PENDING` traceability rows; verification green; owner merges |
 
-### R10 — st.markdown HTML: sin indentación profunda
-Streamlit 1.55+ interpreta 4+ espacios como bloque de código. Construir el HTML como string concatenado con el tag de apertura en posición 0. Nunca `f"""` con el tag indentado.
+**First-run review of `/speckit-tasks` (required checkpoint before committing spec 001's
+tasks.md).** The upstream skill still says tests are optional unless requested; the overrides make
+them requested, but generation compliance is unverified until this review passes. Check, and fix
+tasks.md by hand where it fails:
 
-### R11 — Streamlit Cloud: `use_container_width=True`
-`st.image()`, `st.button()`, `st.plotly_chart()`, `st.dataframe()` NO aceptan `width="stretch"`. Usar siempre `use_container_width=True`.
+1. Every FR and every acceptance scenario in spec.md maps to a concrete test task (reused or new)
+   that names its IDs — a matching label is not enough.
+2. Every `[AS-IS]` requirement the refactor touches has a characterization task in the blocking
+   phase, required to pass against the unchanged code.
+3. Every `[CHANGE]` requirement has a test task required to fail before its implementation task.
+4. Task dependencies enforce that order: pins before any refactor; each `[CHANGE]` test before
+   its implementation task.
+5. Each kind is required only where the spec has requirements of that tag — no empty phases.
 
-### R12 — PostgresRepository: singleton por proceso
-Se crea UNA SOLA VEZ en `app.py` (`_REPO_SINGLETON` con `threading.Lock`). Nunca instanciar por sesión — cada instancia abre su propio pool y agota Supabase free tier.
+If the review finds systematic failures, record them in the PR and fix the override before the
+next spec; do not patch the upstream skill.
 
-### R13 — El CognitiveAnalyzer ya no existe
-Se eliminó: `StudentService` no tiene `cognitive_analyzer` ni acepta `enable_cognitive_modifier`,
-y `impact_modifier` es `1.0` fijo. Esta regla se conserva porque `src/interface/streamlit/app.py`
-siguió pasando ese kwarg mucho después de que desapareciera y **V1 no arrancaba** (`TypeError` en
-el constructor). Si encuentras una referencia más, es residuo: bórrala.
+Branch, commit and PR rules: constitution § AI Agent Behaviour, rule 7. Adoption plan and
+calendar: [`docs/sdd/roadmap.md`](docs/sdd/roadmap.md).
 
-### R14 — Imports en backfill: locales dentro de la función
+---
+
+## Operational rules
+
+### R1 — Dual DB: both repositories or neither
+Any change to `sqlite_repository.py` is mirrored in `postgres_repository.py` and vice versa, with
+an identical public API. Checklist:
+- Touched one repository? → edit the other too.
+- Added a table or column? → idempotent additive migration in both (R8).
+- Changed `_COURSE_BLOCK_MAP`? → change it in both.
+- Run `python scripts/db_sync_check.py`. It compares text, signatures and DDL only; behavioural
+  equivalence is proven by tests parametrised over both engines.
+
+### R2 — Layers
+```
+src/domain/          no I/O, no third-party libraries, no upper layers
+src/application/     imports domain/; NEVER infrastructure/
+src/infrastructure/  implements interfaces from domain/application
+src/interface/, api/ composition: the only places that wire infrastructure into services
+```
+New business logic → `domain/`. Use cases → `application/services/`. No SQL in `domain/`, no
+rating arithmetic in `infrastructure/`. Enforced by `tests/unit/test_architecture_layers.py`.
+Composition points: `api/routers/student.py::_make_service` and `src/interface/streamlit/app.py`.
+
+### R3 — PostgreSQL: `row["column"]`, never `row[0]`
+`RealDictCursor`. Dates come back as `datetime` — format with `str(row["created_at"])[:10]`.
+
+### R4 — Connection pool: never `conn.close()`
+Always `self.put_connection(conn)`. Closing destroys the pooled connection and exhausts the pool.
+`ThreadedConnectionPool(1, 5)`; do not raise `maxconn` on the Supabase free tier.
+
+### R5 — LaTeX in JSON: double the backslashes
+`\\frac`, `\\sin`, `\\alpha`. An unescaped `\f` is a form feed and breaks parsing.
+`correct_option` must equal one of the strings in `options` exactly.
+
+### R6 — `is_test_user`: never remove
+Students with `is_test_user=1` are protected.
+
+### R7 — API keys: never in the database
+V2: `SYSTEM_AI_API_KEY` (and per-function keys, below) in backend env vars only. A user's own key
+lives in Zustand/localStorage. Never in logs. V1: only in `st.session_state`.
+
+### R8 — Migrations: additive and idempotent
+New columns, tables, indexes only — never `DROP`, never a type change.
+- PostgreSQL: `ALTER TABLE … ADD COLUMN IF NOT EXISTS`.
+- SQLite: `self._add_column_if_not_exists(cursor, table, column, definition)` (checks
+  `PRAGMA table_info` first; SQLite has no `IF NOT EXISTS` for columns).
+
+### R9 — Supabase Storage: relative paths, never URLs
+`upload_file()` returns only the relative path (`38/alb31/hash.jpg`). Bucket `procedimientos` is
+PRIVATE. To display: `get_file()` → bytes. If upload fails, fall back to `image_data` (BYTEA);
+never leave both NULL.
+
+### R10 — V1 `st.markdown` HTML: no deep indentation
+Streamlit ≥ 1.55 treats 4+ leading spaces as a code block. Build HTML by concatenation with the
+opening tag at column 0; never an indented `f"""` block.
+
+### R11 — V1 Streamlit Cloud: `use_container_width=True`
+`st.image`, `st.button`, `st.plotly_chart`, `st.dataframe` do not accept `width="stretch"` there.
+
+### R12 — One repository instance per process
+V1 creates it once in `app.py` (`_REPO_SINGLETON` + `threading.Lock`); V2 through the dependency
+in `api/dependencies.py`. Every instance opens its own pool and exhausts the Supabase free tier.
+
+### R13 — The CognitiveAnalyzer no longer exists
+`StudentService` has no `cognitive_analyzer` and no `enable_cognitive_modifier`. Any reference
+you find is residue: delete it (V1 once failed to start because `app.py` still passed the kwarg).
+`impact_modifier` is always `1.0`; it is a dead parameter scheduled for removal in spec 001.
+
+### R14 — Backfill imports are local to the function
 ```python
 def _backfill_prob_failure(self):
-    from src.domain.elo.model import expected_score  # aquí, no a nivel de módulo
+    from src.domain.elo.model import expected_score  # here, not at module level
 ```
 
-### R15 — ELO: `student_topic_elo` es la única fuente
-El rating vive en `student_topic_elo`; `users.current_elo` es su promedio derivado y `attempts` es
-bitácora, no estado. Solo cuatro caminos escriben, y cada uno aplica su efecto **una vez**:
+### R15 — `student_topic_elo` is the only rating state
+`users.current_elo` is its derived average; `attempts` is a log. Writers, each applying its
+effect exactly once:
 
-| Camino | Método | Efecto |
+| Path | Method | Effect |
 |---|---|---|
-| Diagnóstico | `set_topic_elo_baseline` → `_set_topic_elo` | fija el valor |
-| Respuesta con `elo_valid=1` | `save_answer_transaction` → `_set_topic_elo` | fija el valor |
-| Procedimiento validado | `validate_procedure_submission` → `_bump_topic_elo` | suma `elo_delta`, marca `elo_applied=1` |
-| Partida de PvP cerrada | `finish_pvp_match` → `_bump_topic_elo` | suma el delta al tópico del curso ([R19]) |
+| Diagnostic | `set_topic_elo_baseline` → `_set_topic_elo` | sets the value |
+| Answer with `elo_valid=1` | `save_answer_transaction` → `_set_topic_elo` | sets the value |
+| Teacher-validated procedure | `validate_procedure_submission` → `_bump_topic_elo` | adds `elo_delta`, sets `elo_applied=1` |
+| Finished PvP match | `finish_pvp_match` → `_bump_topic_elo` | adds the delta (R19) |
 
-Nunca reconstruir el rating desde `attempts` en una lectura. Hacerlo reaplicaba el delta de cada
-procedimiento en toda lectura posterior e ignoraba `elo_valid`, así que un intento fuera del rango
-[3s, 600s] sí movía el rating. `get_latest_elo_by_topic` es un `SELECT` de una tabla y nada más.
-Regresión: `tests/integration/test_elo_single_source.py`.
+Never rebuild a rating from `attempts` on read; `get_latest_elo_by_topic` is a single-table
+`SELECT`. Regression: `tests/integration/test_elo_single_source.py`. Known issue: the writers do
+not yet agree on the rating key (constitution Known Deviation D-1, fixed by spec 001).
 
-### R16 — Respuestas: leer, calcular y escribir en la misma transacción
-`save_answer_transaction(user_id, item_id, topic, compute, ...)` es una **unidad de trabajo**: el
-repositorio bloquea (PostgreSQL `FOR UPDATE` sobre `users` y luego `items`, en ese orden fijo;
-SQLite `BEGIN IMMEDIATE`), lee el estado, llama a `compute(state)` —el cálculo de dominio, que
-aporta `StudentService`— y persiste. Nunca leer el rating o la dificultad fuera de esa transacción
-para escribirlos después: dos respuestas concurrentes partirían del mismo valor y una borraría el
-efecto de la otra. `compute` no debe hacer I/O — corre con la conexión tomada y filas bloqueadas.
+### R16 — Answering: read, compute and write in one transaction
+`save_answer_transaction(user_id, item_id, topic, compute, …)` locks (PostgreSQL `FOR UPDATE` on
+`users` then `items`, always that order; SQLite `BEGIN IMMEDIATE`), reads, calls `compute(state)`
+— the domain arithmetic supplied by `StudentService` — and persists. `compute` does no I/O.
 
-### R17 — Ni migraciones ni I/O bloqueante dentro del proceso HTTP
-- **Esquema**: el bootstrap (`_bootstrap_schema`: `init_db` + `_migrate_db` + seeds + backfills)
-  corre solo si `RUN_MIGRATIONS` ≠ 0. En despliegue lo aplica `scripts/migrate.py` como proceso
-  aparte, contra `MIGRATION_DATABASE_URL` (conexión directa, puerto 5432). Sobre el pooler de
-  transacciones (6543) el `pg_try_advisory_lock` de `_migrate_db()` es un lock de **sesión** que
-  puede liberarse desde otra sesión física, así que ahí no protege nada.
-- **WebSockets**: los repositorios son síncronos. Toda llamada desde un `async def` va por
-  `await asyncio.to_thread(...)`, y **nunca** dentro de `_lock` — el lock del lobby de PvP solo
-  cubre el traspaso en memoria. Desde un endpoint `def` (que FastAPI corre en el threadpool) se
-  notifica con `notify_sync`, que usa el loop registrado en el arranque; buscar el loop desde ese
-  hilo fallaba siempre y el aviso se perdía en silencio.
+### R17 — No migrations or blocking I/O inside the HTTP process
+- Deploy: schema bootstrap runs in `scripts/migrate.py` against `MIGRATION_DATABASE_URL` (direct
+  connection, port 5432); the web process runs with `RUN_MIGRATIONS=0`. Local dev and tests keep
+  the in-process bootstrap (default `RUN_MIGRATIONS=1`).
+- WebSockets: repositories are synchronous. From `async def`, call them through
+  `await asyncio.to_thread(...)`, and **never** while holding the PvP lobby `_lock`. From a `def`
+  endpoint, notify with `notify_sync`, which uses the loop bound at startup.
 
-### R18 — El backend es de UN SOLO proceso, y está comprobado
-`_lobby` y `_matches` (`api/websocket/pvp.py`) y `_rooms` (`notifications.py`) viven en memoria
-del proceso. Con dos procesos cada uno tiene su lobby: dos jugadores del mismo curso conectados a
-procesos distintos **nunca se emparejan**, y un evento llega solo a los sockets locales — sin
-excepción, sin log, sin nada visible. Por eso `settings.validate_runtime()` **rechaza el arranque**
-en producción si `WEB_CONCURRENCY > 1`, y `render.yaml` lo fija en `"1"`.
+### R18 — The backend is a single process, and checked
+PvP `_lobby` / `_matches` (`api/websocket/pvp.py`) and notification `_rooms` live in process
+memory. `settings.validate_runtime()` refuses to start in production with `WEB_CONCURRENCY > 1`;
+`render.yaml` sets `"1"`. Scaling needs shared matchmaking, pub/sub event fan-out and
+cross-process wake-up — all three before raising the number. Details:
+[`docs/arquitectura.md` § Límites conocidos](docs/arquitectura.md).
 
-Tener los sockets en memoria es correcto: lo que no puede quedarse ahí es la coordinación. Lo que
-sí sobrevive al proceso ya está resuelto: las partidas se persisten en `pvp_matches` y las que un
-reinicio deja huérfanas las cierra `expire_stale_pvp_matches()` como `abandoned` (sin tocar ELO)
-al preparar el esquema, que en despliegue corre en cada arranque.
-
-**Para escalar** hacen falta tres piezas, y las tres antes de subir el número:
-1. **Matchmaking compartido** — el emparejamiento debe ser una operación atómica sobre un almacén
-   común (el Redis de `RATE_LIMIT_STORAGE_URI` ya está disponible), no un `dict` con un `asyncio.Lock`.
-2. **Distribución de eventos** — pub/sub: cada proceso publica y reenvía a *sus* sockets.
-3. **Despertar entre procesos** — hoy el creador hace `slot.matched.set()` sobre un objeto local;
-   entre procesos eso tiene que viajar por el mismo canal pub/sub.
-
-Criterio de aceptación (auditoría, punto 3): dos instancias con usuarios conectados a cada una
-deben emparejarse y recibir sus eventos antes de habilitar más workers.
-
-### R19 — El resultado de PvP mueve `student_topic_elo`, no `users.current_elo`
-`finish_pvp_match` aplica el delta con `_bump_topic_elo` sobre el `course_id` de la partida, que es
-la misma clave que usa la práctica general. Escribir `users.current_elo` directamente —como se hacía—
-no servía de nada: `_refresh_global_elo` lo recalcula como promedio de `student_topic_elo` en la
-siguiente respuesta del alumno y el delta del PvP desaparecía. Es un caso particular de [R15].
-El cierre es idempotente por la guarda `AND status='active'`: si el cronómetro y el último jugador
-disparan a la vez, el ELO se aplica una sola vez.
+### R19 — A PvP result moves `student_topic_elo`, not `users.current_elo`
+`finish_pvp_match` applies the delta with `_bump_topic_elo` on the match's `course_id`. The close
+is idempotent through `AND status='active'`. Orphaned matches are closed as `abandoned` (no rating
+change) by `expire_stale_pvp_matches()`.
 
 ---
 
-## Antes de empezar, según la tarea
+## V2 rules
 
-Esta tabla citaba cinco skills en `.Codex/skills/` que **no existen en el repo** ni en ningún
-clon: no había nada que leer. Ahora apunta a lo que sí está y se puede ejecutar.
+- **V2-R1** — Changes in `src/`, `items/`, `scripts/` affect V1 and V2. V2-only changes go in
+  `api/` or `frontend/`. V1 is frozen (constitution § Stack).
+- **V2-R2** — Dual DB still applies: `db_sync_check.py` before every commit that touches a
+  repository.
+- **V2-R3** — *Superseded* by constitution Principle II and Known Deviation D-2: the frontend
+  preview must use the backend's K. Until spec 001 lands, `estimateEloDelta()` in `Practice.tsx`
+  still uses its own K (32/24); do not copy that pattern.
+- **V2-R7** — pnpm (version in `packageManager`), Node ≥ 22.13 (CI: Node 24).
+  `pnpm install --frozen-lockfile`; never generate an npm lockfile. Overrides go in
+  `frontend/pnpm-workspace.yaml`.
+- **V2-R8** — `sessionStartTime` lives in `authStore`, persists in localStorage, resets on logout.
+- **V2-R9** — The correct answer never reaches the frontend: no `correct_option` in any `/answer`
+  or `/exam/submit` response. On answer, colour only the chosen option.
+- **V2-R10** — Any direct `fetch()` outside `api/client.ts` prefixes
+  `import.meta.env.VITE_API_URL ?? ""`. Vercel serves the SPA with no reverse proxy to Render
+  (`SocraticChat.tsx` is the reference).
 
-| Tarea | Qué leer / ejecutar |
+### Learning-path rules (owned by spec 003 once it exists)
+
+- **V2-R11 — 11-block node architecture.** A rebuilt node declares
+  `content["kind"] == "eleven_block_node"` and is rendered by the **generic**
+  `frontend/src/pages/Student/lessons/blocks/ElevenBlockLesson.tsx`, which knows no `node_id`.
+  **Migrating a node = writing a module in `src/domain/learning/nodes/` and listing it in
+  `nodes/__init__.py::NODE_MODULES`.** No change to the renderer, `Lesson.tsx`,
+  `api/routers/student.py` or the tests. One window, five colour zones: `explorar` (header +
+  ladder + mini-diagnostic + KatIA + genuine attempt) · `construir` (discovery + definition + two
+  worked examples) · `trampa` (reserved colour, three steps with submission) · `tu turno`
+  (bridge + method comparison + practice) · `cerrar` (closing ladder + abstraction + Pólya +
+  post-diagnostic). Node-specific keys in `content`: `kicker`, `scene {image, step, aria}` (omit
+  when the node is not a ladder rung, e.g. B09), `finish_label`,
+  `post_diagnostic.outcome_gain/_flat`. Invariants: **exactly one** focal `self_explanation` per
+  node; the last `worked_examples` card is the trap (`trap: True` + `confidence_prompt` +
+  `correct_version` + `explain_prompt`); every practice item has hints `n1/n2/n3`; only practice
+  and closure block `node_completed` (diagnostic, bridge and post-diagnostic use
+  `required=False`); the mini-diagnostic **does not grade** (it acknowledges with
+  «Anotado. Seguimos.») because it is the baseline for the post-diagnostic. Reference node:
+  `nodes/b06_racionales.py`. `Implementacion/FORMATO_nodo_conjuntos_numericos.md` describes the
+  OLD format and no longer applies to B04–B09.
+- **V2-R12 — Pre-algebra N2, the city of operations (E01–E06).** Six buildings, one per node, and
+  every example comes from that building's trade: E01 **El Granero Público** · E02 **La Casa de
+  Cuentas** (a wall where zero is an engraved line) · E03 **El Taller de Mosaicos** · E04 **El
+  Comedor Comunal** · E05 **El Invernadero** · E06 **La Cantera**. Names live in
+  `_N2_BUILDINGS[*]["building"]`/`["trade"]` (hub) and in each node's `CONTENT["building"]`; a test
+  requires them to match. All six use V2-R11. Invariants: (a) **KatIA is a GREEK cat** and the
+  scene is the building's INTERIOR, never a market stall; (b) every `closure` ladder carries
+  **all 6 sets** ℕ ℤ ℚ 𝕀 ℝ ℂ, and `closed` accepts `yes`/`no`/**`partial`** (amber `~`) when
+  closure fails only in one concrete case; (c) **𝕀 is not closed under + − × ÷** (√2·√2=2,
+  √2÷√2=1) but **is closed under roots of positive radicands**, so the 𝕀 row in E06 is
+  `partial`; (d) **one distinct focal misconception per building** (`sumar_siempre_agranda`,
+  `resta_es_conmutativa`, `multiplicar_siempre_agranda`, `dividir_siempre_achica`,
+  `potencia_es_multiplicar_por_el_exponente`, `raiz_de_suma_es_suma_de_raices`); (e) no concrete
+  case repeats across opening, examples and practice; (f) practice answers are finite and
+  typeable (regex `-?\d{1,6}(,\d{1,4})?`, es-CO decimal comma `2{,}5`). Reference node: E05.
+  Image prompts: `Implementacion/image-prompts/02-prealg-n2-ciudad.md` — the current art in
+  `generated/n2-mercado/` still shows market stalls and must be regenerated.
+- **V2-R13 — Pre-algebra N3, the factory of properties (M01–M05).** Each property lives in a named
+  **station** (`_N3_MACHINES[*]["station"]` ↔ `CONTENT["station"]`, tested) with its own
+  material: M01 **La Prensa de Intercambio**, bronze plates
+  (`todas_las_operaciones_son_conmutativas`) · M02 **El Horno de Fundición**, ingots
+  (`parentesis_son_decorativos`) · M03 **La Cinta Repartidora**, gears
+  (`distribuye_sobre_el_producto`) · M04 **El Calibre Cero**, rods and gauges
+  (`neutro_es_el_mismo_para_toda_operacion`) · M05 **La Prensa de Contrapesos**, beam balance
+  (`inverso_es_solo_cambiar_el_signo`). All five use V2-R11. Mixed ladder: by **operation** for
+  M01–M04 (the six of N2, `partial` when the identity holds on one side only) and by **set** for
+  M05. The inverses ladder carries **all 6 sets**: ℕ✗ → ℤ partial (opposite appears, motivates
+  B05) → ℚ✓ (reciprocal appears, motivates B06) → **𝕀 partial** → ℝ✓ → ℂ✓. 𝕀 **is included**:
+  every irrational has an opposite and a reciprocal, **and they are irrational** — the reciprocal
+  of √2 is `\dfrac{1}{\sqrt{2}}=\dfrac{\sqrt{2}}{2}`, i.e. rationalising (explicit hook to the
+  future topic). Honest nuance in the 𝕀 row: the inverse exists but the identity 1 ∉ 𝕀, so the
+  full home of inverses is ℝ. Content in `_N3_MACHINE_CONTENT`, rendered in
+  `LevelThreeLesson.tsx`.
+- **V2-R14 — Pre-algebra N4, the Port of the Polis (C01–C06).** Hub `C00` + six named
+  destinations, **strictly sequential** unlock after N3. Each node's `CONTENT["destination"]`
+  must match `_N4_CARDS[*]["destination"]` (tested): C01 **Corinto**
+  (`invierte_la_direccion_de_la_divisibilidad`) · C02 **Rodas** (`los_multiplos_se_acaban`) ·
+  C03 **Delos** (`uno_es_primo`) · C04 **Mileto** (`deja_factores_compuestos`) · C05 **Atenas**
+  (`mcd_es_el_mayor_de_los_numeros`) · C06 **Esparta** (`mcm_es_el_producto_de_los_numeros`).
+  All six use V2-R11 (`src/domain/learning/nodes/cNN_*.py`). Invariants: (a) **varied context
+  bank** — no concrete object appears more than twice in the level; (b) `valid_options`,
+  `expected`, `trap_options` of `multi_select` are **lists**, never Python `set()` (they are
+  serialised to JSON — tested); (c) **no set ladder**: each `closure` uses its own axis
+  (divisibility criteria, does the list end?, exactly two divisors?, is it finished?, is the GCD
+  one of the two?, is the LCM the product?); (d) **mixed practice is mandatory**: each node mixes
+  `numeric` + `single_select` + `multi_select` (tested). The engine receives a `multi_select` as
+  a comma-separated string (`"a,b"`). Reference node: C06.
+- **V2-R15 — Algebra N1, El Papiro de las Cuatro Casas (hub + 16 rooms).** First Algebra module.
+  New setting — pre-algebra happens in Greece, algebra in **Kemet (Ancient Egypt)** — but a
+  **technical** continuation: same course `algebra_basica`, same 11-block renderer, same
+  interaction log. Position in the path comes from `unlock_after` (the hub chains after
+  `PREALG-N4-C06-MCM`), not from the ID prefix. **One landing hub + 4 houses × 4 rooms = 17
+  nodes.** Hub `ALG-A00-PAPIRO-CUATRO-CASAS` uses `kind: level_hub_cards`, rendered by
+  `LevelFourLesson` (parametrised by `content.image` / `cards_hint` / `card_closed_hint`); its 4
+  cards point to each house's first room. Each room declares `CONTENT["house"]` (the ROOM name,
+  unique among the 16 — tested) and `CONTENT["guide"]` (same per house).
+  - **La Casa de la Vida · Meritka** — L01 la sala de los cálamos (`variable_como_etiqueta`) ·
+    L02 el estante sellado (`toda_letra_es_variable`) · L03 la mesa de dictado
+    (`traduce_en_el_orden_de_las_palabras`) · L04 la cámara del recuento
+    (`yuxtapone_en_vez_de_multiplicar`).
+  - **La obra de la pirámide · Bakenra** — O01 la rampa (`combina_no_semejantes`) · O02 el patio
+    de aparejos (`el_menos_solo_afecta_al_primero`) · O03 el taller de cinceles
+    (`multiplica_los_exponentes_al_multiplicar`) · O04 la caseta del capataz
+    (`cancelar_completo_da_cero`).
+  - **Los campos tras la crecida · Tabiry** — F01 la parcela partida (`cancelacion_en_suma`) ·
+    F02 el canal madre (`suma_numeradores_y_denominadores`) · F03 la era de trilla
+    (`busca_comun_denominador_para_multiplicar`) · F04 el silo de simiente
+    (`invierte_la_primera_fraccion`). **No polynomial factoring**: monomial or numeric
+    denominators only.
+  - **El taller del canon · Iuty** — R01 la cuadrícula del canon (`escalado_aditivo`) · R02 el
+    tinte de lino (`invierte_la_razon_en_la_regla_de_tres`) · R03 el pan de oro
+    (`descuento_y_recargo_se_cancelan`) · R04 la sala de las lámparas
+    (`toda_relacion_es_directa`).
+
+  Invariants: (a) **no vocabulary crossing**, not even within a house — each room has its own
+  lane (cálamo · estante/vara · mesa de dictado · cámara del recuento; rampa/trineo · polea/vale ·
+  cincel/sillar · cántaro/aguador; parcela/lindero · canal/caudal · era/parva · silo/simiente;
+  cuadrícula/boceto · tina/brazada · pan de oro/lámina · lámpara/aceite); (b) `method_comparison`
+  is **mandatory** in every 11-block node (tested), so a node whose sheet says
+  `dos_metodos: no` compares two ways of **checking**; (c) `closure` **does not copy the set
+  ladder**: each room has its own axis, with `partial` for the honest intermediate case — where
+  the nuance that keeps the node from being a memorised rule goes (the parameter in L02, right by
+  accident in L03, the surviving coefficient in O04, the zero check in R02, side-vs-area in R04);
+  (d) the **16 focal misconceptions are distinct** from each other and from pre-algebra's 27
+  (tested over all `NODE_MODULES`); (e) **historical facts are setting only**: no claim of an
+  exact Per-Ankh function or a specific Egyptian canon ratio. Guide: `docs/ruta-de-aprendizaje.md`.
+  Reference node: O04.
+- **V2-R16 — Algebra N2, La sala de los troqueles (Baghdad).** KatIA leaves Kemet for the **House
+  of Wisdom (Baghdad, 9th c.)**, per `Implementacion/MAPA_NODOS_ALGEBRA8.md`. Same course `algebra_basica`, same
+  renderer; chained after `ALG-N1-R04-VARIACION`. Wiring: module in `nodes/pNN_*.py`, list it in
+  `NODE_MODULES`, add the row to `_ALG_N2_SEQUENCE` and `_MAP_PRESENTATION`. **Nothing else** —
+  `Lesson.tsx` no longer whitelists node IDs (the backend 404s), and the map test derives its list
+  from `ALG_N1_NODE_IDS + ALG_N2_NODE_IDS`.
+  - **Shared hub `ALG-S00-CASA-DE-LA-SABIDURIA`** (`nodes/s00_hub_bagdad.py`,
+    `kind: level_hub_cards`): ALG-N2 and ALG-N3 share one antechamber — the workshop stamps, the
+    warehouse opens what was stamped — with **two** cards, one per wing, each with its guide
+    (Rayhana / Salim). Hubs are dispatched by `node_type == "level_hub_cards"`, not by node ID,
+    so a new hub needs no frontend change. Port-specific strings in `LevelFourLesson` are
+    parametrised (`card_cta`, `finish_label`, `gating_label`, `cards_aria`) with the port text
+    as fallback.
+  - The map's original sub-space «patio de los mosaicos» **collides with E03** and was replaced by
+    **la sala de los troqueles** (a notable product is a die: stamp the pattern instead of
+    multiplying term by term). `test_no_two_nodes_share_a_room_name` forbids shared room names
+    across all `NODE_MODULES`.
+  - Four rooms, guide **Rayhana**, own vocabulary lane and focal misconception each:
+    **P01 la matriz cuadrada** (`binomio_cuadrado_falta_2ab`; matriz, lámina de cobre, orla,
+    esquina) · **P02 el cuño de la cenefa** (`conjugado_da_suma_de_cuadrados`; cuño, greca,
+    franja, espejo) · **P03 el molde de tres capas** (`binomio_cubo_falta_terminos`; molde, capa,
+    vaciado, arcilla) · **P04 la bandeja de parejas** (`termino_comun_falta_suma`; bandeja,
+    casilla, pareja, ficha).
+  - **P04 closes the level by collecting it**: its `closure` shows P01 and P02 as special cases —
+    equal non-common terms give the binomial square (`partial`), opposite ones cancel and give
+    the difference of squares (`partial`). One die with different settings, not four dies.
+  - **One `closure` axis per room**: P01 «can the exponent be distributed?» (yes over product and
+    quotient, no over sum; `partial` for the zero addend — right *by accident* — and for the root
+    of a product, which needs non-negative radicands) · P02 «does the middle term cancel?»
+    (`partial` for reversed conjugates) · P03 «how many layers does the mould leave?» (n + 1 terms;
+    `partial` for `(ab)³`) · P04 «what drives the middle term?».
+  - Practice comes from the textbook (Hipertexto U4 p74/p75); item→node map in
+    `Implementacion/MAPA_ITEMS_A_NODOS_N6_N10.md` (772 items over 13 nodes).
+- **V2-R17 — Algebra N3, El almacén de la caravana (Baghdad).** Factoring, the way back from the
+  dies. Guide **Salim**. Chained after `ALG-N2-P04-TERMINO-COMUN`. Five rooms, each with its lane
+  and focal misconception: **G01 el pesaje de entrada** (`factor_comun_incompleto`; fardo, saco,
+  báscula, tara) · **G02 el cotejo de huellas** (`suma_de_cuadrados_es_factorizable`; huella,
+  calco, catálogo) · **G03 la mesa de despiece** (`pares_sin_verificar`; despiece, listón, encaje,
+  muesca) · **G04 la bodega de los toneles** (`suma_de_cubos_es_cubo_de_binomio`; tonel, duela,
+  aro, arqueo) · **G05 la sala de expedición** (`se_queda_en_el_primer_caso`; guía de carga,
+  precinto, remesa, ruta).
+  - **G05 fills a measured gap**: among the **4,656 statements** in `items/source/` there are
+    **ZERO method-choice items and ZERO check-without-computing items** — structurally, because
+    the textbook index already tells the student which method applies. Its practice is entirely
+    of the missing types, based on the 46 items of `u5_factorizacion_completa_p127`.
+  - **The level's thread is "correct ≠ finished"**: G01 installs it (multiplying back does NOT
+    detect an incomplete common factor; look inside), G02 re-engages it (`x⁴−16` opens and one
+    piece opens again), G05 closes it over the whole chain.
+  - **Deliberate contrast G02 ↔ G04**: a sum of SQUARES does not factor, a sum of CUBES does.
+    G04's axis: «with two terms, the exponent decides».
+  - `closure` axes, one per room: «is anything common left inside?» · «is the print in the
+    catalogue?» · «does it meet BOTH conditions?» · «sum or difference of cubes?» · «where do you
+    start?».
+- **V2-R18 — Misconception tags say WHERE, not only WHAT.** A generic tag emitted by many nodes
+  routes review to "the first node that can emit it", which is right by accident. Format:
+  **`<symptom>_<operation>`** (e.g. `sobregeneraliza_la_correccion`, once emitted by 16 nodes, is
+  now `sobregeneraliza_producto_de_monomios`, `sobregeneraliza_mcm`,
+  `sobregeneraliza_regla_de_tres`…).
+  - **Content error** → the node that teaches the concept is its review screen; many nodes may
+    emit it (`magnitud_sin_signo` lives in B05 and fires in three more).
+  - **Process habit** (`habito_*`: not checking, not deciding, not simplifying) → has no owner and
+    must not have one.
+  - `test_a_content_error_seen_in_many_nodes_has_a_node_that_teaches_it` fails if a new content
+    tag is emitted by 3+ nodes with no node declaring it focal. Nine inherited pre-algebra tags are
+    listed as known debt and must not grow.
+  - `test_every_focal_misconception_is_distinct` only catches LITERAL collisions; two nodes
+    teaching the same error under different tags must be caught in review.
+
+---
+
+## Architecture map
+
+Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectura.md).
+
+**`domain/`**
+- `elo/model.py` — `expected_score`, `procedure_elo_delta`, dataclasses. (`calculate_dynamic_k`
+  and `update_elo` are unused — scheduled for removal in spec 001.)
+- `elo/uncertainty.py` — `RatingModel`: `ΔR = 32 × (RD/350) × (result − P)`; RD starts at 350,
+  ×0.95 per answer, floor 30.
+- `elo/vector_elo.py` — `VectorRating` (rating + RD per key), `aggregate_global_elo`.
+- `selector/item_selector.py` — `AdaptiveItemSelector`: pre-filter `D ∈ [R−250, R+250]`, target
+  `P ∈ [0.40, 0.75]` widened ±0.05 per step (max 10), random pick among candidates within 95 % of
+  the best `P(1−P)`.
+- `learning/` — nodes, map, lessons (V2-R11 … V2-R18).
+- `katia/katia_messages.py` — predefined KatIA messages by score band and streak.
+
+**`application/services/`** — `student_service.py` (`process_answer`, `get_next_question`,
+badges), `teacher_service.py`. Interfaces: `application/interfaces/repositories.py`, checked
+both ways by `tests/unit/application/test_repository_contracts.py`.
+
+**`infrastructure/`** — `persistence/sqlite_repository.py`, `persistence/postgres_repository.py`
+(`RealDictCursor`, `ThreadedConnectionPool(1–5)`), `storage/supabase_storage.py`,
+`external_api/ai_client.py`, `external_api/math_procedure_review.py`,
+`security/hashing_service.py`, `ml/calibration.py` (isotonic calibrator, display only).
+
+**`api/`** — `main.py`, `config.py` (settings + `validate_runtime()`), `dependencies.py`,
+`routers/{student,teacher,ai,auth,…}.py`, `websocket/{pvp,notifications}.py`.
+
+**`frontend/src/`** — `api/client.ts` (HTTP client), `stores/` (Zustand), `pages/Student/`,
+`pages/Teacher/`, `components/KatIA/SocraticChat.tsx`, `i18n/` (es is the source of truth, en
+satisfies `DeepString<typeof es>`).
+
+---
+
+## Database
+
+`DATABASE_URL` set → PostgreSQL (Supabase); absent → SQLite (`data/elo_database.db`).
+
+Bootstrap: `init_db()` → `_migrate_db()` → `_seed_admin()` → `_seed_demo_data()` →
+`_backfill_prob_failure()` → `sync_items_from_bank_folder()` → `_seed_test_students()`.
+
+PostgreSQL: `pg_try_advisory_lock` (non-blocking), IDs 12345–12349, always released in `finally`.
+Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` cancels them.
+
+| Table | Key fields |
 |---|---|
-| Repositorios, tablas, migraciones, queries | [R1](#r1--dual-db-siempre-los-dos-o-ninguno), [R3](#r3--postgresql-rowcolumn-nunca-row0), [R4](#r4--connection-pool-nunca-connclose), [R8](#r8--migraciones-solo-aditivas), [R15](#r15--elo-student_topic_elo-es-la-única-fuente), [R16](#r16--respuestas-leer-calcular-y-escribir-en-la-misma-transacción) |
-| Tras modificar cualquier repositorio | `python scripts/db_sync_check.py` (obligatorio) |
-| Domain/application/infrastructure, módulos nuevos | [R2](#r2--clean-architecture-no-cruzar-capas) + `pytest tests/unit/test_architecture_layers.py` |
-| Contratos de repositorio | `pytest tests/unit/application/test_repository_contracts.py` |
-| Ítems, cursos, banco de preguntas | § Banco de preguntas, abajo · `python scripts/validate_bank.py` |
-| Calibración de dificultad | § Calibración, abajo (`D* = R + 400·log₁₀((1−P*)/P*)`) |
-| Decisiones, límites y despliegue | [docs/arquitectura.md](docs/arquitectura.md) |
-
-Los skills de autoría de nodos (`levelup-node-author`, `prealgebra-node-author`,
-`prealgebra-narrative-style`) sí existen, pero **solo en la máquina local** (`.claude/skills/`,
-gitignoreado): un clon limpio no los tiene. No apoyar reglas obligatorias en ellos.
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (derived), `email` (partial UNIQUE, NULL ok) |
+| `student_topic_elo` | PK `(user_id, topic)`, `current_elo`, `rd`, `updated_at` — the rating (R15) |
+| `groups` | unique `(teacher_id, name_normalized)`, `invite_code` |
+| `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array) |
+| `attempts` | `elo_before`, `elo_after`, `elo_valid`, `prob_failure`, `expected_score`, `time_taken`, `request_id` |
+| `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta`, `elo_applied`, `file_hash` |
+| `pvp_matches` | `status` (active/finished/abandoned), `course_id`, deltas |
+| `katia_interactions`, `problem_reports`, `audit_group_changes`, `diagnostics`, `exam_sessions` | see repositories |
 
 ---
 
-## Arquitectura
+## Item bank
 
-Clean Architecture — 4 capas en `src/`:
+Items live in `items/bank/*.json` and `items/bank/semillero/*.json`; `course_id` = file name
+without extension. Required fields: `id` (globally unique) · `content` (LaTeX in `$…$`, R5) ·
+`difficulty` (int, 600–1800) · `topic` · `options` (list) · `correct_option`.
 
-**`domain/`** — lógica pura sin dependencias externas:
-- `elo/model.py` — ELO clásico, Factor K dinámico, dataclasses `Item`/`StudentELO`
-- `elo/vector_elo.py` — `VectorRating`: ELO + RD por tópico. `impact_modifier=1.0` fijo en producción (el CognitiveAnalyzer existe pero no escala el delta ELO — causaba discrepancias con el preview)
-- `elo/uncertainty.py` — RD inicial=350, mín=30, decay=RD×0.95
-- `elo/zdp.py` — intervalo ZDP
-- `selector/item_selector.py` — `AdaptiveItemSelector`: Fisher Information, ZDP [0.4, 0.75], expansión ±0.05 hasta 10 pasos
-- `katia/katia_messages.py` — mensajes predefinidos de KatIA por rango de score y racha
+New course: create `items/bank/my_course.json` → add `'my_course': '<Block>'` to
+`_COURSE_BLOCK_MAP` in **both** repositories → `python scripts/validate_bank.py` → restart.
+Blocks: `Universidad` · `Colegio` · `Concursos` · `Semillero`.
 
-**`application/services/`** — casos de uso:
-- `student_service.py` — `process_answer()`, `get_next_question()`. El chat socrático de
-  V2 vive en `api/routers/ai.py` (SSE); `get_socratic_help()` era código muerto y se borró.
-- `teacher_service.py` — dashboard y análisis pedagógico
-
-**`infrastructure/`** — implementaciones concretas:
-- `persistence/sqlite_repository.py` — SQLite local (~5.100 líneas)
-- `persistence/postgres_repository.py` — PostgreSQL/Supabase, `RealDictCursor`,
-  `ThreadedConnectionPool(1–5)` (~5.900 líneas)
-- `storage/supabase_storage.py` — bucket `procedimientos` (PRIVADO)
-- `external_api/ai_client.py` — multi-proveedor IA (detección por prefijo de key)
-- `external_api/math_procedure_review.py` — Groq + Llama 4 Scout, score 0–100, ajuste ELO: `(score−50)×0.2`
-- `security/hashing_service.py` — Argon2id + migración transparente desde SHA-256
-
-**`interface/streamlit/`** — `app.py` (167 líneas) + `views/` + `state.py` + `assets.py` + `timers.py`
-
-### Flujo al responder una pregunta
-```
-StudentService.process_answer()
-  ├→ VectorRating.update()          ← delta ELO al tópico (impact_modifier=1.0 siempre)
-  ├→ UPDATE items                    ← nueva dificultad del ítem (ELO simétrico)
-  └→ Repository.save_attempt()       ← persiste intento (transacción atómica)
-```
+Manual calibration: `D*(R, P*) = R + 400 × log10((1 − P*) / P*)` (olympiad P*=0.25 → R+191;
+P*=0.10 → R+382). Items at 0 % success with ≥ 10 attempts: recalibrate or retire.
 
 ---
 
-## Conceptos clave del dominio
+## AI integration
 
-- **VectorRating**: ELO + RD por tópico. `aggregate_global_elo()` promedia para mostrar.
-- **Factor K dinámico**: K=40 (<30 intentos) → K=32 (ELO<1400) → K=16 (estable, error<15% últimos 20) → K=24 (default). K efectivo = `K_base × (RD / 350)`.
-- **AdaptiveItemSelector**: P(éxito) ∈ [0.4, 0.75]. Maximiza `P×(1−P)`. Expande ±0.05/paso (max 10). Prioriza no vistas, luego falladas con cooldown ≥3.
-- **ELO del ítem**: se actualiza simétricamente con cada respuesta — auto-calibración automática.
-- **Calibración manual directa**: `D*(R, P*) = R + 400×log10((1−P*)/P*)`. Para olimpiadas: P*=0.25 → D = R+191; P*=0.10 → D = R+382.
-- **Ranking**: 16 niveles, Aspirante (0–399) → Leyenda Suprema (2500+).
+Provider detected by key prefix: `sk-ant-` Anthropic · `gsk_` Groq · `AIzaSy` Gemini · `hf_`
+HuggingFace · `sk-proj-`/`sk-` OpenAI · no prefix → local (Ollama / LM Studio). Every AI feature
+degrades gracefully without a provider.
 
----
-
-## Base de datos
-
-Selección automática: `DATABASE_URL` → PostgreSQL (Supabase) · ausente → SQLite (`data/elo_database.db`).
-
-Inicialización: `init_db()` → `_migrate_db()` → `_seed_admin()` → `_seed_demo_data()` → `_backfill_prob_failure()` → `sync_items_from_bank_folder()` → `_seed_test_students()`
-
-PostgreSQL: `pg_try_advisory_lock` (no-bloqueante) con IDs 12345–12349. Nunca `pg_advisory_lock` (bloqueante) ni `pg_advisory_xact_lock` — `statement_timeout=60s` los cancela. Lock siempre liberado en `finally`.
-
-### Tablas principales
-
-| Tabla | Campos clave |
-|---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo`, `email` (UNIQUE parcial, NULL OK) |
-| `student_topic_elo` | PK `(user_id, topic)`, `current_elo`, `rd`, `updated_at` — ELO actual por materia, consultable directamente |
-| `groups` | índice único `(teacher_id, name_normalized)`, `invite_code` (inter-nivel) |
-| `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array taxonomía) |
-| `attempts` | `elo_after`, `prob_failure`, `expected_score`, `time_taken`, `confidence_score`, `error_type` |
-| `procedure_submissions` | `storage_url` (path relativo), `image_data` (BYTEA fallback), `ai_proposed_score` (nunca afecta ELO), `teacher_score` (oficial), `elo_delta`, `file_hash` |
-| `katia_interactions` | `user_id`, `course_id`, `item_id`, `student_message`, `katia_response` |
-| `problem_reports` | `user_id`, `description`, `status` (pending/resolved) |
-| `audit_group_changes` | log de reasignaciones de grupo |
-
----
-
-## Banco de preguntas
-
-Viven en `items/bank/*.json` y `items/bank/semillero/*.json`. `course_id` = nombre del archivo sin extensión.
-
-### Campos requeridos por ítem
-`id` (único global) · `content` (LaTeX con `$...$`) · `difficulty` (int, 600–1800) · `topic` · `options` (list) · `correct_option` (coincide exactamente con uno de `options`)
-
-### Agregar un curso nuevo
-1. Crear `items/bank/mi_curso.json`
-2. Agregar `'mi_curso': 'Bloque'` en `_COURSE_BLOCK_MAP` en **ambos** repositorios
-3. `python scripts/validate_bank.py`
-4. Reiniciar la app
-
-Bloques válidos: `Universidad` · `Colegio` · `Concursos` · `Semillero`
-
-### Calibración de dificultad
-Ver `.Codex/skills/item-calibration/SKILL.md`. Fórmula central:
-```
-D*(R, P*) = R + 400 × log10((1−P*) / P*)
-```
-Ítems con 0% de éxito y ≥10 intentos → recalibrar o retirar antes de la próxima sesión.
-
----
-
-## Integración de IA
-
-Proveedor detectado por prefijo de API key: `sk-ant-` (Anthropic) · `gsk_` (Groq) · `AIzaSy` (Gemini) · `hf_` (HuggingFace) · `sk-proj-`/`sk-` (OpenAI) · sin prefijo (Ollama/LM Studio local).
-
-Todas las funciones de IA degradan con gracia si no hay proveedor disponible.
-
-- **Chat socrático**: `SOCRATIC_MAX_TOKENS=120`. Post-validación verifica que no revele la respuesta y tenga ≤3 oraciones.
-- **Revisión de procedimientos**: Groq + `meta-llama/llama-4-scout-17b-16e-instruct` (revisión rigurosa), otros proveedores con visión (revisión genérica). `ai_proposed_score` **nunca** afecta ELO directamente — solo `teacher_score` vía `final_score`.
-
-### API keys del sistema (V2)
-
-`api/config.py` lee variables de entorno con fallback encadenado:
-
-| Variable | Función | Fallback |
+| Env var | Use | Fallback |
 |---|---|---|
-| `SYSTEM_AI_API_KEY` | Key general para toda la IA | — (requerida) |
-| `AI_KEY_KATIA` | Chat socrático KatIA | `SYSTEM_AI_API_KEY` |
-| `AI_KEY_PROCEDURE` | Revisión de procedimientos | `SYSTEM_AI_API_KEY` |
-| `AI_KEY_STUDENT_ANALYSIS` | Análisis del estudiante | `SYSTEM_AI_API_KEY` |
-| `AI_KEY_TEACHER_ANALYSIS` | Análisis docente | `SYSTEM_AI_API_KEY` |
+| `SYSTEM_AI_API_KEY` | all AI | — |
+| `AI_KEY_KATIA` | Socratic chat | `SYSTEM_AI_API_KEY` |
+| `AI_KEY_PROCEDURE` | procedure review | `SYSTEM_AI_API_KEY` |
+| `AI_KEY_STUDENT_ANALYSIS` | student analysis | `SYSTEM_AI_API_KEY` |
+| `AI_KEY_TEACHER_ANALYSIS` | teacher analysis | `SYSTEM_AI_API_KEY` |
 
-Prioridad por request: key del usuario (sidebar) > key de función > key general. Método: `settings.get_ai_key("procedure", user_key)`.
+Per request: user key > function key > general key, via `settings.get_ai_key("procedure", user_key)`.
 
----
-
-## KatIA — Tutora Socrática
-
-Gata cyborg con mensajes predefinidos (no generados por IA) y GIFs animados.
-
-Assets en `KatIA/`: `katIA.png` · `correcto_compressed.gif` (698KB) · `errores_compressed.gif` (1.8MB). Usar **siempre los comprimidos** — los originales son 69MB.
-
-Mensajes: `get_procedure_comment(score)` → ALTA (≥91) / MEDIA (60–90) / TUTORIA (<60). `get_streak_message(streak)` → rachas 5/10/20.
-
----
-
-## Seguridad
-
-- Contraseñas: **Argon2id** con migración transparente desde SHA-256 legacy.
-- API keys: solo en `st.session_state`, nunca en DB ni logs.
-- Admin: solo vía env vars `ADMIN_PASSWORD` / `ADMIN_USER`.
-- Storage: bucket `procedimientos` PRIVADO, imágenes siempre por bytes nunca URL pública.
-- Anti-plagio: SHA-256 del archivo antes de aceptar procedimiento.
-
-**SEC — FastAPI (V2):**
-- JWT: access token en Zustand/localStorage (15 min) + refresh token HttpOnly cookie (7 días). Nunca loggear tokens. `credentials: "include"` en todos los fetch.
-- Uploads: `apiClient.postForm()`, no establecer `Content-Type` manualmente en multipart.
-- `AnswerResponse` y `/exam/submit` NO incluyen `correct_option`. Al responder, solo colorear la opción elegida — nunca revelar la correcta.
+- **Socratic chat** (`api/routers/ai.py`, SSE): `SOCRATIC_MAX_TOKENS=120`; post-validation rejects
+  replies that reveal the answer or exceed 3 sentences.
+- **Procedure review**: Groq + `meta-llama/llama-4-scout-17b-16e-instruct` (rigorous), other
+  vision providers (generic). Score 0–100 is advisory; only `teacher_score` moves the rating
+  (`(score − 50) × 0.2`).
+- **KatIA assets** (`KatIA/`): always the compressed GIFs (`correcto_compressed.gif`,
+  `errores_compressed.gif`); the originals are 69 MB. Predefined messages:
+  `get_procedure_comment(score)` ALTA ≥ 91 / MEDIA 60–90 / TUTORIA < 60;
+  `get_streak_message(streak)` at 5/10/20.
 
 ---
 
-## Roles de usuario
+## Security (how-to; principles in constitution VI)
 
-- **student**: grupo obligatorio · práctica adaptativa · estadísticas · procedimientos · KatIA · racha por materia · reportes de problemas (sidebar)
-- **teacher**: aprobación requerida · dashboard ELO temporal · revisión procedimientos · análisis IA · exportación CSV/XLSX · códigos de invitación inter-nivel
-- **admin**: aprueba docentes · reasigna estudiantes (auditado) · activa/desactiva usuarios · notificaciones de problemas técnicos
+- JWT: access token in Zustand/localStorage (15 min) + refresh token in HttpOnly cookie (7 days).
+  `credentials: "include"` on every fetch. Never log tokens.
+- Uploads: `apiClient.postForm()`; never set `Content-Type` manually on multipart.
+- Admin only through `ADMIN_USER` / `ADMIN_PASSWORD` env vars.
+- Anti-plagiarism: SHA-256 of the file before accepting a procedure.
+- WebSockets: `authenticate_access_token` is shared with REST; rooms are authorised against the
+  user; PvP requires the student role and enrolment in the course.
 
----
+## Roles
 
-## Usuarios de prueba
+- **student** — group required · adaptive practice · stats · procedures · KatIA · per-course streak
+  · problem reports.
+- **teacher** — approval required · ELO dashboard · procedure review · AI analysis · CSV/XLSX export
+  · cross-level invite codes.
+- **admin** — approves teachers · reassigns students (audited) · activates/deactivates users ·
+  problem-report notifications.
 
-| Usuario | Contraseña | Rol / Nivel |
+## Test users (local seed data)
+
+| User | Password | Role / level |
 |---|---|---|
-| `profesor1` | `demo1234` | Docente (pre-aprobado) |
+| `profesor1` | `demo1234` | teacher (pre-approved) |
 | `estudiante1` | `demo1234` | Universidad |
 | `estudiante2` | `demo1234` | Colegio |
-| `concursante1` | `demo1234` | Concursos — DIAN (bloques temáticos) |
+| `concursante1` | `demo1234` | Concursos — DIAN (thematic blocks) |
 | `estudiante_colegio_1..3` | `test1234` | Colegio (`is_test_user=1`) |
 | `estudiante_universidad_1..2` | `test1234` | Universidad (`is_test_user=1`) |
-| `estudiante_semillero_1` | `test1234` | Semillero grado 9 (`is_test_user=1`) |
-| `estudiante_semillero_2` | `test1234` | Semillero grado 11 (`is_test_user=1`) |
+| `estudiante_semillero_1` | `test1234` | Semillero grade 9 (`is_test_user=1`) |
+| `estudiante_semillero_2` | `test1234` | Semillero grade 11 (`is_test_user=1`) |
 
 ---
 
-## V2 — React + FastAPI
+## Frontend design rules
 
-### Reglas V2
+- **D1** — Every new component has at least one non-generic design decision (type, spacing,
+  accent or entrance motion).
+- **D2** — Motion carries meaning: achievements `scale` + `opacity`; ELO delta as an animated
+  number; low timer pulses (< 30 % left). Use Framer Motion, not raw CSS `transition`.
+- **D3** — Teacher dashboard: data first. ELO and radar charts before actions; no big decorative
+  icon cards.
+- **D4** — Student views mobile-first (375 px); teacher views desktop-first (1280 px).
+- **D5** — LaTeX always through `react-katex`, never plain text.
 
-- **V2-R1**: cambios en `src/`, `items/`, `scripts/` afectan V1 y V2. Modificar V1 solo si es bug real; cambios solo-V2 van en `api/` o `frontend/`.
-- **V2-R2**: Dual DB sigue obligatorio. `python scripts/db_sync_check.py` antes de cada commit que toque repos.
-- **V2-R3**: `estimateEloDelta()` en `Practice.tsx` usa K=24 fijo — la discrepancia con el K real es aceptable para un preview.
-- **V2-R7**: usar pnpm 11.19.0 (`packageManager`) y Node >=22.13 (CI: Node 24). Instalar con `pnpm install --frozen-lockfile`; no generar un lockfile npm. `vite-plugin-pwa` 1.3 admite Vite 8; ya no se necesita `--legacy-peer-deps`. Los overrides van en `frontend/pnpm-workspace.yaml`.
-- **V2-R8**: `sessionStartTime` en `authStore`, persiste en localStorage, se resetea en logout.
-- **V2-R9**: respuesta correcta **nunca** viaja al frontend. Sin `correct_option` en ningún response de `/answer` ni `/exam/submit`.
-- **V2-R10**: cualquier `fetch()` directo (fuera de `api/client.ts`) debe usar el prefijo `import.meta.env.VITE_API_URL ?? ""` para funcionar en Vercel production. Ver `SocraticChat.tsx` como ejemplo — Vercel sirve la SPA y no tiene proxy inverso a Render.
-
-### Archivos clave V2
-
-```
-api/main.py                              # FastAPI, CORS, routers, WebSocket
-api/dependencies.py                      # CurrentUser, RepoDep, require_role
-api/config.py                            # pydantic-settings: JWT, DB, IA keys por función
-api/routers/student.py                   # 19 endpoints estudiante (incl. procedure/analyze, ai-status)
-api/routers/teacher.py                   # 13 endpoints docente
-api/routers/ai.py                        # Chat socrático SSE + revisión procedimientos
-api/routers/auth.py                      # 4 endpoints auth
-frontend/src/stores/authStore.ts         # Zustand: token + user + sessionStartTime
-frontend/src/stores/practiceStore.ts     # Zustand: ítem actual, historial sesión
-frontend/src/api/client.ts               # HTTP client (get/post/patch/delete/postForm)
-frontend/src/pages/Student/Practice.tsx  # Sala de práctica
-frontend/src/pages/Student/Stats.tsx     # Estadísticas: radar + heatmap + ranking
-frontend/src/pages/Student/ProcedureUpload.tsx # Procedimiento abierto (ejercicios de desarrollo)
-frontend/src/pages/Student/Feedback.tsx  # Historial de procedimientos + KatIA
-frontend/src/components/Procedure/ProcedureSection.tsx # Procedimiento inline en Practice (vinculado a pregunta)
-frontend/src/components/KatIA/SocraticChat.tsx # Chat socrático con avatar KatIA — usa API_BASE (V2-R10)
-frontend/src/pages/Teacher/Dashboard.tsx # Panel docente (4 tabs)
-frontend/src/i18n/index.ts               # i18next: es/en, detección localStorage "levelup-lang"
-frontend/src/i18n/locales/es.ts          # Traducciones ES (fuente de verdad, DeepString<T> type)
-frontend/src/i18n/locales/en.ts          # Traducciones EN (satisface DeepString<typeof es>)
-frontend/src/components/ui/LanguageToggle.tsx # Toggle 🌐 ES/EN en sidebar
-docs/v2-plan.md                          # Checklist de sprints
-```
-
-### Comandos V2
-
-```bash
-cd frontend && npm run build                              # build TypeScript
-python scripts/db_sync_check.py                          # paridad DB (obligatorio)
-flake8 src/ api/ --max-line-length=100 --select=E9,F63,F7,F82
-ADMIN_PASSWORD=testadmin123 python -m pytest tests/api/ -v
-```
-
-### Estado V2 — mayo 2026
-
-**Sprints 1–8 completos. Paridad funcional 100% con V1.** Deploy en Vercel + Render, CI con 7 jobs verdes.
-
-Sprints 7–8 completados:
-- 7.1: Tests E2E Playwright — `frontend/e2e/` (auth, practice, stats, protected routes)
-- 7.2: Code splitting por ruta (`React.lazy` + `Suspense`) — bundle inicial <220 kB
-- 7.3: Error boundaries — pantalla de recuperación con botón "Recargar"
-- 7.4: Skeleton loaders en Stats, Courses y Dashboard
-- 7.5: Tests de integración de rutas protegidas — `tests/api/test_protected_routes.py` (48 tests, 100%)
-- 8.1: Modo examen end-to-end (`Exam.tsx`: N preguntas, timer global, mapa de respuestas, resumen final)
-- 8.2: Accesibilidad ARIA — `aria-label`, `aria-pressed`, `aria-live`, `role="dialog"`, `role="timer"`
-- 8.3: Tema claro/oscuro — inversión de paleta CSS Tailwind v4 via CSS vars (FOUC-safe)
-- 8.4: Internacionalización es/en con `react-i18next` — Login, Layout, Practice, ThemeToggle; `LanguageToggle` 🌐 en sidebar
-- 8.5: Métricas de uso en dashboard docente — tiempo promedio, abandono, distribución horaria
-
-Fixes de producción (mayo 2026):
-- **KatIA SSE**: `SocraticChat.tsx` usaba URL relativa `/api/ai/socratic` — en Vercel esto llega al rewrite SPA en lugar de Render. Fix: `${VITE_API_URL}/api/ai/socratic` (ver V2-R10)
-- CORS: corregida origin `luislevelupelo.vercel.app` en `api/config.py`
-- i18n TypeScript: `DeepString<T>` en `es.ts` para que `en.ts` pueda usar valores de string distintos sin errores de tipo literal
-
-Ese estado describe **mayo de 2026 en el repo de producción** (LuisJRubioH/LevelUp-ELO).
-Este repo es el sandbox de rediseño y sí tiene pendientes: los abiertos están en
-[docs/arquitectura.md](docs/arquitectura.md) § Límites conocidos.
-
----
-
-## Skills externas instaladas
-
-Instalar con `pnpm dlx skills add <repo>` (`npx` no está en el PATH de esta máquina) →
-quedan en `.agents/skills/`, que está gitignoreado. Solo invocar en tareas de UI/frontend,
-no en backend/Python/DB.
-
-| Skill | Cuándo usarla |
-|---|---|
-| **impeccable** (pbakaus) — `/audit`, `/polish`, `/typeset` | Revisión y pulido de dashboards React |
-| **taste-skill** (Leonxlnx) — automática | Generar componentes nuevos con diseño no genérico |
-| **emil-kowalski** — automática en animaciones | Animaciones de logros, KatIA, transiciones |
-
-Instalación:
-```bash
-pnpm dlx skills add pbakaus/impeccable
-pnpm dlx skills add Leonxlnx/taste-skill
-pnpm dlx skills add emilkowalski/skill
-```
-Después de instalar impeccable, ejecutar una vez: `/impeccable teach`
-
-**Anti-patrones prohibidos en el frontend React:** gradientes morados · tarjetas anidadas (Cardocalypse) · Inter sin jerarquía · bajo contraste sobre fondos oscuros.
-
-**Paleta V2:**
-```
-Fondo:      #0A0A0F   Superficie: #12121A   Acento:   #6C63FF
-Éxito:      #22C55E   Error:      #EF4444   Warning:  #F59E0B
-Texto:      #F1F5F9   Texto2:     #94A3B8
-```
-Tokens como variables CSS en `frontend/src/index.css`. No hardcodear colores en componentes.
-
----
-
-## claude-mem — Memoria persistente
-
-Plugin instalado. Captura contexto automáticamente desde cada sesión.
-
-Consultas útiles en sesiones futuras:
-```
-"¿Qué cambios hicimos al repositorio SQLite la última sesión?"
-"¿Cómo implementamos el modo examen?"
-"¿Qué archivos tocamos en el Sprint 5?"
-```
-
-Configuración recomendada (`~/.claude-mem/settings.json`):
-```json
-{
-  "CLAUDE_MEM_MODEL": "claude-haiku-4-5",
-  "CLAUDE_MEM_CONTEXT_OBSERVATIONS": "50",
-  "CLAUDE_MEM_WORKER_PORT": "37777"
-}
-```
-
----
-
-## Sistema de diseño V2 — Reglas para Codex
-
-- **D1**: cada componente nuevo debe tener al menos una decisión de diseño no genérica (tipografía, espaciado, acento o animación de entrada).
-- **D2**: animaciones con función pedagógica. Logros: `scale`+`opacity`. ELO delta: número animado visible. Timer bajo: pulso visual (<30% del tiempo). Usar Framer Motion (ya instalado), no `transition` CSS directa.
-- **D3**: dashboard docente — datos primero. Gráficos ELO y radar van antes que acciones. No cards grandes con iconos decorativos.
-- **D4**: vistas de estudiante → mobile-first (375px). Vistas de docente → desktop-first (1280px).
-- **D5**: LaTeX siempre en `react-katex`. Nunca texto plano con expresiones matemáticas.
-
----
-
-## Contexto del proyecto
+Forbidden: purple gradients · nested cards · Inter without hierarchy · low contrast on dark
+backgrounds. Colours are CSS tokens in `frontend/src/index.css`; never hard-code them.
 
 ```
-PROYECTO:    LevelUp-ELO
-VERSIÓN:     sandbox de rediseño sobre V2.0.0 (sprints 1–8 completos)
-STACK:       Python 3.11 · FastAPI · React 19 · TypeScript · Vite · Supabase · Render · Vercel
-DOMINIO:     Plataforma educativa adaptativa con motor ELO vectorial por tópico
-AUDIENCIA:   Semillero matemático + estudiantes de colegio y universidad (Colombia)
-DEPLOY:      V1 en Streamlit Cloud · V2 en Vercel + Render
-PRÓXIMO:     ver docs/arquitectura.md § Límites conocidos
-REPO:        https://github.com/LuisJRubioH/LevelUp-ELO
+Background #0A0A0F   Surface #12121A   Accent  #6C63FF
+Success    #22C55E   Error   #EF4444   Warning #F59E0B
+Text       #F1F5F9   Text2   #94A3B8
 ```
+
+Optional local UI skills (not in the repo; never base a mandatory rule on them):
+`pnpm dlx skills add pbakaus/impeccable`, `Leonxlnx/taste-skill`, `emilkowalski/skill`
+(`npx` is not on PATH on the maintainer's machine).
