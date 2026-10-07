@@ -345,6 +345,22 @@ practising one topic, or the derived course rating (FR-029a) when practising the
 - **FR-028c** [CHANGE]: When the student's level or grade changes, the system shall keep the
   ratings of earlier courses unchanged and viewable as history, and shall not present the
   difference between the old and the new overall rating as a rating change or loss.
+- **FR-028d** [CHANGE]: When a ranking of students is shown in V2 (group ranking for a student or
+  a teacher), the system shall order students by their derived course rating when a course is
+  given, or by their overall rating otherwise (FR-028a, FR-029a), listing students with no rating
+  as "pending diagnostic" after the rated ones. *(Today the group ranking averages every past
+  attempt's rating in both engines, and its course filter does not filter — research R18.)*
+- **FR-028e** [AS-IS]: The system shall show past per-attempt ratings only as history (student
+  history, teacher rating history, exports) and shall never derive a current rating from them.
+- **FR-028f** [CHANGE]: When a V1 ranking is shown (global, per course, weekly) or a student's
+  position in one is computed, the system shall take each student's **current rating** from the
+  derived ratings (overall per FR-028a, course per FR-029a), keeping each ranking's **participation
+  rule** separate: who appears is decided by activity (e.g. at least one attempt in the last 7 days,
+  in that course for a course ranking); what they are ranked by is the derived rating. A student's
+  position shall use exactly the same rating and participation rule as the list it refers to.
+  *(Today these readers rebuild ratings from `attempts.elo_after` — research R18.)*
+- **FR-028g** [AS-IS]: The system shall keep stored weekly ranking snapshots unchanged as history;
+  a snapshot records the rating as it was when it was taken.
 - **FR-029** [CHANGE]: The system shall store every rating change — practice answer, diagnostic,
   procedure — under the **course and topic of the item involved**, identified by the course's
   stable identifier and the topic within it. There is one stored rating per student, course and
@@ -483,7 +499,7 @@ Filled in by `/speckit-tasks`; all rows `PENDING` at the docs stage.
 
 | Requirement / Scenario | Test |
 |---|---|
-| FR-001 … FR-036 (incl. FR-028a–c, FR-029a–c, FR-031a, FR-034a–b) | `PENDING` |
+| FR-001 … FR-036 (incl. FR-028a–g, FR-029a–c, FR-031a, FR-034a–b) | `PENDING` |
 | US1-AS1 … US1-AS7 | `PENDING` |
 | US2-AS1 … US2-AS5 | `PENDING` |
 | US3-AS1 … US3-AS4 | `PENDING` |
@@ -514,6 +530,10 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-025, FR-027 | `api/websocket/pvp.py:28, 83-125`; `finish_pvp_match`, `expire_stale_pvp_matches` |
 | FR-026 | `api/websocket/pvp.py:191` (global `current_elo`) vs `finish_pvp_match` (course key) |
 | FR-028 | `get_latest_elo_by_topic`, `_refresh_global_elo` (both repos); `aggregate_global_elo` |
+| FR-028d | `get_group_ranking` (both repos) ← `api/routers/student.py:410`, `api/routers/teacher.py:335` |
+| FR-028e | `get_latest_attempts`, `get_student_attempts_detail`, `export_teacher_student_data` |
+| FR-028f | `get_global_ranking`, `get_course_ranking`, `get_weekly_ranking`, `get_student_rank` (both repos) ← `student_view.py:538, 610, 634, 729, 757`, `teacher_view.py:465, 495, 528` |
+| FR-028g | `weekly_rankings` table; `save_weekly_ranking`, `get_ranking_history` ← `teacher_view.py:550, 556` |
 | FR-029 | `student_view.py:385`, `api/routers/student.py:166`, `useStudentSession.ts:74`, `finish_pvp_match`, `validate_procedure_submission`, diagnostic submit |
 | FR-030 | `frontend/src/pages/Student/Practice.tsx:27-33` |
 | FR-031 | `api/routers/student.py:1497` (`_RANK_THRESHOLDS`), `src/interface/streamlit/state.py:31`, `frontend/src/pages/Teacher/Dashboard.tsx:20`, `Teacher/Groups.tsx:14`, `Home.tsx:36`, `api/routers/student.py:963` (`_DIAG_LEAGUES`) |
