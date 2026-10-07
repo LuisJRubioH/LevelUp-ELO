@@ -154,6 +154,13 @@ def test_spec001_meta_ranks_is_public_and_ascending(api_client):
     assert (ranks[0]["label"], ranks[-1]["label"]) == ("Aspirante", "Leyenda Suprema")
 
 
+def test_spec001_meta_ranks_is_cacheable(api_client):
+    """contracts/api.md (T079): the static scale is publicly cacheable."""
+    response = api_client.get("/api/meta/ranks")
+
+    assert response.headers["Cache-Control"] == "public, max-age=3600"
+
+
 @pytest.mark.parametrize("stored,shown,label", [(999.6, 1000, "Plata I"), (999.4, 999, "Plata II")])
 def test_spec001_number_and_label_agree_on_every_surface(api_client, stored, shown, label):
     repo = _repo(api_client)
@@ -324,3 +331,27 @@ def test_spec001_course_map_shows_unrated_topics_as_pending(api_client):
     assert by_topic["a"]["elo"] == 1234.5
     assert (by_topic["b"]["elo"], by_topic["b"]["rd"]) == (None, None)
     assert by_topic["b"]["state"] != "completed"
+
+
+def test_spec001_stats_marks_approximate_baselines(api_client):
+    """FR-034a (T077): a reconciled rating comes back flagged approximate with its origin;
+    a practised one does not."""
+    repo = _repo(api_client)
+    student = make_student(repo)
+    course, _ = make_course(repo, ["a", "b"])
+    enroll(repo, student, course)
+    sql(
+        repo,
+        "INSERT INTO student_course_topic_elo (user_id, course_id, topic, current_elo, rd,"
+        " origin, approximate, legacy_source_key) VALUES (?, ?, 'a', 1100, 200,"
+        " 'legacy_topic_row', 1, 'a')",
+        (student, course),
+    )
+    set_rating(repo, student, course, "b", 1200.0, origin="practice")
+
+    body = _get(api_client, repo, student, "/api/student/stats")
+
+    topics = {t["topic"]: t for c in body["course_ratings"] for t in c["topics"]}
+    assert (topics["a"]["approximate"], topics["a"]["origin"]) == (True, "legacy_topic_row")
+    assert (topics["b"]["approximate"], topics["b"]["origin"]) == (False, "practice")
+    assert {t["topic"]: t["approximate"] for t in body["topic_elos"]} == {"a": True, "b": False}

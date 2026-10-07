@@ -601,3 +601,107 @@ def test_spec001_weekly_snapshot_stores_the_ranking_as_shown(repo):
         [(names[a], 1, 1200.0), (names[b], 1, 1200.0), (names[c], 3, 1100.0)],
         key=lambda r: (r[1], r[0]),
     )
+
+
+# ── T078: the exam snapshot keeps its state at submission (FR-028b, Constitution V) ──
+
+
+def _exam(client, repo, user_id, course_id):
+    from tests.integration.conftest import headers_for
+
+    headers = headers_for(repo, user_id)
+    start = client.post(
+        "/api/student/exam/start", headers=headers, json={"course_id": course_id, "n_questions": 1}
+    ).json()
+    submitted = client.post(
+        "/api/student/exam/submit",
+        headers=headers,
+        json={
+            "session_id": start["session_id"],
+            "answers": [{"item_id": i["id"], "selected_option": "A"} for i in start["items"]],
+        },
+    )
+    assert submitted.status_code == 200, submitted.text
+    return submitted.json()
+
+
+def _history(client, repo, user_id):
+    from tests.integration.conftest import headers_for
+
+    response = client.get("/api/student/exam/history", headers=headers_for(repo, user_id))
+    assert response.status_code == 200, response.text
+    return sorted(response.json(), key=lambda h: h["id"])
+
+
+def _snapshot(entry):
+    return entry["global_elo_after"], entry["global_elo_status"]
+
+
+def test_spec001_pending_exam_snapshot_is_null_not_zero(repo, student, client):
+    course, _ = _course(repo)
+    enroll(repo, student, course)
+
+    submitted = _exam(client, repo, student, course)
+
+    assert submitted["global_elo_after"] is None
+    assert [_snapshot(h) for h in _history(client, repo, student)] == [(None, "pending")]
+
+
+def test_spec001_genuine_zero_snapshot_is_reported_as_zero(repo, student, client):
+    course, _ = _course(repo)
+    enroll(repo, student, course)
+    _row(repo, student, course, TOPIC, 0.0)
+
+    submitted = _exam(client, repo, student, course)
+
+    assert submitted["global_elo_after"] == 0.0
+    assert [_snapshot(h) for h in _history(client, repo, student)] == [(0.0, "rated")]
+
+
+def test_spec001_diagnostic_after_the_exam_keeps_the_pending_snapshot(repo, student, client):
+    """The snapshot is the state at submission, not the student's current status."""
+    from tests.integration.conftest import headers_for
+
+    course, item_id = _course(repo)
+    enroll(repo, student, course)
+    _exam(client, repo, student, course)
+
+    diagnostic = client.post(
+        f"/api/student/diagnostic/{course}/submit",
+        headers=headers_for(repo, student),
+        json={"answers": [{"item_id": item_id, "selected_option": "A"}]},
+    )
+    assert diagnostic.status_code == 200, diagnostic.text
+    _exam(client, repo, student, course)
+
+    first, second = _history(client, repo, student)
+    assert _snapshot(first) == (None, "pending")
+    assert second["global_elo_status"] == "rated"
+    assert second["global_elo_after"] == pytest.approx(rating_of_course(repo, student, course))
+
+
+@pytest.mark.parametrize("stored", [0.0, 1000.0])
+def test_spec001_snapshot_recorded_before_the_status_is_unknown(repo, student, client, stored):
+    """Rows written before `global_elo_status` existed cannot tell pending (stored 0 by this
+    branch, 1000 by the previous engine) from a rating: reported as unknown, never as a rating."""
+    course, _ = _course(repo)
+    sql(
+        repo,
+        "INSERT INTO exam_sessions (user_id, course_id, course_name, n_questions,"
+        " correct_count, score_pct, global_elo_after) VALUES (?, ?, 'legacy', 1, 1, 100.0, ?)",
+        (student, course, stored),
+    )
+
+    assert [_snapshot(h) for h in _history(client, repo, student)] == [(None, "unknown")]
+    stored_row = sql(
+        repo,
+        "SELECT global_elo_after, global_elo_status FROM exam_sessions WHERE user_id = ?",
+        (student,),
+    )
+    assert [tuple(r) for r in stored_row] == [(stored, None)]  # kept as recorded, not backfilled
+
+
+def rating_of_course(repo, user_id, course_id):
+    from tests.integration.conftest import rating_of
+
+    return rating_of(repo, user_id, course_id, TOPIC)

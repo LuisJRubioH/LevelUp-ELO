@@ -87,4 +87,4 @@ The only place that turns stored rows into course ratings, overall ratings, rank
 | Method | Contract |
 |---|---|
 | `process_answer(user_id, item_data, selected_option, reasoning, time_taken, request_id=None, request_fingerprint=None)` | `vector_rating` and `elo_topic` parameters removed; returns `(is_correct, result)` with `elo_before`, `elo_after`, `rd_after`, `elo_valid` |
-| `get_next_question(student_id, course_id, topic_filter=None, session…, block=None)` | selection rating per FR-016–019 via `RatingReadService.selection_rating`; returns item + `preview` (preview: T059) |
+| `get_next_question(student_id, course_id, topic_filter=None, session…, block=None)` | selection rating per FR-016–019 via `RatingReadService.selection_rating`; returns `(item, status)`. The answer preview is not part of it: `/next-question` and V1's stakes line take it from `RatingReadService.answer_preview` (FR-030) |

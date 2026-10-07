@@ -42,6 +42,7 @@ Unchanged: `Idempotency-Key` replay (200, stored result) and conflict (409) [FR-
 | `rank_label` | semantics | `str \| null` | from the single rank scale, derived from `display_rating`; `null` when pending [FR-031, FR-028j] |
 | `course_ratings` | **new** | `list[{course_id, course_name, rating: float \| null, display_rating: int \| null, rank_label, current_context: bool, topics: list[TopicELO]}]` | per-course view; `current_context=false` = earlier level/grade, shown as history [FR-028c] |
 | `topic_elos` | semantics | `list[TopicELO]` | topics of current-context courses only; the old cross-course dedupe hack is removed |
+| `TopicELO.approximate`, `TopicELO.origin` | **new** | `bool`, `str \| null` | `approximate=true` = a reconciled baseline, labelled "approximate" on screen, never presented as exact history; `origin` = how the row started (`diagnostic`, `practice`, `legacy_topic_row`, …) [FR-034a] |
 
 No field anywhere reports a difference between two overall ratings [FR-028c].
 
@@ -82,7 +83,8 @@ overall); the existing group-ownership check stays.
 
 ## `GET /meta/ranks` — **new, public** (`api/routers/meta.py`)
 `200 → [{label: str, min: float}]` ordered ascending; the 16-level scale. Used by the home page
-[FR-031]. No authentication; rate-limited like other public routes; cacheable.
+[FR-031]. No authentication; rate-limited like other public routes; cacheable
+(`Cache-Control: public, max-age=3600` — the scale only changes with a deploy).
 
 ## WebSocket `/ws/pvp/...` — `game_end` message
 
@@ -101,4 +103,17 @@ pending; the 1000 used for the match expectation of an unrated player is never s
 
 | Field | Change | Type | Meaning |
 |---|---|---|---|
-| `global_elo_after` | type widened | `float \| null` | the overall rating at submission (`ratings_view`); `null` while pending. Stored in `exam_sessions.global_elo_after` (NOT NULL DEFAULT 0): a pending snapshot keeps the default 0, which no screen displays |
+| `global_elo_after` | type widened | `float \| null` | the overall rating at submission (`ratings_view`); `null` while pending. Storage records the state at submission in `exam_sessions.global_elo_status` (data-model.md) |
+
+## `GET /student/exam/history`
+
+| Field | Change | Type | Meaning |
+|---|---|---|---|
+| `global_elo_after` | type widened | `float \| null` | the stored snapshot only when `global_elo_status = "rated"` (a genuine 0 stays 0); otherwise `null` [FR-028b] |
+| `global_elo_status` | **new** | `"rated" \| "pending" \| "unknown"` | the overall rating's state **when the exam was submitted** — never re-derived from the stored value or from the student's current status. A diagnostic completed later does not change it |
+
+**Rows recorded before `global_elo_status` existed** report `"unknown"` with `global_elo_after =
+null`. Their stored number cannot be told apart from a non-rating: the previous engine stored its
+1000 default for a student with no rating, and this feature before the status column stored 0 for
+a pending one. They are neither reclassified as pending nor reported as a rating; the stored row is
+kept unchanged and not backfilled.

@@ -41,6 +41,8 @@ export interface TopicELO {
   topic: string;
   rating: number;
   rd: number;
+  approximate?: boolean; // reconciled baseline, not exact history (FR-034a)
+  origin?: string | null;
 }
 
 export interface CourseRating {
@@ -397,7 +399,8 @@ export interface ExamSession {
   n_questions: number;
   correct_count: number;
   score_pct: number;
-  global_elo_after: number | null;
+  global_elo_after: number | null; // null unless global_elo_status is "rated"
+  global_elo_status: "rated" | "pending" | "unknown"; // state at submission (FR-028b)
   created_at: string;
 }
 

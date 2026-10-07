@@ -18,6 +18,23 @@ from src.interface.streamlit.rankings import fmt_position, fmt_rating, v1_rankin
 from src.utils import strip_thinking_tags
 
 
+def _topic_rows(dash) -> list[dict]:
+    """Current-context topic ratings, highest first; reconciled baselines flagged (FR-034a)."""
+    rows = [
+        {
+            "Curso": c["course_name"],
+            "Tópico": t["topic"],
+            "ELO": round(t["elo"], 1),
+            "RD ±": round(t["rd"], 1),
+            "Aproximado": "sí" if t["approximate"] else "",
+        }
+        for c in dash["course_ratings"]
+        if c["current_context"]
+        for t in c["topics"]
+    ]
+    return sorted(rows, key=lambda r: -r["ELO"])
+
+
 def render_teacher():
     """Punto de entrada del panel del profesor."""
     repo = st.session_state.db
@@ -752,13 +769,8 @@ def render_teacher():
                 _d1, _d2 = st.columns([1, 1])
                 with _d1:
                     st.markdown("**📊 ELO por Tópico**")
-                    if _elo_sum["elo_by_topic"]:
-                        _elo_rows = [
-                            {"Tópico": t, "ELO": round(e, 1), "RD ±": round(rd, 1)}
-                            for t, (e, rd) in sorted(
-                                _elo_sum["elo_by_topic"].items(), key=lambda x: -x[1][0]
-                            )
-                        ]
+                    _elo_rows = _topic_rows(_dash)
+                    if _elo_rows:
                         st.dataframe(
                             pd.DataFrame(_elo_rows), use_container_width=True, hide_index=True
                         )

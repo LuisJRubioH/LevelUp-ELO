@@ -91,6 +91,8 @@ class TopicELO(BaseModel):
     topic: str
     rating: float
     rd: float
+    approximate: bool = False  # True = a reconciled baseline, not exact history (FR-034a)
+    origin: str | None = None
 
 
 class CourseRatingView(BaseModel):

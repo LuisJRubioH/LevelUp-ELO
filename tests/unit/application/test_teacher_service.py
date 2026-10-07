@@ -17,10 +17,12 @@ def repo() -> MagicMock:
     r.get_students_by_teacher.return_value = []
     r.get_groups_by_teacher.return_value = []
     r.get_student_attempts_detail.return_value = []
-    r.get_student_elo_summary.return_value = {}
     r.get_procedure_stats_by_course.return_value = {}
     r.create_group.return_value = (True, "Grupo creado exitosamente.")
-    r.get_latest_elo_by_topic.return_value = {}
+    # Spec 001: the raw rating reads RatingReadService derives every rating from.
+    r.get_course_topic_ratings_bulk.return_value = []
+    r.get_current_context_course_ids_bulk.return_value = {}
+    r.get_courses.return_value = [{"id": "c1", "name": "Curso 1"}]
     return r
 
 
@@ -128,7 +130,6 @@ class TestGenerateAiAnalysis:
             {"is_correct": False, "topic": "Cálculo", "time_taken": 15.0},
             {"is_correct": True, "topic": "Álgebra", "time_taken": 8.0},
         ]
-        repo.get_latest_elo_by_topic.return_value = {}
         # El análisis de IA se inyecta desde la composición (R2): ya no hay un
         # import de infrastructure en el servicio al que apuntar con patch().
         mock_ai = MagicMock(return_value="Análisis generado")
@@ -136,3 +137,45 @@ class TestGenerateAiAnalysis:
         result = service.generate_ai_analysis(student_id=1, global_elo=1200, api_key="test_key")
         mock_ai.assert_called_once()
         assert result == "Análisis generado"
+
+
+class TestGetStudentDashboard:
+    """Spec 001 (T081): rating fields come from RatingReadService (FR-028a/b/j, FR-034a)."""
+
+    def test_rated_student_gets_the_derived_rating_and_its_label(self, service, repo):
+        repo.get_current_context_course_ids_bulk.return_value = {1: ["c1"]}
+        repo.get_course_topic_ratings_bulk.return_value = [
+            {
+                "user_id": 1,
+                "course_id": "c1",
+                "topic": "a",
+                "elo": 999.6,
+                "rd": 200.0,
+                "origin": "legacy_topic_row",
+                "approximate": True,
+            },
+        ]
+
+        result = service.get_student_dashboard(1)
+
+        assert (
+            result["global_elo"],
+            result["display_rating"],
+            result["rank_label"],
+            result["overall_status"],
+        ) == (999.6, 1000, "Plata I", "rated")
+        topic = result["course_ratings"][0]["topics"][0]
+        assert (topic["approximate"], topic["origin"]) == (True, "legacy_topic_row")
+
+    def test_pending_student_gets_no_number(self, service, repo):
+        repo.get_current_context_course_ids_bulk.return_value = {1: ["c1"]}
+
+        result = service.get_student_dashboard(1)
+
+        assert (
+            result["global_elo"],
+            result["display_rating"],
+            result["rank_label"],
+            result["overall_status"],
+        ) == (None, None, None, "pending_diagnostic")
+        assert result["elo_summary"]["global_elo"] is None

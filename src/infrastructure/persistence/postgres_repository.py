@@ -1029,6 +1029,14 @@ class PostgresRepository:
             self._add_column_if_not_exists(
                 cursor, "exam_sessions", "exam_template_id", "INTEGER"
             )
+            # Spec 001 (FR-028b): the overall rating's state at submission — 'rated' or 'pending'.
+            # NULL = recorded before this column: unknown, never backfilled (see contracts/api.md).
+            self._add_column_if_not_exists(
+                cursor,
+                "exam_sessions",
+                "global_elo_status",
+                "TEXT CHECK (global_elo_status IN ('rated', 'pending'))",
+            )
             # ── Tabla exam_templates (plantillas de examen del docente) ──────
             cursor.execute(
                 """
@@ -4693,7 +4701,7 @@ class PostgresRepository:
         n_questions: int,
         correct_count: int,
         score_pct: float,
-        global_elo_after: float,
+        global_elo_after: float | None,
         template_id: int | None = None,
         responses: list[dict] | None = None,
     ) -> int:
@@ -4706,8 +4714,8 @@ class PostgresRepository:
                 cursor.execute(
                     """INSERT INTO exam_sessions
                        (user_id, course_id, course_name, n_questions, correct_count, score_pct,
-                        global_elo_after, exam_template_id)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        global_elo_after, global_elo_status, exam_template_id)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                        RETURNING id""",
                     (
                         user_id,
@@ -4716,7 +4724,8 @@ class PostgresRepository:
                         n_questions,
                         correct_count,
                         score_pct,
-                        global_elo_after,
+                        global_elo_after or 0,
+                        "pending" if global_elo_after is None else "rated",
                         template_id,
                     ),
                 )
@@ -5031,12 +5040,14 @@ class PostgresRepository:
                 cursor.execute(
                     """INSERT INTO exam_sessions
                        (user_id, course_id, course_name, n_questions, correct_count, score_pct,
-                        global_elo_after, exam_template_id)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
+                        global_elo_after, global_elo_status, exam_template_id)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
                     (user_id, run["course_id"], course_name, result["total_questions"],
                      result["correct_count"], result["score_pct"],
-                     # Pending overall rating → the column's default 0 (NOT NULL, AGENTS R8).
-                     result["global_elo_after"] or 0, run["exam_template_id"]),
+                     # Pending: the column stays NOT NULL (AGENTS R8); the status says pending.
+                     result["global_elo_after"] or 0,
+                     "pending" if result["global_elo_after"] is None else "rated",
+                     run["exam_template_id"]),
                 )
                 history_id = cursor.fetchone()["id"]
                 if responses:
@@ -5170,7 +5181,10 @@ class PostgresRepository:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
                     """SELECT id, course_id, course_name, n_questions, correct_count,
-                              score_pct, global_elo_after,
+                              score_pct,
+                              CASE WHEN global_elo_status = 'rated' THEN global_elo_after END
+                                  AS global_elo_after,
+                              COALESCE(global_elo_status, 'unknown') AS global_elo_status,
                               to_char(created_at, 'YYYY-MM-DD HH24:MI') AS created_at
                        FROM exam_sessions
                        WHERE user_id = %s

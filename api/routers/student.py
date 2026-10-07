@@ -234,7 +234,11 @@ def stats(user: CurrentUser, repo: RepoDep):
         CourseRatingView(
             **{k: c[k] for k in ("course_id", "course_name", "rating", "display_rating",
                                  "rank_label", "current_context")},
-            topics=[TopicELO(topic=t["topic"], rating=t["elo"], rd=t["rd"]) for t in c["topics"]],
+            topics=[
+                TopicELO(topic=t["topic"], rating=t["elo"], rd=t["rd"],
+                         approximate=t["approximate"], origin=t["origin"])
+                for t in c["topics"]
+            ],
         )
         for c in view["courses"]
     ]

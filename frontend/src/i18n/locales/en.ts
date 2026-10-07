@@ -911,6 +911,8 @@ const en: TranslationKeys = {
     history: "earlier grade",
     byCourse: "Rating by course",
     basisOverall: "overall rating",
+    approximate: "approximate",
+    approximateHint: "Starting point estimated from earlier data; not your exact history.",
   },
 
   theme: {

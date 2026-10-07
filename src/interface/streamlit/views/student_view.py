@@ -19,7 +19,6 @@ import src.infrastructure.external_api.model_router as _router_mod
 import src.infrastructure.external_api.math_analysis_pipeline as _pipeline_mod
 
 from src.domain.elo.vector_elo import VectorRating
-from src.domain.elo.model import expected_score, Item
 from src.domain.entities import LEVEL_TO_BLOCK
 from src.domain.katia.katia_messages import (
     get_random_message,
@@ -72,6 +71,12 @@ def _course_vector(view) -> VectorRating:
             rds = [t["rd"] for t in course["topics"]]
             vector.ratings[course["course_name"]] = (course["rating"], fmean(rds))
     return vector
+
+
+def _stakes(ratings, user_id, course_id, item) -> tuple[str, str]:
+    """Stakes preview (FR-030): the change the engine applies to the item's (course, topic)."""
+    preview = ratings.answer_preview(user_id, course_id, item)
+    return f"+{preview['on_correct']:.1f}", f"−{abs(preview['on_wrong']):.1f}"
 
 
 def render_student():
@@ -677,7 +682,6 @@ def render_student():
         selected_course_id = st.session_state.selected_course["id"]
         selected_topic = st.session_state.selected_course["name"]
         current_elo_display = st.session_state.vector.get(selected_topic)
-        current_rd_display = st.session_state.vector.get_rd(selected_topic)
         topic_display_name = selected_topic
 
         # Spec 001: an unrated course reads "pending"; 1000 stays only as the engine's start.
@@ -1025,24 +1029,24 @@ def render_student():
                         st.write("")
 
                         # ── Stakes preview (puntos en juego) ─────────────
-                        _p_win = expected_score(
-                            current_elo_display, item_data.get("difficulty") or 1000
+                        _pts_up, _pts_dn = _stakes(
+                            st.session_state.student_service.ratings,
+                            st.session_state.user_id,
+                            selected_course_id,
+                            item_data,
                         )
-                        _k_est = 32.0 * (current_rd_display / 350.0)
-                        _pts_up = max(1, round(_k_est * (1 - _p_win)))
-                        _pts_dn = max(1, round(_k_est * _p_win))
                         st.markdown(
                             f"""
                         <div style="display:flex; gap:10px; margin:0 0 14px 0;">
                             <span style="background:rgba(76,175,80,0.12); border:1px solid rgba(76,175,80,0.4);
                                          border-radius:8px; padding:4px 14px; color:#66BB6A;
                                          font-size:0.85rem; font-weight:600;">
-                                ✅ +{_pts_up} pts si aciertas
+                                ✅ {_pts_up} pts si aciertas
                             </span>
                             <span style="background:rgba(255,75,75,0.10); border:1px solid rgba(255,75,75,0.35);
                                          border-radius:8px; padding:4px 14px; color:#EF5350;
                                          font-size:0.85rem; font-weight:600;">
-                                ❌ −{_pts_dn} pts si fallas
+                                ❌ {_pts_dn} pts si fallas
                             </span>
                         </div>
                         """,

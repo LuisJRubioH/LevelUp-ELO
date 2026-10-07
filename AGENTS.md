@@ -547,7 +547,8 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `attempts` | `elo_before`, `elo_after`, `elo_valid`, `prob_failure`, `expected_score`, `time_taken`, `request_id` |
 | `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta`, `elo_applied`, `file_hash` |
 | `pvp_matches` | `status` (active/finished/abandoned), `course_id`, applied deltas, `elo_reason_p1/p2` |
-| `katia_interactions`, `problem_reports`, `audit_group_changes`, `diagnostics`, `exam_sessions` | see repositories |
+| `exam_sessions` | `global_elo_after` + `global_elo_status` (`rated`/`pending`; NULL = before spec 001, unknown) — the overall rating at submission |
+| `katia_interactions`, `problem_reports`, `audit_group_changes`, `diagnostics` | see repositories |
 
 ---
 

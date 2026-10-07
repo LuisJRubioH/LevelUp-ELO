@@ -50,6 +50,17 @@ index. Nothing is dropped or retyped. Every change is mirrored in SQLite and Pos
 
 `elo_delta_p1/p2` hold the **applied** delta (0 when the reason is set).
 
+## Changed: `exam_sessions` (FR-028b)
+
+| New column | Type | Rule |
+|---|---|---|
+| `global_elo_status` | TEXT NULL, `CHECK IN ('rated', 'pending')` | the overall rating's state at submission; written with every new row |
+
+Additive (AGENTS R8): `global_elo_after` stays `REAL NOT NULL DEFAULT 0`, so a pending snapshot
+stores 0 with `global_elo_status = 'pending'`; a genuine overall rating of 0 stores 0 with
+`'rated'`. `NULL` = recorded before the column: unknown, never backfilled (contracts/api.md
+§ `GET /student/exam/history`).
+
 ## Derived values (never stored)
 
 ```

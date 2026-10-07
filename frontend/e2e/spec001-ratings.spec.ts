@@ -54,6 +54,31 @@ test.describe("Spec 001 · calificaciones en pantalla", () => {
     await expect(page.locator(".sp-stat").filter({ hasText: "ELO global" }).getByText("1000")).toHaveCount(0);
   });
 
+  test("Estadísticas marcan las líneas base aproximadas de la reconciliación (FR-034a)", async ({ page }) => {
+    await mockStudentApi(page);
+    const approx = { topic: "Fracciones", rating: 1100, rd: 200, approximate: true, origin: "legacy_topic_row" };
+    const exact = { topic: "Decimales", rating: 1200, rd: 120, approximate: false, origin: "practice" };
+    await json(page, "**/api/student/stats", {
+      ...STATS_BASE,
+      topic_elos: [approx, exact],
+      global_elo: 1150,
+      display_rating: 1150,
+      overall_status: "rated",
+      rank_label: "Oro II",
+      course_ratings: [
+        { course_id: "c1", course_name: "Curso reconciliado", rating: 1150, display_rating: 1150, rank_label: "Oro II", current_context: true, topics: [approx, exact] },
+        { course_id: "c2", course_name: "Curso practicado", rating: 1200, display_rating: 1200, rank_label: "Oro I", current_context: true, topics: [exact] },
+      ],
+    });
+    await injectAuth(page);
+    await page.goto("/student/stats");
+
+    await expect(page.locator(".sp-row").filter({ hasText: "Curso reconciliado" }).getByText(/aproximado/)).toBeVisible();
+    await expect(page.locator(".sp-row").filter({ hasText: "Curso practicado" }).getByText(/aproximado/)).toHaveCount(0);
+    await expect(page.getByTitle("Fracciones").getByText("≈")).toBeVisible();
+    await expect(page.getByTitle("Decimales").getByText("≈")).toHaveCount(0);
+  });
+
   test("Número y rango salen del mismo valor: 999.6 → 1000 «Plata I» (US6-AS9)", async ({ page }) => {
     await mockStudentApi(page);
     await json(page, "**/api/student/stats", {

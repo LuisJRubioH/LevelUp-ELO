@@ -115,6 +115,7 @@ export function Stats() {
     });
 
   const topicElos = Array.isArray(stats.topic_elos) ? stats.topic_elos : [];
+  const approxHint = t("rating.approximateHint"); // the topic map below shadows `t`
   const ranking = Array.isArray(rankingData?.ranking) ? rankingData.ranking : [];
   const earnedAchievements = Array.isArray(achievementsData?.achievements)
     ? achievementsData.achievements
@@ -161,6 +162,11 @@ export function Stats() {
                 <span className="nm">
                   {c.course_name}
                   {!c.current_context && <span className="sp-mute text-xs"> · {t("rating.history")}</span>}
+                  {c.topics.some((tp) => tp.approximate) && (
+                    <span className="sp-mute text-xs" title={t("rating.approximateHint")}>
+                      {" · "}{t("rating.approximate")}
+                    </span>
+                  )}
                 </span>
                 <span className="val">
                   {c.display_rating ?? t("rating.pending")}
@@ -205,6 +211,7 @@ export function Stats() {
               <div key={t.topic} className="flex items-center gap-3">
                 <span className="sp-dim text-xs w-40 truncate" title={t.topic}>
                   {t.topic}
+                  {t.approximate && <span title={approxHint}> ≈</span>}
                 </span>
                 <div className="sp-bar">
                   <i style={{ width: `${Math.min(100, ((t.rating - 400) / 2600) * 100)}%` }} />

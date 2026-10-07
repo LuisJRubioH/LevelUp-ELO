@@ -909,6 +909,8 @@ const es = {
     history: "grado anterior",
     byCourse: "Rating por curso",
     basisOverall: "rating global",
+    approximate: "aproximado",
+    approximateHint: "Punto de partida estimado a partir de datos anteriores; no es tu historial exacto.",
   },
 
   theme: {
