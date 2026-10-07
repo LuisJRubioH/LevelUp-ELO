@@ -113,7 +113,6 @@ class TestProcessAnswer:
         )
         mock_repository.save_answer_transaction.assert_called_once()
 
-
     def test_cog_data_contains_expected_fields(self, service, medium_item, student_vector):
         """El cog_data retornado incluye confidence_score, error_type, impact_modifier."""
         _, cog_data = service.process_answer(
