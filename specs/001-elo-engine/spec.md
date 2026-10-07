@@ -587,98 +587,98 @@ items of that course, or the student's diagnostic for that course.
 **Automated tests are explicitly required for every functional requirement and acceptance
 scenario. Reuse adequate existing tests; create or strengthen tests where coverage is missing.**
 
-Docs stage: every row names the task(s) in tasks.md that produce its test; `PENDING` until T068
+Docs stage: every row names the task(s) in tasks.md that produce its test; `PENDING` until T069
 replaces it with the collected test id.
 
 | Requirement / Scenario | Test |
 |---|---|
-| US1-AS1 | `PENDING` (T011, T012, T033) |
-| US1-AS2 | `PENDING` (T011, T033) |
-| US1-AS3 | `PENDING` (T006) |
-| US1-AS4 | `PENDING` (T013) |
-| US1-AS5 | `PENDING` (T013) |
-| US1-AS6 | `PENDING` (T006) |
-| US1-AS7 | `PENDING` (T009) |
-| US2-AS1 | `PENDING` (T015) |
-| US2-AS2 | `PENDING` (T004) |
-| US2-AS3 | `PENDING` (T014) |
-| US2-AS4 | `PENDING` (T014) |
-| US2-AS5 | `PENDING` (T014) |
-| US3-AS1 | `PENDING` (T016) |
-| US3-AS2 | `PENDING` (T016) |
-| US3-AS3 | `PENDING` (T006) |
-| US3-AS4 | `PENDING` (T016) |
-| US4-AS1 | `PENDING` (T017, T047) |
-| US4-AS2 | `PENDING` (T006) |
-| US4-AS3 | `PENDING` (T017) |
-| US4-AS4 | `PENDING` (T008) |
-| US4-AS5 | `PENDING` (T017) |
-| US5-AS1 | `PENDING` (T018) |
-| US5-AS2 | `PENDING` (T007) |
-| US5-AS3 | `PENDING` (T007) |
-| US5-AS4 | `PENDING` (T018) |
-| US5-AS5 | `PENDING` (T049) |
-| US6-AS1 | `PENDING` (T022, T031, T053) |
-| US6-AS2 | `PENDING` (T058, T061) |
-| US6-AS3 | `PENDING` (T057, T061) |
-| US6-AS4 | `PENDING` (T013, T019) |
-| US6-AS5 | `PENDING` (T053, T061) |
-| US6-AS6 | `PENDING` (T053) |
-| US6-AS7 | `PENDING` (T055, T061) |
-| US6-AS8 | `PENDING` (T022, T056, T061) |
-| US6-AS9 | `PENDING` (T022, T057, T061) |
-| FR-001 | `PENDING` (T003) |
-| FR-002 | `PENDING` (T011) |
-| FR-003 | `PENDING` (T011) |
-| FR-004 | `PENDING` (T011, T042, T044) |
-| FR-005 | `PENDING` (T012) |
-| FR-006 | `PENDING` (T012) |
-| FR-007 | `PENDING` (T006, T019) |
-| FR-008 | `PENDING` (T006, T019, T034) |
-| FR-009 | `PENDING` (T034) |
-| FR-010 | `PENDING` (T006) |
-| FR-011 | `PENDING` (T009) |
-| FR-012 | `PENDING` (T010, T013) |
-| FR-013 | `PENDING` (T013) |
-| FR-014 | `PENDING` (T013) |
-| FR-015 | `PENDING` (T012, T035) |
-| FR-016 | `PENDING` (T005, T014) |
-| FR-017 | `PENDING` (T004, T015) |
-| FR-018 | `PENDING` (T004) |
-| FR-019 | `PENDING` (T014) |
-| FR-020 | `PENDING` (T016) |
-| FR-021 | `PENDING` (T006, T045) |
-| FR-022 | `PENDING` (T006, T017) |
-| FR-023 | `PENDING` (T008, T017) |
-| FR-024 | `PENDING` (T017) |
-| FR-025 | `PENDING` (T007, T018) |
-| FR-026 | `PENDING` (T050) |
-| FR-027 | `PENDING` (T007) |
-| FR-028 | `PENDING` (T006, T054) |
-| FR-028a | `PENDING` (T053) |
-| FR-028b | `PENDING` (T053) |
-| FR-028c | `PENDING` (T053) |
-| FR-028d | `PENDING` (T055) |
-| FR-028e | `PENDING` (T019) |
-| FR-028f | `PENDING` (T029, T056) |
-| FR-028g | `PENDING` (T019) |
-| FR-028h | `PENDING` (T022, T056) |
-| FR-028i | `PENDING` (T022, T031, T061) |
-| FR-028j | `PENDING` (T022, T031, T057, T061) |
-| FR-029 | `PENDING` (T033, T036, T040, T045, T047, T052) |
-| FR-029a | `PENDING` (T042) |
-| FR-029b | `PENDING` (T049) |
-| FR-029c | `PENDING` (T049) |
-| FR-030 | `PENDING` (T058) |
-| FR-031 | `PENDING` (T057) |
-| FR-031a | `PENDING` (T016) |
-| FR-032 | `PENDING` (T013, T019) |
-| FR-033 | `PENDING` (T059) |
-| FR-034 | `PENDING` (T059) |
-| FR-034a | `PENDING` (T059) |
-| FR-034b | `PENDING` (T059) |
-| FR-035 | `PENDING` (T059) |
-| FR-036 | `PENDING` (T054, T059) |
+| US1-AS1 | `PENDING` (T012, T013, T034) |
+| US1-AS2 | `PENDING` (T012, T034) |
+| US1-AS3 | `PENDING` (T007) |
+| US1-AS4 | `PENDING` (T014) |
+| US1-AS5 | `PENDING` (T014) |
+| US1-AS6 | `PENDING` (T007) |
+| US1-AS7 | `PENDING` (T010) |
+| US2-AS1 | `PENDING` (T016) |
+| US2-AS2 | `PENDING` (T005) |
+| US2-AS3 | `PENDING` (T015) |
+| US2-AS4 | `PENDING` (T015) |
+| US2-AS5 | `PENDING` (T015) |
+| US3-AS1 | `PENDING` (T017) |
+| US3-AS2 | `PENDING` (T017) |
+| US3-AS3 | `PENDING` (T007) |
+| US3-AS4 | `PENDING` (T017) |
+| US4-AS1 | `PENDING` (T018, T048) |
+| US4-AS2 | `PENDING` (T007) |
+| US4-AS3 | `PENDING` (T018) |
+| US4-AS4 | `PENDING` (T009) |
+| US4-AS5 | `PENDING` (T018) |
+| US5-AS1 | `PENDING` (T019) |
+| US5-AS2 | `PENDING` (T008) |
+| US5-AS3 | `PENDING` (T008) |
+| US5-AS4 | `PENDING` (T019) |
+| US5-AS5 | `PENDING` (T050) |
+| US6-AS1 | `PENDING` (T023, T032, T054) |
+| US6-AS2 | `PENDING` (T059, T062) |
+| US6-AS3 | `PENDING` (T058, T062) |
+| US6-AS4 | `PENDING` (T014, T020) |
+| US6-AS5 | `PENDING` (T054, T062) |
+| US6-AS6 | `PENDING` (T054) |
+| US6-AS7 | `PENDING` (T056, T062) |
+| US6-AS8 | `PENDING` (T023, T057, T062) |
+| US6-AS9 | `PENDING` (T023, T058, T062) |
+| FR-001 | `PENDING` (T004) |
+| FR-002 | `PENDING` (T012) |
+| FR-003 | `PENDING` (T012) |
+| FR-004 | `PENDING` (T012, T043, T045) |
+| FR-005 | `PENDING` (T013) |
+| FR-006 | `PENDING` (T013) |
+| FR-007 | `PENDING` (T007, T020) |
+| FR-008 | `PENDING` (T007, T020, T035) |
+| FR-009 | `PENDING` (T035) |
+| FR-010 | `PENDING` (T007) |
+| FR-011 | `PENDING` (T010) |
+| FR-012 | `PENDING` (T011, T014) |
+| FR-013 | `PENDING` (T014) |
+| FR-014 | `PENDING` (T014) |
+| FR-015 | `PENDING` (T013, T036) |
+| FR-016 | `PENDING` (T006, T015) |
+| FR-017 | `PENDING` (T005, T016) |
+| FR-018 | `PENDING` (T005) |
+| FR-019 | `PENDING` (T015) |
+| FR-020 | `PENDING` (T017) |
+| FR-021 | `PENDING` (T007, T046) |
+| FR-022 | `PENDING` (T007, T018) |
+| FR-023 | `PENDING` (T009, T018) |
+| FR-024 | `PENDING` (T018) |
+| FR-025 | `PENDING` (T008, T019) |
+| FR-026 | `PENDING` (T051) |
+| FR-027 | `PENDING` (T008) |
+| FR-028 | `PENDING` (T007, T055) |
+| FR-028a | `PENDING` (T054) |
+| FR-028b | `PENDING` (T054) |
+| FR-028c | `PENDING` (T054) |
+| FR-028d | `PENDING` (T056) |
+| FR-028e | `PENDING` (T020) |
+| FR-028f | `PENDING` (T030, T057) |
+| FR-028g | `PENDING` (T020) |
+| FR-028h | `PENDING` (T023, T057) |
+| FR-028i | `PENDING` (T023, T032, T062) |
+| FR-028j | `PENDING` (T023, T032, T058, T062) |
+| FR-029 | `PENDING` (T034, T037, T041, T046, T048, T053) |
+| FR-029a | `PENDING` (T043) |
+| FR-029b | `PENDING` (T050) |
+| FR-029c | `PENDING` (T050) |
+| FR-030 | `PENDING` (T059) |
+| FR-031 | `PENDING` (T058) |
+| FR-031a | `PENDING` (T017) |
+| FR-032 | `PENDING` (T014, T020) |
+| FR-033 | `PENDING` (T060) |
+| FR-034 | `PENDING` (T060) |
+| FR-034a | `PENDING` (T060) |
+| FR-034b | `PENDING` (T060) |
+| FR-035 | `PENDING` (T060) |
+| FR-036 | `PENDING` (T055, T060) |
 
 ## Appendix — As-is evidence
 

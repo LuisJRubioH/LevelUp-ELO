@@ -10,13 +10,21 @@ pip install -r requirements-api.txt
 cd frontend && pnpm install --frozen-lockfile && cd ..
 ```
 
-PostgreSQL branch of the integration tests: Docker locally, or the CI job `test-postgres`.
+PostgreSQL branch of the integration tests: without `POSTGRES_TEST_DATABASE_URL` it is **skipped**
+(the 11 skips of a plain local run). Run it locally against a disposable database:
+
+```bash
+docker run -d --rm --name spec001-pg -p 5433:5432 -e POSTGRES_PASSWORD=spec001 postgres:16-alpine
+POSTGRES_TEST_DATABASE_URL=postgresql://postgres:spec001@localhost:5433/postgres ADMIN_PASSWORD=testadmin123 python -m pytest tests/integration -q -rs
+```
+
+or rely on the CI job `test-postgres` (it runs only the files it lists — task T003).
 
 ## 1. Pins before refactoring (must pass on the unchanged code)
 
 Characterization tests follow the existing layout (constitution § Code Style): `tests/unit/domain/`,
 `tests/integration/` (both engines), `tests/api/`. New tests contain `spec001` in their name;
-reused pins live in existing files. This is the same selection as task T021 (the pin gate):
+reused pins live in existing files. This is the same selection as task T022 (the pin gate):
 
 ```bash
 ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q -k "spec001 or elo_single_source or pvp_repository or item_selector or elo_model or student_service or procedure_grading"
