@@ -1631,86 +1631,39 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    @_timing
-    def save_attempt(
-        self,
-        user_id,
-        item_id,
-        is_correct,
-        difficulty,
-        topic,
-        elo_after,
-        prob_failure=None,
-        expected_score=None,
-        time_taken=None,
-        confidence_score=None,
-        error_type=None,
-        rating_deviation=None,
-    ):
-        conn = self.get_connection()
-        try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute(
-                """
-                INSERT INTO attempts (user_id, item_id, is_correct, difficulty, topic, elo_after,
-                                      prob_failure, expected_score, time_taken, confidence_score,
-                                      error_type, rating_deviation)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    def _set_course_topic_rating(self, cursor, user_id, course_id, topic, elo, rd, origin):
+        """Write one (course, topic) rating; `origin` is kept from the row's first writer."""
+        cursor.execute(
+            """
+            INSERT INTO student_course_topic_elo
+                (user_id, course_id, topic, current_elo, rd, origin, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, course_id, topic) DO UPDATE
+                SET current_elo = EXCLUDED.current_elo,
+                    rd = EXCLUDED.rd,
+                    updated_at = CURRENT_TIMESTAMP
             """,
-                (
-                    user_id,
-                    item_id,
-                    is_correct,
-                    difficulty,
-                    topic,
-                    elo_after,
-                    prob_failure,
-                    expected_score,
-                    time_taken,
-                    confidence_score,
-                    error_type,
-                    rating_deviation,
-                ),
-            )
-            self._set_topic_elo(cursor, user_id, topic, elo_after, rating_deviation)
-            conn.commit()
-        finally:
-            self.put_connection(conn)
-
-    def _tiempo_valido(self, time_taken: float) -> bool:
-        """Rango válido para actualizar ELO: [3s, 600s].
-        <3s = adivinanza sin leer; >600s = sesión abandonada.
-        """
-        return 3.0 <= time_taken <= 600.0
+            (user_id, course_id, topic, float(elo), float(rd), origin),
+        )
 
     def save_answer_transaction(
         self,
         user_id: int,
         item_id: str,
-        topic: str,
         compute,
-        default_elo: float = 1000.0,
-        default_rd: float = 350.0,
         request_id: str | None = None,
         request_fingerprint: str | None = None,
     ) -> bool:
-        """Unidad de trabajo de una respuesta: bloquea, lee, calcula y persiste.
+        """Unit of work of one answer: lock, read, compute, persist (spec 001, FR-010, FR-029).
 
-        El ciclo entero corre en una transacción con la fila del estudiante y
-        la del ítem bloqueadas. Sin eso, dos respuestas concurrentes parten
-        del mismo rating y una pisa el efecto de la otra.
+        The rating is the item's own (course, topic) row. `compute` is the domain calculation:
 
-        `compute` es el cálculo de dominio, que aporta la capa de aplicación:
-
-            compute({"elo", "rd", "item_difficulty", "item_rd"})
+            compute({"elo", "rd", "item_difficulty", "item_rd", "course_id", "topic"})
                 -> (attempt_data, item_difficulty_new, item_rd_new)
 
-        Recibe el estado ya bloqueado y no debe hacer I/O: corre con la
-        conexión tomada y la fila del ítem bloqueada.
-
-        El intento siempre se guarda; el ELO solo se mueve si el tiempo de
-        respuesta cae en [3s, 600s]. Devuelve False si `request_id` ya estaba
-        registrado (reintento del cliente).
+        It runs on the locked state and must not do I/O. The attempt is always stored; the
+        rating and the item move only when `attempt_data["elo_valid"]` (FR-008, FR-008a).
+        Returns False when `request_id` was already recorded (a client retry).
         """
         conn = self.get_connection()
         try:
@@ -1718,29 +1671,32 @@ class PostgresRepository:
             # Orden de bloqueo fijo (estudiante → ítem) para no cruzar deadlocks.
             cursor.execute("SELECT id FROM users WHERE id = %s FOR UPDATE", (user_id,))
             cursor.execute(
-                "SELECT difficulty, rating_deviation FROM items WHERE id = %s FOR UPDATE",
+                "SELECT difficulty, rating_deviation, course_id, topic FROM items"
+                " WHERE id = %s FOR UPDATE",
                 (item_id,),
             )
             item = cursor.fetchone()
             if item is None:
                 raise ValueError("Ítem '%s' no encontrado." % item_id)
+            course_id, topic = item["course_id"], item["topic"]
             cursor.execute(
-                "SELECT current_elo, rd FROM student_topic_elo "
-                "WHERE user_id = %s AND topic = %s",
-                (user_id, topic),
+                "SELECT current_elo, rd FROM student_course_topic_elo"
+                " WHERE user_id = %s AND course_id = %s AND topic = %s",
+                (user_id, course_id, topic),
             )
             rating = cursor.fetchone()
 
             attempt_data, item_difficulty_new, item_rd_new = compute(
                 {
-                    "elo": float(rating["current_elo"]) if rating else float(default_elo),
-                    "rd": float(rating["rd"]) if rating else float(default_rd),
+                    "elo": float(rating["current_elo"]) if rating else 1000.0,
+                    "rd": float(rating["rd"]) if rating else 350.0,
                     "item_difficulty": float(item["difficulty"]),
                     "item_rd": float(item["rating_deviation"] or 350.0),
+                    "course_id": course_id,
+                    "topic": topic,
                 }
             )
-            time_taken = attempt_data.get("time_taken", 30.0) or 30.0
-            elo_valid = 1 if self._tiempo_valido(time_taken) else 0
+            elo_valid = bool(attempt_data["elo_valid"])
 
             # Siempre registrar el intento
             cursor.execute(
@@ -1756,7 +1712,7 @@ class PostgresRepository:
                     item_id,
                     attempt_data["is_correct"],
                     attempt_data.get("difficulty"),
-                    attempt_data.get("topic"),
+                    topic,
                     attempt_data["elo_after"],
                     attempt_data.get("prob_failure"),
                     attempt_data.get("expected_score"),
@@ -1764,25 +1720,26 @@ class PostgresRepository:
                     attempt_data.get("confidence_score"),
                     attempt_data.get("error_type"),
                     attempt_data.get("rating_deviation"),
-                    elo_valid,
+                    1 if elo_valid else 0,
                     attempt_data.get("elo_before"),
                     request_id,
                     request_fingerprint,
                 ),
             )
             inserted = cursor.rowcount == 1
-            # Solo actualizar ELO si el tiempo de respuesta es válido
             if inserted and elo_valid:
                 cursor.execute(
                     "UPDATE items SET difficulty = %s, rating_deviation = %s WHERE id = %s",
                     (item_difficulty_new, item_rd_new, item_id),
                 )
-                self._set_topic_elo(
+                self._set_course_topic_rating(
                     cursor,
                     user_id,
-                    attempt_data.get("topic"),
+                    course_id,
+                    topic,
                     attempt_data["elo_after"],
-                    attempt_data.get("rating_deviation"),
+                    attempt_data["rating_deviation"],
+                    "practice",
                 )
             conn.commit()
             return inserted
@@ -5456,15 +5413,20 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    def set_topic_elo_baseline(
-        self, user_id: int, topic: str, elo: float, rd: float = 350.0
+    def set_topic_rating_baseline(
+        self, user_id: int, course_id: str, topic: str, elo: float, rd: float = 350.0
     ) -> None:
-        """Fija el ELO inicial de un tópico (diagnóstico) en el estado canónico."""
+        """Diagnostic writer: the starting rating of one (course, topic) (FR-020, FR-029).
+
+        No attempt is created. The caller skips topics already practised (FR-021).
+        """
         conn = self.get_connection()
         try:
             with conn.cursor() as cursor:
-                self._set_topic_elo(cursor, user_id, topic, elo, rd)
-                conn.commit()
+                self._set_course_topic_rating(
+                    cursor, user_id, course_id, topic, elo, rd, "diagnostic"
+                )
+            conn.commit()
         except Exception:
             conn.rollback()
             raise
@@ -5568,28 +5530,25 @@ class PostgresRepository:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 "SELECT item_id, is_correct, elo_before, elo_after, rating_deviation, "
-                "request_fingerprint FROM attempts WHERE user_id=%s AND request_id=%s",
+                "request_fingerprint, elo_valid FROM attempts WHERE user_id=%s AND request_id=%s",
                 (user_id, request_id),
             )
             row = cursor.fetchone()
-            return dict(row) if row else None
+            return {**row, "elo_valid": bool(row["elo_valid"])} if row else None
         finally:
             self.put_connection(conn)
 
-    def has_practice_attempts(
-        self, user_id: int, topic: str, course_id: str | None = None
-    ) -> bool:
-        """Indica si una línea ELO ya tiene práctica y no debe reiniciarse."""
-        keys = [topic] if not course_id or course_id == topic else [topic, course_id]
+    def has_practice_attempts(self, user_id: int, course_id: str, topic: str) -> bool:
+        """Whether the student answered items of this course and topic (FR-021)."""
         conn = self.get_connection()
         try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute(
-                "SELECT 1 AS found FROM attempts "
-                "WHERE user_id = %s AND topic = ANY(%s) LIMIT 1",
-                (user_id, keys),
-            )
-            return cursor.fetchone() is not None
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT 1 FROM attempts a JOIN items i ON i.id = a.item_id"
+                    " WHERE a.user_id = %s AND i.course_id = %s AND i.topic = %s LIMIT 1",
+                    (user_id, course_id, topic),
+                )
+                return cursor.fetchone() is not None
         finally:
             self.put_connection(conn)
 

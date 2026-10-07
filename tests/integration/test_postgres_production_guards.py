@@ -90,8 +90,14 @@ def postgres_context():
     repo._pool.closeall()
 
 
+def _topic_rating(repo, user_id, topic):
+    """The (calculo_diferencial, topic) rating of the course × topic store (spec 001)."""
+    rows = repo.get_course_topic_ratings(user_id, course_id="calculo_diferencial")
+    return next(r["elo"] for r in rows if r["topic"] == topic)
+
+
 def test_postgres_permissions_diagnostic_and_canonical_answer(postgres_context):
-    from api.dependencies import build_vector_rating
+    from src.application.services.rating_read_service import RatingReadService
 
     ctx = postgres_context
     repo = ctx["repo"]
@@ -100,26 +106,34 @@ def test_postgres_permissions_diagnostic_and_canonical_answer(postgres_context):
     group_id = ctx["group_id"]
 
     for suffix in ("", "/elo-history", "/katia-history", "/ranking"):
-        assert client.get(
-            f"/api/teacher/student/{student_id}{suffix}", headers=ctx["b_headers"]
-        ).status_code == 404
-        assert client.get(
-            f"/api/teacher/student/{student_id}{suffix}", headers=ctx["a_headers"]
-        ).status_code == 200
+        assert (
+            client.get(
+                f"/api/teacher/student/{student_id}{suffix}", headers=ctx["b_headers"]
+            ).status_code
+            == 404
+        )
+        assert (
+            client.get(
+                f"/api/teacher/student/{student_id}{suffix}", headers=ctx["a_headers"]
+            ).status_code
+            == 200
+        )
 
     original_code = repo.generate_group_invite_code(group_id)
-    assert client.post(
-        f"/api/teacher/groups/{group_id}/invite-code", headers=ctx["b_headers"]
-    ).status_code == 404
+    assert (
+        client.post(
+            f"/api/teacher/groups/{group_id}/invite-code", headers=ctx["b_headers"]
+        ).status_code
+        == 404
+    )
     assert repo.get_group_by_invite_code(original_code)["group_id"] == group_id
 
     item = repo.get_items_from_db(course_id="calculo_diferencial")[0]
     repo.save_diagnostic(student_id, "calculo_diferencial", 1234, 75, "{}")
-    repo.set_topic_elo_baseline(student_id, item["topic"], 1234)
-    assert build_vector_rating(student_id, repo).get(item["topic"]) == 1234
-    assert build_vector_rating(student_id, repo, "calculo_diferencial").get(
-        "calculo_diferencial"
-    ) == 1234
+    repo.set_topic_rating_baseline(student_id, "calculo_diferencial", item["topic"], 1234)
+    ratings = RatingReadService(repo)
+    assert _topic_rating(repo, student_id, item["topic"]) == 1234
+    assert ratings.course_rating_of(student_id, "calculo_diferencial") == 1234
 
     response = client.post(
         "/api/student/answer",
@@ -144,7 +158,7 @@ def test_postgres_permissions_diagnostic_and_canonical_answer(postgres_context):
     finally:
         repo.put_connection(conn)
     assert saved == (item["id"], item["difficulty"], item["topic"])
-    persisted_before_redo = build_vector_rating(student_id, repo).get(item["topic"])
+    persisted_before_redo = _topic_rating(repo, student_id, item["topic"])
     wrong = next(option for option in item["options"] if option != item["correct_option"])
     redone = client.post(
         "/api/student/diagnostic/calculo_diferencial/submit",
@@ -152,7 +166,7 @@ def test_postgres_permissions_diagnostic_and_canonical_answer(postgres_context):
         json={"answers": [{"item_id": item["id"], "selected_option": wrong}]},
     )
     assert redone.status_code == 200
-    assert build_vector_rating(student_id, repo).get(item["topic"]) == persisted_before_redo
+    assert _topic_rating(repo, student_id, item["topic"]) == persisted_before_redo
 
 
 def test_postgres_atomic_procedure_and_assignment_guards(postgres_context):
@@ -174,11 +188,14 @@ def test_postgres_atomic_procedure_and_assignment_guards(postgres_context):
     finally:
         repo.put_connection(conn)
 
-    assert client.post(
-        "/api/teacher/procedures/grade",
-        headers=ctx["b_headers"],
-        json={"submission_id": submission_id, "teacher_score": 0},
-    ).status_code == 404
+    assert (
+        client.post(
+            "/api/teacher/procedures/grade",
+            headers=ctx["b_headers"],
+            json={"submission_id": submission_id, "teacher_score": 0},
+        ).status_code
+        == 404
+    )
     graded = client.post(
         "/api/teacher/procedures/grade",
         headers=ctx["a_headers"],
@@ -186,11 +203,14 @@ def test_postgres_atomic_procedure_and_assignment_guards(postgres_context):
     )
     assert graded.status_code == 200
     assert graded.json()["elo_delta"] == 6
-    assert client.post(
-        "/api/teacher/procedures/grade",
-        headers=ctx["a_headers"],
-        json={"submission_id": submission_id, "teacher_score": 50},
-    ).status_code == 404
+    assert (
+        client.post(
+            "/api/teacher/procedures/grade",
+            headers=ctx["a_headers"],
+            json={"submission_id": submission_id, "teacher_score": 50},
+        ).status_code
+        == 404
+    )
 
     own_template = repo.create_exam_template(
         ctx["teacher_b"], "calculo_diferencial", "PG own", 10, [item["id"]]
@@ -199,31 +219,38 @@ def test_postgres_atomic_procedure_and_assignment_guards(postgres_context):
         ctx["teacher_a"], "calculo_diferencial", "PG victim", 10, [item["id"]]
     )
     victim_assignment = repo.create_exam_assignment(victim_template, ctx["group_id"])
-    assert client.delete(
-        f"/api/teacher/exam-templates/{own_template}/assignments/{victim_assignment}",
-        headers=ctx["b_headers"],
-    ).status_code == 404
+    assert (
+        client.delete(
+            f"/api/teacher/exam-templates/{own_template}/assignments/{victim_assignment}",
+            headers=ctx["b_headers"],
+        ).status_code
+        == 404
+    )
     assert [row["id"] for row in repo.list_assignments_for_template(victim_template)] == [
         victim_assignment
     ]
     own_assignment = repo.create_exam_assignment(own_template, ctx["group_id"])
-    assert client.delete(
-        f"/api/teacher/exam-templates/{own_template}/assignments/{own_assignment}",
-        headers=ctx["b_headers"],
-    ).status_code == 204
+    assert (
+        client.delete(
+            f"/api/teacher/exam-templates/{own_template}/assignments/{own_assignment}",
+            headers=ctx["b_headers"],
+        ).status_code
+        == 204
+    )
 
 
 def test_postgres_cookie_refresh_and_immediate_account_revocation(postgres_context):
     ctx = postgres_context
     client = ctx["client"]
     username = f"pg_revocation_{uuid.uuid4().hex[:10]}"
-    assert client.post(
-        "/api/auth/register",
-        json={"username": username, "password": "password123", "role": "student"},
-    ).status_code == 201
-    login = client.post(
-        "/api/auth/login", json={"username": username, "password": "password123"}
+    assert (
+        client.post(
+            "/api/auth/register",
+            json={"username": username, "password": "password123", "role": "student"},
+        ).status_code
+        == 201
     )
+    login = client.post("/api/auth/login", json={"username": username, "password": "password123"})
     assert login.status_code == 200
     cookie = next(c for c in client.cookies.jar if c.name == "levelup_refresh")
     assert cookie.path == "/api/auth"
@@ -355,7 +382,8 @@ def test_postgres_procedure_review_token_and_antiplagiarism(postgres_context):
         ctx["student_id"], item_id, hashlib.sha256(image).hexdigest(), 87, "PG verified"
     )
     saved = ctx["client"].post(
-        "/api/student/procedure", headers=ctx["student_headers"],
+        "/api/student/procedure",
+        headers=ctx["student_headers"],
         data={"item_id": item_id, "analysis_token": token},
         files={"file": ("work.png", image, "image/png")},
     )
@@ -382,7 +410,9 @@ def test_postgres_procedure_review_token_and_antiplagiarism(postgres_context):
         "Authorization": "Bearer " + dependencies.create_access_token(other_id, username, "student")
     }
     duplicate = ctx["client"].post(
-        "/api/student/procedure", headers=other_headers,
-        data={"item_id": item_id}, files={"file": ("copy.png", image, "image/png")},
+        "/api/student/procedure",
+        headers=other_headers,
+        data={"item_id": item_id},
+        files={"file": ("copy.png", image, "image/png")},
     )
     assert duplicate.status_code == 409

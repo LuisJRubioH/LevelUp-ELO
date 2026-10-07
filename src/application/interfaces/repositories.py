@@ -33,10 +33,7 @@ class IStudentRepository(Protocol):
         self,
         user_id: int,
         item_id: str,
-        topic: str,
         compute: Callable[[dict], tuple],
-        default_elo: float = 1000.0,
-        default_rd: float = 350.0,
         request_id: Optional[str] = None,
         request_fingerprint: Optional[str] = None,
     ) -> bool: ...

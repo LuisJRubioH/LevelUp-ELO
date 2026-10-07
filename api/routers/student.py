@@ -151,7 +151,12 @@ def answer(
     repo: RepoDep,
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ):
-    """Procesa una respuesta: actualiza ELO y persiste el intento de forma atómica."""
+    """Procesa una respuesta: actualiza el rating del (curso, tópico) del ítem de forma atómica.
+
+    Con `Idempotency-Key`, la primera respuesta y cada reintento devuelven los valores del
+    intento tal como quedó persistido, así que son idénticos; el rating guardado conserva la
+    precisión completa (FR-012a, research R21). `elo_topic` se acepta y se ignora (spec 001).
+    """
     service = _make_service(repo)
 
     # El cliente identifica el ítem; todos los datos académicos son canónicos.
@@ -161,16 +166,6 @@ def answer(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Ítem '{body.item_id}' no encontrado.",
         )
-    item_data = item_db
-    # Mantener los dos modos existentes: tópico (mapa) o curso (práctica general).
-    # No permitir escribir ratings bajo claves arbitrarias enviadas por el cliente.
-    valid_topics = {item_db["topic"], item_db.get("course_id")} - {None, ""}
-    elo_topic = body.elo_topic if body.elo_topic is not None else item_db["topic"]
-    if elo_topic not in valid_topics:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El tópico de práctica no corresponde al ítem.",
-        )
     if body.selected_option not in item_db["options"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -178,11 +173,13 @@ def answer(
         )
     if idempotency_key is not None and not 1 <= len(idempotency_key) <= 128:
         raise HTTPException(status_code=400, detail="Clave de idempotencia inválida.")
+    # The item's topic stands where the client's elo_topic used to: old fingerprints of
+    # clients that sent no elo_topic stay valid.
     fingerprint = hashlib.sha256(
-        "\0".join((body.item_id, body.selected_option, elo_topic)).encode("utf-8")
+        "\0".join((body.item_id, body.selected_option, item_db["topic"])).encode("utf-8")
     ).hexdigest()
 
-    def replay(saved: dict) -> AnswerResponse:
+    def persisted(saved: dict, cog_data: dict) -> AnswerResponse:
         if saved["request_fingerprint"] != fingerprint:
             raise HTTPException(
                 status_code=409, detail="La clave de idempotencia pertenece a otra respuesta."
@@ -190,52 +187,43 @@ def answer(
         before = float(saved["elo_before"])
         after = float(saved["elo_after"])
         return AnswerResponse(
-            is_correct=bool(saved["is_correct"]), elo_before=round(before, 2),
-            elo_after=round(after, 2), rd_after=round(float(saved["rating_deviation"]), 2),
-            delta_elo=round(after - before, 2), cog_data={"idempotent_replay": True},
+            is_correct=bool(saved["is_correct"]),
+            elo_before=round(before, 2),
+            elo_after=round(after, 2),
+            rd_after=round(float(saved["rating_deviation"]), 2),
+            delta_elo=round(after - before, 2),
+            elo_valid=bool(saved["elo_valid"]),
+            cog_data=cog_data,
         )
 
     if idempotency_key:
         saved = repo.get_answer_by_request_id(user["user_id"], idempotency_key)
         if saved:
-            return replay(saved)
-    vector = build_vector_rating(
-        user["user_id"],
-        repo,
-        course_id=item_db.get("course_id") if elo_topic == item_db.get("course_id") else None,
-    )
-    elo_before = vector.get(elo_topic)
+            return persisted(saved, {"idempotent_replay": True})
 
-    is_correct, cog_data = service.process_answer(
+    is_correct, result = service.process_answer(
         user_id=user["user_id"],
-        item_data=item_data,
+        item_data=item_db,
         selected_option=body.selected_option,
         reasoning=body.reasoning or "",
         time_taken=body.time_taken,
-        vector_rating=vector,
-        elo_topic=elo_topic,
         request_id=idempotency_key,
         request_fingerprint=fingerprint if idempotency_key else None,
     )
 
-    if cog_data.get("idempotent_replay") and idempotency_key:
+    if idempotency_key:
         saved = repo.get_answer_by_request_id(user["user_id"], idempotency_key)
-        if saved:
-            return replay(saved)
-
-    # Los valores autoritativos salen de la transacción, no de la lectura previa:
-    # entre una y otra pudo entrar otra respuesta del mismo estudiante.
-    elo_before = cog_data.get("elo_before", elo_before)
-    elo_after = cog_data.get("elo_after", vector.get(elo_topic))
-    rd_after = cog_data.get("rd_after", vector.get_rd(elo_topic))
+        replayed = result.get("idempotent_replay")
+        return persisted(saved, {"idempotent_replay": True} if replayed else result)
 
     return AnswerResponse(
         is_correct=is_correct,
-        elo_before=round(elo_before, 2),
-        elo_after=round(elo_after, 2),
-        rd_after=round(rd_after, 2),
-        delta_elo=round(elo_after - elo_before, 2),
-        cog_data=cog_data,
+        elo_before=round(result["elo_before"], 2),
+        elo_after=round(result["elo_after"], 2),
+        rd_after=round(result["rd_after"], 2),
+        delta_elo=round(result["elo_after"] - result["elo_before"], 2),
+        elo_valid=result["elo_valid"],
+        cog_data=result,
     )
 
 
@@ -1042,8 +1030,8 @@ def diagnostic_submit(
         elos.append(elo)
         # Un nuevo diagnóstico puede medir progreso, pero nunca reinicia una
         # línea ELO que ya contiene práctica real del alumno.
-        if not repo.has_practice_attempts(user["user_id"], topic, course_id):
-            repo.set_topic_elo_baseline(user["user_id"], topic, elo)
+        if not repo.has_practice_attempts(user["user_id"], course_id, topic):
+            repo.set_topic_rating_baseline(user["user_id"], course_id, topic, elo)
         ratio = t["correct"] / t["total"] if t["total"] else 0.0
         status = "strong" if ratio >= 0.67 else "mid" if ratio >= 0.34 else "gap"
         themes.append(

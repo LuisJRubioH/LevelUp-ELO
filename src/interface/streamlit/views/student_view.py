@@ -377,20 +377,19 @@ def render_student():
     def handle_answer_topic(is_correct, item_data, reasoning=""):
         st.session_state["last_was_correct"] = is_correct
 
-        time_taken = 0.0
+        # Sin hora de inicio no hay tiempo medido: None (ausente = 30 s), nunca 0,
+        # que es un valor inválido desde spec 001 (FR-008a).
+        time_taken = None
         if st.session_state.question_start_time:
             time_taken = time.time() - st.session_state.question_start_time
 
-        # Delegar procesamiento al servicio.
-        _elo_topic = st.session_state.selected_course["name"]
+        # Delegar procesamiento al servicio: el rating es el (curso, tópico) del ítem (spec 001).
         is_correct, cog_data = st.session_state.student_service.process_answer(
             st.session_state.user_id,
             item_data,
             st.session_state.get(f"answer_text_{item_data['id']}"),
             reasoning,
             time_taken,
-            st.session_state.vector,
-            elo_topic=_elo_topic,
         )
 
         st.session_state.session_questions_count += 1

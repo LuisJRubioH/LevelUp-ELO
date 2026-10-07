@@ -308,10 +308,9 @@ class TestAnswer:
         assert updated["rating_deviation"] == canonical["rating_deviation"]
         assert repo.get_item_by_id(other["id"]) == other
 
-    @pytest.mark.parametrize(
-        "override",
-        [{"elo_topic": "another-course"}, {"elo_topic": ""}, {"selected_option": "forged"}],
-    )
+    # Spec 001 (FR-029, research R6): `elo_topic` is ignored, so it no longer causes a 400;
+    # an option outside the item still does (FR-011).
+    @pytest.mark.parametrize("override", [{"selected_option": "forged"}])
     def test_invalid_answer_context_has_no_side_effects(
         self, api_client, student_headers, override
     ):

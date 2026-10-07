@@ -25,9 +25,11 @@ resultados; esto sí.
 
 import threading
 
+from src.domain.elo.model import is_valid_response_time
+from tests.integration.conftest import rating_of, set_rating
 from tests.integration.conftest import sql as _sql
 
-TOPIC = "Álgebra"
+# Spec 001: the rating is the item's own (course, topic) row of student_course_topic_elo.
 
 # Two-engine fixtures (`repo`, `student`, `_postgres_repo`) live in tests/integration/conftest.py.
 
@@ -35,23 +37,24 @@ TOPIC = "Álgebra"
 # ── Utilidades ────────────────────────────────────────────────────────────────
 
 
-def _any_item(repo) -> tuple[str, str]:
-    """Un ítem real del banco: (id, topic). El bootstrap ya sincronizó items."""
-    rows = _sql(repo, "SELECT id, topic FROM items LIMIT 1")
+def _any_item(repo) -> tuple[str, str, str]:
+    """Un ítem real del banco: (id, course_id, topic). El bootstrap ya sincronizó items."""
+    rows = _sql(repo, "SELECT id, course_id, topic FROM items LIMIT 1")
     assert rows, "El banco de ítems está vacío; sync_items_from_bank_folder no corrió."
-    return rows[0][0], rows[0][1]
+    return tuple(rows[0])
 
 
-def _answer(repo, user_id, item_id, topic, elo_after, time_taken=30.0):
-    """Una respuesta que fija el ELO indicado, como hace StudentService."""
+def _answer(repo, user_id, item_id, elo_after, time_taken=30.0):
+    """Una respuesta que fija el ELO indicado; la validez la decide el dominio, como en el servicio."""
 
     def compute(state):
+        valid = is_valid_response_time(time_taken)
         return (
             {
                 "is_correct": True,
                 "difficulty": state["item_difficulty"],
-                "topic": topic,
-                "elo_after": elo_after,
+                "topic": state["topic"],
+                "elo_after": elo_after if valid else state["elo"],
                 "elo_before": state["elo"],
                 "prob_failure": 0.5,
                 "expected_score": 0.5,
@@ -59,18 +62,17 @@ def _answer(repo, user_id, item_id, topic, elo_after, time_taken=30.0):
                 "confidence_score": None,
                 "error_type": None,
                 "rating_deviation": 300.0,
+                "elo_valid": valid,
             },
             state["item_difficulty"],
             state["item_rd"],
         )
 
-    return repo.save_answer_transaction(
-        user_id=user_id, item_id=item_id, topic=topic, compute=compute
-    )
+    return repo.save_answer_transaction(user_id=user_id, item_id=item_id, compute=compute)
 
 
-def _elo(repo, user_id, topic) -> float:
-    return repo.get_latest_elo_by_topic(user_id)[topic][0]
+def _elo(repo, user_id, item) -> float:
+    return rating_of(repo, user_id, item[1], item[2])
 
 
 # ── Fuente única de ELO (#2) ──────────────────────────────────────────────────
@@ -78,28 +80,28 @@ def _elo(repo, user_id, topic) -> float:
 
 def test_diagnostic_baseline_survives_until_the_first_practice(repo, student):
     """El baseline del diagnóstico se lee aunque no exista ningún intento."""
-    repo.set_topic_elo_baseline(student, TOPIC, 1300.0)
+    item = _any_item(repo)
+    repo.set_topic_rating_baseline(student, item[1], item[2], 1300.0)
 
-    assert _elo(repo, student, TOPIC) == 1300.0
+    assert _elo(repo, student, item) == 1300.0
 
-    item_id, _ = _any_item(repo)
-    _answer(repo, student, item_id, TOPIC, elo_after=1320.0)
+    _answer(repo, student, item[0], elo_after=1320.0)
 
-    assert _elo(repo, student, TOPIC) == 1320.0
+    assert _elo(repo, student, item) == 1320.0
 
 
 def test_an_invalid_attempt_does_not_move_the_rating(repo, student):
     """Un intento fuera del rango [3s, 600s] se registra pero no altera el rating."""
-    repo.set_topic_elo_baseline(student, TOPIC, 1200.0)
-    item_id, _ = _any_item(repo)
+    item = _any_item(repo)
+    set_rating(repo, student, item[1], item[2], 1200.0)
 
-    _answer(repo, student, item_id, TOPIC, elo_after=1220.0, time_taken=45.0)
-    assert _elo(repo, student, TOPIC) == 1220.0
+    _answer(repo, student, item[0], elo_after=1220.0, time_taken=45.0)
+    assert _elo(repo, student, item) == 1220.0
 
     # 1 segundo = adivinanza sin leer: se guarda el intento, no el rating.
-    _answer(repo, student, item_id, TOPIC, elo_after=9999.0, time_taken=1.0)
+    _answer(repo, student, item[0], elo_after=9999.0, time_taken=1.0)
 
-    assert _elo(repo, student, TOPIC) == 1220.0
+    assert _elo(repo, student, item) == 1220.0
 
     invalid = _sql(
         repo,
@@ -134,13 +136,9 @@ def test_a_validated_procedure_delta_is_applied_exactly_once(repo, student):
     assert _elo(repo, student, item_topic) == 1045.0
 
 
-def test_global_elo_stays_the_average_of_the_canonical_topics(repo, student):
-    """users.current_elo es estado derivado, no una cuarta fuente."""
-    repo.set_topic_elo_baseline(student, "Álgebra", 1200.0)
-    repo.set_topic_elo_baseline(student, "Geometría", 1000.0)
-
-    current = _sql(repo, "SELECT current_elo FROM users WHERE id = ?", (student,))[0][0]
-    assert float(current) == 1100.0
+# test_global_elo_stays_the_average_of_the_canonical_topics was removed by spec 001
+# (FR-028, research R4): users.current_elo is a legacy column, never written; the overall
+# rating is derived by RatingReadService (tests/unit/application/test_spec001_rating_read_service.py).
 
 
 # ── Unidad de trabajo bajo concurrencia (#3) ──────────────────────────────────
@@ -153,8 +151,9 @@ def test_concurrent_answers_on_the_same_item_compose_serially(repo, student):
     baseline + 80 si el ciclo leer→calcular→escribir se serializó. Sin el
     bloqueo, varias parten del mismo rating y se pisan entre sí.
     """
-    repo.set_topic_elo_baseline(student, TOPIC, 1000.0)
-    item_id, _ = _any_item(repo)
+    item = _any_item(repo)
+    item_id = item[0]
+    set_rating(repo, student, item[1], item[2], 1000.0)
 
     errors: list[BaseException] = []
     start = threading.Barrier(8)
@@ -165,7 +164,7 @@ def test_concurrent_answers_on_the_same_item_compose_serially(repo, student):
                 {
                     "is_correct": True,
                     "difficulty": state["item_difficulty"],
-                    "topic": TOPIC,
+                    "topic": state["topic"],
                     "elo_after": state["elo"] + 10.0,
                     "elo_before": state["elo"],
                     "prob_failure": 0.5,
@@ -174,6 +173,7 @@ def test_concurrent_answers_on_the_same_item_compose_serially(repo, student):
                     "confidence_score": None,
                     "error_type": None,
                     "rating_deviation": 300.0,
+                    "elo_valid": True,
                 },
                 state["item_difficulty"],
                 state["item_rd"],
@@ -181,9 +181,7 @@ def test_concurrent_answers_on_the_same_item_compose_serially(repo, student):
 
         try:
             start.wait(timeout=10)
-            repo.save_answer_transaction(
-                user_id=student, item_id=item_id, topic=TOPIC, compute=compute
-            )
+            repo.save_answer_transaction(user_id=student, item_id=item_id, compute=compute)
         except BaseException as exc:  # noqa: BLE001 — se revisa en el hilo principal
             errors.append(exc)
 
@@ -194,4 +192,4 @@ def test_concurrent_answers_on_the_same_item_compose_serially(repo, student):
         t.join(timeout=120)
 
     assert not errors, errors
-    assert _elo(repo, student, TOPIC) == 1080.0
+    assert _elo(repo, student, item) == 1080.0

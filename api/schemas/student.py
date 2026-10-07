@@ -54,10 +54,15 @@ class AnswerRequest(BaseModel):
     reasoning: str | None = Field(
         default="", description="Razonamiento del estudiante (para KatIA)"
     )
-    time_taken: float | None = Field(default=None, ge=0, description="Segundos en responder")
+    time_taken: float | None = Field(
+        default=None,
+        ge=0,
+        description="Segundos en responder. Ausente = 30 s; un 0 explícito es inválido (FR-008a).",
+    )
     elo_topic: str | None = Field(
         default=None,
-        description="Tópico del ítem o su course_id; validado contra la base de datos.",
+        description="Ignorado: el rating es siempre el (curso, tópico) del ítem (spec 001).",
+        deprecated=True,
     )
 
 
@@ -67,6 +72,7 @@ class AnswerResponse(BaseModel):
     elo_after: float
     rd_after: float
     delta_elo: float
+    elo_valid: bool  # whether this attempt moved any rating (FR-008, FR-008a, FR-009)
     cog_data: dict
 
 

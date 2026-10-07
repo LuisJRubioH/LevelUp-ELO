@@ -18,6 +18,7 @@ from tests.integration.conftest import (
     make_student,
     make_teacher,
     rating_of,
+    set_rating,
     sql,
 )
 from src.domain.elo.vector_elo import VectorRating
@@ -37,11 +38,11 @@ def _difficulty(repo, item_id):
 def _rating_state(repo, user_id):
     rows = sql(
         repo,
-        "SELECT topic, current_elo, rd FROM student_topic_elo WHERE user_id = ? ORDER BY topic",
+        "SELECT course_id, topic, current_elo, rd FROM student_course_topic_elo"
+        " WHERE user_id = ? ORDER BY course_id, topic",
         (user_id,),
     )
-    current = sql(repo, "SELECT current_elo FROM users WHERE id = ?", (user_id,))[0][0]
-    return [tuple(r) for r in rows], current
+    return [tuple(r) for r in rows]
 
 
 # ── T018: FR-022, FR-023 (grade range), FR-024, US4-AS1, US4-AS3, US4-AS5 ─────
@@ -61,7 +62,7 @@ def _pending_submission(repo, student, item_id):
 def test_spec001_validated_grade_adds_grade_minus_50_times_02(repo, student, grade, expected):
     """US4-AS1: grade 80 → +6.0 on the item's topic; edge "grade 50" → +0, still applied."""
     course_id, (item_id,) = _course(repo)
-    repo.set_topic_elo_baseline(student, TOPIC, 1100.0)
+    set_rating(repo, student, course_id, TOPIC, 1100.0)
     submission = _pending_submission(repo, student, item_id)
 
     assert repo.validate_procedure_submission(submission, teacher_score=grade)
@@ -76,7 +77,7 @@ def test_spec001_validated_grade_adds_grade_minus_50_times_02(repo, student, gra
 def test_spec001_grade_out_of_range_changes_nothing(repo, student):
     """US4-AS3: grade 101 → ValueError; the rating and the submission stay as they were."""
     course_id, (item_id,) = _course(repo)
-    repo.set_topic_elo_baseline(student, TOPIC, 1100.0)
+    set_rating(repo, student, course_id, TOPIC, 1100.0)
     submission = _pending_submission(repo, student, item_id)
 
     with pytest.raises(ValueError):
@@ -90,7 +91,7 @@ def test_spec001_grade_out_of_range_changes_nothing(repo, student):
 def test_spec001_ai_proposed_score_changes_no_rating(repo, student):
     """US4-AS5: an AI-proposed score moves the submission to review, never a rating."""
     course_id, (item_id,) = _course(repo)
-    repo.set_topic_elo_baseline(student, TOPIC, 1100.0)
+    set_rating(repo, student, course_id, TOPIC, 1100.0)
     _pending_submission(repo, student, item_id)
     before = _rating_state(repo, student)
 
@@ -202,7 +203,7 @@ def test_spec001_weekly_snapshot_is_returned_unchanged(repo, student):
 def test_spec001_exam_storage_writes_no_rating(repo, student):
     """FR-032, US6-AS4 (storage half): saving and completing an exam leaves every rating as is."""
     course_id, (item_id,) = _course(repo)
-    repo.set_topic_elo_baseline(student, TOPIC, 1100.0)
+    set_rating(repo, student, course_id, TOPIC, 1100.0)
     before = _rating_state(repo, student)
     result = {
         "results": [],

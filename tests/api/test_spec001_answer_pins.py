@@ -9,7 +9,7 @@ import uuid
 
 import pytest
 
-from tests.integration.conftest import make_course, sql
+from tests.integration.conftest import make_course, rating_of, sql
 
 TOPIC = "Fracciones"
 LEAGUES = {"Bronce", "Plata", "Oro", "Diamante"}
@@ -48,9 +48,8 @@ def _attempts(repo, user_id):
 
 
 def _state(repo, user_id, items):
-    current = sql(repo, "SELECT current_elo FROM users WHERE id = ?", (user_id,))[0][0]
     difficulties = [repo.get_item_by_id(i["id"])["difficulty"] for i in items]
-    return repo.get_latest_elo_by_topic(user_id), current, difficulties
+    return repo.get_course_topic_ratings(user_id), difficulties
 
 
 # ── T014: FR-012, FR-013, FR-014, FR-032, US1-AS4, US1-AS5, US6-AS4 ─────────
@@ -178,7 +177,7 @@ def test_spec001_diagnostic_correct_at_1200_and_a_skipped_answer(api_client):
     assert [(t["topic"], t["correct"], t["total"], t["elo"]) for t in body["themes"]] == [
         (TOPIC, 1, 2, 1022.0)
     ]
-    assert repo.get_latest_elo_by_topic(user_id)[TOPIC][0] == 1022.0
+    assert rating_of(repo, user_id, course_id, TOPIC) == 1022.0
     assert body["league"]["name"] == "Bronce" and body["league"]["name"] in LEAGUES
 
 
@@ -191,5 +190,5 @@ def test_spec001_diagnostic_floor_is_760(api_client):
 
     assert response.status_code == 200
     assert response.json()["initial_elo"] == 760.0
-    assert repo.get_latest_elo_by_topic(user_id)[TOPIC][0] == 760.0
+    assert rating_of(repo, user_id, course_id, TOPIC) == 760.0
     assert response.json()["league"]["name"] in LEAGUES

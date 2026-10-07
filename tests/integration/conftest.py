@@ -91,6 +91,28 @@ def student(repo) -> int:
     return make_student(repo)
 
 
+@pytest.fixture
+def client(repo):
+    """The FastAPI app on this test's engine (no lifespan: the `repo` is already bootstrapped)."""
+    import api.dependencies as deps
+    from api.main import app
+    from starlette.testclient import TestClient
+
+    previous = deps._repo_instance
+    deps._repo_instance = repo
+    test_client = TestClient(app, base_url="https://spec001.local", raise_server_exceptions=False)
+    yield test_client
+    test_client.close()
+    deps._repo_instance = previous
+
+
+def headers_for(repo, user_id) -> dict:
+    from api.dependencies import create_access_token
+
+    row = sql(repo, "SELECT username, role FROM users WHERE id = ?", (user_id,))[0]
+    return {"Authorization": "Bearer " + create_access_token(user_id, row[0], row[1])}
+
+
 # ── Seeding helpers ──────────────────────────────────────────────────────────
 
 
@@ -150,34 +172,35 @@ def enroll(repo, user_id, course_id, group_id=None) -> None:
 # ── The two helpers every pin goes through ───────────────────────────────────
 
 
-def answer(repo, user_id, item_id, correct=True, seconds=20.0, elo_topic=None):
-    """Answer an item through the real StudentService path. Returns (is_correct, cog_data).
-
-    Today the service takes a VectorRating and the rating key defaults to the item's topic;
-    `elo_topic=course_id` is today's whole-course practice mode.
-    """
+def answer(repo, user_id, item_id, correct=True, seconds=20.0):
+    """Answer an item through the real StudentService path. Returns (is_correct, result)."""
     from src.application.services.student_service import StudentService
-    from src.domain.elo.vector_elo import VectorRating
 
     item = repo.get_item_by_id(item_id)
-    vector = VectorRating()
-    for topic, (elo, rd) in repo.get_latest_elo_by_topic(user_id).items():
-        vector.ratings[topic] = (float(elo), float(rd))
     option = (
         item["correct_option"]
         if correct
         else next(o for o in item["options"] if o != item["correct_option"])
     )
-    return StudentService(repository=repo).process_answer(
-        user_id, item, option, "", seconds, vector, elo_topic=elo_topic
-    )
+    return StudentService(repository=repo).process_answer(user_id, item, option, "", seconds)
 
 
 def rating_of(repo, user_id, course_id, topic):
-    """The student's current rating for (course, topic), or None.
+    """The student's current rating for (course, topic), or None (student_course_topic_elo)."""
+    rows = sql(
+        repo,
+        "SELECT current_elo FROM student_course_topic_elo"
+        " WHERE user_id = ? AND course_id = ? AND topic = ?",
+        (user_id, course_id, topic),
+    )
+    return float(rows[0][0]) if rows else None
 
-    Today the store is keyed by a single name (the item's topic for V2 practice), so
-    `course_id` is ignored here; task T038 re-points this to student_course_topic_elo.
-    """
-    row = repo.get_latest_elo_by_topic(user_id).get(topic)
-    return None if row is None else float(row[0])
+
+def set_rating(repo, user_id, course_id, topic, elo, rd=350.0, origin="diagnostic"):
+    """Seed a student's (course, topic) rating in student_course_topic_elo."""
+    sql(
+        repo,
+        "INSERT INTO student_course_topic_elo (user_id, course_id, topic, current_elo, rd, origin)"
+        " VALUES (?, ?, ?, ?, ?, ?)",
+        (user_id, course_id, topic, elo, rd, origin),
+    )

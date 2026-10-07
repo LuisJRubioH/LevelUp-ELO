@@ -9,6 +9,8 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from src.domain.elo.model import rating_delta
+
 from tests.integration.conftest import (
     answer,
     enroll,
@@ -53,7 +55,11 @@ def test_spec001_course_topic_ratings_are_new_table_rows_only(repo, student):
     """FR-028, FR-029: legacy rows never appear; origin and approximate come back."""
     c1, _ = _course(repo)
     c2, _ = _course(repo)
-    repo.set_topic_elo_baseline(student, TOPIC, 1300.0)  # legacy store
+    sql(
+        repo,
+        "INSERT INTO student_topic_elo (user_id, topic, current_elo, rd)" " VALUES (?, ?, ?, ?)",
+        (student, TOPIC, 1300.0, 350.0),
+    )  # legacy store
     _row(repo, student, c1, TOPIC, 1100.25, rd=300.0)
     _row(repo, student, c2, TOPIC, 900.0, origin="legacy_topic_row", approximate=True)
 
@@ -215,3 +221,93 @@ def test_spec001_stored_precision_and_display_agree_on_both_engines(repo, stored
     entry = next(c for c in view["courses"] if c["course_id"] == course)
     assert (entry["display_rating"], entry["rank_label"]) == (shown, label)
     assert (view["display_rating"], view["rank_label"]) == (shown, label)
+
+
+# ── T034: an answer writes only its item's course and topic (FR-029) ────────
+
+
+@pytest.mark.parametrize("correct,expected", [(True, 1016.0), (False, 984.0)])
+def test_spec001_answer_writes_only_the_items_course_topic(repo, student, correct, expected):
+    """US1-AS1/AS2: (C, T) gets 1016/984 with origin 'practice'; the legacy store, the users
+    column and the same topic label in another course C' stay untouched."""
+    course, item = _course(repo)
+    other, _ = _course(repo)
+    _row(repo, student, other, TOPIC, 1200.0)
+    current_before = sql(repo, "SELECT current_elo FROM users WHERE id = ?", (student,))[0][0]
+
+    answer(repo, student, item, correct=correct)
+
+    rows = sql(
+        repo,
+        "SELECT course_id, topic, current_elo, origin FROM student_course_topic_elo"
+        " WHERE user_id = ? ORDER BY course_id",
+        (student,),
+    )
+    assert sorted(tuple(r) for r in rows) == sorted(
+        [(course, TOPIC, expected, "practice"), (other, TOPIC, 1200.0, "practice")]
+    )
+    assert sql(repo, "SELECT COUNT(*) FROM student_topic_elo WHERE user_id = ?", (student,)) == [
+        (0,)
+    ]
+    current_after = sql(repo, "SELECT current_elo FROM users WHERE id = ?", (student,))[0][0]
+    assert current_after == current_before
+
+
+# ── T035a: an explicit 0 s is invalid, an absent time is 30 s (FR-008a) ─────
+
+
+@pytest.mark.parametrize("seconds,moves", [(0, False), (0.0, False), (None, True)])
+def test_spec001_explicit_zero_seconds_is_invalid(repo, student, seconds, moves):
+    course, item = _course(repo)
+
+    answer(repo, student, item, correct=True, seconds=seconds)
+
+    stored = sql(
+        repo,
+        "SELECT current_elo FROM student_course_topic_elo WHERE user_id = ? AND course_id = ?",
+        (student, course),
+    )
+    assert [r[0] for r in stored] == ([1016.0] if moves else [])
+    assert float(repo.get_item_by_id(item)["difficulty"]) == (984.0 if moves else 1000.0)
+    recorded = sql(repo, "SELECT elo_valid FROM attempts WHERE user_id = ?", (student,))
+    assert [int(r[0]) for r in recorded] == [1 if moves else 0]
+
+
+# ── T046: the diagnostic writes (user, C, T) rows (FR-029, FR-021) ──────────
+
+
+def test_spec001_diagnostic_writes_course_topic_baselines(repo, student, client):
+    """US3: baselines land on the diagnosed course's topics with origin 'diagnostic'; a topic
+    already practised in C keeps its rating; the same label in another course is untouched."""
+    from tests.integration.conftest import headers_for
+
+    course, items = make_course(repo, [TOPIC, "Decimales"], difficulty=1200.0)
+    other, _ = _course(repo)
+    _row(repo, student, other, TOPIC, 1200.0)
+    answer(repo, student, items["Decimales"][0])  # practised before the diagnostic
+
+    response = client.post(
+        f"/api/student/diagnostic/{course}/submit",
+        headers=headers_for(repo, student),
+        json={
+            "answers": [
+                {"item_id": items[TOPIC][0], "selected_option": "A"},
+                {"item_id": items["Decimales"][0], "selected_option": "B"},
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+    rows = sql(
+        repo,
+        "SELECT course_id, topic, current_elo, origin FROM student_course_topic_elo"
+        " WHERE user_id = ?",
+        (student,),
+    )
+    assert sorted(tuple(r) for r in rows) == sorted(
+        [
+            (course, TOPIC, 1022.0, "diagnostic"),
+            (course, "Decimales", 1000.0 + rating_delta(1000.0, 350.0, 1200.0, 1.0), "practice"),
+            (other, TOPIC, 1200.0, "practice"),
+        ]
+    )

@@ -41,10 +41,14 @@ class TestPvpMatchLifecycle:
 
         # a gana 2-0
         repo.finish_pvp_match(
-            match_id=mid, winner_id=a,
-            score_p1=2, score_p2=0,
-            elo_delta_p1=12.0, elo_delta_p2=-12.0,
-            p1_id=a, p2_id=b,
+            match_id=mid,
+            winner_id=a,
+            score_p1=2,
+            score_p2=0,
+            elo_delta_p1=12.0,
+            elo_delta_p2=-12.0,
+            p1_id=a,
+            p2_id=b,
         )
 
         hist_a = repo.get_pvp_history(a)
@@ -62,16 +66,20 @@ class TestPvpMatchLifecycle:
         a, b = _two_players(repo)
         mid = repo.create_pvp_match("calculo_diferencial", a, b, ["i1"])
         repo.finish_pvp_match(
-            match_id=mid, winner_id=a,
-            score_p1=5, score_p2=1,
-            elo_delta_p1=12.0, elo_delta_p2=-12.0,
-            p1_id=a, p2_id=b,
+            match_id=mid,
+            winner_id=a,
+            score_p1=5,
+            score_p2=1,
+            elo_delta_p1=12.0,
+            elo_delta_p2=-12.0,
+            p1_id=a,
+            p2_id=b,
         )
         hist_b = repo.get_pvp_history(b)
         assert len(hist_b) == 1
         m = hist_b[0]
         assert m["won"] is False
-        assert m["my_score"] == 1   # b es player2 → su score es score_p2
+        assert m["my_score"] == 1  # b es player2 → su score es score_p2
         assert m["opp_score"] == 5
         assert m["elo_delta"] == -12.0
         assert m["opponent"] == "jugador_a"
@@ -81,10 +89,14 @@ class TestPvpMatchLifecycle:
         elo_a_before = repo.get_user_by_id(a)["current_elo"]
         mid = repo.create_pvp_match("calculo_diferencial", a, b, ["i1"])
         repo.finish_pvp_match(
-            match_id=mid, winner_id=a,
-            score_p1=3, score_p2=0,
-            elo_delta_p1=12.0, elo_delta_p2=-12.0,
-            p1_id=a, p2_id=b,
+            match_id=mid,
+            winner_id=a,
+            score_p1=3,
+            score_p2=0,
+            elo_delta_p1=12.0,
+            elo_delta_p2=-12.0,
+            p1_id=a,
+            p2_id=b,
         )
         assert repo.get_user_by_id(a)["current_elo"] == pytest.approx(elo_a_before + 12.0)
 
@@ -93,10 +105,14 @@ class TestPvpMatchLifecycle:
         a, b = _two_players(repo)
         mid = repo.create_pvp_match("calculo_diferencial", a, b, ["i1"])
         repo.finish_pvp_match(
-            match_id=mid, winner_id=b,
-            score_p1=0, score_p2=9,
-            elo_delta_p1=-99999.0, elo_delta_p2=12.0,
-            p1_id=a, p2_id=b,
+            match_id=mid,
+            winner_id=b,
+            score_p1=0,
+            score_p2=9,
+            elo_delta_p1=-99999.0,
+            elo_delta_p2=12.0,
+            p1_id=a,
+            p2_id=b,
         )
         assert repo.get_user_by_id(a)["current_elo"] >= 0
 
@@ -124,10 +140,14 @@ class TestPvpStateSurvivesTheProcess:
         a, b = _two_players(repo)
         mid = repo.create_pvp_match("calculo_diferencial", a, b, ["i1"])
         repo.finish_pvp_match(
-            match_id=mid, winner_id=a,
-            score_p1=3, score_p2=0,
-            elo_delta_p1=12.0, elo_delta_p2=-12.0,
-            p1_id=a, p2_id=b,
+            match_id=mid,
+            winner_id=a,
+            score_p1=3,
+            score_p2=0,
+            elo_delta_p1=12.0,
+            elo_delta_p2=-12.0,
+            p1_id=a,
+            p2_id=b,
         )
 
         assert repo.get_latest_elo_by_topic(a)["calculo_diferencial"][0] == 1012.0
@@ -148,10 +168,14 @@ class TestPvpStateSurvivesTheProcess:
         mid = repo.create_pvp_match("calculo_diferencial", a, b, ["i1"])
         for _ in range(2):
             repo.finish_pvp_match(
-                match_id=mid, winner_id=a,
-                score_p1=3, score_p2=0,
-                elo_delta_p1=12.0, elo_delta_p2=-12.0,
-                p1_id=a, p2_id=b,
+                match_id=mid,
+                winner_id=a,
+                score_p1=3,
+                score_p2=0,
+                elo_delta_p1=12.0,
+                elo_delta_p2=-12.0,
+                p1_id=a,
+                p2_id=b,
             )
         assert repo.get_latest_elo_by_topic(a)["calculo_diferencial"][0] == 1012.0
 
