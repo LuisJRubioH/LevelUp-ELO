@@ -8,11 +8,10 @@ API real:
   v.get(concept) -> float
   v.get_rd(concept) -> float
   v.update(concept, difficulty, result) -> (new_r, new_rd)
-  aggregate_global_elo(vector) -> float
 """
 
 import pytest
-from src.domain.elo.vector_elo import VectorRating, aggregate_global_elo
+from src.domain.elo.vector_elo import VectorRating
 
 _DEFAULT_RATING = 1000.0
 _DEFAULT_RD = 350.0
@@ -70,24 +69,6 @@ class TestVectorRatingUpdate:
         assert new_rd == student_vector.get_rd("Álgebra")
 
 
-class TestAggregateGlobalElo:
-    def test_empty_vector_returns_default(self, student_vector):
-        """Sin tópicos actualizados, ELO global = 1000.0."""
-        assert aggregate_global_elo(student_vector) == _DEFAULT_RATING
-
-    def test_single_topic_global_equals_topic(self, student_vector):
-        """Con un solo tópico, el ELO global == el ELO del tópico."""
-        student_vector.update("Álgebra", 1200.0, 1.0)
-        global_elo = aggregate_global_elo(student_vector)
-        topic_elo = student_vector.get("Álgebra")
-        assert global_elo == pytest.approx(topic_elo, abs=0.01)
-
-    def test_global_is_average_of_topics(self, student_vector):
-        """ELO global es el promedio de todos los tópicos con historial."""
-        student_vector.update("Álgebra", 1200.0, 1.0)
-        student_vector.update("Cálculo", 800.0, 0.0)
-        global_elo = aggregate_global_elo(student_vector)
-        algebra_elo = student_vector.get("Álgebra")
-        calculus_elo = student_vector.get("Cálculo")
-        expected = (algebra_elo + calculus_elo) / 2
-        assert global_elo == pytest.approx(expected, abs=0.5)
+# TestAggregateGlobalElo was removed by spec 001 (T064, FR-028a): the overall rating is the
+# mean of course ratings, `src/domain/elo/aggregation.py::overall_rating`
+# (tests/unit/domain/test_spec001_domain.py).

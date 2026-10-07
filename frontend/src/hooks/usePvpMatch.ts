@@ -38,7 +38,8 @@ export function usePvpMatch(courseId: string | null) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [myScore, setMyScore] = useState(0);
   const [oppScore, setOppScore] = useState(0);
-  const [opponent, setOpponent] = useState<{ username: string; elo: number } | null>(null);
+  // elo = the rival's shown course rating; null = pending diagnostic (spec 001)
+  const [opponent, setOpponent] = useState<{ username: string; elo: number | null } | null>(null);
   const [result, setResult] = useState<PvpResult | null>(null);
   const [timeLeft, setTimeLeft] = useState(180);
   const [lastCorrect, setLastCorrect] = useState<boolean | null>(null);

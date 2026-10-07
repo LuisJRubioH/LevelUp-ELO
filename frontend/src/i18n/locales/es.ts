@@ -903,6 +903,14 @@ const es = {
     },
   },
 
+  // ── Ratings (spec 001) ────────────────────────────────────────────────────
+  rating: {
+    pending: "Diagnóstico pendiente",
+    history: "grado anterior",
+    byCourse: "Rating por curso",
+    basisOverall: "rating global",
+  },
+
   theme: {
     light: "Modo claro",
     dark: "Modo oscuro",

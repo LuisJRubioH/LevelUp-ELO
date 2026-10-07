@@ -42,7 +42,7 @@ export function useStudentSession() {
       if (!res.item || res.status !== "ok") {
         usePracticeStore.getState().setPhase("empty");
       } else {
-        usePracticeStore.getState().setCurrentItem(res.item);
+        usePracticeStore.getState().setCurrentItem(res.item, res.preview ?? null);
       }
     } catch (err) {
       console.error("Error al cargar pregunta:", err);

@@ -51,7 +51,7 @@ class SQLiteRepository:
         self.sync_items_from_bank_folder()
         if os.environ.get("ENVIRONMENT", "development").lower() != "production":
             self._seed_test_students()
-        self._backfill_current_elo()
+        self._reconcile_legacy_ratings()
         self.expire_stale_pvp_matches()
 
     def get_connection(self, timeout: float = 30.0):
@@ -316,7 +316,7 @@ class SQLiteRepository:
         # Asegurar índices si no existen
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)")
-        # Índice compuesto para get_latest_elo_by_topic() — MAX(timestamp) por (user_id, topic)
+        # Índice compuesto para consultas de intentos por (user_id, topic) y timestamp
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_attempts_user_topic_ts "
             "ON attempts(user_id, topic, timestamp DESC)"
@@ -1536,56 +1536,6 @@ class SQLiteRepository:
         conn.close()
         return {row[0]: row[1] for row in rows}
 
-    def get_group_ranking(self, group_id: int, course_id: str | None = None) -> list:
-        """Retorna el ranking ELO de los estudiantes de un grupo.
-
-        Si course_id se proporciona, calcula el ELO promedio solo para ese curso.
-        Retorna lista de {user_id, username, global_elo, total_attempts, rank_pos}.
-        """
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        if course_id:
-            cursor.execute(
-                """
-                SELECT u.id, u.username,
-                       COALESCE(AVG(a.elo_after), 1000) AS elo,
-                       COUNT(a.id) AS attempts
-                FROM users u
-                LEFT JOIN attempts a ON a.user_id = u.id
-                LEFT JOIN items i ON i.id = a.item_id AND i.course_id = ?
-                WHERE u.group_id = ? AND u.role = 'student' AND u.active = 1
-                GROUP BY u.id, u.username
-                ORDER BY elo DESC
-            """,
-                (course_id, group_id),
-            )
-        else:
-            cursor.execute(
-                """
-                SELECT u.id, u.username,
-                       COALESCE(AVG(a.elo_after), 1000) AS elo,
-                       COUNT(a.id) AS attempts
-                FROM users u
-                LEFT JOIN attempts a ON a.user_id = u.id
-                WHERE u.group_id = ? AND u.role = 'student' AND u.active = 1
-                GROUP BY u.id, u.username
-                ORDER BY elo DESC
-            """,
-                (group_id,),
-            )
-        rows = cursor.fetchall()
-        conn.close()
-        return [
-            {
-                "user_id": r[0],
-                "username": r[1],
-                "global_elo": round(r[2], 1),
-                "total_attempts": r[3],
-                "rank_pos": i + 1,
-            }
-            for i, r in enumerate(rows)
-        ]
-
     def save_problem_report(self, user_id: int, description: str) -> None:
         """Guarda un reporte de problema técnico enviado por un usuario."""
         conn = self.get_connection()
@@ -1766,99 +1716,31 @@ class SQLiteRepository:
             for r in rows
         ]
 
-    def get_weekly_ranking(self, group_id, limit=5):
-        """Top estudiantes del grupo por ELO promedio, con actividad en los últimos 7 días."""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        # Subconsulta: último elo_after por (usuario, tópico) para usuarios del grupo
-        # con al menos 1 intento en los últimos 7 días.
-        cursor.execute(
-            """
-            WITH active_users AS (
-                SELECT DISTINCT a.user_id
-                FROM attempts a
-                JOIN users u ON a.user_id = u.id
-                WHERE u.group_id = ? AND u.role = 'student'
-                  AND a.timestamp >= datetime('now', '-7 days')
-            ),
-            latest_elo AS (
-                SELECT a.user_id, a.item_id, a.elo_after,
-                       ROW_NUMBER() OVER (
-                           PARTITION BY a.user_id, i.course_id
-                           ORDER BY a.timestamp DESC
-                       ) AS rn
-                FROM attempts a
-                JOIN items i ON a.item_id = i.id
-                WHERE a.user_id IN (SELECT user_id FROM active_users)
-            ),
-            user_elo AS (
-                SELECT le.user_id,
-                       ROUND(AVG(le.elo_after), 0) AS global_elo
-                FROM latest_elo le
-                WHERE le.rn = 1
-                GROUP BY le.user_id
-            ),
-            week_attempts AS (
-                SELECT a.user_id, COUNT(*) AS attempts_this_week
-                FROM attempts a
-                WHERE a.user_id IN (SELECT user_id FROM active_users)
-                  AND a.timestamp >= datetime('now', '-7 days')
-                GROUP BY a.user_id
-            )
-            SELECT ue.user_id, u.username, ue.global_elo, wa.attempts_this_week
-            FROM user_elo ue
-            JOIN users u ON ue.user_id = u.id
-            JOIN week_attempts wa ON ue.user_id = wa.user_id
-            ORDER BY ue.global_elo DESC
-            LIMIT ?
-        """,
-            (group_id, limit),
-        )
-        rows = cursor.fetchall()
-        conn.close()
-        return [
-            {
-                "user_id": row[0],
-                "username": row[1],
-                "global_elo": row[2],
-                "rank": idx + 1,
-                "attempts_this_week": row[3],
-            }
-            for idx, row in enumerate(rows)
-        ]
-
-    def save_weekly_ranking(self, group_id):
-        """Guarda el top 5 actual en weekly_rankings. Idempotente por semana+grupo+user."""
+    def save_weekly_ranking(self, group_id, rows):
+        """Store `rows` (RatingReadService.ranking_view(scope="weekly") entries) as this week's
+        snapshot (FR-028g). `rank` is the competition rank; pending rows (no rank) are not stored.
+        Idempotent per week + group + user."""
         from datetime import date, timedelta
 
         today = date.today()
         week_start = today - timedelta(days=today.weekday())  # lunes
         week_end = week_start + timedelta(days=6)  # domingo
-        ranking = self.get_weekly_ranking(group_id, 5)
-        if not ranking:
-            return
         conn = self.get_connection()
-        cursor = conn.cursor()
-        for r in ranking:
-            cursor.execute(
-                """
-                INSERT OR IGNORE INTO weekly_rankings
-                    (week_start, week_end, group_id, rank, user_id, username, global_elo, attempts_count)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-                (
-                    str(week_start),
-                    str(week_end),
-                    group_id,
-                    r["rank"],
-                    r["user_id"],
-                    r["username"],
-                    r["global_elo"],
-                    r["attempts_this_week"],
-                ),
-            )
-        conn.commit()
-        conn.close()
+        try:
+            for r in rows:
+                if r["rank"] is None:
+                    continue
+                conn.execute(
+                    """INSERT OR IGNORE INTO weekly_rankings
+                       (week_start, week_end, group_id, rank, user_id, username, global_elo,
+                        attempts_count)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (str(week_start), str(week_end), group_id, r["rank"], r["user_id"],
+                     r["username"], r["rating"], r["attempts_in_window"]),
+                )
+            conn.commit()
+        finally:
+            conn.close()
 
     def get_ranking_history(self, group_id, weeks=4):
         """Historial de rankings de las últimas N semanas."""
@@ -1889,237 +1771,6 @@ class SQLiteRepository:
             }
             for row in rows
         ]
-
-    def get_global_ranking(self, limit=5, education_level=None, grade=None):
-        """Top estudiantes globales por ELO promedio, con actividad en los últimos 7 días."""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        _level_filter = ""
-        _params = []
-        if education_level:
-            _level_filter += "AND u.education_level = ?"
-            _params.append(education_level)
-        if grade:
-            _level_filter += " AND u.grade = ?"
-            _params.append(grade)
-        cursor.execute(
-            f"""
-            WITH active_users AS (
-                SELECT DISTINCT a.user_id
-                FROM attempts a
-                JOIN users u ON a.user_id = u.id
-                WHERE u.role = 'student'
-                  AND a.timestamp >= datetime('now', '-7 days')
-                  {_level_filter}
-            ),
-            latest_elo AS (
-                SELECT a.user_id, a.elo_after,
-                       ROW_NUMBER() OVER (
-                           PARTITION BY a.user_id, i.course_id
-                           ORDER BY a.timestamp DESC
-                       ) AS rn
-                FROM attempts a
-                JOIN items i ON a.item_id = i.id
-                WHERE a.user_id IN (SELECT user_id FROM active_users)
-            ),
-            user_elo AS (
-                SELECT le.user_id,
-                       ROUND(AVG(le.elo_after), 0) AS global_elo
-                FROM latest_elo le
-                WHERE le.rn = 1
-                GROUP BY le.user_id
-            ),
-            week_attempts AS (
-                SELECT a.user_id, COUNT(*) AS attempts_this_week
-                FROM attempts a
-                WHERE a.user_id IN (SELECT user_id FROM active_users)
-                  AND a.timestamp >= datetime('now', '-7 days')
-                GROUP BY a.user_id
-            )
-            SELECT ue.user_id, u.username, ue.global_elo, wa.attempts_this_week
-            FROM user_elo ue
-            JOIN users u ON ue.user_id = u.id
-            JOIN week_attempts wa ON ue.user_id = wa.user_id
-            ORDER BY ue.global_elo DESC
-            LIMIT ?
-        """,
-            (*_params, limit),
-        )
-        rows = cursor.fetchall()
-        conn.close()
-        return [
-            {
-                "user_id": row[0],
-                "username": row[1],
-                "global_elo": row[2],
-                "rank": idx + 1,
-                "attempts_this_week": row[3],
-            }
-            for idx, row in enumerate(rows)
-        ]
-
-    def get_course_ranking(self, course_id, limit=5):
-        """Top estudiantes en un curso específico por ELO promedio, últimos 7 días."""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            WITH active_users AS (
-                SELECT DISTINCT a.user_id
-                FROM attempts a
-                JOIN users u ON a.user_id = u.id
-                JOIN items i ON a.item_id = i.id
-                WHERE u.role = 'student'
-                  AND i.course_id = ?
-                  AND a.timestamp >= datetime('now', '-7 days')
-            ),
-            latest_elo AS (
-                SELECT a.user_id, a.elo_after,
-                       ROW_NUMBER() OVER (
-                           PARTITION BY a.user_id, i.topic
-                           ORDER BY a.timestamp DESC
-                       ) AS rn
-                FROM attempts a
-                JOIN items i ON a.item_id = i.id
-                WHERE a.user_id IN (SELECT user_id FROM active_users)
-                  AND i.course_id = ?
-            ),
-            user_elo AS (
-                SELECT le.user_id,
-                       ROUND(AVG(le.elo_after), 0) AS course_elo
-                FROM latest_elo le
-                WHERE le.rn = 1
-                GROUP BY le.user_id
-            ),
-            week_attempts AS (
-                SELECT a.user_id, COUNT(*) AS attempts_this_week
-                FROM attempts a
-                JOIN items i ON a.item_id = i.id
-                WHERE a.user_id IN (SELECT user_id FROM active_users)
-                  AND i.course_id = ?
-                  AND a.timestamp >= datetime('now', '-7 days')
-                GROUP BY a.user_id
-            )
-            SELECT ue.user_id, u.username, ue.course_elo, wa.attempts_this_week
-            FROM user_elo ue
-            JOIN users u ON ue.user_id = u.id
-            JOIN week_attempts wa ON ue.user_id = wa.user_id
-            ORDER BY ue.course_elo DESC
-            LIMIT ?
-        """,
-            (course_id, course_id, course_id, limit),
-        )
-        rows = cursor.fetchall()
-        conn.close()
-        return [
-            {
-                "user_id": row[0],
-                "username": row[1],
-                "course_elo": row[2],
-                "rank": idx + 1,
-                "attempts_this_week": row[3],
-            }
-            for idx, row in enumerate(rows)
-        ]
-
-    def get_student_rank(self, user_id, course_id=None, education_level=None, grade=None):
-        """Posición del estudiante en el ranking (global o por curso)."""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        if course_id is not None:
-            # Ranking por curso (ignora education_level)
-            cursor.execute(
-                """
-                WITH active_users AS (
-                    SELECT DISTINCT a.user_id
-                    FROM attempts a
-                    JOIN users u ON a.user_id = u.id
-                    JOIN items i ON a.item_id = i.id
-                    WHERE u.role = 'student'
-                      AND i.course_id = ?
-                      AND a.timestamp >= datetime('now', '-7 days')
-                ),
-                latest_elo AS (
-                    SELECT a.user_id, a.elo_after,
-                           ROW_NUMBER() OVER (
-                               PARTITION BY a.user_id, i.topic
-                               ORDER BY a.timestamp DESC
-                           ) AS rn
-                    FROM attempts a
-                    JOIN items i ON a.item_id = i.id
-                    WHERE a.user_id IN (SELECT user_id FROM active_users)
-                      AND i.course_id = ?
-                ),
-                user_elo AS (
-                    SELECT le.user_id,
-                           ROUND(AVG(le.elo_after), 0) AS course_elo
-                    FROM latest_elo le
-                    WHERE le.rn = 1
-                    GROUP BY le.user_id
-                ),
-                ranked AS (
-                    SELECT user_id, course_elo AS global_elo,
-                           ROW_NUMBER() OVER (ORDER BY course_elo DESC) AS rank
-                    FROM user_elo
-                )
-                SELECT rank, (SELECT COUNT(*) FROM user_elo) AS total, global_elo
-                FROM ranked WHERE user_id = ?
-            """,
-                (course_id, course_id, user_id),
-            )
-        else:
-            # Ranking global, opcionalmente filtrado por nivel educativo y grado
-            _level_filter = ""
-            _params = []
-            if education_level:
-                _level_filter += "AND u.education_level = ?"
-                _params.append(education_level)
-            if grade:
-                _level_filter += " AND u.grade = ?"
-                _params.append(grade)
-            _params.append(user_id)
-            cursor.execute(
-                f"""
-                WITH active_users AS (
-                    SELECT DISTINCT a.user_id
-                    FROM attempts a
-                    JOIN users u ON a.user_id = u.id
-                    WHERE u.role = 'student'
-                      AND a.timestamp >= datetime('now', '-7 days')
-                      {_level_filter}
-                ),
-                latest_elo AS (
-                    SELECT a.user_id, a.elo_after,
-                           ROW_NUMBER() OVER (
-                               PARTITION BY a.user_id, i.course_id
-                               ORDER BY a.timestamp DESC
-                           ) AS rn
-                    FROM attempts a
-                    JOIN items i ON a.item_id = i.id
-                    WHERE a.user_id IN (SELECT user_id FROM active_users)
-                ),
-                user_elo AS (
-                    SELECT le.user_id,
-                           ROUND(AVG(le.elo_after), 0) AS global_elo
-                    FROM latest_elo le
-                    WHERE le.rn = 1
-                    GROUP BY le.user_id
-                ),
-                ranked AS (
-                    SELECT user_id, global_elo,
-                           ROW_NUMBER() OVER (ORDER BY global_elo DESC) AS rank
-                    FROM user_elo
-                )
-                SELECT rank, (SELECT COUNT(*) FROM user_elo) AS total, global_elo
-                FROM ranked WHERE user_id = ?
-            """,
-                tuple(_params),
-            )
-        row = cursor.fetchone()
-        conn.close()
-        if row:
-            return {"rank": row[0], "total_students": row[1], "global_elo": row[2]}
-        return None
 
     def get_total_attempts_count(self, user_id):
         """Retorna el número total de intentos de un estudiante."""
@@ -2191,20 +1842,6 @@ class SQLiteRepository:
         rows = cursor.fetchall()
         conn.close()
         return [r[0] for r in rows]
-
-    def get_topic_elo_map(self, user_id) -> dict:
-        """Devuelve {topic: {"elo": float, "rd": float}} leído de
-        student_topic_elo (incluye el ELO inicial fijado por el diagnóstico,
-        que no genera intentos). Para el Mapa de contenido."""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT topic, current_elo, rd FROM student_topic_elo WHERE user_id = ?",
-            (user_id,),
-        )
-        rows = cursor.fetchall()
-        conn.close()
-        return {r[0]: {"elo": r[1], "rd": r[2]} for r in rows}
 
     # ── Spec 001: raw rating rows and ranking participants ───────────────────
     # Raw rows only: no averaging, rounding or ordering by rating (constitution III).
@@ -2320,121 +1957,45 @@ class SQLiteRepository:
             conn.close()
         return row[0] if row else None
 
-    def get_latest_elo_by_topic(self, user_id):
-        """Devuelve {topic: (elo, rd)} leyendo student_topic_elo, el estado canónico.
+    def _reconcile_legacy_ratings(self) -> int:
+        """One-time, idempotent: approximate baselines from legacy rows (spec 001, research R10).
 
-        Esa tabla es la única fuente del rating: la escriben el diagnóstico
-        (baseline), cada respuesta con tiempo válido y la validación docente de
-        un procedimiento. No se reconstruye desde attempts: hacerlo reaplicaba
-        el delta de cada procedimiento en toda lectura posterior e ignoraba
-        elo_valid, así que un intento fuera de rango sí movía el rating.
+        Reads raw rows, lets the domain plan which (course, topic) ratings to create, inserts
+        them with ON CONFLICT DO NOTHING. Legacy rows are never changed. Returns rows created.
         """
+        from src.domain.elo.reconciliation import plan_reconciliation
+
         conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT topic, current_elo, rd FROM student_topic_elo WHERE user_id = ?",
-            (user_id,),
-        )
-        elo_map = {
-            topic: (float(elo), float(rd) if rd is not None else 350.0)
-            for topic, elo, rd in cursor.fetchall()
-        }
-        conn.close()
-        return elo_map
-
-    def _refresh_global_elo(self, cursor, user_id):
-        """users.current_elo = promedio de student_topic_elo (estado derivado)."""
-        cursor.execute(
-            """
-            UPDATE users SET current_elo = COALESCE((
-                SELECT ROUND(AVG(current_elo), 2)
-                FROM student_topic_elo
-                WHERE user_id = ?
-            ), 1000.0)
-            WHERE id = ?
-            """,
-            (user_id, user_id),
-        )
-
-    def _bump_topic_elo(self, cursor, user_id, topic, delta):
-        """Aplica un ajuste aditivo (procedimiento docente) al rating canónico."""
-        cursor.execute(
-            """
-            INSERT INTO student_topic_elo (user_id, topic, current_elo, rd, updated_at)
-            VALUES (?, ?, ?, 350.0, CURRENT_TIMESTAMP)
-            ON CONFLICT (user_id, topic) DO UPDATE
-                SET current_elo = MAX(0, ROUND(student_topic_elo.current_elo + ?, 2)),
-                    updated_at  = CURRENT_TIMESTAMP
-            """,
-            (user_id, topic, max(0.0, round(1000.0 + float(delta), 2)), float(delta)),
-        )
-        self._refresh_global_elo(cursor, user_id)
-
-    def _backfill_current_elo(self):
-        """Rellena student_topic_elo y users.current_elo para usuarios existentes.
-
-        Idempotente: usa INSERT OR IGNORE para no sobreescribir datos existentes.
-        """
-        conn = self.get_connection()
-        cursor = conn.cursor()
         try:
-            # 1. Poblar student_topic_elo desde attempts
-            cursor.execute(
-                """
-                INSERT OR IGNORE INTO student_topic_elo
-                    (user_id, topic, current_elo, rd, updated_at)
-                SELECT a1.user_id, a1.topic, a1.elo_after,
-                       COALESCE(a1.rating_deviation, 350.0), CURRENT_TIMESTAMP
-                FROM attempts a1
-                WHERE a1.timestamp = (
-                    SELECT MAX(a2.timestamp) FROM attempts a2
-                    WHERE a2.user_id = a1.user_id AND a2.topic = a1.topic
+            legacy, attempts, diagnostics, topics, names, existing = (
+                conn.execute(query).fetchall()
+                for query in (
+            "SELECT user_id, topic, current_elo, rd, updated_at FROM student_topic_elo",
+            "SELECT DISTINCT a.user_id, i.course_id, i.topic, a.topic AS rating_key FROM attempts a"
+            " JOIN items i ON i.id = a.item_id WHERE a.topic IS NOT NULL",
+            "SELECT user_id, course_id FROM diagnostics",
+            "SELECT DISTINCT course_id, topic FROM items WHERE course_id IS NOT NULL",
+            "SELECT id, name FROM courses",
+            "SELECT user_id, course_id, topic FROM student_course_topic_elo",
                 )
-                """
             )
-
-            # 2. Actualizar users.current_elo como promedio
-            cursor.execute(
-                """
-                UPDATE users SET current_elo = (
-                    SELECT ROUND(AVG(current_elo), 2)
-                    FROM student_topic_elo
-                    WHERE user_id = users.id
+            rows = plan_reconciliation(
+                legacy, attempts, diagnostics, topics, dict(names), existing
+            )
+            created = 0
+            for r in rows:
+                cursor = conn.execute(
+                    """INSERT INTO student_course_topic_elo
+                       (user_id, course_id, topic, current_elo, rd, origin, approximate,
+                        legacy_source_key, reconciled_at, updated_at)
+                       VALUES (?, ?, ?, ?, ?, ?, 1, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                       ON CONFLICT (user_id, course_id, topic) DO NOTHING""",
+                    (r["user_id"], r["course_id"], r["topic"], r["elo"], r["rd"], r["origin"],
+                     r["legacy_source_key"]),
                 )
-                WHERE (current_elo IS NULL OR current_elo = 1000.0)
-                  AND EXISTS (SELECT 1 FROM student_topic_elo WHERE user_id = users.id)
-                """
-            )
-
-            # 3. Aplicar una sola vez los deltas de procedimientos ya validados.
-            #    Antes se sumaban en cada lectura de get_latest_elo_by_topic.
-            cursor.execute(
-                """
-                SELECT ps.student_id, i.topic, SUM(ps.elo_delta)
-                FROM procedure_submissions ps
-                JOIN items i ON ps.item_id = i.id
-                WHERE ps.status = 'VALIDATED_BY_TEACHER'
-                  AND ps.elo_delta IS NOT NULL
-                  AND COALESCE(ps.elo_applied, 0) = 0
-                GROUP BY ps.student_id, i.topic
-                """
-            )
-            pending = cursor.fetchall()
-            for student_id, topic, total_delta in pending:
-                self._bump_topic_elo(cursor, student_id, topic, total_delta)
-            if pending:
-                cursor.execute(
-                    """
-                    UPDATE procedure_submissions SET elo_applied = 1
-                    WHERE status = 'VALIDATED_BY_TEACHER'
-                      AND elo_delta IS NOT NULL
-                      AND COALESCE(elo_applied, 0) = 0
-                    """
-                )
-
+                created += cursor.rowcount
             conn.commit()
-        except Exception:
-            conn.rollback()
+            return created
         finally:
             conn.close()
 
@@ -2841,10 +2402,6 @@ class SQLiteRepository:
             )
             SELECT u.id AS user_id, u.username, u.education_level,
                    u.group_id, COALESCE(g.name, 'Sin grupo') AS group_name,
-                   COALESCE(
-                       (SELECT AVG(ste.current_elo) FROM student_topic_elo ste WHERE ste.user_id = u.id),
-                       u.current_elo, 1000.0
-                   ) AS global_elo,
                    COUNT(a.id) AS total_attempts,
                    CASE WHEN COUNT(a.id) > 0
                         THEN CAST(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS REAL) / COUNT(a.id)
@@ -2868,10 +2425,9 @@ class SQLiteRepository:
                 "education_level": r[2],
                 "group_id": r[3],
                 "group_name": r[4],
-                "global_elo": float(r[5]),
-                "total_attempts": int(r[6]),
-                "accuracy": float(r[7]),
-                "last_activity": str(r[8])[:10] if r[8] else None,
+                "total_attempts": int(r[5]),
+                "accuracy": float(r[6]),
+                "last_activity": str(r[7])[:10] if r[7] else None,
             }
             for r in rows
         ]
@@ -4342,32 +3898,6 @@ class SQLiteRepository:
         conn.close()
         return rows
 
-    def get_student_elo_summary(self, student_id):
-        """ELO actual por tópico, ELO global, total de intentos y precisión reciente.
-        Devuelve dict con claves: elo_by_topic, global_elo, attempts_count, recent_accuracy.
-        """
-        elo_by_topic = self.get_latest_elo_by_topic(student_id)
-        global_elo = (
-            sum(e for e, _ in elo_by_topic.values()) / len(elo_by_topic) if elo_by_topic else 1000.0
-        )
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM attempts WHERE user_id = ?", (student_id,))
-        total = cursor.fetchone()[0]
-        cursor.execute(
-            "SELECT is_correct FROM attempts WHERE user_id = ? ORDER BY timestamp DESC LIMIT 10",
-            (student_id,),
-        )
-        recent = cursor.fetchall()
-        conn.close()
-        recent_acc = sum(1 for r in recent if r[0]) / len(recent) if recent else 0.0
-        return {
-            "elo_by_topic": elo_by_topic,
-            "global_elo": round(global_elo, 1),
-            "attempts_count": total,
-            "recent_accuracy": recent_acc,
-        }
-
     def validate_procedure_submission(
         self,
         submission_id: int,
@@ -4602,7 +4132,8 @@ class SQLiteRepository:
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                 (user_id, run[0], course_name, result["total_questions"],
                  result["correct_count"], result["score_pct"],
-                 result["global_elo_after"], run[1]),
+                 # Pending overall rating → the column's default 0 (NOT NULL, AGENTS R8).
+                 result["global_elo_after"] or 0, run[1]),
             )
             history_id = cursor.lastrowid
             if responses:

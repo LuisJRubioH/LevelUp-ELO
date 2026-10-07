@@ -167,3 +167,11 @@ def test_spec001_pvp_lobby_rating_is_the_course_rating_read_outside_the_lock():
     assert asyncio.run(pvp._lobby_rating(repo, 1, "C")) == 1100.0
     assert asyncio.run(pvp._lobby_rating(repo, 1, "E")) == 1000.0
     assert repo.lock_seen == [False, False]
+
+
+def test_spec001_pvp_shows_pending_never_the_1000_fallback():
+    """The internal 1000 drives an unrated player's expectation but is never displayed."""
+    from api.websocket.pvp import _slot_ratings
+
+    assert _slot_ratings(None) == (1000.0, None)
+    assert _slot_ratings(999.6) == (999.6, 1000)

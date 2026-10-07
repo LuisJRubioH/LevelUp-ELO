@@ -16,6 +16,7 @@ Las capas solo son capas si algo las sostiene:
 
 import ast
 import pathlib
+import re
 
 import pytest
 
@@ -70,11 +71,36 @@ def test_domain_does_not_import_upper_layers(path):
 @pytest.mark.parametrize("path", _modules("domain"), ids=_ids(_modules("domain")))
 def test_domain_stays_free_of_io_and_ml_dependencies(path):
     offenders = sorted(
-        name
-        for name in _imported_names(path)
-        if name.split(".")[0] in _FORBIDDEN_IN_DOMAIN
+        name for name in _imported_names(path) if name.split(".")[0] in _FORBIDDEN_IN_DOMAIN
     )
     assert not offenders, (
         f"{path.name} depende de {offenders}. Eso es infraestructura: va en "
         "src/infrastructure/ y se inyecta (así se movió IsotonicCalibrator)."
     )
+
+
+# ── Spec 001 (T061): rating arithmetic lives in the domain, not in SQL or routers ──
+
+_RATING_SQL = re.compile(
+    r"AVG\(\s*[\w.]*(current_elo|elo_after)|ORDER BY[^\"\n]*\b(current_elo|elo_after)\b",
+    re.IGNORECASE,
+)
+
+
+def test_spec001_no_rating_aggregation_in_repositories_or_routers():
+    """Constitution III (supplementary to the behavioural tests): repositories return raw rows and
+    participants; routers present what RatingReadService computed."""
+    root = _SRC.parent
+    files = sorted((_SRC / "infrastructure" / "persistence").glob("*_repository.py"))
+    files += sorted((root / "api" / "routers").glob("*.py"))
+    offenders = []
+    for path in files:
+        text = path.read_text(encoding="utf-8")
+        for match in _RATING_SQL.finditer(text):
+            line = text[: match.start()].count("\n") + 1
+            offenders.append(f"{path.name}:{line}: {match.group(0)[:60]}")
+        imported = _imported_names(path)
+        for module in ("src.domain.elo.aggregation", "src.domain.elo.ranks"):
+            if module in imported:
+                offenders.append(f"{path.name}: imports {module}")
+    assert not offenders, "\n".join(offenders)

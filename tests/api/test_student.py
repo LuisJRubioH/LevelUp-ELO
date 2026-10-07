@@ -195,11 +195,18 @@ class TestStats:
         assert isinstance(data["topic_elos"], list)
 
     def test_stats_initial_elo(self, api_client, student_headers):
-        """ELO inicial de estudiante sin intentos es 1000."""
+        """Spec 001 (FR-028b, flipped by T064): with no rated current course the overall rating is
+        pending — null, never a 1000 placeholder; once rated it is a real number."""
         r = api_client.get("/api/student/stats", headers=student_headers)
         data = r.json()
-        # ELO puede ser exactamente 1000 si no ha respondido nada, o mayor/menor si ya hay intentos
-        assert 0 < data["global_elo"] < 5000
+        if data["overall_status"] == "pending_diagnostic":
+            assert (data["global_elo"], data["display_rating"], data["rank_label"]) == (
+                None,
+                None,
+                None,
+            )
+        else:
+            assert 0 < data["global_elo"] < 5000
 
 
 class TestEnroll:

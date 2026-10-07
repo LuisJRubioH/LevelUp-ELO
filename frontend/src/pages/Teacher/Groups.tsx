@@ -8,22 +8,20 @@
 
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { RankPill } from "../../components/ELO/RankBadge";
 import { teacherApi, type Group, type StudentSummary } from "../../api/teacher";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
-const RANKS = [
-  { min: 0, name: "HIERRO", fg: "#9ca3af", bg: "rgba(156,163,175,.16)" },
-  { min: 950, name: "BRONCE", fg: "#c2814e", bg: "rgba(194,129,78,.18)" },
-  { min: 1150, name: "PLATA", fg: "#cbd5e1", bg: "rgba(203,213,225,.16)" },
-  { min: 1350, name: "ORO", fg: "#fbbf24", bg: "rgba(251,191,36,.16)" },
-  { min: 1550, name: "PLATINO", fg: "#5eead4", bg: "rgba(94,234,212,.16)" },
-  { min: 1750, name: "DIAMANTE", fg: "#7dd3fc", bg: "rgba(125,211,252,.16)" },
-  { min: 1950, name: "MAESTRO", fg: "#c4b5fd", bg: "rgba(196,181,253,.18)" },
-];
-const rankFor = (elo: number) => {
-  let r = RANKS[0];
-  for (const x of RANKS) if (elo >= x.min) r = x;
-  return r;
+/** Spec 001: ratings and labels come from the API (display_rating, rank_label) as given. */
+const fmtRating = (v: number | null | undefined) => (v == null ? "Diagnóstico pendiente" : String(v));
+const byRatingDesc = (a: StudentSummary, b: StudentSummary) =>
+  (b.display_rating ?? -1) - (a.display_rating ?? -1);
+const needsAttention = (s: StudentSummary, acc: number) =>
+  acc < 60 || (s.display_rating != null && s.display_rating < 1100);
+/** A group statistic over rated students' display values; null when nobody is rated yet. */
+const meanShown = (xs: StudentSummary[]) => {
+  const v = xs.map((x) => x.display_rating).filter((x): x is number => x != null);
+  return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null;
 };
 const AVAS = [
   "linear-gradient(140deg,#8b5cf6,#6366f1)",
@@ -45,7 +43,7 @@ const GOAL = 75;
 
 interface GroupStats {
   n: number;
-  elo: number;
+  elo: number | null; // mean of rated members' display values; null if none
   acc: number;
   attn: number;
   attempts: number;
@@ -53,14 +51,14 @@ interface GroupStats {
 }
 function statsFor(members: StudentSummary[]): GroupStats {
   const n = members.length;
-  if (!n) return { n: 0, elo: 0, acc: 0, attn: 0, attempts: 0, members: [] };
+  if (!n) return { n: 0, elo: null, acc: 0, attn: 0, attempts: 0, members: [] };
   return {
     n,
-    elo: Math.round(members.reduce((s, x) => s + x.global_elo, 0) / n),
+    elo: meanShown(members),
     acc: Math.round(members.reduce((s, x) => s + toPct(x.accuracy), 0) / n),
-    attn: members.filter((x) => toPct(x.accuracy) < 60 || x.global_elo < 1100).length,
+    attn: members.filter((x) => needsAttention(x, toPct(x.accuracy))).length,
     attempts: members.reduce((s, x) => s + x.total_attempts, 0),
-    members: [...members].sort((a, b) => b.global_elo - a.global_elo),
+    members: [...members].sort(byRatingDesc),
   };
 }
 
@@ -150,7 +148,6 @@ function GroupCard({
   generating: boolean;
 }) {
   const st = statsFor(members);
-  const rk = rankFor(st.elo);
   return (
     <div className="grp-card" style={{ "--c": color } as React.CSSProperties} onClick={onOpen}>
       <div className="gc-top">
@@ -176,10 +173,7 @@ function GroupCard({
           <span>estudiantes</span>
         </div>
         <div className="gcs">
-          <b>{fmtMiles(st.elo)}</b>
-          <span className="rank-badge" style={{ color: rk.fg, background: rk.bg }}>
-            {rk.name}
-          </span>
+          <b>{st.elo ?? "—"}</b>
         </div>
         <div className="gcs">
           <b>{st.acc}%</b>
@@ -255,7 +249,7 @@ function GroupDrawer({
           </div>
           <div className="gds">
             <span className="l">ELO promedio</span>
-            <b>{fmtMiles(st.elo)}</b>
+            <b>{st.elo ?? "—"}</b>
           </div>
           <div className="gds">
             <span className="l">Dominio</span>
@@ -280,7 +274,6 @@ function GroupDrawer({
           ) : (
             <div className="gd-roster">
               {st.members.map((s, i) => {
-                const rk = rankFor(s.global_elo);
                 const acc = toPct(s.accuracy);
                 return (
                   <div className="gdr-row" key={s.user_id}>
@@ -292,13 +285,11 @@ function GroupDrawer({
                       <b>{s.username}</b>
                       <span>@{s.username}</span>
                     </div>
-                    <span className="rank-badge" style={{ color: rk.fg, background: rk.bg }}>
-                      {rk.name}
-                    </span>
+                    <RankPill label={s.rank_label} />
                     <span className="gdr-acc" style={{ color: accColor(acc) }}>
                       {acc}%
                     </span>
-                    <span className="gdr-elo">{fmtMiles(s.global_elo)}</span>
+                    <span className="gdr-elo">{fmtRating(s.display_rating)}</span>
                   </div>
                 );
               })}

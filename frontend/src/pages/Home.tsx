@@ -15,6 +15,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "../api/client";
+import { rankColor } from "../components/ELO/rankColors";
 import "./Home.css";
 
 const KATIA_GIF = "/katia/correcto_compressed.gif";
@@ -33,16 +35,18 @@ const NAV_LINKS: { href: string; t: Bi }[] = [
   { href: "#faq", t: { es: "FAQ", en: "FAQ" } },
 ];
 
-const RANKS = [
-  { es: "Plata I", en: "Silver I", min: 1000, c: "#cbd5e1" },
-  { es: "Oro II", en: "Gold II", min: 1120, c: "#fbbf24" },
-  { es: "Oro I", en: "Gold I", min: 1180, c: "#fcd34d" },
-  { es: "Platino II", en: "Platinum II", min: 1300, c: "#2dd4bf" },
-  { es: "Platino I", en: "Platinum I", min: 1420, c: "#5eead4" },
-  { es: "Diamante II", en: "Diamond II", min: 1560, c: "#22d3ee" },
-  { es: "Diamante I", en: "Diamond I", min: 1700, c: "#67e8f9" },
-  { es: "Maestro", en: "Master", min: 1850, c: "#c084fc" },
-];
+/** English names of the rank labels. The scale itself — labels and thresholds — is the API's
+ *  (GET /api/meta/ranks, spec 001); the demo ladder shows its rungs from Plata I to Maestro. */
+const RANK_EN: Record<string, string> = {
+  Aspirante: "Aspirant", Hierro: "Iron", "Bronce II": "Bronze II", "Bronce I": "Bronze I",
+  "Plata II": "Silver II", "Plata I": "Silver I", "Oro II": "Gold II", "Oro I": "Gold I",
+  "Platino II": "Platinum II", "Platino I": "Platinum I", "Diamante II": "Diamond II",
+  "Diamante I": "Diamond I", Maestro: "Master", "Gran Maestro": "Grandmaster",
+  Leyenda: "Legend", "Leyenda Suprema": "Supreme Legend",
+};
+type Rung = { es: string; en: string; min: number; c: string };
+const LADDER_MIN = 1000; // Plata I
+const LADDER_MAX = 1800; // Maestro
 const START = 1180;
 
 const FAQS: { q: Bi; a: Bi }[] = [
@@ -127,11 +131,6 @@ const CHAT_PROMPTS: { q: Bi; a: Bi }[] = [
 
 const BAR_H = [62, 84, 48, 72, 92];
 
-function rankIndex(e: number): number {
-  let idx = 0;
-  for (let i = 0; i < RANKS.length; i++) if (e >= RANKS[i].min) idx = i;
-  return idx;
-}
 function fmt(n: number): string {
   return Math.round(n).toLocaleString("es-CO");
 }
@@ -192,6 +191,24 @@ export function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // ── demo ELO ─────────────────────────────────────────────────────────────
+  const [rungs, setRungs] = useState<Rung[]>([]);
+  useEffect(() => {
+    api
+      .get<{ label: string; min: number }[]>("/api/meta/ranks")
+      .then((ranks) =>
+        setRungs(
+          ranks
+            .filter((r) => r.min >= LADDER_MIN && r.min <= LADDER_MAX)
+            .map((r) => ({ es: r.label, en: RANK_EN[r.label] ?? r.label, min: r.min, c: rankColor(r.label) }))
+        )
+      )
+      .catch(() => setRungs([]));
+  }, []);
+  const rankIndex = (e: number) => {
+    let idx = 0;
+    for (let i = 0; i < rungs.length; i++) if (e >= rungs[i].min) idx = i;
+    return idx;
+  };
   const [elo, setElo] = useState(START);
   const [displayElo, setDisplayElo] = useState(START);
   const [delta, setDelta] = useState<number | null>(null);
@@ -226,7 +243,7 @@ export function Home() {
   );
 
   const answerCorrectly = () => {
-    const max = RANKS[RANKS.length - 1].min;
+    const max = rungs.length ? rungs[rungs.length - 1].min : START;
     if (elo >= max) return;
     const gain = 18 + Math.floor(Math.random() * 17);
     setElo((prev) => Math.min(max, prev + gain));
@@ -239,11 +256,12 @@ export function Home() {
     setDelta(null);
   };
 
+  const placeholder: Rung = { es: "", en: "", min: START, c: "#94a3b8" };
   const curIdx = rankIndex(elo);
-  const cur = RANKS[curIdx];
-  const next = RANKS[Math.min(curIdx + 1, RANKS.length - 1)];
+  const cur = rungs[curIdx] ?? placeholder;
+  const next = rungs[Math.min(curIdx + 1, rungs.length - 1)] ?? placeholder;
   const span = Math.max(1, next.min - cur.min);
-  const pct = curIdx >= RANKS.length - 1 ? 100 : Math.min(100, ((elo - cur.min) / span) * 100);
+  const pct = curIdx >= rungs.length - 1 ? 100 : Math.min(100, ((elo - cur.min) / span) * 100);
 
   // ── chat KatIA ───────────────────────────────────────────────────────────
   const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
@@ -598,7 +616,7 @@ export function Home() {
               </div>
             </div>
             <div className="ladder">
-              {RANKS.slice()
+              {rungs.slice()
                 .reverse()
                 .map((r) => {
                   const reached = elo >= r.min;

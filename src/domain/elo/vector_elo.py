@@ -28,15 +28,3 @@ class VectorRating:
         new_r, new_rd = RatingModel(current_r, current_rd).update(result, difficulty)
         self.ratings[concept] = (new_r, new_rd)
         return new_r, new_rd
-
-
-def aggregate_global_elo(vector: VectorRating) -> float:
-    if not vector.ratings:
-        return 1000.0
-    return sum(r for r, rd in vector.ratings.values()) / len(vector.ratings)
-
-
-def aggregate_global_rd(vector: VectorRating) -> float:
-    if not vector.ratings:
-        return 350.0
-    return sum(rd for r, rd in vector.ratings.values()) / len(vector.ratings)

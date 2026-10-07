@@ -435,3 +435,142 @@ def test_spec001_pvp_player_without_rated_topics_gets_zero(repo):
         0.0,
         "no_rated_topics",
     )
+
+
+# ── US6 rankings on both engines (T055, T056, T057) ─────────────────────────
+
+
+def _attempt(repo, user_id, item_id, days_ago=0):
+    """Participation evidence that moves no rating: one complete attempt row, optionally aged."""
+    when = (datetime.now(timezone.utc) - timedelta(days=days_ago)).strftime("%Y-%m-%d %H:%M:%S")
+    sql(
+        repo,
+        "INSERT INTO attempts (user_id, item_id, is_correct, difficulty, topic, elo_after,"
+        " elo_before, prob_failure, expected_score, elo_valid, timestamp)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (user_id, item_id, True, 1000, TOPIC, 1000.0, 1000.0, 0.5, 0.5, 1, when),
+    )
+
+
+def _ranked(view, users):
+    """(user, rating, rank) of `users` in list order, ignoring other participants."""
+    return [
+        (e["user_id"], e["rating"], e["rank"]) for e in view["entries"] if e["user_id"] in users
+    ]
+
+
+def test_spec001_rankings_follow_participation_and_competition(repo):
+    """FR-028f, FR-028h, US6-AS8: who appears comes from activity; ties share a rank."""
+    from src.application.services.rating_read_service import RatingReadService
+
+    service = RatingReadService(repo)
+    course, item = _course(repo, block="Semillero", id_suffix="_semillero_10")
+    teacher = make_teacher(repo)
+    group = make_group(repo, teacher, course)
+    s = [make_student(repo, education_level="semillero", grade="10") for _ in range(6)]
+    for user in s:
+        enroll(repo, user, course, group)
+    for user, elo in zip(s, (1250.0, 1200.2, 1199.6, 1150.0)):
+        _row(repo, user, course, TOPIC, elo)
+    _row(repo, s[5], course, TOPIC, 1900.0)  # higher rating, but inactive this week
+    for user in s[:5]:
+        _attempt(repo, user, item)
+    for _ in range(3):
+        _attempt(repo, s[2], item)  # more attempts never break a tie
+    _attempt(repo, s[5], item, days_ago=10)
+    expected = [
+        (s[0], 1250, 1),
+        (s[1], 1200, 2),
+        (s[2], 1200, 2),
+        (s[3], 1150, 4),
+        (s[4], None, None),
+    ]
+
+    by_course = service.ranking_view("course", course_id=course)
+    weekly = service.ranking_view("weekly", group_id=group)
+    overall = service.ranking_view("global", education_level="semillero", grade="10")
+    cut = service.ranking_view("course", course_id=course, limit=2)
+
+    assert _ranked(by_course, s) == expected
+    assert _ranked(weekly, s) == expected
+    assert weekly["basis"] == {"kind": "course", "course_id": course, "source": "group"}
+    mine = {u: rank for u, _, rank in _ranked(overall, s)}
+    assert mine[s[1]] == mine[s[2]] and mine[s[0]] < mine[s[1]] < mine[s[3]]
+    assert mine[s[4]] is None and s[5] not in mine
+    assert [(e["user_id"], e["rank"]) for e in cut["entries"]] == [(s[0], 1), (s[1], 2)]
+    assert service.ranking_rank(s[2], "course", course_id=course) == 2
+    assert service.ranking_rank(s[5], "course", course_id=course) is None
+
+
+def test_spec001_group_ranking_never_substitutes_another_rating(repo):
+    """FR-028d, US6-AS7: on the group course, another course's rating never counts."""
+    from src.application.services.rating_read_service import RatingReadService
+
+    course, item = _course(repo)
+    other, other_item = _course(repo)
+    group = make_group(repo, make_teacher(repo), course)
+    a, b, d = make_student(repo), make_student(repo), make_student(repo)
+    for user in (a, b, d):
+        enroll(repo, user, course, group)
+        enroll(repo, user, other)
+    _row(repo, a, course, TOPIC, 1200.0)
+    _row(repo, b, course, TOPIC, 1100.0)
+    _row(repo, b, other, TOPIC, 1900.0)
+    _row(repo, d, other, TOPIC, 2000.0)
+    for _ in range(5):
+        _attempt(repo, b, other_item)
+
+    view = RatingReadService(repo).ranking_view("group", group_id=group)
+
+    assert view["basis"] == {"kind": "course", "course_id": course, "source": "group"}
+    assert [(e["user_id"], e["rating"], e["rank"], e["status"]) for e in view["entries"]] == [
+        (a, 1200, 1, "rated"),
+        (b, 1100, 2, "rated"),
+        (d, None, None, "pending_diagnostic"),
+    ]
+
+
+def test_spec001_every_ranking_reads_the_canonical_rating(repo):
+    """FR-028, FR-036, SC-005: rankings show ratings_view's number; legacy edits change nothing."""
+    from src.application.services.rating_read_service import RatingReadService
+
+    service = RatingReadService(repo)
+    course, item = _course(repo, block="Semillero", id_suffix="_semillero_11")
+    group = make_group(repo, make_teacher(repo), course)
+    student = make_student(repo, education_level="semillero", grade="11")
+    enroll(repo, student, course, group)
+    _row(repo, student, course, TOPIC, 1234.4)
+    _row(repo, student, course, "Decimales", 1100.0)
+    _attempt(repo, student, item)
+
+    def readings():
+        args = [
+            ("group", {"group_id": group}),
+            ("group", {"group_id": group, "course_id": course}),
+            ("weekly", {"group_id": group}),
+            ("course", {"course_id": course}),
+            ("global", {"education_level": "semillero", "grade": "11"}),
+        ]
+        ratings = [
+            next(
+                e["rating"]
+                for e in service.ranking_view(scope, **kw)["entries"]
+                if e["user_id"] == student
+            )
+            for scope, kw in args
+        ]
+        ranks = [service.ranking_rank(student, scope, **kw) for scope, kw in args]
+        return service.ratings_view(student)["display_rating"], ratings, ranks
+
+    shown, ratings, ranks = readings()
+    sql(
+        repo,
+        "INSERT INTO student_topic_elo (user_id, topic, current_elo, rd) VALUES (?, ?, ?, ?)",
+        (student, TOPIC, 1900.0, 350.0),
+    )
+    sql(repo, "UPDATE users SET current_elo = 1900 WHERE id = ?", (student,))
+
+    assert shown == 1167
+    assert ratings == [shown] * 5
+    assert None not in ranks
+    assert readings() == (shown, ratings, ranks)

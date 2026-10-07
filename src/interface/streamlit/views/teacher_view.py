@@ -14,6 +14,7 @@ import src.infrastructure.external_api.ai_client as ai_mod
 
 from src.interface.streamlit.assets import _get_logo
 from src.interface.streamlit.state import cached, get_rank, logout
+from src.interface.streamlit.rankings import fmt_position, fmt_rating, v1_ranking
 from src.utils import strip_thinking_tags
 
 
@@ -462,8 +463,12 @@ def render_teacher():
                     "Grado", ["6°", "7°", "8°", "9°", "10°", "11°"], key="tch_rank_grade"
                 )
                 _tch_rank_grade = _tch_grade_label.replace("°", "")
-            _global_ranking = repo.get_global_ranking(
-                limit=10, education_level=_sel_level, grade=_tch_rank_grade
+            _global_ranking = v1_ranking(
+                st.session_state.teacher_service.ratings,
+                "global",
+                limit=10,
+                education_level=_sel_level,
+                grade=_tch_rank_grade,
             )
             if _global_ranking:
                 _tch_rank_html = (
@@ -471,13 +476,11 @@ def render_teacher():
                 )
                 _tch_rank_html += "<tr style='border-bottom:1px solid #444;'><th style='padding:6px;'>🏅</th><th style='padding:6px; text-align:left;'>Estudiante</th><th style='padding:6px;'>ELO</th><th style='padding:6px;'>Intentos</th></tr>"
                 for _r in _global_ranking:
-                    _pos = _medal.get(_r["rank"], str(_r["rank"]))
+                    _pos = fmt_position(_r["rank"], _medal)
                     _tch_rank_html += f"<tr style='border-bottom:1px solid #333;'>"
                     _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_pos}</td>"
                     _tch_rank_html += f"<td style='padding:6px;'>{_r['username']}</td>"
-                    _tch_rank_html += (
-                        f"<td style='padding:6px; text-align:center;'>{_r['global_elo']:.0f}</td>"
-                    )
+                    _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{fmt_rating(_r['global_elo'])}</td>"
                     _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_r['attempts_this_week']}</td>"
                     _tch_rank_html += "</tr>"
                 _tch_rank_html += "</table>"
@@ -492,18 +495,23 @@ def render_teacher():
                     "Curso", list(_course_opts.keys()), key="tch_rank_course"
                 )
                 _sel_course_rank_id = _course_opts[_sel_course_rank]
-                _course_ranking = repo.get_course_ranking(_sel_course_rank_id, limit=10)
+                _course_ranking = v1_ranking(
+                    st.session_state.teacher_service.ratings,
+                    "course",
+                    limit=10,
+                    course_id=_sel_course_rank_id,
+                )
                 if _course_ranking:
                     _tch_rank_html = (
                         "<table style='width:100%; border-collapse:collapse; font-size:0.9rem;'>"
                     )
                     _tch_rank_html += "<tr style='border-bottom:1px solid #444;'><th style='padding:6px;'>🏅</th><th style='padding:6px; text-align:left;'>Estudiante</th><th style='padding:6px;'>ELO</th><th style='padding:6px;'>Intentos</th></tr>"
                     for _r in _course_ranking:
-                        _pos = _medal.get(_r["rank"], str(_r["rank"]))
+                        _pos = fmt_position(_r["rank"], _medal)
                         _tch_rank_html += f"<tr style='border-bottom:1px solid #333;'>"
                         _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_pos}</td>"
                         _tch_rank_html += f"<td style='padding:6px;'>{_r['username']}</td>"
-                        _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_r['course_elo']:.0f}</td>"
+                        _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{fmt_rating(_r['course_elo'])}</td>"
                         _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_r['attempts_this_week']}</td>"
                         _tch_rank_html += "</tr>"
                     _tch_rank_html += "</table>"
@@ -525,18 +533,20 @@ def render_teacher():
                 )
                 _sel_grp_rank_id = _grp_opts_rank[_sel_grp_rank]
 
-                _tch_ranking = repo.get_weekly_ranking(_sel_grp_rank_id)
+                _tch_ranking = v1_ranking(
+                    st.session_state.teacher_service.ratings, "weekly", group_id=_sel_grp_rank_id
+                )
                 if _tch_ranking:
                     _tch_rank_html = (
                         "<table style='width:100%; border-collapse:collapse; font-size:0.9rem;'>"
                     )
                     _tch_rank_html += "<tr style='border-bottom:1px solid #444;'><th style='padding:6px;'>🏅</th><th style='padding:6px; text-align:left;'>Estudiante</th><th style='padding:6px;'>ELO</th><th style='padding:6px;'>Intentos</th></tr>"
                     for _r in _tch_ranking:
-                        _pos = _medal.get(_r["rank"], str(_r["rank"]))
+                        _pos = fmt_position(_r["rank"], _medal)
                         _tch_rank_html += f"<tr style='border-bottom:1px solid #333;'>"
                         _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_pos}</td>"
                         _tch_rank_html += f"<td style='padding:6px;'>{_r['username']}</td>"
-                        _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_r['global_elo']:.0f}</td>"
+                        _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{fmt_rating(_r['global_elo'])}</td>"
                         _tch_rank_html += f"<td style='padding:6px; text-align:center;'>{_r['attempts_this_week']}</td>"
                         _tch_rank_html += "</tr>"
                     _tch_rank_html += "</table>"
@@ -547,7 +557,13 @@ def render_teacher():
                 _col_save, _col_hist = st.columns(2)
                 with _col_save:
                     if st.button("📸 Guardar ranking de esta semana", key="tch_save_ranking"):
-                        repo.save_weekly_ranking(_sel_grp_rank_id)
+                        # Snapshot = the top rows of the weekly ranking as shown (FR-028g).
+                        repo.save_weekly_ranking(
+                            _sel_grp_rank_id,
+                            st.session_state.teacher_service.ratings.ranking_view(
+                                "weekly", group_id=_sel_grp_rank_id, limit=5
+                            )["entries"],
+                        )
                         st.success("Ranking guardado exitosamente.")
                 with _col_hist:
                     pass
@@ -650,35 +666,28 @@ def render_teacher():
             st.subheader(f"📈 Rendimiento ELO — {_sel_grp_sidebar}")
             _BASE_COLS = {"Estudiante", "Grupo", "ELO Global", "Rango"}
             _sum_rows = []
+            # Spec 001: ratings from RatingReadService (overall per FR-028a; None = pending).
+            _views = st.session_state.teacher_service.ratings.ratings_view_bulk(
+                [_s["id"] for _s in students]
+            )
             for _s in students:
-                _elo_map = cached(
-                    f'cache_elo_topic_{_s["id"]}',
-                    lambda _sid=_s["id"]: st.session_state.db.get_latest_elo_by_topic(_sid),
-                )
-
-                _enrolled_topics = cached(
-                    f'cache_enrolled_topics_{_s["id"]}',
-                    lambda _sid=_s["id"]: st.session_state.db.get_enrolled_topics(_sid),
-                )
-                _active_map = (
-                    {t: v for t, v in _elo_map.items() if t in _enrolled_topics}
-                    if _enrolled_topics
-                    else _elo_map
-                )
-
-                _gelo = (
-                    sum(e for e, _ in _active_map.values()) / len(_active_map)
-                    if _active_map
-                    else 1000.0
-                )
-                _rname, _ = get_rank(_gelo)
+                _view = _views[_s["id"]]
+                _gelo = _view["overall"]
+                _rname = get_rank(_gelo)[0] if _gelo is not None else "Diagnóstico pendiente"
                 _row = {
                     "Estudiante": _s["username"],
                     "Grupo": _s.get("group_name", _sel_grp_sidebar),
-                    "ELO Global": round(_gelo, 1),
+                    "ELO Global": round(_gelo, 1) if _gelo is not None else None,
                     "Rango": _rname,
                 }
-                _row.update({t: round(v[0], 1) for t, v in _active_map.items()})
+                _row.update(
+                    {
+                        t["topic"]: round(t["elo"], 1)
+                        for c in _view["courses"]
+                        if c["current_context"]
+                        for t in c["topics"]
+                    }
+                )
                 _sum_rows.append(_row)
 
             _df_sum = (
@@ -714,12 +723,18 @@ def render_teacher():
                 _proc_by_course = _dash["procedure_stats_by_course"]
                 _att_list = _dash["attempts"]
                 _global_elo = _elo_sum["global_elo"]
-                _rank_n, _ = get_rank(_global_elo)
+                _rank_n = (
+                    get_rank(_global_elo)[0] if _global_elo is not None else "Diagnóstico pendiente"
+                )
 
                 # ── Cabecera del estudiante ────────────────────────────────
                 st.subheader(f"🔍 Detalle: **{_sel_name}**")
                 _mc1, _mc2, _mc3, _mc4 = st.columns(4)
-                _mc1.metric("🏆 ELO Global", f"{_global_elo:.1f}", delta=_rank_n)
+                _mc1.metric(
+                    "🏆 ELO Global",
+                    f"{_global_elo:.1f}" if _global_elo is not None else "—",
+                    delta=_rank_n,
+                )
                 _mc2.metric("📊 Intentos Totales", _elo_sum["attempts_count"])
                 _mc3.metric("🎯 Precisión Reciente", f"{_elo_sum['recent_accuracy']:.1%}")
                 # Tiempo promedio por pregunta

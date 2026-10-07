@@ -35,9 +35,17 @@ class ItemResponse(BaseModel):
     tags: list[str] = []
 
 
+class AnswerPreview(BaseModel):
+    """The change the engine will apply to the item's topic rating (FR-030)."""
+
+    on_correct: float
+    on_wrong: float
+
+
 class NextQuestionResponse(BaseModel):
     item: ItemResponse | None
     status: str  # "ok", "empty", "course_empty"
+    preview: AnswerPreview | None = None
 
 
 # ── Respuestas ────────────────────────────────────────────────────────────────
@@ -85,10 +93,25 @@ class TopicELO(BaseModel):
     rd: float
 
 
+class CourseRatingView(BaseModel):
+    """One course of the student (spec 001): derived rating, shown value and label (FR-028j)."""
+
+    course_id: str
+    course_name: str
+    rating: float | None
+    display_rating: int | None
+    rank_label: str | None
+    current_context: bool  # False = an earlier level/grade, shown as history (FR-028c)
+    topics: list[TopicELO]
+
+
 class StudentStatsResponse(BaseModel):
     user_id: int
-    global_elo: float
+    global_elo: float | None  # None while the diagnostic is pending (FR-028b)
+    display_rating: int | None = None  # what screens show next to rank_label (FR-028j)
+    overall_status: str = "rated"  # "rated" | "pending_diagnostic"
     topic_elos: list[TopicELO]
+    course_ratings: list[CourseRatingView] = []
     total_attempts: int
     study_streak: int
     rank_label: str | None = None
@@ -196,7 +219,7 @@ class ExamSubmitResponse(BaseModel):
     correct_count: int
     total_questions: int
     score_pct: float
-    global_elo_after: float
+    global_elo_after: float | None  # overall rating at submission; None while pending
 
 
 # ── Examen diagnóstico (inicio de materia) ────────────────────────────────────
@@ -247,8 +270,8 @@ class MapNode(BaseModel):
     label_key: str | None = None
     node_id: str | None = None
     node_type: str = "practice"
-    elo: float
-    rd: float
+    elo: float | None  # None = topic not rated yet: shown as pending, never as 1000
+    rd: float | None
     item_count: int
     state: str  # completed | current | available | blocked
 

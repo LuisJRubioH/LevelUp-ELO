@@ -238,7 +238,9 @@ export function CourseMap() {
                           <Book />
                         </span>
                       ) : (
-                        <span className="elo">{Math.round(n.elo)}</span>
+                        <span className="elo" title={n.elo === null ? t("rating.pending") : undefined}>
+                          {n.elo === null ? "—" : Math.round(n.elo)}
+                        </span>
                       )}
                     </span>
                   </button>
@@ -271,7 +273,9 @@ export function CourseMap() {
                 disabled={n.state === "blocked"}
                 title={t("courseMap.practiceTopic", { topic: n.topic })}
               >
-                <span className="lm-practice-elo">{Math.round(n.elo)}</span>
+                <span className="lm-practice-elo" title={n.elo === null ? t("rating.pending") : undefined}>
+                  {n.elo === null ? "—" : Math.round(n.elo)}
+                </span>
                 <span className="lm-practice-label">
                   {cleanLabel(n.label || n.topic, data?.course_name ?? "")}
                 </span>

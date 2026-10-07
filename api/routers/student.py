@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, File, Form, Header, HTTPException, Request, UploadFile, status
 
 from api.dependencies import (
-    CurrentUser, RepoDep, build_vector_rating, create_procedure_review_token, decode_token,
+    CurrentUser, RepoDep, create_procedure_review_token, decode_token,
 )
 from api.rate_limit import limiter
 from api.config import settings
@@ -32,6 +32,7 @@ from api.schemas.student import (
     AnswerRequest,
     AnswerResponse,
     CourseMapResponse,
+    CourseRatingView,
     CourseResponse,
     DiagnosticQuestion,
     DiagnosticResultResponse,
@@ -59,8 +60,6 @@ from api.schemas.student import (
 )
 from src.application.services.student_service import StudentService
 from src.domain.elo.model import diagnostic_baseline
-from src.domain.elo.ranks import rank_for
-from src.domain.elo.vector_elo import aggregate_global_elo
 from src.domain.learning.prealgebra import (
     CLASSIFIER_BASIC_NODE_ID,
     CLASSIFIER_RIGOROUS_NODE_ID,
@@ -120,6 +119,7 @@ def next_question(body: NextQuestionRequest, user: CurrentUser, repo: RepoDep):
         return NextQuestionResponse(item=None, status=status_str)
 
     return NextQuestionResponse(
+        preview=service.ratings.answer_preview(user["user_id"], body.course_id, item),
         item=ItemResponse(
             id=item["id"],
             content=item["content"],
@@ -224,57 +224,30 @@ def answer(
 
 @router.get("/stats", response_model=StudentStatsResponse)
 def stats(user: CurrentUser, repo: RepoDep):
-    """Retorna el ELO global, ELO por tópico, racha de estudio y total de intentos."""
-    vector = build_vector_rating(user["user_id"], repo)
-    global_elo = aggregate_global_elo(vector)
+    """Overall rating, per-course ratings, study streak and attempts (spec 001, FR-028a–c).
 
-    # Consolidar tópicos duplicados.
-    #
-    # Algunos estudiantes tienen intentos con `attempts.topic = item.topic` (flujo
-    # viejo) y otros con `attempts.topic = course_id` (flujo actual con elo_topic).
-    # Ambos persisten en student_topic_elo y aparecen como tópicos distintos en
-    # vector.ratings, confundiendo al estudiante (ver bug #7 del QA de mayo 2026).
-    #
-    # Fix: usar el catálogo de cursos para mapear slugs (course_id) a nombre
-    # legible. Si el mismo curso aparece como slug Y como nombre, conservar la
-    # entrada del slug (refleja el flujo actual) y descartar el twin viejo.
-    courses_catalog = repo.get_courses() if hasattr(repo, "get_courses") else []
-    course_id_to_name = {c["id"]: c["name"] for c in courses_catalog}
-    # Nombre humano → slug, para detectar twins (case-insensitive)
-    name_lower_to_id = {c["name"].lower(): c["id"] for c in courses_catalog}
-
-    consolidated: dict[str, tuple[float, float]] = {}
-    for topic, (r, rd) in vector.ratings.items():
-        if topic in course_id_to_name:
-            # Es un slug — el display es el nombre del curso.
-            display = course_id_to_name[topic]
-            consolidated[display] = (r, rd)
-        else:
-            # Posible nombre humano. Si su slug equivalente ya está en
-            # vector.ratings, omitir esta entrada (la del slug gana).
-            twin_slug = name_lower_to_id.get(topic.lower())
-            if twin_slug and twin_slug in vector.ratings:
-                continue
-            consolidated[topic] = (r, rd)
-
-    topic_elos = [
-        TopicELO(topic=t, rating=round(r, 2), rd=round(rd, 2))
-        for t, (r, rd) in sorted(consolidated.items())
+    Everything comes from RatingReadService: `global_elo` is None and `overall_status` is
+    "pending_diagnostic" while no current course has a rated topic.
+    """
+    view = _make_service(repo).ratings.ratings_view(user["user_id"])
+    courses = [
+        CourseRatingView(
+            **{k: c[k] for k in ("course_id", "course_name", "rating", "display_rating",
+                                 "rank_label", "current_context")},
+            topics=[TopicELO(topic=t["topic"], rating=t["elo"], rd=t["rd"]) for t in c["topics"]],
+        )
+        for c in view["courses"]
     ]
-
-    total = repo.get_total_attempts_count(user["user_id"])
-    streak = repo.get_study_streak(user["user_id"])
-
-    # Rank label (16 niveles)
-    rank_label = rank_for(global_elo)
-
     return StudentStatsResponse(
         user_id=user["user_id"],
-        global_elo=round(global_elo, 2),
-        topic_elos=topic_elos,
-        total_attempts=total,
-        study_streak=streak,
-        rank_label=rank_label,
+        global_elo=view["overall"],
+        display_rating=view["display_rating"],
+        overall_status=view["overall_status"],
+        rank_label=view["rank_label"],
+        course_ratings=courses,
+        topic_elos=[t for c in courses if c.current_context for t in c.topics],
+        total_attempts=repo.get_total_attempts_count(user["user_id"]),
+        study_streak=repo.get_study_streak(user["user_id"]),
     )
 
 
@@ -382,17 +355,34 @@ def streak_by_course(course_id: str, user: CurrentUser, repo: RepoDep):
 
 @router.get("/group-ranking")
 def group_ranking(user: CurrentUser, repo: RepoDep, course_id: str | None = None):
-    """Ranking ELO de los compañeros del grupo del estudiante."""
+    """The student's group ranking on one basis (FR-028d): the requested course (400 unknown,
+    403 not enrolled), else the group's course, else the overall rating. Competition ranks;
+    pending students last with no rank (FR-028h)."""
     user_data = repo.get_user_by_id(user["user_id"])
     if not user_data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado.")
     group_id = user_data.get("group_id") if isinstance(user_data, dict) else None
     if not group_id:
-        return {"ranking": [], "my_rank": None}
-    ranking = repo.get_group_ranking(group_id, course_id=course_id)
-    # Encontrar la posición del usuario actual
-    my_rank = next((r["rank_pos"] for r in ranking if r["user_id"] == user["user_id"]), None)
-    return {"ranking": ranking, "my_rank": my_rank}
+        return {"basis": None, "ranking": [], "my_rank": None}
+    try:
+        view = _make_service(repo).ratings.ranking_view(
+            "group", group_id=group_id, course_id=course_id, requester=user
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc))
+    return ranking_response(repo, view, user["user_id"])
+
+
+def ranking_response(repo, view: dict, user_id: int) -> dict:
+    """Ranking payload (contracts/api.md): `global_elo`/`rank_pos` stay as aliases."""
+    basis = dict(view["basis"])
+    names = {c["id"]: c["name"] for c in repo.get_courses()}
+    basis["course_name"] = names.get(basis["course_id"]) if basis["course_id"] else None
+    ranking = [{**e, "global_elo": e["rating"], "rank_pos": e["rank"]} for e in view["entries"]]
+    my_rank = next((e["rank"] for e in ranking if e["user_id"] == user_id), None)
+    return {"basis": basis, "ranking": ranking, "my_rank": my_rank}
 
 
 # ── Logros / Achievements ─────────────────────────────────────────────────────
@@ -900,10 +890,9 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
             }
         )
 
-    # ELO global actual (sin modificación, solo para mostrar en results)
-    vector = build_vector_rating(user["user_id"], repo)
+    # Rating global actual (sin modificación): None mientras el diagnóstico está pendiente.
     score_pct = round(correct_count / len(expected_ids) * 100, 1)
-    global_elo = round(aggregate_global_elo(vector), 2)
+    global_elo = _make_service(repo).ratings.ratings_view(user["user_id"])["overall"]
     result = {
         "results": results,
         "correct_count": correct_count,
@@ -1362,7 +1351,11 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
     dificultad, con el ELO/estado del estudiante (leído de student_topic_elo,
     incluye el ELO inicial del diagnóstico)."""
     items = repo.get_items_from_db(course_id=course_id)
-    elo_map = repo.get_topic_elo_map(user["user_id"])
+    # This course's topic ratings only (spec 001, FR-029); an unrated topic has no rating.
+    elo_map = {
+        r["topic"]: {"elo": r["elo"], "rd": r["rd"]}
+        for r in repo.get_course_topic_ratings(user["user_id"], course_id=course_id)
+    }
     diagnostic_done = repo.get_diagnostic(user["user_id"], course_id) is not None
 
     # agrupar ítems por tópico con sus dificultades
@@ -1379,9 +1372,12 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
     raw: list[dict] = []
     subdivide = len(topics_sorted) < 5
 
-    def _elo_for(topic: str) -> tuple[float, float]:
+    def _elo_for(topic: str) -> tuple[float | None, float | None]:
         te = elo_map.get(topic)
-        return (float(te["elo"]) if te else 1000.0, float(te["rd"]) if te else 350.0)
+        return (float(te["elo"]), float(te["rd"])) if te else (None, None)
+
+    def _mastered(elo: float | None) -> bool:
+        return elo is not None and elo >= _MASTERY_ELO
 
     for topic, diffs in topics_sorted:
         elo, rd = _elo_for(topic)
@@ -1431,7 +1427,7 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
     # estado: dominado (>=umbral) = completed; el PRIMER nodo no dominado =
     # current (dónde reforzar); el resto = available (no se bloquea: es refuerzo).
     current_idx = (
-        next((i for i, n in enumerate(raw) if n["elo"] < _MASTERY_ELO), None)
+        next((i for i, n in enumerate(raw) if not _mastered(n["elo"])), None)
         if curriculum_completed
         else None
     )
@@ -1439,14 +1435,14 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
         MapNode(
             topic=n["topic"],
             label=n["label"],
-            elo=round(n["elo"], 1),
-            rd=round(n["rd"], 1),
+            elo=None if n["elo"] is None else round(n["elo"], 1),
+            rd=None if n["rd"] is None else round(n["rd"], 1),
             item_count=n["item_count"],
             state=(
                 "blocked"
                 if not curriculum_completed
                 else "completed"
-                if n["elo"] >= _MASTERY_ELO
+                if _mastered(n["elo"])
                 else "current"
                 if i == current_idx
                 else "available"

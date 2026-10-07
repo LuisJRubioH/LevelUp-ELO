@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, animate } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { MathText } from "../../components/Math/MathContent";
 import { studentApi } from "../../api/student";
 import { usePvpMatch } from "../../hooks/usePvpMatch";
@@ -32,6 +33,7 @@ function EloCount({ value }: { value: number }) {
 }
 
 export function League() {
+  const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [picked, setPicked] = useState<string | null>(null);
@@ -166,7 +168,8 @@ export function League() {
               </div>
 
               <p className="pv-opp-line">
-                vs <b>{opponent?.username ?? "Rival"}</b> · ELO {Math.round(opponent?.elo ?? 0)}
+                vs <b>{opponent?.username ?? "Rival"}</b> ·{" "}
+                {opponent?.elo == null ? t("rating.pending") : `ELO ${opponent.elo}`}
               </p>
 
               {currentItem ? (

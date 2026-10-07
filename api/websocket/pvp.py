@@ -20,6 +20,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
 
 from src.domain.elo.model import pvp_deltas
+from src.domain.elo.ranks import rating_display
 
 logger = logging.getLogger("api.pvp")
 
@@ -35,8 +36,9 @@ MATCH_DURATION = 180  # segundos
 class LobbySlot:
     user_id: int
     username: str
-    elo: float
+    elo: float  # expectation only: 1000 when unrated (FR-029a) — never shown
     ws: WebSocket
+    shown_elo: int | None = None  # what the opponent sees; None = pending diagnostic
     # Señalización para el jugador en espera: el segundo en entrar setea match+event
     matched: asyncio.Event = field(default_factory=asyncio.Event)
     match: "ActiveMatch | None" = None
@@ -81,14 +83,24 @@ async def _send(ws: WebSocket, msg: dict) -> bool:
         return False
 
 
-async def _lobby_rating(repo, user_id: int, course_id: str) -> float:
-    """The player's course rating for the match expectation (FR-026); 1000 when unrated.
-
-    Reads in a thread and never under `_lock` (AGENTS R17).
-    """
+async def _course_rating(repo, user_id: int, course_id: str) -> float | None:
+    """The player's derived course rating, None when unrated. Read in a thread, never under
+    `_lock` (AGENTS R17)."""
     from src.application.services.rating_read_service import RatingReadService
 
-    rating = await asyncio.to_thread(RatingReadService(repo).course_rating_of, user_id, course_id)
+    return await asyncio.to_thread(RatingReadService(repo).course_rating_of, user_id, course_id)
+
+
+def _slot_ratings(course_rating: float | None) -> tuple[float, int | None]:
+    """(expectation rating, shown rating): 1000 drives the expectation of an unrated player
+    (FR-029a) but is never shown — the opponent sees None, i.e. pending diagnostic."""
+    expectation = 1000.0 if course_rating is None else course_rating
+    return expectation, rating_display(course_rating)["display_rating"]
+
+
+async def _lobby_rating(repo, user_id: int, course_id: str) -> float:
+    """The player's course rating for the match expectation (FR-026); 1000 when unrated."""
+    rating = await _course_rating(repo, user_id, course_id)
     return 1000.0 if rating is None else rating
 
 
@@ -185,12 +197,16 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
         return
 
     # Rating de la partida: el del curso (FR-026), leído fuera de _lock (AGENTS R17).
+    # La expectativa usa 1000 si no hay rating; al rival se le muestra el valor o "pendiente".
     try:
-        player_elo = await _lobby_rating(repo, user_id, course_id)
+        course_rating = await _course_rating(repo, user_id, course_id)
     except Exception:
-        player_elo = 1000.0
+        course_rating = None
+    player_elo, shown_elo = _slot_ratings(course_rating)
 
-    slot = LobbySlot(user_id=user_id, username=username, elo=player_elo, ws=websocket)
+    slot = LobbySlot(
+        user_id=user_id, username=username, elo=player_elo, ws=websocket, shown_elo=shown_elo
+    )
     match: ActiveMatch | None = None
     is_creator = False  # True = segundo en entrar (emite game_start y arranca timer)
 
@@ -306,11 +322,11 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
         await asyncio.gather(
             _send(match.p1.ws, {"type": "game_start", "match_id": match.match_id,
                                  "items": match.items,
-                                 "opponent": {"username": match.p2.username, "elo": match.p2.elo},
+                                 "opponent": {"username": match.p2.username, "elo": match.p2.shown_elo},
                                  "duration_seconds": MATCH_DURATION}),
             _send(match.p2.ws, {"type": "game_start", "match_id": match.match_id,
                                  "items": match.items,
-                                 "opponent": {"username": match.p1.username, "elo": match.p1.elo},
+                                 "opponent": {"username": match.p1.username, "elo": match.p1.shown_elo},
                                  "duration_seconds": MATCH_DURATION}),
         )
         timer_task = asyncio.create_task(_timer(match, repo))

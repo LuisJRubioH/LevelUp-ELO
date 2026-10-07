@@ -8,6 +8,7 @@ Código movido exactamente desde app.py líneas 1875-3701.
 import os
 import time
 import random
+from statistics import fmean
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -17,7 +18,7 @@ import src.infrastructure.external_api.math_procedure_review as _math_review_mod
 import src.infrastructure.external_api.model_router as _router_mod
 import src.infrastructure.external_api.math_analysis_pipeline as _pipeline_mod
 
-from src.domain.elo.vector_elo import VectorRating, aggregate_global_elo, aggregate_global_rd
+from src.domain.elo.vector_elo import VectorRating
 from src.domain.elo.model import expected_score, Item
 from src.domain.entities import LEVEL_TO_BLOCK
 from src.domain.katia.katia_messages import (
@@ -38,6 +39,7 @@ from src.interface.streamlit.assets import (
     _get_banner_b64,
 )
 from src.interface.streamlit.state import cached, invalidate_cache, get_rank, logout
+from src.interface.streamlit.rankings import fmt_position, fmt_rating, v1_my_rank, v1_ranking
 from src.interface.streamlit.components.timers import _render_live_timer
 
 # Funciones de IA extraídas de módulos
@@ -57,6 +59,21 @@ math_pipeline_analyze = _pipeline_mod.analyze_with_llm_data
 _app_logger = get_logger(__name__)
 
 
+def _ratings_view():
+    """The student's canonical ratings (spec 001): one read through RatingReadService."""
+    return st.session_state.student_service.ratings.ratings_view(st.session_state.user_id)
+
+
+def _course_vector(view) -> VectorRating:
+    """V1 keys ratings by course name: one entry per rated course (spec 001)."""
+    vector = VectorRating()
+    for course in view["courses"]:
+        if course["rating"] is not None:
+            rds = [t["rd"] for t in course["topics"]]
+            vector.ratings[course["course_name"]] = (course["rating"], fmean(rds))
+    return vector
+
+
 def render_student():
     """Punto de entrada del panel del estudiante."""
     repo = st.session_state.db
@@ -66,15 +83,9 @@ def render_student():
     _KATIA_GIF_CORRECTO_HTML = load_katia_gif_html("correcto")
     _KATIA_GIF_ERRORES_HTML = load_katia_gif_html("errores")
 
-    # 1. Recuperar Estado Inicial de DB para VectorELO
+    # 1. Ratings canónicos por curso (spec 001: student_course_topic_elo vía RatingReadService)
     if "vector_initialized" not in st.session_state:
-        latest_elos = cached(
-            "cache_elo_by_topic",
-            lambda: st.session_state.db.get_latest_elo_by_topic(st.session_state.user_id),
-        )
-        st.session_state.vector = VectorRating()
-        for topic, (elo, rd) in latest_elos.items():
-            st.session_state.vector.ratings[topic] = (elo, rd)
+        st.session_state.vector = _course_vector(_ratings_view())
         st.session_state.vector_initialized = True
 
     if "session_correct_ids" not in st.session_state:
@@ -391,6 +402,8 @@ def render_student():
             reasoning,
             time_taken,
         )
+        # El servicio ya no escribe en el vector de la sesión: releer el estado canónico.
+        st.session_state.vector = _course_vector(_ratings_view())
 
         st.session_state.session_questions_count += 1
         if is_correct:
@@ -532,9 +545,19 @@ def render_student():
             for col_idx, course in enumerate(_enrolled[row_start : row_start + 2]):
                 c_name = course["name"]
                 c_elo = st.session_state.vector.get(c_name)
-                c_rank, c_color = get_rank(c_elo)
+                # Spec 001: an unrated course reads "pending", never V1's 1000 default.
+                _c_rated = c_name in st.session_state.vector.ratings
+                c_rank, c_color = (
+                    get_rank(c_elo) if _c_rated else ("Diagnóstico pendiente", "#888888")
+                )
+                _c_elo_text = f"{c_elo:.0f}" if _c_rated else "—"
                 # Posición del estudiante en esta materia
-                _c_rank_info = repo.get_student_rank(st.session_state.user_id, course["id"])
+                _c_rank_info = v1_my_rank(
+                    st.session_state.student_service.ratings,
+                    st.session_state.user_id,
+                    "course",
+                    course_id=course["id"],
+                )
                 _c_rank_text = (
                     f"📊 Tu posición: #{_c_rank_info['rank']} de {_c_rank_info['total_students']} estudiantes"
                     if _c_rank_info
@@ -573,7 +596,7 @@ def render_student():
                         + _c_special_html
                         + f'<p style="color:{c_color};font-size:0.9rem;margin:0;">{c_rank}</p>'
                         f'<p style="color:#fff;font-size:2.4rem;font-weight:700;margin:4px 0;">'
-                        f"{c_elo:.0f}</p>"
+                        f"{_c_elo_text}</p>"
                         f'<p style="color:#888;font-size:0.8rem;margin:0;">Puntos ELO</p>'
                         f'<p style="color:#aaa;font-size:0.8rem;margin:6px 0 0;">{_c_rank_text}</p>'
                         f"</div>"
@@ -606,7 +629,13 @@ def render_student():
             st.markdown(f"#### 🏆 Ranking General — {_level_label}{_grade_suffix}")
         else:
             st.markdown(f"#### 🏆 Ranking General — {_level_label}")
-        _global_top = repo.get_global_ranking(limit=5, education_level=_level, grade=_rank_grade)
+        _global_top = v1_ranking(
+            st.session_state.student_service.ratings,
+            "global",
+            limit=5,
+            education_level=_level,
+            grade=_rank_grade,
+        )
         if _global_top:
             _medal_sel = {1: "🥇", 2: "🥈", 3: "🥉"}
             _my_user_sel = st.session_state.username
@@ -618,20 +647,22 @@ def render_student():
                 if _is_me_sel:
                     _in_top_sel = True
                 _bg_sel = "background:rgba(255,215,0,0.15); font-weight:700;" if _is_me_sel else ""
-                _pos_sel = _medal_sel.get(_r["rank"], str(_r["rank"]))
+                _pos_sel = fmt_position(_r["rank"], _medal_sel)
                 _grank_html += f"<tr style='{_bg_sel} border-bottom:1px solid #333;'>"
                 _grank_html += f"<td style='padding:4px 6px; text-align:center;'>{_pos_sel}</td>"
                 _grank_html += f"<td style='padding:4px 6px;'>{_r['username']}</td>"
-                _grank_html += (
-                    f"<td style='padding:4px 6px; text-align:center;'>{_r['global_elo']:.0f}</td>"
-                )
+                _grank_html += f"<td style='padding:4px 6px; text-align:center;'>{fmt_rating(_r['global_elo'])}</td>"
                 _grank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['attempts_this_week']}</td>"
                 _grank_html += "</tr>"
             _grank_html += "</table>"
             st.markdown(_grank_html, unsafe_allow_html=True)
             if not _in_top_sel:
-                _my_global_rank = repo.get_student_rank(
-                    st.session_state.user_id, education_level=_level, grade=_rank_grade
+                _my_global_rank = v1_my_rank(
+                    st.session_state.student_service.ratings,
+                    st.session_state.user_id,
+                    "global",
+                    education_level=_level,
+                    grade=_rank_grade,
                 )
                 if _my_global_rank:
                     st.caption(
@@ -649,7 +680,14 @@ def render_student():
         current_rd_display = st.session_state.vector.get_rd(selected_topic)
         topic_display_name = selected_topic
 
-        rank_name, rank_color = get_rank(current_elo_display)
+        # Spec 001: an unrated course reads "pending"; 1000 stays only as the engine's start.
+        _rated_display = selected_topic in st.session_state.vector.ratings
+        rank_name, rank_color = (
+            get_rank(current_elo_display)
+            if _rated_display
+            else ("Diagnóstico pendiente", "#888888")
+        )
+        _elo_text = f"{current_elo_display:.0f}" if _rated_display else "—"
 
         st.title("🚀 Sala de Estudio")
 
@@ -661,7 +699,7 @@ def render_student():
                 <div class="elo-card">
                     <p style="color: #aaa; margin-bottom: 5px; font-weight: 600;">NIVEL ACTUAL</p>
                     <h2 style="color: {rank_color}; margin: 0; text-shadow: 0 0 10px {rank_color};">{rank_name}</h2>
-                    <h1 style="font-size: 3.5rem; margin: 10px 0; color: white;">{current_elo_display:.0f}</h1>
+                    <h1 style="font-size: 3.5rem; margin: 10px 0; color: white;">{_elo_text}</h1>
                     <p style="color: #aaa; font-size: 0.9rem;">Puntos ELO · {topic_display_name}</p>
                 </div>
             """,
@@ -725,7 +763,13 @@ def render_student():
 
             # ── Ranking del curso actual Top 5 ──────────────────────────
             _ranking = cached(
-                "cache_course_ranking", lambda: repo.get_course_ranking(selected_course_id, limit=5)
+                "cache_course_ranking",
+                lambda: v1_ranking(
+                    st.session_state.student_service.ratings,
+                    "course",
+                    limit=5,
+                    course_id=selected_course_id,
+                ),
             )
             if _ranking:
                 st.markdown(f"#### 🏆 Ranking — {topic_display_name}")
@@ -741,11 +785,11 @@ def render_student():
                     if _is_me:
                         _in_top = True
                     _bg = "background:rgba(255,215,0,0.15); font-weight:700;" if _is_me else ""
-                    _pos = _medal.get(_r["rank"], str(_r["rank"]))
+                    _pos = fmt_position(_r["rank"], _medal)
                     _rank_html += f"<tr style='{_bg} border-bottom:1px solid #333;'>"
                     _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_pos}</td>"
                     _rank_html += f"<td style='padding:4px 6px;'>{_r['username']}</td>"
-                    _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['course_elo']:.0f}</td>"
+                    _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{fmt_rating(_r['course_elo'])}</td>"
                     _rank_html += f"<td style='padding:4px 6px; text-align:center;'>{_r['attempts_this_week']}</td>"
                     _rank_html += "</tr>"
                 _rank_html += "</table>"
@@ -753,8 +797,11 @@ def render_student():
                 if _in_top:
                     st.caption("¡Estás en el Top 5! 🎯")
                 else:
-                    _my_rank = repo.get_student_rank(
-                        st.session_state.user_id, course_id=selected_course_id
+                    _my_rank = v1_my_rank(
+                        st.session_state.student_service.ratings,
+                        st.session_state.user_id,
+                        "course",
+                        course_id=selected_course_id,
                     )
                     if _my_rank:
                         st.caption(
@@ -1781,9 +1828,12 @@ def render_student():
             else:
                 st.metric("Precisión Promedio", "0%")
         with m3:
-            global_elo = aggregate_global_elo(st.session_state.vector)
-            rank_n, rank_c = get_rank(global_elo)
-            st.metric("Nivel Global", f"{global_elo:.0f}", delta=rank_n)
+            global_elo = _ratings_view()["overall"]
+            if global_elo is None:  # spec 001, FR-028b: never a number while pending
+                st.metric("Nivel Global", "—", delta="Diagnóstico pendiente", delta_color="off")
+            else:
+                rank_n, rank_c = get_rank(global_elo)
+                st.metric("Nivel Global", f"{global_elo:.0f}", delta=rank_n)
         with m4:
             _st_times = [
                 a.get("time_taken")
@@ -1831,10 +1881,12 @@ def render_student():
         st.markdown("---")
 
         st.subheader("🏆 Dominio por Materia")
-        current_elos = cached(
-            "cache_elo_by_topic",
-            lambda: st.session_state.db.get_latest_elo_by_topic(st.session_state.user_id),
-        )
+        current_elos = {
+            t["topic"]: (t["elo"], t["rd"])
+            for c in _ratings_view()["courses"]
+            if c["current_context"]
+            for t in c["topics"]
+        }
 
         if current_elos:
             try:
@@ -1929,7 +1981,7 @@ def render_student():
                     recent_attempts = st.session_state.db.get_attempts_for_ai(
                         st.session_state.user_id
                     )
-                    current_elo_val = aggregate_global_elo(st.session_state.vector)
+                    current_elo_val = _ratings_view()["overall"]
                     _proc_stats = {
                         "count": len(_proc_scores),
                         "avg_score": (

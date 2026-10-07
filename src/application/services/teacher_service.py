@@ -49,12 +49,30 @@ class TeacherService:
 
     def get_student_dashboard(self, student_id):
         """Datos consolidados para el panel de detalle del estudiante seleccionado.
-        Retorna dict con: elo_summary, procedure_stats_by_course, attempts.
+
+        The rating fields come from RatingReadService (spec 001): `global_elo` is None and
+        `overall_status` "pending_diagnostic" while the diagnostic is pending; `display_rating`
+        and `rank_label` are what screens show (FR-028j). `elo_summary` keeps its old keys.
         """
+        view = self.ratings.ratings_view(student_id)
+        attempts = self.repository.get_student_attempts_detail(student_id)
+        recent = attempts[-10:]
         return {
-            "elo_summary": self.repository.get_student_elo_summary(student_id),
+            "global_elo": view["overall"],
+            "display_rating": view["display_rating"],
+            "rank_label": view["rank_label"],
+            "overall_status": view["overall_status"],
+            "course_ratings": view["courses"],
+            "elo_summary": {
+                "elo_by_topic": _current_topics(view),
+                "global_elo": view["overall"],
+                "attempts_count": len(attempts),
+                "recent_accuracy": (
+                    sum(1 for a in recent if a["is_correct"]) / len(recent) if recent else 0.0
+                ),
+            },
             "procedure_stats_by_course": self.repository.get_procedure_stats_by_course(student_id),
-            "attempts": self.repository.get_student_attempts_detail(student_id),
+            "attempts": attempts,
         }
 
     def validate_procedure(
@@ -113,10 +131,10 @@ class TeacherService:
         topics_unique = list(set([a["topic"] for a in attempts]))
 
         # T11: ELO desglosado por tópico para análisis pedagógico más preciso
-        elo_by_topic = self.repository.get_latest_elo_by_topic(student_id)
-        elo_topic_summary = (
-            {t: round(e, 1) for t, (e, _rd) in elo_by_topic.items()} if elo_by_topic else {}
-        )
+        elo_topic_summary = {
+            t: round(e, 1)
+            for t, (e, _rd) in _current_topics(self.ratings.ratings_view(student_id)).items()
+        }
 
         # T11: tiempo promedio de respuesta (solo intentos con time_taken registrado)
         _times = [
@@ -147,3 +165,13 @@ class TeacherService:
         if self._pedagogical_analysis is None:
             return "Análisis con IA no disponible: no se configuró un proveedor."
         return self._pedagogical_analysis(student_data, **kwargs)
+
+
+def _current_topics(view: dict) -> dict:
+    """{topic: (rating, rd)} of the student's current-context courses (spec 001)."""
+    return {
+        t["topic"]: (t["elo"], t["rd"])
+        for c in view["courses"]
+        if c["current_context"]
+        for t in c["topics"]
+    }

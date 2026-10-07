@@ -52,7 +52,8 @@ never round or relabel on their own [FR-028j].
 
 ## `GET /student/map/{course_id}`
 Node states read the student's topic ratings **for that course** [FR-029]. Thresholds unchanged
-(spec 003).
+(spec 003). `MapNode.elo`/`rd` widen to `float | null`: `null` = topic not rated yet, shown as
+pending — never as the 1000 starting value.
 
 ## `POST /student/diagnostic/{course_id}/submit`
 Baselines written per `(course_id, topic)` [FR-020, FR-021, FR-029]. Response unchanged; the
@@ -92,3 +93,12 @@ overall); the existing group-ownership check stays.
 
 If persisting the match fails, `elo_delta` is `0` and `elo_reason` is `"not_applied"` — the message
 never reports a change that was not stored.
+
+`game_start.opponent.elo` is the rival's **shown** course rating (`display_rating`) or `null` when
+pending; the 1000 used for the match expectation of an unrated player is never sent.
+
+## `POST /student/exam/submit` — `ExamSubmitResponse`
+
+| Field | Change | Type | Meaning |
+|---|---|---|---|
+| `global_elo_after` | type widened | `float \| null` | the overall rating at submission (`ratings_view`); `null` while pending. Stored in `exam_sessions.global_elo_after` (NOT NULL DEFAULT 0): a pending snapshot keeps the default 0, which no screen displays |

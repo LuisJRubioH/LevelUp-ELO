@@ -8,9 +8,15 @@ from collections import defaultdict
 
 from src.application.interfaces.repositories import IRatingReadRepository
 from src.domain.elo.aggregation import course_rating, overall_rating
-from src.domain.elo.ranks import rank_competition, rating_display
+from src.domain.elo.model import rating_delta
+from src.domain.elo.ranks import RANKS, rank_competition, rating_display
 
 _OVERALL = {"kind": "overall", "course_id": None, "source": "overall"}
+
+
+def rank_scale() -> list[dict]:
+    """The single 16-level scale, ascending, as served by GET /api/meta/ranks (FR-031)."""
+    return [{"label": label, "min": float(minimum)} for minimum, label in RANKS]
 
 
 class RatingReadService:
@@ -78,6 +84,18 @@ class RatingReadService:
             rows = [r for r in rows if r["topic"] == topic]
         rating = course_rating([r["elo"] for r in rows])
         return 1000.0 if rating is None else rating
+
+    def answer_preview(self, user_id: int, course_id: str, item: dict) -> dict:
+        """The change the engine will apply for each outcome (FR-030): the same formula as the
+        update, on the item's (course, topic) rating — 1000/350 when unrated (FR-004)."""
+        rows = self.repository.get_course_topic_ratings(user_id, course_id=course_id)
+        row = next((r for r in rows if r["topic"] == item["topic"]), None)
+        rating, rd = (row["elo"], row["rd"]) if row else (1000.0, 350.0)
+        difficulty = float(item["difficulty"])
+        return {
+            "on_correct": round(rating_delta(rating, rd, difficulty, 1.0), 1),
+            "on_wrong": round(rating_delta(rating, rd, difficulty, 0.0), 1),
+        }
 
     # ── Rankings ─────────────────────────────────────────────────────────────
 

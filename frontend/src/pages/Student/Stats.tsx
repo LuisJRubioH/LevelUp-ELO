@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { studentApi } from "../../api/student";
-import type { ExamSession } from "../../api/student";
+import type { ExamSession, GroupRanking } from "../../api/student";
 import { ELOChart } from "../../components/ELO/ELOChart";
 import { StatsSkeleton } from "../../components/ui/Skeleton";
 import { RankBadge } from "../../components/ELO/RankBadge";
@@ -26,13 +26,6 @@ interface Achievement {
   earned_at: string;
 }
 
-interface RankEntry {
-  user_id: number;
-  username: string;
-  global_elo: number;
-  total_attempts: number;
-  rank_pos: number;
-}
 
 export function Stats() {
   const { t, i18n } = useTranslation();
@@ -60,7 +53,7 @@ export function Stats() {
   const { data: rankingData } = useQuery({
     queryKey: ["student-group-ranking"],
     queryFn: () =>
-      apiClient.get<{ ranking: RankEntry[]; my_rank: number | null }>("/api/student/group-ranking"),
+      apiClient.get<GroupRanking>("/api/student/group-ranking"),
     retry: 1,
   });
 
@@ -139,7 +132,7 @@ export function Stats() {
       {/* Resumen top */}
       <div className="sp-stat-grid">
         <div className="sp-card sp-stat">
-          <div className="v">{Math.round(stats.global_elo)}</div>
+          <div className="v">{stats.display_rating ?? t("rating.pending")}</div>
           <div className="l">{t("stats.globalElo")}</div>
         </div>
         <div className="sp-card sp-stat">
@@ -155,8 +148,29 @@ export function Stats() {
       {/* Rango */}
       <div className="sp-card">
         <p className="sp-mute text-xs mb-2">{t("stats.currentRank")}</p>
-        <RankBadge elo={stats.global_elo} rankLabel={stats.rank_label ?? "Aspirante"} />
+        <RankBadge displayRating={stats.display_rating ?? null} rankLabel={stats.rank_label} />
       </div>
+
+      {/* Por curso: el valor y el rango que da la API; grados anteriores como historial */}
+      {(stats.course_ratings ?? []).length > 0 && (
+        <div className="sp-card">
+          <h3>{t("rating.byCourse")}</h3>
+          <div className="space-y-1.5">
+            {(stats.course_ratings ?? []).map((c) => (
+              <div key={c.course_id} className="sp-row">
+                <span className="nm">
+                  {c.course_name}
+                  {!c.current_context && <span className="sp-mute text-xs"> · {t("rating.history")}</span>}
+                </span>
+                <span className="val">
+                  {c.display_rating ?? t("rating.pending")}
+                  {c.rank_label && <span className="sp-mute text-xs"> · {c.rank_label}</span>}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Gráfico de evolución ELO */}
       <div className="sp-card">
@@ -208,7 +222,15 @@ export function Stats() {
       {rankingData && ranking.length > 0 && (
         <div className="sp-card">
           <div className="flex items-center justify-between mb-3">
-            <h3 style={{ margin: 0 }}>{t("stats.groupRanking")}</h3>
+            <h3 style={{ margin: 0 }}>
+              {t("stats.groupRanking")}
+              {rankingData.basis && (
+                <span className="sp-mute text-xs">
+                  {" · "}
+                  {rankingData.basis.course_name ?? t("rating.basisOverall")}
+                </span>
+              )}
+            </h3>
             {rankingData.my_rank && (
               <span className="text-xs font-medium" style={{ color: "var(--accent)" }}>
                 {t("stats.yourPosition")}: #{rankingData.my_rank}
@@ -218,15 +240,16 @@ export function Stats() {
           <div className="space-y-1.5">
             {ranking.slice(0, 10).map((r) => {
               const isMe = r.user_id === stats.user_id;
+              // Competition rank from the API: ties share it; pending rows have none.
               const medal =
-                r.rank_pos === 1 ? "🥇" : r.rank_pos === 2 ? "🥈" : r.rank_pos === 3 ? "🥉" : null;
+                r.rank === 1 ? "🥇" : r.rank === 2 ? "🥈" : r.rank === 3 ? "🥉" : null;
               return (
                 <div key={r.user_id} className={`sp-row${isMe ? " me" : ""}`}>
-                  <span className="pos">{medal ?? `#${r.rank_pos}`}</span>
+                  <span className="pos">{medal ?? (r.rank === null ? "—" : `#${r.rank}`)}</span>
                   <span className={`nm${isMe ? " me" : ""}`}>
                     {r.username} {isMe && t("stats.you")}
                   </span>
-                  <span className="val">{Math.round(r.global_elo)}</span>
+                  <span className="val">{r.rating ?? t("rating.pending")}</span>
                 </div>
               );
             })}
