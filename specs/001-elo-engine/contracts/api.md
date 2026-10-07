@@ -25,6 +25,10 @@ Selection uses the topic rating when `topic` is sent, otherwise the derived cour
 | response `elo_valid` | **new** `bool` | whether this attempt moved any rating [FR-008, FR-008a, FR-009] |
 | response `cog_data.impact_modifier` | **removed key** inside a free-form dict | dead value, always 1.0 [R15] |
 
+With an `Idempotency-Key`, `elo_before`, `elo_after`, `rd_after` and `delta_elo` are the persisted
+attempt values (rounded to 2 decimals) on the first response and on every retry, so both are
+identical; the stored rating keeps full precision [FR-012a].
+
 Unchanged: `Idempotency-Key` replay (200, stored result) and conflict (409) [FR-012, FR-013];
 400 for an option not in the item [FR-011]; no `correct_option` [FR-014].
 

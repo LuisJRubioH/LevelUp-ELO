@@ -248,3 +248,15 @@ once — not once per engine.
   additive (AGENTS R8), legacy rows are only a reconciliation source and attempt values are history.
 - **Alternatives**: `NUMERIC` (exact, but psycopg2 returns `Decimal`, a type SQLite never returns,
   and arithmetic is slower); keeping `REAL` (rejected by the owner).
+
+### R21 — What an answer with a retry key returns (FR-012a, owner 2026-10-07)
+- **Decision**: with an `Idempotency-Key`, `/student/answer` builds `elo_before`, `elo_after`,
+  `rd_after` and `delta_elo` from the persisted attempt (`get_answer_by_request_id`) on the first
+  response too, exactly as a retry does. The rating row and every later calculation keep the full
+  precision value computed in the transaction; attempt values are history and never flow back.
+- **Rationale**: PostgreSQL stores `attempts.elo_before/elo_after/rating_deviation` as 4-byte
+  `REAL`. A full-precision 1112.684999807 rounds to 1112.68 while its stored 1112.68505859 rounds
+  to 1112.69, so the first response and a retry disagreed near a rounding edge (intermittent
+  failure of `test_postgres_concurrent_answer_retry_has_one_effect` at the Phase 3 checkpoint).
+- **Alternatives**: widen the attempt columns to `DOUBLE PRECISION` (rejected — a type change,
+  AGENTS R8, and a full rewrite of a large table in production).

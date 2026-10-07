@@ -71,6 +71,15 @@ Each gets its own branch and PR.
 | A-1 | **Playwright in CI** — run the existing Chromium suite (`frontend/e2e/`) on PRs | deterministic fixtures, no flaky retries hiding failures; traces + screenshots kept as artifacts on failure; README note that these tests mock the API and verify frontend flows, not backend integration | during M1 | 1 |
 | A-2 | **Traceability check in CI** — script over `specs/*/spec.md` | unique FR / scenario IDs; every FR and scenario has a row; each reference resolves to a collected test (`pytest --collect-only`, Playwright `--list`); `PENDING` allowed on spec branches before the code PR, rejected on the code PR; referenced tests pass and are not skipped. Assertion adequacy stays a review item | with spec 001 code PR (needs its first traceability table) | 1 |
 
+### Follow-ups found while implementing specs
+
+Defects outside the running spec's scope. Each is fixed in its own branch and PR, test first.
+
+| ID | Finding | Reproduction | Acceptance | When |
+|---|---|---|---|---|
+| F-1 | **Semillero catalogue is empty for students with a grade** (found in spec 001, 2026-10-07). `get_available_courses_by_level` (both repositories) looks for block `Semillero {grade}°`, which no course has: all 36 semillero courses have block `Semillero` and carry the grade as id suffix `_semillero_N`. The SQLite CHECK on `courses.block` allows only `Semillero`; the PostgreSQL CHECK list is garbled (`'Semillero'` repeated, then `'Semillero 11°'`) | fresh SQLite API (`DB_PATH` temp, bootstrap): register a student `education_level=semillero, grade="6"`, `GET /api/student/courses` → 200 with **0** courses; the same student with `grade=None` → 36 courses (all grades 6–11) | a test written first and failing today: a grade-6 semillero student gets exactly the six `*_semillero_6` courses, and grades 7–11 likewise; behaviour for `grade=None` decided explicitly and tested (today: every semillero course); both repositories use the domain rule `in_catalogue` (spec 001) so the catalogue and spec 001's "current courses" cannot diverge; two-engine repository test; `db_sync_check` in sync; the PostgreSQL CHECK list repaired or left with equivalent semantics and documented (no data dropped, AGENTS R8); V1 changed only through the shared fix | standalone fix PR after the spec 001 code PR (spec 001 already uses `in_catalogue`); before spec 003 |
+| F-2 | **CI lint already fails on `main`**: black 24.3.0 would reformat 79 files untouched by spec 001 | `black --check --line-length=100 src/ tests/ scripts/` on `main` | one formatting-only commit; `black --check` and the CI flake8 selection pass; full suite unchanged | standalone PR, any time |
+
 ## 4. Calendar
 
 | Milestone | Sessions | Done by |

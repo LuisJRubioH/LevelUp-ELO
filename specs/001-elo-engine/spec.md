@@ -74,6 +74,12 @@ easy or too hard and teachers act on false information.
   already 8 bytes), so a stored value displays the same number and rank label on both engines
   (FR-028i; 999.4999999 → 999 "Plata II" on both). *(PostgreSQL `REAL` stores it as 999.5, which
   displays 1000 "Plata I".)*
+- Q: With a retry key, which values does an answer return, given that PostgreSQL stores attempt
+  values in 4 bytes? → A: the persisted attempt values, on the first response and on every retry,
+  so both are identical; the stored rating and every later calculation keep full precision and are
+  never derived from the persisted attempt values (FR-012a). Widening the attempt columns was
+  rejected: it is a type change (AGENTS R8). *(Found at the Phase 3 checkpoint: a first response of
+  1243.66 and a retry of 1243.67.)*
 
 ### Session 2026-10-05 (/speckit-clarify)
 
@@ -345,6 +351,12 @@ shows them.
   the item's options.
 - **FR-012** [AS-IS]: When an answer carries a retry key that was already accepted for the same
   answer, the system shall return the stored result without changing anything.
+- **FR-012a** [CHANGE]: When an answer carries a retry key, the system shall return the attempt
+  values as persisted — before, after and uncertainty — in the first response and in every retry,
+  so that the two are identical; the student's stored rating and every later calculation shall
+  keep full precision and shall never be derived from those persisted attempt values. *(Today the
+  first response rounds the full-precision result while a retry rounds the 4-byte value PostgreSQL
+  stored, so near a rounding edge they differ by 0.01 — owner decision 2026-10-07.)*
 - **FR-013** [AS-IS]: If a retry key was already accepted for a different answer, then the system
   shall reject the request as a conflict.
 - **FR-014** [AS-IS]: The system shall never send the correct option to the client in an answer or
@@ -663,6 +675,7 @@ replaces it with the collected test id.
 | FR-010 | `PENDING` (T007) |
 | FR-011 | `PENDING` (T010) |
 | FR-012 | `PENDING` (T011, T014) |
+| FR-012a | `PENDING` (T035b) |
 | FR-013 | `PENDING` (T014) |
 | FR-014 | `PENDING` (T014) |
 | FR-015 | `PENDING` (T013, T036) |
@@ -720,6 +733,7 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-010 | `save_answer_transaction` (BEGIN IMMEDIATE / FOR UPDATE users→items); `tests/integration/test_elo_single_source.py` |
 | FR-011, FR-014 | `api/routers/student.py:155-175`; V2-R9 |
 | FR-012–013 | `api/routers/student.py:176-200` |
+| FR-012a | `api/routers/student.py` `replay()` rounds the stored `attempts.elo_after` (PostgreSQL `REAL`); the first response rounds `cog_data["elo_after"]` (full precision) — 1112.684999807 → 1112.68 first, 1112.69 on retry |
 | FR-015 | `student_service.py:203-213` (`except Exception: pass`) |
 | FR-016, FR-019 | `student_service.py:66-98` |
 | FR-017–018 | `src/domain/selector/item_selector.py:40-80` |
