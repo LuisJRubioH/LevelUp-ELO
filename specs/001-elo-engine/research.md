@@ -255,8 +255,8 @@ once — not once per engine.
   response too, exactly as a retry does. The rating row and every later calculation keep the full
   precision value computed in the transaction; attempt values are history and never flow back.
 - **Rationale**: PostgreSQL stores `attempts.elo_before/elo_after/rating_deviation` as 4-byte
-  `REAL`. A full-precision 1112.684999807 rounds to 1112.68 while its stored 1112.68505859 rounds
-  to 1112.69, so the first response and a retry disagreed near a rounding edge (intermittent
+  `REAL`. A full-precision 1189.344952 rounds to 1189.34, while PostgreSQL returns the stored value
+  as 1189.345, which rounds to 1189.35, so the first response and a retry disagreed near a rounding edge (intermittent
   failure of `test_postgres_concurrent_answer_retry_has_one_effect` at the Phase 3 checkpoint).
 - **Alternatives**: widen the attempt columns to `DOUBLE PRECISION` (rejected — a type change,
   AGENTS R8, and a full rewrite of a large table in production).

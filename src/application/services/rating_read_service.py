@@ -70,6 +70,15 @@ class RatingReadService:
         rows = self.repository.get_course_topic_ratings(user_id, course_id=course_id)
         return course_rating([r["elo"] for r in rows])
 
+    def selection_rating(self, user_id: int, course_id: str, topic=None) -> float:
+        """The rating item selection uses (FR-016–019): the topic's rating when practising one
+        topic, otherwise the derived course rating; 1000 when nothing is rated (FR-004)."""
+        rows = self.repository.get_course_topic_ratings(user_id, course_id=course_id)
+        if topic is not None:
+            rows = [r for r in rows if r["topic"] == topic]
+        rating = course_rating([r["elo"] for r in rows])
+        return 1000.0 if rating is None else rating
+
     # ── Rankings ─────────────────────────────────────────────────────────────
 
     def group_basis(self, group_id: int, requested_course_id=None, requester=None) -> dict:

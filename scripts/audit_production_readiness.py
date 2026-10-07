@@ -44,6 +44,7 @@ def run():
     from starlette.testclient import TestClient
     from api.main import app
     import api.dependencies as deps
+    from src.application.services.rating_read_service import RatingReadService
     from src.infrastructure.persistence.sqlite_repository import SQLiteRepository
 
     logging.disable(logging.CRITICAL)
@@ -249,11 +250,14 @@ def run():
             repo.save_diagnostic(
                 diagnostic_student, "calculo_diferencial", 1234.0, 75.0, "{}"
             )
-            repo.set_topic_elo_baseline(diagnostic_student, topic, 1234.0)
-            topic_recovered = deps.build_vector_rating(diagnostic_student, repo).get(topic)
-            course_recovered = deps.build_vector_rating(
-                diagnostic_student, repo, course_id="calculo_diferencial"
-            ).get("calculo_diferencial")
+            repo.set_topic_rating_baseline(
+                diagnostic_student, "calculo_diferencial", topic, 1234.0
+            )
+            ratings = RatingReadService(repo)
+            topic_recovered = ratings.selection_rating(
+                diagnostic_student, "calculo_diferencial", topic
+            )
+            course_recovered = ratings.course_rating_of(diagnostic_student, "calculo_diferencial")
             record(
                 "diagnostic_baseline_recovered",
                 topic_recovered == 1234.0 and course_recovered == 1234.0,

@@ -113,8 +113,9 @@ def test_an_invalid_attempt_does_not_move_the_rating(repo, student):
 
 def test_a_validated_procedure_delta_is_applied_exactly_once(repo, student):
     """El ajuste del docente entra una vez, no en cada lectura posterior."""
-    item_id, item_topic = _any_item(repo)
-    repo.set_topic_elo_baseline(student, item_topic, 1000.0)
+    item = _any_item(repo)
+    item_id = item[0]
+    set_rating(repo, student, item[1], item[2], 1000.0)
 
     submission_id = _sql(
         repo,
@@ -126,14 +127,14 @@ def test_a_validated_procedure_delta_is_applied_exactly_once(repo, student):
 
     # procedure_elo_delta(100) = (100 - 50) * 0.2 = +10
     assert repo.validate_procedure_submission(submission_id, teacher_score=100.0)
-    assert _elo(repo, student, item_topic) == 1010.0
+    assert _elo(repo, student, item) == 1010.0
 
     # Dos prácticas sucesivas: el +10 ya está dentro del rating y no se re-suma.
-    _answer(repo, student, item_id, item_topic, elo_after=1030.0)
-    assert _elo(repo, student, item_topic) == 1030.0
+    _answer(repo, student, item_id, elo_after=1030.0)
+    assert _elo(repo, student, item) == 1030.0
 
-    _answer(repo, student, item_id, item_topic, elo_after=1045.0)
-    assert _elo(repo, student, item_topic) == 1045.0
+    _answer(repo, student, item_id, elo_after=1045.0)
+    assert _elo(repo, student, item) == 1045.0
 
 
 # test_global_elo_stays_the_average_of_the_canonical_topics was removed by spec 001

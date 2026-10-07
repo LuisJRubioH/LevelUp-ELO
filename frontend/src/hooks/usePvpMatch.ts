@@ -27,6 +27,8 @@ export interface PvpResult {
   my_score: number;
   opp_score: number;
   elo_delta: number;
+  /** null = applied; 'no_rated_topics' | 'not_applied' = 0 applied (spec 001). */
+  elo_reason?: string | null;
 }
 
 export function usePvpMatch(courseId: string | null) {
@@ -103,6 +105,7 @@ export function usePvpMatch(courseId: string | null) {
             won: msg.won, draw: msg.draw,
             my_score: msg.your_score, opp_score: msg.opp_score,
             elo_delta: msg.elo_delta,
+            elo_reason: msg.elo_reason ?? null,
           });
           setPhase("finished");
           break;

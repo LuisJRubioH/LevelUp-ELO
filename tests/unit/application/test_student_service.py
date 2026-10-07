@@ -9,9 +9,9 @@ API real:
                  request_id=None, request_fingerprint=None)
     → (is_correct: bool, result: dict)  — spec 001: the rating is the item's (course, topic)
 
-  get_next_question(student_id, topic, vector_rating,
+  get_next_question(student_id, course_id, topic_filter=None,
                     session_correct_ids, session_wrong_timestamps,
-                    session_questions_count, course_id)
+                    session_questions_count, block)  — rating from the course × topic store
     → (item_data | None, status_str)
 """
 
@@ -134,7 +134,7 @@ class TestGetNextQuestion:
             "src.application.services.student_service.AdaptiveItemSelector.select_optimal_item",
             lambda self, rating, items: items[-1],
         )
-        result, status = service.get_next_question(1, "algebra", student_vector)
+        result, status = service.get_next_question(1, "algebra")
         assert status == "ok"
         assert result is second
 
@@ -152,7 +152,6 @@ class TestGetNextQuestion:
         result, status = service.get_next_question(
             1,
             "algebra",
-            student_vector,
             session_correct_ids={"blocked"} if blocked == "correct" else set(),
             session_wrong_timestamps={"blocked": 1} if blocked == "cooldown" else {},
             session_questions_count=2,
@@ -166,8 +165,6 @@ class TestGetNextQuestion:
         mock_repository.get_answered_item_ids.return_value = []
         result, status = service.get_next_question(
             student_id=1,
-            topic="Álgebra",
-            vector_rating=student_vector,
             course_id="algebra_basica",
         )
         assert result is None
@@ -176,8 +173,6 @@ class TestGetNextQuestion:
         """Con ítems disponibles → retorna un dict del pool."""
         item, status = service_with_items.get_next_question(
             student_id=1,
-            topic="Álgebra",
-            vector_rating=student_vector,
             course_id="algebra_basica",
         )
         assert item is not None
@@ -187,8 +182,6 @@ class TestGetNextQuestion:
         """Cuando hay ítems, el status es 'ok'."""
         _, status = service_with_items.get_next_question(
             student_id=1,
-            topic="Álgebra",
-            vector_rating=student_vector,
             course_id="algebra_basica",
         )
         assert status == "ok"
@@ -201,8 +194,6 @@ class TestTopicFilter:
         """Con topic_filter='Álgebra' solo se sirven ítems de ese tópico."""
         item, status = service_with_items.get_next_question(
             student_id=1,
-            topic="Álgebra",
-            vector_rating=student_vector,
             course_id="algebra_basica",
             topic_filter="Álgebra",
         )
@@ -213,8 +204,6 @@ class TestTopicFilter:
         """topic_filter='Derivadas' (un solo ítem) devuelve justo ese ítem."""
         item, _ = service_with_items.get_next_question(
             student_id=1,
-            topic="Derivadas",
-            vector_rating=student_vector,
             course_id="calculo_diferencial",
             topic_filter="Derivadas",
         )
@@ -225,8 +214,6 @@ class TestTopicFilter:
         """Un tópico inexistente NO vacía el pool: cae al pool completo del curso."""
         item, status = service_with_items.get_next_question(
             student_id=1,
-            topic="x",
-            vector_rating=student_vector,
             course_id="algebra_basica",
             topic_filter="__no_existe__",
         )

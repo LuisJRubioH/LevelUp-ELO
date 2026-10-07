@@ -44,38 +44,32 @@ class StudentService:
     def get_next_question(
         self,
         student_id,
-        topic,
-        vector_rating,
+        course_id,
+        topic_filter=None,
         session_correct_ids=None,
         session_wrong_timestamps=None,
         session_questions_count=0,
-        course_id=None,
         block=None,
-        topic_filter=None,
     ):
-        """Orquesta la selección de la siguiente pregunta.
+        """Choose the next practice item of `course_id` (FR-016–019).
 
-        Si se proporciona course_id, el pool de ítems se restringe EXCLUSIVAMENTE
-        al curso activo. block restringe además a un bloque temático (concursos).
-        topic_filter restringe a un tópico específico (práctica desde el mapa).
+        `block` narrows the pool to a thematic block (concursos); `topic_filter` to one topic
+        (practice from the map) when that topic has items. The selection rating is the topic's
+        rating with a filter, otherwise the course rating (spec 001, FR-029a).
         """
         session_correct_ids = session_correct_ids or set()
         session_wrong_timestamps = session_wrong_timestamps or {}
 
-        # Filtrado por curso (Tarea F) — prioritario sobre filtro por topic
-        if course_id:
-            pool = self.repository.get_items_from_db(course_id=course_id, block=block)
-            # Refuerzo desde el mapa: restringir a un tópico del curso.
-            # Solo si quedan ítems — evita un pool vacío por un tópico inexistente.
-            if topic_filter:
-                by_topic = [i for i in pool if i.get("topic") == topic_filter]
-                if by_topic:
-                    pool = by_topic
-        else:
-            pool = self.repository.get_items_from_db(topic)
+        pool = self.repository.get_items_from_db(course_id=course_id, block=block)
+        # Refuerzo desde el mapa: restringir a un tópico del curso.
+        # Solo si quedan ítems — evita un pool vacío por un tópico inexistente.
+        if topic_filter:
+            by_topic = [i for i in pool if i.get("topic") == topic_filter]
+            if by_topic:
+                pool = by_topic
 
         answered_ids = set(self.repository.get_answered_item_ids(student_id))
-        current_elo = vector_rating.get(topic)
+        current_elo = self.ratings.selection_rating(student_id, course_id, topic_filter)
 
         # Excluir siempre las respondidas correctamente en esta sesión
         eligible = [i for i in pool if i["id"] not in session_correct_ids]

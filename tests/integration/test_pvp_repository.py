@@ -8,6 +8,9 @@ También cubre get_course_blocks.
 
 import pytest
 from src.infrastructure.persistence.sqlite_repository import SQLiteRepository
+from tests.integration.conftest import rating_of, set_rating
+
+COURSE, TOPIC = "calculo_diferencial", "Límites"
 
 
 @pytest.fixture
@@ -16,12 +19,19 @@ def repo(tmp_path) -> SQLiteRepository:
     return SQLiteRepository(db_name=db_path)
 
 
-def _two_players(repo):
-    """Registra dos estudiantes y retorna (id1, id2)."""
+def _two_players(repo, rated=True):
+    """Registra dos estudiantes y retorna (id1, id2).
+
+    Spec 001 (FR-029b/c): a match moves every rated topic of its course, so each player gets
+    one rated topic (COURSE, TOPIC) = 1000 unless `rated=False`.
+    """
     repo.register_user("jugador_a", "password123", "student", education_level="universidad")
     repo.register_user("jugador_b", "password123", "student", education_level="universidad")
     a = repo.login_user("jugador_a", "password123")[0]
     b = repo.login_user("jugador_b", "password123")[0]
+    if rated:
+        set_rating(repo, a, COURSE, TOPIC, 1000.0)
+        set_rating(repo, b, COURSE, TOPIC, 1000.0)
     return a, b
 
 
@@ -85,8 +95,8 @@ class TestPvpMatchLifecycle:
         assert m["opponent"] == "jugador_a"
 
     def test_finish_updates_current_elo(self, repo):
+        """Spec 001: the course's topic rating moves, not users.current_elo (FR-028, FR-029b)."""
         a, b = _two_players(repo)
-        elo_a_before = repo.get_user_by_id(a)["current_elo"]
         mid = repo.create_pvp_match("calculo_diferencial", a, b, ["i1"])
         repo.finish_pvp_match(
             match_id=mid,
@@ -98,10 +108,10 @@ class TestPvpMatchLifecycle:
             p1_id=a,
             p2_id=b,
         )
-        assert repo.get_user_by_id(a)["current_elo"] == pytest.approx(elo_a_before + 12.0)
+        assert rating_of(repo, a, COURSE, TOPIC) == pytest.approx(1012.0)
 
     def test_elo_never_negative(self, repo):
-        """current_elo no baja de 0 aunque el delta sea muy negativo."""
+        """El rating no baja de 0 aunque el delta sea muy negativo."""
         a, b = _two_players(repo)
         mid = repo.create_pvp_match("calculo_diferencial", a, b, ["i1"])
         repo.finish_pvp_match(
@@ -114,7 +124,7 @@ class TestPvpMatchLifecycle:
             p1_id=a,
             p2_id=b,
         )
-        assert repo.get_user_by_id(a)["current_elo"] >= 0
+        assert rating_of(repo, a, COURSE, TOPIC) == 0.0
 
     def test_only_finished_matches_in_history(self, repo):
         """Una partida creada pero no terminada NO aparece en el historial."""
@@ -150,17 +160,8 @@ class TestPvpStateSurvivesTheProcess:
             p2_id=b,
         )
 
-        assert repo.get_latest_elo_by_topic(a)["calculo_diferencial"][0] == 1012.0
-        assert repo.get_latest_elo_by_topic(b)["calculo_diferencial"][0] == 988.0
-
-        # Recalcular el promedio no debe borrar el resultado de la partida.
-        conn = repo.get_connection()
-        try:
-            repo._refresh_global_elo(conn.cursor(), a)
-            conn.commit()
-        finally:
-            conn.close()
-        assert repo.get_user_by_id(a)["current_elo"] == pytest.approx(1012.0)
+        assert rating_of(repo, a, COURSE, TOPIC) == 1012.0
+        assert rating_of(repo, b, COURSE, TOPIC) == 988.0
 
     def test_closing_a_match_twice_applies_the_delta_once(self, repo):
         """El cronómetro y el último jugador pueden disparar a la vez."""
@@ -177,11 +178,11 @@ class TestPvpStateSurvivesTheProcess:
                 p1_id=a,
                 p2_id=b,
             )
-        assert repo.get_latest_elo_by_topic(a)["calculo_diferencial"][0] == 1012.0
+        assert rating_of(repo, a, COURSE, TOPIC) == 1012.0
 
     def test_matches_orphaned_by_a_restart_are_closed(self, repo):
         """El cronómetro vive en el proceso: un reinicio deja la fila 'active' para siempre."""
-        a, b = _two_players(repo)
+        a, b = _two_players(repo, rated=False)
         mid = repo.create_pvp_match("calculo_diferencial", a, b, ["i1"])
 
         conn = repo.get_connection()
@@ -199,7 +200,7 @@ class TestPvpStateSurvivesTheProcess:
         conn.close()
         assert status == "abandoned"
         # Nadie ganó: el ELO no se toca.
-        assert repo.get_latest_elo_by_topic(a) == {}
+        assert repo.get_course_topic_ratings(a) == []
 
     def test_a_live_match_is_left_alone(self, repo):
         a, b = _two_players(repo)

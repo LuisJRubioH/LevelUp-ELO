@@ -48,7 +48,7 @@ domain-computed delta atomically inside a transaction (`current_elo = MAX(0, cur
 | `set_topic_rating_baseline(user_id, course_id, topic, elo, rd=350)` | diagnostic writer; replaces `set_topic_elo_baseline` | 020 |
 | `has_practice_attempts(user_id, course_id, topic) -> bool` | attempts on items of that course and topic | 021 |
 | `validate_procedure_submission(...)` | unchanged signature; bump on `(student, item.course_id, item.topic)` | 022–024 |
-| `finish_pvp_match(...) -> {p1: (applied, reason), p2: (applied, reason)}` | returns applied deltas; bump every row of `(player, course)`; none → `(0, "no_rated_topics")`; idempotent | 025, 029b, 029c |
+| `finish_pvp_match(...) -> {p1: (applied, reason), p2: (applied, reason)} \| None` | returns applied deltas; bump every row of `(player, course)`; none → `(0, "no_rated_topics")`; idempotent — `None` when the match was not active | 025, 029b, 029c |
 | `expire_stale_pvp_matches(max_age_seconds=600) -> int` | unchanged | 027 |
 | `_reconcile_legacy_ratings() -> int` | bootstrap step; returns rows created; idempotent | 033–036, 034a, 034b |
 
@@ -74,6 +74,7 @@ The only place that turns stored rows into course ratings, overall ratings, rank
 | `ratings_view(user_id) -> {overall, display_rating, overall_status, rank_label, courses: [{course_id, course_name, rating, display_rating, rank_label, current_context, topics}]}` | `overall`/`rating` full precision (for calculations); `display_rating` and `rank_label` from `rating_display` (FR-028j); `overall=None` ⇒ `overall_status="pending_diagnostic"`, `display_rating=None`, `rank_label=None` | 028a–c, 028j, 029a, 031 |
 | `ratings_view_bulk(user_ids) -> {user_id: ratings_view}` | same, one repository round-trip | 028a |
 | `course_rating_of(user_id, course_id) -> float \| None` | selection / PvP expectation use `1000` when `None` (caller decides) | 029a, 026 |
+| `selection_rating(user_id, course_id, topic=None) -> float` | the topic's rating when practising one topic, otherwise the course rating; `1000` when nothing is rated | 016–019, 029a, 004 |
 | `group_basis(group_id, requested_course_id=None, requester=None) -> {kind: "course" \| "overall", course_id: str \| None, source: "requested" \| "group" \| "overall"}` | precedence of FR-028d; unknown course → `ValueError` (400); not visible to requester → `PermissionError` (403) | 028d |
 | `ranking_view(scope, *, group_id=None, course_id=None, education_level=None, grade=None, limit=None, requester=None) -> {basis, entries: [{user_id, username, rating, rank_label, status: "rated" \| "pending_diagnostic", attempts_in_window, rank: int \| None}]}` | participants from `get_ranking_participants`; rating on the single basis; `rank_competition`; `rating` returned already rounded to `RATING_DISPLAY_DECIMALS`; `limit` cuts the display list **after** ranking and never changes a `rank` | 028d, 028f, 028h |
 | `ranking_rank(user_id, scope, **same_args) -> int \| None` | the `rank` of `user_id`'s entry in `ranking_view(scope, **same_args)` (unlimited list); `None` if pending or not a participant | 028f, 028h |
@@ -83,4 +84,4 @@ The only place that turns stored rows into course ratings, overall ratings, rank
 | Method | Contract |
 |---|---|
 | `process_answer(user_id, item_data, selected_option, reasoning, time_taken, request_id=None, request_fingerprint=None)` | `vector_rating` and `elo_topic` parameters removed; returns `(is_correct, result)` with `elo_before`, `elo_after`, `rd_after`, `elo_valid` |
-| `get_next_question(student_id, course_id, topic_filter=None, session…)` | selection rating per FR-016–019 via `RatingReadService`; returns item + `preview` |
+| `get_next_question(student_id, course_id, topic_filter=None, session…, block=None)` | selection rating per FR-016–019 via `RatingReadService.selection_rating`; returns item + `preview` (preview: T059) |

@@ -311,3 +311,127 @@ def test_spec001_diagnostic_writes_course_topic_baselines(repo, student, client)
             (other, TOPIC, 1200.0, "practice"),
         ]
     )
+
+
+# ── T048: a teacher's grade adds to the item's (course, topic) once (FR-029, US4-AS1) ──
+
+
+def _pending_submission(repo, student, item_id):
+    return sql(
+        repo,
+        "INSERT INTO procedure_submissions (student_id, item_id, item_content, image_data, status)"
+        " VALUES (?, ?, ?, ?, 'pending') RETURNING id",
+        (student, item_id, "spec001 procedure", b"spec001 image"),
+    )[0][0]
+
+
+def _store(repo, user_id):
+    rows = sql(
+        repo,
+        "SELECT course_id, topic, current_elo, origin FROM student_course_topic_elo"
+        " WHERE user_id = ?",
+        (user_id,),
+    )
+    return sorted(tuple(r) for r in rows)
+
+
+def test_spec001_procedure_grade_bumps_the_items_course_topic_once(repo, student):
+    course, item = _course(repo)
+    other, _ = _course(repo)
+    _row(repo, student, course, TOPIC, 1100.0)
+    _row(repo, student, other, TOPIC, 1200.0)
+    submission = _pending_submission(repo, student, item)
+
+    assert repo.validate_procedure_submission(submission, teacher_score=80.0)
+    assert not repo.validate_procedure_submission(submission, teacher_score=80.0)
+
+    assert _store(repo, student) == sorted(
+        [(course, TOPIC, 1106.0, "practice"), (other, TOPIC, 1200.0, "practice")]
+    )
+    assert sql(repo, "SELECT COUNT(*) FROM student_topic_elo WHERE user_id = ?", (student,)) == [
+        (0,)
+    ]
+
+
+def test_spec001_procedure_grade_creates_an_absent_row_and_floors_at_zero(repo, student):
+    course, item = _course(repo)
+    low, low_item = _course(repo)
+    _row(repo, student, low, TOPIC, 3.0)
+
+    assert repo.validate_procedure_submission(
+        _pending_submission(repo, student, item), teacher_score=80.0
+    )
+    assert repo.validate_procedure_submission(
+        _pending_submission(repo, student, low_item), teacher_score=0.0
+    )
+
+    assert _store(repo, student) == sorted(
+        [(course, TOPIC, 1006.0, "procedure"), (low, TOPIC, 0.0, "practice")]
+    )
+
+
+# ── T050: a PvP result reaches every rated topic of the course, once (FR-029b/c) ──
+
+
+def _finish(repo, match, p1, p2, d1, d2, winner):
+    return repo.finish_pvp_match(
+        match_id=match,
+        winner_id=winner,
+        score_p1=3,
+        score_p2=0,
+        elo_delta_p1=d1,
+        elo_delta_p2=d2,
+        p1_id=p1,
+        p2_id=p2,
+    )
+
+
+def test_spec001_pvp_delta_reaches_every_rated_topic_once(repo):
+    """US5-AS5: +12 to each rated topic, so the course rating moves by exactly 12."""
+    from src.application.services.rating_read_service import RatingReadService
+
+    a, b = make_student(repo), make_student(repo)
+    course, items = make_course(repo, [TOPIC, "Decimales", "Porcentajes"])
+    _row(repo, a, course, TOPIC, 1100.0)
+    _row(repo, a, course, "Decimales", 1300.0)
+    _row(repo, b, course, TOPIC, 1000.0)
+    match = repo.create_pvp_match(course, a, b, [items[TOPIC][0]])
+
+    applied = _finish(repo, match, a, b, 12.0, -12.0, a)
+    again = _finish(repo, match, a, b, 12.0, -12.0, a)
+
+    assert applied == {"p1": (12.0, None), "p2": (-12.0, None)}
+    assert again is None
+    assert _store(repo, a) == sorted(
+        [(course, TOPIC, 1112.0, "practice"), (course, "Decimales", 1312.0, "practice")]
+    )
+    assert _store(repo, b) == [(course, TOPIC, 988.0, "practice")]
+    assert RatingReadService(repo).course_rating_of(a, course) == 1212.0
+
+
+def test_spec001_pvp_player_without_rated_topics_gets_zero(repo):
+    """FR-029c: no rated topic → applied 0, reason no_rated_topics; the opponent applies."""
+    a, b = make_student(repo), make_student(repo)
+    course, items = make_course(repo, [TOPIC])
+    other, _ = _course(repo)
+    _row(repo, a, course, TOPIC, 1100.0)
+    _row(repo, b, other, TOPIC, 1500.0)
+    match = repo.create_pvp_match(course, a, b, [items[TOPIC][0]])
+
+    applied = _finish(repo, match, a, b, -12.0, 12.0, b)
+
+    assert applied == {"p1": (-12.0, None), "p2": (0.0, "no_rated_topics")}
+    assert _store(repo, a) == [(course, TOPIC, 1088.0, "practice")]
+    assert _store(repo, b) == [(other, TOPIC, 1500.0, "practice")]
+    stored = sql(
+        repo,
+        "SELECT elo_delta_p1, elo_reason_p1, elo_delta_p2, elo_reason_p2 FROM pvp_matches"
+        " WHERE id = ?",
+        (match,),
+    )[0]
+    assert (float(stored[0]), stored[1], float(stored[2]), stored[3]) == (
+        -12.0,
+        None,
+        0.0,
+        "no_rated_topics",
+    )

@@ -157,7 +157,9 @@ def test_postgres_permissions_diagnostic_and_canonical_answer(postgres_context):
             saved = cursor.fetchone()
     finally:
         repo.put_connection(conn)
-    assert saved == (item["id"], item["difficulty"], item["topic"])
+    # attempts.difficulty is INTEGER on PostgreSQL (REAL on SQLite): history keeps the canonical
+    # difficulty rounded to a whole number, never the client's 1777 (roadmap follow-up F-3).
+    assert saved == (item["id"], round(item["difficulty"]), item["topic"])
     persisted_before_redo = _topic_rating(repo, student_id, item["topic"])
     wrong = next(option for option in item["options"] if option != item["correct_option"])
     redone = client.post(

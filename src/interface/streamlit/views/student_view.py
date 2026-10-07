@@ -866,12 +866,10 @@ def render_student():
                     st.session_state.current_question = (
                         st.session_state.student_service.get_next_question(
                             st.session_state.user_id,
-                            selected_topic,
-                            st.session_state.vector,
+                            selected_course_id,
                             session_correct_ids=st.session_state.session_correct_ids,
                             session_wrong_timestamps=st.session_state.session_wrong_timestamps,
                             session_questions_count=st.session_state.session_questions_count,
-                            course_id=selected_course_id,
                         )
                     )
                 item_data, status = st.session_state.current_question

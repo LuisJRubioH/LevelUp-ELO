@@ -144,6 +144,7 @@ def mock_repository() -> MagicMock:
     repo = MagicMock()
     repo.get_items_from_db.return_value = []
     repo.get_answered_item_ids.return_value = []
+    repo.get_course_topic_ratings.return_value = []
     repo.save_answer_transaction.side_effect = _fake_answer_transaction
     repo.get_study_streak.return_value = 0
     repo.save_katia_interaction.return_value = None

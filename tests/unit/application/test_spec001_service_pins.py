@@ -8,7 +8,6 @@ swallowed badge failure only so that T036 can flip it deliberately.
 import pytest
 
 from src.application.services.student_service import StudentService
-from src.domain.elo.vector_elo import VectorRating
 
 
 class _AnswerRepo:
@@ -48,7 +47,7 @@ def test_spec001_answer_moves_rating_and_item_symmetrically(option, rating, diff
     """D=1000, R=1000: correct → 1016 / item 984; wrong → 984 / item 1016; item RD kept."""
     repo = _AnswerRepo(item_rd=123.0)
 
-    StudentService(repository=repo).process_answer(1, _ITEM, option, "", 20.0, VectorRating())
+    StudentService(repository=repo).process_answer(1, _ITEM, option, "", 20.0)
 
     attempt, item_difficulty, item_rd = repo.written
     assert attempt["elo_after"] == pytest.approx(rating, abs=1e-9)
@@ -56,29 +55,14 @@ def test_spec001_answer_moves_rating_and_item_symmetrically(option, rating, diff
     assert item_rd == 123.0
 
 
-def test_spec001_fr015_today_a_badge_failure_is_swallowed():
-    """FR-015 today (Known Deviation D-3): the answer returns, the failure leaves no trace.
-
-    Pinned to be flipped by T036 (log the failure, still return the result).
-    """
-    repo = _AnswerRepo(badges_fail=True)
-
-    is_correct, cog = StudentService(repository=repo).process_answer(
-        1, _ITEM, "A", "", 20.0, VectorRating()
-    )
-
-    assert is_correct is True
-    assert cog["elo_after"] == pytest.approx(1016.0)
-    assert "new_badges" not in cog
-
-
 # ── T015: FR-016 (cooldown), FR-019, US2-AS3, US2-AS4, US2-AS5 ─────────────
 
 
 class _PoolRepo:
-    def __init__(self, items, answered=()):
+    def __init__(self, items, answered=(), rating=1000.0):
         self.items = items
         self.answered = list(answered)
+        self.rating = rating
 
     def get_items_from_db(self, *_args, **_kwargs):
         return list(self.items)
@@ -86,15 +70,22 @@ class _PoolRepo:
     def get_answered_item_ids(self, _user_id):
         return self.answered
 
+    def get_course_topic_ratings(self, user_id, course_id=None):
+        """One stored (course, topic) rating: the selection rating of these pins."""
+        return [
+            {
+                "course_id": "C",
+                "topic": "Fracciones",
+                "elo": self.rating,
+                "rd": 100.0,
+                "origin": "practice",
+                "approximate": False,
+            }
+        ]
+
 
 def _item(item_id):
     return {"id": item_id, "difficulty": 1000.0, "topic": "Fracciones"}
-
-
-def _vector(rating):
-    vector = VectorRating()
-    vector.ratings["Fracciones"] = (rating, 100.0)
-    return vector
 
 
 @pytest.mark.parametrize("questions_so_far,expected", [(7, "historic"), (8, "failed")])
@@ -104,8 +95,7 @@ def test_spec001_failed_item_returns_after_three_questions(questions_so_far, exp
 
     item, status = StudentService(repository=repo).get_next_question(
         1,
-        "Fracciones",
-        _vector(1000.0),
+        "C",
         session_wrong_timestamps={"failed": 5},
         session_questions_count=questions_so_far,
     )
@@ -119,10 +109,7 @@ def test_spec001_item_correct_this_session_is_never_offered():
     service = StudentService(repository=repo)
 
     picks = {
-        service.get_next_question(1, "Fracciones", _vector(1000.0), session_correct_ids={"done"})[
-            0
-        ]["id"]
-        for _ in range(30)
+        service.get_next_question(1, "C", session_correct_ids={"done"})[0]["id"] for _ in range(30)
     }
 
     assert picks == {"other"}
@@ -131,10 +118,10 @@ def test_spec001_item_correct_this_session_is_never_offered():
 @pytest.mark.parametrize("rating,expected", [(1800.0, (None, "mastery")), (1799.0, ("a", "ok"))])
 def test_spec001_exhausted_pool_mastery_threshold(rating, expected):
     """US2-AS5: nothing eligible → mastery at ≥ 1800, the pool again below."""
-    repo = _PoolRepo([_item("a")])
+    repo = _PoolRepo([_item("a")], rating=rating)
 
     item, status = StudentService(repository=repo).get_next_question(
-        1, "Fracciones", _vector(rating), session_correct_ids={"a"}
+        1, "C", session_correct_ids={"a"}
     )
 
     assert ((item or {}).get("id"), status) == expected

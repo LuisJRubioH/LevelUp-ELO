@@ -733,7 +733,7 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-010 | `save_answer_transaction` (BEGIN IMMEDIATE / FOR UPDATE users→items); `tests/integration/test_elo_single_source.py` |
 | FR-011, FR-014 | `api/routers/student.py:155-175`; V2-R9 |
 | FR-012–013 | `api/routers/student.py:176-200` |
-| FR-012a | `api/routers/student.py` `replay()` rounds the stored `attempts.elo_after` (PostgreSQL `REAL`); the first response rounds `cog_data["elo_after"]` (full precision) — 1112.684999807 → 1112.68 first, 1112.69 on retry |
+| FR-012a | `api/routers/student.py` `replay()` rounds the stored `attempts.elo_after` (PostgreSQL `REAL`); the first response rounds `cog_data["elo_after"]` (full precision) — from 1181 at difficulty 1000: 1189.344952 → 1189.34 first; PostgreSQL returns the stored value as 1189.345 → 1189.35 on retry |
 | FR-015 | `student_service.py:203-213` (`except Exception: pass`) |
 | FR-016, FR-019 | `student_service.py:66-98` |
 | FR-017–018 | `src/domain/selector/item_selector.py:40-80` |

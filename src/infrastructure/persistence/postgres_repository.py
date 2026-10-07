@@ -1646,6 +1646,21 @@ class PostgresRepository:
             (user_id, course_id, topic, float(elo), float(rd), origin),
         )
 
+    def _bump_course_topic_rating(self, cursor, user_id, course_id, topic, delta, origin):
+        """Add a domain-computed delta atomically, floor 0 (research R3: persistence, not
+        arithmetic). An absent row starts from 1000 + delta with this `origin`."""
+        cursor.execute(
+            """
+            INSERT INTO student_course_topic_elo
+                (user_id, course_id, topic, current_elo, rd, origin, updated_at)
+            VALUES (%s, %s, %s, %s, 350.0, %s, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, course_id, topic) DO UPDATE
+                SET current_elo = GREATEST(0, student_course_topic_elo.current_elo + %s),
+                    updated_at = CURRENT_TIMESTAMP
+            """,
+            (user_id, course_id, topic, max(0.0, 1000.0 + float(delta)), origin, float(delta)),
+        )
+
     def save_answer_transaction(
         self,
         user_id: int,
@@ -2565,14 +2580,15 @@ class PostgresRepository:
             params.append(course_id)
         conn = self.get_connection()
         try:
-            with conn.cursor() as cursor:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(query + " ORDER BY user_id, course_id, topic", params)
                 rows = cursor.fetchall()
         finally:
             self.put_connection(conn)
         return [
-            {"user_id": r[0], "course_id": r[1], "topic": r[2], "elo": float(r[3]),
-             "rd": float(r[4]), "origin": r[5], "approximate": bool(r[6])}
+            {"user_id": r["user_id"], "course_id": r["course_id"], "topic": r["topic"],
+             "elo": float(r["current_elo"]), "rd": float(r["rd"]), "origin": r["origin"],
+             "approximate": bool(r["approximate"])}
             for r in rows
         ]
 
@@ -2590,7 +2606,7 @@ class PostgresRepository:
             return result
         conn = self.get_connection()
         try:
-            with conn.cursor() as cursor:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
                     "SELECT e.user_id, e.course_id, c.block, u.education_level, u.grade"
                     " FROM enrollments e JOIN courses c ON c.id = e.course_id"
@@ -2601,9 +2617,9 @@ class PostgresRepository:
                 rows = cursor.fetchall()
         finally:
             self.put_connection(conn)
-        for user_id, course_id, block, level, grade in rows:
-            if in_catalogue(level, grade, course_id, block):
-                result[user_id].append(course_id)
+        for r in rows:
+            if in_catalogue(r["education_level"], r["grade"], r["course_id"], r["block"]):
+                result[r["user_id"]].append(r["course_id"])
         return result
 
     @_timing
@@ -2619,7 +2635,7 @@ class PostgresRepository:
         """Who appears in a ranking (FR-028f) — never what they are ranked by."""
         conn = self.get_connection()
         try:
-            with conn.cursor() as cursor:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 if scope == "group":
                     cursor.execute(
                         "SELECT id, username FROM users"
@@ -2627,7 +2643,7 @@ class PostgresRepository:
                         (group_id,),
                     )
                     return [
-                        {"user_id": r[0], "username": r[1], "attempts_in_window": 0}
+                        {"user_id": r["id"], "username": r["username"], "attempts_in_window": 0}
                         for r in cursor.fetchall()
                     ]
                 where = ["u.role = 'student'", "a.timestamp >= NOW() - (%s * INTERVAL '1 day')"]
@@ -2650,7 +2666,7 @@ class PostgresRepository:
                     where.append("i.course_id = %s")
                     params.append(course_id)
                 cursor.execute(
-                    "SELECT u.id, u.username, COUNT(a.id) FROM attempts a"
+                    "SELECT u.id, u.username, COUNT(a.id) AS attempts FROM attempts a"
                     f" JOIN users u ON u.id = a.user_id{join} WHERE {' AND '.join(where)}"
                     " GROUP BY u.id, u.username ORDER BY u.id",
                     params,
@@ -2658,18 +2674,21 @@ class PostgresRepository:
                 rows = cursor.fetchall()
         finally:
             self.put_connection(conn)
-        return [{"user_id": r[0], "username": r[1], "attempts_in_window": r[2]} for r in rows]
+        return [
+            {"user_id": r["id"], "username": r["username"], "attempts_in_window": r["attempts"]}
+            for r in rows
+        ]
 
     @_timing
     def get_group_course_id(self, group_id):
         conn = self.get_connection()
         try:
-            with conn.cursor() as cursor:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute("SELECT course_id FROM groups WHERE id = %s", (group_id,))
                 row = cursor.fetchone()
         finally:
             self.put_connection(conn)
-        return row[0] if row else None
+        return row["course_id"] if row else None
 
     @_timing
     def get_latest_elo_by_topic(self, user_id):
@@ -2711,24 +2730,6 @@ class PostgresRepository:
             """,
             (user_id, user_id),
         )
-
-    def _set_topic_elo(self, cursor, user_id, topic, elo, rd):
-        """Fija el rating canónico de un tópico al valor calculado en esta transacción.
-
-        Recibe el cursor de la transacción padre: no abre ni cierra conexión.
-        """
-        cursor.execute(
-            """
-            INSERT INTO student_topic_elo (user_id, topic, current_elo, rd, updated_at)
-            VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP)
-            ON CONFLICT (user_id, topic) DO UPDATE
-                SET current_elo = EXCLUDED.current_elo,
-                    rd          = EXCLUDED.rd,
-                    updated_at  = CURRENT_TIMESTAMP
-            """,
-            (user_id, topic, round(float(elo), 2), float(rd) if rd is not None else 350.0),
-        )
-        self._refresh_global_elo(cursor, user_id)
 
     def _bump_topic_elo(self, cursor, user_id, topic, delta):
         """Aplica un ajuste aditivo (procedimiento docente) al rating canónico."""
@@ -4452,7 +4453,14 @@ class PostgresRepository:
         score_p1: int, score_p2: int,
         elo_delta_p1: float, elo_delta_p2: float,
         p1_id: int, p2_id: int,
-    ) -> None:
+    ) -> dict | None:
+        """Close an active match once and apply each player's delta (FR-025, FR-029b, FR-029c).
+
+        The delta goes to every rated topic of the match's course (atomic addition, floor 0).
+        A player with no rated topic there gets 0 with reason 'no_rated_topics'. Returns
+        {"p1": (applied, reason), "p2": (applied, reason)}, or None when the match was not
+        active (closed already: nothing changes).
+        """
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -4460,19 +4468,34 @@ class PostgresRepository:
             # último jugador disparan a la vez, el ELO se aplica una sola vez.
             cursor.execute(
                 """UPDATE pvp_matches SET status='finished', winner_id=%s, score_p1=%s, score_p2=%s,
-                   elo_delta_p1=%s, elo_delta_p2=%s, finished_at=NOW()
+                   finished_at=NOW()
                    WHERE id=%s AND status='active'
                    RETURNING course_id""",
-                (winner_id, score_p1, score_p2, elo_delta_p1, elo_delta_p2, match_id),
+                (winner_id, score_p1, score_p2, match_id),
             )
             row = cursor.fetchone()
-            if row is not None:
-                # El delta va al rating canónico del curso. users.current_elo es
-                # un promedio derivado: escribirlo directo se perdía en la
-                # siguiente respuesta del alumno (R15).
-                self._bump_topic_elo(cursor, p1_id, row["course_id"], elo_delta_p1)
-                self._bump_topic_elo(cursor, p2_id, row["course_id"], elo_delta_p2)
+            if row is None:
+                conn.commit()
+                return None
+            applied = {}
+            for key, player, delta in (("p1", p1_id, elo_delta_p1), ("p2", p2_id, elo_delta_p2)):
+                cursor.execute(
+                    """UPDATE student_course_topic_elo
+                       SET current_elo = GREATEST(0, current_elo + %s), updated_at = NOW()
+                       WHERE user_id = %s AND course_id = %s""",
+                    (float(delta), player, row["course_id"]),
+                )
+                applied[key] = (float(delta), None) if cursor.rowcount else (0.0, "no_rated_topics")
+            cursor.execute(
+                """UPDATE pvp_matches SET elo_delta_p1=%s, elo_reason_p1=%s,
+                   elo_delta_p2=%s, elo_reason_p2=%s WHERE id=%s""",
+                (*applied["p1"], *applied["p2"], match_id),
+            )
             conn.commit()
+            return applied
+        except Exception:
+            conn.rollback()
+            raise
         finally:
             self.put_connection(conn)
 
@@ -5095,12 +5118,17 @@ class PostgresRepository:
                 # El delta se aplica aquí una sola vez; la guarda de status
                 # impide revalidar la misma entrega.
                 cursor.execute(
-                    "SELECT topic FROM items WHERE id = %s", (row["item_id"],)
+                    "SELECT course_id, topic FROM items WHERE id = %s", (row["item_id"],)
                 )
                 item = cursor.fetchone()
                 if item:
-                    self._bump_topic_elo(
-                        cursor, row["student_id"], item["topic"], elo_delta
+                    self._bump_course_topic_rating(
+                        cursor,
+                        row["student_id"],
+                        item["course_id"],
+                        item["topic"],
+                        elo_delta,
+                        "procedure",
                     )
             conn.commit()
             return row is not None

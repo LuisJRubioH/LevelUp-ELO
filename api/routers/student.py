@@ -106,22 +106,14 @@ def _make_service(repo) -> StudentService:
 def next_question(body: NextQuestionRequest, user: CurrentUser, repo: RepoDep):
     """Selecciona la siguiente pregunta adaptativa (ZDP) para el estudiante."""
     service = _make_service(repo)
-    vector = build_vector_rating(
-        user["user_id"], repo, course_id=body.course_id if not body.topic else None
-    )
-
-    topic = body.topic or body.course_id  # fallback: usar curso como tópico ELO
-
     item, status_str = service.get_next_question(
         student_id=user["user_id"],
-        topic=topic,
-        vector_rating=vector,
+        course_id=body.course_id,
+        topic_filter=body.topic,  # práctica desde el mapa filtra por este tópico
         session_correct_ids=set(body.session_correct_ids),
         session_wrong_timestamps=body.session_wrong_timestamps,
         session_questions_count=body.session_questions_count,
-        course_id=body.course_id,
         block=body.block,
-        topic_filter=body.topic,  # práctica desde el mapa filtra por este tópico
     )
 
     if item is None:

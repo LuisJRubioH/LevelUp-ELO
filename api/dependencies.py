@@ -169,7 +169,7 @@ def require_role(*roles: str):
 # ── VectorRating desde DB ─────────────────────────────────────────────────────
 
 
-def build_vector_rating(user_id: int, repo, course_id: str | None = None) -> object:
+def build_vector_rating(user_id: int, repo) -> object:
     """
     Reconstruye el VectorRating del estudiante cargando su historial de ELO
     por tópico desde la DB. Retorna una instancia fresca de VectorRating.
@@ -194,13 +194,5 @@ def build_vector_rating(user_id: int, repo, course_id: str | None = None) -> obj
                 else (row[2] if len(row) > 2 else 350.0)
             )
             vector.ratings[topic] = (float(elo), float(rd) if rd else 350.0)
-
-    # La práctica general usa course_id como clave; el diagnóstico guarda sus
-    # baselines por tópico y un promedio por curso. Inicializar esa clave solo
-    # cuando aún no existe progreso de práctica bajo ella.
-    if course_id and course_id not in vector.ratings:
-        diagnostic = repo.get_diagnostic(user_id, course_id)
-        if diagnostic is not None:
-            vector.ratings[course_id] = (float(diagnostic["initial_elo"]), 350.0)
 
     return vector

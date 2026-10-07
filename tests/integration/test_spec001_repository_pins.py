@@ -108,6 +108,9 @@ def test_spec001_practice_after_pvp_starts_from_the_post_match_rating(repo):
     """US5-AS4: the next course-mode practice answer reads the rating the match left."""
     a, b = make_student(repo), make_student(repo)
     course_id, (item_id,) = _course(repo)
+    # Spec 001 (FR-029b, T053): the match moves the course's rated topics, so both have one.
+    set_rating(repo, a, course_id, TOPIC, 1000.0)
+    set_rating(repo, b, course_id, TOPIC, 1000.0)
     match_id = repo.create_pvp_match(course_id, a, b, [item_id])
 
     repo.finish_pvp_match(
@@ -120,7 +123,7 @@ def test_spec001_practice_after_pvp_starts_from_the_post_match_rating(repo):
         p1_id=a,
         p2_id=b,
     )
-    _, cog = answer(repo, a, item_id, correct=True, elo_topic=course_id)
+    _, cog = answer(repo, a, item_id, correct=True)
 
     assert cog["elo_before"] == 1012.0
 

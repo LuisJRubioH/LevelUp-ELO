@@ -141,3 +141,38 @@ class TestFinishMatch:
         p1_ends = [m for m in match.p1.ws.sent if m["type"] == "game_end"]
         assert len(p1_ends) == 1
         assert match.finished is True
+
+
+# ── Spec 001 (T052): game_end reports what was applied, with its reason ──────
+
+
+class AppliedRepo:
+    def __init__(self, applied=None, fail=False):
+        self.applied = applied
+        self.fail = fail
+
+    def finish_pvp_match(self, **_kwargs):
+        if self.fail:
+            raise RuntimeError("db down")
+        return self.applied
+
+
+@pytest.mark.asyncio
+async def test_spec001_game_end_sends_the_applied_delta_and_reason():
+    match = _make_match(score_p1=6, score_p2=5)
+    await _finish_match(match, AppliedRepo({"p1": (12.0, None), "p2": (0.0, "no_rated_topics")}))
+
+    p1_end = [m for m in match.p1.ws.sent if m["type"] == "game_end"][0]
+    p2_end = [m for m in match.p2.ws.sent if m["type"] == "game_end"][0]
+    assert (p1_end["elo_delta"], p1_end["elo_reason"]) == (12.0, None)
+    assert (p2_end["elo_delta"], p2_end["elo_reason"]) == (0.0, "no_rated_topics")
+
+
+@pytest.mark.asyncio
+async def test_spec001_game_end_reports_not_applied_when_persistence_fails():
+    match = _make_match(score_p1=6, score_p2=5)
+    await _finish_match(match, AppliedRepo(fail=True))
+
+    for ws in (match.p1.ws, match.p2.ws):
+        end = [m for m in ws.sent if m["type"] == "game_end"][0]
+        assert (end["elo_delta"], end["elo_reason"]) == (0.0, "not_applied")

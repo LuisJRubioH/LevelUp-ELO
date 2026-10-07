@@ -81,6 +81,17 @@ async def _send(ws: WebSocket, msg: dict) -> bool:
         return False
 
 
+async def _lobby_rating(repo, user_id: int, course_id: str) -> float:
+    """The player's course rating for the match expectation (FR-026); 1000 when unrated.
+
+    Reads in a thread and never under `_lock` (AGENTS R17).
+    """
+    from src.application.services.rating_read_service import RatingReadService
+
+    rating = await asyncio.to_thread(RatingReadService(repo).course_rating_of, user_id, course_id)
+    return 1000.0 if rating is None else rating
+
+
 async def _finish_match(match: ActiveMatch, repo) -> None:
     # Guard contra doble-cierre: ambos loops o el timer pueden disparar a la vez
     async with _lock:
@@ -99,8 +110,9 @@ async def _finish_match(match: ActiveMatch, repo) -> None:
         winner_id, outcome_p1 = None, 0.5
     d1, d2 = pvp_deltas(match.p1.elo, match.p2.elo, outcome_p1)
 
+    applied = None
     try:
-        await asyncio.to_thread(
+        applied = await asyncio.to_thread(
             repo.finish_pvp_match,
             match_id=match.match_id,
             winner_id=winner_id,
@@ -110,13 +122,16 @@ async def _finish_match(match: ActiveMatch, repo) -> None:
         )
     except Exception as e:
         logger.error("finish_pvp_match error: %s", e)
+    # Report what was applied, never the computed delta (spec 001, FR-029c).
+    if not applied:
+        applied = {"p1": (0.0, "not_applied"), "p2": (0.0, "not_applied")}
 
     result_p1 = {"type": "game_end", "your_score": s1, "opp_score": s2,
                  "won": winner_id == match.p1.user_id, "draw": winner_id is None,
-                 "elo_delta": d1}
+                 "elo_delta": applied["p1"][0], "elo_reason": applied["p1"][1]}
     result_p2 = {"type": "game_end", "your_score": s2, "opp_score": s1,
                  "won": winner_id == match.p2.user_id, "draw": winner_id is None,
-                 "elo_delta": d2}
+                 "elo_delta": applied["p2"][0], "elo_reason": applied["p2"][1]}
 
     await asyncio.gather(
         _send(match.p1.ws, result_p1),
@@ -169,10 +184,9 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
         logger.warning("PvP auth failed: %s", exc)
         return
 
-    # Obtener ELO actual del jugador
+    # Rating de la partida: el del curso (FR-026), leído fuera de _lock (AGENTS R17).
     try:
-        user_info = await asyncio.to_thread(repo.get_user_by_id, user_id)
-        player_elo = float(user_info.get("current_elo", 1000.0))
+        player_elo = await _lobby_rating(repo, user_id, course_id)
     except Exception:
         player_elo = 1000.0
 

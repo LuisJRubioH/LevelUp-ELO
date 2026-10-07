@@ -1299,6 +1299,21 @@ class SQLiteRepository:
             (user_id, course_id, topic, float(elo), float(rd), origin),
         )
 
+    def _bump_course_topic_rating(self, cursor, user_id, course_id, topic, delta, origin):
+        """Add a domain-computed delta atomically, floor 0 (research R3: persistence, not
+        arithmetic). An absent row starts from 1000 + delta with this `origin`."""
+        cursor.execute(
+            """
+            INSERT INTO student_course_topic_elo
+                (user_id, course_id, topic, current_elo, rd, origin, updated_at)
+            VALUES (?, ?, ?, ?, 350.0, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, course_id, topic) DO UPDATE
+                SET current_elo = MAX(0, student_course_topic_elo.current_elo + ?),
+                    updated_at = CURRENT_TIMESTAMP
+            """,
+            (user_id, course_id, topic, max(0.0, 1000.0 + float(delta)), origin, float(delta)),
+        )
+
     def save_answer_transaction(
         self,
         user_id: int,
@@ -2340,24 +2355,6 @@ class SQLiteRepository:
             """,
             (user_id, user_id),
         )
-
-    def _set_topic_elo(self, cursor, user_id, topic, elo, rd):
-        """Fija el rating canónico de un tópico al valor calculado en esta transacción.
-
-        Recibe el cursor de la transacción padre: no abre ni cierra conexión.
-        """
-        cursor.execute(
-            """
-            INSERT INTO student_topic_elo (user_id, topic, current_elo, rd, updated_at)
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT (user_id, topic) DO UPDATE
-                SET current_elo = excluded.current_elo,
-                    rd          = excluded.rd,
-                    updated_at  = CURRENT_TIMESTAMP
-            """,
-            (user_id, topic, round(float(elo), 2), float(rd) if rd is not None else 350.0),
-        )
-        self._refresh_global_elo(cursor, user_id)
 
     def _bump_topic_elo(self, cursor, user_id, topic, delta):
         """Aplica un ajuste aditivo (procedimiento docente) al rating canónico."""
@@ -3835,27 +3832,51 @@ class SQLiteRepository:
         score_p1: int, score_p2: int,
         elo_delta_p1: float, elo_delta_p2: float,
         p1_id: int, p2_id: int,
-    ) -> None:
+    ) -> dict | None:
+        """Close an active match once and apply each player's delta (FR-025, FR-029b, FR-029c).
+
+        The delta goes to every rated topic of the match's course (atomic addition, floor 0).
+        A player with no rated topic there gets 0 with reason 'no_rated_topics'. Returns
+        {"p1": (applied, reason), "p2": (applied, reason)}, or None when the match was not
+        active (closed already: nothing changes).
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
-        # La guarda de status hace el cierre idempotente: si el timer y el
-        # último jugador disparan a la vez, el ELO se aplica una sola vez.
-        cursor.execute(
-            """UPDATE pvp_matches SET status='finished', winner_id=?, score_p1=?, score_p2=?,
-               elo_delta_p1=?, elo_delta_p2=?, finished_at=CURRENT_TIMESTAMP
-               WHERE id=? AND status='active'
-               RETURNING course_id""",
-            (winner_id, score_p1, score_p2, elo_delta_p1, elo_delta_p2, match_id),
-        )
-        row = cursor.fetchone()
-        if row is not None:
-            # El delta va al rating canónico del curso. users.current_elo es un
-            # promedio derivado: escribirlo directo se perdía en la siguiente
-            # respuesta del alumno (R15).
-            self._bump_topic_elo(cursor, p1_id, row[0], elo_delta_p1)
-            self._bump_topic_elo(cursor, p2_id, row[0], elo_delta_p2)
-        conn.commit()
-        conn.close()
+        try:
+            # La guarda de status hace el cierre idempotente: si el timer y el
+            # último jugador disparan a la vez, el ELO se aplica una sola vez.
+            cursor.execute(
+                """UPDATE pvp_matches SET status='finished', winner_id=?, score_p1=?, score_p2=?,
+                   finished_at=CURRENT_TIMESTAMP
+                   WHERE id=? AND status='active'
+                   RETURNING course_id""",
+                (winner_id, score_p1, score_p2, match_id),
+            )
+            row = cursor.fetchone()
+            if row is None:
+                conn.commit()
+                return None
+            applied = {}
+            for key, player, delta in (("p1", p1_id, elo_delta_p1), ("p2", p2_id, elo_delta_p2)):
+                cursor.execute(
+                    """UPDATE student_course_topic_elo
+                       SET current_elo = MAX(0, current_elo + ?), updated_at = CURRENT_TIMESTAMP
+                       WHERE user_id = ? AND course_id = ?""",
+                    (float(delta), player, row[0]),
+                )
+                applied[key] = (float(delta), None) if cursor.rowcount else (0.0, "no_rated_topics")
+            cursor.execute(
+                """UPDATE pvp_matches SET elo_delta_p1=?, elo_reason_p1=?,
+                   elo_delta_p2=?, elo_reason_p2=? WHERE id=?""",
+                (*applied["p1"], *applied["p2"], match_id),
+            )
+            conn.commit()
+            return applied
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
     def expire_stale_pvp_matches(self, max_age_seconds: int = 600) -> int:
         """Cierra partidas que quedaron 'active' sin que nadie las terminara.
@@ -4407,7 +4428,7 @@ class SQLiteRepository:
         # revalidar la misma entrega.
         if updated:
             cursor.execute(
-                """SELECT ps.student_id, i.topic
+                """SELECT ps.student_id, i.course_id, i.topic
                    FROM procedure_submissions ps
                    JOIN items i ON ps.item_id = i.id
                    WHERE ps.id = ?""",
@@ -4415,7 +4436,9 @@ class SQLiteRepository:
             )
             row = cursor.fetchone()
             if row:
-                self._bump_topic_elo(cursor, row[0], row[1], elo_delta)
+                self._bump_course_topic_rating(
+                    cursor, row[0], row[1], row[2], elo_delta, "procedure"
+                )
         conn.commit()
         conn.close()
         return updated
