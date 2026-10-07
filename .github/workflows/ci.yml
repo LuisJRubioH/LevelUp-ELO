@@ -165,11 +165,11 @@ jobs:
         # test_elo_single_source corre en los dos motores: aquí toma la rama
         # PostgreSQL. La paridad estática de db_sync_check no demuestra
         # equivalencia de resultados ni comportamiento bajo concurrencia.
+        # The whole folder, not a file list: every two-engine test (the `repo` fixture in
+        # tests/integration/conftest.py) must take its PostgreSQL branch here, including the
+        # spec 001 tests added later. `-rs` lists any skip so a skipped PG branch is visible.
         run: |
-          python -m pytest \
-            tests/integration/test_postgres_production_guards.py \
-            tests/integration/test_elo_single_source.py \
-            -v --tb=short
+          python -m pytest tests/integration/ -v --tb=short -rs
         env:
           POSTGRES_TEST_DATABASE_URL: postgresql://levelup_audit:audit_local_only@localhost:5432/levelup_audit
           DATABASE_SSLMODE: disable

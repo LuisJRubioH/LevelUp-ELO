@@ -5,8 +5,29 @@ Fixtures compartidos para toda la suite de pruebas.
 Disponibles automáticamente en todos los tests sin importar.
 """
 
+import os
+from urllib.parse import urlsplit
+
 import pytest
 from unittest.mock import MagicMock
+
+_LOCAL_DB_HOSTS = {"localhost", "127.0.0.1", "::1"}
+
+
+def pytest_configure(config):
+    """Refuse to run PostgreSQL tests against anything but a local disposable database.
+
+    The PostgreSQL fixtures copy POSTGRES_TEST_DATABASE_URL into DATABASE_URL and write test
+    users and ratings; pointed at Supabase they would write into real data.
+    """
+    url = os.environ.get("POSTGRES_TEST_DATABASE_URL")
+    if url and urlsplit(url).hostname not in _LOCAL_DB_HOSTS:
+        pytest.exit(
+            "POSTGRES_TEST_DATABASE_URL must point at a local disposable database "
+            f"(host in {sorted(_LOCAL_DB_HOSTS)}), got host {urlsplit(url).hostname!r}.",
+            returncode=2,
+        )
+
 
 from src.domain.elo.vector_elo import VectorRating
 from src.domain.elo.uncertainty import RatingModel

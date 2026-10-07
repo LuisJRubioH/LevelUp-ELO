@@ -23,78 +23,13 @@ La paridad estática de `db_sync_check.py` no demuestra equivalencia de
 resultados; esto sí.
 """
 
-import os
 import threading
-import uuid
 
-import pytest
+from tests.integration.conftest import sql as _sql
 
 TOPIC = "Álgebra"
 
-_PG_URL = os.environ.get("POSTGRES_TEST_DATABASE_URL")
-
-
-# ── Acceso SQL agnóstico del motor ────────────────────────────────────────────
-
-
-def _is_postgres(repo) -> bool:
-    return hasattr(repo, "put_connection")
-
-
-def _sql(repo, sql: str, params=()) -> list:
-    """Ejecuta SQL en cualquiera de los dos motores; `?` se traduce a `%s`."""
-    conn = repo.get_connection()
-    try:
-        if _is_postgres(repo):
-            with conn.cursor() as cursor:
-                cursor.execute(sql.replace("?", "%s"), params)
-                rows = cursor.fetchall() if cursor.description else []
-        else:
-            cursor = conn.execute(sql, params)
-            rows = cursor.fetchall() if cursor.description else []
-        conn.commit()
-        return rows
-    finally:
-        if _is_postgres(repo):
-            repo.put_connection(conn)
-        else:
-            conn.close()
-
-
-# ── Fixtures ──────────────────────────────────────────────────────────────────
-
-
-@pytest.fixture(scope="session")
-def _postgres_repo():
-    if not _PG_URL:
-        pytest.skip("Requiere POSTGRES_TEST_DATABASE_URL hacia una base desechable.")
-    os.environ["DATABASE_URL"] = _PG_URL
-    os.environ.setdefault("DATABASE_SSLMODE", "disable")
-    os.environ.setdefault("ADMIN_PASSWORD", "postgres-audit-admin")
-
-    from src.infrastructure.persistence.postgres_repository import PostgresRepository
-
-    return PostgresRepository()
-
-
-@pytest.fixture(params=["sqlite", "postgres"])
-def repo(request, tmp_path):
-    """El mismo cuerpo de pruebas contra los dos motores."""
-    if request.param == "postgres":
-        return request.getfixturevalue("_postgres_repo")
-
-    from src.infrastructure.persistence.sqlite_repository import SQLiteRepository
-
-    return SQLiteRepository(db_name=str(tmp_path / "elo_source.db"))
-
-
-@pytest.fixture
-def student(repo) -> int:
-    """Un estudiante nuevo por test — PostgreSQL persiste entre tests."""
-    username = f"elo_source_{uuid.uuid4().hex[:12]}"
-    ok, msg = repo.register_user(username, "password123", "student", education_level="colegio")
-    assert ok, msg
-    return _sql(repo, "SELECT id FROM users WHERE username = ?", (username,))[0][0]
+# Two-engine fixtures (`repo`, `student`, `_postgres_repo`) live in tests/integration/conftest.py.
 
 
 # ── Utilidades ────────────────────────────────────────────────────────────────
