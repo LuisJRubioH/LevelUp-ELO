@@ -18,10 +18,11 @@ Selection uses the topic rating when `topic` is sent, otherwise the derived cour
 
 | Field | Change | Meaning |
 |---|---|---|
+| request `time_taken` | semantics | absent or `null` → 30 s; an explicit `0` is accepted (no 400) but invalid: the attempt is recorded and no rating moves, `elo_valid=false` [FR-008a] |
 | request `elo_topic` | **deprecated, ignored** | still accepted (no 400 for old clients); the rating key is always the item's course and topic [FR-029] |
 | response `elo_before`, `elo_after`, `rd_after` | semantics | values of the item's **topic rating in its course** [FR-029] |
 | response `delta_elo` | semantics | `0` and `elo_after == elo_before` when the response time is outside 3–600 s [FR-009] |
-| response `elo_valid` | **new** `bool` | whether this attempt moved any rating [FR-008, FR-009] |
+| response `elo_valid` | **new** `bool` | whether this attempt moved any rating [FR-008, FR-008a, FR-009] |
 | response `cog_data.impact_modifier` | **removed key** inside a free-form dict | dead value, always 1.0 [R15] |
 
 Unchanged: `Idempotency-Key` replay (200, stored result) and conflict (409) [FR-012, FR-013];

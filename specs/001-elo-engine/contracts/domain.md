@@ -10,7 +10,7 @@ Internal interfaces the tests pin. Pure functions live in `src/domain/` (no I/O,
 | `rating_delta(rating, rd, difficulty, result) -> float` | `32 × (rd/350) × (result − expected_score)`; the only formula used by both the update and the preview | 002, 030 |
 | `next_rd(rd) -> float` | `max(30, rd × 0.95)` | 003 |
 | `item_difficulty_delta(rating, difficulty, result) -> float` | `32 × ((1 − result) − (1 − expected_score))` | 005 |
-| `is_valid_response_time(seconds \| None) -> bool` | `None → 30 s`; valid iff `3 ≤ s ≤ 600` | 008, 009 |
+| `is_valid_response_time(seconds \| None) -> bool` | `None` (absent) → 30 s; an explicit `0` is a value, so invalid; valid iff `3 ≤ s ≤ 600` | 008, 008a, 009 |
 | `procedure_elo_delta(grade) -> float` | `(grade − 50) × 0.2`; `ValueError` outside [0, 100] (unchanged) | 022, 023 |
 | `pvp_deltas(rating_a, rating_b, outcome_a) -> (float, float)` | `K=24`, outcome 1 / 0.5 / 0 (moved from `api/websocket/pvp.py`) | 025 |
 | `course_rating(topic_ratings: list[float]) -> float \| None` | arithmetic mean in full precision (never rounded); `None` if empty | 029a, 028i |

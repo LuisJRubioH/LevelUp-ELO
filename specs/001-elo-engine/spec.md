@@ -63,6 +63,18 @@ easy or too hard and teachers act on false information.
   application read service; participant selection and raw rows in repositories. Adding a
   domain-computed delta atomically in SQL is persistence, not arithmetic (plan, research R3).
 
+### Session 2026-10-07 (/speckit-implement, Phase 2 pin review, owner decision)
+
+- Q: Is an explicit response time of 0 s a missing value or an invalid one? → A: invalid. The
+  attempt is recorded; the student's rating and uncertainty and the item's difficulty stay
+  unchanged. Only an absent value is treated as 30 s (FR-008a). *(Found while pinning FR-008:
+  today an explicit 0 is read as absent and moves the rating.)*
+- Q: How precise must stored ratings be on PostgreSQL? → A: as precise as on SQLite — the rating
+  and uncertainty columns of the new table are `DOUBLE PRECISION` on PostgreSQL (SQLite `REAL` is
+  already 8 bytes), so a stored value displays the same number and rank label on both engines
+  (FR-028i; 999.4999999 → 999 "Plata II" on both). *(PostgreSQL `REAL` stores it as 999.5, which
+  displays 1000 "Plata I".)*
+
 ### Session 2026-10-05 (/speckit-clarify)
 
 - Q: What happens to ratings already stored under a course id or course name? → A: existing topic
@@ -265,6 +277,8 @@ shows them.
 
 - Response time exactly 3 s or exactly 600 s → valid (inclusive bounds).
 - Missing response time → treated as 30 s (valid).
+- An explicit response time of 0 s → invalid: recorded, nothing moves; not treated as missing
+  (FR-008a).
 - Uncertainty already at the floor (30) → stays at 30; changes are 32 × 30/350 ≈ 2.7 × surprise.
 - A teacher grade of 50 → zero change, but the submission is still marked as applied.
 - Procedure change on a topic with no rating → starts from 1000 and never goes below 0.
@@ -277,6 +291,8 @@ shows them.
 - Two ratings that differ only below the display precision → they tie (FR-028h).
 - A rating just below a rank threshold that displays at the threshold (999.6 → 1000) → the label
   is the threshold's ("Plata I"), matching the number shown (FR-028j).
+- A stored rating of 999.4999999 → 999 with "Plata II" on both databases; storage never turns it
+  into 999.5 (FR-028i).
 - A rating of exactly n.5 → rounds up to n + 1 for display and ranking (FR-028i); intermediate averages are
   never rounded, so topics 1200.4, 1200.4, 1201.4 give a course ranking value of 1201, not 1200.
 - Legacy row with no eligible context → kept unassigned and excluded; the diagnostic initializes.
@@ -312,6 +328,11 @@ shows them.
 - **FR-008** [AS-IS]: If a practice answer's response time is outside 3–600 s (inclusive), then
   the system shall leave the student's rating, the student's uncertainty and the item's
   difficulty unchanged.
+- **FR-008a** [CHANGE]: If a practice answer carries an explicit response time of 0 s, then the
+  system shall treat it as outside the window (FR-008): record the attempt and leave the student's
+  rating, the student's uncertainty and the item's difficulty unchanged. Only an absent response
+  time is treated as 30 s. *(Today an explicit 0 is read as absent and moves the rating — found
+  while pinning FR-008; owner decision 2026-10-07.)*
 - **FR-009** [CHANGE]: If a practice answer's response time is outside 3–600 s, then the system
   shall report and record the rating as unchanged (before = after) instead of the change it did
   not apply. *(Default chosen from Principle V; today the response and the attempt log report a
@@ -440,9 +461,11 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   with a single backend rule: round half up on the value's decimal representation
   (1199.5 → 1200, 1200.5 → 1201, 1200.4999 → 1200). A ranking entry's rank label derives from that
   same displayed whole number. Clients display the returned value as given and never round it
-  themselves. *(Today the API
-  returns 2 decimals, Python's `round` rounds half to even, and every screen rounds again with
-  `Math.round`.)*
+  themselves. Stored ratings and uncertainties keep the same 8-byte floating-point precision on
+  both databases, so a stored value displays the same number and label on each (999.4999999 →
+  999, "Plata II"). *(Today the API
+  returns 2 decimals, Python's `round` rounds half to even, every screen rounds again with
+  `Math.round`, and PostgreSQL stores ratings as 4-byte `REAL`, turning 999.4999999 into 999.5.)*
 - **FR-028j** [CHANGE]: Wherever a current rating is shown together with its rank label — student
   stats (overall and per course), teacher dashboard and student report, group and V1 rankings,
   the rank badge — the system shall return the **display value** (FR-028i) with the rating and
@@ -635,6 +658,7 @@ replaces it with the collected test id.
 | FR-006 | `PENDING` (T013) |
 | FR-007 | `PENDING` (T007, T020) |
 | FR-008 | `PENDING` (T007, T020, T035) |
+| FR-008a | `PENDING` (T023, T035a) |
 | FR-009 | `PENDING` (T035) |
 | FR-010 | `PENDING` (T007) |
 | FR-011 | `PENDING` (T010) |
@@ -663,8 +687,8 @@ replaces it with the collected test id.
 | FR-028f | `PENDING` (T030, T057) |
 | FR-028g | `PENDING` (T020) |
 | FR-028h | `PENDING` (T023, T057) |
-| FR-028i | `PENDING` (T023, T032, T062) |
-| FR-028j | `PENDING` (T023, T032, T058, T062) |
+| FR-028i | `PENDING` (T023, T030a, T032, T062) |
+| FR-028j | `PENDING` (T023, T030a, T032, T058, T062) |
 | FR-029 | `PENDING` (T034, T037, T041, T046, T048, T053) |
 | FR-029a | `PENDING` (T043) |
 | FR-029b | `PENDING` (T050) |
@@ -691,6 +715,7 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-004 | `src/domain/elo/vector_elo.py` defaults; `api/dependencies.py:198-203` (diagnostic seed) |
 | FR-005–006 | `src/application/services/student_service.py:158-162` (item RD passed through unchanged) |
 | FR-007–008 | `sqlite_repository.py:1294-1401`, `postgres_repository.py:1648-1700` |
+| FR-008a | `save_answer_transaction` in both repositories: `attempt_data.get("time_taken", 30.0) or 30.0` reads 0 as absent; `api/schemas/student.py:57` accepts `time_taken` with `ge=0` |
 | FR-009 | `api/routers/student.py:225-238` reports `elo_after − elo_before` from compute |
 | FR-010 | `save_answer_transaction` (BEGIN IMMEDIATE / FOR UPDATE users→items); `tests/integration/test_elo_single_source.py` |
 | FR-011, FR-014 | `api/routers/student.py:155-175`; V2-R9 |
@@ -707,7 +732,7 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-028e | `get_latest_attempts`, `get_student_attempts_detail`, `export_teacher_student_data` |
 | FR-028f | `get_global_ranking`, `get_course_ranking`, `get_weekly_ranking`, `get_student_rank` (both repos) ← `student_view.py:538, 610, 634, 729, 757`, `teacher_view.py:465, 495, 528` |
 | FR-028h | `ORDER BY elo DESC` / `ORDER BY ue.global_elo DESC` with no tie-break in every ranking query (both repos) |
-| FR-028i | `round(..., 2)` (half-to-even) in API responses; `Math.round` on every rating in `Stats.tsx:142, 199, 229`, `RankBadge.tsx:52`, teacher `fmtMiles` |
+| FR-028i | PostgreSQL rating columns are `REAL` (4-byte: `999.4999999::real` = 999.5); `round(..., 2)` (half-to-even) in API responses; `Math.round` on every rating in `Stats.tsx:142, 199, 229`, `RankBadge.tsx:52`, teacher `fmtMiles` |
 | FR-028j | label from full precision: `api/routers/student.py:287` (`_elo_to_rank(global_elo)`), `Teacher/Dashboard.tsx:137, 207, 400` (`rankFor(s.global_elo)`); number rounded on screen: `Stats.tsx:142`, `RankBadge.tsx:52` |
 | FR-028g | `weekly_rankings` table; `save_weekly_ranking`, `get_ranking_history` ← `teacher_view.py:550, 556` |
 | FR-029 | `student_view.py:385`, `api/routers/student.py:166`, `useStudentSession.ts:74`, `finish_pvp_match`, `validate_procedure_submission`, diagnostic submit |

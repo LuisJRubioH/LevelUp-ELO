@@ -63,6 +63,8 @@ Phase 0 of `/speckit-plan`. Every decision cites the requirement it serves. No o
   `StudentService.process_answer` uses it, so for an invalid attempt `elo_after = elo_before`,
   `rd_after = rd_before`, item difficulty unchanged, `elo_valid = False` — and the API reports
   `delta_elo = 0`. Repositories persist what `compute` returns and no longer decide validity.
+  An explicit `0` is a value, not an absence: invalid (FR-008a, owner 2026-10-07); only `None`
+  counts as 30 s. Today's `time_taken or 30.0` conflates the two.
 - **Alternatives**: keep the check in the repository and patch the response (two places decide).
 
 ### R6 — Answer transaction on the new key (FR-010, FR-029)
@@ -233,3 +235,16 @@ once — not once per engine.
   displayed list, so a top-N cut through a tie keeps the shared rank.
 - **Weekly snapshots**: `save_weekly_ranking(group_id, rows)` stores the rows `ranking_view`
   produced; stored snapshots are never recomputed (FR-028g).
+
+### R20 — Rating precision on PostgreSQL (FR-028i, owner 2026-10-07)
+- **Decision**: `current_elo` and `rd` of `student_course_topic_elo` are `DOUBLE PRECISION` on
+  PostgreSQL. SQLite `REAL` is already an 8-byte float, so both engines store the same value.
+- **Rationale**: PostgreSQL `REAL` is a 4-byte float (about 7 significant digits).
+  `999.4999999::real` is 999.5, which displays 1000 "Plata I" on PostgreSQL while SQLite shows
+  999 "Plata II" — a cross-engine difference at a rank boundary (constitution IV). Verified on
+  PostgreSQL 16 during the Phase 2 gate.
+- **Scope**: the new table only. Legacy and history columns (`student_topic_elo`,
+  `attempts.elo_before/elo_after`, `items.difficulty`) keep their types: the schema change is
+  additive (AGENTS R8), legacy rows are only a reconciliation source and attempt values are history.
+- **Alternatives**: `NUMERIC` (exact, but psycopg2 returns `Decimal`, a type SQLite never returns,
+  and arithmetic is slower); keeping `REAL` (rejected by the owner).

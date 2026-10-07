@@ -10,8 +10,8 @@ index. Nothing is dropped or retyped. Every change is mirrored in SQLite and Pos
 | `user_id` | INTEGER, FK users | PK part |
 | `course_id` | TEXT, FK courses | PK part — stable course identifier |
 | `topic` | TEXT | PK part — topic label **within** the course |
-| `current_elo` | REAL NOT NULL | ≥ 0 |
-| `rd` | REAL NOT NULL DEFAULT 350 | 30 ≤ rd ≤ 350 |
+| `current_elo` | DOUBLE PRECISION / REAL NOT NULL | ≥ 0 |
+| `rd` | DOUBLE PRECISION / REAL NOT NULL DEFAULT 350 | 30 ≤ rd ≤ 350 |
 | `origin` | TEXT NOT NULL | `practice` · `diagnostic` · `legacy_topic_row` · `legacy_course_row` · `procedure` (first writer; never rewritten) |
 | `approximate` | BOOLEAN / INTEGER NOT NULL DEFAULT false | true only for reconciled rows (FR-034a) |
 | `legacy_source_key` | TEXT NULL | the legacy row's key when `origin` is `legacy_*` |
@@ -19,6 +19,8 @@ index. Nothing is dropped or retyped. Every change is mirrored in SQLite and Pos
 | `created_at`, `updated_at` | TIMESTAMP | `updated_at` on every change |
 
 - PK `(user_id, course_id, topic)`; index `(user_id, course_id)`.
+- `current_elo` and `rd` are 8-byte floats on both engines (SQLite `REAL` is 8 bytes; PostgreSQL
+  `REAL` is 4 bytes and is never used here — research R20, FR-028i).
 - Writers: answer (set), diagnostic (set, only if no practice for that pair), procedure (add,
   floor 0), PvP (add to every row of `(user, course)`), reconciliation (insert-if-absent).
 - `origin`/`approximate` describe how the row **started**; a later practice answer updates the
@@ -73,7 +75,8 @@ selection rating    topic rating when practising a topic, else course rating (10
 `legacy_source_key`); the legacy row itself never changes.
 
 ## Validation rules
-- Response time in [3, 600] s inclusive, else invalid (domain `is_valid_response_time`).
+- Response time in [3, 600] s inclusive, else invalid; an explicit 0 is invalid and only an absent
+  value counts as 30 s (domain `is_valid_response_time`, FR-008a).
 - Teacher grade in [0, 100], else rejected.
 - Retry key 1–128 chars; same key + different answer fingerprint → 409.
 - Selected option must be one of the item's options.
