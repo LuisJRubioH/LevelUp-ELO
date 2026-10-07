@@ -263,3 +263,14 @@ the code PR goes in only after Phase N (constitution agent rule 7).
   their FR.
 - A-1 (Playwright in CI) and A-2 (traceability check in CI) are separate roadmap tasks on their own
   branches.
+
+---
+
+## Phase 10: Convergence
+
+- [ ] T076 Make V1's stakes preview in `src/interface/streamlit/views/student_view.py` ("Stakes preview") show `RatingReadService.answer_preview(user, course_id, item)` — the change the engine applies to the item's (course, topic) — with one decimal, instead of recomputing `32×(RD/350)×…` from the course rating and RD; add a V1 test that the shown values equal the applied change within 0.1 per FR-030, SC-006, Constitution II (contradicts)
+- [ ] T077 Label approximate baselines: carry `approximate` (and `origin`) on the topics of `/student/stats` `course_ratings` (and keep them in the teacher report), mark them as approximate in `Stats.tsx` (i18n es/en), with an API test and a Playwright check per FR-034a, plan: Constitution check VIII (partial)
+- [ ] T078 Owner decision, then implement: `/student/exam/history` returns the stored `global_elo_after` raw, and a snapshot taken while the diagnostic was pending is stored as the column default 0 (`NOT NULL`, AGENTS R8) — return `null` for it, or record an R8 exception to relax the constraint; test that no response reports 0 as a rating per FR-028b, Constitution V (partial)
+- [ ] T079 Add `Cache-Control: public, max-age=…` to `GET /api/meta/ranks` with a test per contracts/api.md ("cacheable") (partial)
+- [ ] T080 Align contracts/domain.md § StudentService (`get_next_question` "returns item + preview") with the implementation — the router adds the preview through `RatingReadService.answer_preview` — or move the preview into the service per plan: contracts (partial)
+- [ ] T081 Update `tests/unit/application/test_teacher_service.py`: drop the stale `get_student_elo_summary` mock and assert `get_student_dashboard`'s RatingReadService fields (`global_elo`, `display_rating`, `rank_label`, `overall_status`, including the pending case) per FR-028a, FR-028b, Constitution I (partial)
