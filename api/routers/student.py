@@ -58,6 +58,8 @@ from api.schemas.student import (
     TopicELO,
 )
 from src.application.services.student_service import StudentService
+from src.domain.elo.model import diagnostic_baseline
+from src.domain.elo.ranks import rank_for
 from src.domain.elo.vector_elo import aggregate_global_elo
 from src.domain.learning.prealgebra import (
     CLASSIFIER_BASIC_NODE_ID,
@@ -284,7 +286,7 @@ def stats(user: CurrentUser, repo: RepoDep):
     streak = repo.get_study_streak(user["user_id"])
 
     # Rank label (16 niveles)
-    rank_label = _elo_to_rank(global_elo)
+    rank_label = rank_for(global_elo)
 
     return StudentStatsResponse(
         user_id=user["user_id"],
@@ -951,15 +953,6 @@ def exam_history(user: CurrentUser, repo: RepoDep):
 _DIAG_N = 10  # longitud estándar del diagnóstico
 
 
-def _diff_tier(difficulty: float) -> dict:
-    """Mapea la dificultad del ítem a pesos ELO (win/loss) del diagnóstico."""
-    if difficulty < 1100:
-        return {"win": 14, "loss": -20}
-    if difficulty >= 1450:
-        return {"win": 34, "loss": -6}
-    return {"win": 22, "loss": -12}
-
-
 _DIAG_LEAGUES = [
     {"name": "Diamante", "min": 1320, "color": "#7dd3fc", "rank": "Avanzado"},
     {"name": "Oro", "min": 1180, "color": "#ffd700", "rank": "Intermedio-alto"},
@@ -1028,24 +1021,24 @@ def diagnostic_submit(
         if ans.selected_option and ans.selected_option not in item_db.get("options", []):
             raise HTTPException(status_code=400, detail="Opción inválida en el diagnóstico.")
         topic = item_db.get("topic") or course_id
-        tier = _diff_tier(float(item_db.get("difficulty", 1000)))
-        t = by_topic.setdefault(topic, {"elo": BASE, "correct": 0, "total": 0})
+        t = by_topic.setdefault(topic, {"answers": [], "correct": 0, "total": 0})
         t["total"] += 1
+        difficulty = float(item_db.get("difficulty", 1000))
         if not ans.selected_option:  # no contestada / no lo sé
+            t["answers"].append((difficulty, None))
             continue
         answered += 1
-        if ans.selected_option == item_db["correct_option"]:
-            t["elo"] += tier["win"]
+        is_correct = ans.selected_option == item_db["correct_option"]
+        t["answers"].append((difficulty, is_correct))
+        if is_correct:
             t["correct"] += 1
             correct_total += 1
-        else:
-            t["elo"] += tier["loss"]
 
     # fijar ELO inicial por tópico (clamp) y construir desglose
     themes = []
     elos = []
     for topic, t in by_topic.items():
-        elo = max(760.0, round(t["elo"], 2))
+        elo = diagnostic_baseline(t["answers"])
         elos.append(elo)
         # Un nuevo diagnóstico puede medir progreso, pero nunca reinicia una
         # línea ELO que ya contiene práctica real del alumno.
@@ -1490,32 +1483,3 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
         nodes=nodes,
     )
 
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-
-_RANK_THRESHOLDS = [
-    (2500, "Leyenda Suprema"),
-    (2200, "Leyenda"),
-    (2000, "Gran Maestro"),
-    (1800, "Maestro"),
-    (1600, "Diamante I"),
-    (1500, "Diamante II"),
-    (1400, "Platino I"),
-    (1300, "Platino II"),
-    (1200, "Oro I"),
-    (1100, "Oro II"),
-    (1000, "Plata I"),
-    (900, "Plata II"),
-    (800, "Bronce I"),
-    (700, "Bronce II"),
-    (600, "Hierro"),
-    (0, "Aspirante"),
-]
-
-
-def _elo_to_rank(elo: float) -> str:
-    for threshold, label in _RANK_THRESHOLDS:
-        if elo >= threshold:
-            return label
-    return "Aspirante"

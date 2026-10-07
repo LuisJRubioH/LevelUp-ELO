@@ -1,3 +1,4 @@
+from src.application.services.rating_read_service import RatingReadService
 from src.domain.elo.model import procedure_elo_delta
 
 
@@ -6,7 +7,7 @@ class TeacherService:
     Servicio de aplicación que orquesta los casos de uso del profesor.
     """
 
-    def __init__(self, repository, pedagogical_analysis=None):
+    def __init__(self, repository, pedagogical_analysis=None, ratings=None):
         """`pedagogical_analysis` se inyecta desde la composición (R2).
 
         Es el callable de infrastructure que habla con el proveedor de IA.
@@ -15,6 +16,8 @@ class TeacherService:
         """
         self.repository = repository
         self._pedagogical_analysis = pedagogical_analysis
+        # Every current rating, rank and ranking is read through here (spec 001).
+        self.ratings = ratings or RatingReadService(repository)
 
     def get_dashboard_data(self, teacher_id):
         """Recupera datos consolidados para el dashboard del profesor."""

@@ -18,7 +18,7 @@ import src.infrastructure.external_api.model_router as _router_mod
 import src.infrastructure.external_api.math_analysis_pipeline as _pipeline_mod
 
 from src.domain.elo.vector_elo import VectorRating, aggregate_global_elo, aggregate_global_rd
-from src.domain.elo.model import expected_score, calculate_dynamic_k, Item
+from src.domain.elo.model import expected_score, Item
 from src.domain.entities import LEVEL_TO_BLOCK
 from src.domain.katia.katia_messages import (
     get_random_message,

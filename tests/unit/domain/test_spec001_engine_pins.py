@@ -74,7 +74,7 @@ def test_spec001_selection_keeps_the_zdp_window_and_the_probability_band():
 
 def test_spec001_pvp_equal_ratings_win_and_draw():
     """US5-AS1: 24 × (outcome − expected) at 1000 vs 1000 → ±12; a draw moves nobody."""
-    from api.websocket.pvp import _elo_deltas
+    from src.domain.elo.model import pvp_deltas
 
-    assert _elo_deltas(1000, 1000) == (12.0, -12.0)
-    assert _elo_deltas(1000, 1000, draw=True) == (0.0, 0.0)
+    assert pvp_deltas(1000, 1000, 1.0) == (12.0, -12.0)
+    assert pvp_deltas(1000, 1000, 0.5) == (0.0, 0.0)

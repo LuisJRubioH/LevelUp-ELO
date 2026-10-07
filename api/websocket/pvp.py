@@ -19,13 +19,14 @@ from dataclasses import dataclass, field
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from starlette.websockets import WebSocketState
 
+from src.domain.elo.model import pvp_deltas
+
 logger = logging.getLogger("api.pvp")
 
 pvp_router = APIRouter(prefix="/ws", tags=["pvp"])
 
 MATCH_ITEMS = 10
 MATCH_DURATION = 180  # segundos
-K = 24
 
 
 # ── Estado en memoria por proceso ────────────────────────────────────────────
@@ -80,18 +81,6 @@ async def _send(ws: WebSocket, msg: dict) -> bool:
         return False
 
 
-def _elo_deltas(winner_elo: float, loser_elo: float, draw: bool = False):
-    from src.domain.elo.model import expected_score
-    exp = expected_score(winner_elo, loser_elo)
-    if draw:
-        delta_w = round(K * (0.5 - exp), 2)
-        delta_l = round(K * (0.5 - (1 - exp)), 2)
-    else:
-        delta_w = round(K * (1 - exp), 2)
-        delta_l = round(K * (0 - (1 - exp)), 2)
-    return delta_w, delta_l
-
-
 async def _finish_match(match: ActiveMatch, repo) -> None:
     # Guard contra doble-cierre: ambos loops o el timer pueden disparar a la vez
     async with _lock:
@@ -103,17 +92,12 @@ async def _finish_match(match: ActiveMatch, repo) -> None:
     s2 = match.score.get(match.p2.user_id, 0)
 
     if s1 > s2:
-        winner_id = match.p1.user_id
-        dw, dl = _elo_deltas(match.p1.elo, match.p2.elo)
-        d1, d2 = dw, dl
+        winner_id, outcome_p1 = match.p1.user_id, 1.0
     elif s2 > s1:
-        winner_id = match.p2.user_id
-        dw, dl = _elo_deltas(match.p2.elo, match.p1.elo)
-        d1, d2 = dl, dw
+        winner_id, outcome_p1 = match.p2.user_id, 0.0
     else:
-        winner_id = None
-        dw, dl = _elo_deltas(match.p1.elo, match.p2.elo, draw=True)
-        d1, d2 = dw, dl
+        winner_id, outcome_p1 = None, 0.5
+    d1, d2 = pvp_deltas(match.p1.elo, match.p2.elo, outcome_p1)
 
     try:
         await asyncio.to_thread(

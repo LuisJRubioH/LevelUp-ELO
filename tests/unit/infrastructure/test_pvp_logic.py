@@ -2,7 +2,7 @@
 tests/unit/infrastructure/test_pvp_logic.py
 ============================================
 Pruebas de la lógica de la liga PvP (api/websocket/pvp.py) en aislamiento:
-  - _elo_deltas: ELO por resultado de partida (K=24, simétrico, suma cero).
+  - pvp_deltas (dominio, antes _elo_deltas): ELO por resultado (K=24, simétrico, suma cero).
   - _finish_match: determina ganador, calcula deltas, persiste y emite game_end.
 
 Sin servidor ni WebSocket real: se usan fakes async.
@@ -15,13 +15,18 @@ from api.websocket import pvp
 from api.websocket.pvp import (
     ActiveMatch,
     LobbySlot,
-    _elo_deltas,
     _finish_match,
-    K,
 )
+from src.domain.elo.model import K_PVP as K, pvp_deltas
+
+
+def _elo_deltas(winner_elo, loser_elo, draw=False):
+    """The old helper's call shape, kept so the assertions below stay unchanged (spec 001 T027)."""
+    return pvp_deltas(winner_elo, loser_elo, 0.5 if draw else 1.0)
 
 
 # ── Fakes ─────────────────────────────────────────────────────────────────────
+
 
 class FakeWS:
     """WebSocket mínimo que captura los mensajes enviados."""
@@ -59,11 +64,12 @@ def _make_match(score_p1, score_p2, elo_p1=1000.0, elo_p2=1000.0):
 
 # ── _elo_deltas ───────────────────────────────────────────────────────────────
 
+
 class TestEloDeltas:
     def test_win_vs_equal_is_plus_half_K(self):
         """Ganar a un rival de igual ELO → +K/2 para el ganador, −K/2 para el perdedor."""
         dw, dl = _elo_deltas(1000.0, 1000.0)
-        assert dw == pytest.approx(K * 0.5)   # +12 con K=24
+        assert dw == pytest.approx(K * 0.5)  # +12 con K=24
         assert dl == pytest.approx(-K * 0.5)  # −12
 
     def test_draw_vs_equal_is_zero(self):
@@ -85,6 +91,7 @@ class TestEloDeltas:
 
 
 # ── _finish_match ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 class TestFinishMatch:

@@ -70,6 +70,31 @@ class ITeacherRepository(Protocol):
 
 
 @runtime_checkable
+class IRatingReadRepository(Protocol):
+    """Lo que RatingReadService necesita (spec 001): filas crudas y participantes.
+
+    Ninguno de estos métodos promedia, redondea u ordena por rating (constitución III).
+    """
+
+    def get_course_topic_ratings(self, user_id, course_id=None) -> list: ...
+    def get_course_topic_ratings_bulk(self, user_ids, course_id=None) -> list: ...
+    def get_current_context_course_ids(self, user_id) -> list: ...
+    def get_current_context_course_ids_bulk(self, user_ids) -> dict: ...
+    def get_ranking_participants(
+        self,
+        scope,
+        group_id=None,
+        course_id=None,
+        education_level=None,
+        grade=None,
+        window_days=7,
+    ) -> list: ...
+    def get_group_course_id(self, group_id): ...
+    def get_courses(self, block=None) -> list: ...
+    def get_user_enrollments(self, user_id) -> list: ...
+
+
+@runtime_checkable
 class IAdminRepository(Protocol):
     """Lo que necesita el panel de administración."""
 
@@ -81,7 +106,9 @@ class IAdminRepository(Protocol):
 
 
 @runtime_checkable
-class IRepository(IStudentRepository, ITeacherRepository, IAdminRepository, Protocol):
+class IRepository(
+    IStudentRepository, ITeacherRepository, IRatingReadRepository, IAdminRepository, Protocol
+):
     """Un repositorio completo — lo que `RepoDep` inyecta en los routers.
 
     Es la unión de los tres roles, no el catálogo entero: los routers usan más

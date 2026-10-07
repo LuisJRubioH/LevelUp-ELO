@@ -26,6 +26,7 @@ import pytest
 
 from src.application.interfaces.repositories import (
     IAdminRepository,
+    IRatingReadRepository,
     IStudentRepository,
     ITeacherRepository,
 )
@@ -33,7 +34,7 @@ from src.infrastructure.persistence.postgres_repository import PostgresRepositor
 from src.infrastructure.persistence.sqlite_repository import SQLiteRepository
 
 REPOS = [SQLiteRepository, PostgresRepository]
-PROTOCOLS = [IStudentRepository, ITeacherRepository, IAdminRepository]
+PROTOCOLS = [IStudentRepository, ITeacherRepository, IRatingReadRepository, IAdminRepository]
 
 _SRC = pathlib.Path(__file__).resolve().parents[3] / "src"
 
@@ -95,8 +96,9 @@ def _repository_calls(service_path: pathlib.Path) -> set[str]:
     [
         ("application/services/student_service.py", IStudentRepository),
         ("application/services/teacher_service.py", ITeacherRepository),
+        ("application/services/rating_read_service.py", IRatingReadRepository),
     ],
-    ids=["student", "teacher"],
+    ids=["student", "teacher", "rating_read"],
 )
 def test_everything_the_service_calls_is_declared(service_file, protocol):
     used = _repository_calls(_SRC / service_file)

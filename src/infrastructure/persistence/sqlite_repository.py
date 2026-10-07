@@ -654,6 +654,37 @@ class SQLiteRepository:
         """
         )
 
+        # ── student_course_topic_elo: the only rating state (spec 001, FR-029) ──
+        # One row per student × course × topic. REAL is an 8-byte float in SQLite
+        # (FR-028i, research R20). origin/approximate record how the row started.
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS student_course_topic_elo (
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                topic TEXT NOT NULL,
+                current_elo REAL NOT NULL CHECK (current_elo >= 0),
+                rd REAL NOT NULL DEFAULT 350 CHECK (rd >= 30 AND rd <= 350),
+                origin TEXT NOT NULL CHECK (origin IN ('practice', 'diagnostic',
+                    'legacy_topic_row', 'legacy_course_row', 'procedure')),
+                approximate INTEGER NOT NULL DEFAULT 0,
+                legacy_source_key TEXT,
+                reconciled_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, course_id, topic),
+                FOREIGN KEY(user_id) REFERENCES users(id),
+                FOREIGN KEY(course_id) REFERENCES courses(id)
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_student_course_topic_elo_user_course
+            ON student_course_topic_elo(user_id, course_id)
+        """
+        )
+
         # ── Tabla exam_sessions (historial de exámenes del estudiante) ────────
         cursor.execute(
             """
@@ -858,6 +889,9 @@ class SQLiteRepository:
             "CREATE INDEX IF NOT EXISTS idx_pvp_matches_players "
             "ON pvp_matches(player1_id, player2_id)"
         )
+        # NULL = applied normally; 'no_rated_topics' = applied 0 (spec 001, FR-029c).
+        self._add_column_if_not_exists(cursor, "pvp_matches", "elo_reason_p1", "TEXT")
+        self._add_column_if_not_exists(cursor, "pvp_matches", "elo_reason_p2", "TEXT")
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_pvp_answers_match "
             "ON pvp_answers(match_id, user_id)"
@@ -2153,20 +2187,6 @@ class SQLiteRepository:
             )
         return results
 
-    def get_user_history_elo(self, user_id):
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT elo_after FROM attempts WHERE user_id = ? ORDER BY timestamp ASC", (user_id,)
-        )
-        rows = cursor.fetchall()
-        conn.close()
-        return [r[0] for r in rows] if rows else [1000]
-
-    def get_latest_elo(self, user_id):
-        history = self.get_user_history_elo(user_id)
-        return history[-1]
-
     def get_attempts_for_ai(self, user_id, limit=20):
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -2206,6 +2226,120 @@ class SQLiteRepository:
         rows = cursor.fetchall()
         conn.close()
         return {r[0]: {"elo": r[1], "rd": r[2]} for r in rows}
+
+    # ── Spec 001: raw rating rows and ranking participants ───────────────────
+    # Raw rows only: no averaging, rounding or ordering by rating (constitution III).
+
+    def get_course_topic_ratings(self, user_id, course_id=None):
+        """Rows of student_course_topic_elo for one student (never the legacy store)."""
+        rows = self.get_course_topic_ratings_bulk([user_id], course_id)
+        return [{k: v for k, v in r.items() if k != "user_id"} for r in rows]
+
+    def get_course_topic_ratings_bulk(self, user_ids, course_id=None):
+        if not user_ids:
+            return []
+        marks = ", ".join("?" for _ in user_ids)
+        query = (
+            "SELECT user_id, course_id, topic, current_elo, rd, origin, approximate"
+            f" FROM student_course_topic_elo WHERE user_id IN ({marks})"
+        )
+        params = list(user_ids)
+        if course_id is not None:
+            query += " AND course_id = ?"
+            params.append(course_id)
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(query + " ORDER BY user_id, course_id, topic", params).fetchall()
+        finally:
+            conn.close()
+        return [
+            {"user_id": r[0], "course_id": r[1], "topic": r[2], "elo": float(r[3]),
+             "rd": float(r[4]), "origin": r[5], "approximate": bool(r[6])}
+            for r in rows
+        ]
+
+    def get_current_context_course_ids(self, user_id):
+        """Enrolled courses in the catalogue of the student's current level and grade."""
+        return self.get_current_context_course_ids_bulk([user_id])[user_id]
+
+    def get_current_context_course_ids_bulk(self, user_ids):
+        from src.domain.entities import in_catalogue
+
+        result = {user_id: [] for user_id in user_ids}
+        if not user_ids:
+            return result
+        marks = ", ".join("?" for _ in user_ids)
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                "SELECT e.user_id, e.course_id, c.block, u.education_level, u.grade"
+                " FROM enrollments e JOIN courses c ON c.id = e.course_id"
+                " JOIN users u ON u.id = e.user_id"
+                f" WHERE e.user_id IN ({marks}) ORDER BY e.user_id, e.course_id",
+                list(user_ids),
+            ).fetchall()
+        finally:
+            conn.close()
+        for user_id, course_id, block, level, grade in rows:
+            if in_catalogue(level, grade, course_id, block):
+                result[user_id].append(course_id)
+        return result
+
+    def get_ranking_participants(
+        self,
+        scope,
+        group_id=None,
+        course_id=None,
+        education_level=None,
+        grade=None,
+        window_days=7,
+    ):
+        """Who appears in a ranking (FR-028f) — never what they are ranked by."""
+        conn = self.get_connection()
+        try:
+            if scope == "group":
+                rows = conn.execute(
+                    "SELECT id, username FROM users"
+                    " WHERE group_id = ? AND role = 'student' AND active = 1 ORDER BY id",
+                    (group_id,),
+                ).fetchall()
+                return [{"user_id": r[0], "username": r[1], "attempts_in_window": 0} for r in rows]
+            where = ["u.role = 'student'", "a.timestamp >= datetime('now', ?)"]
+            params = ["-%d days" % int(window_days)]
+            if scope == "weekly":
+                where.append("u.group_id = ?")
+                params.append(group_id)
+            elif scope == "global":
+                if education_level:
+                    where.append("u.education_level = ?")
+                    params.append(education_level)
+                if grade:
+                    where.append("u.grade = ?")
+                    params.append(grade)
+            elif scope != "course" or course_id is None:
+                raise ValueError(f"Unknown ranking scope {scope!r} or missing course_id.")
+            join = ""
+            if course_id is not None and scope in ("course", "weekly"):
+                join = " JOIN items i ON i.id = a.item_id"
+                where.append("i.course_id = ?")
+                params.append(course_id)
+            rows = conn.execute(
+                "SELECT u.id, u.username, COUNT(a.id) FROM attempts a"
+                f" JOIN users u ON u.id = a.user_id{join} WHERE {' AND '.join(where)}"
+                " GROUP BY u.id, u.username ORDER BY u.id",
+                params,
+            ).fetchall()
+        finally:
+            conn.close()
+        return [{"user_id": r[0], "username": r[1], "attempts_in_window": r[2]} for r in rows]
+
+    def get_group_course_id(self, group_id):
+        conn = self.get_connection()
+        try:
+            row = conn.execute("SELECT course_id FROM groups WHERE id = ?", (group_id,)).fetchone()
+        finally:
+            conn.close()
+        return row[0] if row else None
 
     def get_latest_elo_by_topic(self, user_id):
         """Devuelve {topic: (elo, rd)} leyendo student_topic_elo, el estado canónico.

@@ -113,18 +113,6 @@ class TestProcessAnswer:
         )
         mock_repository.save_answer_transaction.assert_called_once()
 
-    def test_cognitive_modifier_is_1_when_disabled(self, service, medium_item, student_vector):
-        """Con enable_cognitive_modifier=False, impact_modifier=1.0 siempre."""
-        _, cog_data = service.process_answer(
-            user_id=1,
-            item_data=medium_item,
-            selected_option=medium_item["correct_option"],
-            reasoning="Porque aprendí bien",
-            time_taken=8.0,
-            vector_rating=student_vector,
-            elo_topic="calculo_diferencial",
-        )
-        assert cog_data.get("impact_modifier", 1.0) == 1.0
 
     def test_cog_data_contains_expected_fields(self, service, medium_item, student_vector):
         """El cog_data retornado incluye confidence_score, error_type, impact_modifier."""

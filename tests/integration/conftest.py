@@ -94,9 +94,14 @@ def student(repo) -> int:
 # ── Seeding helpers ──────────────────────────────────────────────────────────
 
 
-def make_course(repo, topics, block="Colegio", name=None, difficulty=1000.0, items_per_topic=1):
-    """Create a course with `items_per_topic` items per topic. Returns (course_id, {topic: [ids]})."""
-    course_id = _unique("spec001_course")
+def make_course(
+    repo, topics, block="Colegio", name=None, difficulty=1000.0, items_per_topic=1, id_suffix=""
+):
+    """Create a course with `items_per_topic` items per topic. Returns (course_id, {topic: [ids]}).
+
+    `id_suffix` carries what the real catalogue encodes in ids, e.g. `_semillero_6`.
+    """
+    course_id = _unique("spec001_course") + id_suffix
     sql(
         repo,
         "INSERT INTO courses (id, name, block, description) VALUES (?, ?, ?, '')",

@@ -51,7 +51,7 @@ def experienced_vector() -> VectorRating:
     v = VectorRating()
     # Simular un estudiante que ha respondido muchas preguntas → RD baja
     for _ in range(30):
-        v.update("Álgebra", 1200.0, 1.0, 1.0)
+        v.update("Álgebra", 1200.0, 1.0)
     return v
 
 

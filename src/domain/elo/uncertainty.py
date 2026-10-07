@@ -3,26 +3,22 @@
 # ======================================================
 import math
 
+from .model import RD_MAX, expected_score, next_rd, rating_delta
+
 
 class RatingModel:
     """
     Versión simplificada de un sistema con incertidumbre (inspirado en Glicko).
-    Gestiona el rating y el Rating Deviation (RD).
+    Gestiona el rating y el Rating Deviation (RD); las fórmulas viven en model.py.
     """
 
-    def __init__(self, rating: float = 1000.0, rd: float = 350.0):
+    def __init__(self, rating: float = 1000.0, rd: float = RD_MAX):
         self.rating = rating
         self.rd = rd
 
-        # Constantes del modelo
-        self.RD_BASE = 350.0  # Incertidumbre máxima inicial
-        self.RD_MIN = 30.0  # Incertidumbre mínima (estabilidad)
-        self.K_BASE = 32.0  # Factor K base para el cambio de rating
-        self.RD_DECAY = 0.05  # Tasa de reducción de RD por cada intento
-
     def expected_score(self, opponent_difficulty: float) -> float:
         """Calcula la probabilidad esperada de éxito."""
-        return 1.0 / (1.0 + 10 ** ((opponent_difficulty - self.rating) / 400))
+        return expected_score(self.rating, opponent_difficulty)
 
     def update(self, actual_score: float, opponent_difficulty: float) -> tuple[float, float]:
         """
@@ -30,19 +26,8 @@ class RatingModel:
         actual_score: 1.0 (acierto) o 0.0 (fallo)
         Retorna: (nuevo_rating, nuevo_rd)
         """
-        expected = self.expected_score(opponent_difficulty)
-
-        # 1. Escalar el impacto basado en la incertidumbre actual (RD)
-        # A mayor RD, mayor es la corrección del rating.
-        uncertainty_factor = self.rd / self.RD_BASE
-        delta = self.K_BASE * uncertainty_factor * (actual_score - expected)
-
-        self.rating += delta
-
-        # 2. Reducir la incertidumbre (el sistema confía más en el rating con cada dato)
-        # Usamos una reducción multiplicativa simple
-        self.rd = max(self.RD_MIN, self.rd * (1 - self.RD_DECAY))
-
+        self.rating += rating_delta(self.rating, self.rd, opponent_difficulty, actual_score)
+        self.rd = next_rd(self.rd)
         return self.rating, self.rd
 
     def get_confidence_interval(self) -> tuple[float, float]:

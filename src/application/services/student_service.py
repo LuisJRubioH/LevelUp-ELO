@@ -2,6 +2,7 @@ from src.domain.elo.model import expected_score
 from src.domain.selector.item_selector import AdaptiveItemSelector
 from src.domain.entities import VALID_LEVELS, LEVEL_UNIVERSIDAD, LEVEL_SEMILLERO
 from src.application.interfaces.repositories import IStudentRepository
+from src.application.services.rating_read_service import RatingReadService
 
 
 class StudentService:
@@ -14,6 +15,7 @@ class StudentService:
         repository: IStudentRepository,
         ai_client=None,
         calibrator=None,
+        ratings=None,
     ):
         """El calibrador se inyecta desde la composición (R2).
 
@@ -26,6 +28,8 @@ class StudentService:
         self.repository = repository
         self.ai_client = ai_client
         self._calibrator = calibrator
+        # Every current rating, rank and ranking is read through here (spec 001).
+        self.ratings = ratings or RatingReadService(repository)
 
     def get_next_question(
         self,
@@ -150,9 +154,7 @@ class StudentService:
             # 1. Actualizar ELO del estudiante. El vector se siembra con el
             #    estado canónico para que el llamador lo lea correcto después.
             vector_rating.ratings[_topic_key] = (current_elo, state["rd"])
-            new_r, new_rd = vector_rating.update(
-                _topic_key, difficulty, result, impact_modifier=1.0
-            )
+            new_r, new_rd = vector_rating.update(_topic_key, difficulty, result)
 
             # 2. Nueva dificultad del ítem (ELO simétrico)
             p_success = expected_score(current_elo, difficulty)
