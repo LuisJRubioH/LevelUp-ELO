@@ -16,11 +16,11 @@
 ## Requirement Completeness
 
 - [x] No [NEEDS CLARIFICATION] markers remain — FR-029, FR-031 (specify) and FR-029b, FR-033–036,
-  FR-028a, FR-029c (clarify) resolved 2026-10-05
+  FR-028a, FR-029c (clarify) resolved 2026-10-05; FR-028d–i (analyze remediation) resolved 2026-10-06
 - [x] Requirements are testable and unambiguous — each has numbers or a binary outcome
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic
-- [x] All acceptance scenarios are defined — 30 scenarios across 6 stories, arithmetic verified
+- [x] All acceptance scenarios are defined — 34 scenarios across 6 stories, arithmetic verified
 - [x] Edge cases are identified
 - [x] Scope is clearly bounded — Out of Scope names specs 003, 006, 007
 - [x] Dependencies and assumptions identified

@@ -214,6 +214,15 @@ once — not once per engine.
 - **Why compare at display precision**: comparing finer than what is shown would give two students
   who both read "1200" different ranks. The API therefore returns ranking ratings already rounded,
   and clients do not re-round.
+- **Precision = whole numbers** (owner, 2026-10-06): matches every screen today; one answer moves a
+  rating by up to ~16 points, so decimals carry no information.
+- **Rounding rule** (FR-028i): `round_for_ranking` = half up on the decimal representation
+  (`Decimal(repr(x)).quantize(Decimal(1), ROUND_HALF_UP)`). Python's built-in `round` is
+  half-to-even (`round(1200.5) == 1200`, `round(2.5) == 2`) and would disagree with the UI's old
+  `Math.round`; `repr` avoids binary artefacts. Ratings are ≥ 0, so half up = half away from zero.
+- **Round once, at the end**: storage, updates and the topic → course → overall averages stay full
+  precision. Rounding earlier changes results: topics 1200.4, 1200.4, 1201.4 → course 1201 (late)
+  vs 1200 (early).
 - **A student's rank** = the `rank` of their entry in the unlimited list; `limit` only shortens the
   displayed list, so a top-N cut through a tie keeps the shared rank.
 - **Weekly snapshots**: `save_weekly_ranking(group_id, rows)` stores the rows `ranking_view`

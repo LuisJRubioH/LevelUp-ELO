@@ -13,12 +13,13 @@ Internal interfaces the tests pin. Pure functions live in `src/domain/` (no I/O,
 | `is_valid_response_time(seconds \| None) -> bool` | `None → 30 s`; valid iff `3 ≤ s ≤ 600` | 008, 009 |
 | `procedure_elo_delta(grade) -> float` | `(grade − 50) × 0.2`; `ValueError` outside [0, 100] (unchanged) | 022, 023 |
 | `pvp_deltas(rating_a, rating_b, outcome_a) -> (float, float)` | `K=24`, outcome 1 / 0.5 / 0 (moved from `api/websocket/pvp.py`) | 025 |
-| `course_rating(topic_ratings: list[float]) -> float \| None` | arithmetic mean; `None` if empty | 029a |
-| `overall_rating(course_ratings: list[float \| None]) -> float \| None` | mean of non-`None` values, equal weight; `None` if none | 028a, 028b |
+| `course_rating(topic_ratings: list[float]) -> float \| None` | arithmetic mean in full precision (never rounded); `None` if empty | 029a, 028i |
+| `overall_rating(course_ratings: list[float \| None]) -> float \| None` | mean of non-`None` full-precision values, equal weight; `None` if none | 028a, 028b, 028i |
 | `rank_for(rating: float \| None) -> str \| None` | 16-level table, `None` → `None` | 031 |
 | `RANKS: tuple[(min, label), ...]` | the single scale, served by `/meta/ranks` | 031 |
-| `RANKING_DISPLAY_DECIMALS: int` | the one precision used both to compare ratings in rankings and to return them for display (value per FR-028h decision) | 028h |
-| `rank_competition(entries) -> list[entry]` | entries `{user_id, rating: float \| None, …}`; rounds each rating to `RANKING_DISPLAY_DECIMALS` and returns it rounded; rated entries by rounded rating desc, then `user_id` asc **for display only**; `rank` = 1 + number of entries with a strictly higher rounded rating (1, 2, 2, 4); pending (`rating=None`) last by `user_id` asc with `rank=None`; other fields (e.g. `attempts_in_window`) are carried through and never used to order | 028d, 028f, 028h |
+| `RANKING_DISPLAY_DECIMALS = 0` | the one precision used both to compare ratings in rankings and to return them for display | 028h, 028i |
+| `round_for_ranking(rating: float) -> int` | half up on the decimal representation: `int(Decimal(repr(rating)).quantize(Decimal(1), ROUND_HALF_UP))` — 1199.5 → 1200, 1200.5 → 1201, 1200.4999 → 1200, 0.5 → 1. Never Python's `round` (half-to-even). Applied **only** to final derived ranking values | 028i |
+| `rank_competition(entries) -> list[entry]` | entries `{user_id, rating: float \| None, …}` with full-precision ratings; rounds each with `round_for_ranking` and returns that integer as `rating` (and derives `rank_label` from it); rated entries by rounded rating desc, then `user_id` asc **for display only**; `rank` = 1 + number of entries with a strictly higher rounded rating (1, 2, 2, 4); pending (`rating=None`) last by `user_id` asc with `rank=None`; other fields (e.g. `attempts_in_window`) are carried through and never used to order | 028d, 028f, 028h |
 | `diagnostic_tier(difficulty) -> (win, loss)` | +14/−20 · +22/−12 · +34/−6 (moved from the router) | 020 |
 | `diagnostic_baseline(answers) -> float` | `max(760, 1000 + Σ tier deltas)` | 020 |
 

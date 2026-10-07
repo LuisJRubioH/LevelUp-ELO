@@ -231,5 +231,6 @@ no numeric rank. Applied to spec (FR-028d, FR-028f, FR-028h, US6-AS8, edge cases
 (`rank_competition`, `RANKING_DISPLAY_DECIMALS`, `ranking_rank`, API `rank`), research R19, plan
 and tasks T022, T024, T031, T055, T056, T061, T065, T067.
 
-Open: the display precision itself — the UI shows ratings as whole numbers today while the API
-returns 2 decimals (see spec § Clarifications).
+Precision decided the same day: whole numbers (`RANKING_DISPLAY_DECIMALS = 0`); full precision
+kept in storage, updates and intermediate averages; one backend rounding rule (half up on the
+decimal value) applied only to the final ranking value; clients never round (FR-028i).

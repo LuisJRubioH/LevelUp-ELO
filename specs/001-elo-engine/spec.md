@@ -49,9 +49,12 @@ easy or too hard and teachers act on false information.
 - Q: Do equal ratings share a rank? → A: yes — competition ranking (1, 2, 2, 4). Ratings are
   compared at the precision the UI displays them; attempt count is never a tie-breaker; user id
   only orders display within a tie and never changes the shared rank; pending-diagnostic students
-  come last with no numeric rank (FR-028h, US6-AS8). Display precision: [NEEDS CLARIFICATION:
-  today every rating is shown as a whole number (`Math.round`) while the API returns 2 decimals —
-  compare and display at 0 decimals, or show 2 decimals in rankings?]
+  come last with no numeric rank (FR-028h, US6-AS8).
+- Q: At what precision are ranking ratings compared and shown? → A: whole numbers
+  (`RANKING_DISPLAY_DECIMALS = 0`). Stored ratings, rating updates and intermediate averages keep
+  full precision; only the final derived rating used for ranking comparison and display is rounded,
+  by one backend rule (half up on the decimal value: 1199.5 → 1200, 1200.5 → 1201), and clients show
+  the returned value without rounding it again (FR-028h, FR-028i).
 - Q: Where may rating arithmetic live? → A: calculations in the domain; orchestration in one
   application read service; participant selection and raw rows in repositories. Adding a
   domain-computed delta atomically in SQL is persistence, not arithmetic (plan, research R3).
@@ -264,6 +267,8 @@ shows them.
 - A list limit that cuts through a tie → the shown entries keep their shared rank; ranks are never
   recomputed for the shortened list (FR-028h).
 - Two ratings that differ only below the display precision → they tie (FR-028h).
+- A rating of exactly n.5 → rounds up to n + 1 for ranking (FR-028i); intermediate averages are
+  never rounded, so topics 1200.4, 1200.4, 1201.4 give a course ranking value of 1201, not 1200.
 - Legacy row with no eligible context → kept unassigned and excluded; the diagnostic initializes.
 - Promotion → the overall rating switches to the new grade's courses; until one has a rated topic
   it reads "pending diagnostic".
@@ -407,9 +412,8 @@ practising one topic, or the derived course rating (FR-029a) when practising the
 - **FR-028g** [AS-IS]: The system shall keep stored weekly ranking snapshots unchanged as history;
   a snapshot records the rating as it was when it was taken.
 - **FR-028h** [CHANGE]: The system shall rank every ranking list by **competition ranking**:
-  - ratings on the list's basis are compared after rounding to the **ranking display precision**
-    — the same number of decimals with which every ranking surface displays them (one shared
-    value; precision: see Clarifications, [NEEDS CLARIFICATION]);
+  - ratings on the list's basis are compared after rounding to the **ranking display precision**,
+    which is **whole numbers** — the same value every ranking surface displays (FR-028i);
   - equal rounded ratings share a rank, and the next distinct rating takes the rank equal to one
     plus the number of students ranked above it (1, 2, 2, 4);
   - attempt count is never a tie-breaker;
@@ -420,6 +424,14 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   A student's rank anywhere (list entry, own position) is the rank of their entry in that same
   list. *(Today ties fall in database order, which differs between engines, and tied students get
   different positions.)*
+- **FR-028i** [CHANGE]: The system shall keep full precision in stored ratings, in rating updates
+  and in every intermediate average (topic → course → overall), and shall round only the final
+  derived rating that a ranking compares and displays, to a whole number, with a single backend rule:
+  round half up on the value's decimal representation (1199.5 → 1200, 1200.5 → 1201,
+  1200.4999 → 1200). A ranking entry's rank label derives from that same displayed whole number.
+  Clients display the returned value as given and never round it themselves. *(Today the API
+  returns 2 decimals, Python's `round` rounds half to even, and every screen rounds again with
+  `Math.round`.)*
 - **FR-029** [CHANGE]: The system shall store every rating change — practice answer, diagnostic,
   procedure — under the **course and topic of the item involved**, identified by the course's
   stable identifier and the topic within it. There is one stored rating per student, course and
@@ -594,7 +606,7 @@ replaces it with the collected test id.
 | US6-AS5 | `PENDING` (T053, T061) |
 | US6-AS6 | `PENDING` (T053) |
 | US6-AS7 | `PENDING` (T055, T061) |
-| US6-AS8 | `PENDING` (T056) |
+| US6-AS8 | `PENDING` (T022, T056, T061) |
 | FR-001 | `PENDING` (T003) |
 | FR-002 | `PENDING` (T011) |
 | FR-003 | `PENDING` (T011) |
@@ -631,6 +643,7 @@ replaces it with the collected test id.
 | FR-028f | `PENDING` (T029, T056) |
 | FR-028g | `PENDING` (T019) |
 | FR-028h | `PENDING` (T022, T056) |
+| FR-028i | `PENDING` (T022, T031, T061) |
 | FR-029 | `PENDING` (T033, T036, T040, T045, T047, T052) |
 | FR-029a | `PENDING` (T042) |
 | FR-029b | `PENDING` (T049) |
@@ -673,6 +686,7 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-028e | `get_latest_attempts`, `get_student_attempts_detail`, `export_teacher_student_data` |
 | FR-028f | `get_global_ranking`, `get_course_ranking`, `get_weekly_ranking`, `get_student_rank` (both repos) ← `student_view.py:538, 610, 634, 729, 757`, `teacher_view.py:465, 495, 528` |
 | FR-028h | `ORDER BY elo DESC` / `ORDER BY ue.global_elo DESC` with no tie-break in every ranking query (both repos) |
+| FR-028i | `round(..., 2)` (half-to-even) in API responses; `Math.round` on every rating in `Stats.tsx:142, 199, 229`, `RankBadge.tsx:52`, teacher `fmtMiles` |
 | FR-028g | `weekly_rankings` table; `save_weekly_ranking`, `get_ranking_history` ← `teacher_view.py:550, 556` |
 | FR-029 | `student_view.py:385`, `api/routers/student.py:166`, `useStudentSession.ts:74`, `finish_pvp_match`, `validate_procedure_submission`, diagnostic submit |
 | FR-030 | `frontend/src/pages/Student/Practice.tsx:27-33` |
