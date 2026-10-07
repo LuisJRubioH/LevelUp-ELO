@@ -495,17 +495,92 @@ items of that course, or the student's diagnostic for that course.
 **Automated tests are explicitly required for every functional requirement and acceptance
 scenario. Reuse adequate existing tests; create or strengthen tests where coverage is missing.**
 
-Filled in by `/speckit-tasks`; all rows `PENDING` at the docs stage.
+Docs stage: every row names the task(s) in tasks.md that produce its test; `PENDING` until T067
+replaces it with the collected test id.
 
 | Requirement / Scenario | Test |
 |---|---|
-| FR-001 … FR-036 (incl. FR-028a–g, FR-029a–c, FR-031a, FR-034a–b) | `PENDING` |
-| US1-AS1 … US1-AS7 | `PENDING` |
-| US2-AS1 … US2-AS5 | `PENDING` |
-| US3-AS1 … US3-AS4 | `PENDING` |
-| US4-AS1 … US4-AS5 | `PENDING` |
-| US5-AS1 … US5-AS5 | `PENDING` |
-| US6-AS1 … US6-AS6 | `PENDING` |
+| US1-AS1 | `PENDING` (T011, T012, T032) |
+| US1-AS2 | `PENDING` (T011, T032) |
+| US1-AS3 | `PENDING` (T006) |
+| US1-AS4 | `PENDING` (T013) |
+| US1-AS5 | `PENDING` (T013) |
+| US1-AS6 | `PENDING` (T006) |
+| US1-AS7 | `PENDING` (T009) |
+| US2-AS1 | `PENDING` (T015) |
+| US2-AS2 | `PENDING` (T004) |
+| US2-AS3 | `PENDING` (T014) |
+| US2-AS4 | `PENDING` (T014) |
+| US2-AS5 | `PENDING` (T014) |
+| US3-AS1 | `PENDING` (T016) |
+| US3-AS2 | `PENDING` (T016) |
+| US3-AS3 | `PENDING` (T006) |
+| US3-AS4 | `PENDING` (T016) |
+| US4-AS1 | `PENDING` (T017, T045) |
+| US4-AS2 | `PENDING` (T006) |
+| US4-AS3 | `PENDING` (T017) |
+| US4-AS4 | `PENDING` (T008) |
+| US4-AS5 | `PENDING` (T017) |
+| US5-AS1 | `PENDING` (T018) |
+| US5-AS2 | `PENDING` (T007) |
+| US5-AS3 | `PENDING` (T007) |
+| US5-AS4 | `PENDING` (T018) |
+| US5-AS5 | `PENDING` (T047) |
+| US6-AS1 | `PENDING` (T021, T030, T051) |
+| US6-AS2 | `PENDING` (T056, T058) |
+| US6-AS3 | `PENDING` (T055, T058) |
+| US6-AS4 | `PENDING` (T013) |
+| US6-AS5 | `PENDING` (T051, T058) |
+| US6-AS6 | `PENDING` (T051) |
+| FR-001 | `PENDING` (T003) |
+| FR-002 | `PENDING` (T011) |
+| FR-003 | `PENDING` (T011) |
+| FR-004 | `PENDING` (T011, T040, T042) |
+| FR-005 | `PENDING` (T012) |
+| FR-006 | `PENDING` (T012) |
+| FR-007 | `PENDING` (T006, T019) |
+| FR-008 | `PENDING` (T006, T019, T033) |
+| FR-009 | `PENDING` (T033) |
+| FR-010 | `PENDING` (T006) |
+| FR-011 | `PENDING` (T009) |
+| FR-012 | `PENDING` (T010, T013) |
+| FR-013 | `PENDING` (T013) |
+| FR-014 | `PENDING` (T013) |
+| FR-015 | `PENDING` (T012, T034) |
+| FR-016 | `PENDING` (T005, T014) |
+| FR-017 | `PENDING` (T004, T015) |
+| FR-018 | `PENDING` (T004) |
+| FR-019 | `PENDING` (T005, T014) |
+| FR-020 | `PENDING` (T016) |
+| FR-021 | `PENDING` (T006, T043) |
+| FR-022 | `PENDING` (T006, T017) |
+| FR-023 | `PENDING` (T008, T017) |
+| FR-024 | `PENDING` (T017) |
+| FR-025 | `PENDING` (T007, T018) |
+| FR-026 | `PENDING` (T048) |
+| FR-027 | `PENDING` (T007) |
+| FR-028 | `PENDING` (T006, T052) |
+| FR-028a | `PENDING` (T051) |
+| FR-028b | `PENDING` (T051) |
+| FR-028c | `PENDING` (T051) |
+| FR-028d | `PENDING` (T053) |
+| FR-028e | `PENDING` (T019) |
+| FR-028f | `PENDING` (T054) |
+| FR-028g | `PENDING` (T019) |
+| FR-029 | `PENDING` (T032, T038, T043, T045, T050) |
+| FR-029a | `PENDING` (T040) |
+| FR-029b | `PENDING` (T047) |
+| FR-029c | `PENDING` (T047) |
+| FR-030 | `PENDING` (T056) |
+| FR-031 | `PENDING` (T055) |
+| FR-031a | `PENDING` (T016) |
+| FR-032 | `PENDING` (T013) |
+| FR-033 | `PENDING` (T057) |
+| FR-034 | `PENDING` (T057) |
+| FR-034a | `PENDING` (T057) |
+| FR-034b | `PENDING` (T057) |
+| FR-035 | `PENDING` (T057) |
+| FR-036 | `PENDING` (T052, T057) |
 
 ## Appendix — As-is evidence
 
