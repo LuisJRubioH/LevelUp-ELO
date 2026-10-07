@@ -11,6 +11,7 @@ API real:
 Nota: select_optimal_item recibe objetos Item(difficulty=...), no dicts.
 """
 
+import math
 import random
 
 import pytest
@@ -132,3 +133,28 @@ class TestControlledVariety:
         assert [id(first.select_optimal_item(1000, items)) for _ in range(20)] == [
             id(second.select_optimal_item(1000, items)) for _ in range(20)
         ]
+
+
+def _difficulty_for(p: float, rating: float = 1000.0) -> float:
+    """Inverse of expected_score: the difficulty that gives success probability p."""
+    return rating + 400 * math.log10(1 / p - 1)
+
+
+def test_spec001_band_widens_by_005_up_to_10_steps_then_whole_pool():
+    """FR-017, US2-AS2 (task T005).
+
+    P = 0.77 enters the band after one 0.05 step ([0.35, 0.80]); P = 0.33 would need two. The
+    0.33 item is the more informative one, so it would win if both were candidates: picking
+    0.77 every time proves the band widens one 0.05 step at a time and stops at the first hit.
+    Items beyond every band (P < 0.01) still yield an item: the whole pool, by information.
+    (The 10-step cap is not observable: the band reaches its [0.01, 0.99] clamp after 8 steps.)
+    """
+    selector = AdaptiveItemSelector(rng=random.Random(3))
+    first_step = Item(difficulty=_difficulty_for(0.77))
+    second_step = Item(difficulty=_difficulty_for(0.33))
+
+    picks = {id(selector.select_optimal_item(1000.0, [first_step, second_step])) for _ in range(50)}
+    assert picks == {id(first_step)}
+
+    beyond = _make_items(2000.0, 2100.0)
+    assert selector.select_optimal_item(1000.0, beyond).difficulty == 2000.0

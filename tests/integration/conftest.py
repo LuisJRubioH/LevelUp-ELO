@@ -145,10 +145,11 @@ def enroll(repo, user_id, course_id, group_id=None) -> None:
 # ── The two helpers every pin goes through ───────────────────────────────────
 
 
-def answer(repo, user_id, item_id, correct=True, seconds=20.0):
+def answer(repo, user_id, item_id, correct=True, seconds=20.0, elo_topic=None):
     """Answer an item through the real StudentService path. Returns (is_correct, cog_data).
 
-    Today the service takes a VectorRating and the rating key defaults to the item's topic.
+    Today the service takes a VectorRating and the rating key defaults to the item's topic;
+    `elo_topic=course_id` is today's whole-course practice mode.
     """
     from src.application.services.student_service import StudentService
     from src.domain.elo.vector_elo import VectorRating
@@ -163,7 +164,7 @@ def answer(repo, user_id, item_id, correct=True, seconds=20.0):
         else next(o for o in item["options"] if o != item["correct_option"])
     )
     return StudentService(repository=repo).process_answer(
-        user_id, item, option, "", seconds, vector
+        user_id, item, option, "", seconds, vector, elo_topic=elo_topic
     )
 
 
