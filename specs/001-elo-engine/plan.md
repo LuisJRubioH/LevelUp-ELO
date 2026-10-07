@@ -136,7 +136,8 @@ one new router file at most; no new top-level directories.
 | Group ranking with `course_id` excludes attempts and ratings of other courses (fails on today's code) | course filter works | 028d |
 | Group ranking basis: requested → group course → overall; 400 unknown course, 403 not enrolled; basis returned; no substitution for unrated students | basis precedence | 028d |
 | Group ranking orders by derived rating, unrated students last as pending | canonical source | 028d, 028b |
-| Rounding: `round_for_ranking` half up (1199.5→1200, 1200.5→1201, 1200.4999→1200, 0.5→1); averages kept full precision (topics 1200.4/1200.4/1201.4 → 1201); API returns ranking ratings as integers; clients do not round | rounding rule | 028i |
+| Number and label agree: 999.6 → 1000 "Plata I", 999.5 → 1000 "Plata I", 999.4 → 999 "Plata II" on stats, teacher dashboard, teacher report and rankings; stored value unchanged | display label | 028j |
+| Rounding: `round_for_display` half up (1199.5→1200, 1200.5→1201, 1200.4999→1200, 0.5→1); averages kept full precision (topics 1200.4/1200.4/1201.4 → 1201); API returns ranking ratings as integers; clients do not round | rounding rule | 028i |
 | Competition ranking: equal ratings at display precision share a rank (1, 2, 2, 4); attempts never break ties; user id orders display within a tie only; pending last with no rank; identical on both engines; a student's own rank = their entry's rank; `limit` never changes a rank | competition ranking | 028h |
 | Every rating reader in R18 returns values equal to `ratings_view` for the same student (single fixture, all readers) | canonical reads | 028, 028a, 029a |
 | Legacy rows and `users.current_elo` changed by hand do not change any read | legacy excluded | 036, 028 |

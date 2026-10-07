@@ -207,7 +207,7 @@ once — not once per engine.
 - **No substitution**: a participant without a rating on the basis is `pending_diagnostic` and
   listed last; their overall or another course's rating is never used instead.
 - **Competition ranking** (FR-028h, owner decision 2026-10-06, supersedes the first tie rule):
-  compare ratings rounded to `RANKING_DISPLAY_DECIMALS`, the precision every ranking surface
+  compare ratings rounded to `RATING_DISPLAY_DECIMALS`, the precision every ranking surface
   displays; equal rounded ratings share a rank, the next distinct one skips (1, 2, 2, 4). Attempt
   count is not a tie-breaker. User id orders display within a tie only — stable and identical in
   both engines (database order is not). Pending participants come last with no numeric rank.
@@ -216,13 +216,19 @@ once — not once per engine.
   and clients do not re-round.
 - **Precision = whole numbers** (owner, 2026-10-06): matches every screen today; one answer moves a
   rating by up to ~16 points, so decimals carry no information.
-- **Rounding rule** (FR-028i): `round_for_ranking` = half up on the decimal representation
+- **Rounding rule** (FR-028i): `round_for_display` = half up on the decimal representation
   (`Decimal(repr(x)).quantize(Decimal(1), ROUND_HALF_UP)`). Python's built-in `round` is
   half-to-even (`round(1200.5) == 1200`, `round(2.5) == 2`) and would disagree with the UI's old
   `Math.round`; `repr` avoids binary artefacts. Ratings are ≥ 0, so half up = half away from zero.
 - **Round once, at the end**: storage, updates and the topic → course → overall averages stay full
   precision. Rounding earlier changes results: topics 1200.4, 1200.4, 1201.4 → course 1201 (late)
   vs 1200 (early).
+- **Number and label from one value** (FR-028j, owner 2026-10-06): wherever a current rating and its
+  rank label appear together, both come from `rating_display(rating)` — the half-up display value
+  and `rank_for` of that value. Otherwise a rating just under a threshold shows the threshold's
+  number with the lower band's label (999.6 → "1000" + "Plata II" today). The rule was renamed from
+  "ranking" to "display" (`RATING_DISPLAY_DECIMALS`, `round_for_display`) because it now covers
+  stats, teacher views and the rank badge as well as rankings.
 - **A student's rank** = the `rank` of their entry in the unlimited list; `limit` only shortens the
   displayed list, so a top-N cut through a tie keeps the shared rank.
 - **Weekly snapshots**: `save_weekly_ranking(group_id, rows)` stores the rows `ranking_view`

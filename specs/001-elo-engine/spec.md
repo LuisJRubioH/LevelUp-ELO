@@ -51,10 +51,14 @@ easy or too hard and teachers act on false information.
   only orders display within a tie and never changes the shared rank; pending-diagnostic students
   come last with no numeric rank (FR-028h, US6-AS8).
 - Q: At what precision are ranking ratings compared and shown? → A: whole numbers
-  (`RANKING_DISPLAY_DECIMALS = 0`). Stored ratings, rating updates and intermediate averages keep
+  (`RATING_DISPLAY_DECIMALS = 0`). Stored ratings, rating updates and intermediate averages keep
   full precision; only the final derived rating used for ranking comparison and display is rounded,
   by one backend rule (half up on the decimal value: 1199.5 → 1200, 1200.5 → 1201), and clients show
   the returned value without rounding it again (FR-028h, FR-028i).
+- Q: Must a rating and its rank label agree when shown together outside rankings? → A: yes —
+  wherever a current rating and its rank label appear together, both derive from the same
+  backend-rounded display value (half up); full precision stays in storage and calculations
+  (FR-028j; boundary 999.6 → "1000", "Plata I").
 - Q: Where may rating arithmetic live? → A: calculations in the domain; orchestration in one
   application read service; participant selection and raw rows in repositories. Adding a
   domain-computed delta atomically in SQL is persistence, not arithmetic (plan, research R3).
@@ -250,6 +254,10 @@ shows them.
    student's own rank are shown, **Then** the ranks are 1, 2, 2, 4; the two tied students appear in
    user-id order with the same rank; attempt counts do not affect the order; the pending student is
    last with no numeric rank; and each student's own rank equals the rank on their list entry.
+9. **US6-AS9** — **Given** a student whose full-precision overall rating is 999.6, **When** it is
+   shown on the student stats screen, the teacher dashboard, the teacher student report and a
+   ranking, **Then** every surface shows 1000 with "Plata I"; for 999.4 every surface shows 999
+   with "Plata II"; the stored rating stays 999.6 / 999.4.
 
 ---
 
@@ -267,7 +275,9 @@ shows them.
 - A list limit that cuts through a tie → the shown entries keep their shared rank; ranks are never
   recomputed for the shortened list (FR-028h).
 - Two ratings that differ only below the display precision → they tie (FR-028h).
-- A rating of exactly n.5 → rounds up to n + 1 for ranking (FR-028i); intermediate averages are
+- A rating just below a rank threshold that displays at the threshold (999.6 → 1000) → the label
+  is the threshold's ("Plata I"), matching the number shown (FR-028j).
+- A rating of exactly n.5 → rounds up to n + 1 for display and ranking (FR-028i); intermediate averages are
   never rounded, so topics 1200.4, 1200.4, 1201.4 give a course ranking value of 1201, not 1200.
 - Legacy row with no eligible context → kept unassigned and excluded; the diagnostic initializes.
 - Promotion → the overall rating switches to the new grade's courses; until one has a rated topic
@@ -425,13 +435,22 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   list. *(Today ties fall in database order, which differs between engines, and tied students get
   different positions.)*
 - **FR-028i** [CHANGE]: The system shall keep full precision in stored ratings, in rating updates
-  and in every intermediate average (topic → course → overall), and shall round only the final
-  derived rating that a ranking compares and displays, to a whole number, with a single backend rule:
-  round half up on the value's decimal representation (1199.5 → 1200, 1200.5 → 1201,
-  1200.4999 → 1200). A ranking entry's rank label derives from that same displayed whole number.
-  Clients display the returned value as given and never round it themselves. *(Today the API
+  and in every intermediate average (topic → course → overall), and shall round only a final
+  derived rating that is compared in a ranking or displayed with a rank label, to a whole number,
+  with a single backend rule: round half up on the value's decimal representation
+  (1199.5 → 1200, 1200.5 → 1201, 1200.4999 → 1200). A ranking entry's rank label derives from that
+  same displayed whole number. Clients display the returned value as given and never round it
+  themselves. *(Today the API
   returns 2 decimals, Python's `round` rounds half to even, and every screen rounds again with
   `Math.round`.)*
+- **FR-028j** [CHANGE]: Wherever a current rating is shown together with its rank label — student
+  stats (overall and per course), teacher dashboard and student report, group and V1 rankings,
+  the rank badge — the system shall return the **display value** (FR-028i) with the rating and
+  derive the rank label from that same display value, never from the full-precision rating; the
+  full-precision value stays available for calculations and is not displayed. Example: an overall
+  rating of 999.6 is shown as 1000 with "Plata I"; 999.4 as 999 with "Plata II"; 999.5 as 1000
+  with "Plata I". *(Today the label is computed from the full-precision value while the screen
+  rounds it, so 999.6 shows "1000" next to "Plata II".)*
 - **FR-029** [CHANGE]: The system shall store every rating change — practice answer, diagnostic,
   procedure — under the **course and topic of the item involved**, identified by the course's
   stable identifier and the topic within it. There is one stored rating per student, course and
@@ -607,6 +626,7 @@ replaces it with the collected test id.
 | US6-AS6 | `PENDING` (T053) |
 | US6-AS7 | `PENDING` (T055, T061) |
 | US6-AS8 | `PENDING` (T022, T056, T061) |
+| US6-AS9 | `PENDING` (T022, T057, T061) |
 | FR-001 | `PENDING` (T003) |
 | FR-002 | `PENDING` (T011) |
 | FR-003 | `PENDING` (T011) |
@@ -644,6 +664,7 @@ replaces it with the collected test id.
 | FR-028g | `PENDING` (T019) |
 | FR-028h | `PENDING` (T022, T056) |
 | FR-028i | `PENDING` (T022, T031, T061) |
+| FR-028j | `PENDING` (T022, T031, T057, T061) |
 | FR-029 | `PENDING` (T033, T036, T040, T045, T047, T052) |
 | FR-029a | `PENDING` (T042) |
 | FR-029b | `PENDING` (T049) |
@@ -687,6 +708,7 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-028f | `get_global_ranking`, `get_course_ranking`, `get_weekly_ranking`, `get_student_rank` (both repos) ← `student_view.py:538, 610, 634, 729, 757`, `teacher_view.py:465, 495, 528` |
 | FR-028h | `ORDER BY elo DESC` / `ORDER BY ue.global_elo DESC` with no tie-break in every ranking query (both repos) |
 | FR-028i | `round(..., 2)` (half-to-even) in API responses; `Math.round` on every rating in `Stats.tsx:142, 199, 229`, `RankBadge.tsx:52`, teacher `fmtMiles` |
+| FR-028j | label from full precision: `api/routers/student.py:287` (`_elo_to_rank(global_elo)`), `Teacher/Dashboard.tsx:137, 207, 400` (`rankFor(s.global_elo)`); number rounded on screen: `Stats.tsx:142`, `RankBadge.tsx:52` |
 | FR-028g | `weekly_rankings` table; `save_weekly_ranking`, `get_ranking_history` ← `teacher_view.py:550, 556` |
 | FR-029 | `student_view.py:385`, `api/routers/student.py:166`, `useStudentSession.ts:74`, `finish_pvp_match`, `validate_procedure_submission`, diagnostic submit |
 | FR-030 | `frontend/src/pages/Student/Practice.tsx:27-33` |

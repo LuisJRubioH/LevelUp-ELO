@@ -56,7 +56,9 @@ course rating(C)    mean(current_elo of rows with course_id = C)           None 
 current courses     enrollments(user) ∩ catalogue(user.education_level, user.grade)
 overall rating      mean(course rating(C) for C in current courses if not None)
                     None → "pending diagnostic"                             (FR-028a/b)
-rank                rank_for(overall or course rating)  — one 16-level table (FR-031)
+display value       round_for_display(overall or course rating) — half up, whole number;
+                    computed only at the edge, never stored, never averaged    (FR-028i/j)
+rank                rank_for(display value)  — one 16-level table               (FR-031, 028j)
 selection rating    topic rating when practising a topic, else course rating (1000 if None)
 ```
 

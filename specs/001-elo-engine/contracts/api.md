@@ -33,11 +33,17 @@ Unchanged: `Idempotency-Key` replay (200, stored result) and conflict (409) [FR-
 |---|---|---|---|
 | `global_elo` | type widened | `float \| null` | overall rating per FR-028a; `null` when pending [FR-028b] |
 | `overall_status` | **new** | `"rated" \| "pending_diagnostic"` | [FR-028b] |
-| `rank_label` | semantics | `str \| null` | from the single rank scale; `null` when pending [FR-031] |
-| `course_ratings` | **new** | `list[{course_id, course_name, rating: float \| null, rank_label, current_context: bool, topics: list[TopicELO]}]` | per-course view; `current_context=false` = earlier level/grade, shown as history [FR-028c] |
+| `display_rating` | **new** | `int \| null` | the overall rating as shown: backend half-up whole number [FR-028i, FR-028j]; clients render it as given |
+| `rank_label` | semantics | `str \| null` | from the single rank scale, derived from `display_rating`; `null` when pending [FR-031, FR-028j] |
+| `course_ratings` | **new** | `list[{course_id, course_name, rating: float \| null, display_rating: int \| null, rank_label, current_context: bool, topics: list[TopicELO]}]` | per-course view; `current_context=false` = earlier level/grade, shown as history [FR-028c] |
 | `topic_elos` | semantics | `list[TopicELO]` | topics of current-context courses only; the old cross-course dedupe hack is removed |
 
 No field anywhere reports a difference between two overall ratings [FR-028c].
+
+**Display rule (all endpoints above and below)**: a full-precision field (`global_elo`, `rating`) is
+for calculations and compatibility; whenever a rating is shown with a rank label, clients render
+`display_rating` (or a ranking entry's integer `rating`) and the `rank_label` returned with it, and
+never round or relabel on their own [FR-028j].
 
 ## `GET /student/map/{course_id}`
 Node states read the student's topic ratings **for that course** [FR-029]. Thresholds unchanged
@@ -52,7 +58,8 @@ league label stays a placement [FR-031a].
 | Field | Change | Type | Meaning |
 |---|---|---|---|
 | `global_elo` | type widened | `float \| null` | same derivation as the student's overall rating [FR-028a] |
-| `rank_label` | **new** | `str \| null` | single scale [FR-031]; the frontend stops computing ranks |
+| `display_rating` | **new** | `int \| null` | overall rating as shown [FR-028i, FR-028j] |
+| `rank_label` | **new** | `str \| null` | single scale, derived from `display_rating` [FR-031, FR-028j]; the frontend stops computing ranks |
 | `overall_status` | **new** | `"rated" \| "pending_diagnostic"` | [FR-028b] |
 
 ## `GET /student/group-ranking?course_id=` · `GET /teacher/student/{id}/ranking`
