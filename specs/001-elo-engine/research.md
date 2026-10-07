@@ -37,9 +37,18 @@ Phase 0 of `/speckit-plan`. Every decision cites the requirement it serves. No o
 
 ### R3 — Derived ratings are pure domain functions (FR-028a, FR-029a)
 - **Decision**: `src/domain/elo/aggregation.py` with `course_rating(topic_ratings) -> float | None`
-  and `overall_rating(course_ratings) -> float | None` (`None` = pending diagnostic). An application
-  function `ratings_view(user_id)` (in `student_service.py`) loads the user's rows and current
-  context courses from the repository and calls them. Every overall/course reader in `api/` uses it.
+  and `overall_rating(course_ratings) -> float | None` (`None` = pending diagnostic), plus
+  `order_ranking` for every ranking. **`src/application/services/rating_read_service.py`** is the
+  only orchestration point: it loads raw rows and participants from the repository and calls the
+  domain functions (`ratings_view`, `ratings_view_bulk`, `course_rating_of`, `group_basis`,
+  `ranking_view`, `ranking_position`). Every rating reader in `api/` and in V1 views goes through it.
+- **Layer split (owner, 2026-10-06)**: calculations in `domain/`; orchestration in the read
+  service; participant selection and raw-row access in repositories. Repositories never average or
+  order by a rating. **Permitted persistence pattern**: adding a delta the domain already computed,
+  atomically inside a write transaction (`current_elo = MAX(0, current_elo + :delta)`) — that is
+  what keeps procedure and PvP effects exactly-once (AGENTS R15/R19); it is not rating arithmetic.
+- **Guards**: an architecture test (no rating aggregation or ordering in repositories/routers) is a
+  supplementary check; the behavioural tests are what prove FR-028–028h.
 - **Rationale**: Principle II (one definition), Principle III (arithmetic in domain).
 - **Alternatives**: SQL views per engine (duplicated logic in two dialects, harder to test);
   keeping `users.current_elo` as a cache (can't be `NULL`; second place to keep consistent).
@@ -161,7 +170,7 @@ Two kinds of reads are distinguished:
 | `aggregate_global_elo` (domain) | plain mean of vector | `student_view.py:1787, 1935` | stats `student.py:247`; exam submit snapshot `student.py:924`; `ai.py:77`; `teacher.py:311` | **shared** | replaced by `overall_rating` |
 | `get_topic_elo_map` | old rows by label | — | `/student/map` `student.py:1392` | V2 | course-scoped topic ratings |
 | `get_user_by_id().current_elo` | stored average | — | PvP lobby `pvp.py:190-191` | V2 | course rating (R8) |
-| **`get_group_ranking`** | **`AVG(attempts.elo_after)` over all history** — reconstruction; and the `course_id` filter does not filter (LEFT JOIN on items only) | — | `/student/group-ranking` `student.py:410`; `/teacher/student/{id}/ranking` `teacher.py:335` | **V2 — non-compliant** | rank by course rating (with `course_id`) or overall rating (FR-028a, 029a) |
+| **`get_group_ranking`** | **`AVG(attempts.elo_after)` over all history** — reconstruction; and the `course_id` filter does not filter (LEFT JOIN on items only) | — | `/student/group-ranking` `student.py:410`; `/teacher/student/{id}/ranking` `teacher.py:335` | **V2 — non-compliant** | rank via `ranking_view(scope="group")` on the group basis of FR-028d (requested → group course → overall; R19) |
 | `get_diagnostic().initial_elo` as course seed | stored course average | — | `api/dependencies.py:202` | V2 | removed (FR-004) |
 | exam `global_elo_after` snapshot | written from `aggregate_global_elo` | — | written `student.py:924`, read `/exam/history` `student.py:946` | V2 | snapshot written from `ratings_view` overall (`null` when pending) |
 | `get_latest_attempts` | per-attempt `elo_after` | — | `/student/history` `student.py:383`; `/teacher/student/{id}/elo-history` `teacher.py:279` | V2 — log display | keep; label as history; no current rating derived from it |
@@ -170,7 +179,7 @@ Two kinds of reads are distinguished:
 | `get_answer_by_request_id` | stored attempt | — | `/student/answer` replay `student.py:197, 220` | V2 — log | keep |
 | `get_global_ranking` | latest `elo_after` per topic from attempts — reconstruction | `student_view.py:610`; `teacher_view.py:465` | — | **V1-only** | migrate: participation = activity in last 7 days (kept); rating = overall (FR-028f) |
 | `get_course_ranking` | same, per course | `student_view.py:729`; `teacher_view.py:495` | — | **V1-only** | migrate: participation = activity in that course in last 7 days (kept); rating = course rating (FR-028f) |
-| `get_weekly_ranking` | same, group + week | `teacher_view.py:528` | — | **V1-only** | migrate: participation = ≥ 1 attempt this week in the group (kept); rating = overall; `attempts_this_week` stays a participation metric (FR-028f) |
+| `get_weekly_ranking` | same, group + week | `teacher_view.py:528` | — | **V1-only** | migrate: participation = ≥ 1 attempt this week in the group (kept); rating = the group basis of FR-028d; `attempts_this_week` stays a participation metric (FR-028f) |
 | `save_weekly_ranking`, `get_ranking_history` | snapshot table `weekly_rankings` | `teacher_view.py:550, 556` | — | V1-only — history | keep: snapshots are history (FR-028g); new snapshots take their values from the migrated `get_weekly_ranking` |
 | `get_student_rank` | from attempts | `student_view.py:538, 634, 757` | — | **V1-only** | migrate: same rating and participation rule as the list it positions in (FR-028f) |
 | `get_user_history_full` | attempts history | `student_view.py:1769` | — | V1-only — log display | none |
@@ -183,7 +192,24 @@ Two kinds of reads are distinguished:
 `get_group_ranking` (attempt replay plus a course filter that does not filter, in both engines).
 No constitutional deviation remains.
 
-Ranking implementation note: participation is a SQL filter over `attempts` (who appears); the
-rating is read from `student_course_topic_elo` and aggregated by the domain functions (how they
-are ordered). The repository returns eligible user ids and their course-topic rows; ordering
-happens on derived values, identically in both engines.
+Ranking implementation (superseded by R19 for details): `get_ranking_participants` returns who
+appears (SQL filter + attempt count); `get_course_topic_ratings_bulk` returns raw rows;
+`RatingReadService.ranking_view` derives the rating on the list's single basis and orders it with
+`order_ranking`. The old repository ranking methods are deleted, so aggregation and ordering exist
+once — not once per engine.
+
+### R19 — Ranking basis, ties and authorization (FR-028d, FR-028f, FR-028h)
+
+- **Basis precedence** (owner decision, option A): explicitly requested course (must exist → else
+  400; must be visible to the requester → else 403: a student must be enrolled; the teacher
+  endpoint takes no course) → the group's course (`groups.course_id`, nullable) → overall rating.
+  One basis per list, applied to every participant, returned as `basis` and shown in the UI.
+- **No substitution**: a participant without a rating on the basis is `pending_diagnostic` and
+  listed last; their overall or another course's rating is never used instead.
+- **Tie rule** (FR-028h): rating rounded to 2 decimals desc → attempts in the activity window desc
+  → user id asc; pending participants after, by user id asc. Rounding avoids float noise splitting
+  "equal" ratings; user id is stable and identical in both engines (database order is not).
+- **Position** = 1-based index in the unlimited ordered list; `limit` is applied after ordering,
+  so the top-N and a student's position can never disagree.
+- **Weekly snapshots**: `save_weekly_ranking(group_id, rows)` stores the rows `ranking_view`
+  produced; stored snapshots are never recomputed (FR-028g).

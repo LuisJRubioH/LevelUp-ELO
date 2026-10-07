@@ -15,14 +15,15 @@ PostgreSQL branch of the integration tests: Docker locally, or the CI job `test-
 ## 1. Pins before refactoring (must pass on the unchanged code)
 
 Characterization tests follow the existing layout (constitution § Code Style): `tests/unit/domain/`,
-`tests/integration/` (both engines), `tests/api/`. Their names contain `spec001`, so:
+`tests/integration/` (both engines), `tests/api/`. New tests contain `spec001` in their name;
+reused pins live in existing files. This is the same selection as task T021 (the pin gate):
 
 ```bash
-ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q -k spec001
+ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q -k "spec001 or elo_single_source or pvp_repository or item_selector or elo_model or student_service or procedure_grading"
 ```
 
 ```powershell
-$env:ADMIN_PASSWORD = "testadmin123"; python -m pytest tests/ --ignore=tests/e2e -q -k spec001
+$env:ADMIN_PASSWORD = "testadmin123"; python -m pytest tests/ --ignore=tests/e2e -q -k "spec001 or elo_single_source or pvp_repository or item_selector or elo_model or student_service or procedure_grading"
 ```
 
 Expected: all green on the unchanged code before any implementation task (agent rule 6).

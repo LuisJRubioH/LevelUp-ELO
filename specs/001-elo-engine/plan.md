@@ -37,7 +37,7 @@ lock order users → items; correct option never leaves the backend
 |---|---|---|
 | I. Spec is the contract | ✅ | every change traces to an FR; `[AS-IS]` pinned before refactor, `[CHANGE]` tests fail first (tasks phase 2) |
 | II. One source of truth | ✅ | `student_course_topic_elo` is the only rating state; course/overall/rank derived by one domain definition; `users.current_elo` and the old table stop being sources; preview uses the engine formula; one rank table (resolves D-1, D-2) |
-| III. Layers | ✅ | formulas, validity window, PvP deltas, diagnostic tiers, aggregation and ranks move **into** `domain/` (out of routers and repositories) |
+| III. Layers | ✅ | formulas, validity window, PvP deltas, diagnostic tiers, aggregation, ranks and ranking order move **into** `domain/`; orchestration only in `rating_read_service.py`; repositories return participants and raw rows; atomic addition of a domain-computed delta is the one permitted write pattern (research R3) |
 | IV. Dual DB | ✅ | new table/columns in both engines; idempotent additive migration; integration tests parametrised over both |
 | V. Measurement integrity | ✅ | answer stays one transaction; invalid attempts report no change; PvP reports applied delta; idempotency unchanged |
 | VI. Security | ✅ | no new secret; `/meta/ranks` exposes only public scale data; `correct_option` still never sent |
@@ -78,8 +78,10 @@ src/domain/elo/
 ├── aggregation.py       # NEW: course_rating, overall_rating
 └── ranks.py             # NEW: RANKS, rank_for
 src/domain/selector/item_selector.py      # unchanged
-src/application/services/student_service.py  # process_answer, get_next_question, ratings_view
-src/application/services/teacher_service.py  # reads through ratings_view
+src/application/services/rating_read_service.py  # NEW: ratings_view(_bulk), course_rating_of,
+                                                 # group_basis, ranking_view, ranking_position
+src/application/services/student_service.py  # process_answer, get_next_question
+src/application/services/teacher_service.py  # reads through RatingReadService
 src/application/interfaces/repositories.py   # contract list updated
 src/infrastructure/persistence/
 ├── sqlite_repository.py    # new table, writers, reconciliation  ┐ mirrored (R1)
@@ -87,7 +89,7 @@ src/infrastructure/persistence/
 src/interface/streamlit/    # V1: adapt calls only (frozen)
 api/routers/student.py      # next-question preview, answer, stats, diagnostic, map
 api/routers/teacher.py      # dashboard, student report
-api/routers/meta.py         # NEW: GET /meta/ranks  (or added to an existing public router)
+api/routers/meta.py         # NEW: GET /meta/ranks (registered in api/main.py under /api)
 api/schemas/{student,teacher}.py
 api/websocket/pvp.py        # course rating for lobby, applied deltas in game_end
 frontend/src/pages/Student/Practice.tsx, Stats.tsx
@@ -110,16 +112,20 @@ one new router file at most; no new top-level directories.
 3. **Store** — new table + `pvp_matches` columns in both engines; repository contract updated.
 4. **Writers** — answer transaction, diagnostic, procedure, PvP on the new key (`[CHANGE]` tests
    for FR-029, 029b, 029c, 009 written failing first).
-5. **Readers** — `ratings_view`; every V2 or shared reader in research R18 goes through it:
+5. **Readers** — `RatingReadService`; every V2 or shared reader in research R18 goes through it:
    stats, teacher dashboard and student report, map, `/ai/socratic` and teacher AI analysis,
-   exam snapshot, PvP lobby, **group ranking** (FR-028a–e, 029a, 026). V1 call sites of shared
-   readers are adapted, and the V1-only rankings and rank position are migrated with their
-   participation rules kept separate from the rating source (FR-028f); weekly snapshots stay
+   exam snapshot, PvP lobby, **group ranking with its basis** (FR-028a–e, 029a, 026). The V1-only
+   rankings and rank position use `ranking_view`/`ranking_position` with their participation rules
+   kept separate from the rating basis and one tie rule (FR-028f, 028h); weekly snapshots stay
    history (FR-028g).
+   **V1 is never left broken**: every task that changes a shared signature or deletes a shared
+   reader adapts its V1 call sites in the same task; a V1 smoke pin stays green at every
+   checkpoint.
 6. **Reconciliation** — FR-033–036, 034a/b; idempotency test on both engines.
 7. **Contracts** — API fields, `/meta/ranks`, `game_end` message.
 8. **Frontend** — preview from API, single rank source, "pending diagnostic", history view.
-9. **V1** — adapt calls; regression test of the V1 answer path; smoke import.
+9. **V1** — no separate phase: smoke pin from Phase 2, regression test in US1, call sites adapted
+   inside the tasks that change them.
 10. **Verify** — full suite, `db_sync_check`, frontend build, capacity, traceability table,
     remove D-1/D-2/D-3 from the constitution's Known Deviations.
 
@@ -128,7 +134,9 @@ one new router file at most; no new top-level directories.
 | Check | Proves | FR |
 |---|---|---|
 | Group ranking with `course_id` excludes attempts and ratings of other courses (fails on today's code) | course filter works | 028d |
+| Group ranking basis: requested → group course → overall; 400 unknown course, 403 not enrolled; basis returned; no substitution for unrated students | basis precedence | 028d |
 | Group ranking orders by derived rating, unrated students last as pending | canonical source | 028d, 028b |
+| Equal ratings ordered by the tie rule identically on both engines; position = index in the same list; `limit` does not change positions | tie rule | 028h |
 | Every rating reader in R18 returns values equal to `ratings_view` for the same student (single fixture, all readers) | canonical reads | 028, 028a, 029a |
 | Legacy rows and `users.current_elo` changed by hand do not change any read | legacy excluded | 036, 028 |
 | Student in a grade with no rated course: stats, teacher dashboard, rankings show pending, no number, no rank | pending diagnostic | 028b |
@@ -136,7 +144,8 @@ one new router file at most; no new top-level directories.
 | Rank position equals the index in the corresponding list, same participation rule | rank consistency | 028f |
 | Weekly ranking: a student active this week appears; a student inactive this week with a higher rating does not; ordering by derived rating | participation ≠ rating source | 028f |
 | Stored weekly snapshots unchanged after migration and after new answers | history preserved | 028g |
-| V1 answer path (`student_view.handle_answer_topic` call shape) persists to the item's course+topic; V1 modules import and services construct | V1 compatibility | 029, constitution § Stack |
+| V1 answer path (`student_view.handle_answer_topic` call shape) persists to the item's course+topic; V1 modules import and services construct — smoke green at every checkpoint | V1 compatibility | 029, constitution § Stack |
+| Architecture guard: no rating aggregation/ordering in repositories or routers (supplementary to the behavioural tests above) | layer split | constitution III |
 | Each repository test above runs parametrised on SQLite and PostgreSQL with identical results | engine parity | IV |
 
 ## Complexity Tracking

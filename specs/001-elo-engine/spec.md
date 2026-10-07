@@ -38,6 +38,18 @@ easy or too hard and teachers act on false information.
   never described as exact recovery; a legacy row with no eligible context stays unassigned and
   the diagnostic initializes (FR-034, FR-034a, FR-034b).
 
+### Session 2026-10-06 (/speckit-analyze remediation, owner + expert review)
+
+- Q: What ranks a group? → A: precedence — an explicitly requested, validated and authorized
+  course; otherwise the group's course; otherwise the overall rating. One basis per list, applied
+  to every participant and shown in the response/UI; students without a rating on that basis are
+  listed last as "pending diagnostic", never ranked on another rating (FR-028d, FR-028f).
+- Q: How are ties and positions decided? → A: one explicit tie rule; a position is the index in
+  the same ordered list the ranking returns (FR-028h).
+- Q: Where may rating arithmetic live? → A: calculations in the domain; orchestration in one
+  application read service; participant selection and raw rows in repositories. Adding a
+  domain-computed delta atomically in SQL is persistence, not arithmetic (plan, research R3).
+
 ### Session 2026-10-05 (/speckit-clarify)
 
 - Q: What happens to ratings already stored under a course id or course name? → A: existing topic
@@ -220,6 +232,13 @@ shows them.
 6. **US6-AS6** — **Given** a promoted student whose new-grade diagnostic gives an overall rating
    lower than before, **When** it is shown, **Then** no loss or negative delta is shown, and the
    previous grade's course ratings remain viewable unchanged.
+7. **US6-AS7** — **Given** a group tied to course C whose members are A (C rating 1200),
+   B (C rating 1100, overall 1500) and D (no rating in C), **When** the group ranking is shown
+   without a requested course, **Then** the basis shown is "course C (group)", the order is A, B,
+   then D marked "pending diagnostic", and B is not ranked by its overall rating.
+8. **US6-AS8** — **Given** two students with the same rating on the ranking's basis, **When** the
+   ranking and each student's position are shown, **Then** both follow the tie rule (FR-028h) and
+   each position equals that student's index in the list.
 
 ---
 
@@ -230,7 +249,10 @@ shows them.
 - Uncertainty already at the floor (30) → stays at 30; changes are 32 × 30/350 ≈ 2.7 × surprise.
 - A teacher grade of 50 → zero change, but the submission is still marked as applied.
 - Procedure change on a topic with no rating → starts from 1000 and never goes below 0.
-- Course with no rated topics → its derived rating is 1000.
+- Course with no rated topics → selection and PvP expectation use 1000; every display shows
+  "pending diagnostic" (FR-029a).
+- Requested ranking course that does not exist → rejected; one the requester may not see →
+  refused (FR-028d).
 - Legacy row with no eligible context → kept unassigned and excluded; the diagnostic initializes.
 - Promotion → the overall rating switches to the new grade's courses; until one has a rated topic
   it reads "pending diagnostic".
@@ -330,7 +352,7 @@ practising one topic, or the derived course rating (FR-029a) when practising the
 **Reading the rating (US6)**
 
 - **FR-028** [AS-IS]: The system shall hold each rating in exactly one place and derive every
-  aggregate from stored ratings, never by replaying attempts.
+  aggregate from stored ratings (history rule: FR-028e).
 - **FR-028a** [CHANGE]: The system shall derive a student's overall rating as the arithmetic mean,
   each course weighted equally, of the course ratings of the courses the student is enrolled in
   that belong to their **current education level and grade** and have at least one rated topic;
@@ -345,22 +367,40 @@ practising one topic, or the derived course rating (FR-029a) when practising the
 - **FR-028c** [CHANGE]: When the student's level or grade changes, the system shall keep the
   ratings of earlier courses unchanged and viewable as history, and shall not present the
   difference between the old and the new overall rating as a rating change or loss.
-- **FR-028d** [CHANGE]: When a ranking of students is shown in V2 (group ranking for a student or
-  a teacher), the system shall order students by their derived course rating when a course is
-  given, or by their overall rating otherwise (FR-028a, FR-029a), listing students with no rating
-  as "pending diagnostic" after the rated ones. *(Today the group ranking averages every past
-  attempt's rating in both engines, and its course filter does not filter — research R18.)*
+- **FR-028d** [CHANGE]: When a group ranking is shown (to a student or a teacher), the system shall
+  choose **one rating basis** for the whole list, in this order: (1) a course explicitly requested,
+  which must exist (else rejected) and which the requester may see — for a student, a course they
+  are enrolled in; for a teacher, only via a group they own (else refused); (2) otherwise the
+  group's course, if the group has one; (3) otherwise the overall rating (FR-028a). Every
+  participant is ranked on that basis (course rating per FR-029a), the basis is returned with the
+  list and shown in the UI, and students without a rating on that basis are listed after the rated
+  ones as "pending diagnostic" — never ranked on a different rating. *(Today the group ranking
+  averages every past attempt's rating in both engines, and its course filter does not filter —
+  research R18.)*
 - **FR-028e** [AS-IS]: The system shall show past per-attempt ratings only as history (student
   history, teacher rating history, exports) and shall never derive a current rating from them.
-- **FR-028f** [CHANGE]: When a V1 ranking is shown (global, per course, weekly) or a student's
-  position in one is computed, the system shall take each student's **current rating** from the
-  derived ratings (overall per FR-028a, course per FR-029a), keeping each ranking's **participation
-  rule** separate: who appears is decided by activity (e.g. at least one attempt in the last 7 days,
-  in that course for a course ranking); what they are ranked by is the derived rating. A student's
-  position shall use exactly the same rating and participation rule as the list it refers to.
-  *(Today these readers rebuild ratings from `attempts.elo_after` — research R18.)*
+- **FR-028f** [CHANGE]: When a V1 ranking is shown or a student's position in one is computed,
+  the system shall decide **who appears** by the ranking's participation rule and **what they are
+  ranked by** from the derived ratings, as follows:
+
+  | Ranking | Who appears | Ranked by |
+  |---|---|---|
+  | Global | students (of the requested level and grade, when given) with ≥ 1 attempt in the last 7 days | overall rating (FR-028a) |
+  | Course | students with ≥ 1 attempt on that course's items in the last 7 days | that course's rating (FR-029a) |
+  | Weekly (group) | students of the group with ≥ 1 attempt in the last 7 days | the group basis of FR-028d |
+  | Group (V2) | students of the group | the group basis of FR-028d |
+
+  Students without a rating on the basis are listed last as "pending diagnostic". A student's
+  position is taken from the same ordered list (FR-028h). *(Today these readers rebuild ratings
+  from `attempts.elo_after` — research R18.)*
 - **FR-028g** [AS-IS]: The system shall keep stored weekly ranking snapshots unchanged as history;
   a snapshot records the rating as it was when it was taken.
+- **FR-028h** [CHANGE]: The system shall order every ranking list by rating on its basis,
+  highest first, comparing ratings rounded to 2 decimals; ties are broken by more attempts in the
+  ranking's activity window first (0 for rankings without a window), then by lower user id.
+  Pending students follow, ordered by lower user id. A position is the 1-based index of the
+  student in that list; no two students share a position. *(Today ties fall in database order,
+  which differs between engines.)*
 - **FR-029** [CHANGE]: The system shall store every rating change — practice answer, diagnostic,
   procedure — under the **course and topic of the item involved**, identified by the course's
   stable identifier and the topic within it. There is one stored rating per student, course and
@@ -447,16 +487,18 @@ items of that course, or the student's diagnostic for that course.
 
 ### Measurable Outcomes
 
-- **SC-001**: For 100 % of the acceptance scenarios above, an automated check reproduces the stated
-  numbers on both supported databases.
+- **SC-001**: For 100 % of the acceptance scenarios above, an automated check reproduces the
+  stated numbers. Every scenario whose outcome depends on stored data runs against both supported
+  databases with identical results; scenarios that exercise only domain rules or response shapes
+  run once.
 - **SC-002**: 0 rating changes are produced by answers outside the 3–600 s window, by exams, or by
   AI-proposed scores.
 - **SC-003**: Retrying any accepted answer, procedure validation or match close changes ratings
   0 times beyond the first.
 - **SC-004**: With 8 simultaneous answers from one student, the final rating equals the
   one-after-another result in 100 % of runs.
-- **SC-005**: For any student, the overall rating and rank shown are identical on every screen
-  that shows them.
+- **SC-005**: For any student, the overall rating and rank shown are identical on every V2 screen
+  that shows them (V1 keeps its own labels — research R16).
 - **SC-006**: The predicted change shown before an answer equals the applied change to within 0.1
   points.
 - **SC-007**: After this spec is implemented, every new rating change lands on a topic, and 0
@@ -495,13 +537,13 @@ items of that course, or the student's diagnostic for that course.
 **Automated tests are explicitly required for every functional requirement and acceptance
 scenario. Reuse adequate existing tests; create or strengthen tests where coverage is missing.**
 
-Docs stage: every row names the task(s) in tasks.md that produce its test; `PENDING` until T067
+Docs stage: every row names the task(s) in tasks.md that produce its test; `PENDING` until T068
 replaces it with the collected test id.
 
 | Requirement / Scenario | Test |
 |---|---|
-| US1-AS1 | `PENDING` (T011, T012, T032) |
-| US1-AS2 | `PENDING` (T011, T032) |
+| US1-AS1 | `PENDING` (T011, T012, T033) |
+| US1-AS2 | `PENDING` (T011, T033) |
 | US1-AS3 | `PENDING` (T006) |
 | US1-AS4 | `PENDING` (T013) |
 | US1-AS5 | `PENDING` (T013) |
@@ -516,7 +558,7 @@ replaces it with the collected test id.
 | US3-AS2 | `PENDING` (T016) |
 | US3-AS3 | `PENDING` (T006) |
 | US3-AS4 | `PENDING` (T016) |
-| US4-AS1 | `PENDING` (T017, T045) |
+| US4-AS1 | `PENDING` (T017, T047) |
 | US4-AS2 | `PENDING` (T006) |
 | US4-AS3 | `PENDING` (T017) |
 | US4-AS4 | `PENDING` (T008) |
@@ -525,62 +567,65 @@ replaces it with the collected test id.
 | US5-AS2 | `PENDING` (T007) |
 | US5-AS3 | `PENDING` (T007) |
 | US5-AS4 | `PENDING` (T018) |
-| US5-AS5 | `PENDING` (T047) |
-| US6-AS1 | `PENDING` (T021, T030, T051) |
-| US6-AS2 | `PENDING` (T056, T058) |
-| US6-AS3 | `PENDING` (T055, T058) |
-| US6-AS4 | `PENDING` (T013) |
-| US6-AS5 | `PENDING` (T051, T058) |
-| US6-AS6 | `PENDING` (T051) |
+| US5-AS5 | `PENDING` (T049) |
+| US6-AS1 | `PENDING` (T022, T031, T053) |
+| US6-AS2 | `PENDING` (T058, T061) |
+| US6-AS3 | `PENDING` (T057, T061) |
+| US6-AS4 | `PENDING` (T013, T019) |
+| US6-AS5 | `PENDING` (T053, T061) |
+| US6-AS6 | `PENDING` (T053) |
+| US6-AS7 | `PENDING` (T055, T061) |
+| US6-AS8 | `PENDING` (T056) |
 | FR-001 | `PENDING` (T003) |
 | FR-002 | `PENDING` (T011) |
 | FR-003 | `PENDING` (T011) |
-| FR-004 | `PENDING` (T011, T040, T042) |
+| FR-004 | `PENDING` (T011, T042, T044) |
 | FR-005 | `PENDING` (T012) |
 | FR-006 | `PENDING` (T012) |
 | FR-007 | `PENDING` (T006, T019) |
-| FR-008 | `PENDING` (T006, T019, T033) |
-| FR-009 | `PENDING` (T033) |
+| FR-008 | `PENDING` (T006, T019, T034) |
+| FR-009 | `PENDING` (T034) |
 | FR-010 | `PENDING` (T006) |
 | FR-011 | `PENDING` (T009) |
 | FR-012 | `PENDING` (T010, T013) |
 | FR-013 | `PENDING` (T013) |
 | FR-014 | `PENDING` (T013) |
-| FR-015 | `PENDING` (T012, T034) |
+| FR-015 | `PENDING` (T012, T035) |
 | FR-016 | `PENDING` (T005, T014) |
 | FR-017 | `PENDING` (T004, T015) |
 | FR-018 | `PENDING` (T004) |
-| FR-019 | `PENDING` (T005, T014) |
+| FR-019 | `PENDING` (T014) |
 | FR-020 | `PENDING` (T016) |
-| FR-021 | `PENDING` (T006, T043) |
+| FR-021 | `PENDING` (T006, T045) |
 | FR-022 | `PENDING` (T006, T017) |
 | FR-023 | `PENDING` (T008, T017) |
 | FR-024 | `PENDING` (T017) |
 | FR-025 | `PENDING` (T007, T018) |
-| FR-026 | `PENDING` (T048) |
+| FR-026 | `PENDING` (T050) |
 | FR-027 | `PENDING` (T007) |
-| FR-028 | `PENDING` (T006, T052) |
-| FR-028a | `PENDING` (T051) |
-| FR-028b | `PENDING` (T051) |
-| FR-028c | `PENDING` (T051) |
-| FR-028d | `PENDING` (T053) |
+| FR-028 | `PENDING` (T006, T054) |
+| FR-028a | `PENDING` (T053) |
+| FR-028b | `PENDING` (T053) |
+| FR-028c | `PENDING` (T053) |
+| FR-028d | `PENDING` (T055) |
 | FR-028e | `PENDING` (T019) |
-| FR-028f | `PENDING` (T054) |
+| FR-028f | `PENDING` (T029, T056) |
 | FR-028g | `PENDING` (T019) |
-| FR-029 | `PENDING` (T032, T038, T043, T045, T050) |
-| FR-029a | `PENDING` (T040) |
-| FR-029b | `PENDING` (T047) |
-| FR-029c | `PENDING` (T047) |
-| FR-030 | `PENDING` (T056) |
-| FR-031 | `PENDING` (T055) |
+| FR-028h | `PENDING` (T022, T056) |
+| FR-029 | `PENDING` (T033, T036, T040, T045, T047, T052) |
+| FR-029a | `PENDING` (T042) |
+| FR-029b | `PENDING` (T049) |
+| FR-029c | `PENDING` (T049) |
+| FR-030 | `PENDING` (T058) |
+| FR-031 | `PENDING` (T057) |
 | FR-031a | `PENDING` (T016) |
-| FR-032 | `PENDING` (T013) |
-| FR-033 | `PENDING` (T057) |
-| FR-034 | `PENDING` (T057) |
-| FR-034a | `PENDING` (T057) |
-| FR-034b | `PENDING` (T057) |
-| FR-035 | `PENDING` (T057) |
-| FR-036 | `PENDING` (T052, T057) |
+| FR-032 | `PENDING` (T013, T019) |
+| FR-033 | `PENDING` (T059) |
+| FR-034 | `PENDING` (T059) |
+| FR-034a | `PENDING` (T059) |
+| FR-034b | `PENDING` (T059) |
+| FR-035 | `PENDING` (T059) |
+| FR-036 | `PENDING` (T054, T059) |
 
 ## Appendix — As-is evidence
 
@@ -605,9 +650,10 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-025, FR-027 | `api/websocket/pvp.py:28, 83-125`; `finish_pvp_match`, `expire_stale_pvp_matches` |
 | FR-026 | `api/websocket/pvp.py:191` (global `current_elo`) vs `finish_pvp_match` (course key) |
 | FR-028 | `get_latest_elo_by_topic`, `_refresh_global_elo` (both repos); `aggregate_global_elo` |
-| FR-028d | `get_group_ranking` (both repos) ← `api/routers/student.py:410`, `api/routers/teacher.py:335` |
+| FR-028d | `get_group_ranking` (both repos) ← `api/routers/student.py:401-413` (unvalidated `course_id`), `api/routers/teacher.py:328-337` (no course); `groups.course_id` nullable |
 | FR-028e | `get_latest_attempts`, `get_student_attempts_detail`, `export_teacher_student_data` |
 | FR-028f | `get_global_ranking`, `get_course_ranking`, `get_weekly_ranking`, `get_student_rank` (both repos) ← `student_view.py:538, 610, 634, 729, 757`, `teacher_view.py:465, 495, 528` |
+| FR-028h | `ORDER BY elo DESC` / `ORDER BY ue.global_elo DESC` with no tie-break in every ranking query (both repos) |
 | FR-028g | `weekly_rankings` table; `save_weekly_ranking`, `get_ranking_history` ← `teacher_view.py:550, 556` |
 | FR-029 | `student_view.py:385`, `api/routers/student.py:166`, `useStudentSession.ts:74`, `finish_pvp_match`, `validate_procedure_submission`, diagnostic submit |
 | FR-030 | `frontend/src/pages/Student/Practice.tsx:27-33` |

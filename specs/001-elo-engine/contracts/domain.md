@@ -17,6 +17,7 @@ Internal interfaces the tests pin. Pure functions live in `src/domain/` (no I/O,
 | `overall_rating(course_ratings: list[float \| None]) -> float \| None` | mean of non-`None` values, equal weight; `None` if none | 028a, 028b |
 | `rank_for(rating: float \| None) -> str \| None` | 16-level table, `None` → `None` | 031 |
 | `RANKS: tuple[(min, label), ...]` | the single scale, served by `/meta/ranks` | 031 |
+| `order_ranking(entries) -> list[entry]` | entries `{user_id, rating: float \| None, attempts_in_window: int}`; rated first by `round(rating, 2)` desc, then `attempts_in_window` desc, then `user_id` asc; then pending (`rating=None`) by `user_id` asc; adds 1-based `position` | 028d, 028f, 028h |
 | `diagnostic_tier(difficulty) -> (win, loss)` | +14/−20 · +22/−12 · +34/−6 (moved from the router) | 020 |
 | `diagnostic_baseline(answers) -> float` | `max(760, 1000 + Σ tier deltas)` | 020 |
 
@@ -27,9 +28,20 @@ Removed: `calculate_dynamic_k`, `update_elo`, `StudentELO`, `impact_modifier` pa
 
 | Method | Contract | FR |
 |---|---|---|
+Repositories select participants and return raw rows. They never average, order by, or otherwise
+compute a rating (constitution III). The one permitted rating write pattern is adding a
+domain-computed delta atomically inside a transaction (`current_elo = MAX(0, current_elo + :delta)`)
+— persistence, not arithmetic (research R3).
+
 | `save_answer_transaction(user_id, item_id, compute, request_id=None, request_fingerprint=None) -> bool` | lock users→items; read item `(course_id, topic, difficulty, rd)` and rating row `(user, course_id, topic)`; call `compute(state)`; persist attempt always; persist rating + item only if `attempt_data["elo_valid"]`; `False` on idempotent replay. **`topic` parameter removed.** | 007–010, 012, 029 |
 | `get_course_topic_ratings(user_id, course_id=None) -> list[{course_id, topic, elo, rd, origin, approximate}]` | new-table rows only; never legacy | 028, 029 |
-| `get_current_context_course_ids(user_id) -> list[str]` | enrollments ∩ catalogue for the user's level and grade | 028a |
+| `get_current_context_course_ids(user_id) -> list[str]` | enrollments ∩ catalogue for the user's level and grade (semillero by grade; colegio, universidad, concursos by level) | 028a |
+| `get_course_topic_ratings_bulk(user_ids, course_id=None) -> list[{user_id, course_id, topic, elo, rd, origin, approximate}]` | raw rows for many students, one query | 028a, 028d, 028f |
+| `get_current_context_course_ids_bulk(user_ids) -> {user_id: [course_id]}` | same rule as above, many students | 028a |
+| `get_ranking_participants(scope, group_id=None, course_id=None, education_level=None, grade=None, window_days=7) -> list[{user_id, username, attempts_in_window}]` | **who appears**, per FR-028f table; `scope ∈ {"group","global","course","weekly"}`; for `"group"` `attempts_in_window = 0`; never returns a rating | 028d, 028f |
+| `get_group_course_id(group_id) -> str \| None` | the group's course, if any | 028d |
+| `save_weekly_ranking(group_id, rows)` | stores the rows computed by `ranking_view(scope="weekly")` as a snapshot | 028g |
+| `get_teacher_dashboard_stats(teacher_id)` | per student: attempts, accuracy, last activity — **no rating** | 028a |
 | `set_topic_rating_baseline(user_id, course_id, topic, elo, rd=350)` | diagnostic writer; replaces `set_topic_elo_baseline` | 020 |
 | `has_practice_attempts(user_id, course_id, topic) -> bool` | attempts on items of that course and topic | 021 |
 | `validate_procedure_submission(...)` | unchanged signature; bump on `(student, item.course_id, item.topic)` | 022–024 |
@@ -39,14 +51,33 @@ Removed: `calculate_dynamic_k`, `update_elo`, `StudentELO`, `impact_modifier` pa
 
 Removed from the public API: `get_latest_elo_by_topic` (replaced by `get_course_topic_ratings`),
 `get_topic_elo_map` (map reads `get_course_topic_ratings(user, course_id)`),
-`set_topic_elo_baseline`, `_refresh_global_elo`, `_tiempo_valido`.
+`set_topic_elo_baseline`, `_refresh_global_elo`, `_tiempo_valido`, `get_student_elo_summary`
+(rating part → `ratings_view`), `get_group_ranking`, `get_global_ranking`, `get_course_ranking`,
+`get_weekly_ranking`, `get_student_rank` (→ `get_ranking_participants` + `ranking_view`),
+`get_user_history_elo` (dead).
 `src/application/interfaces/repositories.py` and `tests/unit/application/test_repository_contracts.py`
 are updated with the same list.
 
-## Application — `StudentService`
+## Application
+
+### `src/application/services/rating_read_service.py` — `RatingReadService(repository)`
+
+The only place that turns stored rows into course ratings, overall ratings, ranks and rankings
+(orchestration; the arithmetic is the domain functions above). V2 routers, `StudentService`,
+`TeacherService` and V1 views call it.
+
+| Method | Contract | FR |
+|---|---|---|
+| `ratings_view(user_id) -> {overall, overall_status, rank_label, courses: [{course_id, course_name, rating, rank_label, current_context, topics}]}` | `overall=None` ⇒ `overall_status="pending_diagnostic"`, `rank_label=None` | 028a–c, 029a, 031 |
+| `ratings_view_bulk(user_ids) -> {user_id: ratings_view}` | same, one repository round-trip | 028a |
+| `course_rating_of(user_id, course_id) -> float \| None` | selection / PvP expectation use `1000` when `None` (caller decides) | 029a, 026 |
+| `group_basis(group_id, requested_course_id=None, requester=None) -> {kind: "course" \| "overall", course_id: str \| None, source: "requested" \| "group" \| "overall"}` | precedence of FR-028d; unknown course → `ValueError` (400); not visible to requester → `PermissionError` (403) | 028d |
+| `ranking_view(scope, *, group_id=None, course_id=None, education_level=None, grade=None, limit=None, requester=None) -> {basis, entries: [{user_id, username, rating, rank_label, status: "rated" \| "pending_diagnostic", attempts_in_window, position}]}` | participants from `get_ranking_participants`; rating on the single basis; `order_ranking`; `limit` applied **after** ordering | 028d, 028f, 028h |
+| `ranking_position(user_id, scope, **same_args) -> int \| None` | `position` of `user_id` in `ranking_view(scope, **same_args)` (unlimited list); `None` if not a participant | 028f, 028h |
+
+### `StudentService`
 
 | Method | Contract |
 |---|---|
 | `process_answer(user_id, item_data, selected_option, reasoning, time_taken, request_id=None, request_fingerprint=None)` | `vector_rating` and `elo_topic` parameters removed; returns `(is_correct, result)` with `elo_before`, `elo_after`, `rd_after`, `elo_valid` |
-| `get_next_question(student_id, course_id, topic_filter=None, session…)` | selection rating per FR-016–019; returns item + `preview` |
-| `ratings_view(user_id) -> {overall, overall_status, rank_label, courses: [...]}` | the single reader for every overall/course rating in `api/` |
+| `get_next_question(student_id, course_id, topic_filter=None, session…)` | selection rating per FR-016–019 via `RatingReadService`; returns item + `preview` |

@@ -2,7 +2,8 @@
 
 Base path `/api`. Only fields that change are listed; everything else in each payload is unchanged.
 Compatibility rule: no field is removed or renamed in this spec — existing clients keep working;
-new clients use the new fields. `[FR]` = requirement served.
+new clients use the new fields. One exception: the always-1.0 `impact_modifier` key inside the
+free-form `cog_data` dict of `/student/answer`. `[FR]` = requirement served.
 
 ## `POST /student/next-question` — `NextQuestionResponse`
 
@@ -54,9 +55,21 @@ league label stays a placement [FR-031a].
 | `rank_label` | **new** | `str \| null` | single scale [FR-031]; the frontend stops computing ranks |
 | `overall_status` | **new** | `"rated" \| "pending_diagnostic"` | [FR-028b] |
 
-## `GET /meta/ranks` — **new, public**
+## `GET /student/group-ranking?course_id=` · `GET /teacher/student/{id}/ranking`
+
+| Field | Change | Type | Meaning |
+|---|---|---|---|
+| `basis` | **new** | `{kind: "course" \| "overall", course_id: str \| null, course_name: str \| null, source: "requested" \| "group" \| "overall"}` | the single basis used for every participant [FR-028d] |
+| `ranking[]` | semantics | `{user_id, username, rating: float \| null, rank_label: str \| null, status: "rated" \| "pending_diagnostic", position}` | ordered per FR-028h; pending last; `global_elo`/`rank_pos` kept as aliases of `rating`/`position` for old clients |
+| `my_rank` | semantics | `int \| null` | equals that student's `position` in `ranking` [FR-028h] |
+
+Errors: `course_id` that does not exist → **400**; a student requesting a course they are not
+enrolled in → **403**. The teacher endpoint takes no `course_id` (basis = group course, else
+overall); the existing group-ownership check stays.
+
+## `GET /meta/ranks` — **new, public** (`api/routers/meta.py`)
 `200 → [{label: str, min: float}]` ordered ascending; the 16-level scale. Used by the home page
-[FR-031]. No authentication; cacheable.
+[FR-031]. No authentication; rate-limited like other public routes; cacheable.
 
 ## WebSocket `/ws/pvp/...` — `game_end` message
 

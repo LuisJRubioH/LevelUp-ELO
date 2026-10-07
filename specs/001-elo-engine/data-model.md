@@ -30,7 +30,8 @@ index. Nothing is dropped or retyped. Every change is mirrored in SQLite and Pos
   attributed only through eligibility evidence (research R10).
 
 ## Changed: `users.current_elo` → legacy column (FR-028)
-- No schema change. No longer written or read. Overall rating is derived (below).
+- No schema change. No longer written; no consumer reads its value (`get_user_by_id` still
+  selects the column for compatibility). Overall rating is derived (below).
 
 ## Changed: `attempts`
 - No schema change. From now on `topic` holds the **item's** topic (not an arbitrary key) and
