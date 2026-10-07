@@ -233,25 +233,36 @@ def _backfill_prob_failure(self):
     from src.domain.elo.model import expected_score  # here, not at module level
 ```
 
-### R15 — `student_topic_elo` is the only rating state
-`users.current_elo` is its derived average; `attempts` is a log. Writers, each applying its
-effect exactly once:
+### R15 — `student_course_topic_elo` is the only rating state (spec 001)
+One row per student × course × topic (`DOUBLE PRECISION` on PostgreSQL, research R20). Course and
+overall ratings are **derived** by `RatingReadService` and never stored. `student_topic_elo` and
+`users.current_elo` are **legacy**: nothing writes them; only reconciliation reads the legacy rows.
+`attempts` is a log. Writers, each applying its effect exactly once:
 
 | Path | Method | Effect |
 |---|---|---|
-| Diagnostic | `set_topic_elo_baseline` → `_set_topic_elo` | sets the value |
-| Answer with `elo_valid=1` | `save_answer_transaction` → `_set_topic_elo` | sets the value |
-| Teacher-validated procedure | `validate_procedure_submission` → `_bump_topic_elo` | adds `elo_delta`, sets `elo_applied=1` |
-| Finished PvP match | `finish_pvp_match` → `_bump_topic_elo` | adds the delta (R19) |
+| Diagnostic | `set_topic_rating_baseline` → `_set_course_topic_rating` | sets the value; skipped for a topic already practised in that course |
+| Answer with `elo_valid` | `save_answer_transaction` → `_set_course_topic_rating` | sets the item's (course, topic) value |
+| Teacher-validated procedure | `validate_procedure_submission` → `_bump_course_topic_rating` | adds `elo_delta` (floor 0), sets `elo_applied=1` |
+| Finished PvP match | `finish_pvp_match` | adds the delta to every rated topic of the course (R19) |
+| Legacy reconciliation | `_reconcile_legacy_ratings` (bootstrap, idempotent) | inserts approximate baselines with provenance |
 
-Never rebuild a rating from `attempts` on read; `get_latest_elo_by_topic` is a single-table
-`SELECT`. Regression: `tests/integration/test_elo_single_source.py`. Known issue: the writers do
-not yet agree on the rating key (constitution Known Deviation D-1, fixed by spec 001).
+Never rebuild a rating from `attempts`. Repositories return raw rows and ranking participants —
+never an average, a rounding or an order by rating (guard:
+`tests/unit/test_architecture_layers.py::test_spec001_no_rating_aggregation_in_repositories_or_routers`).
+Every current rating, rank and ranking is read through `RatingReadService`; screens render the
+backend's `display_rating` (half-up whole number) and `rank_label` as given and show "pending
+diagnostic" — never the internal 1000 — when there is no rating. Tests: those named `spec001`
+(spec 001 § Traceability).
 
 ### R16 — Answering: read, compute and write in one transaction
-`save_answer_transaction(user_id, item_id, topic, compute, …)` locks (PostgreSQL `FOR UPDATE` on
-`users` then `items`, always that order; SQLite `BEGIN IMMEDIATE`), reads, calls `compute(state)`
-— the domain arithmetic supplied by `StudentService` — and persists. `compute` does no I/O.
+`save_answer_transaction(user_id, item_id, compute, request_id=None, request_fingerprint=None)`
+locks (PostgreSQL `FOR UPDATE` on `users` then `items`, always that order; SQLite `BEGIN
+IMMEDIATE`), reads the item's `(course_id, topic)` row, calls `compute(state)` — the domain
+arithmetic supplied by `StudentService` — and persists. `compute` does no I/O and decides validity
+(`is_valid_response_time`: 3–600 s inclusive; an absent time is 30 s; an explicit 0 is invalid).
+An invalid attempt is recorded with before = after and moves nothing. With an `Idempotency-Key`,
+`/answer` returns the persisted attempt values on the first response and on retries (FR-012a).
 
 ### R17 — No migrations or blocking I/O inside the HTTP process
 - Deploy: schema bootstrap runs in `scripts/migrate.py` against `MIGRATION_DATABASE_URL` (direct
@@ -268,10 +279,14 @@ memory. `settings.validate_runtime()` refuses to start in production with `WEB_C
 cross-process wake-up — all three before raising the number. Details:
 [`docs/arquitectura.md` § Límites conocidos](docs/arquitectura.md).
 
-### R19 — A PvP result moves `student_topic_elo`, not `users.current_elo`
-`finish_pvp_match` applies the delta with `_bump_topic_elo` on the match's `course_id`. The close
-is idempotent through `AND status='active'`. Orphaned matches are closed as `abandoned` (no rating
-change) by `expire_stale_pvp_matches()`.
+### R19 — A PvP result moves every rated topic of the match's course
+`finish_pvp_match` adds each player's delta to all of that player's rated topics in the course
+(atomic, floor 0), so the course rating moves by exactly the delta. A player with no rated topic
+gets 0 with `elo_reason = 'no_rated_topics'`; it returns the applied deltas, and `game_end` reports
+them (`"not_applied"` with 0 if persisting fails). The close is idempotent through
+`AND status='active'`. The lobby reads the course rating outside `_lock` (1000 drives the
+expectation of an unrated player but is never shown). Orphaned matches are closed as `abandoned`
+(no rating change) by `expire_stale_pvp_matches()`.
 
 ---
 
@@ -281,9 +296,8 @@ change) by `expire_stale_pvp_matches()`.
   `api/` or `frontend/`. V1 is frozen (constitution § Stack).
 - **V2-R2** — Dual DB still applies: `db_sync_check.py` before every commit that touches a
   repository.
-- **V2-R3** — *Superseded* by constitution Principle II and Known Deviation D-2: the frontend
-  preview must use the backend's K. Until spec 001 lands, `estimateEloDelta()` in `Practice.tsx`
-  still uses its own K (32/24); do not copy that pattern.
+- **V2-R3** — The answer preview comes from `/next-question`'s `preview`, computed by the same
+  domain formula as the update (spec 001, FR-030). The frontend never estimates rating changes.
 - **V2-R7** — pnpm (version in `packageManager`), Node ≥ 22.13 (CI: Node 24).
   `pnpm install --frozen-lockfile`; never generate an npm lockfile. Overrides go in
   `frontend/pnpm-workspace.yaml`.
@@ -477,11 +491,16 @@ change) by `expire_stale_pvp_matches()`.
 Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectura.md).
 
 **`domain/`**
-- `elo/model.py` — `expected_score`, `procedure_elo_delta`, dataclasses. (`calculate_dynamic_k`
-  and `update_elo` are unused — scheduled for removal in spec 001.)
+- `elo/model.py` — the rating formulas: `expected_score`, `rating_delta`, `next_rd`,
+  `item_difficulty_delta`, `is_valid_response_time`, `pvp_deltas`, `diagnostic_tier`,
+  `diagnostic_baseline`, `procedure_elo_delta`.
+- `elo/aggregation.py` — `course_rating`, `overall_rating` (full precision).
+- `elo/ranks.py` — the single 16-level scale `RANKS`, `rank_for`, `round_for_display` (half up),
+  `rating_display`, `rank_competition` (1, 2, 2, 4).
+- `elo/reconciliation.py` — `plan_reconciliation` (legacy rows → approximate baselines).
 - `elo/uncertainty.py` — `RatingModel`: `ΔR = 32 × (RD/350) × (result − P)`; RD starts at 350,
   ×0.95 per answer, floor 30.
-- `elo/vector_elo.py` — `VectorRating` (rating + RD per key), `aggregate_global_elo`.
+- `elo/vector_elo.py` — `VectorRating` (rating + RD per key; V1 display container).
 - `selector/item_selector.py` — `AdaptiveItemSelector`: pre-filter `D ∈ [R−250, R+250]`, target
   `P ∈ [0.40, 0.75]` widened ±0.05 per step (max 10), random pick among candidates within 95 % of
   the best `P(1−P)`.
@@ -489,7 +508,8 @@ Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectur
 - `katia/katia_messages.py` — predefined KatIA messages by score band and streak.
 
 **`application/services/`** — `student_service.py` (`process_answer`, `get_next_question`,
-badges), `teacher_service.py`. Interfaces: `application/interfaces/repositories.py`, checked
+badges), `teacher_service.py`, `rating_read_service.py` (`RatingReadService`: every current
+rating, rank, ranking, selection rating and answer preview). Interfaces: `application/interfaces/repositories.py`, checked
 both ways by `tests/unit/application/test_repository_contracts.py`.
 
 **`infrastructure/`** — `persistence/sqlite_repository.py`, `persistence/postgres_repository.py`
@@ -514,17 +534,19 @@ Bootstrap: `init_db()` → `_migrate_db()` → `_seed_admin()` → `_seed_demo_d
 `_backfill_prob_failure()` → `sync_items_from_bank_folder()` → `_seed_test_students()`.
 
 PostgreSQL: `pg_try_advisory_lock` (non-blocking), IDs 12345–12349, always released in `finally`.
+Reconciliation uses `pg_try_advisory_xact_lock(12345)` — also non-blocking, released at commit.
 Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` cancels them.
 
 | Table | Key fields |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (derived), `email` (partial UNIQUE, NULL ok) |
-| `student_topic_elo` | PK `(user_id, topic)`, `current_elo`, `rd`, `updated_at` — the rating (R15) |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok) |
+| `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
+| `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
 | `groups` | unique `(teacher_id, name_normalized)`, `invite_code` |
 | `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array) |
 | `attempts` | `elo_before`, `elo_after`, `elo_valid`, `prob_failure`, `expected_score`, `time_taken`, `request_id` |
 | `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta`, `elo_applied`, `file_hash` |
-| `pvp_matches` | `status` (active/finished/abandoned), `course_id`, deltas |
+| `pvp_matches` | `status` (active/finished/abandoned), `course_id`, applied deltas, `elo_reason_p1/p2` |
 | `katia_interactions`, `problem_reports`, `audit_group_changes`, `diagnostics`, `exam_sessions` | see repositories |
 
 ---

@@ -307,3 +307,20 @@ def test_spec001_every_surface_reads_the_canonical_rating(api_client, monkeypatc
     assert next(r for r in ranking["ranking"] if r["user_id"] == student)["rating"] == shown
     assert captured["rating"] == pytest.approx(view["overall"])
     assert exam["global_elo_after"] == pytest.approx(view["overall"], abs=0.01)
+
+
+def test_spec001_course_map_shows_unrated_topics_as_pending(api_client):
+    """FR-029a (T064, T070): a topic without a rating comes back null — never the 1000 start —
+    and is not counted as mastered; a rated topic keeps its value."""
+    repo = _repo(api_client)
+    student = make_student(repo)
+    course, _ = make_course(repo, ["a", "b", "c", "d", "e"])
+    enroll(repo, student, course)
+    set_rating(repo, student, course, "a", 1234.5)
+
+    body = _get(api_client, repo, student, f"/api/student/map/{course}")
+
+    by_topic = {n["topic"]: n for n in body["nodes"]}
+    assert by_topic["a"]["elo"] == 1234.5
+    assert (by_topic["b"]["elo"], by_topic["b"]["rd"]) == (None, None)
+    assert by_topic["b"]["state"] != "completed"

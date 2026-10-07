@@ -39,41 +39,35 @@ inyectan a los servicios. Un servicio recibe lo que necesita; no lo va a buscar.
 
 ## El motor ELO
 
-### `student_topic_elo` es el estado, y es el único
+### One stored rating per student, course and topic (spec 001)
 
-El rating de un estudiante en un tópico vive en una fila de `student_topic_elo`. Nada más es
-estado:
+A student's rating lives in one row of `student_course_topic_elo`, keyed by the course's id and
+the topic within that course. Nothing else is state:
 
-- `users.current_elo` es **derivado** — el promedio de las filas del alumno. Se recalcula, no se
-  escribe a mano.
-- `attempts` es **bitácora** — sirve para analítica e historial, no para reconstruir el rating.
+- the **course rating** is the mean of the student's topic ratings in that course, and the
+  **overall rating** the mean of the rated courses of the student's current level and grade — both
+  derived by `RatingReadService`, never stored; with no rated course the overall rating is
+  "pending diagnostic", never a number;
+- `student_topic_elo` and `users.current_elo` are **legacy**: kept, read only by the one-time
+  reconciliation that turned eligible legacy rows into approximate baselines with provenance;
+- `attempts` is a **log** — history and analytics, never a source of the rating.
 
-Cuatro caminos escriben, y cada uno aplica su efecto **exactamente una vez**:
+Five paths write, each exactly once: diagnostic (sets), answer with a valid time (sets),
+teacher-validated procedure (adds), finished PvP match (adds to every rated topic of the course),
+reconciliation (inserts once). The single display rule — round half up to a whole number, label
+from that number — lives in `src/domain/elo/ranks.py`; screens render what the API returns.
 
-| Camino | Cómo | Efecto |
-|---|---|---|
-| Diagnóstico | `set_topic_elo_baseline` → `_set_topic_elo` | fija el valor |
-| Respuesta con `elo_valid=1` | `save_answer_transaction` → `_set_topic_elo` | fija el valor |
-| Procedimiento validado por el docente | `validate_procedure_submission` → `_bump_topic_elo` | suma `elo_delta`, marca `elo_applied=1` |
-| Partida de PvP terminada | `finish_pvp_match` → `_bump_topic_elo` | suma el delta al tópico del curso |
+**Why.** The old single-name key mixed topics, course ids and course names; 23 topic labels are
+shared across courses and several course names equal topic labels, so one row could hold two
+different things. Earlier still, ratings were rebuilt from `attempts` on read, re-applying
+procedure deltas on every read and losing diagnostic baselines.
 
-**Por qué importa.** Antes, `get_latest_elo_by_topic` reconstruía el rating leyendo el último
-intento de `attempts` y sumándole la suma histórica de los deltas de procedimiento. Eso producía
-tres fallos a la vez: el delta del procedimiento se reaplicaba en **cada lectura posterior**; la
-lectura no filtraba `elo_valid`, así que un intento fuera del rango [3s, 600s] —que el sistema
-declara inválido— sí movía el rating; y el baseline del diagnóstico se perdía en cuanto había un
-intento. Hoy esa función es un `SELECT` de una tabla y nada más.
-
-`finish_pvp_match` escribía `users.current_elo` directamente. Como ese campo es un promedio
-derivado, el resultado de cada partida **se borraba solo** en el siguiente ejercicio que hiciera el
-alumno.
-
-Regresión: `tests/integration/test_elo_single_source.py`, que corre en los dos motores.
+Tests: those named `spec001`, on both engines where storage is involved (spec 001 § Traceability).
 
 ### Responder es una unidad de trabajo
 
-`save_answer_transaction(user_id, item_id, topic, compute, ...)` no recibe un resultado
-precalculado: recibe el **cálculo**. El repositorio abre la transacción, bloquea, lee, llama a
+`save_answer_transaction(user_id, item_id, compute, ...)` does not receive a precomputed
+result: it receives the **calculation**, and reads the item's own (course, topic) rating. El repositorio abre la transacción, bloquea, lee, llama a
 `compute(state)` y persiste, todo dentro de la misma transacción.
 
 - PostgreSQL: `SELECT ... FOR UPDATE` sobre `users` y después sobre `items`, **siempre en ese
@@ -94,20 +88,23 @@ perdió la respuesta, el reintento llegaría como una respuesta nueva. Por eso `
 cabecera `Idempotency-Key`: la clave se persiste con el intento bajo una restricción única, y un
 reintento con la misma clave devuelve el resultado guardado en vez de mover el rating otra vez.
 No se deduplica por estudiante+ítem, porque volver a practicar el mismo ítem es legítimo.
+With a key, the first response and every retry return the attempt values **as persisted**, so they
+are identical even where PostgreSQL stores attempt values in 4 bytes; the rating itself keeps full
+precision (spec 001, FR-012a).
 
 ### Qué NO mueve el ELO
 
 - El **modo examen**. `/exam/submit` es evaluativo: califica y no toca el rating, en ningún bloque.
 - El `ai_proposed_score` de un procedimiento. Solo la nota del docente (`teacher_score`) lo mueve.
 - Un intento con `time_taken` fuera de [3s, 600s]. Se guarda para analítica, marcado
-  `elo_valid=0`, y no altera el rating.
+  `elo_valid=0`, y no altera el rating. An explicit 0 counts as outside the window; only an absent
+  time is read as 30 s (spec 001, FR-008a). The response reports before = after.
 
 ### El factor K
 
-La práctica usa el modelo vectorial: `K = 32 × (RD / 350)`, con RD entre 350 y 30. Las primeras
-respuestas mueven mucho y el rating se asienta con la experiencia. `calculate_dynamic_k`
-(40/32/16/24) existe en `src/domain/elo/model.py` pero pertenece al modelo escalar y **no está en
-el camino de la práctica**. El PvP usa K=24 fijo sobre el resultado de la partida.
+Practice uses `K = 32 × (RD / 350)`, with RD from 350 down to 30 (`rating_delta`, `next_rd`
+in `src/domain/elo/model.py`) — the same formula feeds the answer preview. The unused dynamic K
+was removed in spec 001. PvP uses a fixed K = 24 on the match result (`pvp_deltas`).
 
 ---
 

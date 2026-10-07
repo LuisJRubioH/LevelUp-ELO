@@ -211,3 +211,19 @@ class TestPvpStateSurvivesTheProcess:
         status = conn.execute("SELECT status FROM pvp_matches WHERE id = ?", (mid,)).fetchone()[0]
         conn.close()
         assert status == "active"
+
+    @pytest.mark.parametrize("age_seconds,expired", [(590, 0), (610, 1)])
+    def test_spec001_abandonment_starts_after_600_seconds(self, repo, age_seconds, expired):
+        """FR-027 boundary (spec 001, T070): only matches active for more than 600 s close."""
+        a, b = _two_players(repo, rated=False)
+        mid = repo.create_pvp_match("calculo_diferencial", a, b, ["i1"])
+        conn = repo.get_connection()
+        conn.execute(
+            "UPDATE pvp_matches SET started_at = datetime('now', ?) WHERE id = ?",
+            ("-%d seconds" % age_seconds, mid),
+        )
+        conn.commit()
+        conn.close()
+
+        assert repo.expire_stale_pvp_matches() == expired
+

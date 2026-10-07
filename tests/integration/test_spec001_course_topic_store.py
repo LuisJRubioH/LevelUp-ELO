@@ -574,3 +574,30 @@ def test_spec001_every_ranking_reads_the_canonical_rating(repo):
     assert ratings == [shown] * 5
     assert None not in ranks
     assert readings() == (shown, ratings, ranks)
+
+
+def test_spec001_weekly_snapshot_stores_the_ranking_as_shown(repo):
+    """FR-028f/g (T066, T070): the snapshot keeps the weekly list's competition ranks and
+    whole-number ratings; pending rows are not stored; saving twice changes nothing."""
+    from src.application.services.rating_read_service import RatingReadService
+
+    course, item = _course(repo)
+    group = make_group(repo, make_teacher(repo), course)
+    a, b, c, pending = (make_student(repo) for _ in range(4))
+    for user, elo in ((a, 1200.4), (b, 1199.6), (c, 1100.0)):
+        enroll(repo, user, course, group)
+        _row(repo, user, course, TOPIC, elo)
+        _attempt(repo, user, item)
+    enroll(repo, pending, course, group)
+    _attempt(repo, pending, item)
+    rows = RatingReadService(repo).ranking_view("weekly", group_id=group)["entries"]
+
+    repo.save_weekly_ranking(group, rows)
+    repo.save_weekly_ranking(group, rows)
+
+    stored = [(h["username"], h["rank"], h["global_elo"]) for h in repo.get_ranking_history(group)]
+    names = {u: sql(repo, "SELECT username FROM users WHERE id = ?", (u,))[0][0] for u in (a, b, c)}
+    assert sorted(stored, key=lambda r: (r[1], r[0])) == sorted(
+        [(names[a], 1, 1200.0), (names[b], 1, 1200.0), (names[c], 3, 1100.0)],
+        key=lambda r: (r[1], r[0]),
+    )
