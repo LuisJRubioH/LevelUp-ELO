@@ -60,8 +60,8 @@ league label stays a placement [FR-031a].
 | Field | Change | Type | Meaning |
 |---|---|---|---|
 | `basis` | **new** | `{kind: "course" \| "overall", course_id: str \| null, course_name: str \| null, source: "requested" \| "group" \| "overall"}` | the single basis used for every participant [FR-028d] |
-| `ranking[]` | semantics | `{user_id, username, rating: float \| null, rank_label: str \| null, status: "rated" \| "pending_diagnostic", position}` | ordered per FR-028h; pending last; `global_elo`/`rank_pos` kept as aliases of `rating`/`position` for old clients |
-| `my_rank` | semantics | `int \| null` | equals that student's `position` in `ranking` [FR-028h] |
+| `ranking[]` | semantics | `{user_id, username, rating: float \| null, rank_label: str \| null, status: "rated" \| "pending_diagnostic", rank: int \| null}` | competition ranking per FR-028h (1, 2, 2, 4); `rating` already rounded to the ranking display precision — clients render it as given, without re-rounding; pending entries last with `rank: null`; `global_elo`/`rank_pos` kept as aliases of `rating`/`rank` for old clients |
+| `my_rank` | semantics | `int \| null` | equals the `rank` of that student's entry (`null` when pending) [FR-028h] |
 
 Errors: `course_id` that does not exist → **400**; a student requesting a course they are not
 enrolled in → **403**. The teacher endpoint takes no `course_id` (basis = group course, else

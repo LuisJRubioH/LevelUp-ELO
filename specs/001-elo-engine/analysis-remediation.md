@@ -219,3 +219,17 @@ Covered by C1 point 3.
   bulk rows, accepted persistence pattern.
 - Calendar: +0.5 session inside M1 (deadline 2026-10-22 unchanged).
 - After applying: re-run `/speckit-analyze`; expected 0 CRITICAL, then the docs PR.
+
+---
+
+## Adjustment after approval (2026-10-06) — competition ranking
+
+Owner decision replacing the first FR-028h tie rule: equal ratings share a competition rank
+(1, 2, 2, 4); ratings are compared at the precision the UI displays; attempt count is never a
+tie-breaker; user id only orders display within a tie; pending-diagnostic students come last with
+no numeric rank. Applied to spec (FR-028d, FR-028f, FR-028h, US6-AS8, edge cases), contracts
+(`rank_competition`, `RANKING_DISPLAY_DECIMALS`, `ranking_rank`, API `rank`), research R19, plan
+and tasks T022, T024, T031, T055, T056, T061, T065, T067.
+
+Open: the display precision itself — the UI shows ratings as whole numbers today while the API
+returns 2 decimals (see spec § Clarifications).

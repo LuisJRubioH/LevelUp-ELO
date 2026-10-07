@@ -17,7 +17,8 @@ Internal interfaces the tests pin. Pure functions live in `src/domain/` (no I/O,
 | `overall_rating(course_ratings: list[float \| None]) -> float \| None` | mean of non-`None` values, equal weight; `None` if none | 028a, 028b |
 | `rank_for(rating: float \| None) -> str \| None` | 16-level table, `None` → `None` | 031 |
 | `RANKS: tuple[(min, label), ...]` | the single scale, served by `/meta/ranks` | 031 |
-| `order_ranking(entries) -> list[entry]` | entries `{user_id, rating: float \| None, attempts_in_window: int}`; rated first by `round(rating, 2)` desc, then `attempts_in_window` desc, then `user_id` asc; then pending (`rating=None`) by `user_id` asc; adds 1-based `position` | 028d, 028f, 028h |
+| `RANKING_DISPLAY_DECIMALS: int` | the one precision used both to compare ratings in rankings and to return them for display (value per FR-028h decision) | 028h |
+| `rank_competition(entries) -> list[entry]` | entries `{user_id, rating: float \| None, …}`; rounds each rating to `RANKING_DISPLAY_DECIMALS` and returns it rounded; rated entries by rounded rating desc, then `user_id` asc **for display only**; `rank` = 1 + number of entries with a strictly higher rounded rating (1, 2, 2, 4); pending (`rating=None`) last by `user_id` asc with `rank=None`; other fields (e.g. `attempts_in_window`) are carried through and never used to order | 028d, 028f, 028h |
 | `diagnostic_tier(difficulty) -> (win, loss)` | +14/−20 · +22/−12 · +34/−6 (moved from the router) | 020 |
 | `diagnostic_baseline(answers) -> float` | `max(760, 1000 + Σ tier deltas)` | 020 |
 
@@ -72,8 +73,8 @@ The only place that turns stored rows into course ratings, overall ratings, rank
 | `ratings_view_bulk(user_ids) -> {user_id: ratings_view}` | same, one repository round-trip | 028a |
 | `course_rating_of(user_id, course_id) -> float \| None` | selection / PvP expectation use `1000` when `None` (caller decides) | 029a, 026 |
 | `group_basis(group_id, requested_course_id=None, requester=None) -> {kind: "course" \| "overall", course_id: str \| None, source: "requested" \| "group" \| "overall"}` | precedence of FR-028d; unknown course → `ValueError` (400); not visible to requester → `PermissionError` (403) | 028d |
-| `ranking_view(scope, *, group_id=None, course_id=None, education_level=None, grade=None, limit=None, requester=None) -> {basis, entries: [{user_id, username, rating, rank_label, status: "rated" \| "pending_diagnostic", attempts_in_window, position}]}` | participants from `get_ranking_participants`; rating on the single basis; `order_ranking`; `limit` applied **after** ordering | 028d, 028f, 028h |
-| `ranking_position(user_id, scope, **same_args) -> int \| None` | `position` of `user_id` in `ranking_view(scope, **same_args)` (unlimited list); `None` if not a participant | 028f, 028h |
+| `ranking_view(scope, *, group_id=None, course_id=None, education_level=None, grade=None, limit=None, requester=None) -> {basis, entries: [{user_id, username, rating, rank_label, status: "rated" \| "pending_diagnostic", attempts_in_window, rank: int \| None}]}` | participants from `get_ranking_participants`; rating on the single basis; `rank_competition`; `rating` returned already rounded to `RANKING_DISPLAY_DECIMALS`; `limit` cuts the display list **after** ranking and never changes a `rank` | 028d, 028f, 028h |
+| `ranking_rank(user_id, scope, **same_args) -> int \| None` | the `rank` of `user_id`'s entry in `ranking_view(scope, **same_args)` (unlimited list); `None` if pending or not a participant | 028f, 028h |
 
 ### `StudentService`
 

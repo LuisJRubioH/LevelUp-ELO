@@ -38,10 +38,10 @@ Phase 0 of `/speckit-plan`. Every decision cites the requirement it serves. No o
 ### R3 — Derived ratings are pure domain functions (FR-028a, FR-029a)
 - **Decision**: `src/domain/elo/aggregation.py` with `course_rating(topic_ratings) -> float | None`
   and `overall_rating(course_ratings) -> float | None` (`None` = pending diagnostic), plus
-  `order_ranking` for every ranking. **`src/application/services/rating_read_service.py`** is the
+  `rank_competition` for every ranking. **`src/application/services/rating_read_service.py`** is the
   only orchestration point: it loads raw rows and participants from the repository and calls the
   domain functions (`ratings_view`, `ratings_view_bulk`, `course_rating_of`, `group_basis`,
-  `ranking_view`, `ranking_position`). Every rating reader in `api/` and in V1 views goes through it.
+  `ranking_view`, `ranking_rank`). Every rating reader in `api/` and in V1 views goes through it.
 - **Layer split (owner, 2026-10-06)**: calculations in `domain/`; orchestration in the read
   service; participant selection and raw-row access in repositories. Repositories never average or
   order by a rating. **Permitted persistence pattern**: adding a delta the domain already computed,
@@ -195,7 +195,7 @@ No constitutional deviation remains.
 Ranking implementation (superseded by R19 for details): `get_ranking_participants` returns who
 appears (SQL filter + attempt count); `get_course_topic_ratings_bulk` returns raw rows;
 `RatingReadService.ranking_view` derives the rating on the list's single basis and orders it with
-`order_ranking`. The old repository ranking methods are deleted, so aggregation and ordering exist
+`rank_competition`. The old repository ranking methods are deleted, so aggregation and ordering exist
 once — not once per engine.
 
 ### R19 — Ranking basis, ties and authorization (FR-028d, FR-028f, FR-028h)
@@ -206,10 +206,15 @@ once — not once per engine.
   One basis per list, applied to every participant, returned as `basis` and shown in the UI.
 - **No substitution**: a participant without a rating on the basis is `pending_diagnostic` and
   listed last; their overall or another course's rating is never used instead.
-- **Tie rule** (FR-028h): rating rounded to 2 decimals desc → attempts in the activity window desc
-  → user id asc; pending participants after, by user id asc. Rounding avoids float noise splitting
-  "equal" ratings; user id is stable and identical in both engines (database order is not).
-- **Position** = 1-based index in the unlimited ordered list; `limit` is applied after ordering,
-  so the top-N and a student's position can never disagree.
+- **Competition ranking** (FR-028h, owner decision 2026-10-06, supersedes the first tie rule):
+  compare ratings rounded to `RANKING_DISPLAY_DECIMALS`, the precision every ranking surface
+  displays; equal rounded ratings share a rank, the next distinct one skips (1, 2, 2, 4). Attempt
+  count is not a tie-breaker. User id orders display within a tie only — stable and identical in
+  both engines (database order is not). Pending participants come last with no numeric rank.
+- **Why compare at display precision**: comparing finer than what is shown would give two students
+  who both read "1200" different ranks. The API therefore returns ranking ratings already rounded,
+  and clients do not re-round.
+- **A student's rank** = the `rank` of their entry in the unlimited list; `limit` only shortens the
+  displayed list, so a top-N cut through a tie keeps the shared rank.
 - **Weekly snapshots**: `save_weekly_ranking(group_id, rows)` stores the rows `ranking_view`
   produced; stored snapshots are never recomputed (FR-028g).

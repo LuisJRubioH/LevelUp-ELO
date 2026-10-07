@@ -79,7 +79,7 @@ src/domain/elo/
 └── ranks.py             # NEW: RANKS, rank_for
 src/domain/selector/item_selector.py      # unchanged
 src/application/services/rating_read_service.py  # NEW: ratings_view(_bulk), course_rating_of,
-                                                 # group_basis, ranking_view, ranking_position
+                                                 # group_basis, ranking_view, ranking_rank
 src/application/services/student_service.py  # process_answer, get_next_question
 src/application/services/teacher_service.py  # reads through RatingReadService
 src/application/interfaces/repositories.py   # contract list updated
@@ -115,7 +115,7 @@ one new router file at most; no new top-level directories.
 5. **Readers** — `RatingReadService`; every V2 or shared reader in research R18 goes through it:
    stats, teacher dashboard and student report, map, `/ai/socratic` and teacher AI analysis,
    exam snapshot, PvP lobby, **group ranking with its basis** (FR-028a–e, 029a, 026). The V1-only
-   rankings and rank position use `ranking_view`/`ranking_position` with their participation rules
+   rankings and a student's own rank use `ranking_view`/`ranking_rank` with their participation rules
    kept separate from the rating basis and one tie rule (FR-028f, 028h); weekly snapshots stay
    history (FR-028g).
    **V1 is never left broken**: every task that changes a shared signature or deletes a shared
@@ -136,12 +136,12 @@ one new router file at most; no new top-level directories.
 | Group ranking with `course_id` excludes attempts and ratings of other courses (fails on today's code) | course filter works | 028d |
 | Group ranking basis: requested → group course → overall; 400 unknown course, 403 not enrolled; basis returned; no substitution for unrated students | basis precedence | 028d |
 | Group ranking orders by derived rating, unrated students last as pending | canonical source | 028d, 028b |
-| Equal ratings ordered by the tie rule identically on both engines; position = index in the same list; `limit` does not change positions | tie rule | 028h |
+| Competition ranking: equal ratings at display precision share a rank (1, 2, 2, 4); attempts never break ties; user id orders display within a tie only; pending last with no rank; identical on both engines; a student's own rank = their entry's rank; `limit` never changes a rank | competition ranking | 028h |
 | Every rating reader in R18 returns values equal to `ratings_view` for the same student (single fixture, all readers) | canonical reads | 028, 028a, 029a |
 | Legacy rows and `users.current_elo` changed by hand do not change any read | legacy excluded | 036, 028 |
 | Student in a grade with no rated course: stats, teacher dashboard, rankings show pending, no number, no rank | pending diagnostic | 028b |
 | Promotion fixture: no endpoint reports a negative overall delta; old-grade courses still readable | promotion | 028c |
-| Rank position equals the index in the corresponding list, same participation rule | rank consistency | 028f |
+| A student's own rank equals the rank of their entry in the corresponding list, same participation rule | rank consistency | 028f, 028h |
 | Weekly ranking: a student active this week appears; a student inactive this week with a higher rating does not; ordering by derived rating | participation ≠ rating source | 028f |
 | Stored weekly snapshots unchanged after migration and after new answers | history preserved | 028g |
 | V1 answer path (`student_view.handle_answer_topic` call shape) persists to the item's course+topic; V1 modules import and services construct — smoke green at every checkpoint | V1 compatibility | 029, constitution § Stack |

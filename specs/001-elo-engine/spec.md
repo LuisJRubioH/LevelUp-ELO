@@ -45,7 +45,13 @@ easy or too hard and teachers act on false information.
   to every participant and shown in the response/UI; students without a rating on that basis are
   listed last as "pending diagnostic", never ranked on another rating (FR-028d, FR-028f).
 - Q: How are ties and positions decided? → A: one explicit tie rule; a position is the index in
-  the same ordered list the ranking returns (FR-028h).
+  the same ordered list the ranking returns (FR-028h). *(Superseded the same day — next bullet.)*
+- Q: Do equal ratings share a rank? → A: yes — competition ranking (1, 2, 2, 4). Ratings are
+  compared at the precision the UI displays them; attempt count is never a tie-breaker; user id
+  only orders display within a tie and never changes the shared rank; pending-diagnostic students
+  come last with no numeric rank (FR-028h, US6-AS8). Display precision: [NEEDS CLARIFICATION:
+  today every rating is shown as a whole number (`Math.round`) while the API returns 2 decimals —
+  compare and display at 0 decimals, or show 2 decimals in rankings?]
 - Q: Where may rating arithmetic live? → A: calculations in the domain; orchestration in one
   application read service; participant selection and raw rows in repositories. Adding a
   domain-computed delta atomically in SQL is persistence, not arithmetic (plan, research R3).
@@ -236,9 +242,11 @@ shows them.
    B (C rating 1100, overall 1500) and D (no rating in C), **When** the group ranking is shown
    without a requested course, **Then** the basis shown is "course C (group)", the order is A, B,
    then D marked "pending diagnostic", and B is not ranked by its overall rating.
-8. **US6-AS8** — **Given** two students with the same rating on the ranking's basis, **When** the
-   ranking and each student's position are shown, **Then** both follow the tie rule (FR-028h) and
-   each position equals that student's index in the list.
+8. **US6-AS8** — **Given** ratings on the ranking's basis that are, after rounding to the display
+   precision, 1250, 1200, 1200 and 1150, plus one pending student, **When** the ranking and each
+   student's own rank are shown, **Then** the ranks are 1, 2, 2, 4; the two tied students appear in
+   user-id order with the same rank; attempt counts do not affect the order; the pending student is
+   last with no numeric rank; and each student's own rank equals the rank on their list entry.
 
 ---
 
@@ -253,6 +261,9 @@ shows them.
   "pending diagnostic" (FR-029a).
 - Requested ranking course that does not exist → rejected; one the requester may not see →
   refused (FR-028d).
+- A list limit that cuts through a tie → the shown entries keep their shared rank; ranks are never
+  recomputed for the shortened list (FR-028h).
+- Two ratings that differ only below the display precision → they tie (FR-028h).
 - Legacy row with no eligible context → kept unassigned and excluded; the diagnostic initializes.
 - Promotion → the overall rating switches to the new grade's courses; until one has a rated topic
   it reads "pending diagnostic".
@@ -374,12 +385,12 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   group's course, if the group has one; (3) otherwise the overall rating (FR-028a). Every
   participant is ranked on that basis (course rating per FR-029a), the basis is returned with the
   list and shown in the UI, and students without a rating on that basis are listed after the rated
-  ones as "pending diagnostic" — never ranked on a different rating. *(Today the group ranking
+  ones as "pending diagnostic", with no numeric rank — never ranked on a different rating. *(Today the group ranking
   averages every past attempt's rating in both engines, and its course filter does not filter —
   research R18.)*
 - **FR-028e** [AS-IS]: The system shall show past per-attempt ratings only as history (student
   history, teacher rating history, exports) and shall never derive a current rating from them.
-- **FR-028f** [CHANGE]: When a V1 ranking is shown or a student's position in one is computed,
+- **FR-028f** [CHANGE]: When a V1 ranking is shown or a student's rank in one is computed,
   the system shall decide **who appears** by the ranking's participation rule and **what they are
   ranked by** from the derived ratings, as follows:
 
@@ -390,17 +401,25 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   | Weekly (group) | students of the group with ≥ 1 attempt in the last 7 days | the group basis of FR-028d |
   | Group (V2) | students of the group | the group basis of FR-028d |
 
-  Students without a rating on the basis are listed last as "pending diagnostic". A student's
-  position is taken from the same ordered list (FR-028h). *(Today these readers rebuild ratings
+  Students without a rating on the basis are listed last as "pending diagnostic", with no numeric
+  rank. A student's rank is read from the same ranked list (FR-028h). *(Today these readers rebuild ratings
   from `attempts.elo_after` — research R18.)*
 - **FR-028g** [AS-IS]: The system shall keep stored weekly ranking snapshots unchanged as history;
   a snapshot records the rating as it was when it was taken.
-- **FR-028h** [CHANGE]: The system shall order every ranking list by rating on its basis,
-  highest first, comparing ratings rounded to 2 decimals; ties are broken by more attempts in the
-  ranking's activity window first (0 for rankings without a window), then by lower user id.
-  Pending students follow, ordered by lower user id. A position is the 1-based index of the
-  student in that list; no two students share a position. *(Today ties fall in database order,
-  which differs between engines.)*
+- **FR-028h** [CHANGE]: The system shall rank every ranking list by **competition ranking**:
+  - ratings on the list's basis are compared after rounding to the **ranking display precision**
+    — the same number of decimals with which every ranking surface displays them (one shared
+    value; precision: see Clarifications, [NEEDS CLARIFICATION]);
+  - equal rounded ratings share a rank, and the next distinct rating takes the rank equal to one
+    plus the number of students ranked above it (1, 2, 2, 4);
+  - attempt count is never a tie-breaker;
+  - within a tie, display order is by lower user id — this never changes the shared rank;
+  - pending-diagnostic students follow all rated ones, ordered by lower user id, with no numeric
+    rank.
+
+  A student's rank anywhere (list entry, own position) is the rank of their entry in that same
+  list. *(Today ties fall in database order, which differs between engines, and tied students get
+  different positions.)*
 - **FR-029** [CHANGE]: The system shall store every rating change — practice answer, diagnostic,
   procedure — under the **course and topic of the item involved**, identified by the course's
   stable identifier and the topic within it. There is one stored rating per student, course and
