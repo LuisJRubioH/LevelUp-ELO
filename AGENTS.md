@@ -145,9 +145,14 @@ process.** Until that is automated, follow this sequence by hand, one commit per
 | — | **Code PR** | — | no `PENDING` traceability rows; verification green; owner merges |
 
 The traceability gates are checked in CI by `scripts/check_traceability.py` (job "Trazabilidad
-spec → tests"): one row per FR and scenario, every cited test collected, passing and not skipped;
-`PENDING` accepted on the docs PR and rejected on the spec's code PR (a PR from its Feature Branch
-that changes anything outside `specs/` and `docs/`).
+spec → tests"): one row per FR and scenario, every cited test collected, passing and not skipped.
+`PENDING` is accepted on a docs PR and rejected on any PR that is a **code change for the spec**,
+whatever its branch: one that changes a non-document file (not under `specs/` or `docs/`, not
+`.md`) matching the spec's `## Code Scope`, or a test file its § Traceability cites, or any
+non-document file together with the spec's own directory. Every spec declares a non-empty Code
+Scope whose entries each name a tracked file. The check is per spec, not per row: while a spec has
+`PENDING` rows on the base branch, every PR that changes its code fails until the PR that closes
+them lands — so a spec carries one amendment in flight at a time.
 
 **First-run review of `/speckit-tasks` (required checkpoint before committing spec 001's
 tasks.md).** The upstream skill still says tests are optional unless requested; the overrides make

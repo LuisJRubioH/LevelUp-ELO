@@ -8,6 +8,20 @@
 
 **Input**: User description: "$ARGUMENTS"
 
+## Code Scope *(mandatory)*
+
+<!--
+  The code whose behaviour this spec defines: one backticked path per bullet, a
+  directory ending in `/`, or a pattern where `*` also crosses `/`. Each entry must
+  name at least one tracked file. A pull request that changes any of these paths,
+  or a test file cited in § Traceability, is a code change for this spec whatever
+  its branch: scripts/check_traceability.py then rejects this spec's `PENDING`
+  rows. Paths shared by two specs belong to both.
+-->
+
+- `[path/to/module.py]`
+- `[path/to/package/]`
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--

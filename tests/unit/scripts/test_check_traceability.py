@@ -1,7 +1,8 @@
 """
 Tests of scripts/check_traceability.py (roadmap A-2): spec parsing, the static checks, the
-PENDING rule and how references are matched to collected and executed tests. The collection and
-execution themselves run in CI's traceability job against the real specs.
+PENDING rule (which pull requests are a code change for a spec, whatever their branch) and how
+references are matched to collected and executed tests. The collection and execution themselves
+run in CI's traceability job against the real specs.
 """
 
 import sys
@@ -17,6 +18,12 @@ import check_traceability as ct  # noqa: E402
 SPEC = """# Feature Specification: Example
 
 **Feature Branch**: `009-example`
+
+## Code Scope *(mandatory)*
+
+- `src/domain/elo/`
+- `api/routers/student.py` — the practice endpoints
+- `frontend/src/pages/Student/*.tsx`
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -49,10 +56,14 @@ def errors_of(text, reject_pending=False):
     return ct.static_errors(ct.parse_spec(text, "spec.md"), reject_pending)
 
 
-def test_parses_definitions_rows_and_feature_branch():
+def test_parses_definitions_rows_and_code_scope():
     spec = ct.parse_spec(SPEC, "spec.md")
 
-    assert spec.feature_branch == "009-example"
+    assert [entry for _, entry in spec.scope] == [
+        "src/domain/elo/",
+        "api/routers/student.py",
+        "frontend/src/pages/Student/*.tsx",
+    ]
     assert sorted(spec.defined) == ["FR-001", "FR-001a", "US1-AS1", "US1-AS2"]
     assert [row.req for row in spec.rows] == ["US1-AS1", "US1-AS2", "FR-001", "FR-001a"]
     kinds = [[ref.kind for ref in row.refs] for row in spec.rows]
@@ -100,25 +111,125 @@ def test_static_errors(edit, expected):
 def test_pending_is_rejected_only_when_asked():
     assert errors_of(SPEC) == []
     errors = errors_of(SPEC, reject_pending=True)
-    assert len(errors) == 1 and errors[0].endswith("FR-001a is PENDING on the spec's code PR")
+    assert len(errors) == 1
+    assert errors[0].endswith("FR-001a is PENDING on a code change for this spec")
+
+
+TRACKED = {
+    "src/domain/elo/model.py",
+    "api/routers/student.py",
+    "frontend/src/pages/Student/Practice.tsx",
+}
 
 
 @pytest.mark.parametrize(
-    "branch, changed, rejected",
+    "edit, expected",
     [
-        ("009-example", ["specs/009-example/spec.md", "specs/009-example/tasks.md"], False),
-        ("009-example", ["specs/009-example/spec.md", "docs/sdd/example-survey.md"], False),
-        ("009-example", ["specs/009-example/spec.md", "src/domain/x.py"], True),
-        ("009-example", ["frontend/src/App.tsx"], True),
-        ("ci/a2-traceability", ["scripts/check_traceability.py"], False),
-        ("", ["src/domain/x.py"], False),
+        (("## Code Scope *(mandatory)*", "## Scope"), "no '## Code Scope' section"),
+        (
+            (
+                "- `src/domain/elo/`\n- `api/routers/student.py` — the practice endpoints\n"
+                "- `frontend/src/pages/Student/*.tsx`\n",
+                "The code of this spec.\n",
+            ),
+            "'## Code Scope' lists no path",
+        ),
+        (("- `src/domain/elo/`", "- `src/domain/elos/`"), "`src/domain/elos/` names no tracked"),
+        (("api/routers/student.py`", "api/routers/students.py`"), "`api/routers/students.py`"),
     ],
 )
-def test_pending_rule_is_the_specs_code_pr(branch, changed, rejected):
-    """Docs PR (only specs/ and docs/) may say PENDING; the spec's code PR may not; other PRs
-    do not block on a spec whose code PR has not landed yet."""
-    spec = ct.parse_spec(SPEC)
-    assert ct.pending_rejected(spec, branch, changed) is rejected
+def test_scope_errors(edit, expected):
+    """Every spec declares the code it governs, and every entry names a tracked file — a typo
+    would silently exempt that code from the PENDING rule."""
+    assert ct.scope_errors(ct.parse_spec(SPEC, "specs/009-example/spec.md"), TRACKED) == []
+    old, new = edit
+    assert old in SPEC
+    errors = ct.scope_errors(ct.parse_spec(SPEC.replace(old, new), "spec.md"), TRACKED)
+    assert len(errors) == 1 and expected in errors[0], errors
+
+
+@pytest.mark.parametrize(
+    "entry, path, matches",
+    [
+        ("src/domain/elo/", "src/domain/elo/model.py", True),
+        ("src/domain/elo/", "src/domain/elo_extra.py", False),
+        ("api/routers/student.py", "api/routers/student.py", True),
+        ("api/routers/student.py", "api/routers/student.pyc", False),
+        ("frontend/src/pages/Student/*.tsx", "frontend/src/pages/Student/Practice.tsx", True),
+        ("frontend/src/pages/Student/*.tsx", "frontend/src/pages/Student/lessons/A.tsx", True),
+        ("frontend/src/pages/Student/*.tsx", "frontend/src/pages/Student/a.css", False),
+    ],
+)
+def test_scope_matches(entry, path, matches):
+    assert ct.scope_matches(entry, path) is matches
+
+
+SPEC_DIR = "specs/009-example/"
+
+
+@pytest.mark.parametrize(
+    "changed, reasons",
+    [
+        # Documents only: the docs PR may say PENDING.
+        ([SPEC_DIR + "spec.md", SPEC_DIR + "tasks.md", "docs/sdd/x.md", "README.md"], {}),
+        # Code in the Code Scope, from any branch — spec.md need not change.
+        (["src/domain/elo/model.py"], {"src/domain/elo/model.py": "Code Scope `src/domain/elo/`"}),
+        (["api/routers/student.py"], {"api/routers/student.py": "Code Scope"}),
+        (
+            ["frontend/src/pages/Student/lessons/A.tsx"],
+            {"frontend/src/pages/Student/lessons/A.tsx": "`frontend/src/pages/Student/*.tsx`"},
+        ),
+        # A test the spec cites is its code too.
+        (["tests/unit/test_a.py"], {"tests/unit/test_a.py": "a test cited in § Traceability"}),
+        (["frontend/e2e/a.spec.ts"], {"frontend/e2e/a.spec.ts": "a test cited"}),
+        # Code outside the scope, alone: another area's PR does not block on this spec.
+        (["scripts/other.py", "src/domain/learning/nodes/b06.py"], {}),
+        # ... unless it changes this spec's files too.
+        ([SPEC_DIR + "spec.md", "scripts/other.py"], {"scripts/other.py": "changed together"}),
+        # A document inside the scope is not code; another spec's files do not count.
+        (["src/domain/elo/NOTES.md", "specs/010-other/spec.md", "scripts/other.py"], {}),
+    ],
+)
+def test_code_changes_do_not_depend_on_the_branch(changed, reasons):
+    """Which changed paths make a pull request a code change for the spec. There is no branch
+    input: `fix/whatever`, `001-elo-engine` or a fork's `main` are judged by their files."""
+    spec = ct.parse_spec(SPEC, SPEC_DIR + "spec.md")
+    found = ct.code_changes(spec, changed)
+    assert set(found) == set(reasons), found
+    for path, reason in reasons.items():
+        assert reason in found[path], found
+
+
+def test_main_rejects_pending_on_a_pr_from_an_arbitrary_branch(tmp_path, capsys):
+    """End to end through main(): a PR from an arbitrary branch that changes a spec's code but
+    not its spec.md fails while a row is PENDING; the same spec passes on a documents-only PR.
+    The command line has no branch option at all."""
+    spec_path = tmp_path / "spec.md"
+    spec_path.write_text(
+        "## Code Scope\n\n- `scripts/check_traceability.py`\n\n"
+        "## Requirements\n\n- **FR-001** [CHANGE]: The system shall check.\n"
+        "- **FR-002** [CHANGE]: The system shall report.\n\n"
+        "## Traceability\n\n| Requirement / Scenario | Test |\n|---|---|\n"
+        "| FR-001 | `tests/unit/scripts/test_check_traceability.py::test_scope_matches` |\n"
+        "| FR-002 | `PENDING` |\n",
+        encoding="utf-8",
+    )
+    code_pr = tmp_path / "code.txt"
+    code_pr.write_text("scripts/check_traceability.py\n", encoding="utf-8")
+    docs_pr = tmp_path / "docs.txt"
+    docs_pr.write_text("docs/sdd/roadmap.md\nREADME.md\n", encoding="utf-8")
+
+    assert ct.main(["--changed-files", str(code_pr), str(spec_path)]) == 1
+    out = capsys.readouterr().out
+    assert "code change: scripts/check_traceability.py (Code Scope" in out
+    assert "FR-002 is PENDING on a code change for this spec" in out
+    assert "RESULT: FAIL (1 problems)" in out
+
+    assert ct.main(["--changed-files", str(docs_pr), str(spec_path)]) == 0
+    assert "PENDING 1 (allowed)" in capsys.readouterr().out
+
+    with pytest.raises(SystemExit):
+        ct.main(["--branch", "001-elo-engine", str(spec_path)])
 
 
 NODES = {
@@ -260,7 +371,9 @@ def test_the_repository_specs_pass_the_static_checks():
     checked by CI's traceability job)."""
     paths = sorted(ROOT.glob("specs/*/spec.md"))
     assert paths
+    tracked = ct.tracked_files()
     for path in paths:
         spec = ct.parse_spec(path.read_text(encoding="utf-8"), str(path))
         assert spec.defined and len(spec.rows) == len(spec.defined)
         assert ct.static_errors(spec, reject_pending=False) == []
+        assert ct.scope_errors(spec, tracked) == []

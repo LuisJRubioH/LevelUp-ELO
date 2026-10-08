@@ -383,8 +383,10 @@ frontend build and traceability. CI only tests; Vercel and Render deploy `main` 
 The traceability job (`scripts/check_traceability.py --run`) reads `specs/*/spec.md`: every
 requirement and acceptance scenario must have a row in § Traceability, and every test the row cites
 must be collected, pass and not be skipped (the PostgreSQL branch of two-engine tests included). A
-row may say `PENDING` on a spec's docs PR, never on its code PR. Whether a test's assertions really
-prove its requirement is still checked in review.
+row may say `PENDING` on a docs-only PR, never on a PR that changes the spec's code: a path in the
+spec's `## Code Scope`, a test file its § Traceability cites, or any code changed together with the
+spec's own files. The branch name plays no part. Whether a test's assertions really prove its
+requirement is still checked in review.
 
 ---
 

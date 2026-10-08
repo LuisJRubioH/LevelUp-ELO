@@ -11,9 +11,15 @@ For each specs/*/spec.md:
    `path::Class::test`; without parameters it covers every parametrised case), a Playwright test
    (`frontend/e2e/file.spec.ts › title`, the title with or without its describe blocks), or
    `PENDING`.
-3. `PENDING` is allowed except on the spec's code PR: a pull request from the spec's
-   **Feature Branch** that changes anything outside specs/ and docs/ (its docs PR changes only
-   those). CI passes the head branch and the changed files.
+3. `PENDING` is allowed except on a code change for the spec, whatever the pull request's branch.
+   A changed path makes the pull request a code change for a spec when it is code (not under
+   specs/ or docs/, not a .md file) and
+   a. matches an entry of the spec's **## Code Scope** section (a path; ending in `/`, everything
+      below it; with `*`, a pattern where `*` also crosses `/`), or
+   b. is a test file the spec's § Traceability cites, or
+   c. the same pull request also changes a file of the spec's own directory (specs/NNN-*/).
+   CI passes the files the pull request changes. Every spec must declare a non-empty Code Scope,
+   and every entry must name at least one tracked file.
 4. Every pytest reference matches a node of `pytest --collect-only`; every Playwright reference a
    test of `playwright test --list`.
 5. With --run, the referenced tests run: each must pass and none may be skipped. pytest therefore
@@ -24,12 +30,13 @@ Assertion adequacy stays a review item: a mapped test may assert only part of it
 
     python scripts/check_traceability.py                 # 1-4
     python scripts/check_traceability.py --run           # 1-5, as CI runs it
-    python scripts/check_traceability.py --run --branch 002-x --changed-files changed.txt
+    python scripts/check_traceability.py --run --changed-files changed.txt   # a pull request
 
 Exit code 0 only if every check passed.
 """
 
 import argparse
+import fnmatch
 import json
 import os
 import re
@@ -44,11 +51,11 @@ ROOT = Path(__file__).resolve().parents[1]
 FRONTEND = ROOT / "frontend"
 E2E_DIR = "frontend/e2e/"
 PW_SEP = " › "
-DOC_ONLY_DIRS = ("specs/", "docs/")
+DOC_DIRS = ("specs/", "docs/")
 
 _FR_DEF = re.compile(r"^\s*-\s+\*\*(FR-\d+[a-z]?)\*\*")
 _AS_DEF = re.compile(r"^\s*\d+\.\s+\*\*(US\d+-AS\d+)\*\*")
-_BRANCH = re.compile(r"^\*\*Feature Branch\*\*:\s*`([^`]+)`")
+_SCOPE_ENTRY = re.compile(r"^\s*-\s+`([^`]+)`")
 _ID = re.compile(r"^(FR-\d+[a-z]?|US\d+-AS\d+)$")
 _TICKED = re.compile(r"`([^`]*)`")
 _PYTEST_REF = re.compile(r"^(tests/[\w/.-]+\.py)((?:::\w+)+)(\[[^\]]*\])?$")
@@ -73,11 +80,12 @@ class Row:
 @dataclass
 class Spec:
     path: str
-    feature_branch: str | None = None
     defined: dict = field(default_factory=dict)  # id -> line numbers of its definitions
     rows: list = field(default_factory=list)
     has_section: bool = False
     malformed_rows: list = field(default_factory=list)  # (line, first cell)
+    has_scope: bool = False
+    scope: list = field(default_factory=list)  # (line, entry) of ## Code Scope
 
 
 # ── 1-2. Parsing ────────────────────────────────────────────────────────────
@@ -123,15 +131,19 @@ def parse_cell(cell):
 
 def parse_spec(text, path="spec.md"):
     spec = Spec(path=path)
-    in_trace = False
+    in_trace = in_scope = False
     for number, line in enumerate(text.splitlines(), start=1):
         if line.startswith("## "):
             in_trace = line.startswith("## Traceability")
+            in_scope = line.startswith("## Code Scope")
             spec.has_section = spec.has_section or in_trace
+            spec.has_scope = spec.has_scope or in_scope
             continue
-        branch = _BRANCH.match(line)
-        if branch and spec.feature_branch is None:
-            spec.feature_branch = branch.group(1)
+        if in_scope:
+            entry = _SCOPE_ENTRY.match(line)
+            if entry:
+                spec.scope.append((number, entry.group(1).strip()))
+            continue
         if not in_trace:
             for pattern in (_FR_DEF, _AS_DEF):
                 match = pattern.match(line)
@@ -155,11 +167,59 @@ def parse_spec(text, path="spec.md"):
 # ── 2-3. Static checks ──────────────────────────────────────────────────────
 
 
-def pending_rejected(spec, branch, changed_files):
-    """True on the spec's code PR: its feature branch, changing something besides documents."""
-    if not branch or branch != spec.feature_branch:
-        return False
-    return any(not path.startswith(DOC_ONLY_DIRS) for path in changed_files)
+def is_document(path):
+    return path.startswith(DOC_DIRS) or path.endswith(".md")
+
+
+def scope_matches(entry, path):
+    if entry.endswith("/"):
+        return path.startswith(entry)
+    if any(c in entry for c in "*?["):
+        return fnmatch.fnmatchcase(path, entry)
+    return path == entry
+
+
+def cited_test_files(spec):
+    """Files of the tests the spec's § Traceability cites."""
+    files = set()
+    for row in spec.rows:
+        for ref in row.refs:
+            if ref.kind == "pytest":
+                files.add(ref.path)
+            elif ref.kind == "playwright":
+                files.add(E2E_DIR + ref.path)
+    return files
+
+
+def code_changes(spec, changed_files):
+    """{changed path: reason} for the changed paths that make the pull request a code change
+    for this spec (module docstring, step 3). Independent of the pull request's branch."""
+    code = [path for path in changed_files if not is_document(path)]
+    spec_dir = os.path.dirname(spec.path).rstrip("/") + "/"
+    spec_touched = any(path.startswith(spec_dir) for path in changed_files)
+    tests = cited_test_files(spec)
+    reasons = {}
+    for path in code:
+        entry = next((e for _, e in spec.scope if scope_matches(e, path)), None)
+        if entry is not None:
+            reasons[path] = f"Code Scope `{entry}`"
+        elif path in tests:
+            reasons[path] = "a test cited in § Traceability"
+        elif spec_touched:
+            reasons[path] = f"changed together with {spec_dir}"
+    return reasons
+
+
+def scope_errors(spec, tracked_files):
+    if not spec.has_scope:
+        return [f"{spec.path}: no '## Code Scope' section"]
+    if not spec.scope:
+        return [f"{spec.path}: '## Code Scope' lists no path"]
+    return [
+        f"{spec.path}:{line}: Code Scope `{entry}` names no tracked file"
+        for line, entry in spec.scope
+        if not any(scope_matches(entry, path) for path in tracked_files)
+    ]
 
 
 def static_errors(spec, reject_pending):
@@ -184,7 +244,7 @@ def static_errors(spec, reject_pending):
         if not row.refs and not row.bad:
             errors.append(f"{where} has no test")
         if reject_pending and any(r.kind == "pending" for r in row.refs):
-            errors.append(f"{where} is PENDING on the spec's code PR")
+            errors.append(f"{where} is PENDING on a code change for this spec")
     for req in sorted(set(spec.defined) - set(seen)):
         errors.append(f"{spec.path}: {req} has no row in § Traceability")
     return errors
@@ -266,6 +326,21 @@ def run(cmd, cwd, env=None):
     return subprocess.run(cmd, cwd=cwd, env=env, capture_output=True, text=True)
 
 
+def tracked_files():
+    """Paths git tracks (the filesystem, minus .git and node_modules, outside a checkout)."""
+    try:
+        proc = run(["git", "ls-files"], ROOT)
+    except FileNotFoundError:
+        proc = None
+    if proc is not None and proc.returncode == 0 and proc.stdout.strip():
+        return set(proc.stdout.splitlines())
+    files = set()
+    for base, dirs, names in os.walk(ROOT):
+        dirs[:] = [d for d in dirs if d not in (".git", "node_modules")]
+        files |= {os.path.relpath(os.path.join(base, n), ROOT).replace(os.sep, "/") for n in names}
+    return files
+
+
 def pytest_collect(files):
     # pytest.ini adds -v; without it, -q prints one node id per collected test.
     proc = run(
@@ -318,7 +393,6 @@ def playwright_report(args, tmp, config=None):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--run", action="store_true", help="run the referenced tests (step 5)")
-    ap.add_argument("--branch", default="", help="head branch of the pull request")
     ap.add_argument(
         "--changed-files", help="file listing the paths the pull request changes, one per line"
     )
@@ -331,16 +405,22 @@ def main(argv=None):
         with open(args.changed_files, encoding="utf-8") as fh:
             changed = [line.strip() for line in fh if line.strip()]
     paths = args.specs or sorted(str(p.relative_to(ROOT)) for p in ROOT.glob("specs/*/spec.md"))
+    tracked = tracked_files()
     errors, refs = [], []
     for path in paths:
         spec = parse_spec((ROOT / path).read_text(encoding="utf-8"), path)
-        reject = pending_rejected(spec, args.branch, changed)
-        errors += static_errors(spec, reject)
+        reasons = code_changes(spec, changed)
+        errors += scope_errors(spec, tracked) + static_errors(spec, bool(reasons))
         pending = [row.req for row in spec.rows if any(r.kind == "pending" for r in row.refs)]
+        verdict = "rejected: code change for this spec" if reasons else "allowed"
         print(
             f"{path}: {len(spec.defined)} requirements and scenarios, {len(spec.rows)} rows,"
-            f" PENDING {len(pending)} ({'rejected: code PR' if reject else 'allowed'})"
+            f" PENDING {len(pending)} ({verdict})"
         )
+        for changed_path, reason in sorted(reasons.items())[:10]:
+            print(f"  code change: {changed_path} ({reason})")
+        if len(reasons) > 10:
+            print(f"  … and {len(reasons) - 10} more changed paths")
         refs += [(path, row, ref) for row in spec.rows for ref in row.refs]
 
     py_refs = [(p, row, r) for p, row, r in refs if r.kind == "pytest"]
