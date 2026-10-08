@@ -1,15 +1,19 @@
 # transfer-ops — one-off operations for the redesign transfer (docs/transfer.md § 4–6).
 # Lives only on ops/* branches; never merged to main. Each job runs when its branch is pushed:
 #
-#   ops/transfer-backup    full + public-schema pg_dump, procedimientos bucket backup, migration
-#                          rehearsal on a throwaway PostgreSQL 17 (scripts/rehearse_migration.py),
-#                          everything encrypted with BACKUP_PASSPHRASE into one artifact.
+#   ops/transfer-backup    1. backup-and-rehearse: read-only dump of production (full + public
+#                             schema) and of the private bucket `procedimientos`; the migration
+#                             rehearsed twice on a THROWAWAY PostgreSQL 17 (never on production);
+#                             everything encrypted with BACKUP_PASSPHRASE before upload.
+#                          2. verify-backup-artifact: downloads that artifact, checks its SHA-256,
+#                             decrypts it, verifies every file and restores the dump into a second
+#                             throwaway database with the same row counts as production.
 #   ops/transfer-dbcheck   read-only SQL checks on production after the switch (§ 5 queries).
 #   ops/transfer-verify    scripts/verify_deployment.py against production with the test accounts.
 #
-# Production secrets live in the GitHub Environment `production-ops` (MIGRATION_DATABASE_URL =
-# Supabase SESSION pooler, port 5432; SUPABASE_URL; SUPABASE_KEY; BACKUP_PASSPHRASE). Nothing here
-# writes to production except verify, which writes through the test accounts only.
+# The repository is public: logs carry counts only, connection details are masked, and the only
+# artifact holding data is encrypted. Production secrets live in the GitHub Environment
+# `production-ops` and are given only to the steps that read production.
 
 name: transfer-ops
 
@@ -20,8 +24,14 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    # bash -eo pipefail: a failing command inside a pipeline (e.g. `script | tee`) fails the step.
+    shell: bash
+
 env:
   PGSSLMODE: require
+  SCRATCH_URL: postgresql://scratch:scratch_local_only@localhost:5432/scratch
 
 jobs:
   backup-and-rehearse:
@@ -29,6 +39,9 @@ jobs:
     runs-on: ubuntu-24.04
     environment: production-ops
     timeout-minutes: 45
+    outputs:
+      stamp: ${{ steps.encrypt.outputs.stamp }}
+      artifact_sha256: ${{ steps.encrypt.outputs.sha256 }}
     services:
       scratch:
         image: postgres:17
@@ -41,17 +54,28 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U scratch -d scratch"
           --health-interval 5s --health-timeout 5s --health-retries 20
-    env:
-      MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
-      SCRATCH_URL: postgresql://scratch:scratch_local_only@localhost:5432/scratch
     steps:
       - uses: actions/checkout@v4
 
-      - name: Required secrets
+      - name: Mask connection details and check the secrets
+        id: check
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
         run: |
+          python3 - <<'PY'
+          import os, urllib.parse
+          for var in ("MIGRATION_DATABASE_URL", "SUPABASE_URL"):
+              u = urllib.parse.urlsplit(os.environ.get(var, ""))
+              parts = [u.password, u.hostname, u.netloc]
+              if u.username and "." in u.username:          # postgres.<project-ref>
+                  parts += [u.username] + u.username.split(".")[1:]
+              parts += [t for t in (u.hostname or "").split(".") if len(t) >= 16]  # <ref>.supabase.co
+              for p in filter(None, parts):
+                  print(f"::add-mask::{p}")
+          PY
           for v in MIGRATION_DATABASE_URL SUPABASE_URL SUPABASE_KEY BACKUP_PASSPHRASE; do
             [ -n "${!v}" ] || { echo "::error::Secret $v is missing in environment production-ops"; exit 1; }
           done
@@ -59,6 +83,7 @@ jobs:
             *:6543/*) echo "::error::MIGRATION_DATABASE_URL is the transaction pooler (6543); use the session pooler (5432)"; exit 1;;
           esac
           [ ${#BACKUP_PASSPHRASE} -ge 20 ] || { echo "::error::BACKUP_PASSPHRASE must have at least 20 characters"; exit 1; }
+          echo "secrets present"
 
       - uses: actions/setup-python@v5
         with:
@@ -76,86 +101,230 @@ jobs:
           sudo apt-get install -y -q postgresql-client-17
           echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
 
-      - name: Source server
-        run: |
-          pg_dump --version
-          psql "$MIGRATION_DATABASE_URL" -Atc "SELECT version()"
-          psql "$MIGRATION_DATABASE_URL" -Atc "SELECT 'users', COUNT(*) FROM users UNION ALL SELECT 'attempts', COUNT(*) FROM attempts UNION ALL SELECT 'student_topic_elo', COUNT(*) FROM student_topic_elo UNION ALL SELECT 'exam_sessions', COUNT(*) FROM exam_sessions UNION ALL SELECT 'procedure_submissions', COUNT(*) FROM procedure_submissions"
-          psql "$MIGRATION_DATABASE_URL" -Atc "SELECT to_regclass('public.student_course_topic_elo') IS NULL AS not_migrated_yet"
-
-      - name: Full backup (every schema the role can read)
+      - name: Production, read only — server version and rows per table
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
         run: |
           mkdir -p backup
-          pg_dump --format=custom --no-owner --no-privileges --file=backup/full.dump "$MIGRATION_DATABASE_URL" \
-            || { rm -f backup/full.dump; echo "::warning::Full dump failed (Supabase-managed schemas); backup/public.dump is the application backup"; }
+          pg_dump --version
+          # Every statement runs inside a READ ONLY transaction: a write would be rejected.
+          psql "$MIGRATION_DATABASE_URL" -X -q -At -v ON_ERROR_STOP=1 > backup/source-counts.txt <<'SQL'
+          BEGIN TRANSACTION READ ONLY;
+          SELECT format('SELECT %L || ''|'' || count(*) FROM public.%I', table_name, table_name)
+            FROM information_schema.tables
+           WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+           ORDER BY table_name \gexec
+          COMMIT;
+          SQL
+          psql "$MIGRATION_DATABASE_URL" -X -q -At -v ON_ERROR_STOP=1 <<'SQL'
+          BEGIN TRANSACTION READ ONLY;
+          SELECT 'server ' || current_setting('server_version');
+          SELECT 'schema already migrated: ' || (to_regclass('public.student_course_topic_elo') IS NOT NULL);
+          COMMIT;
+          SQL
+          echo "tables: $(wc -l < backup/source-counts.txt); rows per table:"
+          cat backup/source-counts.txt
 
-      - name: Application backup (public schema)
+      - name: Production, read only — full dump (every schema the role can read)
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          # pg_dump reads inside a single READ ONLY snapshot; it never writes to the source.
+          pg_dump --format=custom --no-owner --no-privileges --file=backup/full.dump "$MIGRATION_DATABASE_URL" \
+            || { rm -f backup/full.dump; echo "::warning::Full dump not possible (Supabase-managed schemas); public.dump is the application backup"; }
+
+      - name: Production, read only — application dump (public schema)
+        id: public_dump
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
         run: pg_dump --format=custom --no-owner --no-privileges --schema=public --file=backup/public.dump "$MIGRATION_DATABASE_URL"
 
-      - name: Supabase roles in the scratch database
+      - name: Throwaway copy — Supabase roles
         # Policies or grants in a Supabase dump may name these roles; they must exist to restore.
-        run: psql "$SCRATCH_URL" -c "CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN;"
+        if: always() && steps.public_dump.outcome == 'success'
         env:
           PGSSLMODE: disable
+        run: psql "$SCRATCH_URL" -c "CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN;"
 
-      - name: Rehearsal (restore, migrate twice, verify)
+      - name: Throwaway copy — restore, migrate twice, verify (no production credentials here)
+        if: always() && steps.public_dump.outcome == 'success'
         run: |
+          # This step gets no production secret: the migrations can only reach the scratch database.
+          [ -z "${MIGRATION_DATABASE_URL:-}${DATABASE_URL:-}" ] || { echo "::error::production URL in scope"; exit 1; }
           DUMP=backup/full.dump; [ -f "$DUMP" ] || DUMP=backup/public.dump
           python scripts/rehearse_migration.py --dump "$DUMP" --scratch-url "$SCRATCH_URL" \
             --scratch-sslmode disable --report backup/rehearsal.txt
 
-      - name: Bucket backup (procedimientos)
-        if: always()
-        run: python scripts/backup_storage_bucket.py --out backup/procedimientos --database-url "$MIGRATION_DATABASE_URL" | tee backup/bucket.txt
-
-      - name: Encrypt the backup
-        if: always()
+      - name: Production, read only — bucket procedimientos (every object, checked against storage.objects)
+        if: always() && steps.check.outcome == 'success'
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: |
-          STAMP=$(date -u +%Y%m%dT%H%MZ)
-          echo "STAMP=$STAMP" >> "$GITHUB_ENV"
-          (cd backup && if ls *.dump >/dev/null 2>&1; then sha256sum *.dump | tee SHA256SUMS; else echo "::error::no dump was produced"; fi)
-          tar -C backup -czf "levelup-backup-$STAMP.tar.gz" .
-          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --symmetric --cipher-algo AES256 \
-            -o "levelup-backup-$STAMP.tar.gz.gpg" "levelup-backup-$STAMP.tar.gz" <<< "$BACKUP_PASSPHRASE"
-          sha256sum "levelup-backup-$STAMP.tar.gz.gpg"
-          cp backup/rehearsal.txt backup/bucket.txt . 2>/dev/null || true
-          rm -rf backup "levelup-backup-$STAMP.tar.gz"
+          python scripts/backup_storage_bucket.py --out backup/procedimientos \
+            --database-url "$MIGRATION_DATABASE_URL" --strict-catalog | tee backup/bucket.txt
 
-      - name: Upload the encrypted backup
+      - name: Encrypt the backup and prove it decrypts
+        id: encrypt
         if: always()
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          [ -f backup/public.dump ] || { echo "::error::no application dump was produced"; exit 1; }
+          STAMP=$(date -u +%Y%m%dT%H%MZ)
+          (cd backup && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+          echo "files in backup: $(wc -l < backup/SHA256SUMS)"
+          TAR="levelup-backup-$STAMP.tar.gz"
+          tar -C backup -czf "$TAR" .
+          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --symmetric \
+            --cipher-algo AES256 --s2k-mode 3 --s2k-digest-algo SHA512 --s2k-count 65011712 \
+            -o "$TAR.gpg" "$TAR" <<< "$BACKUP_PASSPHRASE"
+          # Decrypt it back with the same passphrase before the plaintext is deleted.
+          PLAIN=$(sha256sum "$TAR" | cut -d' ' -f1)
+          ROUND=$(gpg --batch --quiet --pinentry-mode loopback --passphrase-fd 0 --decrypt "$TAR.gpg" <<< "$BACKUP_PASSPHRASE" | sha256sum | cut -d' ' -f1)
+          [ "$PLAIN" = "$ROUND" ] || { echo "::error::decryption self-test failed"; exit 1; }
+          SHA=$(sha256sum "$TAR.gpg" | cut -d' ' -f1)
+          echo "encrypted backup $TAR.gpg: $(stat -c%s "$TAR.gpg") bytes; artifact sha256 $SHA; decryption self-test OK"
+          echo "stamp=$STAMP" >> "$GITHUB_OUTPUT"
+          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          mkdir -p reports
+          cp backup/rehearsal.txt backup/bucket.txt backup/source-counts.txt reports/ 2>/dev/null || true
+          rm -rf backup "$TAR"
+
+      - name: Upload the encrypted backup (the only artifact with data)
+        if: always() && steps.encrypt.outputs.stamp != ''
         uses: actions/upload-artifact@v4
         with:
-          name: levelup-backup-${{ env.STAMP }}-encrypted
+          name: levelup-backup-${{ steps.encrypt.outputs.stamp }}-encrypted
           path: levelup-backup-*.tar.gz.gpg
           retention-days: 7
           if-no-files-found: error
 
-      - name: Upload the reports
-        if: always()
+      - name: Upload the reports (counts and check results only)
+        if: always() && steps.encrypt.outputs.stamp != ''
         uses: actions/upload-artifact@v4
         with:
-          name: transfer-reports-${{ env.STAMP }}
-          path: |
-            rehearsal.txt
-            bucket.txt
+          name: transfer-reports-${{ steps.encrypt.outputs.stamp }}
+          path: reports/
           retention-days: 30
+
+  verify-backup-artifact:
+    needs: backup-and-rehearse
+    if: always() && github.ref_name == 'ops/transfer-backup' && needs.backup-and-rehearse.outputs.stamp != ''
+    runs-on: ubuntu-24.04
+    environment: production-ops
+    timeout-minutes: 30
+    services:
+      scratch:
+        image: postgres:17
+        env:
+          POSTGRES_USER: scratch
+          POSTGRES_PASSWORD: scratch_local_only
+          POSTGRES_DB: scratch
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U scratch -d scratch"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      STAMP: ${{ needs.backup-and-rehearse.outputs.stamp }}
+      EXPECTED_SHA256: ${{ needs.backup-and-rehearse.outputs.artifact_sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install the restore script's dependency
+        run: pip install "httpx>=0.27,<1.0"
+
+      - name: PostgreSQL 17 client tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -q postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      - name: Download the encrypted artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: levelup-backup-${{ needs.backup-and-rehearse.outputs.stamp }}-encrypted
+          path: downloaded
+
+      - name: Check, decrypt and verify every file
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          F="downloaded/levelup-backup-$STAMP.tar.gz.gpg"
+          GOT=$(sha256sum "$F" | cut -d' ' -f1)
+          [ "$GOT" = "$EXPECTED_SHA256" ] || { echo "::error::downloaded artifact differs from the uploaded one"; exit 1; }
+          echo "downloaded artifact sha256 matches the uploaded one"
+          mkdir restored
+          gpg --batch --quiet --pinentry-mode loopback --passphrase-fd 0 --decrypt "$F" <<< "$BACKUP_PASSPHRASE" | tar -xz -C restored
+          (cd restored && sha256sum --quiet -c SHA256SUMS)
+          echo "every file matches SHA256SUMS ($(wc -l < restored/SHA256SUMS) files)"
+          python scripts/restore_storage_bucket.py --backup restored/procedimientos
+          echo "dump entries: $(pg_restore --list restored/public.dump | grep -vc '^;')"
+
+      - name: Restore the dump into a second throwaway database and compare row counts
+        env:
+          PGSSLMODE: disable
+        run: |
+          psql "$SCRATCH_URL" -q -c "CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN;"
+          pg_restore --no-owner --no-privileges --schema=public --dbname="$SCRATCH_URL" restored/public.dump \
+            2> restore.err || true
+          if grep -i "error:" restore.err | grep -v 'schema "public" already exists'; then exit 1; fi
+          psql "$SCRATCH_URL" -X -q -At -v ON_ERROR_STOP=1 > restored-counts.txt <<'SQL'
+          SELECT format('SELECT %L || ''|'' || count(*) FROM public.%I', table_name, table_name)
+            FROM information_schema.tables
+           WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+           ORDER BY table_name \gexec
+          SQL
+          if ! diff restored/source-counts.txt restored-counts.txt; then
+            echo "::error::row counts of the restored copy differ from production at backup time"; exit 1
+          fi
+          echo "VERIFY: PASS — restored copy has the same rows per table as production at backup time ($(wc -l < restored-counts.txt) tables)"
+
+      - name: Remove the plaintext from the runner
+        if: always()
+        run: rm -rf restored downloaded restored-counts.txt restore.err
 
   dbcheck:
     if: github.ref_name == 'ops/transfer-dbcheck'
     runs-on: ubuntu-24.04
     environment: production-ops
     timeout-minutes: 10
-    env:
-      MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
     steps:
-      - name: Read-only checks (docs/transfer.md § 5)
+      - name: Mask connection details
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
         run: |
-          q() { psql "$MIGRATION_DATABASE_URL" -v ON_ERROR_STOP=1 -c "$1"; }
-          q "SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2 ORDER BY 1, 2"
-          q "SELECT COUNT(*) AS reconciled_without_provenance FROM student_course_topic_elo WHERE origin LIKE 'legacy\_%' AND (approximate IS NOT TRUE OR legacy_source_key IS NULL OR reconciled_at IS NULL)"
-          q "SELECT COUNT(*) AS student_topic_elo FROM student_topic_elo"
-          q "SELECT COUNT(*) AS exam_sessions_unknown_status FROM exam_sessions WHERE global_elo_status IS NULL"
-          q "SELECT COUNT(*) AS users, COUNT(*) FILTER (WHERE role = 'admin') AS admins FROM users"
+          python3 - <<'PY'
+          import os, urllib.parse
+          u = urllib.parse.urlsplit(os.environ.get("MIGRATION_DATABASE_URL", ""))
+          parts = [u.password, u.hostname, u.netloc]
+          if u.username and "." in u.username:
+              parts += [u.username] + u.username.split(".")[1:]
+          for p in filter(None, parts):
+              print(f"::add-mask::{p}")
+          PY
+      - name: Read-only checks (docs/transfer.md § 5)
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          psql "$MIGRATION_DATABASE_URL" -X -v ON_ERROR_STOP=1 <<'SQL'
+          BEGIN TRANSACTION READ ONLY;
+          SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2 ORDER BY 1, 2;
+          SELECT COUNT(*) AS reconciled_without_provenance FROM student_course_topic_elo
+           WHERE origin LIKE 'legacy\_%' AND (approximate IS NOT TRUE OR legacy_source_key IS NULL OR reconciled_at IS NULL);
+          SELECT COUNT(*) AS student_topic_elo FROM student_topic_elo;
+          SELECT COUNT(*) AS exam_sessions_unknown_status FROM exam_sessions WHERE global_elo_status IS NULL;
+          SELECT COUNT(*) AS users, COUNT(*) FILTER (WHERE role = 'admin') AS admins FROM users;
+          COMMIT;
+          SQL
 
   verify:
     if: github.ref_name == 'ops/transfer-verify'
