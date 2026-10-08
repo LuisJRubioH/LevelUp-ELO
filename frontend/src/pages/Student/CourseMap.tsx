@@ -69,6 +69,9 @@ export function CourseMap() {
   const navigate = useNavigate();
   const startSession = usePracticeStore((s) => s.startSession);
   const { t } = useTranslation();
+  // FR-029a pending / FR-034a reconciled baseline: say why the number looks the way it does.
+  const eloTitle = (n: MapNode) =>
+    n.elo === null ? t("rating.pending") : n.approximate ? t("rating.approximateHint") : undefined;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["course-map", courseId],
@@ -238,8 +241,9 @@ export function CourseMap() {
                           <Book />
                         </span>
                       ) : (
-                        <span className="elo" title={n.elo === null ? t("rating.pending") : undefined}>
+                        <span className="elo" title={eloTitle(n)}>
                           {n.elo === null ? "—" : Math.round(n.elo)}
+                          {n.approximate && " ≈"}
                         </span>
                       )}
                     </span>
@@ -273,8 +277,9 @@ export function CourseMap() {
                 disabled={n.state === "blocked"}
                 title={t("courseMap.practiceTopic", { topic: n.topic })}
               >
-                <span className="lm-practice-elo" title={n.elo === null ? t("rating.pending") : undefined}>
+                <span className="lm-practice-elo" title={eloTitle(n)}>
                   {n.elo === null ? "—" : Math.round(n.elo)}
+                  {n.approximate && " ≈"}
                 </span>
                 <span className="lm-practice-label">
                   {cleanLabel(n.label || n.topic, data?.course_name ?? "")}

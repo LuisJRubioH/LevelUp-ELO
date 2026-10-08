@@ -274,6 +274,7 @@ class MapNode(BaseModel):
     node_type: str = "practice"
     elo: float | None  # None = topic not rated yet: shown as pending, never as 1000
     rd: float | None
+    approximate: bool = False  # the topic rating is a reconciled baseline (FR-034a)
     item_count: int
     state: str  # completed | current | available | blocked
 

@@ -13,12 +13,13 @@ import plotly.graph_objects as go
 import src.infrastructure.external_api.ai_client as ai_mod
 
 from src.interface.streamlit.assets import _get_logo
-from src.interface.streamlit.state import cached, get_rank, logout
-from src.interface.streamlit.rankings import fmt_position, fmt_rating, v1_ranking
+from src.domain.elo.ranks import round_for_display
+from src.interface.streamlit.state import cached, logout
+from src.interface.streamlit.rankings import fmt_position, fmt_rating, v1_rated, v1_ranking
 from src.utils import strip_thinking_tags
 
 
-def _topic_rows(dash) -> list[dict]:
+def _rating_topic_rows(dash) -> list[dict]:
     """Current-context topic ratings, highest first; reconciled baselines flagged (FR-034a)."""
     rows = [
         {
@@ -690,12 +691,12 @@ def render_teacher():
             for _s in students:
                 _view = _views[_s["id"]]
                 _gelo = _view["overall"]
-                _rname = get_rank(_gelo)[0] if _gelo is not None else "Diagnóstico pendiente"
                 _row = {
                     "Estudiante": _s["username"],
                     "Grupo": _s.get("group_name", _sel_grp_sidebar),
-                    "ELO Global": round(_gelo, 1) if _gelo is not None else None,
-                    "Rango": _rname,
+                    # FR-028j: the display value and the rank of that same value.
+                    "ELO Global": round_for_display(_gelo) if _gelo is not None else None,
+                    "Rango": v1_rated(_gelo)[1],
                 }
                 _row.update(
                     {
@@ -740,16 +741,14 @@ def render_teacher():
                 _proc_by_course = _dash["procedure_stats_by_course"]
                 _att_list = _dash["attempts"]
                 _global_elo = _elo_sum["global_elo"]
-                _rank_n = (
-                    get_rank(_global_elo)[0] if _global_elo is not None else "Diagnóstico pendiente"
-                )
+                _g_text, _rank_n, _ = v1_rated(_global_elo)
 
                 # ── Cabecera del estudiante ────────────────────────────────
                 st.subheader(f"🔍 Detalle: **{_sel_name}**")
                 _mc1, _mc2, _mc3, _mc4 = st.columns(4)
                 _mc1.metric(
                     "🏆 ELO Global",
-                    f"{_global_elo:.1f}" if _global_elo is not None else "—",
+                    _g_text,
                     delta=_rank_n,
                 )
                 _mc2.metric("📊 Intentos Totales", _elo_sum["attempts_count"])
@@ -769,7 +768,7 @@ def render_teacher():
                 _d1, _d2 = st.columns([1, 1])
                 with _d1:
                     st.markdown("**📊 ELO por Tópico**")
-                    _elo_rows = _topic_rows(_dash)
+                    _elo_rows = _rating_topic_rows(_dash)
                     if _elo_rows:
                         st.dataframe(
                             pd.DataFrame(_elo_rows), use_container_width=True, hide_index=True

@@ -54,7 +54,8 @@ never round or relabel on their own [FR-028j].
 ## `GET /student/map/{course_id}`
 Node states read the student's topic ratings **for that course** [FR-029]. Thresholds unchanged
 (spec 003). `MapNode.elo`/`rd` widen to `float | null`: `null` = topic not rated yet, shown as
-pending — never as the 1000 starting value.
+pending — never as the 1000 starting value. `MapNode.approximate` (bool, new) is `true` when the topic's rating is a
+reconciled baseline; the map and the course rail mark it with ≈ [FR-034a].
 
 ## `POST /student/diagnostic/{course_id}/submit`
 Baselines written per `(course_id, topic)` [FR-020, FR-021, FR-029]. Response unchanged; the

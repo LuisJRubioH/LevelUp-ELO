@@ -190,7 +190,7 @@ export function CourseRail({ courseId, currentNodeId }: { courseId: string; curr
               </span>
               <span className="ru-name">{shortTopic(nodeLabel(n))}</span>
               <span className="ru-prog">
-                {n.state === "completed" ? "✓" : n.state === "blocked" ? "—" : n.node_id ? "" : n.elo === null ? t("rating.pending") : `ELO ${Math.round(n.elo)}`}
+                {n.state === "completed" ? "✓" : n.state === "blocked" ? "—" : n.node_id ? "" : n.elo === null ? t("rating.pending") : `ELO ${Math.round(n.elo)}${n.approximate ? " ≈" : ""}`}
               </span>
             </button>
           ))}

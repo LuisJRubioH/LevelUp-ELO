@@ -355,3 +355,24 @@ def test_spec001_stats_marks_approximate_baselines(api_client):
     assert (topics["a"]["approximate"], topics["a"]["origin"]) == (True, "legacy_topic_row")
     assert (topics["b"]["approximate"], topics["b"]["origin"]) == (False, "practice")
     assert {t["topic"]: t["approximate"] for t in body["topic_elos"]} == {"a": True, "b": False}
+
+
+def test_spec001_course_map_marks_approximate_topics(api_client):
+    """FR-034a (T083): a map node whose topic rating is a reconciled baseline says so."""
+    repo = _repo(api_client)
+    student = make_student(repo)
+    course, _ = make_course(repo, ["a", "b", "c", "d", "e"])
+    enroll(repo, student, course)
+    sql(
+        repo,
+        "INSERT INTO student_course_topic_elo (user_id, course_id, topic, current_elo, rd,"
+        " origin, approximate, legacy_source_key) VALUES (?, ?, 'a', 1100, 200,"
+        " 'legacy_topic_row', 1, 'a')",
+        (student, course),
+    )
+    set_rating(repo, student, course, "b", 1200.0, origin="practice")
+
+    body = _get(api_client, repo, student, f"/api/student/map/{course}")
+
+    by_topic = {n["topic"]: n["approximate"] for n in body["nodes"]}
+    assert (by_topic["a"], by_topic["b"], by_topic["c"]) == (True, False, False)

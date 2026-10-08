@@ -151,6 +151,7 @@ export interface MapNode {
   node_type?: string;
   elo: number | null; // null = topic not rated yet (pending), never shown as 1000
   rd: number | null;
+  approximate?: boolean; // reconciled baseline (FR-034a)
   item_count: number;
   state: "completed" | "current" | "available" | "blocked";
 }

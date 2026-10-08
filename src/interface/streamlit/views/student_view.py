@@ -37,8 +37,14 @@ from src.interface.streamlit.assets import (
     load_katia_gif_html,
     _get_banner_b64,
 )
-from src.interface.streamlit.state import cached, invalidate_cache, get_rank, logout
-from src.interface.streamlit.rankings import fmt_position, fmt_rating, v1_my_rank, v1_ranking
+from src.interface.streamlit.state import cached, invalidate_cache, logout
+from src.interface.streamlit.rankings import (
+    fmt_position,
+    fmt_rating,
+    v1_my_rank,
+    v1_rated,
+    v1_ranking,
+)
 from src.interface.streamlit.components.timers import _render_live_timer
 
 # Funciones de IA extraídas de módulos
@@ -549,13 +555,11 @@ def render_student():
             cols = st.columns(2)
             for col_idx, course in enumerate(_enrolled[row_start : row_start + 2]):
                 c_name = course["name"]
-                c_elo = st.session_state.vector.get(c_name)
-                # Spec 001: an unrated course reads "pending", never V1's 1000 default.
-                _c_rated = c_name in st.session_state.vector.ratings
-                c_rank, c_color = (
-                    get_rank(c_elo) if _c_rated else ("Diagnóstico pendiente", "#888888")
+                # Spec 001: an unrated course reads "pending", never V1's 1000 default;
+                # number and rank come from one display value (FR-028j).
+                _c_elo_text, c_rank, c_color = v1_rated(
+                    st.session_state.vector.ratings.get(c_name, (None,))[0]
                 )
-                _c_elo_text = f"{c_elo:.0f}" if _c_rated else "—"
                 # Posición del estudiante en esta materia
                 _c_rank_info = v1_my_rank(
                     st.session_state.student_service.ratings,
@@ -685,13 +689,9 @@ def render_student():
         topic_display_name = selected_topic
 
         # Spec 001: an unrated course reads "pending"; 1000 stays only as the engine's start.
-        _rated_display = selected_topic in st.session_state.vector.ratings
-        rank_name, rank_color = (
-            get_rank(current_elo_display)
-            if _rated_display
-            else ("Diagnóstico pendiente", "#888888")
+        _elo_text, rank_name, rank_color = v1_rated(
+            st.session_state.vector.ratings.get(selected_topic, (None,))[0]
         )
-        _elo_text = f"{current_elo_display:.0f}" if _rated_display else "—"
 
         st.title("🚀 Sala de Estudio")
 
@@ -1836,8 +1836,8 @@ def render_student():
             if global_elo is None:  # spec 001, FR-028b: never a number while pending
                 st.metric("Nivel Global", "—", delta="Diagnóstico pendiente", delta_color="off")
             else:
-                rank_n, rank_c = get_rank(global_elo)
-                st.metric("Nivel Global", f"{global_elo:.0f}", delta=rank_n)
+                _g_text, rank_n, _ = v1_rated(global_elo)
+                st.metric("Nivel Global", _g_text, delta=rank_n)
         with m4:
             _st_times = [
                 a.get("time_taken")

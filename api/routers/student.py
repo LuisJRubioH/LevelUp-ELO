@@ -1357,7 +1357,7 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
     items = repo.get_items_from_db(course_id=course_id)
     # This course's topic ratings only (spec 001, FR-029); an unrated topic has no rating.
     elo_map = {
-        r["topic"]: {"elo": r["elo"], "rd": r["rd"]}
+        r["topic"]: {"elo": r["elo"], "rd": r["rd"], "approximate": r["approximate"]}
         for r in repo.get_course_topic_ratings(user["user_id"], course_id=course_id)
     }
     diagnostic_done = repo.get_diagnostic(user["user_id"], course_id) is not None
@@ -1441,6 +1441,7 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
             label=n["label"],
             elo=None if n["elo"] is None else round(n["elo"], 1),
             rd=None if n["rd"] is None else round(n["rd"], 1),
+            approximate=elo_map.get(n["topic"], {}).get("approximate", False),
             item_count=n["item_count"],
             state=(
                 "blocked"

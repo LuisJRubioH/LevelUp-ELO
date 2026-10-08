@@ -105,7 +105,7 @@ def test_spec001_v1_stakes_preview_is_the_applied_change(tmp_path, option, shown
 
 def test_spec001_v1_teacher_topic_table_marks_approximate_baselines():
     """FR-034a (T077): V1's per-topic table names the course and flags reconciled baselines."""
-    from src.interface.streamlit.views.teacher_view import _topic_rows
+    from src.interface.streamlit.views.teacher_view import _rating_topic_rows
 
     dash = {
         "course_ratings": [
@@ -127,7 +127,31 @@ def test_spec001_v1_teacher_topic_table_marks_approximate_baselines():
         ]
     }
 
-    assert _topic_rows(dash) == [
+    assert _rating_topic_rows(dash) == [
         {"Curso": "Álgebra", "Tópico": "b", "ELO": 1200.0, "RD ±": 120.0, "Aproximado": ""},
         {"Curso": "Álgebra", "Tópico": "a", "ELO": 1100.0, "RD ±": 200.0, "Aproximado": "sí"},
     ]
+
+
+@pytest.mark.parametrize(
+    "value,text,rank",
+    [
+        (999.6, "1000", "🔰 Iniciado"),
+        (999.4, "999", "🌱 Punto de Partida"),
+        (None, "—", "Diagnóstico pendiente"),
+    ],
+)
+def test_spec001_v1_number_and_rank_come_from_one_display_value(value, text, rank):
+    """FR-028j (T082): V1 shows the half-up display value and the rank of that same value."""
+    from src.interface.streamlit.rankings import v1_rated
+
+    assert v1_rated(value)[:2] == (text, rank)
+
+
+def test_spec001_v1_views_rank_only_through_the_display_value():
+    """FR-028j (T082): no V1 view ranks a full-precision rating itself."""
+    from pathlib import Path
+
+    views = Path(__file__).parents[3] / "src" / "interface" / "streamlit" / "views"
+    offenders = [p.name for p in views.glob("*.py") if "get_rank(" in p.read_text(encoding="utf-8")]
+    assert offenders == []

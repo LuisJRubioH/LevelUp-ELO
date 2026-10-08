@@ -79,6 +79,29 @@ test.describe("Spec 001 · calificaciones en pantalla", () => {
     await expect(page.getByTitle("Decimales").getByText("≈")).toHaveCount(0);
   });
 
+  test("Mapa y riel del curso marcan los temas con línea base aproximada (FR-034a)", async ({ page }) => {
+    await mockStudentApi(page);
+    await json(page, "**/api/student/map/*", {
+      course_id: "calculo",
+      course_name: "Cálculo Diferencial",
+      diagnostic_done: true,
+      nodes: [
+        { topic: "Límites", label: "Límites", elo: 1100, rd: 200, approximate: true, item_count: 3, state: "available" },
+        { topic: "Derivadas", label: "Derivadas", elo: 1200, rd: 120, approximate: false, item_count: 3, state: "available" },
+      ],
+    });
+    await injectAuth(page);
+    await page.goto("/student/course/calculo/map");
+
+    const trail = page.locator(".map-nodes");
+    // The trail repeats nodes to fill the path: check the first of each.
+    await expect(trail.getByRole("button", { name: /^Límites/ }).first()).toContainText("≈");
+    await expect(trail.getByRole("button", { name: /^Derivadas/ }).first()).toBeVisible();
+    await expect(trail.getByRole("button", { name: /^Derivadas/ }).first()).not.toContainText("≈");
+    await expect(page.locator(".ru-prog", { hasText: "ELO 1100" }).first()).toContainText("≈");
+    await expect(page.locator(".ru-prog", { hasText: "ELO 1200" }).first()).not.toContainText("≈");
+  });
+
   test("Número y rango salen del mismo valor: 999.6 → 1000 «Plata I» (US6-AS9)", async ({ page }) => {
     await mockStudentApi(page);
     await json(page, "**/api/student/stats", {

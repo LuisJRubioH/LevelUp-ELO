@@ -6,7 +6,18 @@ tables already use. Who appears follows FR-028f; what they are ranked by is the 
 ties share a rank (FR-028h); pending students come last without a rank.
 """
 
+from src.domain.elo.ranks import round_for_display
+from src.interface.streamlit.state import get_rank
+
 PENDING = "Diagnóstico pendiente"
+
+
+def v1_rated(value) -> tuple[str, str, str]:
+    """(shown number, V1 rank, colour) from one half-up display value (FR-028j); pending if None."""
+    if value is None:
+        return "—", PENDING, "#888888"
+    shown = round_for_display(value)
+    return (str(shown), *get_rank(shown))
 
 
 def v1_ranking(ratings, scope: str, limit=None, **kwargs) -> list[dict]:
