@@ -2,9 +2,10 @@ import { test, expect } from "@playwright/test";
 import { injectAuth, mockStudentApi, MOCK_TEACHER } from "./helpers/auth";
 
 test.describe("Rutas protegidas — redirección", () => {
-  test("/ sin autenticación → redirige a /login", async ({ page }) => {
+  test("/ sin autenticación → muestra la portada pública", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveURL("/login");
+    await expect(page).toHaveURL("/");
+    await expect(page.getByRole("link", { name: /Oulad/ }).first()).toBeVisible();
   });
 
   test("/student sin autenticación → redirige a /login", async ({ page }) => {
@@ -52,13 +53,6 @@ test.describe("Rutas protegidas — control de roles", () => {
   });
 
   test("docente en /student → redirige a /login", async ({ page }) => {
-    await page.route("**/api/**", async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({}),
-      });
-    });
     await injectAuth(page, MOCK_TEACHER);
     await page.goto("/student");
     await expect(page).toHaveURL("/login");
@@ -68,18 +62,17 @@ test.describe("Rutas protegidas — control de roles", () => {
 test.describe("Página de login", () => {
   test("muestra el formulario de login", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.getByText("Iniciar sesión")).toBeVisible();
-    await expect(page.getByPlaceholder("usuario o correo@ejemplo.com")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Continúa tu ascenso/i })).toBeVisible();
+    await expect(page.getByLabel("Usuario o correo")).toBeVisible();
     await expect(page.getByLabel("Contraseña")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Entrar" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Entrar a Oulad/ })).toBeVisible();
   });
 
-  test("usuario ya autenticado en /login → redirige a /student", async ({ page }) => {
+  test("estudiante sin sesión de práctica accede al catálogo", async ({ page }) => {
     await mockStudentApi(page);
     await injectAuth(page);
-    // Con auth inyectada, ir a /login debe mantenerse en /login (no hay redirect automático)
-    // Pero ir a /student debe funcionar
     await page.goto("/student");
-    await expect(page).toHaveURL("/student");
+    await expect(page).toHaveURL("/student/courses");
+    await expect(page.getByText("Cálculo Diferencial")).toBeVisible();
   });
 });

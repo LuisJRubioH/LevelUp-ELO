@@ -1,0 +1,655 @@
+[
+  {
+    "id": "HT8-U3-P67-A7a",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $4x(3x^2+4x-2)$.",
+    "expr": "4*x*(3*x**2 + 4*x - 2)",
+    "respuesta": "12*x**3 + 16*x**2 - 8*x",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — Multiplicación de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 7, ítem a",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U3-P67-A7b",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $-8m^2n^3(5m^3n^3-6m^2n^4-3mn^5)$.",
+    "expr": "-8*m**2*n**3*(5*m**3*n**3 - 6*m**2*n**4 - 3*m*n**5)",
+    "respuesta": "-40*m**5*n**6 + 48*m**4*n**7 + 24*m**3*n**8",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — Multiplicación de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 7, ítem b",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "Los tres términos del resultado tienen grado total 11: sirve de comprobación rápida.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U3-P67-A7c",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $0{,}75a^2b(4a^3b^2-5a^2b^3+6ab)$.",
+    "expr": "0.75*a**2*b*(4*a**3*b**2 - 5*a**2*b**3 + 6*a*b)",
+    "respuesta": "3*a**5*b**3 - 15/4*a**4*b**4 + 9/2*a**3*b**2",
+    "conjunto": "Q",
+    "seccion": "Taller 3 — Multiplicación de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 7, ítem c",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$0{,}75=\\dfrac{3}{4}$, así que el primer término sale entero ($3a^5b^3$) y los otros dos quedan en $-3{,}75$ y $4{,}5$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U3-P67-A7d",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $-\\dfrac{8}{3}x^2y\\left(-2x^3y^2+\\dfrac{1}{5}x^2y^3-\\dfrac{1}{6}xy\\right)$.",
+    "expr": "-8/3*x**2*y*(-2*x**3*y**2 + 1/5*x**2*y**3 - 1/6*x*y)",
+    "respuesta": "16/3*x**5*y**3 - 8/15*x**4*y**4 + 4/9*x**3*y**2",
+    "conjunto": "Q",
+    "seccion": "Taller 3 — Multiplicación de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 7, ítem d",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Factor negativo: los signos del paréntesis se invierten todos. $\\dfrac{8}{3}\\cdot\\dfrac{1}{6}=\\dfrac{4}{9}$ tras simplificar.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U3-P67-A7e",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $\\dfrac{3}{7}mn^2\\left(-\\dfrac{1}{5}m^2n+7mn^2-\\dfrac{2}{9}\\right)$.",
+    "expr": "3/7*m*n**2*(-1/5*m**2*n + 7*m*n**2 - 2/9)",
+    "respuesta": "-3/35*m**3*n**3 + 3*m**2*n**4 - 2/21*m*n**2",
+    "conjunto": "Q",
+    "seccion": "Taller 3 — Multiplicación de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 7, ítem e",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$\\dfrac{3}{7}\\cdot7=3$: el término del medio sale entero porque el $7$ cancela el denominador. Buena ocasión para simplificar antes de multiplicar.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U3-P67-A8a",
+    "tipo": "simbolico",
+    "enunciado": "Reduce: $(3x^2+2x+5)(3x-2)$.",
+    "expr": "(3*x**2 + 2*x + 5)*(3*x - 2)",
+    "respuesta": "9*x**3 + 11*x - 10",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — Multiplicación de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 8, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Los términos en $x^2$ se CANCELAN ($+6x^2-6x^2$) y el resultado no tiene término cuadrático. Que un término desaparezca no es señal de error.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U3-P67-A8b",
+    "tipo": "simbolico",
+    "enunciado": "Reduce: $(4x^2-8x+7)(8xy^2-5xy)$.",
+    "expr": "(4*x**2 - 8*x + 7)*(8*x*y**2 - 5*x*y)",
+    "respuesta": "32*x**3*y**2 - 20*x**3*y - 64*x**2*y**2 + 40*x**2*y + 56*x*y**2 - 35*x*y",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — Multiplicación de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 8, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Seis productos parciales y ninguno se reduce: el resultado tiene los seis términos.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U3-P67-A8c",
+    "tipo": "simbolico",
+    "enunciado": "Reduce: $[(-5m^3n^2+8m^2n^3-6)(3mn)]+21mn$.",
+    "expr": "((-5*m**3*n**2 + 8*m**2*n**3 - 6)*(3*m*n)) + 21*m*n",
+    "respuesta": "-15*m**4*n**3 + 24*m**3*n**4 + 3*m*n",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — Multiplicación de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 8, ítem c",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El producto deja $-18mn$ y al sumarle $21mn$ queda $+3mn$. Es el único par de términos semejantes del ejercicio.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U3-P67-A8d",
+    "tipo": "simbolico",
+    "enunciado": "Reduce: $[(8x^2y)(-3xy^2)]-[(2x^2y-5xy^2)(-xy^2)]$.",
+    "expr": "((8*x**2*y)*(-3*x*y**2)) - ((2*x**2*y - 5*x*y**2)*(-x*y**2))",
+    "respuesta": "-22*x**3*y**3 - 5*x**2*y**4",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — Multiplicación de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 8, ítem d",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Doble negación: el segundo corchete vale $-2x^3y^3+5x^2y^4$ y al restarlo se convierte en $+2x^3y^3-5x^2y^4$. Después $-24+2=-22$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U3-P67-A8e",
+    "tipo": "simbolico",
+    "enunciado": "Reduce: $\\left(\\dfrac{3}{4}m^2n-\\dfrac{1}{6}mn^2\\right)\\left(\\dfrac{2}{3}mn+\\dfrac{3}{2}mn^2\\right)$.",
+    "expr": "(3/4*m**2*n - 1/6*m*n**2)*(2/3*m*n + 3/2*m*n**2)",
+    "respuesta": "1/2*m**3*n**2 + 9/8*m**3*n**3 - 1/9*m**2*n**3 - 1/4*m**2*n**4",
+    "conjunto": "Q",
+    "seccion": "Taller 3 — Multiplicación de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 8, ítem e",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Cuatro productos de fracciones, ninguno reducible con otro. $\\dfrac{3}{4}\\cdot\\dfrac{2}{3}=\\dfrac{1}{2}$ simplificando antes de multiplicar.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U3-P67-A8f",
+    "tipo": "simbolico",
+    "enunciado": "Reduce: $\\left(-\\dfrac{7}{5}x^3y\\right)\\left\\{-\\left[\\left(3xy-\\dfrac{1}{2}xy^2+1\\right)\\left(\\dfrac{7}{2}x\\right)\\right]\\right\\}$.",
+    "expr": "(-7/5*x**3*y)*(-((3*x*y - 1/2*x*y**2 + 1)*(7/2*x)))",
+    "respuesta": "147/10*x**5*y**2 - 49/20*x**5*y**3 + 49/10*x**4*y",
+    "conjunto": "Q",
+    "seccion": "Taller 3 — Multiplicación de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 8, ítem f",
+    "apto_para": [
+      "practica_numerica",
+      "procedimiento_abierto"
+    ],
+    "nota": "Dos factores negativos (el $-\\dfrac{7}{5}$ y el menos de la llave) dan producto positivo: conviene resolver el signo global ANTES de multiplicar, y así los tres términos heredan directamente los signos del trinomio.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U3-P67-A9a",
+    "tipo": "numerico",
+    "enunciado": "Se va a entapetar una sala con forma de pentágono: un rectángulo de $(8x+3)$ por $(5x-2)$ con un triángulo debajo de base $(8x+3)$ y altura $(12x+7)$. ¿Cuántos m² de tapete se necesitan si $x=5$?",
+    "expr": "(8*5 + 3)*(5*5 - 2) + (8*5 + 3)*(12*5 + 7)/2",
+    "respuesta": "2429.5",
+    "conjunto": "Q",
+    "seccion": "Taller 3 — Multiplicación de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 9, ítem a",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "figura": "pentágono tipo «home plate»: rectángulo (8x+3)×(5x−2) sobre triángulo de altura 12x+7 — reconstruible en Python",
+    "nota": "En lenguaje algebraico el área es $88x^2+45x+\\dfrac{9}{2}$; con $x=5$ da $2429{,}5$ m². El medio metro cuadrado viene del triángulo: $\\dfrac{43\\cdot67}{2}=1440{,}5$. No es un error de redondeo, es exacto.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U3-P67-A9b",
+    "tipo": "simbolico",
+    "enunciado": "Un parque tiene forma de un rectángulo de $(10x+3)$ por $(4x-2)$, más un rectángulo inferior derecho de $(3x-5)$ de ancho que completa una altura total de $(8x-9)$, más un triángulo a la izquierda de base vertical $(4x-2)$ y altura horizontal $(3x-8)$. Determina el polinomio que representa su área.",
+    "expr": "(10*x + 3)*(4*x - 2) + (3*x - 5)*((8*x - 9) - (4*x - 2)) + (4*x - 2)*(3*x - 8)/2",
+    "respuesta": "58*x**2 - 68*x + 37",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — Multiplicación de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 9, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "polígono compuesto: triángulo izquierdo + rectángulo superior + rectángulo inferior derecho, con las medidas 10x+3, 4x−2, 8x−9, 3x−5 y 3x−8 — reconstruible en Python",
+    "nota": "La altura del rectángulo inferior NO está rotulada: se obtiene restando, $(8x-9)-(4x-2)=4x-7$. Descomponer la figura y anotar cada pieza antes de operar es la mitad del trabajo.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U3-P67-A10a",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $-20mn^2\\div 5mn$.",
+    "expr": "-20*m*n**2/(5*m*n)",
+    "respuesta": "-4*n",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División de monomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 10, ítem a",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U3-P67-A10b",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $7x^3y^2\\div(-3x^5y)$.",
+    "expr": "7*x**3*y**2/(-3*x**5*y)",
+    "respuesta": "-7*y/(3*x**2)",
+    "conjunto": "Q",
+    "seccion": "Taller 3 — División de monomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 10, ítem b",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "$-\\dfrac{7y}{3x^2}$. Al restar los exponentes de $x$ sale $3-5=-2$. Convenio: **se escribe como fracción algebraica**, no con exponente negativo, porque el libro no los ha presentado todavía.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U3-P67-A10c",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $\\dfrac{3}{7}m^4n^2\\div\\dfrac{-1}{2}m^2n$.",
+    "expr": "(3/7*m**4*n**2)/(-1/2*m**2*n)",
+    "respuesta": "-6/7*m**2*n",
+    "conjunto": "Q",
+    "seccion": "Taller 3 — División de monomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 10, ítem c",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Dividir entre $-\\dfrac{1}{2}$ es multiplicar por $-2$: $\\dfrac{3}{7}\\cdot(-2)=-\\dfrac{6}{7}$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U3-P67-A10d",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $-8m^{2x+1}\\div 4m^{x-3}$.",
+    "expr": "-8*m**(2*x+1)/(4*m**(x-3))",
+    "respuesta": "-2*m**(x+4)",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División de monomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 10, ítem d",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$(2x+1)-(x-3)=x+4$. Los paréntesis en la resta de exponentes son obligatorios: sin ellos sale $x-2$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U3-P67-A10e",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $5x^{3m-1}\\div(-3x^{2m+2})$.",
+    "expr": "5*x**(3*m-1)/(-3*x**(2*m+2))",
+    "respuesta": "-5/3*x**(m-3)",
+    "conjunto": "Q",
+    "seccion": "Taller 3 — División de monomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 10, ítem e",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$(3m-1)-(2m+2)=m-3$. El exponente resultante puede ser positivo o negativo según el valor de $m$, pero la expresión es la misma.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U3-P67-A10f",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $\\dfrac{-4}{5}x^3y^2\\div\\left(-\\dfrac{2}{3}x^5y\\right)$.",
+    "expr": "(-4/5*x**3*y**2)/(-2/3*x**5*y)",
+    "respuesta": "6*y/(5*x**2)",
+    "conjunto": "Q",
+    "seccion": "Taller 3 — División de monomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 10, ítem f",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{6y}{5x^2}$. Mismo caso que el ítem b: exponente negativo en $x$, que se escribe como fracción algebraica siguiendo el convenio de la transcripción.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U3-P67-A11f1",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: divide $6x^2+5xy-7y^2$ entre $3x+3y$. Verifica: cociente $2x-\\dfrac{y}{3}$, residuo $-6y^2$.",
+    "expr": "(3*x + 3*y)*(2*x - y/3) + (-6*y**2)",
+    "respuesta": "6*x**2 + 5*x*y - 7*y**2",
+    "conjunto": "Q",
+    "seccion": "Taller 3 — División de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 11, fila 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "División respecto de $x$ con $y$ como parámetro. El cociente tiene coeficiente fraccionario ($-\\dfrac{y}{3}$) porque el divisor no es mónico, y el residuo $-6y^2$ tiene grado $0$ en $x$, menor que el del divisor.",
+    "verificar": "El resultado es incómodo para un taller de repaso. Vale la pena confirmar con el docente si esperaba que $3x+3y$ dividiera exacto (no lo hace: $6x^2+5xy-7y^2$ evaluado en $x=-y$ da $-6y^2\\ne0$).",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U3-P67-A11f2",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: si el divisor es $3x-5$, el cociente $2x-7$ y el residuo $12$, ¿cuál es el dividendo?",
+    "expr": "(3*x - 5)*(2*x - 7) + 12",
+    "respuesta": "6*x**2 - 31*x + 47",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 11, fila 2",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Uso directo de $D=d\\cdot c+r$. Es la fila más sencilla de la tabla y conviene resolverla primero para fijar la fórmula.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U3-P67-A11f3",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: divide $5m^2+7n^2m-14n^4-9$ entre $m-2n^2$. Verifica: cociente $5m+17n^2$, residuo $20n^4-9$.",
+    "expr": "(m - 2*n**2)*(5*m + 17*n**2) + (20*n**4 - 9)",
+    "respuesta": "5*m**2 + 7*m*n**2 - 14*n**4 - 9",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 11, fila 3",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "División respecto de $m$: el divisor tiene grado 1 en $m$, así que el residuo debe tener grado 0 en $m$ — y en efecto $20n^4-9$ no lleva $m$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U3-P67-A11f4",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: si el dividendo es $2m^4-9m^3-36m^2-12m+16$ y el cociente $m^2-6m-8$, ¿cuál es el divisor (con residuo $0$)?",
+    "expr": "(2*m**4 - 9*m**3 - 36*m**2 - 12*m + 16)/(m**2 - 6*m - 8)",
+    "respuesta": "2*m**2 + 3*m - 2",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 11, fila 4",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Como el residuo es $0$, el divisor es dividendo ÷ cociente. El grado cuadra: $4-2=2$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U3-P67-A11f5",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: si el dividendo es $10x^5+6x^4-28x^3-40x^2+58x$ y el cociente $2x^3+4x^2-8$, ¿cuáles son el divisor y el residuo?",
+    "expr": "(5*x**2 - 7*x)*(2*x**3 + 4*x**2 - 8) + 2*x",
+    "respuesta": "10*x**5 + 6*x**4 - 28*x**3 - 40*x**2 + 58*x",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 11, fila 5",
+    "apto_para": [
+      "procedimiento_abierto",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Aquí la división NO es exacta: divisor $5x^2-7x$ y residuo $2x$. El divisor no se puede obtener dividiendo (el cociente no divide al dividendo); hay que plantear $D=d\\cdot c+r$ con $d=ax^2+bx+c$ y $r=dx+e$, e igualar coeficientes. Salen $a=5$, $b=-7$, $c=0$, residuo $2x$, y el sistema cuadra sin sobrar ecuaciones.",
+    "verificar": "Es la fila más difícil de la tabla y su solución exige igualar coeficientes, técnica que el libro no ha presentado en esta unidad. Confirmar con el docente antes de usarla como práctica.",
+    "dificultad": 1800
+  },
+  {
+    "id": "HT8-U3-P67-A11f6",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: divide $\\dfrac{3}{18}m^3-\\dfrac{10}{16}m^2n-n^3+\\dfrac{5}{3}mn^2$ entre $\\dfrac{1}{4}m-\\dfrac{6}{4}n$. Verifica: cociente $\\dfrac{2}{3}m^2+\\dfrac{3}{2}mn+\\dfrac{47}{3}n^2$, residuo $\\dfrac{45}{2}n^3$.",
+    "expr": "(1/4*m - 6/4*n)*(2/3*m**2 + 3/2*m*n + 47/3*n**2) + 45/2*n**3",
+    "respuesta": "3/18*m**3 - 10/16*m**2*n + 5/3*m*n**2 - n**3",
+    "conjunto": "Q",
+    "seccion": "Taller 3 — División de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 11, fila 6",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Fracciones sin simplificar en el enunciado ($\\dfrac{3}{18}=\\dfrac{1}{6}$, $\\dfrac{10}{16}=\\dfrac{5}{8}$, $\\dfrac{6}{4}=\\dfrac{3}{2}$): conviene reducirlas antes de dividir. El residuo $\\dfrac{45}{2}n^3$ no lleva $m$, como debe ser.",
+    "verificar": "Resultado correcto pero incómodo. Reservar para procedimiento abierto.",
+    "dificultad": 1800
+  },
+  {
+    "id": "HT8-U3-P67-A12a",
+    "tipo": "simbolico",
+    "enunciado": "Un cono tiene área de la base $A_b=4x^2+x-9$ y volumen $V=4x^3+5x^2-8x-9$. Determina su altura.",
+    "expr": "3*(4*x**3 + 5*x**2 - 8*x - 9)/(4*x**2 + x - 9)",
+    "respuesta": "3*x + 3",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 12, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "figura": "cono con altura punteada, A_b=4x²+x−9 y V=4x³+5x²−8x−9 — reconstruible en Python",
+    "nota": "En el cono $V=\\dfrac{A_b\\cdot h}{3}$, luego $h=\\dfrac{3V}{A_b}$. La división $V\\div A_b$ da $x+1$ exacto y el $3$ lo triplica: $3x+3$. Olvidar el factor $3$ es el error típico.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U3-P67-A12b",
+    "tipo": "simbolico",
+    "enunciado": "Un cono tiene área de la base $A_b=x^2-3x-6$ y volumen $V=x^3-5x^2+12$. Determina su altura.",
+    "expr": "3*(x**3 - 5*x**2 + 12)/(x**2 - 3*x - 6)",
+    "respuesta": "3*x - 6",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División de polinomios",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 12, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "figura": "cono con altura punteada, A_b=x²−3x−6 y V=x³−5x²+12 — reconstruible en Python",
+    "nota": "El volumen no tiene término en $x$: hay que escribir el $0x$ al montar la división. $V\\div A_b=x-2$ y la altura es $3x-6$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U3-P67-A13a",
+    "tipo": "simbolico",
+    "enunciado": "Divide con Ruffini: $(x^2+4x+3)\\div(x+3)$.",
+    "expr": "(x**2 + 4*x + 3)/(x + 3)",
+    "respuesta": "x + 1",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División sintética",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 13, ítem a",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "Exacta: $x^2+4x+3=(x+1)(x+3)$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U3-P67-A13b",
+    "tipo": "simbolico",
+    "enunciado": "Divide con Ruffini: $(x^2-2x-8)\\div(x+2)$.",
+    "expr": "(x**2 - 2*x - 8)/(x + 2)",
+    "respuesta": "x - 4",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División sintética",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 13, ítem b",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "Exacta. En el esquema va $-2$, no $+2$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U3-P67-A13c",
+    "tipo": "simbolico",
+    "enunciado": "Divide con Ruffini: $(5x^3+3x^2-4x-2)\\div(x+1)$.",
+    "expr": "(5*x**3 + 3*x**2 - 4*x - 2)/(x + 1)",
+    "respuesta": "5*x**2 - 2*x - 2",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División sintética",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 13, ítem c",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "Exacta, residuo $0$: $x+1$ es factor.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U3-P67-A13d",
+    "tipo": "simbolico",
+    "enunciado": "Divide con Ruffini: $(6x^3-5x^2+8x-44)\\div(x-2)$.",
+    "expr": "(6*x**3 - 5*x**2 + 8*x - 44)/(x - 2)",
+    "respuesta": "6*x**2 + 7*x + 22",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División sintética",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 13, ítem d",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "Exacta, residuo $0$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U3-P67-A13e",
+    "tipo": "simbolico",
+    "enunciado": "Divide con Ruffini: $(10x^3-14x^2-16x-120)\\div(x-3)$. Cociente $10x^2+16x+32$, residuo $-24$.",
+    "expr": "(x - 3)*(10*x**2 + 16*x + 32) + (-24)",
+    "respuesta": "10*x**3 - 14*x**2 - 16*x - 120",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División sintética",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 13, ítem e",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "La única no exacta de la actividad 13: residuo $-24$, es decir $P(3)=-24$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U3-P67-A14a",
+    "tipo": "numerico",
+    "enunciado": "Aplica el teorema del residuo a $(x^2+3x-10)\\div(x-5)$: calcula el residuo.",
+    "expr": "5**2 + 3*5 - 10",
+    "respuesta": "30",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División sintética",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 14, ítem a",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Residuo $30$: NO es exacta. Ojo, $x^2+3x-10=(x+5)(x-2)$, así que el binomio que sí la divide es $x+5$, no $x-5$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U3-P67-A14b",
+    "tipo": "numerico",
+    "enunciado": "Aplica el teorema del residuo a $(3x^2-7x-20)\\div(x-4)$: calcula el residuo.",
+    "expr": "3*4**2 - 7*4 - 20",
+    "respuesta": "0",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División sintética",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 14, ítem b",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Residuo $0$: SÍ es exacta.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U3-P67-A14c",
+    "tipo": "numerico",
+    "enunciado": "Aplica el teorema del residuo a $(5x^2+8x-3)\\div(x+3)$: calcula el residuo.",
+    "expr": "5*(-3)**2 + 8*(-3) - 3",
+    "respuesta": "18",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División sintética",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 14, ítem c",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Residuo $18$: no exacta.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U3-P67-A14d",
+    "tipo": "numerico",
+    "enunciado": "Aplica el teorema del residuo a $(-2x^3+8x^2+7x-2)\\div(x-2)$: calcula el residuo.",
+    "expr": "-2*2**3 + 8*2**2 + 7*2 - 2",
+    "respuesta": "28",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División sintética",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 14, ítem d",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Residuo $28$: no exacta.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U3-P67-A14e",
+    "tipo": "numerico",
+    "enunciado": "Aplica el teorema del residuo a $(3x^3-6x^2-5x+8)\\div(x-1)$: calcula el residuo.",
+    "expr": "3*1**3 - 6*1**2 - 5*1 + 8",
+    "respuesta": "0",
+    "conjunto": "Z",
+    "seccion": "Taller 3 — División sintética",
+    "unidad": 3,
+    "pagina_pdf": 67,
+    "referencia": "Taller 3, actividad 14, ítem e",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Residuo $0$: SÍ es exacta. Para $x-1$ el residuo es simplemente la SUMA de los coeficientes ($3-6-5+8=0$), atajo que conviene conocer. De las cinco divisiones de la actividad 14, solo b y e son exactas.",
+    "dificultad": 1250
+  }
+]

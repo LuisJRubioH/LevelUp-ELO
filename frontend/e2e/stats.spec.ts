@@ -15,7 +15,7 @@ test.describe("Estadísticas del estudiante", () => {
 
   test("muestra el ELO global del estudiante", async ({ page }) => {
     // El mock devuelve global_elo: 1050
-    await expect(page.getByText(/1[.,\s]?0[45][05]|1050/)).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator(".sp-stat").filter({ hasText: "ELO global" }).getByText("1050", { exact: true })).toBeVisible({ timeout: 5_000 });
   });
 
   test("muestra el rango del estudiante", async ({ page }) => {

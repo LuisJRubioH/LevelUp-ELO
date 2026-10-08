@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LevelUp-ELO — Dirección B · Editorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Press+Start+2P&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --canvas:#0b0e0f; --surface:#11161a; --surface-2:#141b1f;
+    --border:rgba(255,255,255,.09); --border-strong:rgba(255,255,255,.16);
+    --text:#eef3f3; --dim:#9fb0b0; --mute:#647070;
+    --accent-2:#2dd4bf; --accent-2-soft:#5eead4; --accent:#8b5cf6; --gold:#ffd700;
+    --pixel:"Press Start 2P",monospace; --disp:"Poppins",sans-serif; --body:"Inter",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--canvas);color:var(--text);font-family:var(--body);-webkit-font-smoothing:antialiased;overflow:hidden;}
+  .wrap{height:100%;display:flex;flex-direction:column;position:relative;}
+  .tag{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:20;font-family:var(--pixel);font-size:8px;color:var(--mute);letter-spacing:.1em;}
+
+  nav{display:flex;align-items:center;justify-content:space-between;padding:26px 56px 22px;border-bottom:1px solid var(--border);}
+  .logo{height:28px;}
+  .nlinks{display:flex;gap:34px;list-style:none;}
+  .nlinks a{color:var(--dim);font-size:14px;font-weight:500;text-decoration:none;letter-spacing:.01em;transition:color .2s;}
+  .nlinks a:hover{color:var(--accent-2);}
+  .nact{display:flex;align-items:center;gap:16px;}
+  .lang{display:flex;gap:2px;font-family:var(--pixel);font-size:8px;}
+  .lang button{background:none;border:none;color:var(--mute);padding:6px 7px;cursor:pointer;font-family:inherit;border-radius:5px;}
+  .lang button.on{color:var(--accent-2);}
+  .login{color:var(--dim);font-size:14px;font-weight:600;text-decoration:none;}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--body);font-weight:600;font-size:14px;padding:11px 20px;border-radius:8px;border:1px solid transparent;cursor:pointer;text-decoration:none;transition:transform .15s,background .2s,border-color .2s;}
+  .btn-p{background:var(--accent-2);color:#06231f;}
+  .btn-p:hover{background:var(--accent-2-soft);transform:translateY(-2px);}
+
+  .hero{flex:1;display:grid;grid-template-columns:1.15fr .85fr;}
+  .left{padding:54px 56px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--border);position:relative;}
+  .idx{font-family:var(--pixel);font-size:9px;color:var(--accent-2);letter-spacing:.08em;margin-bottom:30px;display:flex;align-items:center;gap:12px;}
+  .idx::before{content:"";width:34px;height:1px;background:var(--accent-2);display:inline-block;}
+  h1{font-family:var(--disp);font-weight:700;font-size:clamp(40px,4.8vw,62px);line-height:1.05;letter-spacing:-.025em;}
+  h1 em{font-style:italic;font-weight:600;color:var(--accent-2);}
+  .sub{font-size:18px;color:var(--dim);line-height:1.65;max-width:48ch;margin:28px 0 34px;}
+  .cta{display:flex;gap:16px;align-items:center;}
+  .arrow-link{color:var(--text);font-weight:600;font-size:14.5px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;border-bottom:1px solid transparent;padding-bottom:2px;transition:border-color .2s;}
+  .arrow-link:hover{border-color:var(--accent-2);}
+  .meta{display:flex;gap:0;margin-top:54px;border-top:1px solid var(--border);}
+  .meta .m{flex:1;padding:22px 24px 0 0;}
+  .meta .m:not(:last-child){border-right:1px solid var(--border);padding-right:24px;}
+  .meta .m+ .m{padding-left:24px;}
+  .meta .n{font-family:var(--disp);font-weight:700;font-size:24px;letter-spacing:-.02em;}
+  .meta .l{font-size:12.5px;color:var(--mute);margin-top:6px;line-height:1.4;}
+
+  .right{position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:48px 56px;background:
+    radial-gradient(ellipse 70% 60% at 50% 35%,rgba(45,212,191,.10),transparent 70%);}
+  .plate{position:relative;border:1px solid var(--border-strong);border-radius:6px;background:var(--surface);padding:18px;max-width:380px;box-shadow:0 40px 90px -40px rgba(0,0,0,.7);}
+  .plate img{width:100%;display:block;border-radius:3px;image-rendering:pixelated;}
+  .caption{display:flex;justify-content:space-between;align-items:baseline;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+  .caption .c1{font-family:var(--disp);font-weight:600;font-size:15px;}
+  .caption .c1 small{display:block;color:var(--mute);font-family:var(--body);font-weight:400;font-size:12px;margin-top:4px;}
+  .caption .fig{font-family:var(--pixel);font-size:8px;color:var(--accent-2);}
+  .quote{margin-top:18px;font-size:13.5px;color:var(--dim);line-height:1.6;font-style:italic;border-left:2px solid var(--accent-2);padding-left:14px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tag">B · EDITORIAL ACADEMY</div>
+  <nav>
+    <img class="logo" src="../assets/logo.png" alt="LevelUp ELO" />
+    <ul class="nlinks">
+      <li><a href="#">Funciones</a></li>
+      <li><a href="#">KatIA</a></li>
+      <li><a href="#">Docentes</a></li>
+      <li><a href="#">Nosotros</a></li>
+      <li><a href="#">FAQ</a></li>
+    </ul>
+    <div class="nact">
+      <div class="lang"><button class="on" data-l="es">ES</button><span style="color:var(--mute)">/</span><button data-l="en">EN</button></div>
+      <a class="login" href="#" data-es="Iniciar sesión" data-en="Log in">Iniciar sesión</a>
+      <a class="btn btn-p" href="#" data-es="Empezar" data-en="Get started">Empezar</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="left">
+      <div class="idx"><span data-es="EL MÉTODO — APRENDIZAJE ADAPTATIVO" data-en="THE METHOD — ADAPTIVE LEARNING">EL MÉTODO — APRENDIZAJE ADAPTATIVO</span></div>
+      <h1 data-es-html="Aprende matemáticas al <em>ritmo exacto</em> de tu nivel." data-en-html="Learn math at the <em>exact pace</em> of your level.">Aprende matemáticas al <em>ritmo exacto</em> de tu nivel.</h1>
+      <p class="sub" data-es="El mismo sistema de rating del ajedrez, aplicado a tu aprendizaje. Cada respuesta recalibra tu nivel para servirte siempre el reto justo — ni aburrido, ni frustrante." data-en="The same rating system used in chess, applied to your learning. Every answer recalibrates your level to always serve the right challenge — never boring, never frustrating.">El mismo sistema de rating del ajedrez, aplicado a tu aprendizaje. Cada respuesta recalibra tu nivel para servirte siempre el reto justo — ni aburrido, ni frustrante.</p>
+      <div class="cta">
+        <a class="btn btn-p" href="#" data-es="Crear cuenta gratis" data-en="Create free account">Crear cuenta gratis</a>
+        <a class="arrow-link" href="#" data-es="Conocer a KatIA →" data-en="Meet KatIA →">Conocer a KatIA →</a>
+      </div>
+      <div class="meta">
+        <div class="m"><div class="n">+1.900</div><div class="l" data-es="preguntas calibradas por dificultad" data-en="questions calibrated by difficulty">preguntas calibradas por dificultad</div></div>
+        <div class="m"><div class="n">16</div><div class="l" data-es="rangos, de Aspirante a Leyenda" data-en="ranks, Aspirant to Legend">rangos, de Aspirante a Leyenda</div></div>
+        <div class="m"><div class="n">4</div><div class="l" data-es="niveles: colegio a universidad" data-en="levels: school to university">niveles: colegio a universidad</div></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="plate">
+        <img src="../assets/katia-correcto.gif" alt="KatIA" />
+        <div class="caption">
+          <div class="c1">KatIA<small data-es="Tutora socrática con IA" data-en="AI socratic tutor">Tutora socrática con IA</small></div>
+          <div class="fig">FIG. 01</div>
+        </div>
+        <p class="quote" data-es="«No te doy la respuesta. Te hago la pregunta correcta para que la encuentres tú.»" data-en="“I won't give you the answer. I'll ask the right question so you find it yourself.”">«No te doy la respuesta. Te hago la pregunta correcta para que la encuentres tú.»</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  const btns=document.querySelectorAll('.lang button');
+  function setLang(l){
+    document.querySelectorAll('[data-es]').forEach(el=>{el.textContent=el.getAttribute('data-'+l);});
+    document.querySelectorAll('[data-es-html]').forEach(el=>{el.innerHTML=el.getAttribute('data-'+l+'-html');});
+    btns.forEach(b=>b.classList.toggle('on',b.dataset.l===l));
+    document.documentElement.lang=l;
+  }
+  btns.forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.l)));
+</script>
+</body>
+</html>

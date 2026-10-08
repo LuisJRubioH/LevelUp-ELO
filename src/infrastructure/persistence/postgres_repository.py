@@ -57,6 +57,20 @@ def _retry_on_deadlock(max_retries=2, delay=0.05):
     return decorator
 
 
+def _migrations_enabled() -> bool:
+    """Indica si este proceso debe crear esquema, seeds y backfills.
+
+    Por defecto sí, para que desarrollo local y tests no cambien. En
+    despliegue se pone RUN_MIGRATIONS=0 en el proceso web y el esquema lo
+    aplica un paso previo (scripts/migrate.py): ver _bootstrap_schema().
+    """
+    return os.environ.get("RUN_MIGRATIONS", "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+    )
+
+
 class PostgresRepository:
 
     _COURSE_BLOCK_MAP = {
@@ -73,6 +87,7 @@ class PostgresRepository:
         "aritmetica_basica": "Colegio",
         "trigonometria": "Colegio",
         "geometria": "Colegio",
+        "evaluar_para_avanzar_8": "Colegio",
         # ── Bloque Concursos (preparación para concursos públicos) ────────────
         "DIAN": "Concursos",
         "SENA": "Concursos",
@@ -117,6 +132,7 @@ class PostgresRepository:
 
     _COURSE_NAME_MAP = {
         "DIAN": "Concurso DIAN — Gestor I",
+        "evaluar_para_avanzar_8": "Evaluar para Avanzar — Matemáticas 8.°",
         "SENA": "Concurso SENA — Profesional 10",
         "logica_semillero_6": "Lógica Semillero 6°",
         "algebra_semillero_6": "Álgebra Semillero 6°",
@@ -172,13 +188,16 @@ class PostgresRepository:
         if not m:
             raise RuntimeError(f"Cannot parse DATABASE_URL: {self.database_url[:20]}…")
         user, password, host, port, dbname = m.groups()
+        sslmode = os.environ.get("DATABASE_SSLMODE", "require")
+        if sslmode not in {"disable", "allow", "prefer", "require", "verify-ca", "verify-full"}:
+            raise RuntimeError(f"DATABASE_SSLMODE no válido: {sslmode}")
         self._conn_kwargs = dict(
             host=host,
             port=int(port),
             dbname=dbname,
             user=user,
             password=password,
-            sslmode="require",
+            sslmode=sslmode,
             options="-c statement_timeout=60000",
         )
         _is_pooler = "pooler" in host
@@ -201,6 +220,20 @@ class PostgresRepository:
 
         self.hashing = HashingService()
         self._storage = SupabaseStorage()
+        if _migrations_enabled():
+            self._bootstrap_schema()
+        else:
+            print("RUN_MIGRATIONS=0 — esquema y seeds los aplica el paso previo.")
+
+    def _bootstrap_schema(self):
+        """Esquema, seeds y backfills: un solo paso, fuera del arranque HTTP.
+
+        Sobre el pooler de transacciones de Supabase (puerto 6543) la sesión
+        no sobrevive al commit, así que el pg_try_advisory_lock que toma
+        _migrate_db() puede terminar liberándose desde otra sesión física.
+        Por eso esto corre una sola vez y por conexión directa o pooler de
+        sesión — ver scripts/migrate.py y el startCommand de render.yaml.
+        """
         print("Iniciando init_db...")
         self.init_db()
         print("init_db OK")
@@ -210,21 +243,23 @@ class PostgresRepository:
         print("Iniciando _seed_admin...")
         self._seed_admin()
         print("_seed_admin OK")
-        print("Iniciando _seed_demo_data...")
-        self._seed_demo_data()
-        print("_seed_demo_data OK")
+        if os.environ.get("ENVIRONMENT", "development").lower() != "production":
+            print("Iniciando _seed_demo_data...")
+            self._seed_demo_data()
+            print("_seed_demo_data OK")
         print("Iniciando _backfill_prob_failure...")
         self._backfill_prob_failure()
         print("_backfill_prob_failure OK")
         print("Iniciando sync_items_from_bank_folder...")
         self.sync_items_from_bank_folder()
         print("sync_items_from_bank_folder OK")
-        print("Iniciando _seed_test_students...")
-        self._seed_test_students()
-        print("_seed_test_students OK")
-        print("Iniciando _backfill_current_elo...")
-        self._backfill_current_elo()
-        print("_backfill_current_elo OK")
+        if os.environ.get("ENVIRONMENT", "development").lower() != "production":
+            print("Iniciando _seed_test_students...")
+            self._seed_test_students()
+            print("_seed_test_students OK")
+        print("Iniciando _reconcile_legacy_ratings...")
+        print("_reconcile_legacy_ratings OK: %d filas" % self._reconcile_legacy_ratings())
+        self.expire_stale_pvp_matches()
 
     def get_connection(self, timeout: float = 30.0):
         """Obtiene una conexión del pool. Caller debe devolverla con put_connection().
@@ -368,18 +403,12 @@ class PostgresRepository:
             # ── Índices para acelerar JOINs y filtros frecuentes ─────────
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_attempts_user_id ON attempts(user_id)")
             # Índice compuesto para DISTINCT ON (topic) ORDER BY topic, timestamp DESC
-            # Acelera get_latest_elo_by_topic() de O(n_intentos) a O(log n)
+            # Acelera las consultas de intentos por (user_id, topic) de O(n_intentos) a O(log n)
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_attempts_user_topic_ts "
                 "ON attempts(user_id, topic, timestamp DESC)"
             )
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_enrollments_user_id ON enrollments(user_id)"
-            )
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher_id ON groups(teacher_id)")
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_procedure_submissions_student_id ON procedure_submissions(student_id)"
-            )
 
             conn.commit()
         finally:
@@ -422,7 +451,7 @@ class PostgresRepository:
             cursor.execute(
                 """
                 SELECT id AS submission_id, item_id, item_content, status,
-                       ai_proposed_score, teacher_score, final_score,
+                       ai_proposed_score, ai_feedback, teacher_score, final_score,
                        teacher_feedback, elo_delta, submitted_at, reviewed_at
                 FROM procedure_submissions
                 WHERE student_id = %s
@@ -584,7 +613,7 @@ class PostgresRepository:
             # Asegurar índices si no existen
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)")
-            # Índice compuesto para get_latest_elo_by_topic() — MAX(timestamp) por (user_id, topic)
+            # Índice compuesto para consultas de intentos por (user_id, topic) y timestamp
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_attempts_user_topic_ts "
                 "ON attempts(user_id, topic, timestamp DESC)"
@@ -617,6 +646,13 @@ class PostgresRepository:
             # 1 = intento con tiempo válido (3-600s) → actualiza ELO
             # 0 = adivinanza (<3s) o sesión abandonada (>600s) → no actualiza ELO
             self._add_column_if_not_exists(cursor, "attempts", "elo_valid", "INTEGER DEFAULT 1")
+            self._add_column_if_not_exists(cursor, "attempts", "elo_before", "REAL")
+            self._add_column_if_not_exists(cursor, "attempts", "request_id", "TEXT")
+            self._add_column_if_not_exists(cursor, "attempts", "request_fingerprint", "TEXT")
+            cursor.execute(
+                "CREATE UNIQUE INDEX IF NOT EXISTS idx_attempts_user_request_id "
+                "ON attempts(user_id, request_id) WHERE request_id IS NOT NULL"
+            )
 
             # Asegurar tabla items
             cursor.execute(
@@ -672,13 +708,14 @@ class PostgresRepository:
             self._add_column_if_not_exists(cursor, "procedure_submissions", "final_score", "REAL")
             # v4 — delta ELO calculado al momento de la validación docente
             self._add_column_if_not_exists(cursor, "procedure_submissions", "elo_delta", "REAL")
+            # v4b — marca de que elo_delta ya se aplicó al rating canónico
+            self._add_column_if_not_exists(
+                cursor, "procedure_submissions", "elo_applied", "INTEGER DEFAULT 0"
+            )
             # v5 — retroalimentación textual generada por la IA
             self._add_column_if_not_exists(cursor, "procedure_submissions", "ai_feedback", "TEXT")
             # v6 — hash SHA-256 del archivo subido para detección anti-plagio
             self._add_column_if_not_exists(cursor, "procedure_submissions", "file_hash", "TEXT")
-            # v7 — Sprint C: examen manual del docente (exam_templates)
-            # Vincula sesiones de examen con la plantilla usada (NULL = examen estándar).
-            self._add_column_if_not_exists(cursor, "exam_sessions", "exam_template_id", "INTEGER")
             # v7 — URL de Supabase Storage (reemplaza BYTEA para nuevos registros)
             self._add_column_if_not_exists(cursor, "procedure_submissions", "storage_url", "TEXT")
             # v7b — image_data ya no es obligatorio (NULL cuando se usa Storage)
@@ -720,6 +757,16 @@ class PostgresRepository:
                 )
             """
             )
+            # Estas tablas se crean durante la migración, no en init_db().
+            # Crear sus índices solo después de que ambas existan permite
+            # inicializar una base PostgreSQL completamente vacía.
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_enrollments_user_id ON enrollments(user_id)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_procedure_submissions_student_id "
+                "ON procedure_submissions(student_id)"
+            )
 
             # Migración: asociar matrícula a un grupo (nullable)
             self._add_column_if_not_exists(cursor, "enrollments", "group_id", "INTEGER")
@@ -730,6 +777,8 @@ class PostgresRepository:
             self._add_column_if_not_exists(cursor, "items", "image_url", "TEXT")
             # Tags de taxonomía (JSON array): dimensión cognitiva, general y específica
             self._add_column_if_not_exists(cursor, "items", "tags", "TEXT")
+            # Bloque temático dentro del curso (p.ej. "Constitución Política" en DIAN)
+            self._add_column_if_not_exists(cursor, "items", "block", "TEXT DEFAULT ''")
 
             # ── Migración: ampliar CHECK constraint de courses.block ──────
             self._migrate_courses_block_check(cursor)
@@ -910,6 +959,35 @@ class PostgresRepository:
             """
             )
 
+            # ── student_course_topic_elo: the only rating state (spec 001, FR-029) ──
+            # DOUBLE PRECISION, never REAL: REAL is 4-byte in PostgreSQL and would turn
+            # 999.4999999 into 999.5 (FR-028i, research R20).
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS student_course_topic_elo (
+                    user_id INTEGER NOT NULL REFERENCES users(id),
+                    course_id TEXT NOT NULL REFERENCES courses(id),
+                    topic TEXT NOT NULL,
+                    current_elo DOUBLE PRECISION NOT NULL CHECK (current_elo >= 0),
+                    rd DOUBLE PRECISION NOT NULL DEFAULT 350 CHECK (rd >= 30 AND rd <= 350),
+                    origin TEXT NOT NULL CHECK (origin IN ('practice', 'diagnostic',
+                        'legacy_topic_row', 'legacy_course_row', 'procedure')),
+                    approximate BOOLEAN NOT NULL DEFAULT FALSE,
+                    legacy_source_key TEXT,
+                    reconciled_at TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (user_id, course_id, topic)
+                )
+            """
+            )
+            cursor.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_student_course_topic_elo_user_course
+                ON student_course_topic_elo(user_id, course_id)
+            """
+            )
+
             # ── Tabla exam_sessions (historial de exámenes del estudiante) ────
             cursor.execute(
                 """
@@ -926,6 +1004,36 @@ class PostgresRepository:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS active_exam_sessions (
+                    id TEXT PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    course_id TEXT NOT NULL,
+                    exam_template_id INTEGER,
+                    item_ids TEXT NOT NULL,
+                    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at TIMESTAMP NOT NULL,
+                    submitted_at TIMESTAMP,
+                    result_json TEXT
+                )
+                """
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_active_exam_sessions_user "
+                "ON active_exam_sessions(user_id, submitted_at)"
+            )
+            # v7 — Vincula sesiones históricas con la plantilla usada. Debe
+            # ejecutarse después del CREATE para soportar una base vacía.
+            self._add_column_if_not_exists(cursor, "exam_sessions", "exam_template_id", "INTEGER")
+            # Spec 001 (FR-028b): the overall rating's state at submission — 'rated' or 'pending'.
+            # NULL = recorded before this column: unknown, never backfilled (see contracts/api.md).
+            self._add_column_if_not_exists(
+                cursor,
+                "exam_sessions",
+                "global_elo_status",
+                "TEXT CHECK (global_elo_status IN ('rated', 'pending'))",
             )
             # ── Tabla exam_templates (plantillas de examen del docente) ──────
             cursor.execute(
@@ -972,6 +1080,123 @@ class PostgresRepository:
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_exam_assignments_group "
                 "ON exam_assignments(group_id)"
+            )
+
+            # ── Tabla exam_responses (respuesta por pregunta de cada examen) ──
+            # Habilita el análisis de resultados del docente. Evaluativo: NO
+            # afecta ELO ni dificultad del ítem.
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS exam_responses (
+                    id SERIAL PRIMARY KEY,
+                    session_id INTEGER NOT NULL,
+                    template_id INTEGER,
+                    user_id INTEGER NOT NULL,
+                    item_id TEXT NOT NULL,
+                    topic TEXT,
+                    is_correct INTEGER NOT NULL DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_exam_responses_template "
+                "ON exam_responses(template_id)"
+            )
+
+            # ── Tabla diagnostics (examen diagnóstico de inicio de materia) ──
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS diagnostics (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    course_id TEXT NOT NULL,
+                    initial_elo REAL NOT NULL,
+                    score_pct REAL NOT NULL,
+                    result_json TEXT NOT NULL DEFAULT '{}',
+                    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE (user_id, course_id)
+                )
+                """
+            )
+
+            # Progreso curricular independiente del ELO (nodos de contenido).
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS lesson_progress (
+                    user_id INTEGER NOT NULL,
+                    course_id TEXT NOT NULL,
+                    node_id TEXT NOT NULL,
+                    state TEXT NOT NULL DEFAULT 'available',
+                    objectives_viewed INTEGER NOT NULL DEFAULT 0,
+                    math_convention_viewed INTEGER NOT NULL DEFAULT 0,
+                    viewed_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (user_id, course_id, node_id)
+                )
+                """
+            )
+
+            # Respuestas cerradas de lecciones; por diseño no admite texto libre.
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS lesson_interactions (
+                    user_id INTEGER NOT NULL,
+                    course_id TEXT NOT NULL,
+                    node_id TEXT NOT NULL,
+                    interaction_id TEXT NOT NULL,
+                    selected_option TEXT NOT NULL,
+                    is_expected INTEGER,
+                    misconception_tag TEXT,
+                    answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (user_id, course_id, node_id, interaction_id)
+                )
+                """
+            )
+
+            # ── Tablas PvP (ligas en tiempo real) ────────────────────────────
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS pvp_matches (
+                    id SERIAL PRIMARY KEY,
+                    course_id TEXT NOT NULL,
+                    player1_id INTEGER NOT NULL,
+                    player2_id INTEGER NOT NULL,
+                    item_ids TEXT NOT NULL DEFAULT '[]',
+                    status TEXT NOT NULL DEFAULT 'active',
+                    winner_id INTEGER,
+                    score_p1 INTEGER NOT NULL DEFAULT 0,
+                    score_p2 INTEGER NOT NULL DEFAULT 0,
+                    elo_delta_p1 REAL,
+                    elo_delta_p2 REAL,
+                    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    finished_at TIMESTAMP
+                )
+                """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS pvp_answers (
+                    id SERIAL PRIMARY KEY,
+                    match_id INTEGER NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    item_id TEXT NOT NULL,
+                    is_correct INTEGER NOT NULL DEFAULT 0,
+                    answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_pvp_matches_players "
+                "ON pvp_matches(player1_id, player2_id)"
+            )
+            # NULL = applied normally; 'no_rated_topics' = applied 0 (spec 001, FR-029c).
+            self._add_column_if_not_exists(cursor, "pvp_matches", "elo_reason_p1", "TEXT")
+            self._add_column_if_not_exists(cursor, "pvp_matches", "elo_reason_p2", "TEXT")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_pvp_answers_match "
+                "ON pvp_answers(match_id, user_id)"
             )
 
             conn.commit()
@@ -1111,7 +1336,13 @@ class PostgresRepository:
             self.put_connection(conn)
 
     def _seed_demo_data(self):
-        """Crea usuarios, grupos y matrículas demo si no existen (idempotente)."""
+        """Crea usuarios, grupos y matrículas demo si no existen (idempotente).
+
+        - profesor1 / demo1234 (docente pre-aprobado)
+        - estudiante1 / demo1234 (universidad, Cálculo Diferencial)
+        - estudiante2 / demo1234 (colegio, Álgebra Básica)
+        - concursante1 / demo1234 (concursos, DIAN)
+        """
         demo_hash = self.hashing.hash_password("demo1234")
 
         conn = self.get_connection()
@@ -1142,6 +1373,7 @@ class PostgresRepository:
                 _demo_groups = [
                     ("Grupo Demo - Cálculo", "calculo_diferencial"),
                     ("Grupo Demo - Álgebra", "algebra_basica"),
+                    ("Grupo Demo - DIAN", "DIAN"),
                 ]
                 group_ids = {}
                 for g_name, g_course in _demo_groups:
@@ -1172,6 +1404,7 @@ class PostgresRepository:
                 _demo_students = [
                     ("estudiante1", "universidad", "calculo_diferencial"),
                     ("estudiante2", "colegio", "algebra_basica"),
+                    ("concursante1", "concursos", "DIAN"),
                 ]
                 for username, edu_level, primary_course in _demo_students:
                     primary_gid = group_ids.get(primary_course)
@@ -1290,7 +1523,8 @@ class PostgresRepository:
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
-                "SELECT id, username, role, group_id, education_level FROM users WHERE id = %s",
+                "SELECT id, username, role, group_id, education_level, current_elo, active, approved "
+                "FROM users WHERE id = %s",
                 (user_id,),
             )
             row = cursor.fetchone()
@@ -1304,6 +1538,9 @@ class PostgresRepository:
             "role": row["role"],
             "group_id": row["group_id"],
             "education_level": row["education_level"],
+            "current_elo": row["current_elo"],
+            "active": bool(row["active"]),
+            "approved": bool(row["approved"]),
         }
 
     @_timing
@@ -1399,92 +1636,103 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    @_timing
-    def save_attempt(
-        self,
-        user_id,
-        item_id,
-        is_correct,
-        difficulty,
-        topic,
-        elo_after,
-        prob_failure=None,
-        expected_score=None,
-        time_taken=None,
-        confidence_score=None,
-        error_type=None,
-        rating_deviation=None,
-    ):
-        conn = self.get_connection()
-        try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute(
-                """
-                INSERT INTO attempts (user_id, item_id, is_correct, difficulty, topic, elo_after,
-                                      prob_failure, expected_score, time_taken, confidence_score,
-                                      error_type, rating_deviation)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    def _set_course_topic_rating(self, cursor, user_id, course_id, topic, elo, rd, origin):
+        """Write one (course, topic) rating; `origin` is kept from the row's first writer."""
+        cursor.execute(
+            """
+            INSERT INTO student_course_topic_elo
+                (user_id, course_id, topic, current_elo, rd, origin, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, course_id, topic) DO UPDATE
+                SET current_elo = EXCLUDED.current_elo,
+                    rd = EXCLUDED.rd,
+                    updated_at = CURRENT_TIMESTAMP
             """,
-                (
-                    user_id,
-                    item_id,
-                    is_correct,
-                    difficulty,
-                    topic,
-                    elo_after,
-                    prob_failure,
-                    expected_score,
-                    time_taken,
-                    confidence_score,
-                    error_type,
-                    rating_deviation,
-                ),
-            )
-            # Actualizar current_elo en users (promedio de últimos ELO por tópico)
-            self._update_current_elo(cursor, user_id)
-            conn.commit()
-        finally:
-            self.put_connection(conn)
+            (user_id, course_id, topic, float(elo), float(rd), origin),
+        )
 
-    def _tiempo_valido(self, time_taken: float) -> bool:
-        """Rango válido para actualizar ELO: [3s, 600s].
-        <3s = adivinanza sin leer; >600s = sesión abandonada.
-        """
-        return 3.0 <= time_taken <= 600.0
+    def _bump_course_topic_rating(self, cursor, user_id, course_id, topic, delta, origin):
+        """Add a domain-computed delta atomically, floor 0 (research R3: persistence, not
+        arithmetic). An absent row starts from 1000 + delta with this `origin`."""
+        cursor.execute(
+            """
+            INSERT INTO student_course_topic_elo
+                (user_id, course_id, topic, current_elo, rd, origin, updated_at)
+            VALUES (%s, %s, %s, %s, 350.0, %s, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, course_id, topic) DO UPDATE
+                SET current_elo = GREATEST(0, student_course_topic_elo.current_elo + %s),
+                    updated_at = CURRENT_TIMESTAMP
+            """,
+            (user_id, course_id, topic, max(0.0, 1000.0 + float(delta)), origin, float(delta)),
+        )
 
     def save_answer_transaction(
         self,
         user_id: int,
         item_id: str,
-        item_difficulty_new: float,
-        item_rd_new: float,
-        attempt_data: dict,
-    ) -> None:
-        """
-        Persiste el resultado de una respuesta de forma atómica.
-        El intento siempre se guarda. La actualización de ELO (ítem +
-        current_elo del usuario) solo ocurre si el tiempo de respuesta
-        está en el rango válido [3s, 600s] (elo_valid=1).
-        """
-        time_taken = attempt_data.get("time_taken", 30.0) or 30.0
-        elo_valid = 1 if self._tiempo_valido(time_taken) else 0
+        compute,
+        request_id: str | None = None,
+        request_fingerprint: str | None = None,
+    ) -> bool:
+        """Unit of work of one answer: lock, read, compute, persist (spec 001, FR-010, FR-029).
 
+        The rating is the item's own (course, topic) row. `compute` is the domain calculation:
+
+            compute({"elo", "rd", "item_difficulty", "item_rd", "course_id", "topic"})
+                -> (attempt_data, item_difficulty_new, item_rd_new)
+
+        It runs on the locked state and must not do I/O. The attempt is always stored; the
+        rating and the item move only when `attempt_data["elo_valid"]` (FR-008, FR-008a).
+        Returns False when `request_id` was already recorded (a client retry).
+        """
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
+            # Orden de bloqueo fijo (estudiante → ítem) para no cruzar deadlocks.
+            cursor.execute("SELECT id FROM users WHERE id = %s FOR UPDATE", (user_id,))
+            cursor.execute(
+                "SELECT difficulty, rating_deviation, course_id, topic FROM items"
+                " WHERE id = %s FOR UPDATE",
+                (item_id,),
+            )
+            item = cursor.fetchone()
+            if item is None:
+                raise ValueError("Ítem '%s' no encontrado." % item_id)
+            course_id, topic = item["course_id"], item["topic"]
+            cursor.execute(
+                "SELECT current_elo, rd FROM student_course_topic_elo"
+                " WHERE user_id = %s AND course_id = %s AND topic = %s",
+                (user_id, course_id, topic),
+            )
+            rating = cursor.fetchone()
+
+            attempt_data, item_difficulty_new, item_rd_new = compute(
+                {
+                    "elo": float(rating["current_elo"]) if rating else 1000.0,
+                    "rd": float(rating["rd"]) if rating else 350.0,
+                    "item_difficulty": float(item["difficulty"]),
+                    "item_rd": float(item["rating_deviation"] or 350.0),
+                    "course_id": course_id,
+                    "topic": topic,
+                }
+            )
+            elo_valid = bool(attempt_data["elo_valid"])
+
             # Siempre registrar el intento
             cursor.execute(
                 """INSERT INTO attempts
                    (user_id, item_id, is_correct, difficulty, topic, elo_after,
                     prob_failure, expected_score, time_taken, confidence_score,
-                    error_type, rating_deviation, elo_valid)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                    error_type, rating_deviation, elo_valid, elo_before,
+                    request_id, request_fingerprint)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                   ON CONFLICT(user_id, request_id) WHERE request_id IS NOT NULL DO NOTHING""",
                 (
                     user_id,
                     item_id,
                     attempt_data["is_correct"],
                     attempt_data.get("difficulty"),
-                    attempt_data.get("topic"),
+                    topic,
                     attempt_data["elo_after"],
                     attempt_data.get("prob_failure"),
                     attempt_data.get("expected_score"),
@@ -1492,17 +1740,29 @@ class PostgresRepository:
                     attempt_data.get("confidence_score"),
                     attempt_data.get("error_type"),
                     attempt_data.get("rating_deviation"),
-                    elo_valid,
+                    1 if elo_valid else 0,
+                    attempt_data.get("elo_before"),
+                    request_id,
+                    request_fingerprint,
                 ),
             )
-            # Solo actualizar ELO si el tiempo de respuesta es válido
-            if elo_valid:
+            inserted = cursor.rowcount == 1
+            if inserted and elo_valid:
                 cursor.execute(
                     "UPDATE items SET difficulty = %s, rating_deviation = %s WHERE id = %s",
                     (item_difficulty_new, item_rd_new, item_id),
                 )
-                self._update_current_elo(cursor, user_id)
+                self._set_course_topic_rating(
+                    cursor,
+                    user_id,
+                    course_id,
+                    topic,
+                    attempt_data["elo_after"],
+                    attempt_data["rating_deviation"],
+                    "practice",
+                )
             conn.commit()
+            return inserted
         except Exception:
             conn.rollback()
             raise
@@ -1613,58 +1873,6 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
         return {str(row["d"]): row["cnt"] for row in rows}
-
-    def get_group_ranking(self, group_id: int, course_id: str | None = None) -> list:
-        """Retorna el ranking ELO de los estudiantes de un grupo.
-
-        Si course_id se proporciona, calcula el ELO promedio solo para ese curso.
-        Retorna lista de {user_id, username, global_elo, total_attempts, rank_pos}.
-        """
-        conn = self.get_connection()
-        try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            if course_id:
-                cursor.execute(
-                    """
-                    SELECT u.id, u.username,
-                           COALESCE(AVG(a.elo_after), 1000) AS elo,
-                           COUNT(a.id) AS attempts
-                    FROM users u
-                    LEFT JOIN attempts a ON a.user_id = u.id
-                    LEFT JOIN items i ON i.id = a.item_id AND i.course_id = %s
-                    WHERE u.group_id = %s AND u.role = 'student' AND u.active = 1
-                    GROUP BY u.id, u.username
-                    ORDER BY elo DESC
-                """,
-                    (course_id, group_id),
-                )
-            else:
-                cursor.execute(
-                    """
-                    SELECT u.id, u.username,
-                           COALESCE(AVG(a.elo_after), 1000) AS elo,
-                           COUNT(a.id) AS attempts
-                    FROM users u
-                    LEFT JOIN attempts a ON a.user_id = u.id
-                    WHERE u.group_id = %s AND u.role = 'student' AND u.active = 1
-                    GROUP BY u.id, u.username
-                    ORDER BY elo DESC
-                """,
-                    (group_id,),
-                )
-            rows = cursor.fetchall()
-        finally:
-            self.put_connection(conn)
-        return [
-            {
-                "user_id": row["id"],
-                "username": row["username"],
-                "global_elo": round(float(row["elo"]), 1),
-                "total_attempts": row["attempts"],
-                "rank_pos": i + 1,
-            }
-            for i, row in enumerate(rows)
-        ]
 
     def save_problem_report(self, user_id: int, description: str) -> None:
         """Guarda un reporte de problema técnico enviado por un usuario."""
@@ -1831,100 +2039,43 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    def get_weekly_ranking(self, group_id, limit=5):
-        """Top estudiantes del grupo por ELO promedio, con actividad en los últimos 7 días."""
-        conn = self.get_connection()
-        try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute(
-                """
-                WITH active_users AS (
-                    SELECT DISTINCT a.user_id
-                    FROM attempts a
-                    JOIN users u ON a.user_id = u.id
-                    WHERE u.group_id = %s AND u.role = 'student'
-                      AND a.timestamp >= NOW() - INTERVAL '7 days'
-                ),
-                latest_elo AS (
-                    SELECT a.user_id, a.item_id, a.elo_after,
-                           ROW_NUMBER() OVER (
-                               PARTITION BY a.user_id, i.course_id
-                               ORDER BY a.timestamp DESC
-                           ) AS rn
-                    FROM attempts a
-                    JOIN items i ON a.item_id = i.id
-                    WHERE a.user_id IN (SELECT user_id FROM active_users)
-                ),
-                user_elo AS (
-                    SELECT le.user_id,
-                           ROUND(AVG(le.elo_after)::numeric, 0) AS global_elo
-                    FROM latest_elo le
-                    WHERE le.rn = 1
-                    GROUP BY le.user_id
-                ),
-                week_attempts AS (
-                    SELECT a.user_id, COUNT(*) AS attempts_this_week
-                    FROM attempts a
-                    WHERE a.user_id IN (SELECT user_id FROM active_users)
-                      AND a.timestamp >= NOW() - INTERVAL '7 days'
-                    GROUP BY a.user_id
-                )
-                SELECT ue.user_id, u.username, ue.global_elo, wa.attempts_this_week
-                FROM user_elo ue
-                JOIN users u ON ue.user_id = u.id
-                JOIN week_attempts wa ON ue.user_id = wa.user_id
-                ORDER BY ue.global_elo DESC
-                LIMIT %s
-            """,
-                (group_id, limit),
-            )
-            rows = cursor.fetchall()
-            return [
-                {
-                    "user_id": row["user_id"],
-                    "username": row["username"],
-                    "global_elo": float(row["global_elo"]),
-                    "rank": idx + 1,
-                    "attempts_this_week": row["attempts_this_week"],
-                }
-                for idx, row in enumerate(rows)
-            ]
-        finally:
-            self.put_connection(conn)
-
-    def save_weekly_ranking(self, group_id):
-        """Guarda el top 5 actual en weekly_rankings. Idempotente por semana+grupo+user."""
+    @_timing
+    def save_weekly_ranking(self, group_id, rows):
+        """Store `rows` (RatingReadService.ranking_view(scope="weekly") entries) as this week's
+        snapshot (FR-028g). `rank` is the competition rank; pending rows (no rank) are not stored.
+        Idempotent per week + group + user."""
         from datetime import date, timedelta
 
         today = date.today()
         week_start = today - timedelta(days=today.weekday())  # lunes
         week_end = week_start + timedelta(days=6)  # domingo
-        ranking = self.get_weekly_ranking(group_id, 5)
-        if not ranking:
-            return
         conn = self.get_connection()
         try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            for r in ranking:
-                cursor.execute(
-                    """
-                    INSERT INTO weekly_rankings
-                        (week_start, week_end, group_id, rank, user_id, username, global_elo, attempts_count)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (week_start, group_id, user_id) DO NOTHING
-                """,
-                    (
-                        str(week_start),
-                        str(week_end),
-                        group_id,
-                        r["rank"],
-                        r["user_id"],
-                        r["username"],
-                        r["global_elo"],
-                        r["attempts_this_week"],
-                    ),
-                )
+            with conn.cursor() as cursor:
+                for r in rows:
+                    if r["rank"] is None:
+                        continue
+                    cursor.execute(
+                        """INSERT INTO weekly_rankings
+                           (week_start, week_end, group_id, rank, user_id, username, global_elo,
+                            attempts_count)
+                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                           ON CONFLICT (week_start, group_id, user_id) DO NOTHING""",
+                        (
+                            week_start,
+                            week_end,
+                            group_id,
+                            r["rank"],
+                            r["user_id"],
+                            r["username"],
+                            r["rating"],
+                            r["attempts_in_window"],
+                        ),
+                    )
             conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
         finally:
             self.put_connection(conn)
 
@@ -1957,248 +2108,6 @@ class PostgresRepository:
                 }
                 for row in rows
             ]
-        finally:
-            self.put_connection(conn)
-
-    def get_global_ranking(self, limit=5, education_level=None, grade=None):
-        """Top estudiantes globales por ELO promedio, con actividad en los últimos 7 días."""
-        conn = self.get_connection()
-        try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            _level_filter = ""
-            _params = []
-            if education_level:
-                _level_filter += "AND u.education_level = %s"
-                _params.append(education_level)
-            if grade:
-                _level_filter += " AND u.grade = %s"
-                _params.append(grade)
-            _params.append(limit)
-            cursor.execute(
-                f"""
-                WITH active_users AS (
-                    SELECT DISTINCT a.user_id
-                    FROM attempts a
-                    JOIN users u ON a.user_id = u.id
-                    WHERE u.role = 'student'
-                      AND a.timestamp >= NOW() - INTERVAL '7 days'
-                      {_level_filter}
-                ),
-                latest_elo AS (
-                    SELECT a.user_id, a.elo_after,
-                           ROW_NUMBER() OVER (
-                               PARTITION BY a.user_id, i.course_id
-                               ORDER BY a.timestamp DESC
-                           ) AS rn
-                    FROM attempts a
-                    JOIN items i ON a.item_id = i.id
-                    WHERE a.user_id IN (SELECT user_id FROM active_users)
-                ),
-                user_elo AS (
-                    SELECT le.user_id,
-                           ROUND(AVG(le.elo_after)::numeric, 0) AS global_elo
-                    FROM latest_elo le
-                    WHERE le.rn = 1
-                    GROUP BY le.user_id
-                ),
-                week_attempts AS (
-                    SELECT a.user_id, COUNT(*) AS attempts_this_week
-                    FROM attempts a
-                    WHERE a.user_id IN (SELECT user_id FROM active_users)
-                      AND a.timestamp >= NOW() - INTERVAL '7 days'
-                    GROUP BY a.user_id
-                )
-                SELECT ue.user_id, u.username, ue.global_elo, wa.attempts_this_week
-                FROM user_elo ue
-                JOIN users u ON ue.user_id = u.id
-                JOIN week_attempts wa ON ue.user_id = wa.user_id
-                ORDER BY ue.global_elo DESC
-                LIMIT %s
-            """,
-                tuple(_params),
-            )
-            rows = cursor.fetchall()
-            return [
-                {
-                    "user_id": row["user_id"],
-                    "username": row["username"],
-                    "global_elo": float(row["global_elo"]),
-                    "rank": idx + 1,
-                    "attempts_this_week": row["attempts_this_week"],
-                }
-                for idx, row in enumerate(rows)
-            ]
-        finally:
-            self.put_connection(conn)
-
-    def get_course_ranking(self, course_id, limit=5):
-        """Top estudiantes en un curso específico por ELO promedio, últimos 7 días."""
-        conn = self.get_connection()
-        try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute(
-                """
-                WITH active_users AS (
-                    SELECT DISTINCT a.user_id
-                    FROM attempts a
-                    JOIN users u ON a.user_id = u.id
-                    JOIN items i ON a.item_id = i.id
-                    WHERE u.role = 'student'
-                      AND i.course_id = %s
-                      AND a.timestamp >= NOW() - INTERVAL '7 days'
-                ),
-                latest_elo AS (
-                    SELECT a.user_id, a.elo_after,
-                           ROW_NUMBER() OVER (
-                               PARTITION BY a.user_id, i.topic
-                               ORDER BY a.timestamp DESC
-                           ) AS rn
-                    FROM attempts a
-                    JOIN items i ON a.item_id = i.id
-                    WHERE a.user_id IN (SELECT user_id FROM active_users)
-                      AND i.course_id = %s
-                ),
-                user_elo AS (
-                    SELECT le.user_id,
-                           ROUND(AVG(le.elo_after)::numeric, 0) AS course_elo
-                    FROM latest_elo le
-                    WHERE le.rn = 1
-                    GROUP BY le.user_id
-                ),
-                week_attempts AS (
-                    SELECT a.user_id, COUNT(*) AS attempts_this_week
-                    FROM attempts a
-                    JOIN items i ON a.item_id = i.id
-                    WHERE a.user_id IN (SELECT user_id FROM active_users)
-                      AND i.course_id = %s
-                      AND a.timestamp >= NOW() - INTERVAL '7 days'
-                    GROUP BY a.user_id
-                )
-                SELECT ue.user_id, u.username, ue.course_elo, wa.attempts_this_week
-                FROM user_elo ue
-                JOIN users u ON ue.user_id = u.id
-                JOIN week_attempts wa ON ue.user_id = wa.user_id
-                ORDER BY ue.course_elo DESC
-                LIMIT %s
-            """,
-                (course_id, course_id, course_id, limit),
-            )
-            rows = cursor.fetchall()
-            return [
-                {
-                    "user_id": row["user_id"],
-                    "username": row["username"],
-                    "course_elo": float(row["course_elo"]),
-                    "rank": idx + 1,
-                    "attempts_this_week": row["attempts_this_week"],
-                }
-                for idx, row in enumerate(rows)
-            ]
-        finally:
-            self.put_connection(conn)
-
-    def get_student_rank(self, user_id, course_id=None, education_level=None, grade=None):
-        """Posición del estudiante en el ranking (global o por curso)."""
-        conn = self.get_connection()
-        try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            if course_id is not None:
-                # Ranking por curso (ignora education_level)
-                cursor.execute(
-                    """
-                    WITH active_users AS (
-                        SELECT DISTINCT a.user_id
-                        FROM attempts a
-                        JOIN users u ON a.user_id = u.id
-                        JOIN items i ON a.item_id = i.id
-                        WHERE u.role = 'student'
-                          AND i.course_id = %s
-                          AND a.timestamp >= NOW() - INTERVAL '7 days'
-                    ),
-                    latest_elo AS (
-                        SELECT a.user_id, a.elo_after,
-                               ROW_NUMBER() OVER (
-                                   PARTITION BY a.user_id, i.topic
-                                   ORDER BY a.timestamp DESC
-                               ) AS rn
-                        FROM attempts a
-                        JOIN items i ON a.item_id = i.id
-                        WHERE a.user_id IN (SELECT user_id FROM active_users)
-                          AND i.course_id = %s
-                    ),
-                    user_elo AS (
-                        SELECT le.user_id,
-                               ROUND(AVG(le.elo_after)::numeric, 0) AS course_elo
-                        FROM latest_elo le
-                        WHERE le.rn = 1
-                        GROUP BY le.user_id
-                    ),
-                    ranked AS (
-                        SELECT user_id, course_elo AS global_elo,
-                               ROW_NUMBER() OVER (ORDER BY course_elo DESC) AS rank
-                        FROM user_elo
-                    )
-                    SELECT rank, (SELECT COUNT(*) FROM user_elo) AS total, global_elo
-                    FROM ranked WHERE user_id = %s
-                """,
-                    (course_id, course_id, user_id),
-                )
-            else:
-                # Ranking global, opcionalmente filtrado por nivel educativo y grado
-                _level_filter = ""
-                _params = []
-                if education_level:
-                    _level_filter += "AND u.education_level = %s"
-                    _params.append(education_level)
-                if grade:
-                    _level_filter += " AND u.grade = %s"
-                    _params.append(grade)
-                _params.append(user_id)
-                cursor.execute(
-                    f"""
-                    WITH active_users AS (
-                        SELECT DISTINCT a.user_id
-                        FROM attempts a
-                        JOIN users u ON a.user_id = u.id
-                        WHERE u.role = 'student'
-                          AND a.timestamp >= NOW() - INTERVAL '7 days'
-                          {_level_filter}
-                    ),
-                    latest_elo AS (
-                        SELECT a.user_id, a.elo_after,
-                               ROW_NUMBER() OVER (
-                                   PARTITION BY a.user_id, i.course_id
-                                   ORDER BY a.timestamp DESC
-                               ) AS rn
-                        FROM attempts a
-                        JOIN items i ON a.item_id = i.id
-                        WHERE a.user_id IN (SELECT user_id FROM active_users)
-                    ),
-                    user_elo AS (
-                        SELECT le.user_id,
-                               ROUND(AVG(le.elo_after)::numeric, 0) AS global_elo
-                        FROM latest_elo le
-                        WHERE le.rn = 1
-                        GROUP BY le.user_id
-                    ),
-                    ranked AS (
-                        SELECT user_id, global_elo,
-                               ROW_NUMBER() OVER (ORDER BY global_elo DESC) AS rank
-                        FROM user_elo
-                    )
-                    SELECT rank, (SELECT COUNT(*) FROM user_elo) AS total, global_elo
-                    FROM ranked WHERE user_id = %s
-                """,
-                    tuple(_params),
-                )
-            row = cursor.fetchone()
-            if row:
-                return {
-                    "rank": row["rank"],
-                    "total_students": row["total"],
-                    "global_elo": float(row["global_elo"]),
-                }
-            return None
         finally:
             self.put_connection(conn)
 
@@ -2257,25 +2166,6 @@ class PostgresRepository:
         return results
 
     @_timing
-    def get_user_history_elo(self, user_id):
-        conn = self.get_connection()
-        try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute(
-                "SELECT elo_after FROM attempts WHERE user_id = %s ORDER BY timestamp ASC",
-                (user_id,),
-            )
-            rows = cursor.fetchall()
-            return [r["elo_after"] for r in rows] if rows else [1000]
-        finally:
-            self.put_connection(conn)
-
-    @_timing
-    def get_latest_elo(self, user_id):
-        history = self.get_user_history_elo(user_id)
-        return history[-1]
-
-    @_timing
     def get_attempts_for_ai(self, user_id, limit=20):
         conn = self.get_connection()
         try:
@@ -2306,150 +2196,199 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    # ── Spec 001: raw rating rows and ranking participants ───────────────────
+    # Raw rows only: no averaging, rounding or ordering by rating (constitution III).
+
     @_timing
-    def get_latest_elo_by_topic(self, user_id):
-        """Devuelve {topic: (elo_actual, rd_actual)} incluyendo ajustes de procedimientos."""
+    def get_course_topic_ratings(self, user_id, course_id=None):
+        """Rows of student_course_topic_elo for one student (never the legacy store)."""
+        rows = self.get_course_topic_ratings_bulk([user_id], course_id)
+        return [{k: v for k, v in r.items() if k != "user_id"} for r in rows]
+
+    @_timing
+    def get_course_topic_ratings_bulk(self, user_ids, course_id=None):
+        if not user_ids:
+            return []
+        query = (
+            "SELECT user_id, course_id, topic, current_elo, rd, origin, approximate"
+            " FROM student_course_topic_elo WHERE user_id = ANY(%s)"
+        )
+        params = [list(user_ids)]
+        if course_id is not None:
+            query += " AND course_id = %s"
+            params.append(course_id)
         conn = self.get_connection()
         try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-
-            # 1. ELO base: solo el último intento por tópico (DISTINCT ON es O(log n) con índice)
-            cursor.execute(
-                """
-                SELECT DISTINCT ON (topic) topic, elo_after, rating_deviation
-                FROM attempts
-                WHERE user_id = %s
-                ORDER BY topic, timestamp DESC
-                """,
-                (user_id,),
-            )
-            elo_map = {}
-            for row in cursor.fetchall():
-                topic = row["topic"]
-                elo = row["elo_after"]
-                rd = row["rating_deviation"]
-                elo_map[topic] = (elo, rd if rd is not None else 350.0)
-
-            # 2. Sumar deltas ELO de procedimientos validados por el docente
-            cursor.execute(
-                """
-                SELECT i.topic, SUM(ps.elo_delta) AS total_delta
-                FROM procedure_submissions ps
-                JOIN items i ON ps.item_id = i.id
-                WHERE ps.student_id = %s
-                  AND ps.status = 'VALIDATED_BY_TEACHER'
-                  AND ps.elo_delta IS NOT NULL
-                GROUP BY i.topic
-            """,
-                (user_id,),
-            )
-            for row in cursor.fetchall():
-                topic = row["topic"]
-                total_delta = row["total_delta"]
-                if topic in elo_map:
-                    base_elo, rd = elo_map[topic]
-                    elo_map[topic] = (round(base_elo + total_delta, 2), rd)
-                else:
-                    elo_map[topic] = (round(1000.0 + total_delta, 2), 350.0)
-
-            return elo_map
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(query + " ORDER BY user_id, course_id, topic", params)
+                rows = cursor.fetchall()
         finally:
             self.put_connection(conn)
+        return [
+            {
+                "user_id": r["user_id"],
+                "course_id": r["course_id"],
+                "topic": r["topic"],
+                "elo": float(r["current_elo"]),
+                "rd": float(r["rd"]),
+                "origin": r["origin"],
+                "approximate": bool(r["approximate"]),
+            }
+            for r in rows
+        ]
 
-    def _update_current_elo(self, cursor, user_id):
-        """Recalcula y persiste ELO por tópico y global tras cada respuesta/validación.
+    @_timing
+    def get_current_context_course_ids(self, user_id):
+        """Enrolled courses in the catalogue of the student's current level and grade."""
+        return self.get_current_context_course_ids_bulk([user_id])[user_id]
 
-        Actualiza:
-          1. student_topic_elo — fila por cada tópico (UPSERT)
-          2. users.current_elo — promedio global derivado
+    @_timing
+    def get_current_context_course_ids_bulk(self, user_ids):
+        from src.domain.entities import in_catalogue
 
-        Se invoca dentro de transacciones existentes (save_attempt,
-        save_answer_transaction, validate_procedure_submission).
-        No abre ni cierra conexión — recibe el cursor de la transacción padre.
+        result = {user_id: [] for user_id in user_ids}
+        if not user_ids:
+            return result
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    "SELECT e.user_id, e.course_id, c.block, u.education_level, u.grade"
+                    " FROM enrollments e JOIN courses c ON c.id = e.course_id"
+                    " JOIN users u ON u.id = e.user_id"
+                    " WHERE e.user_id = ANY(%s) ORDER BY e.user_id, e.course_id",
+                    (list(user_ids),),
+                )
+                rows = cursor.fetchall()
+        finally:
+            self.put_connection(conn)
+        for r in rows:
+            if in_catalogue(r["education_level"], r["grade"], r["course_id"], r["block"]):
+                result[r["user_id"]].append(r["course_id"])
+        return result
+
+    @_timing
+    def get_ranking_participants(
+        self,
+        scope,
+        group_id=None,
+        course_id=None,
+        education_level=None,
+        grade=None,
+        window_days=7,
+    ):
+        """Who appears in a ranking (FR-028f) — never what they are ranked by."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                if scope == "group":
+                    cursor.execute(
+                        "SELECT id, username FROM users"
+                        " WHERE group_id = %s AND role = 'student' AND active = 1 ORDER BY id",
+                        (group_id,),
+                    )
+                    return [
+                        {"user_id": r["id"], "username": r["username"], "attempts_in_window": 0}
+                        for r in cursor.fetchall()
+                    ]
+                where = ["u.role = 'student'", "a.timestamp >= NOW() - (%s * INTERVAL '1 day')"]
+                params = [int(window_days)]
+                if scope == "weekly":
+                    where.append("u.group_id = %s")
+                    params.append(group_id)
+                elif scope == "global":
+                    if education_level:
+                        where.append("u.education_level = %s")
+                        params.append(education_level)
+                    if grade:
+                        where.append("u.grade = %s")
+                        params.append(grade)
+                elif scope != "course" or course_id is None:
+                    raise ValueError(f"Unknown ranking scope {scope!r} or missing course_id.")
+                join = ""
+                if course_id is not None and scope in ("course", "weekly"):
+                    join = " JOIN items i ON i.id = a.item_id"
+                    where.append("i.course_id = %s")
+                    params.append(course_id)
+                cursor.execute(
+                    "SELECT u.id, u.username, COUNT(a.id) AS attempts FROM attempts a"
+                    f" JOIN users u ON u.id = a.user_id{join} WHERE {' AND '.join(where)}"
+                    " GROUP BY u.id, u.username ORDER BY u.id",
+                    params,
+                )
+                rows = cursor.fetchall()
+        finally:
+            self.put_connection(conn)
+        return [
+            {"user_id": r["id"], "username": r["username"], "attempts_in_window": r["attempts"]}
+            for r in rows
+        ]
+
+    @_timing
+    def get_group_course_id(self, group_id):
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute("SELECT course_id FROM groups WHERE id = %s", (group_id,))
+                row = cursor.fetchone()
+        finally:
+            self.put_connection(conn)
+        return row["course_id"] if row else None
+
+    def _reconcile_legacy_ratings(self) -> int:
+        """One-time, idempotent: approximate baselines from legacy rows (spec 001, research R10).
+
+        Reads raw rows, lets the domain plan which (course, topic) ratings to create, inserts
+        them with ON CONFLICT DO NOTHING. Legacy rows are never changed. Runs under the
+        migration advisory lock: another instance holding it reconciles instead (returns 0).
         """
-        # 1. Upsert ELO por tópico en student_topic_elo
-        cursor.execute(
-            """
-            INSERT INTO student_topic_elo (user_id, topic, current_elo, rd, updated_at)
-            SELECT %s, topic, elo_after, COALESCE(rating_deviation, 350.0), CURRENT_TIMESTAMP
-            FROM (
-                SELECT DISTINCT ON (topic) topic, elo_after, rating_deviation
-                FROM attempts
-                WHERE user_id = %s
-                ORDER BY topic, timestamp DESC
-            ) latest
-            ON CONFLICT (user_id, topic) DO UPDATE
-                SET current_elo = EXCLUDED.current_elo,
-                    rd          = EXCLUDED.rd,
-                    updated_at  = CURRENT_TIMESTAMP
-            """,
-            (user_id, user_id),
-        )
+        from src.domain.elo.reconciliation import plan_reconciliation
 
-        # 2. Actualizar users.current_elo como promedio de student_topic_elo
-        cursor.execute(
-            """
-            UPDATE users SET current_elo = COALESCE((
-                SELECT ROUND(AVG(current_elo)::numeric, 2)
-                FROM student_topic_elo
-                WHERE user_id = %s
-            ), 1000.0)
-            WHERE id = %s
-            """,
-            (user_id, user_id),
-        )
-
-    def _backfill_current_elo(self):
-        """Rellena student_topic_elo y users.current_elo para usuarios existentes.
-
-        Se ejecuta una sola vez en init_db(). Idempotente: solo inserta filas
-        que no existan aún en student_topic_elo.
-        """
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-
-            # 1. Poblar student_topic_elo desde attempts (UPSERT masivo)
-            cursor.execute(
-                """
-                INSERT INTO student_topic_elo (user_id, topic, current_elo, rd, updated_at)
-                SELECT user_id, topic, elo_after, COALESCE(rating_deviation, 350.0),
-                       CURRENT_TIMESTAMP
-                FROM (
-                    SELECT DISTINCT ON (user_id, topic)
-                           user_id, topic, elo_after, rating_deviation
-                    FROM attempts
-                    ORDER BY user_id, topic, timestamp DESC
-                ) latest
-                ON CONFLICT (user_id, topic) DO NOTHING
-                """
-            )
-            inserted = cursor.rowcount
-
-            # 2. Actualizar users.current_elo como promedio de student_topic_elo
-            cursor.execute(
-                """
-                UPDATE users u SET current_elo = sub.avg_elo
-                FROM (
-                    SELECT user_id, ROUND(AVG(current_elo)::numeric, 2) AS avg_elo
-                    FROM student_topic_elo
-                    GROUP BY user_id
-                ) sub
-                WHERE u.id = sub.user_id
-                  AND (u.current_elo IS NULL OR u.current_elo = 1000.0)
-                """
-            )
-            updated = cursor.rowcount
-            conn.commit()
-            if inserted > 0 or updated > 0:
-                logger.info(
-                    "_backfill_current_elo: %d filas topic_elo, %d usuarios actualizados",
-                    inserted,
-                    updated,
+            cursor.execute("SELECT pg_try_advisory_xact_lock(12345) AS locked")
+            if not cursor.fetchone()["locked"]:
+                conn.rollback()
+                return 0
+            results = []
+            for query in (
+                "SELECT user_id, topic, current_elo, rd, updated_at FROM student_topic_elo",
+                "SELECT DISTINCT a.user_id, i.course_id, i.topic, a.topic AS rating_key FROM attempts a"
+                " JOIN items i ON i.id = a.item_id WHERE a.topic IS NOT NULL",
+                "SELECT user_id, course_id FROM diagnostics",
+                "SELECT DISTINCT course_id, topic FROM items WHERE course_id IS NOT NULL",
+                "SELECT id, name FROM courses",
+                "SELECT user_id, course_id, topic FROM student_course_topic_elo",
+            ):
+                cursor.execute(query)
+                results.append([tuple(r.values()) for r in cursor.fetchall()])
+            legacy, attempts, diagnostics, topics, names, existing = results
+            rows = plan_reconciliation(legacy, attempts, diagnostics, topics, dict(names), existing)
+            created = 0
+            for r in rows:
+                cursor.execute(
+                    """INSERT INTO student_course_topic_elo
+                       (user_id, course_id, topic, current_elo, rd, origin, approximate,
+                        legacy_source_key, reconciled_at, updated_at)
+                       VALUES (%s, %s, %s, %s, %s, %s, TRUE, %s, NOW(), NOW())
+                       ON CONFLICT (user_id, course_id, topic) DO NOTHING""",
+                    (
+                        r["user_id"],
+                        r["course_id"],
+                        r["topic"],
+                        r["elo"],
+                        r["rd"],
+                        r["origin"],
+                        r["legacy_source_key"],
+                    ),
                 )
-        except Exception as e:
+                created += cursor.rowcount
+            conn.commit()
+            return created
+        except Exception:
             conn.rollback()
-            logger.warning("_backfill_current_elo falló: %s", e)
+            raise
         finally:
             self.put_connection(conn)
 
@@ -2918,10 +2857,6 @@ class PostgresRepository:
                 )
                 SELECT u.id AS user_id, u.username, u.education_level,
                        u.group_id, COALESCE(g.name, 'Sin grupo') AS group_name,
-                       COALESCE(
-                           (SELECT AVG(ste.current_elo) FROM student_topic_elo ste WHERE ste.user_id = u.id),
-                           u.current_elo, 1000.0
-                       ) AS global_elo,
                        COUNT(a.id) AS total_attempts,
                        CASE WHEN COUNT(a.id) > 0
                             THEN SUM(CASE WHEN a.is_correct THEN 1.0 ELSE 0.0 END) / COUNT(a.id)
@@ -2944,7 +2879,6 @@ class PostgresRepository:
                     "education_level": r["education_level"],
                     "group_id": r["group_id"],
                     "group_name": r["group_name"],
-                    "global_elo": float(r["global_elo"]),
                     "total_attempts": int(r["total_attempts"]),
                     "accuracy": float(r["accuracy"]),
                     "last_activity": str(r["last_activity"])[:10] if r["last_activity"] else None,
@@ -3465,6 +3399,7 @@ class PostgresRepository:
                         img = item.get("image_url") or item.get("image_path")
                         tags_json = json.dumps(item.get("tags") or [])
                         options_json = json.dumps(item["options"])
+                        item_block = item.get("block", "")
                         if item["id"] not in existing_item_ids:
                             new_items_params.append(
                                 (
@@ -3477,6 +3412,7 @@ class PostgresRepository:
                                     course_id,
                                     img,
                                     tags_json,
+                                    item_block,
                                 )
                             )
                         else:
@@ -3490,6 +3426,7 @@ class PostgresRepository:
                                     course_id,
                                     img,
                                     tags_json,
+                                    item_block,
                                     item["id"],
                                 )
                             )
@@ -3510,8 +3447,8 @@ class PostgresRepository:
                     cursor.executemany(
                         """
                         INSERT INTO items
-                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags)
-                        VALUES (%s, %s, %s, %s, %s, %s, 350.0, %s, %s, %s)
+                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block)
+                        VALUES (%s, %s, %s, %s, %s, %s, 350.0, %s, %s, %s, %s)
                         ON CONFLICT (id) DO NOTHING
                     """,
                         new_items_params,
@@ -3527,7 +3464,8 @@ class PostgresRepository:
                             topic = %s,
                             course_id = %s,
                             image_url = %s,
-                            tags = %s
+                            tags = %s,
+                            block = %s
                         WHERE id = %s
                         """,
                         update_static_params,
@@ -3974,14 +3912,19 @@ class PostgresRepository:
             self.put_connection(conn)
 
     @_timing
-    def get_items_from_db(self, topic=None, course_id=None):
+    def get_items_from_db(self, topic=None, course_id=None, block=None):
         """Obtiene ítems desde la base de datos."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             import json
 
-            if course_id:
+            if course_id and block:
+                cursor.execute(
+                    "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = %s AND block = %s",
+                    (course_id, block),
+                )
+            elif course_id:
                 cursor.execute(
                     "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = %s",
                     (course_id,),
@@ -4014,6 +3957,171 @@ class PostgresRepository:
                     }
                 )
             return items
+        finally:
+            self.put_connection(conn)
+
+    @_timing
+    def get_course_blocks(self, course_id: str) -> list[dict]:
+        """Retorna los bloques temáticos de un curso con su conteo de ítems."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT block, COUNT(*) as item_count FROM items WHERE course_id = %s AND block != '' GROUP BY block ORDER BY block ASC",
+                (course_id,),
+            )
+            return [{"block": r["block"], "item_count": r["item_count"]} for r in cursor.fetchall()]
+        finally:
+            self.put_connection(conn)
+
+    # ── PvP ──────────────────────────────────────────────────────────────────
+
+    def create_pvp_match(self, course_id: str, p1: int, p2: int, item_ids: list[str]) -> int:
+        import json
+
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "INSERT INTO pvp_matches (course_id, player1_id, player2_id, item_ids) VALUES (%s,%s,%s,%s) RETURNING id",
+                (course_id, p1, p2, json.dumps(item_ids)),
+            )
+            match_id = cursor.fetchone()["id"]
+            conn.commit()
+            return match_id
+        finally:
+            self.put_connection(conn)
+
+    def save_pvp_answer(self, match_id: int, user_id: int, item_id: str, is_correct: bool) -> None:
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO pvp_answers (match_id, user_id, item_id, is_correct) VALUES (%s,%s,%s,%s)",
+                (match_id, user_id, item_id, int(is_correct)),
+            )
+            conn.commit()
+        finally:
+            self.put_connection(conn)
+
+    def finish_pvp_match(
+        self,
+        match_id: int,
+        winner_id: int | None,
+        score_p1: int,
+        score_p2: int,
+        elo_delta_p1: float,
+        elo_delta_p2: float,
+        p1_id: int,
+        p2_id: int,
+    ) -> dict | None:
+        """Close an active match once and apply each player's delta (FR-025, FR-029b, FR-029c).
+
+        The delta goes to every rated topic of the match's course (atomic addition, floor 0).
+        A player with no rated topic there gets 0 with reason 'no_rated_topics'. Returns
+        {"p1": (applied, reason), "p2": (applied, reason)}, or None when the match was not
+        active (closed already: nothing changes).
+        """
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            # La guarda de status hace el cierre idempotente: si el timer y el
+            # último jugador disparan a la vez, el ELO se aplica una sola vez.
+            cursor.execute(
+                """UPDATE pvp_matches SET status='finished', winner_id=%s, score_p1=%s, score_p2=%s,
+                   finished_at=NOW()
+                   WHERE id=%s AND status='active'
+                   RETURNING course_id""",
+                (winner_id, score_p1, score_p2, match_id),
+            )
+            row = cursor.fetchone()
+            if row is None:
+                conn.commit()
+                return None
+            applied = {}
+            for key, player, delta in (("p1", p1_id, elo_delta_p1), ("p2", p2_id, elo_delta_p2)):
+                cursor.execute(
+                    """UPDATE student_course_topic_elo
+                       SET current_elo = GREATEST(0, current_elo + %s), updated_at = NOW()
+                       WHERE user_id = %s AND course_id = %s""",
+                    (float(delta), player, row["course_id"]),
+                )
+                applied[key] = (float(delta), None) if cursor.rowcount else (0.0, "no_rated_topics")
+            cursor.execute(
+                """UPDATE pvp_matches SET elo_delta_p1=%s, elo_reason_p1=%s,
+                   elo_delta_p2=%s, elo_reason_p2=%s WHERE id=%s""",
+                (*applied["p1"], *applied["p2"], match_id),
+            )
+            conn.commit()
+            return applied
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def expire_stale_pvp_matches(self, max_age_seconds: int = 600) -> int:
+        """Cierra partidas que quedaron 'active' sin que nadie las terminara.
+
+        Una partida dura 180s y su cronómetro vive en el proceso que la creó:
+        un reinicio lo pierde y la fila se queda activa para siempre, invisible
+        en el historial (que filtra status='finished'). Se marcan 'abandoned'
+        y no tocan ELO — nadie ganó. Devuelve cuántas se cerraron.
+        """
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                UPDATE pvp_matches SET status='abandoned', finished_at=NOW()
+                WHERE status='active'
+                  AND started_at < NOW() - make_interval(secs => %s)
+                """,
+                (max_age_seconds,),
+            )
+            closed = cursor.rowcount
+            conn.commit()
+            if closed:
+                logger.info("Partidas PvP huérfanas cerradas: %d", closed)
+            return closed
+        finally:
+            self.put_connection(conn)
+
+    def get_pvp_history(self, user_id: int, limit: int = 20) -> list[dict]:
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                """
+                SELECT m.id, m.course_id, m.winner_id, m.score_p1, m.score_p2,
+                       m.elo_delta_p1, m.elo_delta_p2, m.finished_at,
+                       m.player1_id, m.player2_id,
+                       u1.username as p1_name, u2.username as p2_name
+                FROM pvp_matches m
+                JOIN users u1 ON u1.id = m.player1_id
+                JOIN users u2 ON u2.id = m.player2_id
+                WHERE (m.player1_id = %s OR m.player2_id = %s) AND m.status = 'finished'
+                ORDER BY m.finished_at DESC LIMIT %s
+                """,
+                (user_id, user_id, limit),
+            )
+            results = []
+            for r in cursor.fetchall():
+                is_p1 = r["player1_id"] == user_id
+                results.append(
+                    {
+                        "match_id": r["id"],
+                        "course_id": r["course_id"],
+                        "won": r["winner_id"] == user_id,
+                        "draw": r["winner_id"] is None,
+                        "my_score": r["score_p1"] if is_p1 else r["score_p2"],
+                        "opp_score": r["score_p2"] if is_p1 else r["score_p1"],
+                        "elo_delta": r["elo_delta_p1"] if is_p1 else r["elo_delta_p2"],
+                        "opponent": r["p2_name"] if is_p1 else r["p1_name"],
+                        "finished_at": str(r["finished_at"])[:16] if r["finished_at"] else None,
+                    }
+                )
+            return results
         finally:
             self.put_connection(conn)
 
@@ -4221,7 +4329,12 @@ class PostgresRepository:
             f"[SAVE_PROC] Recibido: student_id={student_id}, item_id={item_id}, "
             f"image_data={'bytes:'+str(len(image_data)) if image_data else 'None'}, mime_type={mime_type}"
         )
-        ext = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}.get(mime_type, "jpg")
+        ext = {
+            "image/jpeg": "jpg",
+            "image/png": "png",
+            "image/webp": "webp",
+            "application/pdf": "pdf",
+        }.get(mime_type, "bin")
 
         # ── Intentar subir a Supabase Storage ────────────────────────────
         storage_path = f"{student_id}/{item_id}/{file_hash or int(_time.time())}.{ext}"
@@ -4283,9 +4396,11 @@ class PostgresRepository:
                         procedure_score=NULL, teacher_score=NULL, final_score=NULL,
                         submitted_at=CURRENT_TIMESTAMP, reviewed_at=NULL
                     WHERE student_id=%s AND item_id=%s
+                    RETURNING id
                 """,
                     (bytea_value, mime_type, img_path, file_hash, storage_url, student_id, item_id),
                 )
+                submission_id = cursor.fetchone()["id"]
             else:
                 cursor.execute(
                     """
@@ -4293,6 +4408,7 @@ class PostgresRepository:
                         (student_id, item_id, item_content, image_data, mime_type,
                          procedure_image_path, file_hash, storage_url)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id
                 """,
                     (
                         student_id,
@@ -4305,7 +4421,9 @@ class PostgresRepository:
                         storage_url,
                     ),
                 )
+                submission_id = cursor.fetchone()["id"]
             conn.commit()
+            return submission_id
         finally:
             self.put_connection(conn)
 
@@ -4342,7 +4460,7 @@ class PostgresRepository:
                 SELECT id, status, teacher_feedback, feedback_image,
                        feedback_mime_type, submitted_at, reviewed_at,
                        procedure_score, feedback_image_path,
-                       ai_proposed_score, teacher_score, final_score,
+                       ai_proposed_score, ai_feedback, teacher_score, final_score,
                        storage_url
                 FROM procedure_submissions
                 WHERE student_id=%s AND item_id=%s
@@ -4489,60 +4607,69 @@ class PostgresRepository:
             self.put_connection(conn)
 
     @_timing
-    def get_student_elo_summary(self, student_id):
-        """ELO actual por tópico, ELO global, total de intentos y precisión reciente."""
-        elo_by_topic = self.get_latest_elo_by_topic(student_id)
-        global_elo = (
-            sum(e for e, _ in elo_by_topic.values()) / len(elo_by_topic) if elo_by_topic else 1000.0
-        )
-        conn = self.get_connection()
-        try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute("SELECT COUNT(*) AS cnt FROM attempts WHERE user_id = %s", (student_id,))
-            total = cursor.fetchone()["cnt"]
-            cursor.execute(
-                "SELECT is_correct FROM attempts WHERE user_id = %s ORDER BY timestamp DESC LIMIT 10",
-                (student_id,),
-            )
-            recent = cursor.fetchall()
-        finally:
-            self.put_connection(conn)
-        recent_acc = sum(1 for r in recent if r["is_correct"]) / len(recent) if recent else 0.0
-        return {
-            "elo_by_topic": elo_by_topic,
-            "global_elo": round(global_elo, 1),
-            "attempts_count": total,
-            "recent_accuracy": recent_acc,
-        }
-
-    @_timing
     def validate_procedure_submission(
-        self, submission_id: int, teacher_score: float, feedback: str = ""
-    ):
+        self,
+        submission_id: int,
+        teacher_score: float,
+        feedback: str = "",
+        teacher_id: int | None = None,
+    ) -> bool:
         """Valida la calificación de un procedimiento y establece la nota final oficial."""
-        elo_delta = round((teacher_score - 50.0) * 0.2, 4)
+        from src.domain.elo.model import procedure_elo_delta
+
+        elo_delta = procedure_elo_delta(teacher_score)
 
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute(
+            ownership = ""
+            params = [teacher_score, teacher_score, feedback or None, elo_delta, submission_id]
+            if teacher_id is not None:
+                ownership = """
+                    AND EXISTS (
+                        SELECT 1 FROM users u
+                        JOIN groups g ON g.id = u.group_id
+                        WHERE u.id = procedure_submissions.student_id
+                          AND g.teacher_id = %s
+                    )
                 """
+                params.append(teacher_id)
+            cursor.execute(
+                f"""
                 UPDATE procedure_submissions
                 SET teacher_score    = %s,
                     final_score      = %s,
                     teacher_feedback = %s,
                     elo_delta        = %s,
+                    elo_applied      = 1,
                     status           = 'VALIDATED_BY_TEACHER',
                     reviewed_at      = CURRENT_TIMESTAMP
                 WHERE id = %s
-                RETURNING student_id
+                  AND status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                  {ownership}
+                RETURNING student_id, item_id
             """,
-                (teacher_score, teacher_score, feedback or None, elo_delta, submission_id),
+                tuple(params),
             )
             row = cursor.fetchone()
             if row:
-                self._update_current_elo(cursor, row["student_id"])
+                # El delta se aplica aquí una sola vez; la guarda de status
+                # impide revalidar la misma entrega.
+                cursor.execute(
+                    "SELECT course_id, topic FROM items WHERE id = %s", (row["item_id"],)
+                )
+                item = cursor.fetchone()
+                if item:
+                    self._bump_course_topic_rating(
+                        cursor,
+                        row["student_id"],
+                        item["course_id"],
+                        item["topic"],
+                        elo_delta,
+                        "procedure",
+                    )
             conn.commit()
+            return row is not None
         finally:
             self.put_connection(conn)
 
@@ -4601,15 +4728,21 @@ class PostgresRepository:
         n_questions: int,
         correct_count: int,
         score_pct: float,
-        global_elo_after: float,
+        global_elo_after: float | None,
+        template_id: int | None = None,
+        responses: list[dict] | None = None,
     ) -> int:
+        """Persiste la sesión y, si se pasan, las respuestas por pregunta en
+        exam_responses (análisis del docente). `responses`: list de dicts
+        {item_id, topic, is_correct}."""
         conn = self.get_connection()
         try:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
                     """INSERT INTO exam_sessions
-                       (user_id, course_id, course_name, n_questions, correct_count, score_pct, global_elo_after)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s)
+                       (user_id, course_id, course_name, n_questions, correct_count, score_pct,
+                        global_elo_after, global_elo_status, exam_template_id)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                        RETURNING id""",
                     (
                         user_id,
@@ -4618,17 +4751,477 @@ class PostgresRepository:
                         n_questions,
                         correct_count,
                         score_pct,
-                        global_elo_after,
+                        global_elo_after or 0,
+                        "pending" if global_elo_after is None else "rated",
+                        template_id,
                     ),
                 )
                 row = cursor.fetchone()
+                session_id = row["id"]
+                if responses:
+                    cursor.executemany(
+                        """INSERT INTO exam_responses
+                           (session_id, template_id, user_id, item_id, topic, is_correct)
+                           VALUES (%s, %s, %s, %s, %s, %s)""",
+                        [
+                            (
+                                session_id,
+                                template_id,
+                                user_id,
+                                r["item_id"],
+                                r.get("topic"),
+                                1 if r.get("is_correct") else 0,
+                            )
+                            for r in responses
+                        ],
+                    )
                 conn.commit()
-                return row["id"]
+                return session_id
         except Exception:
             conn.rollback()
             raise
         finally:
             self.put_connection(conn)
+
+    def get_diagnostic(self, user_id: int, course_id: str) -> dict | None:
+        """Devuelve el diagnóstico de un estudiante en una materia, o None."""
+        import json as _json
+
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """SELECT initial_elo, score_pct, result_json,
+                              to_char(completed_at, 'YYYY-MM-DD HH24:MI') AS completed_at
+                       FROM diagnostics WHERE user_id = %s AND course_id = %s""",
+                    (user_id, course_id),
+                )
+                row = cursor.fetchone()
+        finally:
+            self.put_connection(conn)
+        if not row:
+            return None
+        return {
+            "initial_elo": row["initial_elo"],
+            "score_pct": row["score_pct"],
+            "result": _json.loads(row["result_json"] or "{}"),
+            "completed_at": row["completed_at"],
+        }
+
+    def get_completed_diagnostic_course_ids(self, user_id: int) -> list:
+        """course_ids con diagnóstico completado por el estudiante."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute("SELECT course_id FROM diagnostics WHERE user_id = %s", (user_id,))
+                return [r["course_id"] for r in cursor.fetchall()]
+        finally:
+            self.put_connection(conn)
+
+    def save_diagnostic(
+        self, user_id: int, course_id: str, initial_elo: float, score_pct: float, result_json: str
+    ) -> None:
+        """Persiste (upsert) el diagnóstico completado de una materia."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """INSERT INTO diagnostics
+                       (user_id, course_id, initial_elo, score_pct, result_json, completed_at)
+                       VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                       ON CONFLICT (user_id, course_id) DO UPDATE SET
+                           initial_elo = EXCLUDED.initial_elo,
+                           score_pct = EXCLUDED.score_pct,
+                           result_json = EXCLUDED.result_json,
+                           completed_at = CURRENT_TIMESTAMP""",
+                    (user_id, course_id, initial_elo, score_pct, result_json),
+                )
+                conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def get_lesson_progress(self, user_id: int, course_id: str, node_id: str) -> dict:
+        """Progreso de un nodo no evaluativo; nunca consulta ni modifica ELO."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """SELECT state, objectives_viewed, math_convention_viewed,
+                              viewed_at, completed_at
+                       FROM lesson_progress
+                       WHERE user_id = %s AND course_id = %s AND node_id = %s""",
+                    (user_id, course_id, node_id),
+                )
+                row = cursor.fetchone()
+        finally:
+            self.put_connection(conn)
+        if not row:
+            return {
+                "state": "available",
+                "objectives_viewed": False,
+                "math_convention_viewed": False,
+                "viewed_at": None,
+                "completed_at": None,
+            }
+        return {
+            "state": row["state"],
+            "objectives_viewed": bool(row["objectives_viewed"]),
+            "math_convention_viewed": bool(row["math_convention_viewed"]),
+            "viewed_at": str(row["viewed_at"]) if row["viewed_at"] else None,
+            "completed_at": str(row["completed_at"]) if row["completed_at"] else None,
+        }
+
+    def record_lesson_event(self, user_id: int, course_id: str, node_id: str, event: str) -> dict:
+        """Registra un hito curricular idempotente sin afectar ELO."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """INSERT INTO lesson_progress
+                       (user_id, course_id, node_id, state, objectives_viewed,
+                        math_convention_viewed, viewed_at, completed_at, updated_at)
+                       VALUES (
+                           %s, %s, %s,
+                           CASE WHEN %s = 'node_completed' THEN 'completed' ELSE 'viewed' END,
+                           CASE WHEN %s = 'objectives_viewed' THEN 1 ELSE 0 END,
+                           CASE WHEN %s = 'math_convention_viewed' THEN 1 ELSE 0 END,
+                           CURRENT_TIMESTAMP,
+                           CASE WHEN %s = 'node_completed' THEN CURRENT_TIMESTAMP ELSE NULL END,
+                           CURRENT_TIMESTAMP
+                       )
+                       ON CONFLICT (user_id, course_id, node_id) DO UPDATE SET
+                           state = CASE WHEN EXCLUDED.state = 'completed' THEN 'completed'
+                                        ELSE lesson_progress.state END,
+                           objectives_viewed = GREATEST(lesson_progress.objectives_viewed,
+                                                       EXCLUDED.objectives_viewed),
+                           math_convention_viewed = GREATEST(
+                               lesson_progress.math_convention_viewed,
+                               EXCLUDED.math_convention_viewed),
+                           viewed_at = COALESCE(lesson_progress.viewed_at, EXCLUDED.viewed_at),
+                           completed_at = COALESCE(
+                               lesson_progress.completed_at, EXCLUDED.completed_at),
+                           updated_at = CURRENT_TIMESTAMP""",
+                    (user_id, course_id, node_id, event, event, event, event),
+                )
+                conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+        return self.get_lesson_progress(user_id, course_id, node_id)
+
+    def get_lesson_interactions(self, user_id: int, course_id: str, node_id: str) -> dict:
+        """Selecciones estructuradas del nodo, indexadas por interacción."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """SELECT interaction_id, selected_option, is_expected, misconception_tag
+                       FROM lesson_interactions
+                       WHERE user_id = %s AND course_id = %s AND node_id = %s""",
+                    (user_id, course_id, node_id),
+                )
+                rows = cursor.fetchall()
+                return {
+                    row["interaction_id"]: {
+                        "interaction_id": row["interaction_id"],
+                        "selected_option": row["selected_option"],
+                        "is_expected": (
+                            None if row["is_expected"] is None else bool(row["is_expected"])
+                        ),
+                        "misconception_tag": row["misconception_tag"],
+                    }
+                    for row in rows
+                }
+        finally:
+            self.put_connection(conn)
+
+    def save_lesson_interaction(
+        self,
+        user_id: int,
+        course_id: str,
+        node_id: str,
+        interaction_id: str,
+        selected_option: str,
+        is_expected: bool | None,
+        misconception_tag: str | None,
+    ) -> None:
+        """Guarda una opción cerrada; nunca recibe contenido de texto libre."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """INSERT INTO lesson_interactions
+                       (user_id, course_id, node_id, interaction_id, selected_option,
+                        is_expected, misconception_tag, answered_at)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                       ON CONFLICT(user_id, course_id, node_id, interaction_id) DO UPDATE SET
+                           selected_option = EXCLUDED.selected_option,
+                           is_expected = EXCLUDED.is_expected,
+                           misconception_tag = EXCLUDED.misconception_tag,
+                           answered_at = CURRENT_TIMESTAMP""",
+                    (
+                        user_id,
+                        course_id,
+                        node_id,
+                        interaction_id,
+                        selected_option,
+                        None if is_expected is None else int(is_expected),
+                        misconception_tag,
+                    ),
+                )
+            conn.commit()
+        finally:
+            self.put_connection(conn)
+
+    def set_topic_rating_baseline(
+        self, user_id: int, course_id: str, topic: str, elo: float, rd: float = 350.0
+    ) -> None:
+        """Diagnostic writer: the starting rating of one (course, topic) (FR-020, FR-029).
+
+        No attempt is created. The caller skips topics already practised (FR-021).
+        """
+        conn = self.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                self._set_course_topic_rating(
+                    cursor, user_id, course_id, topic, elo, rd, "diagnostic"
+                )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def create_active_exam_session(
+        self,
+        session_id: str,
+        user_id: int,
+        course_id: str,
+        template_id: int | None,
+        item_ids: list[str],
+        expires_at: str,
+    ) -> None:
+        conn = self.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """INSERT INTO active_exam_sessions
+                       (id, user_id, course_id, exam_template_id, item_ids, expires_at)
+                       VALUES (%s, %s, %s, %s, %s, %s)""",
+                    (session_id, user_id, course_id, template_id, json.dumps(item_ids), expires_at),
+                )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def get_active_exam_session(self, session_id: str, user_id: int) -> dict | None:
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """SELECT id, course_id, exam_template_id, item_ids, expires_at,
+                              submitted_at, result_json
+                       FROM active_exam_sessions WHERE id=%s AND user_id=%s""",
+                    (session_id, user_id),
+                )
+                row = cursor.fetchone()
+                if not row:
+                    return None
+                return {
+                    "id": row["id"],
+                    "course_id": row["course_id"],
+                    "template_id": row["exam_template_id"],
+                    "item_ids": json.loads(row["item_ids"]),
+                    "expires_at": str(row["expires_at"]),
+                    "submitted_at": row["submitted_at"],
+                    "result": json.loads(row["result_json"]) if row["result_json"] else None,
+                }
+        finally:
+            self.put_connection(conn)
+
+    def complete_active_exam_session(
+        self,
+        session_id: str,
+        user_id: int,
+        course_name: str,
+        result: dict,
+        responses: list[dict],
+    ) -> bool:
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """UPDATE active_exam_sessions
+                       SET submitted_at=CURRENT_TIMESTAMP, result_json=%s
+                       WHERE id=%s AND user_id=%s AND submitted_at IS NULL
+                         AND expires_at >= CURRENT_TIMESTAMP
+                       RETURNING course_id, exam_template_id""",
+                    (json.dumps(result), session_id, user_id),
+                )
+                run = cursor.fetchone()
+                if not run:
+                    conn.rollback()
+                    return False
+                cursor.execute(
+                    """INSERT INTO exam_sessions
+                       (user_id, course_id, course_name, n_questions, correct_count, score_pct,
+                        global_elo_after, global_elo_status, exam_template_id)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
+                    (
+                        user_id,
+                        run["course_id"],
+                        course_name,
+                        result["total_questions"],
+                        result["correct_count"],
+                        result["score_pct"],
+                        # Pending: the column stays NOT NULL (AGENTS R8); the status says pending.
+                        result["global_elo_after"] or 0,
+                        "pending" if result["global_elo_after"] is None else "rated",
+                        run["exam_template_id"],
+                    ),
+                )
+                history_id = cursor.fetchone()["id"]
+                if responses:
+                    cursor.executemany(
+                        """INSERT INTO exam_responses
+                           (session_id, template_id, user_id, item_id, topic, is_correct)
+                           VALUES (%s, %s, %s, %s, %s, %s)""",
+                        [
+                            (
+                                history_id,
+                                run["exam_template_id"],
+                                user_id,
+                                r["item_id"],
+                                r.get("topic"),
+                                1 if r.get("is_correct") else 0,
+                            )
+                            for r in responses
+                        ],
+                    )
+            conn.commit()
+            return True
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def get_answer_by_request_id(self, user_id: int, request_id: str) -> dict | None:
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT item_id, is_correct, elo_before, elo_after, rating_deviation, "
+                "request_fingerprint, elo_valid FROM attempts WHERE user_id=%s AND request_id=%s",
+                (user_id, request_id),
+            )
+            row = cursor.fetchone()
+            return {**row, "elo_valid": bool(row["elo_valid"])} if row else None
+        finally:
+            self.put_connection(conn)
+
+    def has_practice_attempts(self, user_id: int, course_id: str, topic: str) -> bool:
+        """Whether the student answered items of this course and topic (FR-021)."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT 1 FROM attempts a JOIN items i ON i.id = a.item_id"
+                    " WHERE a.user_id = %s AND i.course_id = %s AND i.topic = %s LIMIT 1",
+                    (user_id, course_id, topic),
+                )
+                return cursor.fetchone() is not None
+        finally:
+            self.put_connection(conn)
+
+    def get_exam_template_results(self, template_id: int) -> dict:
+        """Análisis agregado de resultados de una plantilla (ver SQLite)."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """SELECT COUNT(*) AS n_sessions,
+                              COUNT(DISTINCT user_id) AS n_students,
+                              COALESCE(AVG(score_pct), 0) AS avg_score
+                       FROM exam_sessions WHERE exam_template_id = %s""",
+                    (template_id,),
+                )
+                s = cursor.fetchone()
+                summary = {
+                    "n_sessions": s["n_sessions"] or 0,
+                    "n_students": s["n_students"] or 0,
+                    "avg_score": round(float(s["avg_score"] or 0), 1),
+                }
+                cursor.execute(
+                    """SELECT er.item_id,
+                              COALESCE(i.content, er.item_id) AS content,
+                              er.topic,
+                              COUNT(*) AS total,
+                              SUM(er.is_correct) AS correct
+                       FROM exam_responses er
+                       LEFT JOIN items i ON i.id = er.item_id
+                       WHERE er.template_id = %s
+                       GROUP BY er.item_id, i.content, er.topic
+                       ORDER BY total DESC""",
+                    (template_id,),
+                )
+                questions = []
+                for r in cursor.fetchall():
+                    total = r["total"] or 0
+                    correct = r["correct"] or 0
+                    questions.append(
+                        {
+                            "item_id": r["item_id"],
+                            "content": r["content"],
+                            "topic": r["topic"],
+                            "total": total,
+                            "correct": correct,
+                            "accuracy": round(correct / total * 100, 1) if total else 0.0,
+                        }
+                    )
+                cursor.execute(
+                    """SELECT COALESCE(topic, 'Sin tópico') AS topic,
+                              COUNT(*) AS total, SUM(is_correct) AS correct
+                       FROM exam_responses WHERE template_id = %s
+                       GROUP BY topic ORDER BY total DESC""",
+                    (template_id,),
+                )
+                topics = []
+                for r in cursor.fetchall():
+                    total = r["total"] or 0
+                    correct = r["correct"] or 0
+                    topics.append(
+                        {
+                            "topic": r["topic"],
+                            "total": total,
+                            "correct": correct,
+                            "accuracy": round(correct / total * 100, 1) if total else 0.0,
+                        }
+                    )
+        finally:
+            self.put_connection(conn)
+
+        ranked = [q for q in questions if q["total"] > 0]
+        best = max(ranked, key=lambda q: q["accuracy"], default=None)
+        worst = min(ranked, key=lambda q: q["accuracy"], default=None)
+        reinforce = min(topics, key=lambda t: t["accuracy"], default=None) if topics else None
+        return {
+            **summary,
+            "questions": questions,
+            "topics": topics,
+            "best_question": best,
+            "worst_question": worst,
+            "reinforce_topic": reinforce,
+        }
 
     def get_exam_history(self, user_id: int, limit: int = 20) -> list[dict]:
         conn = self.get_connection()
@@ -4636,7 +5229,10 @@ class PostgresRepository:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
                     """SELECT id, course_id, course_name, n_questions, correct_count,
-                              score_pct, global_elo_after,
+                              score_pct,
+                              CASE WHEN global_elo_status = 'rated' THEN global_elo_after END
+                                  AS global_elo_after,
+                              COALESCE(global_elo_status, 'unknown') AS global_elo_status,
                               to_char(created_at, 'YYYY-MM-DD HH24:MI') AS created_at
                        FROM exam_sessions
                        WHERE user_id = %s
@@ -4835,14 +5431,20 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    def delete_exam_assignment(self, assignment_id: int) -> bool:
+    def delete_exam_assignment(self, assignment_id: int, template_id: int | None = None) -> bool:
         conn = self.get_connection()
         try:
             with conn.cursor() as cursor:
-                cursor.execute(
-                    "DELETE FROM exam_assignments WHERE id = %s",
-                    (assignment_id,),
-                )
+                if template_id is None:
+                    cursor.execute(
+                        "DELETE FROM exam_assignments WHERE id = %s",
+                        (assignment_id,),
+                    )
+                else:
+                    cursor.execute(
+                        "DELETE FROM exam_assignments WHERE id = %s AND template_id = %s",
+                        (assignment_id, template_id),
+                    )
                 conn.commit()
                 return cursor.rowcount > 0
         except Exception:

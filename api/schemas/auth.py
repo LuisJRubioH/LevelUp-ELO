@@ -16,7 +16,9 @@ class RegisterRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     password: str = Field(..., min_length=6)
     role: str = Field(default="student", pattern="^(student|teacher)$")
-    education_level: str | None = Field(default=None, pattern="^(universidad|colegio|semillero)$")
+    education_level: str | None = Field(
+        default=None, pattern="^(universidad|colegio|semillero|concursos)$"
+    )
     grade: str | None = Field(default=None, pattern="^([6-9]|10|11)$")
     email: str | None = Field(default=None, max_length=254)
 

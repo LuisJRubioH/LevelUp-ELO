@@ -1,0 +1,15 @@
+[
+  {
+    "id": "CS8-U10-P294-A01",
+    "tipo": "abierta",
+    "enunciado": "¿Qué tipos de variables estadísticas existen?",
+    "respuesta": "Las variables estadísticas se clasifican en cualitativas y cuantitativas. Las cualitativas pueden ser nominales u ordinales; las cuantitativas pueden ser discretas o continuas.",
+    "conjunto": "R",
+    "seccion": "Definiciones iniciales: variables estadísticas",
+    "unidad": 10,
+    "pagina_pdf": 294,
+    "referencia": "Matemáticamente",
+    "apto_para": ["procedimiento_abierto"],
+    "dificultad": 200
+  }
+]

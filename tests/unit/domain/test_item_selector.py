@@ -11,6 +11,9 @@ API real:
 Nota: select_optimal_item recibe objetos Item(difficulty=...), no dicts.
 """
 
+import math
+import random
+
 import pytest
 from src.domain.elo.model import Item, expected_score
 from src.domain.selector.item_selector import AdaptiveItemSelector
@@ -99,3 +102,59 @@ class TestZDPPreFiltering:
         # El ítem seleccionado debe estar en la ventana ZDP o ser el fallback
         # (en este caso, difficulty=1000 está en [750, 1250])
         assert result.difficulty == pytest.approx(1000.0, abs=1.0)
+
+
+class TestControlledVariety:
+    def test_equal_difficulty_items_are_all_reachable(self):
+        items = _make_items(1000, 1000, 1000, 1000)
+        selector = AdaptiveItemSelector(rng=random.Random(7))
+        selected = {id(selector.select_optimal_item(1000, items)) for _ in range(100)}
+        assert selected == {id(item) for item in items}
+
+    def test_variety_stays_near_best_information_and_inside_zdp(self):
+        items = _make_items(600, 820, 950, 1000, 1050, 1100, 1800)
+        selector = AdaptiveItemSelector(rng=random.Random(11))
+        selected = [selector.select_optimal_item(1000, items) for _ in range(100)]
+        assert {item.difficulty for item in selected} == {950, 1000, 1050}
+        for item in selected:
+            p = expected_score(1000, item.difficulty)
+            assert 0.4 <= p <= 0.75
+            assert selector.information(p) >= 0.95 * selector.information(0.5)
+
+    def test_weight_is_respected(self):
+        items = [Item(1000, weight=1), Item(1000, weight=2)]
+        selector = AdaptiveItemSelector(rng=random.Random(1))
+        assert all(selector.select_optimal_item(1000, items) is items[1] for _ in range(20))
+
+    def test_seed_can_reproduce_a_selection_sequence(self):
+        items = _make_items(950, 1000, 1050)
+        first = AdaptiveItemSelector(rng=random.Random(19))
+        second = AdaptiveItemSelector(rng=random.Random(19))
+        assert [id(first.select_optimal_item(1000, items)) for _ in range(20)] == [
+            id(second.select_optimal_item(1000, items)) for _ in range(20)
+        ]
+
+
+def _difficulty_for(p: float, rating: float = 1000.0) -> float:
+    """Inverse of expected_score: the difficulty that gives success probability p."""
+    return rating + 400 * math.log10(1 / p - 1)
+
+
+def test_spec001_band_widens_by_005_up_to_10_steps_then_whole_pool():
+    """FR-017, US2-AS2 (task T005).
+
+    P = 0.77 enters the band after one 0.05 step ([0.35, 0.80]); P = 0.33 would need two. The
+    0.33 item is the more informative one, so it would win if both were candidates: picking
+    0.77 every time proves the band widens one 0.05 step at a time and stops at the first hit.
+    Items beyond every band (P < 0.01) still yield an item: the whole pool, by information.
+    (The 10-step cap is not observable: the band reaches its [0.01, 0.99] clamp after 8 steps.)
+    """
+    selector = AdaptiveItemSelector(rng=random.Random(3))
+    first_step = Item(difficulty=_difficulty_for(0.77))
+    second_step = Item(difficulty=_difficulty_for(0.33))
+
+    picks = {id(selector.select_optimal_item(1000.0, [first_step, second_step])) for _ in range(50)}
+    assert picks == {id(first_step)}
+
+    beyond = _make_items(2000.0, 2100.0)
+    assert selector.select_optimal_item(1000.0, beyond).difficulty == 2000.0

@@ -1,0 +1,939 @@
+[
+  {
+    "id": "HT8-U5-P130-A1",
+    "tipo": "abierta",
+    "enunciado": "Responde: ¿qué es un monomio primo?",
+    "respuesta": "Un monomio que **no se puede descomponer** en producto de otros dos monomios no triviales: su coeficiente es $1$ o un número primo y lleva una sola letra con exponente $1$. Por ejemplo $x$, $3y$ o $-5a$ son primos, mientras que $6x^2=2\\cdot 3\\cdot x\\cdot x$ no lo es. Es el análogo algebraico de los números primos, y sirve para saber cuándo una factorización está completa.",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de monomios, actividad 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "La analogía con los enteros tiene un límite que conviene señalar: en los enteros la descomposición en primos es única, y con los monomios también, pero el signo y las unidades ($\\pm1$) se dejan aparte en ambos casos.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P130-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe tres monomios cuyo factor común sea $x^{2y}$.",
+    "expr": "x**(2*y)*(1+x**(2*y)+x**(4*y))",
+    "respuesta": "x**(2*y)*(1+x**(2*y)+x**(4*y))",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de monomios, actividad 2, item a",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo: $x^{2y}$, $x^{4y}$ y $x^{6y}$. El exponente es literal, pero el método no cambia: basta multiplicar la expresión dada por monomios cualesquiera. Aquí se multiplicó por $1$, $x^{2y}$ y $x^{4y}$. Basta multiplicar la expresión dada por tres monomios distintos; el factor común de los tres vuelve a ser la expresión de partida.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones, y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P130-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe tres monomios cuyo factor común sea $14m^3n^2$.",
+    "expr": "14*m**3*n**2*(1+2*m+3*n)",
+    "respuesta": "14*m**3*n**2*(1+2*m+3*n)",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de monomios, actividad 2, item b",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo: $14m^3n^2$, $28m^4n^2$ y $42m^3n^3$. Multiplicando por $1$, $2m$ y $3n$. Basta multiplicar la expresión dada por tres monomios distintos; el factor común de los tres vuelve a ser la expresión de partida.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones, y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P130-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe tres monomios cuyo factor común sea $\\dfrac{-5}{3}x^2y^3z$.",
+    "expr": "Rational(-5,3)*x**2*y**3*z*(1+x+y)",
+    "respuesta": "Rational(-5,3)*x**2*y**3*z*(1+x+y)",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de monomios, actividad 2, item c",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo: $-\\dfrac{5}{3}x^2y^3z$, $-\\dfrac{5}{3}x^3y^3z$ y $-\\dfrac{5}{3}x^2y^4z$. El coeficiente fraccionario y el signo se arrastran igual: lo único que cambia entre los tres monomios es la parte literal que se añade. Basta multiplicar la expresión dada por tres monomios distintos; el factor común de los tres vuelve a ser la expresión de partida.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones, y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P130-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Escribe tres monomios cuyo factor común sea $-9a^3b$.",
+    "expr": "-9*a**3*b*(1+2*a+3*b)",
+    "respuesta": "-9*a**3*b*(1+2*a+3*b)",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de monomios, actividad 2, item d",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo: $-9a^3b$, $-18a^4b$ y $-27a^3b^2$. Multiplicando por $1$, $2a$ y $3b$. Basta multiplicar la expresión dada por tres monomios distintos; el factor común de los tres vuelve a ser la expresión de partida.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones, y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P130-A2e",
+    "tipo": "simbolico",
+    "enunciado": "Escribe tres monomios cuyo factor común sea $4xm$.",
+    "expr": "4*x*m*(1+x+m)",
+    "respuesta": "4*x*m*(1+x+m)",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de monomios, actividad 2, item e",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo: $4xm$, $4x^2m$ y $4xm^2$. El más sencillo de la serie: dos letras a la primera potencia. Basta multiplicar la expresión dada por tres monomios distintos; el factor común de los tres vuelve a ser la expresión de partida.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones, y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P130-A2f",
+    "tipo": "simbolico",
+    "enunciado": "Escribe tres monomios cuyo factor común sea $-\\dfrac{3}{7}x^4y^3z^2$.",
+    "expr": "Rational(-3,7)*x**4*y**3*z**2*(1+x+z)",
+    "respuesta": "Rational(-3,7)*x**4*y**3*z**2*(1+x+z)",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de monomios, actividad 2, item f",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo: $-\\dfrac{3}{7}x^4y^3z^2$, $-\\dfrac{3}{7}x^5y^3z^2$ y $-\\dfrac{3}{7}x^4y^3z^3$. Tres letras y coeficiente fraccionario negativo; el procedimiento es idéntico. Basta multiplicar la expresión dada por tres monomios distintos; el factor común de los tres vuelve a ser la expresión de partida.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones, y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P130-A3a",
+    "tipo": "abierta",
+    "enunciado": "Escribe tres formas de factorizar el monomio $16a^4b^2$.",
+    "respuesta": "Por ejemplo: $(16a^4)(b^2)$, $(4a^2b)(4a^2b)$ y $(2a)(8a^3b^2)$.",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de monomios, actividad 3, item a",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "«Factorizar un monomio» aquí significa escribirlo como producto de dos monomios, y hay muchas formas: se reparten el coeficiente y los exponentes de cada letra entre los dos factores. Lo único que hay que comprobar al calificar es que el producto devuelva el monomio original.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones, y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P130-A3b",
+    "tipo": "abierta",
+    "enunciado": "Escribe tres formas de factorizar el monomio $320x^4yz^2$.",
+    "respuesta": "Por ejemplo: $(320x^4)(yz^2)$, $(32x^2y)(10x^2z^2)$ y $(4xz)(80x^3yz)$.",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de monomios, actividad 3, item b",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "«Factorizar un monomio» aquí significa escribirlo como producto de dos monomios, y hay muchas formas: se reparten el coeficiente y los exponentes de cada letra entre los dos factores. Lo único que hay que comprobar al calificar es que el producto devuelva el monomio original.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones, y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P130-A3c",
+    "tipo": "abierta",
+    "enunciado": "Escribe tres formas de factorizar el monomio $\\dfrac{2}{9}a^5b^3c$.",
+    "respuesta": "Por ejemplo: $\\left(\\dfrac{2}{9}a^5\\right)(b^3c)$, $\\left(\\dfrac{2}{3}a^2b\\right)\\left(\\dfrac{1}{3}a^3b^2c\\right)$ y $\\left(\\dfrac{2}{9}\\right)(a^5b^3c)$.",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de monomios, actividad 3, item c",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "«Factorizar un monomio» aquí significa escribirlo como producto de dos monomios, y hay muchas formas: se reparten el coeficiente y los exponentes de cada letra entre los dos factores. Lo único que hay que comprobar al calificar es que el producto devuelva el monomio original.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones, y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P130-A3d",
+    "tipo": "abierta",
+    "enunciado": "Escribe tres formas de factorizar el monomio $90m^6n^4$.",
+    "respuesta": "Por ejemplo: $(90m^6)(n^4)$, $(9m^3n^2)(10m^3n^2)$ y $(30mn)(3m^5n^3)$.",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de monomios, actividad 3, item d",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "«Factorizar un monomio» aquí significa escribirlo como producto de dos monomios, y hay muchas formas: se reparten el coeficiente y los exponentes de cada letra entre los dos factores. Lo único que hay que comprobar al calificar es que el producto devuelva el monomio original.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones, y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P130-A3e",
+    "tipo": "abierta",
+    "enunciado": "Escribe tres formas de factorizar el monomio $15am^3n^2$.",
+    "respuesta": "Por ejemplo: $(15a)(m^3n^2)$, $(3am)(5m^2n^2)$ y $(5am^3)(3n^2)$.",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de monomios, actividad 3, item e",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "«Factorizar un monomio» aquí significa escribirlo como producto de dos monomios, y hay muchas formas: se reparten el coeficiente y los exponentes de cada letra entre los dos factores. Lo único que hay que comprobar al calificar es que el producto devuelva el monomio original.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones, y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P130-A3f",
+    "tipo": "abierta",
+    "enunciado": "Escribe tres formas de factorizar el monomio $\\dfrac{8}{3}x^2y^3$.",
+    "respuesta": "Por ejemplo: $\\left(\\dfrac{8}{3}\\right)(x^2y^3)$, $\\left(\\dfrac{4}{3}x\\right)(2xy^3)$ y $\\left(\\dfrac{8}{3}xy\\right)(xy^2)$.",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de monomios, actividad 3, item f",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "«Factorizar un monomio» aquí significa escribirlo como producto de dos monomios, y hay muchas formas: se reparten el coeficiente y los exponentes de cada letra entre los dos factores. Lo único que hay que comprobar al calificar es que el producto devuelva el monomio original.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones, y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P130-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el polinomio $7x^2-14$ con su factor común. Opciones: 1. $9xy$ · 2. $6x^2y$ · 3. $5x^2y^5z^3$ · 4. $7$ · 5. $4x^2$ · 6. $7x^2$.",
+    "expr": "7*(x**2-2)",
+    "respuesta": "7*(x**2-2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 4, item a",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Corresponde la opción **4**: el factor común es $7$. El $7$ es común a $7x^2$ y a $14$, pero la $x$ no aparece en el segundo término.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P130-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el polinomio $4x^3-12x^2$ con su factor común. Opciones: 1. $9xy$ · 2. $6x^2y$ · 3. $5x^2y^5z^3$ · 4. $7$ · 5. $4x^2$ · 6. $7x^2$.",
+    "expr": "4*x**2*(x-3)",
+    "respuesta": "4*x**2*(x-3)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 4, item b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Corresponde la opción **5**: el factor común es $4x^2$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P130-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el polinomio $21x^5-35x^3-14x^2$ con su factor común. Opciones: 1. $9xy$ · 2. $6x^2y$ · 3. $5x^2y^5z^3$ · 4. $7$ · 5. $4x^2$ · 6. $7x^2$.",
+    "expr": "7*x**2*(3*x**3-5*x-2)",
+    "respuesta": "7*x**2*(3*x**3-5*x-2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 4, item c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Corresponde la opción **6**: el factor común es $7x^2$. El MCD de $21$, $35$ y $14$ es $7$, y el menor exponente de $x$ es $2$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P130-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el polinomio $9x^3y^2-72x^2y^3-54xy$ con su factor común. Opciones: 1. $9xy$ · 2. $6x^2y$ · 3. $5x^2y^5z^3$ · 4. $7$ · 5. $4x^2$ · 6. $7x^2$.",
+    "expr": "9*x*y*(x**2*y-8*x*y**2-6)",
+    "respuesta": "9*x*y*(x**2*y-8*x*y**2-6)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 4, item d",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Corresponde la opción **1**: el factor común es $9xy$. El MCD de $9$, $72$ y $54$ es $9$; los menores exponentes son $x^1$ e $y^1$, por el último término.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P130-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el polinomio $5x^4y^5z^3-100x^3y^6z^4$ con su factor común. Opciones: 1. $9xy$ · 2. $6x^2y$ · 3. $5x^2y^5z^3$ · 4. $7$ · 5. $4x^2$ · 6. $7x^2$.",
+    "expr": "5*x**3*y**5*z**3*(x-20*y*z)",
+    "respuesta": "5*x**3*y**5*z**3*(x-20*y*z)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 4, item e",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Corresponde la opción **3**: el factor común es $5x^3y^5z^3$. De cada letra se toma el menor exponente: $x^3$, $y^5$, $z^3$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P130-A4f",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el polinomio $-6x^3y+36x^2y^2-42x^2y^3$ con su factor común. Opciones: 1. $9xy$ · 2. $6x^2y$ · 3. $5x^2y^5z^3$ · 4. $7$ · 5. $4x^2$ · 6. $7x^2$.",
+    "expr": "6*x**2*y*(-x+6*y-7*y**2)",
+    "respuesta": "6*x**2*y*(-x+6*y-7*y**2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 4, item f",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Corresponde la opción **2**: el factor común es $6x^2y$. El MCD de $6$, $36$ y $42$ es $6$. También se puede sacar $-6x^2y$ y dejar el primer término positivo.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P130-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $9m+18$.",
+    "expr": "9*m+18",
+    "respuesta": "9*(m+2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$9(m+2)$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P130-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $3n+15$.",
+    "expr": "3*n+15",
+    "respuesta": "3*(n+5)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$3(n+5)$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P130-A5c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $5y+40$.",
+    "expr": "5*y+40",
+    "respuesta": "5*(y+8)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$5(y+8)$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P130-A5d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $4x^2+32x$.",
+    "expr": "4*x**2+32*x",
+    "respuesta": "4*x*(x+8)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$4x(x+8)$. Aquí el factor común incluye la letra.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P130-A5e",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $6x^2-42x^3$.",
+    "expr": "6*x**2-42*x**3",
+    "respuesta": "6*x**2*(1-7*x)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$6x^2(1-7x)$. Al sacar todo el $6x^2$ del primer término queda un $1$, que no se puede olvidar.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P130-A5f",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $7x-14x^3$.",
+    "expr": "7*x-14*x**3",
+    "respuesta": "7*x*(1-2*x**2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$7x(1-2x^2)$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P130-A5g",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $-6x-36$.",
+    "expr": "-6*x-36",
+    "respuesta": "-6*(x+6)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$-6(x+6)$. Con todos los términos negativos conviene sacar el signo: $-6(x+6)$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P130-A5h",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $11y-33$.",
+    "expr": "11*y-33",
+    "respuesta": "11*(y-3)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$11(y-3)$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P130-A5i",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $-4m+28$.",
+    "expr": "-4*m+28",
+    "respuesta": "-4*(m-7)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$-4(m-7)$. También vale $4(7-m)$: las dos son correctas.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P130-A5j",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $-5x^3+20x$.",
+    "expr": "-5*x**3+20*x",
+    "respuesta": "-5*x*(x-2)*(x+2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$-5x(x-2)(x+2)$. Tras el factor común queda $-5x(x^2-4)$, que **sigue factorizando** como diferencia de cuadrados. Es el ítem que recuerda no parar en el primer paso.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P130-A5k",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $-8x-16x^3$.",
+    "expr": "-8*x-16*x**3",
+    "respuesta": "-8*x*(1+2*x**2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item k",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$-8x(1+2x^2)$. $1+2x^2$ es una suma y ya no se factoriza.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P130-A5l",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $-6x^3+2x^2+x$.",
+    "expr": "-6*x**3+2*x**2+x",
+    "respuesta": "x*(-6*x**2+2*x+1)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item l",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$x(-6x^2+2x+1)$. El trinomio que queda no se factoriza con enteros: su discriminante, $4+24=28$, no es cuadrado perfecto.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P130-A5m",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $10y^3-5y^2+10y$.",
+    "expr": "10*y**3-5*y**2+10*y",
+    "respuesta": "5*y*(2*y**2-y+2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item m",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$5y(2y^2-y+2)$. El trinomio es primo: discriminante $1-16=-15<0$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P130-A5n",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $5y^7+15y^2+10y$.",
+    "expr": "5*y**7+15*y**2+10*y",
+    "respuesta": "5*y*(y**6+3*y+2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 5, item n",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$5y(y^6+3y+2)$. Para el taller basta con el factor común. Curiosamente el paréntesis todavía se factoriza —$y^6+3y+2=(y+1)(y^5-y^4+y^3-y^2+y+2)$—, pero eso ya excede lo que la actividad pide.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P130-A6a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio con fracciones $\\dfrac{4}{7}m^4+\\dfrac{2}{7}m^3-\\dfrac{9}{7}m^2+\\dfrac{1}{7}m$.",
+    "expr": "Rational(4,7)*m**4+Rational(2,7)*m**3-Rational(9,7)*m**2+Rational(1,7)*m",
+    "respuesta": "Rational(1,7)*m*(4*m**3+2*m**2-9*m+1)",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 6, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\tfrac17 m\\left(4m^3+2m^2-9m+1\\right)$. Todos los términos comparten el denominador $7$ y al menos una $m$. Con fracciones de igual denominador, el factor común numérico es $\\dfrac{1}{\\text{denominador}}$ por el MCD de los numeradores.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P130-A6b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio con fracciones $\\dfrac{5}{8}n^2+\\dfrac{1}{8}n^6-\\dfrac{3}{8}n^3-\\dfrac{21}{8}n^5$.",
+    "expr": "Rational(5,8)*n**2+Rational(1,8)*n**6-Rational(3,8)*n**3-Rational(21,8)*n**5",
+    "respuesta": "Rational(1,8)*n**2*(n**4-21*n**3-3*n+5)",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 6, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\tfrac18 n^2\\left(n^4-21n^3-3n+5\\right)$. Está desordenado: conviene reordenar antes de sacar el común. El menor exponente es $n^2$. Con fracciones de igual denominador, el factor común numérico es $\\dfrac{1}{\\text{denominador}}$ por el MCD de los numeradores.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P130-A6c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio con fracciones $\\dfrac{2}{5}m^3+\\dfrac{1}{5}m^2+\\dfrac{3}{5}m+\\dfrac{1}{5}$.",
+    "expr": "Rational(2,5)*m**3+Rational(1,5)*m**2+Rational(3,5)*m+Rational(1,5)",
+    "respuesta": "Rational(1,5)*(2*m**3+m**2+3*m+1)",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 6, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\tfrac15\\left(2m^3+m^2+3m+1\\right)$. Aquí el factor común es **solo numérico**, porque el último término no tiene letra. Con fracciones de igual denominador, el factor común numérico es $\\dfrac{1}{\\text{denominador}}$ por el MCD de los numeradores.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P130-A6d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio con fracciones $\\dfrac{1}{2}n^2+\\dfrac{5}{2}n^3+\\dfrac{3}{2}n^4-\\dfrac{7}{2}n^5$.",
+    "expr": "Rational(1,2)*n**2+Rational(5,2)*n**3+Rational(3,2)*n**4-Rational(7,2)*n**5",
+    "respuesta": "Rational(1,2)*n**2*(1+5*n+3*n**2-7*n**3)",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 6, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\tfrac12 n^2\\left(1+5n+3n^2-7n^3\\right)$. Está escrito de menor a mayor grado; el menor exponente sigue siendo el que manda, $n^2$. Con fracciones de igual denominador, el factor común numérico es $\\dfrac{1}{\\text{denominador}}$ por el MCD de los numeradores.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P130-A7a",
+    "tipo": "simbolico",
+    "enunciado": "Determina cuál es el factor común en $8(x+4)-t(x+4)$.",
+    "expr": "8*(x+4)-t*(x+4)",
+    "respuesta": "(x+4)*(8-t)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 7, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El factor común es el **binomio** $(x+4)$, y la factorización queda $(x+4)(8-t)$. Un paréntesis completo puede hacer de factor común igual que un monomio: basta tratarlo como si fuera una sola letra.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P130-A7b",
+    "tipo": "simbolico",
+    "enunciado": "Determina cuál es el factor común en $9(x-2)-y(x-2)$.",
+    "expr": "9*(x-2)-y*(x-2)",
+    "respuesta": "(x-2)*(9-y)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun de polinomios, actividad 7, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El factor común es el **binomio** $(x-2)$, y la factorización queda $(x-2)(9-y)$. Un paréntesis completo puede hacer de factor común igual que un monomio: basta tratarlo como si fuera una sola letra.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P130-A8a",
+    "tipo": "simbolico",
+    "enunciado": "Completa la factorización de $x+x^2-y^2-xy^2$: $=x+x^2-\\square$; $=x\\square-y^2\\square$; $=(\\square)(\\square)$.",
+    "expr": "x+x**2-y**2-x*y**2",
+    "respuesta": "(1+x)*(x-y**2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun por agrupacion, actividad 8, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Los cuadros son, en orden: $y^2(1+x)$; luego $(1+x)$ y $(1+x)$; y al final $(1+x)$ y $(x-y^2)$. La factorización completa es $(1+x)(x-y^2)$.",
+    "erratum": "En la segunda linea el libro imprime un solo cuadro, 'x [] - y^2', cuando hacen falta dos: el paso es x(1+x) - y^2(1+x), y sin el segundo parentesis la igualdad es falsa. Se transcribe con los dos cuadros.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P130-A8b",
+    "tipo": "simbolico",
+    "enunciado": "Completa la factorización de $4x^3-1-x^2+4x$: $=4x^3-x^2+\\square$; $=x^2\\cdot\\square+\\square$; $=(\\square)(\\square)$.",
+    "expr": "4*x**3-1-x**2+4*x",
+    "respuesta": "(4*x-1)*(x**2+1)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun por agrupacion, actividad 8, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Los cuadros son: $4x-1$; luego $(4x-1)$ y $(4x-1)$; y al final $(4x-1)$ y $(x^2+1)$. Lo primero es **reordenar** para que los términos que comparten factor queden juntos: $4x^3-x^2+4x-1$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P130-A9a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $3x-y^2+2y^2z-6xz$.",
+    "expr": "3*x-y**2+2*y**2*z-6*x*z",
+    "respuesta": "(1-2*z)*(3*x-y**2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun por agrupacion, actividad 9, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(1-2z)(3x-y^2)$. Agrupando el primero con el cuarto y el segundo con el tercero: $3x(1-2z)-y^2(1-2z)$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P130-A9b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $2a^2c-5a^2d+15bd-6bc$.",
+    "expr": "2*a**2*c-5*a**2*d+15*b*d-6*b*c",
+    "respuesta": "(2*c-5*d)*(a**2-3*b)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun por agrupacion, actividad 9, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(2c-5d)(a^2-3b)$. $a^2(2c-5d)-3b(2c-5d)$. Ojo con el segundo grupo: hay que sacar $-3b$, no $3b$, para que el paréntesis coincida.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P130-A9c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $20mx-5nx-2ny+8my$.",
+    "expr": "20*m*x-5*n*x-2*n*y+8*m*y",
+    "respuesta": "(4*m-n)*(5*x+2*y)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun por agrupacion, actividad 9, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(4m-n)(5x+2y)$. $5x(4m-n)+2y(4m-n)$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P130-A9d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $x^3+x+x^2+1+a^2+a^2x^2$.",
+    "expr": "x**3+x+x**2+1+a**2+a**2*x**2",
+    "respuesta": "(x**2+1)*(x+1+a**2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun por agrupacion, actividad 9, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x^2+1)(x+1+a^2)$. Seis términos que se agrupan de tres en tres: $x(x^2+1)+(x^2+1)+a^2(1+x^2)$. El paréntesis común aparece tres veces.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P130-A9e",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $3x^3-3x^2y-3x^2y^2-2x^2z+2xyz+2xy^2z$.",
+    "expr": "3*x**3-3*x**2*y-3*x**2*y**2-2*x**2*z+2*x*y*z+2*x*y**2*z",
+    "respuesta": "x*(3*x-2*z)*(x-y-y**2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factor comun por agrupacion, actividad 9, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$x(3x-2z)(x-y-y^2)$. Primero el factor común $x$; después se agrupa: $3x^2(x-y-y^2)-2xz(x-y-y^2)$. Es el ejercicio más largo del taller.",
+    "erratum": "El libro imprime los dos terminos que llevan y^2 con las x intercambiadas: escribe +2x^2y^2z donde va +2xy^2z, y -3xy^2 donde va -3x^2y^2. Con lo impreso el polinomio solo admite el factor comun x y el parentesis de seis terminos que queda no agrupa, asi que el item no tenia respuesta. Los otros cuatro terminos coinciden exactamente con el desarrollo de x(3x-2z)(x-y-y^2), y los signos de los dos terminos erroneos tambien: lo unico cruzado son los exponentes de x. Es la misma clase de errata que la de la actividad 1 de la pagina 118, donde los signos de dos opciones estaban intercambiados.",
+    "dificultad": 1750
+  },
+  {
+    "id": "HT8-U5-P130-A10a",
+    "tipo": "abierta",
+    "enunciado": "Escribe V si la afirmación es verdadera o F si es falsa. $64x^8y^2+36x^2y^4$ equivale a $(8x^4y+6xy^2)(8x^4y-6xy^2)$.",
+    "respuesta": "**F.** Ese producto de conjugados da una **diferencia**: $(8x^4y)^2-(6xy^2)^2=64x^8y^2-36x^2y^4$. La expresión de la izquierda es una suma, y una suma de cuadrados no se factoriza en los reales. Bastaría cambiar el signo del segundo término para que fuera verdadera.",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factorizacion de binomios, actividad 10, item a",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Respuesta: **F**. La comprobación que nunca falla es desarrollar el producto de la derecha y compararlo término a término con la expresión de la izquierda.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P130-A10b",
+    "tipo": "abierta",
+    "enunciado": "Escribe V si la afirmación es verdadera o F si es falsa. $x^2-y^2$ equivale a $(x+y)(x-y)$.",
+    "respuesta": "**V.** Es la diferencia de cuadrados en su forma más simple.",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factorizacion de binomios, actividad 10, item b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Respuesta: **V**. La comprobación que nunca falla es desarrollar el producto de la derecha y compararlo término a término con la expresión de la izquierda.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P130-A10c",
+    "tipo": "abierta",
+    "enunciado": "Escribe V si la afirmación es verdadera o F si es falsa. $125x^4-\\dfrac{100}{9}y^2$ equivale a $\\left(5x^2-\\dfrac{10}{3}y\\right)\\left(5x^2+\\dfrac{10}{3}y\\right)$.",
+    "respuesta": "**F.** El producto da $25x^4-\\dfrac{100}{9}y^2$, no $125x^4$: $(5x^2)^2=25x^4$. Además $125$ no es cuadrado perfecto, así que la expresión de la izquierda no es una diferencia de cuadrados. El segundo término sí estaba bien.",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factorizacion de binomios, actividad 10, item c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Respuesta: **F**. La comprobación que nunca falla es desarrollar el producto de la derecha y compararlo término a término con la expresión de la izquierda.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P130-A10d",
+    "tipo": "abierta",
+    "enunciado": "Escribe V si la afirmación es verdadera o F si es falsa. $\\dfrac{144}{49}m^2-n^2$ equivale a $\\left(\\dfrac{12}{7}m+n\\right)\\left(\\dfrac{12}{7}m-n\\right)$.",
+    "respuesta": "**V.** $\\dfrac{144}{49}=\\left(\\dfrac{12}{7}\\right)^2$, porque tanto $144$ como $49$ son cuadrados perfectos.",
+    "conjunto": "Q",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factorizacion de binomios, actividad 10, item d",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Respuesta: **V**. La comprobación que nunca falla es desarrollar el producto de la derecha y compararlo término a término con la expresión de la izquierda.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P130-A11",
+    "tipo": "simbolico",
+    "enunciado": "Halla el área de la figura sombreada y factorízala: un cuadrado de lado $x^3$ con un cuadrado de lado $1$ recortado en el interior.",
+    "expr": "x**6-1",
+    "respuesta": "(x-1)*(x+1)*(x**2+x+1)*(x**2-x+1)",
+    "conjunto": "Z",
+    "seccion": "Taller 5 — Factorización",
+    "unidad": 5,
+    "pagina_pdf": 130,
+    "referencia": "Factorizacion de binomios, actividad 11",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "cuadrado verde de lado x^3 con un cuadrado blanco de lado 1 recortado en su interior — reconstruible en Python",
+    "nota": "Área $=(x^3)^2-1^2=x^6-1$, y factorizada, $(x-1)(x+1)(x^2+x+1)(x^2-x+1)$. Conviene empezar por la diferencia de cuadrados, $(x^3-1)(x^3+1)$, y aplicar después la diferencia y la suma de cubos; si se empieza por los cubos hay que reconocer $x^4+x^2+1=(x^2+x+1)(x^2-x+1)$, que es mucho menos evidente. Es el mismo ejercicio de la actividad 1 de la página 127 con $x$ en lugar de $n$.",
+    "dificultad": 1550
+  }
+]

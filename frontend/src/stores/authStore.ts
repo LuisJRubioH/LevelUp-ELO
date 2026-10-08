@@ -24,6 +24,7 @@ interface AuthState {
   sessionStartTime: number | null; // timestamp ms al hacer login
 
   setAuth: (token: string, user: AuthUser) => void;
+  updateAccessToken: (token: string) => void;
   clearAuth: () => void;
   updateUser: (user: Partial<AuthUser>) => void;
 }
@@ -38,6 +39,8 @@ export const useAuthStore = create<AuthState>()(
 
       setAuth: (token, user) =>
         set({ accessToken: token, user, isAuthenticated: true, sessionStartTime: Date.now() }),
+
+      updateAccessToken: (token) => set({ accessToken: token, isAuthenticated: true }),
 
       clearAuth: () =>
         set({ accessToken: null, user: null, isAuthenticated: false, sessionStartTime: null }),

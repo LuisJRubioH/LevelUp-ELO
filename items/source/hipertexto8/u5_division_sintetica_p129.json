@@ -1,0 +1,693 @@
+[
+  {
+    "id": "HT8-U5-P129-E2a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza por división sintética el polinomio $2x^3-2x^2-3x+3$.",
+    "expr": "2*x**3-2*x**2-3*x+3",
+    "respuesta": "(x-1)*(2*x**2-3)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejemplos, actividad 2, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-1)(2x^2-3)$. Los divisores de $3$ son $1, 3, -1, -3$, así que los candidatos a factor son $(x-1)$, $(x-3)$, $(x+1)$ y $(x+3)$. Con $x=1$ la división sintética da residuo $0$: coeficientes $2, -2, -3, 3$ y se baja $2$, luego $-2+2=0$, $-3+0=-3$, $3-3=0$. El cociente es $2x^2-3$, que ya es primo sobre los enteros porque $\\dfrac{3}{2}$ no es cuadrado perfecto.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P129-E2b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza por división sintética el polinomio $x^3-4x^2-11x-6$.",
+    "expr": "x**3-4*x**2-11*x-6",
+    "respuesta": "(x-6)*(x+1)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejemplos, actividad 2, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-6)(x+1)^2$. Los divisores de $-6$ dan ocho candidatos; con $x=6$ el residuo es $0$: $1, -4, -11, -6$ → $1$, $-4+6=2$, $-11+12=1$, $-6+6=0$. El cociente $x^2+2x+1$ es trinomio cuadrado perfecto, $(x+1)^2$. Moraleja: tras la división sintética hay que seguir factorizando el cociente con los casos ya conocidos.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P129-A1",
+    "tipo": "abierta",
+    "enunciado": "Responde: ¿en qué criterio se basa la factorización de un polinomio por división sintética?",
+    "respuesta": "En el **teorema del factor**: $(x-c)$ es factor de un polinomio $P(x)$ si y solo si $P(c)=0$, es decir, si al dividir entre $(x-c)$ el residuo es cero. Y en el **teorema de la raíz racional**, que restringe la búsqueda: si el polinomio tiene coeficientes enteros y coeficiente principal $1$, sus raíces enteras están entre los **divisores del término independiente**. Por eso el procedimiento es: listar los divisores del último término, probarlos uno a uno con división sintética y quedarse con los que den residuo $0$.",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Recupera informacion, actividad 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Cuando el coeficiente principal no es $1$ —como en $2x^3-2x^2-3x+3$— hay que ampliar la lista a las fracciones $\\dfrac{p}{q}$, con $p$ divisor del término independiente y $q$ del coeficiente principal. El libro se queda en el caso sencillo, pero conviene mencionarlo.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P129-A2a",
+    "tipo": "abierta",
+    "enunciado": "Escribe los factores del número $5$.",
+    "respuesta": "$1, 5, -1, -5$",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 2, item a",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Hay que incluir los **negativos**: en división sintética se prueban tanto $x-c$ como $x+c$. Es primo: solo tiene cuatro divisores enteros.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P129-A2b",
+    "tipo": "abierta",
+    "enunciado": "Escribe los factores del número $4$.",
+    "respuesta": "$1, 2, 4, -1, -2, -4$",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 2, item b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Hay que incluir los **negativos**: en división sintética se prueban tanto $x-c$ como $x+c$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P129-A2c",
+    "tipo": "abierta",
+    "enunciado": "Escribe los factores del número $-3$.",
+    "respuesta": "$1, 3, -1, -3$",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 2, item c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Hay que incluir los **negativos**: en división sintética se prueban tanto $x-c$ como $x+c$. El signo del número no cambia la lista de divisores.",
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U5-P129-A2d",
+    "tipo": "abierta",
+    "enunciado": "Escribe los factores del número $-12$.",
+    "respuesta": "$1, 2, 3, 4, 6, 12, -1, -2, -3, -4, -6, -12$",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 2, item d",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Hay que incluir los **negativos**: en división sintética se prueban tanto $x-c$ como $x+c$. Doce divisores: $12=2^2\\cdot 3$ tiene $(2+1)(1+1)=6$ divisores positivos.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P129-A2e",
+    "tipo": "abierta",
+    "enunciado": "Escribe los factores del número $7$.",
+    "respuesta": "$1, 7, -1, -7$",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 2, item e",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Hay que incluir los **negativos**: en división sintética se prueban tanto $x-c$ como $x+c$. Primo.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P129-A2f",
+    "tipo": "abierta",
+    "enunciado": "Escribe los factores del número $8$.",
+    "respuesta": "$1, 2, 4, 8, -1, -2, -4, -8$",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 2, item f",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Hay que incluir los **negativos**: en división sintética se prueban tanto $x-c$ como $x+c$.",
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U5-P129-A2g",
+    "tipo": "abierta",
+    "enunciado": "Escribe los factores del número $16$.",
+    "respuesta": "$1, 2, 4, 8, 16, -1, -2, -4, -8, -16$",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 2, item g",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Hay que incluir los **negativos**: en división sintética se prueban tanto $x-c$ como $x+c$. $16=2^4$: cinco divisores positivos.",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U5-P129-A2h",
+    "tipo": "abierta",
+    "enunciado": "Escribe los factores del número $25$.",
+    "respuesta": "$1, 5, 25, -1, -5, -25$",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 2, item h",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Hay que incluir los **negativos**: en división sintética se prueban tanto $x-c$ como $x+c$. $25=5^2$: tres divisores positivos.",
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U5-P129-A3f1",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla para el polinomio $x^3-2x^2-x+2$: escribe los factores de su último término y luego factorízalo.",
+    "expr": "x**3-2*x**2-x+2",
+    "respuesta": "(x-2)*(x-1)*(x+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 3, fila 1",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Factores del último término: $1, -1, 2, -2$. Factorización: $(x-2)(x-1)(x+1)$. Es la fila que el libro da resuelta como ejemplo: los factores del último término, $2$, son $\\pm1$ y $\\pm2$.",
+    "erratum": "El libro imprime el ultimo termino como -2 y con ese signo el polinomio no tiene ninguna raiz racional: no se factoriza, pese a ser la fila que la tabla da como ejemplo resuelto. Corregido a +2, un solo caracter, con lo que las tres raices son 2, 1 y -1, todas dentro de la lista de divisores que la propia fila imprime.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P129-A3f2",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla para el polinomio $a^3-4a^2+a+6$: escribe los factores de su último término y luego factorízalo.",
+    "expr": "a**3-4*a**2+a+6",
+    "respuesta": "(a-3)*(a-2)*(a+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 3, fila 2",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Factores del último término: $1, -1, 2, -2, 3, -3, 6, -6$. Factorización: $(a-3)(a-2)(a+1)$. Raíces $3$, $2$ y $-1$, todas divisores de $6$.",
+    "erratum": "El libro mezcla dos letras en esta fila: imprime a^3 - 4x^2 + x + 6. Es un error de composicion, porque un polinomio de una sola variable no puede llevar a y x a la vez. Corregido a la letra a, que es la que encabeza el termino de mayor grado y la que usan las dos filas siguientes.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P129-A3f3",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla para el polinomio $a^3-7a+6$: escribe los factores de su último término y luego factorízalo.",
+    "expr": "a**3-7*a+6",
+    "respuesta": "(a-2)*(a-1)*(a+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 3, fila 3",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Factores del último término: $1, -1, 2, -2, 3, -3, 6, -6$. Factorización: $(a-2)(a-1)(a+3)$. Nótese que falta el término en $a^2$: en la división sintética hay que escribir un $0$ en su lugar.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P129-A3f4",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla para el polinomio $a^3-6a^2+32$: escribe los factores de su último término y luego factorízalo.",
+    "expr": "a**3-6*a**2+32",
+    "respuesta": "(a-4)**2*(a+2)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 3, fila 4",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Factores del último término: $1, -1, 2, -2, 4, -4, 8, -8, 16, -16, 32, -32$. Factorización: $(a-4)^2(a+2)$. Falta el término en $a$, y la raíz $4$ es doble: hay que aplicar la división sintética dos veces con el mismo valor.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P129-A3f5",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla para el polinomio $m^4-4m^3+3m^2+4m-4$: escribe los factores de su último término y luego factorízalo.",
+    "expr": "m**4-4*m**3+3*m**2+4*m-4",
+    "respuesta": "(m-2)**2*(m-1)*(m+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 3, fila 5",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Factores del último término: $1, -1, 2, -2, 4, -4$. Factorización: $(m-2)^2(m-1)(m+1)$. Cuatro factores lineales, con la raíz $2$ repetida.",
+    "erratum": "El libro imprime +3m en el termino lineal y con ese coeficiente el polinomio no tiene ninguna raiz racional, asi que la division sintetica no arranca. Corregido a +4m, un solo caracter, que lo deja con cuatro factores lineales, que es lo que la actividad practica.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P129-A3f6",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla para el polinomio $m^4-2m^3-13m^2+14m+24$: escribe los factores de su último término y luego factorízalo.",
+    "expr": "m**4-2*m**3-13*m**2+14*m+24",
+    "respuesta": "(m-4)*(m-2)*(m+1)*(m+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 3, fila 6",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Factores del último término: $1, -1, 2, -2, 3, -3, 4, -4, 6, -6, 8, -8, 12, -12, 24, -24$. Factorización: $(m-4)(m-2)(m+1)(m+3)$. Cuatro raíces enteras distintas: $4$, $2$, $-1$ y $-3$.",
+    "erratum": "El libro imprime m^6 como termino de mayor grado, y con ese exponente el polinomio no se factoriza en factores lineales; ademas saltaria de m^6 a m^3 sin terminos intermedios, cosa que no ocurre en ninguna otra fila. Corregido a m^4, que encadena con el m^3 siguiente y deja las cuatro raices enteras 4, 2, -1 y -3.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P129-A3f7",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla para el polinomio $x^7-20x^5-2x^4+64x^3+40x^2-128$: escribe los factores de su último término y luego factorízalo.",
+    "expr": "x**7-20*x**5-2*x**4+64*x**3+40*x**2-128",
+    "respuesta": "(x-4)*(x-2)*(x+2)*(x+4)*(x**3-2)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 3, fila 7",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Factores del último término: $los divisores de $128=2^7$: $\\pm1, \\pm2, \\pm4, \\pm8, \\pm16, \\pm32, \\pm64, \\pm128$$. Factorización: $(x-4)(x-2)(x+2)(x+4)(x^3-2)$. Cuatro raíces enteras y un factor cúbico primo, $x^3-2$, cuya raíz $\\sqrt[3]{2}$ es irracional: la división sintética solo encuentra las racionales.",
+    "dificultad": 1750
+  },
+  {
+    "id": "HT8-U5-P129-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza con división sintética el polinomio $x^3-7x-6$.",
+    "expr": "x**3-7*x-6",
+    "respuesta": "(x-3)*(x+1)*(x+2)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 4, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-3)(x+1)(x+2)$. Raíces $3$, $-1$ y $-2$. Es el ítem d con el signo del término independiente cambiado, y por eso las raíces salen con los signos contrarios.",
+    "erratum": "El libro imprime x^3 + 7x + 6, que no tiene ninguna raiz racional: ninguno de los ocho divisores de 6 anula el polinomio, asi que la division sintetica no arranca y el item no tenia respuesta. Corregido a x^3 - 7x - 6, que da tres factores lineales, que es lo que dan los demas items de la actividad, y que ademas forma pareja con el item d, x^3 - 7x + 6, del que solo se diferencia en el signo del termino independiente.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P129-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza con división sintética el polinomio $x^3-6x^2+32$.",
+    "expr": "x**3-6*x**2+32",
+    "respuesta": "(x-4)**2*(x+2)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 4, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-4)^2(x+2)$. Falta el término en $x$: se escribe $0$ en su lugar. La raíz $4$ es doble.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P129-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza con división sintética el polinomio $m^4-22m^2-75$.",
+    "expr": "m**4-22*m**2-75",
+    "respuesta": "(m-5)*(m+5)*(m**2+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 4, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m-5)(m+5)(m^2+3)$. También sale sin división sintética, como trinomio: producto $-75$ y suma $-22$, o sea $-25$ y $3$, luego $(m^2-25)(m^2+3)$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P129-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza con división sintética el polinomio $x^3-7x+6$.",
+    "expr": "x**3-7*x+6",
+    "respuesta": "(x-2)*(x-1)*(x+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 4, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-2)(x-1)(x+3)$. Raíces $2$, $1$ y $-3$. Falta el término en $x^2$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P129-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza con división sintética el polinomio $2m^3-m^2-18m+9$.",
+    "expr": "2*m**3-m**2-18*m+9",
+    "respuesta": "(m-3)*(m+3)*(2*m-1)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 4, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m-3)(m+3)(2m-1)$. Coeficiente principal $2$, así que hay que probar también las fracciones $\\pm\\dfrac{1}{2}$, $\\pm\\dfrac{3}{2}$, $\\pm\\dfrac{9}{2}$: la raíz $\\dfrac{1}{2}$ es la que da el factor $(2m-1)$. También sale por agrupación: $m^2(2m-1)-9(2m-1)$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P129-A4f",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza con división sintética el polinomio $6x^3-12x^2+9x-18$.",
+    "expr": "6*x**3-12*x**2+9*x-18",
+    "respuesta": "3*(x-2)*(2*x**2+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 4, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$3(x-2)(2x^2+3)$. **Primero el factor común** $3$: queda $3(2x^3-4x^2+3x-6)$, que se agrupa en $2x^2(x-2)+3(x-2)$. Sacar el común antes reduce mucho la lista de divisores que hay que probar.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P129-A4g",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza con división sintética el polinomio $a^4-27a^2-14a+120$.",
+    "expr": "a**4-27*a**2-14*a+120",
+    "respuesta": "(a-5)*(a-2)*(a+3)*(a+4)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 4, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a-5)(a-2)(a+3)(a+4)$. Cuatro raíces enteras: $5$, $2$, $-3$ y $-4$. Falta el término en $a^3$.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P129-A4h",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza con división sintética el polinomio $a^3-3a^2+12a-36$.",
+    "expr": "a**3-3*a**2+12*a-36",
+    "respuesta": "(a-3)*(a**2+12)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 4, item h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a-3)(a^2+12)$. El cociente $a^2+12$ es primo: es una suma y no tiene raíces reales. También sale por agrupación: $a^2(a-3)+12(a-3)$.",
+    "erratum": "El libro imprime los dos ultimos terminos en orden invertido y con el signo cruzado, a^3 - 3a^2 - 36 + 12a. El polinomio es el mismo; aqui se transcribe ordenado de mayor a menor grado, que es como hay que escribirlo antes de aplicar la division sintetica.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P129-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza por división sintética el polinomio $x^5-30x^3-25x^2-36x-180$.",
+    "expr": "x**5-30*x**3-25*x**2-36*x-180",
+    "respuesta": "(x-6)*(x+2)*(x+5)*(x**2-x+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 5, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-6)(x+2)(x+5)(x^2-x+3)$. Tres raíces enteras ($6$, $-2$, $-5$) y un cociente cuadrático primo: su discriminante es $1-12=-11<0$.",
+    "dificultad": 1750
+  },
+  {
+    "id": "HT8-U5-P129-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza por división sintética el polinomio $8m^4-18m^3-75m^2+46m+120$.",
+    "expr": "8*m**4-18*m**3-75*m**2+46*m+120",
+    "respuesta": "(m-4)*(m+2)*(2*m-3)*(4*m+5)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 5, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m-4)(m+2)(2m-3)(4m+5)$. Coeficiente principal $8$: además de los divisores de $120$ hay que probar fracciones con denominador $2$, $4$ u $8$. Las raíces son $4$, $-2$, $\\dfrac{3}{2}$ y $-\\dfrac{5}{4}$.",
+    "dificultad": 1800
+  },
+  {
+    "id": "HT8-U5-P129-A5c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza por división sintética el polinomio $15a^4+94a^3-5a^2-164a+60$.",
+    "expr": "15*a**4+94*a**3-5*a**2-164*a+60",
+    "respuesta": "(a-1)*(a+6)*(3*a+5)*(5*a-2)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 5, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a-1)(a+6)(3a+5)(5a-2)$. Raíces $1$, $-6$, $-\\dfrac{5}{3}$ y $\\dfrac{2}{5}$: dos enteras y dos fraccionarias, con denominadores $3$ y $5$, los divisores de $15$.",
+    "dificultad": 1800
+  },
+  {
+    "id": "HT8-U5-P129-A5d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza por división sintética el polinomio $x^5+2x^4-15x^3-3x^2-6x+45$.",
+    "expr": "x**5+2*x**4-15*x**3-3*x**2-6*x+45",
+    "respuesta": "(x-3)*(x+5)*(x**3-3)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 5, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-3)(x+5)(x^3-3)$. Dos raíces enteras y el factor $x^3-3$, primo sobre los racionales.",
+    "dificultad": 1750
+  },
+  {
+    "id": "HT8-U5-P129-A5e",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza por división sintética el polinomio $m^7-20m^5-2m^4+64m^3+40m^2-128$.",
+    "expr": "m**7-20*m**5-2*m**4+64*m**3+40*m**2-128",
+    "respuesta": "(m-4)*(m-2)*(m+2)*(m+4)*(m**3-2)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 5, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m-4)(m-2)(m+2)(m+4)(m^3-2)$. Es la última fila de la tabla de la actividad 3 con otra letra: cuatro raíces enteras y el factor primo $m^3-2$.",
+    "dificultad": 1800
+  },
+  {
+    "id": "HT8-U5-P129-A5f",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza por división sintética el polinomio $x^6+6x^5+4x^4-42x^3-113x^2-108x-36$.",
+    "expr": "x**6+6*x**5+4*x**4-42*x**3-113*x**2-108*x-36",
+    "respuesta": "(x-3)*(x+1)**2*(x+2)**2*(x+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 5, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-3)(x+1)^2(x+2)^2(x+3)$. Seis factores lineales, con $-1$ y $-2$ como raíces dobles: hay que dividir dos veces por cada una.",
+    "dificultad": 1850
+  },
+  {
+    "id": "HT8-U5-P129-A5g",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza por división sintética el polinomio $2a^6-10a^5-34a^4+146a^3+224a^2-424a-480$.",
+    "expr": "2*a**6-10*a**5-34*a**4+146*a**3+224*a**2-424*a-480",
+    "respuesta": "2*(a-5)*(a-4)*(a-2)*(a+1)*(a+2)*(a+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Ejercita, actividad 5, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$2(a-5)(a-4)(a-2)(a+1)(a+2)(a+3)$. **Primero el factor común** $2$; después seis raíces enteras distintas. Es el ejercicio más largo de la unidad: conviene ir tachando divisores ya probados para no repetir.",
+    "dificultad": 1900
+  },
+  {
+    "id": "HT8-U5-P129-A6a",
+    "tipo": "simbolico",
+    "enunciado": "La distancia recorrida por un cuerpo es el producto de la rapidez por el tiempo. Si la distancia es $x^3+2x^2+x+2$ metros, determina las posibles expresiones para la rapidez y el tiempo.",
+    "expr": "x**3+2*x**2+x+2",
+    "respuesta": "(x+2)*(x**2+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Soluciona problemas, actividad 6, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x+2)(x^2+1)$. Las dos expresiones son $x+2$ y $x^2+1$; cuál es la rapidez y cuál el tiempo lo decide quien resuelve, porque el producto es el mismo. Sale también por agrupación: $x^2(x+2)+1(x+2)$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P129-A6b",
+    "tipo": "simbolico",
+    "enunciado": "La distancia recorrida por un cuerpo es el producto de la rapidez por el tiempo. Si la distancia es $2x^5-8x^4+3x-12$ metros, determina las posibles expresiones para la rapidez y el tiempo.",
+    "expr": "2*x**5-8*x**4+3*x-12",
+    "respuesta": "(x-4)*(2*x**4+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Soluciona problemas, actividad 6, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-4)(2x^4+3)$. Agrupación directa: $2x^4(x-4)+3(x-4)$. El factor $2x^4+3$ es primo, porque es una suma.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P129-A6c",
+    "tipo": "simbolico",
+    "enunciado": "La distancia recorrida por un cuerpo es el producto de la rapidez por el tiempo. Si la distancia es $x^3-12x+16$ metros, determina las posibles expresiones para la rapidez y el tiempo.",
+    "expr": "x**3-12*x+16",
+    "respuesta": "(x-2)**2*(x+4)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Soluciona problemas, actividad 6, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-2)^2(x+4)$. Raíz doble $2$ y raíz simple $-4$. Como hay tres factores y solo dos magnitudes, se pueden repartir de varias formas: por ejemplo rapidez $(x-2)^2$ y tiempo $(x+4)$, o rapidez $(x-2)$ y tiempo $(x-2)(x+4)$.",
+    "erratum": "El libro imprime x^3 + 12x + 16, que no tiene ninguna raiz racional y por tanto no se factoriza, dejando el problema sin respuesta. Corregido a x^3 - 12x + 16, un solo caracter, que da (x-2)^2 (x+4) y permite repartir el producto entre rapidez y tiempo, que es lo que pide el enunciado.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P129-A7",
+    "tipo": "simbolico",
+    "enunciado": "El ingreso por la venta de cierta cantidad de artículos al mismo precio es el producto de la cantidad de artículos por el precio de cada artículo. Determina la expresión para la cantidad de artículos y para el precio de cada uno si el ingreso es $2x^4+7x^3-30x^2-9x-54$.",
+    "expr": "2*x**4+7*x**3-30*x**2-9*x-54",
+    "respuesta": "(x-3)*(x+6)*(2*x**2+x+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización por división sintética",
+    "unidad": 5,
+    "pagina_pdf": 129,
+    "referencia": "Soluciona problemas, actividad 7",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$2x^4+7x^3-30x^2-9x-54=(x-3)(x+6)(2x^2+x+3)$. Raíces enteras $3$ y $-6$; el cociente $2x^2+x+3$ es primo (discriminante $1-24=-23<0$). Como hay **tres** factores y solo dos magnitudes, el reparto no es único: por ejemplo, cantidad $=(x-3)(x+6)=x^2+3x-18$ y precio $=2x^2+x+3$, o cantidad $=x-3$ y precio $=(x+6)(2x^2+x+3)$. Conviene señalar que, en un problema real, ambas expresiones deben ser positivas, lo que restringe los valores admisibles de $x$.",
+    "dificultad": 1700
+  }
+]

@@ -1,0 +1,194 @@
+[
+  {
+    "id": "HT8-U1-P27-TABLA",
+    "tipo": "tabla",
+    "enunciado": "Escala diatónica sobre el monocordio pitagórico: longitud de la cuerda necesaria para cada nota, tomando $L$ como la cuerda completa (do).",
+    "filas": [
+      {
+        "grado": "Inicial",
+        "longitud": "L",
+        "nota": "Do"
+      },
+      {
+        "grado": "Segunda",
+        "longitud": "8/9 L",
+        "nota": "Re"
+      },
+      {
+        "grado": "Tercera",
+        "longitud": "64/81 L",
+        "nota": "Mi"
+      },
+      {
+        "grado": "Cuarta",
+        "longitud": "3/4 L",
+        "nota": "Fa"
+      },
+      {
+        "grado": "Quinta",
+        "longitud": "2/3 L",
+        "nota": "Sol"
+      },
+      {
+        "grado": "Sexta",
+        "longitud": "16/27 L",
+        "nota": "La"
+      },
+      {
+        "grado": "Séptima",
+        "longitud": "128/243 L",
+        "nota": "Si"
+      },
+      {
+        "grado": "Octava",
+        "longitud": "1/2 L",
+        "nota": "Do"
+      }
+    ],
+    "respuesta": "Ver filas.",
+    "conjunto": "Q",
+    "seccion": "Aplicación — Números en la música",
+    "unidad": 1,
+    "pagina_pdf": 27,
+    "referencia": "Tabla de la escala diatónica",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Todas las longitudes son racionales: la escala pitagórica se construye SOLO con fracciones de enteros. Es el mejor argumento narrativo para el nodo de racionales — la música occidental es literalmente una tabla de fracciones.",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U1-P27-PATRON-mi",
+    "tipo": "numerico",
+    "enunciado": "En la escala pitagórica, la tercera (mi) se obtiene aplicando dos veces la razón de la segunda ($\\dfrac{8}{9}$). Comprueba que $\\left(\\dfrac{8}{9}\\right)^2$ es la fracción que aparece en la tabla para mi.",
+    "expr": "(Rational(8,9))**2",
+    "respuesta": "64/81",
+    "conjunto": "Q",
+    "seccion": "Aplicación — Números en la música",
+    "unidad": 1,
+    "pagina_pdf": 27,
+    "referencia": "Tabla, fila Tercera",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Potenciación de racionales con sentido físico: dos tonos seguidos.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U1-P27-PATRON-la",
+    "tipo": "numerico",
+    "enunciado": "Comprueba que la sexta (la) se obtiene multiplicando la quinta ($\\dfrac{2}{3}$) por la razón de la segunda ($\\dfrac{8}{9}$).",
+    "expr": "Rational(2,3)*Rational(8,9)",
+    "respuesta": "16/27",
+    "conjunto": "Q",
+    "seccion": "Aplicación — Números en la música",
+    "unidad": 1,
+    "pagina_pdf": 27,
+    "referencia": "Tabla, fila Sexta",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U1-P27-PATRON-si",
+    "tipo": "numerico",
+    "enunciado": "Comprueba que la séptima (si) se obtiene multiplicando la quinta ($\\dfrac{2}{3}$) por la tercera ($\\dfrac{64}{81}$).",
+    "expr": "Rational(2,3)*Rational(64,81)",
+    "respuesta": "128/243",
+    "conjunto": "Q",
+    "seccion": "Aplicación — Números en la música",
+    "unidad": 1,
+    "pagina_pdf": 27,
+    "referencia": "Tabla, fila Séptima",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Los denominadores 9, 27, 81, 243 son potencias de 3: gancho directo con factorización prima (N4).",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U1-P27-A1",
+    "tipo": "abierta",
+    "enunciado": "Responde: ¿cuáles fueron los sonidos que los pitagóricos eligieron como los más importantes y por qué?",
+    "respuesta": "La octava ($\\dfrac{1}{2}L$), la quinta ($\\dfrac{2}{3}L$) y la cuarta ($\\dfrac{3}{4}L$), porque eran los que sonaban armoniosos junto con la cuerda completa.",
+    "conjunto": "Q",
+    "seccion": "Aplicación — Números en la música",
+    "unidad": 1,
+    "pagina_pdf": 27,
+    "referencia": "Recupera información, actividad 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Las tres fracciones son las más simples de la tabla ($\\dfrac{1}{2}$, $\\dfrac{2}{3}$, $\\dfrac{3}{4}$): a razón más simple, sonido más consonante.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U1-P27-A2",
+    "tipo": "abierta",
+    "enunciado": "Si la cuerda inicial se hace más corta, ¿es más grave o más agudo el sonido con respecto al sonido inicial?",
+    "respuesta": "Más agudo. Acortar la cuerda sube la frecuencia; la octava ($\\dfrac{1}{2}L$) suena una octava por encima del do inicial.",
+    "conjunto": "Q",
+    "seccion": "Aplicación — Números en la música",
+    "unidad": 1,
+    "pagina_pdf": 27,
+    "referencia": "Interpreta, actividad 2",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Convertible a opción única (grave / agudo / igual): es una relación inversa, buen apoyo para proporcionalidad inversa en N8.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U1-P27-A3",
+    "tipo": "abierta",
+    "enunciado": "Consulta qué significa la frecuencia del sonido. Luego determina la frecuencia del sonido para obtener las notas re y la.",
+    "respuesta": "La frecuencia es el número de vibraciones por segundo (hercios) y es inversamente proporcional a la longitud de la cuerda. Si el do inicial tiene frecuencia $f$: re $=\\dfrac{9}{8}f$ (porque su cuerda mide $\\dfrac{8}{9}L$) y la $=\\dfrac{27}{16}f$ (porque su cuerda mide $\\dfrac{16}{27}L$). Con do $=261{,}63$ Hz: re $\\approx 294{,}33$ Hz y la $\\approx 441{,}50$ Hz.",
+    "conjunto": "Q",
+    "seccion": "Aplicación — Números en la música",
+    "unidad": 1,
+    "pagina_pdf": 27,
+    "referencia": "Reflexiona y valora, actividad 3",
+    "apto_para": [
+      "procedimiento_abierto",
+      "ejemplo_resuelto"
+    ],
+    "verificar": "El libro no da la frecuencia de referencia del do, así que el resultado numérico depende del dato que consulte el estudiante. Registré el do central (261,63 Hz). Si se usa como práctica, hay que fijar el dato en el enunciado.",
+    "nota": "La frecuencia es el RECÍPROCO de la fracción de longitud: es la aplicación física del inverso multiplicativo (N3-M05).",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U1-P27-A4",
+    "tipo": "abierta",
+    "enunciado": "Halla una ecuación que relacione la longitud de la cuerda $L$ y la frecuencia del sonido $f$ en la escala diatónica.",
+    "respuesta": "$f=\\dfrac{k}{L}$, o equivalentemente $f\\cdot L=k$ con $k$ constante: la frecuencia es inversamente proporcional a la longitud de la cuerda.",
+    "conjunto": "R",
+    "seccion": "Aplicación — Números en la música",
+    "unidad": 1,
+    "pagina_pdf": 27,
+    "referencia": "Plantea y actúa, actividad 4",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Primera aparición de la proporcionalidad inversa en el libro. Se comprueba con la tabla: cuerda de $\\dfrac{1}{2}L$ → frecuencia $2f$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U1-P27-ERRATA-pentatonica",
+    "tipo": "abierta",
+    "enunciado": "Texto de la página: «Otra escala muy usada en la música es la escala pentatónica, que está compuesta de cinco tonos por octava. […] Por ejemplo, la escala pentatónica de do es: do, re, mi, fa, sol, la, si».",
+    "respuesta": "El ejemplo no corresponde a una escala pentatónica.",
+    "conjunto": "Q",
+    "seccion": "Aplicación — Números en la música",
+    "unidad": 1,
+    "pagina_pdf": 27,
+    "referencia": "Texto de contexto, columna derecha",
+    "apto_para": [],
+    "erratum": "El libro define la pentatónica como cinco tonos por octava y acto seguido lista SIETE notas (do, re, mi, fa, sol, la, si), que son justamente las de la escala diatónica de la tabla. La escala pentatónica mayor de do es do, re, mi, sol, la. ERRATA DEL LIBRO. Verificado a 320 dpi. No reproducir esa frase en material para estudiantes; si se usa la página como lectura, corregir el ejemplo a cinco notas.",
+    "dificultad": 0
+  }
+]

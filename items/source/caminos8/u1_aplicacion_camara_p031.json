@@ -1,0 +1,77 @@
+[
+  {
+    "id": "CS8-U1-P031-A01",
+    "tipo": "abierta",
+    "enunciado": "Escribe una lista de números racionales, irracionales y enteros encontrados en el texto sobre el lente de una cámara. Luego explica por qué pertenecen a cada conjunto.",
+    "respuesta": "Ejemplo de clasificación: enteros, 1, 2, 4, 8, 16 y 4.096; racionales no enteros, 1/2, 1/4, 1/8, 1/16, 1/4.096, 1,4, 2,8 y 5,6; irracionales, √2, 2√2, 4√2, 2/√2 y 1/√2. Los enteros y las fracciones o decimales finitos son racionales; los múltiplos racionales no nulos de √2 son irracionales.",
+    "conjunto": "R",
+    "seccion": "Aplicación: lente de una cámara",
+    "unidad": 1,
+    "pagina_pdf": 31,
+    "referencia": "Aplicación 1",
+    "apto_para": ["procedimiento_abierto"],
+    "justificacion": "La lista es ilustrativa porque el enunciado pide números que se hayan encontrado, no exige enumerar todas las apariciones ni separar categorías disjuntas.",
+    "verificar": "La respuesta no es única: pueden elegirse distintos números del texto y los enteros también son racionales. Debe revisarse la explicación y aceptar clasificaciones equivalentes.",
+    "dificultad": 500
+  },
+  {
+    "id": "CS8-U1-P031-A02",
+    "tipo": "valores_numericos",
+    "enunciado": "Calcula el número F para una distancia focal de 1 y para los diámetros de diafragma 2, 2/√2, 1, 1/√2 y 1/2 mostrados en la tabla. Usa F=distancia focal/diámetro.",
+    "exprs": {
+      "diametro_2": "1/2",
+      "diametro_2_sobre_raiz_2": "1/(2/sqrt(2))",
+      "diametro_1": "1/1",
+      "diametro_1_sobre_raiz_2": "1/(1/sqrt(2))",
+      "diametro_1_sobre_2": "1/(1/2)"
+    },
+    "respuesta_valores": {
+      "diametro_2": "1/2",
+      "diametro_2_sobre_raiz_2": "sqrt(2)/2",
+      "diametro_1": "1",
+      "diametro_1_sobre_raiz_2": "sqrt(2)",
+      "diametro_1_sobre_2": "2"
+    },
+    "respuesta": "En el orden de la tabla: 1/2, √2/2, 1, √2 y 2.",
+    "conjunto": "R",
+    "seccion": "Aplicación: lente de una cámara",
+    "unidad": 1,
+    "pagina_pdf": 31,
+    "referencia": "Aplicación 2",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "Al mantener la distancia focal igual a 1, cada número F es el recíproco del diámetro correspondiente.",
+    "dificultad": 550
+  },
+  {
+    "id": "CS8-U1-P031-A03",
+    "tipo": "secuencia_geometrica",
+    "enunciado": "Encuentra los números racionales que representan la entrada de luz al diafragma, comenzando en 1 y reduciendo cada valor a la mitad, hasta llegar a 1/4.096.",
+    "inicio": "1",
+    "razon": "1/2",
+    "cantidad": 13,
+    "respuesta": ["1", "1/2", "1/4", "1/8", "1/16", "1/32", "1/64", "1/128", "1/256", "1/512", "1/1024", "1/2048", "1/4096"],
+    "conjunto": "Q",
+    "seccion": "Aplicación: lente de una cámara",
+    "unidad": 1,
+    "pagina_pdf": 31,
+    "referencia": "Aplicación 3",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "Cada término es la mitad del anterior y 4.096=2¹², por lo que desde 1=1/2⁰ hasta 1/2¹² hay trece términos.",
+    "dificultad": 500
+  },
+  {
+    "id": "CS8-U1-P031-A04",
+    "tipo": "abierta",
+    "enunciado": "Consulta otros valores numéricos que permitan al lente capturar una fotografía con gran nitidez y explícalos a tus compañeros.",
+    "respuesta": "Respuesta de investigación. Puede incluir, por ejemplo, distancia focal, apertura o número F, velocidad de obturación, sensibilidad ISO y distancia de enfoque, explicando cómo cada valor influye en exposición, profundidad de campo, movimiento y nitidez.",
+    "conjunto": "R",
+    "seccion": "Aplicación: lente de una cámara",
+    "unidad": 1,
+    "pagina_pdf": 31,
+    "referencia": "Aplicación 4",
+    "apto_para": ["procedimiento_abierto"],
+    "justificacion": "Es una consulta abierta: la calidad de la explicación y la pertinencia de las fuentes son parte de la respuesta.",
+    "verificar": "La respuesta depende de la investigación realizada y no tiene una lista única. Requiere valoración humana de pertinencia, explicación y fuentes.",
+    "dificultad": 600
+  }
+]

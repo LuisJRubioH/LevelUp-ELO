@@ -1,5 +1,9 @@
 # Plan V2 — LevelUp-ELO: React + FastAPI
 
+> **Documento histórico (mayo de 2026).** Describe el estado durante los sprints de V2, no
+> el actual. La referencia técnica vigente es
+> [arquitectura.md](arquitectura.md). Se conserva por trazabilidad.
+
 Fecha: 2026-04-14 (última revisión 2026-05-20)
 Estado: **Sprints 1-8 + Sprint C completos + QA mayo 2026 + sesión de pulido 2026-05-19 (`v2.0.1`) + sesión 2026-05-20 (`v2.1.0`): asignación de exámenes por grupo con ventana de tiempo + badge de notificación + guías PDF para usuarios.**
 

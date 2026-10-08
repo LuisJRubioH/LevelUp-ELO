@@ -8,13 +8,15 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { studentApi } from "../../api/student";
-import type { ExamSession } from "../../api/student";
+import type { ExamSession, GroupRanking } from "../../api/student";
 import { ELOChart } from "../../components/ELO/ELOChart";
 import { StatsSkeleton } from "../../components/ui/Skeleton";
 import { RankBadge } from "../../components/ELO/RankBadge";
 import { TopicRadarChart } from "../../components/ELO/TopicRadarChart";
 import { ActivityHeatmap } from "../../components/ui/ActivityHeatmap";
+import { PageHeader } from "../../components/ui/PageHeader";
 import { apiClient } from "../../api/client";
+import "./StudentContent.css";
 
 interface Achievement {
   badge_id: string;
@@ -24,13 +26,6 @@ interface Achievement {
   earned_at: string;
 }
 
-interface RankEntry {
-  user_id: number;
-  username: string;
-  global_elo: number;
-  total_attempts: number;
-  rank_pos: number;
-}
 
 export function Stats() {
   const { t, i18n } = useTranslation();
@@ -58,7 +53,7 @@ export function Stats() {
   const { data: rankingData } = useQuery({
     queryKey: ["student-group-ranking"],
     queryFn: () =>
-      apiClient.get<{ ranking: RankEntry[]; my_rank: number | null }>("/api/student/group-ranking"),
+      apiClient.get<GroupRanking>("/api/student/group-ranking"),
     retry: 1,
   });
 
@@ -91,8 +86,8 @@ export function Stats() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center max-w-sm">
-          <p className="text-slate-400 mb-2">{t("stats.error")}</p>
-          <p className="text-slate-500 text-sm mb-4">{t("stats.errorHint")}</p>
+          <p className="sp-dim mb-2">{t("stats.error")}</p>
+          <p className="sp-mute text-sm mb-4">{t("stats.errorHint")}</p>
           <button
             onClick={() => window.location.reload()}
             className="bg-violet-600 hover:bg-violet-500 text-white text-sm px-4 py-2 rounded-lg transition-colors"
@@ -119,75 +114,109 @@ export function Stats() {
       };
     });
 
-  const earnedIds = new Set((achievementsData?.achievements ?? []).map((a) => a.badge_id));
+  const topicElos = Array.isArray(stats.topic_elos) ? stats.topic_elos : [];
+  const approxHint = t("rating.approximateHint"); // the topic map below shadows `t`
+  const ranking = Array.isArray(rankingData?.ranking) ? rankingData.ranking : [];
+  const earnedAchievements = Array.isArray(achievementsData?.achievements)
+    ? achievementsData.achievements
+    : [];
+  const achievementCatalog = Array.isArray(achievementsData?.catalog)
+    ? achievementsData.catalog
+    : [];
+  const safeExamHistory = Array.isArray(examHistory) ? examHistory : [];
+  const earnedIds = new Set(earnedAchievements.map((a) => a.badge_id));
 
   return (
-    <div className="max-w-2xl mx-auto py-6 px-4 space-y-6">
-      <h2 className="text-xl font-bold text-slate-100">{t("stats.title")}</h2>
+    <div className="sp-page">
+      <PageHeader eyebrow={t("stats.eyebrow")} title={t("stats.title")} subtitle={t("stats.intro")} />
 
       {/* Resumen top */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
-          <div className="text-2xl font-bold text-slate-100">{Math.round(stats.global_elo)}</div>
-          <div className="text-xs text-slate-400 mt-1">{t("stats.globalElo")}</div>
+      <div className="sp-stat-grid">
+        <div className="sp-card sp-stat">
+          <div className="v">{stats.display_rating ?? t("rating.pending")}</div>
+          <div className="l">{t("stats.globalElo")}</div>
         </div>
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
-          <div className="text-2xl font-bold text-amber-400">{stats.study_streak}</div>
-          <div className="text-xs text-slate-400 mt-1">{t("stats.streakFire")}</div>
+        <div className="sp-card sp-stat">
+          <div className="v gold">{stats.study_streak}</div>
+          <div className="l">{t("stats.streakFire")}</div>
         </div>
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
-          <div className="text-2xl font-bold text-violet-400">{stats.total_attempts}</div>
-          <div className="text-xs text-slate-400 mt-1">{t("stats.attempts")}</div>
+        <div className="sp-card sp-stat">
+          <div className="v accent">{stats.total_attempts}</div>
+          <div className="l">{t("stats.attempts")}</div>
         </div>
       </div>
 
       {/* Rango */}
-      <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-        <p className="text-xs text-slate-400 mb-2">{t("stats.currentRank")}</p>
-        <RankBadge elo={stats.global_elo} rankLabel={stats.rank_label ?? "Aspirante"} />
+      <div className="sp-card">
+        <p className="sp-mute text-xs mb-2">{t("stats.currentRank")}</p>
+        <RankBadge displayRating={stats.display_rating ?? null} rankLabel={stats.rank_label} />
       </div>
 
+      {/* Por curso: el valor y el rango que da la API; grados anteriores como historial */}
+      {(stats.course_ratings ?? []).length > 0 && (
+        <div className="sp-card">
+          <h3>{t("rating.byCourse")}</h3>
+          <div className="space-y-1.5">
+            {(stats.course_ratings ?? []).map((c) => (
+              <div key={c.course_id} className="sp-row">
+                <span className="nm">
+                  {c.course_name}
+                  {!c.current_context && <span className="sp-mute text-xs"> · {t("rating.history")}</span>}
+                  {c.topics.some((tp) => tp.approximate) && (
+                    <span className="sp-mute text-xs" title={t("rating.approximateHint")}>
+                      {" · "}{t("rating.approximate")}
+                    </span>
+                  )}
+                </span>
+                <span className="val">
+                  {c.display_rating ?? t("rating.pending")}
+                  {c.rank_label && <span className="sp-mute text-xs"> · {c.rank_label}</span>}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Gráfico de evolución ELO */}
-      <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+      <div className="sp-card">
         <ELOChart data={chartData} title={t("stats.eloEvolution")} />
       </div>
 
       {/* Heatmap de actividad */}
       {activityData && (
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-          <h3 className="text-sm font-medium text-slate-400 mb-3">{t("stats.weeklyActivity")}</h3>
-          <ActivityHeatmap data={activityData.activity} />
+        <div className="sp-card">
+          <h3>{t("stats.weeklyActivity")}</h3>
+          <ActivityHeatmap data={activityData.activity ?? {}} />
         </div>
       )}
 
       {/* Radar chart de tópicos */}
-      {stats.topic_elos.length >= 3 && (
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-          <h3 className="text-sm font-medium text-slate-400 mb-1">{t("stats.topicPerformance")}</h3>
-          <p className="text-xs text-slate-600 mb-2">{t("stats.topicPerformanceHint")}</p>
-          <TopicRadarChart topics={stats.topic_elos} />
+      {topicElos.length >= 3 && (
+        <div className="sp-card">
+          <h3>{t("stats.topicPerformance")}</h3>
+          <p className="sp-card-hint">{t("stats.topicPerformanceHint")}</p>
+          <TopicRadarChart topics={topicElos} />
         </div>
       )}
 
       {/* ELO por tópico (barras) */}
-      <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-        <h3 className="text-sm font-medium text-slate-400 mb-3">{t("stats.topicElo")}</h3>
-        {stats.topic_elos.length === 0 ? (
-          <p className="text-slate-500 text-sm">{t("stats.topicEloEmpty")}</p>
+      <div className="sp-card">
+        <h3>{t("stats.topicElo")}</h3>
+        {topicElos.length === 0 ? (
+          <p className="sp-empty-text">{t("stats.topicEloEmpty")}</p>
         ) : (
           <div className="space-y-2">
-            {stats.topic_elos.map((t) => (
+            {topicElos.map((t) => (
               <div key={t.topic} className="flex items-center gap-3">
-                <span className="text-xs text-slate-400 w-40 truncate" title={t.topic}>
+                <span className="sp-dim text-xs w-40 truncate" title={t.topic}>
                   {t.topic}
+                  {t.approximate && <span title={approxHint}> ≈</span>}
                 </span>
-                <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-violet-500 rounded-full"
-                    style={{ width: `${Math.min(100, ((t.rating - 400) / 2600) * 100)}%` }}
-                  />
+                <div className="sp-bar">
+                  <i style={{ width: `${Math.min(100, ((t.rating - 400) / 2600) * 100)}%` }} />
                 </div>
-                <span className="text-xs text-slate-300 w-12 text-right">
+                <span className="sp-dim text-xs w-12 text-right">
                   {Math.round(t.rating)}
                 </span>
               </div>
@@ -197,40 +226,37 @@ export function Stats() {
       </div>
 
       {/* Ranking del grupo */}
-      {rankingData && rankingData.ranking.length > 0 && (
-        <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+      {rankingData && ranking.length > 0 && (
+        <div className="sp-card">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-slate-400">{t("stats.groupRanking")}</h3>
+            <h3 style={{ margin: 0 }}>
+              {t("stats.groupRanking")}
+              {rankingData.basis && (
+                <span className="sp-mute text-xs">
+                  {" · "}
+                  {rankingData.basis.course_name ?? t("rating.basisOverall")}
+                </span>
+              )}
+            </h3>
             {rankingData.my_rank && (
-              <span className="text-xs text-violet-400 font-medium">
+              <span className="text-xs font-medium" style={{ color: "var(--accent)" }}>
                 {t("stats.yourPosition")}: #{rankingData.my_rank}
               </span>
             )}
           </div>
           <div className="space-y-1.5">
-            {rankingData.ranking.slice(0, 10).map((r) => {
+            {ranking.slice(0, 10).map((r) => {
               const isMe = r.user_id === stats.user_id;
+              // Competition rank from the API: ties share it; pending rows have none.
               const medal =
-                r.rank_pos === 1 ? "🥇" : r.rank_pos === 2 ? "🥈" : r.rank_pos === 3 ? "🥉" : null;
+                r.rank === 1 ? "🥇" : r.rank === 2 ? "🥈" : r.rank === 3 ? "🥉" : null;
               return (
-                <div
-                  key={r.user_id}
-                  className={[
-                    "flex items-center gap-3 rounded-lg px-3 py-2",
-                    isMe
-                      ? "bg-violet-900/40 border border-violet-700"
-                      : "bg-slate-900/40 border border-slate-700/50",
-                  ].join(" ")}
-                >
-                  <span className="text-xs text-slate-500 w-5 text-center">
-                    {medal ?? `#${r.rank_pos}`}
-                  </span>
-                  <span className={`text-xs flex-1 ${isMe ? "text-violet-300 font-medium" : "text-slate-300"}`}>
+                <div key={r.user_id} className={`sp-row${isMe ? " me" : ""}`}>
+                  <span className="pos">{medal ?? (r.rank === null ? "—" : `#${r.rank}`)}</span>
+                  <span className={`nm${isMe ? " me" : ""}`}>
                     {r.username} {isMe && t("stats.you")}
                   </span>
-                  <span className="text-xs text-slate-400 font-mono">
-                    {Math.round(r.global_elo)}
-                  </span>
+                  <span className="val">{r.rating ?? t("rating.pending")}</span>
                 </div>
               );
             })}
@@ -239,18 +265,17 @@ export function Stats() {
       )}
 
       {/* Logros / Badges — animados con Framer Motion */}
-      <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-        <h3 className="text-sm font-medium text-slate-400 mb-3">
+      <div className="sp-card">
+        <h3>
           {t("stats.achievements")}{" "}
-          {achievementsData &&
-            `(${achievementsData.achievements.length}/${achievementsData.catalog.length})`}
+          {achievementsData && `(${earnedAchievements.length}/${achievementCatalog.length})`}
         </h3>
         {achievementsData ? (
           <div className="grid grid-cols-2 gap-2">
             <AnimatePresence>
-              {achievementsData.catalog.map((badge, i) => {
+              {achievementCatalog.map((badge, i) => {
                 const earned = earnedIds.has(badge.badge_id);
-                const earnedAt = achievementsData.achievements.find(
+                const earnedAt = earnedAchievements.find(
                   (a) => a.badge_id === badge.badge_id,
                 )?.earned_at;
                 return (
@@ -259,27 +284,20 @@ export function Stats() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: earned ? 1 : 0.4, scale: 1 }}
                     transition={{ delay: i * 0.04, duration: 0.3 }}
-                    className={[
-                      "flex items-center gap-3 rounded-lg px-3 py-2 border transition-colors",
-                      earned
-                        ? "border-violet-600 bg-violet-900/30"
-                        : "border-slate-700 bg-slate-900/30",
-                    ].join(" ")}
+                    className={`sp-badge${earned ? " earned" : ""}`}
                     title={badge.desc}
                   >
-                    <span className="text-xl">{badge.icon}</span>
+                    <span className="ic">{badge.icon}</span>
                     <div>
-                      <p className="text-xs font-medium text-slate-200">{badge.label}</p>
+                      <p className="lbl">{badge.label}</p>
                       {earned && earnedAt && (
-                        <p className="text-xs text-slate-500">
+                        <p className="sub">
                           {new Date(earnedAt).toLocaleDateString(
                             i18n.language === "en" ? "en-US" : "es-CO",
                           )}
                         </p>
                       )}
-                      {!earned && (
-                        <p className="text-xs text-slate-600">{badge.desc}</p>
-                      )}
+                      {!earned && <p className="sub">{badge.desc}</p>}
                     </div>
                   </motion.div>
                 );
@@ -287,21 +305,21 @@ export function Stats() {
             </AnimatePresence>
           </div>
         ) : (
-          <p className="text-slate-500 text-sm">{t("stats.achievementsLoading")}</p>
+          <p className="sp-empty-text">{t("stats.achievementsLoading")}</p>
         )}
       </div>
 
       {/* Historial de exámenes */}
-      <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+      <div className="sp-card">
         <div className="flex items-baseline justify-between mb-3">
-          <h3 className="text-sm font-medium text-slate-400">{t("stats.examHistory")}</h3>
-          <p className="text-[10px] text-slate-500 italic">{t("stats.examNoElo")}</p>
+          <h3 style={{ margin: 0 }}>{t("stats.examHistory")}</h3>
+          <p className="sp-mute text-[10px] italic">{t("stats.examNoElo")}</p>
         </div>
-        {examHistory.length === 0 ? (
-          <p className="text-slate-500 text-sm">{t("stats.noExams")}</p>
+        {safeExamHistory.length === 0 ? (
+          <p className="sp-empty-text">{t("stats.noExams")}</p>
         ) : (
           <div className="space-y-2">
-            {examHistory.map((session) => {
+            {safeExamHistory.map((session) => {
               const scoreColor =
                 session.score_pct >= 70
                   ? "text-emerald-400"
@@ -309,15 +327,12 @@ export function Stats() {
                   ? "text-amber-400"
                   : "text-red-400";
               return (
-                <div
-                  key={session.id}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 bg-slate-900/40 border border-slate-700/50"
-                >
+                <div key={session.id} className="sp-row">
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-slate-300 font-medium truncate">
+                    <p className="text-xs font-medium truncate" style={{ color: "var(--text)" }}>
                       {session.course_name || session.course_id}
                     </p>
-                    <p className="text-[10px] text-slate-500">{session.created_at}</p>
+                    <p className="sp-mute text-[10px]">{session.created_at}</p>
                   </div>
                   <span className={`text-sm font-semibold ${scoreColor} tabular-nums`}>
                     {session.correct_count}/{session.n_questions}

@@ -5,12 +5,20 @@ test.describe("Sala de Práctica", () => {
   test.beforeEach(async ({ page }) => {
     await mockStudentApi(page);
     await injectAuth(page);
-    await page.goto("/student");
+    await page.goto("/student/courses");
   });
 
-  test("muestra el selector de cursos al entrar", async ({ page }) => {
-    await expect(page.getByText("Sala de Práctica")).toBeVisible();
-    await expect(page.getByText("Selecciona un curso para empezar")).toBeVisible();
+  async function openPractice(page: import("@playwright/test").Page) {
+    await page.getByRole("button", { name: /Practicar/ }).first().click();
+    await expect(page).toHaveURL(/\/student\/course\/calculo$/);
+    await page.getByRole("button", { name: /Ir a practicar/ }).click();
+    await expect(page).toHaveURL("/student");
+    await expect(page.getByText(/¿Cuánto es/)).toBeVisible();
+  }
+
+  test("muestra el catálogo de cursos al entrar", async ({ page }) => {
+    await expect(page.getByRole("heading", { name: /Materias|Cursos/ })).toBeVisible();
+    await expect(page.getByText("Cálculo Diferencial")).toBeVisible();
   });
 
   test("lista los cursos matriculados", async ({ page }) => {
@@ -19,31 +27,26 @@ test.describe("Sala de Práctica", () => {
   });
 
   test("seleccionar un curso carga la primera pregunta", async ({ page }) => {
-    await page.getByText("Cálculo Diferencial").click();
-
-    // Esperar a que desaparezca el estado de carga y aparezca la pregunta
-    await expect(page.getByText("Cargando pregunta...")).not.toBeVisible({ timeout: 5_000 });
-    await expect(page.getByText("¿Cuánto es")).toBeVisible();
+    await openPractice(page);
   });
 
   test("se puede seleccionar una opción y aparece botón de envío", async ({ page }) => {
-    await page.getByText("Cálculo Diferencial").click();
-    await expect(page.getByText("¿Cuánto es")).toBeVisible({ timeout: 5_000 });
+    await openPractice(page);
 
-    await page.getByText("4").click();
+    await page.getByRole("button", { name: "Opción B", exact: true }).click();
 
     await expect(page.getByRole("button", { name: "Enviar respuesta" })).toBeVisible();
   });
 
   test("enviar respuesta muestra el feedback de ELO", async ({ page }) => {
-    await page.getByText("Cálculo Diferencial").click();
-    await expect(page.getByText("¿Cuánto es")).toBeVisible({ timeout: 5_000 });
+    await openPractice(page);
 
-    await page.getByText("4").click();
+    await page.getByRole("button", { name: "Opción B", exact: true }).click();
     await page.getByRole("button", { name: "Enviar respuesta" }).click();
 
     // El mock devuelve is_correct=true con delta_elo=16
-    await expect(page.getByText(/\+16|ELO|\+[0-9]/i)).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText("ELO en este tema (Aritmética): 1000 → 1016 (+16.0)", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Opción B — Correcto", exact: true })).toBeDisabled();
   });
 
   test("sin cursos matriculados muestra enlace al catálogo", async ({ page }) => {
@@ -57,16 +60,15 @@ test.describe("Sala de Práctica", () => {
     });
     await page.reload();
 
-    await expect(page.getByText(/[Nn]o estás matriculado/)).toBeVisible();
-    await expect(page.getByText(/catálogo de cursos/)).toBeVisible();
+    await page.getByRole("button", { name: "Mis matrículas" }).click();
+    await expect(page.getByText("No estás matriculado en ningún curso aún.")).toBeVisible();
   });
 
   test("botón ← Cambiar curso vuelve al selector", async ({ page }) => {
-    await page.getByText("Cálculo Diferencial").click();
-    await expect(page.getByText("¿Cuánto es")).toBeVisible({ timeout: 5_000 });
+    await openPractice(page);
 
     await page.getByText("← Cambiar curso").click();
 
-    await expect(page.getByText("Selecciona un curso para empezar")).toBeVisible();
+    await expect(page).toHaveURL("/student/courses");
   });
 });

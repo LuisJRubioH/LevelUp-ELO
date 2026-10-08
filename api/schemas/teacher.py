@@ -33,6 +33,11 @@ class StudentSummary(BaseModel):
     total_attempts: int
     accuracy: float  # 0.0–1.0
     last_activity: str | None
+
+
+class StudentAIAnalysisRequest(BaseModel):
+    api_key: str = ""
+    provider: str = "groq"
     # Campos para filtros cascada (opcionales para compatibilidad)
     group_id: int | None = None
     group_name: str | None = None

@@ -1,0 +1,17 @@
+[
+  {
+    "id": "CS8-U9-P290-GEO01",
+    "tipo": "construccion_geogebra",
+    "enunciado": "Inicia en GeoGebra la construcción de la recta de Euler: dibuja un triángulo ABC; traza las rectas que contienen sus tres lados; construye por cada vértice la perpendicular al lado opuesto; marca la intersección de las tres alturas y oculta las seis rectas auxiliares; por último, marca los puntos medios de los tres lados. La construcción continúa en la página 291.",
+    "respuesta": "La intersección de las tres alturas es el ortocentro del triángulo. Al finalizar el paso 7 deben quedar visibles el triángulo, el ortocentro y los tres puntos medios, preparados para construir las mediatrices y medianas.",
+    "conjunto": "R",
+    "seccion": "Trabaja con GeoGebra: recta de Euler",
+    "unidad": 9,
+    "pagina_pdf": 290,
+    "continuacion_pagina_pdf": 291,
+    "referencia": "Trabaja con GeoGebra, pasos 1 a 7",
+    "apto_para": ["procedimiento_abierto"],
+    "verificar": "La posición del ortocentro y la perpendicularidad de las tres alturas deben revisarse en el archivo o captura del estudiante.",
+    "dificultad": 550
+  }
+]

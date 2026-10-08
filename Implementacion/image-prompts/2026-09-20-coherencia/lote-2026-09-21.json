@@ -1,0 +1,17 @@
+{
+  "base": "Repaint and substantially upgrade image 1 to image 2's premium detailed crisp PIXEL ART, rich controlled colors, luminous amber lighting, legible blue shadows, dimensional fabric, precise marble/mosaic/metal textures and adult feline proportions. Image 1 is scene/content/composition reference; image 2 art quality/style reference; image 3 canonical KatIA face only. Preserve original Greek night environment, narrative, props, framing. Full renewal not color filter. KatIA white adult feline, original teal ocular full silver plate on anatomical RIGHT eye (viewer LEFT in frontal view), green LEFT eye, orange/black patch near LEFT ear, silver piercings, ivory tunic/plum mantle/gold details. LEFT anatomical arm entirely robotic shoulder to all fingers; RIGHT entirely organic white fur. No extra limbs, no mirrored character, no photorealism/chibi/blurring. ",
+  "jobs": [
+    [
+      "b08-reales-v4.png",
+      "BACK VIEW: KatIA walks away from camera, therefore anatomical LEFT robotic arm must be on VIEWER LEFT and anatomical RIGHT organic arm on VIEWER RIGHT. The old image has wrong arm. Preserve back view and head turned toward her anatomical RIGHT with ocular visible at screen right. Keep long luminous stone walkway, colonnades, distant temple and scholars. No added text."
+    ],
+    [
+      "b09-complejos-v4.png",
+      "KatIA faces viewer: hanging arm at viewer LEFT must be wholly WHITE FUR; presenting arm pointing toward graph at viewer RIGHT wholly METAL. Preserve complex-plane teaching diagram but make its coordinates mathematically accurate and readable in perspective: horizontal REALES ticks -2,-1,0,1,2, vertical IMAGINARIOS ticks -2i,-i,0,i,2i. Plot exactly 1+i at (1,1), 2+i at (2,1), 2-i at (2,-1), -1-2i at (-1,-2). Align projection guides to corresponding ticks, no wrong labels or extra points. Keep text exact."
+    ],
+    [
+      "b10-clasificador-i-v4.png",
+      "KatIA near frontal: tablet-holding hand on viewer LEFT and entire arm white fur; resting hand on viewer RIGHT and whole arm silver robot. Preserve BLANK classification matrix, do NOT solve it. Column headings exactly N, Z, Q, R\\Q, R (blackboard bold allowed); row values exactly 5, -3, 3,5, stacked fraction 2/3, √2. Five rows, five empty answer columns. Preserve three apprentice cats at left, props, marble table and foreground."
+    ]
+  ]
+}

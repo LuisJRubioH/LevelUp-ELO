@@ -1,0 +1,183 @@
+[
+  {
+    "id": "CS8-U1-P012-A18",
+    "tipo": "secuencia_aritmetica",
+    "enunciado": "Completa la secuencia de números enteros: -44, -34, -24, __, __, __, __.",
+    "dados": [
+      "-44",
+      "-34",
+      "-24"
+    ],
+    "respuesta": [
+      "-14",
+      "-4",
+      "6",
+      "16"
+    ],
+    "conjunto": "Z",
+    "seccion": "Secuencias de números enteros",
+    "unidad": 1,
+    "pagina_pdf": 12,
+    "referencia": "Actividad 18",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "La diferencia entre términos consecutivos es +10; por eso siguen -14, -4, 6 y 16.",
+    "verificar": "Tres términos no determinan una secuencia única. Se adoptó la progresión aritmética de diferencia +10, que es la regla escolar evidente; si se reutiliza como práctica cerrada, añadir explícitamente que la diferencia debe ser constante.",
+    "dificultad": 300
+  },
+  {
+    "id": "CS8-U1-P012-A19",
+    "tipo": "secuencia_aritmetica",
+    "enunciado": "Completa la secuencia de números enteros: 30, 24, 18, __, __, __, __.",
+    "dados": [
+      "30",
+      "24",
+      "18"
+    ],
+    "respuesta": [
+      "12",
+      "6",
+      "0",
+      "-6"
+    ],
+    "conjunto": "Z",
+    "seccion": "Secuencias de números enteros",
+    "unidad": 1,
+    "pagina_pdf": 12,
+    "referencia": "Actividad 19",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "La diferencia entre términos consecutivos es -6; por eso siguen 12, 6, 0 y -6.",
+    "verificar": "Tres términos admiten infinitas reglas de continuación. Se registró la progresión aritmética de diferencia -6, claramente prevista por el ejercicio; para autocalificar, declarar que la diferencia es constante.",
+    "dificultad": 300
+  },
+  {
+    "id": "CS8-U1-P012-A20",
+    "tipo": "numerico",
+    "enunciado": "Resuelve: 5+(-3)-6-(-1).",
+    "expr": "5+(-3)-6-(-1)",
+    "respuesta": "-3",
+    "conjunto": "Z",
+    "seccion": "Operaciones con números enteros",
+    "unidad": 1,
+    "pagina_pdf": 12,
+    "referencia": "Actividad 20",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "5-3-6+1=2-6+1=-3.",
+    "dificultad": 350
+  },
+  {
+    "id": "CS8-U1-P012-A21",
+    "tipo": "numerico",
+    "enunciado": "Resuelve: [7-(6-2)]-(3-1).",
+    "expr": "(7-(6-2))-(3-1)",
+    "respuesta": "1",
+    "conjunto": "Z",
+    "seccion": "Polinomios aritméticos en Z",
+    "unidad": 1,
+    "pagina_pdf": 12,
+    "referencia": "Actividad 21",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "[7-4]-2=3-2=1.",
+    "dificultad": 400
+  },
+  {
+    "id": "CS8-U1-P012-A22",
+    "tipo": "numerico",
+    "enunciado": "Resuelve: -6·{[-32÷8+(9-27)]-14}-(-2).",
+    "expr": "-6*((-32/8+(9-27))-14)-(-2)",
+    "respuesta": "218",
+    "conjunto": "Z",
+    "seccion": "Polinomios aritméticos en Z",
+    "unidad": 1,
+    "pagina_pdf": 12,
+    "referencia": "Actividad 22",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "-32÷8=-4 y 9-27=-18; el corchete vale -22, luego la llave vale -36. Así, -6·(-36)-(-2)=216+2=218.",
+    "dificultad": 600
+  },
+  {
+    "id": "CS8-U1-P012-A23",
+    "tipo": "numerico",
+    "enunciado": "Resuelve: 4·3+[5-2(8+4)]+6.",
+    "expr": "4*3+(5-2*(8+4))+6",
+    "respuesta": "-1",
+    "conjunto": "Z",
+    "seccion": "Polinomios aritméticos en Z",
+    "unidad": 1,
+    "pagina_pdf": 12,
+    "referencia": "Actividad 23",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "4·3=12, 8+4=12 y 5-2·12=-19; por tanto, 12-19+6=-1.",
+    "dificultad": 500
+  },
+  {
+    "id": "CS8-U1-P012-A24",
+    "tipo": "numerico",
+    "enunciado": "La suma de tres enteros es -5 y dos de los sumandos son números opuestos. ¿Cuál es el otro sumando?",
+    "expr": "-5-0",
+    "respuesta": "-5",
+    "conjunto": "Z",
+    "seccion": "Problemas con números enteros",
+    "unidad": 1,
+    "pagina_pdf": 12,
+    "referencia": "Actividad 24",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Dos enteros opuestos suman 0. Si 0+x=-5, entonces x=-5.",
+    "dificultad": 400
+  },
+  {
+    "id": "CS8-U1-P012-A25",
+    "tipo": "numerico",
+    "enunciado": "El producto de dos números enteros es -540. Si un factor es 12, ¿cuál es el otro factor?",
+    "expr": "-540/12",
+    "respuesta": "-45",
+    "conjunto": "Z",
+    "seccion": "Problemas con números enteros",
+    "unidad": 1,
+    "pagina_pdf": 12,
+    "referencia": "Actividad 25",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "El factor faltante es -540÷12=-45; en efecto, 12·(-45)=-540.",
+    "dificultad": 400
+  },
+  {
+    "id": "CS8-U1-P012-A26",
+    "tipo": "numerico",
+    "enunciado": "Un refrigerador baja su temperatura 3 °C cada 20 minutos. Si inicialmente está a 9 °C, ¿cuánto tiempo debe pasar para alcanzar -27 °C?",
+    "expr": "((9-(-27))/3)*20",
+    "respuesta": "240",
+    "unidad_respuesta": "minutos",
+    "conjunto": "N",
+    "seccion": "Problemas con números enteros",
+    "unidad": 1,
+    "pagina_pdf": 12,
+    "referencia": "Actividad 26",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Debe descender 9-(-27)=36 °C. Son 36÷3=12 intervalos de 20 minutos: 12·20=240 minutos, es decir, 4 horas.",
+    "dificultad": 500
+  }
+]

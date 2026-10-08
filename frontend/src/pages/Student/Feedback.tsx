@@ -11,10 +11,12 @@ import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { studentApi } from "../../api/student";
 import type { ProcedureSubmissionRow } from "../../api/student";
+import { PageHeader } from "../../components/ui/PageHeader";
+import "./StudentContent.css";
 
-type StatusKind = "pending" | "ai_reviewed" | "validated" | "unknown";
+export type StatusKind = "pending" | "ai_reviewed" | "validated" | "unknown";
 
-function classifyStatus(s: string): StatusKind {
+export function classifyStatus(s: string): StatusKind {
   const v = s.toLowerCase();
   if (v === "validated_by_teacher" || v === "graded" || v === "validated") return "validated";
   if (v === "pending_teacher_validation" || v === "ai_reviewed") return "ai_reviewed";
@@ -70,12 +72,12 @@ function ScorePill({ score }: { score: number }) {
   );
 }
 
-function ValidatedCard({ row, t }: { row: ProcedureSubmissionRow; t: TFunction }) {
+export function ValidatedCard({ row, t }: { row: ProcedureSubmissionRow; t: TFunction }) {
   const score = row.final_score ?? row.teacher_score ?? 0;
   const katia = katiaForScore(score, t);
   const delta = row.elo_delta ?? 0;
   return (
-    <article className="rounded-xl border border-slate-800 bg-[var(--surface)] overflow-hidden">
+    <article className="sp-card" style={{ padding: 0, overflow: "hidden" }}>
       <div className="flex flex-col sm:flex-row gap-4 p-4">
         <div
           className={`shrink-0 w-24 h-24 sm:w-28 sm:h-28 rounded-lg overflow-hidden ring-2 ${katia.ringTone}`}
@@ -85,25 +87,25 @@ function ValidatedCard({ row, t }: { row: ProcedureSubmissionRow; t: TFunction }
         <div className="flex-1 min-w-0 space-y-2">
           <header className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-wider text-slate-500">
+              <p className="sp-mute text-[11px] uppercase tracking-wider">
                 {t("feedback.exerciseLabel")} · {row.item_id}
               </p>
-              <p className="text-sm text-slate-300 truncate">
+              <p className="text-sm truncate" style={{ color: "var(--dim)" }}>
                 {row.item_content || t("feedback.handwrittenProcedure")}
               </p>
             </div>
             <ScorePill score={score} />
           </header>
-          <p className="text-sm text-slate-300 leading-relaxed">{katia.message}</p>
+          <p className="text-sm leading-relaxed" style={{ color: "var(--dim)" }}>{katia.message}</p>
           {row.teacher_feedback && (
-            <blockquote className="text-sm text-slate-400 bg-slate-900/60 rounded-lg px-3 py-2">
-              <span className="block text-[11px] uppercase tracking-wider text-slate-500 mb-0.5">
+            <blockquote className="text-sm rounded-lg px-3 py-2" style={{ color: "var(--dim)", background: "var(--surface-2)" }}>
+              <span className="sp-mute block text-[11px] uppercase tracking-wider mb-0.5">
                 {t("feedback.teacherComment")}
               </span>
               {row.teacher_feedback}
             </blockquote>
           )}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+          <div className="sp-mute flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
             <span>
               {t("feedback.eloLabel")}:{" "}
               <span className={delta >= 0 ? "text-emerald-400" : "text-rose-400"}>
@@ -121,7 +123,7 @@ function ValidatedCard({ row, t }: { row: ProcedureSubmissionRow; t: TFunction }
   );
 }
 
-function PendingCard({
+export function PendingCard({
   row,
   kind,
   t,
@@ -131,18 +133,18 @@ function PendingCard({
   t: TFunction;
 }) {
   return (
-    <article className="rounded-xl border border-slate-800 bg-[var(--surface)] p-4 flex items-center gap-4">
-      <div className="shrink-0 w-12 h-12 rounded-lg bg-slate-900 flex items-center justify-center text-slate-500 text-xl">
+    <article className="sp-card flex items-center gap-4">
+      <div className="shrink-0 w-12 h-12 rounded-lg flex items-center justify-center text-xl" style={{ background: "var(--surface)", color: "var(--mute)" }}>
         ⌛
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] uppercase tracking-wider text-slate-500">
+        <p className="sp-mute text-[11px] uppercase tracking-wider">
           {t("feedback.exerciseLabel")} · {row.item_id}
         </p>
-        <p className="text-sm text-slate-300 truncate">
+        <p className="text-sm truncate" style={{ color: "var(--dim)" }}>
           {row.item_content || t("feedback.handwrittenProcedure")}
         </p>
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="sp-mute text-xs mt-1">
           {t("feedback.submittedOn", { date: row.submitted_at?.slice(0, 10) ?? "—" })}
           {row.ai_proposed_score != null && kind === "ai_reviewed" && (
             <>
@@ -173,12 +175,13 @@ export function Feedback() {
 
   if (isLoading) {
     return (
-      <div className="max-w-3xl mx-auto py-8 px-4">
+      <div className="sp-page-wide">
         <div className="space-y-3">
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-24 rounded-xl bg-slate-800/50 animate-pulse"
+              className="h-24 animate-pulse"
+              style={{ borderRadius: "var(--radius)", background: "var(--surface-2)" }}
               aria-hidden="true"
             />
           ))}
@@ -189,7 +192,7 @@ export function Feedback() {
 
   if (isError) {
     return (
-      <div className="max-w-3xl mx-auto py-8 px-4">
+      <div className="sp-page-wide">
         <p className="text-sm text-rose-400">{t("feedback.loadError")}</p>
       </div>
     );
@@ -197,22 +200,24 @@ export function Feedback() {
 
   if (submissions.length === 0) {
     return (
-      <div className="max-w-3xl mx-auto py-12 px-4 text-center space-y-3">
-        <p className="text-slate-300 text-base">{t("feedback.emptyTitle")}</p>
-        <p className="text-sm text-slate-500">
-          {t("feedback.emptyHint")}{" "}
-          <strong className="text-slate-300">{t("feedback.emptySection")}</strong>{" "}
-          {t("feedback.emptyHintSuffix")}
-        </p>
+      <div className="sp-page-wide">
+        <div className="sp-card text-center space-y-3">
+          <p className="text-base" style={{ color: "var(--dim)" }}>{t("feedback.emptyTitle")}</p>
+          <p className="sp-mute text-sm">
+            {t("feedback.emptyHint")}{" "}
+            <strong style={{ color: "var(--dim)" }}>{t("feedback.emptySection")}</strong>{" "}
+            {t("feedback.emptyHintSuffix")}
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-6 px-4 space-y-4">
-      <header className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-100">{t("feedback.title")}</h2>
-        <p className="text-xs text-slate-500">
+    <div className="sp-page-wide">
+      <header className="flex items-start justify-between gap-4">
+        <PageHeader eyebrow={t("feedback.eyebrow")} title={t("feedback.title")} subtitle={t("feedback.intro")} />
+        <p className="sp-mute text-xs" style={{ flex: "none", marginTop: 4 }}>
           {t("feedback.submissionsCount", { count: submissions.length })}
         </p>
       </header>

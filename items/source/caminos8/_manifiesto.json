@@ -1,0 +1,937 @@
+{
+  "libro": "Los Caminos del Saber Matemáticas 8 (Santillana)",
+  "paginas_pdf": 336,
+  "offset_pdf_a_libro": 0,
+  "unidades": [
+    {
+      "unidad": 1,
+      "titulo": "Conjuntos numéricos",
+      "pagina_inicio": 8
+    },
+    {
+      "unidad": 2,
+      "titulo": "Expresiones algebraicas",
+      "pagina_inicio": 34
+    },
+    {
+      "unidad": 3,
+      "titulo": "Operaciones entre polinomios",
+      "pagina_inicio": 52
+    },
+    {
+      "unidad": 4,
+      "titulo": "Productos notables y cocientes notables",
+      "pagina_inicio": 80
+    },
+    {
+      "unidad": 5,
+      "titulo": "Factorización",
+      "pagina_inicio": 106
+    },
+    {
+      "unidad": 6,
+      "titulo": "Fracciones algebraicas",
+      "pagina_inicio": 144
+    },
+    {
+      "unidad": 7,
+      "titulo": "Ecuaciones e inecuaciones",
+      "pagina_inicio": 182
+    },
+    {
+      "unidad": 8,
+      "titulo": "Función lineal",
+      "pagina_inicio": 220
+    },
+    {
+      "unidad": 9,
+      "titulo": "Geometría",
+      "pagina_inicio": 254
+    },
+    {
+      "unidad": 10,
+      "titulo": "Estadística y probabilidad",
+      "pagina_inicio": 292
+    }
+  ],
+  "paginas_sin_ejercicios": [
+    {
+      "pagina": 18,
+      "motivo": "Página teórica sobre irracionales y construcción de √2; sin consigna impresa."
+    },
+    {
+      "pagina": 25,
+      "motivo": "Infografía sobre el número de oro y el número cordobés; sin consigna impresa."
+    },
+      {
+        "pagina": 28,
+        "motivo": "Problema modelo completamente resuelto paso a paso; no es una actividad para responder."
+      },
+      {
+        "pagina": 36,
+        "motivo": "Página teórica de lenguaje algebraico con ejemplos completamente resueltos; sin actividad para responder."
+      },
+      {
+        "pagina": 48,
+        "motivo": "Problema modelo completamente resuelto paso a paso; no es una actividad para responder."
+      },
+      {
+        "pagina": 54,
+        "motivo": "Página teórica de adición y sustracción de monomios con ejemplos completamente resueltos; sin actividad para responder."
+      },
+      {
+        "pagina": 58,
+        "motivo": "Página teórica de signos de agrupación con ejemplos completamente resueltos; sin actividad para responder."
+      },
+      {
+        "pagina": 70,
+        "motivo": "Página teórica sobre el teorema del residuo con tres ejemplos completamente resueltos; sin actividad para responder."
+      },
+      {
+        "pagina": 76,
+        "motivo": "Problema modelo completamente resuelto paso a paso, con tabla y respuesta final; no es una actividad para responder."
+      },
+    {
+      "pagina": 82,
+      "motivo": "Página teórica sobre el cuadrado de un binomio, con demostraciones geométricas y algebraicas completamente resueltas; sin actividad para responder."
+    },
+    {
+      "pagina": 102,
+      "motivo": "Problema modelo completamente resuelto paso a paso, incluida la verificación y la respuesta final; no es una actividad para responder."
+    },
+    {
+      "pagina": 108,
+      "motivo": "Página teórica sobre el concepto de factorización, con definiciones y dos ejemplos completamente resueltos; no contiene consignas para responder."
+    },
+    {
+      "pagina": 120,
+      "motivo": "Página teórica sobre suma o diferencia de potencias de igual exponente, con reglas y un ejemplo completamente resuelto; no contiene consignas para responder."
+    },
+    {
+      "pagina": 222,
+      "motivo": "Página teórica de introducción a las funciones y sus elementos, con un ejemplo completamente resuelto; no contiene consignas impresas para responder."
+    }
+  ],
+  "paginas": [
+    {
+      "pagina": 8,
+      "unidad": 1,
+      "clase": "lo_que_sabes"
+    },
+    {
+      "pagina": 10,
+      "unidad": 1,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 12,
+      "unidad": 1,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 15,
+      "unidad": 1,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 17,
+      "unidad": 1,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 19,
+      "unidad": 1,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 23,
+      "unidad": 1,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 26,
+      "unidad": 1,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 27,
+      "unidad": 1,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 29,
+      "unidad": 1,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 30,
+      "unidad": 1,
+      "clase": "aplicacion"
+    },
+    {
+      "pagina": 31,
+      "unidad": 1,
+      "clase": "aplicacion"
+    },
+    {
+      "pagina": 32,
+      "unidad": 1,
+      "clase": "software"
+    },
+    {
+      "pagina": 33,
+      "unidad": 1,
+      "clase": "software"
+    },
+    {
+      "pagina": 34,
+      "unidad": 2,
+      "clase": "lo_que_sabes"
+    },
+    {
+      "pagina": 39,
+      "unidad": 2,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 43,
+      "unidad": 2,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 45,
+      "unidad": 2,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 46,
+      "unidad": 2,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 47,
+      "unidad": 2,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 49,
+      "unidad": 2,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 50,
+      "unidad": 2,
+      "clase": "aplicacion"
+    },
+    {
+      "pagina": 51,
+      "unidad": 2,
+      "clase": "software"
+    },
+    {
+      "pagina": 52,
+      "unidad": 3,
+      "clase": "lo_que_sabes"
+    },
+    {
+      "pagina": 56,
+      "unidad": 3,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 59,
+      "unidad": 3,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 61,
+      "unidad": 3,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 64,
+      "unidad": 3,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 66,
+      "unidad": 3,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 68,
+      "unidad": 3,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 71,
+      "unidad": 3,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 73,
+      "unidad": 3,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 74,
+      "unidad": 3,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 75,
+      "unidad": 3,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 77,
+      "unidad": 3,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 78,
+      "unidad": 3,
+      "clase": "aplicacion"
+    },
+    {
+      "pagina": 79,
+      "unidad": 3,
+      "clase": "software"
+    },
+    {
+      "pagina": 80,
+      "unidad": 4,
+      "clase": "lo_que_sabes"
+    },
+    {
+      "pagina": 84,
+      "unidad": 4,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 87,
+      "unidad": 4,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 89,
+      "unidad": 4,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 92,
+      "unidad": 4,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 95,
+      "unidad": 4,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 99,
+      "unidad": 4,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 100,
+      "unidad": 4,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 101,
+      "unidad": 4,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 103,
+      "unidad": 4,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 104,
+      "unidad": 4,
+      "clase": "aplicacion"
+    },
+    {
+      "pagina": 105,
+      "unidad": 4,
+      "clase": "software"
+    },
+    {
+      "pagina": 106,
+      "unidad": 5,
+      "clase": "lo_que_sabes"
+    },
+    {
+      "pagina": 109,
+      "unidad": 5,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 113,
+      "unidad": 5,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 116,
+      "unidad": 5,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 119,
+      "unidad": 5,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 122,
+      "unidad": 5,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 126,
+      "unidad": 5,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 128,
+      "unidad": 5,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 130,
+      "unidad": 5,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 132,
+      "unidad": 5,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 135,
+      "unidad": 5,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 137,
+      "unidad": 5,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 138,
+      "unidad": 5,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 139,
+      "unidad": 5,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 140,
+      "unidad": 5,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 141,
+      "unidad": 5,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 142,
+      "unidad": 5,
+      "clase": "aplicacion"
+    },
+    {
+      "pagina": 143,
+      "unidad": 5,
+      "clase": "software"
+    },
+    {
+      "pagina": 144,
+      "unidad": 6,
+      "clase": "lo_que_sabes"
+    },
+    {
+      "pagina": 146,
+      "unidad": 6,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 148,
+      "unidad": 6,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 151,
+      "unidad": 6,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 155,
+      "unidad": 6,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 158,
+      "unidad": 6,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 161,
+      "unidad": 6,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 163,
+      "unidad": 6,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 166,
+      "unidad": 6,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 169,
+      "unidad": 6,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 172,
+      "unidad": 6,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 175,
+      "unidad": 6,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 176,
+      "unidad": 6,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 177,
+      "unidad": 6,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 178,
+      "unidad": 6,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 179,
+      "unidad": 6,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 180,
+      "unidad": 6,
+      "clase": "aplicacion"
+    },
+    {
+      "pagina": 181,
+      "unidad": 6,
+      "clase": "software"
+    },
+    {
+      "pagina": 182,
+      "unidad": 7,
+      "clase": "lo_que_sabes"
+    },
+    {
+      "pagina": 184,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 187,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 189,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 190,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 192,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 194,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 196,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 197,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 200,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 203,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 206,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 208,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 210,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 213,
+      "unidad": 7,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 214,
+      "unidad": 7,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 215,
+      "unidad": 7,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 216,
+      "unidad": 7,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 217,
+      "unidad": 7,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 218,
+      "unidad": 7,
+      "clase": "aplicacion"
+    },
+    {
+      "pagina": 219,
+      "unidad": 7,
+      "clase": "software"
+    },
+    {
+      "pagina": 220,
+      "unidad": 8,
+      "clase": "lo_que_sabes"
+    },
+    {
+      "pagina": 224,
+      "unidad": 8,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 226,
+      "unidad": 8,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 229,
+      "unidad": 8,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 232,
+      "unidad": 8,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 235,
+      "unidad": 8,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 237,
+      "unidad": 8,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 239,
+      "unidad": 8,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 241,
+      "unidad": 8,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 244,
+      "unidad": 8,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 247,
+      "unidad": 8,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 248,
+      "unidad": 8,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 249,
+      "unidad": 8,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 250,
+      "unidad": 8,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 251,
+      "unidad": 8,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 252,
+      "unidad": 8,
+      "clase": "aplicacion"
+    },
+    {
+      "pagina": 253,
+      "unidad": 8,
+      "clase": "software"
+    },
+    {
+      "pagina": 254,
+      "unidad": 9,
+      "clase": "lo_que_sabes"
+    },
+    {
+      "pagina": 256,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 258,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 260,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 261,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 262,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 264,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 266,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 268,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 270,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 275,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 278,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 281,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 282,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 283,
+      "unidad": 9,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 284,
+      "unidad": 9,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 285,
+      "unidad": 9,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 286,
+      "unidad": 9,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 287,
+      "unidad": 9,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 288,
+      "unidad": 9,
+      "clase": "aplicacion"
+    },
+    {
+      "pagina": 289,
+      "unidad": 9,
+      "clase": "aplicacion"
+    },
+    {
+      "pagina": 290,
+      "unidad": 9,
+      "clase": "software"
+    },
+    {
+      "pagina": 291,
+      "unidad": 9,
+      "clase": "software"
+    },
+    {
+      "pagina": 292,
+      "unidad": 10,
+      "clase": "lo_que_sabes"
+    },
+    {
+      "pagina": 294,
+      "unidad": 10,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 301,
+      "unidad": 10,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 308,
+      "unidad": 10,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 311,
+      "unidad": 10,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 315,
+      "unidad": 10,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 316,
+      "unidad": 10,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 320,
+      "unidad": 10,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 324,
+      "unidad": 10,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 325,
+      "unidad": 10,
+      "clase": "afianzo"
+    },
+    {
+      "pagina": 326,
+      "unidad": 10,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 327,
+      "unidad": 10,
+      "clase": "ejercicios"
+    },
+    {
+      "pagina": 328,
+      "unidad": 10,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 329,
+      "unidad": 10,
+      "clase": "problemas"
+    },
+    {
+      "pagina": 330,
+      "unidad": 10,
+      "clase": "aplicacion"
+    },
+    {
+      "pagina": 331,
+      "unidad": 10,
+      "clase": "aplicacion"
+    },
+    {
+      "pagina": 332,
+      "unidad": 10,
+      "clase": "software"
+    },
+    {
+      "pagina": 333,
+      "unidad": 10,
+      "clase": "software"
+    }
+  ]
+}

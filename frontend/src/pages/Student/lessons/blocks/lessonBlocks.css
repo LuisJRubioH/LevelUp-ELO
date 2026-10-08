@@ -1,0 +1,450 @@
+/* Bloques compartidos de la arquitectura de 11 bloques.
+   Una sola ventana, cinco zonas de color. El riel es el único portador de
+   color de zona: el cuerpo mantiene el mismo contraste AA en las cinco. */
+
+/* ── Zona ──────────────────────────────────────────────────────────────── */
+
+.lesson-zone {
+  position: relative;
+  padding: 1.75rem 0 1.75rem 1.25rem;
+  scroll-margin-top: 4rem;
+}
+
+.lesson-zone-rail {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--zone-color);
+}
+
+.lesson-zone-eyebrow {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--zone-color);
+}
+
+.lesson-zone-body > * + * {
+  margin-top: 1.25rem;
+}
+
+.zone-explore { --zone-color: var(--zone-explore); }
+.zone-build   { --zone-color: var(--zone-build); }
+.zone-trap    { --zone-color: var(--zone-trap); }
+.zone-work    { --zone-color: var(--zone-work); }
+.zone-close   { --zone-color: var(--zone-close); }
+
+.block-lead {
+  color: var(--color-slate-400);
+  line-height: 1.6;
+}
+
+/* ── Ítems ─────────────────────────────────────────────────────────────── */
+
+.block-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--color-slate-700);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.block-item > div { flex: 1; min-width: 0; }
+.block-item h3 { font-size: 1rem; line-height: 1.5; margin-bottom: 0.75rem; }
+
+.block-item-number {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-slate-500);
+}
+
+.block-item-tag {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--zone-color) 16%, transparent);
+  color: var(--zone-color);
+}
+
+/* La trampa es la ÚNICA que usa el color reservado. */
+.block-item-trap { border-color: color-mix(in srgb, var(--zone-trap) 45%, transparent); }
+
+.block-options { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.block-options-column { flex-direction: column; }
+
+.block-options button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--color-slate-700);
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.block-options button:hover:not(:disabled) { border-color: var(--zone-color); }
+.block-options button.selected { border-color: var(--zone-color); background: color-mix(in srgb, var(--zone-color) 12%, transparent); }
+.block-options button:disabled { opacity: 0.65; cursor: default; }
+.block-options button.is-ok { border-color: var(--color-correct); }
+.block-options button.is-off { opacity: 0.45; }
+
+.block-numeric { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+
+.block-numeric input {
+  width: 9rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-slate-700);
+  border-radius: 10px;
+  background: var(--canvas);
+  color: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.block-numeric input:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+/* ── Pistas: escalera visible de 3 niveles ─────────────────────────────── */
+
+.block-hints { margin-top: 0.75rem; }
+.block-hints p { margin-bottom: 0.4rem; font-size: 0.88rem; color: var(--color-slate-400); }
+.block-hints p span {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-slate-500);
+}
+
+.block-hint-more {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 0.82rem;
+  color: var(--zone-color);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Feedback: el cierre ES la acción, no un "OK" ──────────────────────── */
+
+.block-feedback {
+  margin-top: 0.85rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border-inline-start: 3px solid;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.block-feedback.is-ok { border-color: var(--color-correct); background: color-mix(in srgb, var(--color-correct) 10%, transparent); }
+/* Incorrecto = estado NEUTRO. El rojo está reservado a las trampas. */
+.block-feedback.is-retry { border-color: var(--color-slate-500); background: color-mix(in srgb, var(--color-slate-500) 12%, transparent); }
+.block-feedback small { display: block; margin-top: 0.35rem; color: var(--color-slate-500); }
+
+.block-feedback-mark { margin-right: 0.4rem; font-weight: 700; }
+.block-feedback.is-ok .block-feedback-mark { color: var(--color-correct); }
+.block-feedback.is-retry .block-feedback-mark { color: var(--color-slate-400); }
+
+.block-outcome { font-size: 0.9rem; color: var(--color-slate-400); }
+
+/* ── Intento genuino ───────────────────────────────────────────────────── */
+
+.block-attempt-response {
+  margin-top: 0.85rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border-inline-start: 3px solid var(--zone-explore);
+  background: color-mix(in srgb, var(--zone-explore) 10%, transparent);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+/* ── Ejemplos resueltos ────────────────────────────────────────────────── */
+
+.block-example,
+.block-trap {
+  padding: 1.25rem;
+  border: 1px solid var(--color-slate-700);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.block-example > span,
+.block-trap header span:first-of-type {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--zone-color);
+}
+
+.block-example h3, .block-trap h3 { margin: 0.3rem 0 0.6rem; font-size: 1.05rem; }
+.block-example p, .block-trap p { color: var(--color-slate-400); line-height: 1.6; }
+
+.block-example-steps { margin: 0.9rem 0 0; padding-inline-start: 1.2rem; }
+.block-example-steps li { margin-bottom: 0.55rem; line-height: 1.6; }
+.block-step-faded { color: var(--color-slate-500); }
+
+.block-step-more,
+.block-trap-toggle {
+  margin-top: 0.75rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px dashed var(--color-slate-600);
+  border-radius: 999px;
+  background: none;
+  color: var(--zone-color);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.block-example-solution {
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-slate-700);
+  color: var(--color-slate-300) !important;
+}
+
+.block-self-explanation { margin-top: 0.7rem; }
+.block-self-explanation label { display: block; font-size: 0.85rem; color: var(--zone-color); margin-bottom: 0.35rem; }
+.block-self-explanation textarea {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--color-slate-700);
+  border-radius: 10px;
+  background: var(--canvas);
+  color: inherit;
+  resize: vertical;
+}
+
+/* ── Trampa: color e icono RESERVADOS ──────────────────────────────────── */
+
+.block-trap { border-color: color-mix(in srgb, var(--zone-trap) 50%, transparent); }
+.block-trap header { display: flex; gap: 0.75rem; align-items: flex-start; }
+.block-trap header > span { font-size: 1.35rem; color: var(--zone-trap); line-height: 1; }
+.block-trap header span:first-of-type { color: var(--zone-trap); }
+
+.block-confidence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+  padding: 0.8rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-slate-500) 10%, transparent);
+}
+
+.block-confidence label { flex-basis: 100%; font-size: 0.85rem; color: var(--color-slate-300); }
+.block-confidence input[type="range"] { flex: 1; min-width: 8rem; accent-color: var(--zone-color); }
+.block-confidence output { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 3rem; }
+
+.block-trap-signal { margin-top: 0.9rem; }
+.block-trap-signal p { font-size: 0.9rem; }
+
+.block-trap-contrast { margin-top: 0.85rem; display: grid; gap: 0.75rem; }
+.block-trap-contrast .wrong, .block-trap-contrast .right {
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border-inline-start: 3px solid;
+}
+.block-trap-contrast .wrong { border-color: var(--zone-trap); background: color-mix(in srgb, var(--zone-trap) 10%, transparent); }
+.block-trap-contrast .right { border-color: var(--color-correct); background: color-mix(in srgb, var(--color-correct) 10%, transparent); }
+.block-trap-contrast .wrong span, .block-trap-contrast .right span { display: block; font-size: 0.72rem; margin-bottom: 0.3rem; }
+.block-trap-contrast ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.4rem; }
+.block-trap-contrast li { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.85rem; color: var(--color-slate-400); }
+
+/* ── Puente ────────────────────────────────────────────────────────────── */
+
+.block-bridge-item {
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--color-slate-700);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.block-bridge-item + .block-bridge-item { margin-top: 1rem; }
+.block-bridge-item ol { margin: 0.8rem 0 0; padding-inline-start: 1.2rem; }
+.block-bridge-item li { margin-bottom: 0.6rem; }
+.block-bridge-blank { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.block-bridge-mark { font-size: 0.85rem; color: var(--color-slate-400); }
+.block-bridge-mark.is-ok { color: var(--color-correct); font-weight: 700; }
+
+/* ── Comparación de métodos ────────────────────────────────────────────── */
+
+.block-methods-grid { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .block-methods-grid { grid-template-columns: 1fr 1fr; } }
+
+.block-methods-grid article {
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--color-slate-700);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.block-methods-grid article > span { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zone-color); }
+.block-methods-grid ol { margin: 0.7rem 0; padding-inline-start: 1.2rem; }
+.block-methods-grid li { margin-bottom: 0.4rem; }
+.block-methods-grid p { font-size: 0.85rem; color: var(--color-slate-400); }
+
+.block-methods blockquote {
+  margin-top: 1rem;
+  padding-inline-start: 0.9rem;
+  border-inline-start: 3px solid var(--zone-color);
+  color: var(--color-slate-300);
+  line-height: 1.6;
+}
+
+.block-methods-insight { margin-top: 0.75rem; font-size: 0.9rem; color: var(--color-slate-400); line-height: 1.6; }
+
+/* ── Cierre ────────────────────────────────────────────────────────────── */
+
+.block-thumbnails { display: flex; gap: 1.25rem; flex-wrap: wrap; margin: 0.9rem 0; }
+
+.block-polya-steps { margin: 0.9rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.6rem; }
+.block-polya-steps li {
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border-inline-start: 3px solid var(--zone-color);
+  background: color-mix(in srgb, var(--zone-color) 8%, transparent);
+  line-height: 1.55;
+}
+.block-polya-steps li span {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--zone-color);
+  margin-bottom: 0.25rem;
+}
+
+/* ── Footer: estado de dominio, nunca % de lectura ─────────────────────── */
+
+.block-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-slate-700);
+}
+
+.block-footer span { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-slate-500); }
+.block-footer small { display: block; margin-top: 0.3rem; font-size: 0.78rem; color: var(--color-slate-500); }
+.block-mastery { font-size: 1.1rem; font-weight: 700; margin-top: 0.2rem; }
+.block-mastery.is-sin_ayuda { color: var(--color-correct); }
+.block-mastery.is-consolidacion { color: var(--zone-work); }
+.block-mastery.is-repasar { color: var(--color-slate-400); }
+
+@media (prefers-reduced-motion: reduce) {
+  .block-options button { transition: none; }
+}
+
+/* Diagnóstico: acuse de recibo, nunca corrección ni nota. */
+.block-feedback.is-noted {
+  border-color: var(--zone-explore);
+  background: color-mix(in srgb, var(--zone-explore) 10%, transparent);
+  color: var(--color-slate-400);
+}
+
+/* Trampa: la secuencia de 3 pasos tiene que verse como secuencia. */
+.block-trap-step {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--color-slate-700);
+  border-radius: 12px;
+  opacity: 0.55;
+}
+.block-trap-step.is-active { opacity: 1; border-color: color-mix(in srgb, var(--zone-trap) 45%, transparent); }
+.block-trap-step.is-done { opacity: 1; }
+.block-trap-step h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
+}
+.block-trap-step h4 span {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--zone-trap) 22%, transparent);
+  color: var(--zone-trap);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.block-trap-step.is-done h4 span { background: color-mix(in srgb, var(--color-correct) 22%, transparent); color: var(--color-correct); }
+.block-trap-hint { display: block; margin-top: 0.4rem; color: var(--color-slate-500); font-size: 0.78rem; }
+.block-trap-resolution {
+  margin-top: 0.9rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: 10px;
+  border-inline-start: 3px solid var(--color-correct);
+  background: color-mix(in srgb, var(--color-correct) 10%, transparent);
+}
+.block-trap-resolution span { display: block; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-correct); margin-bottom: 0.3rem; }
+.block-trap-resolution p { margin: 0; line-height: 1.6; }
+.block-self-explanation button { margin-top: 0.55rem; }
+
+/* ── Renderer genérico de 11 bloques ─────────────────────────────────────── */
+.eleven-block-shell { width: min(100%, 1120px); }
+.blk-heading { max-width: 760px; }
+.blk-heading h1 { max-width: min(100%, 22ch); margin: 0; font-family: var(--font-display); font-size: clamp(40px, 6vw, 68px); line-height: 1.02; letter-spacing: -.05em; text-wrap: balance; }
+.blk-heading > p { max-width: 58ch; margin: 20px 0 0; color: var(--dim); font-size: clamp(16px, 2vw, 19px); line-height: 1.65; }
+.blk-cases { display: grid; gap: 14px; margin-top: 18px; }
+@media (min-width: 720px) { .blk-cases { grid-template-columns: 1fr 1fr; } }
+/* `min-width: 0` para que la celda del grid pueda encogerse por debajo de su
+   contenido, y `overflow-x` para que una fórmula EN LÍNEA más ancha que la
+   tarjeta scrollee aquí en vez de derramarse sobre la columna. A `.math-display`
+   no le hace falta —ya scrollea— pero a la inline no se le puede poner overflow
+   sin mover la línea base de toda la matemática intercalada en un párrafo. */
+.blk-cases > div { min-width: 0; overflow-x: auto; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--canvas); }
+.blk-cases > div > span { color: var(--accent-2); font: 800 10px var(--font-body); text-transform: uppercase; letter-spacing: .1em; }
+.blk-cases > div > p { margin: 6px 0 12px; color: var(--dim); font-size: 14px; }
+.blk-cases small { display: block; margin-top: 10px; color: var(--dim); font-size: 13px; line-height: 1.5; }
+/* Una fórmula suelta dentro de una tarjeta estrecha se lleva su propio scroll:
+   como hija directa empujaba el ancho del div y arrastraba consigo al texto,
+   que quedaba cortado a media palabra. `\text{}` de KaTeX no parte líneas. */
+.blk-cases > div > .math-rendered,
+.block-methods-grid li > .math-rendered,
+.block-bridge-item li > .math-rendered {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.blk-resolution { margin-top: 18px; color: var(--dim); line-height: 1.65; }
+/* Símbolo y significado van en la misma línea SOLO si al significado le quedan
+   al menos 18 caracteres. Con `grid-template-columns: minmax(64px, auto) 1fr`
+   una fórmula larga se comía la fila y dejaba la descripción en 52px partida en
+   ocho líneas. Con flex-basis en `ch`, la descripción salta sola a la línea de
+   abajo cuando no cabe, y ahí dispone del ancho completo. */
+.blk-symbols { margin: 16px 0 0; display: grid; gap: 8px; }
+.blk-symbols > div { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.blk-symbols dt { flex: 0 1 auto; max-width: 100%; overflow-x: auto; font-size: 18px; }
+.blk-symbols dd { flex: 1 1 18ch; margin: 0; color: var(--dim); font-size: 14px; line-height: 1.5; }
+.blk-practice h2 { margin: 0 0 14px; font-family: var(--font-display); font-size: clamp(22px, 3vw, 30px); }
+.blk-practice > .block-item + .block-item { margin-top: 12px; }
+.blk-closure > span { color: var(--accent-2); font: 800 10px var(--font-body); text-transform: uppercase; letter-spacing: .1em; }
+.blk-closure h2 { margin: 8px 0 10px; font-family: var(--font-display); font-size: clamp(22px, 3vw, 30px); }
+.blk-closure table { width: 100%; margin-top: 16px; border-collapse: collapse; }
+.blk-closure th, .blk-closure td { padding: 12px 10px; border-top: 1px solid var(--border); text-align: left; vertical-align: middle; font-size: 14px; color: var(--dim); }
+.blk-closure th { width: 1%; white-space: nowrap; font-size: 20px; color: var(--text); }
+.blk-closure th small { display: block; font-size: 11px; color: var(--dim); }
+.blk-closure tr.is-yes td:nth-child(2) { color: var(--color-correct); font-weight: 800; font-size: 18px; }
+.blk-closure tr.is-no td:nth-child(2) { color: var(--dim); font-weight: 800; font-size: 18px; }
+.blk-closure tr.is-partial td:nth-child(2) { color: var(--color-partial); font-weight: 800; font-size: 18px; }

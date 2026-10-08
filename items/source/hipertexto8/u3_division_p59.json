@@ -1,0 +1,385 @@
+[
+  {
+    "id": "HT8-U3-P59-EJb",
+    "tipo": "simbolico",
+    "enunciado": "Divide: $\\left(-\\dfrac{2}{3}m^6n^4-\\dfrac{1}{2}m^2n^5\\right)\\div\\left(\\dfrac{2}{3}m^2n\\right)$.",
+    "expr": "(-2/3*m**6*n**4 - 1/2*m**2*n**5)/(2/3*m**2*n)",
+    "respuesta": "-m**4*n**3 - 3/4*n**4",
+    "conjunto": "Q",
+    "seccion": "Ejemplo resuelto b — División de polinomio entre monomio",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Ejemplo b resuelto en el texto",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "nota": "Ejemplo del propio libro con sus cuatro pasos: repartir el divisor entre cada término, dividir coeficientes, restar exponentes y simplificar. El segundo término deja $m^{2-2}=m^0=1$, y por eso la $m$ desaparece: es el detalle que el texto marca explícitamente.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U3-P59-A1a",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $15x^3\\div(-3x^2)$.",
+    "expr": "15*x**3/(-3*x**2)",
+    "respuesta": "-5*x",
+    "conjunto": "Z",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 1, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Caso mínimo: los coeficientes se dividen ($15\\div(-3)=-5$) y los exponentes se RESTAN ($3-2=1$). Es la operación inversa del producto de la p. 53.",
+    "dificultad": 850
+  },
+  {
+    "id": "HT8-U3-P59-A1b",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $18a^6b^2\\div 6a^4b$.",
+    "expr": "18*a**6*b**2/(6*a**4*b)",
+    "respuesta": "3*a**2*b",
+    "conjunto": "Z",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 1, ítem b",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U3-P59-A1c",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $-4x^5y^4\\div 30x^3y^2$.",
+    "expr": "-4*x**5*y**4/(30*x**3*y**2)",
+    "respuesta": "-2/15*x**2*y**2",
+    "conjunto": "Q",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 1, ítem c",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$-4\\div30=-\\dfrac{2}{15}$: la división de coeficientes no siempre da entero, y la fracción hay que simplificarla ($\\dfrac{4}{30}=\\dfrac{2}{15}$).",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U3-P59-A1d",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $\\dfrac{3}{4}a^3b^8c^4\\div\\dfrac{9}{8}ab^6c^7$.",
+    "expr": "(3/4*a**3*b**8*c**4)/(9/8*a*b**6*c**7)",
+    "respuesta": "2*a**2*b**2/(3*c**3)",
+    "conjunto": "Q",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 1, ítem d",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{2a^2b^2}{3c^3}$. Es el único ítem de la actividad cuyo resultado no es un monomio: al restar los exponentes de $c$ sale $4-7=-3$. Convenio adoptado en toda la transcripción: **como el libro todavía no ha presentado los exponentes negativos, el resultado se escribe como fracción algebraica** y no como $c^{-3}$. Sirve muy bien para preguntar por qué la división de monomios no siempre da un monomio.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U3-P59-A1e",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $-75a^{x+1}b^{2x}\\div 15a^{x-2}b^{x+1}$.",
+    "expr": "(-75*a**(x+1)*b**(2*x))/(15*a**(x-2)*b**(x+1))",
+    "respuesta": "-5*a**3*b**(x-1)",
+    "conjunto": "Z",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 1, ítem e",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Exponentes literales: $(x+1)-(x-2)=3$, así que la $x$ se cancela y queda $a^3$ con exponente numérico. En la $b$: $2x-(x+1)=x-1$. Restar exponentes con paréntesis evita el error de signo.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U3-P59-A1f",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $(48a^3+6a^2)\\div 6a^2$.",
+    "expr": "(48*a**3 + 6*a**2)/(6*a**2)",
+    "respuesta": "8*a + 1",
+    "conjunto": "Z",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 1, ítem f",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Primera división de polinomio entre monomio: se reparte el divisor entre los DOS términos. El segundo da $6a^2\\div6a^2=1$, no $0$ — es el error más común de toda la actividad.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U3-P59-A1g",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $(-3x^3y^5z^7-8x^5y^7z^4)\\div(-2x^2y^3z^4)$.",
+    "expr": "(-3*x**3*y**5*z**7 - 8*x**5*y**7*z**4)/(-2*x**2*y**3*z**4)",
+    "respuesta": "3/2*x*y**2*z**3 + 4*x**3*y**4",
+    "conjunto": "Q",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 1, ítem g",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Divisor negativo: los dos términos cambian de signo y el resultado queda positivo. En el segundo, $z^{4-4}=z^0=1$ y la $z$ desaparece.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U3-P59-A1h",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $(36a^5b^7-63a^7b^5+45a^6b^6-108a^4b^8)\\div 9a^3b^5$.",
+    "expr": "(36*a**5*b**7 - 63*a**7*b**5 + 45*a**6*b**6 - 108*a**4*b**8)/(9*a**3*b**5)",
+    "respuesta": "4*a**2*b**2 - 7*a**4 + 5*a**3*b - 12*a*b**3",
+    "conjunto": "Z",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 1, ítem h",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Cuatro términos, cuatro divisiones. El segundo deja $b^{5-5}=b^0=1$, de ahí que $-7a^4$ salga sin $b$. Todos los exponentes del dividendo superan a los del divisor, así que el cociente es polinomio.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U3-P59-A1i",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $(-5x^{n+2}y^{n+1}-2x^{n+1}y^{n+2})\\div 3x^ny^n$.",
+    "expr": "(-5*x**(n+2)*y**(n+1) - 2*x**(n+1)*y**(n+2))/(3*x**n*y**n)",
+    "respuesta": "-5/3*x**2*y - 2/3*x*y**2",
+    "conjunto": "Q",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 1, ítem i",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El $n$ se cancela en los cuatro exponentes: $(n+2)-n=2$, $(n+1)-n=1$. Un cociente con exponentes literales puede quedar completamente numérico, y eso es justo lo que hace interesante al ítem.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U3-P59-A1j",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $(5mn+30m^2n^3+5mn^2)\\div 5mn$.",
+    "expr": "(5*m*n + 30*m**2*n**3 + 5*m*n**2)/(5*m*n)",
+    "respuesta": "1 + 6*m*n**2 + n",
+    "conjunto": "Z",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 1, ítem j",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El primer término es idéntico al divisor, así que da $1$. Vuelve a aparecer la trampa del ítem f, ahora en primera posición donde es más fácil pasarla por alto.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U3-P59-A1k",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $(2x^2y+4x^2y^2+8x^2y^3)\\div xy$.",
+    "expr": "(2*x**2*y + 4*x**2*y**2 + 8*x**2*y**3)/(x*y)",
+    "respuesta": "2*x + 4*x*y + 8*x*y**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 1, ítem k",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "El divisor no tiene coeficiente escrito ($1xy$), así que los coeficientes $2$, $4$ y $8$ pasan intactos.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U3-P59-A1l",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división: $(9ab-18a^2b^2+36a^2b^3)\\div 3ab$.",
+    "expr": "(9*a*b - 18*a**2*b**2 + 36*a**2*b**3)/(3*a*b)",
+    "respuesta": "3 - 6*a*b + 12*a*b**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 1, ítem l",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "El primer término deja $a^0b^0=1$ y solo sobrevive el coeficiente $3$: un término independiente aparecido de una división entre letras.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U3-P59-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Completa la división: $-8x^3\\div 4x^{\\square}=\\square x$. Verifica la identidad ya completada.",
+    "expr": "-8*x**3/(4*x**2)",
+    "respuesta": "-2*x",
+    "conjunto": "Z",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 2, ítem a",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "Cuadros: $x^2$ en el divisor y $-2$ en el cociente. El exponente sale de $3-\\square=1$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U3-P59-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Completa la división: $7a^5b^6\\div(-21a^3b^{\\square})=-\\square a^{\\square}b^2$. Verifica la identidad ya completada.",
+    "expr": "7*a**5*b**6/(-21*a**3*b**4)",
+    "respuesta": "-1/3*a**2*b**2",
+    "conjunto": "Q",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 2, ítem b",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Cuadros: $b^4$ en el divisor; $\\dfrac{1}{3}$ y $a^2$ en el cociente. El signo menos ya está impreso delante del cuadro, así que este guarda solo $\\dfrac{1}{3}$. $7\\div21=\\dfrac{1}{3}$, no $3$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U3-P59-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Completa la división: $\\square x^4y^3\\div 17x^{\\square}y^{\\square}=-3xy$. Verifica la identidad ya completada.",
+    "expr": "-51*x**4*y**3/(17*x**3*y**2)",
+    "respuesta": "-3*x*y",
+    "conjunto": "Z",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 2, ítem c",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Cuadros: $-51$ en el dividendo, $x^3$ y $y^2$ en el divisor. Se resuelve al revés, multiplicando: $-3\\cdot17=-51$. Es el único ítem donde falta el dividendo y no el cociente.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U3-P59-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Completa la división: $-6a^{3x-1}b^{2x+2}\\div\\square a^{x-1}b^{x-3}=-\\dfrac{1}{2}\\ldots$ Verifica la identidad ya completada.",
+    "expr": "-6*a**(3*x-1)*b**(2*x+2)/(12*a**(x-1)*b**(x-3))",
+    "respuesta": "-Rational(1,2)*a**(2*x)*b**(x+5)",
+    "conjunto": "Q",
+    "seccion": "Actividades — División",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 2, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El cuadro es $12$, y el cociente completo es $-\\dfrac{1}{2}a^{2x}b^{x+5}$. El coeficiente sale de $\\dfrac{-6}{\\square}=-\\dfrac{1}{2}$; los exponentes, restando: $(3x-1)-(x-1)=2x$ y $(2x+2)-(x-3)=x+5$.",
+    "erratum": "El libro imprime los exponentes de la letra a al reves: dividendo a^(x-1) y divisor a^(3x-1). Restando en ese orden queda a^(-2x), un exponente negativo, y los exponentes negativos no se han presentado todavia en el libro, asi que el cociente no era un monomio y el item no tenia respuesta valida a esa altura. Corregido intercambiando los dos exponentes de a, que es lo unico que hace falta: los de b ya daban positivo.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U3-P59-A3a",
+    "tipo": "simbolico",
+    "enunciado": "Un triángulo tiene área $A=12x^2-9x$ y base $3x$. Determina su altura.",
+    "expr": "2*(12*x**2 - 9*x)/(3*x)",
+    "respuesta": "8*x - 6",
+    "conjunto": "Z",
+    "seccion": "Actividades — Soluciona problemas",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 3, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "figura": "triángulo con base 3x y altura h punteada — reconstruible en Python",
+    "nota": "De $A=\\dfrac{b\\cdot h}{2}$ se despeja $h=\\dfrac{2A}{b}$. El 2 va al NUMERADOR: olvidarlo da $4x-3$, que es la mitad de la respuesta correcta.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U3-P59-A3b",
+    "tipo": "simbolico",
+    "enunciado": "Un triángulo tiene área $A=72x^2+24x$ y base $8x$. Determina su altura.",
+    "expr": "2*(72*x**2+24*x)/(8*x)",
+    "respuesta": "18*x+6",
+    "conjunto": "Q",
+    "seccion": "Actividades — Soluciona problemas",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 3, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "triángulo obtusángulo con base 8x y altura exterior punteada — reconstruible en Python",
+    "nota": "La altura es $18x+6$. De $A=\\dfrac{b\\cdot h}{2}$ se despeja $h=\\dfrac{2A}{b}=\\dfrac{144x^2+48x}{8x}=18x+6$. El factor $2$ es el que más se olvida: sin él sale la mitad.",
+    "erratum": "El libro imprime el area como 72x^2 + 24, sin la x en el segundo termino. Con ese enunciado la altura sale 18x + 6/x, que no es un polinomio, porque 24 no es divisible entre 8x. Corregido a 72x^2 + 24x, un solo caracter, con lo que la division es exacta y la altura queda 18x + 6.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U3-P59-A4",
+    "tipo": "simbolico",
+    "enunciado": "El volumen de una pirámide de base cuadrada está dado por $4x^3-2x^2+8x$ y su altura es $4x$. Determina el área de la base.",
+    "expr": "3*(4*x**3 - 2*x**2 + 8*x)/(4*x)",
+    "respuesta": "3*x**2 - 3/2*x + 6",
+    "conjunto": "Q",
+    "seccion": "Actividades — Soluciona problemas",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 4 (Soluciona problemas)",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "figura": "pirámide de base cuadrada con aristas ocultas punteadas — reconstruible en Python",
+    "nota": "De $V=\\dfrac{B\\cdot h}{3}$ sale $B=\\dfrac{3V}{h}$. El factor es $3$, no $\\dfrac{1}{3}$: es el error que convierte la pirámide en prisma. Que el dato «base cuadrada» no se use para nada en el cálculo es una buena pregunta de discusión.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U3-P59-A5",
+    "tipo": "simbolico",
+    "enunciado": "Un rectángulo tiene área $A=-8x^{3n}y^n+2x^{3n}y^{3n}$ y base $x^{2n}y^n$. Determina su altura.",
+    "expr": "(-8*x**(3*n)*y**n + 2*x**(3*n)*y**(3*n))/(x**(2*n)*y**n)",
+    "respuesta": "-8*x**n + 2*x**n*y**(2*n)",
+    "conjunto": "Z",
+    "seccion": "Actividades — Soluciona problemas",
+    "unidad": 3,
+    "pagina_pdf": 59,
+    "referencia": "Actividad 5 (Soluciona problemas)",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "figura": "rectángulo con el área rotulada dentro y la base x^{2n}y^n acotada abajo — reconstruible en Python",
+    "nota": "Rectángulo: $h=\\dfrac{A}{b}$, sin factor extra (a diferencia del triángulo y la pirámide de esta misma página). Exponentes: $3n-2n=n$ y $3n-n=2n$; en el primer término la $y$ desaparece porque $n-n=0$.",
+    "dificultad": 1500
+  }
+]

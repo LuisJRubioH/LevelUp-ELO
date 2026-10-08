@@ -1,5 +1,9 @@
 # Documento Técnico — LevelUp-ELO V2
 
+> **Documento histórico (mayo de 2026).** Describe el estado durante los sprints de V2, no
+> el actual. La referencia técnica vigente es
+> [arquitectura.md](arquitectura.md). Se conserva por trazabilidad.
+
 **Estado:** Sprints 1-8 + Sprint C completos ✅ — V2 etiquetada como `v2.0.0` (commit `c791054`, 2026-05-18).
 **Última actualización:** 2026-05-18
 **Autor:** Luis Rubio

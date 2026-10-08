@@ -1,0 +1,82 @@
+{
+  "tool": "built-in image_gen",
+  "reference": "Implementacion/image-prompts/referencias/katia-primer-plano-enteros.png",
+  "base": "Create one standalone landscape 16:9 narrative educational illustration. Refined 16/32-bit PIXEL ART with clearly visible pixel clusters, stepped edges, block shading, subtle dithering. Match attached image as KatIA FACE and pixel-art reference only. Adult white anthropomorphic female cat, orange/black asymmetric head patch, silver ear piercings, natural green eye on VIEWER RIGHT, teal mechanical ocular on VIEWER LEFT. IMPORTANT override reference arm if needed: her ANATOMICAL LEFT arm is completely robotic from upper arm through wrist, hand AND all fingers, on VIEWER RIGHT in a frontal pose; anatomical RIGHT arm/hand organic white fur on VIEWER LEFT. Ocular and robotic arm are on opposite sides. Greek ivory tunic, purple mantle, gold ornaments. Adult proportions, no chibi. All supporting people are anthropomorphic cats in Greek tunics/aprons. Warm Greek ashlar stone, wooden lintels, deep night-blue shadows, golden oil lamplight, restrained teal. NO stalls, awnings, market, merchants, text, numbers, formulas, signs, watermarks, smooth painting, humans, neon. Stairs have no marks or runes. Show narrative situation without a countable arrangement revealing an arithmetic answer. Clean paws in dry locations. ",
+  "scenes": [
+    {
+      "file": "e00-hub-mercado-v4.png",
+      "prompt": "Contained mid-distance view of a sloping Greek cobbled street at dusk with six civic trades recognizable through architecture: two-story public granary high hatch and pulley; counting house double wooden door and barred window; mosaic workshop open door showing tessera drawers and worktable; communal dining hall open doors and smoke vent; greenhouse misted glass roof; quarry cut and timber pulley at street end. KatIA foreground waist up frontal, robotic LEFT arm (viewer right) inviting toward street. Readable buildings, intimate street, not tourist panorama.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e00-ice1-ladrillos-v4.png",
+      "prompt": "Street construction outside Greek stone buildings at dusk. Bricklayer cat stacking partly occluded bricks beside unfinished wall, mortar tools and wooden scaffold. KatIA medium shot observes, robotic LEFT hand viewer right gesturing toward construction. Brick rows extend outside frame and are partly covered, no exact count.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e00-ice2-tejas-v4.png",
+      "prompt": "Street construction at dusk: foreground roof tiles in overlapping grouped stacks compared with loose heap, both partly obscured/cropped to prevent counting. Roofer cat kneeling beside workbench, KatIA medium shot pointing with her LEFT robotic hand viewer right. Ashlar house and unfinished roof background.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e00-ice3-puestos-v4.png",
+      "prompt": "Contained view along Greek civic street with six distinct building gates, some wooden doors open showing warm working interiors, others closed. Architectural trades include granary hatch, counting house barred window, mosaic drawers, dining hall smoke, greenhouse glass, quarry gate. KatIA waist-up foreground gestures with robotic LEFT arm viewer right. No market stalls. Gate access scene without math solution.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e01-suma-katia-v4.png",
+      "prompt": "Interior Public Granary at night, tall ashlar hall with sacks stacked on two levels partly occluded, wooden ramp, large floor balance. Wax tablet by doorway has two columns of indistinct scored strokes, not readable numerals. KatIA medium shot frontal rests fully metallic LEFT hand viewer right beside tablet; doubtful grey-tunic scribe cat holds stylus. Unloading cart suggested background. Hanging oil lamp only warm source. Dry clean stone and paws, no mud.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e02-resta-katia-v4.png",
+      "prompt": "Counting House narrow stone hall with iron strongboxes at back. Wall of blank hanging tablets crossed by one especially readable horizontal engraved line, tablets above and below. Old tabby accountant dark tunic hesitates holding tablet just below line; young customer cat carries pouch. KatIA side foreground in near frontal pose studies line, LEFT robotic arm viewer right visible. Oil lamp. No numbers including zero.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e03-multiplicacion-katia-v4.png",
+      "prompt": "Mosaic Workshop long tables with incomplete partly cloth-covered tessera rows, drawers sorted colors, storeroom shelves beyond plain steps. Aproned apprentice cat descending with empty basket, older calico master holding large template. KatIA medium shot frontal places fully robotic LEFT hand viewer right on smaller half-scale wooden reduction template. Grazing lamplight, no countable full grid.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e04-division-katia-v4.png",
+      "prompt": "Communal Dining Hall night service, long tables and benches receding, steaming cauldron over fire at back, hanging ladle. Loaves whole and halved partly occluded at front, knife resting safely beside. Cook cat signals cutting; concerned young helper holds blank slate. KatIA medium shot frontal fully metallic LEFT hand viewer right rests on bread half. Steam warm firelight blue shadows, no countable diners or loaves.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e04-reparto-residuo-v4.png",
+      "prompt": "Close narrative detail in communal dining hall: a remaining loaf partly cut into two, safe resting bread knife beside, anthropomorphic cat hands reaching to share. KatIA shown partially upper body near front, clearly connected metallic LEFT arm and fingers viewer right helping share loaf, organic RIGHT hand viewer left. Warm firelight, blurred tables behind. No exact portion-count arrangement.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e05-potenciacion-katia-v4.png",
+      "prompt": "Greenhouse interior fogged glass roof and wooden beams, germination trays on stone benches, copper watering can. Background cuttings overflow trays and spill onto floor; foreground cuttings still fit, overlapping not countable. Gardener cat stained apron drooping ears. KatIA medium shot frontal beside hanging wooden log with indistinct notches by door, LEFT robotic arm viewer right. Filtered moonlight warm lamp.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e05-crecimiento-niveles-v4.png",
+      "prompt": "Greenhouse detail two adjacent stone benches of germination trays: one orderly evenly spaced cuttings partly occluded, other dense overflowing cuttings cascading over tray edge. No figures or characters. Misted glass wood roof, copper watering can cropped, moonlight with warm oil lamp. Contrast growth visually without countable solution.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e05-exponente-negativo-v4.png",
+      "prompt": "Greenhouse close-up wooden tally log hanging by door, abstract carved notches visibly decreasing in size toward the LEFT, no digits letters arrows or formulas. Soft context of germination trays and misted glass roof, moonlight and warm lamp. No characters, tactile pixelated wood, readable subtle notch progression, not an equation.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e06-radicacion-katia-v4.png",
+      "prompt": "Outdoor Quarry at nightfall, pale stepped stone cut, timber pulley taut rope, chisels and mallets on rock ledge, hanging plumb foreground. Two square slabs different sizes and rejected splintered slab. Burly grey stonecutter cat lowered mallet regards failed slab. KatIA medium shot frontal fully robotic LEFT hand viewer right holds rope stretched diagonally across square slab. Deep blue sky torchlight, no measures or numbers.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e06-cuadrado-perfecto-v4.png",
+      "prompt": "Top-down close detail quarry square stone slab seated precisely in matching square recess, thin shadow shows fit. Chisel and mallet on adjacent rough stone, coiled rope partly cropped. No characters, no grids or markings. Warm torchlight across pale rock blue dusk shadows. Clear square geometry, natural tactile pixel art. This asset is STRICTLY an object detail with NO KatIA, no faces, no bodies, no hands. Reference is ONLY for pixel art treatment.",
+      "status": "generated-reviewed-installed"
+    },
+    {
+      "file": "e06-raiz-no-entera-v4.png",
+      "prompt": "Quarry high-angle close detail taut rope diagonally from corner to opposite corner of a square stone slab. A simple wooden measuring rule beside rope has sparse unnumbered tick marks, rope end falls between marks rather than on mark. No readable numbers or mathematical annotation, no characters. Warm torchlight, blue night shadows, crisp square geometry. This asset is STRICTLY an object detail with NO KatIA, no faces, no bodies, no hands. Reference is ONLY for pixel art treatment.",
+      "status": "generated-reviewed-installed"
+    }
+  ]
+}

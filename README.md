@@ -1,342 +1,383 @@
-# LevelUp-ELO
+# Oulad
 
-> Plataforma de evaluación y aprendizaje adaptativo basada en el sistema de rating **ELO** — el mismo del ajedrez competitivo — aplicado a la educación matemática.
+> Plataforma educativa adaptativa de matemáticas. Un motor **ELO** —el del
+> ajedrez— mide el nivel de cada estudiante por tema y le sirve siempre el reto
+> del tamaño correcto. Encima, una ruta de 60 lecciones narradas que enseñan el
+> concepto en vez de solo medirlo.
 
-[![CI](https://github.com/LuisJRubioH/LevelUp-ELO/actions/workflows/ci.yml/badge.svg)](https://github.com/LuisJRubioH/LevelUp-ELO/actions/workflows/ci.yml)
-[![Versión](https://img.shields.io/badge/versión-2.1.0-blue)](https://github.com/LuisJRubioH/LevelUp-ELO)
 [![Python](https://img.shields.io/badge/python-3.11+-green)](https://www.python.org/)
 [![React](https://img.shields.io/badge/react-19-61DAFB)](https://react.dev/)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-orange)](LICENSE)
 
-**V1 (Streamlit):** [levelup-elo-9yg9ewez4smvlylgwcls2q.streamlit.app](https://levelup-elo-9yg9ewez4smvlylgwcls2q.streamlit.app)
-**V2 (React + FastAPI):** [luislevelupelo.vercel.app](https://luislevelupelo.vercel.app)
+> **Este repo es el playground del rediseño**, no producción. Aquí se
+> reestructura el frontend y se construye contenido nuevo antes de portarlo al
+> repo de producción (`LuisJRubioH/LevelUp-ELO`, donde la plataforma todavía se
+> llama LevelUp-ELO). El port a producción está **bloqueado hasta el visto bueno
+> del equipo**.
+>
+> **This repository is a development copy and is not deployed.** Pushing or
+> merging here deploys nothing and migrates no remote database. The owner
+> transfers finished work to the final deployment repository by hand — see
+> [Deployment](#deployment) and [docs/transfer.md](docs/transfer.md).
 
 ---
 
 ## Tabla de contenidos
 
 - [Qué es](#qué-es)
-- [Características principales](#características-principales)
+- [Lo que hay construido](#lo-que-hay-construido)
 - [Arquitectura](#arquitectura)
-- [Motor ELO — Cómo funciona](#motor-elo--cómo-funciona)
+- [Motor ELO](#motor-elo)
+- [La ruta de aprendizaje](#la-ruta-de-aprendizaje)
 - [Banco de preguntas](#banco-de-preguntas)
-- [Roles de usuario](#roles-de-usuario)
+- [Roles](#roles)
 - [Instalación local](#instalación-local)
-- [Despliegue en producción](#despliegue-en-producción)
 - [Variables de entorno](#variables-de-entorno)
-- [CI/CD](#cicd)
-- [Tests](#tests)
+- [Deployment](#deployment)
+- [Tests y CI](#tests-y-ci)
 - [Usuarios de prueba](#usuarios-de-prueba)
-- [Versiones](#versiones)
+- [Documentación](#documentación)
+- [Qué queda pendiente](#qué-queda-pendiente)
 
 ---
 
 ## Qué es
 
-LevelUp-ELO mide el nivel de cada estudiante en tiempo real: cada respuesta actualiza simultáneamente el rating del alumno y el de la pregunta. El sistema siempre sirve el reto correcto — ni tan fácil que aburra, ni tan difícil que frustre — usando la **Zona de Desarrollo Próximo (ZDP)** como criterio de selección.
+Cada respuesta actualiza dos ratings a la vez: el del estudiante y el de la
+pregunta. Con eso, la plataforma sabe en todo momento qué pregunta cae en la
+**Zona de Desarrollo Próximo** de cada persona — ni tan fácil que aburra, ni tan
+difícil que frustre — y la sirve.
 
-Incluye tres roles (estudiante, docente, admin), un banco de +1.900 preguntas, revisión de procedimientos manuscritos con IA y KatIA, una tutora socrática con personalidad propia.
+Audiencia: semillero matemático (grados 6°–11°), colegio, universidad y adultos
+preparando concursos públicos (DIAN, SENA) en Colombia. Estudiantes desde el
+celular, docentes desde el escritorio.
 
 ---
 
-## Características principales
+## Lo que hay construido
 
-### Motor ELO adaptativo
-- **ELO vectorial por tópico**: cada estudiante mantiene un rating independiente por tema, no uno global. Detecta fortalezas y debilidades con precisión quirúrgica.
-- **Factor K dinámico**: el peso de cada respuesta cambia según la experiencia del estudiante (K=40 → 32 → 16/24), acelerando la convergencia.
-- **Rating Deviation tipo Glicko**: incertidumbre por tópico (RD inicial=350, mín=30). A mayor RD, mayor variación del rating; decrece con la práctica.
-- **Selector ZDP con Fisher Information**: elige la pregunta que maximiza el aprendizaje. P(éxito) objetivo: [0.40, 0.75]. Expansión progresiva si no hay candidatos.
+### Motor adaptativo
+- **ELO vectorial por tópico** — un rating independiente por tema, no uno global.
+- **Factor K por incertidumbre** — el peso de cada respuesta se escala con la
+  RD del estudiante: `K = 32 × (RD / 350)`, así que las primeras respuestas
+  mueven mucho y luego el rating se asienta. (`calculate_dynamic_k`, con la
+  escala 40/32/16/24, pertenece al modelo escalar y no al vectorial que usa
+  la práctica.)
+- **Rating Deviation tipo Glicko** — incertidumbre por tópico (RD inicial 350,
+  mínimo 30). K efectivo = `K_base × (RD / 350)`.
+- **Selector con Fisher Information** — sortea entre preguntas con al menos el
+  95 % de la mejor información ponderada `P×(1−P)×peso` dentro del rango ZDP
+  [0,40 – 0,75], expandiéndolo ±0,05 por paso si no hay candidatos. Conserva la
+  prioridad de preguntas no vistas y las exclusiones de la sesión; los empates
+  de dificultad no fuerzan a elegir siempre la primera pregunta.
+
+### Flujo del estudiante
+- **Diagnóstico de entrada** — 10 preguntas por materia que fijan el ELO inicial
+  **por tópico**. Obligatorio la primera vez, rehacible. «No lo sé» es una opción
+  y no penaliza.
+- **Mapa de contenido** — camino en zigzag con los temas de la materia; estado
+  derivado de `student_topic_elo` (completado ≥ 1250 / actual / disponible). Al
+  entrar por un nodo, la práctica queda **filtrada a ese tema**.
+- **Ruta de lecciones guiadas** — 60 nodos narrados. Ver
+  [§ La ruta de aprendizaje](#la-ruta-de-aprendizaje).
+- **Liga PvP en tiempo real** — duelo 1v1 por WebSocket: 10 preguntas, 180 s,
+  carrera libre. El ELO se mueve **por el resultado de la partida** (K=24), como
+  en ajedrez, no por respuesta individual.
+- **Modo examen** — estándar automático o plantilla del docente, con borrador en
+  `localStorage` y reintento con backoff para no perder el envío.
+- **Procedimientos manuscritos** — foto o PDF; la IA propone nota 0–100, el
+  docente pone la oficial. Anti-plagio por SHA-256 del archivo.
+- **Bloque Concursos** — UI deliberadamente sobria (sin rachas de colores, sin
+  logros, sin KatIA animada) y navegación por bloques temáticos en lista, porque
+  DIAN tiene ~209 tópicos y el mapa visual no escala. Los ítems se calibran a
+  P\*=0,25. El examen es **evaluativo, no formativo**: `/exam/submit` califica
+  y no toca el ELO, ni en Concursos ni en ningún otro bloque.
 
 ### IA pedagógica
-- **KatIA — tutora socrática**: gata cyborg con mensajes predefinidos por contexto (bienvenida, calificación por rango, rachas). GIFs animados durante revisión de procedimientos.
-- **Revisión de procedimientos manuscritos**: Groq + Llama 4 Scout analiza imágenes/PDFs paso a paso, genera score 0–100 y ajusta el ELO (`(score − 50) × 0.2`).
-- **Chat socrático con streaming**: guía al estudiante mediante preguntas sin revelar la respuesta. Post-generación verifica que no filtre la solución.
-- **Multi-proveedor**: Anthropic, Groq, OpenAI, Google Gemini, HuggingFace, LM Studio, Ollama — detección automática por prefijo de API key.
+- **KatIA** — tutora socrática con avatar y GIFs. Chat con streaming SSE, tope de
+  120 tokens, y **post-validación que descarta la respuesta si revela la
+  solución**.
+- **Revisión de procedimientos** — Groq + Llama 4 Scout para revisión rigurosa;
+  otros proveedores con visión para la genérica. `ai_proposed_score` **nunca**
+  toca el ELO: solo `teacher_score`, vía `(score − 50) × 0,2`.
+- **Multi-proveedor** — Anthropic, Groq, OpenAI, Gemini, HuggingFace, Ollama,
+  LM Studio. Detección por prefijo de la API key. Todo degrada con gracia si no
+  hay proveedor.
 
-### Plataforma completa
-- **Dual DB**: SQLite local y PostgreSQL (Supabase) con API pública idéntica. Selección automática por `DATABASE_URL`.
-- **ELO consultable**: tabla `student_topic_elo` con ELO actual por materia + campo `users.current_elo` global. Se actualizan automáticamente al responder y al validar procedimientos.
-- **Login por email**: registro con correo electrónico, login por username o email, actualización desde perfil.
-- **Tres roles**: estudiante, docente, admin con flujos completos.
-- **Dashboard docente**: ELO temporal por alumno (deduplicado), radar por tópico, historial KatIA, análisis pedagógico con IA, exportación CSV/XLSX con `cursos_matriculados`.
-- **Supabase Storage**: procedimientos en bucket privado con fallback BYTEA en DB.
-- **Seguridad**: Argon2id para contraseñas, migración transparente desde SHA-256 legacy.
-- **Ranking de 16 niveles**: Aspirante (0–399) → Leyenda Suprema (2500+).
-- **Anti-plagio SHA-256**: detecta procedimientos duplicados del mismo estudiante.
+### Plataforma
+- **Dual DB** — SQLite local y PostgreSQL (Supabase) con API pública idéntica;
+  selección automática por `DATABASE_URL`.
+- **16 rangos** de Aspirante (0) a Leyenda Suprema (2500+).
+- **Consola docente** — ELO temporal, radar por tópico, historial de KatIA,
+  análisis con IA, métricas de uso, exportación CSV/XLSX.
+- **Seguridad** — Argon2id con migración transparente desde SHA-256; JWT con
+  access token corto + refresh en cookie HttpOnly; bucket de procedimientos
+  privado, servido por bytes.
+- **i18n es/en**, tema claro/oscuro sin FOUC, ARIA, code splitting por ruta.
 
 ---
 
 ## Arquitectura
 
-El proyecto tiene **dos interfaces** que comparten el mismo núcleo de lógica de negocio:
+Clean Architecture. Dos interfaces sobre un núcleo compartido:
 
 ```
-src/                              ← Núcleo compartido (V1 y V2)
-├── domain/                       # Lógica de negocio pura
+src/                              ← núcleo compartido (V1 y V2)
+├── domain/                       # lógica pura, sin dependencias externas
 │   ├── elo/                      # ELO, VectorRating, Glicko, ZDP
 │   ├── selector/                 # AdaptiveItemSelector (Fisher Information)
-│   └── katia/                    # Mensajes de KatIA
+│   ├── learning/                 # los 60 nodos de la ruta guiada
+│   └── katia/                    # mensajes predefinidos de KatIA
 ├── application/services/         # StudentService, TeacherService
-└── infrastructure/
-    ├── persistence/              # SQLiteRepository + PostgresRepository
-    ├── storage/                  # Supabase Storage
-    └── external_api/             # AI client multi-proveedor
+├── infrastructure/               # SQLite + Postgres, Storage, clientes de IA
+└── interface/streamlit/          # V1 (Streamlit)
 
-src/interface/streamlit/          ← Interfaz V1 (Streamlit)
-api/                              ← Backend V2 (FastAPI REST + WebSocket)
-frontend/                         ← Frontend V2 (React + TypeScript + Vite)
+api/                              ← V2: FastAPI, REST + WebSocket
+frontend/                         ← V2: React 19 + TypeScript + Vite
 ```
 
-### Regla de dependencia
+**Regla de dependencia:** `domain/ ← application/ ← infrastructure/ ← interface/`.
+Nunca al revés. Los servicios reciben los repositorios por constructor.
+
+**Regla dual DB:** cualquier cambio en `sqlite_repository.py` se replica en
+`postgres_repository.py` y viceversa. `python scripts/db_sync_check.py` lo
+verifica y corre en CI.
+
+### V2 — endpoints
+
+| Router | Qué cubre |
+|---|---|
+| `api/routers/auth.py` | login, registro, refresh, logout, perfil |
+| `api/routers/student.py` | práctica, stats, cursos, diagnóstico, mapa, lecciones, examen, procedimientos, PvP |
+| `api/routers/teacher.py` | dashboard, grupos, procedimientos, plantillas de examen, métricas, exportación |
+| `api/routers/admin.py` | usuarios, aprobación de docentes, grupos, reportes, auditoría |
+| `api/routers/ai.py` | chat socrático (SSE), revisión de procedimientos |
+| `api/websocket/pvp.py` | `/api/ws/pvp/{course_id}` — matchmaking y partida |
+| `api/websocket/notifications.py` | `/api/ws/notifications/{room}` — avisos por sala |
+
+### V2 — rutas del frontend
 
 ```
-domain/ ← application/ ← infrastructure/ ← interface/
-```
-
-Nunca al revés. El dominio no importa nada de infraestructura. Los servicios reciben los repositorios por constructor (DI).
-
-### V1 — Streamlit (producción estable)
-
-```
-src/interface/streamlit/
-├── app.py               # Entrada — 167 líneas
-├── state.py             # login(), logout(), session_state helpers
-├── assets.py            # CSS, logos, banners
-├── timers.py            # Timers JavaScript (setInterval)
-└── views/
-    ├── auth_view.py     # Login + wizard registro
-    ├── student_view.py  # Práctica, stats, procedimientos
-    ├── teacher_view.py  # Dashboard, revisión, exportación
-    └── admin_view.py    # Usuarios, grupos, reportes
-```
-
-### V2 — React + FastAPI (producción, `v2.0.0`)
-
-```
-api/                     # FastAPI — 42+ endpoints REST + WebSocket
-├── config.py            # pydantic-settings: JWT, DB, IA keys por función
-├── routers/
-│   ├── auth.py          # JWT access token + HttpOnly refresh cookie
-│   ├── student.py       # Práctica, stats, cursos, procedimientos, analyze IA
-│   ├── teacher.py       # Dashboard, grupos, revisión, análisis IA
-│   ├── admin.py         # Usuarios, grupos, reportes
-│   └── ai.py            # Chat socrático SSE, revisión procedimientos
-└── websocket/           # Notificaciones en tiempo real por room
-
-frontend/                # React 19 + TypeScript + Vite
-├── src/
-│   ├── stores/          # Zustand: auth, practice, settings
-│   ├── hooks/           # useTimer, useStudentSession, useNotifications
-│   ├── components/      # ELO, KatIA (avatar+chat), Procedure, CourseCard, UI
-│   └── pages/           # Student/, Teacher/, Admin/
-└── vercel.json          # Deploy Vercel con rewrite SPA
+/                              landing
+/login
+/student                       práctica adaptativa
+/student/courses               catálogo y matrícula
+/student/course/:id            diagnóstico → bifurcación practicar/mapa
+/student/course/:id/map        mapa de contenido
+/student/course/:id/lesson/:nodeId   lección guiada
+/student/league                liga PvP
+/student/exam                  exámenes
+/student/procedure             subir procedimiento
+/student/feedback              historial + KatIA
+/teacher{,/groups,/procedures,/exams,/export}
+/admin{,/groups,/reports,/audit}
 ```
 
 ---
 
-## Motor ELO — Cómo funciona
+## Motor ELO
 
-### Flujo al responder una pregunta
+### Al responder una pregunta
 
 ```
 StudentService.process_answer()
-  ├→ VectorRating.update()          ← aplica delta ELO al tópico
-  ├→ Repository.update_item_rating() ← actualiza dificultad del ítem
+  ├→ VectorRating.update()           ← delta ELO al tópico
+  ├→ Repository.update de items       ← nueva dificultad del ítem (ELO simétrico)
   └→ Repository.save_answer_transaction()
-       ├→ INSERT attempts            ← persiste metadatos del intento
-       ├→ UPSERT student_topic_elo   ← ELO actual por materia
-       └→ UPDATE users.current_elo   ← ELO global promedio
+       ├→ INSERT attempts
+       ├→ UPSERT student_topic_elo
+       └→ UPDATE users.current_elo
 ```
 
-Todo ocurre en una **transacción atómica** — si falla el update del ítem, el intento tampoco se guarda.
+Todo en una **transacción atómica**: si falla el update del ítem, el intento
+tampoco se guarda.
 
-### Fórmula ELO
+### Fórmulas
 
 ```
-P(éxito) = 1 / (1 + 10^((dificultad_ítem - rating_estudiante) / 400))
-
-delta = K_eff × (resultado - P(éxito))
-K_eff = K_base × (RD / RD_base)
+P(éxito) = 1 / (1 + 10^((dificultad_ítem − rating_estudiante) / 400))
+delta    = K_eff × (resultado − P(éxito))
+K_eff    = K_base × (RD / 350)
 ```
 
-**Factor K dinámico:**
-
-| Condición | K |
+| Condición | K base |
 |---|---|
-| < 30 intentos (novato) | 40 |
+| < 30 intentos | 40 |
 | ELO < 1400 | 32 |
-| Estable (error < 15% en últimos 20) | 16 |
+| Estable (error < 15 % en los últimos 20) | 16 |
 | Default | 24 |
 
-### Selector adaptativo
+### Calibración de dificultad
 
-`AdaptiveItemSelector` busca preguntas donde `P(éxito) ∈ [0.40, 0.75]` — el rango ZDP. Si no hay candidatos, expande ±0.05 por paso (hasta 10 pasos). Prioriza preguntas no vistas, luego falladas con ≥3 intentos de cooldown.
+```
+D*(R, P*) = R + 400 × log10((1 − P*) / P*)
+```
+
+Para concursos, P\*=0,25 → `D = R + 191`. Para olimpiadas, P\*=0,10 → `D = R + 382`.
+Protocolo completo en `.claude/skills/item-calibration/SKILL.md`.
+
+**El ELO del ítem se actualiza simétricamente con cada respuesta** — el banco se
+autocalibra con el uso.
+
+---
+
+## La ruta de aprendizaje
+
+60 nodos de lección guiada bajo el curso `algebra_basica`. **No mueven el ELO**:
+son para construir el concepto, no para medirlo.
+
+| Mundo | Nodos | Escenario |
+|---|---|---|
+| PREALG-N1 · Conjuntos numéricos | 13 | La escalera de la necesidad |
+| PREALG-N2 · Operaciones | 7 | La ciudad de las seis operaciones |
+| PREALG-N3 · Propiedades | 6 | La fábrica de propiedades |
+| PREALG-N4 · Divisibilidad | 7 | El Puerto de la Polis |
+| ALG-N1 · Fundamentos | 17 | El Papiro de las Cuatro Casas (Kemet) |
+| ALG-N2 · Productos notables | 5 | La sala de los troqueles (Bagdad) |
+| ALG-N3 · Factorización | 5 | El almacén de la caravana (Bagdad) |
+
+**52 de los 60** usan la arquitectura de 11 bloques y se pintan con un renderer
+genérico que no conoce ningún `node_id`. Añadir un nodo = escribir un módulo en
+`src/domain/learning/nodes/`, listarlo en `NODE_MODULES` y encadenarlo por
+`unlock_after`. No se toca el frontend.
+
+Todo el detalle —los once bloques, los invariantes con test, la taxonomía de
+errores y el catálogo completo— en
+**[docs/ruta-de-aprendizaje.md](docs/ruta-de-aprendizaje.md)**.
 
 ---
 
 ## Banco de preguntas
 
-+1.900 ítems en `items/bank/` organizados por curso:
+**2.031 ítems** en 49 archivos, en `items/bank/` y `items/bank/semillero/`. El
+`course_id` es el nombre del archivo sin extensión.
 
 | Bloque | Cursos |
 |---|---|
-| **Universidad** | Álgebra Lineal, Cálculo Diferencial, Integral, Varias Variables, Ecuaciones Diferenciales, Probabilidad |
-| **Colegio** | Álgebra Básica, Aritmética Básica, Trigonometría, Geometría |
-| **Concursos** | DIAN — Gestor I, SENA — Profesional 10 |
+| **Universidad** | Álgebra Lineal, Cálculo Diferencial / Integral / Varias Variables, Ecuaciones Diferenciales, Probabilidad |
+| **Colegio** | Álgebra Básica, Aritmética Básica, Trigonometría, Geometría, Evaluar para Avanzar 8 |
+| **Concursos** | DIAN, SENA |
 | **Semillero** | Álgebra, Aritmética, Geometría, Lógica, Conteo y Combinatoria, Probabilidad — grados 6°–11° |
 
-### Agregar preguntas al banco
+### Campos requeridos por ítem
 
-1. Crear o editar `items/bank/<course_id>.json`
-2. Agregar `'<course_id>': 'Bloque'` en `_COURSE_BLOCK_MAP` de **ambos** repositorios
-3. Correr `python scripts/validate_bank.py`
-4. Reiniciar la app — `sync_items_from_bank_folder()` carga automáticamente
+`id` (único global) · `content` (LaTeX con `$...$`) · `difficulty` (600–1800) ·
+`topic` · `options` · `correct_option` (idéntico a uno de `options`).
 
-### Calibración de dificultad
+> **LaTeX en JSON: backslashes dobles.** `\\frac`, `\\sin`, `\\alpha`. Un `\f`
+> sin escapar rompe el parser.
 
-Fórmula usada para alinear `difficulty` con el ELO medio del grupo (`R_medio`) y la tasa objetivo de éxito `P*`:
+### Agregar un curso
 
-```
-D*(R_medio, P*) = R_medio + 400 × log10((1 − P*) / P*)
-```
+1. Crear `items/bank/mi_curso.json`.
+2. Añadir `'mi_curso': 'Bloque'` a `_COURSE_BLOCK_MAP` en **ambos** repositorios.
+3. `python scripts/validate_bank.py`
+4. Reiniciar — `sync_items_from_bank_folder()` lo carga solo.
 
-Rango válido para bancos semillero: **600–1200**. Redondeo a múltiplos de 50. Ver `.claude/skills/item-calibration/SKILL.md` para el protocolo completo.
+### Extracción de libros
+
+`items/source/` tiene **4.656 enunciados** extraídos de tres libros (Hipertexto,
+Caminos, EPA8) con enunciado, respuesta y dificultad ya en escala ELO. **Todavía
+no alimentan el banco**: les faltan los distractores, que es justo lo que ningún
+libro trae. Ver [CABOS_SUELTOS](Implementacion/CABOS_SUELTOS.md) §D4.
 
 ---
 
-## Roles de usuario
+## Roles
 
 | Rol | Acceso |
 |---|---|
-| **Estudiante** | Práctica adaptativa, estadísticas, procedimientos, chat con KatIA, racha por materia, ranking del grupo |
-| **Docente** | Dashboard ELO temporal por alumno, radar por tópico, historial KatIA, análisis IA, revisión de procedimientos, exportación CSV/XLSX (filtrada: excluye usuarios con `is_test_user=1`), códigos de invitación inter-nivel |
-| **Admin** | Aprobación de docentes, reasignación de estudiantes (auditada), gestión de usuarios, reportes técnicos |
+| **Estudiante** | Práctica adaptativa, diagnóstico, mapa, lecciones guiadas, liga PvP, exámenes, procedimientos, KatIA, racha, ranking del grupo |
+| **Docente** | Requiere aprobación. Dashboard ELO temporal, radar, historial KatIA, análisis IA, revisión de procedimientos, plantillas de examen, métricas, exportación CSV/XLSX, códigos de invitación inter-nivel |
+| **Admin** | Aprueba docentes, reasigna estudiantes (auditado), activa/desactiva usuarios, atiende reportes técnicos |
 
 ---
 
 ## Instalación local
 
-### V1 (Streamlit)
+### V2 — React + FastAPI
 
 ```bash
-git clone https://github.com/LuisJRubioH/LevelUp-ELO.git
-cd LevelUp-ELO
+pip install -r requirements-api.txt
+uvicorn api.main:app --reload --port 8000
+```
 
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+```bash
+cd frontend && pnpm install --frozen-lockfile && pnpm run dev
+```
+
+→ http://localhost:5173 (proxy `/api` → `localhost:8000`)
+
+> `--legacy-peer-deps` es obligatorio: `vite-plugin-pwa` no declara compatibilidad
+> con Vite 8.
+
+> Al tocar repositorios o WebSocket, **reinicia el backend limpio** (matando
+> todos los procesos de uvicorn, padre y worker). `--reload` no recarga de forma
+> fiable y deja procesos huérfanos ocupando el puerto 8000; el síntoma típico es
+> código viejo corriendo sin error visible.
+
+### V1 — Streamlit
+
+```bash
 pip install -r requirements.txt
-
 streamlit run src/interface/streamlit/app.py
 ```
 
-Sin `DATABASE_URL`, usa SQLite local. La base de datos se crea automáticamente con datos demo.
-
-### V2 (React + FastAPI)
-
-```bash
-# Terminal 1 — Backend FastAPI
-pip install -r requirements-api.txt
-uvicorn api.main:app --reload --port 8000
-
-# Terminal 2 — Frontend React
-cd frontend
-npm install --legacy-peer-deps
-npm run dev
-# → http://localhost:5173 (proxy /api → localhost:8000)
-```
-
----
-
-## Despliegue en producción
-
-### V1 — Streamlit Cloud + Supabase
-
-1. Conectar el repositorio en [share.streamlit.io](https://share.streamlit.io)
-2. Main file: `src/interface/streamlit/app.py`
-3. Configurar secrets (ver Variables de entorno)
-
-### V2 — Vercel + Render
-
-| Servicio | Plataforma | Config |
-|---|---|---|
-| Frontend | Vercel | `frontend/vercel.json` — framework Vite, rewrites SPA |
-| Backend | Render | `Procfile` — `uvicorn api.main:app --host 0.0.0.0 --port $PORT` |
-
-Ambos hacen deploy automático en cada push a `main`.
+Siempre desde la raíz del repo: `app.py` inyecta el root en `sys.path` antes de
+importar `src.*`. Sin `DATABASE_URL` usa SQLite y crea la base con datos demo.
 
 ---
 
 ## Variables de entorno
 
-### Compartidas (V1 y V2)
-
-| Variable | Descripción | Requerida |
+| Variable | Para qué | Requerida |
 |---|---|---|
-| `DATABASE_URL` | URL PostgreSQL Supabase (`postgresql://...`) | Sí (producción) |
-| `ADMIN_PASSWORD` | Contraseña del usuario admin | Sí |
-| `ADMIN_USER` | Nombre del admin (default: `admin`) | No |
-| `SUPABASE_URL` | URL del proyecto Supabase | Sí (Storage) |
-| `SUPABASE_KEY` | Publishable key de Supabase | Sí (Storage) |
+| `DATABASE_URL` | PostgreSQL Supabase; ausente → SQLite local | En producción |
+| `ADMIN_PASSWORD` / `ADMIN_USER` | Credenciales del admin | Sí / No |
+| `SUPABASE_URL` / `SUPABASE_KEY` | Storage de procedimientos | Para Storage |
+| `JWT_SECRET_KEY` | Firma de los JWT | V2 |
+| `CORS_ORIGINS` | Orígenes permitidos | V2 |
+| `SYSTEM_AI_API_KEY` | Key de IA del sistema | V2 |
+| `SYSTEM_AI_PROVIDER` | Proveedor explícito; autodetectado si falta | No |
+| `AI_KEY_KATIA` / `_PROCEDURE` / `_STUDENT_ANALYSIS` / `_TEACHER_ANALYSIS` | Key por función; caen a `SYSTEM_AI_API_KEY` | No |
+| `VITE_API_URL` | URL del backend, en el frontend | V2 |
 
-### Solo V2 (backend Render)
+Prioridad por request: key del usuario > key de función > key general
+(`settings.get_ai_key("procedure", user_key)`).
 
-| Variable | Descripción | Requerida |
-|---|---|---|
-| `JWT_SECRET_KEY` | Clave secreta para firmar JWT | Sí |
-| `CORS_ORIGINS` | `["https://luislevelupelo.vercel.app"]` | Sí |
-| `SYSTEM_AI_API_KEY` | API key de IA del sistema (Groq, Anthropic, OpenAI, etc.) — todos los estudiantes la usan automáticamente | Sí |
-| `SYSTEM_AI_PROVIDER` | Proveedor explícito (`groq`, `anthropic`, `openai`, `google`). Auto-detectado si vacío | No |
-| `AI_KEY_KATIA` | Key específica para chat socrático KatIA. Si vacía, usa `SYSTEM_AI_API_KEY` | No |
-| `AI_KEY_PROCEDURE` | Key específica para revisión de procedimientos. Si vacía, usa `SYSTEM_AI_API_KEY` | No |
-| `AI_KEY_STUDENT_ANALYSIS` | Key específica para análisis del estudiante. Si vacía, usa `SYSTEM_AI_API_KEY` | No |
-| `AI_KEY_TEACHER_ANALYSIS` | Key específica para análisis docente. Si vacía, usa `SYSTEM_AI_API_KEY` | No |
+> **API keys nunca se persisten en la base ni se loggean.**
 
-### Solo V2 (frontend Vercel)
-
-| Variable | Descripción |
-|---|---|
-| `VITE_API_URL` | URL del backend Render |
-
-> **Nota Supabase**: usar el **connection pooler** (puerto 6543, `aws-...pooler.supabase.com`). El pool interno usa `SimpleConnectionPool(minconn=1, maxconn=5)` — nunca subir `maxconn` más de 5 en el free tier.
+> **Supabase:** usar el connection pooler (puerto 6543). El pool interno es
+> `ThreadedConnectionPool(1, 5)`; no subir `maxconn` en el free tier. Y nunca
+> `conn.close()` — siempre `put_connection(conn)`, o el pool se agota.
 
 ---
 
-## CI/CD
+## Deployment
 
-GitHub Actions con 7 jobs en cada push a `main`:
-
-| Job | Qué verifica |
-|---|---|
-| `validate-bank` | `python scripts/validate_bank.py` — estructura e integridad de los 1.900+ ítems |
-| `lint` | Black (line-length=100) + Flake8 (E9, F63, F7, F82) |
-| `test-unit` | `pytest tests/unit/` — cobertura ≥70% en domain + application |
-| `test-integration` | `pytest tests/integration/` — tests SQLite end-to-end |
-| `db-sync` | `python scripts/db_sync_check.py` — paridad de API SQLite ↔ PostgreSQL |
-| `test-api` | `pytest tests/api/` — tests de integración FastAPI con httpx |
-| `build-frontend` | `tsc + vite build` — compilación TypeScript + React |
-
-Pre-commit hooks locales: validate-bank, db-sync-check, Black.
+This repository is not deployed. `render.yaml` and `frontend/vercel.json` are templates for the
+final environment and are inert here. Transferring the work to the final deployment repository —
+code, dependencies, environment variables, backups, migrations and verification — is a manual step
+done by the owner: [docs/transfer.md](docs/transfer.md).
 
 ---
 
-## Tests
+## Tests y CI
 
 ```bash
-# Tests unitarios con cobertura
-python -m pytest tests/unit/ -v --cov=src/domain --cov=src/application --cov-fail-under=70
-
-# Tests de integración
-python -m pytest tests/integration/ -v
-
-# Tests de integración API
-python -m pytest tests/api/ -v
-
-# Validar banco de preguntas
-python scripts/validate_bank.py
-
-# Verificar paridad SQLite/PostgreSQL
-python scripts/db_sync_check.py
+ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q
+python scripts/validate_bank.py                            # integridad del banco
+python scripts/db_sync_check.py                            # paridad SQLite ↔ Postgres
+cd frontend && pnpm run build                              # tsc + vite
+cd frontend && pnpm exec playwright test                   # E2E (frontend/e2e/)
 ```
+
+Storage tests run on SQLite always and also on PostgreSQL when `POSTGRES_TEST_DATABASE_URL` points
+at a throwaway **local** database (`tests/conftest.py` refuses any other host).
+
+CI in GitHub Actions, 8 jobs: item bank, lint (Black + Flake8), unit tests with coverage ≥ 70 %,
+integration, DB parity, PostgreSQL (the integration suite on an ephemeral PostgreSQL service), API
+and frontend build. CI only tests; it deploys nothing.
 
 ---
 
@@ -346,72 +387,55 @@ python scripts/db_sync_check.py
 |---|---|---|
 | `admin` | (variable de entorno) | Admin |
 | `profesor1` | `demo1234` | Docente (pre-aprobado) |
-| `estudiante1` | `demo1234` | Estudiante — Universidad |
-| `estudiante2` | `demo1234` | Estudiante — Colegio |
-| `estudiante_colegio_1..3` | `test1234` | Estudiante Colegio (protegidos) |
-| `estudiante_universidad_1..2` | `test1234` | Estudiante Universidad (protegidos) |
-| `estudiante_semillero_1` | `test1234` | Estudiante Semillero grado 9 |
-| `estudiante_semillero_2` | `test1234` | Estudiante Semillero grado 11 |
+| `estudiante1` | `demo1234` | Universidad |
+| `estudiante2` | `demo1234` | Colegio |
+| `concursante1` | `demo1234` | Concursos — DIAN |
+| `estudiante_colegio_1..3` | `test1234` | Colegio (protegidos) |
+| `estudiante_universidad_1..2` | `test1234` | Universidad (protegidos) |
+| `estudiante_semillero_1..2` | `test1234` | Semillero, grados 9 y 11 (protegidos) |
+
+Los marcados como protegidos llevan `is_test_user=1`: se excluyen de las
+exportaciones docentes y **nunca deben eliminarse**.
+
+> Para probar la liga PvP hacen falta **dos cuentas distintas matriculadas en la
+> misma materia** — dos pestañas del mismo usuario no emparejan, el backend lo
+> bloquea. El seed no las trae: `estudiante1` y `estudiante2` están en materias
+> distintas, así que hay que crear un segundo estudiante en el curso del primero.
 
 ---
 
-## Versiones
+## Documentación
 
-### V1.0.0 (producción)
-Plataforma Streamlit estable con Clean Architecture, CI/CD completo, 85% cobertura de tests, +1.900 ítems, KatIA tutora socrática, revisión de procedimientos con IA.
+| Documento | Qué cubre |
+|---|---|
+| [docs/README.md](docs/README.md) | Índice de toda la documentación |
+| [docs/ruta-de-aprendizaje.md](docs/ruta-de-aprendizaje.md) | Los 60 nodos, la arquitectura de 11 bloques, cómo añadir uno |
+| [docs/guia-estudiante.md](docs/guia-estudiante.md) | Guía de uso para estudiantes |
+| [docs/guia-docente.md](docs/guia-docente.md) | Guía de uso para docentes |
+| [CLAUDE.md](CLAUDE.md) | Reglas de trabajo en el repo (R1–R14, V2-R1–R18) |
+| [PRODUCT.md](PRODUCT.md) · [DESIGN.md](DESIGN.md) | Marca, principios de diseño, anti-referencias |
+| [Implementacion/CABOS_SUELTOS.md](Implementacion/CABOS_SUELTOS.md) | Qué queda pendiente, verificado contra el repo |
 
-### V2.0.0 (producción)
-Reescritura a React 19 + FastAPI. Motor ELO, dominio y banco de preguntas reutilizados sin cambios. Nueva interfaz moderna, mobile-ready, PWA, internacionalización es/en, tema claro/oscuro, modo examen, tests E2E con Playwright. Deploy en Vercel + Render.
+---
 
-**Tag publicado:** `v2.0.0` en [GitHub Releases](https://github.com/LuisJRubioH/LevelUp-ELO/releases/tag/v2.0.0).
+## Qué queda pendiente
 
-### V2.0.1 (mayo 2026 — pulido UX)
+Lo grande, con el detalle en
+[CABOS_SUELTOS](Implementacion/CABOS_SUELTOS.md):
 
-Sesión de QA con tres frentes cerrados (commits `13e1ab3` → `256d7e7`): consistencia ELO header/feedback en Practice, i18n ES/EN completa cubriendo todo el flujo del estudiante + dashboard docente, y unificación visual de banners (LaTeX mathtext crisp + aspect ratio 16:7 uniforme + ajuste del gradiente React). Verificado en producción sin hallazgos nuevos.
-
-**Estado actual de V2:** Sprints 1–8 + Sprint C completos + sesión de pulido. Paridad funcional 100% con V1 + 1 feature exclusiva V2 (exámenes manuales del docente).
-
-- ✅ Sprint 1: KatIA GIFs, timer de sesión, preview ELO, toasts de racha, fechas en gráficos, perfil en sidebar
-- ✅ Sprint 2: Radar chart, heatmap de actividad, ranking del grupo, logros animados, envío de procedimientos
-- ✅ Sprint 3: Panel docente completo (gráfico ELO temporal, historial KatIA, análisis IA, filtros cascada)
-- ✅ Sprint 4: Admin completions (reportes, auditoría, activación, grupos, códigos invitación)
-- ✅ Sprint 5: Mobile, PWA, offline, transiciones Framer Motion, selector de modelo IA
-- ✅ Sprint 6: Banners pixel art, centro de feedback, reporte problemas, revisión IA en vivo, API keys por función
-- ✅ Post-Sprint 6: KatIA socrático con avatar, procedimiento integrado en práctica, `student_topic_elo`, email login
-- ✅ Sprint 7: E2E Playwright (`frontend/e2e/`), code splitting (`React.lazy`), error boundaries, skeleton loaders, tests de rutas protegidas (48 tests, 100%)
-- ✅ Sprint 8: modo examen E2E, accesibilidad ARIA, tema claro/oscuro, internacionalización es/en (`react-i18next`), métricas de uso docente
-- ✅ Sprint C: Exámenes manuales del docente — tabla `exam_templates` aditiva (R1), builder en `Teacher/Exams.tsx`, selector "Estándar (auto)" vs "Del docente" en `Student/Exam.tsx`
-
-### Fixes post-Sprint C — QA mayo 2026
-
-Capturas reportadas por estudiantes durante uso real. 13 bugs cerrados en 10 commits (`7cbea93` → `71398cb`):
-
-- **Examen resiliente:** borrador en `localStorage` + retry con backoff 0/3/8s + banner "Reintentar enviar" inline. Los estudiantes ya no pierden el intento si falla el submit.
-- **Auto-recover de chunks stale post-deploy Vercel:** recuperación escalonada en 3 tiers (reload → SW+caches cleanup → giveup) en `frontend/src/lib/staleChunk.ts`.
-- **`NetworkError` amigable:** `TypeError: Failed to fetch` se traduce a mensaje en español apto para mostrar.
-- **Retry global de cold start:** `queryClient` con `retry: 3, retryDelay: exponencial 2s→15s` + banner "El servidor está iniciando…" en Stats.
-- **Banco depurado:** 7 ítems con opciones duplicadas + 8 ítems con precios `$\$N$` que rompían `RenderMath` (reescritos a `USD N`). Nueva utilidad `scripts/scan_dollar_prices.py`.
-- **`<QuestionImage>` con fallback:** banner "No se pudo cargar la imagen" + botón reintentar (antes mostraba `alt="Figura"` sin contexto).
-- **CVEs npm devDeps:** `npm audit fix` resolvió 4 vulnerabilidades transitivas (babel/systemjs, brace-expansion, fast-uri, postcss).
-
-### Sesión de pulido — 2026-05-19 (`v2.0.1`)
-
-8 commits (`13e1ab3` → `256d7e7`) cubriendo 3 frentes:
-
-- **Consistencia ELO en Practice (#5):** el header (`RankBadge`) ya no se pisa con el ELO del tópico tras responder. Refresca `/stats` para mantener el global; el feedback ahora etiqueta `ELO en este tema (<curso>): X → Y` con nota explicando que el global del header promedia todos los temas.
-- **i18n ES/EN completa (#9):** Courses, Stats, Exam (incl. modal de confirmación con highlight verde), ProcedureUpload, Feedback (con 3 estados KatIA por puntaje), ReportProblem modal, AnswerOptions (aria-labels Opción A/B/C/D), ProcedureSection inline, **y Teacher Dashboard** (KPIs, tabla, filtros, métricas, detalle de estudiante con 4 tabs). Toggle 🌐 funciona sin recargar. Pantallas Groups/Procedures/Exams/Export del docente + Users/Reports/Audit del admin siguen en español (uso interno).
-- **Banners unificados con LaTeX mathtext:** los 14 banners ahora son 1536×672 idénticos (16:7) con fórmula matemática crisp anti-aliased renderizada por `matplotlib.mathtext` y backdrop semi-transparente. Modo `base_image` en `scripts/generate_banners.py` para preservar arte user-supplied y aplicar overlay LaTeX (originales en `_originals/` gitignored). Gradiente del componente React reducido (`h-1/3/0.85` → `h-[18%]/0.45`) para no oscurecer la ecuación. Verificación QA en producción con Playwright sin hallazgos.
-
-Ver plan detallado en [`docs/v2-plan.md`](docs/v2-plan.md) y documentación técnica en [`docs/v2-tecnico.md`](docs/v2-tecnico.md).
-
-### V2.1.0 (mayo 2026 — exámenes asignables + guías PDF)
-
-Sesión `2026-05-20` previa a prueba real con estudiantes. 3 commits (`607522c` → `baeb472`):
-
-- **Exámenes asignables por grupo con ventana de tiempo:** nueva tabla aditiva `exam_assignments(template_id, group_id, starts_at, ends_at)` + 4 endpoints (3 docente + 1 estudiante para badge). Backward-compat: plantillas sin asignaciones siguen visibles a todos los inscritos del curso. Modal en `Teacher/Exams.tsx` con multi-select de grupos + datetime-local From/Until. Polling cada 60s en `Layout.tsx` para alimentar badge rojo con conteo sobre el ítem Exam del sidebar (también en bottom nav móvil). 24 claves nuevas en i18n ES/EN. Verificación end-to-end en producción con Playwright.
-- **Fix:** `import json` faltante en `postgres_repository.py` rompía `/api/student/exam/templates` con 500 silencioso (los nuevos métodos siguen la regla R14 pero el patrón global del repo era importar localmente; ahora ambos válidos).
-- **Guías PDF auto-contenidas:** `guia_docente.pdf` y `guia_estudiante.pdf` (Segoe UI, paleta V2, callouts con borde lateral de color, generadas por `scripts/generate_user_guides.py`). Cubren cada funcionalidad real con ejemplos y consejos pedagógicos.
-- **DB reseteada** desde cero antes de la sesión real (backup completo en `backups/` gitignoreado; TRUNCATE CASCADE de 12 tablas; preservados items/courses; re-seed automático de admin + test users al reiniciar Render).
+- **El contenido de la ruta es solo español.** 47 de los 60 nodos llevan el texto
+  en dicts de Python. Falta decidir si el inglés sigue en alcance.
+- **Faltan los cierres diagnósticos** de N2, N3, N4 y ALG-N1 — sin ellos la ruta
+  de repaso no llega al estudiante fuera del primer nivel.
+- **El arte de N2 y de Kemet está aplazado a propósito.** Los prompts están
+  escritos; los PNG de N2 todavía dibujan la versión descartada y los de Kemet no
+  existen. Efecto conocido: el hub de Kemet pide un PNG que no está → 404 en cada
+  carga.
+- **Los 4.656 ítems extraídos no alimentan el banco** — les faltan distractores.
+- **Accesibilidad:** el código está corregido; falta la revisión con lector de
+  pantalla real y la medición de contraste.
+- **Calibración del piloto:** los 7 ítems de práctica por nodo son una convención,
+  no una medida. Se resuelve con datos de uso real.
 
 ---
 

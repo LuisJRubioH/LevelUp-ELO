@@ -1,0 +1,656 @@
+[
+  {
+    "id": "HT8-U5-P122-E2",
+    "tipo": "simbolico",
+    "enunciado": "En la figura se muestra un rectángulo y su área, $A=2x^2+5x+2$. Determina la longitud de sus lados.",
+    "expr": "2*x**2+5*x+2",
+    "respuesta": "(2*x+1)*(x+2)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejemplos, actividad 2",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "rectángulo rotulado con su área A = 2x^2 + 5x + 2 — reconstruible en Python",
+    "nota": "Los lados son $2x+1$ y $x+2$. El método: se multiplica $a\\cdot c=2\\cdot 2=4$ y se descompone $4$ en dos factores que sumen $b=5$, o sea $1$ y $4$. Se reescribe $2x^2+5x+2=2x^2+1x+4x+2$ y se agrupa: $x(2x+1)+2(2x+1)=(2x+1)(x+2)$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P122-A1",
+    "tipo": "abierta",
+    "enunciado": "¿Cuáles son las características de un polinomio de la forma $ax^{2n}+bx^n+c$?",
+    "respuesta": "Es un **trinomio** con tres características: (1) el exponente del primer término es el **doble** del exponente del segundo, y el tercer término no tiene letra; (2) el coeficiente principal $a$ es **distinto de $1$** —si fuera $1$ estaríamos en el caso $x^{2n}+bx^n+c$ de la lección anterior—; (3) está ordenado de mayor a menor exponente, o se puede ordenar así. Ejemplos: $2x^2+5x+2$ (con $n=1$), $3x^4-4x^2-4$ (con $n=2$), $-20a^6+7a^3+40$ (con $n=3$).",
+    "conjunto": "R",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Recupera informacion, actividad 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "La condición que se pasa por alto es la primera: $3x^3-x+1$ NO tiene esta forma, porque $3$ no es el doble de $1$. Antes de aplicar el método siempre conviene ordenar el trinomio.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P122-A2a",
+    "tipo": "abierta",
+    "enunciado": "¿El trinomio $2x^2+3x-2$ es de la forma $x^{2n}+bx^n+c$? Marca solo los que lo sean.",
+    "respuesta": "**No.** El coeficiente principal es $2$, no $1$: es de la forma $ax^{2n}+bx^n+c$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Interpreta, actividad 2, item a",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "De los seis trinomios de la actividad, el único de la forma $x^{2n}+bx^n+c$ es el b: todos los demás tienen coeficiente principal distinto de $1$. La actividad sirve para separar los dos casos, el de la lección anterior y el de esta.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P122-A2b",
+    "tipo": "abierta",
+    "enunciado": "¿El trinomio $x^2+3x-4$ es de la forma $x^{2n}+bx^n+c$? Marca solo los que lo sean.",
+    "respuesta": "**Sí.** Coeficiente principal $1$ y el exponente del primer término, $2$, es el doble del segundo, $1$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Interpreta, actividad 2, item b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "De los seis trinomios de la actividad, el único de la forma $x^{2n}+bx^n+c$ es el b: todos los demás tienen coeficiente principal distinto de $1$. La actividad sirve para separar los dos casos, el de la lección anterior y el de esta.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P122-A2c",
+    "tipo": "abierta",
+    "enunciado": "¿El trinomio $16a+15a^2-15$ es de la forma $x^{2n}+bx^n+c$? Marca solo los que lo sean.",
+    "respuesta": "**No.** Ordenado es $15a^2+16a-15$: el coeficiente principal es $15$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Interpreta, actividad 2, item c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "De los seis trinomios de la actividad, el único de la forma $x^{2n}+bx^n+c$ es el b: todos los demás tienen coeficiente principal distinto de $1$. La actividad sirve para separar los dos casos, el de la lección anterior y el de esta.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P122-A2d",
+    "tipo": "abierta",
+    "enunciado": "¿El trinomio $20x^2-15+44x$ es de la forma $x^{2n}+bx^n+c$? Marca solo los que lo sean.",
+    "respuesta": "**No.** Ordenado es $20x^2+44x-15$: coeficiente principal $20$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Interpreta, actividad 2, item d",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "De los seis trinomios de la actividad, el único de la forma $x^{2n}+bx^n+c$ es el b: todos los demás tienen coeficiente principal distinto de $1$. La actividad sirve para separar los dos casos, el de la lección anterior y el de esta.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P122-A2e",
+    "tipo": "abierta",
+    "enunciado": "¿El trinomio $3x^3-x+1$ es de la forma $x^{2n}+bx^n+c$? Marca solo los que lo sean.",
+    "respuesta": "**No.** Falla por partida doble: coeficiente principal $3$ y, sobre todo, $3$ no es el doble de $1$, así que no tiene ninguna de las dos formas.",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Interpreta, actividad 2, item e",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "De los seis trinomios de la actividad, el único de la forma $x^{2n}+bx^n+c$ es el b: todos los demás tienen coeficiente principal distinto de $1$. La actividad sirve para separar los dos casos, el de la lección anterior y el de esta.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P122-A2f",
+    "tipo": "abierta",
+    "enunciado": "¿El trinomio $21m^2-2+11m$ es de la forma $x^{2n}+bx^n+c$? Marca solo los que lo sean.",
+    "respuesta": "**No.** Ordenado es $21m^2+11m-2$: coeficiente principal $21$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Interpreta, actividad 2, item f",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "De los seis trinomios de la actividad, el único de la forma $x^{2n}+bx^n+c$ es el b: todos los demás tienen coeficiente principal distinto de $1$. La actividad sirve para separar los dos casos, el de la lección anterior y el de esta.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P122-A3a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $3x^2-5x-2$.",
+    "expr": "3*x**2-5*x-2",
+    "respuesta": "(3*x+1)*(x-2)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(3x+1)(x-2)$. $a\\cdot c=-6$; se busca un par de producto $-6$ y suma $-5$: $1$ y $-6$. Queda $3x^2+x-6x-2$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P122-A3b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $5m^2+13m-6$.",
+    "expr": "5*m**2+13*m-6",
+    "respuesta": "(5*m-2)*(m+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(5m-2)(m+3)$. $a\\cdot c=-30$, suma $13$: el par es $15$ y $-2$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P122-A3c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $4a^2+15a+9$.",
+    "expr": "4*a**2+15*a+9",
+    "respuesta": "(4*a+3)*(a+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(4a+3)(a+3)$. $a\\cdot c=36$, suma $15$: $3$ y $12$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P122-A3d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $3+11x+10x^2$.",
+    "expr": "3+11*x+10*x**2",
+    "respuesta": "(5*x+3)*(2*x+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(5x+3)(2x+1)$. Hay que **ordenar** primero: $10x^2+11x+3$. $a\\cdot c=30$, suma $11$: $5$ y $6$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P122-A3e",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $9m^2+37m+4$.",
+    "expr": "9*m**2+37*m+4",
+    "respuesta": "(9*m+1)*(m+4)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(9m+1)(m+4)$. $a\\cdot c=36$, suma $37$: $1$ y $36$. Es el par extremo, el que más cuesta ver.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P122-A3f",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $12x^2-13x-35$.",
+    "expr": "12*x**2-13*x-35",
+    "respuesta": "(3*x-7)*(4*x+5)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(3x-7)(4x+5)$. $a\\cdot c=-420$, suma $-13$: $15$ y $-28$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P122-A3g",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $2x^2+7x+3$.",
+    "expr": "2*x**2+7*x+3",
+    "respuesta": "(2*x+1)*(x+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(2x+1)(x+3)$. $a\\cdot c=6$, suma $7$: $1$ y $6$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P122-A3i",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $6x^2+7x-3$.",
+    "expr": "6*x**2+7*x-3",
+    "respuesta": "(3*x-1)*(2*x+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(3x-1)(2x+3)$. $a\\cdot c=-18$, suma $7$: $9$ y $-2$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P122-A3j",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $3x^2-4-4x$.",
+    "expr": "3*x**2-4-4*x",
+    "respuesta": "(3*x+2)*(x-2)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(3x+2)(x-2)$. Ordenado, $3x^2-4x-4$. $a\\cdot c=-12$, suma $-4$: $2$ y $-6$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P122-A3k",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $2x^2-7x+6$.",
+    "expr": "2*x**2-7*x+6",
+    "respuesta": "(2*x-3)*(x-2)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item k",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(2x-3)(x-2)$. $a\\cdot c=12$, suma $-7$: $-3$ y $-4$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P122-A3l",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $16n^2+4n-2$.",
+    "expr": "16*n**2+4*n-2",
+    "respuesta": "2*(4*n-1)*(2*n+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item l",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$2(4n-1)(2n+1)$. **Primero el factor común** $2$: queda $2(8n^2+2n-1)$, y ahí $a\\cdot c=-8$ con suma $2$, o sea $4$ y $-2$. Sin sacar el $2$ también sale, pero con números mayores.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P122-A3m",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $2t^2-11t+5$.",
+    "expr": "2*t**2-11*t+5",
+    "respuesta": "(2*t-1)*(t-5)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item m",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(2t-1)(t-5)$. $a\\cdot c=10$, suma $-11$: $-1$ y $-10$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P122-A3n",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $3y^2+5y+2$.",
+    "expr": "3*y**2+5*y+2",
+    "respuesta": "(3*y+2)*(y+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item n",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(3y+2)(y+1)$. $a\\cdot c=6$, suma $5$: $2$ y $3$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P122-A3h",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $8x^2-15-14x$.",
+    "expr": "8*x**2-15-14*x",
+    "respuesta": "(2*x-5)*(4*x+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 3, item h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(2x-5)(4x+3)$. Ordenado es $8x^2-14x-15$. Se multiplica $a\\cdot c=8\\cdot(-15)=-120$ y se busca un par de producto $-120$ y suma $-14$: son $6$ y $-20$. Queda $8x^2+6x-20x-15=2x(4x+3)-5(4x+3)$.",
+    "erratum": "El libro imprime 8x^2 + 15 - 14x, irreducible incluso sobre los reales (discriminante -284) y unico de los catorce polinomios de la actividad que no sale. Habia dos correcciones de un caracter, +15 -> -15 o 15 -> 5. Se elige el cambio de signo porque es el mas economico: cambia un signo en vez de borrar un digito.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P122-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $-9y^2+2-3y$. Para ello, factoriza primero $-1$.",
+    "expr": "-9*y**2+2-3*y",
+    "respuesta": "-(3*y+2)*(3*y-1)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 4, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$-(3y+2)(3y-1)$. Ordenado y con el $-1$ fuera: $-(9y^2+3y-2)$. Dentro, $a\\cdot c=-18$ y suma $3$: $6$ y $-3$. Sacar el $-1$ deja el coeficiente principal positivo, que es como está pensado el método.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P122-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $-12x^2-11x-2$. Para ello, factoriza primero $-1$.",
+    "expr": "-12*x**2-11*x-2",
+    "respuesta": "-(4*x+1)*(3*x+2)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 4, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$-(4x+1)(3x+2)$. $-(12x^2+11x+2)$. Dentro, $a\\cdot c=24$ y suma $11$: $3$ y $8$. Sacar el $-1$ deja el coeficiente principal positivo, que es como está pensado el método.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P122-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $-6m^2-5m+6$. Para ello, factoriza primero $-1$.",
+    "expr": "-6*m**2-5*m+6",
+    "respuesta": "-(3*m-2)*(2*m+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 4, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$-(3m-2)(2m+3)$. $-(6m^2+5m-6)$. Dentro, $a\\cdot c=-36$ y suma $5$: $9$ y $-4$. Sacar el $-1$ deja el coeficiente principal positivo, que es como está pensado el método.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P122-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $-12x^8+12+7x^4$. Para ello, factoriza primero $-1$.",
+    "expr": "-12*x**8+12+7*x**4",
+    "respuesta": "-(4*x**4+3)*(3*x**4-4)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 4, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$-(4x^4+3)(3x^4-4)$. Ordenado, $-(12x^8-7x^4-12)$, con $n=4$. Dentro, $a\\cdot c=-144$ y suma $-7$: $9$ y $-16$. Sacar el $-1$ deja el coeficiente principal positivo, que es como está pensado el método.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P122-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $-20a^6+7a^3+40$. Para ello, factoriza primero $-1$.",
+    "expr": "-20*a**6+7*a**3+40",
+    "respuesta": "-(5*a**3-8)*(4*a**3+5)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 4, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$-(5a^3-8)(4a^3+5)$. $-(20a^6-7a^3-40)$, con $n=3$. Dentro, $a\\cdot c=-800$ y suma $-7$: $25$ y $-32$. Sacar el $-1$ deja el coeficiente principal positivo, que es como está pensado el método.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P122-A4f",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el polinomio $-15x^8+11x^4+12$. Para ello, factoriza primero $-1$.",
+    "expr": "-15*x**8+11*x**4+12",
+    "respuesta": "-(3*x**4-4)*(5*x**4+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Ejercita, actividad 4, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$-(3x^4-4)(5x^4+3)$. $-(15x^8-11x^4-12)$. Dentro, $a\\cdot c=-180$ y suma $-11$: $9$ y $-20$. Sacar el $-1$ deja el coeficiente principal positivo, que es como está pensado el método.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P122-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Completa la expresión con los términos correspondientes: $4a^2+15a+9=(4a+3)(\\;\\square\\;)$.",
+    "expr": "4*a**2+15*a+9",
+    "respuesta": "(4*a+3)*(a+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Razona, actividad 5, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Falta $a+3$. Se divide el trinomio entre $4a+3$, o se razona con el término independiente: $3\\cdot\\square=9$ obliga a que el independiente sea $3$, y $4a\\cdot\\square=4a^2$ obliga a que el primero sea $a$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P122-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Completa la expresión con los términos correspondientes: $\\square-5x-\\square=(3x+2)(2x-3)$.",
+    "expr": "6*x**2-5*x-6",
+    "respuesta": "(3*x+2)*(2*x-3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Razona, actividad 5, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Falta $6x^2\\text{ y }6$. Basta multiplicar: $(3x+2)(2x-3)=6x^2-9x+4x-6=6x^2-5x-6$. Los huecos son $6x^2$ y $6$; nótese que el segundo hueco ya tiene el signo $-$ delante.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P122-A5c",
+    "tipo": "simbolico",
+    "enunciado": "Completa la expresión con los términos correspondientes: $5x^2+13x-6=(5x-2)(\\;\\square\\;)$.",
+    "expr": "5*x**2+13*x-6",
+    "respuesta": "(5*x-2)*(x+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Razona, actividad 5, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Falta $x+3$. $-2\\cdot\\square=-6$ da $3$, y $5x\\cdot\\square=5x^2$ da $x$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P122-A5d",
+    "tipo": "simbolico",
+    "enunciado": "Completa la expresión con los términos correspondientes: $\\square+11a+\\square=(2a+1)(5a+3)$.",
+    "expr": "10*a**2+11*a+3",
+    "respuesta": "(2*a+1)*(5*a+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Razona, actividad 5, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Falta $10a^2\\text{ y }3$. $(2a+1)(5a+3)=10a^2+6a+5a+3=10a^2+11a+3$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P122-A5e",
+    "tipo": "simbolico",
+    "enunciado": "Completa la expresión con los términos correspondientes: $12a^2-13a-35=(3a-7)(\\;\\square\\;)$.",
+    "expr": "12*a**2-13*a-35",
+    "respuesta": "(3*a-7)*(4*a+5)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Razona, actividad 5, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Falta $4a+5$. $-7\\cdot\\square=-35$ da $5$, y $3a\\cdot\\square=12a^2$ da $4a$. Es el mismo trinomio del ítem f de la actividad 3, con la letra cambiada.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P122-A6a",
+    "tipo": "simbolico",
+    "enunciado": "Observa el rectángulo y las áreas de sus partes, $3x^2-5x$ y $x^2-3x+3$. Escribe el área total en forma factorizada.",
+    "expr": "(3*x**2-5*x)+(x**2-3*x+3)",
+    "respuesta": "(2*x-1)*(2*x-3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Soluciona problemas, actividad 6, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "rectángulo dividido por una diagonal en dos partes rotuladas 3x^2-5x y x^2-3x+3 — reconstruible en Python",
+    "nota": "El área total es la **suma** de las dos partes, $4x^2-8x+3$, y factorizada queda $(2x-1)(2x-3)$. Sumar primero y factorizar después: intentar factorizar cada parte por separado no lleva a ningún lado.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P122-A6b",
+    "tipo": "simbolico",
+    "enunciado": "Observa el rectángulo y las áreas de sus partes, $x^2-3x-3$ y $2x^2-x-1$. Escribe el área total en forma factorizada.",
+    "expr": "(x**2-3*x-3)+(2*x**2-x-1)",
+    "respuesta": "(3*x+2)*(x-2)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma ax^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 122,
+    "referencia": "Soluciona problemas, actividad 6, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "rectángulo dividido por una horizontal en dos franjas rotuladas x^2-3x-3 y 2x^2-x-1 — reconstruible en Python",
+    "nota": "El área total es la **suma** de las dos partes, $3x^2-4x-4$, y factorizada queda $(3x+2)(x-2)$. Sumar primero y factorizar después: intentar factorizar cada parte por separado no lleva a ningún lado. Este trinomio es el mismo del ítem j de la actividad 3.",
+    "dificultad": 1500
+  }
+]

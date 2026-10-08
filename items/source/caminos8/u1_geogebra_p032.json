@@ -1,0 +1,18 @@
+[
+  {
+    "id": "CS8-U1-P032-GEO01",
+    "tipo": "construccion_geogebra",
+    "enunciado": "Inicia en GeoGebra la construcción de la media geométrica entre 2 y 3: crea AB de longitud 3; traza la recta AB; desde B crea BC de longitud 2 sobre la misma recta; muestra la Vista Algebraica; oculta la recta auxiliar AB y ubica el punto medio D de AC. La construcción continúa en la página 33.",
+    "respuesta": "Al completar los pasos 1 a 8, A, B y C quedan alineados con AB=3 y BC=2, AC=5 y D es el punto medio de AC. Deben quedar visibles los segmentos y los puntos necesarios para continuar la construcción en la página siguiente.",
+    "conjunto": "R",
+    "seccion": "Trabaja con GeoGebra: construcción de irracionales positivos",
+    "unidad": 1,
+    "pagina_pdf": 32,
+    "continuacion_pagina_pdf": 33,
+    "referencia": "Trabaja con GeoGebra, pasos 1 a 8",
+    "apto_para": ["procedimiento_abierto"],
+    "justificacion": "Como AB=3 y BC=2 sobre una misma recta, AC=5; el paso 8 fija D como punto medio, de modo que AD=DC=5/2. Estos son los invariantes verificables antes de continuar.",
+    "nota_fuente": "La actividad ocupa las páginas 32 y 33. Este registro conserva únicamente el objetivo y los pasos impresos en la página 32; los pasos 9 a 14 se extraerán con la página 33.",
+    "dificultad": 550
+  }
+]

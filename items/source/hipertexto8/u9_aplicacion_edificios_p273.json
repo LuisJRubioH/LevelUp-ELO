@@ -1,0 +1,78 @@
+[
+  {
+    "id": "HT8-U9-P273-A1a",
+    "tipo": "numerico",
+    "enunciado": "Según el texto, ¿cuál es el ángulo de inclinación de las torres inclinadas de China?",
+    "expr": "10",
+    "respuesta": "10",
+    "unidad_respuesta": "grados",
+    "conjunto": "R",
+    "seccion": "Recuperación de información sobre edificios inclinados",
+    "unidad": 9,
+    "pagina_pdf": 273,
+    "referencia": "Actividad 1, ítem a",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "nota": "La respuesta se recupera literalmente del último párrafo del texto de la página.",
+    "dificultad": 400
+  },
+  {
+    "id": "HT8-U9-P273-A1b",
+    "tipo": "abierta",
+    "enunciado": "¿Cómo se mide el ángulo de inclinación de una estructura inclinada?",
+    "respuesta": "Se mide como el ángulo agudo formado entre el eje o costado inclinado de la estructura y una línea vertical de referencia. Una estructura perfectamente vertical tendría inclinación de 0°.",
+    "conjunto": "R",
+    "seccion": "Interpretación del ángulo de inclinación",
+    "unidad": 9,
+    "pagina_pdf": 273,
+    "referencia": "Actividad 1, ítem b",
+    "apto_para": ["procedimiento_abierto"],
+    "nota": "La página expresa las inclinaciones de las Torres Puerta de Europa como 15° respecto de la vertical.",
+    "dificultad": 500
+  },
+  {
+    "id": "HT8-U9-P273-A2",
+    "tipo": "investigacion",
+    "enunciado": "Investiga el mayor ángulo de inclinación que puede tener una estructura o edificio. ¿Crees que es seguro vivir o trabajar en un edificio con ese ángulo de inclinación?",
+    "respuesta": "No existe un ángulo máximo universal aplicable a toda estructura: depende de su función, geometría, materiales, cimentación, contrapesos, cargas y normativa. Si se restringe la consulta a edificios con espacio habitable, Guinness registra a Capital Gate, en Abu Dabi, con 18° respecto de la vertical. Si se incluyen torres estructurales, la Torre de Montreal alcanza 45° en su cara frontal. Vivir o trabajar allí puede ser seguro cuando la inclinación es intencional, el diseño estructural la compensa, cumple las normas y mantiene inspecciones; el ángulo por sí solo no permite decidir la seguridad.",
+    "conjunto": "R",
+    "seccion": "Investigación sobre estructuras inclinadas",
+    "unidad": 9,
+    "pagina_pdf": 273,
+    "referencia": "Actividad 2",
+    "apto_para": ["procedimiento_abierto"],
+    "verificar": "La respuesta depende de la categoría consultada —edificio habitable, torre o estructura— y los récords pueden cambiar. Verificar fuentes vigentes y evaluar la justificación del estudiante, no exigir un único número sin precisar la categoría.",
+    "fuentes_consulta": [
+      "https://www.guinnessworldrecords.com/world-records/farthest-manmade-leaning-building",
+      "https://parcolympique.qc.ca/en/about-the-olympic-park/montreal-an-olympic-city/data-and-statistics/"
+    ],
+    "dificultad": 750
+  },
+  {
+    "id": "HT8-U9-P273-A3a",
+    "tipo": "abierta",
+    "enunciado": "En la representación ABCD de una Torre Puerta de Europa, ubica el ángulo de inclinación respecto de la vertical BD.",
+    "respuesta": "Puede marcarse como el ángulo agudo ∠BDC, formado por la vertical DB y el costado inclinado DC. Equivalentemente, puede marcarse ∠ABD entre la vertical BD y el costado inclinado BA. Para estas torres mide 15°.",
+    "conjunto": "R",
+    "seccion": "Interpretación geométrica de una estructura inclinada",
+    "unidad": 9,
+    "pagina_pdf": 273,
+    "referencia": "Actividad 3, ítem a",
+    "apto_para": ["procedimiento_abierto"],
+    "nota": "Los dos ángulos representan la misma inclinación porque los costados AB y DC son paralelos en el esquema.",
+    "dificultad": 550
+  },
+  {
+    "id": "HT8-U9-P273-A3b",
+    "tipo": "abierta",
+    "enunciado": "En la representación ABCD de una Torre Puerta de Europa, ubica la altura h.",
+    "respuesta": "La altura es el segmento vertical BD, perpendicular a las bases horizontales AD y BC; por tanto, h=BD.",
+    "conjunto": "R",
+    "seccion": "Altura de una estructura inclinada",
+    "unidad": 9,
+    "pagina_pdf": 273,
+    "referencia": "Actividad 3, ítem b",
+    "apto_para": ["procedimiento_abierto"],
+    "nota": "La altura se mide verticalmente; no corresponde a la longitud de los costados inclinados AB o DC.",
+    "dificultad": 500
+  }
+]

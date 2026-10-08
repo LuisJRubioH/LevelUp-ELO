@@ -1,0 +1,46 @@
+[
+  {
+    "id": "HT8-U3-P69-A1",
+    "tipo": "abierta",
+    "enunciado": "Lectura «Polinomios en la aceleración de los cuerpos». ¿Cómo se percibe la aceleración dentro de un vehículo?",
+    "respuesta": "Al aumentar la velocidad, los pasajeros se sienten empujados hacia atrás contra el espaldar del asiento; al frenar, se van hacia adelante. Y cuando el carro gira en una esquina con velocidad constante, los pasajeros se desplazan hacia el lado contrario al del giro.",
+    "conjunto": "R",
+    "seccion": "Aplicación — Polinomios en la aceleración de los cuerpos",
+    "unidad": 3,
+    "pagina_pdf": 69,
+    "referencia": "Recupera información, actividad 1",
+    "apto_para": ["procedimiento_abierto"],
+    "nota": "El tercer caso (el giro) es el interesante: la rapidez no cambia y aun así hay aceleración, porque cambia la DIRECCIÓN de la velocidad. La lectura lo menciona sin explicarlo, y es una buena pregunta para el aula.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U3-P69-A2",
+    "tipo": "numerico",
+    "enunciado": "El Caparo T1 acelera de $0$ a $160$ km/h en $5{,}8$ segundos. Halla su aceleración en m/s².",
+    "expr": "(160*1000/3600)/5.8",
+    "respuesta": "2000/261",
+    "conjunto": "Q",
+    "seccion": "Aplicación — Polinomios en la aceleración de los cuerpos",
+    "unidad": 3,
+    "pagina_pdf": 69,
+    "referencia": "Interpreta, actividad 2",
+    "apto_para": ["practica_numerica", "ejemplo_resuelto", "procedimiento_abierto"],
+    "nota": "$a=\\dfrac{v-v_0}{t}$ con $v_0=0$. La clave es CONVERTIR primero: $160$ km/h $=\\dfrac{160\\,000}{3600}=\\dfrac{400}{9}\\approx44{,}4$ m/s. Entonces $a=\\dfrac{400/9}{5{,}8}=\\dfrac{2000}{261}\\approx7{,}66$ m/s². Dividir sin convertir da $27{,}6$, número correcto pero en km/h por segundo: la respuesta cambia de valor según las unidades, y por eso hay que declararlas.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U3-P69-A3",
+    "tipo": "simbolico",
+    "enunciado": "La distancia recorrida por un auto de Fórmula 1 es $s=40t+40t^2$ y la de un automóvil en Colombia es $s=10+2t$ (metros y segundos). Realiza la resta de la primera menos la segunda.",
+    "expr": "(40*t + 40*t**2) - (10 + 2*t)",
+    "respuesta": "40*t**2 + 38*t - 10",
+    "conjunto": "Z",
+    "seccion": "Aplicación — Polinomios en la aceleración de los cuerpos",
+    "unidad": 3,
+    "pagina_pdf": 69,
+    "referencia": "Plantea y actúa, actividad 3",
+    "apto_para": ["practica_seleccion", "ejemplo_resuelto", "procedimiento_abierto"],
+    "nota": "Resta de polinomios con significado físico: $40t^2+38t-10$ es la VENTAJA en metros del Fórmula 1 sobre el otro auto en el instante $t$. En $t=0$ vale $-10$, o sea que el otro va 10 m adelante; la ventaja se vuelve positiva alrededor de $t\\approx0{,}24$ s, cuando el Fórmula 1 alcanza a su rival. El signo del polinomio, y no solo su valor, es lo que cuenta la historia.",
+    "dificultad": 1250
+  }
+]

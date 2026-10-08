@@ -1,0 +1,401 @@
+[
+  {
+    "id": "EPA8-C1-2021-P01",
+    "content": "A un conductor, que no conoce el recorrido para llegar a un parque, le entregan el mapa de la figura. En el mapa, cada casilla de la cuadrícula mide $20$ metros de lado, y el recorrido marcado va desde el punto de inicio hacia el occidente, luego al norte, luego al oriente y finalmente al norte hasta el parque. Según el mapa, ¿cuál es el recorrido que debe hacer el conductor para ir desde el punto de inicio hasta el parque?",
+    "difficulty": 1200,
+    "topic": "Pensamiento espacial — desplazamientos y escala en un plano",
+    "options": [
+      "100 m al norte y 80 m al oriente.",
+      "80 m al occidente, 60 m al norte, 160 m al oriente y 40 m al norte.",
+      "40 m al oriente y 50 m al norte.",
+      "50 m al occidente, 30 m al norte, 80 m al occidente y 20 m al norte."
+    ],
+    "correct_option": "80 m al occidente, 60 m al norte, 160 m al oriente y 40 m al norte.",
+    "tags": ["espacial", "grado8", "epa", "interpretacion", "escala"],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P01.svg",
+    "pensamiento": "espacial",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 1, "pagina_pdf": 2},
+    "figura": {"builder": "p2021_01", "descripcion": "Cuadrícula de 20 m con manzanas, punto de inicio, recorrido en 4 tramos y el parque"},
+    "solution": [
+      "Contar las casillas de cada tramo y multiplicar por $20$ m.",
+      "Primer tramo: 4 casillas al occidente $= 80$ m. Segundo: 3 casillas al norte $= 60$ m.",
+      "Tercero: 8 casillas al oriente $= 160$ m. Cuarto: 2 casillas al norte $= 40$ m.",
+      "El recorrido es 80 m al occidente, 60 m al norte, 160 m al oriente y 40 m al norte."
+    ],
+    "misconception_by_option": {
+      "A": "Toma solo el desplazamiento neto y omite los tramos intermedios.",
+      "C": "Cuenta casillas sin aplicar la escala de 20 m.",
+      "D": "Confunde oriente con occidente y no usa la escala."
+    }
+  },
+  {
+    "id": "EPA8-C1-2021-P03",
+    "content": "En la figura se representa la disponibilidad de sillas para la proyección de una película en una sala de cine. Las sillas disponibles son cuatro: $M$ en la fila 6, columna 3; $N$ en la fila 5, columna 4; $P$ en la fila 4, columna 6; y $Q$ en la fila 3, columna 7. Para determinar la ubicación de la silla, se escribe primero el número de la columna seguido del número de la fila correspondiente. ¿Cuál de las siguientes listas corresponde a las sillas disponibles?",
+    "difficulty": 1050,
+    "topic": "Pensamiento espacial — coordenadas y orden del par",
+    "options": [
+      "$M(6, 3)$, $N(5, 4)$, $P(4, 5)$ y $Q(3, 6)$.",
+      "$M(3, 6)$, $N(4, 5)$, $P(6, 4)$ y $Q(7, 3)$.",
+      "$M(6, 3)$, $N(5, 4)$, $P(4, 6)$ y $Q(3, 7)$.",
+      "$M(3, 6)$, $N(4, 5)$, $P(5, 4)$ y $Q(6, 3)$."
+    ],
+    "correct_option": "$M(3, 6)$, $N(4, 5)$, $P(6, 4)$ y $Q(7, 3)$.",
+    "tags": ["espacial", "grado8", "epa", "interpretacion", "coordenadas"],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P03.svg",
+    "pensamiento": "espacial",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 3, "pagina_pdf": 3},
+    "figura": {"builder": "p2021_03", "descripcion": "Mapa de sillas ocupadas (relleno) y disponibles (blancas rotuladas M, N, P, Q) en rejilla fila x columna"},
+    "solution": [
+      "El enunciado fija el orden: primero la columna, después la fila.",
+      "$M$ está en la columna 3 y la fila 6, luego se escribe $M(3, 6)$.",
+      "Del mismo modo $N(4, 5)$, $P(6, 4)$ y $Q(7, 3)$."
+    ],
+    "misconception_by_option": {
+      "A": "Invierte el orden y escribe (fila, columna).",
+      "C": "Invierte el orden en las dos primeras sillas y lee mal las otras dos.",
+      "D": "Acierta el orden pero lee mal la columna de $P$ y $Q$."
+    }
+  },
+  {
+    "id": "EPA8-C1-2021-P04",
+    "content": "La gráfica muestra la tasa de interés ofrecida por una entidad financiera de acuerdo con el plazo solicitado en un préstamo: $0,012$ a los $0$ meses, $0,014$ a los $2$ meses, $0,016$ a los $4$ meses, $0,018$ a los $6$ meses y $0,020$ a los $8$ meses. Si en la gráfica se mantiene el comportamiento, ¿cuál sería la tasa de interés que ofrece la entidad para un préstamo de $12$ meses?",
+    "difficulty": 1250,
+    "topic": "Pensamiento variacional — extrapolación lineal",
+    "options": [
+      "$0,024$, porque cada mes de plazo adicional representa un aumento de $0,001$ en la tasa de interés.",
+      "$0,022$, porque el aumento de la tasa de interés en el eje vertical es de $0,002$ unidades.",
+      "$0,020$, porque esta es la tasa máxima que ofrece la entidad financiera.",
+      "$0,012$, porque este es el valor donde la gráfica corta el eje vertical."
+    ],
+    "correct_option": "$0,024$, porque cada mes de plazo adicional representa un aumento de $0,001$ en la tasa de interés.",
+    "tags": ["variacional", "grado8", "epa", "argumentacion", "linealidad"],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P04.svg",
+    "pensamiento": "variacional",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 4, "pagina_pdf": 4},
+    "figura": {"builder": "p2021_04", "descripcion": "Recta con puntos (0; 0,012) (2; 0,014) (4; 0,016) (6; 0,018) (8; 0,020)"},
+    "solution": [
+      "Cada 2 meses la tasa sube $0,002$, es decir, $0,001$ por mes.",
+      "De 8 a 12 meses hay 4 meses más: $4 \\times 0,001 = 0,004$.",
+      "$0,020 + 0,004 = 0,024$."
+    ],
+    "misconception_by_option": {
+      "B": "Aplica el aumento de un solo intervalo de 2 meses y no de los 4 meses restantes.",
+      "C": "Supone que la gráfica se detiene donde termina el dibujo.",
+      "D": "Confunde la tasa pedida con el punto de corte con el eje vertical."
+    }
+  },
+  {
+    "id": "EPA8-C1-2021-P05",
+    "content": "La figura muestra la forma en que doña Eduviges organizó los productos que vende en un estante. En la parte superior ubicó latas, botellas y frascos (todos con base circular) y en la parte inferior ubicó cajas (todas con forma de prisma rectangular). ¿Cuál de las siguientes afirmaciones **NO** es correcta?",
+    "difficulty": 1000,
+    "topic": "Pensamiento espacial — clasificación de sólidos",
+    "options": [
+      "En la parte inferior del estante, doña Eduviges organiza envases cilíndricos.",
+      "En la parte superior del estante, doña Eduviges organiza envases que tienen base circular.",
+      "En la parte inferior del estante, doña Eduviges organiza envases que tienen 6 caras.",
+      "En la parte superior del estante, doña Eduviges organiza envases con 2 caras paralelas."
+    ],
+    "correct_option": "En la parte inferior del estante, doña Eduviges organiza envases cilíndricos.",
+    "tags": ["espacial", "grado8", "epa", "argumentacion", "solidos"],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P05.svg",
+    "pensamiento": "espacial",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 5, "pagina_pdf": 4},
+    "figura": {"builder": "p2021_05", "descripcion": "Esquema del estante: fila superior con cilindros, fila inferior con prismas rectangulares"},
+    "solution": [
+      "En la parte inferior hay cajas, es decir, prismas rectangulares con 6 caras.",
+      "La afirmación que las llama cilíndricas contradice la figura.",
+      "Las otras tres afirmaciones sí describen correctamente lo que se ve."
+    ],
+    "misconception_by_option": {
+      "B": "Es correcta: latas, botellas y frascos tienen base circular.",
+      "C": "Es correcta: un prisma rectangular tiene 6 caras.",
+      "D": "Es correcta: un cilindro tiene dos bases paralelas."
+    }
+  },
+  {
+    "id": "EPA8-C1-2021-P06",
+    "content": "En un juego de parqués, al jugador 1 le faltan tres casillas para llegar y al jugador 2 le falta una casilla. Por tanto, ambos deben hacer lanzamientos con un solo dado. El jugador 1 participó el día anterior en un juego de parqués en el que requería obtener $1$ para ganar, pero al cabo de 8 intentos perdió. El día de hoy el jugador 1 afirma que es más probable que en este juego logre la victoria. Esta afirmación es",
+    "difficulty": 1200,
+    "topic": "Pensamiento aleatorio — independencia de eventos",
+    "options": [
+      "verdadera, porque 3 es mayor que 1 y, por tanto, es el más probable.",
+      "falsa, porque es más probable sacar 1, por estar la ficha más cerca a la llegada.",
+      "verdadera, porque seguro en 8 lanzamientos no se obtiene 1.",
+      "falsa, porque tanto 1 como 3 tienen la misma probabilidad de obtenerse."
+    ],
+    "correct_option": "falsa, porque tanto 1 como 3 tienen la misma probabilidad de obtenerse.",
+    "tags": ["aleatorio", "grado8", "epa", "argumentacion", "probabilidad"],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P06.svg",
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 6, "pagina_pdf": 5},
+    "figura": {"builder": "p2021_06", "descripcion": "Dos caminos de parqués con LLEGADA arriba y SEGURO abajo; ficha 1 a tres casillas y ficha 2 a una casilla"},
+    "solution": [
+      "En un dado corriente cada cara tiene probabilidad $\\dfrac{1}{6}$.",
+      "Sacar 1 y sacar 3 son igual de probables.",
+      "Lo que pasó ayer no cambia la probabilidad de hoy: los lanzamientos son independientes.",
+      "Por eso la afirmación es falsa."
+    ],
+    "misconception_by_option": {
+      "A": "Cree que un número mayor en el dado es más probable.",
+      "B": "Cree que la posición de la ficha cambia la probabilidad del dado.",
+      "C": "Falacia del jugador: cree que los fracasos previos garantizan un resultado."
+    }
+  },
+  {
+    "id": "EPA8-C1-2021-P07",
+    "content": "Para un juego se tiene una caja que contiene tres bolas blancas, dos negras, tres rojas y cuatro verdes; una persona debe sacar al azar una bola de la caja (sin mirar). La persona debe elegir un color antes de sacar la bola, y gana si coincide el color elegido con el color de la bola que extrae de la caja. Un participante de este juego afirma que la probabilidad de ganar es la misma sin importar el color elegido. ¿El participante tiene razón?",
+    "difficulty": 1100,
+    "topic": "Pensamiento aleatorio — comparación de probabilidades",
+    "options": [
+      "No, porque el verde tiene mayor probabilidad que los otros colores.",
+      "Sí, porque hay bolas de los cuatro colores dentro de la caja.",
+      "No, porque sacar una bola roja es más probable que sacar una blanca.",
+      "Sí, porque cada color tiene igual probabilidad de ser elegido."
+    ],
+    "correct_option": "No, porque el verde tiene mayor probabilidad que los otros colores.",
+    "tags": ["aleatorio", "grado8", "epa", "argumentacion", "probabilidad"],
+    "image_url": null,
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 7, "pagina_pdf": 5},
+    "figura": null,
+    "solution": [
+      "En total hay $3+2+3+4 = 12$ bolas.",
+      "Las probabilidades son: blanca $\\dfrac{3}{12}$, negra $\\dfrac{2}{12}$, roja $\\dfrac{3}{12}$, verde $\\dfrac{4}{12}$.",
+      "El verde tiene la mayor probabilidad, así que el participante no tiene razón."
+    ],
+    "misconception_by_option": {
+      "B": "Confunde 'que exista el color' con 'que sea igual de probable'.",
+      "C": "Compara mal: roja y blanca tienen ambas 3 bolas, así que son igual de probables.",
+      "D": "Confunde elegir un color con extraer una bola: la caja no tiene la misma cantidad de cada color."
+    }
+  },
+  {
+    "id": "EPA8-C1-2021-P09",
+    "content": "Se construye una figura utilizando algunos triángulos, rectángulos y cuadrados: es un trapecio de $12\\text{ cm}$ de altura, con base mayor de $20\\text{ cm}$ y base menor de $12\\text{ cm}$ (el tramo restante de $8\\text{ cm}$ corresponde a un triángulo rectángulo). Para calcular el área, Juan y Camilo realizaron los siguientes procedimientos:\n\n- **Juan:** $\\dfrac{8\\text{ cm} \\times 12\\text{ cm}}{2} + (12\\text{ cm} \\times 12\\text{ cm})$\n- **Camilo:** $20\\text{ cm} \\times 12\\text{ cm}$\n\n¿Cuál de los procedimientos planteados permite hallar correctamente el área de la figura?",
+    "difficulty": 1200,
+    "topic": "Pensamiento métrico — descomposición de figuras para hallar áreas",
+    "options": [
+      "Solamente el de Juan.",
+      "Solamente el de Camilo.",
+      "El de Juan y el de Camilo.",
+      "Ni el de Juan ni el de Camilo."
+    ],
+    "correct_option": "Solamente el de Juan.",
+    "tags": ["metrico", "grado8", "epa", "argumentacion", "area"],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P09.svg",
+    "pensamiento": "métrico",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 9, "pagina_pdf": 7},
+    "figura": {"builder": "p2021_09", "descripcion": "Trapecio descompuesto en triángulo (8 cm) y rectángulo (12 cm), altura 12 cm, base total 20 cm"},
+    "solution": [
+      "Juan descompone la figura: triángulo de base 8 y altura 12 más un cuadrado de 12 por 12.",
+      "$\\dfrac{8\\times 12}{2} + 12\\times 12 = 48 + 144 = 192\\text{ cm}^2$.",
+      "Camilo calcula $20\\times 12 = 240\\text{ cm}^2$, que es el rectángulo completo e incluye la parte que no está en la figura.",
+      "Solo el procedimiento de Juan es correcto."
+    ],
+    "misconception_by_option": {
+      "B": "Trata la figura como si fuera un rectángulo de base 20.",
+      "C": "No advierte que el procedimiento de Camilo cuenta área de más.",
+      "D": "Descarta la descomposición correcta de Juan."
+    }
+  },
+  {
+    "id": "EPA8-C1-2021-P10",
+    "content": "En la tabla se muestra la cantidad de rosas y de girasoles que hay en dos parques de la ciudad.\n\n| Parque | Flor | Cantidad |\n|---|---|---|\n| Parque 1 | Rosas | 150 |\n| Parque 1 | Girasoles | 60 |\n| Parque 2 | Rosas | 10 |\n| Parque 2 | Girasoles | 20 |\n\n¿Cuál de las siguientes afirmaciones es correcta?",
+    "difficulty": 1150,
+    "topic": "Pensamiento aleatorio — promedio y comparación multiplicativa",
+    "options": [
+      "El promedio de girasoles de los dos parques es cuatro veces el promedio de rosas de los dos parques.",
+      "El promedio de rosas de los dos parques es dos veces el promedio de girasoles de los dos parques.",
+      "El promedio de girasoles de los dos parques es tres veces el promedio de rosas de los dos parques.",
+      "El promedio de rosas de los dos parques es siete veces el promedio de girasoles de los dos parques."
+    ],
+    "correct_option": "El promedio de rosas de los dos parques es dos veces el promedio de girasoles de los dos parques.",
+    "tags": ["aleatorio", "grado8", "epa", "argumentacion", "promedio"],
+    "image_url": null,
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 10, "pagina_pdf": 8},
+    "figura": null,
+    "solution": [
+      "Promedio de rosas: $\\dfrac{150+10}{2} = 80$.",
+      "Promedio de girasoles: $\\dfrac{60+20}{2} = 40$.",
+      "$80 = 2 \\times 40$: el promedio de rosas es el doble del de girasoles."
+    ],
+    "misconception_by_option": {
+      "A": "Invierte cuál promedio es mayor y usa un factor equivocado.",
+      "C": "Invierte el sentido de la comparación.",
+      "D": "Compara los valores del Parque 1 ($150$ frente a $60$) en vez de los promedios."
+    }
+  },
+  {
+    "id": "EPA8-C1-2021-P11",
+    "content": "Un estudiante lanzó una pelota hacia arriba desde una altura de $5$ metros. La gráfica muestra la altura de la pelota con relación al tiempo transcurrido desde que se lanzó: parte de $5\\text{ m}$ en el segundo $0$, alcanza su punto más alto de $9\\text{ m}$ a los $2$ segundos y llega al suelo a los $5$ segundos. ¿Cuánto tiempo duró subiendo la pelota?",
+    "difficulty": 1000,
+    "topic": "Pensamiento variacional — lectura de gráficas no lineales",
+    "options": ["1 segundo.", "2 segundos.", "5 segundos.", "9 segundos."],
+    "correct_option": "2 segundos.",
+    "tags": ["variacional", "grado8", "epa", "interpretacion", "grafica"],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P11.svg",
+    "pensamiento": "variacional",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 11, "pagina_pdf": 8},
+    "figura": {"builder": "p2021_11", "descripcion": "Parábola: altura 5 m en t=0, máximo 9 m en t=2, corta el eje en t=5"},
+    "solution": [
+      "La pelota sube mientras la gráfica crece.",
+      "La gráfica crece desde $t=0$ hasta el punto más alto, que ocurre en $t=2$.",
+      "Por lo tanto, la pelota subió durante 2 segundos."
+    ],
+    "misconception_by_option": {
+      "A": "Lee un punto intermedio de la subida.",
+      "C": "Toma el tiempo total del recorrido, incluida la bajada.",
+      "D": "Confunde la altura máxima (9 m) con un tiempo."
+    }
+  },
+  {
+    "id": "EPA8-C1-2021-P12",
+    "content": "En el diagrama se muestra el posible color de ojos de hombres y mujeres en un salón de clases: de la rama **Mujer** salen azul, café y verde; de la rama **Hombre** salen azul, café y negro. Según el diagrama de la figura, ¿cuál de las siguientes afirmaciones es correcta?",
+    "difficulty": 950,
+    "topic": "Pensamiento aleatorio — lectura de diagramas de árbol",
+    "options": [
+      "Una mujer puede tener ojos azules.",
+      "Un hombre puede tener ojos verdes.",
+      "Hay 4 colores de ojos para mujeres.",
+      "Hay 6 distintos colores de ojos."
+    ],
+    "correct_option": "Una mujer puede tener ojos azules.",
+    "tags": ["aleatorio", "grado8", "epa", "interpretacion", "arbol"],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P12.svg",
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 12, "pagina_pdf": 9},
+    "figura": {"builder": "p2021_12", "descripcion": "Árbol: Género → Mujer {Azul, Café, Verde} y Hombre {Azul, Café, Negro}"},
+    "solution": [
+      "Seguir la rama 'Mujer': lleva a azul, café y verde.",
+      "Azul sí aparece bajo mujer, así que esa afirmación es correcta.",
+      "Verde no aparece bajo hombre; mujeres tienen 3 colores, no 4; y los colores distintos en total son 4 (azul, café, verde y negro), no 6."
+    ],
+    "misconception_by_option": {
+      "B": "Mezcla las ramas de mujer y hombre.",
+      "C": "Cuenta mal las hojas de la rama 'Mujer'.",
+      "D": "Cuenta las 6 hojas del árbol sin descartar los colores repetidos."
+    }
+  },
+  {
+    "id": "EPA8-C1-2021-P13",
+    "content": "Para su tarea de Estadística, Juliana le preguntó la edad a cada uno de sus 5 tíos y encontró que la moda es de $51$ años. ¿Cuál de las siguientes representaciones corresponde a las edades de los tíos de Juliana?",
+    "difficulty": 1050,
+    "topic": "Pensamiento aleatorio — moda",
+    "options": [
+      "Edades 36, 48, 51, 57 y 63.",
+      "Edades 40, 45, 49, 50 y 51.",
+      "Edades 36, 48, 51, 51 y 63.",
+      "Edades 49, 50, 51, 52 y 53."
+    ],
+    "correct_option": "Edades 36, 48, 51, 51 y 63.",
+    "tags": ["aleatorio", "grado8", "epa", "argumentacion", "moda"],
+    "image_url": null,
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 13, "pagina_pdf": 9},
+    "figura": null,
+    "solution": [
+      "La moda es el dato que se repite más veces.",
+      "En A, B y D ninguna edad se repite: no hay moda.",
+      "En C la edad 51 aparece dos veces y ninguna otra se repite, así que la moda es 51."
+    ],
+    "misconception_by_option": {
+      "A": "Cree que basta con que 51 aparezca una vez.",
+      "B": "Cree que la moda es el último dato o el mayor.",
+      "D": "Cree que la moda es el dato central (eso es la mediana)."
+    }
+  },
+  {
+    "id": "EPA8-C1-2021-P14",
+    "content": "La gráfica muestra la relación entre la edad biológica de un humano y la edad biológica de una raza de perros, a partir del segundo año de la edad biológica del humano: $(2, 24)$, $(4, 28)$, $(6, 32)$ y $(8, 36)$. ¿Cuál es la relación entre la edad biológica del humano y la del perro, a partir del segundo año?",
+    "difficulty": 1150,
+    "topic": "Pensamiento variacional — razón de cambio",
+    "options": [
+      "Por cada 2 años humanos, la edad del perro aumenta 2 años.",
+      "Por cada 4 años humanos, la edad del perro aumenta 2 años.",
+      "Por cada 2 años humanos, la edad del perro aumenta 4 años.",
+      "Por cada 4 años humanos, la edad del perro aumenta 4 años."
+    ],
+    "correct_option": "Por cada 2 años humanos, la edad del perro aumenta 4 años.",
+    "tags": ["variacional", "grado8", "epa", "interpretacion", "razon_de_cambio"],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P14.svg",
+    "pensamiento": "variacional",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 14, "pagina_pdf": 10},
+    "figura": {"builder": "p2021_14", "descripcion": "Puntos (2,24) (4,28) (6,32) (8,36) rotulados en el plano"},
+    "solution": [
+      "Comparar dos puntos consecutivos: de $(2, 24)$ a $(4, 28)$.",
+      "La edad humana sube 2 años y la del perro sube 4 años.",
+      "Ese mismo patrón se repite entre todos los puntos."
+    ],
+    "misconception_by_option": {
+      "A": "Copia el aumento del eje horizontal también para el vertical.",
+      "B": "Invierte los dos aumentos.",
+      "D": "Usa el aumento correcto del perro pero con el intervalo humano equivocado."
+    }
+  },
+  {
+    "id": "EPA8-C1-2021-P16",
+    "content": "Un artista dibujó una reducción de una de las caras triangulares de una pirámide cuyas medidas registradas en la foto son $410\\text{ cm}$, $410\\text{ cm}$ y $440\\text{ cm}$. De acuerdo con esas medidas, ¿cuál de los siguientes triángulos es el dibujo del artista?",
+    "difficulty": 1200,
+    "topic": "Pensamiento espacial — semejanza y proporcionalidad de lados",
+    "options": [
+      "Triángulo de lados 4 cm, 4 cm y 4 cm.",
+      "Triángulo de lados 41 cm, 43 cm y 42 cm.",
+      "Triángulo de lados 41 cm, 41 cm y 44 cm.",
+      "Triángulo de lados 41 cm, 41 cm y 55 cm."
+    ],
+    "correct_option": "Triángulo de lados 41 cm, 41 cm y 44 cm.",
+    "tags": ["espacial", "grado8", "epa", "formulacion", "semejanza"],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P16.svg",
+    "pensamiento": "espacial",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 16, "pagina_pdf": 11},
+    "figura": {"builder": "p2021_16", "descripcion": "Cara triangular de la pirámide con lados 410 cm, 410 cm y 440 cm"},
+    "solution": [
+      "Una reducción conserva la proporción entre los lados.",
+      "Dividir los tres lados por el mismo número: $410 \\div 10 = 41$ y $440 \\div 10 = 44$.",
+      "El triángulo de lados $41$, $41$ y $44$ es el único proporcional al original."
+    ],
+    "misconception_by_option": {
+      "A": "Convierte el triángulo en equilátero, perdiendo la proporción entre los lados.",
+      "B": "Reduce cada lado con un factor distinto.",
+      "D": "Reduce dos lados correctamente y deja el tercero sin proporción."
+    }
+  },
+  {
+    "id": "EPA8-C1-2021-P17",
+    "content": "Paula posee varias fichas cuadradas de igual tamaño, cada una de $2\\text{ cm}$ por $2\\text{ cm}$. Con ellas formó una figura de tres filas: 4 fichas en la fila superior, 1 ficha en la fila del medio y 4 fichas en la fila inferior. ¿Cuál es el área de la figura formada por Paula?",
+    "difficulty": 1100,
+    "topic": "Pensamiento métrico — área por composición de unidades",
+    "options": ["$4\\text{ cm}^2$", "$9\\text{ cm}^2$", "$36\\text{ cm}^2$", "$40\\text{ cm}^2$"],
+    "correct_option": "$36\\text{ cm}^2$",
+    "tags": ["metrico", "grado8", "epa", "formulacion", "area"],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P17.svg",
+    "pensamiento": "métrico",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2021", "codigo": "M081", "pregunta": 17, "pagina_pdf": 11},
+    "figura": {"builder": "p2021_17", "descripcion": "Ficha de 2 cm x 2 cm y la figura compuesta de 9 fichas (4 + 1 + 4)"},
+    "solution": [
+      "Cada ficha tiene área $2\\times 2 = 4\\text{ cm}^2$.",
+      "La figura usa $4+1+4 = 9$ fichas.",
+      "Área total: $9 \\times 4 = 36\\text{ cm}^2$."
+    ],
+    "misconception_by_option": {
+      "A": "Da el área de una sola ficha.",
+      "B": "Cuenta las fichas pero no multiplica por el área de cada una.",
+      "D": "Cuenta mal la cantidad de fichas (10 en vez de 9)."
+    }
+  }
+]

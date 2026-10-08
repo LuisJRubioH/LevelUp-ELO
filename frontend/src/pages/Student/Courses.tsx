@@ -12,13 +12,13 @@ import { studentApi, type Course } from "../../api/student";
 import { Button } from "../../components/ui/Button";
 import { CoursesSkeleton } from "../../components/ui/Skeleton";
 import { CourseBanner } from "../../components/CourseCard/CourseBanner";
-import { usePracticeStore } from "../../stores/practiceStore";
+import { PageHeader } from "../../components/ui/PageHeader";
+import "./StudentContent.css";
 
 export function Courses() {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const startSession = usePracticeStore((s) => s.startSession);
   const [tab, setTab] = useState<"explore" | "enrolled" | "code">("explore");
   const [inviteCode, setInviteCode] = useState("");
   const [codeMsg, setCodeMsg] = useState("");
@@ -49,8 +49,8 @@ export function Courses() {
   });
 
   const handlePractice = (courseId: string) => {
-    startSession(courseId);
-    navigate("/student");
+    // Entrar a la materia: gating de diagnóstico → bifurcación Practicar/Mapa.
+    navigate(`/student/course/${courseId}`);
   };
 
   const tabs = [
@@ -63,21 +63,16 @@ export function Courses() {
   const displayed: Course[] = tab === "enrolled" ? enrolled : courses;
 
   return (
-    <div className="max-w-5xl mx-auto py-6 px-4">
-      <h2 className="text-xl font-bold text-slate-100 mb-6">{t("courses.title")}</h2>
+    <div className="sp-page-wide">
+      <PageHeader eyebrow={t("courses.eyebrow")} title={t("courses.title")} subtitle={t("courses.intro")} />
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-slate-700 pb-2">
+      <div className="view-tabs">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => { setTab(t.id); setCodeMsg(""); }}
-            className={[
-              "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-              tab === t.id
-                ? "bg-violet-600 text-white"
-                : "text-slate-400 hover:text-slate-100",
-            ].join(" ")}
+            className={tab === t.id ? "on" : ""}
           >
             {t.label}
             {t.id === "enrolled" && enrolled.length > 0 && (
@@ -89,8 +84,8 @@ export function Courses() {
 
       {/* Código de acceso */}
       {tab === "code" && (
-        <div className="space-y-4">
-          <p className="text-sm text-slate-400">{t("courses.codeIntro")}</p>
+        <div className="sp-card space-y-4">
+          <p className="sp-dim text-sm">{t("courses.codeIntro")}</p>
           <div className="flex gap-3">
             <input
               type="text"
@@ -119,16 +114,16 @@ export function Courses() {
       {tab !== "code" && (
         <>
           {tab === "explore" && (
-            <p className="text-sm text-slate-400 mb-4">{t("courses.exploreIntro")}</p>
+            <p className="sp-dim text-sm mb-4">{t("courses.exploreIntro")}</p>
           )}
           {tab === "enrolled" && (
-            <p className="text-sm text-slate-400 mb-4">{t("courses.enrolledIntro")}</p>
+            <p className="sp-dim text-sm mb-4">{t("courses.enrolledIntro")}</p>
           )}
 
           {isLoading ? (
             <CoursesSkeleton />
           ) : displayed.length === 0 ? (
-            <div className="text-center py-12 text-slate-500">
+            <div className="sp-card sp-empty-text text-center py-12">
               {tab === "enrolled" ? t("courses.noEnrolled") : t("courses.noAvailable")}
             </div>
           ) : (
@@ -136,15 +131,19 @@ export function Courses() {
               {displayed.map((c) => (
                 <article
                   key={c.id}
-                  className="group flex flex-col rounded-xl border border-slate-800 bg-[var(--surface)] overflow-hidden transition-transform duration-200 hover:-translate-y-0.5 hover:border-slate-700"
+                  className="sp-card group flex flex-col overflow-hidden transition-transform duration-200 hover:-translate-y-0.5"
+                  style={{ padding: 0 }}
                 >
                   <CourseBanner courseName={c.name} />
                   <div className="flex flex-col gap-3 px-4 pt-3 pb-4">
                     <div>
-                      <h3 className="text-[15px] font-semibold text-slate-100 leading-snug">
+                      <h3
+                        className="leading-snug"
+                        style={{ color: "var(--text)", margin: 0, fontSize: 15, fontWeight: 600 }}
+                      >
                         {c.name}
                       </h3>
-                      <p className="text-[11px] uppercase tracking-wider text-slate-500 mt-1">
+                      <p className="sp-mute text-[11px] uppercase tracking-wider mt-1">
                         {c.block}
                       </p>
                     </div>
@@ -174,12 +173,20 @@ export function Courses() {
 
                     {tab === "enrolled" && (
                       <div className="flex items-center justify-between gap-2 pt-1">
-                        <Button
-                          size="sm"
-                          onClick={() => handlePractice(c.id)}
-                        >
-                          {t("courses.practice")}
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" onClick={() => handlePractice(c.id)}>
+                            {t("courses.practice")}
+                          </Button>
+                          {c.diagnostic_done && c.block !== "Concursos" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/student/course/${c.id}/map`)}
+                            >
+                              🗺️ Mapa
+                            </Button>
+                          )}
+                        </div>
                         <Button
                           variant="ghost"
                           size="sm"

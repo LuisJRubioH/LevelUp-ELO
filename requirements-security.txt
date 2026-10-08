@@ -1,0 +1,5 @@
+# Mínimos transitivos verificados con pip-audit el 2026-09-08.
+# Las constraints no instalan paquetes adicionales; impiden resolver versiones vulnerables.
+cryptography>=50.0.0
+h2>=4.4.1
+pyasn1>=0.6.4

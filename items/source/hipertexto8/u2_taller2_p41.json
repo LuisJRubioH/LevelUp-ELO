@@ -1,0 +1,416 @@
+[
+  {
+    "id": "HT8-U2-P41-T2-11",
+    "tipo": "clasificacion",
+    "enunciado": "Determina cuántas y cuáles variables diferentes tiene cada polinomio: a. $2x^3+5x^2-x+8$; b. $3a^4b-8a^3b^2+7a^2b^3-2ab^4$; c. $5xy^4+3x^2y^3-7x^3y^2+z$; d. $-m^5+\\dfrac{1}{3}m^4-2m^3+\\dfrac{1}{2}m^2-5$; e. $\\dfrac{2}{7}a^5b^4c^3-\\dfrac{8}{3}a^4b^5c^4+3d$.",
+    "respuesta": {
+      "a": "1 variable: $x$",
+      "b": "2 variables: $a$, $b$",
+      "c": "3 variables: $x$, $y$, $z$",
+      "d": "1 variable: $m$",
+      "e": "4 variables: $a$, $b$, $c$, $d$"
+    },
+    "conjunto": "R",
+    "seccion": "Taller 2 — Polinomios",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 11",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "Se cuentan variables DISTINTAS, no apariciones. En c y e las últimas variables ($z$, $d$) aparecen una sola vez y es fácil pasarlas por alto.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U2-P41-T2-12a",
+    "tipo": "simbolico",
+    "enunciado": "Reduce los términos semejantes: $-x-[x-(x-y)+(-3x-5y)]$.",
+    "expr": "-x - (x - (x - y) + (-3*x - 5*y))",
+    "respuesta": "2*x + 4*y",
+    "conjunto": "R",
+    "seccion": "Taller 2 — Polinomios",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 12, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Dos niveles de signos de agrupación con menos delante: cada eliminación cambia los signos de todo lo que contiene.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U2-P41-T2-12b",
+    "tipo": "simbolico",
+    "enunciado": "Reduce los términos semejantes: $\\dfrac{1}{5}a-\\left[\\left(\\dfrac{-3}{2}a+\\dfrac{4}{5}b\\right)-\\dfrac{1}{6}b\\right]-\\dfrac{1}{4}a$.",
+    "expr": "Rational(1,5)*a - ((Rational(-3,2)*a + Rational(4,5)*b) - Rational(1,6)*b) - Rational(1,4)*a",
+    "respuesta": "Rational(29,20)*a - Rational(19,30)*b",
+    "conjunto": "R",
+    "seccion": "Taller 2 — Polinomios",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 12, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U2-P41-T2-12c",
+    "tipo": "simbolico",
+    "enunciado": "Reduce los términos semejantes: $\\dfrac{3}{2}x+\\left[\\left(\\dfrac{-1}{6}y-\\dfrac{1}{7}x\\right)+\\dfrac{2}{3}y\\right]+\\dfrac{1}{5}x$.",
+    "expr": "Rational(3,2)*x + ((Rational(-1,6)*y - Rational(1,7)*x) + Rational(2,3)*y) + Rational(1,5)*x",
+    "respuesta": "Rational(109,70)*x + Rational(1,2)*y",
+    "conjunto": "R",
+    "seccion": "Taller 2 — Polinomios",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 12, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U2-P41-T2-12d",
+    "tipo": "simbolico",
+    "enunciado": "Reduce: $-\\left\\{0{,}25a\\left[\\dfrac{2}{3}b-\\left(0{,}75a+\\dfrac{3}{2}b\\right)\\right]\\right\\}$.",
+    "expr": "-(Rational(1,4)*a*(Rational(2,3)*b - (Rational(3,4)*a + Rational(3,2)*b)))",
+    "respuesta": "Rational(3,16)*a**2 + Rational(5,24)*a*b",
+    "conjunto": "R",
+    "seccion": "Taller 2 — Polinomios",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 12, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "nota": "Verificado a 360 dpi: **no** hay signo $+$ entre $0{,}25a$ y el corchete, así que el monomio **multiplica** al corchete. Por tanto hay que reducir dentro del corchete y después distribuir: $\\dfrac{2}{3}b-\\left(0{,}75a+\\dfrac{3}{2}b\\right)=-0{,}75a-\\dfrac{5}{6}b$, y al multiplicar por $0{,}25a$ y cambiar el signo global queda $0{,}1875a^2+\\dfrac{5}{24}ab$. Nótese que aparecen $a^2$ y $ab$: el ítem va más allá de reducir términos semejantes, que es lo que anuncia la actividad, así que conviene usarlo después de haber visto el producto de monomios.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U2-P41-T2-12e",
+    "tipo": "simbolico",
+    "enunciado": "Reduce los términos semejantes: $-\\dfrac{4}{5}x-\\left[\\left(\\dfrac{-4}{3}x+\\dfrac{2}{5}y\\right)+\\dfrac{5}{6}x\\right]$.",
+    "expr": "-Rational(4,5)*x - ((Rational(-4,3)*x + Rational(2,5)*y) + Rational(5,6)*x)",
+    "respuesta": "-Rational(3,10)*x - Rational(2,5)*y",
+    "conjunto": "R",
+    "seccion": "Taller 2 — Polinomios",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 12, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U2-P41-T2-13",
+    "tipo": "abierta",
+    "enunciado": "Escribe un polinomio que cumpla las condiciones dadas: a. Grado absoluto 7, dos variables. b. Binomio, grado absoluto 5, una variable. c. Grado absoluto 12, tres variables. d. Trinomio, grado absoluto 10, tres variables. e. Binomio, grado absoluto 8, dos variables. f. Polinomio, grado absoluto 12, tres variables.",
+    "respuesta": {
+      "a": "$x^4y^3+xy$",
+      "b": "$x^5+x^2$",
+      "c": "$x^5y^4z^3+xyz$",
+      "d": "$x^5y^3z^2+x^2y+z$",
+      "e": "$a^5b^3-ab$",
+      "f": "$x^6y^4z^2+x^3y^2+xz+1$"
+    },
+    "conjunto": "R",
+    "seccion": "Taller 2 — Polinomios",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 13",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Respuesta abierta: infinitas soluciones válidas. Basta con que UN término alcance el grado pedido; los demás pueden ser de grado menor.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U2-P41-T2-14",
+    "tipo": "clasificacion",
+    "enunciado": "Escribe V si la afirmación es verdadera o F si es falsa, y justifica: a. Un polinomio es una expresión algebraica. b. Dos términos con distintos coeficientes pueden ser semejantes. c. El coeficiente siempre es un número. d. Los términos $xy^2$ y $x^2y$ son semejantes. e. Un polinomio de tres términos y grado absoluto 3 recibe el nombre de trinomio.",
+    "respuesta": {
+      "a": "V — todo polinomio es una expresión algebraica (lo contrario no siempre vale).",
+      "b": "V — la semejanza depende solo de la parte literal: $3x^2$ y $-7x^2$ son semejantes.",
+      "c": "Discutible — normalmente sí, pero el propio libro usa coeficientes literales ('$ax^3y^2$, donde $a$ es constante', p.37).",
+      "d": "F — las partes literales difieren: en uno $x$ tiene exponente 1 y en el otro 2.",
+      "e": "V — trinomio significa tres términos; el grado absoluto no interviene en el nombre."
+    },
+    "conjunto": "R",
+    "seccion": "Taller 2 — Polinomios",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 14",
+    "apto_para": [
+      "practica_vf",
+      "ejemplo_resuelto"
+    ],
+    "verificar": "El ítem c no tiene respuesta única: la p.37 (actividad 2g) y la p.39 usan coeficientes literales declarados constantes, lo que contradice un 'V' rotundo. No usarlo como práctica autocalificada sin precisar el enunciado.",
+    "nota": "El ítem e es buen contraste con el 5a de la p.37: allí se preguntaba si tres VARIABLES implican trinomio (falso); aquí, si tres TÉRMINOS lo implican (verdadero).",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U2-P41-T2-15",
+    "tipo": "clasificacion",
+    "enunciado": "Completa cada expresión para obtener un polinomio completo con respecto a $b$: a. $a^2b^3-b^4+a^4b$; b. $a^5-a^3b^2+b$; c. $-3a^{15}b^2+4a^6b^5-b^7+a^{18}b$; d. $-7a^2b^3+9a^{12}b-8a^{21}b^2+2$.",
+    "respuesta": {
+      "a": "Grados presentes en $b$: 4, 3, 1. Faltan los de grado 2 y 0 — por ejemplo $+a^3b^2+a^5$.",
+      "b": "Grados presentes: 2, 1, 0. Ya está completo respecto a $b$.",
+      "c": "Grados presentes: 7, 5, 2, 1. Faltan los de grado 6, 4, 3 y 0.",
+      "d": "Grados presentes: 3, 2, 1, 0. Ya está completo respecto a $b$."
+    },
+    "conjunto": "R",
+    "seccion": "Taller 2 — Polinomios",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 15",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Un polinomio es completo respecto a una variable si aparecen TODOS los grados desde el mayor hasta 0. Dos de los cuatro ($b$ y $d$) ya lo son: la respuesta correcta es 'no hay que agregar nada', que suele desconcertar.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U2-P41-T2-16a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe la suma de las áreas de los rectángulos en forma de expresión algebraica: $(3x\\times x)$, $(1\\times x)$, $(3x\\times 2x)$ y $(1\\times 2x)$.",
+    "expr": "3*x*x + 1*x + 3*x*2*x + 1*2*x",
+    "respuesta": "9*x**2 + 3*x",
+    "conjunto": "R",
+    "seccion": "Taller 2 — Polinomios",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 16, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Es el modelo de área de $(3x+1)(3x)$: las cuatro piezas arman un rectángulo grande. Antesala directa de los productos notables de la unidad 4.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U2-P41-T2-16b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe la suma de las áreas de los rectángulos: $(2x\\times x)$, $(1\\times x)$, $(2x\\times 4x)$ y $(1\\times 4x)$.",
+    "expr": "2*x*x + 1*x + 2*x*4*x + 1*4*x",
+    "respuesta": "10*x**2 + 5*x",
+    "conjunto": "R",
+    "seccion": "Taller 2 — Polinomios",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 16, ítem b",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "Equivale a $(2x+1)(5x)$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U2-P41-T2-16c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe la suma de las áreas de los rectángulos: $(4x\\times x)$, $(2\\times x)$, $(4x\\times 2x)$ y $(2\\times 2x)$.",
+    "expr": "4*x*x + 2*x + 4*x*2*x + 2*2*x",
+    "respuesta": "12*x**2 + 6*x",
+    "conjunto": "R",
+    "seccion": "Taller 2 — Polinomios",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 16, ítem c",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "Equivale a $(4x+2)(3x)$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U2-P41-T2-16d",
+    "tipo": "simbolico",
+    "enunciado": "Escribe la suma de las áreas de los rectángulos: $(3x\\times 2x)$, $(3\\times 2x)$, $(3x\\times 5)$ y $(3\\times 5)$.",
+    "expr": "3*x*2*x + 3*2*x + 3*x*5 + 3*5",
+    "respuesta": "6*x**2 + 21*x + 15",
+    "conjunto": "R",
+    "seccion": "Taller 2 — Polinomios",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 16, ítem d",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El único de los cuatro que da un trinomio: es exactamente el modelo de área de $(3x+3)(2x+5)$, con los dos términos centrales ($6x$ y $15x$) que se suman en $21x$. El mejor ítem de la página para introducir la multiplicación de binomios.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U2-P41-T2-17a",
+    "tipo": "numerico",
+    "enunciado": "Determina el valor numérico de $3xyz$ si $x=-2$, $y=3$ y $z=4$.",
+    "expr": "3*(-2)*3*4",
+    "respuesta": "-72",
+    "conjunto": "Z",
+    "seccion": "Taller 2 — Valor numérico",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 17, ítem a",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U2-P41-T2-17b",
+    "tipo": "numerico",
+    "enunciado": "Determina el valor numérico de $2x^2y-3xy^2$ si $x=-2$ y $y=3$.",
+    "expr": "2*(-2)**2*3 - 3*(-2)*3**2",
+    "respuesta": "78",
+    "conjunto": "Z",
+    "seccion": "Taller 2 — Valor numérico",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 17, ítem b",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U2-P41-T2-17c",
+    "tipo": "numerico",
+    "enunciado": "Determina el valor numérico de $-\\dfrac{1}{2}x^3y^2+3x^2z^2$ si $x=-2$, $y=3$ y $z=4$.",
+    "expr": "-Rational(1,2)*(-2)**3*3**2 + 3*(-2)**2*4**2",
+    "respuesta": "228",
+    "conjunto": "Z",
+    "seccion": "Taller 2 — Valor numérico",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 17, ítem c",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U2-P41-T2-17d",
+    "tipo": "numerico",
+    "enunciado": "Determina el valor numérico de $\\dfrac{2}{3}x^3y^2z-10x^2y^3z^2+12$ si $x=-2$, $y=3$ y $z=4$.",
+    "expr": "Rational(2,3)*(-2)**3*3**2*4 - 10*(-2)**2*3**3*4**2 + 12",
+    "respuesta": "-17460",
+    "conjunto": "Z",
+    "seccion": "Taller 2 — Valor numérico",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 17, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U2-P41-T2-17e",
+    "tipo": "numerico",
+    "enunciado": "Determina el valor numérico de $\\dfrac{5}{4}xy^2z^3+\\dfrac{1}{2}x^2y^3z^2-\\dfrac{2}{5}x^3y^2z^3-\\dfrac{1}{2}$ si $x=-2$, $y=3$ y $z=4$.",
+    "expr": "Rational(5,4)*(-2)*3**2*4**3 + Rational(1,2)*(-2)**2*3**3*4**2 - Rational(2,5)*(-2)**3*3**2*4**3 - Rational(1,2)",
+    "respuesta": "12667/10",
+    "conjunto": "Q",
+    "seccion": "Taller 2 — Valor numérico",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 17, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "nota": "$=1266{,}7$: decimal exacto pese a los denominadores 4, 2 y 5. Los tres términos son grandes y de signos alternos ($-1440$, $+864$, $+1843{,}2$), así que conviene calcularlos por separado antes de sumar.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U2-P41-T2-17f",
+    "tipo": "numerico",
+    "enunciado": "Determina el valor numérico de $x^2(y+2)-y(x+2)+2y^3$ si $x=-2$ y $y=3$.",
+    "expr": "(-2)**2*(3+2) - 3*((-2)+2) + 2*3**3",
+    "respuesta": "74",
+    "conjunto": "Z",
+    "seccion": "Taller 2 — Valor numérico",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 17, ítem f",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Con $x=-2$ el paréntesis $(x+2)$ vale 0, así que el término central desaparece entero. Vale la pena que el estudiante lo note antes de multiplicar.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U2-P41-T2-18a",
+    "tipo": "numerico",
+    "enunciado": "El costo total de producción de $x$ toneladas es $C=10+72x-5x^2-\\dfrac{x^3}{4}$. Calcula el costo de producción de una tonelada.",
+    "expr": "10 + 72*1 - 5*1**2 - Rational(1,4)*1**3",
+    "respuesta": "76.75",
+    "conjunto": "Q",
+    "seccion": "Taller 2 — Valor numérico",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 18, ítem a",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U2-P41-T2-18b",
+    "tipo": "numerico",
+    "enunciado": "Con $C=10+72x-5x^2-\\dfrac{x^3}{4}$, calcula el costo de producción de 64 toneladas.",
+    "expr": "10 + 72*64 - 5*64**2 - Rational(1,4)*64**3",
+    "respuesta": "-81398",
+    "conjunto": "Z",
+    "seccion": "Taller 2 — Valor numérico",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 18, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "nota": "$C(64)=-81.398$. El cálculo es correcto, pero el resultado **negativo** revela el límite del modelo: para $x$ grande dominan $-5x^2$ y $-\\dfrac{x^3}{4}$, y el costo se vuelve negativo a partir de unas $9$ toneladas ($C(9)\\approx 44$, $C(10)=-20$). Un costo negativo no tiene sentido físico, así que el polinomio solo modela la situación en un rango pequeño de $x$. Es el mejor ítem de la unidad para discutir el **dominio de validez** de un modelo: la aritmética puede estar bien y la respuesta seguir sin significar nada.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U2-P41-T2-19",
+    "tipo": "tabla",
+    "enunciado": "La energía potencial de un cuerpo a cierta altura es $u=mgh$, con $g=9{,}8$. Completa la tabla.",
+    "filas": [
+      {
+        "m": "0,2 kg",
+        "h": "1,5 m",
+        "u": "2,94"
+      },
+      {
+        "m": "0,5 kg",
+        "h": "2 m",
+        "u": "9,8"
+      },
+      {
+        "m": "0,75 kg",
+        "h": "0,8 m",
+        "u": "5,88"
+      },
+      {
+        "m": "0,8 kg",
+        "h": "1,2 m",
+        "u": "9,408"
+      }
+    ],
+    "respuesta": "Ver filas.",
+    "conjunto": "Q",
+    "seccion": "Taller 2 — Valor numérico",
+    "unidad": 2,
+    "pagina_pdf": 41,
+    "referencia": "Taller 2, actividad 19",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Las filas 2 y 4 dan valores casi iguales ($9{,}8$ y $9{,}408$) con masas y alturas distintas: sirve para ver que lo que importa es el producto $mh$.",
+    "dificultad": 1150
+  }
+]

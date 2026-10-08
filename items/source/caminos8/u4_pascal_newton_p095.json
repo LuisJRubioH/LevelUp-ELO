@@ -1,0 +1,1065 @@
+[
+  {
+    "id": "CS8-U4-P095-A137",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 137",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 600,
+    "tipo": "valores_numericos",
+    "enunciado": "Completa la tabla calculando la potencia de cada una de las cinco expresiones.",
+    "exprs": {
+      "a": "(5*x**2)**3",
+      "b": "(-2*a**3*b**4*c)**4",
+      "c": "(-x*y**2*z**3/2)**5",
+      "d": "(m*n**2*y**4/3)**6",
+      "e": "(-2*x**3*y**5*z**2/3)**7"
+    },
+    "respuesta_valores": {
+      "a": "125*x**6",
+      "b": "16*a**12*b**16*c**4",
+      "c": "-x**5*y**10*z**15/32",
+      "d": "m**6*n**12*y**24/729",
+      "e": "-128*x**21*y**35*z**14/2187"
+    },
+    "respuesta": "Las cinco potencias simplificadas aparecen en respuesta_valores."
+  },
+  {
+    "id": "CS8-U4-P095-A138",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 138",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Escribe el primer y el último términos del desarrollo de (a+c)**3.",
+    "expr": "(a+c)**3",
+    "respuesta": "a**3 + 3*a**2*c + 3*a*c**2 + c**3",
+    "respuesta_extremos": [
+      "a**3",
+      "c**3"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A139",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 139",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Escribe el primer y el último términos del desarrollo de (k-b)**7.",
+    "expr": "(k-b)**7",
+    "respuesta": "-b**7 + 7*b**6*k - 21*b**5*k**2 + 35*b**4*k**3 - 35*b**3*k**4 + 21*b**2*k**5 - 7*b*k**6 + k**7",
+    "respuesta_extremos": [
+      "k**7",
+      "-b**7"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A140",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 140",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Escribe el primer y el último términos del desarrollo de (x**2-m)**6.",
+    "expr": "(x**2-m)**6",
+    "respuesta": "m**6 - 6*m**5*x**2 + 15*m**4*x**4 - 20*m**3*x**6 + 15*m**2*x**8 - 6*m*x**10 + x**12",
+    "respuesta_extremos": [
+      "x**12",
+      "m**6"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A141",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 141",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Escribe el primer y el último términos del desarrollo de (1/2-z)**10.",
+    "expr": "(1/2-z)**10",
+    "respuesta": "z**10 - 5*z**9 + 45*z**8/4 - 15*z**7 + 105*z**6/8 - 63*z**5/8 + 105*z**4/32 - 15*z**3/16 + 45*z**2/256 - 5*z/256 + 1/1024",
+    "respuesta_extremos": [
+      "1/1024",
+      "z**10"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A142",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 142",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Escribe el primer y el último términos del desarrollo de (t**2-w**3)**8.",
+    "expr": "(t**2-w**3)**8",
+    "respuesta": "t**16 - 8*t**14*w**3 + 28*t**12*w**6 - 56*t**10*w**9 + 70*t**8*w**12 - 56*t**6*w**15 + 28*t**4*w**18 - 8*t**2*w**21 + w**24",
+    "respuesta_extremos": [
+      "t**16",
+      "w**24"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A143",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 143",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Escribe el primer y el último términos del desarrollo de (a+2*b)**9.",
+    "expr": "(a+2*b)**9",
+    "respuesta": "a**9 + 18*a**8*b + 144*a**7*b**2 + 672*a**6*b**3 + 2016*a**5*b**4 + 4032*a**4*b**5 + 5376*a**3*b**6 + 4608*a**2*b**7 + 2304*a*b**8 + 512*b**9",
+    "respuesta_extremos": [
+      "a**9",
+      "512*b**9"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A144",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 144",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Escribe el primer y el último términos del desarrollo de (5-7*a)**5.",
+    "expr": "(5-7*a)**5",
+    "respuesta": "-16807*a**5 + 60025*a**4 - 85750*a**3 + 61250*a**2 - 21875*a + 3125",
+    "respuesta_extremos": [
+      "3125",
+      "-16807*a**5"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A145",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 145",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Escribe el primer y el último términos del desarrollo de (3*z**2/7+w/7)**3.",
+    "expr": "(3*z**2/7+w/7)**3",
+    "respuesta": "w**3/343 + 9*w**2*z**2/343 + 27*w*z**4/343 + 27*z**6/343",
+    "respuesta_extremos": [
+      "27*z**6/343",
+      "w**3/343"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A146",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 146",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 600,
+    "tipo": "simbolico",
+    "enunciado": "Determina las partes literales de los términos del desarrollo de (x+7*y)**2.",
+    "expr": "(x+7*y)**2",
+    "respuesta": "x**2 + 14*x*y + 49*y**2",
+    "respuesta_literales": [
+      "x**2",
+      "x*y",
+      "y**2"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A147",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 147",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 600,
+    "tipo": "simbolico",
+    "enunciado": "Determina las partes literales de los términos del desarrollo de (2*x+6*y)**3.",
+    "expr": "(2*x+6*y)**3",
+    "respuesta": "8*x**3 + 72*x**2*y + 216*x*y**2 + 216*y**3",
+    "respuesta_literales": [
+      "x**3",
+      "x**2*y",
+      "x*y**2",
+      "y**3"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A148",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 148",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 600,
+    "tipo": "simbolico",
+    "enunciado": "Determina las partes literales de los términos del desarrollo de (5*y-2*m)**4.",
+    "expr": "(5*y-2*m)**4",
+    "respuesta": "16*m**4 - 160*m**3*y + 600*m**2*y**2 - 1000*m*y**3 + 625*y**4",
+    "respuesta_literales": [
+      "y**4",
+      "y**3*m",
+      "y**2*m**2",
+      "y*m**3",
+      "m**4"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A149",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 149",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 600,
+    "tipo": "simbolico",
+    "enunciado": "Determina las partes literales de los términos del desarrollo de (x**2*y-z)**5.",
+    "expr": "(x**2*y-z)**5",
+    "respuesta": "x**10*y**5 - 5*x**8*y**4*z + 10*x**6*y**3*z**2 - 10*x**4*y**2*z**3 + 5*x**2*y*z**4 - z**5",
+    "respuesta_literales": [
+      "x**10*y**5",
+      "x**8*y**4*z",
+      "x**6*y**3*z**2",
+      "x**4*y**2*z**3",
+      "x**2*y*z**4",
+      "z**5"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A150",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 150",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 600,
+    "tipo": "simbolico",
+    "enunciado": "Determina las partes literales de los términos del desarrollo de (x**3/5+y/10)**4.",
+    "expr": "(x**3/5+y/10)**4",
+    "respuesta": "x**12/625 + 2*x**9*y/625 + 3*x**6*y**2/1250 + x**3*y**3/1250 + y**4/10000",
+    "respuesta_literales": [
+      "x**12",
+      "x**9*y",
+      "x**6*y**2",
+      "x**3*y**3",
+      "y**4"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A151",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 151",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 600,
+    "tipo": "simbolico",
+    "enunciado": "Determina las partes literales de los términos del desarrollo de (m*n**2+y)**6.",
+    "expr": "(m*n**2+y)**6",
+    "respuesta": "m**6*n**12 + 6*m**5*n**10*y + 15*m**4*n**8*y**2 + 20*m**3*n**6*y**3 + 15*m**2*n**4*y**4 + 6*m*n**2*y**5 + y**6",
+    "respuesta_literales": [
+      "m**6*n**12",
+      "m**5*n**10*y",
+      "m**4*n**8*y**2",
+      "m**3*n**6*y**3",
+      "m**2*n**4*y**4",
+      "m*n**2*y**5",
+      "y**6"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A152",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 152",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 600,
+    "tipo": "simbolico",
+    "enunciado": "Determina las partes literales de los términos del desarrollo de (a*b+2*a)**8.",
+    "expr": "(a*b+2*a)**8",
+    "respuesta": "a**8*b**8 + 16*a**8*b**7 + 112*a**8*b**6 + 448*a**8*b**5 + 1120*a**8*b**4 + 1792*a**8*b**3 + 1792*a**8*b**2 + 1024*a**8*b + 256*a**8",
+    "respuesta_literales": [
+      "a**8*b**8",
+      "a**8*b**7",
+      "a**8*b**6",
+      "a**8*b**5",
+      "a**8*b**4",
+      "a**8*b**3",
+      "a**8*b**2",
+      "a**8*b",
+      "a**8"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A153",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 153",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 600,
+    "tipo": "simbolico",
+    "enunciado": "Determina las partes literales de los términos del desarrollo de (5*x-2*y)**9.",
+    "expr": "(5*x-2*y)**9",
+    "respuesta": "1953125*x**9 - 7031250*x**8*y + 11250000*x**7*y**2 - 10500000*x**6*y**3 + 6300000*x**5*y**4 - 2520000*x**4*y**5 + 672000*x**3*y**6 - 115200*x**2*y**7 + 11520*x*y**8 - 512*y**9",
+    "respuesta_literales": [
+      "x**9",
+      "x**8*y",
+      "x**7*y**2",
+      "x**6*y**3",
+      "x**5*y**4",
+      "x**4*y**5",
+      "x**3*y**6",
+      "x**2*y**7",
+      "x*y**8",
+      "y**9"
+    ]
+  },
+  {
+    "id": "CS8-U4-P095-A154",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 154",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (3*y+2)**6 utilizando el triángulo de Pascal.",
+    "expr": "(3*y+2)**6",
+    "respuesta": "729*y**6 + 2916*y**5 + 4860*y**4 + 4320*y**3 + 2160*y**2 + 576*y + 64"
+  },
+  {
+    "id": "CS8-U4-P095-A155",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 155",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (2*x-y/2)**7 utilizando el triángulo de Pascal.",
+    "expr": "(2*x-y/2)**7",
+    "respuesta": "128*x**7 - 224*x**6*y + 168*x**5*y**2 - 70*x**4*y**3 + 35*x**3*y**4/2 - 21*x**2*y**5/8 + 7*x*y**6/32 - y**7/128"
+  },
+  {
+    "id": "CS8-U4-P095-A156",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 156",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (6*x*y**2-3/5)**8 utilizando el triángulo de Pascal.",
+    "expr": "(6*x*y**2-3/5)**8",
+    "respuesta": "1679616*x**8*y**16 - 6718464*x**7*y**14/5 + 11757312*x**6*y**12/25 - 11757312*x**5*y**10/125 + 1469664*x**4*y**8/125 - 2939328*x**3*y**6/3125 + 734832*x**2*y**4/15625 - 104976*x*y**2/78125 + 6561/390625"
+  },
+  {
+    "id": "CS8-U4-P095-A157",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 157",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (2+3*y/10)**3 utilizando el triángulo de Pascal.",
+    "expr": "(2+3*y/10)**3",
+    "respuesta": "27*y**3/1000 + 27*y**2/50 + 18*y/5 + 8"
+  },
+  {
+    "id": "CS8-U4-P095-A158",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 158",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (m-2)**8 utilizando el triángulo de Pascal.",
+    "expr": "(m-2)**8",
+    "respuesta": "m**8 - 16*m**7 + 112*m**6 - 448*m**5 + 1120*m**4 - 1792*m**3 + 1792*m**2 - 1024*m + 256"
+  },
+  {
+    "id": "CS8-U4-P095-A159",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 159",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (w/7+2*y/5)**4 utilizando el triángulo de Pascal.",
+    "expr": "(w/7+2*y/5)**4",
+    "respuesta": "w**4/2401 + 8*w**3*y/1715 + 24*w**2*y**2/1225 + 32*w*y**3/875 + 16*y**4/625"
+  },
+  {
+    "id": "CS8-U4-P095-A160",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 160",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (2*m+3*n**x/7)**3 utilizando el triángulo de Pascal.",
+    "expr": "(2*m+3*n**x/7)**3",
+    "respuesta": "8*m**3 + 36*m**2*n**x/7 + 54*m*n**(2*x)/49 + 27*n**(3*x)/343"
+  },
+  {
+    "id": "CS8-U4-P095-A161",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 161",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (x**(n+1)/2-y**n/2)**4 utilizando el triángulo de Pascal.",
+    "expr": "(x**(n+1)/2-y**n/2)**4",
+    "respuesta": "-x**(n + 1)*y**(3*n)/4 + 3*x**(2*n + 2)*y**(2*n)/8 - x**(3*n + 3)*y**n/4 + x**(4*n + 4)/16 + y**(4*n)/16"
+  },
+  {
+    "id": "CS8-U4-P095-A162",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 162",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (4*y**x/3-1/4)**5 utilizando el triángulo de Pascal.",
+    "expr": "(4*y**x/3-1/4)**5",
+    "respuesta": "1024*y**(5*x)/243 - 320*y**(4*x)/81 + 40*y**(3*x)/27 - 5*y**(2*x)/18 + 5*y**x/192 - 1/1024"
+  },
+  {
+    "id": "CS8-U4-P095-A163",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 163",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (1-y**2*x)**8 utilizando el triángulo de Pascal.",
+    "expr": "(1-y**2*x)**8",
+    "respuesta": "x**8*y**16 - 8*x**7*y**14 + 28*x**6*y**12 - 56*x**5*y**10 + 70*x**4*y**8 - 56*x**3*y**6 + 28*x**2*y**4 - 8*x*y**2 + 1"
+  },
+  {
+    "id": "CS8-U4-P095-A164",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 164",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (x/2+y/2)**4 utilizando el triángulo de Pascal.",
+    "expr": "(x/2+y/2)**4",
+    "respuesta": "x**4/16 + x**3*y/4 + 3*x**2*y**2/8 + x*y**3/4 + y**4/16"
+  },
+  {
+    "id": "CS8-U4-P095-A165",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 165",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (3*w*y/2-4*w**2)**6 utilizando el triángulo de Pascal.",
+    "expr": "(3*w*y/2-4*w**2)**6",
+    "respuesta": "4096*w**12 - 9216*w**11*y + 8640*w**10*y**2 - 4320*w**9*y**3 + 1215*w**8*y**4 - 729*w**7*y**5/4 + 729*w**6*y**6/64"
+  },
+  {
+    "id": "CS8-U4-P095-A166",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 166",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (3*x**2/10+10*y)**3 utilizando el triángulo de Pascal.",
+    "expr": "(3*x**2/10+10*y)**3",
+    "respuesta": "27*x**6/1000 + 27*x**4*y/10 + 90*x**2*y**2 + 1000*y**3"
+  },
+  {
+    "id": "CS8-U4-P095-A167",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 167",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (x*y-2*z)**6 utilizando el triángulo de Pascal.",
+    "expr": "(x*y-2*z)**6",
+    "respuesta": "x**6*y**6 - 12*x**5*y**5*z + 60*x**4*y**4*z**2 - 160*x**3*y**3*z**3 + 240*x**2*y**2*z**4 - 192*x*y*z**5 + 64*z**6"
+  },
+  {
+    "id": "CS8-U4-P095-A168",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 168",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (m*w-3*x)**7 utilizando el triángulo de Pascal.",
+    "expr": "(m*w-3*x)**7",
+    "respuesta": "m**7*w**7 - 21*m**6*w**6*x + 189*m**5*w**5*x**2 - 945*m**4*w**4*x**3 + 2835*m**3*w**3*x**4 - 5103*m**2*w**2*x**5 + 5103*m*w*x**6 - 2187*x**7"
+  },
+  {
+    "id": "CS8-U4-P095-A169",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 169",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (3*w**(2*y)/2-1/4)**6 utilizando el triángulo de Pascal.",
+    "expr": "(3*w**(2*y)/2-1/4)**6",
+    "respuesta": "729*w**(12*y)/64 - 729*w**(10*y)/64 + 1215*w**(8*y)/256 - 135*w**(6*y)/128 + 135*w**(4*y)/1024 - 9*w**(2*y)/1024 + 1/4096"
+  },
+  {
+    "id": "CS8-U4-P095-A170",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 170",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (2*m**x/7-1/4)**3 utilizando el triángulo de Pascal.",
+    "expr": "(2*m**x/7-1/4)**3",
+    "respuesta": "8*m**(3*x)/343 - 3*m**(2*x)/49 + 3*m**x/56 - 1/64"
+  },
+  {
+    "id": "CS8-U4-P095-A171",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 171",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (x**(y+2)-x**(y-1)/3)**4 utilizando el triángulo de Pascal.",
+    "expr": "(x**(y+2)-x**(y-1)/3)**4",
+    "respuesta": "-4*x**(y - 1)*x**(3*y + 6)/3 - 4*x**(y + 2)*x**(3*y - 3)/27 + 2*x**(2*y - 2)*x**(2*y + 4)/3 + x**(4*y - 4)/81 + x**(4*y + 8)"
+  },
+  {
+    "id": "CS8-U4-P095-A172",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 172",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Halla el término central de (3x+2y)^4.",
+    "expr": "binomial(4,2)*(3*x)**2*(2*y)**2",
+    "respuesta": "216*x**2*y**2"
+  },
+  {
+    "id": "CS8-U4-P095-A173",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 173",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Halla los dos términos centrales de (5a+4)^5.",
+    "expr": "binomial(5,2)*(5*a)**3*4**2 + binomial(5,3)*(5*a)**2*4**3",
+    "respuesta": "20000*a**3 + 16000*a**2"
+  },
+  {
+    "id": "CS8-U4-P095-A174",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 174",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Halla el término central de (m-3/5)^6.",
+    "expr": "binomial(6,3)*m**3*(-3/5)**3",
+    "respuesta": "-108*m**3/25"
+  },
+  {
+    "id": "CS8-U4-P095-A175",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 175",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Halla el cuarto término de (2-3a^3)^7.",
+    "expr": "binomial(7,3)*2**4*(-3*a**3)**3",
+    "respuesta": "-15120*a**9"
+  },
+  {
+    "id": "CS8-U4-P095-A176",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 176",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Halla el tercer término de (x^2/2+2/3)^6.",
+    "expr": "binomial(6,2)*(x**2/2)**4*(2/3)**2",
+    "respuesta": "5*x**8/12"
+  },
+  {
+    "id": "CS8-U4-P095-A177",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 177",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Halla el quinto término de (4x-3/2)^6.",
+    "expr": "binomial(6,4)*(4*x)**2*(-3/2)**4",
+    "respuesta": "1215*x**2"
+  },
+  {
+    "id": "CS8-U4-P095-A178",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 178",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Halla el segundo término de (3pq^2/2-2pr^2/3)^4.",
+    "expr": "binomial(4,1)*(3*p*q**2/2)**3*(-2*p*r**2/3)",
+    "respuesta": "-9*p**4*q**6*r**2"
+  },
+  {
+    "id": "CS8-U4-P095-A179",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 179",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "abierta",
+    "enunciado": "Determina si (2m^4n^5/3-z)^4 contiene algún término cuya parte literal sea m^4n^5. Explica.",
+    "respuesta": "No, si «parte literal» significa la parte literal completa. El único índice que reduce m^16n^20 a m^4n^5 es k=3, pero ese término es -(8/3)m^4n^5z^3 y su parte literal completa incluye z^3.",
+    "verificar": "La frase «a m^4n^5 como parte literal» podría interpretarse como que m^4n^5 solo debe aparecer como factor; con esa lectura la respuesta sería sí, en -(8/3)m^4n^5z^3."
+  },
+  {
+    "id": "CS8-U4-P095-A180",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 180",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (a+b)**4 utilizando la fórmula del binomio de Newton.",
+    "expr": "(a+b)**4",
+    "respuesta": "a**4 + 4*a**3*b + 6*a**2*b**2 + 4*a*b**3 + b**4"
+  },
+  {
+    "id": "CS8-U4-P095-A181",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 181",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (a-b)**6 utilizando la fórmula del binomio de Newton.",
+    "expr": "(a-b)**6",
+    "respuesta": "a**6 - 6*a**5*b + 15*a**4*b**2 - 20*a**3*b**3 + 15*a**2*b**4 - 6*a*b**5 + b**6"
+  },
+  {
+    "id": "CS8-U4-P095-A182",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 182",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (x+y)**8 utilizando la fórmula del binomio de Newton.",
+    "expr": "(x+y)**8",
+    "respuesta": "x**8 + 8*x**7*y + 28*x**6*y**2 + 56*x**5*y**3 + 70*x**4*y**4 + 56*x**3*y**5 + 28*x**2*y**6 + 8*x*y**7 + y**8"
+  },
+  {
+    "id": "CS8-U4-P095-A183",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 183",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (2*x**2+1)**5 utilizando la fórmula del binomio de Newton.",
+    "expr": "(2*x**2+1)**5",
+    "respuesta": "32*x**10 + 80*x**8 + 80*x**6 + 40*x**4 + 10*x**2 + 1"
+  },
+  {
+    "id": "CS8-U4-P095-A184",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 184",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (3*x+2)**6 utilizando la fórmula del binomio de Newton.",
+    "expr": "(3*x+2)**6",
+    "respuesta": "729*x**6 + 2916*x**5 + 4860*x**4 + 4320*x**3 + 2160*x**2 + 576*x + 64"
+  },
+  {
+    "id": "CS8-U4-P095-A185",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 185",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 800,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (2*x**3-3*y**2)**7 utilizando la fórmula del binomio de Newton.",
+    "expr": "(2*x**3-3*y**2)**7",
+    "respuesta": "128*x**21 - 1344*x**18*y**2 + 6048*x**15*y**4 - 15120*x**12*y**6 + 22680*x**9*y**8 - 20412*x**6*y**10 + 10206*x**3*y**12 - 2187*y**14"
+  },
+  {
+    "id": "CS8-U4-P095-A186",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 186",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (x/3+1)**4 utilizando la fórmula del binomio de Newton.",
+    "expr": "(x/3+1)**4",
+    "respuesta": "x**4/81 + 4*x**3/27 + 2*x**2/3 + 4*x/3 + 1"
+  },
+  {
+    "id": "CS8-U4-P095-A187",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 187",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (x/2-2)**5 utilizando la fórmula del binomio de Newton.",
+    "expr": "(x/2-2)**5",
+    "respuesta": "x**5/32 - 5*x**4/8 + 5*x**3 - 20*x**2 + 40*x - 32"
+  },
+  {
+    "id": "CS8-U4-P095-A188",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 188",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (3*m-2*n/5)**4 utilizando la fórmula del binomio de Newton.",
+    "expr": "(3*m-2*n/5)**4",
+    "respuesta": "81*m**4 - 216*m**3*n/5 + 216*m**2*n**2/25 - 96*m*n**3/125 + 16*n**4/625"
+  },
+  {
+    "id": "CS8-U4-P095-A189",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 189",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "abierta",
+    "enunciado": "Escribe un binomio elevado a un exponente cuyo desarrollo tenga los coeficientes 8, 12, 6, 1.",
+    "respuesta": "Un ejemplo es (2*a+b)**3, cuyo desarrollo es 8*a**3 + 12*a**2*b + 6*a*b**2 + b**3.",
+    "verificar": "La elección de letras no es única; evaluar el patrón de coeficientes y signos, no exigir las mismas variables."
+  },
+  {
+    "id": "CS8-U4-P095-A190",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 190",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "abierta",
+    "enunciado": "Escribe un binomio elevado a un exponente cuyo desarrollo tenga los coeficientes 27, -54, 36, -8.",
+    "respuesta": "Un ejemplo es (3*a-2*b)**3, cuyo desarrollo es 27*a**3 - 54*a**2*b + 36*a*b**2 - 8*b**3.",
+    "verificar": "La elección de letras no es única; evaluar el patrón de coeficientes y signos, no exigir las mismas variables."
+  },
+  {
+    "id": "CS8-U4-P095-A191",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 191",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "abierta",
+    "enunciado": "Escribe un binomio elevado a un exponente cuyo desarrollo tenga los coeficientes 1, 5, 10, 10, 5, 1.",
+    "respuesta": "Un ejemplo es (a+b)**5, cuyo desarrollo es a**5 + 5*a**4*b + 10*a**3*b**2 + 10*a**2*b**3 + 5*a*b**4 + b**5.",
+    "verificar": "La elección de letras no es única; evaluar el patrón de coeficientes y signos, no exigir las mismas variables."
+  },
+  {
+    "id": "CS8-U4-P095-A192",
+    "conjunto": "R",
+    "seccion": "Triángulo de Pascal y binomio de Newton",
+    "unidad": 4,
+    "pagina_pdf": 95,
+    "referencia": "Actividad 192",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "abierta",
+    "enunciado": "Escribe un binomio elevado a un exponente cuyo desarrollo tenga los coeficientes 1, 6, 15, 20, 15, 6, 1.",
+    "respuesta": "Un ejemplo es (a+b)**6, cuyo desarrollo es a**6 + 6*a**5*b + 15*a**4*b**2 + 20*a**3*b**3 + 15*a**2*b**4 + 6*a*b**5 + b**6.",
+    "verificar": "La elección de letras no es única; evaluar el patrón de coeficientes y signos, no exigir las mismas variables."
+  }
+]
+

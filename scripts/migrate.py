@@ -1,12 +1,24 @@
 """
-migrate.py — Ejecutar migraciones de base de datos manualmente.
+scripts/migrate.py — Aplica esquema, seeds y backfills. Un paso, una vez.
 
 Uso:
-    python migrate.py
+    python scripts/migrate.py
 
-Aplica todos los ALTER TABLE / CREATE TABLE IF NOT EXISTS del esquema.
-Seguro de ejecutar múltiples veces (idempotente).
-Solo afecta la base de datos PostgreSQL definida en DATABASE_URL.
+Va SEPARADO del arranque HTTP y así debe quedarse. `_migrate_db()` toma
+`pg_try_advisory_lock`, que es un lock de sesión: sobre el pooler de
+transacciones de Supabase (puerto 6543) la sesión física no sobrevive al
+commit, así que el lock puede acabar liberándose desde otra sesión y dejar de
+proteger nada. Este script debe correr por conexión DIRECTA (puerto 5432) o
+por pooler de SESIÓN, que es lo que aporta MIGRATION_DATABASE_URL.
+
+Variables de entorno:
+    MIGRATION_DATABASE_URL  conexión directa/sesión — la preferida
+    DATABASE_URL            respaldo si no se define la anterior
+
+En Render encabeza el startCommand (preDeployCommand no existe en plan free),
+con el servicio web en RUN_MIGRATIONS=0. Si falla, uvicorn no arranca.
+Es idempotente: solo ALTER TABLE ADD COLUMN IF NOT EXISTS y seeds que no
+sobrescriben (AGENTS.md R8).
 """
 
 import os
@@ -15,23 +27,29 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 
-def run_migrations():
-    """Crea el repositorio y ejecuta las migraciones de esquema.
-
-    - Intenta pg_try_advisory_lock(12345).
-    - Si otra instancia ya tiene el lock, sale sin hacer nada.
-    - Libera el lock siempre en el bloque finally.
-    - Hace commit al finalizar.
-    """
-    from src.infrastructure.persistence.postgres_repository import PostgresRepository
-
-    database_url = os.environ.get("DATABASE_URL")
+def run_migrations() -> None:
+    """Construye el repositorio con el bootstrap forzado y sale."""
+    database_url = os.environ.get("MIGRATION_DATABASE_URL") or os.environ.get("DATABASE_URL")
     if not database_url:
-        print("ERROR: La variable de entorno DATABASE_URL no está definida.")
+        print("ERROR: define MIGRATION_DATABASE_URL o DATABASE_URL.")
         sys.exit(1)
 
-    print(f"Conectando a: {database_url[:30]}...")
-    repo = PostgresRepository()  # init_db() + _migrate_db() ya se ejecutan aquí
+    # El repositorio lee DATABASE_URL al construirse; apuntarlo a la conexión
+    # de migración antes de instanciarlo.
+    os.environ["DATABASE_URL"] = database_url
+    os.environ["RUN_MIGRATIONS"] = "1"
+
+    host = database_url.split("@")[-1].split("/")[0] if "@" in database_url else "?"
+    if ":6543" in host:
+        print(
+            f"AVISO: {host} es el pooler de transacciones. Los locks de sesión no "
+            "son fiables ahí — usa el puerto directo 5432 o un pooler de sesión."
+        )
+    print(f"Migrando contra {host} ...")
+
+    from src.infrastructure.persistence.postgres_repository import PostgresRepository
+
+    PostgresRepository()  # __init__ ejecuta _bootstrap_schema()
     print("Migraciones completadas.")
 
 

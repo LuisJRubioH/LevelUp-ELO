@@ -1,0 +1,80 @@
+[
+  {
+    "id": "HT8-U10-P287-A1",
+    "tipo": "representacion_estadistica",
+    "enunciado": "El padrón de finales de 1800 registró en la ciudad de Santafé de Bogotá 8.191 hombres y 11.890 mujeres. Representa esta información en un diagrama de barras y en un diagrama circular.",
+    "respuesta": "Diagrama de barras: dibuja una barra de altura 8.191 para hombres y otra de 11.890 para mujeres. Para el diagrama circular se toman las 20.081 personas clasificadas por sexo: hombres, 8.191/20.081≈40,79%, sector de 146,84°; mujeres, 11.890/20.081≈59,21%, sector de 213,16°. Los dos sectores suman 100% y 360°.",
+    "conjunto": "R",
+    "seccion": "Aplicación histórica de diagramas estadísticos",
+    "unidad": 10,
+    "pagina_pdf": 287,
+    "referencia": "Actividad 1",
+    "apto_para": ["procedimiento_abierto"],
+    "erratum": "La consigna impresa atribuye estas cantidades al «virreinato del Nuevo Reino de Granada», pero el texto fuente de la página 286 dice expresamente que son datos de la ciudad de Santafé de Bogotá. El enunciado extraído corrige el alcance geográfico.",
+    "nota": "El total de hombres y mujeres es 20.081. El padrón declara una población total de 21.464 al añadir residentes de conventos y colegios que no están desagregados por sexo en el fragmento; por eso el diagrama solicitado usa únicamente las dos categorías dadas.",
+    "dificultad": 650
+  },
+  {
+    "id": "HT8-U10-P287-A2",
+    "tipo": "investigacion_estadistica",
+    "enunciado": "Consulta en el DANE la cantidad de hombres y mujeres registrada en el último censo de Bogotá y elabora los diagramas de barras y circular correspondientes.",
+    "respuesta": "A fecha de consulta 4 de agosto de 2026, el último censo nacional es el CNPV 2018. Para Bogotá registró una población censada de 7.181.469 personas: 3.433.586 hombres y 3.747.883 mujeres. Diagrama de barras: alturas 3.433.586 y 3.747.883. Diagrama circular: hombres≈47,81%, sector de 172,12°; mujeres≈52,19%, sector de 187,88°.",
+    "conjunto": "R",
+    "seccion": "Consulta e interpretación de datos censales",
+    "unidad": 10,
+    "pagina_pdf": 287,
+    "referencia": "Actividad 2",
+    "apto_para": ["procedimiento_abierto"],
+    "verificar": "Es una consulta temporal. Los datos corresponden al CNPV 2018, todavía el último censo nacional a fecha 4 de agosto de 2026. Cuando el DANE publique un censo posterior, deben actualizarse las cifras, porcentajes y ángulos; no autocalificar exigiendo indefinidamente estos valores.",
+    "fuentes_consulta": [
+      "https://www.dane.gov.co/files/varios/informacion-capital-DANE-2019.pdf"
+    ],
+    "dificultad": 700
+  },
+  {
+    "id": "HT8-U10-P287-A3",
+    "tipo": "comparacion_estadistica",
+    "enunciado": "Compara los datos de población de Bogotá del padrón de 1800 con los del CNPV 2018.",
+    "respuesta": "El padrón de 1800 reportó 21.464 habitantes, mientras que el CNPV 2018 censó 7.181.469. La diferencia es 7.160.005 personas y la cifra de 2018 equivale aproximadamente a 334,58 veces la de 1800. En la parte desagregada por sexo, las mujeres representaban 11.890 de 20.081 personas (59,21%) en 1800 y 3.747.883 de 7.181.469 (52,19%) en 2018; continuaban siendo mayoría, pero con una diferencia proporcional menor.",
+    "conjunto": "R",
+    "seccion": "Comparación de poblaciones históricas",
+    "unidad": 10,
+    "pagina_pdf": 287,
+    "referencia": "Actividad 3",
+    "apto_para": ["procedimiento_abierto"],
+    "verificar": "La comparación es descriptiva, no perfectamente homogénea: el padrón de 1800 excluía al menos unos 1.000 transeúntes y 500 personas sin residencia fija, mientras el CNPV 2018 usa definiciones censales modernas. Además, «actualidad» cambia con el tiempo; aquí se adopta el último censo pedido en la actividad 2.",
+    "fuentes_consulta": [
+      "https://www.dane.gov.co/files/varios/informacion-capital-DANE-2019.pdf"
+    ],
+    "dificultad": 700
+  },
+  {
+    "id": "HT8-U10-P287-A4",
+    "tipo": "interpretacion",
+    "enunciado": "Escribe dos conclusiones a partir de la comparación entre la población de Santafé de Bogotá en 1800 y la población censada de Bogotá en 2018.",
+    "respuesta": "Dos conclusiones posibles son: (1) la población censada pasó de 21.464 habitantes en 1800 a 7.181.469 en 2018, es decir, la cifra reciente es aproximadamente 334,58 veces la histórica; (2) las mujeres eran mayoría en ambos registros, pero su participación dentro de las cifras desagregadas por sexo bajó de aproximadamente 59,21% en 1800 a 52,19% en 2018.",
+    "conjunto": "R",
+    "seccion": "Interpretación de datos históricos",
+    "unidad": 10,
+    "pagina_pdf": 287,
+    "referencia": "Actividad 4",
+    "apto_para": ["procedimiento_abierto"],
+    "nota": "Se aceptan otras conclusiones correctas sustentadas en los datos, siempre que se identifiquen los años y no se presenten los dos padrones como operaciones estadísticamente idénticas.",
+    "dificultad": 600
+  },
+  {
+    "id": "HT8-U10-P287-A5",
+    "tipo": "grafica_barras",
+    "enunciado": "La tabla del hospital San Juan de Dios de Santafé de Bogotá para 1800 registra, por categoría, cuántos enfermos entraron, salieron y murieron. Elabora un diagrama de barras que muestre la información.",
+    "respuesta": "Construye un diagrama de barras agrupadas con tres series —entraron, salieron y murieron— y estas alturas por categoría: hombres pobres de solemnidad: 777, 661 y 116; mujeres pobres de solemnidad: 745, 603 y 142; soldados: 192, 177 y 15; personas esclavizadas: 9, 8 y 1. Los totales de las tres series son 1.723, 1.449 y 274, respectivamente. Usa la misma escala vertical para todas las barras y una leyenda que distinga las tres series.",
+    "conjunto": "R",
+    "seccion": "Representación de una tabla histórica",
+    "unidad": 10,
+    "pagina_pdf": 287,
+    "referencia": "Actividad 5",
+    "apto_para": ["procedimiento_abierto"],
+    "justificacion": "La lectura ampliada es coherente fila por fila: 777−661=116, 745−603=142, 192−177=15 y 9−8=1. También se verifica 1.723−1.449=274.",
+    "nota": "Las denominaciones sociales de la tabla son históricas. Se conserva su contenido estadístico, pero se moderniza «Mugeres» a «mujeres» y se usa «personas esclavizadas» en la respuesta.",
+    "dificultad": 650
+  }
+]

@@ -1,0 +1,4 @@
+[
+  {"id":"CS8-U6-P146-EJ01","tipo":"mcd_polinomios","enunciado":"Halla el mcd de 12a⁴b y 18a³b².","expresiones":["12*a**4*b","18*a**3*b**2"],"respuesta":"6*a**3*b","conjunto":"R","seccion":"Máximo común divisor de monomios","unidad":6,"pagina_pdf":146,"referencia":"Ejemplo 1","apto_para":["practica","procedimiento_abierto"],"dificultad":400},
+  {"id":"CS8-U6-P146-EJ02","tipo":"mcd_polinomios","enunciado":"Halla el mcd de 25m³y² y 10m⁴y.","expresiones":["25*m**3*y**2","10*m**4*y"],"respuesta":"5*m**3*y","conjunto":"R","seccion":"Máximo común divisor de monomios","unidad":6,"pagina_pdf":146,"referencia":"Ejemplo 2","apto_para":["practica","procedimiento_abierto"],"dificultad":400}
+]

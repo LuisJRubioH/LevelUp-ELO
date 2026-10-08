@@ -29,7 +29,6 @@ const en: TranslationKeys = {
     noAccount: "No account?",
     register: "Sign up",
     backToLogin: "← Back to sign in",
-    slowConnection: "Connecting to server… first request may take up to 30 s.",
     error: {
       invalid: "Invalid credentials.",
     },
@@ -122,6 +121,8 @@ const en: TranslationKeys = {
   // ── Statistics ────────────────────────────────────────────────────────────────
   stats: {
     title: "My Statistics",
+    eyebrow: "Your progress",
+    intro: "Your ELO, streak and topic mastery at a glance.",
     globalElo: "Global ELO",
     attempts: "Attempts",
     streak: "Streak",
@@ -157,6 +158,8 @@ const en: TranslationKeys = {
   // ── Courses ───────────────────────────────────────────────────────────────────
   courses: {
     title: "Courses",
+    eyebrow: "Your catalog",
+    intro: "Pick a subject to practice or open its content map.",
     tabExplore: "Explore",
     tabEnrolled: "My enrollments",
     tabCode: "Access code",
@@ -175,6 +178,71 @@ const en: TranslationKeys = {
     codeActivated: "Special access activated for {{course}}",
     enrollByCode: "Join with code",
     join: "Join",
+  },
+
+  // ── Content map + lessons drawer ───────────────────────────────────────────
+  courseMap: {
+    kicker: "Content map",
+    loading: "Loading map…",
+    errorTitle: "Couldn't load the map",
+    errorBody: "Check your connection and try again.",
+    emptyTitle: "No topics yet",
+    emptyBody: "This course doesn't have questions to build the map yet.",
+    backToCourse: "Back to course",
+    progress: "{{done}} of {{total}} topics",
+    here: "You're here!",
+    practiceTopic: "Practice {{topic}}",
+    practice: {
+      title: "Adaptive practice",
+      subtitle: "Optional reinforcement with exercises that adjust your ELO. Not part of the guided path.",
+    },
+    state: {
+      completed: "completed",
+      current: "current",
+      blocked: "locked",
+      available: "available",
+    },
+    rail: {
+      ariaLabel: "Course lessons",
+      show: "Show lessons",
+      hide: "Hide lessons",
+      kicker: "Keep learning",
+      kickerDone: "Course complete",
+      stCurrent: "Current lesson",
+      stDone: "All mastered",
+      btnLesson: "Go to lesson",
+      btnPractice: "Keep practicing",
+      katiaMsg: "Every lesson you finish raises your starting ELO. One step at a time.",
+      katiaMsgDone: "Purr-fect! You mastered every topic in this course.",
+      askCta: "Ask me something →",
+      closeChat: "Close chat",
+      wakingKatia: "Waking KatIA up…",
+      noQuestion: "KatIA couldn't find a question from this course to guide you.",
+      lessonsTitle: "Lessons",
+    },
+  },
+
+  // ── KatIA socratic chat ────────────────────────────────────────────────────
+  socratic: {
+    subtitle: "Socratic tutor — guides you without giving the answer",
+    placeholder: "Type your question to KatIA...",
+    send: "Send",
+    thinking: "thinking...",
+    shortCircuit: "Meow... my circuits short-circuited. Can you try again?",
+    errorPrefix: "Purrr... error: ",
+    connectionLost: "Purrr... looks like I lost the connection. Can you try again?",
+    welcome: {
+      sensors:
+        "My sensors detect you have an interesting doubt. Let's untangle this yarn together... which part of the problem has you thinking?",
+      whiskers:
+        "My whiskers tingle with excitement to see you here. As Socrates said, wisdom begins with good questions. What's yours?",
+      circuits:
+        "Purrr... I just calibrated my circuits for this topic. Which part of the problem do you need us to sharpen our claws on?",
+      protocols:
+        "Beep, beep. Tutoring protocols active. I'm here to guide you, not to give you the answer. What's got you stuck?",
+      processors:
+        "My processors are ready and my feline curiosity is at its peak. Which part of this problem do you want to explore with me?",
+    },
   },
 
   // ── Answer options (aria) ──────────────────────────────────────────────────
@@ -504,6 +572,8 @@ const en: TranslationKeys = {
   // ── Feedback (procedure history) ───────────────────────────────────────────
   feedback: {
     title: "Feedback",
+    eyebrow: "Your procedures",
+    intro: "Your reviewed worked solutions and KatIA's comments.",
     submissionsCount: "{{count}} submission(s)",
     loadError: "Could not load your procedures. Retry.",
     emptyTitle: "You haven't submitted any procedure yet.",
@@ -545,6 +615,7 @@ const en: TranslationKeys = {
   // ── Open procedure ─────────────────────────────────────────────────────────
   procedure: {
     title: "Open procedure",
+    eyebrow: "Open-response exercise",
     sentTitle: "Procedure submitted",
     sentMessage: "Got it! Your teacher will review your procedure soon. Keep practicing.",
     sendAnother: "Send another",
@@ -591,11 +662,14 @@ const en: TranslationKeys = {
     uploadAnother: "Upload another",
     preview: "Preview",
     procedureAlt: "Procedure",
+    feedbackListTitle: "Your feedback",
   },
 
   // ── Exam mode ─────────────────────────────────────────────────────────────────
   exam: {
     title: "Exam Mode",
+    eyebrow: "Assessment",
+    intro: "Timed questions, no hints. Does not affect your ELO.",
     description: "Answer N questions with a time limit and a standard difficulty curve (easy → hard). No hints or immediate feedback.",
     noEloWarning: "The exam does not affect your ELO",
     noEloExplain: " — it's an assessment. ELO is only updated in the practice room.",
@@ -666,6 +740,181 @@ const en: TranslationKeys = {
   },
 
   // ── Theme ─────────────────────────────────────────────────────────────────────
+  prealgebra: {
+    loading: "Loading lesson...",
+    error: "We couldn't load this lesson.",
+    backToMap: "Back to map",
+    safeZone: "Safe zone. Your ELO will not change",
+    optionalBranch: "Optional detour. Your ELO will not change",
+    n1: {
+      b01: {
+        mapTitle: "Welcome",
+        kicker: "Number sets. Level 1",
+        title: "Every number has a place.",
+        lead: "You will recognize number families and understand why each one is needed.",
+        leadAdvanced: "Review the number-set path and begin the journey.",
+        body: "The journey begins in the agora, the public square where citizens count, measure, and share. The map moves from natural numbers to real numbers. Each node introduces a new need, and you can ask for more support whenever you need it.",
+        katiaAlt: "KatIA introduces the number-sets journey in the agora",
+        katiaMessage: "I will guide you through the agora. You can explore, make mistakes, and try again here without losing ELO.",
+        objectivesLabel: "Your journey",
+        objectivesTitle: "View objectives",
+        objectives: {
+          recognize: "Recognize natural, integer, rational, irrational, and real numbers.",
+          explain: "Explain what each set is used for.",
+          classify: "Classify numbers in the most specific family.",
+          membership: "Identify when a number belongs to several sets.",
+          optional: "Optional: explore complex numbers beyond the number line.",
+        },
+        conventionLabel: "Mathematical agreement",
+        conventionTitle: "View the zero convention",
+        conventionAria: "Natural numbers are the set zero, one, two, three, and so on",
+        conventionBody: "In this journey, zero is a natural number. We will keep this convention throughout every lesson.",
+        footerLabel: "Next stop",
+        footerBody: "A question that reveals why new number families appear.",
+        start: "Begin journey",
+      },
+      b02: {
+        mapTitle: "Opening question",
+        kicker: "Explore before explaining",
+        title: "Is counting enough to organize the snack?",
+        intro: {
+          basico: "Look at three moments from the community snack KatIA is organizing. This is not a grade: we want to discover when counting numbers stop being enough.",
+          intermedio: "Compare the three moments and anticipate what kind of number KatIA might need in each one.",
+          avanzado: "Find the limit of natural numbers, then match each moment with the set that resolves it.",
+        },
+        story: {
+          katiaEyebrow: "KatIA opens the trigger question",
+          katiaTitle: "Organizing a snack in the night-time agora",
+          katiaBody: "KatIA is preparing a community snack before more cats arrive: she counts bread and fruit, hands out portions, checks coins, and notes on her tablet what is still owed. Counting whole quantities has worked so far, but some of her entries no longer fit that alone.",
+          katiaQuestion: "Is counting whole things enough for KatIA to organize the whole snack?",
+          katiaImageAlt: "KatIA organizes a night-time community snack in the agora, surrounded by bread, fruit, coins, and an account tablet",
+        },
+        situationsLabel: "Three moments from the snack that require different kinds of numbers",
+        situations: {
+          advance: {
+            eyebrow: "Advance",
+            title: "KatIA pays out of her own pocket",
+            aria: "Zero minus three drachmas, result unknown",
+            body: "Before the others arrive, KatIA buys extra bread with 3 of her own drachmas. No one has paid her back yet.",
+          },
+          bread: {
+            eyebrow: "Sharing",
+            title: "One loaf for four",
+            aria: "One divided by four, result unknown",
+            body: "Four kittens want to receive exactly the same portion of a single loaf.",
+          },
+          debt: {
+            eyebrow: "Owing",
+            title: "A remaining balance",
+            aria: "Five minus two drachmas, result unknown",
+            body: "A neighbor owed 5 drachmas for the snack and already paid 2. The tablet still shows what is missing.",
+          },
+        },
+        q01: {
+          prompt: "Can we solve all three moments of the snack using only counting numbers?",
+          options: { yes: "Yes, counting is enough", no: "No, we need other numbers" },
+        },
+        q02: {
+          prompt: "Which moment seems hardest to solve by counting alone?",
+          options: {
+            advance: "KatIA's advance out of her own pocket",
+            bread: "Sharing 1 loaf among 4 kittens",
+            debt: "Owing and then making a payment",
+          },
+        },
+        feedback: {
+          counting_is_not_enough: "Counting is not enough to go below zero, divide one unit, or represent what is still owed.",
+          need_new_numbers: "Exactly. Each moment opens the door to a new family of numbers.",
+          advance_needs_integers: "KatIA's pocket can drop below zero, so we will need integers.",
+          sharing_needs_fractions: "An exact share can produce parts of one unit, so we will need fractions.",
+          debt_needs_integers: "A debt represents an amount below zero, so we will need integers.",
+        },
+        challenge: {
+          eyebrow: "Advanced challenge",
+          title: "Anticipate which set resolves each moment",
+          choose: "Choose a set",
+          integers: "Integers",
+          rationals: "Rational numbers",
+          check: "Check matches",
+          correct: "Well spotted: the advance and the debt require integers; splitting the bread exactly requires rational numbers.",
+          review: "Review the bread: splitting it into exact quarters requires rational numbers. The advance and the debt can be represented with integers.",
+        },
+        footerLabel: "Your intuition is already working",
+        footerBody: "In the next node, we will build the ladder of number families.",
+        finish: "Save and continue",
+      },
+      b03: {
+        mapTitle: "The ladder of necessity",
+      },
+      b04: {
+        mapTitle: "Natural numbers",
+      },
+      b05: {
+        mapTitle: "Integers",
+      },
+      b06: {
+        mapTitle: "Rational numbers",
+      },
+      b07: {
+        mapTitle: "Irrationals",
+      },
+      b08: {
+        mapTitle: "Reals",
+      },
+      b09: {
+        mapTitle: "Complex",
+      },
+      b10: {
+        mapTitle: "Classifier I",
+      },
+      b11: {
+        mapTitle: "Classifier II",
+      },
+      b12: {
+        mapTitle: "The Falsehood Detective",
+      },
+      b13: {
+        mapTitle: "Level diagnostic",
+        kicker: "Closing · Diagnostic",
+        title: "Your journey through the level.",
+        status: {
+          strong: {
+            label: "Strong overall command",
+            body: "You finished the level with strong command. You recognize the number sets and tell classification, multiple membership and inclusion apart.",
+          },
+          review: {
+            label: "Worth reinforcing",
+            body: "You finished the level and corrected several concepts along the way. It's worth reviewing a few before moving on.",
+          },
+          attention: {
+            label: "Concepts still being built",
+            body: "You finished the journey, but some concepts are still being built. Review the suggested screens and practice again.",
+          },
+        },
+        progressAria: "Level progress summary",
+        nodesCompleted: "nodes completed",
+        review: {
+          title: "Suggested review route",
+          none: "No concepts pending review. Well done!",
+          go: "Review",
+        },
+        footerLabel: "Level 1 complete",
+        footerBody: "You closed the number-sets journey. You can review anytime.",
+        finish: "Back to map",
+      },
+    },
+  },
+
+  // ── Ratings (spec 001) ────────────────────────────────────────────────────
+  rating: {
+    pending: "Pending diagnostic",
+    history: "earlier grade",
+    byCourse: "Rating by course",
+    basisOverall: "overall rating",
+    approximate: "approximate",
+    approximateHint: "Starting point estimated from earlier data; not your exact history.",
+  },
+
   theme: {
     light: "Light mode",
     dark: "Dark mode",

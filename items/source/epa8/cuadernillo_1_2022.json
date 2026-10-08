@@ -1,0 +1,248 @@
+[
+  {
+    "id": "EPA8-C1-2022-P02",
+    "content": "Una comunicadora social hizo un estudio sobre la veracidad de las noticias que se compartieron durante 5 semanas en una red social y encontró que, en promedio, se compartieron $25$ noticias falsas por semana. ¿Cuál de las siguientes tablas es consistente con la información con la que la comunicadora hizo el estudio?",
+    "difficulty": 1050,
+    "topic": "Pensamiento aleatorio — promedio como reparto equitativo",
+    "options": [
+      "Semanas con 35, 30, 15, 20 y 25 noticias falsas.",
+      "Semanas con 40, 20, 25, 15 y 10 noticias falsas.",
+      "Semanas con 15, 25, 30, 25 y 15 noticias falsas.",
+      "Semanas con 25, 30, 35, 40 y 45 noticias falsas."
+    ],
+    "correct_option": "Semanas con 35, 30, 15, 20 y 25 noticias falsas.",
+    "tags": ["aleatorio", "grado8", "epa", "formulacion", "promedio"],
+    "image_url": null,
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2022", "codigo": "M081", "pregunta": 2, "pagina_pdf": 2},
+    "figura": null,
+    "solution": [
+      "Si el promedio de 5 semanas es 25, el total debe ser $25 \\times 5 = 125$ noticias falsas.",
+      "Sumar cada tabla: A da $35+30+15+20+25 = 125$.",
+      "B y C suman 110 y D suma 175, así que solo la tabla A es consistente."
+    ],
+    "misconception_by_option": {
+      "B": "Verifica que 25 aparezca en la tabla en lugar de comprobar el total.",
+      "C": "Elige una tabla simétrica suponiendo que el promedio es el valor central.",
+      "D": "Toma el promedio como el primer valor de una sucesión creciente."
+    }
+  },
+  {
+    "id": "EPA8-C1-2022-P05",
+    "content": "La tabla muestra las posibles parejas que se pueden obtener al lanzar dos dados, distinguiendo el primer y el segundo dado (36 parejas en total). Si se suman los puntajes obtenidos al lanzar los dados, ¿cuál resultado tiene la mayor probabilidad de obtenerse?",
+    "difficulty": 1100,
+    "topic": "Pensamiento aleatorio — espacio muestral y probabilidad",
+    "options": ["2", "7", "12", "36"],
+    "correct_option": "7",
+    "tags": ["aleatorio", "grado8", "epa", "interpretacion", "probabilidad"],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P05.svg",
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2022", "codigo": "M081", "pregunta": 5, "pagina_pdf": 4},
+    "figura": {"builder": "p2022_05", "descripcion": "Cuadrícula 6x6 con las parejas (i,j) de los dos dados"},
+    "solution": [
+      "Contar en cuántas casillas la suma da cada resultado.",
+      "La suma 2 aparece una vez y la suma 12 aparece una vez.",
+      "La suma 7 aparece en 6 casillas: $(1,6), (2,5), (3,4), (4,3), (5,2), (6,1)$.",
+      "Ninguna otra suma aparece más veces, así que 7 es la de mayor probabilidad."
+    ],
+    "misconception_by_option": {
+      "A": "Elige el resultado extremo menor sin contar casillas.",
+      "C": "Elige el resultado extremo mayor sin contar casillas.",
+      "D": "Confunde el total de parejas posibles con un resultado de la suma."
+    }
+  },
+  {
+    "id": "EPA8-C1-2022-P08",
+    "content": "Pedro invierte su dinero en una empresa en la que, cada mes, obtiene $50\\,\\%$ más de lo que invirtió. Inicialmente invierte $\\$800$ y cada mes reinvierte todo lo que obtiene. ¿Cuánto dinero recibirá en total por la inversión después de 3 meses?",
+    "difficulty": 1150,
+    "topic": "Pensamiento numérico — porcentaje compuesto",
+    "options": ["$\\$1.200$", "$\\$2.000$", "$\\$2.700$", "$\\$3.600$"],
+    "correct_option": "$\\$2.700$",
+    "tags": ["numerico", "grado8", "epa", "formulacion", "porcentaje"],
+    "image_url": null,
+    "pensamiento": "numérico",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2022", "codigo": "M081", "pregunta": 8, "pagina_pdf": 5},
+    "figura": null,
+    "solution": [
+      "Obtener $50\\,\\%$ más equivale a multiplicar por $1,5$ cada mes.",
+      "Mes 1: $800 \\times 1,5 = 1.200$.",
+      "Mes 2: $1.200 \\times 1,5 = 1.800$.",
+      "Mes 3: $1.800 \\times 1,5 = 2.700$."
+    ],
+    "misconception_by_option": {
+      "A": "Aplica el aumento una sola vez y no reinvierte.",
+      "B": "Suma $50\\,\\%$ del capital inicial tres veces: $800 + 3\\times 400$.",
+      "D": "Duplica en vez de multiplicar por $1,5$ o aplica un mes de más."
+    }
+  },
+  {
+    "id": "EPA8-C1-2022-P09",
+    "content": "Magda utilizó una cuadrícula de $1\\text{ cm}$ de lado para dibujar la figura sombreada, usando dos triángulos rectángulos que comparten un lado de $\\sqrt{2}\\text{ cm}$. El triángulo inferior tiene catetos de $1\\text{ cm}$ y $1\\text{ cm}$; el superior tiene catetos de $\\sqrt{2}\\text{ cm}$ y $1\\text{ cm}$, y su hipotenusa mide $\\sqrt{3}\\text{ cm}$. ¿Cuál es el área de la figura que sombreó Magda?",
+    "difficulty": 1250,
+    "topic": "Pensamiento métrico — área con longitudes irracionales",
+    "options": [
+      "$\\dfrac{1+\\sqrt{2}}{2}\\text{ cm}^2$",
+      "$\\dfrac{2-\\sqrt{3}}{2}\\text{ cm}^2$",
+      "$\\sqrt{3}\\text{ cm}^2$",
+      "$2\\sqrt{2}\\text{ cm}^2$"
+    ],
+    "correct_option": "$\\dfrac{1+\\sqrt{2}}{2}\\text{ cm}^2$",
+    "tags": ["metrico", "grado8", "epa", "formulacion", "area", "irracionales"],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P09.svg",
+    "pensamiento": "métrico",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2022", "codigo": "M081", "pregunta": 9, "pagina_pdf": 6},
+    "figura": {"builder": "p2022_09", "descripcion": "Cuadrícula de 1 cm con los dos triángulos rectángulos sombreados y los lados rotulados 1 cm, √2 cm y √3 cm"},
+    "solution": [
+      "El área de un triángulo rectángulo es $\\dfrac{\\text{cateto}\\times\\text{cateto}}{2}$.",
+      "Triángulo inferior: $\\dfrac{1\\times 1}{2} = \\dfrac{1}{2}$.",
+      "Triángulo superior: $\\dfrac{\\sqrt{2}\\times 1}{2} = \\dfrac{\\sqrt{2}}{2}$.",
+      "Área total: $\\dfrac{1}{2}+\\dfrac{\\sqrt{2}}{2} = \\dfrac{1+\\sqrt{2}}{2}\\text{ cm}^2$."
+    ],
+    "misconception_by_option": {
+      "B": "Resta áreas en vez de sumarlas y usa la hipotenusa como cateto.",
+      "C": "Toma la hipotenusa $\\sqrt{3}$ como si fuera el área.",
+      "D": "Multiplica los lados sin dividir entre 2, como si fueran rectángulos."
+    }
+  },
+  {
+    "id": "EPA8-C1-2022-P10",
+    "content": "La figura muestra las imágenes de dos sombreros triangulares: el sombrero 1 es un triángulo grande y el sombrero 2 es un triángulo más pequeño con la misma forma. ¿Cuál de las siguientes condiciones garantiza que los dos sombreros sean semejantes?",
+    "difficulty": 1100,
+    "topic": "Pensamiento espacial — semejanza de figuras",
+    "options": [
+      "Que el sombrero 2 sea una reducción del sombrero 1.",
+      "Que el área el sombrero 2 sea la mitad del área del sombrero 1.",
+      "Que el perímetro del sombrero 1 sea igual al perímetro del sombrero 2.",
+      "Que el ángulo de la punta del sombrero 1 sea el doble del ángulo de la punta del sombrero 2."
+    ],
+    "correct_option": "Que el sombrero 2 sea una reducción del sombrero 1.",
+    "tags": ["espacial", "grado8", "epa", "argumentacion", "semejanza"],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P10.svg",
+    "pensamiento": "espacial",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2022", "codigo": "M081", "pregunta": 10, "pagina_pdf": 6},
+    "figura": {"builder": "p2022_10", "descripcion": "Dos triángulos semejantes (sombrero 1 grande, sombrero 2 pequeño) con punta y estrella"},
+    "solution": [
+      "Dos figuras son semejantes si tienen los ángulos iguales y los lados proporcionales.",
+      "Una reducción es precisamente un cambio de escala: conserva ángulos y hace proporcionales los lados.",
+      "Las demás condiciones no garantizan proporcionalidad de todos los lados ni igualdad de ángulos."
+    ],
+    "misconception_by_option": {
+      "B": "Cree que la razón de áreas es la razón de semejanza (en realidad es su cuadrado) y que basta con el área.",
+      "C": "Confunde semejanza con congruencia de perímetros.",
+      "D": "Cree que la semejanza permite cambiar los ángulos."
+    }
+  },
+  {
+    "id": "EPA8-C1-2022-P11",
+    "content": "La gráfica muestra el aumento en el precio de una taza de café en el transcurso de 4 años: $\\$200$ en el año 1, $\\$600$ en el año 2, $\\$1.000$ en el año 3 y $\\$1.400$ en el año 4. Si $y$ es el precio de la taza de café y $x$ es el año, ¿cuál de las siguientes ecuaciones representa el precio de la taza de café con respecto al tiempo?",
+    "difficulty": 1200,
+    "topic": "Pensamiento variacional — modelo lineal a partir de una gráfica",
+    "options": ["$400y = 200x$", "$y = 400x - 200$", "$200y = x$", "$y = x + 400$"],
+    "correct_option": "$y = 400x - 200$",
+    "tags": ["variacional", "grado8", "epa", "formulacion", "linealidad"],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P11.svg",
+    "pensamiento": "variacional",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2022", "codigo": "M081", "pregunta": 11, "pagina_pdf": 7},
+    "figura": {"builder": "p2022_11", "descripcion": "Puntos (1,200) (2,600) (3,1000) (4,1400) en el plano precio vs. año"},
+    "solution": [
+      "De un año al siguiente el precio sube $\\$400$: esa es la pendiente.",
+      "La ecuación tiene la forma $y = 400x + b$.",
+      "Con $x=1$ y $y=200$: $200 = 400 + b$, luego $b = -200$.",
+      "La ecuación es $y = 400x - 200$."
+    ],
+    "misconception_by_option": {
+      "A": "Invierte el papel de las variables y de la pendiente.",
+      "C": "Usa un valor de la gráfica como coeficiente sin verificar ningún punto.",
+      "D": "Confunde la pendiente con el término independiente."
+    }
+  },
+  {
+    "id": "EPA8-C1-2022-P14",
+    "content": "Esteban tiene una tienda de plantas ornamentales y está ofreciendo descuentos según la cantidad de artículos que el cliente compre. Según la gráfica, con 1 artículo el descuento es del $10\\,\\%$, sube de forma constante hasta llegar al $25\\,\\%$ con 4 artículos y a partir de ahí se mantiene en $25\\,\\%$. ¿Cuál es el menor porcentaje de descuento que ofrece Esteban en su tienda?",
+    "difficulty": 900,
+    "topic": "Pensamiento variacional — lectura de gráficas por tramos",
+    "options": ["$1\\,\\%$", "$4\\,\\%$", "$10\\,\\%$", "$25\\,\\%$"],
+    "correct_option": "$10\\,\\%$",
+    "tags": ["variacional", "grado8", "epa", "interpretacion", "grafica"],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P14.svg",
+    "pensamiento": "variacional",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2022", "codigo": "M081", "pregunta": 14, "pagina_pdf": 9},
+    "figura": {"builder": "p2022_14", "descripcion": "Línea que sube de (1, 10 %) a (4, 25 %) y se mantiene constante hasta 8 artículos"},
+    "solution": [
+      "El menor descuento es el punto más bajo de la gráfica.",
+      "La gráfica empieza en 1 artículo con $10\\,\\%$ y de ahí solo sube.",
+      "El menor porcentaje ofrecido es $10\\,\\%$."
+    ],
+    "misconception_by_option": {
+      "A": "Lee el valor del eje horizontal (1 artículo) como si fuera el porcentaje.",
+      "B": "Lee la cantidad de artículos donde termina la subida (4) como porcentaje.",
+      "D": "Lee el descuento máximo en lugar del mínimo."
+    }
+  },
+  {
+    "id": "EPA8-C1-2022-P16",
+    "content": "La guadua es una de las plantas de más rápido crecimiento. Para identificar qué tan rápido crece una guadua, un agrónomo la midió durante varios días. Él observó que el día 1 midió $30\\text{ cm}$ y que la altura de la guadua se puede representar con la función $y = 10x + 20$. ¿Qué significa el número $10$ que aparece en la representación algebraica de la función que representa la altura de la guadua?",
+    "difficulty": 1150,
+    "topic": "Pensamiento variacional — significado de la pendiente",
+    "options": [
+      "Después de 10 años la guadua alcanza su máximo crecimiento.",
+      "La guadua tarda 10 días en alcanzar los 120 metros.",
+      "Al inicio de la siembra, la guadua mide 10 cm.",
+      "Luego de sembrada, la guadua aumenta su altura en 10 cm al día."
+    ],
+    "correct_option": "Luego de sembrada, la guadua aumenta su altura en 10 cm al día.",
+    "tags": ["variacional", "grado8", "epa", "argumentacion", "pendiente"],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P16.svg",
+    "pensamiento": "variacional",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2022", "codigo": "M081", "pregunta": 16, "pagina_pdf": 10},
+    "figura": {"builder": "p2022_16", "descripcion": "Recta y = 10x + 20 con puntos del día 1 al 10 (30 cm a 120 cm)"},
+    "solution": [
+      "En $y = mx + b$, el coeficiente $m$ indica cuánto cambia $y$ cada vez que $x$ aumenta en 1.",
+      "Aquí $x$ son días y $y$ son centímetros, así que $10$ es el crecimiento diario.",
+      "El $20$ sería la altura teórica en el día 0; el $10$ es el aumento de 10 cm por día."
+    ],
+    "misconception_by_option": {
+      "A": "Interpreta la pendiente como un tiempo total y cambia días por años.",
+      "B": "Mezcla la pendiente con el valor final de la gráfica y confunde cm con metros.",
+      "C": "Confunde la pendiente con el término independiente (altura inicial)."
+    }
+  },
+  {
+    "id": "EPA8-C1-2022-P18",
+    "content": "Daniela preguntó a sus compañeros de curso cuánto tiempo tardan de sus casas al colegio. Los resultados los registró en una gráfica de barras: $20$ estudiantes tardan $5$ minutos, $15$ estudiantes tardan $10$ minutos y $10$ estudiantes tardan $15$ minutos. ¿Cuál es el tiempo promedio que tarda un compañero de Daniela en llegar de la casa al colegio?",
+    "difficulty": 1200,
+    "topic": "Pensamiento aleatorio — promedio ponderado",
+    "options": [
+      "Aproximadamente 13 minutos.",
+      "Aproximadamente 9 minutos.",
+      "Exactamente 15 minutos.",
+      "Exactamente 10 minutos."
+    ],
+    "correct_option": "Aproximadamente 9 minutos.",
+    "tags": ["aleatorio", "grado8", "epa", "formulacion", "promedio"],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P18.svg",
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2022", "codigo": "M081", "pregunta": 18, "pagina_pdf": 11},
+    "figura": {"builder": "p2022_18", "descripcion": "Barras horizontales: 5 min → 20 estudiantes, 10 min → 15, 15 min → 10"},
+    "solution": [
+      "Cada tiempo pesa según la cantidad de estudiantes que lo reportó.",
+      "Total de minutos: $5\\times 20 + 10\\times 15 + 15\\times 10 = 100+150+150 = 400$.",
+      "Total de estudiantes: $20+15+10 = 45$.",
+      "$400 \\div 45 \\approx 8,9$, es decir, aproximadamente 9 minutos."
+    ],
+    "misconception_by_option": {
+      "A": "Promedia mal dando más peso al tiempo mayor.",
+      "C": "Toma el tiempo máximo como promedio.",
+      "D": "Promedia solo los tiempos $\\left(\\dfrac{5+10+15}{3}\\right)$ ignorando cuántos estudiantes hay en cada grupo."
+    }
+  }
+]

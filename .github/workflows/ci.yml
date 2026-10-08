@@ -1,5 +1,5 @@
 # .github/workflows/ci.yml
-# CI/CD para LevelUp-ELO — 7 jobs
+# CI/CD para LevelUp-ELO — 8 jobs
 # Disparadores: push a main, pull_request hacia main
 
 name: LevelUp-ELO CI
@@ -68,7 +68,9 @@ jobs:
           cache: pip
 
       - name: Instalar dependencias
-        run: pip install -r requirements.txt pytest pytest-cov
+        # Unit tests cover V1 (requirements.txt) and API modules (requirements-api.txt;
+        # it also pins pytest and pytest-cov).
+        run: pip install -r requirements.txt -r requirements-api.txt
 
       - name: Ejecutar tests unitarios con cobertura
         run: |
@@ -103,7 +105,7 @@ jobs:
           cache: pip
 
       - name: Instalar dependencias
-        run: pip install -r requirements.txt pytest
+        run: pip install -r requirements.txt -r requirements-api.txt
 
       - name: Ejecutar tests de integración (SQLite en archivo temporal)
         run: |
@@ -131,6 +133,50 @@ jobs:
 
       - name: Verificar paridad SQLite/PostgreSQL
         run: python scripts/db_sync_check.py
+
+  test-postgres:
+    name: "Guardas PostgreSQL"
+    runs-on: ubuntu-latest
+    needs: [db-sync]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: levelup_audit
+          POSTGRES_PASSWORD: audit_local_only
+          POSTGRES_DB: levelup_audit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U levelup_audit -d levelup_audit"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements-api.txt
+
+      - name: Ejecutar guardas sobre PostgreSQL real
+        # test_elo_single_source corre en los dos motores: aquí toma la rama
+        # PostgreSQL. La paridad estática de db_sync_check no demuestra
+        # equivalencia de resultados ni comportamiento bajo concurrencia.
+        # The whole folder, not a file list: every two-engine test (the `repo` fixture in
+        # tests/integration/conftest.py) must take its PostgreSQL branch here, including the
+        # spec 001 tests added later. `-rs` lists any skip so a skipped PG branch is visible.
+        run: |
+          python -m pytest tests/integration/ -v --tb=short -rs
+        env:
+          POSTGRES_TEST_DATABASE_URL: postgresql://levelup_audit:audit_local_only@localhost:5432/levelup_audit
+          DATABASE_SSLMODE: disable
+          ADMIN_PASSWORD: postgres-audit-admin
+          TESTING: "1"
 
   # ── Job 6: Tests de integración API (FastAPI) ─────────────────────────
   test-api:
@@ -169,16 +215,19 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          node-version: "24"
 
-      - name: Instalar dependencias npm
-        run: npm install --legacy-peer-deps
+      - name: Configurar pnpm desde packageManager
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - name: Instalar dependencias desde lockfile
+        run: pnpm install --frozen-lockfile
         working-directory: frontend
 
       - name: Build TypeScript + Vite
-        run: npm run build
+        run: pnpm run build
         working-directory: frontend
         env:
           VITE_API_URL: "https://levelup-elo.onrender.com"

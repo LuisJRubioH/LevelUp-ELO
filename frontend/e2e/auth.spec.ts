@@ -1,18 +1,19 @@
 import { test, expect } from "@playwright/test";
-import { injectAuth, mockLoginEndpoint, MOCK_STUDENT } from "./helpers/auth";
+import { injectAuth, mockLoginEndpoint, mockStudentApi, MOCK_STUDENT } from "./helpers/auth";
 
 test.describe("Autenticación", () => {
   test("login con credenciales válidas → redirige a /student", async ({ page }) => {
     await mockLoginEndpoint(page);
+    await mockStudentApi(page);
 
     await page.goto("/login");
-    await expect(page.getByText("Iniciar sesión")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Continúa tu ascenso/i })).toBeVisible();
 
-    await page.getByPlaceholder("usuario o correo@ejemplo.com").fill("estudiante1");
+    await page.getByLabel("Usuario o correo").fill("estudiante1");
     await page.getByLabel("Contraseña").fill("demo1234");
-    await page.getByRole("button", { name: "Entrar" }).click();
+    await page.getByRole("button", { name: /Entrar a Oulad/ }).click();
 
-    await expect(page).toHaveURL("/student");
+    await expect(page).toHaveURL("/student/courses");
   });
 
   test("login con contraseña incorrecta → muestra error", async ({ page }) => {
@@ -25,9 +26,9 @@ test.describe("Autenticación", () => {
     });
 
     await page.goto("/login");
-    await page.getByPlaceholder("usuario o correo@ejemplo.com").fill("estudiante1");
+    await page.getByLabel("Usuario o correo").fill("estudiante1");
     await page.getByLabel("Contraseña").fill("incorrecto");
-    await page.getByRole("button", { name: "Entrar" }).click();
+    await page.getByRole("button", { name: /Entrar a Oulad/ }).click();
 
     await expect(page.getByText(/[Cc]redenciales|inválidas|error/i)).toBeVisible();
     await expect(page).toHaveURL("/login");
@@ -73,23 +74,23 @@ test.describe("Autenticación", () => {
     });
 
     await page.goto("/login");
-    await page.getByPlaceholder("usuario o correo@ejemplo.com").fill("profesor1");
+    await page.getByLabel("Usuario o correo").fill("profesor1");
     await page.getByLabel("Contraseña").fill("demo1234");
-    await page.getByRole("button", { name: "Entrar" }).click();
+    await page.getByRole("button", { name: /Entrar a Oulad/ }).click();
 
     await expect(page).toHaveURL("/teacher");
   });
 
   test("formulario de registro está accesible desde login", async ({ page }) => {
     await page.goto("/login");
-    await page.getByRole("button", { name: "Registrarse" }).click();
+    await page.getByRole("button", { name: "Crear cuenta", exact: true }).first().click();
 
-    await expect(page.getByText(/[Ee]studiante|[Dd]ocente/)).toBeVisible();
+    await expect(page.getByRole("button", { name: /Estudiante/ })).toBeVisible();
   });
 
-  test("usuario ya autenticado en / → redirige a /student", async ({ page }) => {
+  test("la portada pública sigue disponible para un usuario autenticado", async ({ page }) => {
     await injectAuth(page, MOCK_STUDENT);
     await page.goto("/");
-    await expect(page).toHaveURL("/login");
+    await expect(page).toHaveURL("/");
   });
 });

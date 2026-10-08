@@ -1,10 +1,10 @@
+/* Fuente pixel-art para KatIA y badges de rango */
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap");
+
 @import "tailwindcss";
 
 /* Habilitar dark: variant por clase (para uso futuro con dark: prefix) */
 @variant dark (&:where(.dark, .dark *));
-
-/* Fuente pixel-art para KatIA y badges de rango */
-@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap");
 
 /* ── Variables semánticas de tema ─────────────────────────────────────────── */
 
@@ -14,10 +14,26 @@
   --color-katia-purple: #8b5cf6;
   --color-correct: #22c55e;
   --color-wrong: #ef4444;
+  /* Ni sí ni no: cierra salvo en un caso, y ese caso es contenido. */
+  --color-partial: #f59e0b;
 
   /* Custom surface colors (dark = default) */
   --surface: #12121a;
   --canvas: #0a0a0f;
+  --focus-ring: #a78bfa;
+  --focus-ring-offset: #0a0a0f;
+
+  /* Zonas de color del nodo (arquitectura de 11 bloques, una sola ventana).
+     Cinco zonas funcionales, no once colores: la señalización solo funciona
+     si es escasa. --zone-trap es EXCLUSIVO de las trampas — una respuesta
+     incorrecta normal usa el estado neutro, nunca este rojo. */
+  --zone-explore: #2dd4bf;
+  --zone-build: #6c63ff;
+  --zone-trap: #ef4444;
+  --zone-work: #22c55e;
+  --zone-close: #94a3b8;
+
+  color-scheme: dark;
 }
 
 /* ── Modo claro: invertir paleta slate ───────────────────────────────────── */
@@ -44,6 +60,9 @@ html.light {
   /* Surface colors para los custom hex */
   --surface: #ffffff;
   --canvas: #f8fafc;
+  --focus-ring: #6d5ce7;
+  --focus-ring-offset: #f8fafc;
+  color-scheme: light;
 }
 
 /* ── Body ─────────────────────────────────────────────────────────────────── */
@@ -55,6 +74,63 @@ body {
   color: var(--color-slate-100);
   font-family: "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--canvas);
+  scroll-behavior: smooth;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--focus-ring) 72%, transparent);
+  color: var(--color-slate-100);
+}
+
+/* Solo para lectores de pantalla: fuera de la vista, dentro del árbol de
+   accesibilidad y del orden de foco. `display: none` haría las dos cosas mal. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Variante para controles: se vuelve visible al recibir foco de teclado, para
+   que el usuario vea dónde está parado. */
+.sr-only-focusable:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
 }
 
 /* ── Scrollbar personalizado ──────────────────────────────────────────────── */
@@ -67,7 +143,7 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   background: var(--color-slate-700);
-  border-radius: 3px;
+  border-radius: 999px;
 }
 
 /* ── LaTeX rendering ──────────────────────────────────────────────────────── */
@@ -79,7 +155,7 @@ body {
 /* ── Animación de entrada suave ───────────────────────────────────────────── */
 
 .fade-in {
-  animation: fadeIn 0.3s ease-in;
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 @keyframes fadeIn {
   from {
@@ -89,5 +165,20 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

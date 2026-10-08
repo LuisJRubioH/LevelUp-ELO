@@ -1,0 +1,4 @@
+[
+  {"id":"CS8-U7-P196-EJ01","tipo":"despeje","enunciado":"Resuelve xm+5z=xp−8 para x.","ecuacion":"x*m+5*z=x*p-8","incognita":"x","solucion":"(8+5*z)/(p-m)","respuesta":"x=(8+5z)/(p−m), con p−m≠0.","restricciones":["p-m!=0"],"conjunto":"R","seccion":"Ecuaciones con coeficientes literales","unidad":7,"pagina_pdf":196,"referencia":"Ejemplo a","apto_para":["practica","procedimiento_abierto"],"dificultad":500},
+  {"id":"CS8-U7-P196-EJ02","tipo":"despeje","enunciado":"Resuelve (ay+b)/5−(y−2)/6=2(b−3y)/3 para y.","ecuacion":"(a*y+b)/5-(y-2)/6=2*(b-3*y)/3","incognita":"y","solucion":"(14*b-10)/(6*a+55)","respuesta":"y=(14b−10)/(6a+55), con 6a+55≠0.","restricciones":["6*a+55!=0"],"conjunto":"R","seccion":"Ecuaciones con coeficientes literales","unidad":7,"pagina_pdf":196,"referencia":"Ejemplo b","apto_para":["practica","procedimiento_abierto"],"dificultad":600}
+]

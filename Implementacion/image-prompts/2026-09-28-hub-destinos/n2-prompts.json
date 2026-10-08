@@ -1,0 +1,29 @@
+{
+  "base": "Create ONE standalone 3:2 landscape illustration for a clickable destination card in an educational game's Greek city hub. Use supplied image ONLY as reference for world, crisp high-detail pixel art and golden sunset/blue shadow color palette. Architecture is the hero, building completely legible at thumbnail scale, three-quarter exterior view with an inviting open entrance revealing its function. Visible carefully designed pixel clusters, subtle dithering, no blur, no photography, no smooth vector art. Warm ivory limestone, terracotta, brass, rich plum details, readable shadows. A few small adult anthropomorphic feline citizens in Greek tunics for scale; NO large foreground character and NO KatIA. One cohesive scene, no collage/grid, no typography, signs with words, numerals, formulas, borders, UI or watermark. Do not depict counted arrangements that solve a math exercise. ",
+  "jobs": [
+    [
+      "e01-granero.png",
+      "The Public Granary: handsome TWO-STORY limestone civic granary, deep timber double doors, upper loading opening with wooden pulley lifting bundled grain sacks, covered storage bays packed with loosely grouped sacks, small clerk at a side writing desk, feline porters bringing grain along paved lane. Distinctive sturdy rectangular building, wheat relief above door. No market stalls."
+    ],
+    [
+      "e02-casa-cuentas.png",
+      "The House of Accounts: dignified compact civic counting house with Ionic column portico, secure bronze-banded doors standing open onto desks, blank wax ledgers, scales and closed treasury chests. Feline clerk receives a citizen at entry. Architectural identity is orderly scholarly civic treasury; no sacks, no merchandise stalls."
+    ],
+    [
+      "e03-taller-mosaicos.png",
+      "The Mosaic Workshop: inviting artisan limestone workshop with wide open timber doors, terracotta roof, patterned geometric mosaic panels propped beside doorway, long working bench with partly finished decorative mosaic and loose bins of colored tesserae visible inside, small feline craftspeople at work. Asymmetrical workshop courtyard, no mathematical grids or numbers."
+    ],
+    [
+      "e04-comedor.png",
+      "The Communal Dining Hall: airy civic Greek dining hall with wide colonnaded entrance, tiled roof and sheltered courtyard; visible long shared tables, benches, steaming communal cooking pot near side hearth and bread baskets. Feline cooks and citizens sharing a meal, no counted portions. Warm welcoming place, building dominant."
+    ],
+    [
+      "e05-invernadero.png",
+      "The Greenhouse: elegant glass-roofed conservatory on Greek limestone base, arched bronze structural ribs, lush seedlings and propagation trays visible through transparent panes, broad open door, irrigating clay channels and terracotta planters. Feline gardener tends plants. Distinct translucent domed roof, light through foliage, no countable multiplication diagram."
+    ],
+    [
+      "e06-cantera.png",
+      "The Quarry: Greek stone quarry destination with stepped pale limestone cut faces, timber crane with ropes suspending a rough block, small roofed stonecutters shelter, chisels and unfinished slabs on workbenches, feline masons. Wide inviting entry path into excavation, no temple as main subject, no dimensions or numerical grids."
+    ]
+  ]
+}

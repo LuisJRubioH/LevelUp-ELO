@@ -1,0 +1,177 @@
+/* ============================================================
+   Oulad — Liga PvP: lobby, partida en vivo y resultado.
+   Reusa tokens .lue-dx. Competitivo (más enérgico que concursos).
+   ============================================================ */
+.lue-dx .pv-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(24px, 3.6vw, 34px);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lue-dx .pv-sub { color: var(--dim); font-size: 14.5px; margin: 0 0 26px; line-height: 1.5; }
+
+/* ── Lobby ─────────────────────────────────────────────── */
+.lue-dx .pv-field-label {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  display: block;
+  margin-bottom: 10px;
+}
+.lue-dx .pv-select {
+  width: 100%;
+  padding: 13px 15px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  margin-bottom: 18px;
+  cursor: pointer;
+}
+.lue-dx .pv-select:focus { outline: none; border-color: var(--accent); }
+.lue-dx .pv-cta { width: 100%; justify-content: center; }
+
+/* ── Historial ─────────────────────────────────────────── */
+.lue-dx .pv-history { margin-top: 36px; }
+.lue-dx .pv-history-h {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mute);
+  margin: 0 0 12px;
+}
+.lue-dx .pv-hrow {
+  display: grid;
+  grid-template-columns: 64px 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13.5px;
+}
+.lue-dx .pv-hrow:last-child { border: none; }
+.lue-dx .pv-tag {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+}
+.lue-dx .pv-tag.win { color: #34d399; }
+.lue-dx .pv-tag.loss { color: #f87171; }
+.lue-dx .pv-tag.draw { color: var(--gold); }
+.lue-dx .pv-hopp { color: var(--text); }
+.lue-dx .pv-hscore { color: var(--mute); font-variant-numeric: tabular-nums; }
+.lue-dx .pv-hdelta { font-family: var(--font-display); font-weight: 700; min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
+.lue-dx .pv-hdelta.up { color: #34d399; }
+.lue-dx .pv-hdelta.down { color: #f87171; }
+
+/* ── Estados de espera ─────────────────────────────────── */
+.lue-dx .pv-center {
+  min-height: 58vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+}
+.lue-dx .pv-radar {
+  width: 64px; height: 64px; border-radius: 50%;
+  border: 2px solid var(--accent);
+  position: relative;
+}
+.lue-dx .pv-radar::after {
+  content: ""; position: absolute; inset: -2px; border-radius: 50%;
+  border: 2px solid var(--accent);
+  animation: pv-ping 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes pv-ping { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.9); opacity: 0; } }
+
+/* ── Partida en vivo ───────────────────────────────────── */
+.lue-dx .pv-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.lue-dx .pv-scorepill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.lue-dx .pv-scorepill .me { color: #34d399; }
+.lue-dx .pv-scorepill .vs { color: var(--mute); font-size: 11px; font-weight: 600; }
+.lue-dx .pv-scorepill .opp { color: #f87171; }
+.lue-dx .pv-timer {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.lue-dx .pv-timer.warn { color: #f87171; animation: pv-pulse 1s ease-in-out infinite; }
+@keyframes pv-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+.lue-dx .pv-counter { font-family: var(--font-pixel); font-size: 9px; color: var(--mute); }
+
+.lue-dx .pv-opp-line { text-align: center; font-size: 12px; color: var(--mute); margin: 0 0 16px; }
+.lue-dx .pv-opp-line b { color: var(--dim); font-weight: 600; }
+
+/* ── Resultado ─────────────────────────────────────────── */
+.lue-dx .pv-result { text-align: center; max-width: 440px; }
+.lue-dx .pv-result-emoji { font-size: 56px; line-height: 1; margin-bottom: 6px; }
+.lue-dx .pv-result-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: -0.02em;
+  margin: 0 0 18px;
+}
+.lue-dx .pv-result-title.win { color: #34d399; }
+.lue-dx .pv-result-title.loss { color: #f87171; }
+.lue-dx .pv-result-title.draw { color: var(--gold); }
+.lue-dx .pv-board {
+  display: flex; align-items: center; justify-content: center; gap: 28px;
+  margin: 0 0 16px;
+}
+.lue-dx .pv-board-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.lue-dx .pv-board-num {
+  font-family: var(--font-display); font-weight: 800; font-size: 44px; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.lue-dx .pv-board-lbl { font-family: var(--font-pixel); font-size: 8px; color: var(--mute); letter-spacing: 0.03em; }
+.lue-dx .pv-board-vs { color: var(--mute); font-size: 16px; align-self: center; }
+.lue-dx .pv-elo-delta {
+  font-family: var(--font-display); font-weight: 800; font-size: 22px;
+  margin: 0 0 26px; font-variant-numeric: tabular-nums;
+}
+.lue-dx .pv-elo-delta.up { color: #34d399; }
+.lue-dx .pv-elo-delta.down { color: #f87171; }
+.lue-dx .pv-elo-delta.flat { color: var(--gold); }
+.lue-dx .pv-elo-delta .lbl { font-family: var(--font-pixel); font-size: 8px; color: var(--mute); display: block; margin-bottom: 6px; letter-spacing: 0.04em; }
+
+/* ── "Terminaste, esperando rival" ─────────────────────── */
+.lue-dx .pv-done-emoji { font-size: 44px; margin-bottom: 4px; }
+
+@media (max-width: 480px) {
+  .lue-dx .pv-board { gap: 18px; }
+  .lue-dx .pv-board-num { font-size: 36px; }
+}

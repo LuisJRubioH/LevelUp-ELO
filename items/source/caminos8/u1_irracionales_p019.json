@@ -1,0 +1,227 @@
+[
+  {
+    "id": "CS8-U1-P019-A66",
+    "tipo": "racionalidad",
+    "enunciado": "Marca si 0,100100100... es irracional y justifica tu respuesta.",
+    "valor": "100/999",
+    "respuesta": "racional",
+    "conjunto": "Q",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 66",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "No es irracional: el bloque 100 se repite indefinidamente, de modo que 0,100100100...=0,(100)=100/999.",
+    "dificultad": 450
+  },
+  {
+    "id": "CS8-U1-P019-A67",
+    "tipo": "clasificacion_decimal",
+    "enunciado": "Marca si 0,623462346223... es irracional y justifica tu respuesta.",
+    "respuesta": "Irracional, según el patrón no periódico que pretende mostrar el libro.",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 67",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "La escritura impresa rompe la repetición aparente del bloque 6234 y pretende representar un decimal infinito no periódico; por esa intención editorial se clasifica como irracional.",
+    "verificar": "Solo se imprime el prefijo 0,623462346223 seguido de puntos suspensivos. Un prefijo finito no determina una continuación infinita única: puede completarse de manera periódica o no periódica. La clasificación irracional corresponde a la intención aparente del ejercicio, no a una conclusión demostrable a partir de lo impreso.",
+    "dificultad": 500
+  },
+  {
+    "id": "CS8-U1-P019-A68",
+    "tipo": "clasificacion_decimal",
+    "enunciado": "Marca si 3,1421142214231424... es irracional y justifica tu respuesta.",
+    "respuesta": "Irracional, según el patrón 14,21; 14,22; 14,23; 14,24; ... que pretende mostrar el libro.",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 68",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "La sucesión sugerida concatena 14 con enteros consecutivos 21, 22, 23, 24, ...; no forma un período fijo y, bajo esa lectura, su decimal es infinito no periódico.",
+    "verificar": "Solo se imprime el prefijo 3,1421142214231424 seguido de puntos suspensivos. La regla 14,21; 14,22; 14,23; 14,24; ... es una inferencia razonable, pero no está declarada y el prefijo admite otras continuaciones. Confirmar la regla editorial antes de autocalificar.",
+    "dificultad": 550
+  },
+  {
+    "id": "CS8-U1-P019-A69",
+    "tipo": "racionalidad",
+    "enunciado": "Marca si -√10+5 es irracional y justifica tu respuesta.",
+    "valor": "5-sqrt(10)",
+    "respuesta": "irracional",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 69",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "√10 es irracional porque 10 no es un cuadrado perfecto. Si 5-√10 fuera racional, entonces √10=5-(5-√10) también sería racional, lo cual es imposible.",
+    "dificultad": 500
+  },
+  {
+    "id": "CS8-U1-P019-A70",
+    "tipo": "racionalidad",
+    "enunciado": "Marca si 3π-7 es irracional y justifica tu respuesta.",
+    "valor": "3*pi-7",
+    "respuesta": "irracional",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 70",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Si 3π-7 fuera racional, al sumar 7 y dividir entre 3 se obtendría que π es racional, contradicción.",
+    "dificultad": 500
+  },
+  {
+    "id": "CS8-U1-P019-A71",
+    "tipo": "lectura_figura_irracionales",
+    "enunciado": "Escribe los números irracionales que pueden aparecer en la figura formada por ocho triángulos rectángulos sucesivos, cada uno con un nuevo cateto exterior de longitud 1.",
+    "respuesta": "√2, √3, √5, √6, √7 y √8.",
+    "valores": [
+      "sqrt(2)",
+      "sqrt(3)",
+      "sqrt(5)",
+      "sqrt(6)",
+      "sqrt(7)",
+      "sqrt(8)"
+    ],
+    "conjunto": "I",
+    "seccion": "Construcción geométrica de irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 71",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Por Pitágoras, los radios sucesivos miden √2, √3, √4, ..., √9. Se eliminan √4=2 y √9=3 porque son racionales; quedan √2, √3, √5, √6, √7 y √8.",
+    "verificar": "La respuesta depende de contar correctamente los ocho triángulos de la figura original. Conservar la imagen al presentar o evaluar el ejercicio; una transcripción solo textual puede perder esa información.",
+    "dificultad": 550
+  },
+  {
+    "id": "CS8-U1-P019-A72",
+    "tipo": "construccion_recta",
+    "enunciado": "Aplica el procedimiento usado para ubicar √2 y √5 en la recta numérica y determina el punto asociado a √10.",
+    "respuesta": "El punto está a √10 unidades del origen, aproximadamente en 3,1623. Puede construirse como la hipotenusa de un triángulo rectángulo con catetos 3 y 1 y trasladarse a la recta con el compás.",
+    "valor": "sqrt(10)",
+    "aproximacion": "3.1622776602",
+    "conjunto": "I",
+    "seccion": "Representación de irracionales en la recta",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 72",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "La hipotenusa del triángulo de catetos 3 y 1 mide √(3²+1²)=√10. Un arco con centro en 0 y ese radio corta la semirrecta positiva en √10.",
+    "verificar": "Es una construcción gráfica. La respuesta textual fija el valor y un procedimiento válido, pero la precisión y las marcas de regla y compás requieren revisar el dibujo del estudiante.",
+    "dificultad": 550
+  },
+  {
+    "id": "CS8-U1-P019-A73",
+    "tipo": "construccion_recta",
+    "enunciado": "Aplica el procedimiento usado para ubicar √2 y √5 en la recta numérica y determina el punto asociado a -√3.",
+    "respuesta": "El punto está a √3 unidades a la izquierda del origen, aproximadamente en -1,7321. Se construye primero √3 y se traslada esa distancia hacia la semirrecta negativa.",
+    "valor": "-sqrt(3)",
+    "aproximacion": "-1.7320508076",
+    "conjunto": "I",
+    "seccion": "Representación de irracionales en la recta",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 73",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "A partir de un segmento √2 y un cateto perpendicular de longitud 1 se obtiene una hipotenusa √(2+1)=√3; con el compás se lleva esa longitud desde 0 hacia la izquierda.",
+    "verificar": "Es una construcción gráfica. La respuesta textual fija el valor y un procedimiento válido, pero la precisión y las marcas de regla y compás requieren revisar el dibujo del estudiante.",
+    "dificultad": 550
+  },
+  {
+    "id": "CS8-U1-P019-A74",
+    "tipo": "construccion_recta",
+    "enunciado": "Aplica el procedimiento usado para ubicar √2 y √5 en la recta numérica y determina el punto asociado a √8.",
+    "respuesta": "El punto está a √8=2√2 unidades a la derecha del origen, aproximadamente en 2,8284. Puede construirse como la hipotenusa de un triángulo rectángulo con catetos 2 y 2 y trasladarse a la recta.",
+    "valor": "sqrt(8)",
+    "aproximacion": "2.8284271247",
+    "conjunto": "I",
+    "seccion": "Representación de irracionales en la recta",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 74",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "La hipotenusa del triángulo de catetos 2 y 2 mide √(2²+2²)=√8. Un arco con centro en 0 y ese radio corta la semirrecta positiva en √8.",
+    "verificar": "Es una construcción gráfica. La respuesta textual fija el valor y un procedimiento válido, pero la precisión y las marcas de regla y compás requieren revisar el dibujo del estudiante.",
+    "dificultad": 550
+  },
+  {
+    "id": "CS8-U1-P019-A75",
+    "tipo": "construccion_geometrica",
+    "enunciado": "Realiza con regla y compás la construcción del número de oro φ=(1+√5)/2.",
+    "respuesta": "Una construcción válida: traza un cuadrado ABCD de lado 1; halla el punto medio M de AB; une M con el vértice superior opuesto C, de modo que MC=√5/2; con centro M y radio MC corta la prolongación de AB en E. Entonces AE=1/2+√5/2=φ≈1,6180.",
+    "valor": "(1+sqrt(5))/2",
+    "aproximacion": "1.6180339887",
+    "conjunto": "I",
+    "seccion": "Construcción geométrica de irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 75",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "En el triángulo rectángulo de catetos 1 y 1/2, la hipotenusa mide √(1+1/4)=√5/2. Al sumarle el tramo 1/2 sobre la recta se obtiene (1+√5)/2.",
+    "verificar": "Existen varias construcciones correctas de φ. La solución registrada es una referencia; evaluar la equivalencia geométrica y revisar el trazado original, no exigir una única disposición de puntos.",
+    "dificultad": 650
+  },
+  {
+    "id": "CS8-U1-P019-A76",
+    "tipo": "numerico",
+    "enunciado": "Si el abdomen de una abeja mide 1,2 cm, el abdomen dividido entre φ es la longitud del tórax y el tórax dividido entre φ es la longitud de la cabeza, ¿cuánto mide la cabeza?",
+    "expr": "(9-3*sqrt(5))/5",
+    "formula_original": "(6/5)/(((1+sqrt(5))/2)**2)",
+    "respuesta": "3*(3-sqrt(5))/5",
+    "respuesta_decimal": "Aproximadamente 0,4584 cm",
+    "conjunto": "I",
+    "seccion": "Aplicación del número de oro",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 76",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Cabeza=(1,2/φ)/φ=1,2/φ². Como φ²=(3+√5)/2, se obtiene 12/[5(3+√5)]=3(3-√5)/5≈0,458359 cm.",
+    "dificultad": 550
+  },
+  {
+    "id": "CS8-U1-P019-MAT",
+    "tipo": "verdadero_falso",
+    "enunciado": "Comprueba o refuta la afirmación: todo número irracional se puede representar con regla y compás.",
+    "respuesta": "F",
+    "conjunto": "I",
+    "seccion": "Matemáticamente: números construibles",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad lateral Matemáticamente",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "La afirmación es falsa. Por ejemplo, ∛2 es irracional pero no puede construirse con regla y compás: su polinomio mínimo x³-2 tiene grado 3, mientras que el grado de un número construible sobre los racionales debe ser una potencia de 2.",
+    "dificultad": 700
+  }
+]

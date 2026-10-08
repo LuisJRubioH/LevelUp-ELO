@@ -31,6 +31,20 @@ LEVEL_TO_BLOCK = {
 }
 
 
+def in_catalogue(level: Optional[str], grade, course_id: str, block: str) -> bool:
+    """Whether a course belongs to the catalogue of a student's level (and grade, for semillero).
+
+    Every semillero course has block 'Semillero'; its grade is the id suffix
+    (`algebra_semillero_6`). An unknown or missing level falls back to universidad.
+    """
+    level = (level or LEVEL_UNIVERSIDAD).lower()
+    if level not in VALID_LEVELS:
+        level = LEVEL_UNIVERSIDAD
+    if block != LEVEL_TO_BLOCK[level]:
+        return False
+    return not (level == LEVEL_SEMILLERO and grade) or course_id.endswith(f"_semillero_{grade}")
+
+
 @dataclass
 class Student:
     """Representa a un estudiante con su nivel académico.

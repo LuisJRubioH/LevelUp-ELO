@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-01T00:00:00.000Z",
+  "title": "Design System: LevelUp-ELO (Oulad)",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Violeta Ascenso",
+        "canonical": "#6C63FF",
+        "tonalRamp": ["#1A1730", "#241F52", "#332C79", "#453BA0", "#584DC8", "#6C63FF", "#8B84FF", "#B3ADFF"]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas Casi Negro",
+        "canonical": "#0A0A0F",
+        "tonalRamp": ["#000000", "#050508", "#0A0A0F", "#12121A", "#1B1B26", "#2A2A38", "#3D3D4F", "#55556B"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Superficie de Panel",
+        "canonical": "#12121A",
+        "tonalRamp": ["#08080C", "#0F0F16", "#12121A", "#1A1A24", "#24242F", "#33333F", "#484852", "#63636B"]
+      },
+      "success": { "role": "tertiary", "displayName": "Verde Correcto", "canonical": "#22C55E", "tonalRamp": ["#052e16", "#14532d", "#166534", "#15803d", "#16a34a", "#22c55e", "#4ade80", "#86efac"] },
+      "error": { "role": "tertiary", "displayName": "Rojo Incorrecto", "canonical": "#EF4444", "tonalRamp": ["#450a0a", "#7f1d1d", "#991b1b", "#b91c1c", "#dc2626", "#ef4444", "#f87171", "#fca5a5"] },
+      "warning": { "role": "tertiary", "displayName": "Ámbar Advertencia", "canonical": "#F59E0B", "tonalRamp": ["#451a03", "#78350f", "#92400e", "#b45309", "#d97706", "#f59e0b", "#fbbf24", "#fcd34d"] },
+      "elo-gold": { "role": "secondary", "displayName": "Dorado ELO", "canonical": "#FFD700", "tonalRamp": ["#4d3f00", "#806a00", "#b39400", "#e6be00", "#ffd700", "#ffe033", "#ffe866", "#fff0a3"] },
+      "katia-purple": { "role": "secondary", "displayName": "Morado KatIA", "canonical": "#8B5CF6", "tonalRamp": ["#2e1a5c", "#432680", "#5b34a8", "#7346d0", "#8b5cf6", "#a684f8", "#c1adfa", "#dbd6fc"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display (Poppins)", "purpose": "Títulos de nivel y nodo. Nunca en párrafos largos." },
+      "body": { "displayName": "Body (Inter)", "purpose": "Texto narrativo, enunciados, UI general." },
+      "label": { "displayName": "Label (Inter uppercase)", "purpose": "Eyebrows de KatIA, etiquetas de tarjeta, kickers." },
+      "pixel": { "displayName": "Pixel (Press Start 2P)", "purpose": "Solo KatIA y badges de rango. Nunca texto corrido." }
+    },
+    "shadows": [
+      { "name": "cta-glow", "value": "0 10px 24px -14px rgba(109,40,217,0.9)", "purpose": "Exclusivo del botón primario violeta; señala la acción principal de la pantalla." },
+      { "name": "hairline-border", "value": "1px solid rgba(241,245,249,0.14)", "purpose": "Mecanismo por defecto para separar un panel de su contenedor (no es box-shadow, es border, pero cumple el mismo rol de separación)." }
+    ],
+    "motion": [
+      { "name": "tap-feedback", "value": "active:translate-y-px active:scale-[0.99], 150ms", "purpose": "Feedback táctil en botones al presionar." },
+      { "name": "reduced-motion-fallback", "value": "@media (prefers-reduced-motion: reduce) { transition: none }", "purpose": "Toda animación decorativa debe tener alternativa instantánea/crossfade." }
+    ],
+    "breakpoints": [
+      { "name": "mobile-first-student", "value": "375px" },
+      { "name": "tablet", "value": "560px" },
+      { "name": "desktop-first-teacher", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "CTA principal de la pantalla (Validar, Entrar al puerto, Finalizar).",
+      "html": "<button class=\"ds-btn-primary\">Entrar al puerto</button>",
+      "css": ".ds-btn-primary { background: #6C63FF; color: #FFFFFF; padding: 12px 24px; border-radius: 12px; font-weight: 600; border: none; box-shadow: 0 10px 24px -14px rgba(109,40,217,0.9); transition: transform 150ms, background-color 150ms; } .ds-btn-primary:hover { background: #7A72FF; } .ds-btn-primary:focus-visible { outline: 2px solid #A78BFA; outline-offset: 2px; } .ds-btn-primary:active { transform: translateY(1px) scale(0.99); } .ds-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Acción secundaria (Volver al mapa, opciones no destructivas).",
+      "html": "<button class=\"ds-btn-secondary\">Volver al mapa</button>",
+      "css": ".ds-btn-secondary { background: #1B1B26; color: #F1F5F9; border: 1px solid rgba(241,245,249,0.14); padding: 12px 24px; border-radius: 12px; font-weight: 600; transition: background-color 150ms; } .ds-btn-secondary:hover { background: #24242F; }"
+    },
+    {
+      "name": "Practice Card",
+      "kind": "card",
+      "refersTo": "card-surface",
+      "description": "Tarjeta de pregunta/interacción (rompe-hielo, práctica). Debe leerse como panel propio, no fundirse con el fondo.",
+      "html": "<div class=\"ds-card\"><p class=\"ds-card-prompt\">¿Qué tienen en común los números 2, 3, 5, 7 y 11?</p></div>",
+      "css": ".ds-card { display: grid; gap: 10px; padding: 16px; border-radius: 8px; border: 1px solid rgba(139,127,255,0.22); background: color-mix(in srgb, #12121A 88%, white 3%); } .ds-card-prompt { margin: 0; color: #F1F5F9; line-height: 1.5; }"
+    },
+    {
+      "name": "Eyebrow Label",
+      "kind": "custom",
+      "refersTo": "label-eyebrow",
+      "description": "Etiqueta uppercase de KatIA o de tarjeta (RUTA A CORINTO, GATING DEL PUERTO).",
+      "html": "<span class=\"ds-eyebrow\">Corinto · el reparto exacto</span>",
+      "css": ".ds-eyebrow { color: #2DD4BF; font-size: 12px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El Tablero del Ascenso",
+    "overview": "Oulad no se ve como un dashboard SaaS ni como una app escolar infantil: se ve como el tablero de una partida seria que sí importa — un rango, una racha, una zona de práctica donde cada respuesta mueve un número real. El fondo es casi negro (#0A0A0F), las superficies son paneles planos de bajo contraste entre sí (#12121A), y el único color que se permite gritar es el acento violeta (#6C63FF). Sobre esa base plana, cada nivel de Preálgebra abre su propio mundo narrativo contado por KatIA — pero el mundo narrativo es atmósfera, nunca reemplaza la jerarquía de datos: el guión pedagógico de la pantalla manda sobre el lore.",
+    "keyCharacteristics": [
+      "Fondo casi negro + superficie ligeramente más clara, sin gradientes de fondo",
+      "Un solo acento violeta, usado con moderación",
+      "Bordes de 1px muy sutiles como separador por defecto, no sombra",
+      "Radio de esquina consistente en 8px",
+      "Tipografía de 3 registros: Poppins, Inter, Press Start 2P (puntual)"
+    ],
+    "rules": [
+      { "name": "La Regla del Acento Único", "body": "Solo #6C63FF actúa como color de intención en toda la superficie de producto.", "section": "colors" },
+      { "name": "La Regla del Escalón de Superficie", "body": "Surface siempre debe ser perceptiblemente distinto de canvas; usar color-mix, nunca repetir el valor exacto.", "section": "colors" },
+      { "name": "La Regla del Pixel Puntual", "body": "Press Start 2P nunca se usa para texto corrido — solo KatIA, badges y micro-etiquetas.", "section": "typography" },
+      { "name": "La Regla Plana-en-Reposo", "body": "Ningún panel, tarjeta o input lleva sombra en reposo; la sombra aparece solo como respuesta a estado.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do usar un único acento de intención (#6C63FF) para CTAs y estados activos",
+      "Do separar un panel de su contenedor con un salto de tono de fondo + borde sutil",
+      "Do mantener las superficies planas en reposo",
+      "Do dejar que el storytelling de cada nivel sea telón de fondo, nunca tape el guión pedagógico",
+      "Do renderizar toda expresión matemática con react-katex"
+    ],
+    "donts": [
+      "Don't usar gradientes morados decorativos",
+      "Don't anidar tarjetas dentro de tarjetas (Cardocalypse)",
+      "Don't usar Inter sin escala tipográfica clara",
+      "Don't dejar texto de bajo contraste sobre fondo oscuro",
+      "Don't repetir el mismo objeto/contexto narrativo más de 2 veces en un mismo nivel",
+      "Don't combinar borde de 1px + sombra ancha (blur >= 16px) en el mismo elemento"
+    ]
+  }
+}

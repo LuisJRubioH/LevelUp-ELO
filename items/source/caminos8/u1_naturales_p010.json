@@ -1,0 +1,306 @@
+[
+  {
+    "id": "CS8-U1-P010-A1",
+    "tipo": "situacion_abierta",
+    "enunciado": "Enuncia una situación en la que se utilicen los números naturales para ordenar los elementos de un conjunto.",
+    "respuesta": "En una carrera, se asignan los números naturales 1, 2, 3, ... a los participantes según su orden de llegada: primero, segundo, tercero, etc.",
+    "conjunto": "N",
+    "seccion": "Números naturales: orden en N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "verificar": "La consigna es creativa y admite muchas situaciones correctas. La respuesta registrada es solo un ejemplo; aceptar cualquier contexto que use números naturales como ordinales.",
+    "dificultad": 300
+  },
+  {
+    "id": "CS8-U1-P010-A2",
+    "tipo": "situacion_abierta",
+    "enunciado": "Enuncia una situación en la que sea necesario contar los elementos de un conjunto.",
+    "respuesta": "Contar cuántos libros hay en un estante permite expresar con un número natural la cantidad de elementos del conjunto de libros.",
+    "conjunto": "N",
+    "seccion": "Números naturales: conteo",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 2",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "verificar": "La consigna es creativa y no tiene una respuesta única. La respuesta registrada es un ejemplo; aceptar cualquier situación coherente de conteo de un conjunto finito.",
+    "dificultad": 250
+  },
+  {
+    "id": "CS8-U1-P010-A3",
+    "tipo": "conjunto_natural",
+    "enunciado": "Representa en una recta numérica el conjunto M={n | n∈N, n>2}.",
+    "condicion": "n > 2",
+    "primer_natural": "3",
+    "ultimo_natural": null,
+    "respuesta": "M={3,4,5,6,...}. En la recta natural se marcan 3, 4, 5, ... y todos los naturales posteriores.",
+    "conjunto": "N",
+    "seccion": "Representación de subconjuntos de N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 3",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "dificultad": 350
+  },
+  {
+    "id": "CS8-U1-P010-A4",
+    "tipo": "conjunto_natural",
+    "enunciado": "Representa en una recta numérica el conjunto P={n | n∈N, n≤11}.",
+    "condicion": "n <= 11",
+    "primer_natural": "0",
+    "ultimo_natural": "11",
+    "respuesta": "P={0,1,2,3,4,5,6,7,8,9,10,11}. En la recta se marcan esos doce puntos.",
+    "conjunto": "N",
+    "seccion": "Representación de subconjuntos de N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 4",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "El libro define en esta misma página N={0,1,2,3,...}; por eso se incluye 0.",
+    "dificultad": 350
+  },
+  {
+    "id": "CS8-U1-P010-A5",
+    "tipo": "conjunto_natural",
+    "enunciado": "Representa en una recta numérica el conjunto Q={n | n∈N, 3<n<12}.",
+    "condicion": "And(n > 3, n < 12)",
+    "primer_natural": "4",
+    "ultimo_natural": "11",
+    "respuesta": "Q={4,5,6,7,8,9,10,11}. En la recta se marcan esos ocho puntos.",
+    "conjunto": "N",
+    "seccion": "Representación de subconjuntos de N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 5",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "dificultad": 400
+  },
+  {
+    "id": "CS8-U1-P010-A6",
+    "tipo": "conjunto_natural",
+    "enunciado": "Representa en una recta numérica el conjunto R={n | n∈N, n>0}.",
+    "condicion": "n > 0",
+    "primer_natural": "1",
+    "ultimo_natural": null,
+    "respuesta": "R={1,2,3,4,...}. En la recta natural se marcan todos los puntos desde 1 en adelante.",
+    "conjunto": "N",
+    "seccion": "Representación de subconjuntos de N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 6",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "dificultad": 350
+  },
+  {
+    "id": "CS8-U1-P010-A7",
+    "tipo": "conjunto_natural",
+    "enunciado": "Representa en una recta numérica el conjunto W={n | n∈N, 2≤n≤5}.",
+    "condicion": "And(n >= 2, n <= 5)",
+    "primer_natural": "2",
+    "ultimo_natural": "5",
+    "respuesta": "W={2,3,4,5}. En la recta se marcan esos cuatro puntos.",
+    "conjunto": "N",
+    "seccion": "Representación de subconjuntos de N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 7",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "dificultad": 350
+  },
+  {
+    "id": "CS8-U1-P010-A8",
+    "tipo": "conjunto_natural",
+    "enunciado": "Representa en una recta numérica el conjunto S={n | n∈N, n=0}.",
+    "condicion": "Eq(n, 0)",
+    "primer_natural": "0",
+    "ultimo_natural": "0",
+    "respuesta": "S={0}. En la recta se marca únicamente el punto 0.",
+    "conjunto": "N",
+    "seccion": "Representación de subconjuntos de N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 8",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "dificultad": 300
+  },
+  {
+    "id": "CS8-U1-P010-A9",
+    "tipo": "conjunto_natural",
+    "enunciado": "Representa en una recta numérica el conjunto Z={n | n∈N, 5<n<8}.",
+    "condicion": "And(n > 5, n < 8)",
+    "primer_natural": "6",
+    "ultimo_natural": "7",
+    "respuesta": "Z={6,7}. En la recta se marcan los puntos 6 y 7.",
+    "conjunto": "N",
+    "seccion": "Representación de subconjuntos de N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 9",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "dificultad": 350
+  },
+  {
+    "id": "CS8-U1-P010-A10",
+    "tipo": "conjunto_natural",
+    "enunciado": "Representa en una recta numérica el conjunto T={n | n∈N, 0<n<4}.",
+    "condicion": "And(n > 0, n < 4)",
+    "primer_natural": "1",
+    "ultimo_natural": "3",
+    "respuesta": "T={1,2,3}. En la recta se marcan los puntos 1, 2 y 3.",
+    "conjunto": "N",
+    "seccion": "Representación de subconjuntos de N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 10",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "La desigualdad derecha es estricta: a 500 dpi se lee n<4, sin barra de igualdad.",
+    "dificultad": 400
+  },
+  {
+    "id": "CS8-U1-P010-A11",
+    "tipo": "conjunto_natural",
+    "enunciado": "Representa en una recta numérica el conjunto A={n | n∈N, n<20}.",
+    "condicion": "n < 20",
+    "primer_natural": "0",
+    "ultimo_natural": "19",
+    "respuesta": "A={0,1,2,...,19}. En la recta se marcan todos los naturales desde 0 hasta 19.",
+    "conjunto": "N",
+    "seccion": "Representación de subconjuntos de N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 11",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Se incluye 0 porque la definición de N impresa en la página lo contiene.",
+    "dificultad": 400
+  },
+  {
+    "id": "CS8-U1-P010-A12",
+    "tipo": "verdadero_falso",
+    "enunciado": "Si a, b y c∈N, a<b y b<c, entonces se cumple a+b<c. Escribe V o F y justifica.",
+    "respuesta": "F",
+    "conjunto": "N",
+    "seccion": "Orden en N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 12",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Contraejemplo: a=1, b=2 y c=3 cumplen 1<2<3, pero a+b=3 y 3<3 es falso.",
+    "nota": "Es una afirmación deliberadamente falsa para evaluar argumentación; no es una errata del libro.",
+    "dificultad": 500
+  },
+  {
+    "id": "CS8-U1-P010-A13",
+    "tipo": "verdadero_falso",
+    "enunciado": "La diferencia entre dos números naturales siempre es un número natural. Escribe V o F y justifica.",
+    "respuesta": "F",
+    "conjunto": "N",
+    "seccion": "Operaciones en N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 13",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Por ejemplo, 3 y 5 son naturales, pero la resta ordenada 3-5=-2 no pertenece a N. Por tanto, N no es cerrado bajo la sustracción.",
+    "nota": "Se interpreta «diferencia» como el resultado de una sustracción ordenada, que es la lectura algebraica prevista por el tema.",
+    "dificultad": 450
+  },
+  {
+    "id": "CS8-U1-P010-A14",
+    "tipo": "numerico",
+    "enunciado": "La cantidad de estudiantes de un colegio es mayor que 900 y menor que 1.000. Al formar grupos de 5, 6, 9 y 11 estudiantes siempre sobra 1. ¿Cuántos estudiantes hay?",
+    "expr": "990+1",
+    "respuesta": "991",
+    "conjunto": "N",
+    "seccion": "Divisibilidad en N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 14",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Si N es la cantidad buscada, N-1 debe ser múltiplo común de 5, 6, 9 y 11. Su mínimo común múltiplo es 990; como 900<N<1.000, la única posibilidad es N=990+1=991.",
+    "dificultad": 650
+  },
+  {
+    "id": "CS8-U1-P010-A15",
+    "tipo": "ecuacion",
+    "enunciado": "La suma de dos números naturales consecutivos es 29. ¿Cuáles son esos números?",
+    "ecuacion": "n+(n+1)=29",
+    "incognita": "n",
+    "soluciones": [
+      "14"
+    ],
+    "respuesta": "14 y 15",
+    "conjunto": "N",
+    "seccion": "Problemas con números naturales",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 15",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "n+(n+1)=29 implica 2n+1=29, luego n=14 y el siguiente natural es 15. Además, 14+15=29.",
+    "dificultad": 450
+  },
+  {
+    "id": "CS8-U1-P010-A16",
+    "tipo": "conceptual",
+    "enunciado": "La diferencia entre dos números naturales es uno. ¿Qué característica deben tener esos números?",
+    "respuesta": "Deben ser números naturales consecutivos: el mayor es exactamente una unidad mayor que el menor.",
+    "conjunto": "N",
+    "seccion": "Orden en N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 16",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "dificultad": 300
+  },
+  {
+    "id": "CS8-U1-P010-A17",
+    "tipo": "numerico",
+    "enunciado": "Un número excede en 5 a otro número. ¿Cuál es la diferencia entre ellos?",
+    "expr": "5",
+    "respuesta": "5",
+    "conjunto": "N",
+    "seccion": "Orden en N",
+    "unidad": 1,
+    "pagina_pdf": 10,
+    "referencia": "Actividad 17",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Si el mayor es m+5 y el menor es m, su diferencia es (m+5)-m=5.",
+    "dificultad": 250
+  }
+]
