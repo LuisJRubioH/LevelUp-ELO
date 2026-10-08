@@ -279,3 +279,37 @@ the code PR goes in only after Phase N (constitution agent rule 7).
 
 - [X] T082 Make V1 show one display value with its V1 rank: wherever `student_view.py` (course cards, practice header, "Nivel Global") and `teacher_view.py` (students table, student-detail header) show a current rating next to `get_rank(...)`, round once half up with `round_for_display` and derive both the number and the label from that value, with a V1 test at the 999.6 boundary per FR-028j (contradicts) *(Done 2026-10-07: `src/interface/streamlit/rankings.py::v1_rated(value)` rounds once with `round_for_display` and returns the shown number, V1 rank and colour of that value (pending text when `None`); used by the student course cards, practice header and "Nivel Global", and by the teacher students table (`ELO Global` now the display value) and student-detail header. Tests first: `tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_number_and_rank_come_from_one_display_value` (999.6 → "1000" 🔰 Iniciado, 999.4 → "999" 🌱 Punto de Partida, pending) and `::test_spec001_v1_views_rank_only_through_the_display_value` (no `get_rank(` left in V1 views). Also fixed here: T077's V1 helper `_topic_rows` was shadowed by a local of the same name in `render_teacher` (flake8 F823, an UnboundLocalError at runtime) — renamed `_rating_topic_rows`.)*
 - [X] T083 Mark approximate topic ratings on the course map: add `approximate` to `MapNode` (`/student/map/{course_id}`) and show it on `CourseMap.tsx` nodes and `CourseRail.tsx`, with an API test and a Playwright check per FR-034a, plan: Constitution check VIII (partial) *(Done: `MapNode.approximate` from the topic row; `CourseMap.tsx` (trail and practice cards, with the hint as title) and `CourseRail.tsx` show ≈. Tests first: `tests/api/test_spec001_api.py::test_spec001_course_map_marks_approximate_topics` and the Playwright check `Mapa y riel del curso marcan los temas con línea base aproximada (FR-034a)`, each failing before the change.)*
+
+## Phase 12: Follow-up F-1 — catalogue by level and grade (owner decisions 2026-10-08)
+
+Spec: FR-028k, FR-028l, FR-028m, User Story 7 (Clarifications 2026-10-08). Survey and plan:
+`docs/sdd/f1-semillero-survey.md`. Branch `fix/f1-semillero-catalogue`; tests first — each
+`[CHANGE]` test fails on the code before its implementation task.
+
+**Before implementation ships (owner, read-only on production)**
+
+- [ ] T084 Count and list semillero students without a grade and read `courses_block_check`, per survey § 3 step 1 and § 4.3 step 1; record the counts in the code PR (no data changed)
+
+**Tests first**
+
+- [ ] T085 [CHANGE] Domain test: `in_catalogue` over level × grade 6–11 × own-grade, other-grade and other-level courses, and semillero without a grade → no course, per FR-028k (fails today for the grade-less case)
+- [ ] T086 [CHANGE] Two-engine repository test: a grade-*g* semillero catalogue is exactly the six `*_semillero_g` courses for *g* = 6–11, a grade-less one is empty, other levels unchanged, per FR-028k, US7-AS1, US7-AS5
+- [ ] T087 [CHANGE] API + two-engine test: registration as semillero without a grade, or with a grade outside 6–11, is rejected and creates no account; `GET /api/student/courses` for grade 7 returns the six grade-7 courses, per FR-028m, US7-AS1, US7-AS2
+- [ ] T088 [CHANGE] API test: `/enroll` outside the catalogue (colegio → universidad course; grade 6 → grade-7 course) is rejected with nothing enrolled; inside the catalogue it enrols, per FR-028m, US7-AS3
+- [ ] T089 [CHANGE] API + two-engine test: an invitation enrols a grade-6 student in a colegio group's course, they can practise it, their level and grade are unchanged, the course is not current and the overall rating is unchanged; a semillero account without a grade is refused and reads "pending diagnostic", per FR-028l, US7-AS4, US7-AS5
+- [ ] T090 Two-engine test: the block constraint accepts the four blocks and rejects `'Semillero 6°'`; on PostgreSQL its oid is unchanged over two migrations (fails today: dropped and re-added on every run), per survey § 4.2, AGENTS R8
+
+**Implementation**
+
+- [ ] T091 Both repositories' catalogue (`get_available_courses_by_level`) filter with the domain rule `in_catalogue`, which returns no course for semillero without a grade; `db_sync_check.py` in sync (FR-028k; depends on T085, T086)
+- [ ] T092 Reject semillero without a grade 6–11 in the API schema and in `register_user` on both engines (FR-028m; depends on T087)
+- [ ] T093 `/enroll` checks the catalogue through the service; `enroll-by-code` requires a grade from a semillero student and never changes level or grade (FR-028m, FR-028l; depends on T088, T089)
+- [ ] T094 Block-constraint guard: read-only check on both engines that the four blocks are accepted, no DDL when they are; fresh PostgreSQL databases get the de-duplicated list with the same allowed set (survey § 4.2; depends on T090)
+- [ ] T095 Old-database path of the block constraint, **only after the owner approves survey § 4.3**: no automatic widening; stop with the documented error
+
+**Close**
+
+- [ ] T096 Replace the `PENDING` rows of FR-028k, FR-028l, FR-028m and US7-AS1…AS5 with the tests above; `python scripts/check_traceability.py --run` (once A-2 is merged) and the full suite on PostgreSQL pass; rehearse the migration twice on the legacy-data simulation (no DDL on the second run)
+
+V1 stays frozen: it receives the shared repository and service changes only (its own
+`Semillero {grade}°` enrolment filter in `student_view.py` is left as is).

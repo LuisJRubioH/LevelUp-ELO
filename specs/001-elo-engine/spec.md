@@ -81,6 +81,28 @@ easy or too hard and teachers act on false information.
   rejected: it is a type change (AGENTS R8). *(Found at the Phase 3 checkpoint: a first response of
   1243.66 and a retry of 1243.67.)*
 
+### Session 2026-10-08 (follow-up F-1, owner decisions)
+
+Found while surveying roadmap follow-up F-1 (`docs/sdd/f1-semillero-survey.md`): a semillero
+student with a grade was offered no course, one without a grade was offered all 36, registration
+accepted semillero without a grade and `/enroll` accepted any existing course.
+
+- Q: Does a semillero student need a grade? → A: yes, a grade from 6 to 11 is mandatory; a
+  registration without one is rejected, and the catalogue is exactly the six semillero courses of
+  that grade (FR-028k, FR-028m).
+- Q: Which courses may a student enrol in? → A: only the courses of their catalogue, on every
+  level; any other enrolment request is rejected (FR-028m).
+- Q: What do teacher invitations do? → A: they keep their purpose, explicit access to the group's
+  course across levels, but a semillero student needs a grade to use one. An invitation never
+  changes the student's level or grade, and the invited course does not become part of the
+  catalogue, so it never counts toward the overall rating (FR-028l).
+- Q: What about existing semillero students without a grade? → A: no grade is assigned
+  automatically. Before the change ships they are counted and given their grade by the documented
+  procedure (`docs/sdd/f1-semillero-survey.md` § 3); any account still without a grade has an
+  empty catalogue, no current course and a "pending diagnostic" rating (FR-028k, FR-028b).
+- Q: Who changes a student's grade later (promotion)? → A: out of this spec — spec 004
+  (identity and access); FR-028c already defines what promotion does to ratings.
+
 ### Session 2026-10-05 (/speckit-clarify)
 
 - Q: What happens to ratings already stored under a course id or course name? → A: existing topic
@@ -279,6 +301,39 @@ shows them.
 
 ---
 
+### User Story 7 - My catalogue matches my level and grade (Priority: P2)
+
+A student sees, and can enrol in, the courses of their education level — for semillero, of their
+grade — and those are the courses whose ratings make up their overall rating. A teacher's
+invitation can open a course of another level without changing either.
+
+**Why this priority**: today a semillero student with a grade is offered no course at all, and the
+courses offered and the courses counted in the overall rating come from two different rules.
+
+**Independent Test**: register students of each level (semillero with each grade), list their
+catalogue, try to enrol inside and outside it, join a group of another level by invitation, and
+compare the overall rating before and after.
+
+**Acceptance Scenarios**:
+
+1. **US7-AS1** — **Given** a semillero student of grade 7, **When** their catalogue is shown,
+   **Then** it is exactly the six grade-7 semillero courses, and those are the courses that count
+   as current for their overall rating.
+2. **US7-AS2** — **Given** a registration as a semillero student without a grade, or with a grade
+   outside 6–11, **When** it is submitted, **Then** it is rejected and no account is created.
+3. **US7-AS3** — **Given** a colegio student and a grade-6 semillero student, **When** they ask to
+   enrol in a universidad course and in a grade-7 semillero course respectively, **Then** both
+   requests are rejected and nothing is enrolled; a course of their own catalogue enrols normally.
+4. **US7-AS4** — **Given** a grade-6 semillero student with an overall rating, **When** they join,
+   through its invitation code, a group whose course is a colegio course, **Then** they are
+   enrolled in it and can practise it; their level and grade stay the same; the course is not in
+   their catalogue; and their overall rating is still computed from their grade-6 courses only.
+5. **US7-AS5** — **Given** a semillero student without a grade (an account created before this
+   rule), **When** their catalogue and overall rating are shown, **Then** the catalogue is empty,
+   the rating reads "pending diagnostic", and an invitation code is refused until a grade is set.
+
+---
+
 ### Edge Cases
 
 - Response time exactly 3 s or exactly 600 s → valid (inclusive bounds).
@@ -308,6 +363,12 @@ shows them.
 - Practice filtered to a topic that has no items → falls back to the whole course pool.
 - A retry key longer than 128 characters or empty → rejected.
 - A diagnostic containing the same item twice, or an item from another course → rejected.
+- An invitation to a course that is already in the student's catalogue → an ordinary enrolment:
+  the course counts as current (FR-028l only covers courses outside the catalogue).
+- A semillero course of another grade reached by invitation → accessible, never current; the
+  student's grade does not change (FR-028l).
+- A semillero account without a grade → empty catalogue and "pending diagnostic" until its grade is
+  set; no grade is inferred from its enrolments (FR-028k).
 
 ## Requirements *(mandatory)*
 
@@ -486,6 +547,26 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   rating of 999.6 is shown as 1000 with "Plata I"; 999.4 as 999 with "Plata II"; 999.5 as 1000
   with "Plata I". *(Today the label is computed from the full-precision value while the screen
   rounds it, so 999.6 shows "1000" next to "Plata II".)*
+- **FR-028k** [CHANGE]: The system shall define a student's **catalogue** from their education
+  level and, for semillero, their grade: for universidad, colegio and concursos, every course of
+  that level's block; for semillero with grade *g* (6–11), exactly the semillero courses of grade
+  *g* (those whose id ends in `_semillero_g`); for semillero without a grade, no course. The
+  catalogue offered to the student and the "current level and grade" of FR-028a are the same set,
+  computed by one domain rule. *(Today: a semillero student with a grade is offered no course,
+  because the catalogue looks for a block `Semillero g°` that no course has; one without a grade
+  is offered all 36 courses and has every grade's courses counted as current.)*
+- **FR-028l** [CHANGE]: When a student joins a group through its invitation code, the system shall
+  enrol them in the group's course even if it is outside their catalogue — provided a semillero
+  student has a grade — and shall change neither the student's level nor their grade; the invited
+  course shall not become part of the catalogue, so it never counts toward the overall rating
+  (FR-028a) while the student keeps access to practise it. *(Today: an invitation also works for a
+  semillero student without a grade; the rest already holds.)*
+- **FR-028m** [CHANGE]: The system shall reject a registration as a semillero student without a
+  grade from 6 to 11, and shall reject any enrolment request — other than through an invitation
+  (FR-028l) — for a course outside the student's catalogue, on every level. *(Today: both are
+  accepted; only the screens keep students to their catalogue.)* Registration and enrolment belong
+  to identity and access: these two rules are stated here because they decide the catalogue, and
+  move to spec 004 when it is written.
 - **FR-029** [CHANGE]: The system shall store every rating change — practice answer, diagnostic,
   procedure — under the **course and topic of the item involved**, identified by the course's
   stable identifier and the topic within it. There is one stored rating per student, course and
@@ -616,6 +697,10 @@ items of that course, or the student's diagnostic for that course.
   defined here).
 - Badge/achievement rules themselves (only their failure handling, FR-015).
 - New features or screens in V1.
+- Changing a student's grade after registration (promotion) — spec 004 (FR-028c defines what it
+  does to ratings).
+- Access control of practice: `next-question` serving items of a course the student is not
+  enrolled in — roadmap follow-up F-4.
 
 ## Traceability *(mandatory)*
 
@@ -663,6 +748,11 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | US6-AS7 | `tests/api/test_spec001_api.py::test_spec001_group_ranking_basis_errors_and_pending`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_group_ranking_never_substitutes_another_rating`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_group_ranking_on_the_group_course_without_substitution`<br>`frontend/e2e/spec001-ratings.spec.ts › Ranking del grupo: base, empates con el mismo puesto, valor tal cual y pendientes al final (US6-AS7/AS8)` |
 | US6-AS8 | `tests/unit/domain/test_spec001_domain.py::test_spec001_rank_competition`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_rankings_follow_participation_and_competition`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_competition_ranks_and_limit`<br>`frontend/e2e/spec001-ratings.spec.ts › Ranking del grupo: base, empates con el mismo puesto, valor tal cual y pendientes al final (US6-AS7/AS8)` |
 | US6-AS9 | `tests/unit/domain/test_spec001_domain.py::test_spec001_rating_display_number_and_label_agree`<br>`tests/api/test_spec001_api.py::test_spec001_number_and_label_agree_on_every_surface`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`frontend/e2e/spec001-ratings.spec.ts › Número y rango salen del mismo valor: 999.6 → 1000 «Plata I» (US6-AS9)`<br>`frontend/e2e/spec001-ratings.spec.ts › La pantalla muestra display_rating tal cual, sin redondear por su cuenta (FR-028i/j)` |
+| US7-AS1 | `PENDING` |
+| US7-AS2 | `PENDING` |
+| US7-AS3 | `PENDING` |
+| US7-AS4 | `PENDING` |
+| US7-AS5 | `PENDING` |
 | FR-001 | `tests/unit/domain/test_elo_model.py::TestExpectedScore::test_400_point_advantage_gives_approx_91_percent`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_fr001_both_engine_paths_use_the_same_expected_success` |
 | FR-002 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_rating_delta` |
 | FR-003 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_rd_floor_30_holds_and_scales_the_change`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_next_rd_has_a_floor_of_30` |
@@ -703,6 +793,9 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | FR-028h | `tests/unit/domain/test_spec001_domain.py::test_spec001_rank_competition`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_competition_ranks_and_limit`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_rankings_follow_participation_and_competition` |
 | FR-028i | `tests/unit/domain/test_spec001_domain.py::test_spec001_round_for_display_is_half_up`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_average_then_round_once`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_full_precision_until_the_one_rounding`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`tests/integration/test_spec001_answer_retry.py::test_spec001_retry_returns_the_persisted_attempt_and_applies_once`<br>`frontend/e2e/spec001-ratings.spec.ts › La pantalla muestra display_rating tal cual, sin redondear por su cuenta (FR-028i/j)` |
 | FR-028j | `tests/unit/domain/test_spec001_domain.py::test_spec001_rating_display_number_and_label_agree`<br>`tests/api/test_spec001_api.py::test_spec001_number_and_label_agree_on_every_surface`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`frontend/e2e/spec001-ratings.spec.ts › Número y rango salen del mismo valor: 999.6 → 1000 «Plata I» (US6-AS9)`<br>`frontend/e2e/spec001-ratings.spec.ts › Panel docente usa display_rating y rank_label de la API (US6-AS3, FR-028j)`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_number_and_rank_come_from_one_display_value`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_views_rank_only_through_the_display_value` |
+| FR-028k | `PENDING` |
+| FR-028l | `PENDING` |
+| FR-028m | `PENDING` |
 | FR-029 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_answer_writes_only_the_items_course_topic`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_answer_lands_on_the_items_course_and_topic`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_writes_course_topic_baselines`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once` |
 | FR-029a | `tests/unit/application/test_spec001_service.py::test_spec001_selection_rating_is_topic_or_course`<br>`tests/unit/application/test_spec001_service.py::test_spec001_unrated_course_selects_at_1000_and_ignores_the_diagnostic_average`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_course_rating_of`<br>`tests/unit/application/test_spec001_service.py::test_spec001_pvp_shows_pending_never_the_1000_fallback`<br>`tests/api/test_spec001_api.py::test_spec001_course_map_shows_unrated_topics_as_pending` |
 | FR-029b | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
@@ -749,6 +842,9 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-028h | `ORDER BY elo DESC` / `ORDER BY ue.global_elo DESC` with no tie-break in every ranking query (both repos) |
 | FR-028i | PostgreSQL rating columns are `REAL` (4-byte: `999.4999999::real` = 999.5); `round(..., 2)` (half-to-even) in API responses; `Math.round` on every rating in `Stats.tsx:142, 199, 229`, `RankBadge.tsx:52`, teacher `fmtMiles` |
 | FR-028j | label from full precision: `api/routers/student.py:287` (`_elo_to_rank(global_elo)`), `Teacher/Dashboard.tsx:137, 207, 400` (`rankFor(s.global_elo)`); number rounded on screen: `Stats.tsx:142`, `RankBadge.tsx:52` |
+| FR-028k | `PENDING` |
+| FR-028l | `PENDING` |
+| FR-028m | `PENDING` |
 | FR-028g | `weekly_rankings` table; `save_weekly_ranking`, `get_ranking_history` ← `teacher_view.py:550, 556` |
 | FR-029 | `student_view.py:385`, `api/routers/student.py:166`, `useStudentSession.ts:74`, `finish_pvp_match`, `validate_procedure_submission`, diagnostic submit |
 | FR-030 | `frontend/src/pages/Student/Practice.tsx:27-33` |
