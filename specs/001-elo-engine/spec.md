@@ -583,9 +583,10 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   course shall not become part of the catalogue, so it never counts toward the overall rating
   (FR-028a) while the student keeps access to practise it. When the student's courses are listed,
   the system shall list such a course among their enrolments, marked as outside the catalogue, and
-  shall not offer it in the catalogue to explore. *(Today: an invitation also works for a
-  semillero student without a grade, and the course list returns only the catalogue, so a course
-  reached by invitation appears on no screen; the rest already holds.)*
+  shall not offer it in the catalogue to explore. *(Today: `POST /api/student/enroll-by-code`
+  answers 500 for every valid code on both engines — it reads the group's id under a key the
+  repositories do not return; the rule does not check a semillero student's grade; and the course
+  list returns only the catalogue, so a course reached by invitation appears on no screen.)*
 - **FR-028m** [CHANGE]: The system shall reject a registration as a semillero student without a
   grade from 6 to 11, and shall reject any enrolment request — other than through an invitation
   (FR-028l) — for a course outside the student's catalogue, on every level. *(Today: both are
@@ -884,7 +885,7 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-028i | PostgreSQL rating columns are `REAL` (4-byte: `999.4999999::real` = 999.5); `round(..., 2)` (half-to-even) in API responses; `Math.round` on every rating in `Stats.tsx:142, 199, 229`, `RankBadge.tsx:52`, teacher `fmtMiles` |
 | FR-028j | label from full precision: `api/routers/student.py:287` (`_elo_to_rank(global_elo)`), `Teacher/Dashboard.tsx:137, 207, 400` (`rankFor(s.global_elo)`); number rounded on screen: `Stats.tsx:142`, `RankBadge.tsx:52` |
 | FR-028k | `get_available_courses_by_level` (both repos) filters on block `Semillero {grade}°`, which no course has; without a grade it returns every `Semillero` course; `student_view.py` `_student_block` (V1) |
-| FR-028l | `enroll_by_code` (`api/routers/student.py:311`) enrols with no grade check; `GET /api/student/courses` returns only `get_available_courses` |
+| FR-028l | `enroll_by_code` (`api/routers/student.py:311`) reads `group["id"]` while `get_group_by_invite_code` returns `group_id` (500 on both engines), and has no grade check; `GET /api/student/courses` returns only `get_available_courses` |
 | FR-028m | `api/schemas/auth.py:22` (`grade` optional for every level); `POST /api/student/enroll` checks only that the course exists |
 | FR-028n | `_migrate_courses_block_check`: `postgres_repository.py:1228` (returns only if the definition contains `'Semillero 6'`, so it drops and re-adds every run), `sqlite_repository.py:915` (probe insert, then rename → create → copy → drop) |
 | FR-028o | `frontend/src/pages/Student/Courses.tsx` shows `courses.noAvailable` for an empty catalogue |
