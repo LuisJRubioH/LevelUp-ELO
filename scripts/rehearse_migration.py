@@ -148,9 +148,10 @@ def _snapshot(conn):
     }
 
 
-def _schema_fingerprint(url):
+def _schema_fingerprint(url, sslmode):
     out = subprocess.run(
         ["pg_dump", "--schema-only", "--no-owner", "--no-privileges", f"--dbname={url}"],
+        env=dict(os.environ, PGSSLMODE=sslmode),
         capture_output=True,
         text=True,
         check=True,
@@ -429,12 +430,15 @@ def main():
     )
 
     r.log("== 7. Migration, run 2 (idempotency)")
-    schema1 = _schema_fingerprint(args.scratch_url)
+    schema1 = _schema_fingerprint(args.scratch_url, args.scratch_sslmode)
     snap1 = _snapshot(conn)
     ok, created2 = _run_migrate(r, args.scratch_url, args.scratch_sslmode, args.environment)
     r.check(ok, "second run exits 0")
     r.check(created2 == 0, "second run reconciles 0 rows", f"{created2}")
-    r.check(_schema_fingerprint(args.scratch_url) == schema1, "schema identical after run 2")
+    r.check(
+        _schema_fingerprint(args.scratch_url, args.scratch_sslmode) == schema1,
+        "schema identical after run 2",
+    )
     snap2 = _snapshot(conn)
     changed = sorted(t for t in snap1 if snap1[t] != snap2.get(t))
     r.check(not changed, "every table identical after run 2", ", ".join(changed))
