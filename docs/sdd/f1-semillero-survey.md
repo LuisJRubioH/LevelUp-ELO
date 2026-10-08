@@ -116,8 +116,10 @@ id.
 - If it does, the migration issues **no DDL**.
 - Extra values that are already allowed (`'Semillero 11°'` on PostgreSQL) stay; no code writes
   them.
-- New PostgreSQL databases get the de-duplicated list with the **same allowed set**, so a fresh
-  database and an existing one accept exactly the same values.
+- New databases get exactly the four blocks on both engines (FR-028n): PostgreSQL's
+  de-duplicated list drops `'Semillero 11°'`, which no code writes, so a fresh PostgreSQL database
+  and a fresh SQLite one accept the same values. An existing database keeps whatever extra values
+  it allows.
 - Parity is proven by a two-engine test:
   - the four blocks are accepted;
   - `'Semillero 6°'`, which no code writes, is rejected;
