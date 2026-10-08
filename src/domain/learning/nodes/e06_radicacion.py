@@ -139,12 +139,32 @@ CONTENT = {
         "elevado a n da a. En la cantera, la raíz cuadrada de la superficie es el lado."
     ),
     "definition_symbols": [
-        {"symbol": r"a", "reads": "radicando", "means": "lo que está dentro; en la cantera, la superficie"},
-        {"symbol": r"n", "reads": "índice", "means": "a qué potencia hay que elevar; si no se escribe, es 2"},
+        {
+            "symbol": r"a",
+            "reads": "radicando",
+            "means": "lo que está dentro; en la cantera, la superficie",
+        },
+        {
+            "symbol": r"n",
+            "reads": "índice",
+            "means": "a qué potencia hay que elevar; si no se escribe, es 2",
+        },
         {"symbol": r"b", "reads": "raíz", "means": "el resultado; en la cantera, el lado"},
-        {"symbol": r"\sqrt{a}=a^{1/2}", "reads": "raíz como potencia", "means": "la raíz es la potencia de exponente 1/2 (viene de E05)"},
-        {"symbol": r"\sqrt{a\times b}=\sqrt{a}\times\sqrt{b}", "reads": "sí se reparte sobre el producto", "means": "esta sí vale"},
-        {"symbol": r"\sqrt{a+b}\neq\sqrt{a}+\sqrt{b}", "reads": "no se reparte sobre la suma", "means": "esta NO vale, y es el error de este nodo"},
+        {
+            "symbol": r"\sqrt{a}=a^{1/2}",
+            "reads": "raíz como potencia",
+            "means": "la raíz es la potencia de exponente 1/2 (viene de E05)",
+        },
+        {
+            "symbol": r"\sqrt{a\times b}=\sqrt{a}\times\sqrt{b}",
+            "reads": "sí se reparte sobre el producto",
+            "means": "esta sí vale",
+        },
+        {
+            "symbol": r"\sqrt{a+b}\neq\sqrt{a}+\sqrt{b}",
+            "reads": "no se reparte sobre la suma",
+            "means": "esta NO vale, y es el error de este nodo",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -206,10 +226,14 @@ CONTENT = {
                 "wrong_latex": r"\sqrt{9+16}=7",
                 "right_latex": r"\sqrt{9+16}=\sqrt{25}=5",
                 "rows": [
-                    {"wrong": "La raíz se reparte sobre cada sumando",
-                     "right": "Primero se suma dentro, después se saca la raíz"},
-                    {"wrong": "Dos cuadrados de lado 3 y 4 forman uno de lado 7",
-                     "right": "Forman uno de lado 5: los lados no se suman, las superficies sí"},
+                    {
+                        "wrong": "La raíz se reparte sobre cada sumando",
+                        "right": "Primero se suma dentro, después se saca la raíz",
+                    },
+                    {
+                        "wrong": "Dos cuadrados de lado 3 y 4 forman uno de lado 7",
+                        "right": "Forman uno de lado 5: los lados no se suman, las superficies sí",
+                    },
                 ],
             },
             "explain_prompt": "¿Por qué 7 no puede ser el lado? Escribe la cuenta corregida.",
@@ -280,7 +304,11 @@ CONTENT = {
             },
             {
                 "label": "Método 2 · Descomponer el radicando",
-                "steps": [r"\sqrt{144}=\sqrt{16\times 9}", r"=\sqrt{16}\times\sqrt{9}", r"=4\times 3=12"],
+                "steps": [
+                    r"\sqrt{144}=\sqrt{16\times 9}",
+                    r"=\sqrt{16}\times\sqrt{9}",
+                    r"=4\times 3=12",
+                ],
                 "note": "Reparte la raíz sobre el producto, que sí está permitido.",
             },
         ],
@@ -339,7 +367,10 @@ CONTENT = {
             "tipo": "detecta_error",
             "prompt": r"El cantero anota «$\sqrt{16+9}=4+3=7$». ¿Dónde está el error?",
             "options": [
-                {"id": "split_sum", "text": "Repartió la raíz sobre una suma; primero se suma dentro y da 5"},
+                {
+                    "id": "split_sum",
+                    "text": "Repartió la raíz sobre una suma; primero se suma dentro y da 5",
+                },
                 {"id": "arith", "text": "Sumó mal: 4 + 3 son 8"},
                 {"id": "product", "text": "Debía multiplicar las raíces: 4 × 3 = 12"},
                 {"id": "none", "text": "Ningún error, está bien"},
@@ -444,24 +475,48 @@ CONTENT = {
         "title": "¿La raíz de un elemento del conjunto vive en el conjunto?",
         "intro": "Esta es la operación que más lejos te lleva: rompe tres peldaños seguidos.",
         "rows": [
-            {"symbol": r"\mathbb{N}", "name": "Naturales", "closed": "no",
-             "latex": r"\sqrt{2}\notin\mathbb{N}",
-             "note": "√4 = 2 sí es natural, pero basta un caso para romper el peldaño: √2 no lo es."},
-            {"symbol": r"\mathbb{Z}", "name": "Enteros", "closed": "no",
-             "latex": r"\sqrt{2}\notin\mathbb{Z}",
-             "note": "Los negativos no ayudan: √2 sigue sin ser entero."},
-            {"symbol": r"\mathbb{Q}", "name": "Racionales", "closed": "no",
-             "latex": r"\sqrt{2}\notin\mathbb{Q}",
-             "note": "Ninguna fracción tiene cuadrado 2 (B07). ESTE es el hueco del que nacieron los irracionales."},
-            {"symbol": r"\mathbb{I}", "name": "Irracionales", "closed": "partial",
-             "latex": r"\sqrt{-\sqrt{2}}\notin\mathbb{R}",
-             "note": "Aquí 𝕀 se porta mejor que de costumbre: la raíz de un irracional POSITIVO siempre es irracional. Se rompe solo con los negativos, y ahí sale de ℝ entera."},
-            {"symbol": r"\mathbb{R}", "name": "Reales", "closed": "partial",
-             "latex": r"\sqrt{-4}\notin\mathbb{R}",
-             "note": "Cierra para todo radicando positivo. Se rompe en un solo caso: raíz par de un número negativo."},
-            {"symbol": r"\mathbb{C}", "name": "Complejos", "closed": "yes",
-             "latex": r"\sqrt{-4}=2i",
-             "note": "El único peldaño donde toda raíz tiene respuesta. Por eso existe B09."},
+            {
+                "symbol": r"\mathbb{N}",
+                "name": "Naturales",
+                "closed": "no",
+                "latex": r"\sqrt{2}\notin\mathbb{N}",
+                "note": "√4 = 2 sí es natural, pero basta un caso para romper el peldaño: √2 no lo es.",
+            },
+            {
+                "symbol": r"\mathbb{Z}",
+                "name": "Enteros",
+                "closed": "no",
+                "latex": r"\sqrt{2}\notin\mathbb{Z}",
+                "note": "Los negativos no ayudan: √2 sigue sin ser entero.",
+            },
+            {
+                "symbol": r"\mathbb{Q}",
+                "name": "Racionales",
+                "closed": "no",
+                "latex": r"\sqrt{2}\notin\mathbb{Q}",
+                "note": "Ninguna fracción tiene cuadrado 2 (B07). ESTE es el hueco del que nacieron los irracionales.",
+            },
+            {
+                "symbol": r"\mathbb{I}",
+                "name": "Irracionales",
+                "closed": "partial",
+                "latex": r"\sqrt{-\sqrt{2}}\notin\mathbb{R}",
+                "note": "Aquí 𝕀 se porta mejor que de costumbre: la raíz de un irracional POSITIVO siempre es irracional. Se rompe solo con los negativos, y ahí sale de ℝ entera.",
+            },
+            {
+                "symbol": r"\mathbb{R}",
+                "name": "Reales",
+                "closed": "partial",
+                "latex": r"\sqrt{-4}\notin\mathbb{R}",
+                "note": "Cierra para todo radicando positivo. Se rompe en un solo caso: raíz par de un número negativo.",
+            },
+            {
+                "symbol": r"\mathbb{C}",
+                "name": "Complejos",
+                "closed": "yes",
+                "latex": r"\sqrt{-4}=2i",
+                "note": "El único peldaño donde toda raíz tiene respuesta. Por eso existe B09.",
+            },
         ],
         "outro": (
             "Recorriste los seis edificios. Suma y multiplicación no rompieron nada; la resta "
@@ -474,10 +529,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres casos trabajados en este nodo?",
         "thumbnails": [r"\sqrt{9+16}", r"\sqrt{2}", r"\sqrt{9}+\sqrt{16}"],
         "options": [
-            {"id": "undo", "text": "En los tres se busca el número que elevado al cuadrado da el radicando", "correct": True},
-            {"id": "exact", "text": "En los tres el resultado es un número entero", "correct": False},
-            {"id": "side", "text": "En los tres se pasa de una superficie a un lado", "correct": True},
-            {"id": "split", "text": "En los tres la raíz se puede repartir sobre cada término", "correct": False},
+            {
+                "id": "undo",
+                "text": "En los tres se busca el número que elevado al cuadrado da el radicando",
+                "correct": True,
+            },
+            {
+                "id": "exact",
+                "text": "En los tres el resultado es un número entero",
+                "correct": False,
+            },
+            {
+                "id": "side",
+                "text": "En los tres se pasa de una superficie a un lado",
+                "correct": True,
+            },
+            {
+                "id": "split",
+                "text": "En los tres la raíz se puede repartir sobre cada término",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

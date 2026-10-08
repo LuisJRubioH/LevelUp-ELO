@@ -87,9 +87,7 @@ CONTENT = {
             "«Uno y seis suman siete, no cinco. Los listones no entraron en la muesca, y ya "
             "estaban cortados.»"
         ),
-        "question": (
-            "Si 1 y 6 multiplican exactamente lo que pedía el fardo, ¿por qué no sirven?"
-        ),
+        "question": ("Si 1 y 6 multiplican exactamente lo que pedía el fardo, ¿por qué no sirven?"),
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que más se acerque a lo que crees. Cualquiera vale.",
@@ -143,9 +141,7 @@ CONTENT = {
         ),
     },
     "definition_title": "Trinomio general",
-    "definition_katex": (
-        r"x^{2}+bx+c = (x+p)(x+q)\ \text{ con } p+q=b\ \text{ y } pq=c"
-    ),
+    "definition_katex": (r"x^{2}+bx+c = (x+p)(x+q)\ \text{ con } p+q=b\ \text{ y } pq=c"),
     "definition": (
         "Factorizar un trinomio con coeficiente principal 1 es buscar dos números que "
         "cumplan DOS condiciones: que sumen el coeficiente del medio y que multipliquen el "
@@ -248,8 +244,7 @@ CONTENT = {
                 ],
             },
             "explain_prompt": (
-                "Estampa la anotación del mozo y di en qué término se separa del fardo "
-                "original."
+                "Estampa la anotación del mozo y di en qué término se separa del fardo " "original."
             ),
             "steps": [
                 "(x + 1)(x + 6) = x² + 7x + 6.",
@@ -272,14 +267,20 @@ CONTENT = {
                 "statement": r"Factoriza $x^{2}+8x+15$.",
                 "given_steps": [r"\text{parejas que multiplican }15:\ 1\cdot 15,\ 3\cdot 5"],
                 "blanks": [
-                    {"id": "P1-b1", "label": r"\text{la que suma }8\text{: el mayor es}", "answer": "5"}
+                    {
+                        "id": "P1-b1",
+                        "label": r"\text{la que suma }8\text{: el mayor es}",
+                        "answer": "5",
+                    }
                 ],
             },
             {
                 "id": "P2",
                 "missing": "middle",
                 "statement": r"Factoriza $x^{2}-6x+8$.",
-                "given_steps": [r"\text{producto }8>0\ \text{y suma }-6<0\Rightarrow\ \text{ambos negativos}"],
+                "given_steps": [
+                    r"\text{producto }8>0\ \text{y suma }-6<0\Rightarrow\ \text{ambos negativos}"
+                ],
                 "blanks": [
                     {"id": "P2-b1", "label": r"(-2)+(-4)=", "answer": "-6"},
                     {"id": "P2-b2", "label": r"(-2)\cdot(-4)=", "answer": "8"},
@@ -294,9 +295,7 @@ CONTENT = {
                     "— di primero sobre qué número hay que buscar la pareja."
                 ),
                 "given_steps": [],
-                "blanks": [
-                    {"id": "P3-b1", "label": r"a\cdot c=2\cdot 3=", "answer": "6"}
-                ],
+                "blanks": [{"id": "P3-b1", "label": r"a\cdot c=2\cdot 3=", "answer": "6"}],
             },
         ],
     },
@@ -367,9 +366,7 @@ CONTENT = {
             "id": "E2",
             "kind": "numeric",
             "tipo": "estandar",
-            "prompt": (
-                r"Dos números suman $-9$ y multiplican $20$. ¿Cuál es el menor de los dos?"
-            ),
+            "prompt": (r"Dos números suman $-9$ y multiplican $20$. ¿Cuál es el menor de los dos?"),
             "expr": r"-4\ \text{y}\ -5",
             "answer": "-5",
             "hints": {
@@ -413,9 +410,7 @@ CONTENT = {
             "id": "E5",
             "kind": "single_select",
             "tipo": "detecta_error",
-            "prompt": (
-                r"Un mozo anota $x^{2}-5x+6=(x+2)(x+3)$. ¿Dónde está el error?"
-            ),
+            "prompt": (r"Un mozo anota $x^{2}-5x+6=(x+2)(x+3)$. ¿Dónde está el error?"),
             "options": [
                 {"id": "sign", "text": r"Los signos: deberían ser $(x-2)(x-3)$"},
                 {"id": "pair", "text": r"La pareja: deberían ser 1 y 6"},
@@ -707,8 +702,7 @@ CONTENT = {
             "x² + 7x + 6: la suma es la que decide."
         ),
         "fb_g03_e6_pos": (
-            "El signo no cambia nada: 1 y 6 son positivos y siguen sin servir para "
-            "x² + 5x + 6."
+            "El signo no cambia nada: 1 y 6 son positivos y siguen sin servir para " "x² + 5x + 6."
         ),
         "fb_g03_e6_prod": (
             "La respuesta es falsa, pero las dos condiciones hacen falta. Solo con la suma "

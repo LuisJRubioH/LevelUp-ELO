@@ -144,11 +144,27 @@ CONTENT = {
         "puede simplificar antes de multiplicar."
     ),
     "definition_symbols": [
-        {"symbol": r"\dfrac{a}{b}\div\dfrac{c}{d}=\dfrac{a}{b}\cdot\dfrac{d}{c}", "reads": "la regla entera", "means": "la de la derecha se invierte"},
+        {
+            "symbol": r"\dfrac{a}{b}\div\dfrac{c}{d}=\dfrac{a}{b}\cdot\dfrac{d}{c}",
+            "reads": "la regla entera",
+            "means": "la de la derecha se invierte",
+        },
         {"symbol": r"\dfrac{d}{c}", "reads": "recíproco", "means": "la misma fracción del revés"},
-        {"symbol": r"8=\dfrac{8}{1}", "reads": "un entero también divide", "means": "todo número lleva un 1 debajo"},
-        {"symbol": r"6\div\dfrac{1}{3}=18", "reads": "dividir puede agrandar", "means": "entre algo menor que 1, el resultado crece"},
-        {"symbol": r"\dfrac{c}{d}\cdot\dfrac{d}{c}=1", "reads": "por qué funciona", "means": "una fracción por su recíproco deshace la división"},
+        {
+            "symbol": r"8=\dfrac{8}{1}",
+            "reads": "un entero también divide",
+            "means": "todo número lleva un 1 debajo",
+        },
+        {
+            "symbol": r"6\div\dfrac{1}{3}=18",
+            "reads": "dividir puede agrandar",
+            "means": "entre algo menor que 1, el resultado crece",
+        },
+        {
+            "symbol": r"\dfrac{c}{d}\cdot\dfrac{d}{c}=1",
+            "reads": "por qué funciona",
+            "means": "una fracción por su recíproco deshace la división",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -211,10 +227,14 @@ CONTENT = {
                 "wrong_latex": r"8\div\dfrac{2}{3}=\dfrac{1}{8}\cdot\dfrac{2}{3}",
                 "right_latex": r"8\div\dfrac{2}{3}=\dfrac{8}{1}\cdot\dfrac{3}{2}=12",
                 "rows": [
-                    {"wrong": "Se invierte la primera",
-                     "right": "Se invierte el divisor, que es la segunda"},
-                    {"wrong": r"\dfrac{1}{12}\ \text{de saco con el silo lleno}",
-                     "right": r"12\ \text{sacos, más que las 8 medidas ✓}"},
+                    {
+                        "wrong": "Se invierte la primera",
+                        "right": "Se invierte el divisor, que es la segunda",
+                    },
+                    {
+                        "wrong": r"\dfrac{1}{12}\ \text{de saco con el silo lleno}",
+                        "right": r"12\ \text{sacos, más que las 8 medidas ✓}",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -241,7 +261,13 @@ CONTENT = {
                 "missing": "last",
                 "statement": r"Calcula $\dfrac{3}{4}\div\dfrac{1}{2}$.",
                 "given_steps": [r"\dfrac{3}{4}\cdot\dfrac{2}{1}", r"\dfrac{6}{4}"],
-                "blanks": [{"id": "P1-b1", "label": r"\dfrac{6}{4}=\dfrac{3}{\;?\;},\quad ?=", "answer": "2"}],
+                "blanks": [
+                    {
+                        "id": "P1-b1",
+                        "label": r"\dfrac{6}{4}=\dfrac{3}{\;?\;},\quad ?=",
+                        "answer": "2",
+                    }
+                ],
             },
             {
                 "id": "P2",
@@ -310,7 +336,11 @@ CONTENT = {
                 {"id": "ok", "text": r"$\dfrac{3}{2}$", "latex": r"\dfrac{3}{2}"},
                 {"id": "first", "text": r"$\dfrac{2}{3}$", "latex": r"\dfrac{2}{3}"},
                 {"id": "mult", "text": r"$\dfrac{8}{27}$", "latex": r"\dfrac{8}{27}"},
-                {"id": "swap", "text": r"Invirtiendo las dos: $\dfrac{27}{8}$", "latex": r"\dfrac{27}{8}"},
+                {
+                    "id": "swap",
+                    "text": r"Invirtiendo las dos: $\dfrac{27}{8}$",
+                    "latex": r"\dfrac{27}{8}",
+                },
             ],
             "expected": "ok",
             "feedback_by_option": {
@@ -370,7 +400,10 @@ CONTENT = {
                 "está el error?"
             ),
             "options": [
-                {"id": "first", "text": r"Invirtió el 9 en vez del saco: es $9\cdot\dfrac{4}{3}=12$"},
+                {
+                    "id": "first",
+                    "text": r"Invirtió el 9 en vez del saco: es $9\cdot\dfrac{4}{3}=12$",
+                },
                 {"id": "mult", "text": r"Multiplicó sin invertir nada"},
                 {"id": "simp", "text": "Olvidó simplificar el resultado"},
                 {"id": "none", "text": "No hay error"},
@@ -403,9 +436,15 @@ CONTENT = {
                 "primera y se multiplica.»"
             ),
             "options": [
-                {"id": "false", "text": r"Falsa: se da la vuelta a la segunda — $\dfrac{1}{2}\div\dfrac{1}{4}=2$"},
+                {
+                    "id": "false",
+                    "text": r"Falsa: se da la vuelta a la segunda — $\dfrac{1}{2}\div\dfrac{1}{4}=2$",
+                },
                 {"id": "true", "text": "Verdadera: la primera es la que se reparte"},
-                {"id": "true_either", "text": "Verdadera: da igual cuál, el resultado sale el mismo"},
+                {
+                    "id": "true_either",
+                    "text": "Verdadera: da igual cuál, el resultado sale el mismo",
+                },
                 {"id": "false_both", "text": "Falsa: hay que dar la vuelta a las dos"},
             ],
             "expected": "false",
@@ -438,7 +477,11 @@ CONTENT = {
             "options": [
                 {"id": "a", "text": r"$6\div\dfrac{1}{3}$", "latex": r"6\div\dfrac{1}{3}"},
                 {"id": "b", "text": r"$6\div 3$", "latex": r"6\div 3"},
-                {"id": "c", "text": r"$\dfrac{1}{2}\div\dfrac{1}{4}$", "latex": r"\dfrac{1}{2}\div\dfrac{1}{4}"},
+                {
+                    "id": "c",
+                    "text": r"$\dfrac{1}{2}\div\dfrac{1}{4}$",
+                    "latex": r"\dfrac{1}{2}\div\dfrac{1}{4}",
+                },
                 {"id": "d", "text": r"$\dfrac{1}{2}\div 4$", "latex": r"\dfrac{1}{2}\div 4"},
             ],
             "expected": ["a", "c"],
@@ -475,24 +518,48 @@ CONTENT = {
             "sino por aplicarla a la fracción de al lado."
         ),
         "rows": [
-            {"symbol": r"8\div\dfrac{2}{3}", "name": "Entero entre fracción", "closed": "yes",
-             "latex": r"\dfrac{8}{1}\cdot\dfrac{3}{2}=12",
-             "note": "Se invierte el saco, no la simiente. El resultado crece. Es el caso focal."},
-            {"symbol": r"\dfrac{2}{3}\div\dfrac{4}{9}", "name": "Fracción entre fracción", "closed": "yes",
-             "latex": r"\dfrac{2}{3}\cdot\dfrac{9}{4}=\dfrac{3}{2}",
-             "note": "La de la izquierda se queda quieta. Después es un producto normal."},
-            {"symbol": r"\dfrac{3}{x}\div\dfrac{6}{x^{2}}", "name": "Con letras", "closed": "yes",
-             "latex": r"\dfrac{x}{2}",
-             "note": "Una vez invertida, se puede simplificar antes de multiplicar, como en la era."},
-            {"symbol": r"\dfrac{1}{2}\div 4", "name": "Entre un entero", "closed": "partial",
-             "latex": r"\dfrac{1}{2}\cdot\dfrac{1}{4}=\dfrac{1}{8}",
-             "note": "Se invierte igual, pero primero hay que ver el 4 como 4/1. Aquí el resultado mengua."},
-            {"symbol": r"\dfrac{2}{3}\div\dfrac{2}{3}", "name": "Entre sí misma", "closed": "partial",
-             "latex": r"1",
-             "note": "Se invierte igual y da 1, ni crece ni mengua. Sirve para comprobar que invertiste la correcta."},
-            {"symbol": r"\dfrac{2}{3}\cdot\dfrac{4}{9}", "name": "Un producto", "closed": "no",
-             "latex": r"\dfrac{8}{27}",
-             "note": "Aquí no se invierte nada. La vuelta es lo que distingue una división de un producto."},
+            {
+                "symbol": r"8\div\dfrac{2}{3}",
+                "name": "Entero entre fracción",
+                "closed": "yes",
+                "latex": r"\dfrac{8}{1}\cdot\dfrac{3}{2}=12",
+                "note": "Se invierte el saco, no la simiente. El resultado crece. Es el caso focal.",
+            },
+            {
+                "symbol": r"\dfrac{2}{3}\div\dfrac{4}{9}",
+                "name": "Fracción entre fracción",
+                "closed": "yes",
+                "latex": r"\dfrac{2}{3}\cdot\dfrac{9}{4}=\dfrac{3}{2}",
+                "note": "La de la izquierda se queda quieta. Después es un producto normal.",
+            },
+            {
+                "symbol": r"\dfrac{3}{x}\div\dfrac{6}{x^{2}}",
+                "name": "Con letras",
+                "closed": "yes",
+                "latex": r"\dfrac{x}{2}",
+                "note": "Una vez invertida, se puede simplificar antes de multiplicar, como en la era.",
+            },
+            {
+                "symbol": r"\dfrac{1}{2}\div 4",
+                "name": "Entre un entero",
+                "closed": "partial",
+                "latex": r"\dfrac{1}{2}\cdot\dfrac{1}{4}=\dfrac{1}{8}",
+                "note": "Se invierte igual, pero primero hay que ver el 4 como 4/1. Aquí el resultado mengua.",
+            },
+            {
+                "symbol": r"\dfrac{2}{3}\div\dfrac{2}{3}",
+                "name": "Entre sí misma",
+                "closed": "partial",
+                "latex": r"1",
+                "note": "Se invierte igual y da 1, ni crece ni mengua. Sirve para comprobar que invertiste la correcta.",
+            },
+            {
+                "symbol": r"\dfrac{2}{3}\cdot\dfrac{4}{9}",
+                "name": "Un producto",
+                "closed": "no",
+                "latex": r"\dfrac{8}{27}",
+                "note": "Aquí no se invierte nada. La vuelta es lo que distingue una división de un producto.",
+            },
         ],
         "outro": (
             "Fíjate en lo que hacen juntas la primera y la cuarta fila: el mismo "
@@ -504,12 +571,32 @@ CONTENT = {
     },
     "abstraction_question": {
         "prompt": "¿Qué comparten los tres repartos del silo trabajados en este nodo?",
-        "thumbnails": [r"8\div\dfrac{2}{3}", r"\dfrac{3}{x}\div\dfrac{6}{x^{2}}", r"6\div\dfrac{3}{4}"],
+        "thumbnails": [
+            r"8\div\dfrac{2}{3}",
+            r"\dfrac{3}{x}\div\dfrac{6}{x^{2}}",
+            r"6\div\dfrac{3}{4}",
+        ],
         "options": [
-            {"id": "divisor", "text": "En los tres se invierte el divisor y solo el divisor", "correct": True},
-            {"id": "becomes_product", "text": "En los tres la división se convierte en un producto en el primer paso", "correct": True},
-            {"id": "smaller", "text": "En los tres el resultado es menor que la primera cantidad", "correct": False},
-            {"id": "common", "text": "En los tres hace falta un denominador común antes de empezar", "correct": False},
+            {
+                "id": "divisor",
+                "text": "En los tres se invierte el divisor y solo el divisor",
+                "correct": True,
+            },
+            {
+                "id": "becomes_product",
+                "text": "En los tres la división se convierte en un producto en el primer paso",
+                "correct": True,
+            },
+            {
+                "id": "smaller",
+                "text": "En los tres el resultado es menor que la primera cantidad",
+                "correct": False,
+            },
+            {
+                "id": "common",
+                "text": "En los tres hace falta un denominador común antes de empezar",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

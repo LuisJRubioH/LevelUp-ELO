@@ -113,8 +113,11 @@ def test_everything_the_service_calls_is_declared(service_file, protocol):
 @pytest.mark.parametrize("repo_cls", REPOS, ids=lambda c: c.__name__)
 def test_repositories_satisfy_the_protocols_at_runtime(repo_cls):
     """isinstance() sobre un Protocol runtime_checkable: comprueba presencia."""
-    fake = type("Fake", (), {m: (lambda self, *a, **k: None) for p in PROTOCOLS
-                             for m in _protocol_methods(p)})()
+    fake = type(
+        "Fake",
+        (),
+        {m: (lambda self, *a, **k: None) for p in PROTOCOLS for m in _protocol_methods(p)},
+    )()
     for protocol in PROTOCOLS:
         assert isinstance(fake, protocol)
         assert all(hasattr(repo_cls, m) for m in _protocol_methods(protocol))

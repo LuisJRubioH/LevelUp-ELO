@@ -156,12 +156,36 @@ CONTENT = {
         "también tiene el suyo."
     ),
     "definition_symbols": [
-        {"symbol": r"\mathbb{N}", "reads": "los naturales", "means": "de natural: los números con los que se cuenta"},
-        {"symbol": r"0", "reads": "cero", "means": "el número del montón vacío; en este curso SÍ es natural"},
-        {"symbol": r"\{\ \}", "reads": "llaves", "means": "encierran a los miembros del conjunto, uno por uno"},
-        {"symbol": r"\ldots", "reads": "puntos suspensivos", "means": "sigue igual para siempre: no hay un último natural"},
-        {"symbol": r"n\in\mathbb{N}", "reads": "n pertenece a ℕ", "means": "n es uno de esos números"},
-        {"symbol": r"n+1", "reads": "el siguiente de n", "means": "cada natural tiene sucesor; por eso no se acaban"},
+        {
+            "symbol": r"\mathbb{N}",
+            "reads": "los naturales",
+            "means": "de natural: los números con los que se cuenta",
+        },
+        {
+            "symbol": r"0",
+            "reads": "cero",
+            "means": "el número del montón vacío; en este curso SÍ es natural",
+        },
+        {
+            "symbol": r"\{\ \}",
+            "reads": "llaves",
+            "means": "encierran a los miembros del conjunto, uno por uno",
+        },
+        {
+            "symbol": r"\ldots",
+            "reads": "puntos suspensivos",
+            "means": "sigue igual para siempre: no hay un último natural",
+        },
+        {
+            "symbol": r"n\in\mathbb{N}",
+            "reads": "n pertenece a ℕ",
+            "means": "n es uno de esos números",
+        },
+        {
+            "symbol": r"n+1",
+            "reads": "el siguiente de n",
+            "means": "cada natural tiene sucesor; por eso no se acaban",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos (a, b, trampa) ------------------------
     "worked_examples": [
@@ -230,10 +254,14 @@ CONTENT = {
                 "wrong_latex": r"\text{puesto vacío}\ \rightarrow\ \square",
                 "right_latex": r"\text{puesto vacío}\ \rightarrow\ 0\in\mathbb{N}",
                 "rows": [
-                    {"wrong": "0 significa «no hay nada que decir»",
-                     "right": "0 es la respuesta a «¿cuántos hay?»: ninguno"},
-                    {"wrong": "Un blanco y un 0 dicen lo mismo",
-                     "right": "El blanco dice «sin revisar»; el 0 dice «revisado, vacío»"},
+                    {
+                        "wrong": "0 significa «no hay nada que decir»",
+                        "right": "0 es la respuesta a «¿cuántos hay?»: ninguno",
+                    },
+                    {
+                        "wrong": "Un blanco y un 0 dicen lo mismo",
+                        "right": "El blanco dice «sin revisar»; el 0 dice «revisado, vacío»",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -317,7 +345,11 @@ CONTENT = {
             },
             {
                 "label": "Método 2 · Agrupar y multiplicar",
-                "steps": [r"6\ \text{estantes}\times4\ \text{jarras}", r"6\times4", r"\text{total}=24"],
+                "steps": [
+                    r"6\ \text{estantes}\times4\ \text{jarras}",
+                    r"6\times4",
+                    r"\text{total}=24",
+                ],
                 "note": "Solo si todos los grupos tienen el mismo tamaño.",
             },
         ],
@@ -459,7 +491,10 @@ CONTENT = {
                 "solo tiene naturales. ¿Qué encargo NO va a poder cumplir?"
             ),
             "options": [
-                {"id": "debt", "text": "Anotar cuánto DEBE un puesto que gastó más de lo que tenía"},
+                {
+                    "id": "debt",
+                    "text": "Anotar cuánto DEBE un puesto que gastó más de lo que tenía",
+                },
                 {"id": "total", "text": "Sumar todos los puestos para dar un total"},
                 {"id": "empty", "text": "Registrar un puesto vacío"},
                 {"id": "compare", "text": "Decir cuál puesto tiene más mercancía"},
@@ -518,10 +553,20 @@ CONTENT = {
         "title": "¿Toda resta de dos números del conjunto vive en el conjunto?",
         "intro": "Cada peldaño nace de una operación que no cabía en el anterior. Este es el primero.",
         "rows": [
-            {"symbol": r"\mathbb{N}", "name": "Naturales", "closed": "no",
-             "latex": r"3-5\notin\mathbb{N}", "note": "Se sale: no hay natural por debajo del 0."},
-            {"symbol": r"\mathbb{Z}", "name": "Enteros", "closed": "yes",
-             "latex": r"3-5=-2\in\mathbb{Z}", "note": "El siguiente peldaño nace exactamente de esto."},
+            {
+                "symbol": r"\mathbb{N}",
+                "name": "Naturales",
+                "closed": "no",
+                "latex": r"3-5\notin\mathbb{N}",
+                "note": "Se sale: no hay natural por debajo del 0.",
+            },
+            {
+                "symbol": r"\mathbb{Z}",
+                "name": "Enteros",
+                "closed": "yes",
+                "latex": r"3-5=-2\in\mathbb{Z}",
+                "note": "El siguiente peldaño nace exactamente de esto.",
+            },
         ],
         "outro": (
             "Sumar y multiplicar naturales siempre da un natural. Restar, no. Ese único "
@@ -533,9 +578,21 @@ CONTENT = {
         "prompt": "¿Qué tienen en común los tres momentos en que KatIA no pudo grabar un natural?",
         "thumbnails": [r"3-5", r"7-9", r"0-1"],
         "options": [
-            {"id": "below_zero", "text": "En los tres el resultado queda por debajo de 0", "correct": True},
-            {"id": "subtraction", "text": "Los tres son restas donde se quita más de lo que hay", "correct": True},
-            {"id": "zero", "text": "Los tres tienen que ver con que el 0 no es natural", "correct": False},
+            {
+                "id": "below_zero",
+                "text": "En los tres el resultado queda por debajo de 0",
+                "correct": True,
+            },
+            {
+                "id": "subtraction",
+                "text": "Los tres son restas donde se quita más de lo que hay",
+                "correct": True,
+            },
+            {
+                "id": "zero",
+                "text": "Los tres tienen que ver con que el 0 no es natural",
+                "correct": False,
+            },
             {"id": "big", "text": "Los tres usan números demasiado grandes", "correct": False},
         ],
     },

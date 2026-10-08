@@ -139,12 +139,36 @@ CONTENT = {
         "Un número tiene finitos divisores pero infinitos múltiplos."
     ),
     "definition_symbols": [
-        {"symbol": r"M(b)", "reads": "los múltiplos de b", "means": "los números marcados por la campana de b"},
-        {"symbol": r"D(b)", "reads": "los divisores de b", "means": "la otra lista, la que sí se acaba"},
-        {"symbol": r"k", "reads": "cuántas veces", "means": "puede ser cualquier entero, y por eso la lista no tiene techo"},
-        {"symbol": r"b\in M(b)", "reads": "b es múltiplo de sí mismo", "means": "con k = 1; el primer toque de la campana"},
-        {"symbol": r"0\in M(b)", "reads": "el cero es múltiplo de todos", "means": "con k = 0; b × 0 = 0 siempre"},
-        {"symbol": r"b\mid a\iff a\in M(b)", "reads": "las dos caras de lo mismo", "means": "Corinto y Rodas dicen lo mismo desde lados opuestos"},
+        {
+            "symbol": r"M(b)",
+            "reads": "los múltiplos de b",
+            "means": "los números marcados por la campana de b",
+        },
+        {
+            "symbol": r"D(b)",
+            "reads": "los divisores de b",
+            "means": "la otra lista, la que sí se acaba",
+        },
+        {
+            "symbol": r"k",
+            "reads": "cuántas veces",
+            "means": "puede ser cualquier entero, y por eso la lista no tiene techo",
+        },
+        {
+            "symbol": r"b\in M(b)",
+            "reads": "b es múltiplo de sí mismo",
+            "means": "con k = 1; el primer toque de la campana",
+        },
+        {
+            "symbol": r"0\in M(b)",
+            "reads": "el cero es múltiplo de todos",
+            "means": "con k = 0; b × 0 = 0 siempre",
+        },
+        {
+            "symbol": r"b\mid a\iff a\in M(b)",
+            "reads": "las dos caras de lo mismo",
+            "means": "Corinto y Rodas dicen lo mismo desde lados opuestos",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -204,10 +228,11 @@ CONTENT = {
                 "wrong_latex": r"M(10)=\{1,2,5,10\}",
                 "right_latex": r"M(10)=\{10,20,30,40,\ldots\}",
                 "rows": [
-                    {"wrong": "Los múltiplos de 10 son los que caben en 10",
-                     "right": "Son aquellos en los que cabe el 10"},
-                    {"wrong": "La lista tiene cuatro elementos",
-                     "right": "La lista es infinita"},
+                    {
+                        "wrong": "Los múltiplos de 10 son los que caben en 10",
+                        "right": "Son aquellos en los que cabe el 10",
+                    },
+                    {"wrong": "La lista tiene cuatro elementos", "right": "La lista es infinita"},
                 ],
             },
             "explain_prompt": "Escribe los cuatro primeros múltiplos positivos de 10 y di por qué la lista no termina.",
@@ -260,7 +285,11 @@ CONTENT = {
                 ),
                 "given_steps": [],
                 "blanks": [
-                    {"id": "P3-b1", "label": r"9\times k>100\ \Rightarrow\ 9\times k=", "answer": "108"},
+                    {
+                        "id": "P3-b1",
+                        "label": r"9\times k>100\ \Rightarrow\ 9\times k=",
+                        "answer": "108",
+                    },
                 ],
             },
         ],
@@ -272,12 +301,20 @@ CONTENT = {
         "methods": [
             {
                 "label": "Método 1 · Probar uno por uno",
-                "steps": [r"1,2,3,4,6,9,12,18,36", r"\text{probando del 1 al 36}", r"=9\text{ divisores}"],
+                "steps": [
+                    r"1,2,3,4,6,9,12,18,36",
+                    r"\text{probando del 1 al 36}",
+                    r"=9\text{ divisores}",
+                ],
                 "note": "Seguro, pero hay que probar 36 candidatos.",
             },
             {
                 "label": "Método 2 · Buscar por parejas",
-                "steps": [r"1\times 36,\ 2\times 18,\ 3\times 12,\ 4\times 9,\ 6\times 6", r"\text{parar en }\sqrt{36}=6", r"=9\text{ divisores}"],
+                "steps": [
+                    r"1\times 36,\ 2\times 18,\ 3\times 12,\ 4\times 9,\ 6\times 6",
+                    r"\text{parar en }\sqrt{36}=6",
+                    r"=9\text{ divisores}",
+                ],
                 "note": "Cada pareja da dos divisores; el 6 se cuenta una sola vez.",
             },
         ],
@@ -345,7 +382,10 @@ CONTENT = {
             "tipo": "detecta_error",
             "prompt": "Un aprendiz anota «Los múltiplos de 15 son 1, 3, 5 y 15». ¿Dónde está el error?",
             "options": [
-                {"id": "divisors", "text": "Esos son los divisores: los múltiplos son 15, 30, 45… y son infinitos"},
+                {
+                    "id": "divisors",
+                    "text": "Esos son los divisores: los múltiplos son 15, 30, 45… y son infinitos",
+                },
                 {"id": "missing", "text": "Le faltó incluir el 45"},
                 {"id": "extra", "text": "El 15 sobra: un número no es múltiplo de sí mismo"},
                 {"id": "none", "text": "Ningún error, está bien"},
@@ -402,9 +442,7 @@ CONTENT = {
             "id": "E6",
             "kind": "numeric",
             "tipo": "transferencia",
-            "prompt": (
-                "¿Cuál es el múltiplo de 12 más pequeño que supera los 100?"
-            ),
+            "prompt": ("¿Cuál es el múltiplo de 12 más pequeño que supera los 100?"),
             "expr": r"12\times k>100",
             "answer": "108",
             "hints": {
@@ -449,24 +487,48 @@ CONTENT = {
         "title": "Conjuntos que este nodo pone lado a lado",
         "intro": "La pregunta de la columna es siempre la misma: ¿esta lista tiene un último elemento?",
         "rows": [
-            {"symbol": r"M(1)", "name": "Múltiplos de 1", "closed": "no",
-             "latex": r"\{1,2,3,4,\ldots\}",
-             "note": "Todos los números son múltiplos de 1. Infinitos."},
-            {"symbol": r"M(7)", "name": "Múltiplos de 7", "closed": "no",
-             "latex": r"\{7,14,21,\ldots\}",
-             "note": "Infinitos: a cualquiera le sumas 7 y sigues."},
-            {"symbol": r"M(100)", "name": "Múltiplos de 100", "closed": "no",
-             "latex": r"\{100,200,300,\ldots\}",
-             "note": "Que empiecen grandes no los hace menos infinitos."},
-            {"symbol": r"M(0)", "name": "Múltiplos de 0", "closed": "yes",
-             "latex": r"\{0\}",
-             "note": "La única lista de múltiplos que SÍ se acaba: 0 × k = 0 siempre. Un solo elemento."},
-            {"symbol": r"D(12)", "name": "Divisores de 12", "closed": "yes",
-             "latex": r"\{1,2,3,4,6,12\}",
-             "note": "Seis. Encerrados entre 1 y 12: ninguno puede pasarse."},
-            {"symbol": r"D(97)", "name": "Divisores de 97", "closed": "yes",
-             "latex": r"\{1,97\}",
-             "note": "Solo dos. Los números con exactamente dos divisores tienen nombre, y es el próximo destino."},
+            {
+                "symbol": r"M(1)",
+                "name": "Múltiplos de 1",
+                "closed": "no",
+                "latex": r"\{1,2,3,4,\ldots\}",
+                "note": "Todos los números son múltiplos de 1. Infinitos.",
+            },
+            {
+                "symbol": r"M(7)",
+                "name": "Múltiplos de 7",
+                "closed": "no",
+                "latex": r"\{7,14,21,\ldots\}",
+                "note": "Infinitos: a cualquiera le sumas 7 y sigues.",
+            },
+            {
+                "symbol": r"M(100)",
+                "name": "Múltiplos de 100",
+                "closed": "no",
+                "latex": r"\{100,200,300,\ldots\}",
+                "note": "Que empiecen grandes no los hace menos infinitos.",
+            },
+            {
+                "symbol": r"M(0)",
+                "name": "Múltiplos de 0",
+                "closed": "yes",
+                "latex": r"\{0\}",
+                "note": "La única lista de múltiplos que SÍ se acaba: 0 × k = 0 siempre. Un solo elemento.",
+            },
+            {
+                "symbol": r"D(12)",
+                "name": "Divisores de 12",
+                "closed": "yes",
+                "latex": r"\{1,2,3,4,6,12\}",
+                "note": "Seis. Encerrados entre 1 y 12: ninguno puede pasarse.",
+            },
+            {
+                "symbol": r"D(97)",
+                "name": "Divisores de 97",
+                "closed": "yes",
+                "latex": r"\{1,97\}",
+                "note": "Solo dos. Los números con exactamente dos divisores tienen nombre, y es el próximo destino.",
+            },
         ],
         "outro": (
             "Los múltiplos suben sin techo; los divisores están encerrados entre 1 y el "
@@ -478,10 +540,18 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres casos trabajados en este nodo?",
         "thumbnails": [r"M(4)", r"D(12)", r"M(10)"],
         "options": [
-            {"id": "same_relation", "text": "Los tres describen la misma relación mirada desde un lado o desde el otro", "correct": True},
+            {
+                "id": "same_relation",
+                "text": "Los tres describen la misma relación mirada desde un lado o desde el otro",
+                "correct": True,
+            },
             {"id": "infinite", "text": "Los tres son conjuntos infinitos", "correct": False},
             {"id": "exact", "text": "En los tres el reparto es exacto: residuo 0", "correct": True},
-            {"id": "small", "text": "En los tres todos los elementos son menores que el número", "correct": False},
+            {
+                "id": "small",
+                "text": "En los tres todos los elementos son menores que el número",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {
@@ -596,9 +666,7 @@ CONTENT = {
         "fb_c02_e7_inverted": (
             "b | a quiere decir a = b × k. → Di cuál de los dos se obtiene multiplicando al otro."
         ),
-        "fb_c02_e7_both": (
-            "Solo pasa cuando a y b son iguales. → Prueba con b = 3 y a = 12."
-        ),
+        "fb_c02_e7_both": ("Solo pasa cuando a y b son iguales. → Prueba con b = 3 y a = 12."),
         "fb_c02_e7_neither": (
             "Sí hay relación, y es exactamente la misma vista desde el otro lado. → Escribe "
             "la definición de b | a y compárala con la de múltiplo."

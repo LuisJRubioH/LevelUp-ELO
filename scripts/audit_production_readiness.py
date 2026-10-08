@@ -51,7 +51,9 @@ def run():
     results = []
 
     def record(name, passed, observed):
-        results.append({"check": name, "status": "PASS" if passed else "FAIL", "observed": observed})
+        results.append(
+            {"check": name, "status": "PASS" if passed else "FAIL", "observed": observed}
+        )
 
     # Never reuse, migrate or delete a user DB. Only this new temporary directory.
     (ROOT / ".tmp").mkdir(exist_ok=True)
@@ -62,21 +64,30 @@ def run():
         # No lifespan is required: the isolated repository was initialized above.
         client = TestClient(app, base_url="https://audit.local", raise_server_exceptions=False)
         try:
-            login = client.post("/api/auth/login", json={"username": "estudiante1", "password": "demo1234"})
+            login = client.post(
+                "/api/auth/login", json={"username": "estudiante1", "password": "demo1234"}
+            )
             assert login.status_code == 200, "Local fixture login failed"
             student = login.json()["user_id"]
             headers = {"Authorization": "Bearer " + login.json()["access_token"]}
-            teacher_login = client.post("/api/auth/login", json={"username": "profesor1", "password": "demo1234"})
+            teacher_login = client.post(
+                "/api/auth/login", json={"username": "profesor1", "password": "demo1234"}
+            )
             teacher_id = teacher_login.json()["user_id"]
             teacher_headers = {"Authorization": "Bearer " + teacher_login.json()["access_token"]}
 
             cookie_path = next(c.path for c in client.cookies.jar if c.name == "levelup_refresh")
-            record("refresh_cookie_path", cookie_path.startswith("/api/auth"), {"path": cookie_path})
+            record(
+                "refresh_cookie_path", cookie_path.startswith("/api/auth"), {"path": cookie_path}
+            )
             refresh = client.post("/api/auth/refresh")
-            record("browser_cookie_refresh", refresh.status_code == 200, {"http": refresh.status_code})
+            record(
+                "browser_cookie_refresh", refresh.status_code == 200, {"http": refresh.status_code}
+            )
 
             original_get_repository = deps.get_repository
             try:
+
                 def unavailable_repository():
                     raise RuntimeError("private readiness detail")
 
@@ -145,7 +156,9 @@ def run():
                 ROOT / "frontend/src/pages/Student/StudentLayout.tsx",
                 ROOT / "frontend/src/pages/Teacher/TeacherLayout.tsx",
             ]
-            cache_clear_count = sum("queryClient.clear()" in path.read_text(encoding="utf-8") for path in cache_files)
+            cache_clear_count = sum(
+                "queryClient.clear()" in path.read_text(encoding="utf-8") for path in cache_files
+            )
             record(
                 "account_cache_cleared_on_logout",
                 cache_clear_count == len(cache_files),
@@ -153,7 +166,8 @@ def run():
             )
 
             invalid_upload = client.post(
-                "/api/student/procedure", headers=headers,
+                "/api/student/procedure",
+                headers=headers,
                 data={"item_id": "audit-invalid-upload"},
                 files={"file": ("fake.png", b"not an image", "image/png")},
             )
@@ -170,7 +184,8 @@ def run():
             procedure_image = image_buffer.getvalue()
             procedure_item = "audit-procedure-security"
             forged = client.post(
-                "/api/student/procedure", headers=headers,
+                "/api/student/procedure",
+                headers=headers,
                 data={"item_id": procedure_item, "ai_proposed_score": "99"},
                 files={"file": ("work.png", procedure_image, "image/png")},
             )
@@ -191,7 +206,8 @@ def run():
                 + deps.create_access_token(other_student, "audit_upload_other", "student")
             }
             copied = client.post(
-                "/api/student/procedure", headers=other_student_headers,
+                "/api/student/procedure",
+                headers=other_student_headers,
                 data={"item_id": procedure_item},
                 files={"file": ("copy.png", procedure_image, "image/png")},
             )
@@ -205,8 +221,13 @@ def run():
             repo.register_user("audit_teacher", "audit-only-password", "teacher")
             with database(repo) as conn:
                 conn.execute("UPDATE users SET approved=1 WHERE username='audit_teacher'")
-                foreign_teacher = conn.execute("SELECT id FROM users WHERE username='audit_teacher'").fetchone()[0]
-            other_headers = {"Authorization": "Bearer " + deps.create_access_token(foreign_teacher, "audit_teacher", "teacher")}
+                foreign_teacher = conn.execute(
+                    "SELECT id FROM users WHERE username='audit_teacher'"
+                ).fetchone()[0]
+            other_headers = {
+                "Authorization": "Bearer "
+                + deps.create_access_token(foreign_teacher, "audit_teacher", "teacher")
+            }
             groups = repo.get_groups_by_teacher(teacher_id)
             group_id = groups[0]["group_id"]
             student_paths = [
@@ -216,14 +237,18 @@ def run():
                 f"/api/teacher/student/{student}/ranking",
             ]
             denied = [client.get(path, headers=other_headers).status_code for path in student_paths]
-            allowed = [client.get(path, headers=teacher_headers).status_code for path in student_paths]
+            allowed = [
+                client.get(path, headers=teacher_headers).status_code for path in student_paths
+            ]
             record(
                 "foreign_student_denied",
                 all(code in (403, 404) for code in denied) and all(code == 200 for code in allowed),
                 {"foreign_http": denied, "owner_http": allowed},
             )
             original_code = repo.generate_group_invite_code(group_id)
-            response = client.post(f"/api/teacher/groups/{group_id}/invite-code", headers=other_headers)
+            response = client.post(
+                f"/api/teacher/groups/{group_id}/invite-code", headers=other_headers
+            )
             code_unchanged = repo.get_group_by_invite_code(original_code) is not None
             owner_response = client.post(
                 f"/api/teacher/groups/{group_id}/invite-code", headers=teacher_headers
@@ -247,12 +272,8 @@ def run():
                 diagnostic_student = conn.execute(
                     "SELECT id FROM users WHERE username='audit_diagnostic'"
                 ).fetchone()[0]
-            repo.save_diagnostic(
-                diagnostic_student, "calculo_diferencial", 1234.0, 75.0, "{}"
-            )
-            repo.set_topic_rating_baseline(
-                diagnostic_student, "calculo_diferencial", topic, 1234.0
-            )
+            repo.save_diagnostic(diagnostic_student, "calculo_diferencial", 1234.0, 75.0, "{}")
+            repo.set_topic_rating_baseline(diagnostic_student, "calculo_diferencial", topic, 1234.0)
             ratings = RatingReadService(repo)
             topic_recovered = ratings.selection_rating(
                 diagnostic_student, "calculo_diferencial", topic
@@ -271,7 +292,12 @@ def run():
                 attempt_before = conn.execute(
                     "SELECT COUNT(*) FROM attempts WHERE user_id=?", (student,)
                 ).fetchone()[0]
-            body = {"item_id": item["id"], "item_data": {**item, "difficulty": 1777.0}, "selected_option": item["correct_option"], "time_taken": 30}
+            body = {
+                "item_id": item["id"],
+                "item_data": {**item, "difficulty": 1777.0},
+                "selected_option": item["correct_option"],
+                "time_taken": 30,
+            }
             response = client.post("/api/student/answer", headers=headers, json=body)
             with database(repo) as conn:
                 attempt_after = conn.execute(
@@ -304,12 +330,16 @@ def run():
 
             body["item_data"] = item
             with database(repo) as conn:
-                before = conn.execute("SELECT COUNT(*) FROM attempts WHERE user_id=?", (student,)).fetchone()[0]
+                before = conn.execute(
+                    "SELECT COUNT(*) FROM attempts WHERE user_id=?", (student,)
+                ).fetchone()[0]
             idem_headers = {**headers, "Idempotency-Key": "audit-one-logical-submission"}
             client.post("/api/student/answer", headers=idem_headers, json=body)
             client.post("/api/student/answer", headers=idem_headers, json=body)
             with database(repo) as conn:
-                after = conn.execute("SELECT COUNT(*) FROM attempts WHERE user_id=?", (student,)).fetchone()[0]
+                after = conn.execute(
+                    "SELECT COUNT(*) FROM attempts WHERE user_id=?", (student,)
+                ).fetchone()[0]
             record("answer_retry_idempotent", after - before == 1, {"new_attempts": after - before})
 
             with database(repo) as conn:
@@ -355,12 +385,29 @@ def run():
                 },
             )
 
-            own_template = repo.create_exam_template(foreign_teacher, "calculo_diferencial", "Audit own", 10, [item["id"]])
-            victim_template = repo.create_exam_template(teacher_id, "calculo_diferencial", "Audit foreign", 10, [item["id"]])
-            assignment = repo.create_exam_assignment(victim_template, group_id, "2099-01-01T00:00:00", "2099-01-02T00:00:00")
-            response = client.post("/api/student/exam/start", headers=headers, json={"course_id": "calculo_diferencial", "template_id": victim_template})
-            record("future_exam_window_enforced", response.status_code in (403, 404), {"http": response.status_code})
-            response = client.delete(f"/api/teacher/exam-templates/{own_template}/assignments/{assignment}", headers=other_headers)
+            own_template = repo.create_exam_template(
+                foreign_teacher, "calculo_diferencial", "Audit own", 10, [item["id"]]
+            )
+            victim_template = repo.create_exam_template(
+                teacher_id, "calculo_diferencial", "Audit foreign", 10, [item["id"]]
+            )
+            assignment = repo.create_exam_assignment(
+                victim_template, group_id, "2099-01-01T00:00:00", "2099-01-02T00:00:00"
+            )
+            response = client.post(
+                "/api/student/exam/start",
+                headers=headers,
+                json={"course_id": "calculo_diferencial", "template_id": victim_template},
+            )
+            record(
+                "future_exam_window_enforced",
+                response.status_code in (403, 404),
+                {"http": response.status_code},
+            )
+            response = client.delete(
+                f"/api/teacher/exam-templates/{own_template}/assignments/{assignment}",
+                headers=other_headers,
+            )
             remaining = repo.list_assignments_for_template(victim_template)
             own_assignment = repo.create_exam_assignment(
                 own_template, group_id, "2099-01-01T00:00:00", "2099-01-02T00:00:00"
@@ -383,27 +430,55 @@ def run():
             )
 
             exam = client.post(
-                "/api/student/exam/start", headers=headers,
+                "/api/student/exam/start",
+                headers=headers,
                 json={"course_id": "calculo_diferencial", "n_questions": 1},
             ).json()
             response = client.post(
-                "/api/student/exam/submit", headers=headers,
-                json={"session_id": exam["session_id"], "course_id": "calculo_diferencial",
-                      "answers": [{"item_id": exam["items"][0]["id"],
-                                   "selected_option": exam["items"][0]["options"][0]}] * 3},
+                "/api/student/exam/submit",
+                headers=headers,
+                json={
+                    "session_id": exam["session_id"],
+                    "course_id": "calculo_diferencial",
+                    "answers": [
+                        {
+                            "item_id": exam["items"][0]["id"],
+                            "selected_option": exam["items"][0]["options"][0],
+                        }
+                    ]
+                    * 3,
+                },
             )
-            record("duplicate_exam_items_rejected", response.status_code in (400, 422), {"http": response.status_code, "correct_count": response.json().get("correct_count")})
+            record(
+                "duplicate_exam_items_rejected",
+                response.status_code in (400, 422),
+                {
+                    "http": response.status_code,
+                    "correct_count": response.json().get("correct_count"),
+                },
+            )
 
             with database(repo) as conn:
                 conn.execute("UPDATE users SET active=0 WHERE id=?", (student,))
             response = client.get("/api/student/courses", headers=headers)
-            record("disabled_user_token_rejected", response.status_code in (401, 403), {"http": response.status_code})
+            record(
+                "disabled_user_token_rejected",
+                response.status_code in (401, 403),
+                {"http": response.status_code},
+            )
         finally:
             client.close()
             deps._repo_instance = None
 
     target = ROOT / "docs/auditoria-produccion-evidencia.json"
-    target.write_text(json.dumps({"scope": "fresh local SQLite + TestClient; no remote services", "results": results}, indent=2) + "\n", encoding="utf-8")
+    target.write_text(
+        json.dumps(
+            {"scope": "fresh local SQLite + TestClient; no remote services", "results": results},
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     for result in results:
         print(result["status"], result["check"], json.dumps(result["observed"]))
     return 1 if any(r["status"] == "FAIL" for r in results) else 0

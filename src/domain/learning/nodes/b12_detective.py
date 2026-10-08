@@ -155,12 +155,36 @@ CONTENT = {
         "Para sostenerla no basta ningún número de ejemplos."
     ),
     "definition_symbols": [
-        {"symbol": r"A\subset B", "reads": "A contenido en B", "means": "«todo A es B»: la afirmación original"},
-        {"symbol": r"B\subset A", "reads": "B contenido en A", "means": "«todo B es A»: el recíproco, que es OTRA afirmación"},
-        {"symbol": r"\not\subset", "reads": "no está contenido", "means": "existe al menos un elemento que se escapa"},
-        {"symbol": r"\exists", "reads": "existe", "means": "con uno alcanza: la marca del contraejemplo"},
-        {"symbol": r"\forall", "reads": "para todo", "means": "sin excepciones: lo que afirma una frase universal"},
-        {"symbol": r"\tfrac{1}{2}\notin\mathbb{Z}", "reads": "un medio no es entero", "means": "el contraejemplo que tumba «todo racional es entero»"},
+        {
+            "symbol": r"A\subset B",
+            "reads": "A contenido en B",
+            "means": "«todo A es B»: la afirmación original",
+        },
+        {
+            "symbol": r"B\subset A",
+            "reads": "B contenido en A",
+            "means": "«todo B es A»: el recíproco, que es OTRA afirmación",
+        },
+        {
+            "symbol": r"\not\subset",
+            "reads": "no está contenido",
+            "means": "existe al menos un elemento que se escapa",
+        },
+        {
+            "symbol": r"\exists",
+            "reads": "existe",
+            "means": "con uno alcanza: la marca del contraejemplo",
+        },
+        {
+            "symbol": r"\forall",
+            "reads": "para todo",
+            "means": "sin excepciones: lo que afirma una frase universal",
+        },
+        {
+            "symbol": r"\tfrac{1}{2}\notin\mathbb{Z}",
+            "reads": "un medio no es entero",
+            "means": "el contraejemplo que tumba «todo racional es entero»",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos (a, b, trampa) ------------------------
     "worked_examples": [
@@ -223,10 +247,14 @@ CONTENT = {
                 "wrong_latex": r"\text{todo entero es racional}\ \Rightarrow\ \text{todo racional es entero}",
                 "right_latex": r"\mathbb{Z}\subset\mathbb{Q}\ \text{ es V};\quad \mathbb{Q}\subset\mathbb{Z}\ \text{ es F, porque }\tfrac{1}{2}\in\mathbb{Q}\setminus\mathbb{Z}",
                 "rows": [
-                    {"wrong": "Cambiar el orden no cambia la frase",
-                     "right": "Cambiar el orden produce el recíproco, que es otra afirmación"},
-                    {"wrong": "Si una es verdadera, la otra también",
-                     "right": "1/2 es racional y no es entero: la recíproca es falsa"},
+                    {
+                        "wrong": "Cambiar el orden no cambia la frase",
+                        "right": "Cambiar el orden produce el recíproco, que es otra afirmación",
+                    },
+                    {
+                        "wrong": "Si una es verdadera, la otra también",
+                        "right": "1/2 es racional y no es entero: la recíproca es falsa",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -274,8 +302,16 @@ CONTENT = {
                     r"\text{Contraejemplo para la primera}:\ -3",
                 ],
                 "blanks": [
-                    {"id": "P2-b1", "label": r"\text{«Todo entero es natural» (1=V, 0=F)}=", "answer": "0"},
-                    {"id": "P2-b2", "label": r"\text{«Todo irracional es real» (1=V, 0=F)}=", "answer": "1"},
+                    {
+                        "id": "P2-b1",
+                        "label": r"\text{«Todo entero es natural» (1=V, 0=F)}=",
+                        "answer": "0",
+                    },
+                    {
+                        "id": "P2-b2",
+                        "label": r"\text{«Todo irracional es real» (1=V, 0=F)}=",
+                        "answer": "1",
+                    },
                 ],
             },
             {
@@ -300,12 +336,20 @@ CONTENT = {
         "methods": [
             {
                 "label": "Método 1 · Buscar contraejemplo",
-                "steps": [r"\tfrac{1}{2}?\ \text{real}", r"-\tfrac{7}{3}?\ \text{real}", r"\text{no aparece ninguno}"],
+                "steps": [
+                    r"\tfrac{1}{2}?\ \text{real}",
+                    r"-\tfrac{7}{3}?\ \text{real}",
+                    r"\text{no aparece ninguno}",
+                ],
                 "note": "Rápido para TUMBAR. Si no aparece, no concluye nada por sí solo.",
             },
             {
                 "label": "Método 2 · Usar la definición",
-                "steps": [r"\mathbb{R}=\mathbb{Q}\cup\mathbb{I}", r"\text{todo }x\in\mathbb{Q}\ \text{está en la unión}", r"\Rightarrow\ \text{verdadera}"],
+                "steps": [
+                    r"\mathbb{R}=\mathbb{Q}\cup\mathbb{I}",
+                    r"\text{todo }x\in\mathbb{Q}\ \text{está en la unión}",
+                    r"\Rightarrow\ \text{verdadera}",
+                ],
                 "note": "Único que puede SOSTENER una afirmación universal.",
             },
         ],
@@ -414,7 +458,10 @@ CONTENT = {
                 "natural». ¿Dónde está el error?"
             ),
             "options": [
-                {"id": "examples", "text": "Tres ejemplos no prueban una afirmación universal; √2 la tumba"},
+                {
+                    "id": "examples",
+                    "text": "Tres ejemplos no prueban una afirmación universal; √2 la tumba",
+                },
                 {"id": "wrong_roots", "text": "Calculó mal alguna de las tres raíces"},
                 {"id": "reciprocal", "text": "Confundió la afirmación con su recíproca"},
                 {"id": "none", "text": "Ningún error: los tres casos lo confirman"},
@@ -479,9 +526,15 @@ CONTENT = {
                 "juzgas?"
             ),
             "options": [
-                {"id": "false_pi", "text": "Falsa: π se escribe con coma (3,1415…) y es irracional"},
+                {
+                    "id": "false_pi",
+                    "text": "Falsa: π se escribe con coma (3,1415…) y es irracional",
+                },
                 {"id": "true_comma", "text": "Verdadera: la coma indica que viene de una división"},
-                {"id": "false_integers", "text": "Falsa: los enteros no llevan coma y también son racionales"},
+                {
+                    "id": "false_integers",
+                    "text": "Falsa: los enteros no llevan coma y también son racionales",
+                },
                 {"id": "cannot", "text": "No se puede decidir"},
             ],
             "expected": "false_pi",
@@ -538,16 +591,41 @@ CONTENT = {
         "title": "Cada afirmación, su veredicto y su prueba",
         "intro": "Verdadera se prueba con la definición; falsa se tumba con un contraejemplo.",
         "rows": [
-            {"symbol": r"\mathbb{N}\subset\mathbb{Z}", "name": "Todo natural es entero", "closed": "yes",
-             "latex": r"n=n", "note": "Verdadera. Prueba: la cadena de inclusión."},
-            {"symbol": r"\mathbb{Z}\subset\mathbb{Q}", "name": "Todo entero es racional", "closed": "yes",
-             "latex": r"n=\tfrac{n}{1}", "note": "Verdadera. Prueba: se escribe sobre 1."},
-            {"symbol": r"\mathbb{Q}\subset\mathbb{Z}", "name": "Todo racional es entero", "closed": "no",
-             "latex": r"\tfrac{1}{2}\notin\mathbb{Z}", "note": "FALSA. El recíproco de la anterior."},
-            {"symbol": r"\mathbb{R}\subset\mathbb{Q}", "name": "Todo real es racional", "closed": "no",
-             "latex": r"\sqrt{2}\notin\mathbb{Q}", "note": "FALSA. Contraejemplo: la diagonal de B07."},
-            {"symbol": r"\mathbb{Q}\cap\mathbb{I}=\varnothing", "name": "Ningún racional es irracional", "closed": "yes",
-             "latex": r"\varnothing", "note": "Verdadera. Prueba: irracional significa «no racional»."},
+            {
+                "symbol": r"\mathbb{N}\subset\mathbb{Z}",
+                "name": "Todo natural es entero",
+                "closed": "yes",
+                "latex": r"n=n",
+                "note": "Verdadera. Prueba: la cadena de inclusión.",
+            },
+            {
+                "symbol": r"\mathbb{Z}\subset\mathbb{Q}",
+                "name": "Todo entero es racional",
+                "closed": "yes",
+                "latex": r"n=\tfrac{n}{1}",
+                "note": "Verdadera. Prueba: se escribe sobre 1.",
+            },
+            {
+                "symbol": r"\mathbb{Q}\subset\mathbb{Z}",
+                "name": "Todo racional es entero",
+                "closed": "no",
+                "latex": r"\tfrac{1}{2}\notin\mathbb{Z}",
+                "note": "FALSA. El recíproco de la anterior.",
+            },
+            {
+                "symbol": r"\mathbb{R}\subset\mathbb{Q}",
+                "name": "Todo real es racional",
+                "closed": "no",
+                "latex": r"\sqrt{2}\notin\mathbb{Q}",
+                "note": "FALSA. Contraejemplo: la diagonal de B07.",
+            },
+            {
+                "symbol": r"\mathbb{Q}\cap\mathbb{I}=\varnothing",
+                "name": "Ningún racional es irracional",
+                "closed": "yes",
+                "latex": r"\varnothing",
+                "note": "Verdadera. Prueba: irracional significa «no racional».",
+            },
         ],
         "outro": (
             "Mira las filas 2 y 3: son la misma frase dada vuelta, y tienen veredictos "
@@ -556,10 +634,22 @@ CONTENT = {
     },
     "abstraction_question": {
         "prompt": "¿Qué tienen en común los razonamientos falsos que cazaste hoy?",
-        "thumbnails": [r"\mathbb{Q}\subset\mathbb{Z}", r"\mathbb{R}\subset\mathbb{N}", r"\mathbb{R}\subset\mathbb{I}"],
+        "thumbnails": [
+            r"\mathbb{Q}\subset\mathbb{Z}",
+            r"\mathbb{R}\subset\mathbb{N}",
+            r"\mathbb{R}\subset\mathbb{I}",
+        ],
         "options": [
-            {"id": "reciprocal", "text": "En todos se dio vuelta una afirmación verdadera y se supuso que seguía valiendo", "correct": True},
-            {"id": "one_counter", "text": "Todos se tumban con un solo contraejemplo", "correct": True},
+            {
+                "id": "reciprocal",
+                "text": "En todos se dio vuelta una afirmación verdadera y se supuso que seguía valiendo",
+                "correct": True,
+            },
+            {
+                "id": "one_counter",
+                "text": "Todos se tumban con un solo contraejemplo",
+                "correct": True,
+            },
             {"id": "calculation", "text": "Todos tienen un error de cálculo", "correct": False},
             {"id": "irrational", "text": "Todos hablan de números irracionales", "correct": False},
         ],

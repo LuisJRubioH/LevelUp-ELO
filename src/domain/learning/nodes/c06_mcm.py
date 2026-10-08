@@ -100,8 +100,7 @@ CONTENT = {
         "eyebrow": "Descubrimiento guiado",
         "title": "Las dos listas de salidas, una debajo de la otra",
         "body": (
-            "Los días en que zarpa cada nave. Busca el primer día que aparece en las dos "
-            "listas."
+            "Los días en que zarpa cada nave. Busca el primer día que aparece en las dos " "listas."
         ),
         "cases": [
             {
@@ -134,11 +133,31 @@ CONTENT = {
         "coincide con el producto cuando los números son coprimos."
     ),
     "definition_symbols": [
-        {"symbol": r"\text{MCM}(a,b)", "reads": "mínimo común múltiplo", "means": "el primer día en que las dos naves coinciden"},
-        {"symbol": r"\min", "reads": "el mínimo", "means": "el PRIMERO de los comunes; el producto suele ser uno posterior"},
-        {"symbol": r"\text{MCM}(a,b)\ge\max(a,b)", "reads": "no baja del mayor", "means": "tiene que ser múltiplo de los dos"},
-        {"symbol": r"\text{MCM}\times\text{MCD}=a\times b", "reads": "la relación con Atenas", "means": "lo que sobra del producto es exactamente el MCD"},
-        {"symbol": r"\text{MCD}=1\Rightarrow\text{MCM}=a\times b", "reads": "solo si son coprimos", "means": "ahí el producto sí es la respuesta mínima"},
+        {
+            "symbol": r"\text{MCM}(a,b)",
+            "reads": "mínimo común múltiplo",
+            "means": "el primer día en que las dos naves coinciden",
+        },
+        {
+            "symbol": r"\min",
+            "reads": "el mínimo",
+            "means": "el PRIMERO de los comunes; el producto suele ser uno posterior",
+        },
+        {
+            "symbol": r"\text{MCM}(a,b)\ge\max(a,b)",
+            "reads": "no baja del mayor",
+            "means": "tiene que ser múltiplo de los dos",
+        },
+        {
+            "symbol": r"\text{MCM}\times\text{MCD}=a\times b",
+            "reads": "la relación con Atenas",
+            "means": "lo que sobra del producto es exactamente el MCD",
+        },
+        {
+            "symbol": r"\text{MCD}=1\Rightarrow\text{MCM}=a\times b",
+            "reads": "solo si son coprimos",
+            "means": "ahí el producto sí es la respuesta mínima",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -197,10 +216,14 @@ CONTENT = {
                 "wrong_latex": r"\text{MCM}(4,6)=24",
                 "right_latex": r"\text{MCM}(4,6)=12",
                 "rows": [
-                    {"wrong": "El producto es el MCM",
-                     "right": "El producto es UN múltiplo común, no siempre el menor"},
-                    {"wrong": "4 y 6 no comparten nada",
-                     "right": "Comparten un 2, y multiplicar lo cuenta dos veces"},
+                    {
+                        "wrong": "El producto es el MCM",
+                        "right": "El producto es UN múltiplo común, no siempre el menor",
+                    },
+                    {
+                        "wrong": "4 y 6 no comparten nada",
+                        "right": "Comparten un 2, y multiplicar lo cuenta dos veces",
+                    },
                 ],
             },
             "explain_prompt": "¿Por qué 24 no es la respuesta? Da el valor correcto y di qué pieza se contó de más.",
@@ -266,7 +289,11 @@ CONTENT = {
         "methods": [
             {
                 "label": "Método 1 · Por factorización",
-                "steps": [r"24=2^{3}\times 3", r"36=2^{2}\times 3^{2}", r"\text{mayores: }2^{3}\times 3^{2}=72"],
+                "steps": [
+                    r"24=2^{3}\times 3",
+                    r"36=2^{2}\times 3^{2}",
+                    r"\text{mayores: }2^{3}\times 3^{2}=72",
+                ],
                 "note": "Todos los primos, cada uno con su exponente más alto.",
             },
             {
@@ -330,7 +357,10 @@ CONTENT = {
             "tipo": "detecta_error",
             "prompt": "Un escribiente anota «MCM(8, 12) = 96, porque 8 × 12 = 96». ¿Dónde está el error?",
             "options": [
-                {"id": "not_minimum", "text": "96 es común pero no mínimo: comparten un 4, y el MCM es 24"},
+                {
+                    "id": "not_minimum",
+                    "text": "96 es común pero no mínimo: comparten un 4, y el MCM es 24",
+                },
                 {"id": "arith", "text": "Se equivocó: 8 × 12 no da 96"},
                 {"id": "not_multiple", "text": "96 no es múltiplo de 8"},
                 {"id": "none", "text": "Ningún error, está bien"},
@@ -426,24 +456,48 @@ CONTENT = {
         "title": "¿Es el MCM igual a a × b?",
         "intro": "La respuesta depende de una sola cosa: si los dos números comparten piezas.",
         "rows": [
-            {"symbol": r"(4,6)", "name": "Comparten un 2", "closed": "no",
-             "latex": r"\text{MCM}=12,\ 4\times 6=24",
-             "note": "El producto llega el doble de tarde. Ese doble es el MCD."},
-            {"symbol": r"(3,5)", "name": "Coprimos", "closed": "yes",
-             "latex": r"\text{MCM}=15=3\times 5",
-             "note": "No comparten nada, así que no hay nada repetido que quitar."},
-            {"symbol": r"(6,12)", "name": "Uno divide al otro", "closed": "no",
-             "latex": r"\text{MCM}=12,\ 6\times 12=72",
-             "note": "El MCM es directamente el mayor. Compruébalo siempre primero."},
-            {"symbol": r"(7,11)", "name": "Dos primos distintos", "closed": "yes",
-             "latex": r"\text{MCM}=77=7\times 11",
-             "note": "Dos primos distintos siempre son coprimos: el producto acierta."},
-            {"symbol": r"(a,a)", "name": "El mismo dos veces", "closed": "no",
-             "latex": r"\text{MCM}(a,a)=a",
-             "note": "Comparten todo. El producto a² se pasa muchísimo."},
-            {"symbol": r"(n,1)", "name": "Con el uno", "closed": "yes",
-             "latex": r"\text{MCM}(n,1)=n=n\times 1",
-             "note": "El producto acierta, aunque por una razón boba: multiplicar por 1 no cambia nada (N3-M04)."},
+            {
+                "symbol": r"(4,6)",
+                "name": "Comparten un 2",
+                "closed": "no",
+                "latex": r"\text{MCM}=12,\ 4\times 6=24",
+                "note": "El producto llega el doble de tarde. Ese doble es el MCD.",
+            },
+            {
+                "symbol": r"(3,5)",
+                "name": "Coprimos",
+                "closed": "yes",
+                "latex": r"\text{MCM}=15=3\times 5",
+                "note": "No comparten nada, así que no hay nada repetido que quitar.",
+            },
+            {
+                "symbol": r"(6,12)",
+                "name": "Uno divide al otro",
+                "closed": "no",
+                "latex": r"\text{MCM}=12,\ 6\times 12=72",
+                "note": "El MCM es directamente el mayor. Compruébalo siempre primero.",
+            },
+            {
+                "symbol": r"(7,11)",
+                "name": "Dos primos distintos",
+                "closed": "yes",
+                "latex": r"\text{MCM}=77=7\times 11",
+                "note": "Dos primos distintos siempre son coprimos: el producto acierta.",
+            },
+            {
+                "symbol": r"(a,a)",
+                "name": "El mismo dos veces",
+                "closed": "no",
+                "latex": r"\text{MCM}(a,a)=a",
+                "note": "Comparten todo. El producto a² se pasa muchísimo.",
+            },
+            {
+                "symbol": r"(n,1)",
+                "name": "Con el uno",
+                "closed": "yes",
+                "latex": r"\text{MCM}(n,1)=n=n\times 1",
+                "note": "El producto acierta, aunque por una razón boba: multiplicar por 1 no cambia nada (N3-M04).",
+            },
         ],
         "outro": (
             "El producto acierta cuando el MCD es 1 y falla en todo lo demás — y falla "
@@ -455,10 +509,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres casos trabajados en este nodo?",
         "thumbnails": [r"\text{MCM}(12,18)", r"\text{MCM}(5,7)", r"\text{MCM}(4,6)=24?"],
         "options": [
-            {"id": "common_multiple", "text": "En los tres se busca un número donde quepan los DOS", "correct": True},
-            {"id": "floor", "text": "En los tres el resultado no puede bajar del número mayor", "correct": True},
-            {"id": "product", "text": "En los tres el resultado es el producto de los dos", "correct": False},
-            {"id": "smaller", "text": "En los tres el resultado es menor que los dos números", "correct": False},
+            {
+                "id": "common_multiple",
+                "text": "En los tres se busca un número donde quepan los DOS",
+                "correct": True,
+            },
+            {
+                "id": "floor",
+                "text": "En los tres el resultado no puede bajar del número mayor",
+                "correct": True,
+            },
+            {
+                "id": "product",
+                "text": "En los tres el resultado es el producto de los dos",
+                "correct": False,
+            },
+            {
+                "id": "smaller",
+                "text": "En los tres el resultado es menor que los dos números",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {
@@ -563,9 +633,7 @@ CONTENT = {
         "fb_c06_e5_trap": (
             "Con 4 y 6 el producto da 24 pero coinciden en 12. → Comprueba ese caso."
         ),
-        "fb_c06_e5_never": (
-            "Casi: hay casos donde sí acierta. → Calcula MCM(5, 7)."
-        ),
+        "fb_c06_e5_never": ("Casi: hay casos donde sí acierta. → Calcula MCM(5, 7)."),
         "fb_c06_e5_primes": (
             "No hace falta que sean primos, solo COPRIMOS: 4 y 9 son compuestos y el "
             "producto acierta. → Calcula MCM(4, 9)."

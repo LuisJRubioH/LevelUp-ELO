@@ -1026,9 +1026,7 @@ class PostgresRepository:
             )
             # v7 — Vincula sesiones históricas con la plantilla usada. Debe
             # ejecutarse después del CREATE para soportar una base vacía.
-            self._add_column_if_not_exists(
-                cursor, "exam_sessions", "exam_template_id", "INTEGER"
-            )
+            self._add_column_if_not_exists(cursor, "exam_sessions", "exam_template_id", "INTEGER")
             # Spec 001 (FR-028b): the overall rating's state at submission — 'rated' or 'pending'.
             # NULL = recorded before this column: unknown, never backfilled (see contracts/api.md).
             self._add_column_if_not_exists(
@@ -2063,8 +2061,16 @@ class PostgresRepository:
                             attempts_count)
                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                            ON CONFLICT (week_start, group_id, user_id) DO NOTHING""",
-                        (week_start, week_end, group_id, r["rank"], r["user_id"],
-                         r["username"], r["rating"], r["attempts_in_window"]),
+                        (
+                            week_start,
+                            week_end,
+                            group_id,
+                            r["rank"],
+                            r["user_id"],
+                            r["username"],
+                            r["rating"],
+                            r["attempts_in_window"],
+                        ),
                     )
             conn.commit()
         except Exception:
@@ -2219,9 +2225,15 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
         return [
-            {"user_id": r["user_id"], "course_id": r["course_id"], "topic": r["topic"],
-             "elo": float(r["current_elo"]), "rd": float(r["rd"]), "origin": r["origin"],
-             "approximate": bool(r["approximate"])}
+            {
+                "user_id": r["user_id"],
+                "course_id": r["course_id"],
+                "topic": r["topic"],
+                "elo": float(r["current_elo"]),
+                "rd": float(r["rd"]),
+                "origin": r["origin"],
+                "approximate": bool(r["approximate"]),
+            }
             for r in rows
         ]
 
@@ -2341,20 +2353,18 @@ class PostgresRepository:
                 return 0
             results = []
             for query in (
-            "SELECT user_id, topic, current_elo, rd, updated_at FROM student_topic_elo",
-            "SELECT DISTINCT a.user_id, i.course_id, i.topic, a.topic AS rating_key FROM attempts a"
-            " JOIN items i ON i.id = a.item_id WHERE a.topic IS NOT NULL",
-            "SELECT user_id, course_id FROM diagnostics",
-            "SELECT DISTINCT course_id, topic FROM items WHERE course_id IS NOT NULL",
-            "SELECT id, name FROM courses",
-            "SELECT user_id, course_id, topic FROM student_course_topic_elo",
+                "SELECT user_id, topic, current_elo, rd, updated_at FROM student_topic_elo",
+                "SELECT DISTINCT a.user_id, i.course_id, i.topic, a.topic AS rating_key FROM attempts a"
+                " JOIN items i ON i.id = a.item_id WHERE a.topic IS NOT NULL",
+                "SELECT user_id, course_id FROM diagnostics",
+                "SELECT DISTINCT course_id, topic FROM items WHERE course_id IS NOT NULL",
+                "SELECT id, name FROM courses",
+                "SELECT user_id, course_id, topic FROM student_course_topic_elo",
             ):
                 cursor.execute(query)
                 results.append([tuple(r.values()) for r in cursor.fetchall()])
             legacy, attempts, diagnostics, topics, names, existing = results
-            rows = plan_reconciliation(
-                legacy, attempts, diagnostics, topics, dict(names), existing
-            )
+            rows = plan_reconciliation(legacy, attempts, diagnostics, topics, dict(names), existing)
             created = 0
             for r in rows:
                 cursor.execute(
@@ -2363,8 +2373,15 @@ class PostgresRepository:
                         legacy_source_key, reconciled_at, updated_at)
                        VALUES (%s, %s, %s, %s, %s, %s, TRUE, %s, NOW(), NOW())
                        ON CONFLICT (user_id, course_id, topic) DO NOTHING""",
-                    (r["user_id"], r["course_id"], r["topic"], r["elo"], r["rd"], r["origin"],
-                     r["legacy_source_key"]),
+                    (
+                        r["user_id"],
+                        r["course_id"],
+                        r["topic"],
+                        r["elo"],
+                        r["rd"],
+                        r["origin"],
+                        r["legacy_source_key"],
+                    ),
                 )
                 created += cursor.rowcount
             conn.commit()
@@ -3961,6 +3978,7 @@ class PostgresRepository:
 
     def create_pvp_match(self, course_id: str, p1: int, p2: int, item_ids: list[str]) -> int:
         import json
+
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -3987,10 +4005,15 @@ class PostgresRepository:
             self.put_connection(conn)
 
     def finish_pvp_match(
-        self, match_id: int, winner_id: int | None,
-        score_p1: int, score_p2: int,
-        elo_delta_p1: float, elo_delta_p2: float,
-        p1_id: int, p2_id: int,
+        self,
+        match_id: int,
+        winner_id: int | None,
+        score_p1: int,
+        score_p2: int,
+        elo_delta_p1: float,
+        elo_delta_p2: float,
+        p1_id: int,
+        p2_id: int,
     ) -> dict | None:
         """Close an active match once and apply each player's delta (FR-025, FR-029b, FR-029c).
 
@@ -4085,17 +4108,19 @@ class PostgresRepository:
             results = []
             for r in cursor.fetchall():
                 is_p1 = r["player1_id"] == user_id
-                results.append({
-                    "match_id": r["id"],
-                    "course_id": r["course_id"],
-                    "won": r["winner_id"] == user_id,
-                    "draw": r["winner_id"] is None,
-                    "my_score": r["score_p1"] if is_p1 else r["score_p2"],
-                    "opp_score": r["score_p2"] if is_p1 else r["score_p1"],
-                    "elo_delta": r["elo_delta_p1"] if is_p1 else r["elo_delta_p2"],
-                    "opponent": r["p2_name"] if is_p1 else r["p1_name"],
-                    "finished_at": str(r["finished_at"])[:16] if r["finished_at"] else None,
-                })
+                results.append(
+                    {
+                        "match_id": r["id"],
+                        "course_id": r["course_id"],
+                        "won": r["winner_id"] == user_id,
+                        "draw": r["winner_id"] is None,
+                        "my_score": r["score_p1"] if is_p1 else r["score_p2"],
+                        "opp_score": r["score_p2"] if is_p1 else r["score_p1"],
+                        "elo_delta": r["elo_delta_p1"] if is_p1 else r["elo_delta_p2"],
+                        "opponent": r["p2_name"] if is_p1 else r["p1_name"],
+                        "finished_at": str(r["finished_at"])[:16] if r["finished_at"] else None,
+                    }
+                )
             return results
         finally:
             self.put_connection(conn)
@@ -4305,7 +4330,9 @@ class PostgresRepository:
             f"image_data={'bytes:'+str(len(image_data)) if image_data else 'None'}, mime_type={mime_type}"
         )
         ext = {
-            "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
+            "image/jpeg": "jpg",
+            "image/png": "png",
+            "image/webp": "webp",
             "application/pdf": "pdf",
         }.get(mime_type, "bin")
 
@@ -4847,9 +4874,7 @@ class PostgresRepository:
             "completed_at": str(row["completed_at"]) if row["completed_at"] else None,
         }
 
-    def record_lesson_event(
-        self, user_id: int, course_id: str, node_id: str, event: str
-    ) -> dict:
+    def record_lesson_event(self, user_id: int, course_id: str, node_id: str, event: str) -> dict:
         """Registra un hito curricular idempotente sin afectar ELO."""
         conn = self.get_connection()
         try:
@@ -4974,8 +4999,13 @@ class PostgresRepository:
             self.put_connection(conn)
 
     def create_active_exam_session(
-        self, session_id: str, user_id: int, course_id: str,
-        template_id: int | None, item_ids: list[str], expires_at: str,
+        self,
+        session_id: str,
+        user_id: int,
+        course_id: str,
+        template_id: int | None,
+        item_ids: list[str],
+        expires_at: str,
     ) -> None:
         conn = self.get_connection()
         try:
@@ -4984,8 +5014,7 @@ class PostgresRepository:
                     """INSERT INTO active_exam_sessions
                        (id, user_id, course_id, exam_template_id, item_ids, expires_at)
                        VALUES (%s, %s, %s, %s, %s, %s)""",
-                    (session_id, user_id, course_id, template_id,
-                     json.dumps(item_ids), expires_at),
+                    (session_id, user_id, course_id, template_id, json.dumps(item_ids), expires_at),
                 )
             conn.commit()
         except Exception:
@@ -5008,7 +5037,8 @@ class PostgresRepository:
                 if not row:
                     return None
                 return {
-                    "id": row["id"], "course_id": row["course_id"],
+                    "id": row["id"],
+                    "course_id": row["course_id"],
                     "template_id": row["exam_template_id"],
                     "item_ids": json.loads(row["item_ids"]),
                     "expires_at": str(row["expires_at"]),
@@ -5019,8 +5049,12 @@ class PostgresRepository:
             self.put_connection(conn)
 
     def complete_active_exam_session(
-        self, session_id: str, user_id: int, course_name: str,
-        result: dict, responses: list[dict],
+        self,
+        session_id: str,
+        user_id: int,
+        course_name: str,
+        result: dict,
+        responses: list[dict],
     ) -> bool:
         conn = self.get_connection()
         try:
@@ -5042,12 +5076,18 @@ class PostgresRepository:
                        (user_id, course_id, course_name, n_questions, correct_count, score_pct,
                         global_elo_after, global_elo_status, exam_template_id)
                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
-                    (user_id, run["course_id"], course_name, result["total_questions"],
-                     result["correct_count"], result["score_pct"],
-                     # Pending: the column stays NOT NULL (AGENTS R8); the status says pending.
-                     result["global_elo_after"] or 0,
-                     "pending" if result["global_elo_after"] is None else "rated",
-                     run["exam_template_id"]),
+                    (
+                        user_id,
+                        run["course_id"],
+                        course_name,
+                        result["total_questions"],
+                        result["correct_count"],
+                        result["score_pct"],
+                        # Pending: the column stays NOT NULL (AGENTS R8); the status says pending.
+                        result["global_elo_after"] or 0,
+                        "pending" if result["global_elo_after"] is None else "rated",
+                        run["exam_template_id"],
+                    ),
                 )
                 history_id = cursor.fetchone()["id"]
                 if responses:
@@ -5055,9 +5095,17 @@ class PostgresRepository:
                         """INSERT INTO exam_responses
                            (session_id, template_id, user_id, item_id, topic, is_correct)
                            VALUES (%s, %s, %s, %s, %s, %s)""",
-                        [(history_id, run["exam_template_id"], user_id, r["item_id"],
-                          r.get("topic"), 1 if r.get("is_correct") else 0)
-                         for r in responses],
+                        [
+                            (
+                                history_id,
+                                run["exam_template_id"],
+                                user_id,
+                                r["item_id"],
+                                r.get("topic"),
+                                1 if r.get("is_correct") else 0,
+                            )
+                            for r in responses
+                        ],
                     )
             conn.commit()
             return True
@@ -5383,9 +5431,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    def delete_exam_assignment(
-        self, assignment_id: int, template_id: int | None = None
-    ) -> bool:
+    def delete_exam_assignment(self, assignment_id: int, template_id: int | None = None) -> bool:
         conn = self.get_connection()
         try:
             with conn.cursor() as cursor:

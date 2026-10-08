@@ -22,9 +22,7 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-LIBROS_DIR = Path(
-    r"C:\Users\orian\OneDrive\Documentos\IE Los Andes\Libros\Libros santillana 8 y 9"
-)
+LIBROS_DIR = Path(r"C:\Users\orian\OneDrive\Documentos\IE Los Andes\Libros\Libros santillana 8 y 9")
 
 # nombre corto -> (archivo PDF, carpeta de salida, páginas)
 LIBROS = {
@@ -55,8 +53,19 @@ def renderizar(libro: str, pagina: int, dpi: int) -> Path:
     destino = prefijo.with_suffix(".png")
     if not destino.exists():
         subprocess.run(
-            [_pdftoppm(), "-f", str(pagina), "-l", str(pagina), "-r", str(dpi), "-png",
-             "-singlefile", str(LIBROS_DIR / archivo), str(prefijo)],
+            [
+                _pdftoppm(),
+                "-f",
+                str(pagina),
+                "-l",
+                str(pagina),
+                "-r",
+                str(dpi),
+                "-png",
+                "-singlefile",
+                str(LIBROS_DIR / archivo),
+                str(prefijo),
+            ],
             check=True,
             capture_output=True,
         )
@@ -68,12 +77,21 @@ def main() -> int:
     parser.add_argument("libro", choices=sorted(LIBROS), help="hipertexto o caminos")
     parser.add_argument("pagina", type=int, help="número de página del PDF")
     parser.add_argument("--dpi", type=int, default=200)
-    parser.add_argument("--y", type=float, nargs=2, metavar=("Y0", "Y1"),
-                        help="banda vertical en fracción de la altura, p. ej. 0.6 0.9")
-    parser.add_argument("--x", type=float, nargs=2, metavar=("X0", "X1"),
-                        help="banda horizontal en fracción del ancho")
-    parser.add_argument("--max-lado", type=int, default=2200,
-                        help="lado máximo del PNG resultante")
+    parser.add_argument(
+        "--y",
+        type=float,
+        nargs=2,
+        metavar=("Y0", "Y1"),
+        help="banda vertical en fracción de la altura, p. ej. 0.6 0.9",
+    )
+    parser.add_argument(
+        "--x",
+        type=float,
+        nargs=2,
+        metavar=("X0", "X1"),
+        help="banda horizontal en fracción del ancho",
+    )
+    parser.add_argument("--max-lado", type=int, default=2200, help="lado máximo del PNG resultante")
     args = parser.parse_args()
 
     total = LIBROS[args.libro][2]
@@ -94,8 +112,12 @@ def main() -> int:
         escala = args.max_lado / max(rec.size)
         rec = rec.resize((int(rec.width * escala), int(rec.height * escala)), Image.LANCZOS)
     carpeta = LIBROS[args.libro][1]
-    destino = (ROOT / "tmp" / carpeta /
-               f"p{args.pagina:03d}_{int(y0*100)}{int(y1*100)}_{int(x0*100)}{int(x1*100)}.png")
+    destino = (
+        ROOT
+        / "tmp"
+        / carpeta
+        / f"p{args.pagina:03d}_{int(y0*100)}{int(y1*100)}_{int(x0*100)}{int(x1*100)}.png"
+    )
     rec.save(destino)
     print(destino, rec.size)
     return 0

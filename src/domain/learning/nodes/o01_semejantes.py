@@ -145,10 +145,26 @@ CONTENT = {
     ),
     "definition_symbols": [
         {"symbol": r"3c", "reads": "tres ce", "means": "coeficiente 3, parte literal c"},
-        {"symbol": r"3c+2c=5c", "reads": "se juntan", "means": "misma parte literal: se suman los coeficientes"},
-        {"symbol": r"3c+2h", "reads": "no se juntan", "means": "partes literales distintas: la suma queda indicada"},
-        {"symbol": r"3x\ \text{y}\ 3x^{2}", "reads": "tampoco", "means": "misma letra pero distinto exponente — no son semejantes"},
-        {"symbol": r"x=1x", "reads": "el coeficiente invisible", "means": "una letra sola lleva un 1 delante que no se escribe"},
+        {
+            "symbol": r"3c+2c=5c",
+            "reads": "se juntan",
+            "means": "misma parte literal: se suman los coeficientes",
+        },
+        {
+            "symbol": r"3c+2h",
+            "reads": "no se juntan",
+            "means": "partes literales distintas: la suma queda indicada",
+        },
+        {
+            "symbol": r"3x\ \text{y}\ 3x^{2}",
+            "reads": "tampoco",
+            "means": "misma letra pero distinto exponente — no son semejantes",
+        },
+        {
+            "symbol": r"x=1x",
+            "reads": "el coeficiente invisible",
+            "means": "una letra sola lleva un 1 delante que no se escribe",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -211,10 +227,14 @@ CONTENT = {
                 "wrong_latex": r"3x+4y=7xy",
                 "right_latex": r"3x+4y",
                 "rows": [
-                    {"wrong": "3 + 4 = 7, así que el resultado lleva un 7",
-                     "right": "Los coeficientes solo se suman si la parte literal es la misma"},
-                    {"wrong": "x junto a y da xy",
-                     "right": "xy significa x · y, un producto — aquí solo había una suma"},
+                    {
+                        "wrong": "3 + 4 = 7, así que el resultado lleva un 7",
+                        "right": "Los coeficientes solo se suman si la parte literal es la misma",
+                    },
+                    {
+                        "wrong": "x junto a y da xy",
+                        "right": "xy significa x · y, un producto — aquí solo había una suma",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -239,9 +259,7 @@ CONTENT = {
             {
                 "id": "P1",
                 "missing": "last",
-                "statement": (
-                    "Simplifica 7a + 2a + 5 y evalúa el resultado para a = 4."
-                ),
+                "statement": ("Simplifica 7a + 2a + 5 y evalúa el resultado para a = 4."),
                 "given_steps": [
                     r"7a+2a+5=9a+5",
                     r"a=4",
@@ -372,9 +390,7 @@ CONTENT = {
             "id": "E3",
             "kind": "text_exact",
             "tipo": "estandar",
-            "prompt": (
-                "Simplifica 4r + 3 + 2r. Escribe la expresión más corta equivalente."
-            ),
+            "prompt": ("Simplifica 4r + 3 + 2r. Escribe la expresión más corta equivalente."),
             "expr": r"4r+3+2r",
             "answer": "6r+3",
             "accepted": ["3+6r"],
@@ -393,7 +409,10 @@ CONTENT = {
                 "¿Dónde está el error?"
             ),
             "options": [
-                {"id": "sign", "text": "No repartió el menos al 2: debía quedar −2, y el resultado es 5k + 3"},
+                {
+                    "id": "sign",
+                    "text": "No repartió el menos al 2: debía quedar −2, y el resultado es 5k + 3",
+                },
                 {"id": "coef", "text": "Se equivocó al restar los coeficientes de k"},
                 {"id": "like", "text": "Juntó términos que no eran semejantes"},
                 {"id": "none", "text": "No hay error"},
@@ -423,7 +442,10 @@ CONTENT = {
             "confidence": "fija",
             "prompt": r"¿Es verdadera o falsa? «$3x+4y=7xy$.»",
             "options": [
-                {"id": "false", "text": "Falsa: las partes literales son distintas, la suma se queda indicada"},
+                {
+                    "id": "false",
+                    "text": "Falsa: las partes literales son distintas, la suma se queda indicada",
+                },
                 {"id": "true", "text": "Verdadera: 3 + 4 = 7 y las letras se juntan en xy"},
                 {"id": "true_if", "text": r"Verdadera solo si $x=y$"},
                 {"id": "false_seven", "text": r"Falsa: el resultado correcto es $7x+7y$"},
@@ -493,24 +515,48 @@ CONTENT = {
             "literal coincide entera."
         ),
         "rows": [
-            {"symbol": r"3x+2x", "name": "Misma letra, mismo exponente", "closed": "yes",
-             "latex": r"=5x",
-             "note": "Se suman los coeficientes y la x se conserva."},
-            {"symbol": r"3x+2y", "name": "Letras distintas", "closed": "no",
-             "latex": r"3x+2y",
-             "note": "No hay nada que sacar factor común: la suma se queda indicada."},
-            {"symbol": r"3x^{2}+2x", "name": "Misma letra, distinto exponente", "closed": "no",
-             "latex": r"3x^{2}+2x",
-             "note": "x² y x son cantidades distintas. Con x = 3 valen 27 y 6."},
-            {"symbol": r"5+3", "name": "Dos constantes", "closed": "yes",
-             "latex": r"=8",
-             "note": "Los términos sin letra son semejantes entre sí. Siempre se juntan."},
-            {"symbol": r"4ab+9ba", "name": "Mismo producto, otro orden", "closed": "yes",
-             "latex": r"=13ab",
-             "note": "ab y ba son la misma parte literal: multiplicar es conmutativo (N3-M01)."},
-            {"symbol": r"2x+6", "name": "Sin letra pero con factor común", "closed": "partial",
-             "latex": r"=2(x+3)",
-             "note": "Como suma no se acortan. Como producto sí: es la distributiva al revés, y de ahí sale toda la factorización."},
+            {
+                "symbol": r"3x+2x",
+                "name": "Misma letra, mismo exponente",
+                "closed": "yes",
+                "latex": r"=5x",
+                "note": "Se suman los coeficientes y la x se conserva.",
+            },
+            {
+                "symbol": r"3x+2y",
+                "name": "Letras distintas",
+                "closed": "no",
+                "latex": r"3x+2y",
+                "note": "No hay nada que sacar factor común: la suma se queda indicada.",
+            },
+            {
+                "symbol": r"3x^{2}+2x",
+                "name": "Misma letra, distinto exponente",
+                "closed": "no",
+                "latex": r"3x^{2}+2x",
+                "note": "x² y x son cantidades distintas. Con x = 3 valen 27 y 6.",
+            },
+            {
+                "symbol": r"5+3",
+                "name": "Dos constantes",
+                "closed": "yes",
+                "latex": r"=8",
+                "note": "Los términos sin letra son semejantes entre sí. Siempre se juntan.",
+            },
+            {
+                "symbol": r"4ab+9ba",
+                "name": "Mismo producto, otro orden",
+                "closed": "yes",
+                "latex": r"=13ab",
+                "note": "ab y ba son la misma parte literal: multiplicar es conmutativo (N3-M01).",
+            },
+            {
+                "symbol": r"2x+6",
+                "name": "Sin letra pero con factor común",
+                "closed": "partial",
+                "latex": r"=2(x+3)",
+                "note": "Como suma no se acortan. Como producto sí: es la distributiva al revés, y de ahí sale toda la factorización.",
+            },
         ],
         "outro": (
             "La regla cabe en una línea: se suman los coeficientes solo cuando la parte "
@@ -522,10 +568,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres registros trabajados en este nodo?",
         "thumbnails": [r"4r+3+2r", r"(5h+4)-(2h+1)", r"3x+4y"],
         "options": [
-            {"id": "same_literal", "text": "En los tres hay que mirar la parte literal antes de operar", "correct": True},
-            {"id": "coefficients", "text": "En los tres solo cambian los coeficientes; la parte literal se conserva", "correct": True},
-            {"id": "always_shorter", "text": "En los tres el registro final tiene menos términos que el inicial", "correct": False},
-            {"id": "one_term", "text": "En los tres el resultado se puede escribir con un solo término", "correct": False},
+            {
+                "id": "same_literal",
+                "text": "En los tres hay que mirar la parte literal antes de operar",
+                "correct": True,
+            },
+            {
+                "id": "coefficients",
+                "text": "En los tres solo cambian los coeficientes; la parte literal se conserva",
+                "correct": True,
+            },
+            {
+                "id": "always_shorter",
+                "text": "En los tres el registro final tiene menos términos que el inicial",
+                "correct": False,
+            },
+            {
+                "id": "one_term",
+                "text": "En los tres el resultado se puede escribir con un solo término",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {
@@ -634,9 +696,7 @@ CONTENT = {
         "fb_a02_e2_mixed": (
             "Las constantes no se juntan con los términos en h. → Trátalas como una columna aparte."
         ),
-        "fb_a02_e4_coef": (
-            "8k − 3k = 5k está bien calculado. → Revisa el término sin letra."
-        ),
+        "fb_a02_e4_coef": ("8k − 3k = 5k está bien calculado. → Revisa el término sin letra."),
         "fb_a02_e4_like": (
             "No juntó nada que no fuera semejante: k con k y número con número. → El fallo está en un signo."
         ),

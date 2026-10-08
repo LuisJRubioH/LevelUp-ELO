@@ -226,4 +226,3 @@ class TestPvpStateSurvivesTheProcess:
         conn.close()
 
         assert repo.expire_stale_pvp_matches() == expired
-

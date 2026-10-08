@@ -140,9 +140,21 @@ CONTENT = {
     "definition_symbols": [
         {"symbol": r"0", "reads": "neutro aditivo", "means": "no moverse desde donde estás"},
         {"symbol": r"1", "reads": "neutro multiplicativo", "means": "hacer una sola copia"},
-        {"symbol": r"a\times 0=0", "reads": "el cero absorbe", "means": "no es neutro del producto: lo arrasa todo"},
-        {"symbol": r"a-0=a\ \text{pero}\ 0-a=-a", "reads": "neutro por la derecha", "means": "en la resta el 0 solo sirve puesto detrás"},
-        {"symbol": r"a\div 1=a\ \text{pero}\ 1\div a\neq a", "reads": "neutro por la derecha", "means": "en la división el 1 solo sirve puesto detrás"},
+        {
+            "symbol": r"a\times 0=0",
+            "reads": "el cero absorbe",
+            "means": "no es neutro del producto: lo arrasa todo",
+        },
+        {
+            "symbol": r"a-0=a\ \text{pero}\ 0-a=-a",
+            "reads": "neutro por la derecha",
+            "means": "en la resta el 0 solo sirve puesto detrás",
+        },
+        {
+            "symbol": r"a\div 1=a\ \text{pero}\ 1\div a\neq a",
+            "reads": "neutro por la derecha",
+            "means": "en la división el 1 solo sirve puesto detrás",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -203,10 +215,14 @@ CONTENT = {
                 "wrong_latex": r"46\times 0=46",
                 "right_latex": r"46\times 0=0\qquad 46\times 1=46",
                 "rows": [
-                    {"wrong": "El 0 no cambia nada en ninguna operación",
-                     "right": "El 0 no cambia nada al SUMAR; al multiplicar lo arrasa"},
-                    {"wrong": "Hay una sola galga que sirve para todos los bancos",
-                     "right": "Cada operación tiene su propio neutro"},
+                    {
+                        "wrong": "El 0 no cambia nada en ninguna operación",
+                        "right": "El 0 no cambia nada al SUMAR; al multiplicar lo arrasa",
+                    },
+                    {
+                        "wrong": "Hay una sola galga que sirve para todos los bancos",
+                        "right": "Cada operación tiene su propio neutro",
+                    },
                 ],
             },
             "explain_prompt": "¿Por qué 46 × 0 no puede dar 46? Di cuál es el neutro correcto del producto.",
@@ -277,7 +293,11 @@ CONTENT = {
             },
             {
                 "label": "Método 2 · Reconocer neutro y absorbente",
-                "steps": [r"83\times 1\to\text{neutro: queda }83", r"0\times 47\to\text{absorbente: }0", r"=83"],
+                "steps": [
+                    r"83\times 1\to\text{neutro: queda }83",
+                    r"0\times 47\to\text{absorbente: }0",
+                    r"=83",
+                ],
                 "note": "Lee la expresión en vez de calcularla.",
             },
         ],
@@ -336,7 +356,10 @@ CONTENT = {
             "tipo": "detecta_error",
             "prompt": r"Un calibrador anota «$1\div 25=25$, porque el 1 es neutro». ¿Dónde está el error?",
             "options": [
-                {"id": "right_only", "text": "El 1 solo es neutro puesto a la derecha: 25 ÷ 1 = 25, pero 1 ÷ 25 = 0,04"},
+                {
+                    "id": "right_only",
+                    "text": "El 1 solo es neutro puesto a la derecha: 25 ÷ 1 = 25, pero 1 ÷ 25 = 0,04",
+                },
                 {"id": "wrong_neutral", "text": "El neutro de la división es el 0, no el 1"},
                 {"id": "arith", "text": "Se equivocó al dividir: da 26"},
                 {"id": "none", "text": "Ningún error, está bien"},
@@ -366,7 +389,10 @@ CONTENT = {
             "confidence": "fija",
             "prompt": r"¿Es verdadera o falsa? «Existe un número que deja igual a cualquier otro en TODAS las operaciones.»",
             "options": [
-                {"id": "false_each", "text": "Falsa: cada operación tiene el suyo (0 para sumar, 1 para multiplicar)"},
+                {
+                    "id": "false_each",
+                    "text": "Falsa: cada operación tiene el suyo (0 para sumar, 1 para multiplicar)",
+                },
                 {"id": "true_zero", "text": "Verdadera: el 0"},
                 {"id": "true_one", "text": "Verdadera: el 1"},
                 {"id": "false_none", "text": "Falsa: no existe neutro en ninguna operación"},
@@ -393,9 +419,7 @@ CONTENT = {
             "id": "E6",
             "kind": "numeric",
             "tipo": "transferencia",
-            "prompt": (
-                "Sin calcular término a término: ¿cuánto vale (72 × 1) + (0 × 96)?"
-            ),
+            "prompt": ("Sin calcular término a término: ¿cuánto vale (72 × 1) + (0 × 96)?"),
             "expr": r"(72\times 1)+(0\times 96)",
             "answer": "72",
             "hints": {
@@ -440,24 +464,48 @@ CONTENT = {
         "title": "¿Qué número deja el resultado intacto, y por qué lado?",
         "intro": "Las seis operaciones de la ciudad, cada una con su galga.",
         "rows": [
-            {"symbol": r"+", "name": "Suma", "closed": "yes",
-             "latex": r"a+0=0+a=a",
-             "note": "Neutro 0, por los dos lados: la suma conmuta."},
-            {"symbol": r"-", "name": "Resta", "closed": "partial",
-             "latex": r"a-0=a\quad\text{pero}\quad 0-a=-a",
-             "note": "Neutro 0 solo por la DERECHA. Puesto delante, cambia el signo."},
-            {"symbol": r"\times", "name": "Multiplicación", "closed": "yes",
-             "latex": r"a\times 1=1\times a=a",
-             "note": "Neutro 1, por los dos lados. Ojo: el 0 aquí no es neutro sino absorbente."},
-            {"symbol": r"\div", "name": "División", "closed": "partial",
-             "latex": r"a\div 1=a\quad\text{pero}\quad 1\div a=\dfrac{1}{a}",
-             "note": "Neutro 1 solo por la DERECHA. Puesto delante da el recíproco — y eso es la estación siguiente."},
-            {"symbol": r"a^{n}", "name": "Potenciación", "closed": "partial",
-             "latex": r"a^{1}=a\quad\text{pero}\quad 1^{a}=1",
-             "note": "Neutro 1 solo en el EXPONENTE. En la base, el 1 absorbe."},
-            {"symbol": r"\sqrt[n]{a}", "name": "Radicación", "closed": "partial",
-             "latex": r"\sqrt[1]{a}=a",
-             "note": "Índice 1 deja el radicando intacto, pero no hay ningún radicando que deje intacto el índice."},
+            {
+                "symbol": r"+",
+                "name": "Suma",
+                "closed": "yes",
+                "latex": r"a+0=0+a=a",
+                "note": "Neutro 0, por los dos lados: la suma conmuta.",
+            },
+            {
+                "symbol": r"-",
+                "name": "Resta",
+                "closed": "partial",
+                "latex": r"a-0=a\quad\text{pero}\quad 0-a=-a",
+                "note": "Neutro 0 solo por la DERECHA. Puesto delante, cambia el signo.",
+            },
+            {
+                "symbol": r"\times",
+                "name": "Multiplicación",
+                "closed": "yes",
+                "latex": r"a\times 1=1\times a=a",
+                "note": "Neutro 1, por los dos lados. Ojo: el 0 aquí no es neutro sino absorbente.",
+            },
+            {
+                "symbol": r"\div",
+                "name": "División",
+                "closed": "partial",
+                "latex": r"a\div 1=a\quad\text{pero}\quad 1\div a=\dfrac{1}{a}",
+                "note": "Neutro 1 solo por la DERECHA. Puesto delante da el recíproco — y eso es la estación siguiente.",
+            },
+            {
+                "symbol": r"a^{n}",
+                "name": "Potenciación",
+                "closed": "partial",
+                "latex": r"a^{1}=a\quad\text{pero}\quad 1^{a}=1",
+                "note": "Neutro 1 solo en el EXPONENTE. En la base, el 1 absorbe.",
+            },
+            {
+                "symbol": r"\sqrt[n]{a}",
+                "name": "Radicación",
+                "closed": "partial",
+                "latex": r"\sqrt[1]{a}=a",
+                "note": "Índice 1 deja el radicando intacto, pero no hay ningún radicando que deje intacto el índice.",
+            },
         ],
         "outro": (
             "Ninguna galga sirve para todos los bancos, y en cuatro operaciones solo sirve "
@@ -472,7 +520,11 @@ CONTENT = {
         "options": [
             {"id": "commutative", "text": "Son las operaciones que conmutan", "correct": True},
             {"id": "same_number", "text": "Usan el mismo número como neutro", "correct": False},
-            {"id": "roles", "text": "Son aquellas donde los dos números hacen el mismo papel", "correct": True},
+            {
+                "id": "roles",
+                "text": "Son aquellas donde los dos números hacen el mismo papel",
+                "correct": True,
+            },
             {"id": "grow", "text": "Son las que hacen crecer el resultado", "correct": False},
         ],
     },

@@ -135,11 +135,31 @@ CONTENT = {
         "porcentajes no se suman ni se cancelan entre sí."
     ),
     "definition_symbols": [
-        {"symbol": r"\dfrac{p}{100}", "reads": "por ciento", "means": "una razón con el denominador fijado en cien"},
-        {"symbol": r"1{,}20", "reads": "factor de subida", "means": "aumentar un 20 % en un solo paso"},
-        {"symbol": r"0{,}80", "reads": "factor de bajada", "means": "disminuir un 20 % en un solo paso"},
-        {"symbol": r"1{,}20\cdot 0{,}80=0{,}96", "reads": "encadenar", "means": "dos cambios seguidos: los factores se multiplican"},
-        {"symbol": r"1{,}25\cdot 0{,}80=1", "reads": "el que sí deshace", "means": "bajar un 20 % se deshace subiendo un 25 %"},
+        {
+            "symbol": r"\dfrac{p}{100}",
+            "reads": "por ciento",
+            "means": "una razón con el denominador fijado en cien",
+        },
+        {
+            "symbol": r"1{,}20",
+            "reads": "factor de subida",
+            "means": "aumentar un 20 % en un solo paso",
+        },
+        {
+            "symbol": r"0{,}80",
+            "reads": "factor de bajada",
+            "means": "disminuir un 20 % en un solo paso",
+        },
+        {
+            "symbol": r"1{,}20\cdot 0{,}80=0{,}96",
+            "reads": "encadenar",
+            "means": "dos cambios seguidos: los factores se multiplican",
+        },
+        {
+            "symbol": r"1{,}25\cdot 0{,}80=1",
+            "reads": "el que sí deshace",
+            "means": "bajar un 20 % se deshace subiendo un 25 %",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -202,10 +222,11 @@ CONTENT = {
                 "wrong_latex": r"100\to 120\to 100",
                 "right_latex": r"100\to 120\to 96",
                 "rows": [
-                    {"wrong": "Sube 20 y baja 20",
-                     "right": "Sube 20 y baja 24, porque baja sobre 120"},
-                    {"wrong": r"1{,}20-0{,}20=1",
-                     "right": r"1{,}20\cdot 0{,}80=0{,}96"},
+                    {
+                        "wrong": "Sube 20 y baja 20",
+                        "right": "Sube 20 y baja 24, porque baja sobre 120",
+                    },
+                    {"wrong": r"1{,}20-0{,}20=1", "right": r"1{,}20\cdot 0{,}80=0{,}96"},
                 ],
             },
             "explain_prompt": (
@@ -254,7 +275,9 @@ CONTENT = {
                     "10 %. ¿Cuántas quedan?"
                 ),
                 "given_steps": [],
-                "blanks": [{"id": "P3-b1", "label": r"200\cdot 1{,}10\cdot 0{,}90=", "answer": "198"}],
+                "blanks": [
+                    {"id": "P3-b1", "label": r"200\cdot 1{,}10\cdot 0{,}90=", "answer": "198"}
+                ],
             },
         ],
     },
@@ -357,7 +380,10 @@ CONTENT = {
                 "está como al principio». ¿Dónde está el error?"
             ),
             "options": [
-                {"id": "base", "text": r"La subida se aplica sobre una cantidad menor: queda en el $91\,\%$"},
+                {
+                    "id": "base",
+                    "text": r"La subida se aplica sobre una cantidad menor: queda en el $91\,\%$",
+                },
                 {"id": "order", "text": "El error es el orden: si primero sube sí vuelve"},
                 {"id": "calc", "text": "Calculó mal el 30 %"},
                 {"id": "none", "text": "No hay error"},
@@ -390,7 +416,10 @@ CONTENT = {
                 "cantidad como estaba.»"
             ),
             "options": [
-                {"id": "false", "text": r"Falsa: queda en el $96\,\%$, porque la bajada se aplica sobre más"},
+                {
+                    "id": "false",
+                    "text": r"Falsa: queda en el $96\,\%$, porque la bajada se aplica sobre más",
+                },
                 {"id": "true", "text": "Verdadera: se sube y se baja lo mismo"},
                 {"id": "true_order", "text": "Verdadera si se hace en ese orden y no al revés"},
                 {"id": "false_more", "text": r"Falsa: queda por encima, en el $104\,\%$"},
@@ -463,24 +492,48 @@ CONTENT = {
             "deshaga significa una sola cosa: que su producto valga exactamente 1."
         ),
         "rows": [
-            {"symbol": r"+20\%\ \text{y}\ -20\%", "name": "El mismo tanto por ciento", "closed": "no",
-             "latex": r"1{,}20\cdot 0{,}80=0{,}96",
-             "note": "Se pierde un 4 %. La bajada actúa sobre más de lo que había. Es el caso focal."},
-            {"symbol": r"-20\%\ \text{y}\ +20\%", "name": "Al revés", "closed": "no",
-             "latex": r"0{,}80\cdot 1{,}20=0{,}96",
-             "note": "Sale exactamente lo mismo: el orden no arregla nada, porque el producto no cambia."},
-            {"symbol": r"+20\%\ \text{y}\ +20\%", "name": "Dos subidas iguales", "closed": "no",
-             "latex": r"1{,}20\cdot 1{,}20=1{,}44",
-             "note": "Un 44 % más, no un 40 %. Los porcentajes tampoco se suman entre sí."},
-            {"symbol": r"+25\%\ \text{y}\ -20\%", "name": "La pareja que sí vuelve", "closed": "yes",
-             "latex": r"1{,}25\cdot 0{,}80=1",
-             "note": "Existe el porcentaje que deshace: nunca es el mismo número que lo hizo."},
-            {"symbol": r"+100\%\ \text{y}\ -50\%", "name": "Doblar y quitar la mitad", "closed": "yes",
-             "latex": r"2\cdot 0{,}5=1",
-             "note": "El mismo caso con números grandes: 100 y 50 no se parecen y aun así se deshacen."},
-            {"symbol": r"-100\%", "name": "Bajar del todo", "closed": "partial",
-             "latex": r"N\cdot 0=0",
-             "note": "El único cambio sin vuelta: multiplicado por cero, ningún porcentaje posterior recupera nada."},
+            {
+                "symbol": r"+20\%\ \text{y}\ -20\%",
+                "name": "El mismo tanto por ciento",
+                "closed": "no",
+                "latex": r"1{,}20\cdot 0{,}80=0{,}96",
+                "note": "Se pierde un 4 %. La bajada actúa sobre más de lo que había. Es el caso focal.",
+            },
+            {
+                "symbol": r"-20\%\ \text{y}\ +20\%",
+                "name": "Al revés",
+                "closed": "no",
+                "latex": r"0{,}80\cdot 1{,}20=0{,}96",
+                "note": "Sale exactamente lo mismo: el orden no arregla nada, porque el producto no cambia.",
+            },
+            {
+                "symbol": r"+20\%\ \text{y}\ +20\%",
+                "name": "Dos subidas iguales",
+                "closed": "no",
+                "latex": r"1{,}20\cdot 1{,}20=1{,}44",
+                "note": "Un 44 % más, no un 40 %. Los porcentajes tampoco se suman entre sí.",
+            },
+            {
+                "symbol": r"+25\%\ \text{y}\ -20\%",
+                "name": "La pareja que sí vuelve",
+                "closed": "yes",
+                "latex": r"1{,}25\cdot 0{,}80=1",
+                "note": "Existe el porcentaje que deshace: nunca es el mismo número que lo hizo.",
+            },
+            {
+                "symbol": r"+100\%\ \text{y}\ -50\%",
+                "name": "Doblar y quitar la mitad",
+                "closed": "yes",
+                "latex": r"2\cdot 0{,}5=1",
+                "note": "El mismo caso con números grandes: 100 y 50 no se parecen y aun así se deshacen.",
+            },
+            {
+                "symbol": r"-100\%",
+                "name": "Bajar del todo",
+                "closed": "partial",
+                "latex": r"N\cdot 0=0",
+                "note": "El único cambio sin vuelta: multiplicado por cero, ningún porcentaje posterior recupera nada.",
+            },
         ],
         "outro": (
             "Las tres primeras filas dicen lo mismo desde ángulos distintos: los "
@@ -494,10 +547,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres encargos trabajados en este nodo?",
         "thumbnails": [r"15\%\ \text{de}\ 240", r"240\cdot 1{,}15", r"1{,}20\cdot 0{,}80"],
         "options": [
-            {"id": "base", "text": "En los tres el porcentaje se calcula siempre sobre una cantidad concreta, y hay que saber cuál", "correct": True},
-            {"id": "factor", "text": "En los tres el cambio se puede escribir como multiplicar por un factor", "correct": True},
-            {"id": "add", "text": "En los tres los porcentajes se pueden sumar o restar entre sí", "correct": False},
-            {"id": "fixed", "text": "En los tres un mismo porcentaje representa siempre la misma cantidad de láminas", "correct": False},
+            {
+                "id": "base",
+                "text": "En los tres el porcentaje se calcula siempre sobre una cantidad concreta, y hay que saber cuál",
+                "correct": True,
+            },
+            {
+                "id": "factor",
+                "text": "En los tres el cambio se puede escribir como multiplicar por un factor",
+                "correct": True,
+            },
+            {
+                "id": "add",
+                "text": "En los tres los porcentajes se pueden sumar o restar entre sí",
+                "correct": False,
+            },
+            {
+                "id": "fixed",
+                "text": "En los tres un mismo porcentaje representa siempre la misma cantidad de láminas",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {
@@ -593,9 +662,7 @@ CONTENT = {
         "fb_r03_e4_calc": (
             "El 30 % estaba bien calculado en cada paso. → El problema es que las dos bases eran distintas."
         ),
-        "fb_r03_e4_none": (
-            "0,70 · 1,30 = 0,91, no 1. → Falta un 9 % del encargo."
-        ),
+        "fb_r03_e4_none": ("0,70 · 1,30 = 0,91, no 1. → Falta un 9 % del encargo."),
         "fb_r03_e5_trap": (
             "Se sube y se baja el mismo PORCENTAJE, no la misma cantidad. → 20 láminas "
             "arriba y 24 abajo."

@@ -158,12 +158,36 @@ CONTENT = {
         "sola cosa: que no se puede escribir como fracción de enteros."
     ),
     "definition_symbols": [
-        {"symbol": r"\mathbb{I}", "reads": "los irracionales", "means": "los que NO son razón (ratio) de dos enteros"},
-        {"symbol": r"\setminus", "reads": "menos, quitando", "means": "ℝ quitándole ℚ: lo que queda de la recta al sacar las fracciones"},
-        {"symbol": r"\sqrt{2}", "reads": "raíz de dos", "means": "el número que multiplicado por sí mismo da 2; mide la diagonal del cuadrado de lado 1"},
-        {"symbol": r"\pi", "reads": "pi", "means": "cuántas veces cabe el diámetro en el contorno de un círculo"},
-        {"symbol": r"0{,}\overline{27}", "reads": "cero coma veintisiete periódico", "means": "la barra marca el bloque que se repite: esto SÍ es racional"},
-        {"symbol": r"\notin\mathbb{Q}", "reads": "no pertenece a ℚ", "means": "la prueba de irracionalidad: no hay fracción que lo dé"},
+        {
+            "symbol": r"\mathbb{I}",
+            "reads": "los irracionales",
+            "means": "los que NO son razón (ratio) de dos enteros",
+        },
+        {
+            "symbol": r"\setminus",
+            "reads": "menos, quitando",
+            "means": "ℝ quitándole ℚ: lo que queda de la recta al sacar las fracciones",
+        },
+        {
+            "symbol": r"\sqrt{2}",
+            "reads": "raíz de dos",
+            "means": "el número que multiplicado por sí mismo da 2; mide la diagonal del cuadrado de lado 1",
+        },
+        {
+            "symbol": r"\pi",
+            "reads": "pi",
+            "means": "cuántas veces cabe el diámetro en el contorno de un círculo",
+        },
+        {
+            "symbol": r"0{,}\overline{27}",
+            "reads": "cero coma veintisiete periódico",
+            "means": "la barra marca el bloque que se repite: esto SÍ es racional",
+        },
+        {
+            "symbol": r"\notin\mathbb{Q}",
+            "reads": "no pertenece a ℚ",
+            "means": "la prueba de irracionalidad: no hay fracción que lo dé",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos (a, b, trampa) ------------------------
     "worked_examples": [
@@ -232,10 +256,14 @@ CONTENT = {
                 "wrong_latex": r"0{,}\overline{3}\in\mathbb{I}",
                 "right_latex": r"0{,}\overline{3}=\dfrac{1}{3}\in\mathbb{Q}",
                 "rows": [
-                    {"wrong": "0,333… no termina, luego es irracional",
-                     "right": "0,333… se repite, luego es 1/3: racional"},
-                    {"wrong": "3,14 termina, luego es π y es racional",
-                     "right": "3,14 sí es racional (= 157/50), pero NO es π: π es irracional"},
+                    {
+                        "wrong": "0,333… no termina, luego es irracional",
+                        "right": "0,333… se repite, luego es 1/3: racional",
+                    },
+                    {
+                        "wrong": "3,14 termina, luego es π y es racional",
+                        "right": "3,14 sí es racional (= 157/50), pero NO es π: π es irracional",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -308,9 +336,7 @@ CONTENT = {
     # --- Bloque 7 · Comparación de métodos (siempre DESPUÉS del puente) ------
     "method_comparison": {
         "title": "Dos caminos para decidir si un número es racional",
-        "intro": (
-            r"¿Es $\sqrt{25}$ racional? Las dos soluciones de abajo son correctas."
-        ),
+        "intro": (r"¿Es $\sqrt{25}$ racional? Las dos soluciones de abajo son correctas."),
         "methods": [
             {
                 "label": "Método 1 · Mirar el decimal",
@@ -403,8 +429,14 @@ CONTENT = {
                 "y me dio 3,1428. Entonces π = 3,1428 y π es racional». ¿Dónde está el error?"
             ),
             "options": [
-                {"id": "measurement", "text": "Su medida es una aproximación; π no es igual a ningún decimal que él pueda escribir"},
-                {"id": "divided_wrong", "text": "Dividió al revés: debía dividir diámetro entre contorno"},
+                {
+                    "id": "measurement",
+                    "text": "Su medida es una aproximación; π no es igual a ningún decimal que él pueda escribir",
+                },
+                {
+                    "id": "divided_wrong",
+                    "text": "Dividió al revés: debía dividir diámetro entre contorno",
+                },
                 {"id": "not_pi", "text": "El contorno entre el diámetro no da π"},
                 {"id": "none", "text": "Ningún error, está bien"},
             ],
@@ -434,8 +466,14 @@ CONTENT = {
             "prompt": r"¿Es verdadera o falsa? «Si un decimal no termina, el número es irracional.»",
             "options": [
                 {"id": "false_periodic", "text": "Falsa: 0,333… no termina y es 1/3, racional"},
-                {"id": "true_rule", "text": "Verdadera: no terminar es la definición de irracional"},
-                {"id": "false_all_finite", "text": "Falsa: todos los decimales terminan en algún punto"},
+                {
+                    "id": "true_rule",
+                    "text": "Verdadera: no terminar es la definición de irracional",
+                },
+                {
+                    "id": "false_all_finite",
+                    "text": "Falsa: todos los decimales terminan en algún punto",
+                },
                 {"id": "depends", "text": "Depende de con cuántas cifras lo escribas"},
             ],
             "expected": "false_periodic",
@@ -465,7 +503,10 @@ CONTENT = {
                 "Solo tiene una regla graduada en centésimas de palmo. ¿Qué puede hacer?"
             ),
             "options": [
-                {"id": "construct", "text": "Trazar la diagonal de un cuadrado de lado 1: eso da √2 exacto, sin regla"},
+                {
+                    "id": "construct",
+                    "text": "Trazar la diagonal de un cuadrado de lado 1: eso da √2 exacto, sin regla",
+                },
                 {"id": "measure", "text": "Marcar 1,41 palmos: es exactamente √2"},
                 {"id": "impossible", "text": "Nada: √2 no existe como longitud"},
                 {"id": "fraction", "text": "Buscar la fracción de √2 y convertirla a centésimas"},
@@ -524,16 +565,41 @@ CONTENT = {
         "title": "¿Alcanza el conjunto para nombrar toda longitud que se puede dibujar?",
         "intro": "Cada peldaño nació de algo que no cabía. Este nació de una raya sobre una baldosa.",
         "rows": [
-            {"symbol": r"\mathbb{N}", "name": "Naturales", "closed": "no",
-             "latex": r"\tfrac{1}{2}\notin\mathbb{N}", "note": "Ni siquiera media baldosa cabe."},
-            {"symbol": r"\mathbb{Z}", "name": "Enteros", "closed": "no",
-             "latex": r"\tfrac{1}{2}\notin\mathbb{Z}", "note": "Ganó los negativos, no las partes."},
-            {"symbol": r"\mathbb{Q}", "name": "Racionales", "closed": "no",
-             "latex": r"\sqrt{2}\notin\mathbb{Q}", "note": "Aquí se cayó la escuela: la diagonal no tiene fracción."},
-            {"symbol": r"\mathbb{I}", "name": "Irracionales", "closed": "no",
-             "latex": r"\tfrac{1}{2}\notin\mathbb{I}", "note": "Solos tampoco alcanzan: se les fueron todas las fracciones."},
-            {"symbol": r"\mathbb{R}", "name": "Reales", "closed": "yes",
-             "latex": r"\mathbb{R}=\mathbb{Q}\cup\mathbb{I}", "note": "Solo la UNIÓN de los dos llena la recta. Ese es B08."},
+            {
+                "symbol": r"\mathbb{N}",
+                "name": "Naturales",
+                "closed": "no",
+                "latex": r"\tfrac{1}{2}\notin\mathbb{N}",
+                "note": "Ni siquiera media baldosa cabe.",
+            },
+            {
+                "symbol": r"\mathbb{Z}",
+                "name": "Enteros",
+                "closed": "no",
+                "latex": r"\tfrac{1}{2}\notin\mathbb{Z}",
+                "note": "Ganó los negativos, no las partes.",
+            },
+            {
+                "symbol": r"\mathbb{Q}",
+                "name": "Racionales",
+                "closed": "no",
+                "latex": r"\sqrt{2}\notin\mathbb{Q}",
+                "note": "Aquí se cayó la escuela: la diagonal no tiene fracción.",
+            },
+            {
+                "symbol": r"\mathbb{I}",
+                "name": "Irracionales",
+                "closed": "no",
+                "latex": r"\tfrac{1}{2}\notin\mathbb{I}",
+                "note": "Solos tampoco alcanzan: se les fueron todas las fracciones.",
+            },
+            {
+                "symbol": r"\mathbb{R}",
+                "name": "Reales",
+                "closed": "yes",
+                "latex": r"\mathbb{R}=\mathbb{Q}\cup\mathbb{I}",
+                "note": "Solo la UNIÓN de los dos llena la recta. Ese es B08.",
+            },
         ],
         "outro": (
             "Fíjate en la fila de 𝕀: los irracionales por su cuenta no sirven como sistema "
@@ -546,8 +612,16 @@ CONTENT = {
         "prompt": "¿Qué tienen en común los números irracionales que viste en este nodo?",
         "thumbnails": [r"\sqrt{2}", r"\pi", r"1{,}101101110\ldots"],
         "options": [
-            {"id": "no_fraction", "text": "Ninguno se puede escribir como fracción de enteros", "correct": True},
-            {"id": "no_pattern", "text": "Su decimal es infinito y sin bloque que se repita", "correct": True},
+            {
+                "id": "no_fraction",
+                "text": "Ninguno se puede escribir como fracción de enteros",
+                "correct": True,
+            },
+            {
+                "id": "no_pattern",
+                "text": "Su decimal es infinito y sin bloque que se repita",
+                "correct": True,
+            },
             {"id": "roots", "text": "Todos son raíces cuadradas", "correct": False},
             {"id": "big", "text": "Todos son números muy grandes", "correct": False},
         ],

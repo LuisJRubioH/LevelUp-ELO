@@ -40,26 +40,66 @@ PAGINAS = 336
 # De la tabla de contenidos (páginas 6 y 7). El número es la página donde empieza
 # la unidad; las secciones de cierre traen su propia página.
 UNIDADES = [
-    (1, "Conjuntos numéricos", 8, {"ejercicios": 26, "problemas": 28, "aplicacion": 30,
-                                   "software": 32}),
-    (2, "Expresiones algebraicas", 34, {"ejercicios": 46, "problemas": 48, "aplicacion": 50,
-                                        "software": 51}),
-    (3, "Operaciones entre polinomios", 52, {"ejercicios": 74, "problemas": 76,
-                                             "aplicacion": 78, "software": 79}),
-    (4, "Productos notables y cocientes notables", 80, {"ejercicios": 100, "problemas": 102,
-                                                        "aplicacion": 104, "software": 105}),
-    (5, "Factorización", 106, {"ejercicios": 138, "problemas": 140, "aplicacion": 142,
-                               "software": 143}),
-    (6, "Fracciones algebraicas", 144, {"ejercicios": 176, "problemas": 178,
-                                        "aplicacion": 180, "software": 181}),
-    (7, "Ecuaciones e inecuaciones", 182, {"ejercicios": 214, "problemas": 216,
-                                           "aplicacion": 218, "software": 219}),
-    (8, "Función lineal", 220, {"ejercicios": 248, "problemas": 250, "aplicacion": 252,
-                                "software": 253}),
-    (9, "Geometría", 254, {"ejercicios": 284, "problemas": 286, "aplicacion": 288,
-                           "software": 290}),
-    (10, "Estadística y probabilidad", 292, {"ejercicios": 326, "problemas": 328,
-                                             "aplicacion": 330, "software": 332}),
+    (
+        1,
+        "Conjuntos numéricos",
+        8,
+        {"ejercicios": 26, "problemas": 28, "aplicacion": 30, "software": 32},
+    ),
+    (
+        2,
+        "Expresiones algebraicas",
+        34,
+        {"ejercicios": 46, "problemas": 48, "aplicacion": 50, "software": 51},
+    ),
+    (
+        3,
+        "Operaciones entre polinomios",
+        52,
+        {"ejercicios": 74, "problemas": 76, "aplicacion": 78, "software": 79},
+    ),
+    (
+        4,
+        "Productos notables y cocientes notables",
+        80,
+        {"ejercicios": 100, "problemas": 102, "aplicacion": 104, "software": 105},
+    ),
+    (
+        5,
+        "Factorización",
+        106,
+        {"ejercicios": 138, "problemas": 140, "aplicacion": 142, "software": 143},
+    ),
+    (
+        6,
+        "Fracciones algebraicas",
+        144,
+        {"ejercicios": 176, "problemas": 178, "aplicacion": 180, "software": 181},
+    ),
+    (
+        7,
+        "Ecuaciones e inecuaciones",
+        182,
+        {"ejercicios": 214, "problemas": 216, "aplicacion": 218, "software": 219},
+    ),
+    (
+        8,
+        "Función lineal",
+        220,
+        {"ejercicios": 248, "problemas": 250, "aplicacion": 252, "software": 253},
+    ),
+    (
+        9,
+        "Geometría",
+        254,
+        {"ejercicios": 284, "problemas": 286, "aplicacion": 288, "software": 290},
+    ),
+    (
+        10,
+        "Estadística y probabilidad",
+        292,
+        {"ejercicios": 326, "problemas": 328, "aplicacion": 330, "software": 332},
+    ),
 ]
 FIN_CONTENIDO = 333  # 334 glosario, 336 bibliografía
 
@@ -107,7 +147,7 @@ def _fila_mas_azul(png: Path) -> float:
     datos = list(caja.get_flattened_data())
     mejor = 0.0
     for i in range(alto):
-        fila = datos[i * ancho:(i + 1) * ancho]
+        fila = datos[i * ancho : (i + 1) * ancho]
         mejor = max(mejor, sum(1 for p in fila if _es_azul_banner(p)) / ancho)
     return mejor
 
@@ -119,11 +159,14 @@ def paginas_con_banner(dpi: int, umbral: float) -> list[int]:
     with tempfile.TemporaryDirectory(dir=temporal_base) as tmp:
         subprocess.run(
             [_pdftoppm(), "-r", str(dpi), "-png", str(PDF), str(Path(tmp) / "p")],
-            check=True, capture_output=True,
+            check=True,
+            capture_output=True,
         )
-        return [int(png.stem.split("-")[-1])
-                for png in sorted(Path(tmp).glob("p-*.png"))
-                if _fila_mas_azul(png) >= umbral]
+        return [
+            int(png.stem.split("-")[-1])
+            for png in sorted(Path(tmp).glob("p-*.png"))
+            if _fila_mas_azul(png) >= umbral
+        ]
 
 
 def unidad_de(pagina: int) -> int:
@@ -137,8 +180,12 @@ def unidad_de(pagina: int) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dpi", type=int, default=80)
-    parser.add_argument("--umbral", type=float, default=0.30,
-                        help="fracción mínima de ancho azul en la fila más azul (0.30)")
+    parser.add_argument(
+        "--umbral",
+        type=float,
+        default=0.30,
+        help="fracción mínima de ancho azul en la fila más azul (0.30)",
+    )
     args = parser.parse_args()
 
     afianzo = sorted(set(paginas_con_banner(args.dpi, args.umbral)) | CON_EJERCICIOS_FORZADAS)
@@ -148,8 +195,9 @@ def main() -> int:
     secciones: dict[int, str] = {}
     for numero, _, inicio, cierres in UNIDADES:
         hitos = sorted(cierres.items(), key=lambda kv: kv[1])
-        siguiente_unidad = next((i for n, _, i, _ in UNIDADES if n == numero + 1),
-                                FIN_CONTENIDO + 1)
+        siguiente_unidad = next(
+            (i for n, _, i, _ in UNIDADES if n == numero + 1), FIN_CONTENIDO + 1
+        )
         for idx, (clase, pagina) in enumerate(hitos):
             fin = hitos[idx + 1][1] if idx + 1 < len(hitos) else siguiente_unidad
             for p in range(pagina, fin):
@@ -185,8 +233,9 @@ def main() -> int:
         ],
     }
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
-    DESTINO.write_text(json.dumps(manifiesto, ensure_ascii=False, indent=2) + "\n",
-                       encoding="utf-8")
+    DESTINO.write_text(
+        json.dumps(manifiesto, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
 
     por_clase: dict[str, int] = {}
     for p in manifiesto["paginas"]:

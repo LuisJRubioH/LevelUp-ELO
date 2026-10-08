@@ -243,9 +243,7 @@ def p2023_02_c():
 @figura("EPA8-C1-2023-P02_D")
 def p2023_02_d():
     fig, ax = plt.subplots(figsize=(4.0, 3.0))
-    _arbol(
-        ax, "Piscinas", [("Zoológico", ["Deportes", "Museo"]), ("Lago", ["Deportes", "Museo"])]
-    )
+    _arbol(ax, "Piscinas", [("Zoológico", ["Deportes", "Museo"]), ("Lago", ["Deportes", "Museo"])])
     return fig
 
 
@@ -303,8 +301,9 @@ def p2023_04():
     ax.plot(horas, valores, "--", color=NARANJA, linewidth=1.4)
     ax.plot(horas, valores, "*", color=NARANJA, markersize=11)
     for h, v in zip(horas, valores):
-        ax.annotate(f"${v}", (h, v), textcoords="offset points", xytext=(0, 8), ha="center",
-                    fontsize=8.5)
+        ax.annotate(
+            f"${v}", (h, v), textcoords="offset points", xytext=(0, 8), ha="center", fontsize=8.5
+        )
     ax.set_ylim(0, 120)
     ax.set_yticks(range(0, 140, 20))
     ax.set_yticklabels([f"${v}" for v in range(0, 140, 20)])
@@ -318,13 +317,24 @@ def p2023_04():
 def p2023_05():
     """Carteles de precios (sustituye la ilustración decorativa del original)."""
     fig, ax = plt.subplots(figsize=(6.4, 2.0))
-    cines = [("Cine 1", 7500, 3350), ("Cine 2", 6800, 3200), ("Cine 3", 5000, 4000),
-             ("Cine 4", 6600, 4400)]
+    cines = [
+        ("Cine 1", 7500, 3350),
+        ("Cine 2", 6800, 3200),
+        ("Cine 3", 5000, 4000),
+        ("Cine 4", 6600, 4400),
+    ]
     for i, (nombre, adulto, nino) in enumerate(cines):
         x = i * 1.6
         ax.add_patch(
-            FancyBboxPatch((x, 0), 1.4, 1.2, boxstyle="round,pad=0.03", facecolor="#FDF0C9",
-                           edgecolor=NARANJA, linewidth=1.6)
+            FancyBboxPatch(
+                (x, 0),
+                1.4,
+                1.2,
+                boxstyle="round,pad=0.03",
+                facecolor="#FDF0C9",
+                edgecolor=NARANJA,
+                linewidth=1.6,
+            )
         )
         ax.text(x + 0.7, 0.92, nombre, ha="center", fontsize=10, fontweight="bold")
         ax.text(x + 0.7, 0.58, f"Adultos: ${adulto:,}".replace(",", "."), ha="center", fontsize=9)
@@ -411,8 +421,9 @@ def p2023_12():
         x1, y1 = puntos[k]
         x2, y2 = puntos[(k + 1) % 8]
         mx, my = (x1 + x2) / 2, (y1 + y2) / 2
-        ax.text(mx * 1.22, my * 1.22, etiqueta, ha="center", va="center", fontsize=11,
-                style="italic")
+        ax.text(
+            mx * 1.22, my * 1.22, etiqueta, ha="center", va="center", fontsize=11, style="italic"
+        )
     ax.set_xlim(-1.45, 1.45)
     ax.set_ylim(-1.45, 1.45)
     ax.set_aspect("equal")
@@ -427,8 +438,15 @@ def p2023_13():
     for i, (nombre, distancia) in enumerate(datos):
         x = i * 1.6
         ax.add_patch(
-            FancyBboxPatch((x, 0), 1.4, 0.8, boxstyle="round,pad=0.03", facecolor="#FBE4CE",
-                           edgecolor=NARANJA, linewidth=1.4)
+            FancyBboxPatch(
+                (x, 0),
+                1.4,
+                0.8,
+                boxstyle="round,pad=0.03",
+                facecolor="#FBE4CE",
+                edgecolor=NARANJA,
+                linewidth=1.4,
+            )
         )
         ax.text(x + 0.7, 0.53, nombre, ha="center", fontsize=9.5)
         ax.text(x + 0.7, 0.24, f"{distancia} kilómetros", ha="center", fontsize=9)
@@ -445,10 +463,12 @@ def p2023_14():
 
     def botella(x, y, grande=True):
         alto = 0.62 if grande else 0.31
-        ax.add_patch(Rectangle((x, y), 0.34, alto, facecolor="#8FD0E8", edgecolor="#2C7FA6",
-                               linewidth=0.8))
-        ax.add_patch(Rectangle((x + 0.10, y + alto), 0.14, 0.08, facecolor="#1F4E68",
-                               edgecolor="none"))
+        ax.add_patch(
+            Rectangle((x, y), 0.34, alto, facecolor="#8FD0E8", edgecolor="#2C7FA6", linewidth=0.8)
+        )
+        ax.add_patch(
+            Rectangle((x + 0.10, y + alto), 0.14, 0.08, facecolor="#1F4E68", edgecolor="none")
+        )
 
     filas = [("Ducharse", 9, 1), ("Cocinar", 2, 0), ("Usar\ninodoro", 7, 1), ("Lavar\nropa", 11, 0)]
     for i, (nombre, grandes, pequenas) in enumerate(filas):
@@ -477,8 +497,7 @@ def p2023_15():
     techo_frente = [(0, 5), (6, 5), (3, 8)]
     ax.add_patch(Polygon(techo_frente, facecolor="#F2C4AE", edgecolor=GRIS, linewidth=1.1))
     techo_lado = [(6, 5), (6 + dx, 5 + dy), (3 + dx, 8 + dy), (3, 8)]
-    ax.add_patch(Polygon(techo_lado, facecolor="#F2C4AE", edgecolor=GRIS, linewidth=1.1,
-                         alpha=0.6))
+    ax.add_patch(Polygon(techo_lado, facecolor="#F2C4AE", edgecolor=GRIS, linewidth=1.1, alpha=0.6))
     ax.plot([3, 3 + dx], [8, 8 + dy], color=GRIS, linewidth=1.1)
     _cota(ax, (-0.7, 0), (-0.7, 8), "8 cm", desfase=(-0.55, 0))
     _cota(ax, (6 + dx + 0.5, dy), (6 + dx + 0.5, 5 + dy), "5 cm", desfase=(0.5, 0))
@@ -496,8 +515,14 @@ def _barras_moda(valores, ymax):
     anios = [1, 2, 3, 4, 5]
     ax.bar(anios, valores, color=NARANJA, width=0.35)
     for x, v in zip(anios, valores):
-        ax.annotate(f"{v}".replace(".", ","), (x, v), textcoords="offset points",
-                    xytext=(0, 4), ha="center", fontsize=8.5)
+        ax.annotate(
+            f"{v}".replace(".", ","),
+            (x, v),
+            textcoords="offset points",
+            xytext=(0, 4),
+            ha="center",
+            fontsize=8.5,
+        )
     ax.set_ylim(0, ymax)
     ax.set_yticks(range(0, ymax + 1))
     ax.set_xticks(anios)
@@ -544,8 +569,9 @@ def _estrella(cx, cy, radio, color, ax):
 def p2023_18():
     """Linterna → estrella de cartón → sombra ampliada (homotecia)."""
     fig, ax = plt.subplots(figsize=(5.4, 3.2))
-    ax.add_patch(Rectangle((3.4, 0.4), 3.0, 3.0, facecolor="#EFEFEF", edgecolor=GRIS,
-                           linewidth=0.8))
+    ax.add_patch(
+        Rectangle((3.4, 0.4), 3.0, 3.0, facecolor="#EFEFEF", edgecolor=GRIS, linewidth=0.8)
+    )
     foco = (0.5, 0.6)
     ax.plot(*foco, marker="o", color="#2C7FA6", markersize=9)
     ax.text(foco[0], foco[1] - 0.32, "Linterna", ha="center", fontsize=8.5)
@@ -621,10 +647,26 @@ def p2022_05():
             )
             ax.text(j + 0.5, 5 - i + 0.5, f"{i+1},{j+1}", ha="center", va="center", fontsize=9)
     for k in range(6):
-        ax.text(k + 0.5, 6.35, f"{k+1}", ha="center", va="center", fontsize=10,
-                fontweight="bold", color="#2E8B7A")
-        ax.text(-0.4, 5 - k + 0.5, f"{k+1}", ha="center", va="center", fontsize=10,
-                fontweight="bold", color="#C9A227")
+        ax.text(
+            k + 0.5,
+            6.35,
+            f"{k+1}",
+            ha="center",
+            va="center",
+            fontsize=10,
+            fontweight="bold",
+            color="#2E8B7A",
+        )
+        ax.text(
+            -0.4,
+            5 - k + 0.5,
+            f"{k+1}",
+            ha="center",
+            va="center",
+            fontsize=10,
+            fontweight="bold",
+            color="#C9A227",
+        )
     ax.text(-0.4, 6.35, "", ha="center")
     ax.set_xlim(-0.9, 6.2)
     ax.set_ylim(-0.2, 6.8)
@@ -671,10 +713,10 @@ def p2022_10():
             (x0 + 0.85 * escala, y0 + 3.4 * escala),
         ]
         ax.add_patch(Polygon(pico, facecolor=punta, edgecolor="black", linewidth=2.0))
-        ax.plot(x0 + 1.0 * escala, y0 + 1.35 * escala, marker="*", color="black",
-                markersize=13 * escala)
-        ax.text(x0 + 1.3 * escala, y0 - 0.35, titulo, ha="center", fontsize=9,
-                fontweight="bold")
+        ax.plot(
+            x0 + 1.0 * escala, y0 + 1.35 * escala, marker="*", color="black", markersize=13 * escala
+        )
+        ax.text(x0 + 1.3 * escala, y0 - 0.35, titulo, ha="center", fontsize=9, fontweight="bold")
 
     sombrero(0.3, 0.4, 1.0, "#D8C22B", "#2FAE72", "Sombrero 1")
     sombrero(4.6, 0.4, 0.55, "#E09A2B", "#D93A5B", "Sombrero 2")
@@ -763,21 +805,24 @@ def p2021_01():
         ax.plot([0, 14], [k, k], color="#CFCFCF", linewidth=0.7, linestyle="--", zorder=0)
     manzanas = [(6, 7, 4, 2), (0, 2, 1, 6), (4, 4, 10, 1), (4, 1, 9, 1), (11, 5, 2, 1)]
     for x, y, ancho, alto in manzanas:
-        ax.add_patch(Rectangle((x, y), ancho, alto, facecolor="#DDDDDD", edgecolor=GRIS,
-                               linewidth=1.2))
+        ax.add_patch(
+            Rectangle((x, y), ancho, alto, facecolor="#DDDDDD", edgecolor=GRIS, linewidth=1.2)
+        )
     inicio = (7, 4)
     parque = (11, 8)
     tramos = [(3, 4), (3, 7), (11, 7), (11, 8)]
     puntos = [inicio] + tramos
     for (x1, y1), (x2, y2) in zip(puntos, puntos[1:]):
-        ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
-                    arrowprops=dict(arrowstyle="->", color="black", linewidth=1.6))
+        ax.annotate(
+            "",
+            xy=(x2, y2),
+            xytext=(x1, y1),
+            arrowprops=dict(arrowstyle="->", color="black", linewidth=1.6),
+        )
     ax.plot(*inicio, "o", color="black", markersize=7)
-    ax.text(inicio[0] + 0.2, inicio[1] - 0.45, "Punto de inicio", fontsize=8.5,
-            fontweight="bold")
+    ax.text(inicio[0] + 0.2, inicio[1] - 0.45, "Punto de inicio", fontsize=8.5, fontweight="bold")
     ax.plot(*parque, "o", color="black", markersize=7)
-    ax.text(parque[0] + 0.25, parque[1], "Parque", fontsize=8.5, fontweight="bold",
-            va="center")
+    ax.text(parque[0] + 0.25, parque[1], "Parque", fontsize=8.5, fontweight="bold", va="center")
     _cota(ax, (12, -0.6), (13, -0.6), "20 metros", desfase=(0, -0.55))
     _cota(ax, (14.4, 1), (14.4, 2), "20 metros", desfase=(1.3, 0))
     ax.set_xlim(-0.5, 16.5)
@@ -802,11 +847,15 @@ def p2021_03():
     disponibles = {"M": (3, 6), "N": (4, 5), "P": (6, 4), "Q": (7, 3)}
     for fila, columnas in ocupadas.items():
         for col in columnas:
-            ax.add_patch(Rectangle((col - 0.4, fila - 0.35), 0.8, 0.7, facecolor="#2A3B8F",
-                                   edgecolor="none"))
+            ax.add_patch(
+                Rectangle((col - 0.4, fila - 0.35), 0.8, 0.7, facecolor="#2A3B8F", edgecolor="none")
+            )
     for etiqueta, (col, fila) in disponibles.items():
-        ax.add_patch(Rectangle((col - 0.4, fila - 0.35), 0.8, 0.7, facecolor="white",
-                               edgecolor=GRIS, linewidth=1.0))
+        ax.add_patch(
+            Rectangle(
+                (col - 0.4, fila - 0.35), 0.8, 0.7, facecolor="white", edgecolor=GRIS, linewidth=1.0
+            )
+        )
         ax.text(col, fila, etiqueta, ha="center", va="center", fontsize=8)
     ax.set_xlim(0, 9.8)
     ax.set_ylim(0, 6.9)
@@ -826,8 +875,16 @@ def p2021_04():
     meses = [0, 2, 4, 6, 8]
     tasas = [0.012, 0.014, 0.016, 0.018, 0.020]
     ax.plot([0, 8.6], [0.012, 0.0163 + 0.0043], color="black", linewidth=1.4, zorder=1)
-    ax.plot(meses, tasas, "o", markerfacecolor="white", markeredgecolor=GRIS, markersize=8,
-            linestyle="none", zorder=2)
+    ax.plot(
+        meses,
+        tasas,
+        "o",
+        markerfacecolor="white",
+        markeredgecolor=GRIS,
+        markersize=8,
+        linestyle="none",
+        zorder=2,
+    )
     ax.set_xlim(0, 8.6)
     ax.set_ylim(0.010, 0.0212)
     ax.set_xticks(range(0, 9))
@@ -846,14 +903,21 @@ def p2021_05():
     fig, ax = plt.subplots(figsize=(5.4, 3.0))
     for x in range(6):
         cx = 0.6 + x * 0.9
-        ax.add_patch(Rectangle((cx - 0.26, 2.1), 0.52, 0.85, facecolor="#E8A33D",
-                               edgecolor=GRIS, linewidth=1.0))
-        ax.add_patch(plt.matplotlib.patches.Ellipse((cx, 2.95), 0.52, 0.18,
-                                                    facecolor="#F3C98B", edgecolor=GRIS,
-                                                    linewidth=1.0))
-        ax.add_patch(plt.matplotlib.patches.Ellipse((cx, 2.1), 0.52, 0.18,
-                                                    facecolor="#E8A33D", edgecolor=GRIS,
-                                                    linewidth=1.0))
+        ax.add_patch(
+            Rectangle(
+                (cx - 0.26, 2.1), 0.52, 0.85, facecolor="#E8A33D", edgecolor=GRIS, linewidth=1.0
+            )
+        )
+        ax.add_patch(
+            plt.matplotlib.patches.Ellipse(
+                (cx, 2.95), 0.52, 0.18, facecolor="#F3C98B", edgecolor=GRIS, linewidth=1.0
+            )
+        )
+        ax.add_patch(
+            plt.matplotlib.patches.Ellipse(
+                (cx, 2.1), 0.52, 0.18, facecolor="#E8A33D", edgecolor=GRIS, linewidth=1.0
+            )
+        )
     ax.plot([0, 6], [1.95, 1.95], color="black", linewidth=5)
     ax.text(6.25, 2.45, "Parte superior\ndel estante", fontsize=8.5, va="center")
     for x in range(5):
@@ -861,11 +925,19 @@ def p2021_05():
         dx, dy = 0.22, 0.18
         frente = [(cx - 0.35, 0.5), (cx + 0.35, 0.5), (cx + 0.35, 1.35), (cx - 0.35, 1.35)]
         ax.add_patch(Polygon(frente, facecolor="#B5794A", edgecolor=GRIS, linewidth=1.0))
-        techo = [(cx - 0.35, 1.35), (cx + 0.35, 1.35), (cx + 0.35 + dx, 1.35 + dy),
-                 (cx - 0.35 + dx, 1.35 + dy)]
+        techo = [
+            (cx - 0.35, 1.35),
+            (cx + 0.35, 1.35),
+            (cx + 0.35 + dx, 1.35 + dy),
+            (cx - 0.35 + dx, 1.35 + dy),
+        ]
         ax.add_patch(Polygon(techo, facecolor="#CE9366", edgecolor=GRIS, linewidth=1.0))
-        lado = [(cx + 0.35, 0.5), (cx + 0.35 + dx, 0.5 + dy), (cx + 0.35 + dx, 1.35 + dy),
-                (cx + 0.35, 1.35)]
+        lado = [
+            (cx + 0.35, 0.5),
+            (cx + 0.35 + dx, 0.5 + dy),
+            (cx + 0.35 + dx, 1.35 + dy),
+            (cx + 0.35, 1.35),
+        ]
         ax.add_patch(Polygon(lado, facecolor="#9C6339", edgecolor=GRIS, linewidth=1.0))
     ax.plot([0, 6], [0.4, 0.4], color="black", linewidth=5)
     ax.text(6.25, 0.95, "Parte inferior\ndel estante", fontsize=8.5, va="center")
@@ -881,18 +953,26 @@ def p2021_06():
     fig, ax = plt.subplots(figsize=(4.8, 3.4))
     for i, (x0, casilla_ficha, color) in enumerate([(0, 4, "#C0392B"), (2.6, 6, "#27AE60")]):
         for k in range(7):
-            ax.add_patch(Rectangle((x0, 0.55 + k * 0.42), 1.8, 0.42, facecolor="#F3DFB0",
-                                   edgecolor=GRIS, linewidth=1.0))
-        ax.add_patch(Rectangle((x0, 0.1), 1.8, 0.45, facecolor="#F3DFB0", edgecolor=GRIS,
-                               linewidth=1.4))
-        ax.text(x0 + 0.9, 0.32, "SEGURO", ha="center", va="center", fontsize=8.5,
-                fontweight="bold")
+            ax.add_patch(
+                Rectangle(
+                    (x0, 0.55 + k * 0.42),
+                    1.8,
+                    0.42,
+                    facecolor="#F3DFB0",
+                    edgecolor=GRIS,
+                    linewidth=1.0,
+                )
+            )
+        ax.add_patch(
+            Rectangle((x0, 0.1), 1.8, 0.45, facecolor="#F3DFB0", edgecolor=GRIS, linewidth=1.4)
+        )
+        ax.text(x0 + 0.9, 0.32, "SEGURO", ha="center", va="center", fontsize=8.5, fontweight="bold")
         techo = [(x0, 3.49), (x0 + 1.8, 3.49), (x0 + 1.8, 3.85), (x0 + 0.9, 4.1), (x0, 3.85)]
         ax.add_patch(Polygon(techo, facecolor="#F3DFB0", edgecolor=GRIS, linewidth=1.4))
-        ax.text(x0 + 0.9, 3.7, "LLEGADA", ha="center", va="center", fontsize=8.5,
-                fontweight="bold")
-        ax.plot(x0 + 0.9, 0.55 + casilla_ficha * 0.42 + 0.21, marker="o", color=color,
-                markersize=11)
+        ax.text(x0 + 0.9, 3.7, "LLEGADA", ha="center", va="center", fontsize=8.5, fontweight="bold")
+        ax.plot(
+            x0 + 0.9, 0.55 + casilla_ficha * 0.42 + 0.21, marker="o", color=color, markersize=11
+        )
         ax.text(x0 + 0.9, -0.15, f"Ficha jugador {i+1}", ha="center", fontsize=8)
     ax.set_xlim(-0.4, 4.8)
     ax.set_ylim(-0.5, 4.4)
@@ -904,10 +984,20 @@ def p2021_06():
 def p2021_09():
     """Trapecio 20/12 de altura 12, descompuesto en triángulo (8) + cuadrado (12)."""
     fig, ax = plt.subplots(figsize=(4.6, 3.2))
-    ax.add_patch(Polygon([(0, 0), (8, 0), (8, 12), (0, 0)], facecolor="#F7D7BE",
-                         edgecolor=GRIS, linewidth=1.2))
-    ax.add_patch(Polygon([(8, 0), (20, 0), (20, 12), (8, 12)], facecolor="#E8792B",
-                         edgecolor=GRIS, linewidth=1.2, alpha=0.55))
+    ax.add_patch(
+        Polygon(
+            [(0, 0), (8, 0), (8, 12), (0, 0)], facecolor="#F7D7BE", edgecolor=GRIS, linewidth=1.2
+        )
+    )
+    ax.add_patch(
+        Polygon(
+            [(8, 0), (20, 0), (20, 12), (8, 12)],
+            facecolor="#E8792B",
+            edgecolor=GRIS,
+            linewidth=1.2,
+            alpha=0.55,
+        )
+    )
     _cota(ax, (-1.6, 0), (-1.6, 12), "12 cm", desfase=(-1.5, 0))
     _cota(ax, (0, -1.4), (8, -1.4), "8 cm", desfase=(0, -1.0))
     _cota(ax, (8, -1.4), (20, -1.4), "12 cm", desfase=(0, -1.0))
@@ -948,8 +1038,10 @@ def p2021_12():
     raiz = (3.0, 2.6)
     ax.plot(*raiz, "o", color="black", markersize=6)
     ax.text(raiz[0], raiz[1] + 0.22, "Género", ha="center", fontsize=9.5, fontweight="bold")
-    ramas = [(1.3, 1.7, "Mujer", ["Azul", "Café", "Verde"], -1),
-             (4.7, 1.7, "Hombre", ["Azul", "Café", "Negro"], 1)]
+    ramas = [
+        (1.3, 1.7, "Mujer", ["Azul", "Café", "Verde"], -1),
+        (4.7, 1.7, "Hombre", ["Azul", "Café", "Negro"], 1),
+    ]
     for x, y, etiqueta, hojas, signo in ramas:
         ax.plot([raiz[0], x], [raiz[1], y], color="black", linewidth=1.0)
         ax.plot(x, y, "o", color="black", markersize=6)
@@ -974,8 +1066,7 @@ def p2021_14():
     xs, ys = [2, 4, 6, 8], [24, 28, 32, 36]
     ax.plot(xs, ys, "o", color="#5CB85C", markersize=7)
     for x, y in zip(xs, ys):
-        ax.annotate(f"({x}, {y})", (x, y), textcoords="offset points", xytext=(8, 2),
-                    fontsize=8.5)
+        ax.annotate(f"({x}, {y})", (x, y), textcoords="offset points", xytext=(8, 2), fontsize=8.5)
     ax.set_xlim(0, 12)
     ax.set_ylim(0, 40)
     ax.set_xticks(range(2, 13, 2))
@@ -1014,8 +1105,7 @@ def p2021_17():
     fig, ax = plt.subplots(figsize=(4.6, 3.0))
 
     def ficha(x, y):
-        ax.add_patch(Rectangle((x, y), 1, 1, facecolor="white", edgecolor="#7A3FA0",
-                               linewidth=2.0))
+        ax.add_patch(Rectangle((x, y), 1, 1, facecolor="white", edgecolor="#7A3FA0", linewidth=2.0))
 
     ficha(0, 3.6)
     _cota(ax, (0, 4.85), (1, 4.85), "2 cm", desfase=(0, 0.35))
@@ -1039,16 +1129,13 @@ def p2021_17():
 def p2020_01():
     """Cartel del clima laboral: tres categorías con su porcentaje."""
     fig, ax = plt.subplots(figsize=(5.6, 2.0))
-    ax.add_patch(Rectangle((0, 0), 6.6, 1.9, facecolor="white", edgecolor="black",
-                           linewidth=1.6))
+    ax.add_patch(Rectangle((0, 0), 6.6, 1.9, facecolor="white", edgecolor="black", linewidth=1.6))
     datos = [("Felices", "30 %"), ("Tristes", "50 %"), ("No saben, no\nresponden", "20 %")]
     for i, (etiqueta, porcentaje) in enumerate(datos):
         x = 1.1 + i * 2.2
         ax.text(x, 1.55, etiqueta, ha="center", va="center", fontsize=10, fontweight="bold")
-        ax.add_patch(plt.Circle((x, 0.9), 0.34, facecolor="white", edgecolor=GRIS,
-                                linewidth=1.4))
-        ax.text(x, 0.25, porcentaje, ha="center", va="center", fontsize=12,
-                fontweight="bold")
+        ax.add_patch(plt.Circle((x, 0.9), 0.34, facecolor="white", edgecolor=GRIS, linewidth=1.4))
+        ax.text(x, 0.25, porcentaje, ha="center", va="center", fontsize=12, fontweight="bold")
     ax.set_xlim(-0.2, 6.8)
     ax.set_ylim(-0.15, 2.05)
     ax.axis("off")
@@ -1062,8 +1149,7 @@ def p2020_03():
 
     fig, axes = plt.subplots(1, 3, figsize=(6.6, 2.6))
     puntos = [
-        (math.cos(math.radians(30 + 60 * k)), math.sin(math.radians(30 + 60 * k)))
-        for k in range(6)
+        (math.cos(math.radians(30 + 60 * k)), math.sin(math.radians(30 + 60 * k))) for k in range(6)
     ]
     # Figura 1: prisma hexagonal (dos hexágonos desplazados + aristas verticales).
     ax = axes[0]
@@ -1071,18 +1157,31 @@ def p2020_03():
     tapa = [(x, y * 0.34) for x, y in puntos]
     altura = 2.0
     superior = [(x, y + altura) for x, y in tapa]
-    cuerpo = [superior[3], superior[4], superior[5], superior[0], tapa[0], tapa[5], tapa[4],
-              tapa[3]]
+    cuerpo = [
+        superior[3],
+        superior[4],
+        superior[5],
+        superior[0],
+        tapa[0],
+        tapa[5],
+        tapa[4],
+        tapa[3],
+    ]
     ax.add_patch(Polygon(cuerpo, facecolor="white", edgecolor=GRIS, linewidth=1.3))
     ax.add_patch(Polygon(superior, facecolor="white", edgecolor=GRIS, linewidth=1.3))
     for k in (0, 3, 4, 5):
-        ax.plot([tapa[k][0], superior[k][0]], [tapa[k][1], superior[k][1]], color=GRIS,
-                linewidth=1.3)
+        ax.plot(
+            [tapa[k][0], superior[k][0]], [tapa[k][1], superior[k][1]], color=GRIS, linewidth=1.3
+        )
     for k in (1, 2):
-        ax.plot([tapa[k][0], superior[k][0]], [tapa[k][1], superior[k][1]], color=GRIS,
-                linewidth=0.9, linestyle="--")
-    ax.add_patch(Polygon(tapa, facecolor="none", edgecolor=GRIS, linewidth=0.9,
-                         linestyle="--"))
+        ax.plot(
+            [tapa[k][0], superior[k][0]],
+            [tapa[k][1], superior[k][1]],
+            color=GRIS,
+            linewidth=0.9,
+            linestyle="--",
+        )
+    ax.add_patch(Polygon(tapa, facecolor="none", edgecolor=GRIS, linewidth=0.9, linestyle="--"))
     ax.set_title("Cartuchera\n(Figura 1)", fontsize=9, fontweight="bold")
     ax.set_xlim(-1.5, 1.5)
     ax.set_ylim(-0.9, 3.1)
@@ -1092,8 +1191,14 @@ def p2020_03():
         for k in range(6):
             x1, y1 = puntos[k]
             x2, y2 = puntos[(k + 1) % 6]
-            ax.text((x1 + x2) / 2 * 1.32, (y1 + y2) / 2 * 1.32, "5 cm", ha="center",
-                    va="center", fontsize=7)
+            ax.text(
+                (x1 + x2) / 2 * 1.32,
+                (y1 + y2) / 2 * 1.32,
+                "5 cm",
+                ha="center",
+                va="center",
+                fontsize=7,
+            )
             ax.text(x1 * 0.74, y1 * 0.74, "120°", ha="center", va="center", fontsize=6.5)
         ax.set_title(titulo, fontsize=9, fontweight="bold")
         ax.set_xlim(-1.7, 1.7)
@@ -1111,8 +1216,9 @@ def p2020_08():
 
     def dibujar(ax, caras, ocultas=()):
         for cara in caras:
-            ax.add_patch(Polygon(cara, facecolor="#F7D7BE", edgecolor=GRIS, linewidth=1.2,
-                                 alpha=0.85))
+            ax.add_patch(
+                Polygon(cara, facecolor="#F7D7BE", edgecolor=GRIS, linewidth=1.2, alpha=0.85)
+            )
         for x1, y1, x2, y2 in ocultas:
             ax.plot([x1, x2], [y1, y2], color=GRIS, linewidth=0.9, linestyle="--")
 
@@ -1147,8 +1253,12 @@ def p2020_08():
             [(0.15, 0.65), (0.75, 0.42), (0.75, 0)],
             [(0.75, 0.42), (1.35, 0.65), (0.75, 0)],
         ],
-        ocultas=[(0.15, 0.65, 0.75, 0.9), (0.75, 0.9, 1.35, 0.65), (0.75, 0.9, 0.75, 1.4),
-                 (0.75, 0.9, 0.75, 0)],
+        ocultas=[
+            (0.15, 0.65, 0.75, 0.9),
+            (0.75, 0.9, 1.35, 0.65),
+            (0.75, 0.9, 0.75, 1.4),
+            (0.75, 0.9, 0.75, 0),
+        ],
     )
     axes[3].set_title("Marca $S$", fontsize=9)
     for ax in axes:
@@ -1163,12 +1273,22 @@ def p2020_09():
     """Edificio con cotas 18 m de alto y base de 12 m por 8 m."""
     fig, ax = plt.subplots(figsize=(3.0, 3.8))
     dx, dy = _prisma(ax, 12.0, 8.0, 18.0, "#9FC4DE")
-    ax.add_patch(Polygon([(-0.8, -1.2), (12.8, -1.2), (12.8 + dx, -1.2 + dy),
-                          (-0.8 + dx, -1.2 + dy)], facecolor="#D6D6D6", edgecolor=GRIS,
-                         linewidth=1.0))
-    ax.add_patch(Polygon([(3, 18 + dy * 0.4), (9, 18 + dy * 0.4), (9 + dx * 0.5, 20),
-                          (3 + dx * 0.5, 20)], facecolor="#E4D7A8", edgecolor=GRIS,
-                         linewidth=1.0))
+    ax.add_patch(
+        Polygon(
+            [(-0.8, -1.2), (12.8, -1.2), (12.8 + dx, -1.2 + dy), (-0.8 + dx, -1.2 + dy)],
+            facecolor="#D6D6D6",
+            edgecolor=GRIS,
+            linewidth=1.0,
+        )
+    )
+    ax.add_patch(
+        Polygon(
+            [(3, 18 + dy * 0.4), (9, 18 + dy * 0.4), (9 + dx * 0.5, 20), (3 + dx * 0.5, 20)],
+            facecolor="#E4D7A8",
+            edgecolor=GRIS,
+            linewidth=1.0,
+        )
+    )
     _cota(ax, (12 + dx + 1.4, dy), (12 + dx + 1.4, 18 + dy), "18 m", desfase=(1.4, 0))
     _cota(ax, (0, -2.6), (12, -2.6), "12 m", desfase=(0, -1.4))
     _cota(ax, (12.2, -2.2), (12 + dx, dy - 2.2), "8 m", desfase=(2.0, -1.2))
@@ -1185,15 +1305,31 @@ def p2020_10():
     fig, ax = plt.subplots(figsize=(5.8, 2.6))
     for i, (personaje, poder) in enumerate([(1, 5), (4, 6), (2, 7)]):
         x = i * 2.0
-        ax.add_patch(Rectangle((x, 0), 1.75, 2.3, facecolor="white", edgecolor="black",
-                               linewidth=1.6))
+        ax.add_patch(
+            Rectangle((x, 0), 1.75, 2.3, facecolor="white", edgecolor="black", linewidth=1.6)
+        )
         ax.text(x + 0.875, 2.02, "Personaje", ha="center", fontsize=9)
-        ax.annotate("", xy=(x + 0.875, 1.48), xytext=(x + 0.875, 1.85),
-                    arrowprops=dict(arrowstyle="->", color="black", linewidth=1.2))
-        ax.text(x + 0.875, 1.15, f"({personaje},{poder})", ha="center", va="center",
-                fontsize=15, fontweight="bold")
-        ax.annotate("", xy=(x + 0.875, 0.72), xytext=(x + 0.875, 0.38),
-                    arrowprops=dict(arrowstyle="->", color="black", linewidth=1.2))
+        ax.annotate(
+            "",
+            xy=(x + 0.875, 1.48),
+            xytext=(x + 0.875, 1.85),
+            arrowprops=dict(arrowstyle="->", color="black", linewidth=1.2),
+        )
+        ax.text(
+            x + 0.875,
+            1.15,
+            f"({personaje},{poder})",
+            ha="center",
+            va="center",
+            fontsize=15,
+            fontweight="bold",
+        )
+        ax.annotate(
+            "",
+            xy=(x + 0.875, 0.72),
+            xytext=(x + 0.875, 0.38),
+            arrowprops=dict(arrowstyle="->", color="black", linewidth=1.2),
+        )
         ax.text(x + 0.875, 0.18, "Poder", ha="center", fontsize=9)
     ax.set_xlim(-0.2, 5.95)
     ax.set_ylim(-0.15, 2.45)
@@ -1206,11 +1342,11 @@ def p2020_13():
     """Plano a escala de la fachada: 50 cm de ancho por 15 cm de alto."""
     fig, ax = plt.subplots(figsize=(4.6, 2.8))
     ax.add_patch(Rectangle((0, 0), 50, 15, facecolor="white", edgecolor=GRIS, linewidth=1.4))
-    ax.add_patch(Polygon([(-2, 15), (52, 15), (25, 26)], facecolor="white", edgecolor=GRIS,
-                         linewidth=1.4))
+    ax.add_patch(
+        Polygon([(-2, 15), (52, 15), (25, 26)], facecolor="white", edgecolor=GRIS, linewidth=1.4)
+    )
     for x in (7, 34):
-        ax.add_patch(Rectangle((x, 5), 9, 6, facecolor="white", edgecolor=GRIS,
-                               linewidth=1.1))
+        ax.add_patch(Rectangle((x, 5), 9, 6, facecolor="white", edgecolor=GRIS, linewidth=1.1))
     ax.add_patch(Rectangle((22, 0), 6, 11, facecolor="white", edgecolor=GRIS, linewidth=1.1))
     ax.add_patch(Rectangle((23, 18), 3, 3, facecolor="white", edgecolor=GRIS, linewidth=1.1))
     _cota(ax, (54, 0), (54, 15), "15 cm", desfase=(4.5, 0))

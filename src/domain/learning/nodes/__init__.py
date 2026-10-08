@@ -4,6 +4,7 @@ Un módulo por nodo. Cada módulo expone `NODE_ID`, `CONCEPT_SLUG` y `CONTENT`
 (el dict que viaja al frontend). `prealgebra.py` los recorre y los engancha:
 agregar un nodo es crear su módulo y listarlo aquí — no se toca el renderer.
 """
+
 from . import (
     b03_escalera,
     b04_naturales,

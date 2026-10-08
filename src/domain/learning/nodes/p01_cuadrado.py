@@ -140,9 +140,7 @@ CONTENT = {
         ),
     },
     "definition_title": "Cuadrado de un binomio",
-    "definition_katex": (
-        r"(a+b)^{2} = a^{2} + 2ab + b^{2} \qquad (a-b)^{2} = a^{2} - 2ab + b^{2}"
-    ),
+    "definition_katex": (r"(a+b)^{2} = a^{2} + 2ab + b^{2} \qquad (a-b)^{2} = a^{2} - 2ab + b^{2}"),
     "definition": (
         "El cuadrado de un binomio tiene TRES términos: el cuadrado del primero, el doble "
         "del producto de los dos, y el cuadrado del segundo. El signo del término del "
@@ -182,8 +180,7 @@ CONTENT = {
             "eyebrow": "Ejemplo 1 · Una lámina con el lado en dedos",
             "title": "Las tres piezas, una por una",
             "statement": (
-                "Rayhana pide estampar una lámina de lado 6x + 1 dedos. ¿Cuánto cobre "
-                "ocupa?"
+                "Rayhana pide estampar una lámina de lado 6x + 1 dedos. ¿Cuánto cobre " "ocupa?"
             ),
             "latex": r"(6x+1)^{2}",
             "image_slot": False,
@@ -197,17 +194,13 @@ CONTENT = {
             "solution": r"$(6x+1)^{2}=36x^{2}+12x+1$",
             "self_explanation": {
                 "step_index": 1,
-                "prompt": (
-                    "¿Por qué la orla vale 12x y no 6x, si la tira de un lado mide 6x · 1?"
-                ),
+                "prompt": ("¿Por qué la orla vale 12x y no 6x, si la tira de un lado mide 6x · 1?"),
             },
         },
         {
             "eyebrow": "Ejemplo 2 · Cuando el binomio resta",
             "title": "La orla también puede quitar",
-            "statement": (
-                "Otra matriz: lado 9m⁴ − 3n. Mismo troquel, y hay que vigilar un signo."
-            ),
+            "statement": ("Otra matriz: lado 9m⁴ − 3n. Mismo troquel, y hay que vigilar un signo."),
             "latex": r"(9m^{4}-3n)^{2}",
             "image_slot": False,
             "steps": [
@@ -258,8 +251,7 @@ CONTENT = {
                 "Regla para no volver a caer: antes de cerrar, cuenta los términos. Si son dos, falta la orla.",
             ],
             "solution": (
-                "(x + 4)² = x² + 8x + 16. El cuadrado de una suma tiene tres términos, "
-                "siempre."
+                "(x + 4)² = x² + 8x + 16. El cuadrado de una suma tiene tres términos, " "siempre."
             ),
         },
     ],
@@ -296,7 +288,11 @@ CONTENT = {
                 ),
                 "given_steps": [],
                 "blanks": [
-                    {"id": "P3-b1", "label": r"\text{exponente de }a\text{ en el resultado}=", "answer": "4"}
+                    {
+                        "id": "P3-b1",
+                        "label": r"\text{exponente de }a\text{ en el resultado}=",
+                        "answer": "4",
+                    }
                 ],
             },
         ],
@@ -384,9 +380,7 @@ CONTENT = {
             "id": "E3",
             "kind": "numeric",
             "tipo": "estandar",
-            "prompt": (
-                r"Una lámina tiene lado $x+5$ dedos. Con $x=3$, ¿cuánto cobre ocupa?"
-            ),
+            "prompt": (r"Una lámina tiene lado $x+5$ dedos. Con $x=3$, ¿cuánto cobre ocupa?"),
             "expr": r"(x+5)^{2}=x^{2}+10x+25,\quad x=3",
             "answer": "64",
             "hints": {
@@ -414,9 +408,7 @@ CONTENT = {
             "id": "E5",
             "kind": "single_select",
             "tipo": "detecta_error",
-            "prompt": (
-                r"Un aprendiz anota $(3m-4)^{2}=9m^{2}-24m-16$. ¿Dónde está el error?"
-            ),
+            "prompt": (r"Un aprendiz anota $(3m-4)^{2}=9m^{2}-24m-16$. ¿Dónde está el error?"),
             "options": [
                 {"id": "sign", "text": r"El último término: $(-4)^{2}=+16$, no $-16$"},
                 {"id": "middle", "text": r"La orla: debería ser $-12m$"},

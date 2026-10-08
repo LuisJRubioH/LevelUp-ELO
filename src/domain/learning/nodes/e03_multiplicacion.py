@@ -142,10 +142,26 @@ CONTENT = {
     "definition_symbols": [
         {"symbol": r"a,b", "reads": "factores", "means": "las dos cantidades que se multiplican"},
         {"symbol": r"a\times b", "reads": "producto", "means": "el resultado de agrupar"},
-        {"symbol": r"b>1", "reads": "multiplicador mayor que uno", "means": "el producto queda por encima de a"},
-        {"symbol": r"0<b<1", "reads": "multiplicador entre cero y uno", "means": "el producto queda por debajo de a"},
-        {"symbol": r"a\times 1=a", "reads": "multiplicar por uno deja igual", "means": "el neutro del producto; lo formaliza N3-M04"},
-        {"symbol": r"a\times 0=0", "reads": "todo por cero es cero", "means": "cero grupos no dejan nada"},
+        {
+            "symbol": r"b>1",
+            "reads": "multiplicador mayor que uno",
+            "means": "el producto queda por encima de a",
+        },
+        {
+            "symbol": r"0<b<1",
+            "reads": "multiplicador entre cero y uno",
+            "means": "el producto queda por debajo de a",
+        },
+        {
+            "symbol": r"a\times 1=a",
+            "reads": "multiplicar por uno deja igual",
+            "means": "el neutro del producto; lo formaliza N3-M04",
+        },
+        {
+            "symbol": r"a\times 0=0",
+            "reads": "todo por cero es cero",
+            "means": "cero grupos no dejan nada",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -205,10 +221,14 @@ CONTENT = {
                 "wrong_latex": r"60\times\dfrac{1}{2}=120",
                 "right_latex": r"60\times\dfrac{1}{2}=30",
                 "rows": [
-                    {"wrong": "Multiplicar siempre da un resultado mayor",
-                     "right": "Multiplicar por un número entre 0 y 1 da un resultado menor"},
-                    {"wrong": "Media escala pide el doble de teselas",
-                     "right": "Media escala pide la mitad"},
+                    {
+                        "wrong": "Multiplicar siempre da un resultado mayor",
+                        "right": "Multiplicar por un número entre 0 y 1 da un resultado menor",
+                    },
+                    {
+                        "wrong": "Media escala pide el doble de teselas",
+                        "right": "Media escala pide la mitad",
+                    },
                 ],
             },
             "explain_prompt": "¿Por qué 120 no puede ser la respuesta? Escribe la igualdad corregida.",
@@ -248,7 +268,11 @@ CONTENT = {
                     r"48\times\dfrac{1}{4}",
                 ],
                 "blanks": [
-                    {"id": "P2-b1", "label": r"\text{¿el factor es mayor o menor que 1? escribe }0\text{ si menor}, 1\text{ si mayor}", "answer": "0"},
+                    {
+                        "id": "P2-b1",
+                        "label": r"\text{¿el factor es mayor o menor que 1? escribe }0\text{ si menor}, 1\text{ si mayor}",
+                        "answer": "0",
+                    },
                     {"id": "P2-b2", "label": r"48\times\dfrac{1}{4}=", "answer": "12"},
                 ],
             },
@@ -368,7 +392,10 @@ CONTENT = {
             "confidence": "fija",
             "prompt": r"¿Es verdadera o falsa? «Para cualesquiera $a>0$ y $b$: $a\times b>a$.»",
             "options": [
-                {"id": "false_small", "text": "Falsa: si b está entre 0 y 1, el producto queda por debajo de a"},
+                {
+                    "id": "false_small",
+                    "text": "Falsa: si b está entre 0 y 1, el producto queda por debajo de a",
+                },
                 {"id": "true", "text": "Verdadera: multiplicar siempre agranda"},
                 {"id": "false_never", "text": "Falsa: el producto nunca supera a a"},
                 {"id": "true_if_int", "text": "Verdadera siempre que b sea entero"},
@@ -443,24 +470,48 @@ CONTENT = {
         "title": "¿El producto de dos elementos del conjunto vive en el conjunto?",
         "intro": "La multiplicación no rompe ningún peldaño nuevo… salvo uno.",
         "rows": [
-            {"symbol": r"\mathbb{N}", "name": "Naturales", "closed": "yes",
-             "latex": r"13\times 6=78\in\mathbb{N}",
-             "note": "Agrupar cantidades de contar da otra cantidad de contar."},
-            {"symbol": r"\mathbb{Z}", "name": "Enteros", "closed": "yes",
-             "latex": r"7\times(-3)=-21\in\mathbb{Z}",
-             "note": "Con signos también cierra: el signo del producto lo deciden los factores."},
-            {"symbol": r"\mathbb{Q}", "name": "Racionales", "closed": "yes",
-             "latex": r"\dfrac{3}{4}\times\dfrac{2}{5}=\dfrac{6}{20}=\dfrac{3}{10}\in\mathbb{Q}",
-             "note": "Numerador por numerador, denominador por denominador: sigue siendo fracción."},
-            {"symbol": r"\mathbb{I}", "name": "Irracionales", "closed": "no",
-             "latex": r"\sqrt{2}\times\sqrt{2}=2\in\mathbb{Q}",
-             "note": "Dos irracionales pueden dar un racional: el resultado SE SALE. Ninguna operación aritmética cierra 𝕀."},
-            {"symbol": r"\mathbb{R}", "name": "Reales", "closed": "yes",
-             "latex": r"\pi\times 2=2\pi\in\mathbb{R}",
-             "note": "ℝ = ℚ ∪ 𝕀 (B08) sí cierra: por eso el producto vive ahí sin problemas."},
-            {"symbol": r"\mathbb{C}", "name": "Complejos", "closed": "yes",
-             "latex": r"i\times i=-1",
-             "note": "También cierra, y aquí el producto hace algo que en ℝ es imposible. Desvío opcional (B09)."},
+            {
+                "symbol": r"\mathbb{N}",
+                "name": "Naturales",
+                "closed": "yes",
+                "latex": r"13\times 6=78\in\mathbb{N}",
+                "note": "Agrupar cantidades de contar da otra cantidad de contar.",
+            },
+            {
+                "symbol": r"\mathbb{Z}",
+                "name": "Enteros",
+                "closed": "yes",
+                "latex": r"7\times(-3)=-21\in\mathbb{Z}",
+                "note": "Con signos también cierra: el signo del producto lo deciden los factores.",
+            },
+            {
+                "symbol": r"\mathbb{Q}",
+                "name": "Racionales",
+                "closed": "yes",
+                "latex": r"\dfrac{3}{4}\times\dfrac{2}{5}=\dfrac{6}{20}=\dfrac{3}{10}\in\mathbb{Q}",
+                "note": "Numerador por numerador, denominador por denominador: sigue siendo fracción.",
+            },
+            {
+                "symbol": r"\mathbb{I}",
+                "name": "Irracionales",
+                "closed": "no",
+                "latex": r"\sqrt{2}\times\sqrt{2}=2\in\mathbb{Q}",
+                "note": "Dos irracionales pueden dar un racional: el resultado SE SALE. Ninguna operación aritmética cierra 𝕀.",
+            },
+            {
+                "symbol": r"\mathbb{R}",
+                "name": "Reales",
+                "closed": "yes",
+                "latex": r"\pi\times 2=2\pi\in\mathbb{R}",
+                "note": "ℝ = ℚ ∪ 𝕀 (B08) sí cierra: por eso el producto vive ahí sin problemas.",
+            },
+            {
+                "symbol": r"\mathbb{C}",
+                "name": "Complejos",
+                "closed": "yes",
+                "latex": r"i\times i=-1",
+                "note": "También cierra, y aquí el producto hace algo que en ℝ es imposible. Desvío opcional (B09).",
+            },
         ],
         "outro": (
             "Como la suma, la multiplicación no obligó a inventar un peldaño nuevo. Lo que sí "
@@ -470,11 +521,27 @@ CONTENT = {
     },
     "abstraction_question": {
         "prompt": "¿Qué comparten los tres casos trabajados en este nodo?",
-        "thumbnails": [r"144\times\tfrac{1}{2}\times\tfrac{1}{2}", r"7\times(-3)", r"60\times\tfrac{1}{2}"],
+        "thumbnails": [
+            r"144\times\tfrac{1}{2}\times\tfrac{1}{2}",
+            r"7\times(-3)",
+            r"60\times\tfrac{1}{2}",
+        ],
         "options": [
-            {"id": "grouping", "text": "En los tres se toma una cantidad tantas veces como diga el otro factor", "correct": True},
-            {"id": "bigger", "text": "En los tres el producto es mayor que el primer factor", "correct": False},
-            {"id": "below", "text": "En los tres el segundo factor decide si el resultado sube o baja", "correct": True},
+            {
+                "id": "grouping",
+                "text": "En los tres se toma una cantidad tantas veces como diga el otro factor",
+                "correct": True,
+            },
+            {
+                "id": "bigger",
+                "text": "En los tres el producto es mayor que el primer factor",
+                "correct": False,
+            },
+            {
+                "id": "below",
+                "text": "En los tres el segundo factor decide si el resultado sube o baja",
+                "correct": True,
+            },
             {"id": "fractions", "text": "En los tres aparece una fracción", "correct": False},
         ],
     },
@@ -570,9 +637,7 @@ CONTENT = {
             "No es un problema de notación: 10 y 100 se llevan un cero de diferencia. "
             "→ Calcula la mitad de 20."
         ),
-        "fb_e03_e4_none": (
-            "Compruébalo al revés: 100 ÷ 0,5 debería dar 20. → Haz esa división."
-        ),
+        "fb_e03_e4_none": ("Compruébalo al revés: 100 ÷ 0,5 debería dar 20. → Haz esa división."),
         "fb_e03_e5_trap": (
             "Esa regla vale mientras el multiplicador sea mayor que 1. → Prueba con a = 10 "
             "y b = 0,5 y mira si se sostiene."

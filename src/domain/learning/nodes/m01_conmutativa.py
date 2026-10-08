@@ -143,11 +143,31 @@ CONTENT = {
         "potenciación no."
     ),
     "definition_symbols": [
-        {"symbol": r"a,b", "reads": "los dos operandos", "means": "las dos placas cargadas en la prensa"},
-        {"symbol": r"=", "reads": "igual", "means": "los dos órdenes producen exactamente la misma pieza"},
-        {"symbol": r"a-b\neq b-a", "reads": "la resta no conmuta", "means": "salvo cuando a = b; lo viste en la Casa de Cuentas (E02)"},
-        {"symbol": r"a\div b\neq b\div a", "reads": "la división no conmuta", "means": "salvo cuando a = b y ninguno es 0"},
-        {"symbol": r"a^{b}\neq b^{a}", "reads": "la potencia no conmuta", "means": "2³ = 8 pero 3² = 9"},
+        {
+            "symbol": r"a,b",
+            "reads": "los dos operandos",
+            "means": "las dos placas cargadas en la prensa",
+        },
+        {
+            "symbol": r"=",
+            "reads": "igual",
+            "means": "los dos órdenes producen exactamente la misma pieza",
+        },
+        {
+            "symbol": r"a-b\neq b-a",
+            "reads": "la resta no conmuta",
+            "means": "salvo cuando a = b; lo viste en la Casa de Cuentas (E02)",
+        },
+        {
+            "symbol": r"a\div b\neq b\div a",
+            "reads": "la división no conmuta",
+            "means": "salvo cuando a = b y ninguno es 0",
+        },
+        {
+            "symbol": r"a^{b}\neq b^{a}",
+            "reads": "la potencia no conmuta",
+            "means": "2³ = 8 pero 3² = 9",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -208,10 +228,14 @@ CONTENT = {
                 "wrong_latex": r"6-2=2-6",
                 "right_latex": r"6-2=4\quad\text{pero}\quad 2-6=-4",
                 "rows": [
-                    {"wrong": "Dos casos que funcionan prueban la regla general",
-                     "right": "Un solo caso que falla tumba la regla general"},
-                    {"wrong": "La palanca es segura en cualquier configuración",
-                     "right": "Es segura solo sumando y multiplicando"},
+                    {
+                        "wrong": "Dos casos que funcionan prueban la regla general",
+                        "right": "Un solo caso que falla tumba la regla general",
+                    },
+                    {
+                        "wrong": "La palanca es segura en cualquier configuración",
+                        "right": "Es segura solo sumando y multiplicando",
+                    },
                 ],
             },
             "explain_prompt": "Da un caso que tumbe la nota del operario y escribe las dos cuentas.",
@@ -328,7 +352,11 @@ CONTENT = {
             "tipo": "estandar",
             "prompt": r"¿Cuál de estas igualdades es FALSA?",
             "options": [
-                {"id": "power", "text": "2 elevado a 3 igual a 3 elevado a 2", "latex": r"2^{3}=3^{2}"},
+                {
+                    "id": "power",
+                    "text": "2 elevado a 3 igual a 3 elevado a 2",
+                    "latex": r"2^{3}=3^{2}",
+                },
                 {"id": "sum", "text": "9 + 4 = 4 + 9", "latex": r"9+4=4+9"},
                 {"id": "mult", "text": "9 × 4 = 4 × 9", "latex": r"9\times 4=4\times 9"},
                 {"id": "same", "text": "7 − 7 = 7 − 7", "latex": r"7-7=7-7"},
@@ -414,9 +442,7 @@ CONTENT = {
             "id": "E6",
             "kind": "numeric",
             "tipo": "transferencia",
-            "prompt": (
-                "Reordena para calcular de cabeza: 25 × 13 × 4. ¿Cuánto da?"
-            ),
+            "prompt": ("Reordena para calcular de cabeza: 25 × 13 × 4. ¿Cuánto da?"),
             "expr": r"25\times 13\times 4",
             "answer": "1300",
             "hints": {
@@ -434,7 +460,10 @@ CONTENT = {
                 "¿Puede hacerlo?"
             ),
             "options": [
-                {"id": "yes_mult", "text": "Sí: el 8 y el 5 se multiplican, y el producto sí conmuta"},
+                {
+                    "id": "yes_mult",
+                    "text": "Sí: el 8 y el 5 se multiplican, y el producto sí conmuta",
+                },
                 {"id": "no", "text": "No: hay una resta en la expresión"},
                 {"id": "yes_all", "text": "Sí: cualquier número se puede mover a cualquier sitio"},
                 {"id": "only_paren", "text": "Solo si añade paréntesis alrededor de todo"},
@@ -464,24 +493,48 @@ CONTENT = {
         "title": "¿En qué operaciones se puede tirar de la palanca?",
         "intro": "La escalera de este nivel no recorre conjuntos: recorre las seis operaciones que ya visitaste.",
         "rows": [
-            {"symbol": r"+", "name": "Suma", "closed": "yes",
-             "latex": r"8+3=3+8",
-             "note": "Los dos sumandos hacen el mismo papel: juntar no distingue quién llegó primero."},
-            {"symbol": r"-", "name": "Resta", "closed": "no",
-             "latex": r"8-3\neq 3-8",
-             "note": "Dan opuestos. El minuendo no es intercambiable con el sustraendo."},
-            {"symbol": r"\times", "name": "Multiplicación", "closed": "yes",
-             "latex": r"8\times 3=3\times 8",
-             "note": "Un rectángulo de 8 por 3 tiene las mismas teselas que uno de 3 por 8 (E03)."},
-            {"symbol": r"\div", "name": "División", "closed": "no",
-             "latex": r"8\div 3\neq 3\div 8",
-             "note": "El dividendo se reparte y el divisor reparte: papeles distintos."},
-            {"symbol": r"a^{n}", "name": "Potenciación", "closed": "no",
-             "latex": r"2^{3}=8\neq 9=3^{2}",
-             "note": "La base se repite y el exponente cuenta: intercambiarlos cambia quién hace qué (E05)."},
-            {"symbol": r"\sqrt[n]{a}", "name": "Radicación", "closed": "no",
-             "latex": r"\sqrt[3]{8}=2\neq\sqrt[8]{3}",
-             "note": "Índice y radicando tampoco son intercambiables (E06)."},
+            {
+                "symbol": r"+",
+                "name": "Suma",
+                "closed": "yes",
+                "latex": r"8+3=3+8",
+                "note": "Los dos sumandos hacen el mismo papel: juntar no distingue quién llegó primero.",
+            },
+            {
+                "symbol": r"-",
+                "name": "Resta",
+                "closed": "no",
+                "latex": r"8-3\neq 3-8",
+                "note": "Dan opuestos. El minuendo no es intercambiable con el sustraendo.",
+            },
+            {
+                "symbol": r"\times",
+                "name": "Multiplicación",
+                "closed": "yes",
+                "latex": r"8\times 3=3\times 8",
+                "note": "Un rectángulo de 8 por 3 tiene las mismas teselas que uno de 3 por 8 (E03).",
+            },
+            {
+                "symbol": r"\div",
+                "name": "División",
+                "closed": "no",
+                "latex": r"8\div 3\neq 3\div 8",
+                "note": "El dividendo se reparte y el divisor reparte: papeles distintos.",
+            },
+            {
+                "symbol": r"a^{n}",
+                "name": "Potenciación",
+                "closed": "no",
+                "latex": r"2^{3}=8\neq 9=3^{2}",
+                "note": "La base se repite y el exponente cuenta: intercambiarlos cambia quién hace qué (E05).",
+            },
+            {
+                "symbol": r"\sqrt[n]{a}",
+                "name": "Radicación",
+                "closed": "no",
+                "latex": r"\sqrt[3]{8}=2\neq\sqrt[8]{3}",
+                "note": "Índice y radicando tampoco son intercambiables (E06).",
+            },
         ],
         "outro": (
             "Dos sí y cuatro no. La regla no se memoriza: se deduce preguntando si los dos "
@@ -493,9 +546,17 @@ CONTENT = {
         "prompt": "¿Qué comparten las operaciones donde la palanca SÍ se puede tirar?",
         "thumbnails": [r"8+3=3+8", r"8\times 3=3\times 8", r"8-3\neq 3-8"],
         "options": [
-            {"id": "same_role", "text": "Sus dos números hacen el mismo papel en la operación", "correct": True},
+            {
+                "id": "same_role",
+                "text": "Sus dos números hacen el mismo papel en la operación",
+                "correct": True,
+            },
             {"id": "grow", "text": "Su resultado siempre crece", "correct": False},
-            {"id": "join", "text": "Las dos juntan cantidades en lugar de separarlas", "correct": True},
+            {
+                "id": "join",
+                "text": "Las dos juntan cantidades en lugar de separarlas",
+                "correct": True,
+            },
             {"id": "naturals", "text": "Solo funcionan con números naturales", "correct": False},
         ],
     },

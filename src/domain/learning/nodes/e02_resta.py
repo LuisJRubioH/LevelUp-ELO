@@ -139,11 +139,23 @@ CONTENT = {
         "solo los negativos."
     ),
     "definition_symbols": [
-        {"symbol": r"a", "reads": "minuendo", "means": "de lo que se quita; va primero y no se puede mover"},
+        {
+            "symbol": r"a",
+            "reads": "minuendo",
+            "means": "de lo que se quita; va primero y no se puede mover",
+        },
         {"symbol": r"b", "reads": "sustraendo", "means": "lo que se quita"},
         {"symbol": r"a-b", "reads": "diferencia", "means": "el resultado"},
-        {"symbol": r"-b", "reads": "el opuesto de b", "means": "el número que apunta al lado contrario (B05)"},
-        {"symbol": r"a-b\neq b-a", "reads": "la resta no es conmutativa", "means": "cambiar el orden cambia el resultado; se formaliza en N3-M01"},
+        {
+            "symbol": r"-b",
+            "reads": "el opuesto de b",
+            "means": "el número que apunta al lado contrario (B05)",
+        },
+        {
+            "symbol": r"a-b\neq b-a",
+            "reads": "la resta no es conmutativa",
+            "means": "cambiar el orden cambia el resultado; se formaliza en N3-M01",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -205,10 +217,14 @@ CONTENT = {
                 "wrong_latex": r"7-12=5",
                 "right_latex": r"7-12=-5",
                 "rows": [
-                    {"wrong": "Si el minuendo es menor, se da vuelta la resta",
-                     "right": "El orden se respeta y el resultado sale negativo"},
-                    {"wrong": "El cliente tiene 5 óbolos de sobra",
-                     "right": "El cliente queda debiendo 5 óbolos"},
+                    {
+                        "wrong": "Si el minuendo es menor, se da vuelta la resta",
+                        "right": "El orden se respeta y el resultado sale negativo",
+                    },
+                    {
+                        "wrong": "El cliente tiene 5 óbolos de sobra",
+                        "right": "El cliente queda debiendo 5 óbolos",
+                    },
                 ],
             },
             "explain_prompt": "¿Por qué 12 − 7 no responde la pregunta del cliente? Escribe la resta correcta.",
@@ -280,7 +296,11 @@ CONTENT = {
             },
             {
                 "label": "Método 2 · Contar la distancia en la recta",
-                "steps": [r"\text{de }-11\text{ a }-4", r"\text{avanzo }7\text{ hacia la derecha}", r"=7"],
+                "steps": [
+                    r"\text{de }-11\text{ a }-4",
+                    r"\text{avanzo }7\text{ hacia la derecha}",
+                    r"=7",
+                ],
                 "note": "Ver la resta como distancia dirigida entre dos puntos.",
             },
         ],
@@ -340,7 +360,10 @@ CONTENT = {
             "options": [
                 {"id": "swapped", "text": "Restó al revés: hizo 9 - 5. Lo correcto es -4"},
                 {"id": "arith", "text": "Se equivocó en la aritmética: da 14"},
-                {"id": "sign_only", "text": "El resultado debía ser 4 pero con otro signo por casualidad"},
+                {
+                    "id": "sign_only",
+                    "text": "El resultado debía ser 4 pero con otro signo por casualidad",
+                },
                 {"id": "none", "text": "Ningún error, está bien"},
             ],
             "expected": "swapped",
@@ -443,24 +466,48 @@ CONTENT = {
         "title": "¿La resta de dos elementos del conjunto vive en el conjunto?",
         "intro": "Aquí es donde la escalera dio su primer salto obligado.",
         "rows": [
-            {"symbol": r"\mathbb{N}", "name": "Naturales", "closed": "no",
-             "latex": r"7-12\notin\mathbb{N}",
-             "note": "El primer conjunto que se rompe: no hay natural que responda 7 − 12."},
-            {"symbol": r"\mathbb{Z}", "name": "Enteros", "closed": "yes",
-             "latex": r"7-12=-5\in\mathbb{Z}",
-             "note": "ℤ nació exactamente de esto (B05): darle respuesta a toda resta."},
-            {"symbol": r"\mathbb{Q}", "name": "Racionales", "closed": "yes",
-             "latex": r"\dfrac{1}{3}-\dfrac{3}{4}=-\dfrac{5}{12}\in\mathbb{Q}",
-             "note": "Fracción menos fracción sigue siendo fracción."},
-            {"symbol": r"\mathbb{I}", "name": "Irracionales", "closed": "no",
-             "latex": r"\sqrt{5}-\sqrt{5}=0\in\mathbb{Q}",
-             "note": "Dos irracionales pueden restar un racional: el resultado SE SALE. Ninguna operación aritmética los cierra."},
-            {"symbol": r"\mathbb{R}", "name": "Reales", "closed": "yes",
-             "latex": r"\pi-3\in\mathbb{R}",
-             "note": "ℝ = ℚ ∪ 𝕀 (B08) sí cierra: la resta vive cómoda ahí."},
-            {"symbol": r"\mathbb{C}", "name": "Complejos", "closed": "yes",
-             "latex": r"(2+3i)-(1-i)=1+4i",
-             "note": "También cierra. Desvío opcional (B09)."},
+            {
+                "symbol": r"\mathbb{N}",
+                "name": "Naturales",
+                "closed": "no",
+                "latex": r"7-12\notin\mathbb{N}",
+                "note": "El primer conjunto que se rompe: no hay natural que responda 7 − 12.",
+            },
+            {
+                "symbol": r"\mathbb{Z}",
+                "name": "Enteros",
+                "closed": "yes",
+                "latex": r"7-12=-5\in\mathbb{Z}",
+                "note": "ℤ nació exactamente de esto (B05): darle respuesta a toda resta.",
+            },
+            {
+                "symbol": r"\mathbb{Q}",
+                "name": "Racionales",
+                "closed": "yes",
+                "latex": r"\dfrac{1}{3}-\dfrac{3}{4}=-\dfrac{5}{12}\in\mathbb{Q}",
+                "note": "Fracción menos fracción sigue siendo fracción.",
+            },
+            {
+                "symbol": r"\mathbb{I}",
+                "name": "Irracionales",
+                "closed": "no",
+                "latex": r"\sqrt{5}-\sqrt{5}=0\in\mathbb{Q}",
+                "note": "Dos irracionales pueden restar un racional: el resultado SE SALE. Ninguna operación aritmética los cierra.",
+            },
+            {
+                "symbol": r"\mathbb{R}",
+                "name": "Reales",
+                "closed": "yes",
+                "latex": r"\pi-3\in\mathbb{R}",
+                "note": "ℝ = ℚ ∪ 𝕀 (B08) sí cierra: la resta vive cómoda ahí.",
+            },
+            {
+                "symbol": r"\mathbb{C}",
+                "name": "Complejos",
+                "closed": "yes",
+                "latex": r"(2+3i)-(1-i)=1+4i",
+                "note": "También cierra. Desvío opcional (B09).",
+            },
         ],
         "outro": (
             "La suma no rompió ningún peldaño; la resta rompió el primero. Ese es el motor de "
@@ -471,10 +518,22 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres casos trabajados en este nodo?",
         "thumbnails": [r"7-12", r"0-(-4)", r"12-7"],
         "options": [
-            {"id": "order", "text": "En los tres el orden de los números cambia el resultado", "correct": True},
+            {
+                "id": "order",
+                "text": "En los tres el orden de los números cambia el resultado",
+                "correct": True,
+            },
             {"id": "negative", "text": "En los tres el resultado es negativo", "correct": False},
-            {"id": "as_sum", "text": "Los tres se pueden reescribir como una suma del opuesto", "correct": True},
-            {"id": "naturals", "text": "En los tres los dos números son naturales", "correct": False},
+            {
+                "id": "as_sum",
+                "text": "Los tres se pueden reescribir como una suma del opuesto",
+                "correct": True,
+            },
+            {
+                "id": "naturals",
+                "text": "En los tres los dos números son naturales",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

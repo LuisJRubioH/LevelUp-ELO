@@ -43,7 +43,11 @@ CONTENT = {
                 "tipo": "diagnostico",
                 "prompt": r"¿Qué significa $5^{2}$?",
                 "options": [
-                    {"id": "factor", "text": "5 multiplicado por sí mismo 2 veces", "latex": r"5\times 5"},
+                    {
+                        "id": "factor",
+                        "text": "5 multiplicado por sí mismo 2 veces",
+                        "latex": r"5\times 5",
+                    },
                     {"id": "sum", "text": "5 sumado 2 veces", "latex": r"5+5"},
                     {"id": "product", "text": "5 multiplicado por 2", "latex": r"5\times 2"},
                 ],
@@ -141,11 +145,27 @@ CONTENT = {
     ),
     "definition_symbols": [
         {"symbol": r"a", "reads": "base", "means": "el número que se repite"},
-        {"symbol": r"n", "reads": "exponente", "means": "cuántas veces aparece la base como factor"},
+        {
+            "symbol": r"n",
+            "reads": "exponente",
+            "means": "cuántas veces aparece la base como factor",
+        },
         {"symbol": r"a^{n}", "reads": "potencia", "means": "el resultado"},
-        {"symbol": r"a^{1}=a", "reads": "exponente uno", "means": "un solo factor: la base tal cual"},
-        {"symbol": r"a^{0}=1", "reads": "exponente cero", "means": "ningún factor; el producto vacío es 1, no 0"},
-        {"symbol": r"a^{-n}=\dfrac{1}{a^{n}}", "reads": "exponente negativo", "means": "invierte la potencia; se sale de ℤ y cae en ℚ"},
+        {
+            "symbol": r"a^{1}=a",
+            "reads": "exponente uno",
+            "means": "un solo factor: la base tal cual",
+        },
+        {
+            "symbol": r"a^{0}=1",
+            "reads": "exponente cero",
+            "means": "ningún factor; el producto vacío es 1, no 0",
+        },
+        {
+            "symbol": r"a^{-n}=\dfrac{1}{a^{n}}",
+            "reads": "exponente negativo",
+            "means": "invierte la potencia; se sale de ℤ y cae en ℚ",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -207,10 +227,11 @@ CONTENT = {
                 "wrong_latex": r"3^{4}=12",
                 "right_latex": r"3^{4}=81",
                 "rows": [
-                    {"wrong": "El exponente es un factor más",
-                     "right": "El exponente cuenta cuántas veces aparece la base"},
-                    {"wrong": "3⁴ = 3 × 4",
-                     "right": "3⁴ = 3 × 3 × 3 × 3"},
+                    {
+                        "wrong": "El exponente es un factor más",
+                        "right": "El exponente cuenta cuántas veces aparece la base",
+                    },
+                    {"wrong": "3⁴ = 3 × 4", "right": "3⁴ = 3 × 3 × 3 × 3"},
                 ],
             },
             "explain_prompt": "¿Por qué 12 no puede ser la respuesta? Escribe la potencia desarrollada y su valor.",
@@ -370,7 +391,10 @@ CONTENT = {
             "confidence": "fija",
             "prompt": r"¿Es verdadera o falsa? «Para todo $a$ y todo $n$: $a^{n}=a\times n$.»",
             "options": [
-                {"id": "false_factors", "text": "Falsa: el exponente cuenta factores, no es un factor"},
+                {
+                    "id": "false_factors",
+                    "text": "Falsa: el exponente cuenta factores, no es un factor",
+                },
                 {"id": "true", "text": "Verdadera: elevar es multiplicar por el exponente"},
                 {"id": "false_never", "text": "Falsa: nunca coinciden los dos resultados"},
                 {"id": "true_small", "text": "Verdadera si los números son pequeños"},
@@ -444,24 +468,48 @@ CONTENT = {
         "title": "¿La potencia de dos elementos del conjunto vive en el conjunto?",
         "intro": "Esta operación rompe DOS peldaños, y el segundo abre la puerta del nodo siguiente.",
         "rows": [
-            {"symbol": r"\mathbb{N}", "name": "Naturales", "closed": "yes",
-             "latex": r"2^{10}=1024\in\mathbb{N}",
-             "note": "Multiplicar naturales por sí mismos da naturales, por grande que sea."},
-            {"symbol": r"\mathbb{Z}", "name": "Enteros", "closed": "no",
-             "latex": r"2^{-1}=\dfrac{1}{2}\notin\mathbb{Z}",
-             "note": "El exponente negativo invierte, y el inverso de un entero casi nunca es entero."},
-            {"symbol": r"\mathbb{Q}", "name": "Racionales", "closed": "no",
-             "latex": r"2^{1/2}=\sqrt{2}\notin\mathbb{Q}",
-             "note": "Con exponente fraccionario la potencia se sale de ℚ. Este es el hueco del que sale la Cantera (E06)."},
-            {"symbol": r"\mathbb{I}", "name": "Irracionales", "closed": "no",
-             "latex": r"\left(\sqrt{2}\right)^{2}=2\in\mathbb{Q}",
-             "note": "Ni siquiera con exponente natural: el resultado SE SALE. Ninguna operación aritmética cierra 𝕀."},
-            {"symbol": r"\mathbb{R}", "name": "Reales", "closed": "partial",
-             "latex": r"(-4)^{1/2}\notin\mathbb{R}",
-             "note": "Cierra con base positiva (π² ∈ ℝ). Se rompe en un solo caso: base negativa con exponente fraccionario, y ahí empieza B09."},
-            {"symbol": r"\mathbb{C}", "name": "Complejos", "closed": "yes",
-             "latex": r"(-4)^{1/2}=2i",
-             "note": "El único peldaño donde toda potencia tiene respuesta. Desvío opcional (B09)."},
+            {
+                "symbol": r"\mathbb{N}",
+                "name": "Naturales",
+                "closed": "yes",
+                "latex": r"2^{10}=1024\in\mathbb{N}",
+                "note": "Multiplicar naturales por sí mismos da naturales, por grande que sea.",
+            },
+            {
+                "symbol": r"\mathbb{Z}",
+                "name": "Enteros",
+                "closed": "no",
+                "latex": r"2^{-1}=\dfrac{1}{2}\notin\mathbb{Z}",
+                "note": "El exponente negativo invierte, y el inverso de un entero casi nunca es entero.",
+            },
+            {
+                "symbol": r"\mathbb{Q}",
+                "name": "Racionales",
+                "closed": "no",
+                "latex": r"2^{1/2}=\sqrt{2}\notin\mathbb{Q}",
+                "note": "Con exponente fraccionario la potencia se sale de ℚ. Este es el hueco del que sale la Cantera (E06).",
+            },
+            {
+                "symbol": r"\mathbb{I}",
+                "name": "Irracionales",
+                "closed": "no",
+                "latex": r"\left(\sqrt{2}\right)^{2}=2\in\mathbb{Q}",
+                "note": "Ni siquiera con exponente natural: el resultado SE SALE. Ninguna operación aritmética cierra 𝕀.",
+            },
+            {
+                "symbol": r"\mathbb{R}",
+                "name": "Reales",
+                "closed": "partial",
+                "latex": r"(-4)^{1/2}\notin\mathbb{R}",
+                "note": "Cierra con base positiva (π² ∈ ℝ). Se rompe en un solo caso: base negativa con exponente fraccionario, y ahí empieza B09.",
+            },
+            {
+                "symbol": r"\mathbb{C}",
+                "name": "Complejos",
+                "closed": "yes",
+                "latex": r"(-4)^{1/2}=2i",
+                "note": "El único peldaño donde toda potencia tiene respuesta. Desvío opcional (B09).",
+            },
         ],
         "outro": (
             "El agujero de ℚ es el más interesante: 2^(1/2) existe, no es ninguna fracción, y "
@@ -473,9 +521,21 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres casos trabajados en este nodo?",
         "thumbnails": [r"2^{10}", r"2^{-3}", r"3^{4}"],
         "options": [
-            {"id": "factors", "text": "En los tres el exponente dice cuántas veces aparece la base como factor", "correct": True},
-            {"id": "bigger", "text": "En los tres el resultado es mayor que la base", "correct": False},
-            {"id": "repeated", "text": "En los tres se repite una misma multiplicación", "correct": True},
+            {
+                "id": "factors",
+                "text": "En los tres el exponente dice cuántas veces aparece la base como factor",
+                "correct": True,
+            },
+            {
+                "id": "bigger",
+                "text": "En los tres el resultado es mayor que la base",
+                "correct": False,
+            },
+            {
+                "id": "repeated",
+                "text": "En los tres se repite una misma multiplicación",
+                "correct": True,
+            },
             {"id": "base_two", "text": "En los tres la base es 2", "correct": False},
         ],
     },
@@ -524,7 +584,11 @@ CONTENT = {
                 "tipo": "diagnostico",
                 "prompt": r"¿Qué significa $6^{2}$?",
                 "options": [
-                    {"id": "factor", "text": "6 multiplicado por sí mismo 2 veces", "latex": r"6\times 6"},
+                    {
+                        "id": "factor",
+                        "text": "6 multiplicado por sí mismo 2 veces",
+                        "latex": r"6\times 6",
+                    },
                     {"id": "product", "text": "6 multiplicado por 2", "latex": r"6\times 2"},
                     {"id": "sum", "text": "6 sumado 2 veces", "latex": r"6+6"},
                 ],

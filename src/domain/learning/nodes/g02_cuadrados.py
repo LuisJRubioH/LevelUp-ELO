@@ -146,9 +146,7 @@ CONTENT = {
         ),
     },
     "definition_title": "Diferencia de cuadrados y trinomio cuadrado perfecto",
-    "definition_katex": (
-        r"a^{2}-b^{2} = (a+b)(a-b) \qquad a^{2}\pm 2ab+b^{2} = (a\pm b)^{2}"
-    ),
+    "definition_katex": (r"a^{2}-b^{2} = (a+b)(a-b) \qquad a^{2}\pm 2ab+b^{2} = (a\pm b)^{2}"),
     "definition": (
         "DIFERENCIA DE CUADRADOS: dos términos, ambos cuadrados exactos, restando. Se abre "
         "como suma por diferencia de sus raíces. La SUMA de cuadrados no se factoriza.\n\n"
@@ -278,9 +276,7 @@ CONTENT = {
                 "missing": "last",
                 "statement": r"Factoriza $9x^{2}-49$.",
                 "given_steps": [r"\sqrt{9x^{2}}=3x"],
-                "blanks": [
-                    {"id": "P1-b1", "label": r"\sqrt{49}=", "answer": "7"}
-                ],
+                "blanks": [{"id": "P1-b1", "label": r"\sqrt{49}=", "answer": "7"}],
             },
             {
                 "id": "P2",
@@ -288,8 +284,16 @@ CONTENT = {
                 "statement": r"¿Es $x^{2}+10x+25$ cuadrado perfecto?",
                 "given_steps": [r"\sqrt{x^{2}}=x,\quad \sqrt{25}=5"],
                 "blanks": [
-                    {"id": "P2-b1", "label": r"2\cdot x\cdot 5\ \text{, coeficiente}=", "answer": "10"},
-                    {"id": "P2-b2", "label": r"\text{términos del binomio resultante}=", "answer": "2"},
+                    {
+                        "id": "P2-b1",
+                        "label": r"2\cdot x\cdot 5\ \text{, coeficiente}=",
+                        "answer": "10",
+                    },
+                    {
+                        "id": "P2-b2",
+                        "label": r"\text{términos del binomio resultante}=",
+                        "answer": "2",
+                    },
                 ],
             },
             {
@@ -302,7 +306,11 @@ CONTENT = {
                 ),
                 "given_steps": [],
                 "blanks": [
-                    {"id": "P3-b1", "label": r"\text{doble producto que debería tener}=", "answer": "10"}
+                    {
+                        "id": "P3-b1",
+                        "label": r"\text{doble producto que debería tener}=",
+                        "answer": "10",
+                    }
                 ],
             },
         ],
@@ -450,7 +458,10 @@ CONTENT = {
                 },
                 {"id": "yes", "text": "Sí: ya está en dos factores"},
                 {"id": "wrong", "text": r"No: el primer factor $x^{2}+4$ también se abre"},
-                {"id": "err", "text": r"No: la factorización está mal, debería ser $(x^{2}+4)^{2}$"},
+                {
+                    "id": "err",
+                    "text": r"No: la factorización está mal, debería ser $(x^{2}+4)^{2}$",
+                },
             ],
             "expected": "no",
             "feedback_by_option": {

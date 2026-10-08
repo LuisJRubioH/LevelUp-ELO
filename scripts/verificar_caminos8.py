@@ -77,11 +77,7 @@ REQUERIDOS = {
 
 
 def verificar(item: dict) -> str | None:
-    if (
-        item["tipo"] == "simbolico"
-        and "veredicto" in item
-        and "afirmacion" in item
-    ):
+    if item["tipo"] == "simbolico" and "veredicto" in item and "afirmacion" in item:
         error = verificar_base(item)
         if error:
             return error
@@ -128,10 +124,7 @@ def verificar(item: dict) -> str | None:
             incognita,
         )
         esperada = sympify(item["solucion"], rational=True)
-        if not any(
-            simplify(cancel(together(obtenida - esperada))) == 0
-            for obtenida in obtenidas
-        ):
+        if not any(simplify(cancel(together(obtenida - esperada))) == 0 for obtenida in obtenidas):
             return (
                 f"al despejar {nombre} en {item['ecuacion']} se obtiene {obtenidas}, "
                 f"no {esperada}"
@@ -304,8 +297,7 @@ def verificar(item: dict) -> str | None:
             return f"la cota correcta es {cota}, no {cota_declarada}"
         if item["signo_solucion"] != signo_esperado:
             return (
-                f"al despejar, el signo debe ser {signo_esperado}, "
-                f"no {item['signo_solucion']}"
+                f"al despejar, el signo debe ser {signo_esperado}, " f"no {item['signo_solucion']}"
             )
         return None
 
@@ -457,12 +449,16 @@ def progreso() -> int:
         pendientes = [str(p) for p in previstas if p not in hechas]
         marca = "OK " if len(listas) == len(previstas) else "   "
         detalle = f"  faltan: {', '.join(pendientes)}" if pendientes else ""
-        print(f"{marca}U{numero:>2} {titulo[:34]:34s} {len(listas):>2}/{len(previstas):<2}{detalle}")
+        print(
+            f"{marca}U{numero:>2} {titulo[:34]:34s} {len(listas):>2}/{len(previstas):<2}{detalle}"
+        )
 
     fuera = sorted(hechas - {p["pagina"] for p in paginas})
     if fuera:
         print(f"\nADVERTENCIA: páginas transcritas fuera del manifiesto: {fuera}")
-    print(f"\n{len(hechas & {p['pagina'] for p in paginas})}/{len(paginas)} páginas con ejercicios transcritas")
+    print(
+        f"\n{len(hechas & {p['pagina'] for p in paginas})}/{len(paginas)} páginas con ejercicios transcritas"
+    )
     return 0
 
 

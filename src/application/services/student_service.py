@@ -15,6 +15,7 @@ from src.application.services.rating_read_service import RatingReadService
 
 logger = logging.getLogger(__name__)
 
+
 class StudentService:
     """
     Servicio de aplicación que orquesta los casos de uso del estudiante.

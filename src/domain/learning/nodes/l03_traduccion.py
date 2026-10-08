@@ -143,12 +143,32 @@ CONTENT = {
         "de…»— hace falta un paréntesis."
     ),
     "definition_symbols": [
-        {"symbol": r"c+5", "reads": "ce más cinco", "means": "«cinco más que c» · el orden da igual"},
-        {"symbol": r"c-5", "reads": "ce menos cinco", "means": "«cinco menos que c» · c es quien pierde"},
-        {"symbol": r"5-c", "reads": "cinco menos ce", "means": "«c menos que cinco» · otra frase distinta"},
+        {
+            "symbol": r"c+5",
+            "reads": "ce más cinco",
+            "means": "«cinco más que c» · el orden da igual",
+        },
+        {
+            "symbol": r"c-5",
+            "reads": "ce menos cinco",
+            "means": "«cinco menos que c» · c es quien pierde",
+        },
+        {
+            "symbol": r"5-c",
+            "reads": "cinco menos ce",
+            "means": "«c menos que cinco» · otra frase distinta",
+        },
         {"symbol": r"3c", "reads": "tres ce", "means": "«el triple de c» · el orden da igual"},
-        {"symbol": r"\dfrac{c}{3}", "reads": "ce entre tres", "means": "«c repartido en tres» · el orden importa"},
-        {"symbol": r"2(c+5)", "reads": "dos por, abre, ce más cinco", "means": "«el doble de la suma» · la frase agrupa"},
+        {
+            "symbol": r"\dfrac{c}{3}",
+            "reads": "ce entre tres",
+            "means": "«c repartido en tres» · el orden importa",
+        },
+        {
+            "symbol": r"2(c+5)",
+            "reads": "dos por, abre, ce más cinco",
+            "means": "«el doble de la suma» · la frase agrupa",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -211,10 +231,11 @@ CONTENT = {
                 "wrong_latex": r"5-c",
                 "right_latex": r"c-5",
                 "rows": [
-                    {"wrong": "El cinco se dijo primero, luego va primero",
-                     "right": "«Menos que c» significa que a c se le quitan cinco"},
-                    {"wrong": r"c=8\Rightarrow 5-8=-3",
-                     "right": r"c=8\Rightarrow 8-5=3"},
+                    {
+                        "wrong": "El cinco se dijo primero, luego va primero",
+                        "right": "«Menos que c» significa que a c se le quitan cinco",
+                    },
+                    {"wrong": r"c=8\Rightarrow 5-8=-3", "right": r"c=8\Rightarrow 8-5=3"},
                 ],
             },
             "explain_prompt": (
@@ -416,7 +437,10 @@ CONTENT = {
                 "mismo orden en que se oyen las palabras.»"
             ),
             "options": [
-                {"id": "false", "text": "Falsa: «cinco menos que c» se oye 5 primero y se escribe c − 5"},
+                {
+                    "id": "false",
+                    "text": "Falsa: «cinco menos que c» se oye 5 primero y se escribe c − 5",
+                },
                 {"id": "true", "text": "Verdadera: para eso se dicta despacio"},
                 {"id": "true_short", "text": "Verdadera si la frase es corta"},
                 {"id": "false_always", "text": "Falsa: nunca coincide el orden"},
@@ -488,24 +512,48 @@ CONTENT = {
             "les da igual. El problema es no saber cuáles."
         ),
         "rows": [
-            {"symbol": r"c+4", "name": "«Cuatro más que c»", "closed": "yes",
-             "latex": r"4+c=c+4",
-             "note": "La suma no distingue el orden: escribirlo como suena da lo mismo."},
-            {"symbol": r"4c", "name": "«Cuatro veces c»", "closed": "yes",
-             "latex": r"4\cdot c=c\cdot 4",
-             "note": "El producto tampoco lo distingue. Otro caso en que la copia cuela."},
-            {"symbol": r"c-4", "name": "«Cuatro menos que c»", "closed": "no",
-             "latex": r"4-c\neq c-4",
-             "note": "Aquí se rompe: hay que poner primero a quien pierde. Es el caso focal."},
-            {"symbol": r"\dfrac{c}{4}", "name": "«c repartido entre cuatro»", "closed": "no",
-             "latex": r"\dfrac{4}{c}\neq\dfrac{c}{4}",
-             "note": "Igual que la resta: lo que se reparte va arriba, se diga cuando se diga."},
-            {"symbol": r"2(c+4)", "name": "«El doble de la suma de c y cuatro»", "closed": "no",
-             "latex": r"2(c+4)\neq 2c+4",
-             "note": "No falla el orden sino la agrupación: la frase manda hacer la suma primero."},
-            {"symbol": r"c-4\ \text{vs}\ 4-c", "name": "«c menos que cuatro»", "closed": "partial",
-             "latex": r"4-c",
-             "note": "Cambiando dos palabras la frase cambia de bando: ahora sí es 4 − c. El orden literal acierta por casualidad."},
+            {
+                "symbol": r"c+4",
+                "name": "«Cuatro más que c»",
+                "closed": "yes",
+                "latex": r"4+c=c+4",
+                "note": "La suma no distingue el orden: escribirlo como suena da lo mismo.",
+            },
+            {
+                "symbol": r"4c",
+                "name": "«Cuatro veces c»",
+                "closed": "yes",
+                "latex": r"4\cdot c=c\cdot 4",
+                "note": "El producto tampoco lo distingue. Otro caso en que la copia cuela.",
+            },
+            {
+                "symbol": r"c-4",
+                "name": "«Cuatro menos que c»",
+                "closed": "no",
+                "latex": r"4-c\neq c-4",
+                "note": "Aquí se rompe: hay que poner primero a quien pierde. Es el caso focal.",
+            },
+            {
+                "symbol": r"\dfrac{c}{4}",
+                "name": "«c repartido entre cuatro»",
+                "closed": "no",
+                "latex": r"\dfrac{4}{c}\neq\dfrac{c}{4}",
+                "note": "Igual que la resta: lo que se reparte va arriba, se diga cuando se diga.",
+            },
+            {
+                "symbol": r"2(c+4)",
+                "name": "«El doble de la suma de c y cuatro»",
+                "closed": "no",
+                "latex": r"2(c+4)\neq 2c+4",
+                "note": "No falla el orden sino la agrupación: la frase manda hacer la suma primero.",
+            },
+            {
+                "symbol": r"c-4\ \text{vs}\ 4-c",
+                "name": "«c menos que cuatro»",
+                "closed": "partial",
+                "latex": r"4-c",
+                "note": "Cambiando dos palabras la frase cambia de bando: ahora sí es 4 − c. El orden literal acierta por casualidad.",
+            },
         ],
         "outro": (
             "La última fila avisa de lo peor que puede pasar: acertar por el motivo "
@@ -518,10 +566,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres encargos trabajados en este nodo?",
         "thumbnails": [r"2c+3", r"2(c+3)", r"c-5"],
         "options": [
-            {"id": "name_first", "text": "En los tres conviene nombrar la cantidad desconocida antes de operar", "correct": True},
-            {"id": "order_matters", "text": "En los tres el orden o la agrupación cambia el resultado si se descuida", "correct": True},
-            {"id": "literal", "text": "En los tres basta con escribir los símbolos según se oyen", "correct": False},
-            {"id": "no_paren", "text": "En los tres los paréntesis se pueden quitar sin consecuencias", "correct": False},
+            {
+                "id": "name_first",
+                "text": "En los tres conviene nombrar la cantidad desconocida antes de operar",
+                "correct": True,
+            },
+            {
+                "id": "order_matters",
+                "text": "En los tres el orden o la agrupación cambia el resultado si se descuida",
+                "correct": True,
+            },
+            {
+                "id": "literal",
+                "text": "En los tres basta con escribir los símbolos según se oyen",
+                "correct": False,
+            },
+            {
+                "id": "no_paren",
+                "text": "En los tres los paréntesis se pueden quitar sin consecuencias",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

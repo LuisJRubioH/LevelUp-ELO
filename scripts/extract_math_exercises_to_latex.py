@@ -57,54 +57,167 @@ class ExercisePage:
 
 
 BOOK1_UNITS = (
-    Unit(1, "Conjuntos numéricos", 8, 33, 26, (
-        "Números naturales", "Números enteros", "Números racionales",
-        "Números irracionales", "Números reales", "Orden en el conjunto de números reales",
-    )),
-    Unit(2, "Expresiones algebraicas", 34, 51, 46, (
-        "Lenguaje algebraico", "Términos algebraicos", "Monomios",
-        "Características de un monomio", "Polinomios", "Características de un polinomio",
-        "Valor numérico de un polinomio",
-    )),
-    Unit(3, "Operaciones entre polinomios", 52, 79, 74, (
-        "Adición y sustracción de polinomios", "Multiplicación de polinomios",
-        "División de polinomios", "División sintética", "Teorema del residuo",
-        "Operaciones combinadas entre polinomios",
-    )),
-    Unit(4, "Productos notables y cocientes notables", 80, 105, 100, (
-        "Productos notables", "Cuadrado de un binomio", "Producto de la suma por la diferencia",
-        "Cubo de un binomio", "Triángulo de Pascal", "Cocientes notables",
-    )),
-    Unit(5, "Factorización", 106, 143, 138, (
-        "Noción de factorización", "Factor común", "Factor común por agrupación",
-        "Factorización de binomios", "Factorización de trinomios",
-        "Factorización de un cubo perfecto", "Factorización completa",
-        "Factorización de un polinomio con división sintética",
-    )),
-    Unit(6, "Fracciones algebraicas", 144, 181, 176, (
-        "Máximo común divisor", "Mínimo común múltiplo", "Expresiones algebraicas racionales",
-        "Simplificación de fracciones algebraicas", "Adición y sustracción",
-        "Multiplicación de fracciones algebraicas", "División de fracciones algebraicas",
-        "Operaciones combinadas", "Fracciones complejas",
-    )),
-    Unit(7, "Ecuaciones e inecuaciones", 182, 219, 214, (
-        "Ecuaciones", "Solución de una ecuación", "Ecuaciones con signos de agrupación",
-        "Ecuaciones con coeficientes literales", "Desigualdades", "Inecuaciones",
-        "Solución de problemas con inecuaciones",
-    )),
-    Unit(8, "Función lineal", 220, 253, 248, (
-        "Función", "Función lineal", "Función afín", "Pendiente de una recta",
-        "Ecuación de la recta", "Rectas paralelas", "Rectas perpendiculares",
-        "Sistemas de ecuaciones lineales",
-    )),
-    Unit(9, "Geometría", 254, 291, 284, (
-        "Ángulos", "Triángulos", "Métodos de demostración", "Congruencia",
-        "Líneas notables", "Longitud y área", "Unidades de longitud", "Unidades de área",
-    )),
-    Unit(10, "Estadística y probabilidad", 292, 336, 326, (
-        "Estadística", "Variables cuantitativas", "Medidas de posición",
-        "Medidas de variabilidad", "Probabilidad", "Propiedades de la probabilidad",
-    )),
+    Unit(
+        1,
+        "Conjuntos numéricos",
+        8,
+        33,
+        26,
+        (
+            "Números naturales",
+            "Números enteros",
+            "Números racionales",
+            "Números irracionales",
+            "Números reales",
+            "Orden en el conjunto de números reales",
+        ),
+    ),
+    Unit(
+        2,
+        "Expresiones algebraicas",
+        34,
+        51,
+        46,
+        (
+            "Lenguaje algebraico",
+            "Términos algebraicos",
+            "Monomios",
+            "Características de un monomio",
+            "Polinomios",
+            "Características de un polinomio",
+            "Valor numérico de un polinomio",
+        ),
+    ),
+    Unit(
+        3,
+        "Operaciones entre polinomios",
+        52,
+        79,
+        74,
+        (
+            "Adición y sustracción de polinomios",
+            "Multiplicación de polinomios",
+            "División de polinomios",
+            "División sintética",
+            "Teorema del residuo",
+            "Operaciones combinadas entre polinomios",
+        ),
+    ),
+    Unit(
+        4,
+        "Productos notables y cocientes notables",
+        80,
+        105,
+        100,
+        (
+            "Productos notables",
+            "Cuadrado de un binomio",
+            "Producto de la suma por la diferencia",
+            "Cubo de un binomio",
+            "Triángulo de Pascal",
+            "Cocientes notables",
+        ),
+    ),
+    Unit(
+        5,
+        "Factorización",
+        106,
+        143,
+        138,
+        (
+            "Noción de factorización",
+            "Factor común",
+            "Factor común por agrupación",
+            "Factorización de binomios",
+            "Factorización de trinomios",
+            "Factorización de un cubo perfecto",
+            "Factorización completa",
+            "Factorización de un polinomio con división sintética",
+        ),
+    ),
+    Unit(
+        6,
+        "Fracciones algebraicas",
+        144,
+        181,
+        176,
+        (
+            "Máximo común divisor",
+            "Mínimo común múltiplo",
+            "Expresiones algebraicas racionales",
+            "Simplificación de fracciones algebraicas",
+            "Adición y sustracción",
+            "Multiplicación de fracciones algebraicas",
+            "División de fracciones algebraicas",
+            "Operaciones combinadas",
+            "Fracciones complejas",
+        ),
+    ),
+    Unit(
+        7,
+        "Ecuaciones e inecuaciones",
+        182,
+        219,
+        214,
+        (
+            "Ecuaciones",
+            "Solución de una ecuación",
+            "Ecuaciones con signos de agrupación",
+            "Ecuaciones con coeficientes literales",
+            "Desigualdades",
+            "Inecuaciones",
+            "Solución de problemas con inecuaciones",
+        ),
+    ),
+    Unit(
+        8,
+        "Función lineal",
+        220,
+        253,
+        248,
+        (
+            "Función",
+            "Función lineal",
+            "Función afín",
+            "Pendiente de una recta",
+            "Ecuación de la recta",
+            "Rectas paralelas",
+            "Rectas perpendiculares",
+            "Sistemas de ecuaciones lineales",
+        ),
+    ),
+    Unit(
+        9,
+        "Geometría",
+        254,
+        291,
+        284,
+        (
+            "Ángulos",
+            "Triángulos",
+            "Métodos de demostración",
+            "Congruencia",
+            "Líneas notables",
+            "Longitud y área",
+            "Unidades de longitud",
+            "Unidades de área",
+        ),
+    ),
+    Unit(
+        10,
+        "Estadística y probabilidad",
+        292,
+        336,
+        326,
+        (
+            "Estadística",
+            "Variables cuantitativas",
+            "Medidas de posición",
+            "Medidas de variabilidad",
+            "Probabilidad",
+            "Propiedades de la probabilidad",
+        ),
+    ),
 )
 
 
@@ -219,7 +332,7 @@ def clip_exercise_text(text: str, style: str, is_closing: bool) -> str:
         starts = [match for match in starts if match is not None]
         if starts:
             first = min(starts, key=lambda item: item.start())
-            return text[first.start():]
+            return text[first.start() :]
 
     return text
 
@@ -386,8 +499,18 @@ def format_exercise_text(text: str) -> str:
         escaped,
     )
     instruction_words = (
-        "Responde", "Resuelve", "Determina", "Escribe", "Completa", "Representa",
-        "Observa", "Relaciona", "Calcula", "Halla", "Justifica", "Explica",
+        "Responde",
+        "Resuelve",
+        "Determina",
+        "Escribe",
+        "Completa",
+        "Representa",
+        "Observa",
+        "Relaciona",
+        "Calcula",
+        "Halla",
+        "Justifica",
+        "Explica",
     )
     for word in instruction_words:
         escaped = re.sub(
@@ -475,21 +598,25 @@ def write_book_tex(
         if record.unit_number != current_unit:
             current_unit = record.unit_number
             current_section = None
-            lines.extend([
-                rf"\chapter{{Unidad {record.unit_number}. {latex_escape(record.unit_title)}}}",
-                "",
-            ])
+            lines.extend(
+                [
+                    rf"\chapter{{Unidad {record.unit_number}. {latex_escape(record.unit_title)}}}",
+                    "",
+                ]
+            )
         if record.section != current_section:
             current_section = record.section
             lines.extend([rf"\section{{{latex_escape(record.section)}}}", ""])
 
-        lines.extend([
-            rf"\subsection{{{latex_escape(record.category)} - página PDF {record.page}}}",
-            r"\begin{exerciseblock}",
-            format_exercise_text(record.text),
-            r"\end{exerciseblock}",
-            "",
-        ])
+        lines.extend(
+            [
+                rf"\subsection{{{latex_escape(record.category)} - página PDF {record.page}}}",
+                r"\begin{exerciseblock}",
+                format_exercise_text(record.text),
+                r"\end{exerciseblock}",
+                "",
+            ]
+        )
 
         if record.needs_visual:
             source_image = book.image_dir / f"page-{record.page:03d}.jpg"
@@ -498,10 +625,12 @@ def write_book_tex(
             if not source_image.exists():
                 raise FileNotFoundError(f"Missing rendered source page: {source_image}")
             shutil.copy2(source_image, target_image)
-            lines.extend([
-                rf"\sourcepage{{assets/{asset_name}}}{{{record.page}}}",
-                "",
-            ])
+            lines.extend(
+                [
+                    rf"\sourcepage{{assets/{asset_name}}}{{{record.page}}}",
+                    "",
+                ]
+            )
 
     output_path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
     return output_path
@@ -510,28 +639,39 @@ def write_book_tex(
 def write_manifest(records: list[ExercisePage], output_dir: Path) -> None:
     with (output_dir / "manifest.csv").open("w", encoding="utf-8-sig", newline="") as stream:
         writer = csv.writer(stream)
-        writer.writerow([
-            "libro", "unidad", "titulo_unidad", "pagina_pdf", "seccion_inferida",
-            "categoria", "referencia_visual", "caracteres_ocr",
-        ])
+        writer.writerow(
+            [
+                "libro",
+                "unidad",
+                "titulo_unidad",
+                "pagina_pdf",
+                "seccion_inferida",
+                "categoria",
+                "referencia_visual",
+                "caracteres_ocr",
+            ]
+        )
         for record in records:
-            writer.writerow([
-                record.book_key,
-                record.unit_number,
-                record.unit_title,
-                record.page,
-                record.section,
-                record.category,
-                "si" if record.needs_visual else "no",
-                len(record.text),
-            ])
+            writer.writerow(
+                [
+                    record.book_key,
+                    record.unit_number,
+                    record.unit_title,
+                    record.page,
+                    record.section,
+                    record.category,
+                    "si" if record.needs_visual else "no",
+                    len(record.text),
+                ]
+            )
 
 
 def write_readme(books: list[Book], records: list[ExercisePage], output_dir: Path) -> None:
     counts = {book.key: sum(item.book_key == book.key for item in records) for book in books}
-    visuals = {book.key: sum(
-        item.book_key == book.key and item.needs_visual for item in records
-    ) for book in books}
+    visuals = {
+        book.key: sum(item.book_key == book.key and item.needs_visual for item in records)
+        for book in books
+    }
     content = f"""# Listas de ejercicios - Matemáticas 8
 
 La carpeta contiene una compilación LaTeX editable y organizada por libro, unidad, sección y

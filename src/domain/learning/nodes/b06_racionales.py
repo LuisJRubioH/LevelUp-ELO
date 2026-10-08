@@ -63,8 +63,16 @@ CONTENT = {
                 "tipo": "diagnostico",
                 "prompt": "Tres botellas iguales se reparten entre cuatro personas. ¿Cuánta botella recibe cada una?",
                 "options": [
-                    {"id": "three_fourths", "text": "tres cuartos de botella", "latex": r"\dfrac{3}{4}"},
-                    {"id": "four_thirds", "text": "cuatro tercios de botella", "latex": r"\dfrac{4}{3}"},
+                    {
+                        "id": "three_fourths",
+                        "text": "tres cuartos de botella",
+                        "latex": r"\dfrac{3}{4}",
+                    },
+                    {
+                        "id": "four_thirds",
+                        "text": "cuatro tercios de botella",
+                        "latex": r"\dfrac{4}{3}",
+                    },
                     {"id": "not_enough", "text": "No alcanza: sobra 1"},
                     {"id": "one_and_left", "text": "Cada una 1 y sobra"},
                 ],
@@ -102,7 +110,11 @@ CONTENT = {
             "options": [
                 {"id": "a", "latex": r"0{,}66"},
                 {"id": "b", "latex": r"0{,}666"},
-                {"id": "c", "text": "Ninguno de los dos: solo 2/3 lo dice exacto", "latex": r"\dfrac{2}{3}"},
+                {
+                    "id": "c",
+                    "text": "Ninguno de los dos: solo 2/3 lo dice exacto",
+                    "latex": r"\dfrac{2}{3}",
+                },
             ],
             "response": (
                 "Veámoslo. Guarda esa respuesta: al final del nodo vas a saber cuál de las tres "
@@ -146,12 +158,28 @@ CONTENT = {
         "La frase del nodo: a/b ES a÷b. No «se parece a», no «se puede convertir en». Es."
     ),
     "definition_symbols": [
-        {"symbol": r"\mathbb{Q}", "reads": "los racionales", "means": "de quotient, cociente: el conjunto de los cocientes"},
+        {
+            "symbol": r"\mathbb{Q}",
+            "reads": "los racionales",
+            "means": "de quotient, cociente: el conjunto de los cocientes",
+        },
         {"symbol": r"a", "reads": "numerador", "means": "cuánto se reparte (el dividendo)"},
         {"symbol": r"b", "reads": "denominador", "means": "entre cuántos se reparte (el divisor)"},
-        {"symbol": r"\dfrac{\ \ }{\ \ }", "reads": "dividido entre", "means": "la barra no es un adorno: es el signo de dividir"},
-        {"symbol": r"a,b\in\mathbb{Z}", "reads": "a y b son enteros", "means": "arriba y abajo pueden ser negativos (viene de B05)"},
-        {"symbol": r"b\neq 0", "reads": "b distinto de cero", "means": "repartir entre cero baldes no es un reparto"},
+        {
+            "symbol": r"\dfrac{\ \ }{\ \ }",
+            "reads": "dividido entre",
+            "means": "la barra no es un adorno: es el signo de dividir",
+        },
+        {
+            "symbol": r"a,b\in\mathbb{Z}",
+            "reads": "a y b son enteros",
+            "means": "arriba y abajo pueden ser negativos (viene de B05)",
+        },
+        {
+            "symbol": r"b\neq 0",
+            "reads": "b distinto de cero",
+            "means": "repartir entre cero baldes no es un reparto",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos (a, b, trampa) ------------------------
     "worked_examples": [
@@ -214,10 +242,14 @@ CONTENT = {
                 "wrong_latex": r"\dfrac{25}{7}=3{,}57142",
                 "right_latex": r"\dfrac{25}{7}=3{,}\overline{571428}",
                 "rows": [
-                    {"wrong": "El decimal se cortó donde se acabó la paciencia",
-                     "right": "El bloque 571428 se repite para siempre"},
-                    {"wrong": "3,57142 es menor que 25/7",
-                     "right": "La única escritura corta y exacta es 25/7"},
+                    {
+                        "wrong": "El decimal se cortó donde se acabó la paciencia",
+                        "right": "El bloque 571428 se repite para siempre",
+                    },
+                    {
+                        "wrong": "3,57142 es menor que 25/7",
+                        "right": "La única escritura corta y exacta es 25/7",
+                    },
                 ],
             },
             "explain_prompt": "¿Por qué 3,57142 no es 25/7? Escribe la igualdad corregida.",
@@ -261,7 +293,11 @@ CONTENT = {
                     r"\dfrac{69}{5}=69\div5",
                 ],
                 "blanks": [
-                    {"id": "P2-b1", "label": r"5\times\square=65\ \Rightarrow\ \square=", "answer": "13"},
+                    {
+                        "id": "P2-b1",
+                        "label": r"5\times\square=65\ \Rightarrow\ \square=",
+                        "answer": "13",
+                    },
                     {"id": "P2-b2", "label": r"4\div5=", "answer": "0,8"},
                     {"id": "P2-b3", "label": r"\dfrac{69}{5}=", "answer": "13,8"},
                 ],
@@ -277,7 +313,11 @@ CONTENT = {
                 ),
                 "given_steps": [],
                 "blanks": [
-                    {"id": "P3-b1", "label": r"\text{Parte entera de }\dfrac{12}{7}=", "answer": "1"},
+                    {
+                        "id": "P3-b1",
+                        "label": r"\text{Parte entera de }\dfrac{12}{7}=",
+                        "answer": "1",
+                    },
                 ],
             },
         ],
@@ -289,12 +329,20 @@ CONTENT = {
         "methods": [
             {
                 "label": "Método 1 · Dividir",
-                "steps": [r"7\div8", r"8\times0{,}8=6{,}4\ \text{resto }0{,}6", r"\dfrac{7}{8}=0{,}875"],
+                "steps": [
+                    r"7\div8",
+                    r"8\times0{,}8=6{,}4\ \text{resto }0{,}6",
+                    r"\dfrac{7}{8}=0{,}875",
+                ],
                 "note": "Siempre funciona.",
             },
             {
                 "label": r"Método 2 · Amplificar a denominador $10^n$",
-                "steps": [r"\dfrac{7}{8}=\dfrac{7\times125}{8\times125}", r"=\dfrac{875}{1000}", r"\dfrac{7}{8}=0{,}875"],
+                "steps": [
+                    r"\dfrac{7}{8}=\dfrac{7\times125}{8\times125}",
+                    r"=\dfrac{875}{1000}",
+                    r"\dfrac{7}{8}=0{,}875",
+                ],
                 "note": "Solo si el denominador se puede llevar a 10, 100, 1000…",
             },
         ],
@@ -339,10 +387,26 @@ CONTENT = {
             "tipo": "estandar",
             "prompt": "Ordena de mayor a menor: 8/6, 2/3, 4/6, 1/2. ¿Cuál es el orden correcto?",
             "options": [
-                {"id": "ok", "text": "8/6 · 2/3 = 4/6 · 1/2", "latex": r"\dfrac{8}{6}>\dfrac{2}{3}=\dfrac{4}{6}>\dfrac{1}{2}"},
-                {"id": "half_first", "text": "1/2 primero", "latex": r"\dfrac{1}{2}>\dfrac{2}{3}>\dfrac{4}{6}>\dfrac{8}{6}"},
-                {"id": "split_equiv", "text": "2/3 y 4/6 en puestos distintos", "latex": r"\dfrac{8}{6}>\dfrac{4}{6}>\dfrac{2}{3}>\dfrac{1}{2}"},
-                {"id": "by_numerator", "text": "Por el numerador", "latex": r"\dfrac{8}{6}>\dfrac{4}{6}>\dfrac{2}{3}>\dfrac{1}{2}"},
+                {
+                    "id": "ok",
+                    "text": "8/6 · 2/3 = 4/6 · 1/2",
+                    "latex": r"\dfrac{8}{6}>\dfrac{2}{3}=\dfrac{4}{6}>\dfrac{1}{2}",
+                },
+                {
+                    "id": "half_first",
+                    "text": "1/2 primero",
+                    "latex": r"\dfrac{1}{2}>\dfrac{2}{3}>\dfrac{4}{6}>\dfrac{8}{6}",
+                },
+                {
+                    "id": "split_equiv",
+                    "text": "2/3 y 4/6 en puestos distintos",
+                    "latex": r"\dfrac{8}{6}>\dfrac{4}{6}>\dfrac{2}{3}>\dfrac{1}{2}",
+                },
+                {
+                    "id": "by_numerator",
+                    "text": "Por el numerador",
+                    "latex": r"\dfrac{8}{6}>\dfrac{4}{6}>\dfrac{2}{3}>\dfrac{1}{2}",
+                },
             ],
             "expected": "ok",
             "feedback_by_option": {
@@ -489,12 +553,27 @@ CONTENT = {
         "title": "¿Toda división de dos números del conjunto vive en el conjunto?",
         "intro": "Cada peldaño nació de una operación que no cabía en el anterior.",
         "rows": [
-            {"symbol": r"\mathbb{N}", "name": "Naturales", "closed": "no",
-             "latex": r"3\div4\notin\mathbb{N}", "note": "Se sale: no hay natural que valga."},
-            {"symbol": r"\mathbb{Z}", "name": "Enteros", "closed": "no",
-             "latex": r"3\div4\notin\mathbb{Z}", "note": "Sigue sin caber; los negativos no ayudaron."},
-            {"symbol": r"\mathbb{Q}", "name": "Racionales", "closed": "yes",
-             "latex": r"3\div4=\dfrac{3}{4}\in\mathbb{Q}", "note": "El conjunto se hizo para esto (mientras b ≠ 0)."},
+            {
+                "symbol": r"\mathbb{N}",
+                "name": "Naturales",
+                "closed": "no",
+                "latex": r"3\div4\notin\mathbb{N}",
+                "note": "Se sale: no hay natural que valga.",
+            },
+            {
+                "symbol": r"\mathbb{Z}",
+                "name": "Enteros",
+                "closed": "no",
+                "latex": r"3\div4\notin\mathbb{Z}",
+                "note": "Sigue sin caber; los negativos no ayudaron.",
+            },
+            {
+                "symbol": r"\mathbb{Q}",
+                "name": "Racionales",
+                "closed": "yes",
+                "latex": r"3\div4=\dfrac{3}{4}\in\mathbb{Q}",
+                "note": "El conjunto se hizo para esto (mientras b ≠ 0).",
+            },
         ],
         "outro": (
             "Igual que ℤ nació de una resta que no cabía (B05). El siguiente peldaño (B07) va a "
@@ -507,7 +586,11 @@ CONTENT = {
         "options": [
             {"id": "division", "text": "Los tres son una división de enteros", "correct": True},
             {"id": "periodic", "text": "Los tres tienen decimal periódico", "correct": False},
-            {"id": "improper", "text": "Los tres tienen numerador mayor que el denominador", "correct": False},
+            {
+                "id": "improper",
+                "text": "Los tres tienen numerador mayor que el denominador",
+                "correct": False,
+            },
             {"id": "sharing", "text": "Los tres son un reparto que no da entero", "correct": True},
         ],
     },

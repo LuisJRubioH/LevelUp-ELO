@@ -135,11 +135,31 @@ CONTENT = {
         "potenciación no."
     ),
     "definition_symbols": [
-        {"symbol": r"(\ )", "reads": "paréntesis", "means": "la tanda: lo que se funde junto y primero"},
-        {"symbol": r"a,b,c", "reads": "tres operandos", "means": "hacen falta tres para que la agrupación signifique algo"},
-        {"symbol": r"(a-b)-c\neq a-(b-c)", "reads": "la resta no asocia", "means": "el paréntesis decide de quién se resta c"},
-        {"symbol": r"a-(b-c)=a-b+c", "reads": "quitar el paréntesis cambia signos", "means": "el signo de menos delante voltea todo lo de dentro"},
-        {"symbol": r"a+(-b)+(-c)", "reads": "todo como suma", "means": "el truco: con cada número llevando su signo, sí puedes reagrupar"},
+        {
+            "symbol": r"(\ )",
+            "reads": "paréntesis",
+            "means": "la tanda: lo que se funde junto y primero",
+        },
+        {
+            "symbol": r"a,b,c",
+            "reads": "tres operandos",
+            "means": "hacen falta tres para que la agrupación signifique algo",
+        },
+        {
+            "symbol": r"(a-b)-c\neq a-(b-c)",
+            "reads": "la resta no asocia",
+            "means": "el paréntesis decide de quién se resta c",
+        },
+        {
+            "symbol": r"a-(b-c)=a-b+c",
+            "reads": "quitar el paréntesis cambia signos",
+            "means": "el signo de menos delante voltea todo lo de dentro",
+        },
+        {
+            "symbol": r"a+(-b)+(-c)",
+            "reads": "todo como suma",
+            "means": "el truco: con cada número llevando su signo, sí puedes reagrupar",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -199,10 +219,14 @@ CONTENT = {
                 "wrong_latex": r"30-7-13=36",
                 "right_latex": r"30-7-13=30-(7+13)=10",
                 "rows": [
-                    {"wrong": "Los retiros se agrupan tal cual dentro del paréntesis",
-                     "right": "Al agrupar bajo un menos, los retiros se SUMAN entre sí"},
-                    {"wrong": "Retirar 7 y luego 13 deja más de lo que había",
-                     "right": "Retirar dos veces siempre deja menos: 10, no 36"},
+                    {
+                        "wrong": "Los retiros se agrupan tal cual dentro del paréntesis",
+                        "right": "Al agrupar bajo un menos, los retiros se SUMAN entre sí",
+                    },
+                    {
+                        "wrong": "Retirar 7 y luego 13 deja más de lo que había",
+                        "right": "Retirar dos veces siempre deja menos: 10, no 36",
+                    },
                 ],
             },
             "explain_prompt": "¿Por qué 36 es imposible sin hacer ninguna cuenta? Escribe la agrupación correcta.",
@@ -333,7 +357,10 @@ CONTENT = {
             "tipo": "detecta_error",
             "prompt": r"Un fundidor anota «$60-15-5=60-(15-5)=50$». ¿Dónde está el error?",
             "options": [
-                {"id": "sign", "text": "Al agrupar bajo un menos, los retiros se suman: es 60 − 20 = 40"},
+                {
+                    "id": "sign",
+                    "text": "Al agrupar bajo un menos, los retiros se suman: es 60 − 20 = 40",
+                },
                 {"id": "arith", "text": "Se equivocó al restar: 60 − 10 son 40"},
                 {"id": "order", "text": "Debía calcular de derecha a izquierda"},
                 {"id": "none", "text": "Ningún error, está bien"},
@@ -390,9 +417,7 @@ CONTENT = {
             "id": "E6",
             "kind": "numeric",
             "tipo": "transferencia",
-            "prompt": (
-                "Agrupa para calcular de cabeza: 4 × 23 × 25. ¿Cuánto da?"
-            ),
+            "prompt": ("Agrupa para calcular de cabeza: 4 × 23 × 25. ¿Cuánto da?"),
             "expr": r"(4\times 25)\times 23",
             "answer": "2300",
             "hints": {
@@ -437,24 +462,48 @@ CONTENT = {
         "title": "¿En qué operaciones da igual cómo se agrupe?",
         "intro": "Misma escalera que en la prensa: las seis operaciones de la ciudad, otra pregunta.",
         "rows": [
-            {"symbol": r"+", "name": "Suma", "closed": "yes",
-             "latex": r"(10+4)+3=10+(4+3)",
-             "note": "Todas las piezas entran al crisol: el orden de las tandas no importa."},
-            {"symbol": r"-", "name": "Resta", "closed": "no",
-             "latex": r"(10-4)-3=3\neq 9=10-(4-3)",
-             "note": "El paréntesis decide de quién se resta. Truco: reescribir todo como sumas con signo."},
-            {"symbol": r"\times", "name": "Multiplicación", "closed": "yes",
-             "latex": r"(4\times 25)\times 23=4\times(25\times 23)",
-             "note": "Por eso puedes buscar el par de factores cómodo antes de multiplicar."},
-            {"symbol": r"\div", "name": "División", "closed": "no",
-             "latex": r"(24\div 6)\div 2=2\neq 8=24\div(6\div 2)",
-             "note": "Mismo problema que la resta, y el truco es el mismo: pasar a multiplicar por el inverso."},
-            {"symbol": r"a^{n}", "name": "Potenciación", "closed": "no",
-             "latex": r"(2^{3})^{2}=64\neq 512=2^{(3^{2})}",
-             "note": "Por eso una torre de exponentes se lee de arriba abajo, no de izquierda a derecha."},
-            {"symbol": r"\sqrt[n]{a}", "name": "Radicación", "closed": "no",
-             "latex": r"\sqrt{\sqrt{256}}=\sqrt[4]{256}=4",
-             "note": "Tampoco asocia: el orden en que se anidan las raíces decide el índice final, así que cambiar el agrupamiento cambia el resultado."},
+            {
+                "symbol": r"+",
+                "name": "Suma",
+                "closed": "yes",
+                "latex": r"(10+4)+3=10+(4+3)",
+                "note": "Todas las piezas entran al crisol: el orden de las tandas no importa.",
+            },
+            {
+                "symbol": r"-",
+                "name": "Resta",
+                "closed": "no",
+                "latex": r"(10-4)-3=3\neq 9=10-(4-3)",
+                "note": "El paréntesis decide de quién se resta. Truco: reescribir todo como sumas con signo.",
+            },
+            {
+                "symbol": r"\times",
+                "name": "Multiplicación",
+                "closed": "yes",
+                "latex": r"(4\times 25)\times 23=4\times(25\times 23)",
+                "note": "Por eso puedes buscar el par de factores cómodo antes de multiplicar.",
+            },
+            {
+                "symbol": r"\div",
+                "name": "División",
+                "closed": "no",
+                "latex": r"(24\div 6)\div 2=2\neq 8=24\div(6\div 2)",
+                "note": "Mismo problema que la resta, y el truco es el mismo: pasar a multiplicar por el inverso.",
+            },
+            {
+                "symbol": r"a^{n}",
+                "name": "Potenciación",
+                "closed": "no",
+                "latex": r"(2^{3})^{2}=64\neq 512=2^{(3^{2})}",
+                "note": "Por eso una torre de exponentes se lee de arriba abajo, no de izquierda a derecha.",
+            },
+            {
+                "symbol": r"\sqrt[n]{a}",
+                "name": "Radicación",
+                "closed": "no",
+                "latex": r"\sqrt{\sqrt{256}}=\sqrt[4]{256}=4",
+                "note": "Tampoco asocia: el orden en que se anidan las raíces decide el índice final, así que cambiar el agrupamiento cambia el resultado.",
+            },
         ],
         "outro": (
             "Las mismas dos que aguantaban el intercambio aguantan la reagrupación, y no es "
@@ -466,10 +515,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres casos trabajados en este nodo?",
         "thumbnails": [r"(2+5)+19", r"30-7-13", r"30-(7-13)"],
         "options": [
-            {"id": "grouping", "text": "En los tres cambia qué número va junto con cuál", "correct": True},
-            {"id": "same", "text": "En los tres el resultado no cambia al reagrupar", "correct": False},
-            {"id": "three", "text": "Los tres necesitan al menos tres números para tener sentido", "correct": True},
-            {"id": "order", "text": "En los tres se intercambian dos números de sitio", "correct": False},
+            {
+                "id": "grouping",
+                "text": "En los tres cambia qué número va junto con cuál",
+                "correct": True,
+            },
+            {
+                "id": "same",
+                "text": "En los tres el resultado no cambia al reagrupar",
+                "correct": False,
+            },
+            {
+                "id": "three",
+                "text": "Los tres necesitan al menos tres números para tener sentido",
+                "correct": True,
+            },
+            {
+                "id": "order",
+                "text": "En los tres se intercambian dos números de sitio",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

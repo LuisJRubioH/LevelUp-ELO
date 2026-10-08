@@ -43,7 +43,11 @@ CONTENT = {
                 "tipo": "diagnostico",
                 "prompt": r"¿Cuál de estas descomposiciones de $36$ está TERMINADA?",
                 "options": [
-                    {"id": "primes", "text": "2 × 2 × 3 × 3", "latex": r"2\times 2\times 3\times 3"},
+                    {
+                        "id": "primes",
+                        "text": "2 × 2 × 3 × 3",
+                        "latex": r"2\times 2\times 3\times 3",
+                    },
                     {"id": "four_nine", "text": "4 × 9", "latex": r"4\times 9"},
                     {"id": "six_six", "text": "6 × 6", "latex": r"6\times 6"},
                 ],
@@ -139,20 +143,34 @@ CONTENT = {
         "entre varias: es encontrar la identidad del número."
     ),
     "definition_symbols": [
-        {"symbol": r"p_i", "reads": "los primos que aparecen", "means": "las madejas mínimas: ya no se abren más"},
-        {"symbol": r"a_i", "reads": "cuántas veces aparece cada uno", "means": "el exponente; se escribe como potencia (E05)"},
-        {"symbol": r"\text{única}", "reads": "salvo el orden", "means": "2×2×3 y 3×2×2 son la MISMA factorización"},
+        {
+            "symbol": r"p_i",
+            "reads": "los primos que aparecen",
+            "means": "las madejas mínimas: ya no se abren más",
+        },
+        {
+            "symbol": r"a_i",
+            "reads": "cuántas veces aparece cada uno",
+            "means": "el exponente; se escribe como potencia (E05)",
+        },
+        {
+            "symbol": r"\text{única}",
+            "reads": "salvo el orden",
+            "means": "2×2×3 y 3×2×2 son la MISMA factorización",
+        },
         {"symbol": r"n>1", "reads": "mayor que uno", "means": "el 1 queda fuera: no aporta piezas"},
-        {"symbol": r"60=2^{2}\times 3\times 5", "reads": "forma con potencias", "means": "la escritura compacta de la misma lista"},
+        {
+            "symbol": r"60=2^{2}\times 3\times 5",
+            "reads": "forma con potencias",
+            "means": "la escritura compacta de la misma lista",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
         {
             "eyebrow": "Ejemplo 1 · Desmontar hasta el final",
             "title": "El fardo de 180 madejas",
-            "statement": (
-                "Descompón 180 en primos y escríbelo con potencias."
-            ),
+            "statement": ("Descompón 180 en primos y escríbelo con potencias."),
             "latex": r"180",
             "image_slot": False,
             "steps": [
@@ -202,10 +220,14 @@ CONTENT = {
                 "wrong_latex": r"36=4\times 9",
                 "right_latex": r"36=2\times 2\times 3\times 3=2^{2}\times 3^{2}",
                 "rows": [
-                    {"wrong": "Basta con que el producto dé el número",
-                     "right": "Además, TODOS los factores tienen que ser primos"},
-                    {"wrong": "4 × 9 y 6 × 6 son descomposiciones distintas de 36",
-                     "right": "Las dos llevan a la misma: 2×2×3×3"},
+                    {
+                        "wrong": "Basta con que el producto dé el número",
+                        "right": "Además, TODOS los factores tienen que ser primos",
+                    },
+                    {
+                        "wrong": "4 × 9 y 6 × 6 son descomposiciones distintas de 36",
+                        "right": "Las dos llevan a la misma: 2×2×3×3",
+                    },
                 ],
             },
             "explain_prompt": "Termina de desmontar 4 × 9 y escribe la factorización con potencias.",
@@ -234,7 +256,11 @@ CONTENT = {
                     r"21=3\times 7",
                 ],
                 "blanks": [
-                    {"id": "P1-b1", "label": r"\text{cantidad de factores primos (con repetición)}=", "answer": "4"},
+                    {
+                        "id": "P1-b1",
+                        "label": r"\text{cantidad de factores primos (con repetición)}=",
+                        "answer": "4",
+                    },
                 ],
             },
             {
@@ -270,12 +296,21 @@ CONTENT = {
         "methods": [
             {
                 "label": "Método 1 · Divisiones sucesivas",
-                "steps": [r"90\div 2=45", r"45\div 3=15", r"15\div 3=5", r"90=2\times 3^{2}\times 5"],
+                "steps": [
+                    r"90\div 2=45",
+                    r"45\div 3=15",
+                    r"15\div 3=5",
+                    r"90=2\times 3^{2}\times 5",
+                ],
                 "note": "Ordenado: siempre el primo más pequeño que quepa.",
             },
             {
                 "label": "Método 2 · Árbol de factores",
-                "steps": [r"90=9\times 10", r"9=3\times 3,\quad 10=2\times 5", r"90=2\times 3^{2}\times 5"],
+                "steps": [
+                    r"90=9\times 10",
+                    r"9=3\times 3,\quad 10=2\times 5",
+                    r"90=2\times 3^{2}\times 5",
+                ],
                 "note": "Parte por donde se te ocurra y sigue abriendo cada rama.",
             },
         ],
@@ -355,10 +390,16 @@ CONTENT = {
             "confidence": "fija",
             "prompt": r"¿Es verdadera o falsa? «$36=6\times 6$ es la factorización prima de 36.»",
             "options": [
-                {"id": "false_composite", "text": "Falsa: 6 es compuesto; hay que seguir hasta 2² × 3²"},
+                {
+                    "id": "false_composite",
+                    "text": "Falsa: 6 es compuesto; hay que seguir hasta 2² × 3²",
+                },
                 {"id": "true", "text": "Verdadera: el producto da 36"},
                 {"id": "false_other", "text": "Falsa: la factorización correcta es 4 × 9"},
-                {"id": "false_unique", "text": "Falsa: 36 tiene varias factorizaciones primas distintas"},
+                {
+                    "id": "false_unique",
+                    "text": "Falsa: 36 tiene varias factorizaciones primas distintas",
+                },
             ],
             "expected": "false_composite",
             "feedback_by_option": {
@@ -382,9 +423,7 @@ CONTENT = {
             "id": "E6",
             "kind": "numeric",
             "tipo": "transferencia",
-            "prompt": (
-                "¿Cuántos divisores tiene 100? Descompónlo primero."
-            ),
+            "prompt": ("¿Cuántos divisores tiene 100? Descompónlo primero."),
             "expr": r"100=2^{2}\times 5^{2}",
             "answer": "9",
             "hints": {
@@ -399,7 +438,10 @@ CONTENT = {
             "tipo": "transferencia",
             "prompt": "Si el 1 se considerara primo, ¿qué se rompería?",
             "options": [
-                {"id": "uniqueness", "text": "La unicidad: 6 sería 2×3, 1×2×3, 1×1×2×3… infinitas escrituras"},
+                {
+                    "id": "uniqueness",
+                    "text": "La unicidad: 6 sería 2×3, 1×2×3, 1×1×2×3… infinitas escrituras",
+                },
                 {"id": "nothing", "text": "Nada: el 1 no cambia el producto"},
                 {"id": "product", "text": "Los productos darían resultados distintos"},
                 {"id": "count", "text": "Habría menos primos"},
@@ -429,24 +471,48 @@ CONTENT = {
         "title": "¿Todos los factores son primos?",
         "intro": "La única pregunta que hay que hacerle a una descomposición antes de entregarla.",
         "rows": [
-            {"symbol": r"2\times 2\times 3", "name": "Para 12", "closed": "yes",
-             "latex": r"12=2^{2}\times 3",
-             "note": "2 y 3 son primos: terminada."},
-            {"symbol": r"4\times 9", "name": "Para 36", "closed": "no",
-             "latex": r"4=2^{2},\ 9=3^{2}",
-             "note": "Los dos factores son compuestos: quedan fardos sin abrir."},
-            {"symbol": r"2\times 18", "name": "Para 36", "closed": "no",
-             "latex": r"18=2\times 3^{2}",
-             "note": "Uno primo y otro compuesto. Basta que UNO se pueda abrir para que no esté terminada."},
-            {"symbol": r"2\times 2\times 3\times 3", "name": "Para 36", "closed": "yes",
-             "latex": r"36=2^{2}\times 3^{2}",
-             "note": "Terminada. Y es la única, venga de 4×9, de 6×6 o de 2×18."},
-            {"symbol": r"36", "name": "Para 36", "closed": "no",
-             "latex": r"36\ \text{compuesto}",
-             "note": "Un solo factor compuesto tampoco vale: no se ha desmontado nada."},
-            {"symbol": r"1\times 2\times 3", "name": "Para 6", "closed": "no",
-             "latex": r"1\ \text{no es primo}",
-             "note": "El 1 sobra: no es primo (C03) y además rompería la unicidad."},
+            {
+                "symbol": r"2\times 2\times 3",
+                "name": "Para 12",
+                "closed": "yes",
+                "latex": r"12=2^{2}\times 3",
+                "note": "2 y 3 son primos: terminada.",
+            },
+            {
+                "symbol": r"4\times 9",
+                "name": "Para 36",
+                "closed": "no",
+                "latex": r"4=2^{2},\ 9=3^{2}",
+                "note": "Los dos factores son compuestos: quedan fardos sin abrir.",
+            },
+            {
+                "symbol": r"2\times 18",
+                "name": "Para 36",
+                "closed": "no",
+                "latex": r"18=2\times 3^{2}",
+                "note": "Uno primo y otro compuesto. Basta que UNO se pueda abrir para que no esté terminada.",
+            },
+            {
+                "symbol": r"2\times 2\times 3\times 3",
+                "name": "Para 36",
+                "closed": "yes",
+                "latex": r"36=2^{2}\times 3^{2}",
+                "note": "Terminada. Y es la única, venga de 4×9, de 6×6 o de 2×18.",
+            },
+            {
+                "symbol": r"36",
+                "name": "Para 36",
+                "closed": "no",
+                "latex": r"36\ \text{compuesto}",
+                "note": "Un solo factor compuesto tampoco vale: no se ha desmontado nada.",
+            },
+            {
+                "symbol": r"1\times 2\times 3",
+                "name": "Para 6",
+                "closed": "no",
+                "latex": r"1\ \text{no es primo}",
+                "note": "El 1 sobra: no es primo (C03) y además rompería la unicidad.",
+            },
         ],
         "outro": (
             "Terminada quiere decir que ningún factor se abre más. Y el premio es fuerte: "
@@ -456,11 +522,27 @@ CONTENT = {
     },
     "abstraction_question": {
         "prompt": "¿Qué comparten los tres casos trabajados en este nodo?",
-        "thumbnails": [r"180=2^{2}\times 3^{2}\times 5", r"60=2^{2}\times 3\times 5", r"36=4\times 9"],
+        "thumbnails": [
+            r"180=2^{2}\times 3^{2}\times 5",
+            r"60=2^{2}\times 3\times 5",
+            r"36=4\times 9",
+        ],
         "options": [
-            {"id": "until_prime", "text": "En los tres hay que seguir abriendo hasta que solo queden primos", "correct": True},
-            {"id": "same_pieces", "text": "En los tres el camino elegido no cambia las piezas finales", "correct": True},
-            {"id": "two_factors", "text": "En los tres el número se parte en exactamente dos factores", "correct": False},
+            {
+                "id": "until_prime",
+                "text": "En los tres hay que seguir abriendo hasta que solo queden primos",
+                "correct": True,
+            },
+            {
+                "id": "same_pieces",
+                "text": "En los tres el camino elegido no cambia las piezas finales",
+                "correct": True,
+            },
+            {
+                "id": "two_factors",
+                "text": "En los tres el número se parte en exactamente dos factores",
+                "correct": False,
+            },
             {"id": "even", "text": "En los tres el número es par", "correct": False},
         ],
     },
@@ -509,7 +591,11 @@ CONTENT = {
                 "tipo": "diagnostico",
                 "prompt": r"¿Cuál de estas descomposiciones de $24$ está TERMINADA?",
                 "options": [
-                    {"id": "primes", "text": "2 × 2 × 2 × 3", "latex": r"2\times 2\times 2\times 3"},
+                    {
+                        "id": "primes",
+                        "text": "2 × 2 × 2 × 3",
+                        "latex": r"2\times 2\times 2\times 3",
+                    },
                     {"id": "four_six", "text": "4 × 6", "latex": r"4\times 6"},
                     {"id": "eight_three", "text": "8 × 3", "latex": r"8\times 3"},
                 ],

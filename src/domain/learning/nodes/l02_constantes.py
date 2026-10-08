@@ -143,10 +143,26 @@ CONTENT = {
     ),
     "definition_symbols": [
         {"symbol": r"v", "reads": "uve", "means": "variable: cambia con cada pedido"},
-        {"symbol": r"7\ \text{en}\ 7v", "reads": "coeficiente", "means": "constante que multiplica a la variable"},
-        {"symbol": r"2\ \text{en}\ 7v+2", "reads": "término constante", "means": "constante que va sola, sin letra"},
-        {"symbol": r"\pi\approx 3{,}1416", "reads": "pi", "means": "constante escrita con letra: nunca cambia"},
-        {"symbol": r"L=7", "reads": "ele igual a siete", "means": "una letra a la que se le fija un valor deja de variar"},
+        {
+            "symbol": r"7\ \text{en}\ 7v",
+            "reads": "coeficiente",
+            "means": "constante que multiplica a la variable",
+        },
+        {
+            "symbol": r"2\ \text{en}\ 7v+2",
+            "reads": "término constante",
+            "means": "constante que va sola, sin letra",
+        },
+        {
+            "symbol": r"\pi\approx 3{,}1416",
+            "reads": "pi",
+            "means": "constante escrita con letra: nunca cambia",
+        },
+        {
+            "symbol": r"L=7",
+            "reads": "ele igual a siete",
+            "means": "una letra a la que se le fija un valor deja de variar",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -210,10 +226,14 @@ CONTENT = {
                 "wrong_latex": r"\pi\ \text{cambia}",
                 "right_latex": r"\pi\approx 3{,}1416\ \text{siempre}",
                 "rows": [
-                    {"wrong": "Es letra, luego varía",
-                     "right": "Varía o no según lo que represente; π representa un valor fijo"},
-                    {"wrong": "El 2 es el único fijo",
-                     "right": "El 2 y π son fijos; la única que varía es r"},
+                    {
+                        "wrong": "Es letra, luego varía",
+                        "right": "Varía o no según lo que represente; π representa un valor fijo",
+                    },
+                    {
+                        "wrong": "El 2 es el único fijo",
+                        "right": "El 2 y π son fijos; la única que varía es r",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -381,7 +401,10 @@ CONTENT = {
                 "términos constantes». ¿Dónde está el error?"
             ),
             "options": [
-                {"id": "role", "text": "Constantes sí son las dos, pero el 5 es coeficiente: término constante solo el 4"},
+                {
+                    "id": "role",
+                    "text": "Constantes sí son las dos, pero el 5 es coeficiente: término constante solo el 4",
+                },
                 {"id": "not_constant", "text": "El 5 no es constante"},
                 {"id": "count", "text": "Hay tres constantes, no dos"},
                 {"id": "none", "text": "No hay error"},
@@ -413,8 +436,14 @@ CONTENT = {
             "options": [
                 {"id": "false", "text": r"Falsa: $\pi$ es letra y su valor nunca cambia"},
                 {"id": "true", "text": "Verdadera: para eso se usan las letras"},
-                {"id": "true_latin", "text": "Verdadera para las latinas; las griegas son otra cosa"},
-                {"id": "false_never", "text": "Falsa: ninguna letra representa cantidades que cambian"},
+                {
+                    "id": "true_latin",
+                    "text": "Verdadera para las latinas; las griegas son otra cosa",
+                },
+                {
+                    "id": "false_never",
+                    "text": "Falsa: ninguna letra representa cantidades que cambian",
+                },
             ],
             "expected": "false",
             "feedback_by_option": {
@@ -480,24 +509,48 @@ CONTENT = {
             "valor sin romper el registro."
         ),
         "rows": [
-            {"symbol": r"2\ \text{en}\ 2\pi r", "name": "Una cifra suelta", "closed": "no",
-             "latex": r"2",
-             "note": "Constante evidente: es el caso fácil, y por eso engaña poco."},
-            {"symbol": r"\pi", "name": "Una letra fijada", "closed": "no",
-             "latex": r"\pi\approx 3{,}1416",
-             "note": "Letra y constante a la vez. Es el caso que desarma la trampa."},
-            {"symbol": r"7\ \text{en}\ 7v", "name": "El coeficiente", "closed": "no",
-             "latex": r"7\cdot v",
-             "note": "Constante, aunque esté pegado a una variable. No es término constante: acompaña."},
-            {"symbol": r"v", "name": "La variable", "closed": "yes",
-             "latex": r"v=3,\ 8,\ 12\ldots",
-             "note": "Cambia con cada pedido. La única del registro que se mueve."},
-            {"symbol": r"L=7", "name": "Una letra a la que se fija valor", "closed": "no",
-             "latex": r"L=7",
-             "note": "Nació como letra libre y quedó sellada. A partir de ahí, constante."},
-            {"symbol": r"a\ \text{en}\ ax+b", "name": "El parámetro", "closed": "partial",
-             "latex": r"ax+b",
-             "note": "Constante DENTRO de un problema, pero cambia de un problema a otro. Ni fijo del todo ni variable."},
+            {
+                "symbol": r"2\ \text{en}\ 2\pi r",
+                "name": "Una cifra suelta",
+                "closed": "no",
+                "latex": r"2",
+                "note": "Constante evidente: es el caso fácil, y por eso engaña poco.",
+            },
+            {
+                "symbol": r"\pi",
+                "name": "Una letra fijada",
+                "closed": "no",
+                "latex": r"\pi\approx 3{,}1416",
+                "note": "Letra y constante a la vez. Es el caso que desarma la trampa.",
+            },
+            {
+                "symbol": r"7\ \text{en}\ 7v",
+                "name": "El coeficiente",
+                "closed": "no",
+                "latex": r"7\cdot v",
+                "note": "Constante, aunque esté pegado a una variable. No es término constante: acompaña.",
+            },
+            {
+                "symbol": r"v",
+                "name": "La variable",
+                "closed": "yes",
+                "latex": r"v=3,\ 8,\ 12\ldots",
+                "note": "Cambia con cada pedido. La única del registro que se mueve.",
+            },
+            {
+                "symbol": r"L=7",
+                "name": "Una letra a la que se fija valor",
+                "closed": "no",
+                "latex": r"L=7",
+                "note": "Nació como letra libre y quedó sellada. A partir de ahí, constante.",
+            },
+            {
+                "symbol": r"a\ \text{en}\ ax+b",
+                "name": "El parámetro",
+                "closed": "partial",
+                "latex": r"ax+b",
+                "note": "Constante DENTRO de un problema, pero cambia de un problema a otro. Ni fijo del todo ni variable.",
+            },
         ],
         "outro": (
             "La última fila es la honesta: hay símbolos quietos mientras dura el problema y "
@@ -509,10 +562,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres registros trabajados en este nodo?",
         "thumbnails": [r"7v+2", r"2\pi r", r"12-2t"],
         "options": [
-            {"id": "mixed", "text": "En los tres conviven cantidades fijas con al menos una que cambia", "correct": True},
-            {"id": "not_shape", "text": "En los tres el aspecto del símbolo no basta para clasificarlo", "correct": True},
-            {"id": "letters_vary", "text": "En los tres todas las letras representan cantidades que cambian", "correct": False},
-            {"id": "digits_fixed", "text": "En los tres solo las cifras están fijas", "correct": False},
+            {
+                "id": "mixed",
+                "text": "En los tres conviven cantidades fijas con al menos una que cambia",
+                "correct": True,
+            },
+            {
+                "id": "not_shape",
+                "text": "En los tres el aspecto del símbolo no basta para clasificarlo",
+                "correct": True,
+            },
+            {
+                "id": "letters_vary",
+                "text": "En los tres todas las letras representan cantidades que cambian",
+                "correct": False,
+            },
+            {
+                "id": "digits_fixed",
+                "text": "En los tres solo las cifras están fijas",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {
