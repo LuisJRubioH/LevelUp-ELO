@@ -277,8 +277,6 @@ pre-transfer state, restore the § 4 dump.
   Today any course is served.
 - Roadmap follow-up **F-5**, if the owner includes it: PvP lets enrolled students in. Today the
   redesign's PvP refuses every student (`docs/sdd/roadmap.md` § Follow-ups).
-- Spec 001 has no `PENDING` traceability row on the branch being switched: the traceability
-  check (A-2) fails the pull request otherwise.
 
 ```bash
 python scripts/db_sync_check.py          # SQLite ↔ PostgreSQL parity
