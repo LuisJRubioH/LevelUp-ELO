@@ -131,6 +131,24 @@ accepted semillero without a grade and `/enroll` accepted any existing course.
   the opponent's delta applies normally; completion stays idempotent; matchmaking eligibility is
   a follow-up for spec 007 (FR-029c).
 
+### Session 2026-10-08 (follow-up F-4, owner decisions)
+
+Found while surveying follow-up F-1 (`docs/sdd/f1-semillero-survey.md` § 1): `next-question`,
+`/answer` and the diagnostic endpoints worked on any course. A colegio student with no enrolment
+was served a `probabilidad` (universidad) item and its answer stored a rating of 1018 there.
+
+- Q: Which practice endpoints check enrolment? → A: all three doors — the next practice item, the
+  practice answer and the diagnostic (its status and questions, and its submission) (FR-037,
+  FR-037a).
+- Q: What counts as enrolled? → A: any enrolment of the student in that course, from their
+  level's courses or through a valid invitation code; an invitation course is practised like any
+  other.
+- Q: When is a request refused? → A: before any item is served and before any rating, attempt,
+  item difficulty, retry record or diagnostic result is read for update or written; a refused
+  request changes nothing (FR-037a).
+- Q: How is it tested? → A: allowed and denied access, the denied side with no side effect
+  (US8-AS1 … AS5).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A practice answer updates my rating correctly (Priority: P1)
@@ -351,6 +369,39 @@ compare the overall rating before and after.
 
 ---
 
+### User Story 8 - I practise only the courses I am enrolled in (Priority: P1)
+
+A student gets practice items, answers them and takes a course's diagnostic only in the courses
+they are enrolled in — through their catalogue or through a teacher's invitation. Any other
+course is refused before anything is served or stored.
+
+**Why this priority**: today any signed-in student can be served items, answer them and set a
+diagnostic baseline in any course, so ratings appear in courses the student never joined and
+change what teachers and rankings read.
+
+**Independent Test**: with one student enrolled through the catalogue, one through an invitation
+and one not enrolled, request the next item, answer one, open and submit the diagnostic of the
+same course; compare attempts, ratings, item difficulty and diagnostics before and after.
+
+**Acceptance Scenarios**:
+
+1. **US8-AS1** — **Given** a colegio student not enrolled in `probabilidad`, **When** they ask for
+   its next practice item, **Then** the request is refused as forbidden and no item is served.
+2. **US8-AS2** — **Given** that student and an item of `probabilidad`, **When** they submit an
+   answer to it, with or without a retry key, **Then** it is refused as forbidden and no attempt,
+   rating, item difficulty or retry record changes.
+3. **US8-AS3** — **Given** that student, **When** they open `probabilidad`'s diagnostic or submit
+   one, **Then** both are refused as forbidden: no question is served and no baseline or
+   diagnostic result is stored.
+4. **US8-AS4** — **Given** a student enrolled in a course of their catalogue and another enrolled
+   through an invitation in a course outside their level, **When** each asks for that course's
+   next item, answers it and takes its diagnostic, **Then** all of it works as today for both.
+5. **US8-AS5** — **Given** a student who practised a course and then left it, **When** they ask
+   for its next item or answer one of its items, **Then** it is refused as forbidden and their
+   stored ratings in that course stay unchanged.
+
+---
+
 ### Edge Cases
 
 - Response time exactly 3 s or exactly 600 s → valid (inclusive bounds).
@@ -378,6 +429,10 @@ compare the overall rating before and after.
   it reads "pending diagnostic".
 - Two items with the same difficulty → the chosen one is kept by identity, not by difficulty.
 - Practice filtered to a topic that has no items → falls back to the whole course pool.
+- Practice, an answer or a diagnostic for a course that does not exist → refused like a course the
+  student is not enrolled in (FR-037).
+- A retry of an accepted answer after the student left the course → refused like any answer; the
+  stored attempt stays as it was (FR-037a).
 - A retry key longer than 128 characters or empty → rejected.
 - A diagnostic containing the same item twice, or an item from another course → rejected.
 - An invitation to a course that is already in the student's catalogue → an ordinary enrolment:
@@ -671,6 +726,21 @@ items of that course, or the student's diagnostic for that course.
   read, derived course rating, overall rating and rank; reconciliation shall not replay historical
   attempts, and running it again shall change nothing.
 
+**Practice access (follow-up F-4)**
+
+- **FR-037** [CHANGE]: When a student asks for the next practice item of a course, or for a
+  course's diagnostic (its status or its questions), the system shall serve it only if the
+  student is enrolled in that course — whether they enrolled from their level's courses or
+  through a teacher's invitation code; otherwise it shall refuse the request as forbidden
+  (HTTP 403) and serve no item.
+  *(Today: any course is served.)*
+- **FR-037a** [CHANGE]: When a student submits a practice answer or a diagnostic, the system shall
+  check that the student is enrolled in the course of the answered item — for a diagnostic, the
+  diagnosed course — before reading for update or writing any rating, attempt, item difficulty,
+  retry record or diagnostic result; if the student is not enrolled, it shall refuse the request
+  as forbidden (HTTP 403) and change nothing. The check comes before a retry-key replay (FR-012a).
+  *(Today: the answer is stored and sets a rating in a course the student never joined.)*
+
 ### Key Entities
 
 - **Topic rating**: a student's level in one topic of one course — value, uncertainty (30–350),
@@ -736,6 +806,9 @@ items of that course, or the student's diagnostic for that course.
 - Procedure upload, AI review and the teacher review UI — spec 006 (only the rating effect is here).
 - Course map node unlocking and the 1250 "completed" threshold — spec 003 (it reads ratings
   defined here).
+- Access to exams, the course map and lessons (`/exam/start`, `/map/{course}`, the lesson
+  endpoints): exams change no rating (FR-032) and the map and lessons belong to spec 003; F-4
+  does not check them.
 - Badge/achievement rules themselves (only their failure handling, FR-015).
 - New features or screens in V1.
 - Changing a student's grade after registration (promotion) — spec 004 (FR-028c defines what it
@@ -793,6 +866,11 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | US7-AS4 | `PENDING` |
 | US7-AS5 | `PENDING` |
 | US7-AS6 | `PENDING` |
+| US8-AS1 | `tests/integration/test_spec001_practice_access.py::test_spec001_next_question_outside_enrolment_is_forbidden` |
+| US8-AS2 | `tests/integration/test_spec001_practice_access.py::test_spec001_answer_outside_enrolment_changes_nothing` |
+| US8-AS3 | `tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden` |
+| US8-AS4 | `tests/integration/test_spec001_practice_access.py::test_spec001_enrolled_students_practise_as_before` |
+| US8-AS5 | `tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it` |
 | FR-001 | `tests/unit/domain/test_elo_model.py::TestExpectedScore::test_400_point_advantage_gives_approx_91_percent`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_fr001_both_engine_paths_use_the_same_expected_success` |
 | FR-002 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_rating_delta` |
 | FR-003 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_rd_floor_30_holds_and_scales_the_change`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_next_rd_has_a_floor_of_30` |
@@ -852,6 +930,8 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | FR-034b | `tests/integration/test_spec001_reconciliation.py::test_spec001_existing_rows_and_unassigned_legacy_rows_are_left_alone` |
 | FR-035 | `tests/integration/test_spec001_reconciliation.py::test_spec001_course_row_most_recent_wins_and_is_never_summed` |
 | FR-036 | `tests/integration/test_spec001_reconciliation.py::test_spec001_reconciliation_is_idempotent`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_every_ranking_reads_the_canonical_rating`<br>`tests/api/test_spec001_api.py::test_spec001_every_surface_reads_the_canonical_rating`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_course_topic_ratings_are_new_table_rows_only` |
+| FR-037 | `tests/integration/test_spec001_practice_access.py::test_spec001_next_question_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_enrolled_students_practise_as_before`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_ensure_enrolled` |
+| FR-037a | `tests/integration/test_spec001_practice_access.py::test_spec001_answer_outside_enrolment_changes_nothing`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_ensure_enrolled` |
 
 ## Appendix — As-is evidence
 
@@ -894,3 +974,4 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-030 | `frontend/src/pages/Student/Practice.tsx:27-33` |
 | FR-031 | `api/routers/student.py:1497` (`_RANK_THRESHOLDS`), `src/interface/streamlit/state.py:31`, `frontend/src/pages/Teacher/Dashboard.tsx:20`, `Teacher/Groups.tsx:14`, `Home.tsx:36`, `api/routers/student.py:963` (`_DIAG_LEAGUES`) |
 | FR-032 | `api/routers/student.py` exam submit ("examen no afecta ELO") |
+| FR-037, FR-037a | `api/routers/student.py` `next_question`, `answer`, `diagnostic_status`, `diagnostic_submit`: no enrolment check (only PvP checks it, `api/websocket/pvp.py`) |
