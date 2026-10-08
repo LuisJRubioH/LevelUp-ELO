@@ -279,3 +279,27 @@ the code PR goes in only after Phase N (constitution agent rule 7).
 
 - [X] T082 Make V1 show one display value with its V1 rank: wherever `student_view.py` (course cards, practice header, "Nivel Global") and `teacher_view.py` (students table, student-detail header) show a current rating next to `get_rank(...)`, round once half up with `round_for_display` and derive both the number and the label from that value, with a V1 test at the 999.6 boundary per FR-028j (contradicts) *(Done 2026-10-07: `src/interface/streamlit/rankings.py::v1_rated(value)` rounds once with `round_for_display` and returns the shown number, V1 rank and colour of that value (pending text when `None`); used by the student course cards, practice header and "Nivel Global", and by the teacher students table (`ELO Global` now the display value) and student-detail header. Tests first: `tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_number_and_rank_come_from_one_display_value` (999.6 → "1000" 🔰 Iniciado, 999.4 → "999" 🌱 Punto de Partida, pending) and `::test_spec001_v1_views_rank_only_through_the_display_value` (no `get_rank(` left in V1 views). Also fixed here: T077's V1 helper `_topic_rows` was shadowed by a local of the same name in `render_teacher` (flake8 F823, an UnboundLocalError at runtime) — renamed `_rating_topic_rows`.)*
 - [X] T083 Mark approximate topic ratings on the course map: add `approximate` to `MapNode` (`/student/map/{course_id}`) and show it on `CourseMap.tsx` nodes and `CourseRail.tsx`, with an API test and a Playwright check per FR-034a, plan: Constitution check VIII (partial) *(Done: `MapNode.approximate` from the topic row; `CourseMap.tsx` (trail and practice cards, with the hint as title) and `CourseRail.tsx` show ≈. Tests first: `tests/api/test_spec001_api.py::test_spec001_course_map_marks_approximate_topics` and the Playwright check `Mapa y riel del curso marcan los temas con línea base aproximada (FR-034a)`, each failing before the change.)*
+
+## Phase 13: Follow-up F-4 — practice only in enrolled courses (owner decisions 2026-10-08)
+
+Spec: FR-037, FR-037a, User Story 8 (Clarifications 2026-10-08, follow-up F-4). Phase 12 is
+follow-up F-1, in its own docs PR. Docs on `fix/f4-practice-access`; tests first — each
+`[CHANGE]` test fails on the code before its implementation task. V2 only: V1 offers practice
+only in the student's enrolments and is frozen.
+
+**Tests first**
+
+- [ ] T101 [CHANGE] API test: `next-question` for a course the student is not enrolled in (colegio student, `probabilidad`) and for a course that does not exist → 403, no item, per FR-037, US8-AS1 (fails today: 200 with an item)
+- [ ] T102 [CHANGE] API test: `/answer` to an item of a course the student is not enrolled in, with and without `Idempotency-Key` → 403; the student's attempts, `student_course_topic_elo` rows, the item's difficulty and the retry record are unchanged, per FR-037a, US8-AS2 (fails today: 200 and a stored rating)
+- [ ] T103 [CHANGE] API test: `GET /diagnostic/{course}` and `POST /diagnostic/{course}/submit` for a course the student is not enrolled in → 403; no question served, no diagnostic and no baseline stored, per FR-037, FR-037a, US8-AS3 (fails today: 200)
+- [ ] T104 [AS-IS] API test: a student enrolled from their level's courses and one enrolled through an invitation code in a course of another level both get the next item, answer it (the rating moves) and take the diagnostic as today, per FR-037, US8-AS4 (passes on unchanged code)
+- [ ] T105 [CHANGE] API test: after practising a course and leaving it (`DELETE /enroll/{course}`), `next-question` and `/answer` for it → 403, a retry of the accepted answer → 403 with the stored attempt unchanged, and the stored ratings in it are unchanged, per FR-037, FR-037a, US8-AS5
+- [ ] T106 [CHANGE] Two-engine test: `StudentService.ensure_enrolled(user_id, course_id)` passes for an ordinary enrolment and for one made through an invitation (`enroll_user` with the group), and raises `PermissionError` for no enrolment, after unenrolment and for an unknown course, per FR-037, FR-037a, SC-001
+
+**Implementation**
+
+- [ ] T107 `StudentService.ensure_enrolled` (application layer, reads `get_user_enrollments`); `api/routers/student.py` calls it first in `next_question`, `diagnostic_status` and `diagnostic_submit`, and in `answer` right after the item lookup (404 for an unknown item stays) and before option validation and the retry replay, answering 403 «No estás inscrito en este curso.»; existing API tests that practised without enrolling enrol first (FR-037, FR-037a; depends on T101–T106)
+
+**Close**
+
+- [ ] T108 Replace the `PENDING` rows of FR-037, FR-037a and US8-AS1 … AS5 with the tests above; `python scripts/check_traceability.py --run` (once A-2 is merged), the full suite on PostgreSQL and Playwright pass

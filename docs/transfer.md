@@ -272,6 +272,14 @@ pre-transfer state, restore the § 4 dump.
 
 **Before the switch** (on the final repository's pull request):
 
+- Roadmap follow-up **F-4** is merged into the branch being switched: `next-question`, `/answer`
+  and the diagnostic serve only courses the student is enrolled in (spec 001 FR-037, FR-037a).
+  Today any course is served.
+- Roadmap follow-up **F-5**, if the owner includes it: PvP lets enrolled students in. Today the
+  redesign's PvP refuses every student (`docs/sdd/roadmap.md` § Follow-ups).
+- Spec 001 has no `PENDING` traceability row on the branch being switched: the traceability
+  check (A-2) fails the pull request otherwise.
+
 ```bash
 python scripts/db_sync_check.py          # SQLite ↔ PostgreSQL parity
 python scripts/validate_bank.py          # item bank integrity
