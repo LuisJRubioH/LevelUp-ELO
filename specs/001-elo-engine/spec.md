@@ -102,6 +102,17 @@ accepted semillero without a grade and `/enroll` accepted any existing course.
   empty catalogue, no current course and a "pending diagnostic" rating (FR-028k, FR-028b).
 - Q: Who changes a student's grade later (promotion)? → A: out of this spec — spec 004
   (identity and access); FR-028c already defines what promotion does to ratings.
+- Q: What does a semillero student without a grade see? → A: an empty catalogue with the notice
+  «Necesitamos registrar tu grado para mostrar tus cursos. Contacta a tu docente o al
+  administrador.» No grade is assigned automatically, and the courses they are already enrolled
+  in — including any reached by a valid invitation — stay listed and open for practice (FR-028o).
+- Q: Where does a course reached by invitation appear? → A: among the student's enrolments,
+  marked as outside the catalogue; it is never offered in the catalogue to explore (FR-028l).
+- Q: What if an old database's `courses.block` constraint does not accept one of the four
+  blocks? → A: the migration stops with a clear error naming the missing values and changes
+  nothing; the automatic widenings (PostgreSQL drop and re-add, SQLite table rebuild) are removed.
+  Any manual repair is prepared and reviewed separately, with a backup; this decision does not
+  authorise running that DDL (FR-028n, `docs/sdd/f1-semillero-survey.md` § 4.3).
 
 ### Session 2026-10-05 (/speckit-clarify)
 
@@ -329,8 +340,14 @@ compare the overall rating before and after.
    enrolled in it and can practise it; their level and grade stay the same; the course is not in
    their catalogue; and their overall rating is still computed from their grade-6 courses only.
 5. **US7-AS5** — **Given** a semillero student without a grade (an account created before this
-   rule), **When** their catalogue and overall rating are shown, **Then** the catalogue is empty,
-   the rating reads "pending diagnostic", and an invitation code is refused until a grade is set.
+   rule), **When** their catalogue and overall rating are shown, **Then** the catalogue is empty
+   and the screen shows «Necesitamos registrar tu grado para mostrar tus cursos. Contacta a tu
+   docente o al administrador.», the rating reads "pending diagnostic", a new invitation code is
+   refused until a grade is set, and the courses they are already enrolled in stay listed and
+   open for practice.
+6. **US7-AS6** — **Given** a colegio student enrolled by invitation in a universidad course,
+   **When** their courses are listed, **Then** the course appears among their enrolments marked
+   as outside the catalogue, is not offered in the catalogue to explore, and opens for practice.
 
 ---
 
@@ -367,8 +384,13 @@ compare the overall rating before and after.
   the course counts as current (FR-028l only covers courses outside the catalogue).
 - A semillero course of another grade reached by invitation → accessible, never current; the
   student's grade does not change (FR-028l).
-- A semillero account without a grade → empty catalogue and "pending diagnostic" until its grade is
-  set; no grade is inferred from its enrolments (FR-028k).
+- A semillero account without a grade → empty catalogue, the notice of FR-028o and "pending
+  diagnostic" until its grade is set; no grade is inferred from its enrolments (FR-028k). Its
+  existing enrolments are not removed: they stay listed and open for practice, and none counts as
+  current.
+- A database whose block constraint lacks one of the four blocks → the migration stops before
+  changing anything, naming the missing values (FR-028n); one that accepts the four plus extra
+  values → no DDL, the extra values stay.
 
 ## Requirements *(mandatory)*
 
@@ -559,14 +581,32 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   enrol them in the group's course even if it is outside their catalogue — provided a semillero
   student has a grade — and shall change neither the student's level nor their grade; the invited
   course shall not become part of the catalogue, so it never counts toward the overall rating
-  (FR-028a) while the student keeps access to practise it. *(Today: an invitation also works for a
-  semillero student without a grade; the rest already holds.)*
+  (FR-028a) while the student keeps access to practise it. When the student's courses are listed,
+  the system shall list such a course among their enrolments, marked as outside the catalogue, and
+  shall not offer it in the catalogue to explore. *(Today: an invitation also works for a
+  semillero student without a grade, and the course list returns only the catalogue, so a course
+  reached by invitation appears on no screen; the rest already holds.)*
 - **FR-028m** [CHANGE]: The system shall reject a registration as a semillero student without a
   grade from 6 to 11, and shall reject any enrolment request — other than through an invitation
   (FR-028l) — for a course outside the student's catalogue, on every level. *(Today: both are
   accepted; only the screens keep students to their catalogue.)* Registration and enrolment belong
   to identity and access: these two rules are stated here because they decide the catalogue, and
   move to spec 004 when it is written.
+- **FR-028n** [CHANGE]: When the schema is migrated, the system shall check, without changing it,
+  that the `courses.block` constraint accepts the four blocks (`Universidad`, `Colegio`,
+  `Concursos`, `Semillero`). If it does, the system shall issue no DDL for it and shall keep any
+  extra value it already allows. If it does not, the system shall stop the migration with an
+  error that names the missing values, before any change to that constraint or table, and shall
+  never drop, re-add or rebuild them automatically (AGENTS R8, R17). A new database is created
+  with a constraint that accepts the same set on both engines. *(Today: PostgreSQL drops and
+  re-adds the constraint on every migration; SQLite rebuilds the table when its probe fails,
+  leaving the other tables' foreign keys pointing at a dropped table.)* Persistence belongs to
+  spec 002; this rule is stated here because the catalogue depends on it, and moves there.
+- **FR-028o** [CHANGE]: While a semillero student has no grade, the courses screen shall show the
+  notice «Necesitamos registrar tu grado para mostrar tus cursos. Contacta a tu docente o al
+  administrador.» in place of the empty catalogue, shall keep listing the courses the student is
+  already enrolled in (FR-028l) with their access to practise, and shall offer no way to set the
+  grade. *(Today: such a student is offered all 36 semillero courses.)*
 - **FR-029** [CHANGE]: The system shall store every rating change — practice answer, diagnostic,
   procedure — under the **course and topic of the item involved**, identified by the course's
   stable identifier and the topic within it. There is one stored rating per student, course and
@@ -699,8 +739,6 @@ items of that course, or the student's diagnostic for that course.
 - New features or screens in V1.
 - Changing a student's grade after registration (promotion) — spec 004 (FR-028c defines what it
   does to ratings).
-- Access control of practice: `next-question` serving items of a course the student is not
-  enrolled in — roadmap follow-up F-4.
 
 ## Traceability *(mandatory)*
 
@@ -753,6 +791,7 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | US7-AS3 | `PENDING` |
 | US7-AS4 | `PENDING` |
 | US7-AS5 | `PENDING` |
+| US7-AS6 | `PENDING` |
 | FR-001 | `tests/unit/domain/test_elo_model.py::TestExpectedScore::test_400_point_advantage_gives_approx_91_percent`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_fr001_both_engine_paths_use_the_same_expected_success` |
 | FR-002 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_rating_delta` |
 | FR-003 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_rd_floor_30_holds_and_scales_the_change`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_next_rd_has_a_floor_of_30` |
@@ -796,6 +835,8 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | FR-028k | `PENDING` |
 | FR-028l | `PENDING` |
 | FR-028m | `PENDING` |
+| FR-028n | `PENDING` |
+| FR-028o | `PENDING` |
 | FR-029 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_answer_writes_only_the_items_course_topic`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_answer_lands_on_the_items_course_and_topic`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_writes_course_topic_baselines`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once` |
 | FR-029a | `tests/unit/application/test_spec001_service.py::test_spec001_selection_rating_is_topic_or_course`<br>`tests/unit/application/test_spec001_service.py::test_spec001_unrated_course_selects_at_1000_and_ignores_the_diagnostic_average`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_course_rating_of`<br>`tests/unit/application/test_spec001_service.py::test_spec001_pvp_shows_pending_never_the_1000_fallback`<br>`tests/api/test_spec001_api.py::test_spec001_course_map_shows_unrated_topics_as_pending` |
 | FR-029b | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
@@ -842,9 +883,11 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-028h | `ORDER BY elo DESC` / `ORDER BY ue.global_elo DESC` with no tie-break in every ranking query (both repos) |
 | FR-028i | PostgreSQL rating columns are `REAL` (4-byte: `999.4999999::real` = 999.5); `round(..., 2)` (half-to-even) in API responses; `Math.round` on every rating in `Stats.tsx:142, 199, 229`, `RankBadge.tsx:52`, teacher `fmtMiles` |
 | FR-028j | label from full precision: `api/routers/student.py:287` (`_elo_to_rank(global_elo)`), `Teacher/Dashboard.tsx:137, 207, 400` (`rankFor(s.global_elo)`); number rounded on screen: `Stats.tsx:142`, `RankBadge.tsx:52` |
-| FR-028k | `PENDING` |
-| FR-028l | `PENDING` |
-| FR-028m | `PENDING` |
+| FR-028k | `get_available_courses_by_level` (both repos) filters on block `Semillero {grade}°`, which no course has; without a grade it returns every `Semillero` course; `student_view.py` `_student_block` (V1) |
+| FR-028l | `enroll_by_code` (`api/routers/student.py:311`) enrols with no grade check; `GET /api/student/courses` returns only `get_available_courses` |
+| FR-028m | `api/schemas/auth.py:22` (`grade` optional for every level); `POST /api/student/enroll` checks only that the course exists |
+| FR-028n | `_migrate_courses_block_check`: `postgres_repository.py:1228` (returns only if the definition contains `'Semillero 6'`, so it drops and re-adds every run), `sqlite_repository.py:915` (probe insert, then rename → create → copy → drop) |
+| FR-028o | `frontend/src/pages/Student/Courses.tsx` shows `courses.noAvailable` for an empty catalogue |
 | FR-028g | `weekly_rankings` table; `save_weekly_ranking`, `get_ranking_history` ← `teacher_view.py:550, 556` |
 | FR-029 | `student_view.py:385`, `api/routers/student.py:166`, `useStudentSession.ts:74`, `finish_pvp_match`, `validate_procedure_submission`, diagnostic submit |
 | FR-030 | `frontend/src/pages/Student/Practice.tsx:27-33` |

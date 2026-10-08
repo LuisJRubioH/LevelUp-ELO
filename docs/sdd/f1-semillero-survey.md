@@ -4,10 +4,11 @@ Read-only survey of `redesign @ 9546ab5`, 2026-10-08, for roadmap follow-up **F-
 (`docs/sdd/roadmap.md` § Follow-ups).
 
 **Status:**
-- Owner decisions taken 2026-10-08 (§ 2).
-- Spec 001 amended (FR-028k, FR-028l, FR-028m, User Story 7, traceability rows `PENDING`).
-- **No behaviour has been changed yet.**
-- One decision is still open: the old-database path of the block constraint (§ 4.3).
+- Owner decisions taken 2026-10-08 (§ 2), including the old-database path of the block
+  constraint (§ 4.3) and the notice for semillero accounts without a grade (§ 2, decision 6).
+- Spec 001 amended (FR-028k … FR-028o, User Story 7, traceability rows `PENDING`).
+- Code is developed and tested locally only; the production checks of § 3 and § 4.3 step 1 are
+  requirements before deploying, not part of the code PR.
 
 Each finding cites code. "Verified" means reproduced on that commit through the V2 API on a fresh
 SQLite database or on a local PostgreSQL.
@@ -40,8 +41,10 @@ as current for the overall rating and rankings (FR-028a–c).
 | 1 | Semillero requires a grade from 6 to 11. Its catalogue is exactly the six courses of that grade. The API rejects a registration without a grade, and `/enroll` checks the catalogue on **every** level | FR-028k, FR-028m; US7-AS1 … AS3 |
 | 2 | Invitations keep their cross-level purpose but require a grade from a semillero student. They change neither level nor grade, and the invited course never joins the catalogue or the overall rating | FR-028l; US7-AS4, AS5 |
 | 3 | Existing semillero students without a grade are never given one automatically; the way to set it is documented before any of them is left with an empty catalogue | Clarifications 2026-10-08; § 3 below |
-| 4 | The block constraint is not touched when it already accepts the four blocks the code writes; existing extra values stay. Widening for an old database needs the exact DDL and its R8 justification first: widening alone does not justify a `DROP` | Plan only (no behaviour); § 4 below |
-| — | Practice access (`next-question` and the other practice endpoints) → **F-4**, separate, pending before the production switch | Out of Scope; roadmap F-4 |
+| 4 | The block constraint is not touched when it already accepts the four blocks the code writes; existing extra values stay. Widening for an old database needs the exact DDL and its R8 justification first: widening alone does not justify a `DROP` | FR-028n; § 4 below |
+| 5 | An old database whose constraint lacks one of the four blocks stops the migration with a clear error; the destructive automatic widenings are removed. Any manual repair is prepared and reviewed separately, with a backup — this decision does not authorise running it | FR-028n; § 4.3 |
+| 6 | A semillero student without a grade sees «Necesitamos registrar tu grado para mostrar tus cursos. Contacta a tu docente o al administrador.» No grade is assigned automatically, and valid invitation access is never blocked: the courses they are enrolled in stay listed and open | FR-028o, FR-028l; US7-AS5, AS6 |
+| — | Practice access (`next-question`, `/answer`, the diagnostic) → **F-4**, its own amendment and PRs, pending before the production switch | roadmap F-4 |
 | — | Grade change / promotion → spec 004 | Out of Scope |
 
 ## 3. Semillero accounts without a grade (decision 3)
@@ -159,20 +162,22 @@ referencing a missing table (reproduced on SQLite 3.45).
 **R8 assessment.** Both are a `DROP` (of a constraint, of a table); neither is additive, so
 neither may run automatically.
 
-**Proposal:**
+**Approved 2026-10-08 (decision 5):**
 - Remove both automatic widening paths.
 - On a database whose constraint lacks one of the four values, the migration **stops with an
   error** naming the missing values and pointing here:
   - `scripts/migrate.py` exits 1 and the API does not start (R17);
   - SQLite's in-process bootstrap raises.
-- The owner then runs the DDL above deliberately, with a backup. For SQLite the safe fix is a new
-  local database, since SQLite holds only local or test data.
+- Any repair is prepared and reviewed as its own change, with a backup; the DDL above documents
+  what such a repair involves and is **not** authorised by this decision. For SQLite the safe fix
+  is a new local database, since SQLite holds only local or test data.
 - No known database needs it:
   - test databases are created with the four values;
   - production re-creates them on every start (confirm read-only with step 1 before shipping).
 
-**Open decision:** approve this "stop and explain" path, or an alternative, before it is
-implemented.
+The error names the missing values and this section, for example:
+`courses_block_check does not accept 'Semillero'; the migration changed nothing. See
+docs/sdd/f1-semillero-survey.md § 4.3.`
 
 ## 5. Tests, written first (each fails on `9546ab5`)
 
@@ -186,7 +191,9 @@ implemented.
 | Invitation to a colegio group by a grade-6 student → enrolled, can practise; level and grade unchanged; not current; overall rating unchanged | API + both engines | partly holds | FR-028l, US7-AS4 |
 | Invitation for a semillero account without grade → refused; its catalogue is empty and its rating "pending diagnostic" | API | accepted | FR-028l, US7-AS5 |
 | Block constraint: four accepted, `'Semillero 6°'` rejected; PostgreSQL oid stable over two migrations | both engines | oid changes | § 4.2 |
-| A database lacking `'Semillero'` → migration stops with the documented error, no DDL (only once § 4.3 is approved) | both engines | rebuilds / drops | § 4.3 |
+| A database lacking `'Semillero'` → migration stops with the documented error naming it; constraint and table unchanged; `migrate.py` exits 1 | both engines | rebuilds / drops | FR-028n, § 4.3 |
+| `GET /api/student/courses` lists an invited course as enrolled and `in_catalogue: false`; a grade-less semillero student gets only their enrolments | API | invited course missing; 36 courses | FR-028l, FR-028o, US7-AS5, AS6 |
+| Courses screen: the notice for a grade-less semillero student, enrolled courses still listed; invited course only under *Mis matrículas* | Playwright | 36 courses offered | FR-028o, US7-AS5, AS6 |
 
 ## 6. How it ships
 
@@ -201,7 +208,20 @@ implemented.
 3. **Before deploying**: the owner runs § 3 and the read-only constraint check of § 4.3 step 1 on
    production.
 
-**Gap in the traceability check (A-2, PR #5):** it rejects `PENDING` only on a PR from the spec's
-*Feature Branch* (`001-elo-engine`). F-1's code PR comes from `fix/f1-semillero-catalogue`, so
-clearing these rows is checked in review unless A-2 is extended. Suggested extension: also treat
-as a code PR any PR that changes code **and** that spec's `spec.md`.
+**Traceability check (A-2, PR #5):** it no longer depends on the branch name. A PR that changes
+any path in spec 001's *Code Scope*, or a test its Traceability cites, is a code change for spec
+001 and fails while any spec 001 row is `PENDING`. So F-1's code PR must clear every row above,
+and while these rows are `PENDING` on `redesign` no other PR may change spec 001's code — F-4's
+code PR included. Merge order: § 7.
+
+## 7. Order with F-4 and the production switch
+
+A-2 judges each PR by spec, not by row: while spec 001 has a `PENDING` row on the base branch,
+every PR that changes spec 001's code fails, including PR #3 (`redesign` → `main`), which changes
+nearly all of it. Two consequences:
+
+- F-4 (needed before the switch) and F-1 cannot have their docs merged at the same time; the
+  order that keeps each code PR green is **F-4 docs → F-4 code → this docs PR → F-1 code**.
+- If this docs PR is merged before the switch, F-1's code must also land before the switch, and
+  with it the read-only checks of § 3 and § 4.3 step 1. If F-1 should ship after the switch, this
+  PR stays unmerged until PR #3 is merged.

@@ -282,13 +282,14 @@ the code PR goes in only after Phase N (constitution agent rule 7).
 
 ## Phase 12: Follow-up F-1 — catalogue by level and grade (owner decisions 2026-10-08)
 
-Spec: FR-028k, FR-028l, FR-028m, User Story 7 (Clarifications 2026-10-08). Survey and plan:
-`docs/sdd/f1-semillero-survey.md`. Branch `fix/f1-semillero-catalogue`; tests first — each
-`[CHANGE]` test fails on the code before its implementation task.
+Spec: FR-028k … FR-028o, User Story 7 (Clarifications 2026-10-08). Survey and plan:
+`docs/sdd/f1-semillero-survey.md`. Docs on `fix/f1-semillero-catalogue`; tests first — each
+`[CHANGE]` test fails on the code before its implementation task. Development and tests are local;
+nothing here touches production.
 
-**Before implementation ships (owner, read-only on production)**
+**Before deploying (owner, read-only on production — not part of the code PR)**
 
-- [ ] T084 Count and list semillero students without a grade and read `courses_block_check`, per survey § 3 step 1 and § 4.3 step 1; record the counts in the code PR (no data changed)
+- [ ] T084 Count and list semillero students without a grade (survey § 3 step 1) and read `courses_block_check` (survey § 4.3 step 1); record the counts and whether the four blocks are accepted (no data changed). Grade-less accounts get their grade by the documented procedure, or the owner accepts the ones left; a constraint lacking a block means the migration will stop (FR-028n) and needs the separately reviewed repair first
 
 **Tests first**
 
@@ -296,20 +297,24 @@ Spec: FR-028k, FR-028l, FR-028m, User Story 7 (Clarifications 2026-10-08). Surve
 - [ ] T086 [CHANGE] Two-engine repository test: a grade-*g* semillero catalogue is exactly the six `*_semillero_g` courses for *g* = 6–11, a grade-less one is empty, other levels unchanged, per FR-028k, US7-AS1, US7-AS5
 - [ ] T087 [CHANGE] API + two-engine test: registration as semillero without a grade, or with a grade outside 6–11, is rejected and creates no account; `GET /api/student/courses` for grade 7 returns the six grade-7 courses, per FR-028m, US7-AS1, US7-AS2
 - [ ] T088 [CHANGE] API test: `/enroll` outside the catalogue (colegio → universidad course; grade 6 → grade-7 course) is rejected with nothing enrolled; inside the catalogue it enrols, per FR-028m, US7-AS3
-- [ ] T089 [CHANGE] API + two-engine test: an invitation enrols a grade-6 student in a colegio group's course, they can practise it, their level and grade are unchanged, the course is not current and the overall rating is unchanged; a semillero account without a grade is refused and reads "pending diagnostic", per FR-028l, US7-AS4, US7-AS5
-- [ ] T090 Two-engine test: the block constraint accepts the four blocks and rejects `'Semillero 6°'`; on PostgreSQL its oid is unchanged over two migrations (fails today: dropped and re-added on every run), per survey § 4.2, AGENTS R8
+- [ ] T089 [CHANGE] API + two-engine test: an invitation enrols a grade-6 student in a colegio group's course, they can practise it, their level and grade are unchanged, the course is not current and the overall rating is unchanged; a semillero account without a grade is refused a new invitation, reads "pending diagnostic", and keeps its existing enrolments, per FR-028l, US7-AS4, US7-AS5
+- [ ] T090 Two-engine test: the block constraint accepts the four blocks and rejects `'Semillero 6°'`; an extra allowed value is kept; two migrations issue no DDL on it (PostgreSQL: the constraint's oid is unchanged — fails today: dropped and re-added on every run), per FR-028n, survey § 4.2, AGENTS R8
+- [ ] T097 [CHANGE] Two-engine test: on a database whose block constraint lacks `'Semillero'`, the migration stops with an error naming the missing value, the constraint and the `courses` table are unchanged (PostgreSQL: same oid and definition; SQLite: same `CREATE TABLE` text, foreign keys of the other tables untouched), and `scripts/migrate.py` exits 1 without starting the web process, per FR-028n, survey § 4.3 (fails today: PostgreSQL re-adds it, SQLite rebuilds the table)
+- [ ] T098 [CHANGE] API test: `GET /api/student/courses` for a colegio student enrolled by invitation in a universidad course lists the catalogue with `in_catalogue: true` and the invited course with `enrolled: true, in_catalogue: false`; for a grade-less semillero student it lists only the courses they are enrolled in, per FR-028l, FR-028o, US7-AS5, US7-AS6
+- [ ] T099 [CHANGE] Playwright test (`frontend/e2e/`, mocked API): a grade-less semillero student sees the notice «Necesitamos registrar tu grado para mostrar tus cursos. Contacta a tu docente o al administrador.» and no catalogue course, while an enrolled course stays listed with its practice button; an invited course appears under *Mis matrículas* only, per FR-028o, US7-AS5, US7-AS6
 
 **Implementation**
 
 - [ ] T091 Both repositories' catalogue (`get_available_courses_by_level`) filter with the domain rule `in_catalogue`, which returns no course for semillero without a grade; `db_sync_check.py` in sync (FR-028k; depends on T085, T086)
 - [ ] T092 Reject semillero without a grade 6–11 in the API schema and in `register_user` on both engines (FR-028m; depends on T087)
 - [ ] T093 `/enroll` checks the catalogue through the service; `enroll-by-code` requires a grade from a semillero student and never changes level or grade (FR-028m, FR-028l; depends on T088, T089)
-- [ ] T094 Block-constraint guard: read-only check on both engines that the four blocks are accepted, no DDL when they are; fresh PostgreSQL databases get the de-duplicated list with the same allowed set (survey § 4.2; depends on T090)
-- [ ] T095 Old-database path of the block constraint, **only after the owner approves survey § 4.3**: no automatic widening; stop with the documented error
+- [ ] T094 Block-constraint guard: read-only check on both engines that the four blocks are accepted, no DDL when they are; fresh PostgreSQL databases get the de-duplicated list with the same allowed set (FR-028n, survey § 4.2; depends on T090)
+- [ ] T095 Old-database path of the block constraint (approved 2026-10-08): remove both automatic widenings; stop with the error naming the missing values; `scripts/migrate.py` exits 1 (FR-028n, survey § 4.3; depends on T097). The manual repair DDL is not part of this task and is not run
+- [ ] T100 `GET /api/student/courses` returns the catalogue plus the courses the student is enrolled in outside it, with `in_catalogue`; the courses screen shows the FR-028o notice for a grade-less semillero student, keeps *Explorar* to catalogue courses and lists every enrolment under *Mis matrículas*; `es` and `en` strings (FR-028l, FR-028o; depends on T098, T099)
 
 **Close**
 
-- [ ] T096 Replace the `PENDING` rows of FR-028k, FR-028l, FR-028m and US7-AS1…AS5 with the tests above; `python scripts/check_traceability.py --run` (once A-2 is merged) and the full suite on PostgreSQL pass; rehearse the migration twice on the legacy-data simulation (no DDL on the second run)
+- [ ] T096 Replace the `PENDING` rows of FR-028k … FR-028o and US7-AS1 … AS6 with the tests above; `python scripts/check_traceability.py --run` (once A-2 is merged) and the full suite on PostgreSQL pass; rehearse the migration twice on the legacy-data simulation (no DDL on the second run)
 
 V1 stays frozen: it receives the shared repository and service changes only (its own
 `Semillero {grade}°` enrolment filter in `student_view.py` is left as is).

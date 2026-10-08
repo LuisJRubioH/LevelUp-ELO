@@ -272,10 +272,6 @@ pre-transfer state, restore the § 4 dump.
 
 **Before the switch** (on the final repository's pull request):
 
-- Roadmap follow-up **F-4** is merged into the branch being switched: practice (`next-question`,
-  and the answer and diagnostic endpoints if the owner includes them) serves only courses the
-  student is enrolled in. Today any course is served (`docs/sdd/roadmap.md` § Follow-ups).
-
 ```bash
 python scripts/db_sync_check.py          # SQLite ↔ PostgreSQL parity
 python scripts/validate_bank.py          # item bank integrity
