@@ -110,3 +110,6 @@ backups/
 #   tmp/    → renders de página a alto DPI (scripts/pagina_hipertexto8.py los rehace)
 /output/
 /tmp/
+
+# Database dumps from the migration rehearsal (student data — never commit)
+*.dump
