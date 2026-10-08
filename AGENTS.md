@@ -57,6 +57,7 @@ ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q   # al
 python scripts/db_sync_check.py          # if a repository changed (mandatory)
 python scripts/validate_bank.py          # if items/ changed
 cd frontend && pnpm run build            # if frontend/ changed
+python scripts/check_traceability.py     # if specs/ or a test it cites changed (--run: also runs them)
 black --check --line-length=100 src/ tests/ scripts/
 flake8 src/ api/ tests/ scripts/ --max-line-length=100 --select=E9,F63,F7,F82
 ```
@@ -142,6 +143,11 @@ process.** Until that is automated, follow this sequence by hand, one commit per
 | 7 | Implement | `/speckit-implement` | Phase 2 pins green on unchanged code before any refactor |
 | 8 | Converge | `/speckit-converge` | no new gaps (loop 7 ↔ 8 until empty) |
 | — | **Code PR** | — | no `PENDING` traceability rows; verification green; owner merges |
+
+The traceability gates are checked in CI by `scripts/check_traceability.py` (job "Trazabilidad
+spec → tests"): one row per FR and scenario, every cited test collected, passing and not skipped;
+`PENDING` accepted on the docs PR and rejected on the spec's code PR (a PR from its Feature Branch
+that changes anything outside `specs/` and `docs/`).
 
 **First-run review of `/speckit-tasks` (required checkpoint before committing spec 001's
 tasks.md).** The upstream skill still says tests are optional unless requested; the overrides make

@@ -370,14 +370,21 @@ python scripts/validate_bank.py                            # integridad del banc
 python scripts/db_sync_check.py                            # paridad SQLite ↔ Postgres
 cd frontend && pnpm run build                              # tsc + vite
 cd frontend && pnpm exec playwright test                   # E2E (frontend/e2e/)
+python scripts/check_traceability.py --run                 # spec → tests (needs PostgreSQL)
 ```
 
 Storage tests run on SQLite always and also on PostgreSQL when `POSTGRES_TEST_DATABASE_URL` points
 at a throwaway **local** database (`tests/conftest.py` refuses any other host).
 
-CI in GitHub Actions, 8 jobs: item bank, lint (Black + Flake8), unit tests with coverage ≥ 70 %,
-integration, DB parity, PostgreSQL (the integration suite on an ephemeral PostgreSQL service), API
-and frontend build. CI only tests; Vercel and Render deploy `main` on their own.
+CI in GitHub Actions, 9 jobs: item bank, lint (Black + Flake8), unit tests with coverage ≥ 70 %,
+integration, DB parity, PostgreSQL (the integration suite on an ephemeral PostgreSQL service), API,
+frontend build and traceability. CI only tests; Vercel and Render deploy `main` on their own.
+
+The traceability job (`scripts/check_traceability.py --run`) reads `specs/*/spec.md`: every
+requirement and acceptance scenario must have a row in § Traceability, and every test the row cites
+must be collected, pass and not be skipped (the PostgreSQL branch of two-engine tests included). A
+row may say `PENDING` on a spec's docs PR, never on its code PR. Whether a test's assertions really
+prove its requirement is still checked in review.
 
 ---
 

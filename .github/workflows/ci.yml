@@ -1,6 +1,8 @@
 # .github/workflows/ci.yml
-# CI/CD para LevelUp-ELO — 8 jobs
+# CI/CD para LevelUp-ELO — 9 jobs
 # Disparadores: push a main, pull_request hacia main
+# Also pull requests into `redesign`, the staging branch stacked work targets until the redesign
+# lands on main.
 
 name: LevelUp-ELO CI
 
@@ -8,7 +10,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, redesign]
 
 env:
   PYTHON_VERSION: "3.11"
@@ -233,3 +235,78 @@ jobs:
         working-directory: frontend
         env:
           VITE_API_URL: "https://levelup-elo.onrender.com"
+
+  # ── Job 9: Trazabilidad spec → tests (roadmap A-2) ───────────────────
+  # scripts/check_traceability.py: every FR and acceptance scenario of specs/*/spec.md has a row
+  # whose tests are collected, pass and are not skipped (PostgreSQL branch included, so the
+  # service and both requirement files are needed). PENDING is rejected only on a spec's code PR,
+  # so the head branch and the files the PR changes are passed in.
+  traceability:
+    name: "Trazabilidad spec → tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: levelup_audit
+          POSTGRES_PASSWORD: audit_local_only
+          POSTGRES_DB: levelup_audit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U levelup_audit -d levelup_audit"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # On a pull request HEAD is the merge commit; HEAD^1 is the base it is compared with.
+          fetch-depth: 2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Instalar dependencias (V1 y API)
+        run: pip install -r requirements.txt -r requirements-api.txt
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Configurar pnpm desde packageManager
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - name: Instalar dependencias del frontend desde lockfile
+        run: pnpm install --frozen-lockfile
+        working-directory: frontend
+
+      - name: Install Chromium for the pinned Playwright version
+        run: pnpm exec playwright install --with-deps chromium
+        working-directory: frontend
+
+      - name: Files the pull request changes
+        if: github.event_name == 'pull_request'
+        run: git diff --name-only HEAD^1 HEAD > "$RUNNER_TEMP/changed-files.txt"
+
+      - name: Verificar trazabilidad (referencias recogidas, en verde y sin omitir)
+        # The branch name comes from the pull request: passed as an environment variable, never
+        # interpolated into the script.
+        run: |
+          args=(--run)
+          if [ -f "$RUNNER_TEMP/changed-files.txt" ]; then
+            args+=(--branch "$HEAD_REF" --changed-files "$RUNNER_TEMP/changed-files.txt")
+          fi
+          python scripts/check_traceability.py "${args[@]}"
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          POSTGRES_TEST_DATABASE_URL: postgresql://levelup_audit:audit_local_only@localhost:5432/levelup_audit
+          DATABASE_SSLMODE: disable
+          ADMIN_PASSWORD: testadmin123
+          TESTING: "1"
