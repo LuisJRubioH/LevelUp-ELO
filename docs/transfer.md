@@ -72,16 +72,68 @@ wrong):
 | `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_STUDENT_ANALYSIS`, `AI_KEY_TEACHER_ANALYSIS` |
 | `DATABASE_SSLMODE`, `LOG_LEVEL` | optional |
 
-If V1 (Streamlit Community Cloud) is still deployed from `main`, it builds this same repository
-and its repository bootstraps the schema on start unless told not to: set `RUN_MIGRATIONS=0` in its
-secrets (or pause the app) before the merge, so that only the migration step migrates.
-
 Frontend (build time): `VITE_API_URL` = the API's public origin. **Never** put a secret in a
 `VITE_*` variable — Vite bundles them into the JavaScript every visitor downloads.
 
 Order when the hosts are new: database → API (needs `DATABASE_URL`) → frontend (needs the API URL
 as `VITE_API_URL`) → back to the API to set `CORS_ORIGINS` to the frontend's origin. Without the
 last step the browser blocks every call and the API looks down.
+
+### 3.1 V1 (Streamlit Community Cloud) during the switch
+
+V1 deploys from `main` and redeploys on every push, so the merge hands it the new code. Its
+repository then bootstraps the schema on the first session unless `RUN_MIGRATIONS=0`, and also
+seeds demo and test accounts unless `ENVIRONMENT=production`. It would do so from a web session,
+over its own connection (on Streamlit Cloud normally the transaction pooler, where the advisory
+locks protect nothing). Rehearsed locally: the new V1 opened an unmigrated copy without the
+variable, added the eight spec 001 tables, changed existing ones (new columns, seeds, item sync)
+and ran the reconciliation.
+
+Streamlit Community Cloud has no pause:
+
+- Commenting out `DATABASE_URL` does not stop V1: it falls back to SQLite and keeps serving.
+- An app asleep (after 12 h without traffic) is not stopped: any visitor wakes it.
+- "Only specific people can view this app" limits who can wake it. The app still runs and still
+  redeploys on the merge.
+
+**Disconnecting means deleting the app**, before the backup that will be the rollback point and
+before the merge. Deleting needs admin rights on the GitHub repository.
+
+1. In the app's *Settings*, record in the password manager (never in the repository or a chat):
+   the app URL (custom subdomain), repository, branch, main file path
+   (`src/interface/streamlit/app.py`), Python version and the full *Secrets* text.
+2. Use the app's ⋮ menu → *Delete*. The process stops, its database connections close and the
+   merge no longer redeploys it. The subdomain becomes free and can be claimed again.
+
+**Do not reconnect V1 automatically.** Reconnect only when the owner decides, after § 6 passes:
+
+1. *Create app* with the same repository, branch `main`, main file, Python 3.11 and the recorded
+   subdomain.
+2. Use the recorded secrets plus these two keys **at root level**. Root keys become environment
+   variables; keys under a `[section]` do not.
+
+   ```toml
+   RUN_MIGRATIONS = "0"
+   ENVIRONMENT = "production"
+   ```
+
+What was checked before allowing that (2026-10-08, new V1 code on PostgreSQL copies of the legacy
+data):
+
+- **`RUN_MIGRATIONS=0` is respected.** On an unmigrated copy, V1's first page left the schema and
+  every table byte-identical. The same run without the variable migrated the copy.
+  `tests/integration/test_v1_run_migrations.py` pins this on both engines, against a fresh
+  database, through V1's real entry point.
+- **V1 works with the new rating state.** On a migrated copy, V1 logged in and showed the
+  reconciled baselines: 909.93 shown as 910 and 886.70 as 887.
+- **A V1 answer writes only to the new store.** A correct answer, after a valid 5 s, moved only
+  the item's (course, topic) row in `student_course_topic_elo`. It moved by +6.69 against the
+  "+6.7" V1 announced, and logged one valid attempt. `student_topic_elo`, `users.current_elo` and
+  the schema were untouched.
+- **V1 and V2 agree.** Both showed the same course ratings afterwards, and the teacher view
+  rendered.
+- **Rank names differ by design** (spec 001 research R16: V1 keeps its own labels). The same 917
+  reads "Punto de Partida" in V1 and "Plata II" in V2.
 
 ## 4. Backups (before any migration)
 

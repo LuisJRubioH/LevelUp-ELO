@@ -161,7 +161,9 @@ jobs:
           cache: pip
 
       - name: Instalar dependencias
-        run: pip install -r requirements-api.txt
+        # requirements.txt too: tests/integration/test_v1_run_migrations.py runs V1's entry
+        # point (Streamlit) against PostgreSQL and would otherwise skip here.
+        run: pip install -r requirements.txt -r requirements-api.txt
 
       - name: Ejecutar guardas sobre PostgreSQL real
         # test_elo_single_source corre en los dos motores: aquí toma la rama
