@@ -147,6 +147,9 @@ one new router file at most; no new top-level directories.
 | Weekly ranking: a student active this week appears; a student inactive this week with a higher rating does not; ordering by derived rating | participation ≠ rating source | 028f |
 | Stored weekly snapshots unchanged after migration and after new answers | history preserved | 028g |
 | V1 answer path (`student_view.handle_answer_topic` call shape) persists to the item's course+topic; V1 modules import and services construct — smoke green at every checkpoint | V1 compatibility | 029, constitution § Stack |
+| Explicit `time_taken = 0` is invalid: attempt recorded, rating, RD and item difficulty unchanged; an absent time still counts as 30 s (fails on today's code) | zero is not missing | 008a |
+| Retry key, fixed boundary values (rating 1181, difficulty 1000, RD 350, correct): the first response and the retry return the same persisted attempt values; the rating is applied once and stored at full precision (fails on today's code on PostgreSQL) | retry consistency | 012, 012a |
+| Storage precision on both engines: a stored 999.4999999 reads back unchanged and displays 999 "Plata II" on SQLite and PostgreSQL (fails with a PostgreSQL `REAL` column) | precision parity | 028i, 028j |
 | Architecture guard: no rating aggregation/ordering in repositories or routers (supplementary to the behavioural tests above) | layer split | constitution III |
 | Each repository test above runs parametrised on SQLite and PostgreSQL with identical results | engine parity | IV |
 

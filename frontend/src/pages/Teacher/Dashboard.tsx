@@ -13,23 +13,21 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { RankPill } from "../../components/ELO/RankBadge";
 import { teacherApi, type StudentSummary } from "../../api/teacher";
 import { useSettingsStore } from "../../stores/settingsStore";
 
 /* ── helpers de presentación ─────────────────────────────────────────────── */
-const RANKS = [
-  { min: 0, name: "HIERRO", fg: "#9ca3af", bg: "rgba(156,163,175,.16)" },
-  { min: 950, name: "BRONCE", fg: "#c2814e", bg: "rgba(194,129,78,.18)" },
-  { min: 1150, name: "PLATA", fg: "#cbd5e1", bg: "rgba(203,213,225,.16)" },
-  { min: 1350, name: "ORO", fg: "#fbbf24", bg: "rgba(251,191,36,.16)" },
-  { min: 1550, name: "PLATINO", fg: "#5eead4", bg: "rgba(94,234,212,.16)" },
-  { min: 1750, name: "DIAMANTE", fg: "#7dd3fc", bg: "rgba(125,211,252,.16)" },
-  { min: 1950, name: "MAESTRO", fg: "#c4b5fd", bg: "rgba(196,181,253,.18)" },
-];
-const rankFor = (elo: number) => {
-  let r = RANKS[0];
-  for (const x of RANKS) if (elo >= x.min) r = x;
-  return r;
+/** Spec 001: ratings and labels come from the API (display_rating, rank_label) as given. */
+const fmtRating = (v: number | null | undefined) => (v == null ? "Diagnóstico pendiente" : String(v));
+const byRatingDesc = (a: StudentSummary, b: StudentSummary) =>
+  (b.display_rating ?? -1) - (a.display_rating ?? -1);
+const needsAttention = (s: StudentSummary, acc: number) =>
+  acc < 60 || (s.display_rating != null && s.display_rating < 1100);
+/** A group statistic over rated students' display values; null when nobody is rated yet. */
+const meanShown = (xs: StudentSummary[]) => {
+  const v = xs.map((x) => x.display_rating).filter((x): x is number => x != null);
+  return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null;
 };
 const AVAS = [
   "linear-gradient(140deg,#8b5cf6,#6366f1)",
@@ -45,7 +43,6 @@ const initials = (n: string) =>
   n.slice(0, 2).toUpperCase();
 const avaFor = (n: string) => AVAS[(n.charCodeAt(0) + n.length) % AVAS.length];
 const accColor = (a: number) => (a >= 80 ? "#34d399" : a >= 65 ? "#fbbf24" : "#f87171");
-const fmtMiles = (n: number) => Math.round(n).toLocaleString("es-CO");
 /** accuracy puede venir como fracción (0–1) o porcentaje (0–100). */
 const toPct = (a: number) => Math.round(a <= 1 ? a * 100 : a);
 const fmtLast = (s: string | null) => (s ? String(s).slice(0, 10) : "—");
@@ -90,7 +87,7 @@ function StudentsView({
     let r = students.filter((s) => s.username.toLowerCase().includes(q.toLowerCase()));
     r = [...r].sort((a, b) =>
       sort === "elo"
-        ? b.global_elo - a.global_elo
+        ? byRatingDesc(a, b)
         : sort === "acc"
         ? toPct(b.accuracy) - toPct(a.accuracy)
         : a.username.localeCompare(b.username)
@@ -134,9 +131,9 @@ function StudentsView({
             <div></div>
           </div>
           {rows.map((s) => {
-            const rk = rankFor(s.global_elo);
+            const rk = s.rank_label;
             const acc = toPct(s.accuracy);
-            const attn = acc < 60 || s.global_elo < 1100;
+            const attn = needsAttention(s, acc);
             return (
               <div className="stu-row" key={s.user_id}>
                 <div className="stu-id">
@@ -151,10 +148,8 @@ function StudentsView({
                   {s.group_name ?? "Sin grupo"}
                 </div>
                 <div className="stu-elo">
-                  <span className="e">{fmtMiles(s.global_elo)}</span>
-                  <span className="rank-badge" style={{ color: rk.fg, background: rk.bg }}>
-                    {rk.name}
-                  </span>
+                  <span className="e">{fmtRating(s.display_rating)}</span>
+                  <RankPill label={rk} />
                 </div>
                 <div className="acc-cell">
                   <div className="av">
@@ -183,7 +178,7 @@ function StudentsView({
 
 /* ── vista ranking ───────────────────────────────────────────────────────── */
 function RankingView({ students }: { students: StudentSummary[] }) {
-  const sorted = [...students].sort((a, b) => b.global_elo - a.global_elo);
+  const sorted = [...students].sort((a, b) => byRatingDesc(a, b));
   const top3 = sorted.slice(0, 3);
   const order = [top3[1], top3[0], top3[2]].filter(Boolean) as StudentSummary[];
   const medals = ["🥇", "🥈", "🥉"];
@@ -204,7 +199,7 @@ function RankingView({ students }: { students: StudentSummary[] }) {
           <div className="podium">
             {order.map((s) => {
               const realPos = sorted.indexOf(s);
-              const rk = rankFor(s.global_elo);
+              const rk = s.rank_label;
               return (
                 <div className={"pod " + (realPos === 0 ? "p1" : "")} key={s.user_id}>
                   <div className="medal">{medals[realPos]}</div>
@@ -226,10 +221,8 @@ function RankingView({ students }: { students: StudentSummary[] }) {
                     {initials(s.username)}
                   </div>
                   <div className="pname">{s.username}</div>
-                  <div className="pelo">{fmtMiles(s.global_elo)}</div>
-                  <span className="rank-badge" style={{ color: rk.fg, background: rk.bg }}>
-                    {rk.name}
-                  </span>
+                  <div className="pelo">{fmtRating(s.display_rating)}</div>
+                  <RankPill label={rk} />
                 </div>
               );
             })}
@@ -245,7 +238,7 @@ function RankingView({ students }: { students: StudentSummary[] }) {
                     <span style={{ color: "var(--mute)", fontSize: 12 }}>· {s.group_name ?? "Sin grupo"}</span>
                   </div>
                 </div>
-                <div className="rl-elo">{fmtMiles(s.global_elo)}</div>
+                <div className="rl-elo">{fmtRating(s.display_rating)}</div>
               </div>
             ))}
           </div>
@@ -271,7 +264,9 @@ function MetricsView({ students }: { students: StudentSummary[] }) {
 
   const buckets = BUCKETS.map((b) => ({
     ...b,
-    n: students.filter((s) => s.global_elo >= b.lo && s.global_elo < b.hi).length,
+    n: students.filter(
+      (s) => s.display_rating != null && s.display_rating >= b.lo && s.display_rating < b.hi
+    ).length,
   }));
   const maxN = Math.max(...buckets.map((b) => b.n), 1);
 
@@ -280,7 +275,7 @@ function MetricsView({ students }: { students: StudentSummary[] }) {
     .sort((a, b) => toPct(b.accuracy) - toPct(a.accuracy))
     .slice(0, 8);
 
-  const attn = students.filter((s) => toPct(s.accuracy) < 60 || s.global_elo < 1100);
+  const attn = students.filter((s) => needsAttention(s, toPct(s.accuracy)));
 
   // sparkline actividad diaria
   const daily = m?.daily_attempts ?? [];
@@ -379,7 +374,7 @@ function MetricsView({ students }: { students: StudentSummary[] }) {
               <div className="ab">
                 <b>{s.username}</b>
                 <span>
-                  ELO {fmtMiles(s.global_elo)} · {toPct(s.accuracy)}% acierto
+                  ELO {fmtRating(s.display_rating)} · {toPct(s.accuracy)}% acierto
                 </span>
               </div>
               <div className="ax">{toPct(s.accuracy)}%</div>
@@ -397,7 +392,7 @@ function StudentDrawer({ student, onClose }: { student: StudentSummary; onClose:
   const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const rk = rankFor(student.global_elo);
+  const rk = student.rank_label;
   const acc = toPct(student.accuracy);
 
   const runAnalysis = async () => {
@@ -435,10 +430,8 @@ function StudentDrawer({ student, onClose }: { student: StudentSummary; onClose:
         <div className="sd-stats">
           <div className="sds">
             <span className="l">ELO global</span>
-            <b>{fmtMiles(student.global_elo)}</b>
-            <span className="rank-badge" style={{ color: rk.fg, background: rk.bg, alignSelf: "flex-start" }}>
-              {rk.name}
-            </span>
+            <b>{fmtRating(student.display_rating)}</b>
+            <RankPill label={rk} style={{ alignSelf: "flex-start" }} />
           </div>
           <div className="sds">
             <span className="l">Acierto</span>
@@ -472,7 +465,7 @@ function StudentDrawer({ student, onClose }: { student: StudentSummary; onClose:
           <h4>Actividad</h4>
           <p className="sd-ai-hint">
             Última actividad: {fmtLast(student.last_activity)}.{" "}
-            {acc < 60 || student.global_elo < 1100
+            {needsAttention(student, acc)
               ? "⚠ Este estudiante puede necesitar atención."
               : "Progreso dentro de lo esperado."}
           </p>
@@ -508,7 +501,7 @@ export function TeacherDashboard() {
     return {
       groups: groups.length,
       students: students.length,
-      elo: Math.round(students.reduce((s, x) => s + x.global_elo, 0) / n),
+      elo: meanShown(students),
       acc: Math.round(students.reduce((s, x) => s + toPct(x.accuracy), 0) / n),
     };
   }, [students, groups]);
@@ -557,7 +550,7 @@ export function TeacherDashboard() {
       <div className="stat-grid">
         <StatCard ic="👥" color="#8b5cf6" val={stats.groups} lbl="Grupos activos" />
         <StatCard ic="🎓" color="#2dd4bf" val={stats.students} lbl="Estudiantes" />
-        <StatCard ic="♛" color="#ffd700" val={fmtMiles(stats.elo)} lbl="ELO promedio" />
+        <StatCard ic="♛" color="#ffd700" val={stats.elo ?? "—"} lbl="ELO promedio" />
         <StatCard ic="🎯" color="#34d399" val={stats.acc + "%"} lbl="Acierto promedio" />
       </div>
 

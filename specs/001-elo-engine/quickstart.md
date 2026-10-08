@@ -18,13 +18,13 @@ docker run -d --rm --name spec001-pg -p 5433:5432 -e POSTGRES_PASSWORD=spec001 p
 POSTGRES_TEST_DATABASE_URL=postgresql://postgres:spec001@localhost:5433/postgres ADMIN_PASSWORD=testadmin123 python -m pytest tests/integration -q -rs
 ```
 
-or rely on the CI job `test-postgres` (it runs only the files it lists — task T003).
+or rely on the CI job `test-postgres` (it runs the whole `tests/integration/` folder with `-rs` — task T003).
 
 ## 1. Pins before refactoring (must pass on the unchanged code)
 
 Characterization tests follow the existing layout (constitution § Code Style): `tests/unit/domain/`,
 `tests/integration/` (both engines), `tests/api/`. New tests contain `spec001` in their name;
-reused pins live in existing files. This is the same selection as task T022 (the pin gate):
+reused pins live in existing files. The pin gate (task T022) runs the whole suite on both engines (`-rs`, no PostgreSQL skip allowed); this narrower selection is a quick local check and misses `tests/api/test_student.py` and `test_postgres_production_guards.py`:
 
 ```bash
 ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q -k "spec001 or elo_single_source or pvp_repository or item_selector or elo_model or student_service or procedure_grading"

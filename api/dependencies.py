@@ -5,7 +5,6 @@ Dependencias FastAPI reutilizables:
   - get_repository()  → instancia del repositorio (SQLite o PostgreSQL)
   - create_tokens()   → par (access_token, refresh_token)
   - get_current_user() → verifica JWT y retorna payload del usuario
-  - build_vector_rating() → reconstruye VectorRating desde DB para un usuario
 """
 
 import os
@@ -164,43 +163,3 @@ def require_role(*roles: str):
         return user
 
     return Depends(_check)
-
-
-# ── VectorRating desde DB ─────────────────────────────────────────────────────
-
-
-def build_vector_rating(user_id: int, repo, course_id: str | None = None) -> object:
-    """
-    Reconstruye el VectorRating del estudiante cargando su historial de ELO
-    por tópico desde la DB. Retorna una instancia fresca de VectorRating.
-    """
-    from src.domain.elo.vector_elo import VectorRating
-
-    vector = VectorRating()
-    topic_elos = repo.get_latest_elo_by_topic(user_id)
-
-    # get_latest_elo_by_topic retorna un dict {topic: (elo, rd)}
-    if isinstance(topic_elos, dict):
-        for topic, (elo, rd) in topic_elos.items():
-            vector.ratings[topic] = (float(elo), float(rd) if rd else 350.0)
-    else:
-        # Fallback: lista de rows (tuples o dicts)
-        for row in topic_elos:
-            topic = row["topic"] if isinstance(row, dict) else row[0]
-            elo = row["elo_after"] if isinstance(row, dict) else row[1]
-            rd = (
-                row["rating_deviation"]
-                if isinstance(row, dict)
-                else (row[2] if len(row) > 2 else 350.0)
-            )
-            vector.ratings[topic] = (float(elo), float(rd) if rd else 350.0)
-
-    # La práctica general usa course_id como clave; el diagnóstico guarda sus
-    # baselines por tópico y un promedio por curso. Inicializar esa clave solo
-    # cuando aún no existe progreso de práctica bajo ella.
-    if course_id and course_id not in vector.ratings:
-        diagnostic = repo.get_diagnostic(user_id, course_id)
-        if diagnostic is not None:
-            vector.ratings[course_id] = (float(diagnostic["initial_elo"]), 350.0)
-
-    return vector

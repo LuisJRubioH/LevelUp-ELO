@@ -121,7 +121,11 @@ export async function mockStudentApi(page: Page) {
       contentType: "application/json",
       body: JSON.stringify({
         user_id: 1,
+        // Spec 001 API shape: screens render display_rating and rank_label as given.
         global_elo: 1050,
+        display_rating: 1050,
+        overall_status: "rated",
+        course_ratings: [],
         topic_elos: [
           { topic: "Aritmética", rating: 1050, rd: 335 },
           { topic: "Álgebra", rating: 980, rd: 340 },

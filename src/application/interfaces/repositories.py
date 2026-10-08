@@ -33,10 +33,7 @@ class IStudentRepository(Protocol):
         self,
         user_id: int,
         item_id: str,
-        topic: str,
         compute: Callable[[dict], tuple],
-        default_elo: float = 1000.0,
-        default_rd: float = 350.0,
         request_id: Optional[str] = None,
         request_fingerprint: Optional[str] = None,
     ) -> bool: ...
@@ -57,8 +54,6 @@ class ITeacherRepository(Protocol):
     def get_groups_by_teacher(self, teacher_id) -> list: ...
     def create_group(self, name, teacher_id, course_id=None): ...
     def get_student_attempts_detail(self, student_id) -> list: ...
-    def get_student_elo_summary(self, student_id): ...
-    def get_latest_elo_by_topic(self, user_id: int) -> dict: ...
     def get_procedure_stats_by_course(self, student_id): ...
     def validate_procedure_submission(
         self,
@@ -67,6 +62,31 @@ class ITeacherRepository(Protocol):
         feedback: str = "",
         teacher_id: Optional[int] = None,
     ) -> bool: ...
+
+
+@runtime_checkable
+class IRatingReadRepository(Protocol):
+    """Lo que RatingReadService necesita (spec 001): filas crudas y participantes.
+
+    Ninguno de estos métodos promedia, redondea u ordena por rating (constitución III).
+    """
+
+    def get_course_topic_ratings(self, user_id, course_id=None) -> list: ...
+    def get_course_topic_ratings_bulk(self, user_ids, course_id=None) -> list: ...
+    def get_current_context_course_ids(self, user_id) -> list: ...
+    def get_current_context_course_ids_bulk(self, user_ids) -> dict: ...
+    def get_ranking_participants(
+        self,
+        scope,
+        group_id=None,
+        course_id=None,
+        education_level=None,
+        grade=None,
+        window_days=7,
+    ) -> list: ...
+    def get_group_course_id(self, group_id): ...
+    def get_courses(self, block=None) -> list: ...
+    def get_user_enrollments(self, user_id) -> list: ...
 
 
 @runtime_checkable
@@ -81,7 +101,9 @@ class IAdminRepository(Protocol):
 
 
 @runtime_checkable
-class IRepository(IStudentRepository, ITeacherRepository, IAdminRepository, Protocol):
+class IRepository(
+    IStudentRepository, ITeacherRepository, IRatingReadRepository, IAdminRepository, Protocol
+):
     """Un repositorio completo — lo que `RepoDep` inyecta en los routers.
 
     Es la unión de los tres roles, no el catálogo entero: los routers usan más

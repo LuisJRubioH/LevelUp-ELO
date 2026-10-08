@@ -10,7 +10,7 @@ Internal interfaces the tests pin. Pure functions live in `src/domain/` (no I/O,
 | `rating_delta(rating, rd, difficulty, result) -> float` | `32 × (rd/350) × (result − expected_score)`; the only formula used by both the update and the preview | 002, 030 |
 | `next_rd(rd) -> float` | `max(30, rd × 0.95)` | 003 |
 | `item_difficulty_delta(rating, difficulty, result) -> float` | `32 × ((1 − result) − (1 − expected_score))` | 005 |
-| `is_valid_response_time(seconds \| None) -> bool` | `None → 30 s`; valid iff `3 ≤ s ≤ 600` | 008, 009 |
+| `is_valid_response_time(seconds \| None) -> bool` | `None` (absent) → 30 s; an explicit `0` is a value, so invalid; valid iff `3 ≤ s ≤ 600` | 008, 008a, 009 |
 | `procedure_elo_delta(grade) -> float` | `(grade − 50) × 0.2`; `ValueError` outside [0, 100] (unchanged) | 022, 023 |
 | `pvp_deltas(rating_a, rating_b, outcome_a) -> (float, float)` | `K=24`, outcome 1 / 0.5 / 0 (moved from `api/websocket/pvp.py`) | 025 |
 | `course_rating(topic_ratings: list[float]) -> float \| None` | arithmetic mean in full precision (never rounded); `None` if empty | 029a, 028i |
@@ -22,7 +22,8 @@ Internal interfaces the tests pin. Pure functions live in `src/domain/` (no I/O,
 | `rating_display(rating: float \| None) -> {display_rating: int \| None, rank_label: str \| None}` | `display_rating = round_for_display(rating)`; `rank_label = rank_for(display_rating)`; both `None` when `rating` is `None`. 999.6 → (1000, "Plata I"); 999.5 → (1000, "Plata I"); 999.4 → (999, "Plata II") | 028j, 031 |
 | `rank_competition(entries) -> list[entry]` | entries `{user_id, rating: float \| None, …}` with full-precision ratings; rounds each with `round_for_display` and returns that integer as `rating` (and derives `rank_label` from it); rated entries by rounded rating desc, then `user_id` asc **for display only**; `rank` = 1 + number of entries with a strictly higher rounded rating (1, 2, 2, 4); pending (`rating=None`) last by `user_id` asc with `rank=None`; other fields (e.g. `attempts_in_window`) are carried through and never used to order | 028d, 028f, 028h |
 | `diagnostic_tier(difficulty) -> (win, loss)` | +14/−20 · +22/−12 · +34/−6 (moved from the router) | 020 |
-| `diagnostic_baseline(answers) -> float` | `max(760, 1000 + Σ tier deltas)` | 020 |
+| `diagnostic_baseline(answers) -> float` | `max(760, 1000 + Σ tier deltas)`; answers are `(difficulty, correct)` with `None` = skipped | 020 |
+| `reconciliation.plan_reconciliation(legacy_rows, attempt_keys, diagnostics, course_topics, course_names, existing) -> list[row]` | the rows reconciliation creates (research R10); pure — repositories read and insert | 033–036, 034a, 034b |
 
 Removed: `calculate_dynamic_k`, `update_elo`, `StudentELO`, `impact_modifier` parameter.
 `VectorRating.update` keeps its signature minus `impact_modifier` and delegates to the functions above.
@@ -48,7 +49,7 @@ domain-computed delta atomically inside a transaction (`current_elo = MAX(0, cur
 | `set_topic_rating_baseline(user_id, course_id, topic, elo, rd=350)` | diagnostic writer; replaces `set_topic_elo_baseline` | 020 |
 | `has_practice_attempts(user_id, course_id, topic) -> bool` | attempts on items of that course and topic | 021 |
 | `validate_procedure_submission(...)` | unchanged signature; bump on `(student, item.course_id, item.topic)` | 022–024 |
-| `finish_pvp_match(...) -> {p1: (applied, reason), p2: (applied, reason)}` | returns applied deltas; bump every row of `(player, course)`; none → `(0, "no_rated_topics")`; idempotent | 025, 029b, 029c |
+| `finish_pvp_match(...) -> {p1: (applied, reason), p2: (applied, reason)} \| None` | returns applied deltas; bump every row of `(player, course)`; none → `(0, "no_rated_topics")`; idempotent — `None` when the match was not active | 025, 029b, 029c |
 | `expire_stale_pvp_matches(max_age_seconds=600) -> int` | unchanged | 027 |
 | `_reconcile_legacy_ratings() -> int` | bootstrap step; returns rows created; idempotent | 033–036, 034a, 034b |
 
@@ -74,6 +75,9 @@ The only place that turns stored rows into course ratings, overall ratings, rank
 | `ratings_view(user_id) -> {overall, display_rating, overall_status, rank_label, courses: [{course_id, course_name, rating, display_rating, rank_label, current_context, topics}]}` | `overall`/`rating` full precision (for calculations); `display_rating` and `rank_label` from `rating_display` (FR-028j); `overall=None` ⇒ `overall_status="pending_diagnostic"`, `display_rating=None`, `rank_label=None` | 028a–c, 028j, 029a, 031 |
 | `ratings_view_bulk(user_ids) -> {user_id: ratings_view}` | same, one repository round-trip | 028a |
 | `course_rating_of(user_id, course_id) -> float \| None` | selection / PvP expectation use `1000` when `None` (caller decides) | 029a, 026 |
+| `answer_preview(user_id, course_id, item) -> {on_correct, on_wrong}` | `rating_delta` on the item's (course, topic) rating and RD (1000/350 when unrated), rounded to 1 decimal | 030 |
+| `rank_scale()` (module function) | `[{label, min}]` ascending — the payload of `GET /api/meta/ranks` | 031 |
+| `selection_rating(user_id, course_id, topic=None) -> float` | the topic's rating when practising one topic, otherwise the course rating; `1000` when nothing is rated | 016–019, 029a, 004 |
 | `group_basis(group_id, requested_course_id=None, requester=None) -> {kind: "course" \| "overall", course_id: str \| None, source: "requested" \| "group" \| "overall"}` | precedence of FR-028d; unknown course → `ValueError` (400); not visible to requester → `PermissionError` (403) | 028d |
 | `ranking_view(scope, *, group_id=None, course_id=None, education_level=None, grade=None, limit=None, requester=None) -> {basis, entries: [{user_id, username, rating, rank_label, status: "rated" \| "pending_diagnostic", attempts_in_window, rank: int \| None}]}` | participants from `get_ranking_participants`; rating on the single basis; `rank_competition`; `rating` returned already rounded to `RATING_DISPLAY_DECIMALS`; `limit` cuts the display list **after** ranking and never changes a `rank` | 028d, 028f, 028h |
 | `ranking_rank(user_id, scope, **same_args) -> int \| None` | the `rank` of `user_id`'s entry in `ranking_view(scope, **same_args)` (unlimited list); `None` if pending or not a participant | 028f, 028h |
@@ -83,4 +87,4 @@ The only place that turns stored rows into course ratings, overall ratings, rank
 | Method | Contract |
 |---|---|
 | `process_answer(user_id, item_data, selected_option, reasoning, time_taken, request_id=None, request_fingerprint=None)` | `vector_rating` and `elo_topic` parameters removed; returns `(is_correct, result)` with `elo_before`, `elo_after`, `rd_after`, `elo_valid` |
-| `get_next_question(student_id, course_id, topic_filter=None, session…)` | selection rating per FR-016–019 via `RatingReadService`; returns item + `preview` |
+| `get_next_question(student_id, course_id, topic_filter=None, session…, block=None)` | selection rating per FR-016–019 via `RatingReadService.selection_rating`; returns `(item, status)`. The answer preview is not part of it: `/next-question` and V1's stakes line take it from `RatingReadService.answer_preview` (FR-030) |

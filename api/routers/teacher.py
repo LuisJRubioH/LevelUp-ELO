@@ -75,8 +75,18 @@ def _require_teacher_student(repo, student_id: int, user: dict) -> dict:
 @router.get("/dashboard")
 def dashboard(user: CurrentUser, repo: RepoDep):
     """Resumen de grupos, ELO promedio y últimos intentos de los estudiantes."""
+    svc = _svc(repo)
     students = repo.get_teacher_dashboard_stats(user["user_id"])
-    _, groups = _svc(repo).get_dashboard_data(user["user_id"])
+    views = svc.ratings.ratings_view_bulk([s["user_id"] for s in students])
+    for s in students:  # the overall rating as the student sees it (FR-028a, FR-028j)
+        view = views[s["user_id"]]
+        s.update(
+            global_elo=view["overall"],
+            display_rating=view["display_rating"],
+            rank_label=view["rank_label"],
+            overall_status=view["overall_status"],
+        )
+    _, groups = svc.get_dashboard_data(user["user_id"])
     return {"students": students, "groups": groups}
 
 
@@ -302,13 +312,8 @@ def student_ai_analysis(
     from api.config import settings
 
     svc = _svc(repo)
-    from src.domain.elo.vector_elo import aggregate_global_elo
-    from api.dependencies import build_vector_rating
-
     effective_key = settings.get_ai_key("teacher_analysis", body.api_key)
-
-    vector = build_vector_rating(student_id, repo)
-    global_elo = aggregate_global_elo(vector)
+    global_elo = svc.ratings.ratings_view(student_id)["overall"]
 
     analysis = svc.generate_ai_analysis(
         student_id=student_id,
@@ -328,13 +333,15 @@ def teacher_metrics(user: CurrentUser, repo: RepoDep):
 @router.get("/student/{student_id}/ranking")
 def student_group_ranking(student_id: int, user: CurrentUser, repo: RepoDep):
     """Ranking del grupo al que pertenece el estudiante."""
+    from api.routers.student import ranking_response
+
     student = _require_teacher_student(repo, student_id, user)
     group_id = student.get("group_id")
     if not group_id:
-        return {"ranking": [], "my_rank": None}
-    ranking = repo.get_group_ranking(group_id)
-    my_rank = next((r["rank_pos"] for r in ranking if r["user_id"] == student_id), None)
-    return {"ranking": ranking, "my_rank": my_rank}
+        return {"basis": None, "ranking": [], "my_rank": None}
+    # No requested course here: the group's course, else the overall rating (FR-028d).
+    view = _svc(repo).ratings.ranking_view("group", group_id=group_id)
+    return ranking_response(repo, view, student_id)
 
 
 # ── Exportación ───────────────────────────────────────────────────────────────

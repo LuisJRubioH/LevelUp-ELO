@@ -416,6 +416,11 @@ def stream_ai_response(
             ) from e
 
 
+def _rating_text(rating) -> str:
+    """The student's level for a prompt; spec 001: no number while the diagnostic is pending."""
+    return "pendiente de diagnóstico" if rating is None else f"{rating:.0f}"
+
+
 def get_socratic_guidance(
     student_rating,
     topic,
@@ -455,7 +460,7 @@ CONTEXTO DE LA PREGUNTA:
 {options_str}
 
 ESTADO DEL ESTUDIANTE:
-- Nivel ELO (Capacidad): {student_rating:.0f}
+- Nivel ELO (Capacidad): {_rating_text(student_rating)}
 - Opción que el estudiante TIENE SELECCIONADA actualmente: "{student_answer}"
 - Respuesta CORRECTA real: "{correct_answer}"
 
@@ -504,7 +509,7 @@ CONTEXTO DE LA PREGUNTA:
 {options_str}
 
 ESTADO DEL ESTUDIANTE:
-- Nivel ELO (Capacidad): {student_rating:.0f}
+- Nivel ELO (Capacidad): {_rating_text(student_rating)}
 - Opción que el estudiante TIENE SELECCIONADA actualmente: "{student_answer}"
 - Respuesta CORRECTA real: "{correct_answer}"
 
@@ -798,7 +803,11 @@ def get_pedagogical_analysis(
     )
 
     prompt = _PEDAGOGICAL_PROMPT.format(
-        elo_global=f"{student_data['elo_global']:.1f}",
+        elo_global=(
+            "pendiente de diagnóstico"
+            if student_data["elo_global"] is None
+            else f"{student_data['elo_global']:.1f}"
+        ),
         attempts_count=student_data["attempts_count"],
         topics=", ".join(student_data["topics"]),
         recent_accuracy=f"{student_data['recent_accuracy']:.1%}",
@@ -885,7 +894,7 @@ def analyze_performance_local(
     prompt = f"""Eres un tutor académico experto. Analiza el rendimiento de un estudiante y genera exactamente 3 recomendaciones estructuradas.
 
 DATOS DEL ESTUDIANTE:
-- ELO global: {current_elo:.0f} (escala 600-1800, promedio=1000)
+- ELO global: {_rating_text(current_elo)} (escala 600-1800, promedio=1000)
 - Intentos analizados: {total}
 - Tasa de acierto: {accuracy:.0%}
 - Temas donde acierta: {', '.join(correct_topics) if correct_topics else 'Ninguno registrado aun'}

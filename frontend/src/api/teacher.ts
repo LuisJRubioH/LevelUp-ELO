@@ -21,7 +21,10 @@ export interface Group {
 export interface StudentSummary {
   user_id: number;
   username: string;
-  global_elo: number;
+  global_elo: number | null; // null = pending diagnostic (spec 001)
+  display_rating: number | null; // what screens show (FR-028j)
+  rank_label: string | null;
+  overall_status: "rated" | "pending_diagnostic";
   total_attempts: number;
   accuracy: number;
   last_activity: string | null;

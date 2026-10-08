@@ -22,8 +22,13 @@ _COURSE_UNIV = "calculo_diferencial"  # Universidad
 
 @pytest.mark.parametrize("from_map", [False, True])
 def test_first_practice_uses_diagnostic_rating(api_client, monkeypatch, from_map):
-    from api.dependencies import get_repository
-    from src.application.services.student_service import StudentService
+    """Spec 001 (FR-004, FR-029a; flipped by T045): the first practice starts from the
+    diagnostic's topic baselines — the topic's own from the map, their mean (the course rating)
+    for the whole course. There is no course-average seed any more."""
+    from statistics import fmean
+
+    from api.dependencies import decode_token, get_repository
+    from src.application.services.rating_read_service import RatingReadService
 
     repo = get_repository()
     username = f"diagnostic_practice_{int(from_map)}"
@@ -35,7 +40,9 @@ def test_first_practice_uses_diagnostic_rating(api_client, monkeypatch, from_map
     login = api_client.post(
         "/api/auth/login", json={"username": username, "password": "test-local-123"}
     )
-    headers = {"Authorization": "Bearer " + login.json()["access_token"]}
+    token = login.json()["access_token"]
+    headers = {"Authorization": "Bearer " + token}
+    user_id = int(decode_token(token)["sub"])
     items = repo.get_items_from_db(course_id=_COURSE_UNIV)[:10]
     diagnostic = api_client.post(
         f"/api/student/diagnostic/{_COURSE_UNIV}/submit",
@@ -48,53 +55,57 @@ def test_first_practice_uses_diagnostic_rating(api_client, monkeypatch, from_map
         },
     )
     assert diagnostic.status_code == 200
-    initial = diagnostic.json()["initial_elo"]
-    assert initial != 1000
+
+    def stored():
+        return {r["topic"]: r["elo"] for r in repo.get_course_topic_ratings(user_id, _COURSE_UNIV)}
+
+    def expected_selection(ratings):
+        return ratings.get(topic, 1000.0) if from_map else fmean(ratings.values())
+
+    baselines = stored()
     topic = items[0]["topic"]
-    rating_key = topic if from_map else _COURSE_UNIV
+    assert baselines[topic] != 1000
     observed = []
-    original = StudentService.get_next_question
+    original = RatingReadService.selection_rating
 
     def capture(self, *args, **kwargs):
-        observed.append(kwargs["vector_rating"].get(kwargs["topic"]))
-        return original(self, *args, **kwargs)
+        observed.append(original(self, *args, **kwargs))
+        return observed[-1]
 
-    monkeypatch.setattr(StudentService, "get_next_question", capture)
+    monkeypatch.setattr(RatingReadService, "selection_rating", capture)
     request = {"course_id": _COURSE_UNIV}
     if from_map:
         request["topic"] = topic
     question = api_client.post("/api/student/next-question", headers=headers, json=request)
     assert question.status_code == 200
-    assert observed[-1] == pytest.approx(initial)
-    item = question.json()["item"]
-    canonical = repo.get_item_by_id(item["id"])
+    assert observed[-1] == pytest.approx(expected_selection(baselines))
+    canonical = repo.get_item_by_id(question.json()["item"]["id"])
     response = api_client.post(
         "/api/student/answer",
         headers=headers,
         json={
-            "item_id": item["id"],
-            "item_data": item,
+            "item_id": canonical["id"],
             "selected_option": canonical["correct_option"],
             "time_taken": 30,
-            "elo_topic": rating_key,
         },
     )
     assert response.status_code == 200
-    assert response.json()["elo_before"] == pytest.approx(initial)
-    assert response.json()["elo_after"] > initial
+    started_from = baselines.get(canonical["topic"], 1000.0)
+    assert response.json()["elo_before"] == pytest.approx(started_from, abs=0.01)
+    assert response.json()["elo_after"] > started_from
     api_client.post("/api/student/next-question", headers=headers, json=request)
-    assert observed[-1] == pytest.approx(response.json()["elo_after"], abs=0.01)
+    after_practice = stored()
+    assert observed[-1] == pytest.approx(expected_selection(after_practice))
 
-    wrong = next(option for option in canonical["options"] if option != canonical["correct_option"])
+    wrong = next(o for o in canonical["options"] if o != canonical["correct_option"])
     redone = api_client.post(
         f"/api/student/diagnostic/{_COURSE_UNIV}/submit",
         headers=headers,
         json={"answers": [{"item_id": canonical["id"], "selected_option": wrong}]},
     )
     assert redone.status_code == 200
-    # El resultado diagnóstico se actualiza, pero el progreso de práctica no retrocede.
-    api_client.post("/api/student/next-question", headers=headers, json=request)
-    assert observed[-1] == pytest.approx(response.json()["elo_after"], abs=0.01)
+    # El resultado diagnóstico se actualiza, pero el progreso de práctica no retrocede (FR-021).
+    assert stored()[canonical["topic"]] == after_practice[canonical["topic"]]
 
 
 @pytest.mark.parametrize(
@@ -184,11 +195,18 @@ class TestStats:
         assert isinstance(data["topic_elos"], list)
 
     def test_stats_initial_elo(self, api_client, student_headers):
-        """ELO inicial de estudiante sin intentos es 1000."""
+        """Spec 001 (FR-028b, flipped by T064): with no rated current course the overall rating is
+        pending — null, never a 1000 placeholder; once rated it is a real number."""
         r = api_client.get("/api/student/stats", headers=student_headers)
         data = r.json()
-        # ELO puede ser exactamente 1000 si no ha respondido nada, o mayor/menor si ya hay intentos
-        assert 0 < data["global_elo"] < 5000
+        if data["overall_status"] == "pending_diagnostic":
+            assert (data["global_elo"], data["display_rating"], data["rank_label"]) == (
+                None,
+                None,
+                None,
+            )
+        else:
+            assert 0 < data["global_elo"] < 5000
 
 
 class TestEnroll:
@@ -308,10 +326,9 @@ class TestAnswer:
         assert updated["rating_deviation"] == canonical["rating_deviation"]
         assert repo.get_item_by_id(other["id"]) == other
 
-    @pytest.mark.parametrize(
-        "override",
-        [{"elo_topic": "another-course"}, {"elo_topic": ""}, {"selected_option": "forged"}],
-    )
+    # Spec 001 (FR-029, research R6): `elo_topic` is ignored, so it no longer causes a 400;
+    # an option outside the item still does (FR-011).
+    @pytest.mark.parametrize("override", [{"selected_option": "forged"}])
     def test_invalid_answer_context_has_no_side_effects(
         self, api_client, student_headers, override
     ):

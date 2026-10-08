@@ -1,8 +1,19 @@
-from src.domain.elo.model import expected_score
+import logging
+
+from src.domain.elo.model import (
+    expected_score,
+    is_valid_response_time,
+    item_difficulty_delta,
+    next_rd,
+    rating_delta,
+)
 from src.domain.selector.item_selector import AdaptiveItemSelector
 from src.domain.entities import VALID_LEVELS, LEVEL_UNIVERSIDAD, LEVEL_SEMILLERO
 from src.application.interfaces.repositories import IStudentRepository
+from src.application.services.rating_read_service import RatingReadService
 
+
+logger = logging.getLogger(__name__)
 
 class StudentService:
     """
@@ -14,6 +25,7 @@ class StudentService:
         repository: IStudentRepository,
         ai_client=None,
         calibrator=None,
+        ratings=None,
     ):
         """El calibrador se inyecta desde la composición (R2).
 
@@ -26,42 +38,38 @@ class StudentService:
         self.repository = repository
         self.ai_client = ai_client
         self._calibrator = calibrator
+        # Every current rating, rank and ranking is read through here (spec 001).
+        self.ratings = ratings or RatingReadService(repository)
 
     def get_next_question(
         self,
         student_id,
-        topic,
-        vector_rating,
+        course_id,
+        topic_filter=None,
         session_correct_ids=None,
         session_wrong_timestamps=None,
         session_questions_count=0,
-        course_id=None,
         block=None,
-        topic_filter=None,
     ):
-        """Orquesta la selección de la siguiente pregunta.
+        """Choose the next practice item of `course_id` (FR-016–019).
 
-        Si se proporciona course_id, el pool de ítems se restringe EXCLUSIVAMENTE
-        al curso activo. block restringe además a un bloque temático (concursos).
-        topic_filter restringe a un tópico específico (práctica desde el mapa).
+        `block` narrows the pool to a thematic block (concursos); `topic_filter` to one topic
+        (practice from the map) when that topic has items. The selection rating is the topic's
+        rating with a filter, otherwise the course rating (spec 001, FR-029a).
         """
         session_correct_ids = session_correct_ids or set()
         session_wrong_timestamps = session_wrong_timestamps or {}
 
-        # Filtrado por curso (Tarea F) — prioritario sobre filtro por topic
-        if course_id:
-            pool = self.repository.get_items_from_db(course_id=course_id, block=block)
-            # Refuerzo desde el mapa: restringir a un tópico del curso.
-            # Solo si quedan ítems — evita un pool vacío por un tópico inexistente.
-            if topic_filter:
-                by_topic = [i for i in pool if i.get("topic") == topic_filter]
-                if by_topic:
-                    pool = by_topic
-        else:
-            pool = self.repository.get_items_from_db(topic)
+        pool = self.repository.get_items_from_db(course_id=course_id, block=block)
+        # Refuerzo desde el mapa: restringir a un tópico del curso.
+        # Solo si quedan ítems — evita un pool vacío por un tópico inexistente.
+        if topic_filter:
+            by_topic = [i for i in pool if i.get("topic") == topic_filter]
+            if by_topic:
+                pool = by_topic
 
         answered_ids = set(self.repository.get_answered_item_ids(student_id))
-        current_elo = vector_rating.get(topic)
+        current_elo = self.ratings.selection_rating(student_id, course_id, topic_filter)
 
         # Excluir siempre las respondidas correctamente en esta sesión
         eligible = [i for i in pool if i["id"] not in session_correct_ids]
@@ -120,99 +128,72 @@ class StudentService:
         selected_option,
         reasoning,
         time_taken,
-        vector_rating,
-        elo_topic=None,
         request_id=None,
         request_fingerprint=None,
     ):
-        """Orquesta el procesamiento de una respuesta.
+        """Process one practice answer (spec 001, FR-001…FR-010, FR-015, FR-029).
 
-        elo_topic: clave del VectorRating para buscar/actualizar ELO.
-            Si no se pasa, usa item_data['topic'] (retrocompatible).
-            Para cursos con subtemas heterogéneos (e.g., DIAN) se debe pasar
-            el nombre del curso para que el ELO se consolide en una sola clave.
+        The rating moved is the item's own (course, topic); the repository reads it under lock
+        and calls `compute`. An attempt outside 3–600 s (or an explicit 0 s) is recorded with
+        before = after and moves nothing (FR-008, FR-008a, FR-009). Returns
+        `(is_correct, result)` with `elo_before`, `elo_after`, `rd_after` and `elo_valid`.
         """
         is_correct = selected_option == item_data["correct_option"]
-        _topic_key = elo_topic or item_data["topic"]
-        result = 1.0 if is_correct else 0.0
-        cog_data = {"confidence_score": None, "error_type": "none", "impact_modifier": 1.0}
+        score = 1.0 if is_correct else 0.0
+        valid = is_valid_response_time(time_taken)
+        result = {"confidence_score": None, "error_type": "none"}
 
         def compute(state):
-            """Cálculo de dominio sobre el estado leído bajo bloqueo.
+            """Domain calculation on the state read under lock (no I/O)."""
+            rating, rd, difficulty = state["elo"], state["rd"], state["item_difficulty"]
+            if valid:
+                rating_after = rating + rating_delta(rating, rd, difficulty, score)
+                rd_after = next_rd(rd)
+                difficulty_after = difficulty + item_difficulty_delta(rating, difficulty, score)
+            else:
+                rating_after, rd_after, difficulty_after = rating, rd, difficulty
 
-            Corre dentro de la transacción del repositorio: el rating y la
-            dificultad que entran aquí son los canónicos en ese instante, no
-            una lectura previa que otra respuesta concurrente pudo invalidar.
-            """
-            current_elo = state["elo"]
-            difficulty = state["item_difficulty"]
+            # The calibrated value only feeds dashboards; the delta always uses the raw P.
+            p_success = expected_score(rating, difficulty)
+            p_display = self._calibrator.predict(p_success) if self._calibrator else p_success
 
-            # 1. Actualizar ELO del estudiante. El vector se siembra con el
-            #    estado canónico para que el llamador lo lea correcto después.
-            vector_rating.ratings[_topic_key] = (current_elo, state["rd"])
-            new_r, new_rd = vector_rating.update(
-                _topic_key, difficulty, result, impact_modifier=1.0
+            result.update(
+                elo_before=rating, elo_after=rating_after, rd_after=rd_after, elo_valid=valid
             )
-
-            # 2. Nueva dificultad del ítem (ELO simétrico)
-            p_success = expected_score(current_elo, difficulty)
-            item_score = 1.0 - result
-            p_item_wins = 1.0 - p_success
-            k_item = 32.0
-            new_item_difficulty = difficulty + k_item * (item_score - p_item_wins)
-
-            # Calibrar expected_score para el dashboard (no afecta el delta ELO).
-            # El delta siempre usa p_success raw — regla crítica del calibrador.
-            p_success_display = (
-                self._calibrator.predict(p_success) if self._calibrator else p_success
-            )
-
-            cog_data["elo_before"] = current_elo
-            cog_data["elo_after"] = new_r
-            cog_data["rd_after"] = new_rd
-
             attempt_data = {
                 "is_correct": is_correct,
                 "difficulty": difficulty,
-                "topic": _topic_key,
-                "elo_after": new_r,
-                "prob_failure": 1.0 - p_success_display,
-                "expected_score": p_success_display,
+                "topic": state.get("topic", item_data.get("topic")),
+                "elo_before": rating,
+                "elo_after": rating_after,
+                "rating_deviation": rd_after,
+                "elo_valid": valid,
+                "prob_failure": 1.0 - p_display,
+                "expected_score": p_display,
                 "time_taken": time_taken,
-                "confidence_score": cog_data["confidence_score"],
-                "error_type": cog_data["error_type"],
-                "rating_deviation": new_rd,
-                "elo_before": current_elo,
+                "confidence_score": result["confidence_score"],
+                "error_type": result["error_type"],
             }
-            return attempt_data, new_item_difficulty, state["item_rd"]
+            return attempt_data, difficulty_after, state["item_rd"]
 
-        # 3. Persistir: el repositorio bloquea, lee, llama a compute() y escribe.
-        save_kwargs = dict(
-            user_id=user_id, item_id=item_data["id"],
-            topic=_topic_key, compute=compute,
-            default_elo=vector_rating.get(_topic_key),
-            default_rd=vector_rating.get_rd(_topic_key),
-        )
+        save_kwargs = dict(user_id=user_id, item_id=item_data["id"], compute=compute)
         if request_id is not None:
             save_kwargs.update(request_id=request_id, request_fingerprint=request_fingerprint)
-        inserted = self.repository.save_answer_transaction(**save_kwargs)
-        if inserted is False:
-            cog_data["idempotent_replay"] = True
-            return is_correct, cog_data
+        if self.repository.save_answer_transaction(**save_kwargs) is False:
+            result["idempotent_replay"] = True
+            return is_correct, result
 
-        # 4. Verificar y otorgar logros (no bloquea si falla)
+        # Achievements never block the answer, but a failure is logged (FR-015).
         try:
             new_badges = self._check_and_award_achievements(
-                user_id=user_id,
-                is_correct=is_correct,
-                new_elo=cog_data.get("elo_after", vector_rating.get(_topic_key)),
+                user_id=user_id, is_correct=is_correct, new_elo=result["elo_after"]
             )
             if new_badges:
-                cog_data["new_badges"] = new_badges
+                result["new_badges"] = new_badges
         except Exception:
-            pass
+            logger.exception("Awarding achievements failed for user %s", user_id)
 
-        return is_correct, cog_data
+        return is_correct, result
 
     # ── CATÁLOGO DE BADGES ────────────────────────────────────────────────────
     # Definición: (badge_id, label, descripción, check_fn(user_id, is_correct, new_elo, repo))

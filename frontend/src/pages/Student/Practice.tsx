@@ -24,14 +24,6 @@ import { ProcedureSection } from "../../components/Procedure/ProcedureSection";
 import "./StudentContent.css";
 
 /** Estima delta ELO antes de enviar (K=24, fórmula ELO clásica). */
-function estimateEloDelta(studentElo: number, itemDifficulty: number) {
-  const expected = 1 / (1 + Math.pow(10, (itemDifficulty - studentElo) / 400));
-  const K = studentElo < 1400 ? 32 : 24;
-  const onCorrect = +(K * (1 - expected)).toFixed(1);
-  const onWrong = +(K * (0 - expected)).toFixed(1);
-  return { onCorrect, onWrong };
-}
-
 const STREAK_MILESTONES = [5, 10, 20];
 
 export function Practice() {
@@ -47,8 +39,10 @@ export function Practice() {
   // Si la respuesta ya fue enviada (esperando o recibida)
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [globalElo, setGlobalElo] = useState(1000);
-  const [rankLabel, setRankLabel] = useState("Aspirante");
+  // Header: the API's display value and label (null while the diagnostic is pending).
+  const [displayRating, setDisplayRating] = useState<number | null>(null);
+  const [rankLabel, setRankLabel] = useState<string | null>(null);
+  const preview = usePracticeStore((s) => s.preview);
   const [deltaElo, setDeltaElo] = useState<number | undefined>(undefined);
   const [showChat, setShowChat] = useState(false);
   // Racha de respuestas correctas consecutivas
@@ -62,8 +56,8 @@ export function Practice() {
   useEffect(() => {
     studentApi.stats()
       .then((s) => {
-        setGlobalElo(s.global_elo);
-        setRankLabel(s.rank_label ?? "Aspirante");
+        setDisplayRating(s.display_rating ?? null);
+        setRankLabel(s.rank_label ?? null);
       })
       .catch(() => {/* silencioso */});
   }, []);
@@ -131,8 +125,8 @@ export function Practice() {
 
       studentApi.stats()
         .then((s) => {
-          setGlobalElo(s.global_elo);
-          setRankLabel(s.rank_label ?? rankLabel);
+          setDisplayRating(s.display_rating ?? null);
+          setRankLabel(s.rank_label ?? null);
         })
         .catch(() => {/* silencioso — siguiente respuesta volverá a intentar */});
 
@@ -144,7 +138,7 @@ export function Practice() {
         return next;
       });
     }
-  }, [lastAnswer]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [lastAnswer]);
 
   const dismissStreakToast = useCallback(() => setStreakToast(null), []);
 
@@ -201,9 +195,9 @@ export function Practice() {
   const answerReceived = submitted && !!lastAnswer;
   const answerFailed = submitted && !submitting && !lastAnswer;
 
-  // Cálculo ELO preview (estimado, antes de enviar)
-  const eloPreview = currentItem && selectedOption && !submitted
-    ? estimateEloDelta(globalElo, currentItem.difficulty)
+  // Previsión del motor (spec 001, FR-030): la API la calcula con la misma fórmula del update.
+  const eloPreview = currentItem && selectedOption && !submitted && preview
+    ? { onCorrect: preview.on_correct, onWrong: preview.on_wrong }
     : null;
 
   return (
@@ -221,7 +215,7 @@ export function Practice() {
         >
           {t("practice.changeCourse")}
         </button>
-        <RankBadge elo={globalElo} rankLabel={rankLabel} deltaElo={deltaElo} />
+        <RankBadge displayRating={displayRating} rankLabel={rankLabel} deltaElo={deltaElo} />
       </div>
 
       {/* Tarjeta de pregunta */}

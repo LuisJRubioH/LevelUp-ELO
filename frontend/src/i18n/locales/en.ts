@@ -905,6 +905,16 @@ const en: TranslationKeys = {
     },
   },
 
+  // ── Ratings (spec 001) ────────────────────────────────────────────────────
+  rating: {
+    pending: "Pending diagnostic",
+    history: "earlier grade",
+    byCourse: "Rating by course",
+    basisOverall: "overall rating",
+    approximate: "approximate",
+    approximateHint: "Starting point estimated from earlier data; not your exact history.",
+  },
+
   theme: {
     light: "Light mode",
     dark: "Dark mode",

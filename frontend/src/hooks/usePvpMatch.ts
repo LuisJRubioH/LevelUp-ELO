@@ -27,6 +27,8 @@ export interface PvpResult {
   my_score: number;
   opp_score: number;
   elo_delta: number;
+  /** null = applied; 'no_rated_topics' | 'not_applied' = 0 applied (spec 001). */
+  elo_reason?: string | null;
 }
 
 export function usePvpMatch(courseId: string | null) {
@@ -36,7 +38,8 @@ export function usePvpMatch(courseId: string | null) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [myScore, setMyScore] = useState(0);
   const [oppScore, setOppScore] = useState(0);
-  const [opponent, setOpponent] = useState<{ username: string; elo: number } | null>(null);
+  // elo = the rival's shown course rating; null = pending diagnostic (spec 001)
+  const [opponent, setOpponent] = useState<{ username: string; elo: number | null } | null>(null);
   const [result, setResult] = useState<PvpResult | null>(null);
   const [timeLeft, setTimeLeft] = useState(180);
   const [lastCorrect, setLastCorrect] = useState<boolean | null>(null);
@@ -103,6 +106,7 @@ export function usePvpMatch(courseId: string | null) {
             won: msg.won, draw: msg.draw,
             my_score: msg.your_score, opp_score: msg.opp_score,
             elo_delta: msg.elo_delta,
+            elo_reason: msg.elo_reason ?? null,
           });
           setPhase("finished");
           break;

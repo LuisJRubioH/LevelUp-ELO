@@ -2,7 +2,7 @@
 tests/unit/infrastructure/test_pvp_logic.py
 ============================================
 Pruebas de la lógica de la liga PvP (api/websocket/pvp.py) en aislamiento:
-  - _elo_deltas: ELO por resultado de partida (K=24, simétrico, suma cero).
+  - pvp_deltas (dominio, antes _elo_deltas): ELO por resultado (K=24, simétrico, suma cero).
   - _finish_match: determina ganador, calcula deltas, persiste y emite game_end.
 
 Sin servidor ni WebSocket real: se usan fakes async.
@@ -15,13 +15,18 @@ from api.websocket import pvp
 from api.websocket.pvp import (
     ActiveMatch,
     LobbySlot,
-    _elo_deltas,
     _finish_match,
-    K,
 )
+from src.domain.elo.model import K_PVP as K, pvp_deltas
+
+
+def _elo_deltas(winner_elo, loser_elo, draw=False):
+    """The old helper's call shape, kept so the assertions below stay unchanged (spec 001 T027)."""
+    return pvp_deltas(winner_elo, loser_elo, 0.5 if draw else 1.0)
 
 
 # ── Fakes ─────────────────────────────────────────────────────────────────────
+
 
 class FakeWS:
     """WebSocket mínimo que captura los mensajes enviados."""
@@ -59,11 +64,12 @@ def _make_match(score_p1, score_p2, elo_p1=1000.0, elo_p2=1000.0):
 
 # ── _elo_deltas ───────────────────────────────────────────────────────────────
 
+
 class TestEloDeltas:
     def test_win_vs_equal_is_plus_half_K(self):
         """Ganar a un rival de igual ELO → +K/2 para el ganador, −K/2 para el perdedor."""
         dw, dl = _elo_deltas(1000.0, 1000.0)
-        assert dw == pytest.approx(K * 0.5)   # +12 con K=24
+        assert dw == pytest.approx(K * 0.5)  # +12 con K=24
         assert dl == pytest.approx(-K * 0.5)  # −12
 
     def test_draw_vs_equal_is_zero(self):
@@ -85,6 +91,7 @@ class TestEloDeltas:
 
 
 # ── _finish_match ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 class TestFinishMatch:
@@ -134,3 +141,38 @@ class TestFinishMatch:
         p1_ends = [m for m in match.p1.ws.sent if m["type"] == "game_end"]
         assert len(p1_ends) == 1
         assert match.finished is True
+
+
+# ── Spec 001 (T052): game_end reports what was applied, with its reason ──────
+
+
+class AppliedRepo:
+    def __init__(self, applied=None, fail=False):
+        self.applied = applied
+        self.fail = fail
+
+    def finish_pvp_match(self, **_kwargs):
+        if self.fail:
+            raise RuntimeError("db down")
+        return self.applied
+
+
+@pytest.mark.asyncio
+async def test_spec001_game_end_sends_the_applied_delta_and_reason():
+    match = _make_match(score_p1=6, score_p2=5)
+    await _finish_match(match, AppliedRepo({"p1": (12.0, None), "p2": (0.0, "no_rated_topics")}))
+
+    p1_end = [m for m in match.p1.ws.sent if m["type"] == "game_end"][0]
+    p2_end = [m for m in match.p2.ws.sent if m["type"] == "game_end"][0]
+    assert (p1_end["elo_delta"], p1_end["elo_reason"]) == (12.0, None)
+    assert (p2_end["elo_delta"], p2_end["elo_reason"]) == (0.0, "no_rated_topics")
+
+
+@pytest.mark.asyncio
+async def test_spec001_game_end_reports_not_applied_when_persistence_fails():
+    match = _make_match(score_p1=6, score_p2=5)
+    await _finish_match(match, AppliedRepo(fail=True))
+
+    for ws in (match.p1.ws, match.p2.ws):
+        end = [m for m in ws.sent if m["type"] == "game_end"][0]
+        assert (end["elo_delta"], end["elo_reason"]) == (0.0, "not_applied")

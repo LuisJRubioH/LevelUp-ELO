@@ -50,7 +50,11 @@ def test_teacher_can_grade_own_pending_submission(
     response = api_client.post(
         "/api/teacher/procedures/grade",
         headers=teacher_headers,
-        json={"submission_id": submission["id"], "teacher_score": score, "teacher_feedback": "Revisado"},
+        json={
+            "submission_id": submission["id"],
+            "teacher_score": score,
+            "teacher_feedback": "Revisado",
+        },
     )
     assert response.status_code == 200
     assert response.json()["elo_delta"] == delta
@@ -77,6 +81,7 @@ def test_teacher_can_grade_own_pending_submission(
 def test_other_teacher_cannot_grade_or_view_submission(api_client, submission):
     repo = submission["repo"]
     before = repo.get_student_submission(submission["student_id"], submission["item_id"])
+    ratings = repo.get_course_topic_ratings(submission["student_id"])
     response = api_client.post(
         "/api/teacher/procedures/grade",
         headers=submission["other_headers"],
@@ -88,6 +93,8 @@ def test_other_teacher_cannot_grade_or_view_submission(api_client, submission):
     )
     assert image.status_code == 404
     assert repo.get_student_submission(submission["student_id"], submission["item_id"]) == before
+    # FR-023 (spec 001, T009): a refused grade changes no rating.
+    assert repo.get_course_topic_ratings(submission["student_id"]) == ratings
 
 
 def test_nonexistent_submission_returns_404(api_client, teacher_headers):
@@ -103,14 +110,13 @@ def test_reassignment_between_lookup_and_update_prevents_grading(
     api_client, teacher_headers, submission, monkeypatch
 ):
     repo = submission["repo"]
+    ratings = repo.get_course_topic_ratings(submission["student_id"])
     original = repo.validate_procedure_submission
 
     def reassign_then_validate(*args, **kwargs):
         conn = repo.get_connection()
         try:
-            conn.execute(
-                "UPDATE users SET group_id=NULL WHERE id=?", (submission["student_id"],)
-            )
+            conn.execute("UPDATE users SET group_id=NULL WHERE id=?", (submission["student_id"],))
             conn.commit()
         finally:
             conn.close()
@@ -126,3 +132,4 @@ def test_reassignment_between_lookup_and_update_prevents_grading(
     saved = repo.get_student_submission(submission["student_id"], submission["item_id"])
     assert saved["status"] == "PENDING_TEACHER_VALIDATION"
     assert saved["teacher_score"] is None
+    assert repo.get_course_topic_ratings(submission["student_id"]) == ratings

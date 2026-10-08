@@ -435,7 +435,9 @@ export function Exam() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [timeLeft, setTimeLeft] = useState(0);
   const [results, setResults] = useState<ExamResult[]>([]);
-  const [score, setScore] = useState({ correct: 0, total: 0, pct: 0, eloAfter: 0 });
+  const [score, setScore] = useState<{ correct: number; total: number; pct: number; eloAfter: number | null }>(
+    { correct: 0, total: 0, pct: 0, eloAfter: null }
+  );
   const [error, setError] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const [templateId, setTemplateId] = useState<number | null>(null);
@@ -593,7 +595,7 @@ export function Exam() {
           correct_count: number;
           total_questions: number;
           score_pct: number;
-          global_elo_after: number;
+          global_elo_after: number | null;
         }>("/api/student/exam/submit", payload);
 
         setResults(res.results);

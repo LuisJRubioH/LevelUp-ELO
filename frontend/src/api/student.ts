@@ -16,9 +16,16 @@ export interface Item {
   tags?: string[];
 }
 
+/** The change the engine will apply for each outcome (spec 001, FR-030). */
+export interface AnswerPreview {
+  on_correct: number;
+  on_wrong: number;
+}
+
 export interface NextQuestionResponse {
   item: Item | null;
   status: "ok" | "empty" | "course_empty";
+  preview?: AnswerPreview | null;
 }
 
 export interface AnswerResponse {
@@ -34,15 +41,53 @@ export interface TopicELO {
   topic: string;
   rating: number;
   rd: number;
+  approximate?: boolean; // reconciled baseline, not exact history (FR-034a)
+  origin?: string | null;
 }
 
+export interface CourseRating {
+  course_id: string;
+  course_name: string;
+  rating: number | null;
+  display_rating: number | null;
+  rank_label: string | null;
+  current_context: boolean; // false = earlier level/grade, shown as history
+  topics: TopicELO[];
+}
+
+/** Spec 001: render display_rating + rank_label as given; null = pending diagnostic. */
 export interface StudentStats {
   user_id: number;
-  global_elo: number;
+  global_elo: number | null;
+  display_rating?: number | null;
+  overall_status?: "rated" | "pending_diagnostic";
   topic_elos: TopicELO[];
+  course_ratings?: CourseRating[];
   total_attempts: number;
   study_streak: number;
   rank_label: string | null;
+}
+
+export interface RankingBasis {
+  kind: "course" | "overall";
+  course_id: string | null;
+  course_name: string | null;
+  source: "requested" | "group" | "overall";
+}
+
+export interface RankingEntry {
+  user_id: number;
+  username: string;
+  rating: number | null; // backend whole number: render as given
+  rank_label: string | null;
+  status: "rated" | "pending_diagnostic";
+  rank: number | null; // competition rank (1, 2, 2, 4); null = pending
+}
+
+export interface GroupRanking {
+  basis: RankingBasis | null;
+  ranking: RankingEntry[];
+  my_rank: number | null;
 }
 
 export interface Course {
@@ -104,8 +149,9 @@ export interface MapNode {
   label_key?: string | null;
   node_id?: string | null;
   node_type?: string;
-  elo: number;
-  rd: number;
+  elo: number | null; // null = topic not rated yet (pending), never shown as 1000
+  rd: number | null;
+  approximate?: boolean; // reconciled baseline (FR-034a)
   item_count: number;
   state: "completed" | "current" | "available" | "blocked";
 }
@@ -354,7 +400,8 @@ export interface ExamSession {
   n_questions: number;
   correct_count: number;
   score_pct: number;
-  global_elo_after: number;
+  global_elo_after: number | null; // null unless global_elo_status is "rated"
+  global_elo_status: "rated" | "pending" | "unknown"; // state at submission (FR-028b)
   created_at: string;
 }
 
@@ -515,6 +562,6 @@ export const studentApi = {
 
   groupRanking: (course_id?: string) => {
     const q = course_id ? `?course_id=${course_id}` : "";
-    return api.get<{ ranking: unknown[]; my_rank: number | null }>(`/api/student/group-ranking${q}`);
+    return api.get<GroupRanking>(`/api/student/group-ranking${q}`);
   },
 };

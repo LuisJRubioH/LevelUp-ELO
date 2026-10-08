@@ -37,8 +37,7 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
     La API key viaja en el body (nunca se persiste).
     """
     from api.config import settings
-    from api.dependencies import build_vector_rating
-    from src.domain.elo.vector_elo import aggregate_global_elo
+    from src.application.services.rating_read_service import RatingReadService
     from src.infrastructure.external_api.ai_client import (
         detect_provider_from_key,
         get_socratic_guidance,
@@ -72,9 +71,8 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
             all_options = []
     topic = item_db.get("topic", body.course_id or "")
 
-    # ELO global del estudiante
-    vector = build_vector_rating(user["user_id"], repo)
-    student_rating = aggregate_global_elo(vector)
+    # Rating global del estudiante (None mientras el diagnóstico está pendiente).
+    student_rating = RatingReadService(repo).ratings_view(user["user_id"])["overall"]
 
     # Resolver proveedor y modelo
     provider = body.provider or ""

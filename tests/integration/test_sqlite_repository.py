@@ -64,7 +64,9 @@ class TestLessonProgress:
         user_id = repo.login_user("lesson_student", "password123")[0]
 
         conn = repo.get_connection()
-        before = conn.execute("SELECT current_elo FROM users WHERE id = ?", (user_id,)).fetchone()[0]
+        before = conn.execute("SELECT current_elo FROM users WHERE id = ?", (user_id,)).fetchone()[
+            0
+        ]
         conn.close()
 
         node_id = "PREALG-N1-B01-BIENVENIDA"
@@ -157,15 +159,11 @@ class TestAtomicTransaction:
                 "error_type": "none",
                 "rating_deviation": 300.0,
                 "elo_before": state["elo"],
+                "elo_valid": True,
             }
             return attempt_data, state["item_difficulty"] + 5, 200.0
 
-        repo.save_answer_transaction(
-            user_id=user_id,
-            item_id=item_id,
-            topic="Test",
-            compute=compute,
-        )
+        repo.save_answer_transaction(user_id=user_id, item_id=item_id, compute=compute)
         assert item_difficulty is not None
 
         # Verificar que el intento quedó guardado

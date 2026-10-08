@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, File, Form, Header, HTTPException, Request, UploadFile, status
 
 from api.dependencies import (
-    CurrentUser, RepoDep, build_vector_rating, create_procedure_review_token, decode_token,
+    CurrentUser, RepoDep, create_procedure_review_token, decode_token,
 )
 from api.rate_limit import limiter
 from api.config import settings
@@ -32,6 +32,7 @@ from api.schemas.student import (
     AnswerRequest,
     AnswerResponse,
     CourseMapResponse,
+    CourseRatingView,
     CourseResponse,
     DiagnosticQuestion,
     DiagnosticResultResponse,
@@ -58,7 +59,7 @@ from api.schemas.student import (
     TopicELO,
 )
 from src.application.services.student_service import StudentService
-from src.domain.elo.vector_elo import aggregate_global_elo
+from src.domain.elo.model import diagnostic_baseline
 from src.domain.learning.prealgebra import (
     CLASSIFIER_BASIC_NODE_ID,
     CLASSIFIER_RIGOROUS_NODE_ID,
@@ -104,28 +105,21 @@ def _make_service(repo) -> StudentService:
 def next_question(body: NextQuestionRequest, user: CurrentUser, repo: RepoDep):
     """Selecciona la siguiente pregunta adaptativa (ZDP) para el estudiante."""
     service = _make_service(repo)
-    vector = build_vector_rating(
-        user["user_id"], repo, course_id=body.course_id if not body.topic else None
-    )
-
-    topic = body.topic or body.course_id  # fallback: usar curso como tópico ELO
-
     item, status_str = service.get_next_question(
         student_id=user["user_id"],
-        topic=topic,
-        vector_rating=vector,
+        course_id=body.course_id,
+        topic_filter=body.topic,  # práctica desde el mapa filtra por este tópico
         session_correct_ids=set(body.session_correct_ids),
         session_wrong_timestamps=body.session_wrong_timestamps,
         session_questions_count=body.session_questions_count,
-        course_id=body.course_id,
         block=body.block,
-        topic_filter=body.topic,  # práctica desde el mapa filtra por este tópico
     )
 
     if item is None:
         return NextQuestionResponse(item=None, status=status_str)
 
     return NextQuestionResponse(
+        preview=service.ratings.answer_preview(user["user_id"], body.course_id, item),
         item=ItemResponse(
             id=item["id"],
             content=item["content"],
@@ -149,7 +143,12 @@ def answer(
     repo: RepoDep,
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ):
-    """Procesa una respuesta: actualiza ELO y persiste el intento de forma atómica."""
+    """Procesa una respuesta: actualiza el rating del (curso, tópico) del ítem de forma atómica.
+
+    Con `Idempotency-Key`, la primera respuesta y cada reintento devuelven los valores del
+    intento tal como quedó persistido, así que son idénticos; el rating guardado conserva la
+    precisión completa (FR-012a, research R21). `elo_topic` se acepta y se ignora (spec 001).
+    """
     service = _make_service(repo)
 
     # El cliente identifica el ítem; todos los datos académicos son canónicos.
@@ -159,16 +158,6 @@ def answer(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Ítem '{body.item_id}' no encontrado.",
         )
-    item_data = item_db
-    # Mantener los dos modos existentes: tópico (mapa) o curso (práctica general).
-    # No permitir escribir ratings bajo claves arbitrarias enviadas por el cliente.
-    valid_topics = {item_db["topic"], item_db.get("course_id")} - {None, ""}
-    elo_topic = body.elo_topic if body.elo_topic is not None else item_db["topic"]
-    if elo_topic not in valid_topics:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El tópico de práctica no corresponde al ítem.",
-        )
     if body.selected_option not in item_db["options"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -176,11 +165,13 @@ def answer(
         )
     if idempotency_key is not None and not 1 <= len(idempotency_key) <= 128:
         raise HTTPException(status_code=400, detail="Clave de idempotencia inválida.")
+    # The item's topic stands where the client's elo_topic used to: old fingerprints of
+    # clients that sent no elo_topic stay valid.
     fingerprint = hashlib.sha256(
-        "\0".join((body.item_id, body.selected_option, elo_topic)).encode("utf-8")
+        "\0".join((body.item_id, body.selected_option, item_db["topic"])).encode("utf-8")
     ).hexdigest()
 
-    def replay(saved: dict) -> AnswerResponse:
+    def persisted(saved: dict, cog_data: dict) -> AnswerResponse:
         if saved["request_fingerprint"] != fingerprint:
             raise HTTPException(
                 status_code=409, detail="La clave de idempotencia pertenece a otra respuesta."
@@ -188,52 +179,43 @@ def answer(
         before = float(saved["elo_before"])
         after = float(saved["elo_after"])
         return AnswerResponse(
-            is_correct=bool(saved["is_correct"]), elo_before=round(before, 2),
-            elo_after=round(after, 2), rd_after=round(float(saved["rating_deviation"]), 2),
-            delta_elo=round(after - before, 2), cog_data={"idempotent_replay": True},
+            is_correct=bool(saved["is_correct"]),
+            elo_before=round(before, 2),
+            elo_after=round(after, 2),
+            rd_after=round(float(saved["rating_deviation"]), 2),
+            delta_elo=round(after - before, 2),
+            elo_valid=bool(saved["elo_valid"]),
+            cog_data=cog_data,
         )
 
     if idempotency_key:
         saved = repo.get_answer_by_request_id(user["user_id"], idempotency_key)
         if saved:
-            return replay(saved)
-    vector = build_vector_rating(
-        user["user_id"],
-        repo,
-        course_id=item_db.get("course_id") if elo_topic == item_db.get("course_id") else None,
-    )
-    elo_before = vector.get(elo_topic)
+            return persisted(saved, {"idempotent_replay": True})
 
-    is_correct, cog_data = service.process_answer(
+    is_correct, result = service.process_answer(
         user_id=user["user_id"],
-        item_data=item_data,
+        item_data=item_db,
         selected_option=body.selected_option,
         reasoning=body.reasoning or "",
         time_taken=body.time_taken,
-        vector_rating=vector,
-        elo_topic=elo_topic,
         request_id=idempotency_key,
         request_fingerprint=fingerprint if idempotency_key else None,
     )
 
-    if cog_data.get("idempotent_replay") and idempotency_key:
+    if idempotency_key:
         saved = repo.get_answer_by_request_id(user["user_id"], idempotency_key)
-        if saved:
-            return replay(saved)
-
-    # Los valores autoritativos salen de la transacción, no de la lectura previa:
-    # entre una y otra pudo entrar otra respuesta del mismo estudiante.
-    elo_before = cog_data.get("elo_before", elo_before)
-    elo_after = cog_data.get("elo_after", vector.get(elo_topic))
-    rd_after = cog_data.get("rd_after", vector.get_rd(elo_topic))
+        replayed = result.get("idempotent_replay")
+        return persisted(saved, {"idempotent_replay": True} if replayed else result)
 
     return AnswerResponse(
         is_correct=is_correct,
-        elo_before=round(elo_before, 2),
-        elo_after=round(elo_after, 2),
-        rd_after=round(rd_after, 2),
-        delta_elo=round(elo_after - elo_before, 2),
-        cog_data=cog_data,
+        elo_before=round(result["elo_before"], 2),
+        elo_after=round(result["elo_after"], 2),
+        rd_after=round(result["rd_after"], 2),
+        delta_elo=round(result["elo_after"] - result["elo_before"], 2),
+        elo_valid=result["elo_valid"],
+        cog_data=result,
     )
 
 
@@ -242,57 +224,34 @@ def answer(
 
 @router.get("/stats", response_model=StudentStatsResponse)
 def stats(user: CurrentUser, repo: RepoDep):
-    """Retorna el ELO global, ELO por tópico, racha de estudio y total de intentos."""
-    vector = build_vector_rating(user["user_id"], repo)
-    global_elo = aggregate_global_elo(vector)
+    """Overall rating, per-course ratings, study streak and attempts (spec 001, FR-028a–c).
 
-    # Consolidar tópicos duplicados.
-    #
-    # Algunos estudiantes tienen intentos con `attempts.topic = item.topic` (flujo
-    # viejo) y otros con `attempts.topic = course_id` (flujo actual con elo_topic).
-    # Ambos persisten en student_topic_elo y aparecen como tópicos distintos en
-    # vector.ratings, confundiendo al estudiante (ver bug #7 del QA de mayo 2026).
-    #
-    # Fix: usar el catálogo de cursos para mapear slugs (course_id) a nombre
-    # legible. Si el mismo curso aparece como slug Y como nombre, conservar la
-    # entrada del slug (refleja el flujo actual) y descartar el twin viejo.
-    courses_catalog = repo.get_courses() if hasattr(repo, "get_courses") else []
-    course_id_to_name = {c["id"]: c["name"] for c in courses_catalog}
-    # Nombre humano → slug, para detectar twins (case-insensitive)
-    name_lower_to_id = {c["name"].lower(): c["id"] for c in courses_catalog}
-
-    consolidated: dict[str, tuple[float, float]] = {}
-    for topic, (r, rd) in vector.ratings.items():
-        if topic in course_id_to_name:
-            # Es un slug — el display es el nombre del curso.
-            display = course_id_to_name[topic]
-            consolidated[display] = (r, rd)
-        else:
-            # Posible nombre humano. Si su slug equivalente ya está en
-            # vector.ratings, omitir esta entrada (la del slug gana).
-            twin_slug = name_lower_to_id.get(topic.lower())
-            if twin_slug and twin_slug in vector.ratings:
-                continue
-            consolidated[topic] = (r, rd)
-
-    topic_elos = [
-        TopicELO(topic=t, rating=round(r, 2), rd=round(rd, 2))
-        for t, (r, rd) in sorted(consolidated.items())
+    Everything comes from RatingReadService: `global_elo` is None and `overall_status` is
+    "pending_diagnostic" while no current course has a rated topic.
+    """
+    view = _make_service(repo).ratings.ratings_view(user["user_id"])
+    courses = [
+        CourseRatingView(
+            **{k: c[k] for k in ("course_id", "course_name", "rating", "display_rating",
+                                 "rank_label", "current_context")},
+            topics=[
+                TopicELO(topic=t["topic"], rating=t["elo"], rd=t["rd"],
+                         approximate=t["approximate"], origin=t["origin"])
+                for t in c["topics"]
+            ],
+        )
+        for c in view["courses"]
     ]
-
-    total = repo.get_total_attempts_count(user["user_id"])
-    streak = repo.get_study_streak(user["user_id"])
-
-    # Rank label (16 niveles)
-    rank_label = _elo_to_rank(global_elo)
-
     return StudentStatsResponse(
         user_id=user["user_id"],
-        global_elo=round(global_elo, 2),
-        topic_elos=topic_elos,
-        total_attempts=total,
-        study_streak=streak,
-        rank_label=rank_label,
+        global_elo=view["overall"],
+        display_rating=view["display_rating"],
+        overall_status=view["overall_status"],
+        rank_label=view["rank_label"],
+        course_ratings=courses,
+        topic_elos=[t for c in courses if c.current_context for t in c.topics],
+        total_attempts=repo.get_total_attempts_count(user["user_id"]),
+        study_streak=repo.get_study_streak(user["user_id"]),
     )
 
 
@@ -400,17 +359,34 @@ def streak_by_course(course_id: str, user: CurrentUser, repo: RepoDep):
 
 @router.get("/group-ranking")
 def group_ranking(user: CurrentUser, repo: RepoDep, course_id: str | None = None):
-    """Ranking ELO de los compañeros del grupo del estudiante."""
+    """The student's group ranking on one basis (FR-028d): the requested course (400 unknown,
+    403 not enrolled), else the group's course, else the overall rating. Competition ranks;
+    pending students last with no rank (FR-028h)."""
     user_data = repo.get_user_by_id(user["user_id"])
     if not user_data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado.")
     group_id = user_data.get("group_id") if isinstance(user_data, dict) else None
     if not group_id:
-        return {"ranking": [], "my_rank": None}
-    ranking = repo.get_group_ranking(group_id, course_id=course_id)
-    # Encontrar la posición del usuario actual
-    my_rank = next((r["rank_pos"] for r in ranking if r["user_id"] == user["user_id"]), None)
-    return {"ranking": ranking, "my_rank": my_rank}
+        return {"basis": None, "ranking": [], "my_rank": None}
+    try:
+        view = _make_service(repo).ratings.ranking_view(
+            "group", group_id=group_id, course_id=course_id, requester=user
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc))
+    return ranking_response(repo, view, user["user_id"])
+
+
+def ranking_response(repo, view: dict, user_id: int) -> dict:
+    """Ranking payload (contracts/api.md): `global_elo`/`rank_pos` stay as aliases."""
+    basis = dict(view["basis"])
+    names = {c["id"]: c["name"] for c in repo.get_courses()}
+    basis["course_name"] = names.get(basis["course_id"]) if basis["course_id"] else None
+    ranking = [{**e, "global_elo": e["rating"], "rank_pos": e["rank"]} for e in view["entries"]]
+    my_rank = next((e["rank"] for e in ranking if e["user_id"] == user_id), None)
+    return {"basis": basis, "ranking": ranking, "my_rank": my_rank}
 
 
 # ── Logros / Achievements ─────────────────────────────────────────────────────
@@ -918,10 +894,9 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
             }
         )
 
-    # ELO global actual (sin modificación, solo para mostrar en results)
-    vector = build_vector_rating(user["user_id"], repo)
+    # Rating global actual (sin modificación): None mientras el diagnóstico está pendiente.
     score_pct = round(correct_count / len(expected_ids) * 100, 1)
-    global_elo = round(aggregate_global_elo(vector), 2)
+    global_elo = _make_service(repo).ratings.ratings_view(user["user_id"])["overall"]
     result = {
         "results": results,
         "correct_count": correct_count,
@@ -949,15 +924,6 @@ def exam_history(user: CurrentUser, repo: RepoDep):
 # ── Examen diagnóstico (inicio de materia) ────────────────────────────────────
 
 _DIAG_N = 10  # longitud estándar del diagnóstico
-
-
-def _diff_tier(difficulty: float) -> dict:
-    """Mapea la dificultad del ítem a pesos ELO (win/loss) del diagnóstico."""
-    if difficulty < 1100:
-        return {"win": 14, "loss": -20}
-    if difficulty >= 1450:
-        return {"win": 34, "loss": -6}
-    return {"win": 22, "loss": -12}
 
 
 _DIAG_LEAGUES = [
@@ -1028,29 +994,29 @@ def diagnostic_submit(
         if ans.selected_option and ans.selected_option not in item_db.get("options", []):
             raise HTTPException(status_code=400, detail="Opción inválida en el diagnóstico.")
         topic = item_db.get("topic") or course_id
-        tier = _diff_tier(float(item_db.get("difficulty", 1000)))
-        t = by_topic.setdefault(topic, {"elo": BASE, "correct": 0, "total": 0})
+        t = by_topic.setdefault(topic, {"answers": [], "correct": 0, "total": 0})
         t["total"] += 1
+        difficulty = float(item_db.get("difficulty", 1000))
         if not ans.selected_option:  # no contestada / no lo sé
+            t["answers"].append((difficulty, None))
             continue
         answered += 1
-        if ans.selected_option == item_db["correct_option"]:
-            t["elo"] += tier["win"]
+        is_correct = ans.selected_option == item_db["correct_option"]
+        t["answers"].append((difficulty, is_correct))
+        if is_correct:
             t["correct"] += 1
             correct_total += 1
-        else:
-            t["elo"] += tier["loss"]
 
     # fijar ELO inicial por tópico (clamp) y construir desglose
     themes = []
     elos = []
     for topic, t in by_topic.items():
-        elo = max(760.0, round(t["elo"], 2))
+        elo = diagnostic_baseline(t["answers"])
         elos.append(elo)
         # Un nuevo diagnóstico puede medir progreso, pero nunca reinicia una
         # línea ELO que ya contiene práctica real del alumno.
-        if not repo.has_practice_attempts(user["user_id"], topic, course_id):
-            repo.set_topic_elo_baseline(user["user_id"], topic, elo)
+        if not repo.has_practice_attempts(user["user_id"], course_id, topic):
+            repo.set_topic_rating_baseline(user["user_id"], course_id, topic, elo)
         ratio = t["correct"] / t["total"] if t["total"] else 0.0
         status = "strong" if ratio >= 0.67 else "mid" if ratio >= 0.34 else "gap"
         themes.append(
@@ -1389,7 +1355,11 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
     dificultad, con el ELO/estado del estudiante (leído de student_topic_elo,
     incluye el ELO inicial del diagnóstico)."""
     items = repo.get_items_from_db(course_id=course_id)
-    elo_map = repo.get_topic_elo_map(user["user_id"])
+    # This course's topic ratings only (spec 001, FR-029); an unrated topic has no rating.
+    elo_map = {
+        r["topic"]: {"elo": r["elo"], "rd": r["rd"], "approximate": r["approximate"]}
+        for r in repo.get_course_topic_ratings(user["user_id"], course_id=course_id)
+    }
     diagnostic_done = repo.get_diagnostic(user["user_id"], course_id) is not None
 
     # agrupar ítems por tópico con sus dificultades
@@ -1406,9 +1376,12 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
     raw: list[dict] = []
     subdivide = len(topics_sorted) < 5
 
-    def _elo_for(topic: str) -> tuple[float, float]:
+    def _elo_for(topic: str) -> tuple[float | None, float | None]:
         te = elo_map.get(topic)
-        return (float(te["elo"]) if te else 1000.0, float(te["rd"]) if te else 350.0)
+        return (float(te["elo"]), float(te["rd"])) if te else (None, None)
+
+    def _mastered(elo: float | None) -> bool:
+        return elo is not None and elo >= _MASTERY_ELO
 
     for topic, diffs in topics_sorted:
         elo, rd = _elo_for(topic)
@@ -1458,7 +1431,7 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
     # estado: dominado (>=umbral) = completed; el PRIMER nodo no dominado =
     # current (dónde reforzar); el resto = available (no se bloquea: es refuerzo).
     current_idx = (
-        next((i for i, n in enumerate(raw) if n["elo"] < _MASTERY_ELO), None)
+        next((i for i, n in enumerate(raw) if not _mastered(n["elo"])), None)
         if curriculum_completed
         else None
     )
@@ -1466,14 +1439,15 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
         MapNode(
             topic=n["topic"],
             label=n["label"],
-            elo=round(n["elo"], 1),
-            rd=round(n["rd"], 1),
+            elo=None if n["elo"] is None else round(n["elo"], 1),
+            rd=None if n["rd"] is None else round(n["rd"], 1),
+            approximate=elo_map.get(n["topic"], {}).get("approximate", False),
             item_count=n["item_count"],
             state=(
                 "blocked"
                 if not curriculum_completed
                 else "completed"
-                if n["elo"] >= _MASTERY_ELO
+                if _mastered(n["elo"])
                 else "current"
                 if i == current_idx
                 else "available"
@@ -1490,32 +1464,3 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
         nodes=nodes,
     )
 
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-
-_RANK_THRESHOLDS = [
-    (2500, "Leyenda Suprema"),
-    (2200, "Leyenda"),
-    (2000, "Gran Maestro"),
-    (1800, "Maestro"),
-    (1600, "Diamante I"),
-    (1500, "Diamante II"),
-    (1400, "Platino I"),
-    (1300, "Platino II"),
-    (1200, "Oro I"),
-    (1100, "Oro II"),
-    (1000, "Plata I"),
-    (900, "Plata II"),
-    (800, "Bronce I"),
-    (700, "Bronce II"),
-    (600, "Hierro"),
-    (0, "Aspirante"),
-]
-
-
-def _elo_to_rank(elo: float) -> str:
-    for threshold, label in _RANK_THRESHOLDS:
-        if elo >= threshold:
-            return label
-    return "Aspirante"

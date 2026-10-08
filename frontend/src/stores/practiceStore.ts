@@ -6,7 +6,7 @@
  */
 
 import { create } from "zustand";
-import type { Item } from "../api/student";
+import type { AnswerPreview, Item } from "../api/student";
 
 interface PracticeState {
   // Sesión activa
@@ -14,6 +14,7 @@ interface PracticeState {
   block: string | null; // bloque temático activo (concursos)
   topic: string | null; // tópico activo (refuerzo desde el mapa)
   currentItem: Item | null;
+  preview: AnswerPreview | null; // from /next-question (spec 001, FR-030)
   sessionCorrectIds: string[];
   sessionWrongTimestamps: Record<string, number>; // item_id → pregunta_num
   sessionQuestionsCount: number;
@@ -34,7 +35,7 @@ interface PracticeState {
 
   // Acciones
   startSession: (courseId: string, block?: string, topic?: string) => void;
-  setCurrentItem: (item: Item) => void;
+  setCurrentItem: (item: Item, preview?: AnswerPreview | null) => void;
   recordAnswer: (
     itemId: string,
     isCorrect: boolean,
@@ -53,6 +54,7 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
   block: null,
   topic: null,
   currentItem: null,
+  preview: null,
   sessionCorrectIds: [],
   sessionWrongTimestamps: {},
   sessionQuestionsCount: 0,
@@ -67,6 +69,7 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
       block: block ?? null,
       topic: topic ?? null,
       currentItem: null,
+  preview: null,
       sessionCorrectIds: [],
       sessionWrongTimestamps: {},
       sessionQuestionsCount: 0,
@@ -75,9 +78,10 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
       phase: "loading",
     }),
 
-  setCurrentItem: (item) =>
+  setCurrentItem: (item, preview = null) =>
     set({
       currentItem: item,
+      preview,
       questionStartTime: Date.now(),
       phase: "question",
       lastAnswer: null,
@@ -117,6 +121,7 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
       block: null,
       topic: null,
       currentItem: null,
+  preview: null,
       sessionCorrectIds: [],
       sessionWrongTimestamps: {},
       sessionQuestionsCount: 0,
