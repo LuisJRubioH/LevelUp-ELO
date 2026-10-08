@@ -116,6 +116,50 @@ It dumps the `public` schema (the application's tables; Supabase's own schemas d
 a plain PostgreSQL), so keep a full backup from the Supabase dashboard as well. `pg_dump` must be at
 least as new as the server (the Supabase project uses PostgreSQL 17).
 
+### 4.1 The encrypted backup and how to restore it
+
+The `transfer-ops` workflow (branch `ops/transfer`, never merged) produces one artifact,
+`levelup-backup-<stamp>-encrypted`: a `.tar.gz.gpg` encrypted with `BACKUP_PASSPHRASE` (AES-256).
+Inside: `full.dump` (when Supabase allows a full dump), `public.dump` (the application's schema),
+`procedimientos/` (`objects/`, `manifest.json`, `backup-report.json`), `source-counts.txt` (rows
+per table when the dump was taken), `SHA256SUMS` and the rehearsal report. The workflow's second
+job already downloads that artifact, checks its SHA-256, decrypts it, verifies every file and
+restores `public.dump` into a throwaway database with the same row counts. GitHub keeps the
+artifact 7 days: download it and store it with the passphrase kept separately.
+
+Restore (Git Bash on Windows ships `gpg`, `tar` and `sha256sum`; `pg_restore` needs the
+PostgreSQL 17 client tools):
+
+```bash
+unzip levelup-backup-<stamp>-encrypted.zip
+sha256sum levelup-backup-<stamp>.tar.gz.gpg          # equals "artifact sha256" in the run log
+gpg --decrypt --output levelup-backup.tar.gz levelup-backup-<stamp>.tar.gz.gpg   # asks the passphrase
+mkdir backup && tar -xzf levelup-backup.tar.gz -C backup && (cd backup && sha256sum -c SHA256SUMS)
+
+# Inspect it in a throwaway database (never the production URL):
+createdb scratch
+pg_restore --no-owner --no-privileges --schema=public -d postgresql://<user>@localhost:5432/scratch backup/public.dump
+
+# Bucket: verify, then upload what is missing (never overwrites, never deletes)
+python scripts/restore_storage_bucket.py --backup backup/procedimientos
+python scripts/restore_storage_bucket.py --backup backup/procedimientos --apply
+```
+
+**Returning production to the exact pre-transfer state** (destructive; the owner only, with the
+Render service suspended and Streamlit disconnected). Drop the tables the migration added, then
+restore the application schema; rehearsed locally, the result is identical to the state before
+the migration:
+
+```sql
+DROP TABLE IF EXISTS active_exam_sessions, diagnostics, exam_responses, lesson_interactions,
+  lesson_progress, pvp_answers, pvp_matches, student_course_topic_elo CASCADE;
+```
+
+```bash
+pg_restore --clean --if-exists --no-owner --no-privileges --schema=public \
+  -d "$MIGRATION_DATABASE_URL" backup/public.dump
+```
+
 ## 5. Migrations
 
 All schema changes are **additive** (AGENTS.md R8: `CREATE … IF NOT EXISTS`, `ADD COLUMN IF NOT
