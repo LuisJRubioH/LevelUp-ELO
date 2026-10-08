@@ -273,7 +273,9 @@ An invalid attempt is recorded with before = after and moves nothing. With an `I
 - In a deployed environment (the final repository): schema bootstrap runs in
   `scripts/migrate.py` against `MIGRATION_DATABASE_URL` (direct connection, port 5432); the web
   process runs with `RUN_MIGRATIONS=0`. Local dev and tests keep
-  the in-process bootstrap (default `RUN_MIGRATIONS=1`).
+  the in-process bootstrap (default `RUN_MIGRATIONS=1`). A deployed V1 is a web process too: its
+  Streamlit secrets carry root-level `RUN_MIGRATIONS = "0"` (docs/transfer.md § 3.1; pinned by
+  `tests/integration/test_v1_run_migrations.py`).
 - In-process, a bootstrap step whose advisory lock another session holds is skipped (another
   instance is doing it). `scripts/migrate.py` instead exits 1 naming the skipped steps
   (`bootstrap_skipped_steps()`, both repositories), so `migrate.py && uvicorn` never starts the
