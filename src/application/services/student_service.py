@@ -8,7 +8,12 @@ from src.domain.elo.model import (
     rating_delta,
 )
 from src.domain.selector.item_selector import AdaptiveItemSelector
-from src.domain.entities import VALID_LEVELS, LEVEL_UNIVERSIDAD, LEVEL_SEMILLERO
+from src.domain.entities import (
+    LEVEL_SEMILLERO,
+    LEVEL_UNIVERSIDAD,
+    VALID_LEVELS,
+    valid_semillero_grade,
+)
 from src.application.interfaces.repositories import IStudentRepository
 from src.application.services.rating_read_service import RatingReadService
 
@@ -296,8 +301,28 @@ class StudentService:
         """Devuelve los grupos disponibles para inscribirse en un curso específico."""
         return self.repository.get_available_groups_for_course(course_id)
 
-    def enroll_in_course(self, user_id: int, course_id: str, group_id: int = None) -> None:
-        """Matricula al estudiante en un curso asociándolo al grupo elegido."""
+    def enroll_from_catalogue(self, user_id: int, course_id: str, group_id: int = None) -> None:
+        """Enrol only in a course of the student's catalogue (spec 001 FR-028m).
+
+        Raises PermissionError for any other course; invitations go through
+        `enroll_by_invitation` instead.
+        """
+        if course_id not in {c["id"] for c in self.get_available_courses(user_id)}:
+            raise PermissionError("The course is not in the student's catalogue.")
+        self.repository.enroll_user(user_id, course_id, group_id)
+
+    def enroll_by_invitation(self, user_id: int, group_id: int, course_id: str) -> None:
+        """Enrol in an invitation group's course, at any level (spec 001 FR-028l).
+
+        A semillero student needs a grade first (PermissionError otherwise). Neither the level
+        nor the grade changes, and the course does not join the catalogue: it is accessible
+        but never current for the overall rating.
+        """
+        level = (self.repository.get_education_level(user_id) or "").lower()
+        if level == LEVEL_SEMILLERO and not valid_semillero_grade(
+            self.repository.get_grade(user_id)
+        ):
+            raise PermissionError("A semillero student needs a grade to use an invitation.")
         self.repository.enroll_user(user_id, course_id, group_id)
 
     def ensure_enrolled(self, user_id: int, course_id: str) -> None:

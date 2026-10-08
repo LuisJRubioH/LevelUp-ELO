@@ -129,6 +129,8 @@ class CourseResponse(BaseModel):
     enrolled: bool
     group_id: int | None = None
     diagnostic_done: bool = False
+    # False for a course the student reached by invitation outside their catalogue (FR-028l).
+    in_catalogue: bool = True
 
 
 class EnrollRequest(BaseModel):

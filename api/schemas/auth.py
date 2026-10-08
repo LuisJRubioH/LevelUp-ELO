@@ -4,7 +4,7 @@ api/schemas/auth.py
 Pydantic schemas para autenticación y tokens JWT.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class LoginRequest(BaseModel):
@@ -21,6 +21,13 @@ class RegisterRequest(BaseModel):
     )
     grade: str | None = Field(default=None, pattern="^([6-9]|10|11)$")
     email: str | None = Field(default=None, max_length=254)
+
+    @model_validator(mode="after")
+    def _semillero_needs_a_grade(self):
+        """Spec 001 FR-028m: semillero has no catalogue without a grade from 6 to 11."""
+        if self.education_level == "semillero" and self.grade is None:
+            raise ValueError("Semillero requiere un grado de 6.º a 11.º.")
+        return self
 
 
 class TokenResponse(BaseModel):

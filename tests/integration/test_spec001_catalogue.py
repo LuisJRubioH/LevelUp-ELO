@@ -20,6 +20,8 @@ from tests.integration.conftest import (
 )
 
 GRADES = ["6", "7", "8", "9", "10", "11"]
+# Other tests on the shared PostgreSQL database add courses such as spec001_course_…_semillero_6,
+# so a catalogue is checked as: the six real courses of the grade, and nothing of another grade.
 SUBJECTS = ["algebra", "aritmetica", "conteo_combinatoria", "geometria", "logica", "probabilidad"]
 COLEGIO_COURSE = "algebra_basica"
 UNIVERSIDAD_COURSE = "calculo_diferencial"
@@ -60,7 +62,9 @@ def test_spec001_semillero_catalogue_by_grade(repo):
     → none; the other levels keep their block."""
     for grade in GRADES:
         courses = repo.get_available_courses_by_level("semillero", grade=grade)
-        assert sorted(c["id"] for c in courses) == _semillero(grade), grade
+        ids = {c["id"] for c in courses}
+        assert set(_semillero(grade)) <= ids, grade
+        assert all(i.endswith(f"_semillero_{grade}") for i in ids), grade
         assert {c["block"] for c in courses} == {"Semillero"}
     assert repo.get_available_courses_by_level("semillero", grade=None) == []
     colegio = {c["id"] for c in repo.get_available_courses_by_level("colegio")}
@@ -114,7 +118,9 @@ def test_spec001_courses_of_a_grade_7_student(repo, client):
     catalogue."""
     student = make_student(repo, "semillero", "7")
     body = client.get("/api/student/courses", headers=headers_for(repo, student)).json()
-    assert sorted(c["id"] for c in body) == _semillero("7")
+    ids = {c["id"] for c in body}
+    assert set(_semillero("7")) <= ids
+    assert all(i.endswith("_semillero_7") for i in ids)
     assert all(c["in_catalogue"] and not c["enrolled"] for c in body)
 
 
