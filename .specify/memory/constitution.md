@@ -121,9 +121,9 @@ Oulad exists to make students learn mathematics, not to maximise engagement.
 platform for Colombian school, university and olympiad ("semillero", contest) students and their
 teachers. A per-topic Elo rating with uncertainty (RD) drives item selection toward a target
 success probability; teachers review handwritten procedures; an AI tutor (KatIA) gives Socratic
-hints. Production of the original product lives in `LuisJRubioH/LevelUp-ELO`. This repository is
-a development copy and is **not deployed**: the owner transfers finished work to the final
-deployment repository by hand (`docs/transfer.md`).
+hints. This repository, `LuisJRubioH/LevelUp-ELO`, is production: its `main` deploys. The redesign
+was developed in the copy `Ori-G-A/Oulad_redesing` and transferred here by pull request
+(`docs/transfer.md`).
 
 **Users.** student · teacher (requires approval) · admin.
 
@@ -134,10 +134,10 @@ deployment repository by hand (`docs/transfer.md`).
 | Backend API | Python 3.11, FastAPI, uvicorn, single process (`WEB_CONCURRENCY=1`) |
 | Frontend | React 19, TypeScript, Vite, Tailwind v4, Zustand, TanStack Query, react-katex, Framer Motion; pnpm |
 | Legacy UI (V1) | Streamlit — **frozen** (see below) |
-| Data | PostgreSQL on Supabase (deployment target), SQLite (local/tests), Supabase Storage (private bucket) |
+| Data | PostgreSQL on Supabase (production), SQLite (local/tests), Supabase Storage (private bucket) |
 | Realtime | FastAPI WebSockets (PvP, notifications), in-process state |
 | AI | Multi-provider client selected by key prefix; degrades gracefully without a key |
-| Deploy | None from this repository; manual transfer by the owner (`docs/transfer.md`). Inert templates: `render.yaml` (backend), `frontend/vercel.json` (frontend) |
+| Deploy | Automatic on push to `main`: Vercel (frontend, `frontend/vercel.json`), Render (backend, `render.yaml`; its start runs `scripts/migrate.py`). Only the owner merges to `main` |
 | Quality | pytest, Playwright (e2e), black (100 cols), flake8, GitHub Actions |
 
 **V1 is frozen** (decided 2026-10-05). `src/interface/streamlit/` receives no features and no
@@ -290,4 +290,4 @@ development text written in Spanish is noncompliance.
 - **Review.** The constitution and its Known Deviations are reviewed at the end of each roadmap
   milestone.
 
-**Version**: 1.0.1 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-08
+**Version**: 1.0.2 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-08
