@@ -46,7 +46,11 @@ CONTENT = {
                 "options": [
                     {"id": "ok", "text": "5 × 7 + 5 × 3", "latex": r"5\times 7+5\times 3"},
                     {"id": "partial", "text": "5 × 7 + 3", "latex": r"5\times 7+3"},
-                    {"id": "double", "text": "(5 × 7) × (5 × 3)", "latex": r"(5\times 7)\times(5\times 3)"},
+                    {
+                        "id": "double",
+                        "text": "(5 × 7) × (5 × 3)",
+                        "latex": r"(5\times 7)\times(5\times 3)",
+                    },
                 ],
                 "expected": "ok",
                 "misconception_by_option": {
@@ -96,9 +100,7 @@ CONTENT = {
     "discovery": {
         "eyebrow": "Descubrimiento guiado",
         "title": "El mismo factor, dos paréntesis distintos",
-        "body": (
-            "Abajo, el mismo 3 por fuera. Lo único que cambia es la operación de dentro."
-        ),
+        "body": ("Abajo, el mismo 3 por fuera. Lo único que cambia es la operación de dentro."),
         "cases": [
             {
                 "label": "Caso que funciona",
@@ -130,11 +132,31 @@ CONTENT = {
         "de todo lo que viene en álgebra."
     ),
     "definition_symbols": [
-        {"symbol": r"a", "reads": "el factor que se reparte", "means": "el brazo repartidor: llega a cada caja"},
-        {"symbol": r"b+c", "reads": "la suma de dentro", "means": "las cajas distintas que hay al final de la cinta"},
-        {"symbol": r"a\times b+a\times c", "reads": "forma desarrollada", "means": "el factor ya repartido"},
-        {"symbol": r"a\times(b\times c)\neq (a\times b)\times(a\times c)", "reads": "no se reparte sobre el producto", "means": "un solo montón: el factor entra una vez"},
-        {"symbol": r"a\times(b-c)=a\times b-a\times c", "reads": "también sobre la resta", "means": "la resta es una suma con signo, así que sí vale"},
+        {
+            "symbol": r"a",
+            "reads": "el factor que se reparte",
+            "means": "el brazo repartidor: llega a cada caja",
+        },
+        {
+            "symbol": r"b+c",
+            "reads": "la suma de dentro",
+            "means": "las cajas distintas que hay al final de la cinta",
+        },
+        {
+            "symbol": r"a\times b+a\times c",
+            "reads": "forma desarrollada",
+            "means": "el factor ya repartido",
+        },
+        {
+            "symbol": r"a\times(b\times c)\neq (a\times b)\times(a\times c)",
+            "reads": "no se reparte sobre el producto",
+            "means": "un solo montón: el factor entra una vez",
+        },
+        {
+            "symbol": r"a\times(b-c)=a\times b-a\times c",
+            "reads": "también sobre la resta",
+            "means": "la resta es una suma con signo, así que sí vale",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -194,10 +216,14 @@ CONTENT = {
                 "wrong_latex": r"3\times(4\times 2)=72",
                 "right_latex": r"3\times(4\times 2)=3\times 8=24",
                 "rows": [
-                    {"wrong": "El factor se reparte a todo lo que haya en el paréntesis",
-                     "right": "Solo se reparte sobre sumas y restas, no sobre productos"},
-                    {"wrong": "4 filas de 2 son dos montones distintos",
-                     "right": "Son UN montón de 8, descrito por filas y columnas"},
+                    {
+                        "wrong": "El factor se reparte a todo lo que haya en el paréntesis",
+                        "right": "Solo se reparte sobre sumas y restas, no sobre productos",
+                    },
+                    {
+                        "wrong": "4 filas de 2 son dos montones distintos",
+                        "right": "Son UN montón de 8, descrito por filas y columnas",
+                    },
                 ],
             },
             "explain_prompt": "¿Por qué 72 es imposible? Escribe la cuenta correcta.",
@@ -327,8 +353,14 @@ CONTENT = {
             "tipo": "detecta_error",
             "prompt": r"Un encargado anota «$6\times(10+4)=6\times 10+4=64$». ¿Dónde está el error?",
             "options": [
-                {"id": "half", "text": "Repartió solo al primer sumando; falta multiplicar el 4 por 6"},
-                {"id": "product", "text": "Debía multiplicar los dos resultados en vez de sumarlos"},
+                {
+                    "id": "half",
+                    "text": "Repartió solo al primer sumando; falta multiplicar el 4 por 6",
+                },
+                {
+                    "id": "product",
+                    "text": "Debía multiplicar los dos resultados en vez de sumarlos",
+                },
                 {"id": "arith", "text": "Se equivocó en 6 × 10"},
                 {"id": "none", "text": "Ningún error, está bien"},
             ],
@@ -357,7 +389,10 @@ CONTENT = {
             "confidence": "fija",
             "prompt": r"¿Es verdadera o falsa? «Para cualesquiera $a,b,c$: $a\times(b\times c)=(a\times b)\times(a\times c)$.»",
             "options": [
-                {"id": "false_product", "text": "Falsa: sobre un producto el factor entra una sola vez"},
+                {
+                    "id": "false_product",
+                    "text": "Falsa: sobre un producto el factor entra una sola vez",
+                },
                 {"id": "true", "text": "Verdadera: el factor se reparte a todo el paréntesis"},
                 {"id": "false_never", "text": "Falsa: nunca pueden coincidir"},
                 {"id": "true_small", "text": "Verdadera si los números son pequeños"},
@@ -384,9 +419,7 @@ CONTENT = {
             "id": "E6",
             "kind": "numeric",
             "tipo": "transferencia",
-            "prompt": (
-                "Calcula 7 × 103 reescribiendo el 103 de forma cómoda."
-            ),
+            "prompt": ("Calcula 7 × 103 reescribiendo el 103 de forma cómoda."),
             "expr": r"7\times(100+3)",
             "answer": "721",
             "hints": {
@@ -403,7 +436,11 @@ CONTENT = {
             "options": [
                 {"id": "common", "text": "9 × (15 + 5)", "latex": r"9\times(15+5)"},
                 {"id": "sum_all", "text": "9 + 15 + 5", "latex": r"9+15+5"},
-                {"id": "double_factor", "text": "(9 + 9) × (15 + 5)", "latex": r"(9+9)\times(15+5)"},
+                {
+                    "id": "double_factor",
+                    "text": "(9 + 9) × (15 + 5)",
+                    "latex": r"(9+9)\times(15+5)",
+                },
                 {"id": "product", "text": "9 × 15 × 5", "latex": r"9\times 15\times 5"},
             ],
             "expected": "common",
@@ -431,24 +468,48 @@ CONTENT = {
         "title": "¿El factor de fuera entra a cada término de dentro?",
         "intro": "Esta propiedad no habla de una operación sino de un PAR: la de fuera y la de dentro.",
         "rows": [
-            {"symbol": r"\times\ \text{sobre}\ +", "name": "Producto sobre suma", "closed": "yes",
-             "latex": r"3\times(4+2)=3\times 4+3\times 2",
-             "note": "El caso central. Dos montones distintos, el factor llega a los dos."},
-            {"symbol": r"\times\ \text{sobre}\ -", "name": "Producto sobre resta", "closed": "yes",
-             "latex": r"8\times(50-3)=8\times 50-8\times 3",
-             "note": "También vale: la resta es una suma con signo."},
-            {"symbol": r"\times\ \text{sobre}\ \times", "name": "Producto sobre producto", "closed": "no",
-             "latex": r"3\times(4\times 2)\neq(3\times 4)\times(3\times 2)",
-             "note": "Un solo montón: repartir aplicaría el factor dos veces. Esta es la trampa del nodo."},
-            {"symbol": r"\div\ \text{sobre}\ +", "name": "División sobre suma", "closed": "partial",
-             "latex": r"\dfrac{a+b}{c}=\dfrac{a}{c}+\dfrac{b}{c}\quad\text{pero}\quad \dfrac{c}{a+b}\neq\dfrac{c}{a}+\dfrac{c}{b}",
-             "note": "Solo si la suma está ARRIBA. Repartir un denominador es de los errores más caros del álgebra."},
-            {"symbol": r"a^{n}\ \text{sobre}\ \times", "name": "Potencia sobre producto", "closed": "yes",
-             "latex": r"(a\times b)^{n}=a^{n}\times b^{n}",
-             "note": "El exponente sí se reparte sobre un producto — justo al revés que el factor."},
-            {"symbol": r"a^{n}\ \text{sobre}\ +", "name": "Potencia sobre suma", "closed": "no",
-             "latex": r"(3+4)^{2}=49\neq 25=3^{2}+4^{2}",
-             "note": "Y aquí se invierte del todo: sobre una suma NO se reparte. Es el mismo error que la raíz en la Cantera (E06)."},
+            {
+                "symbol": r"\times\ \text{sobre}\ +",
+                "name": "Producto sobre suma",
+                "closed": "yes",
+                "latex": r"3\times(4+2)=3\times 4+3\times 2",
+                "note": "El caso central. Dos montones distintos, el factor llega a los dos.",
+            },
+            {
+                "symbol": r"\times\ \text{sobre}\ -",
+                "name": "Producto sobre resta",
+                "closed": "yes",
+                "latex": r"8\times(50-3)=8\times 50-8\times 3",
+                "note": "También vale: la resta es una suma con signo.",
+            },
+            {
+                "symbol": r"\times\ \text{sobre}\ \times",
+                "name": "Producto sobre producto",
+                "closed": "no",
+                "latex": r"3\times(4\times 2)\neq(3\times 4)\times(3\times 2)",
+                "note": "Un solo montón: repartir aplicaría el factor dos veces. Esta es la trampa del nodo.",
+            },
+            {
+                "symbol": r"\div\ \text{sobre}\ +",
+                "name": "División sobre suma",
+                "closed": "partial",
+                "latex": r"\dfrac{a+b}{c}=\dfrac{a}{c}+\dfrac{b}{c}\quad\text{pero}\quad \dfrac{c}{a+b}\neq\dfrac{c}{a}+\dfrac{c}{b}",
+                "note": "Solo si la suma está ARRIBA. Repartir un denominador es de los errores más caros del álgebra.",
+            },
+            {
+                "symbol": r"a^{n}\ \text{sobre}\ \times",
+                "name": "Potencia sobre producto",
+                "closed": "yes",
+                "latex": r"(a\times b)^{n}=a^{n}\times b^{n}",
+                "note": "El exponente sí se reparte sobre un producto — justo al revés que el factor.",
+            },
+            {
+                "symbol": r"a^{n}\ \text{sobre}\ +",
+                "name": "Potencia sobre suma",
+                "closed": "no",
+                "latex": r"(3+4)^{2}=49\neq 25=3^{2}+4^{2}",
+                "note": "Y aquí se invierte del todo: sobre una suma NO se reparte. Es el mismo error que la raíz en la Cantera (E06).",
+            },
         ],
         "outro": (
             "Fíjate en la simetría: el factor se reparte sobre sumas y no sobre productos; "
@@ -460,10 +521,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres casos trabajados en este nodo?",
         "thumbnails": [r"7\times(30+4)", r"8\times(50-3)", r"3\times(4\times 2)"],
         "options": [
-            {"id": "two_ops", "text": "En los tres se mezclan dos operaciones distintas", "correct": True},
-            {"id": "always", "text": "En los tres el factor de fuera entra a cada término", "correct": False},
-            {"id": "inside", "text": "En los tres hay que mirar qué operación hay DENTRO del paréntesis", "correct": True},
-            {"id": "easier", "text": "En los tres repartir hace la cuenta más fácil", "correct": False},
+            {
+                "id": "two_ops",
+                "text": "En los tres se mezclan dos operaciones distintas",
+                "correct": True,
+            },
+            {
+                "id": "always",
+                "text": "En los tres el factor de fuera entra a cada término",
+                "correct": False,
+            },
+            {
+                "id": "inside",
+                "text": "En los tres hay que mirar qué operación hay DENTRO del paréntesis",
+                "correct": True,
+            },
+            {
+                "id": "easier",
+                "text": "En los tres repartir hace la cuenta más fácil",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {
@@ -513,7 +590,11 @@ CONTENT = {
                 "options": [
                     {"id": "ok", "text": "6 × 9 + 6 × 2", "latex": r"6\times 9+6\times 2"},
                     {"id": "partial", "text": "6 × 9 + 2", "latex": r"6\times 9+2"},
-                    {"id": "double", "text": "(6 × 9) × (6 × 2)", "latex": r"(6\times 9)\times(6\times 2)"},
+                    {
+                        "id": "double",
+                        "text": "(6 × 9) × (6 × 2)",
+                        "latex": r"(6\times 9)\times(6\times 2)",
+                    },
                 ],
                 "expected": "ok",
                 "misconception_by_option": {

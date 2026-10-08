@@ -133,6 +133,7 @@ def extract_steps_from_llm_transcription(transcription: str, pasos: list[dict]) 
 
 # ── Step analysis ─────────────────────────────────────────────────────────────
 
+
 @dataclass
 class StepAnalysis:
     """Resultado del análisis de un paso individual."""
@@ -219,7 +220,9 @@ def analyze_steps(steps: list[MathStep]) -> ProcedureAnalysis:
         analysis.summary = "Todos los pasos son algebraicamente correctos."
     else:
         error_nums = ", ".join(str(s.step) for s in analysis.steps if not s.valid)
-        analysis.summary = f"Se detectaron {analysis.invalid_steps} error(es) en los pasos: {error_nums}."
+        analysis.summary = (
+            f"Se detectaron {analysis.invalid_steps} error(es) en los pasos: {error_nums}."
+        )
 
     return analysis
 
@@ -264,7 +267,9 @@ def _get_hint(error_type: ErrorType, step_num: int) -> str:
 def generate_feedback(analysis: ProcedureAnalysis) -> str:
     """Genera feedback pedagógico completo. No revela la respuesta final."""
     if not analysis.steps:
-        return "No se detectaron pasos en tu procedimiento. Intenta mostrar tu desarrollo paso a paso."
+        return (
+            "No se detectaron pasos en tu procedimiento. Intenta mostrar tu desarrollo paso a paso."
+        )
 
     lines: list[str] = []
     if analysis.invalid_steps == 0:
@@ -302,6 +307,7 @@ def generate_step_feedback(step_analysis: StepAnalysis) -> str:
 
 
 # ── Pipeline ──────────────────────────────────────────────────────────────────
+
 
 @dataclass
 class PipelineResult:

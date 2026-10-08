@@ -102,7 +102,10 @@ CONTENT = {
             "options": [
                 {"id": "capas", "text": "Porque al cubo de un binomio le salen capas de en medio"},
                 {"id": "igual", "text": "Son lo mismo: se puede repartir el exponente"},
-                {"id": "nada", "text": "Porque una suma de cubos no se puede abrir de ninguna forma"},
+                {
+                    "id": "nada",
+                    "text": "Porque una suma de cubos no se puede abrir de ninguna forma",
+                },
             ],
             "response": (
                 "Guarda tu respuesta. Al final vas a poder abrir esa remesa, y vas a ver que "
@@ -227,9 +230,7 @@ CONTENT = {
         {
             "eyebrow": "Trampa común",
             "title": "El mozo que arqueó un tonel de más",
-            "statement": (
-                "Vuelve la remesa de la apertura. El mozo anota $x^{3}+1$ así:"
-            ),
+            "statement": ("Vuelve la remesa de la apertura. El mozo anota $x^{3}+1$ así:"),
             "latex": r"x^{3}+1",
             "trap": True,
             "confidence_prompt": "¿Qué tan seguro estás de dónde falla?",
@@ -278,7 +279,11 @@ CONTENT = {
                 "statement": r"Factoriza $x^{3}+27$.",
                 "given_steps": [r"\sqrt[3]{x^{3}}=x,\quad \sqrt[3]{27}=3", r"\text{binomio}:(x+3)"],
                 "blanks": [
-                    {"id": "P1-b1", "label": r"\text{coeficiente del medio del trinomio, sin signo}=", "answer": "3"}
+                    {
+                        "id": "P1-b1",
+                        "label": r"\text{coeficiente del medio del trinomio, sin signo}=",
+                        "answer": "3",
+                    }
                 ],
             },
             {
@@ -287,8 +292,16 @@ CONTENT = {
                 "statement": r"Factoriza $8x^{3}-27$.",
                 "given_steps": [r"(2x)^{3}-3^{3}"],
                 "blanks": [
-                    {"id": "P2-b1", "label": r"\text{primer término del trinomio}: (2x)^{2}\ \text{, coeficiente}=", "answer": "4"},
-                    {"id": "P2-b2", "label": r"\text{medio}: (2x)(3)\ \text{, coeficiente}=", "answer": "6"},
+                    {
+                        "id": "P2-b1",
+                        "label": r"\text{primer término del trinomio}: (2x)^{2}\ \text{, coeficiente}=",
+                        "answer": "4",
+                    },
+                    {
+                        "id": "P2-b2",
+                        "label": r"\text{medio}: (2x)(3)\ \text{, coeficiente}=",
+                        "answer": "6",
+                    },
                 ],
             },
             {
@@ -419,9 +432,7 @@ CONTENT = {
             "id": "E5",
             "kind": "single_select",
             "tipo": "detecta_error",
-            "prompt": (
-                r"Un mozo anota $x^{3}-27=(x-3)(x^{2}-3x+9)$. ¿Dónde está el error?"
-            ),
+            "prompt": (r"Un mozo anota $x^{3}-27=(x-3)(x^{2}-3x+9)$. ¿Dónde está el error?"),
             "options": [
                 {"id": "mid", "text": r"El medio del trinomio: debería ser $+3x$"},
                 {"id": "bin", "text": r"El binomio: debería ser $(x+3)$"},
@@ -700,9 +711,7 @@ CONTENT = {
             "Casi: el trinomio lleva el término del medio con el signo CONTRARIO al del "
             "binomio. Binomio con más → medio con menos."
         ),
-        "fb_g04_e5_bin": (
-            "El binomio está bien: repite el signo de la remesa, y esta resta."
-        ),
+        "fb_g04_e5_bin": ("El binomio está bien: repite el signo de la remesa, y esta resta."),
         "fb_g04_e5_last": (
             "El trinomio siempre acaba en más, porque es el cuadrado del segundo término."
         ),

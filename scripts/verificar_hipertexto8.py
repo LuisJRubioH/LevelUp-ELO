@@ -42,7 +42,15 @@ import sys
 from pathlib import Path
 
 from sympy import (
-    Eq, cancel, expand, powdenest, powsimp, simplify, solve, symbols, sympify,
+    Eq,
+    cancel,
+    expand,
+    powdenest,
+    powsimp,
+    simplify,
+    solve,
+    symbols,
+    sympify,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,13 +59,22 @@ FUENTE = ROOT / "items" / "source" / "hipertexto8"
 # El manifiesto del OCR marcó estas páginas como "con ejercicios", pero al mirarlas
 # a alto DPI resultaron ser infografía pura, sin ninguna actividad que transcribir.
 # Se cuentan como hechas para que el informe de progreso no las pida siempre.
-SIN_EJERCICIOS = frozenset({
-    94, 95,  # "Matemáticas + Tecnología: la hoja de cálculo", solo rótulos
-})
+SIN_EJERCICIOS = frozenset(
+    {
+        94,
+        95,  # "Matemáticas + Tecnología: la hoja de cálculo", solo rótulos
+    }
+)
 
 TIPOS_VERIFICABLES = {
-    "numerico", "comparacion", "ecuacion", "orden", "intervalo", "racionalidad",
-    "mismo_valor", "simbolico",
+    "numerico",
+    "comparacion",
+    "ecuacion",
+    "orden",
+    "intervalo",
+    "racionalidad",
+    "mismo_valor",
+    "simbolico",
 }
 
 
@@ -176,9 +193,7 @@ def progreso() -> int:
     import csv
     import itertools
 
-    manifiesto = (
-        ROOT / "output" / "latex" / "listas_ejercicios_matematicas_8" / "manifest.csv"
-    )
+    manifiesto = ROOT / "output" / "latex" / "listas_ejercicios_matematicas_8" / "manifest.csv"
     filas = [
         f
         for f in csv.DictReader(manifiesto.open(encoding="utf-8-sig"))
@@ -210,8 +225,11 @@ def main() -> int:
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--pagina", type=int, help="verificar solo una página del PDF")
-    parser.add_argument("--progreso", action="store_true",
-                        help="qué páginas con ejercicios ya están transcritas y cuáles faltan")
+    parser.add_argument(
+        "--progreso",
+        action="store_true",
+        help="qué páginas con ejercicios ya están transcritas y cuáles faltan",
+    )
     args = parser.parse_args()
 
     if args.progreso:

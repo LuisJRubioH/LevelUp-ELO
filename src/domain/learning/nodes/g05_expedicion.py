@@ -224,9 +224,7 @@ CONTENT = {
         {
             "eyebrow": "Ejemplo 2 · El común destapa el molde",
             "title": "Lo que aparece al quitar de encima",
-            "statement": (
-                "Otra remesa: $5m^{4}+5m$. Tal como viene no encaja en ningún molde."
-            ),
+            "statement": ("Otra remesa: $5m^{4}+5m$. Tal como viene no encaja en ningún molde."),
             "latex": r"5m^{4}+5m",
             "image_slot": False,
             "steps": [
@@ -292,7 +290,11 @@ CONTENT = {
                 "statement": r"Factoriza completamente $3x^{2}-27$.",
                 "given_steps": [r"\text{común}: 3", r"3(x^{2}-9)"],
                 "blanks": [
-                    {"id": "P1-b1", "label": r"\text{número de factores al terminar}=", "answer": "3"}
+                    {
+                        "id": "P1-b1",
+                        "label": r"\text{número de factores al terminar}=",
+                        "answer": "3",
+                    }
                 ],
             },
             {
@@ -361,9 +363,7 @@ CONTENT = {
             "id": "E1",
             "kind": "single_select",
             "tipo": "estandar",
-            "prompt": (
-                r"Para factorizar $18x^{3}-2x$, ¿por qué molde hay que EMPEZAR?"
-            ),
+            "prompt": (r"Para factorizar $18x^{3}-2x$, ¿por qué molde hay que EMPEZAR?"),
             "options": [
                 {"id": "comun", "text": "Factor común"},
                 {"id": "cuadrados", "text": "Diferencia de cuadrados"},
@@ -392,9 +392,7 @@ CONTENT = {
             "id": "E2",
             "kind": "numeric",
             "tipo": "estandar",
-            "prompt": (
-                r"Al factorizar completamente $12mx^{2}-12m$, ¿en cuántos factores queda?"
-            ),
+            "prompt": (r"Al factorizar completamente $12mx^{2}-12m$, ¿en cuántos factores queda?"),
             "expr": r"12m(x+1)(x-1)",
             "answer": "3",
             "hints": {
@@ -423,9 +421,7 @@ CONTENT = {
             "id": "E4",
             "kind": "single_select",
             "tipo": "estandar",
-            "prompt": (
-                r"Sin hacer ninguna cuenta: ¿cuál de estas remesas NO se puede abrir más?"
-            ),
+            "prompt": (r"Sin hacer ninguna cuenta: ¿cuál de estas remesas NO se puede abrir más?"),
             "options": [
                 {"id": "irred", "text": r"$x^{2}+4$", "latex": r"x^{2}+4"},
                 {"id": "dif", "text": r"$x^{2}-4$", "latex": r"x^{2}-4"},
@@ -652,8 +648,7 @@ CONTENT = {
     "closing_item": {
         "id": "C1",
         "statement": (
-            "Salim expide la remesa $2x^{4}-32$. ¿En cuántos factores queda al abrirla del "
-            "todo?"
+            "Salim expide la remesa $2x^{4}-32$. ¿En cuántos factores queda al abrirla del " "todo?"
         ),
         "polya": [
             "Entender: hay que factorizar completamente y contar los factores.",
@@ -745,15 +740,9 @@ CONTENT = {
         "fb_g05_e1_cubos": (
             "18x³ y 2x no son cubos exactos. Y aunque lo fueran, el común va antes."
         ),
-        "fb_g05_e1_tri": (
-            "El trinomio general pide TRES términos y aquí hay dos."
-        ),
-        "fb_g05_e4_dif": (
-            "Esa sí se abre: dos cuadrados exactos que restan → (x + 2)(x − 2)."
-        ),
-        "fb_g05_e4_comun": (
-            "Esa tiene factor común: 2x(x + 4). Se abre en dos factores."
-        ),
+        "fb_g05_e1_tri": ("El trinomio general pide TRES términos y aquí hay dos."),
+        "fb_g05_e4_dif": ("Esa sí se abre: dos cuadrados exactos que restan → (x + 2)(x − 2)."),
+        "fb_g05_e4_comun": ("Esa tiene factor común: 2x(x + 4). Se abre en dos factores."),
         "fb_g05_e4_cubo": (
             "La suma de CUBOS sí se abre: (x + 2)(x² − 2x + 4). La que se queda cerrada es la "
             "suma de cuadrados."

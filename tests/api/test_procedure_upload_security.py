@@ -23,9 +23,7 @@ def test_rejects_declared_image_with_non_image_content(api_client, student_heade
     assert response.status_code == 415
 
 
-def test_client_cannot_forge_ai_score_but_signed_review_is_accepted(
-    api_client, student_headers
-):
+def test_client_cannot_forge_ai_score_but_signed_review_is_accepted(api_client, student_headers):
     import api.dependencies as dependencies
 
     profile = api_client.get("/api/auth/me", headers=student_headers).json()
@@ -64,8 +62,10 @@ def test_duplicate_file_from_another_student_is_rejected(api_client, student_hea
     image = png_bytes((160, 40, 20))
     item_id = "plagiarism-" + uuid.uuid4().hex
     first = api_client.post(
-        "/api/student/procedure", headers=student_headers,
-        data={"item_id": item_id}, files={"file": ("a.png", image, "image/png")},
+        "/api/student/procedure",
+        headers=student_headers,
+        data={"item_id": item_id},
+        files={"file": ("a.png", image, "image/png")},
     )
     assert first.status_code == 200
 
@@ -79,7 +79,9 @@ def test_duplicate_file_from_another_student_is_rejected(api_client, student_hea
         conn.close()
     token = dependencies.create_access_token(other_id, username, "student")
     second = api_client.post(
-        "/api/student/procedure", headers={"Authorization": f"Bearer {token}"},
-        data={"item_id": item_id}, files={"file": ("copy.png", image, "image/png")},
+        "/api/student/procedure",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"item_id": item_id},
+        files={"file": ("copy.png", image, "image/png")},
     )
     assert second.status_code == 409

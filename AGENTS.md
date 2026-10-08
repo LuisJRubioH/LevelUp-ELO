@@ -38,10 +38,12 @@ V1 is frozen — see the constitution § Stack for what that allows.
 
 ### Deploy
 
-Push to `main` auto-deploys this repo's **sandbox**: frontend on Vercel, backend on Render
-(`oulad-sandbox-api`, `render.yaml`), database on a separate Supabase project. The original
-product's production lives in `LuisJRubioH/LevelUp-ELO`. Environment variables and startup order:
-[`docs/arquitectura.md` § Despliegue](docs/arquitectura.md).
+**None from this repository.** It is a development copy: pushing or merging deploys nothing and
+migrates no remote database. Never attempt a deployment, never treat a host's status as a blocker
+and never claim a remote migration happened. The owner transfers finished work to the final
+deployment repository by hand ([`docs/transfer.md`](docs/transfer.md)); `render.yaml` and
+`frontend/vercel.json` are inert templates for it. The original product's production lives in
+`LuisJRubioH/LevelUp-ELO`.
 
 ### Verify before saying "done"
 
@@ -265,8 +267,9 @@ An invalid attempt is recorded with before = after and moves nothing. With an `I
 `/answer` returns the persisted attempt values on the first response and on retries (FR-012a).
 
 ### R17 — No migrations or blocking I/O inside the HTTP process
-- Deploy: schema bootstrap runs in `scripts/migrate.py` against `MIGRATION_DATABASE_URL` (direct
-  connection, port 5432); the web process runs with `RUN_MIGRATIONS=0`. Local dev and tests keep
+- In a deployed environment (the final repository): schema bootstrap runs in
+  `scripts/migrate.py` against `MIGRATION_DATABASE_URL` (direct connection, port 5432); the web
+  process runs with `RUN_MIGRATIONS=0`. Local dev and tests keep
   the in-process bootstrap (default `RUN_MIGRATIONS=1`).
 - WebSockets: repositories are synchronous. From `async def`, call them through
   `await asyncio.to_thread(...)`, and **never** while holding the PvP lobby `_lock`. From a `def`
@@ -305,8 +308,8 @@ expectation of an unrated player but is never shown). Orphaned matches are close
 - **V2-R9** — The correct answer never reaches the frontend: no `correct_option` in any `/answer`
   or `/exam/submit` response. On answer, colour only the chosen option.
 - **V2-R10** — Any direct `fetch()` outside `api/client.ts` prefixes
-  `import.meta.env.VITE_API_URL ?? ""`. Vercel serves the SPA with no reverse proxy to Render
-  (`SocraticChat.tsx` is the reference).
+  `import.meta.env.VITE_API_URL ?? ""`. The SPA is served apart from the API with no reverse
+  proxy (`SocraticChat.tsx` is the reference).
 
 ### Learning-path rules (owned by spec 003 once it exists)
 

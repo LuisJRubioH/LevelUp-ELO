@@ -143,11 +143,27 @@ CONTENT = {
     ),
     "definition_symbols": [
         {"symbol": r"a", "reads": "dividendo", "means": "lo que se reparte"},
-        {"symbol": r"b", "reads": "divisor", "means": "entre cuántos, o de qué tamaño es cada parte"},
+        {
+            "symbol": r"b",
+            "reads": "divisor",
+            "means": "entre cuántos, o de qué tamaño es cada parte",
+        },
         {"symbol": r"c", "reads": "cociente", "means": "el resultado del reparto"},
-        {"symbol": r"r", "reads": "residuo", "means": "lo que queda sin repartir en enteros; sigue siendo comida"},
-        {"symbol": r"b\neq 0", "reads": "b distinto de cero", "means": "repartir entre cero mesas no es un reparto"},
-        {"symbol": r"0<b<1", "reads": "divisor entre cero y uno", "means": "el cociente queda POR ENCIMA del dividendo"},
+        {
+            "symbol": r"r",
+            "reads": "residuo",
+            "means": "lo que queda sin repartir en enteros; sigue siendo comida",
+        },
+        {
+            "symbol": r"b\neq 0",
+            "reads": "b distinto de cero",
+            "means": "repartir entre cero mesas no es un reparto",
+        },
+        {
+            "symbol": r"0<b<1",
+            "reads": "divisor entre cero y uno",
+            "means": "el cociente queda POR ENCIMA del dividendo",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -209,10 +225,14 @@ CONTENT = {
                 "wrong_latex": r"20\div\dfrac{1}{2}=10",
                 "right_latex": r"20\div\dfrac{1}{2}=40",
                 "rows": [
-                    {"wrong": "Dividir siempre da un resultado menor",
-                     "right": "Dividir entre un número entre 0 y 1 da un resultado mayor"},
-                    {"wrong": "De 20 hogazas salen 10 medias raciones",
-                     "right": "De 20 hogazas salen 40 medias raciones"},
+                    {
+                        "wrong": "Dividir siempre da un resultado menor",
+                        "right": "Dividir entre un número entre 0 y 1 da un resultado mayor",
+                    },
+                    {
+                        "wrong": "De 20 hogazas salen 10 medias raciones",
+                        "right": "De 20 hogazas salen 40 medias raciones",
+                    },
                 ],
             },
             "explain_prompt": "¿Por qué 10 no puede ser la respuesta? Escribe la igualdad corregida.",
@@ -253,7 +273,11 @@ CONTENT = {
                     r"9\div\dfrac{1}{4}=9\times 4",
                 ],
                 "blanks": [
-                    {"id": "P2-b1", "label": r"\text{¿el divisor es mayor o menor que 1? }0\text{ si menor}, 1\text{ si mayor}", "answer": "0"},
+                    {
+                        "id": "P2-b1",
+                        "label": r"\text{¿el divisor es mayor o menor que 1? }0\text{ si menor}, 1\text{ si mayor}",
+                        "answer": "0",
+                    },
                     {"id": "P2-b2", "label": r"9\div\dfrac{1}{4}=", "answer": "36"},
                 ],
             },
@@ -279,12 +303,20 @@ CONTENT = {
         "methods": [
             {
                 "label": "Método 1 · Multiplicar por el inverso",
-                "steps": [r"\dfrac{9}{2}\div\dfrac{3}{4}=\dfrac{9}{2}\times\dfrac{4}{3}", r"=\dfrac{36}{6}", r"=6"],
+                "steps": [
+                    r"\dfrac{9}{2}\div\dfrac{3}{4}=\dfrac{9}{2}\times\dfrac{4}{3}",
+                    r"=\dfrac{36}{6}",
+                    r"=6",
+                ],
                 "note": "Siempre funciona con fracciones.",
             },
             {
                 "label": "Método 2 · Pasar todo a cuartos y contar",
-                "steps": [r"\dfrac{9}{2}=\dfrac{18}{4}", r"\text{¿cuántos }\tfrac{3}{4}\text{ caben en }\tfrac{18}{4}?", r"18\div 3=6"],
+                "steps": [
+                    r"\dfrac{9}{2}=\dfrac{18}{4}",
+                    r"\text{¿cuántos }\tfrac{3}{4}\text{ caben en }\tfrac{18}{4}?",
+                    r"18\div 3=6",
+                ],
                 "note": "Cuenta piezas del mismo tamaño; se ve por qué el resultado es entero.",
             },
         ],
@@ -373,7 +405,10 @@ CONTENT = {
             "confidence": "fija",
             "prompt": r"¿Es verdadera o falsa? «Para cualesquiera $a>0$ y $b>0$: $a\div b<a$.»",
             "options": [
-                {"id": "false_small", "text": "Falsa: si b está entre 0 y 1, el cociente queda por encima de a"},
+                {
+                    "id": "false_small",
+                    "text": "Falsa: si b está entre 0 y 1, el cociente queda por encima de a",
+                },
                 {"id": "true", "text": "Verdadera: dividir siempre achica"},
                 {"id": "false_never", "text": "Falsa: el cociente nunca baja de a"},
                 {"id": "true_if_int", "text": "Verdadera siempre que b sea entero"},
@@ -448,24 +483,48 @@ CONTENT = {
         "title": "¿La división de dos elementos del conjunto vive en el conjunto?",
         "intro": "Aquí la escalera vuelve a romperse, y en un peldaño distinto al de la resta.",
         "rows": [
-            {"symbol": r"\mathbb{N}", "name": "Naturales", "closed": "no",
-             "latex": r"5\div 2\notin\mathbb{N}",
-             "note": "El reparto no exacto no da un número de contar."},
-            {"symbol": r"\mathbb{Z}", "name": "Enteros", "closed": "no",
-             "latex": r"5\div 2\notin\mathbb{Z}",
-             "note": "Los negativos no ayudaron: 5 entre 2 sigue sin ser entero. La resta se arregló aquí; la división no."},
-            {"symbol": r"\mathbb{Q}", "name": "Racionales", "closed": "yes",
-             "latex": r"\dfrac{a}{b}\div\dfrac{c}{d}=\dfrac{a\,d}{b\,c}\in\mathbb{Q}",
-             "note": "ℚ nació exactamente de esto (B06): darle respuesta a todo reparto, mientras el divisor no sea 0."},
-            {"symbol": r"\mathbb{I}", "name": "Irracionales", "closed": "no",
-             "latex": r"\sqrt{8}\div\sqrt{2}=2\in\mathbb{Q}",
-             "note": "Dos irracionales pueden dar un racional: el resultado SE SALE. Ninguna operación aritmética cierra 𝕀."},
-            {"symbol": r"\mathbb{R}", "name": "Reales", "closed": "yes",
-             "latex": r"\pi\div 2=\dfrac{\pi}{2}\in\mathbb{R}",
-             "note": "ℝ = ℚ ∪ 𝕀 (B08) sí cierra: la división vive cómoda ahí."},
-            {"symbol": r"\mathbb{C}", "name": "Complejos", "closed": "yes",
-             "latex": r"\dfrac{1}{i}=-i",
-             "note": "También cierra. Desvío opcional (B09)."},
+            {
+                "symbol": r"\mathbb{N}",
+                "name": "Naturales",
+                "closed": "no",
+                "latex": r"5\div 2\notin\mathbb{N}",
+                "note": "El reparto no exacto no da un número de contar.",
+            },
+            {
+                "symbol": r"\mathbb{Z}",
+                "name": "Enteros",
+                "closed": "no",
+                "latex": r"5\div 2\notin\mathbb{Z}",
+                "note": "Los negativos no ayudaron: 5 entre 2 sigue sin ser entero. La resta se arregló aquí; la división no.",
+            },
+            {
+                "symbol": r"\mathbb{Q}",
+                "name": "Racionales",
+                "closed": "yes",
+                "latex": r"\dfrac{a}{b}\div\dfrac{c}{d}=\dfrac{a\,d}{b\,c}\in\mathbb{Q}",
+                "note": "ℚ nació exactamente de esto (B06): darle respuesta a todo reparto, mientras el divisor no sea 0.",
+            },
+            {
+                "symbol": r"\mathbb{I}",
+                "name": "Irracionales",
+                "closed": "no",
+                "latex": r"\sqrt{8}\div\sqrt{2}=2\in\mathbb{Q}",
+                "note": "Dos irracionales pueden dar un racional: el resultado SE SALE. Ninguna operación aritmética cierra 𝕀.",
+            },
+            {
+                "symbol": r"\mathbb{R}",
+                "name": "Reales",
+                "closed": "yes",
+                "latex": r"\pi\div 2=\dfrac{\pi}{2}\in\mathbb{R}",
+                "note": "ℝ = ℚ ∪ 𝕀 (B08) sí cierra: la división vive cómoda ahí.",
+            },
+            {
+                "symbol": r"\mathbb{C}",
+                "name": "Complejos",
+                "closed": "yes",
+                "latex": r"\dfrac{1}{i}=-i",
+                "note": "También cierra. Desvío opcional (B09).",
+            },
         ],
         "outro": (
             "Dos operaciones han roto la escalera: la resta obligó a inventar ℤ y la división "
@@ -476,10 +535,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres casos trabajados en este nodo?",
         "thumbnails": [r"27\div 6", r"12\div\tfrac{1}{2}", r"20\div\tfrac{1}{2}"],
         "options": [
-            {"id": "equal_parts", "text": "En los tres se reparte en partes iguales", "correct": True},
-            {"id": "smaller", "text": "En los tres el resultado es menor que el dividendo", "correct": False},
-            {"id": "divisor", "text": "En los tres el divisor decide si el resultado sube o baja", "correct": True},
-            {"id": "exact", "text": "En los tres el reparto da exacto en enteros", "correct": False},
+            {
+                "id": "equal_parts",
+                "text": "En los tres se reparte en partes iguales",
+                "correct": True,
+            },
+            {
+                "id": "smaller",
+                "text": "En los tres el resultado es menor que el dividendo",
+                "correct": False,
+            },
+            {
+                "id": "divisor",
+                "text": "En los tres el divisor decide si el resultado sube o baja",
+                "correct": True,
+            },
+            {
+                "id": "exact",
+                "text": "En los tres el reparto da exacto en enteros",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

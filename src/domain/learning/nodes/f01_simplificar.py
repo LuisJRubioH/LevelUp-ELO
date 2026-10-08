@@ -66,7 +66,10 @@ CONTENT = {
                 "tipo": "diagnostico",
                 "prompt": "¿Qué pasa si el número de familias entre las que se reparte fuera 0?",
                 "options": [
-                    {"id": "undefined", "text": "No hay reparto posible: dividir entre 0 no está definido"},
+                    {
+                        "id": "undefined",
+                        "text": "No hay reparto posible: dividir entre 0 no está definido",
+                    },
                     {"id": "zero", "text": "El reparto da 0 a cada una"},
                     {"id": "all", "text": "Le toca todo a la primera"},
                 ],
@@ -146,11 +149,31 @@ CONTENT = {
         "los sumandos no se cancelan."
     ),
     "definition_symbols": [
-        {"symbol": r"\dfrac{6x}{3}", "reads": "seis equis entre tres", "means": "reparto de 6x en 3 partes iguales"},
-        {"symbol": r"a\ne 0", "reads": "a distinto de cero", "means": "solo se cancela lo que no es cero"},
-        {"symbol": r"n\ne 0", "reads": "denominador no nulo", "means": "restricción obligatoria: sin ella la fracción no existe"},
-        {"symbol": r"\dfrac{x+4}{x}", "reads": "no simplificable", "means": "la x de arriba es un sumando, no un factor"},
-        {"symbol": r"x\in\mathbb{N},\ x>0", "reads": "dominio del contexto", "means": "aquí x cuenta familias: entero y positivo"},
+        {
+            "symbol": r"\dfrac{6x}{3}",
+            "reads": "seis equis entre tres",
+            "means": "reparto de 6x en 3 partes iguales",
+        },
+        {
+            "symbol": r"a\ne 0",
+            "reads": "a distinto de cero",
+            "means": "solo se cancela lo que no es cero",
+        },
+        {
+            "symbol": r"n\ne 0",
+            "reads": "denominador no nulo",
+            "means": "restricción obligatoria: sin ella la fracción no existe",
+        },
+        {
+            "symbol": r"\dfrac{x+4}{x}",
+            "reads": "no simplificable",
+            "means": "la x de arriba es un sumando, no un factor",
+        },
+        {
+            "symbol": r"x\in\mathbb{N},\ x>0",
+            "reads": "dominio del contexto",
+            "means": "aquí x cuenta familias: entero y positivo",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -213,10 +236,14 @@ CONTENT = {
                 "wrong_latex": r"\dfrac{x+4}{x}=4",
                 "right_latex": r"\dfrac{x+4}{x}=1+\dfrac{4}{x}\quad (x\ne 0)",
                 "rows": [
-                    {"wrong": "Si la x está arriba y abajo, se tacha",
-                     "right": "Solo si multiplica a TODO el numerador"},
-                    {"wrong": "Queda 4, un número fijo",
-                     "right": "Queda algo que depende de x: con 2 familias toca 3 y con 4 familias toca 2"},
+                    {
+                        "wrong": "Si la x está arriba y abajo, se tacha",
+                        "right": "Solo si multiplica a TODO el numerador",
+                    },
+                    {
+                        "wrong": "Queda 4, un número fijo",
+                        "right": "Queda algo que depende de x: con 2 familias toca 3 y con 4 familias toca 2",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -386,11 +413,12 @@ CONTENT = {
             "id": "E4",
             "kind": "single_select",
             "tipo": "detecta_error",
-            "prompt": (
-                r"Un aprendiz escribe: «$\dfrac{2y+6}{2}=y+6$». ¿Dónde está el error?"
-            ),
+            "prompt": (r"Un aprendiz escribe: «$\dfrac{2y+6}{2}=y+6$». ¿Dónde está el error?"),
             "options": [
-                {"id": "partial", "text": "Dividió solo el primer término: el 6 también hay que dividirlo, y queda y + 3"},
+                {
+                    "id": "partial",
+                    "text": "Dividió solo el primer término: el 6 también hay que dividirlo, y queda y + 3",
+                },
                 {"id": "cancel", "text": "No se puede simplificar nada en esa fracción"},
                 {"id": "coef", "text": "2y ÷ 2 no es y"},
                 {"id": "none", "text": "No hay error"},
@@ -420,7 +448,10 @@ CONTENT = {
             "confidence": "fija",
             "prompt": r"¿Es verdadera o falsa? «$\dfrac{x+4}{x}=4$ para cualquier $x$.»",
             "options": [
-                {"id": "false", "text": "Falsa: la x está sumada, no multiplicando; no se puede tachar"},
+                {
+                    "id": "false",
+                    "text": "Falsa: la x está sumada, no multiplicando; no se puede tachar",
+                },
                 {"id": "true", "text": "Verdadera: la x de arriba y la de abajo se cancelan"},
                 {"id": "true_not0", "text": "Verdadera siempre que x ≠ 0"},
                 {"id": "false_five", "text": r"Falsa: en realidad da $5$"},
@@ -490,24 +521,48 @@ CONTENT = {
             "es si multiplica al numerador entero."
         ),
         "rows": [
-            {"symbol": r"\dfrac{6x}{3}", "name": "Factor numérico común", "closed": "yes",
-             "latex": r"=2x",
-             "note": "6x = 3 · 2x: el 3 multiplica a todo lo de arriba."},
-            {"symbol": r"\dfrac{x+4}{x}", "name": "La x está sumada", "closed": "no",
-             "latex": r"\ne 4",
-             "note": "Con x = 2 da 3, no 4. Es la trampa de este nodo."},
-            {"symbol": r"\dfrac{6(c+2)}{3}", "name": "El factor es un paréntesis", "closed": "yes",
-             "latex": r"=2(c+2)",
-             "note": "Se simplifica el 6 con el 3; lo de dentro del paréntesis no se toca."},
-            {"symbol": r"\dfrac{2y+6}{2}", "name": "Suma con factor común real", "closed": "yes",
-             "latex": r"=y+3",
-             "note": "Aquí sí: el 2 divide a los DOS sumandos. Hay suma, pero también factor común."},
-            {"symbol": r"\dfrac{5}{x-2}", "name": "Nada que simplificar", "closed": "no",
-             "latex": r"x\ne 2",
-             "note": "No se acorta, pero sí hay que declarar la restricción: en x = 2 no existe."},
-            {"symbol": r"\dfrac{x+4}{x}", "name": "Repartir la barra", "closed": "partial",
-             "latex": r"=1+\dfrac{4}{x}",
-             "note": "No se simplifica, pero sí se puede reescribir repartiendo el denominador entre los sumandos."},
+            {
+                "symbol": r"\dfrac{6x}{3}",
+                "name": "Factor numérico común",
+                "closed": "yes",
+                "latex": r"=2x",
+                "note": "6x = 3 · 2x: el 3 multiplica a todo lo de arriba.",
+            },
+            {
+                "symbol": r"\dfrac{x+4}{x}",
+                "name": "La x está sumada",
+                "closed": "no",
+                "latex": r"\ne 4",
+                "note": "Con x = 2 da 3, no 4. Es la trampa de este nodo.",
+            },
+            {
+                "symbol": r"\dfrac{6(c+2)}{3}",
+                "name": "El factor es un paréntesis",
+                "closed": "yes",
+                "latex": r"=2(c+2)",
+                "note": "Se simplifica el 6 con el 3; lo de dentro del paréntesis no se toca.",
+            },
+            {
+                "symbol": r"\dfrac{2y+6}{2}",
+                "name": "Suma con factor común real",
+                "closed": "yes",
+                "latex": r"=y+3",
+                "note": "Aquí sí: el 2 divide a los DOS sumandos. Hay suma, pero también factor común.",
+            },
+            {
+                "symbol": r"\dfrac{5}{x-2}",
+                "name": "Nada que simplificar",
+                "closed": "no",
+                "latex": r"x\ne 2",
+                "note": "No se acorta, pero sí hay que declarar la restricción: en x = 2 no existe.",
+            },
+            {
+                "symbol": r"\dfrac{x+4}{x}",
+                "name": "Repartir la barra",
+                "closed": "partial",
+                "latex": r"=1+\dfrac{4}{x}",
+                "note": "No se simplifica, pero sí se puede reescribir repartiendo el denominador entre los sumandos.",
+            },
         ],
         "outro": (
             "Dos filas conviven a propósito: (x+4)/x no se simplifica y aun así se puede "
@@ -519,10 +574,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres repartos trabajados en este nodo?",
         "thumbnails": [r"\dfrac{8r}{4}", r"\dfrac{6(c+2)}{3}", r"\dfrac{x+4}{x}"],
         "options": [
-            {"id": "division", "text": "En los tres la barra significa una división", "correct": True},
-            {"id": "factor", "text": "En los tres hay que mirar si lo repetido es factor o sumando", "correct": True},
-            {"id": "always", "text": "En los tres se puede tachar lo que se repite arriba y abajo", "correct": False},
-            {"id": "number", "text": "En los tres el resultado es un número que no depende de la letra", "correct": False},
+            {
+                "id": "division",
+                "text": "En los tres la barra significa una división",
+                "correct": True,
+            },
+            {
+                "id": "factor",
+                "text": "En los tres hay que mirar si lo repetido es factor o sumando",
+                "correct": True,
+            },
+            {
+                "id": "always",
+                "text": "En los tres se puede tachar lo que se repite arriba y abajo",
+                "correct": False,
+            },
+            {
+                "id": "number",
+                "text": "En los tres el resultado es un número que no depende de la letra",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {
@@ -633,9 +704,7 @@ CONTENT = {
         "fb_a03_e4_cancel": (
             "Sí se puede: el 2 divide a 2y y también a 6. → Divide cada sumando por separado."
         ),
-        "fb_a03_e4_coef": (
-            "2y ÷ 2 = y está bien. → El fallo está en el otro sumando."
-        ),
+        "fb_a03_e4_coef": ("2y ÷ 2 = y está bien. → El fallo está en el otro sumando."),
         "fb_a03_e4_none": (
             "Comprueba con y = 4: arriba 14, entre 2 son 7; y + 6 daría 10. → No coinciden."
         ),

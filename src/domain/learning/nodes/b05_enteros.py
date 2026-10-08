@@ -153,12 +153,32 @@ CONTENT = {
         "del número. −5 y 5 son dos números distintos, no uno con dos disfraces."
     ),
     "definition_symbols": [
-        {"symbol": r"\mathbb{Z}", "reads": "los enteros", "means": "del alemán Zahl, número: naturales, sus opuestos y el 0"},
-        {"symbol": r"-a", "reads": "el opuesto de a", "means": "el que está a la misma distancia del 0, al otro lado"},
-        {"symbol": r"|a|", "reads": "valor absoluto de a", "means": "la distancia al 0, sin mirar el lado: |−5| = 5"},
+        {
+            "symbol": r"\mathbb{Z}",
+            "reads": "los enteros",
+            "means": "del alemán Zahl, número: naturales, sus opuestos y el 0",
+        },
+        {
+            "symbol": r"-a",
+            "reads": "el opuesto de a",
+            "means": "el que está a la misma distancia del 0, al otro lado",
+        },
+        {
+            "symbol": r"|a|",
+            "reads": "valor absoluto de a",
+            "means": "la distancia al 0, sin mirar el lado: |−5| = 5",
+        },
         {"symbol": r"<", "reads": "es menor que", "means": "está más a la izquierda en la recta"},
-        {"symbol": r"\mathbb{N}\subset\mathbb{Z}", "reads": "ℕ está contenido en ℤ", "means": "no perdiste los naturales: siguen ahí, del lado derecho"},
-        {"symbol": r"a+(-a)=0", "reads": "a más su opuesto da cero", "means": "pagar la deuda exacta deja la cuenta en 0"},
+        {
+            "symbol": r"\mathbb{N}\subset\mathbb{Z}",
+            "reads": "ℕ está contenido en ℤ",
+            "means": "no perdiste los naturales: siguen ahí, del lado derecho",
+        },
+        {
+            "symbol": r"a+(-a)=0",
+            "reads": "a más su opuesto da cero",
+            "means": "pagar la deuda exacta deja la cuenta en 0",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos (a, b, trampa) ------------------------
     "worked_examples": [
@@ -227,15 +247,17 @@ CONTENT = {
                 "wrong_latex": r"-5>-2",
                 "right_latex": r"-5<-2",
                 "rows": [
-                    {"wrong": "5 es mayor que 2, así que −5 es mayor que −2",
-                     "right": "En la recta, −5 está más a la izquierda: es menor"},
-                    {"wrong": "Deber 5 es mejor que deber 2",
-                     "right": "Deber 5 es peor: te falta más para volver al 0"},
+                    {
+                        "wrong": "5 es mayor que 2, así que −5 es mayor que −2",
+                        "right": "En la recta, −5 está más a la izquierda: es menor",
+                    },
+                    {
+                        "wrong": "Deber 5 es mejor que deber 2",
+                        "right": "Deber 5 es peor: te falta más para volver al 0",
+                    },
                 ],
             },
-            "explain_prompt": (
-                "¿Por qué −5 no es mayor que −2? Escribe la desigualdad corregida."
-            ),
+            "explain_prompt": ("¿Por qué −5 no es mayor que −2? Escribe la desigualdad corregida."),
             "steps": [
                 "Dibuja la recta y marca el 0, el −2 y el −5.",
                 "Fíjate cuál de los dos queda más lejos del 0 hacia la izquierda.",
@@ -393,7 +415,10 @@ CONTENT = {
                 "¿Dónde está el error?"
             ),
             "options": [
-                {"id": "should_subtract", "text": "Sumó la entrega a la deuda en vez de restarla: debe −6"},
+                {
+                    "id": "should_subtract",
+                    "text": "Sumó la entrega a la deuda en vez de restarla: debe −6",
+                },
                 {"id": "sign", "text": "El resultado debía ser positivo: +14"},
                 {"id": "initial", "text": "La deuda inicial estaba mal escrita"},
                 {"id": "none", "text": "Ningún error, está bien"},
@@ -456,7 +481,10 @@ CONTENT = {
             ),
             "options": [
                 {"id": "first_zero", "text": "El primero: llega a 0; el segundo sigue en −7"},
-                {"id": "second_more", "text": "El segundo: le perdonaron más deuda proporcionalmente"},
+                {
+                    "id": "second_more",
+                    "text": "El segundo: le perdonaron más deuda proporcionalmente",
+                },
                 {"id": "same", "text": "Iguales: a los dos les perdonaron lo mismo"},
                 {"id": "second_bigger", "text": "El segundo: su número sigue siendo más grande"},
             ],
@@ -514,12 +542,27 @@ CONTENT = {
         "title": "¿Toda resta de dos números del conjunto vive en el conjunto?",
         "intro": "Este peldaño nació justo de la pregunta que quedó abierta en B04.",
         "rows": [
-            {"symbol": r"\mathbb{N}", "name": "Naturales", "closed": "no",
-             "latex": r"3-5\notin\mathbb{N}", "note": "Se salía: no había nada por debajo del 0."},
-            {"symbol": r"\mathbb{Z}", "name": "Enteros", "closed": "yes",
-             "latex": r"3-5=-2\in\mathbb{Z}", "note": "El conjunto se hizo para esto: la resta ya siempre cabe."},
-            {"symbol": r"\mathbb{Q}", "name": "Racionales", "closed": "yes",
-             "latex": r"3\div4=\dfrac{3}{4}\in\mathbb{Q}", "note": "Pero la DIVISIÓN todavía no cabe en ℤ: eso abre B06."},
+            {
+                "symbol": r"\mathbb{N}",
+                "name": "Naturales",
+                "closed": "no",
+                "latex": r"3-5\notin\mathbb{N}",
+                "note": "Se salía: no había nada por debajo del 0.",
+            },
+            {
+                "symbol": r"\mathbb{Z}",
+                "name": "Enteros",
+                "closed": "yes",
+                "latex": r"3-5=-2\in\mathbb{Z}",
+                "note": "El conjunto se hizo para esto: la resta ya siempre cabe.",
+            },
+            {
+                "symbol": r"\mathbb{Q}",
+                "name": "Racionales",
+                "closed": "yes",
+                "latex": r"3\div4=\dfrac{3}{4}\in\mathbb{Q}",
+                "note": "Pero la DIVISIÓN todavía no cabe en ℤ: eso abre B06.",
+            },
         ],
         "outro": (
             "Cerraste la resta y ganaste una recta completa. Pero 3 ÷ 4 sigue sin tener "
@@ -531,9 +574,21 @@ CONTENT = {
         "prompt": "¿Qué estructura comparten los tres problemas de este nodo?",
         "thumbnails": [r"-2-6", r"-9+9", r"-5<-2"],
         "options": [
-            {"id": "line", "text": "Los tres se resuelven moviéndose en una recta con el 0 en el centro", "correct": True},
-            {"id": "sign", "text": "En los tres el signo cambia el significado del número", "correct": True},
-            {"id": "negative_result", "text": "Los tres terminan en un número negativo", "correct": False},
+            {
+                "id": "line",
+                "text": "Los tres se resuelven moviéndose en una recta con el 0 en el centro",
+                "correct": True,
+            },
+            {
+                "id": "sign",
+                "text": "En los tres el signo cambia el significado del número",
+                "correct": True,
+            },
+            {
+                "id": "negative_result",
+                "text": "Los tres terminan en un número negativo",
+                "correct": False,
+            },
             {"id": "money", "text": "Los tres hablan de dinero", "correct": False},
         ],
     },

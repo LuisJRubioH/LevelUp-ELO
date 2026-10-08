@@ -214,12 +214,32 @@ CONTENT = {
         "números, nunca perderlos."
     ),
     "definition_symbols": [
-        {"symbol": r"\subset", "reads": "está contenido en", "means": "todo lo del primero está también en el segundo"},
-        {"symbol": r"\mathbb{N}\subset\mathbb{Z}", "reads": "ℕ dentro de ℤ", "means": "todo natural es también entero; 5 no dejó de ser natural"},
+        {
+            "symbol": r"\subset",
+            "reads": "está contenido en",
+            "means": "todo lo del primero está también en el segundo",
+        },
+        {
+            "symbol": r"\mathbb{N}\subset\mathbb{Z}",
+            "reads": "ℕ dentro de ℤ",
+            "means": "todo natural es también entero; 5 no dejó de ser natural",
+        },
         {"symbol": r"\in", "reads": "pertenece a", "means": "relaciona UN número con UN conjunto"},
-        {"symbol": r"\notin", "reads": "no pertenece a", "means": "el número se sale de ese conjunto: ahí nace el siguiente"},
-        {"symbol": r"\mathbb{R}\setminus\mathbb{Q}", "reads": "los irracionales", "means": "el único que NO contiene a los anteriores: rellena, no envuelve"},
-        {"symbol": r"\cup", "reads": "unión", "means": "ℝ = ℚ ∪ 𝕀: los reales son las fracciones más lo que las fracciones no alcanzan"},
+        {
+            "symbol": r"\notin",
+            "reads": "no pertenece a",
+            "means": "el número se sale de ese conjunto: ahí nace el siguiente",
+        },
+        {
+            "symbol": r"\mathbb{R}\setminus\mathbb{Q}",
+            "reads": "los irracionales",
+            "means": "el único que NO contiene a los anteriores: rellena, no envuelve",
+        },
+        {
+            "symbol": r"\cup",
+            "reads": "unión",
+            "means": "ℝ = ℚ ∪ 𝕀: los reales son las fracciones más lo que las fracciones no alcanzan",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos (a, b, trampa) ------------------------
     "worked_examples": [
@@ -282,10 +302,14 @@ CONTENT = {
                 "wrong_latex": r"5\in\mathbb{Q}\ \Rightarrow\ 5\notin\mathbb{N}",
                 "right_latex": r"5\in\mathbb{N}\ \Rightarrow\ 5\in\mathbb{Z},\ \mathbb{Q},\ \mathbb{R}",
                 "rows": [
-                    {"wrong": "Un número vive en un solo conjunto",
-                     "right": "Un número vive en todos los que lo contienen"},
-                    {"wrong": "Subir de peldaño es mudarse",
-                     "right": "Subir de peldaño es que lleguen vecinos nuevos"},
+                    {
+                        "wrong": "Un número vive en un solo conjunto",
+                        "right": "Un número vive en todos los que lo contienen",
+                    },
+                    {
+                        "wrong": "Subir de peldaño es mudarse",
+                        "right": "Subir de peldaño es que lleguen vecinos nuevos",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -332,8 +356,16 @@ CONTENT = {
                     r"-6\ \text{es negativo}\Rightarrow -6\notin\mathbb{N}",
                 ],
                 "blanks": [
-                    {"id": "P2-b1", "label": r"\text{Conjuntos que contienen a }-6=", "answer": "3"},
-                    {"id": "P2-b2", "label": r"\text{Conjuntos que contienen a }\tfrac{1}{2}=", "answer": "2"},
+                    {
+                        "id": "P2-b1",
+                        "label": r"\text{Conjuntos que contienen a }-6=",
+                        "answer": "3",
+                    },
+                    {
+                        "id": "P2-b2",
+                        "label": r"\text{Conjuntos que contienen a }\tfrac{1}{2}=",
+                        "answer": "2",
+                    },
                 ],
             },
             {
@@ -361,12 +393,18 @@ CONTENT = {
         "methods": [
             {
                 "label": "Dibujo 1 · Escalones",
-                "steps": [r"\mathbb{N}\ \to\ \mathbb{Z}\ \to\ \mathbb{Q}\ \to\ \mathbb{R}", r"\text{uno tras otro}"],
+                "steps": [
+                    r"\mathbb{N}\ \to\ \mathbb{Z}\ \to\ \mathbb{Q}\ \to\ \mathbb{R}",
+                    r"\text{uno tras otro}",
+                ],
                 "note": "Muestra bien el ORDEN histórico y la necesidad que abrió cada peldaño.",
             },
             {
                 "label": "Dibujo 2 · Cajas anidadas",
-                "steps": [r"\mathbb{N}\subset\mathbb{Z}\subset\mathbb{Q}\subset\mathbb{R}", r"\text{una dentro de otra}"],
+                "steps": [
+                    r"\mathbb{N}\subset\mathbb{Z}\subset\mathbb{Q}\subset\mathbb{R}",
+                    r"\text{una dentro de otra}",
+                ],
                 "note": "Muestra bien que nada se pierde: lo de adentro sigue adentro.",
             },
         ],
@@ -417,7 +455,10 @@ CONTENT = {
             "prompt": "¿Cuál de estas afirmaciones sobre la escalera es correcta?",
             "options": [
                 {"id": "ok", "text": "Todo entero es racional, pero no todo racional es entero"},
-                {"id": "reverse", "text": "Todo racional es entero, pero no todo entero es racional"},
+                {
+                    "id": "reverse",
+                    "text": "Todo racional es entero, pero no todo entero es racional",
+                },
                 {"id": "both", "text": "Todo entero es racional y todo racional es entero"},
                 {"id": "neither", "text": "Los enteros y los racionales no se tocan"},
             ],
@@ -448,7 +489,10 @@ CONTENT = {
                 "después ℝ; cada uno dentro del siguiente». ¿Dónde está el error?"
             ),
             "options": [
-                {"id": "irrationals", "text": "𝕀 no contiene a ℚ: los irracionales no envuelven a nadie, rellenan"},
+                {
+                    "id": "irrationals",
+                    "text": "𝕀 no contiene a ℚ: los irracionales no envuelven a nadie, rellenan",
+                },
                 {"id": "order", "text": "El orden está mal: ℤ va antes que ℕ"},
                 {"id": "reals", "text": "ℝ no debería ir al final"},
                 {"id": "none", "text": "Ningún error, está bien"},
@@ -569,16 +613,41 @@ CONTENT = {
         "title": "Qué gana cada peldaño y qué NO pierde",
         "intro": "Léelo de abajo hacia arriba: cada fila agrega, ninguna quita.",
         "rows": [
-            {"symbol": r"\mathbb{N}", "name": "Naturales", "closed": "yes",
-             "latex": r"0,1,2,3,\ldots", "note": "Contar. Se rompe con la resta."},
-            {"symbol": r"\mathbb{Z}", "name": "Enteros", "closed": "yes",
-             "latex": r"\mathbb{N}\cup\{-1,-2,\ldots\}", "note": "Agrega el lado izquierdo. Se rompe con la división."},
-            {"symbol": r"\mathbb{Q}", "name": "Racionales", "closed": "yes",
-             "latex": r"\mathbb{Z}\cup\left\{\tfrac{a}{b}\right\}", "note": "Agrega las partes. Se rompe con la diagonal del cuadrado."},
-            {"symbol": r"\mathbb{I}", "name": "Irracionales", "closed": "no",
-             "latex": r"\mathbb{I}\cap\mathbb{Q}=\varnothing", "note": "El raro: no contiene a nadie. Rellena huecos."},
-            {"symbol": r"\mathbb{R}", "name": "Reales", "closed": "yes",
-             "latex": r"\mathbb{R}=\mathbb{Q}\cup\mathbb{I}", "note": "La recta completa, sin un solo hueco."},
+            {
+                "symbol": r"\mathbb{N}",
+                "name": "Naturales",
+                "closed": "yes",
+                "latex": r"0,1,2,3,\ldots",
+                "note": "Contar. Se rompe con la resta.",
+            },
+            {
+                "symbol": r"\mathbb{Z}",
+                "name": "Enteros",
+                "closed": "yes",
+                "latex": r"\mathbb{N}\cup\{-1,-2,\ldots\}",
+                "note": "Agrega el lado izquierdo. Se rompe con la división.",
+            },
+            {
+                "symbol": r"\mathbb{Q}",
+                "name": "Racionales",
+                "closed": "yes",
+                "latex": r"\mathbb{Z}\cup\left\{\tfrac{a}{b}\right\}",
+                "note": "Agrega las partes. Se rompe con la diagonal del cuadrado.",
+            },
+            {
+                "symbol": r"\mathbb{I}",
+                "name": "Irracionales",
+                "closed": "no",
+                "latex": r"\mathbb{I}\cap\mathbb{Q}=\varnothing",
+                "note": "El raro: no contiene a nadie. Rellena huecos.",
+            },
+            {
+                "symbol": r"\mathbb{R}",
+                "name": "Reales",
+                "closed": "yes",
+                "latex": r"\mathbb{R}=\mathbb{Q}\cup\mathbb{I}",
+                "note": "La recta completa, sin un solo hueco.",
+            },
         ],
         "outro": (
             "Fíjate en la única fila marcada distinto: 𝕀. Todos los demás peldaños "
@@ -590,17 +659,28 @@ CONTENT = {
         "prompt": "¿Qué patrón se repite en el nacimiento de cada peldaño?",
         "thumbnails": [r"3-5", r"3\div4", r"\sqrt{2}"],
         "options": [
-            {"id": "operation", "text": "Una operación se salió del conjunto y hubo que ampliarlo", "correct": True},
-            {"id": "keeps", "text": "El conjunto nuevo conserva todo lo del anterior", "correct": True},
-            {"id": "bigger_numbers", "text": "Cada peldaño usa números más grandes", "correct": False},
+            {
+                "id": "operation",
+                "text": "Una operación se salió del conjunto y hubo que ampliarlo",
+                "correct": True,
+            },
+            {
+                "id": "keeps",
+                "text": "El conjunto nuevo conserva todo lo del anterior",
+                "correct": True,
+            },
+            {
+                "id": "bigger_numbers",
+                "text": "Cada peldaño usa números más grandes",
+                "correct": False,
+            },
             {"id": "replace", "text": "Cada peldaño reemplaza al anterior", "correct": False},
         ],
     },
     "closing_item": {
         "id": "CIERRE",
         "statement": (
-            "Toma estos cinco números: 3 · −2 · 0,25 · √5 · 0. ¿Cuántos de ellos "
-            "pertenecen a ℤ?"
+            "Toma estos cinco números: 3 · −2 · 0,25 · √5 · 0. ¿Cuántos de ellos " "pertenecen a ℤ?"
         ),
         "polya": {
             "comprender": (

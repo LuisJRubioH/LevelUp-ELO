@@ -149,12 +149,36 @@ CONTENT = {
         "𝕀 se excluyen entre sí, y por eso ℝ es la unión de los dos."
     ),
     "definition_symbols": [
-        {"symbol": r"\Rightarrow", "reads": "implica", "means": "si lo de la izquierda es cierto, lo de la derecha también"},
-        {"symbol": r"\cap", "reads": "intersección", "means": "lo que está en los dos conjuntos a la vez"},
-        {"symbol": r"\varnothing", "reads": "conjunto vacío", "means": "no hay ni un solo elemento: ℚ y 𝕀 no comparten nada"},
-        {"symbol": r"\mathbb{Q}\cup\mathbb{I}=\mathbb{R}", "reads": "ℚ unión 𝕀 es ℝ", "means": "juntos, y sin repetir a nadie, forman la recta"},
-        {"symbol": r"x\in\mathbb{Z},\ x\notin\mathbb{N}", "reads": "entero pero no natural", "means": "solo los negativos: −4, −17…"},
-        {"symbol": r"x\in\mathbb{Q},\ x\notin\mathbb{Z}", "reads": "racional pero no entero", "means": "las fracciones con parte decimal: 1/2, −2,75…"},
+        {
+            "symbol": r"\Rightarrow",
+            "reads": "implica",
+            "means": "si lo de la izquierda es cierto, lo de la derecha también",
+        },
+        {
+            "symbol": r"\cap",
+            "reads": "intersección",
+            "means": "lo que está en los dos conjuntos a la vez",
+        },
+        {
+            "symbol": r"\varnothing",
+            "reads": "conjunto vacío",
+            "means": "no hay ni un solo elemento: ℚ y 𝕀 no comparten nada",
+        },
+        {
+            "symbol": r"\mathbb{Q}\cup\mathbb{I}=\mathbb{R}",
+            "reads": "ℚ unión 𝕀 es ℝ",
+            "means": "juntos, y sin repetir a nadie, forman la recta",
+        },
+        {
+            "symbol": r"x\in\mathbb{Z},\ x\notin\mathbb{N}",
+            "reads": "entero pero no natural",
+            "means": "solo los negativos: −4, −17…",
+        },
+        {
+            "symbol": r"x\in\mathbb{Q},\ x\notin\mathbb{Z}",
+            "reads": "racional pero no entero",
+            "means": "las fracciones con parte decimal: 1/2, −2,75…",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos (a, b, trampa) ------------------------
     "worked_examples": [
@@ -217,10 +241,14 @@ CONTENT = {
                 "wrong_latex": r"5\in\mathbb{N}\ \Rightarrow\ 5\notin\mathbb{Z},\ \mathbb{Q}",
                 "right_latex": r"5\in\mathbb{N}\ \Rightarrow\ 5\in\mathbb{Z},\ \mathbb{Q},\ \mathbb{R}",
                 "rows": [
-                    {"wrong": "Cada número tiene un conjunto, como cada persona un oficio",
-                     "right": "Cada número está en todos los que lo contienen, como Nicómaco en todos sus registros"},
-                    {"wrong": "Ser natural impide ser entero",
-                     "right": "Ser natural GARANTIZA ser entero: ℕ ⊂ ℤ"},
+                    {
+                        "wrong": "Cada número tiene un conjunto, como cada persona un oficio",
+                        "right": "Cada número está en todos los que lo contienen, como Nicómaco en todos sus registros",
+                    },
+                    {
+                        "wrong": "Ser natural impide ser entero",
+                        "right": "Ser natural GARANTIZA ser entero: ℕ ⊂ ℤ",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -291,12 +319,20 @@ CONTENT = {
         "methods": [
             {
                 "label": "Método 1 · Revisar uno por uno",
-                "steps": [r"\mathbb{N}?\ \text{no}", r"\mathbb{Z}?\ \text{sí}\quad\mathbb{Q}?\ \text{sí}", r"\mathbb{I}?\ \text{no}\quad\mathbb{R}?\ \text{sí}"],
+                "steps": [
+                    r"\mathbb{N}?\ \text{no}",
+                    r"\mathbb{Z}?\ \text{sí}\quad\mathbb{Q}?\ \text{sí}",
+                    r"\mathbb{I}?\ \text{no}\quad\mathbb{R}?\ \text{sí}",
+                ],
                 "note": "Cinco preguntas, cinco respuestas. Nunca falla.",
             },
             {
                 "label": "Método 2 · Peldaño más bajo y hacia arriba",
-                "steps": [r"\text{más bajo}=\mathbb{Z}", r"\mathbb{Z}\subset\mathbb{Q}\subset\mathbb{R}", r"\Rightarrow\ \mathbb{Z},\mathbb{Q},\mathbb{R}"],
+                "steps": [
+                    r"\text{más bajo}=\mathbb{Z}",
+                    r"\mathbb{Z}\subset\mathbb{Q}\subset\mathbb{R}",
+                    r"\Rightarrow\ \mathbb{Z},\mathbb{Q},\mathbb{R}",
+                ],
                 "note": "Una pregunta y la cadena hace el resto.",
             },
         ],
@@ -439,7 +475,10 @@ CONTENT = {
                 "registros cada vez. ¿Cuál le sirve?"
             ),
             "options": [
-                {"id": "lowest", "text": "Hallar el conjunto más bajo y marcar todos los de arriba; preguntar por 𝕀 solo si no entró en ninguno"},
+                {
+                    "id": "lowest",
+                    "text": "Hallar el conjunto más bajo y marcar todos los de arriba; preguntar por 𝕀 solo si no entró en ninguno",
+                },
                 {"id": "one_each", "text": "Un número, un registro: el que mejor lo describa"},
                 {"id": "all_five", "text": "Marcar los cinco siempre: así nunca falta ninguno"},
                 {"id": "biggest", "text": "Marcar solo ℝ: contiene a todos"},
@@ -498,16 +537,41 @@ CONTENT = {
         "title": "Cuántos registros le tocan a cada número",
         "intro": "Cada fila cuenta en cuántos de los cinco conjuntos entra el número.",
         "rows": [
-            {"symbol": r"7", "name": "Natural", "closed": "yes",
-             "latex": r"\mathbb{N},\mathbb{Z},\mathbb{Q},\mathbb{R}", "note": "Cuatro. Entra en el más bajo y sube toda la cadena."},
-            {"symbol": r"0", "name": "Cero", "closed": "yes",
-             "latex": r"\mathbb{N},\mathbb{Z},\mathbb{Q},\mathbb{R}", "note": "Cuatro, igual que 7: en este curso 0 ∈ ℕ."},
-            {"symbol": r"-6", "name": "Entero negativo", "closed": "yes",
-             "latex": r"\mathbb{Z},\mathbb{Q},\mathbb{R}", "note": "Tres. El signo lo deja fuera de ℕ."},
-            {"symbol": r"\tfrac{3}{4}", "name": "Racional no entero", "closed": "yes",
-             "latex": r"\mathbb{Q},\mathbb{R}", "note": "Dos. Entra recién en el tercer peldaño."},
-            {"symbol": r"\sqrt{2}", "name": "Irracional", "closed": "no",
-             "latex": r"\mathbb{I},\mathbb{R}", "note": "Dos, pero por fuera de la cadena: 𝕀 no contiene a nadie."},
+            {
+                "symbol": r"7",
+                "name": "Natural",
+                "closed": "yes",
+                "latex": r"\mathbb{N},\mathbb{Z},\mathbb{Q},\mathbb{R}",
+                "note": "Cuatro. Entra en el más bajo y sube toda la cadena.",
+            },
+            {
+                "symbol": r"0",
+                "name": "Cero",
+                "closed": "yes",
+                "latex": r"\mathbb{N},\mathbb{Z},\mathbb{Q},\mathbb{R}",
+                "note": "Cuatro, igual que 7: en este curso 0 ∈ ℕ.",
+            },
+            {
+                "symbol": r"-6",
+                "name": "Entero negativo",
+                "closed": "yes",
+                "latex": r"\mathbb{Z},\mathbb{Q},\mathbb{R}",
+                "note": "Tres. El signo lo deja fuera de ℕ.",
+            },
+            {
+                "symbol": r"\tfrac{3}{4}",
+                "name": "Racional no entero",
+                "closed": "yes",
+                "latex": r"\mathbb{Q},\mathbb{R}",
+                "note": "Dos. Entra recién en el tercer peldaño.",
+            },
+            {
+                "symbol": r"\sqrt{2}",
+                "name": "Irracional",
+                "closed": "no",
+                "latex": r"\mathbb{I},\mathbb{R}",
+                "note": "Dos, pero por fuera de la cadena: 𝕀 no contiene a nadie.",
+            },
         ],
         "outro": (
             "Lee la columna de la derecha de arriba abajo: 4, 4, 3, 2, 2. Cuanto más "
@@ -519,10 +583,26 @@ CONTENT = {
         "prompt": "¿Qué regla estructural explica todos los casos de este nodo?",
         "thumbnails": [r"7", r"-6", r"\sqrt{2}"],
         "options": [
-            {"id": "chain", "text": "Entrar en un conjunto de la cadena te mete en todos los de arriba", "correct": True},
-            {"id": "exclusive", "text": "ℚ e 𝕀 son los únicos dos que se excluyen entre sí", "correct": True},
-            {"id": "one_each", "text": "Cada número pertenece a exactamente un conjunto", "correct": False},
-            {"id": "all_five", "text": "Todo número real pertenece a los cinco conjuntos", "correct": False},
+            {
+                "id": "chain",
+                "text": "Entrar en un conjunto de la cadena te mete en todos los de arriba",
+                "correct": True,
+            },
+            {
+                "id": "exclusive",
+                "text": "ℚ e 𝕀 son los únicos dos que se excluyen entre sí",
+                "correct": True,
+            },
+            {
+                "id": "one_each",
+                "text": "Cada número pertenece a exactamente un conjunto",
+                "correct": False,
+            },
+            {
+                "id": "all_five",
+                "text": "Todo número real pertenece a los cinco conjuntos",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

@@ -61,7 +61,10 @@ CONTENT = {
                 "tipo": "diagnostico",
                 "prompt": "¿Qué es «el inverso» de un número?",
                 "options": [
-                    {"id": "depends", "text": "Depende de la operación: hay uno para sumar y otro para multiplicar"},
+                    {
+                        "id": "depends",
+                        "text": "Depende de la operación: hay uno para sumar y otro para multiplicar",
+                    },
                     {"id": "sign", "text": "El mismo número con el signo cambiado"},
                     {"id": "fraction", "text": "El número dado vuelta como fracción"},
                 ],
@@ -140,12 +143,36 @@ CONTENT = {
         "recíproco."
     ),
     "definition_symbols": [
-        {"symbol": r"-a", "reads": "el opuesto de a", "means": "el contrapeso de la suma: lleva al 0"},
-        {"symbol": r"\dfrac{1}{a}", "reads": "el recíproco de a", "means": "el contrapeso del producto: lleva al 1"},
-        {"symbol": r"a\neq 0", "reads": "a distinto de cero", "means": "el 0 no tiene recíproco: nada multiplicado por 0 da 1"},
-        {"symbol": r"-(-a)=a", "reads": "el opuesto del opuesto", "means": "quitar el contrapeso deja la carga original"},
-        {"symbol": r"a-b=a+(-b)", "reads": "restar es sumar el opuesto", "means": "por eso la resta no necesitó reglas nuevas (E02)"},
-        {"symbol": r"a\div b=a\times\dfrac{1}{b}", "reads": "dividir es multiplicar por el recíproco", "means": "el mismo truco, con el otro contrapeso (E04)"},
+        {
+            "symbol": r"-a",
+            "reads": "el opuesto de a",
+            "means": "el contrapeso de la suma: lleva al 0",
+        },
+        {
+            "symbol": r"\dfrac{1}{a}",
+            "reads": "el recíproco de a",
+            "means": "el contrapeso del producto: lleva al 1",
+        },
+        {
+            "symbol": r"a\neq 0",
+            "reads": "a distinto de cero",
+            "means": "el 0 no tiene recíproco: nada multiplicado por 0 da 1",
+        },
+        {
+            "symbol": r"-(-a)=a",
+            "reads": "el opuesto del opuesto",
+            "means": "quitar el contrapeso deja la carga original",
+        },
+        {
+            "symbol": r"a-b=a+(-b)",
+            "reads": "restar es sumar el opuesto",
+            "means": "por eso la resta no necesitó reglas nuevas (E02)",
+        },
+        {
+            "symbol": r"a\div b=a\times\dfrac{1}{b}",
+            "reads": "dividir es multiplicar por el recíproco",
+            "means": "el mismo truco, con el otro contrapeso (E04)",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -208,10 +235,14 @@ CONTENT = {
                 "wrong_latex": r"8\times(-8)=1",
                 "right_latex": r"8\times\dfrac{1}{8}=1",
                 "rows": [
-                    {"wrong": "Cancelar es siempre cambiar el signo",
-                     "right": "Cancelar es llegar al neutro de esa operación"},
-                    {"wrong": "El contrapeso de 8 es −8 en cualquier modo",
-                     "right": "Es −8 sumando y 1/8 multiplicando"},
+                    {
+                        "wrong": "Cancelar es siempre cambiar el signo",
+                        "right": "Cancelar es llegar al neutro de esa operación",
+                    },
+                    {
+                        "wrong": "El contrapeso de 8 es −8 en cualquier modo",
+                        "right": "Es −8 sumando y 1/8 multiplicando",
+                    },
                 ],
             },
             "explain_prompt": "¿Qué contrapeso cancela al 8 en el modo multiplicar? Escribe la igualdad completa.",
@@ -281,7 +312,11 @@ CONTENT = {
             },
             {
                 "label": "Método 2 · Contar cuántos caben",
-                "steps": [r"\dfrac{3}{4}=\dfrac{6}{8}", r"\text{¿cuántos }\tfrac{3}{8}\text{ caben en }\tfrac{6}{8}?", r"=2"],
+                "steps": [
+                    r"\dfrac{3}{4}=\dfrac{6}{8}",
+                    r"\text{¿cuántos }\tfrac{3}{8}\text{ caben en }\tfrac{6}{8}?",
+                    r"=2",
+                ],
                 "note": "Vuelve al significado de dividir, sin recíprocos.",
             },
         ],
@@ -340,7 +375,10 @@ CONTENT = {
             "tipo": "detecta_error",
             "prompt": r"Un operario anota «El recíproco de $7$ es $-7$, porque $7\times(-7)$ cancela». ¿Dónde está el error?",
             "options": [
-                {"id": "reciprocal", "text": "El recíproco es 1/7; el −7 es el opuesto, y cancela sumando"},
+                {
+                    "id": "reciprocal",
+                    "text": "El recíproco es 1/7; el −7 es el opuesto, y cancela sumando",
+                },
                 {"id": "sign", "text": "Debía ser 7, no −7"},
                 {"id": "arith", "text": "Se equivocó: 7 × (−7) da −48"},
                 {"id": "none", "text": "Ningún error, está bien"},
@@ -370,7 +408,10 @@ CONTENT = {
             "confidence": "fija",
             "prompt": r"¿Es verdadera o falsa? «Todo número tiene recíproco.»",
             "options": [
-                {"id": "false_zero", "text": "Falsa: el 0 no tiene, porque nada multiplicado por 0 da 1"},
+                {
+                    "id": "false_zero",
+                    "text": "Falsa: el 0 no tiene, porque nada multiplicado por 0 da 1",
+                },
                 {"id": "true", "text": "Verdadera: basta darle vuelta"},
                 {"id": "false_negatives", "text": "Falsa: los negativos no tienen recíproco"},
                 {"id": "false_irrationals", "text": "Falsa: los irracionales no tienen recíproco"},
@@ -415,7 +456,11 @@ CONTENT = {
             "tipo": "transferencia",
             "prompt": r"¿Cuál es el recíproco de $\sqrt{2}$, escrito sin raíz en el denominador?",
             "options": [
-                {"id": "rationalized", "text": "raíz de 2 partido por 2", "latex": r"\dfrac{\sqrt{2}}{2}"},
+                {
+                    "id": "rationalized",
+                    "text": "raíz de 2 partido por 2",
+                    "latex": r"\dfrac{\sqrt{2}}{2}",
+                },
                 {"id": "negative", "text": "menos raíz de 2", "latex": r"-\sqrt{2}"},
                 {"id": "two", "text": "2", "latex": r"2"},
                 {"id": "half", "text": "un medio", "latex": r"\dfrac{1}{2}"},
@@ -448,24 +493,48 @@ CONTENT = {
             "explica por qué la escalera de N1 tuvo que crecer."
         ),
         "rows": [
-            {"symbol": r"\mathbb{N}", "name": "Naturales", "closed": "no",
-             "latex": r"5+x=0\ \Rightarrow\ x\notin\mathbb{N}",
-             "note": "Ni opuesto ni recíproco: no hay natural que sumado a 5 dé 0."},
-            {"symbol": r"\mathbb{Z}", "name": "Enteros", "closed": "partial",
-             "latex": r"5+(-5)=0\quad\text{pero}\quad \dfrac{1}{5}\notin\mathbb{Z}",
-             "note": "Aparece el OPUESTO — para esto nacieron los enteros (B05) — pero el recíproco sigue fuera."},
-            {"symbol": r"\mathbb{Q}", "name": "Racionales", "closed": "yes",
-             "latex": r"\dfrac{a}{b}\times\dfrac{b}{a}=1",
-             "note": "Aparece el RECÍPROCO: dar vuelta la fracción. Para esto nacieron los racionales (B06). Única excepción: el 0."},
-            {"symbol": r"\mathbb{I}", "name": "Irracionales", "closed": "partial",
-             "latex": r"\dfrac{1}{\sqrt{2}}=\dfrac{\sqrt{2}}{2}\in\mathbb{I}",
-             "note": "Cada irracional tiene opuesto y recíproco, y los DOS son irracionales — racionalizar es exactamente eso. Pero los neutros 0 y 1 no viven aquí, así que el hogar completo son los reales."},
-            {"symbol": r"\mathbb{R}", "name": "Reales", "closed": "yes",
-             "latex": r"\pi\times\dfrac{1}{\pi}=1",
-             "note": "Todo real distinto de 0 tiene los dos contrapesos, y los neutros están dentro."},
-            {"symbol": r"\mathbb{C}", "name": "Complejos", "closed": "yes",
-             "latex": r"i\times(-i)=1",
-             "note": "También cierra, y aquí el recíproco de i resulta ser su opuesto. Desvío opcional (B09)."},
+            {
+                "symbol": r"\mathbb{N}",
+                "name": "Naturales",
+                "closed": "no",
+                "latex": r"5+x=0\ \Rightarrow\ x\notin\mathbb{N}",
+                "note": "Ni opuesto ni recíproco: no hay natural que sumado a 5 dé 0.",
+            },
+            {
+                "symbol": r"\mathbb{Z}",
+                "name": "Enteros",
+                "closed": "partial",
+                "latex": r"5+(-5)=0\quad\text{pero}\quad \dfrac{1}{5}\notin\mathbb{Z}",
+                "note": "Aparece el OPUESTO — para esto nacieron los enteros (B05) — pero el recíproco sigue fuera.",
+            },
+            {
+                "symbol": r"\mathbb{Q}",
+                "name": "Racionales",
+                "closed": "yes",
+                "latex": r"\dfrac{a}{b}\times\dfrac{b}{a}=1",
+                "note": "Aparece el RECÍPROCO: dar vuelta la fracción. Para esto nacieron los racionales (B06). Única excepción: el 0.",
+            },
+            {
+                "symbol": r"\mathbb{I}",
+                "name": "Irracionales",
+                "closed": "partial",
+                "latex": r"\dfrac{1}{\sqrt{2}}=\dfrac{\sqrt{2}}{2}\in\mathbb{I}",
+                "note": "Cada irracional tiene opuesto y recíproco, y los DOS son irracionales — racionalizar es exactamente eso. Pero los neutros 0 y 1 no viven aquí, así que el hogar completo son los reales.",
+            },
+            {
+                "symbol": r"\mathbb{R}",
+                "name": "Reales",
+                "closed": "yes",
+                "latex": r"\pi\times\dfrac{1}{\pi}=1",
+                "note": "Todo real distinto de 0 tiene los dos contrapesos, y los neutros están dentro.",
+            },
+            {
+                "symbol": r"\mathbb{C}",
+                "name": "Complejos",
+                "closed": "yes",
+                "latex": r"i\times(-i)=1",
+                "note": "También cierra, y aquí el recíproco de i resulta ser su opuesto. Desvío opcional (B09).",
+            },
         ],
         "outro": (
             "Mira lo que acabas de reconstruir: ℤ existe porque a ℕ le faltaban los "
@@ -478,10 +547,22 @@ CONTENT = {
         "prompt": "¿Qué comparten el opuesto y el recíproco?",
         "thumbnails": [r"5+(-5)=0", r"5\times\tfrac{1}{5}=1", r"8\times(-8)\neq 1"],
         "options": [
-            {"id": "to_neutral", "text": "Los dos llevan el resultado al neutro de su operación", "correct": True},
+            {
+                "id": "to_neutral",
+                "text": "Los dos llevan el resultado al neutro de su operación",
+                "correct": True,
+            },
             {"id": "sign", "text": "Los dos cambian el signo del número", "correct": False},
-            {"id": "cancel", "text": "Los dos cancelan al número, cada uno en su operación", "correct": True},
-            {"id": "always", "text": "Los dos existen para cualquier número sin excepción", "correct": False},
+            {
+                "id": "cancel",
+                "text": "Los dos cancelan al número, cada uno en su operación",
+                "correct": True,
+            },
+            {
+                "id": "always",
+                "text": "Los dos existen para cualquier número sin excepción",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {
@@ -595,9 +676,7 @@ CONTENT = {
             "√2 × (−√2) = −2, no 1. Ese es el opuesto, no el recíproco. → Parte de 1/√2 y "
             "quítale la raíz de abajo."
         ),
-        "fb_m05_e7_two": (
-            "√2 × 2 = 2√2 ≈ 2,83, no 1. → Parte de 1/√2 y racionaliza."
-        ),
+        "fb_m05_e7_two": ("√2 × 2 = 2√2 ≈ 2,83, no 1. → Parte de 1/√2 y racionaliza."),
         "fb_m05_e7_half": (
             "El 2 de abajo no es el radicando: es el resultado de √2 × √2 al racionalizar. "
             "→ Haz esa multiplicación y mira qué queda arriba."

@@ -68,7 +68,9 @@ jobs:
           cache: pip
 
       - name: Instalar dependencias
-        run: pip install -r requirements.txt pytest pytest-cov
+        # Unit tests cover V1 (requirements.txt) and API modules (requirements-api.txt;
+        # it also pins pytest and pytest-cov).
+        run: pip install -r requirements.txt -r requirements-api.txt
 
       - name: Ejecutar tests unitarios con cobertura
         run: |
@@ -103,7 +105,7 @@ jobs:
           cache: pip
 
       - name: Instalar dependencias
-        run: pip install -r requirements.txt pytest
+        run: pip install -r requirements.txt -r requirements-api.txt
 
       - name: Ejecutar tests de integración (SQLite en archivo temporal)
         run: |

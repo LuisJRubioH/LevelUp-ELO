@@ -276,9 +276,7 @@ CONTENT = {
                 "missing": "last",
                 "statement": r"Multiplica $(x+7)(x-8)$.",
                 "given_steps": [r"x^{2}", r"7\cdot(-8)=-56"],
-                "blanks": [
-                    {"id": "P1-b1", "label": r"7+(-8)=", "answer": "-1"}
-                ],
+                "blanks": [{"id": "P1-b1", "label": r"7+(-8)=", "answer": "-1"}],
             },
             {
                 "id": "P2",
@@ -300,7 +298,11 @@ CONTENT = {
                 ),
                 "given_steps": [],
                 "blanks": [
-                    {"id": "P3-b1", "label": r"\text{exponente de }a\text{ en el primer término}=", "answer": "6"}
+                    {
+                        "id": "P3-b1",
+                        "label": r"\text{exponente de }a\text{ en el primer término}=",
+                        "answer": "6",
+                    }
                 ],
             },
         ],
@@ -404,9 +406,7 @@ CONTENT = {
             "id": "E4",
             "kind": "numeric",
             "tipo": "estandar",
-            "prompt": (
-                r"En $(x+7)(x-8)$, ¿cuál es el término sin $x$? Escríbelo con su signo."
-            ),
+            "prompt": (r"En $(x+7)(x-8)$, ¿cuál es el término sin $x$? Escríbelo con su signo."),
             "expr": r"7\cdot(-8)=-56",
             "answer": "-56",
             "hints": {
@@ -419,9 +419,7 @@ CONTENT = {
             "id": "E5",
             "kind": "single_select",
             "tipo": "detecta_error",
-            "prompt": (
-                r"Un aprendiz anota $(x-11)(x+10)=x^{2}+21x-110$. ¿Dónde está el error?"
-            ),
+            "prompt": (r"Un aprendiz anota $(x-11)(x+10)=x^{2}+21x-110$. ¿Dónde está el error?"),
             "options": [
                 {"id": "mid", "text": r"El del medio: $-11+10=-1$, así que es $-x$"},
                 {"id": "last", "text": r"El último: debería ser $+110$"},
@@ -711,9 +709,7 @@ CONTENT = {
             "Ese 2 es del cuadrado de binomio, donde los dos no comunes son iguales. Aquí son "
             "distintos, así que en el medio va su suma, no su doble producto."
         ),
-        "fb_p04_e5_last": (
-            "El último está bien: (−11) · 10 = −110. Mira el del medio."
-        ),
+        "fb_p04_e5_last": ("El último está bien: (−11) · 10 = −110. Mira el del medio."),
         "fb_p04_e5_first": (
             "El primero está bien: x · x = x². Los términos comunes se multiplican, no se suman."
         ),

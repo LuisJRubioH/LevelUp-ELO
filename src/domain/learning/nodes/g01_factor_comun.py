@@ -96,9 +96,7 @@ CONTENT = {
             "otra vez, y el albarán salió firmado a medias. Tuvimos que desatarlo todo y "
             "volver a empezar.»"
         ),
-        "question": (
-            "Si dos bultos comparten un número Y una medida, ¿basta con sacar el número?"
-        ),
+        "question": ("Si dos bultos comparten un número Y una medida, ¿basta con sacar el número?"),
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que más se acerque a lo que crees. Cualquiera vale.",
@@ -151,9 +149,7 @@ CONTENT = {
         ),
     },
     "definition_title": "Factor común y agrupación",
-    "definition_katex": (
-        r"ab+ac = a(b+c) \qquad ax+ay+bx+by = (x+y)(a+b)"
-    ),
+    "definition_katex": (r"ab+ac = a(b+c) \qquad ax+ay+bx+by = (x+y)(a+b)"),
     "definition": (
         "El FACTOR COMÚN se saca cuando todos los términos comparten algo: se toma el MCD de "
         "los coeficientes y la menor potencia de cada letra común. Lo común puede ser un "
@@ -208,9 +204,7 @@ CONTENT = {
             "solution": r"$12x^{3}-18x^{2}=6x^{2}(2x-3)$",
             "self_explanation": {
                 "step_index": 1,
-                "prompt": (
-                    "¿Por qué se saca la potencia MENOR de la letra y no la mayor?"
-                ),
+                "prompt": ("¿Por qué se saca la potencia MENOR de la letra y no la mayor?"),
             },
         },
         {
@@ -286,7 +280,11 @@ CONTENT = {
                 "statement": r"Factoriza $8x^{3}+12x^{2}$.",
                 "given_steps": [r"\text{MCD}(8,12)=4", r"\text{menor potencia}=x^{2}"],
                 "blanks": [
-                    {"id": "P1-b1", "label": r"8x^{3}\div 4x^{2}\ \text{, coeficiente}=", "answer": "2"}
+                    {
+                        "id": "P1-b1",
+                        "label": r"8x^{3}\div 4x^{2}\ \text{, coeficiente}=",
+                        "answer": "2",
+                    }
                 ],
             },
             {
@@ -442,9 +440,7 @@ CONTENT = {
             "id": "E5",
             "kind": "single_select",
             "tipo": "detecta_error",
-            "prompt": (
-                r"Un mozo anota $b(3a-2c)+4d(3a-2c)$ y firma el albarán. ¿Está terminado?"
-            ),
+            "prompt": (r"Un mozo anota $b(3a-2c)+4d(3a-2c)$ y firma el albarán. ¿Está terminado?"),
             "options": [
                 {
                     "id": "no",
@@ -621,8 +617,7 @@ CONTENT = {
             {
                 "id": "inside",
                 "text": (
-                    "Solo en la primera lo que queda dentro del paréntesis ya no comparte "
-                    "nada"
+                    "Solo en la primera lo que queda dentro del paréntesis ya no comparte " "nada"
                 ),
                 "correct": True,
             },
@@ -758,8 +753,7 @@ CONTENT = {
             "no volver atrás."
         ),
         "fb_g01_e5_other": (
-            "El 4 solo está en el segundo sumando, así que no es común. Lo común es el "
-            "binomio."
+            "El 4 solo está en el segundo sumando, así que no es común. Lo común es el " "binomio."
         ),
         "fb_g01_e6_trap": (
             "Una factorización incompleta también cumple la igualdad: 2x²(6x + 4) da "

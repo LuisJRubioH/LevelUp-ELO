@@ -143,11 +143,31 @@ CONTENT = {
         "que resulte de dividirlos se queda."
     ),
     "definition_symbols": [
-        {"symbol": r"\dfrac{x^{5}}{x^{2}}=x^{3}", "reads": "equis cinco entre equis dos", "means": "se restan los exponentes"},
-        {"symbol": r"\dfrac{x^{3}}{x^{3}}=1", "reads": "queda uno", "means": "se emparejan todos: el resultado es 1, no 0"},
-        {"symbol": r"x^{0}=1", "reads": "equis a la cero", "means": "otra forma de escribir lo mismo"},
-        {"symbol": r"\dfrac{x^{2}}{x^{5}}=\dfrac{1}{x^{3}}", "reads": "queda abajo", "means": "si sobran factores abajo, la letra se queda abajo"},
-        {"symbol": r"\dfrac{15a^{3}}{5a^{3}}=3", "reads": "queda el coeficiente", "means": "las letras se van, el 3 se queda"},
+        {
+            "symbol": r"\dfrac{x^{5}}{x^{2}}=x^{3}",
+            "reads": "equis cinco entre equis dos",
+            "means": "se restan los exponentes",
+        },
+        {
+            "symbol": r"\dfrac{x^{3}}{x^{3}}=1",
+            "reads": "queda uno",
+            "means": "se emparejan todos: el resultado es 1, no 0",
+        },
+        {
+            "symbol": r"x^{0}=1",
+            "reads": "equis a la cero",
+            "means": "otra forma de escribir lo mismo",
+        },
+        {
+            "symbol": r"\dfrac{x^{2}}{x^{5}}=\dfrac{1}{x^{3}}",
+            "reads": "queda abajo",
+            "means": "si sobran factores abajo, la letra se queda abajo",
+        },
+        {
+            "symbol": r"\dfrac{15a^{3}}{5a^{3}}=3",
+            "reads": "queda el coeficiente",
+            "means": "las letras se van, el 3 se queda",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -210,10 +230,14 @@ CONTENT = {
                 "wrong_latex": r"\dfrac{6a^{3}}{6a^{3}}=0",
                 "right_latex": r"\dfrac{6a^{3}}{6a^{3}}=1",
                 "rows": [
-                    {"wrong": "No queda nada escrito, luego vale 0",
-                     "right": "Cada pareja tachada vale 1, y el producto de unos es 1"},
-                    {"wrong": "Ración por aguador: 0 cántaros",
-                     "right": "Ración por aguador: 1 cántaro, que es justo lo que había"},
+                    {
+                        "wrong": "No queda nada escrito, luego vale 0",
+                        "right": "Cada pareja tachada vale 1, y el producto de unos es 1",
+                    },
+                    {
+                        "wrong": "Ración por aguador: 0 cántaros",
+                        "right": "Ración por aguador: 1 cántaro, que es justo lo que había",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -240,7 +264,9 @@ CONTENT = {
                 "missing": "last",
                 "statement": r"Divide $\dfrac{20c^{5}}{4c^{2}}$.",
                 "given_steps": [r"20\div 4=5", r"5-2=3"],
-                "blanks": [{"id": "P1-b1", "label": r"\text{exponente del resultado}=", "answer": "3"}],
+                "blanks": [
+                    {"id": "P1-b1", "label": r"\text{exponente del resultado}=", "answer": "3"}
+                ],
             },
             {
                 "id": "P2",
@@ -364,9 +390,7 @@ CONTENT = {
             "id": "E4",
             "kind": "single_select",
             "tipo": "detecta_error",
-            "prompt": (
-                r"Un escriba anota $\dfrac{10a^{5}}{5a^{5}}=0$. ¿Dónde está el error?"
-            ),
+            "prompt": (r"Un escriba anota $\dfrac{10a^{5}}{5a^{5}}=0$. ¿Dónde está el error?"),
             "options": [
                 {"id": "two", "text": r"Las letras sí se van, pero queda $10\div 5=2$"},
                 {"id": "exp", "text": r"El exponente se resta mal: queda $a^{10}$"},
@@ -403,7 +427,10 @@ CONTENT = {
                 {"id": "false", "text": r"Falsa: es 1, porque cada pareja tachada vale $1$"},
                 {"id": "true", "text": "Verdadera: no queda nada escrito"},
                 {"id": "true_letters", "text": "Verdadera solo cuando lo que se tacha son letras"},
-                {"id": "false_keep", "text": "Falsa: no se puede tachar todo, siempre queda la letra"},
+                {
+                    "id": "false_keep",
+                    "text": "Falsa: no se puede tachar todo, siempre queda la letra",
+                },
             ],
             "expected": "false",
             "feedback_by_option": {
@@ -430,10 +457,26 @@ CONTENT = {
             "prompt": r"Selecciona TODAS las igualdades verdaderas.",
             "valid_options": ["a", "b", "c", "d"],
             "options": [
-                {"id": "a", "text": r"$\dfrac{x^{6}}{x^{2}}=x^{4}$", "latex": r"\dfrac{x^{6}}{x^{2}}=x^{4}"},
-                {"id": "b", "text": r"$\dfrac{x^{6}}{x^{6}}=0$", "latex": r"\dfrac{x^{6}}{x^{6}}=0"},
-                {"id": "c", "text": r"$\dfrac{9x^{4}}{3x^{4}}=3$", "latex": r"\dfrac{9x^{4}}{3x^{4}}=3"},
-                {"id": "d", "text": r"$\dfrac{x^{6}}{x^{2}}=x^{3}$", "latex": r"\dfrac{x^{6}}{x^{2}}=x^{3}"},
+                {
+                    "id": "a",
+                    "text": r"$\dfrac{x^{6}}{x^{2}}=x^{4}$",
+                    "latex": r"\dfrac{x^{6}}{x^{2}}=x^{4}",
+                },
+                {
+                    "id": "b",
+                    "text": r"$\dfrac{x^{6}}{x^{6}}=0$",
+                    "latex": r"\dfrac{x^{6}}{x^{6}}=0",
+                },
+                {
+                    "id": "c",
+                    "text": r"$\dfrac{9x^{4}}{3x^{4}}=3$",
+                    "latex": r"\dfrac{9x^{4}}{3x^{4}}=3",
+                },
+                {
+                    "id": "d",
+                    "text": r"$\dfrac{x^{6}}{x^{2}}=x^{3}$",
+                    "latex": r"\dfrac{x^{6}}{x^{2}}=x^{3}",
+                },
             ],
             "expected": ["a", "c"],
             "trap_options": ["b", "d"],
@@ -469,24 +512,48 @@ CONTENT = {
             "Estas seis filas son todos los finales posibles de un reparto."
         ),
         "rows": [
-            {"symbol": r"\dfrac{x^{5}}{x^{2}}", "name": "Sobran factores arriba", "closed": "yes",
-             "latex": r"x^{3}",
-             "note": "El caso cómodo: se empareja lo que se puede y lo que sobra queda arriba."},
-            {"symbol": r"\dfrac{12c^{4}}{3c^{2}}", "name": "Con coeficientes", "closed": "yes",
-             "latex": r"4c^{2}",
-             "note": "Dos cuentas a la vez: los números se dividen, los exponentes se restan."},
-            {"symbol": r"\dfrac{x^{3}}{x^{3}}", "name": "Se empareja todo", "closed": "yes",
-             "latex": r"1",
-             "note": "Se tacha hasta el final y queda 1. Es el caso focal: 1, nunca 0."},
-            {"symbol": r"\dfrac{15a^{3}}{5a^{3}}", "name": "Se van las letras, no el número", "closed": "partial",
-             "latex": r"3",
-             "note": "Las letras desaparecen, pero el 3 sobrevive: los coeficientes no se cancelaban, se dividían."},
-            {"symbol": r"\dfrac{x^{2}}{x^{5}}", "name": "Sobran factores abajo", "closed": "partial",
-             "latex": r"\dfrac{1}{x^{3}}",
-             "note": "También se empareja, pero lo que sobra queda debajo. Arriba se queda el 1 de siempre."},
-            {"symbol": r"\dfrac{x+3}{3}", "name": "Arriba hay una suma", "closed": "no",
-             "latex": r"\dfrac{x+3}{3}",
-             "note": "No hay nada que tachar: el 3 de arriba es un sumando, no un factor. Ese es el trabajo de los campos."},
+            {
+                "symbol": r"\dfrac{x^{5}}{x^{2}}",
+                "name": "Sobran factores arriba",
+                "closed": "yes",
+                "latex": r"x^{3}",
+                "note": "El caso cómodo: se empareja lo que se puede y lo que sobra queda arriba.",
+            },
+            {
+                "symbol": r"\dfrac{12c^{4}}{3c^{2}}",
+                "name": "Con coeficientes",
+                "closed": "yes",
+                "latex": r"4c^{2}",
+                "note": "Dos cuentas a la vez: los números se dividen, los exponentes se restan.",
+            },
+            {
+                "symbol": r"\dfrac{x^{3}}{x^{3}}",
+                "name": "Se empareja todo",
+                "closed": "yes",
+                "latex": r"1",
+                "note": "Se tacha hasta el final y queda 1. Es el caso focal: 1, nunca 0.",
+            },
+            {
+                "symbol": r"\dfrac{15a^{3}}{5a^{3}}",
+                "name": "Se van las letras, no el número",
+                "closed": "partial",
+                "latex": r"3",
+                "note": "Las letras desaparecen, pero el 3 sobrevive: los coeficientes no se cancelaban, se dividían.",
+            },
+            {
+                "symbol": r"\dfrac{x^{2}}{x^{5}}",
+                "name": "Sobran factores abajo",
+                "closed": "partial",
+                "latex": r"\dfrac{1}{x^{3}}",
+                "note": "También se empareja, pero lo que sobra queda debajo. Arriba se queda el 1 de siempre.",
+            },
+            {
+                "symbol": r"\dfrac{x+3}{3}",
+                "name": "Arriba hay una suma",
+                "closed": "no",
+                "latex": r"\dfrac{x+3}{3}",
+                "note": "No hay nada que tachar: el 3 de arriba es un sumando, no un factor. Ese es el trabajo de los campos.",
+            },
         ],
         "outro": (
             "La tercera fila es la que costó una jornada sin agua. La cuarta y la quinta "
@@ -497,12 +564,32 @@ CONTENT = {
     },
     "abstraction_question": {
         "prompt": "¿Qué comparten los tres repartos trabajados en este nodo?",
-        "thumbnails": [r"\dfrac{12c^{4}}{3c^{2}}", r"\dfrac{15a^{3}}{5a^{3}}", r"\dfrac{6a^{3}}{6a^{3}}"],
+        "thumbnails": [
+            r"\dfrac{12c^{4}}{3c^{2}}",
+            r"\dfrac{15a^{3}}{5a^{3}}",
+            r"\dfrac{6a^{3}}{6a^{3}}",
+        ],
         "options": [
-            {"id": "pairs", "text": "En los tres se empareja factor con factor, y cada pareja vale 1", "correct": True},
-            {"id": "two_books", "text": "En los tres el coeficiente y el exponente llevan cuentas distintas", "correct": True},
-            {"id": "empty", "text": "En los tres, si se tacha todo, el resultado es 0", "correct": False},
-            {"id": "letters_stay", "text": "En los tres la letra sobrevive siempre en el resultado", "correct": False},
+            {
+                "id": "pairs",
+                "text": "En los tres se empareja factor con factor, y cada pareja vale 1",
+                "correct": True,
+            },
+            {
+                "id": "two_books",
+                "text": "En los tres el coeficiente y el exponente llevan cuentas distintas",
+                "correct": True,
+            },
+            {
+                "id": "empty",
+                "text": "En los tres, si se tacha todo, el resultado es 0",
+                "correct": False,
+            },
+            {
+                "id": "letters_stay",
+                "text": "En los tres la letra sobrevive siempre en el resultado",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

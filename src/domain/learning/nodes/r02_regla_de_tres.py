@@ -90,7 +90,10 @@ CONTENT = {
             "prompt": "Escoge lo que creas ahora. No se califica.",
             "options": [
                 {"id": "a", "text": "Los dos que están en la misma fila"},
-                {"id": "b", "text": "Los dos que están en diagonal, y se divide entre el que queda"},
+                {
+                    "id": "b",
+                    "text": "Los dos que están en diagonal, y se divide entre el que queda",
+                },
                 {"id": "c", "text": "Los dos mayores, y se divide entre el menor"},
             ],
             "response": (
@@ -136,11 +139,31 @@ CONTENT = {
         "entre el que queda. La incógnita puede ocupar cualquiera de las cuatro casillas."
     ),
     "definition_symbols": [
-        {"symbol": r"\dfrac{3}{12}=\dfrac{x}{20}", "reads": "la proporción", "means": "la razón tinte : lino no cambia"},
-        {"symbol": r"x=\dfrac{3\cdot 20}{12}", "reads": "en diagonal", "means": "el 3 y el 20 se multiplican; el 12 divide"},
-        {"symbol": r"\dfrac{3}{12}=\dfrac14", "reads": "por brazada", "means": "el camino largo: cuánto lleva una sola"},
-        {"symbol": r"\dfrac{20}{12}=\dfrac53", "reads": "factor de escala", "means": "cuántas veces más lino hay hoy"},
-        {"symbol": r"3\cdot\dfrac53=5", "reads": "escalar el tinte", "means": "el mismo factor se aplica a la otra magnitud"},
+        {
+            "symbol": r"\dfrac{3}{12}=\dfrac{x}{20}",
+            "reads": "la proporción",
+            "means": "la razón tinte : lino no cambia",
+        },
+        {
+            "symbol": r"x=\dfrac{3\cdot 20}{12}",
+            "reads": "en diagonal",
+            "means": "el 3 y el 20 se multiplican; el 12 divide",
+        },
+        {
+            "symbol": r"\dfrac{3}{12}=\dfrac14",
+            "reads": "por brazada",
+            "means": "el camino largo: cuánto lleva una sola",
+        },
+        {
+            "symbol": r"\dfrac{20}{12}=\dfrac53",
+            "reads": "factor de escala",
+            "means": "cuántas veces más lino hay hoy",
+        },
+        {
+            "symbol": r"3\cdot\dfrac53=5",
+            "reads": "escalar el tinte",
+            "means": "el mismo factor se aplica a la otra magnitud",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -203,10 +226,14 @@ CONTENT = {
                 "wrong_latex": r"x=\dfrac{3\cdot 12}{20}",
                 "right_latex": r"x=\dfrac{3\cdot 20}{12}",
                 "rows": [
-                    {"wrong": "Se multiplican los dos de la misma fila",
-                     "right": "Se multiplican los dos de la diagonal de la incógnita"},
-                    {"wrong": r"1{,}8\ \text{medidas para MÁS lino que ayer}",
-                     "right": r"5\ \text{medidas: más lino, más tinte ✓}"},
+                    {
+                        "wrong": "Se multiplican los dos de la misma fila",
+                        "right": "Se multiplican los dos de la diagonal de la incógnita",
+                    },
+                    {
+                        "wrong": r"1{,}8\ \text{medidas para MÁS lino que ayer}",
+                        "right": r"5\ \text{medidas: más lino, más tinte ✓}",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -310,12 +337,18 @@ CONTENT = {
             "id": "E2",
             "kind": "single_select",
             "tipo": "estandar",
-            "prompt": (
-                r"Para resolver $\dfrac{4}{9}=\dfrac{x}{27}$, ¿qué operación se hace?"
-            ),
+            "prompt": (r"Para resolver $\dfrac{4}{9}=\dfrac{x}{27}$, ¿qué operación se hace?"),
             "options": [
-                {"id": "ok", "text": r"$x=\dfrac{4\cdot 27}{9}$", "latex": r"x=\dfrac{4\cdot 27}{9}"},
-                {"id": "row", "text": r"$x=\dfrac{4\cdot 9}{27}$", "latex": r"x=\dfrac{4\cdot 9}{27}"},
+                {
+                    "id": "ok",
+                    "text": r"$x=\dfrac{4\cdot 27}{9}$",
+                    "latex": r"x=\dfrac{4\cdot 27}{9}",
+                },
+                {
+                    "id": "row",
+                    "text": r"$x=\dfrac{4\cdot 9}{27}$",
+                    "latex": r"x=\dfrac{4\cdot 9}{27}",
+                },
                 {"id": "all", "text": r"$x=4\cdot 9\cdot 27$", "latex": r"x=4\cdot 9\cdot 27"},
                 {"id": "sub", "text": r"$x=27-9+4$", "latex": r"x=27-9+4"},
             ],
@@ -359,7 +392,10 @@ CONTENT = {
                 "tiñen 24, y anota 4,8 medidas. ¿Dónde está el error?"
             ),
             "options": [
-                {"id": "inverted", "text": r"Montó la razón del revés: son $\dfrac{6\cdot 30}{24}=7{,}5$"},
+                {
+                    "id": "inverted",
+                    "text": r"Montó la razón del revés: son $\dfrac{6\cdot 30}{24}=7{,}5$",
+                },
                 {"id": "div", "text": "Dividió cuando tenía que restar"},
                 {"id": "unit", "text": "Calculó mal cuánto tiñe una medida"},
                 {"id": "none", "text": "No hay error"},
@@ -465,24 +501,48 @@ CONTENT = {
             "aplicarla hay que saber si las dos cantidades suben juntas."
         ),
         "rows": [
-            {"symbol": r"\dfrac{3}{12}=\dfrac{x}{20}", "name": "Tinte y lino", "closed": "yes",
-             "latex": r"x=5",
-             "note": "Más lino, más tinte. La diagonal de la x da el resultado. Es el caso focal."},
-            {"symbol": r"\dfrac{5}{30}=\dfrac{8}{x}", "name": "La incógnita abajo", "closed": "yes",
-             "latex": r"x=48",
-             "note": "La posición de la x no cambia nada: siempre se multiplica su diagonal."},
-            {"symbol": r"\dfrac{7}{21}=\dfrac{x}{30}", "name": "Sin unidad cómoda", "closed": "partial",
-             "latex": r"x=10",
-             "note": "Se resuelve igual, pero bajar a la unidad deja 1/3 por medio. Ahí conviene el factor de escala."},
-            {"symbol": r"0\to 0", "name": "La comprobación del cero", "closed": "partial",
-             "latex": r"0\ \text{medidas}\to 0\ \text{brazadas}",
-             "note": "Toda proporcionalidad directa pasa por el cero. Si con 0 de una no sale 0 de la otra, no es directa y el atajo no vale."},
-            {"symbol": r"5\ \text{tintoreros}\to 6\ \text{días}", "name": "Más manos, menos días", "closed": "no",
-             "latex": r"5\cdot 6=10\cdot 3",
-             "note": "Aquí una sube cuando la otra baja. Lo que se conserva es el producto, no la razón. Es la sala de las lámparas."},
-            {"symbol": r"\text{edad}\ \text{y}\ \text{brazadas}", "name": "Sin ninguna relación", "closed": "no",
-             "latex": r"\text{---}",
-             "note": "Que haya tres números no obliga a que exista una cuarta cantidad. A veces no hay proporción que valga."},
+            {
+                "symbol": r"\dfrac{3}{12}=\dfrac{x}{20}",
+                "name": "Tinte y lino",
+                "closed": "yes",
+                "latex": r"x=5",
+                "note": "Más lino, más tinte. La diagonal de la x da el resultado. Es el caso focal.",
+            },
+            {
+                "symbol": r"\dfrac{5}{30}=\dfrac{8}{x}",
+                "name": "La incógnita abajo",
+                "closed": "yes",
+                "latex": r"x=48",
+                "note": "La posición de la x no cambia nada: siempre se multiplica su diagonal.",
+            },
+            {
+                "symbol": r"\dfrac{7}{21}=\dfrac{x}{30}",
+                "name": "Sin unidad cómoda",
+                "closed": "partial",
+                "latex": r"x=10",
+                "note": "Se resuelve igual, pero bajar a la unidad deja 1/3 por medio. Ahí conviene el factor de escala.",
+            },
+            {
+                "symbol": r"0\to 0",
+                "name": "La comprobación del cero",
+                "closed": "partial",
+                "latex": r"0\ \text{medidas}\to 0\ \text{brazadas}",
+                "note": "Toda proporcionalidad directa pasa por el cero. Si con 0 de una no sale 0 de la otra, no es directa y el atajo no vale.",
+            },
+            {
+                "symbol": r"5\ \text{tintoreros}\to 6\ \text{días}",
+                "name": "Más manos, menos días",
+                "closed": "no",
+                "latex": r"5\cdot 6=10\cdot 3",
+                "note": "Aquí una sube cuando la otra baja. Lo que se conserva es el producto, no la razón. Es la sala de las lámparas.",
+            },
+            {
+                "symbol": r"\text{edad}\ \text{y}\ \text{brazadas}",
+                "name": "Sin ninguna relación",
+                "closed": "no",
+                "latex": r"\text{---}",
+                "note": "Que haya tres números no obliga a que exista una cuarta cantidad. A veces no hay proporción que valga.",
+            },
         ],
         "outro": (
             "La cuarta fila es la comprobación más barata que existe y casi nadie la hace: "
@@ -493,12 +553,32 @@ CONTENT = {
     },
     "abstraction_question": {
         "prompt": "¿Qué comparten las tres cuentas de la tina trabajadas en este nodo?",
-        "thumbnails": [r"\dfrac{3}{12}=\dfrac{x}{20}", r"\dfrac{5}{30}=\dfrac{8}{x}", r"\dfrac{7}{21}=\dfrac{x}{30}"],
+        "thumbnails": [
+            r"\dfrac{3}{12}=\dfrac{x}{20}",
+            r"\dfrac{5}{30}=\dfrac{8}{x}",
+            r"\dfrac{7}{21}=\dfrac{x}{30}",
+        ],
         "options": [
-            {"id": "diagonal", "text": "En las tres se multiplica la diagonal de la incógnita y se divide entre el que queda", "correct": True},
-            {"id": "direction", "text": "En las tres se puede saber antes de calcular si el resultado sube o baja", "correct": True},
-            {"id": "row", "text": "En las tres se multiplican los dos datos que se conocen juntos", "correct": False},
-            {"id": "always", "text": "En las tres el atajo sirve porque sirve para cualquier par de magnitudes", "correct": False},
+            {
+                "id": "diagonal",
+                "text": "En las tres se multiplica la diagonal de la incógnita y se divide entre el que queda",
+                "correct": True,
+            },
+            {
+                "id": "direction",
+                "text": "En las tres se puede saber antes de calcular si el resultado sube o baja",
+                "correct": True,
+            },
+            {
+                "id": "row",
+                "text": "En las tres se multiplican los dos datos que se conocen juntos",
+                "correct": False,
+            },
+            {
+                "id": "always",
+                "text": "En las tres el atajo sirve porque sirve para cualquier par de magnitudes",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {
@@ -582,9 +662,7 @@ CONTENT = {
         "fb_r02_e2_row": (
             "Esos dos están en la misma fila. → La diagonal de la x es la que se multiplica."
         ),
-        "fb_r02_e2_all": (
-            "No se multiplican los tres. → Dos se multiplican y el tercero divide."
-        ),
+        "fb_r02_e2_all": ("No se multiplican los tres. → Dos se multiplican y el tercero divide."),
         "fb_r02_e2_sub": (
             "Escalar no es sumar ni restar, es multiplicar. → Eso ya se vio en la cuadrícula."
         ),

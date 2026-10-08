@@ -149,12 +149,36 @@ CONTENT = {
         "número ya cabe. Por la cadena de inclusión, todos los de arriba lo contienen también."
     ),
     "definition_symbols": [
-        {"symbol": r"\dfrac{a}{b}", "reads": "una fracción escrita", "means": "puede dar entero o no: hay que dividir para saberlo"},
-        {"symbol": r"\sqrt{n}", "reads": "raíz de n", "means": "puede ser natural (√9=3) o irracional (√2): hay que resolverla"},
-        {"symbol": r"0{,}\overline{3}", "reads": "decimal periódico", "means": "se repite ⇒ viene de fracción ⇒ es racional"},
-        {"symbol": r"-4", "reads": "menos cuatro", "means": "el signo baja de peldaño (sale de ℕ), no sube"},
-        {"symbol": r"\subset", "reads": "contenido en", "means": "por eso basta nombrar el más pequeño: los mayores vienen incluidos"},
-        {"symbol": r"\mathbb{R}", "reads": "los reales", "means": "la respuesta de seguridad: casi todo lo que verás está aquí"},
+        {
+            "symbol": r"\dfrac{a}{b}",
+            "reads": "una fracción escrita",
+            "means": "puede dar entero o no: hay que dividir para saberlo",
+        },
+        {
+            "symbol": r"\sqrt{n}",
+            "reads": "raíz de n",
+            "means": "puede ser natural (√9=3) o irracional (√2): hay que resolverla",
+        },
+        {
+            "symbol": r"0{,}\overline{3}",
+            "reads": "decimal periódico",
+            "means": "se repite ⇒ viene de fracción ⇒ es racional",
+        },
+        {
+            "symbol": r"-4",
+            "reads": "menos cuatro",
+            "means": "el signo baja de peldaño (sale de ℕ), no sube",
+        },
+        {
+            "symbol": r"\subset",
+            "reads": "contenido en",
+            "means": "por eso basta nombrar el más pequeño: los mayores vienen incluidos",
+        },
+        {
+            "symbol": r"\mathbb{R}",
+            "reads": "los reales",
+            "means": "la respuesta de seguridad: casi todo lo que verás está aquí",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos (a, b, trampa) ------------------------
     "worked_examples": [
@@ -217,15 +241,18 @@ CONTENT = {
                 "wrong_latex": r"\dfrac{6}{3}\in\mathbb{Q}\setminus\mathbb{Z},\ \ \sqrt{16}\in\mathbb{I},\ \ 0{,}25\notin\mathbb{Q}",
                 "right_latex": r"\dfrac{6}{3}=2\in\mathbb{N},\ \ \sqrt{16}=4\in\mathbb{N},\ \ 0{,}25=\dfrac{1}{4}\in\mathbb{Q}",
                 "rows": [
-                    {"wrong": "Barra de fracción ⇒ racional no entero",
-                     "right": "6/3 = 2: la barra desaparece al dividir"},
-                    {"wrong": "Signo de raíz ⇒ irracional · coma ⇒ no racional",
-                     "right": "√16 = 4 es natural; 0,25 = 1/4 es racional"},
+                    {
+                        "wrong": "Barra de fracción ⇒ racional no entero",
+                        "right": "6/3 = 2: la barra desaparece al dividir",
+                    },
+                    {
+                        "wrong": "Signo de raíz ⇒ irracional · coma ⇒ no racional",
+                        "right": "√16 = 4 es natural; 0,25 = 1/4 es racional",
+                    },
                 ],
             },
             "explain_prompt": (
-                "¿Qué paso se saltó en las tres? Escribe la clasificación correcta de "
-                "las tres."
+                "¿Qué paso se saltó en las tres? Escribe la clasificación correcta de " "las tres."
             ),
             "steps": [
                 "Resuelve cada una antes de mirar a qué conjunto la mandas.",
@@ -296,7 +323,11 @@ CONTENT = {
             },
             {
                 "label": "Método 2 · Dividir y mirar el decimal",
-                "steps": [r"45\div15=3{,}0", r"\text{decimal exacto sin parte decimal}", r"\Rightarrow\ \text{entero}"],
+                "steps": [
+                    r"45\div15=3{,}0",
+                    r"\text{decimal exacto sin parte decimal}",
+                    r"\Rightarrow\ \text{entero}",
+                ],
                 "note": "Siempre funciona, incluso con números feos.",
             },
         ],
@@ -408,7 +439,10 @@ CONTENT = {
             "prompt": r"¿Es verdadera o falsa? «$\dfrac{10}{5}$ es racional no entero, porque está escrito como fracción.»",
             "options": [
                 {"id": "false_two", "text": "Falsa: 10/5 = 2, que es natural y entero"},
-                {"id": "true_written", "text": "Verdadera: si está escrito como fracción, es racional no entero"},
+                {
+                    "id": "true_written",
+                    "text": "Verdadera: si está escrito como fracción, es racional no entero",
+                },
                 {"id": "false_irrational", "text": "Falsa: 10/5 es irracional"},
                 {"id": "depends", "text": "Depende de si lo simplificas o no"},
             ],
@@ -439,7 +473,10 @@ CONTENT = {
                 "número. ¿Cuál le sirve?"
             ),
             "options": [
-                {"id": "resolve_first", "text": "Resolver todas las operaciones y después buscar el peldaño más bajo"},
+                {
+                    "id": "resolve_first",
+                    "text": "Resolver todas las operaciones y después buscar el peldaño más bajo",
+                },
                 {"id": "look_symbol", "text": "Mirar si tiene barra, coma o raíz"},
                 {"id": "count_digits", "text": "Contar cuántas cifras tiene"},
                 {"id": "always_real", "text": "Decir siempre «real»: nunca se equivoca"},
@@ -498,16 +535,41 @@ CONTENT = {
         "title": "Cómo se ve un número y dónde vive de verdad",
         "intro": "Cada fila es una escritura que engaña. Resuelve y mira dónde cae.",
         "rows": [
-            {"symbol": r"\dfrac{8}{4}", "name": "Se ve fracción", "closed": "yes",
-             "latex": r"=2\in\mathbb{N}", "note": "La barra se fue al dividir."},
-            {"symbol": r"\sqrt{25}", "name": "Se ve raíz", "closed": "yes",
-             "latex": r"=5\in\mathbb{N}", "note": "El radicando era cuadrado perfecto."},
-            {"symbol": r"0{,}75", "name": "Se ve decimal", "closed": "yes",
-             "latex": r"=\dfrac{3}{4}\in\mathbb{Q}", "note": "Decimal que termina ⇒ racional."},
-            {"symbol": r"0{,}\overline{6}", "name": "Se ve infinito", "closed": "yes",
-             "latex": r"=\dfrac{2}{3}\in\mathbb{Q}", "note": "Se repite ⇒ racional, aunque no termine."},
-            {"symbol": r"\sqrt{2}", "name": "Se ve raíz (otra vez)", "closed": "no",
-             "latex": r"\notin\mathbb{Q}", "note": "Aquí sí: el radicando no es cuadrado perfecto."},
+            {
+                "symbol": r"\dfrac{8}{4}",
+                "name": "Se ve fracción",
+                "closed": "yes",
+                "latex": r"=2\in\mathbb{N}",
+                "note": "La barra se fue al dividir.",
+            },
+            {
+                "symbol": r"\sqrt{25}",
+                "name": "Se ve raíz",
+                "closed": "yes",
+                "latex": r"=5\in\mathbb{N}",
+                "note": "El radicando era cuadrado perfecto.",
+            },
+            {
+                "symbol": r"0{,}75",
+                "name": "Se ve decimal",
+                "closed": "yes",
+                "latex": r"=\dfrac{3}{4}\in\mathbb{Q}",
+                "note": "Decimal que termina ⇒ racional.",
+            },
+            {
+                "symbol": r"0{,}\overline{6}",
+                "name": "Se ve infinito",
+                "closed": "yes",
+                "latex": r"=\dfrac{2}{3}\in\mathbb{Q}",
+                "note": "Se repite ⇒ racional, aunque no termine.",
+            },
+            {
+                "symbol": r"\sqrt{2}",
+                "name": "Se ve raíz (otra vez)",
+                "closed": "no",
+                "latex": r"\notin\mathbb{Q}",
+                "note": "Aquí sí: el radicando no es cuadrado perfecto.",
+            },
         ],
         "outro": (
             "Las dos filas de raíz se ven igual y terminan en peldaños opuestos. Esa es la "
@@ -518,8 +580,16 @@ CONTENT = {
         "prompt": "¿Qué tienen en común los errores de clasificación de este nodo?",
         "thumbnails": [r"\dfrac{6}{3}", r"\sqrt{16}", r"0{,}25"],
         "options": [
-            {"id": "symbol", "text": "En los tres se decidió mirando el símbolo, sin resolver", "correct": True},
-            {"id": "skipped", "text": "En los tres faltó un paso antes de clasificar", "correct": True},
+            {
+                "id": "symbol",
+                "text": "En los tres se decidió mirando el símbolo, sin resolver",
+                "correct": True,
+            },
+            {
+                "id": "skipped",
+                "text": "En los tres faltó un paso antes de clasificar",
+                "correct": True,
+            },
             {"id": "hard", "text": "Los tres son números difíciles", "correct": False},
             {"id": "irrational", "text": "Los tres son irracionales", "correct": False},
         ],

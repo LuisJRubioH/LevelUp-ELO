@@ -49,8 +49,7 @@ def test_first_practice_uses_diagnostic_rating(api_client, monkeypatch, from_map
         headers=headers,
         json={
             "answers": [
-                {"item_id": item["id"], "selected_option": item["correct_option"]}
-                for item in items
+                {"item_id": item["id"], "selected_option": item["correct_option"]} for item in items
             ]
         },
     )
@@ -115,9 +114,7 @@ def test_first_practice_uses_diagnostic_rating(api_client, monkeypatch, from_map
             {"item_id": own["id"], "selected_option": own["correct_option"]},
             {"item_id": own["id"], "selected_option": own["correct_option"]},
         ],
-        lambda own, other: [
-            {"item_id": other["id"], "selected_option": other["correct_option"]}
-        ],
+        lambda own, other: [{"item_id": other["id"], "selected_option": other["correct_option"]}],
         lambda own, other: [{"item_id": own["id"], "selected_option": "inventada"}],
     ],
 )
@@ -137,6 +134,8 @@ def test_diagnostic_rejects_noncanonical_payload(api_client, student_headers, an
     )
     assert response.status_code == 400
     assert repo.get_diagnostic(student_id, _COURSE_UNIV) == before
+
+
 _B03 = "PREALG-N1-B03-ESCALERA-NECESIDAD"
 _B04 = "PREALG-N1-B04-NATURALES-CONTAR"
 _B05 = "PREALG-N1-B05-ENTEROS-DEUDA"
@@ -621,6 +620,8 @@ class TestExamMode:
             json={"course_id": _COURSE_ID, "n_questions": 3},
         )
         assert r.status_code == 401
+
+
 def test_welcome_lesson_progress_flow(api_client, student_headers):
     node_id = "PREALG-N1-B01-BIENVENIDA"
     base = f"/api/student/lessons/algebra_basica/{node_id}"
@@ -648,15 +649,10 @@ def test_welcome_lesson_rejects_unknown_event(api_client, student_headers):
     assert response.status_code == 422
 
 
-def test_trigger_question_requires_closed_responses_before_completion(
-    api_client, student_headers
-):
+def test_trigger_question_requires_closed_responses_before_completion(api_client, student_headers):
     welcome = "/api/student/lessons/algebra_basica/PREALG-N1-B01-BIENVENIDA/events"
     api_client.post(welcome, headers=student_headers, json={"event": "node_completed"})
-    base = (
-        "/api/student/lessons/algebra_basica/"
-        "PREALG-N1-B02-PREGUNTA-DETONADORA"
-    )
+    base = "/api/student/lessons/algebra_basica/" "PREALG-N1-B02-PREGUNTA-DETONADORA"
 
     incomplete = api_client.post(
         f"{base}/events", headers=student_headers, json={"event": "node_completed"}
@@ -687,10 +683,7 @@ def test_staircase_unlocks_after_trigger_and_requires_its_formative_answer(
     welcome = "/api/student/lessons/algebra_basica/PREALG-N1-B01-BIENVENIDA/events"
     api_client.post(welcome, headers=student_headers, json={"event": "node_completed"})
 
-    trigger = (
-        "/api/student/lessons/algebra_basica/"
-        "PREALG-N1-B02-PREGUNTA-DETONADORA"
-    )
+    trigger = "/api/student/lessons/algebra_basica/" "PREALG-N1-B02-PREGUNTA-DETONADORA"
     for interaction_id, selected_option in (
         ("PREALG-N1-B02-Q01", "no"),
         ("PREALG-N1-B02-Q02", "advance"),
@@ -700,14 +693,9 @@ def test_staircase_unlocks_after_trigger_and_requires_its_formative_answer(
             headers=student_headers,
             json={"interaction_id": interaction_id, "selected_option": selected_option},
         )
-    api_client.post(
-        f"{trigger}/events", headers=student_headers, json={"event": "node_completed"}
-    )
+    api_client.post(f"{trigger}/events", headers=student_headers, json={"event": "node_completed"})
 
-    staircase = (
-        "/api/student/lessons/algebra_basica/"
-        "PREALG-N1-B03-ESCALERA-NECESIDAD"
-    )
+    staircase = "/api/student/lessons/algebra_basica/" "PREALG-N1-B03-ESCALERA-NECESIDAD"
     detail = api_client.get(staircase, headers=student_headers)
     assert detail.status_code == 200
     assert len(detail.json()["staircase"]["core_steps"]) == 5
@@ -742,10 +730,7 @@ def test_naturals_node_handles_guided_practice_without_elo(api_client, student_h
         headers=student_headers,
         json={"event": "node_completed"},
     )
-    trigger = (
-        "/api/student/lessons/algebra_basica/"
-        "PREALG-N1-B02-PREGUNTA-DETONADORA"
-    )
+    trigger = "/api/student/lessons/algebra_basica/" "PREALG-N1-B02-PREGUNTA-DETONADORA"
     for interaction_id, selected_option in (
         ("PREALG-N1-B02-Q01", "no"),
         ("PREALG-N1-B02-Q02", "bread"),
@@ -755,14 +740,9 @@ def test_naturals_node_handles_guided_practice_without_elo(api_client, student_h
             headers=student_headers,
             json={"interaction_id": interaction_id, "selected_option": selected_option},
         )
-    api_client.post(
-        f"{trigger}/events", headers=student_headers, json={"event": "node_completed"}
-    )
+    api_client.post(f"{trigger}/events", headers=student_headers, json={"event": "node_completed"})
 
-    staircase = (
-        "/api/student/lessons/algebra_basica/"
-        "PREALG-N1-B03-ESCALERA-NECESIDAD"
-    )
+    staircase = "/api/student/lessons/algebra_basica/" "PREALG-N1-B03-ESCALERA-NECESIDAD"
     for interaction_id, option in _answers(_B03):
         api_client.post(
             f"{staircase}/interactions",
@@ -773,10 +753,7 @@ def test_naturals_node_handles_guided_practice_without_elo(api_client, student_h
         f"{staircase}/events", headers=student_headers, json={"event": "node_completed"}
     )
 
-    naturals = (
-        "/api/student/lessons/algebra_basica/"
-        "PREALG-N1-B04-NATURALES-CONTAR"
-    )
+    naturals = "/api/student/lessons/algebra_basica/" "PREALG-N1-B04-NATURALES-CONTAR"
     detail = api_client.get(naturals, headers=student_headers)
     assert detail.status_code == 200
     assert detail.json()["affects_elo"] is False
@@ -902,10 +879,7 @@ def test_rationals_node_links_fraction_division_and_decimal(api_client, student_
         )
         assert completed.status_code == 200
 
-    rationals = (
-        "/api/student/lessons/algebra_basica/"
-        "PREALG-N1-B06-RACIONALES-FRACCION-DIVISION"
-    )
+    rationals = "/api/student/lessons/algebra_basica/" "PREALG-N1-B06-RACIONALES-FRACCION-DIVISION"
     detail = api_client.get(rationals, headers=student_headers)
     assert detail.status_code == 200
     assert detail.json()["affects_elo"] is False
@@ -986,9 +960,7 @@ def _complete_level_one(api_client, headers):
         assert response.status_code == 200
 
 
-def test_level_two_map_and_hub_are_locked_until_level_one_is_completed(
-    api_client, student_headers
-):
+def test_level_two_map_and_hub_are_locked_until_level_one_is_completed(api_client, student_headers):
     hub = "/api/student/lessons/algebra_basica/PREALG-N2-E00-CIUDAD"
 
     locked_detail = api_client.get(hub, headers=student_headers)
@@ -997,7 +969,8 @@ def test_level_two_map_and_hub_are_locked_until_level_one_is_completed(
     locked_map = api_client.get("/api/student/map/algebra_basica", headers=student_headers)
     assert locked_map.status_code == 200
     n2_nodes = [
-        node for node in locked_map.json()["nodes"]
+        node
+        for node in locked_map.json()["nodes"]
         if (node.get("node_id") or "").startswith("PREALG-N2")
     ]
     assert n2_nodes
@@ -1113,8 +1086,7 @@ def test_algebra_nodes_appear_in_the_map_blocked_until_prealgebra_is_done(
     assert response.status_code == 200
 
     alg_nodes = [
-        node for node in response.json()["nodes"]
-        if (node.get("node_id") or "").startswith("ALG-")
+        node for node in response.json()["nodes"] if (node.get("node_id") or "").startswith("ALG-")
     ]
     # La lista sale de la ruta, no se copia a mano: cada nodo de Álgebra nuevo
     # obligaba a editar este test, que es la misma deuda que se cerró en B4.
@@ -1124,7 +1096,9 @@ def test_algebra_nodes_appear_in_the_map_blocked_until_prealgebra_is_done(
         ALG_N3_NODE_IDS,
     )
 
-    assert [node["node_id"] for node in alg_nodes] == ALG_N1_NODE_IDS + ALG_N2_NODE_IDS + ALG_N3_NODE_IDS
+    assert [
+        node["node_id"] for node in alg_nodes
+    ] == ALG_N1_NODE_IDS + ALG_N2_NODE_IDS + ALG_N3_NODE_IDS
 
     # Sin el MCM completado, todo el módulo de Álgebra está cerrado.
     assert all(node["state"] == "blocked" for node in alg_nodes)

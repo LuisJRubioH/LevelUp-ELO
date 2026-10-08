@@ -134,11 +134,31 @@ CONTENT = {
         "multiplican, los exponentes se suman — cada uno lleva su propia cuenta."
     ),
     "definition_symbols": [
-        {"symbol": r"x^{2}\cdot x^{3}=x^{5}", "reads": "equis dos por equis tres", "means": "misma letra: se suman los exponentes"},
-        {"symbol": r"(3x)(4x)=12x^{2}", "reads": "tres equis por cuatro equis", "means": "coeficientes se multiplican, exponentes se suman"},
-        {"symbol": r"x=x^{1}", "reads": "el exponente invisible", "means": "una letra sola lleva un 1 que no se escribe"},
-        {"symbol": r"x^{2}\cdot y^{3}", "reads": "no se junta", "means": "letras distintas: no hay nada que sumar"},
-        {"symbol": r"(x^{2})^{3}=x^{6}", "reads": "potencia de potencia", "means": "el otro caso: aquí SÍ se multiplican"},
+        {
+            "symbol": r"x^{2}\cdot x^{3}=x^{5}",
+            "reads": "equis dos por equis tres",
+            "means": "misma letra: se suman los exponentes",
+        },
+        {
+            "symbol": r"(3x)(4x)=12x^{2}",
+            "reads": "tres equis por cuatro equis",
+            "means": "coeficientes se multiplican, exponentes se suman",
+        },
+        {
+            "symbol": r"x=x^{1}",
+            "reads": "el exponente invisible",
+            "means": "una letra sola lleva un 1 que no se escribe",
+        },
+        {
+            "symbol": r"x^{2}\cdot y^{3}",
+            "reads": "no se junta",
+            "means": "letras distintas: no hay nada que sumar",
+        },
+        {
+            "symbol": r"(x^{2})^{3}=x^{6}",
+            "reads": "potencia de potencia",
+            "means": "el otro caso: aquí SÍ se multiplican",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -201,10 +221,14 @@ CONTENT = {
                 "wrong_latex": r"x^{2}\cdot x^{3}=x^{2\cdot 3}=x^{6}",
                 "right_latex": r"x^{2}\cdot x^{3}=x^{2+3}=x^{5}",
                 "rows": [
-                    {"wrong": "Multiplicar potencias multiplica los exponentes",
-                     "right": "Multiplicar potencias junta los factores: se suman"},
-                    {"wrong": r"(x\cdot x)(x\cdot x\cdot x)\ \text{tiene}\ 6\ \text{factores}",
-                     "right": r"(x\cdot x)(x\cdot x\cdot x)\ \text{tiene}\ 5\ \text{factores}"},
+                    {
+                        "wrong": "Multiplicar potencias multiplica los exponentes",
+                        "right": "Multiplicar potencias junta los factores: se suman",
+                    },
+                    {
+                        "wrong": r"(x\cdot x)(x\cdot x\cdot x)\ \text{tiene}\ 6\ \text{factores}",
+                        "right": r"(x\cdot x)(x\cdot x\cdot x)\ \text{tiene}\ 5\ \text{factores}",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -231,7 +255,9 @@ CONTENT = {
                 "missing": "last",
                 "statement": r"Multiplica $(2f)(6f)$.",
                 "given_steps": [r"2\cdot 6=12", r"f^{1}\cdot f^{1}=f^{2}"],
-                "blanks": [{"id": "P1-b1", "label": r"\text{coeficiente del resultado}=", "answer": "12"}],
+                "blanks": [
+                    {"id": "P1-b1", "label": r"\text{coeficiente del resultado}=", "answer": "12"}
+                ],
             },
             {
                 "id": "P2",
@@ -355,9 +381,7 @@ CONTENT = {
             "id": "E4",
             "kind": "single_select",
             "tipo": "detecta_error",
-            "prompt": (
-                r"Un tallador escribe $(2x)(5x^{4})=10x^{4}$. ¿Dónde está el error?"
-            ),
+            "prompt": (r"Un tallador escribe $(2x)(5x^{4})=10x^{4}$. ¿Dónde está el error?"),
             "options": [
                 {"id": "exp", "text": r"Olvidó que $x$ es $x^{1}$: el exponente es $1+4=5$"},
                 {"id": "coef", "text": "Multiplicó mal los coeficientes"},
@@ -393,9 +417,15 @@ CONTENT = {
             ),
             "options": [
                 {"id": "false", "text": r"Falsa: se suman — $x^{2}\cdot x^{3}=x^{5}$, no $x^{6}$"},
-                {"id": "true", "text": "Verdadera: si las potencias se multiplican, sus exponentes también"},
+                {
+                    "id": "true",
+                    "text": "Verdadera: si las potencias se multiplican, sus exponentes también",
+                },
                 {"id": "true_same", "text": "Verdadera cuando los dos exponentes son iguales"},
-                {"id": "false_never", "text": "Falsa: los exponentes nunca se multiplican en ningún caso"},
+                {
+                    "id": "false_never",
+                    "text": "Falsa: los exponentes nunca se multiplican en ningún caso",
+                },
             ],
             "expected": "false",
             "feedback_by_option": {
@@ -422,8 +452,16 @@ CONTENT = {
             "prompt": r"Selecciona TODAS las igualdades verdaderas.",
             "valid_options": ["a", "b", "c", "d"],
             "options": [
-                {"id": "a", "text": r"$x^{4}\cdot x^{2}=x^{6}$", "latex": r"x^{4}\cdot x^{2}=x^{6}"},
-                {"id": "b", "text": r"$x^{4}\cdot x^{2}=x^{8}$", "latex": r"x^{4}\cdot x^{2}=x^{8}"},
+                {
+                    "id": "a",
+                    "text": r"$x^{4}\cdot x^{2}=x^{6}$",
+                    "latex": r"x^{4}\cdot x^{2}=x^{6}",
+                },
+                {
+                    "id": "b",
+                    "text": r"$x^{4}\cdot x^{2}=x^{8}$",
+                    "latex": r"x^{4}\cdot x^{2}=x^{8}",
+                },
                 {"id": "c", "text": r"$(x^{4})^{2}=x^{8}$", "latex": r"(x^{4})^{2}=x^{8}"},
                 {"id": "d", "text": r"$x^{4}+x^{2}=x^{6}$", "latex": r"x^{4}+x^{2}=x^{6}"},
             ],
@@ -461,24 +499,48 @@ CONTENT = {
             "Fíjate en qué está pasando por fuera antes de tocar nada."
         ),
         "rows": [
-            {"symbol": r"x^{2}\cdot x^{3}", "name": "Producto de potencias", "closed": "yes",
-             "latex": r"x^{2}\cdot x^{3}=x^{5}",
-             "note": "Se juntan los factores de las dos: 2 + 3. Es el caso focal."},
-            {"symbol": r"x\cdot x^{4}", "name": "Con exponente invisible", "closed": "yes",
-             "latex": r"x^{1}\cdot x^{4}=x^{5}",
-             "note": "Una letra sola es elevada a 1. El mismo caso, con un 1 que no se escribe."},
-            {"symbol": r"(3x^{2})(4x^{3})", "name": "Con coeficientes", "closed": "partial",
-             "latex": r"12x^{5}",
-             "note": "Los exponentes sí se suman, pero los coeficientes NO: esos se multiplican. Dos cuentas a la vez."},
-            {"symbol": r"x^{2}\cdot y^{3}", "name": "Letras distintas", "closed": "no",
-             "latex": r"x^{2}y^{3}",
-             "note": "No hay exponentes que sumar: cada letra lleva su cuenta y el producto se deja indicado."},
-            {"symbol": r"(x^{2})^{3}", "name": "Potencia de una potencia", "closed": "no",
-             "latex": r"(x^{2})^{3}=x^{6}",
-             "note": "Aquí se MULTIPLICAN: se repite tres veces un grupo de dos factores."},
-            {"symbol": r"x^{2}+x^{3}", "name": "Suma de potencias", "closed": "no",
-             "latex": r"x^{2}+x^{3}",
-             "note": "No se toca ningún exponente. No son semejantes, así que la suma se queda indicada."},
+            {
+                "symbol": r"x^{2}\cdot x^{3}",
+                "name": "Producto de potencias",
+                "closed": "yes",
+                "latex": r"x^{2}\cdot x^{3}=x^{5}",
+                "note": "Se juntan los factores de las dos: 2 + 3. Es el caso focal.",
+            },
+            {
+                "symbol": r"x\cdot x^{4}",
+                "name": "Con exponente invisible",
+                "closed": "yes",
+                "latex": r"x^{1}\cdot x^{4}=x^{5}",
+                "note": "Una letra sola es elevada a 1. El mismo caso, con un 1 que no se escribe.",
+            },
+            {
+                "symbol": r"(3x^{2})(4x^{3})",
+                "name": "Con coeficientes",
+                "closed": "partial",
+                "latex": r"12x^{5}",
+                "note": "Los exponentes sí se suman, pero los coeficientes NO: esos se multiplican. Dos cuentas a la vez.",
+            },
+            {
+                "symbol": r"x^{2}\cdot y^{3}",
+                "name": "Letras distintas",
+                "closed": "no",
+                "latex": r"x^{2}y^{3}",
+                "note": "No hay exponentes que sumar: cada letra lleva su cuenta y el producto se deja indicado.",
+            },
+            {
+                "symbol": r"(x^{2})^{3}",
+                "name": "Potencia de una potencia",
+                "closed": "no",
+                "latex": r"(x^{2})^{3}=x^{6}",
+                "note": "Aquí se MULTIPLICAN: se repite tres veces un grupo de dos factores.",
+            },
+            {
+                "symbol": r"x^{2}+x^{3}",
+                "name": "Suma de potencias",
+                "closed": "no",
+                "latex": r"x^{2}+x^{3}",
+                "note": "No se toca ningún exponente. No son semejantes, así que la suma se queda indicada.",
+            },
         ],
         "outro": (
             "La tercera fila es la que más se cobra en los exámenes: en un mismo monomio "
@@ -491,10 +553,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres pedidos trabajados en este nodo?",
         "thumbnails": [r"4(2f+3)", r"(3s)(5s^{2})", r"x^{2}\cdot x^{3}"],
         "options": [
-            {"id": "count", "text": "En los tres el resultado se puede comprobar desplegando y contando", "correct": True},
-            {"id": "two_books", "text": "En los tres hay que llevar por separado la cuenta de los números y la de las letras", "correct": True},
-            {"id": "same_rule", "text": "En los tres se aplica la misma cuenta a los coeficientes y a los exponentes", "correct": False},
-            {"id": "always_add", "text": "En los tres los exponentes siempre se suman", "correct": False},
+            {
+                "id": "count",
+                "text": "En los tres el resultado se puede comprobar desplegando y contando",
+                "correct": True,
+            },
+            {
+                "id": "two_books",
+                "text": "En los tres hay que llevar por separado la cuenta de los números y la de las letras",
+                "correct": True,
+            },
+            {
+                "id": "same_rule",
+                "text": "En los tres se aplica la misma cuenta a los coeficientes y a los exponentes",
+                "correct": False,
+            },
+            {
+                "id": "always_add",
+                "text": "En los tres los exponentes siempre se suman",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

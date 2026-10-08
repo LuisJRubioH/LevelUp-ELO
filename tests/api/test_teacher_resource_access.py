@@ -31,13 +31,19 @@ def resources(api_client, teacher_token):
         conn.commit()
     token = create_access_token(other_id, f"access_teacher_{suffix}", "teacher")
     return {
-        "repo": repo, "teacher_id": teacher_id, "group_id": group_id,
-        "student_id": student_id, "ungrouped_id": ungrouped_id, "other_id": other_id,
+        "repo": repo,
+        "teacher_id": teacher_id,
+        "group_id": group_id,
+        "student_id": student_id,
+        "ungrouped_id": ungrouped_id,
+        "other_id": other_id,
         "other_headers": {"Authorization": f"Bearer {token}"},
     }
 
 
-@pytest.mark.parametrize("suffix", ["", "/elo-history", "/katia-history", "/ranking", "/ai-analysis"])
+@pytest.mark.parametrize(
+    "suffix", ["", "/elo-history", "/katia-history", "/ranking", "/ai-analysis"]
+)
 def test_student_routes_require_current_teacher_relationship(
     api_client, teacher_headers, resources, monkeypatch, suffix
 ):
@@ -67,9 +73,12 @@ def test_student_routes_require_current_teacher_relationship(
     with closing(resources["repo"].get_connection()) as conn:
         conn.execute("UPDATE users SET group_id=NULL WHERE id=?", (resources["student_id"],))
         conn.commit()
-    assert api_client.request(
-        method, f"{base}{resources['student_id']}{suffix}", headers=teacher_headers
-    ).status_code == 404
+    assert (
+        api_client.request(
+            method, f"{base}{resources['student_id']}{suffix}", headers=teacher_headers
+        ).status_code
+        == 404
+    )
 
 
 def test_foreign_invite_code_is_not_rotated(api_client, teacher_headers, resources):
@@ -82,9 +91,7 @@ def test_foreign_invite_code_is_not_rotated(api_client, teacher_headers, resourc
         )
         assert response.status_code == 404
     assert repo.get_group_by_invite_code(before)["group_id"] == group_id
-    own = api_client.post(
-        f"/api/teacher/groups/{group_id}/invite-code", headers=teacher_headers
-    )
+    own = api_client.post(f"/api/teacher/groups/{group_id}/invite-code", headers=teacher_headers)
     assert own.status_code == 200
     assert own.json()["invite_code"]
 
@@ -102,7 +109,9 @@ def test_assignment_must_belong_to_authorized_template(api_client, teacher_heade
     before = repo.list_assignments_for_template(foreign)
     base = "/api/teacher/exam-templates"
     for template_id, assignment_id, expected in [
-        (own, assignment, 404), (own, 99999999, 404), (foreign, assignment, 403),
+        (own, assignment, 404),
+        (own, 99999999, 404),
+        (foreign, assignment, 403),
     ]:
         response = api_client.delete(
             f"{base}/{template_id}/assignments/{assignment_id}", headers=teacher_headers
@@ -110,8 +119,11 @@ def test_assignment_must_belong_to_authorized_template(api_client, teacher_heade
         assert response.status_code == expected
         assert repo.list_assignments_for_template(foreign) == before
     legitimate = repo.create_exam_assignment(own, resources["group_id"], None, None)
-    assert api_client.delete(
-        f"{base}/{own}/assignments/{legitimate}", headers=teacher_headers
-    ).status_code == 204
+    assert (
+        api_client.delete(
+            f"{base}/{own}/assignments/{legitimate}", headers=teacher_headers
+        ).status_code
+        == 204
+    )
     assert repo.list_assignments_for_template(own) == []
     assert repo.list_assignments_for_template(foreign) == before

@@ -130,11 +130,31 @@ CONTENT = {
         "solo divisor."
     ),
     "definition_symbols": [
-        {"symbol": r"p", "reads": "un primo", "means": "un cargamento que no admite lotes intermedios"},
-        {"symbol": r"|D(p)|", "reads": "cuántos divisores tiene p", "means": "el número de la lista de Rodas (C02)"},
-        {"symbol": r"|D(1)|=1", "reads": "el uno tiene un solo divisor", "means": "por eso no es primo ni compuesto"},
-        {"symbol": r"2", "reads": "el dos", "means": "el único primo par: todos los demás pares tienen al 2 de divisor extra"},
-        {"symbol": r"\sqrt{n}", "reads": "raíz de n", "means": "el tope hasta donde hay que probar divisores (E06 y C02)"},
+        {
+            "symbol": r"p",
+            "reads": "un primo",
+            "means": "un cargamento que no admite lotes intermedios",
+        },
+        {
+            "symbol": r"|D(p)|",
+            "reads": "cuántos divisores tiene p",
+            "means": "el número de la lista de Rodas (C02)",
+        },
+        {
+            "symbol": r"|D(1)|=1",
+            "reads": "el uno tiene un solo divisor",
+            "means": "por eso no es primo ni compuesto",
+        },
+        {
+            "symbol": r"2",
+            "reads": "el dos",
+            "means": "el único primo par: todos los demás pares tienen al 2 de divisor extra",
+        },
+        {
+            "symbol": r"\sqrt{n}",
+            "reads": "raíz de n",
+            "means": "el tope hasta donde hay que probar divisores (E06 y C02)",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -193,10 +213,14 @@ CONTENT = {
                 "wrong_latex": r"|D(1)|=2\ \Rightarrow\ 1\ \text{primo}",
                 "right_latex": r"|D(1)|=1\ \Rightarrow\ 1\ \text{ni primo ni compuesto}",
                 "rows": [
-                    {"wrong": "El 1 tiene dos divisores, como todo primo",
-                     "right": "El 1 tiene UNO: el 1 y «él mismo» coinciden"},
-                    {"wrong": "Primo = «no se puede repartir»",
-                     "right": "Primo = «tiene exactamente dos divisores»"},
+                    {
+                        "wrong": "El 1 tiene dos divisores, como todo primo",
+                        "right": "El 1 tiene UNO: el 1 y «él mismo» coinciden",
+                    },
+                    {
+                        "wrong": "Primo = «no se puede repartir»",
+                        "right": "Primo = «tiene exactamente dos divisores»",
+                    },
                 ],
             },
             "explain_prompt": "Escribe D(1) sin repetir elementos y di cuántos tiene.",
@@ -261,12 +285,20 @@ CONTENT = {
         "methods": [
             {
                 "label": "Método 1 · Probar cada número",
-                "steps": [r"2:\ \text{primo}", r"3:\ \text{primo}", r"4=2\times 2:\ \text{no}\ \ldots"],
+                "steps": [
+                    r"2:\ \text{primo}",
+                    r"3:\ \text{primo}",
+                    r"4=2\times 2:\ \text{no}\ \ldots",
+                ],
                 "note": "Uno por uno, buscándole divisores a cada candidato.",
             },
             {
                 "label": "Método 2 · Criba de Eratóstenes",
-                "steps": [r"\text{escribo }2\ldots 30", r"\text{tacho los múltiplos de }2,3,5", r"\text{lo que queda es primo}"],
+                "steps": [
+                    r"\text{escribo }2\ldots 30",
+                    r"\text{tacho los múltiplos de }2,3,5",
+                    r"\text{lo que queda es primo}",
+                ],
                 "note": "En vez de buscar divisores, tacha los múltiplos de lo ya encontrado.",
             },
         ],
@@ -334,7 +366,10 @@ CONTENT = {
             "tipo": "detecta_error",
             "prompt": "Un aduanero anota «2 no es primo porque es par». ¿Dónde está el error?",
             "options": [
-                {"id": "two_divisors", "text": "Ser par no importa: 2 tiene exactamente dos divisores, 1 y 2"},
+                {
+                    "id": "two_divisors",
+                    "text": "Ser par no importa: 2 tiene exactamente dos divisores, 1 y 2",
+                },
                 {"id": "one_divisor", "text": "2 tiene un solo divisor"},
                 {"id": "three", "text": "2 tiene tres divisores: 1, 2 y él mismo"},
                 {"id": "none", "text": "Ningún error, está bien"},
@@ -391,9 +426,7 @@ CONTENT = {
             "id": "E6",
             "kind": "numeric",
             "tipo": "transferencia",
-            "prompt": (
-                "¿Cuál es el primo más pequeño que supera a 30?"
-            ),
+            "prompt": ("¿Cuál es el primo más pequeño que supera a 30?"),
             "expr": r"p>30",
             "answer": "31",
             "hints": {
@@ -438,24 +471,48 @@ CONTENT = {
         "title": "¿Tiene exactamente dos divisores?",
         "intro": "Sin opiniones: se cuenta la lista de divisores y la respuesta cae sola.",
         "rows": [
-            {"symbol": r"1", "name": "El uno", "closed": "no",
-             "latex": r"D(1)=\{1\}",
-             "note": "UN divisor. Ni primo ni compuesto: la única excepción de toda la clasificación."},
-            {"symbol": r"2", "name": "El dos", "closed": "yes",
-             "latex": r"D(2)=\{1,2\}",
-             "note": "Dos divisores: primo. Y el único primo par que existe."},
-            {"symbol": r"9", "name": "El nueve", "closed": "no",
-             "latex": r"D(9)=\{1,3,9\}",
-             "note": "Tres divisores: compuesto. Impar, pero no primo."},
-            {"symbol": r"17", "name": "El diecisiete", "closed": "yes",
-             "latex": r"D(17)=\{1,17\}",
-             "note": "Dos divisores: primo. Basta probar hasta √17 ≈ 4,1."},
-            {"symbol": r"51", "name": "El cincuenta y uno", "closed": "no",
-             "latex": r"D(51)=\{1,3,17,51\}",
-             "note": "Cuatro divisores: compuesto. Engaña porque es impar y no acaba en 5."},
-            {"symbol": r"97", "name": "El noventa y siete", "closed": "yes",
-             "latex": r"D(97)=\{1,97\}",
-             "note": "Dos divisores: primo. Cuatro pruebas bastan (2, 3, 5, 7)."},
+            {
+                "symbol": r"1",
+                "name": "El uno",
+                "closed": "no",
+                "latex": r"D(1)=\{1\}",
+                "note": "UN divisor. Ni primo ni compuesto: la única excepción de toda la clasificación.",
+            },
+            {
+                "symbol": r"2",
+                "name": "El dos",
+                "closed": "yes",
+                "latex": r"D(2)=\{1,2\}",
+                "note": "Dos divisores: primo. Y el único primo par que existe.",
+            },
+            {
+                "symbol": r"9",
+                "name": "El nueve",
+                "closed": "no",
+                "latex": r"D(9)=\{1,3,9\}",
+                "note": "Tres divisores: compuesto. Impar, pero no primo.",
+            },
+            {
+                "symbol": r"17",
+                "name": "El diecisiete",
+                "closed": "yes",
+                "latex": r"D(17)=\{1,17\}",
+                "note": "Dos divisores: primo. Basta probar hasta √17 ≈ 4,1.",
+            },
+            {
+                "symbol": r"51",
+                "name": "El cincuenta y uno",
+                "closed": "no",
+                "latex": r"D(51)=\{1,3,17,51\}",
+                "note": "Cuatro divisores: compuesto. Engaña porque es impar y no acaba en 5.",
+            },
+            {
+                "symbol": r"97",
+                "name": "El noventa y siete",
+                "closed": "yes",
+                "latex": r"D(97)=\{1,97\}",
+                "note": "Dos divisores: primo. Cuatro pruebas bastan (2, 3, 5, 7).",
+            },
         ],
         "outro": (
             "Dos divisores y ni uno más. El 1 se queda fuera por tener uno, no por ser "
@@ -466,9 +523,21 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres casos trabajados en este nodo?",
         "thumbnails": [r"D(97)", r"D(51)", r"D(1)"],
         "options": [
-            {"id": "count", "text": "En los tres la decisión sale de CONTAR divisores", "correct": True},
-            {"id": "odd", "text": "En los tres el número es impar y por eso es primo", "correct": False},
-            {"id": "sqrt", "text": "En los tres basta probar divisores hasta la raíz", "correct": True},
+            {
+                "id": "count",
+                "text": "En los tres la decisión sale de CONTAR divisores",
+                "correct": True,
+            },
+            {
+                "id": "odd",
+                "text": "En los tres el número es impar y por eso es primo",
+                "correct": False,
+            },
+            {
+                "id": "sqrt",
+                "text": "En los tres basta probar divisores hasta la raíz",
+                "correct": True,
+            },
             {"id": "prime", "text": "Los tres son primos", "correct": False},
         ],
     },

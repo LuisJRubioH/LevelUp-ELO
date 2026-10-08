@@ -450,9 +450,7 @@ class SQLiteRepository:
             )
         """
         )
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_enrollments_user_id ON enrollments(user_id)"
-        )
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_enrollments_user_id ON enrollments(user_id)")
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_procedure_submissions_student_id "
             "ON procedure_submissions(student_id)"
@@ -901,8 +899,7 @@ class SQLiteRepository:
         self._add_column_if_not_exists(cursor, "pvp_matches", "elo_reason_p1", "TEXT")
         self._add_column_if_not_exists(cursor, "pvp_matches", "elo_reason_p2", "TEXT")
         cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_pvp_answers_match "
-            "ON pvp_answers(match_id, user_id)"
+            "CREATE INDEX IF NOT EXISTS idx_pvp_answers_match " "ON pvp_answers(match_id, user_id)"
         )
 
         conn.commit()
@@ -1439,9 +1436,15 @@ class SQLiteRepository:
         conn.close()
         if not row:
             return None
-        return {"item_id": row[0], "is_correct": bool(row[1]), "elo_before": row[2],
-                "elo_after": row[3], "rating_deviation": row[4], "request_fingerprint": row[5],
-                "elo_valid": bool(row[6])}
+        return {
+            "item_id": row[0],
+            "is_correct": bool(row[1]),
+            "elo_before": row[2],
+            "elo_after": row[3],
+            "rating_deviation": row[4],
+            "request_fingerprint": row[5],
+            "elo_valid": bool(row[6]),
+        }
 
     def get_all_attempts_for_calibration(
         self,
@@ -1743,8 +1746,16 @@ class SQLiteRepository:
                        (week_start, week_end, group_id, rank, user_id, username, global_elo,
                         attempts_count)
                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (str(week_start), str(week_end), group_id, r["rank"], r["user_id"],
-                     r["username"], r["rating"], r["attempts_in_window"]),
+                    (
+                        str(week_start),
+                        str(week_end),
+                        group_id,
+                        r["rank"],
+                        r["user_id"],
+                        r["username"],
+                        r["rating"],
+                        r["attempts_in_window"],
+                    ),
                 )
             conn.commit()
         finally:
@@ -1877,8 +1888,15 @@ class SQLiteRepository:
         finally:
             conn.close()
         return [
-            {"user_id": r[0], "course_id": r[1], "topic": r[2], "elo": float(r[3]),
-             "rd": float(r[4]), "origin": r[5], "approximate": bool(r[6])}
+            {
+                "user_id": r[0],
+                "course_id": r[1],
+                "topic": r[2],
+                "elo": float(r[3]),
+                "rd": float(r[4]),
+                "origin": r[5],
+                "approximate": bool(r[6]),
+            }
             for r in rows
         ]
 
@@ -1978,18 +1996,16 @@ class SQLiteRepository:
             legacy, attempts, diagnostics, topics, names, existing = (
                 conn.execute(query).fetchall()
                 for query in (
-            "SELECT user_id, topic, current_elo, rd, updated_at FROM student_topic_elo",
-            "SELECT DISTINCT a.user_id, i.course_id, i.topic, a.topic AS rating_key FROM attempts a"
-            " JOIN items i ON i.id = a.item_id WHERE a.topic IS NOT NULL",
-            "SELECT user_id, course_id FROM diagnostics",
-            "SELECT DISTINCT course_id, topic FROM items WHERE course_id IS NOT NULL",
-            "SELECT id, name FROM courses",
-            "SELECT user_id, course_id, topic FROM student_course_topic_elo",
+                    "SELECT user_id, topic, current_elo, rd, updated_at FROM student_topic_elo",
+                    "SELECT DISTINCT a.user_id, i.course_id, i.topic, a.topic AS rating_key FROM attempts a"
+                    " JOIN items i ON i.id = a.item_id WHERE a.topic IS NOT NULL",
+                    "SELECT user_id, course_id FROM diagnostics",
+                    "SELECT DISTINCT course_id, topic FROM items WHERE course_id IS NOT NULL",
+                    "SELECT id, name FROM courses",
+                    "SELECT user_id, course_id, topic FROM student_course_topic_elo",
                 )
             )
-            rows = plan_reconciliation(
-                legacy, attempts, diagnostics, topics, dict(names), existing
-            )
+            rows = plan_reconciliation(legacy, attempts, diagnostics, topics, dict(names), existing)
             created = 0
             for r in rows:
                 cursor = conn.execute(
@@ -1998,8 +2014,15 @@ class SQLiteRepository:
                         legacy_source_key, reconciled_at, updated_at)
                        VALUES (?, ?, ?, ?, ?, ?, 1, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                        ON CONFLICT (user_id, course_id, topic) DO NOTHING""",
-                    (r["user_id"], r["course_id"], r["topic"], r["elo"], r["rd"], r["origin"],
-                     r["legacy_source_key"]),
+                    (
+                        r["user_id"],
+                        r["course_id"],
+                        r["topic"],
+                        r["elo"],
+                        r["rd"],
+                        r["origin"],
+                        r["legacy_source_key"],
+                    ),
                 )
                 created += cursor.rowcount
             conn.commit()
@@ -3370,6 +3393,7 @@ class SQLiteRepository:
 
     def create_pvp_match(self, course_id: str, p1: int, p2: int, item_ids: list[str]) -> int:
         import json
+
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
@@ -3392,10 +3416,15 @@ class SQLiteRepository:
         conn.close()
 
     def finish_pvp_match(
-        self, match_id: int, winner_id: int | None,
-        score_p1: int, score_p2: int,
-        elo_delta_p1: float, elo_delta_p2: float,
-        p1_id: int, p2_id: int,
+        self,
+        match_id: int,
+        winner_id: int | None,
+        score_p1: int,
+        score_p2: int,
+        elo_delta_p1: float,
+        elo_delta_p2: float,
+        p1_id: int,
+        p2_id: int,
     ) -> dict | None:
         """Close an active match once and apply each player's delta (FR-025, FR-029b, FR-029c).
 
@@ -3469,6 +3498,7 @@ class SQLiteRepository:
 
     def get_pvp_history(self, user_id: int, limit: int = 20) -> list[dict]:
         import json
+
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
@@ -3490,17 +3520,19 @@ class SQLiteRepository:
         results = []
         for r in rows:
             is_p1 = r[9] == user_id
-            results.append({
-                "match_id": r[0],
-                "course_id": r[1],
-                "won": r[2] == user_id,
-                "draw": r[2] is None,
-                "my_score": r[3] if is_p1 else r[4],
-                "opp_score": r[4] if is_p1 else r[3],
-                "elo_delta": r[5] if is_p1 else r[6],
-                "opponent": r[12] if is_p1 else r[11],
-                "finished_at": r[8],
-            })
+            results.append(
+                {
+                    "match_id": r[0],
+                    "course_id": r[1],
+                    "won": r[2] == user_id,
+                    "draw": r[2] is None,
+                    "my_score": r[3] if is_p1 else r[4],
+                    "opp_score": r[4] if is_p1 else r[3],
+                    "elo_delta": r[5] if is_p1 else r[6],
+                    "opponent": r[12] if is_p1 else r[11],
+                    "finished_at": r[8],
+                }
+            )
         return results
 
     def get_item_by_id(self, item_id: str) -> dict | None:
@@ -3666,7 +3698,9 @@ class SQLiteRepository:
         import time as _time
 
         ext = {
-            "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
+            "image/jpeg": "jpg",
+            "image/png": "png",
+            "image/webp": "webp",
             "application/pdf": "pdf",
         }.get(mime_type, "bin")
         os.makedirs(os.path.join("data", "uploads", "procedures"), exist_ok=True)
@@ -4083,8 +4117,13 @@ class SQLiteRepository:
         return row_id
 
     def create_active_exam_session(
-        self, session_id: str, user_id: int, course_id: str,
-        template_id: int | None, item_ids: list[str], expires_at: str,
+        self,
+        session_id: str,
+        user_id: int,
+        course_id: str,
+        template_id: int | None,
+        item_ids: list[str],
+        expires_at: str,
     ) -> None:
         conn = self.get_connection()
         conn.execute(
@@ -4108,15 +4147,22 @@ class SQLiteRepository:
         if not row:
             return None
         return {
-            "id": row[0], "course_id": row[1], "template_id": row[2],
-            "item_ids": json.loads(row[3]), "expires_at": str(row[4]),
+            "id": row[0],
+            "course_id": row[1],
+            "template_id": row[2],
+            "item_ids": json.loads(row[3]),
+            "expires_at": str(row[4]),
             "submitted_at": row[5],
             "result": json.loads(row[6]) if row[6] else None,
         }
 
     def complete_active_exam_session(
-        self, session_id: str, user_id: int, course_name: str,
-        result: dict, responses: list[dict],
+        self,
+        session_id: str,
+        user_id: int,
+        course_name: str,
+        result: dict,
+        responses: list[dict],
     ) -> bool:
         conn = self.get_connection()
         try:
@@ -4139,11 +4185,18 @@ class SQLiteRepository:
                    (user_id, course_id, course_name, n_questions, correct_count, score_pct,
                     global_elo_after, global_elo_status, exam_template_id)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (user_id, run[0], course_name, result["total_questions"],
-                 result["correct_count"], result["score_pct"],
-                 # Pending: the column stays NOT NULL (AGENTS R8); the status says pending.
-                 result["global_elo_after"] or 0,
-                 "pending" if result["global_elo_after"] is None else "rated", run[1]),
+                (
+                    user_id,
+                    run[0],
+                    course_name,
+                    result["total_questions"],
+                    result["correct_count"],
+                    result["score_pct"],
+                    # Pending: the column stays NOT NULL (AGENTS R8); the status says pending.
+                    result["global_elo_after"] or 0,
+                    "pending" if result["global_elo_after"] is None else "rated",
+                    run[1],
+                ),
             )
             history_id = cursor.lastrowid
             if responses:
@@ -4151,8 +4204,17 @@ class SQLiteRepository:
                     """INSERT INTO exam_responses
                        (session_id, template_id, user_id, item_id, topic, is_correct)
                        VALUES (?, ?, ?, ?, ?, ?)""",
-                    [(history_id, run[1], user_id, r["item_id"], r.get("topic"),
-                      1 if r.get("is_correct") else 0) for r in responses],
+                    [
+                        (
+                            history_id,
+                            run[1],
+                            user_id,
+                            r["item_id"],
+                            r.get("topic"),
+                            1 if r.get("is_correct") else 0,
+                        )
+                        for r in responses
+                    ],
                 )
             conn.commit()
             return True
@@ -4241,9 +4303,7 @@ class SQLiteRepository:
             "completed_at": str(row[4]) if row[4] else None,
         }
 
-    def record_lesson_event(
-        self, user_id: int, course_id: str, node_id: str, event: str
-    ) -> dict:
+    def record_lesson_event(self, user_id: int, course_id: str, node_id: str, event: str) -> dict:
         """Registra un hito curricular idempotente sin afectar ELO."""
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -4657,9 +4717,7 @@ class SQLiteRepository:
         conn.close()
         return int(row[0])
 
-    def delete_exam_assignment(
-        self, assignment_id: int, template_id: int | None = None
-    ) -> bool:
+    def delete_exam_assignment(self, assignment_id: int, template_id: int | None = None) -> bool:
         conn = self.get_connection()
         cursor = conn.cursor()
         if template_id is None:

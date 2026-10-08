@@ -138,11 +138,27 @@ CONTENT = {
         "grande: la frase no se puede dar vuelta."
     ),
     "definition_symbols": [
-        {"symbol": r"b\mid a", "reads": "b divide a a", "means": "b es el tramo, a es la maroma entera"},
+        {
+            "symbol": r"b\mid a",
+            "reads": "b divide a a",
+            "means": "b es el tramo, a es la maroma entera",
+        },
         {"symbol": r"b\nmid a", "reads": "b no divide a a", "means": "el corte deja desperdicio"},
-        {"symbol": r"k", "reads": "el cociente", "means": "cuántos tramos salen; tiene que ser entero"},
-        {"symbol": r"r=0", "reads": "residuo cero", "means": "la marca de que el reparto fue exacto"},
-        {"symbol": r"b\mid a\ \Rightarrow\ b\le a", "reads": "el divisor no supera al múltiplo", "means": "para a positivo: por eso 12 no divide a 3"},
+        {
+            "symbol": r"k",
+            "reads": "el cociente",
+            "means": "cuántos tramos salen; tiene que ser entero",
+        },
+        {
+            "symbol": r"r=0",
+            "reads": "residuo cero",
+            "means": "la marca de que el reparto fue exacto",
+        },
+        {
+            "symbol": r"b\mid a\ \Rightarrow\ b\le a",
+            "reads": "el divisor no supera al múltiplo",
+            "means": "para a positivo: por eso 12 no divide a 3",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -202,10 +218,14 @@ CONTENT = {
                 "wrong_latex": r"24\mid 8",
                 "right_latex": r"8\mid 24",
                 "rows": [
-                    {"wrong": "«24 dividido entre 8» se escribe 24 | 8",
-                     "right": "24 ÷ 8 exacto se escribe 8 | 24: divide el pequeño"},
-                    {"wrong": "La barra vertical se lee igual que la de dividir",
-                     "right": "b | a se lee «b divide a a», no «b dividido entre a»"},
+                    {
+                        "wrong": "«24 dividido entre 8» se escribe 24 | 8",
+                        "right": "24 ÷ 8 exacto se escribe 8 | 24: divide el pequeño",
+                    },
+                    {
+                        "wrong": "La barra vertical se lee igual que la de dividir",
+                        "right": "b | a se lee «b divide a a», no «b dividido entre a»",
+                    },
                 ],
             },
             "explain_prompt": "Escribe la afirmación correcta y di qué entero k la justifica.",
@@ -276,7 +296,11 @@ CONTENT = {
             },
             {
                 "label": "Método 2 · Descomponer el 6",
-                "steps": [r"6=2\times 3", r"2346\text{ termina en }6\ \Rightarrow\ \text{divisible entre }2", r"2+3+4+6=15\ \Rightarrow\ \text{divisible entre }3"],
+                "steps": [
+                    r"6=2\times 3",
+                    r"2346\text{ termina en }6\ \Rightarrow\ \text{divisible entre }2",
+                    r"2+3+4+6=15\ \Rightarrow\ \text{divisible entre }3",
+                ],
                 "note": "Dos criterios de un vistazo en vez de una división larga.",
             },
         ],
@@ -452,24 +476,48 @@ CONTENT = {
             "familias según dónde hay que mirar."
         ),
         "rows": [
-            {"symbol": r"2", "name": "Entre 2", "closed": "yes",
-             "latex": r"1350\to 0\ \text{par}",
-             "note": "Basta la última cifra: 0, 2, 4, 6 u 8."},
-            {"symbol": r"5", "name": "Entre 5", "closed": "yes",
-             "latex": r"1350\to 0",
-             "note": "Basta la última cifra: 0 o 5."},
-            {"symbol": r"10", "name": "Entre 10", "closed": "yes",
-             "latex": r"1350\to 0",
-             "note": "Basta la última cifra: 0. Es el criterio de 2 y el de 5 a la vez."},
-            {"symbol": r"4", "name": "Entre 4", "closed": "partial",
-             "latex": r"1350\to 50,\ 50\div 4\ \text{no exacto}",
-             "note": "No basta la última: hay que mirar las DOS últimas. Aquí falla."},
-            {"symbol": r"3", "name": "Entre 3", "closed": "no",
-             "latex": r"1+3+5+0=9",
-             "note": "Hay que sumar TODAS las cifras y ver si la suma es múltiplo de 3."},
-            {"symbol": r"9", "name": "Entre 9", "closed": "no",
-             "latex": r"1+3+5+0=9",
-             "note": "La misma suma, pero exigiendo múltiplo de 9. Todo divisible entre 9 lo es entre 3, no al revés."},
+            {
+                "symbol": r"2",
+                "name": "Entre 2",
+                "closed": "yes",
+                "latex": r"1350\to 0\ \text{par}",
+                "note": "Basta la última cifra: 0, 2, 4, 6 u 8.",
+            },
+            {
+                "symbol": r"5",
+                "name": "Entre 5",
+                "closed": "yes",
+                "latex": r"1350\to 0",
+                "note": "Basta la última cifra: 0 o 5.",
+            },
+            {
+                "symbol": r"10",
+                "name": "Entre 10",
+                "closed": "yes",
+                "latex": r"1350\to 0",
+                "note": "Basta la última cifra: 0. Es el criterio de 2 y el de 5 a la vez.",
+            },
+            {
+                "symbol": r"4",
+                "name": "Entre 4",
+                "closed": "partial",
+                "latex": r"1350\to 50,\ 50\div 4\ \text{no exacto}",
+                "note": "No basta la última: hay que mirar las DOS últimas. Aquí falla.",
+            },
+            {
+                "symbol": r"3",
+                "name": "Entre 3",
+                "closed": "no",
+                "latex": r"1+3+5+0=9",
+                "note": "Hay que sumar TODAS las cifras y ver si la suma es múltiplo de 3.",
+            },
+            {
+                "symbol": r"9",
+                "name": "Entre 9",
+                "closed": "no",
+                "latex": r"1+3+5+0=9",
+                "note": "La misma suma, pero exigiendo múltiplo de 9. Todo divisible entre 9 lo es entre 3, no al revés.",
+            },
         ],
         "outro": (
             "Dos familias: los que miran el final (2, 5, 10 y, con dos cifras, el 4) y los "
@@ -483,7 +531,11 @@ CONTENT = {
         "options": [
             {"id": "remainder", "text": "En los tres lo que decide es el residuo", "correct": True},
             {"id": "exact", "text": "En los tres el reparto sale exacto", "correct": False},
-            {"id": "relation", "text": "En los tres se relacionan DOS números, no uno solo", "correct": True},
+            {
+                "id": "relation",
+                "text": "En los tres se relacionan DOS números, no uno solo",
+                "correct": True,
+            },
             {"id": "even", "text": "En los tres los números son pares", "correct": False},
         ],
     },
@@ -548,7 +600,10 @@ CONTENT = {
                 "tipo": "diagnostico",
                 "prompt": "¿Cómo sabes si un número es divisible entre 3 sin dividir?",
                 "options": [
-                    {"id": "sum", "text": "Sumando sus cifras y viendo si la suma es múltiplo de 3"},
+                    {
+                        "id": "sum",
+                        "text": "Sumando sus cifras y viendo si la suma es múltiplo de 3",
+                    },
                     {"id": "last", "text": "Mirando la última cifra"},
                     {"id": "cannot", "text": "No se puede saber sin dividir"},
                 ],
@@ -582,9 +637,7 @@ CONTENT = {
         "fb_c01_e4_none": (
             "«15 divide a 5» querría decir que 5 es múltiplo de 15. → Di si 5 puede ser múltiplo de 15."
         ),
-        "fb_c01_e5_trap": (
-            "Eso es lo que le costó 2 codos al cordelero. → Prueba con 92 y 6."
-        ),
+        "fb_c01_e5_trap": ("Eso es lo que le costó 2 codos al cordelero. → Prueba con 92 y 6."),
         "fb_c01_e5_never": (
             "Te pasaste: 96 y 6 son pares y sí sale exacto. → Da un caso donde funcione y otro donde no."
         ),

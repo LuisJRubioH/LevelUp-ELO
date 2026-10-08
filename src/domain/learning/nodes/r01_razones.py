@@ -66,7 +66,10 @@ CONTENT = {
                 "tipo": "diagnostico",
                 "prompt": r"¿Describen $2:3$ y $4:6$ la misma relación?",
                 "options": [
-                    {"id": "same", "text": "Sí: por cada 2 de lo primero hay 3 de lo segundo, en las dos"},
+                    {
+                        "id": "same",
+                        "text": "Sí: por cada 2 de lo primero hay 3 de lo segundo, en las dos",
+                    },
                     {"id": "diff", "text": "No: en la segunda hay más cantidad"},
                     {"id": "unknown", "text": "No se puede saber sin más datos"},
                 ],
@@ -144,11 +147,31 @@ CONTENT = {
         "productos cruzados coinciden."
     ),
     "definition_symbols": [
-        {"symbol": r"a:b", "reads": "a es a b", "means": "la razón entre dos cantidades, es decir su cociente"},
-        {"symbol": r"\dfrac{a}{b}=\dfrac{c}{d}", "reads": "proporción", "means": "las dos razones valen lo mismo"},
-        {"symbol": r"k", "reads": "factor de escala", "means": "el número que multiplica a AMBAS cantidades"},
-        {"symbol": r"a\cdot d=b\cdot c", "reads": "productos cruzados", "means": "sirve aunque el factor no sea un número redondo"},
-        {"symbol": r"b,d\ne 0", "reads": "no nulos", "means": "una razón es una división: el segundo término nunca es cero"},
+        {
+            "symbol": r"a:b",
+            "reads": "a es a b",
+            "means": "la razón entre dos cantidades, es decir su cociente",
+        },
+        {
+            "symbol": r"\dfrac{a}{b}=\dfrac{c}{d}",
+            "reads": "proporción",
+            "means": "las dos razones valen lo mismo",
+        },
+        {
+            "symbol": r"k",
+            "reads": "factor de escala",
+            "means": "el número que multiplica a AMBAS cantidades",
+        },
+        {
+            "symbol": r"a\cdot d=b\cdot c",
+            "reads": "productos cruzados",
+            "means": "sirve aunque el factor no sea un número redondo",
+        },
+        {
+            "symbol": r"b,d\ne 0",
+            "reads": "no nulos",
+            "means": "una razón es una división: el segundo término nunca es cero",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -213,10 +236,14 @@ CONTENT = {
                 "wrong_latex": r"3:5\ \to\ 5:7",
                 "right_latex": r"3:5\ \to\ 6:10\quad(\text{factor }2)",
                 "rows": [
-                    {"wrong": "Crecer lo mismo es sumar la misma cantidad",
-                     "right": "Crecer lo mismo es multiplicar por el mismo factor"},
-                    {"wrong": "3 : 5 y 5 : 7 son la misma forma",
-                     "right": "3 · 7 = 21 y 5 · 5 = 25: los productos cruzados no coinciden"},
+                    {
+                        "wrong": "Crecer lo mismo es sumar la misma cantidad",
+                        "right": "Crecer lo mismo es multiplicar por el mismo factor",
+                    },
+                    {
+                        "wrong": "3 : 5 y 5 : 7 son la misma forma",
+                        "right": "3 · 7 = 21 y 5 · 5 = 25: los productos cruzados no coinciden",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -377,7 +404,10 @@ CONTENT = {
                 "proporción. ¿Dónde está el error?"
             ),
             "options": [
-                {"id": "different_factors", "text": "Multiplicó el 2 por 3 pero al 5 solo le sumó 4: los factores no coinciden"},
+                {
+                    "id": "different_factors",
+                    "text": "Multiplicó el 2 por 3 pero al 5 solo le sumó 4: los factores no coinciden",
+                },
                 {"id": "order", "text": "Cambió el orden de las cantidades"},
                 {"id": "too_big", "text": "El error es que amplió demasiado"},
                 {"id": "none", "text": "No hay error: las dos cantidades crecieron"},
@@ -479,24 +509,48 @@ CONTENT = {
             "operaciones dejan el cociente donde estaba."
         ),
         "rows": [
-            {"symbol": r"\times k\ \text{a las dos}", "name": "Multiplicar por el mismo factor", "closed": "yes",
-             "latex": r"2:6\ \to\ 4:12",
-             "note": "1/3 antes y 1/3 después. Es la operación que define ampliar."},
-            {"symbol": r"\div k\ \text{a las dos}", "name": "Dividir por el mismo factor", "closed": "yes",
-             "latex": r"2:6\ \to\ 1:3",
-             "note": "Reducir es lo mismo al revés: también conserva la forma."},
-            {"symbol": r"+k\ \text{a las dos}", "name": "Sumar la misma cantidad", "closed": "no",
-             "latex": r"2:6\ \to\ 4:8",
-             "note": "De 1/3 a 1/2. Es la trampa de este nodo: afecta más a la cantidad pequeña."},
-            {"symbol": r"\times k\ \text{a una sola}", "name": "Multiplicar solo una parte", "closed": "no",
-             "latex": r"2:6\ \to\ 4:6",
-             "note": "De 1/3 a 2/3. Justo el relieve deforme del aprendiz."},
-            {"symbol": r"\text{invertir las dos}", "name": "Dar la vuelta a la razón", "closed": "partial",
-             "latex": r"2:6\ \to\ 6:2",
-             "note": "El cociente cambia (1/3 pasa a 3), pero la relación se conserva leída al revés. Vale si se invierten las DOS."},
-            {"symbol": r"+k\ \text{proporcional}", "name": "Sumar en proporción", "closed": "yes",
-             "latex": r"2:6\ \to\ 2+2:6+6",
-             "note": "Aquí sumar sí vale, porque sumar a cada una su propio tamaño es multiplicar por 2 disfrazado."},
+            {
+                "symbol": r"\times k\ \text{a las dos}",
+                "name": "Multiplicar por el mismo factor",
+                "closed": "yes",
+                "latex": r"2:6\ \to\ 4:12",
+                "note": "1/3 antes y 1/3 después. Es la operación que define ampliar.",
+            },
+            {
+                "symbol": r"\div k\ \text{a las dos}",
+                "name": "Dividir por el mismo factor",
+                "closed": "yes",
+                "latex": r"2:6\ \to\ 1:3",
+                "note": "Reducir es lo mismo al revés: también conserva la forma.",
+            },
+            {
+                "symbol": r"+k\ \text{a las dos}",
+                "name": "Sumar la misma cantidad",
+                "closed": "no",
+                "latex": r"2:6\ \to\ 4:8",
+                "note": "De 1/3 a 1/2. Es la trampa de este nodo: afecta más a la cantidad pequeña.",
+            },
+            {
+                "symbol": r"\times k\ \text{a una sola}",
+                "name": "Multiplicar solo una parte",
+                "closed": "no",
+                "latex": r"2:6\ \to\ 4:6",
+                "note": "De 1/3 a 2/3. Justo el relieve deforme del aprendiz.",
+            },
+            {
+                "symbol": r"\text{invertir las dos}",
+                "name": "Dar la vuelta a la razón",
+                "closed": "partial",
+                "latex": r"2:6\ \to\ 6:2",
+                "note": "El cociente cambia (1/3 pasa a 3), pero la relación se conserva leída al revés. Vale si se invierten las DOS.",
+            },
+            {
+                "symbol": r"+k\ \text{proporcional}",
+                "name": "Sumar en proporción",
+                "closed": "yes",
+                "latex": r"2:6\ \to\ 2+2:6+6",
+                "note": "Aquí sumar sí vale, porque sumar a cada una su propio tamaño es multiplicar por 2 disfrazado.",
+            },
         ],
         "outro": (
             "La última fila es la que desarma la trampa del todo: no es que sumar esté "
@@ -509,10 +563,22 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres casos trabajados en este nodo?",
         "thumbnails": [r"2:3\ \to\ 4:6", r"3\cdot 15=5\cdot 9", r"3:5\ \to\ 5:7?"],
         "options": [
-            {"id": "quotient", "text": "En los tres lo que hay que vigilar es el cociente, no la diferencia", "correct": True},
-            {"id": "both", "text": "En los tres la operación tiene que afectar a las DOS cantidades igual", "correct": True},
+            {
+                "id": "quotient",
+                "text": "En los tres lo que hay que vigilar es el cociente, no la diferencia",
+                "correct": True,
+            },
+            {
+                "id": "both",
+                "text": "En los tres la operación tiene que afectar a las DOS cantidades igual",
+                "correct": True,
+            },
             {"id": "grow", "text": "En los tres las dos cantidades crecen", "correct": False},
-            {"id": "integer", "text": "En los tres el factor de escala es un número entero", "correct": False},
+            {
+                "id": "integer",
+                "text": "En los tres el factor de escala es un número entero",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

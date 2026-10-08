@@ -146,11 +146,31 @@ CONTENT = {
         "por lo que le falte. El resultado puede quedar todavía simplificable."
     ),
     "definition_symbols": [
-        {"symbol": r"\dfrac{3}{x}+\dfrac{2}{x}=\dfrac{5}{x}", "reads": "mismo denominador", "means": "se suman los de arriba y el de abajo se copia"},
-        {"symbol": r"\dfrac{5c}{6}-\dfrac{c}{6}=\dfrac{4c}{6}", "reads": "la resta va igual", "means": "5c − c = 4c, y el 6 se queda"},
-        {"symbol": r"\dfrac{4c}{6}=\dfrac{2c}{3}", "reads": "aún se simplifica", "means": "sumar no exime de revisar el resultado"},
-        {"symbol": r"\dfrac{1}{2}+\dfrac{1}{3}=\dfrac{3+2}{6}", "reads": "denominador común", "means": "primero al mismo reparto, después se suma"},
-        {"symbol": r"\dfrac{1}{x}+\dfrac{1}{y}=\dfrac{y+x}{xy}", "reads": "con letras", "means": "el común denominador puede ser un producto de letras"},
+        {
+            "symbol": r"\dfrac{3}{x}+\dfrac{2}{x}=\dfrac{5}{x}",
+            "reads": "mismo denominador",
+            "means": "se suman los de arriba y el de abajo se copia",
+        },
+        {
+            "symbol": r"\dfrac{5c}{6}-\dfrac{c}{6}=\dfrac{4c}{6}",
+            "reads": "la resta va igual",
+            "means": "5c − c = 4c, y el 6 se queda",
+        },
+        {
+            "symbol": r"\dfrac{4c}{6}=\dfrac{2c}{3}",
+            "reads": "aún se simplifica",
+            "means": "sumar no exime de revisar el resultado",
+        },
+        {
+            "symbol": r"\dfrac{1}{2}+\dfrac{1}{3}=\dfrac{3+2}{6}",
+            "reads": "denominador común",
+            "means": "primero al mismo reparto, después se suma",
+        },
+        {
+            "symbol": r"\dfrac{1}{x}+\dfrac{1}{y}=\dfrac{y+x}{xy}",
+            "reads": "con letras",
+            "means": "el común denominador puede ser un producto de letras",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -214,10 +234,14 @@ CONTENT = {
                 "wrong_latex": r"\dfrac{2}{5}+\dfrac{1}{5}=\dfrac{2+1}{5+5}",
                 "right_latex": r"\dfrac{2}{5}+\dfrac{1}{5}=\dfrac{2+1}{5}=\dfrac{3}{5}",
                 "rows": [
-                    {"wrong": "Los cuatro números entran en la suma",
-                     "right": "Solo entran los de arriba: los de abajo nombran el trozo"},
-                    {"wrong": r"\dfrac{3}{10}\ \text{es menos que}\ \dfrac{2}{5}",
-                     "right": r"\dfrac{3}{5}\ \text{es más que}\ \dfrac{2}{5}\ \text{✓}"},
+                    {
+                        "wrong": "Los cuatro números entran en la suma",
+                        "right": "Solo entran los de arriba: los de abajo nombran el trozo",
+                    },
+                    {
+                        "wrong": r"\dfrac{3}{10}\ \text{es menos que}\ \dfrac{2}{5}",
+                        "right": r"\dfrac{3}{5}\ \text{es más que}\ \dfrac{2}{5}\ \text{✓}",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -265,7 +289,13 @@ CONTENT = {
                     "Primero la fracción, después el valor."
                 ),
                 "given_steps": [],
-                "blanks": [{"id": "P3-b1", "label": r"\dfrac{5c}{10}=\dfrac{c}{2}\ \text{con}\ c=4:", "answer": "2"}],
+                "blanks": [
+                    {
+                        "id": "P3-b1",
+                        "label": r"\dfrac{5c}{10}=\dfrac{c}{2}\ \text{con}\ c=4:",
+                        "answer": "2",
+                    }
+                ],
             },
         ],
     },
@@ -355,7 +385,11 @@ CONTENT = {
             "prompt": r"¿Cuánto es $\dfrac{7a}{8}-\dfrac{3a}{8}$, ya simplificado?",
             "options": [
                 {"id": "ok", "text": r"$\dfrac{a}{2}$", "latex": r"\dfrac{a}{2}"},
-                {"id": "unsimplified", "text": r"$\dfrac{4a}{8}$… pero aún se simplifica", "latex": r"\dfrac{4a}{8}"},
+                {
+                    "id": "unsimplified",
+                    "text": r"$\dfrac{4a}{8}$… pero aún se simplifica",
+                    "latex": r"\dfrac{4a}{8}",
+                },
                 {"id": "trap", "text": r"$\dfrac{4a}{0}$", "latex": r"\dfrac{4a}{0}"},
                 {"id": "wrong", "text": r"$\dfrac{4a}{16}$", "latex": r"\dfrac{4a}{16}"},
             ],
@@ -385,7 +419,10 @@ CONTENT = {
                 r"Un escriba anota $\dfrac{1}{2}+\dfrac{1}{5}=\dfrac{2}{7}$. ¿Dónde está el error?"
             ),
             "options": [
-                {"id": "common", "text": r"Sumó arriba y abajo sin llevarlas a un denominador común: es $\dfrac{7}{10}$"},
+                {
+                    "id": "common",
+                    "text": r"Sumó arriba y abajo sin llevarlas a un denominador común: es $\dfrac{7}{10}$",
+                },
                 {"id": "num", "text": "Sumó mal los numeradores"},
                 {"id": "op", "text": "La operación no era una suma"},
                 {"id": "none", "text": "No hay error"},
@@ -418,7 +455,10 @@ CONTENT = {
                 "entre sí y los denominadores entre sí.»"
             ),
             "options": [
-                {"id": "false", "text": r"Falsa: $\dfrac{2}{5}+\dfrac{1}{5}$ sería $\dfrac{3}{10}$, menos que lo que ya había"},
+                {
+                    "id": "false",
+                    "text": r"Falsa: $\dfrac{2}{5}+\dfrac{1}{5}$ sería $\dfrac{3}{10}$, menos que lo que ya había",
+                },
                 {"id": "true", "text": "Verdadera: se opera arriba con arriba y abajo con abajo"},
                 {"id": "true_same", "text": "Verdadera cuando los denominadores son iguales"},
                 {"id": "false_never", "text": "Falsa: los numeradores tampoco se suman nunca"},
@@ -450,10 +490,26 @@ CONTENT = {
             ),
             "valid_options": ["a", "b", "c", "d"],
             "options": [
-                {"id": "a", "text": r"$\dfrac{2}{x}+\dfrac{5}{x}$", "latex": r"\dfrac{2}{x}+\dfrac{5}{x}"},
-                {"id": "b", "text": r"$\dfrac{1}{3}+\dfrac{1}{5}$", "latex": r"\dfrac{1}{3}+\dfrac{1}{5}"},
-                {"id": "c", "text": r"$\dfrac{3a}{7}-\dfrac{a}{7}$", "latex": r"\dfrac{3a}{7}-\dfrac{a}{7}"},
-                {"id": "d", "text": r"$\dfrac{1}{x}+\dfrac{1}{y}$", "latex": r"\dfrac{1}{x}+\dfrac{1}{y}"},
+                {
+                    "id": "a",
+                    "text": r"$\dfrac{2}{x}+\dfrac{5}{x}$",
+                    "latex": r"\dfrac{2}{x}+\dfrac{5}{x}",
+                },
+                {
+                    "id": "b",
+                    "text": r"$\dfrac{1}{3}+\dfrac{1}{5}$",
+                    "latex": r"\dfrac{1}{3}+\dfrac{1}{5}",
+                },
+                {
+                    "id": "c",
+                    "text": r"$\dfrac{3a}{7}-\dfrac{a}{7}$",
+                    "latex": r"\dfrac{3a}{7}-\dfrac{a}{7}",
+                },
+                {
+                    "id": "d",
+                    "text": r"$\dfrac{1}{x}+\dfrac{1}{y}$",
+                    "latex": r"\dfrac{1}{x}+\dfrac{1}{y}",
+                },
             ],
             "expected": ["a", "c"],
             "trap_options": ["b", "d"],
@@ -490,24 +546,48 @@ CONTENT = {
             "tamaño. Y la última, si el resultado ya está en su forma más corta."
         ),
         "rows": [
-            {"symbol": r"\dfrac{3}{x}+\dfrac{2}{x}", "name": "Mismo denominador", "closed": "yes",
-             "latex": r"\dfrac{5}{x}",
-             "note": "Se suman los de arriba y el de abajo se copia. Es el caso focal."},
-            {"symbol": r"\dfrac{5c}{6}-\dfrac{c}{6}", "name": "La resta va igual", "closed": "yes",
-             "latex": r"\dfrac{4c}{6}",
-             "note": "Restar cuenta trozos igual que sumar: el denominador tampoco se toca."},
-            {"symbol": r"\dfrac{4c}{6}", "name": "El resultado aún se simplifica", "closed": "partial",
-             "latex": r"\dfrac{2c}{3}",
-             "note": "La suma salió bien y aun así falta un paso. Terminar no es lo mismo que sumar."},
-            {"symbol": r"\dfrac{1}{2}+\dfrac{1}{3}", "name": "Denominadores distintos", "closed": "no",
-             "latex": r"\dfrac{3}{6}+\dfrac{2}{6}=\dfrac{5}{6}",
-             "note": "Hay que repartirlo todo en trozos del mismo tamaño antes de contar."},
-            {"symbol": r"\dfrac{1}{x}+\dfrac{1}{y}", "name": "Distintos, con letras", "closed": "no",
-             "latex": r"\dfrac{y+x}{xy}",
-             "note": "Dos letras distintas son dos repartos distintos. El común es su producto."},
-            {"symbol": r"\dfrac{2}{5}\cdot\dfrac{1}{3}", "name": "Un producto, no una suma", "closed": "no",
-             "latex": r"\dfrac{2}{15}",
-             "note": "Aquí el denominador común no pinta nada: multiplicar tiene otra regla. Es lo de la era."},
+            {
+                "symbol": r"\dfrac{3}{x}+\dfrac{2}{x}",
+                "name": "Mismo denominador",
+                "closed": "yes",
+                "latex": r"\dfrac{5}{x}",
+                "note": "Se suman los de arriba y el de abajo se copia. Es el caso focal.",
+            },
+            {
+                "symbol": r"\dfrac{5c}{6}-\dfrac{c}{6}",
+                "name": "La resta va igual",
+                "closed": "yes",
+                "latex": r"\dfrac{4c}{6}",
+                "note": "Restar cuenta trozos igual que sumar: el denominador tampoco se toca.",
+            },
+            {
+                "symbol": r"\dfrac{4c}{6}",
+                "name": "El resultado aún se simplifica",
+                "closed": "partial",
+                "latex": r"\dfrac{2c}{3}",
+                "note": "La suma salió bien y aun así falta un paso. Terminar no es lo mismo que sumar.",
+            },
+            {
+                "symbol": r"\dfrac{1}{2}+\dfrac{1}{3}",
+                "name": "Denominadores distintos",
+                "closed": "no",
+                "latex": r"\dfrac{3}{6}+\dfrac{2}{6}=\dfrac{5}{6}",
+                "note": "Hay que repartirlo todo en trozos del mismo tamaño antes de contar.",
+            },
+            {
+                "symbol": r"\dfrac{1}{x}+\dfrac{1}{y}",
+                "name": "Distintos, con letras",
+                "closed": "no",
+                "latex": r"\dfrac{y+x}{xy}",
+                "note": "Dos letras distintas son dos repartos distintos. El común es su producto.",
+            },
+            {
+                "symbol": r"\dfrac{2}{5}\cdot\dfrac{1}{3}",
+                "name": "Un producto, no una suma",
+                "closed": "no",
+                "latex": r"\dfrac{2}{15}",
+                "note": "Aquí el denominador común no pinta nada: multiplicar tiene otra regla. Es lo de la era.",
+            },
         ],
         "outro": (
             "La tercera fila es la que se olvida cuando ya se sabe la regla: el resultado "
@@ -518,12 +598,32 @@ CONTENT = {
     },
     "abstraction_question": {
         "prompt": "¿Qué comparten los tres registros de riego trabajados en este nodo?",
-        "thumbnails": [r"\dfrac{3}{x}+\dfrac{2}{x}", r"\dfrac{5c}{6}-\dfrac{c}{6}", r"\dfrac{1}{2}+\dfrac{1}{3}"],
+        "thumbnails": [
+            r"\dfrac{3}{x}+\dfrac{2}{x}",
+            r"\dfrac{5c}{6}-\dfrac{c}{6}",
+            r"\dfrac{1}{2}+\dfrac{1}{3}",
+        ],
         "options": [
-            {"id": "same_size", "text": "En los tres hay que asegurarse de que los trozos son del mismo tamaño antes de contar", "correct": True},
-            {"id": "roles", "text": "En los tres el número de arriba cuenta y el de abajo nombra", "correct": True},
-            {"id": "both_sum", "text": "En los tres se suman los cuatro números que aparecen", "correct": False},
-            {"id": "done", "text": "En los tres el resultado ya queda simplificado al sumar", "correct": False},
+            {
+                "id": "same_size",
+                "text": "En los tres hay que asegurarse de que los trozos son del mismo tamaño antes de contar",
+                "correct": True,
+            },
+            {
+                "id": "roles",
+                "text": "En los tres el número de arriba cuenta y el de abajo nombra",
+                "correct": True,
+            },
+            {
+                "id": "both_sum",
+                "text": "En los tres se suman los cuatro números que aparecen",
+                "correct": False,
+            },
+            {
+                "id": "done",
+                "text": "En los tres el resultado ya queda simplificado al sumar",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

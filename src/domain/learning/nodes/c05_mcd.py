@@ -133,11 +133,31 @@ CONTENT = {
         "números se llaman COPRIMOS."
     ),
     "definition_symbols": [
-        {"symbol": r"\text{MCD}(a,b)", "reads": "máximo común divisor de a y b", "means": "el cofre más grande que sirve para los dos"},
-        {"symbol": r"\cap", "reads": "intersección", "means": "lo que está en las DOS listas de divisores"},
-        {"symbol": r"\max", "reads": "el máximo", "means": "el mayor de esa lista común, no de los números"},
-        {"symbol": r"\text{MCD}(a,b)\le\min(a,b)", "reads": "no supera al menor", "means": "tiene que caber en el cargamento pequeño"},
-        {"symbol": r"\text{MCD}(a,b)=1", "reads": "coprimos", "means": "no comparten nada salvo el 1"},
+        {
+            "symbol": r"\text{MCD}(a,b)",
+            "reads": "máximo común divisor de a y b",
+            "means": "el cofre más grande que sirve para los dos",
+        },
+        {
+            "symbol": r"\cap",
+            "reads": "intersección",
+            "means": "lo que está en las DOS listas de divisores",
+        },
+        {
+            "symbol": r"\max",
+            "reads": "el máximo",
+            "means": "el mayor de esa lista común, no de los números",
+        },
+        {
+            "symbol": r"\text{MCD}(a,b)\le\min(a,b)",
+            "reads": "no supera al menor",
+            "means": "tiene que caber en el cargamento pequeño",
+        },
+        {
+            "symbol": r"\text{MCD}(a,b)=1",
+            "reads": "coprimos",
+            "means": "no comparten nada salvo el 1",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -196,10 +216,14 @@ CONTENT = {
                 "wrong_latex": r"\text{MCD}(48,36)=48",
                 "right_latex": r"\text{MCD}(48,36)=12",
                 "rows": [
-                    {"wrong": "El MCD es el mayor de los dos números",
-                     "right": "Es el mayor de sus divisores COMUNES"},
-                    {"wrong": "Un cofre de 48 sirve para los dos cargamentos",
-                     "right": "No cabe en 36: el MCD nunca supera al número menor"},
+                    {
+                        "wrong": "El MCD es el mayor de los dos números",
+                        "right": "Es el mayor de sus divisores COMUNES",
+                    },
+                    {
+                        "wrong": "Un cofre de 48 sirve para los dos cargamentos",
+                        "right": "No cabe en 36: el MCD nunca supera al número menor",
+                    },
                 ],
             },
             "explain_prompt": "¿Por qué el MCD no puede pasar de 36? Da el valor correcto.",
@@ -265,12 +289,20 @@ CONTENT = {
         "methods": [
             {
                 "label": "Método 1 · Por factorización",
-                "steps": [r"84=2^{2}\times 3\times 7", r"120=2^{3}\times 3\times 5", r"\text{comunes: }2^{2}\times 3=12"],
+                "steps": [
+                    r"84=2^{2}\times 3\times 7",
+                    r"120=2^{3}\times 3\times 5",
+                    r"\text{comunes: }2^{2}\times 3=12",
+                ],
                 "note": "Hay que descomponer los dos números primero.",
             },
             {
                 "label": "Método 2 · Algoritmo de Euclides",
-                "steps": [r"120=84\times 1+36", r"84=36\times 2+12", r"36=12\times 3+0\ \Rightarrow\ 12"],
+                "steps": [
+                    r"120=84\times 1+36",
+                    r"84=36\times 2+12",
+                    r"36=12\times 3+0\ \Rightarrow\ 12",
+                ],
                 "note": "Solo divisiones con residuo, sin descomponer nada.",
             },
         ],
@@ -330,7 +362,10 @@ CONTENT = {
             "tipo": "detecta_error",
             "prompt": "Un encargado anota «MCD(10, 25) = 50». ¿Dónde está el error?",
             "options": [
-                {"id": "too_big", "text": "50 pasa de 25: el MCD nunca supera al número menor. Es 5"},
+                {
+                    "id": "too_big",
+                    "text": "50 pasa de 25: el MCD nunca supera al número menor. Es 5",
+                },
                 {"id": "arith", "text": "Se equivocó: el MCD es 10"},
                 {"id": "coprime", "text": "No tienen divisores comunes: es 1"},
                 {"id": "none", "text": "Ningún error, está bien"},
@@ -360,7 +395,10 @@ CONTENT = {
             "confidence": "fija",
             "prompt": r"¿Es verdadera o falsa? «El MCD de dos números siempre es uno de los dos números.»",
             "options": [
-                {"id": "false_unless", "text": "Falsa: solo si uno divide al otro, como MCD(15,45) = 15"},
+                {
+                    "id": "false_unless",
+                    "text": "Falsa: solo si uno divide al otro, como MCD(15,45) = 15",
+                },
                 {"id": "true", "text": "Verdadera: siempre es el mayor de los dos"},
                 {"id": "false_never", "text": "Falsa: nunca puede ser uno de ellos"},
                 {"id": "true_smaller", "text": "Verdadera: siempre es el menor de los dos"},
@@ -426,24 +464,48 @@ CONTENT = {
         "title": "¿El MCD es uno de los dos números?",
         "intro": "Cinco situaciones que aparecen todo el tiempo y una que hay que descartar siempre.",
         "rows": [
-            {"symbol": r"(48,36)", "name": "Caso general", "closed": "no",
-             "latex": r"\text{MCD}=12",
-             "note": "Ninguno de los dos. Hay que calcularlo: comunes con exponente menor."},
-            {"symbol": r"(15,45)", "name": "Uno divide al otro", "closed": "yes",
-             "latex": r"15\mid 45\ \Rightarrow\ \text{MCD}=15",
-             "note": "El MCD es el pequeño. Compruébalo siempre primero: ahorra todo el trabajo."},
-            {"symbol": r"(7,13)", "name": "Coprimos", "closed": "no",
-             "latex": r"\text{MCD}=1",
-             "note": "No comparten primos. Dos primos distintos siempre son coprimos."},
-            {"symbol": r"(a,a)", "name": "El mismo dos veces", "closed": "yes",
-             "latex": r"\text{MCD}(a,a)=a",
-             "note": "Comparten todo. Caso extremo del anterior."},
-            {"symbol": r"(n,1)", "name": "Con el uno", "closed": "yes",
-             "latex": r"\text{MCD}(n,1)=1",
-             "note": "El 1 divide a todo y no tiene más divisores: el MCD es 1, que aquí sí es uno de los dos."},
-            {"symbol": r"(n,0)", "name": "Con el cero", "closed": "yes",
-             "latex": r"\text{MCD}(n,0)=n",
-             "note": "Todo divide al 0 (C02), así que los comunes son los de n y el mayor es n."},
+            {
+                "symbol": r"(48,36)",
+                "name": "Caso general",
+                "closed": "no",
+                "latex": r"\text{MCD}=12",
+                "note": "Ninguno de los dos. Hay que calcularlo: comunes con exponente menor.",
+            },
+            {
+                "symbol": r"(15,45)",
+                "name": "Uno divide al otro",
+                "closed": "yes",
+                "latex": r"15\mid 45\ \Rightarrow\ \text{MCD}=15",
+                "note": "El MCD es el pequeño. Compruébalo siempre primero: ahorra todo el trabajo.",
+            },
+            {
+                "symbol": r"(7,13)",
+                "name": "Coprimos",
+                "closed": "no",
+                "latex": r"\text{MCD}=1",
+                "note": "No comparten primos. Dos primos distintos siempre son coprimos.",
+            },
+            {
+                "symbol": r"(a,a)",
+                "name": "El mismo dos veces",
+                "closed": "yes",
+                "latex": r"\text{MCD}(a,a)=a",
+                "note": "Comparten todo. Caso extremo del anterior.",
+            },
+            {
+                "symbol": r"(n,1)",
+                "name": "Con el uno",
+                "closed": "yes",
+                "latex": r"\text{MCD}(n,1)=1",
+                "note": "El 1 divide a todo y no tiene más divisores: el MCD es 1, que aquí sí es uno de los dos.",
+            },
+            {
+                "symbol": r"(n,0)",
+                "name": "Con el cero",
+                "closed": "yes",
+                "latex": r"\text{MCD}(n,0)=n",
+                "note": "Todo divide al 0 (C02), así que los comunes son los de n y el mayor es n.",
+            },
         ],
         "outro": (
             "Dos comprobaciones antes de calcular: ¿uno divide al otro? ¿comparten algún "
@@ -455,9 +517,21 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres casos trabajados en este nodo?",
         "thumbnails": [r"\text{MCD}(48,36)", r"\text{MCD}(25,12)", r"\text{MCD}(48,36)=48?"],
         "options": [
-            {"id": "intersection", "text": "En los tres se busca algo que esté en las DOS listas de divisores", "correct": True},
-            {"id": "ceiling", "text": "En los tres el resultado no puede pasar del número menor", "correct": True},
-            {"id": "biggest", "text": "En los tres el resultado es el mayor de los dos números", "correct": False},
+            {
+                "id": "intersection",
+                "text": "En los tres se busca algo que esté en las DOS listas de divisores",
+                "correct": True,
+            },
+            {
+                "id": "ceiling",
+                "text": "En los tres el resultado no puede pasar del número menor",
+                "correct": True,
+            },
+            {
+                "id": "biggest",
+                "text": "En los tres el resultado es el mayor de los dos números",
+                "correct": False,
+            },
             {"id": "always_one", "text": "En los tres el resultado es 1", "correct": False},
         ],
     },
@@ -563,9 +637,7 @@ CONTENT = {
         "fb_c05_e5_trap": (
             "Con 48 y 36 el MCD es 12, que no es ninguno de los dos. → Comprueba ese caso."
         ),
-        "fb_c05_e5_never": (
-            "Casi: hay un caso donde sí lo es. → Calcula MCD(15, 45)."
-        ),
+        "fb_c05_e5_never": ("Casi: hay un caso donde sí lo es. → Calcula MCD(15, 45)."),
         "fb_c05_e5_smaller": (
             "El menor solo es la respuesta si divide al mayor. → Calcula MCD(48, 36) y "
             "compáralo con 36."

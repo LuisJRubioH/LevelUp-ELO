@@ -147,11 +147,31 @@ CONTENT = {
         "variables y operaciones sin afirmar todavía ninguna igualdad."
     ),
     "definition_symbols": [
-        {"symbol": r"n", "reads": "ene", "means": "la variable: el número de trabajadores, no la palabra «trabajador»"},
-        {"symbol": r"3n", "reads": "tres ene", "means": "quiere decir 3 · n, un producto — nunca 3 + n"},
-        {"symbol": r"3", "reads": "tres", "means": "el coeficiente: el número que multiplica a la variable"},
-        {"symbol": r"2c+1", "reads": "dos ce más uno", "means": "dos términos; el 1 es una constante, no lleva letra"},
-        {"symbol": r"n\in\mathbb{N},\ n>0", "reads": "ene natural positivo", "means": "en este registro n cuenta personas: no admite 2,5 ni −3"},
+        {
+            "symbol": r"n",
+            "reads": "ene",
+            "means": "la variable: el número de trabajadores, no la palabra «trabajador»",
+        },
+        {
+            "symbol": r"3n",
+            "reads": "tres ene",
+            "means": "quiere decir 3 · n, un producto — nunca 3 + n",
+        },
+        {
+            "symbol": r"3",
+            "reads": "tres",
+            "means": "el coeficiente: el número que multiplica a la variable",
+        },
+        {
+            "symbol": r"2c+1",
+            "reads": "dos ce más uno",
+            "means": "dos términos; el 1 es una constante, no lleva letra",
+        },
+        {
+            "symbol": r"n\in\mathbb{N},\ n>0",
+            "reads": "ene natural positivo",
+            "means": "en este registro n cuenta personas: no admite 2,5 ni −3",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -216,10 +236,14 @@ CONTENT = {
                 "wrong_latex": r"2c=\text{dos copistas}",
                 "right_latex": r"c=7\Rightarrow 2c=14",
                 "rows": [
-                    {"wrong": "La c abrevia la palabra «copista»",
-                     "right": "La c es CUÁNTOS copistas hay: un número"},
-                    {"wrong": "En r + 2 la r vale 1 porque es un rollo",
-                     "right": "La r vale lo que valga ese estante; no se sabe hasta que se cuenta"},
+                    {
+                        "wrong": "La c abrevia la palabra «copista»",
+                        "right": "La c es CUÁNTOS copistas hay: un número",
+                    },
+                    {
+                        "wrong": "En r + 2 la r vale 1 porque es un rollo",
+                        "right": "La r vale lo que valga ese estante; no se sabe hasta que se cuenta",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -408,8 +432,14 @@ CONTENT = {
                 "Para «el triple de un número» un escriba anota 3 + x. ¿Dónde está el error?"
             ),
             "options": [
-                {"id": "sum_vs_product", "text": "«Triple» es multiplicar por 3, no sumar 3: se escribe 3x"},
-                {"id": "order", "text": "Está bien el signo, solo cambió el orden: debería ser x + 3"},
+                {
+                    "id": "sum_vs_product",
+                    "text": "«Triple» es multiplicar por 3, no sumar 3: se escribe 3x",
+                },
+                {
+                    "id": "order",
+                    "text": "Está bien el signo, solo cambió el orden: debería ser x + 3",
+                },
                 {"id": "letter", "text": "El error es la letra: debería usar t de «triple»"},
                 {"id": "none", "text": "No hay error, 3 + x es el triple de x"},
             ],
@@ -510,24 +540,48 @@ CONTENT = {
             "convierte en constante. Lo que decide es si su valor puede cambiar."
         ),
         "rows": [
-            {"symbol": r"n\ \text{en}\ 3n", "name": "La variable", "closed": "yes",
-             "latex": r"n=4,\ 7,\ 10\ldots",
-             "note": "Cambia cada día. Es justo lo que el rollo perdido no podía fijar."},
-            {"symbol": r"3\ \text{en}\ 3n", "name": "El coeficiente", "closed": "no",
-             "latex": r"3\cdot n",
-             "note": "Siempre tres panes por trabajador. Multiplica a la variable, pero no varía."},
-            {"symbol": r"2\ \text{en}\ r+2", "name": "El término constante", "closed": "no",
-             "latex": r"r+2",
-             "note": "Los dos rollos de consulta están siempre, haya los que haya en el estante."},
-            {"symbol": r"\pi\ \text{en}\ 2\pi r", "name": "Una letra que NO varía", "closed": "no",
-             "latex": r"\pi\approx 3{,}1416",
-             "note": "Es letra y aun así es constante. Aquí la que cambia es la r."},
-            {"symbol": r"x\ \text{en}\ 2x+3=7", "name": "La incógnita", "closed": "partial",
-             "latex": r"x=2",
-             "note": "No cambia libremente: hay un único valor que hace cierta la igualdad, y aún no lo sabemos."},
-            {"symbol": r"b,h\ \text{en}\ A=b\cdot h", "name": "Dos variables a la vez", "closed": "yes",
-             "latex": r"A=b\cdot h",
-             "note": "Cambian con cada rectángulo, y A cambia con ellas."},
+            {
+                "symbol": r"n\ \text{en}\ 3n",
+                "name": "La variable",
+                "closed": "yes",
+                "latex": r"n=4,\ 7,\ 10\ldots",
+                "note": "Cambia cada día. Es justo lo que el rollo perdido no podía fijar.",
+            },
+            {
+                "symbol": r"3\ \text{en}\ 3n",
+                "name": "El coeficiente",
+                "closed": "no",
+                "latex": r"3\cdot n",
+                "note": "Siempre tres panes por trabajador. Multiplica a la variable, pero no varía.",
+            },
+            {
+                "symbol": r"2\ \text{en}\ r+2",
+                "name": "El término constante",
+                "closed": "no",
+                "latex": r"r+2",
+                "note": "Los dos rollos de consulta están siempre, haya los que haya en el estante.",
+            },
+            {
+                "symbol": r"\pi\ \text{en}\ 2\pi r",
+                "name": "Una letra que NO varía",
+                "closed": "no",
+                "latex": r"\pi\approx 3{,}1416",
+                "note": "Es letra y aun así es constante. Aquí la que cambia es la r.",
+            },
+            {
+                "symbol": r"x\ \text{en}\ 2x+3=7",
+                "name": "La incógnita",
+                "closed": "partial",
+                "latex": r"x=2",
+                "note": "No cambia libremente: hay un único valor que hace cierta la igualdad, y aún no lo sabemos.",
+            },
+            {
+                "symbol": r"b,h\ \text{en}\ A=b\cdot h",
+                "name": "Dos variables a la vez",
+                "closed": "yes",
+                "latex": r"A=b\cdot h",
+                "note": "Cambian con cada rectángulo, y A cambia con ellas.",
+            },
         ],
         "outro": (
             "La pregunta útil nunca es «¿es letra o es número?», sino «¿su valor puede "
@@ -539,10 +593,26 @@ CONTENT = {
         "prompt": "¿Qué comparten las tres expresiones trabajadas en este nodo?",
         "thumbnails": [r"3n", r"r+2", r"2c+1"],
         "options": [
-            {"id": "part_changes", "text": "En las tres hay una parte que cambia y otra que se queda fija", "correct": True},
-            {"id": "computable", "text": "En las tres se puede calcular el total en cuanto se sabe el valor de la letra", "correct": True},
-            {"id": "equal", "text": "En las tres se afirma una igualdad entre dos cantidades", "correct": False},
-            {"id": "initial", "text": "En las tres la letra es la inicial de la palabra que representa", "correct": False},
+            {
+                "id": "part_changes",
+                "text": "En las tres hay una parte que cambia y otra que se queda fija",
+                "correct": True,
+            },
+            {
+                "id": "computable",
+                "text": "En las tres se puede calcular el total en cuanto se sabe el valor de la letra",
+                "correct": True,
+            },
+            {
+                "id": "equal",
+                "text": "En las tres se afirma una igualdad entre dos cantidades",
+                "correct": False,
+            },
+            {
+                "id": "initial",
+                "text": "En las tres la letra es la inicial de la palabra que representa",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

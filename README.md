@@ -15,10 +15,10 @@
 > llama LevelUp-ELO). El port a producción está **bloqueado hasta el visto bueno
 > del equipo**.
 >
-> Lo que sí hay es un **sandbox de UX testing**: `main` despliega el frontend en
-> un proyecto propio de Vercel y el backend en Render (`render.yaml`), contra una
-> base de Supabase **separada de la de producción**. Es desechable — los datos de
-> ahí no valen nada y se pueden borrar. Ver [Despliegue del sandbox](#despliegue-del-sandbox).
+> **This repository is a development copy and is not deployed.** Pushing or
+> merging here deploys nothing and migrates no remote database. The owner
+> transfers finished work to the final deployment repository by hand — see
+> [Deployment](#deployment) and [docs/transfer.md](docs/transfer.md).
 
 ---
 
@@ -33,7 +33,7 @@
 - [Roles](#roles)
 - [Instalación local](#instalación-local)
 - [Variables de entorno](#variables-de-entorno)
-- [Despliegue del sandbox](#despliegue-del-sandbox)
+- [Deployment](#deployment)
 - [Tests y CI](#tests-y-ci)
 - [Usuarios de prueba](#usuarios-de-prueba)
 - [Documentación](#documentación)
@@ -353,115 +353,31 @@ Prioridad por request: key del usuario > key de función > key general
 
 ---
 
-## Despliegue del sandbox
+## Deployment
 
-Solo para **UX testing**. No es producción y no comparte base con producción.
-
-| Pieza | Dónde | Qué sirve |
-|---|---|---|
-| Base + Storage | Proyecto Supabase propio | PostgreSQL y el bucket `procedimientos` |
-| Backend | Render, blueprint `render.yaml` | FastAPI. Plan free |
-| Frontend | Vercel, *Root Directory* = `frontend` | El SPA. Config en `frontend/vercel.json` |
-
-**Por qué Render y no Vercel Functions para el backend:** cada invocación
-serverless abriría su propio `ThreadedConnectionPool(1, 5)` y agotaría el free
-tier de Supabase en minutos. Render mantiene un proceso vivo, y con él el pool
-singleton y el WebSocket del PvP.
-
-**El coste:** en plan free Render duerme el servicio tras 15 min sin tráfico y
-el primer request tarda ~50 s. Antes de una sesión de testing, despertarlo:
-
-```bash
-curl https://<servicio>.onrender.com/api/health
-```
-
-### El orden importa
-
-Cada capa necesita la URL de la anterior. Saltarse el orden obliga a volver
-atrás: **Supabase → Render → Vercel → CORS**.
-
-#### 1. Supabase
-
-Proyecto nuevo, aparte del de producción.
-
-- *Settings → Database* → copiar la URI del **connection pooler, puerto 6543**.
-  La del puerto 5432 es conexión directa y agota el free tier.
-- *Storage* → crear el bucket `procedimientos` como **privado** (R9: las
-  imágenes se sirven por bytes, nunca por URL pública).
-- *Settings → API* → copiar `Project URL` y la `service_role key`.
-
-No hay migraciones que correr a mano: las tablas se crean solas en el primer
-arranque del backend (`init_db()` → `_migrate_db()` → seeds).
-
-#### 2. Render
-
-*New → Blueprint* apuntando a este repo. Lee `render.yaml` y pide los valores
-marcados `sync: false`:
-
-| Variable | De dónde sale |
-|---|---|
-| `DATABASE_URL` | La URI del pooler (6543) del paso 1 |
-| `SUPABASE_URL` / `SUPABASE_KEY` | *Settings → API* del paso 1 |
-| `ADMIN_PASSWORD` | La eliges tú |
-| `SYSTEM_AI_API_KEY` | Opcional — sin ella la IA degrada con gracia |
-| `CORS_ORIGINS` | Todavía no se sabe. Poner `["http://localhost:5173"]` y corregir en el paso 4 |
-
-`JWT_SECRET_KEY` lo genera Render solo.
-
-> **Verificar antes de seguir.** `init_db()` captura sus propias excepciones: si
-> la `DATABASE_URL` está mal, el servicio arranca igual, sin tablas, y responde
-> 200 en `/api/health`. La única señal está en los logs de Render, que deben
-> decir `Base de datos inicializada.` — si en su lugar hay `Error inicializando
-> DB`, arreglarlo ahora, no después.
-
-#### 3. Vercel
-
-Importar el repo y, **en la pantalla de import**, desplegar *Root Directory* y
-ponerlo en `frontend`.
-
-> Si se deja en la raíz, Vercel encuentra `.python-version` y `requirements.txt`,
-> concluye que esto es un proyecto Python y falla con
-> `No interpreter found for Python 3.11.9`. Nunca llega al frontend. **Root
-> Directory es un ajuste de proyecto: no se puede fijar desde `vercel.json`.**
-
-Variable de entorno: `VITE_API_URL` = `https://<servicio>.onrender.com`.
-
-> **La integración Vercel–Supabase no sirve aquí** y confunde: inyecta
-> `POSTGRES_URL` y las keys en el proyecto de Vercel, que solo sirve el SPA.
-> Quien necesita esas variables es el backend en Render. Y nunca renombrar
-> ninguna a `VITE_*`: Vite empaqueta todo lo que lleve ese prefijo, así que la
-> key acabaría publicada en el JavaScript que descarga cualquiera.
-
-#### 4. Cerrar el círculo
-
-Con el dominio que Vercel asigne, volver a Render y poner `CORS_ORIGINS` en
-formato JSON:
-
-```
-["https://<proyecto>.vercel.app","http://localhost:5173"]
-```
-
-Redesplegar el backend. Sin este paso el navegador bloquea cada llamada y
-parece que el backend está caído.
-
-Los usuarios de prueba de más abajo quedan disponibles desde el primer arranque.
+This repository is not deployed. `render.yaml` and `frontend/vercel.json` are templates for the
+final environment and are inert here. Transferring the work to the final deployment repository —
+code, dependencies, environment variables, backups, migrations and verification — is a manual step
+done by the owner: [docs/transfer.md](docs/transfer.md).
 
 ---
 
 ## Tests y CI
 
 ```bash
-python -m pytest tests/unit tests/integration -q          # 333 tests
-ADMIN_PASSWORD=testadmin123 python -m pytest tests/api -q  # 128 tests
+ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q
 python scripts/validate_bank.py                            # integridad del banco
 python scripts/db_sync_check.py                            # paridad SQLite ↔ Postgres
-cd frontend && npm run build                               # tsc + vite
+cd frontend && pnpm run build                              # tsc + vite
+cd frontend && pnpm exec playwright test                   # E2E (frontend/e2e/)
 ```
 
-**461 tests de Python**, más E2E de Playwright en `frontend/e2e/`.
+Storage tests run on SQLite always and also on PostgreSQL when `POSTGRES_TEST_DATABASE_URL` points
+at a throwaway **local** database (`tests/conftest.py` refuses any other host).
 
-CI en GitHub Actions, 7 jobs: banco, lint (Black + Flake8), unitarios con
-cobertura ≥70 %, integración, paridad DB, API y build del frontend.
+CI in GitHub Actions, 8 jobs: item bank, lint (Black + Flake8), unit tests with coverage ≥ 70 %,
+integration, DB parity, PostgreSQL (the integration suite on an ephemeral PostgreSQL service), API
+and frontend build. CI only tests; it deploys nothing.
 
 ---
 

@@ -155,12 +155,36 @@ CONTENT = {
         "que −3 o que √2 — los tres se inventaron para resolver algo que no cabía."
     ),
     "definition_symbols": [
-        {"symbol": r"\mathbb{C}", "reads": "los complejos", "means": "todos los puntos del plano, no solo los de la recta"},
-        {"symbol": r"i", "reads": "la unidad imaginaria", "means": "el número definido por i × i = −1; está una unidad arriba del 0"},
-        {"symbol": r"a+bi", "reads": "a más b i", "means": "las dos coordenadas: a a lo ancho (real), b a lo alto (imaginaria)"},
-        {"symbol": r"a", "reads": "parte real", "means": "cuánto te mueves sobre la recta de siempre"},
-        {"symbol": r"b", "reads": "parte imaginaria", "means": "cuánto te separas de la recta; si b = 0, el número es real"},
-        {"symbol": r"\mathbb{R}\subset\mathbb{C}", "reads": "ℝ está contenido en ℂ", "means": "todo real es complejo con b = 0: la recta es una calle del plano"},
+        {
+            "symbol": r"\mathbb{C}",
+            "reads": "los complejos",
+            "means": "todos los puntos del plano, no solo los de la recta",
+        },
+        {
+            "symbol": r"i",
+            "reads": "la unidad imaginaria",
+            "means": "el número definido por i × i = −1; está una unidad arriba del 0",
+        },
+        {
+            "symbol": r"a+bi",
+            "reads": "a más b i",
+            "means": "las dos coordenadas: a a lo ancho (real), b a lo alto (imaginaria)",
+        },
+        {
+            "symbol": r"a",
+            "reads": "parte real",
+            "means": "cuánto te mueves sobre la recta de siempre",
+        },
+        {
+            "symbol": r"b",
+            "reads": "parte imaginaria",
+            "means": "cuánto te separas de la recta; si b = 0, el número es real",
+        },
+        {
+            "symbol": r"\mathbb{R}\subset\mathbb{C}",
+            "reads": "ℝ está contenido en ℂ",
+            "means": "todo real es complejo con b = 0: la recta es una calle del plano",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos (a, b, trampa) ------------------------
     "worked_examples": [
@@ -225,10 +249,14 @@ CONTENT = {
                 "wrong_latex": r"i^2=1",
                 "right_latex": r"i^2=-1\ \ \text{(por definición)}",
                 "rows": [
-                    {"wrong": "√a × √b = √(ab) siempre",
-                     "right": "Esa regla solo vale para a, b ≥ 0"},
-                    {"wrong": "Todo cuadrado es positivo",
-                     "right": "Todo cuadrado REAL es positivo; i no es real"},
+                    {
+                        "wrong": "√a × √b = √(ab) siempre",
+                        "right": "Esa regla solo vale para a, b ≥ 0",
+                    },
+                    {
+                        "wrong": "Todo cuadrado es positivo",
+                        "right": "Todo cuadrado REAL es positivo; i no es real",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -265,7 +293,11 @@ CONTENT = {
                     r"\sqrt{25}=5",
                 ],
                 "blanks": [
-                    {"id": "P1-b1", "label": r"\text{Parte imaginaria de }\sqrt{-25}=", "answer": "5"},
+                    {
+                        "id": "P1-b1",
+                        "label": r"\text{Parte imaginaria de }\sqrt{-25}=",
+                        "answer": "5",
+                    },
                 ],
             },
             {
@@ -298,9 +330,7 @@ CONTENT = {
     # --- Bloque 7 · Comparación de métodos (siempre DESPUÉS del puente) ------
     "method_comparison": {
         "title": "Dos caminos para la misma raíz",
-        "intro": (
-            r"Hay que calcular $\sqrt{-16}$. Las dos soluciones de abajo son correctas."
-        ),
+        "intro": (r"Hay que calcular $\sqrt{-16}$. Las dos soluciones de abajo son correctas."),
         "methods": [
             {
                 "label": "Método 1 · Separar signo y tamaño",
@@ -452,7 +482,10 @@ CONTENT = {
                 "las ampliaciones?"
             ),
             "options": [
-                {"id": "operation", "text": "Cada una nació de una operación que no tenía respuesta en el conjunto anterior"},
+                {
+                    "id": "operation",
+                    "text": "Cada una nació de una operación que no tenía respuesta en el conjunto anterior",
+                },
                 {"id": "bigger", "text": "Cada una tiene números más grandes que la anterior"},
                 {"id": "replace", "text": "Cada una reemplaza a la anterior, que deja de servir"},
                 {"id": "harder", "text": "Cada una es más difícil de entender que la anterior"},
@@ -511,16 +544,41 @@ CONTENT = {
         "title": "¿Toda raíz cuadrada vive en el conjunto?",
         "intro": "La misma pregunta de B08, ahora con la respuesta completa.",
         "rows": [
-            {"symbol": r"\mathbb{N}", "name": "Naturales", "closed": "no",
-             "latex": r"\sqrt{2}\notin\mathbb{N}", "note": "Ni la diagonal ni las de negativos."},
-            {"symbol": r"\mathbb{Z}", "name": "Enteros", "closed": "no",
-             "latex": r"\sqrt{2}\notin\mathbb{Z}", "note": "Los negativos entraron como números, no como raíces."},
-            {"symbol": r"\mathbb{Q}", "name": "Racionales", "closed": "no",
-             "latex": r"\sqrt{2}\notin\mathbb{Q}", "note": "La diagonal no es fracción (B07)."},
-            {"symbol": r"\mathbb{R}", "name": "Reales", "closed": "no",
-             "latex": r"\sqrt{-1}\notin\mathbb{R}", "note": "Las de positivos sí; las de negativos no."},
-            {"symbol": r"\mathbb{C}", "name": "Complejos", "closed": "yes",
-             "latex": r"\sqrt{-1}=i\in\mathbb{C}", "note": "Aquí toda raíz tiene respuesta. Y aquí se acaba la escalera."},
+            {
+                "symbol": r"\mathbb{N}",
+                "name": "Naturales",
+                "closed": "no",
+                "latex": r"\sqrt{2}\notin\mathbb{N}",
+                "note": "Ni la diagonal ni las de negativos.",
+            },
+            {
+                "symbol": r"\mathbb{Z}",
+                "name": "Enteros",
+                "closed": "no",
+                "latex": r"\sqrt{2}\notin\mathbb{Z}",
+                "note": "Los negativos entraron como números, no como raíces.",
+            },
+            {
+                "symbol": r"\mathbb{Q}",
+                "name": "Racionales",
+                "closed": "no",
+                "latex": r"\sqrt{2}\notin\mathbb{Q}",
+                "note": "La diagonal no es fracción (B07).",
+            },
+            {
+                "symbol": r"\mathbb{R}",
+                "name": "Reales",
+                "closed": "no",
+                "latex": r"\sqrt{-1}\notin\mathbb{R}",
+                "note": "Las de positivos sí; las de negativos no.",
+            },
+            {
+                "symbol": r"\mathbb{C}",
+                "name": "Complejos",
+                "closed": "yes",
+                "latex": r"\sqrt{-1}=i\in\mathbb{C}",
+                "note": "Aquí toda raíz tiene respuesta. Y aquí se acaba la escalera.",
+            },
         ],
         "outro": (
             "ℂ es el final del camino para este tipo de pregunta: cualquier ecuación "
@@ -532,9 +590,21 @@ CONTENT = {
         "prompt": "¿Qué estructura comparten las cinco ampliaciones de la escalera?",
         "thumbnails": [r"3-5", r"3\div4", r"\sqrt{2}", r"\sqrt{-1}"],
         "options": [
-            {"id": "no_answer", "text": "En cada una, una operación se quedó sin respuesta", "correct": True},
-            {"id": "contains", "text": "Cada conjunto nuevo contiene enterito al anterior", "correct": True},
-            {"id": "bigger_numbers", "text": "Cada conjunto tiene números más grandes", "correct": False},
+            {
+                "id": "no_answer",
+                "text": "En cada una, una operación se quedó sin respuesta",
+                "correct": True,
+            },
+            {
+                "id": "contains",
+                "text": "Cada conjunto nuevo contiene enterito al anterior",
+                "correct": True,
+            },
+            {
+                "id": "bigger_numbers",
+                "text": "Cada conjunto tiene números más grandes",
+                "correct": False,
+            },
             {"id": "same_op", "text": "Todas nacieron de la misma operación", "correct": False},
         ],
     },

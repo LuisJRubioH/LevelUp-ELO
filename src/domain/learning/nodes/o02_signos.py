@@ -134,11 +134,31 @@ CONTENT = {
         "Si delante hay un número, no basta con los signos: hay que repartir ese factor."
     ),
     "definition_symbols": [
-        {"symbol": r"+(2p+3)", "reads": "más, abre, dos pe más tres", "means": "se borra el paréntesis y ya"},
-        {"symbol": r"-(2p+3)=-2p-3", "reads": "menos, abre…", "means": "los dos términos cambian de signo"},
-        {"symbol": r"-(2p-3)=-2p+3", "reads": "menos, abre…", "means": "el que restaba pasa a sumar"},
-        {"symbol": r"-(-5)=+5", "reads": "menos, menos cinco", "means": "restar una devolución es sumar"},
-        {"symbol": r"-1\cdot(a+b)", "reads": "menos uno por…", "means": "de dónde sale la regla: es la distributiva"},
+        {
+            "symbol": r"+(2p+3)",
+            "reads": "más, abre, dos pe más tres",
+            "means": "se borra el paréntesis y ya",
+        },
+        {
+            "symbol": r"-(2p+3)=-2p-3",
+            "reads": "menos, abre…",
+            "means": "los dos términos cambian de signo",
+        },
+        {
+            "symbol": r"-(2p-3)=-2p+3",
+            "reads": "menos, abre…",
+            "means": "el que restaba pasa a sumar",
+        },
+        {
+            "symbol": r"-(-5)=+5",
+            "reads": "menos, menos cinco",
+            "means": "restar una devolución es sumar",
+        },
+        {
+            "symbol": r"-1\cdot(a+b)",
+            "reads": "menos uno por…",
+            "means": "de dónde sale la regla: es la distributiva",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -201,10 +221,14 @@ CONTENT = {
                 "wrong_latex": r"8p+3-2p+3=6p+6",
                 "right_latex": r"8p+3-2p-3=6p",
                 "rows": [
-                    {"wrong": "El menos se aplica al 2p y el 3 se copia",
-                     "right": "El menos se aplica a los dos: −2p y −3"},
-                    {"wrong": "Quedan 6 contrapesos fuera",
-                     "right": "3 − 3 = 0: no queda ninguno fuera"},
+                    {
+                        "wrong": "El menos se aplica al 2p y el 3 se copia",
+                        "right": "El menos se aplica a los dos: −2p y −3",
+                    },
+                    {
+                        "wrong": "Quedan 6 contrapesos fuera",
+                        "right": "3 − 3 = 0: no queda ninguno fuera",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -231,7 +255,9 @@ CONTENT = {
                 "missing": "last",
                 "statement": r"Quita el paréntesis y reduce: $7s-(2s+4)$.",
                 "given_steps": [r"7s-2s-4"],
-                "blanks": [{"id": "P1-b1", "label": r"\text{coeficiente de }s:\ 7-2=", "answer": "5"}],
+                "blanks": [
+                    {"id": "P1-b1", "label": r"\text{coeficiente de }s:\ 7-2=", "answer": "5"}
+                ],
             },
             {
                 "id": "P2",
@@ -252,7 +278,9 @@ CONTENT = {
                     r"$(4s-9)$. Reduce y evalúa con $s=3$."
                 ),
                 "given_steps": [],
-                "blanks": [{"id": "P3-b1", "label": r"15s-(4s-9)\ \text{con}\ s=3:", "answer": "42"}],
+                "blanks": [
+                    {"id": "P3-b1", "label": r"15s-(4s-9)\ \text{con}\ s=3:", "answer": "42"}
+                ],
             },
         ],
     },
@@ -356,9 +384,7 @@ CONTENT = {
             "id": "E4",
             "kind": "single_select",
             "tipo": "detecta_error",
-            "prompt": (
-                r"Un escriba escribe $10s-(2s-4)=8s-4$. ¿Dónde está el error?"
-            ),
+            "prompt": (r"Un escriba escribe $10s-(2s-4)=8s-4$. ¿Dónde está el error?"),
             "options": [
                 {"id": "sign", "text": r"El $-4$ de dentro pasa a sumar: queda $8s+4$"},
                 {"id": "coef", "text": "Restó mal los coeficientes de s"},
@@ -396,7 +422,10 @@ CONTENT = {
                 {"id": "false", "text": r"Falsa: $-(2p+3)$ es $-2p-3$, con los dos cambiados"},
                 {"id": "true", "text": "Verdadera: por eso está pegado al primero"},
                 {"id": "true_two", "text": "Verdadera si dentro hay más de dos términos"},
-                {"id": "false_none", "text": "Falsa: el menos no cambia ningún signo, solo borra el paréntesis"},
+                {
+                    "id": "false_none",
+                    "text": "Falsa: el menos no cambia ningún signo, solo borra el paréntesis",
+                },
             ],
             "expected": "false",
             "feedback_by_option": {
@@ -464,24 +493,48 @@ CONTENT = {
             "pegado por fuera, a su izquierda."
         ),
         "rows": [
-            {"symbol": r"(2p+3)", "name": "Sin nada delante", "closed": "yes",
-             "latex": r"(2p+3)=2p+3",
-             "note": "Un paréntesis suelto agrupa y no manda. Se borra sin más."},
-            {"symbol": r"+(2p+3)", "name": "Con más delante", "closed": "yes",
-             "latex": r"+(2p+3)=+2p+3",
-             "note": "Sumar una partida entera es sumar cada cosa: nada cambia de signo."},
-            {"symbol": r"-(2p+3)", "name": "Con menos delante", "closed": "no",
-             "latex": r"-(2p+3)=-2p-3",
-             "note": "Los dos términos se dan la vuelta. Es el caso focal."},
-            {"symbol": r"-(2p-3)", "name": "Menos fuera y menos dentro", "closed": "no",
-             "latex": r"-(2p-3)=-2p+3",
-             "note": "El que restaba pasa a sumar. Restar una devolución devuelve."},
-            {"symbol": r"-(-5)", "name": "Un solo término negativo", "closed": "no",
-             "latex": r"-(-5)=+5",
-             "note": "El mismo caso reducido al mínimo: sigue habiendo un cambio de signo."},
-            {"symbol": r"4(2p+3)", "name": "Con un número delante", "closed": "partial",
-             "latex": r"4(2p+3)=8p+12",
-             "note": "Los paréntesis sí se quitan, pero no gratis: hay que repartir el 4 a cada término."},
+            {
+                "symbol": r"(2p+3)",
+                "name": "Sin nada delante",
+                "closed": "yes",
+                "latex": r"(2p+3)=2p+3",
+                "note": "Un paréntesis suelto agrupa y no manda. Se borra sin más.",
+            },
+            {
+                "symbol": r"+(2p+3)",
+                "name": "Con más delante",
+                "closed": "yes",
+                "latex": r"+(2p+3)=+2p+3",
+                "note": "Sumar una partida entera es sumar cada cosa: nada cambia de signo.",
+            },
+            {
+                "symbol": r"-(2p+3)",
+                "name": "Con menos delante",
+                "closed": "no",
+                "latex": r"-(2p+3)=-2p-3",
+                "note": "Los dos términos se dan la vuelta. Es el caso focal.",
+            },
+            {
+                "symbol": r"-(2p-3)",
+                "name": "Menos fuera y menos dentro",
+                "closed": "no",
+                "latex": r"-(2p-3)=-2p+3",
+                "note": "El que restaba pasa a sumar. Restar una devolución devuelve.",
+            },
+            {
+                "symbol": r"-(-5)",
+                "name": "Un solo término negativo",
+                "closed": "no",
+                "latex": r"-(-5)=+5",
+                "note": "El mismo caso reducido al mínimo: sigue habiendo un cambio de signo.",
+            },
+            {
+                "symbol": r"4(2p+3)",
+                "name": "Con un número delante",
+                "closed": "partial",
+                "latex": r"4(2p+3)=8p+12",
+                "note": "Los paréntesis sí se quitan, pero no gratis: hay que repartir el 4 a cada término.",
+            },
         ],
         "outro": (
             "Las cinco primeras filas son la misma idea vista de cinco maneras: lo de fuera "
@@ -494,10 +547,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres vales trabajados en este nodo?",
         "thumbnails": [r"(9s+6)-(4s+6)", r"12-(3p-5)", r"(8p+3)-(2p+3)"],
         "options": [
-            {"id": "all_terms", "text": "En los tres el signo de fuera actúa sobre todos los términos de dentro", "correct": True},
-            {"id": "then_like", "text": "En los tres hay que quitar el paréntesis antes de poder juntar semejantes", "correct": True},
-            {"id": "first_only", "text": "En los tres basta con cambiar el signo del primer término", "correct": False},
-            {"id": "erase", "text": "En los tres el paréntesis se borra sin consecuencias", "correct": False},
+            {
+                "id": "all_terms",
+                "text": "En los tres el signo de fuera actúa sobre todos los términos de dentro",
+                "correct": True,
+            },
+            {
+                "id": "then_like",
+                "text": "En los tres hay que quitar el paréntesis antes de poder juntar semejantes",
+                "correct": True,
+            },
+            {
+                "id": "first_only",
+                "text": "En los tres basta con cambiar el signo del primer término",
+                "correct": False,
+            },
+            {
+                "id": "erase",
+                "text": "En los tres el paréntesis se borra sin consecuencias",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

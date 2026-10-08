@@ -268,9 +268,7 @@ CONTENT = {
                 "missing": "last",
                 "statement": r"Multiplica $(3m-4)(3m+4)$.",
                 "given_steps": [r"(3m)^{2}=9m^{2}"],
-                "blanks": [
-                    {"id": "P1-b1", "label": r"\text{lo que se resta}=", "answer": "16"}
-                ],
+                "blanks": [{"id": "P1-b1", "label": r"\text{lo que se resta}=", "answer": "16"}],
             },
             {
                 "id": "P2",
@@ -292,7 +290,11 @@ CONTENT = {
                 ),
                 "given_steps": [],
                 "blanks": [
-                    {"id": "P3-b1", "label": r"\text{exponente de }x\text{ en el primer cuadrado}=", "answer": "4"}
+                    {
+                        "id": "P3-b1",
+                        "label": r"\text{exponente de }x\text{ en el primer cuadrado}=",
+                        "answer": "4",
+                    }
                 ],
             },
         ],
@@ -411,9 +413,7 @@ CONTENT = {
             "id": "E5",
             "kind": "single_select",
             "tipo": "detecta_error",
-            "prompt": (
-                r"Un aprendiz anota $(2m-4)(2m+4)=2m^{2}-16$. ¿Dónde está el error?"
-            ),
+            "prompt": (r"Un aprendiz anota $(2m-4)(2m+4)=2m^{2}-16$. ¿Dónde está el error?"),
             "options": [
                 {"id": "first", "text": r"El primero: $(2m)^{2}=4m^{2}$, no $2m^{2}$"},
                 {"id": "sign", "text": r"El signo: debería ser $+16$"},
@@ -572,8 +572,7 @@ CONTENT = {
     },
     "abstraction_question": {
         "prompt": (
-            "Mira los tres productos. ¿Qué tienen en común, más allá de los números "
-            "concretos?"
+            "Mira los tres productos. ¿Qué tienen en común, más allá de los números " "concretos?"
         ),
         "thumbnails": [
             r"(x+3)(x-3)=x^{2}-9",
@@ -689,9 +688,7 @@ CONTENT = {
             "Eso es el cuadrado de un binomio, (a − b)². Aquí los cruzados son opuestos y se "
             "anulan: no queda término del medio."
         ),
-        "fb_p02_e1_flat": (
-            "Al segundo término también se le eleva al cuadrado: b · b = b², no b."
-        ),
+        "fb_p02_e1_flat": ("Al segundo término también se le eleva al cuadrado: b · b = b², no b."),
         "fb_p02_e5_sign": (
             "El signo está bien: conjugados siempre dan resta. El error está en el primer "
             "término."
@@ -699,9 +696,7 @@ CONTENT = {
         "fb_p02_e5_middle": (
             "No falta: en conjugados el término del medio se anula. Mira el primer término."
         ),
-        "fb_p02_e5_none": (
-            "Sí lo hay: (2m)² eleva el 2 y la m, así que da 4m², no 2m²."
-        ),
+        "fb_p02_e5_none": ("Sí lo hay: (2m)² eleva el 2 y la m, así que da 4m², no 2m²."),
         "fb_p02_e6_trap": (
             "Aparecen los dos cuadrados, sí, pero el segundo restando. Con 10 y 3 la greca "
             "mide 91 y la suma de cuadrados da 109."

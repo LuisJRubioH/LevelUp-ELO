@@ -130,7 +130,7 @@ def main() -> None:
         "--pace",
         action="store_true",
         help="espaciar las peticiones con --think-time (escenario realista). "
-             "Sin esta bandera se mide el techo con todos respondiendo a la vez.",
+        "Sin esta bandera se mide el techo con todos respondiendo a la vez.",
     )
     args = ap.parse_args()
 
@@ -198,8 +198,10 @@ def main() -> None:
     # Extrapolación: un estudiante genera 2 peticiones (pregunta + respuesta)
     # por cada `think_time` segundos de trabajo real.
     req_per_student_per_s = 2.0 / args.think_time
-    print(f"\nUn estudiante real ≈ {req_per_student_per_s:.3f} peticiones/s "
-          f"(2 por cada {args.think_time:.0f}s de reflexión)")
+    print(
+        f"\nUn estudiante real ≈ {req_per_student_per_s:.3f} peticiones/s "
+        f"(2 por cada {args.think_time:.0f}s de reflexión)"
+    )
     print(f"{'CPU disponible':>16} | {'peticiones/s':>13} | {'estudiantes':>12}")
     print(f"{'':->16}-+-{'':->13}-+-{'':->12}")
     for label, cores in (("0.1 vCPU (free)", 0.1), ("0.5 vCPU", 0.5), ("1 vCPU", 1.0)):

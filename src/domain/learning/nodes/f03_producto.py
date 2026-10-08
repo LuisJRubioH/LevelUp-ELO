@@ -145,11 +145,31 @@ CONTENT = {
         "numerador de una con el denominador de la otra."
     ),
     "definition_symbols": [
-        {"symbol": r"\dfrac{2}{3}\cdot\dfrac{1}{5}=\dfrac{2}{15}", "reads": "arriba con arriba, abajo con abajo", "means": "la regla entera"},
-        {"symbol": r"\text{«de»}\to\cdot", "reads": "de es por", "means": "dos tercios DE tres cuartos es un producto"},
-        {"symbol": r"\dfrac{3}{x}\cdot\dfrac{x}{5}=\dfrac{3}{5}", "reads": "la letra se va", "means": "arriba y abajo son factores: la x se cancela"},
-        {"symbol": r"6=\dfrac{6}{1}", "reads": "un entero es fracción", "means": "todo número tiene un 1 debajo"},
-        {"symbol": r"\dfrac{8}{15}\cdot\dfrac{25}{12}", "reads": "se puede cruzar", "means": "simplificar antes deja números pequeños"},
+        {
+            "symbol": r"\dfrac{2}{3}\cdot\dfrac{1}{5}=\dfrac{2}{15}",
+            "reads": "arriba con arriba, abajo con abajo",
+            "means": "la regla entera",
+        },
+        {
+            "symbol": r"\text{«de»}\to\cdot",
+            "reads": "de es por",
+            "means": "dos tercios DE tres cuartos es un producto",
+        },
+        {
+            "symbol": r"\dfrac{3}{x}\cdot\dfrac{x}{5}=\dfrac{3}{5}",
+            "reads": "la letra se va",
+            "means": "arriba y abajo son factores: la x se cancela",
+        },
+        {
+            "symbol": r"6=\dfrac{6}{1}",
+            "reads": "un entero es fracción",
+            "means": "todo número tiene un 1 debajo",
+        },
+        {
+            "symbol": r"\dfrac{8}{15}\cdot\dfrac{25}{12}",
+            "reads": "se puede cruzar",
+            "means": "simplificar antes deja números pequeños",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -212,10 +232,14 @@ CONTENT = {
                 "wrong_latex": r"\dfrac{2}{3}\cdot\dfrac{3}{4}=\dfrac{17}{12}",
                 "right_latex": r"\dfrac{2}{3}\cdot\dfrac{3}{4}=\dfrac{6}{12}=\dfrac{1}{2}",
                 "rows": [
-                    {"wrong": "Igualar denominadores y sumar",
-                     "right": "Multiplicar arriba con arriba y abajo con abajo"},
-                    {"wrong": r"\dfrac{17}{12}\ \text{es más de una parva entera}",
-                     "right": r"\dfrac{1}{2}\ \text{es media parva, y cabe}"},
+                    {
+                        "wrong": "Igualar denominadores y sumar",
+                        "right": "Multiplicar arriba con arriba y abajo con abajo",
+                    },
+                    {
+                        "wrong": r"\dfrac{17}{12}\ \text{es más de una parva entera}",
+                        "right": r"\dfrac{1}{2}\ \text{es media parva, y cabe}",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -263,7 +287,13 @@ CONTENT = {
                     "y de eso la mitad va a la troje. ¿Cuántas medidas llegan?"
                 ),
                 "given_steps": [],
-                "blanks": [{"id": "P3-b1", "label": r"\dfrac{1}{2}\cdot\dfrac{2}{5}\cdot 30=", "answer": "6"}],
+                "blanks": [
+                    {
+                        "id": "P3-b1",
+                        "label": r"\dfrac{1}{2}\cdot\dfrac{2}{5}\cdot 30=",
+                        "answer": "6",
+                    }
+                ],
             },
         ],
     },
@@ -404,10 +434,19 @@ CONTENT = {
                 "con el mismo denominador.»"
             ),
             "options": [
-                {"id": "false", "text": "Falsa: eso es para sumar; multiplicando se opera arriba con arriba"},
-                {"id": "true", "text": "Verdadera: es el primer paso con cualquier par de fracciones"},
+                {
+                    "id": "false",
+                    "text": "Falsa: eso es para sumar; multiplicando se opera arriba con arriba",
+                },
+                {
+                    "id": "true",
+                    "text": "Verdadera: es el primer paso con cualquier par de fracciones",
+                },
                 {"id": "true_diff", "text": "Verdadera solo si los denominadores son distintos"},
-                {"id": "false_never", "text": "Falsa: el denominador común no sirve para nada en ninguna operación"},
+                {
+                    "id": "false_never",
+                    "text": "Falsa: el denominador común no sirve para nada en ninguna operación",
+                },
             ],
             "expected": "false",
             "feedback_by_option": {
@@ -434,10 +473,26 @@ CONTENT = {
             "prompt": r"Selecciona TODAS las igualdades verdaderas.",
             "valid_options": ["a", "b", "c", "d"],
             "options": [
-                {"id": "a", "text": r"$\dfrac{2}{3}\cdot\dfrac{5}{7}=\dfrac{10}{21}$", "latex": r"\dfrac{2}{3}\cdot\dfrac{5}{7}=\dfrac{10}{21}"},
-                {"id": "b", "text": r"$\dfrac{3}{a}\cdot\dfrac{a}{4}=\dfrac{3}{4}$", "latex": r"\dfrac{3}{a}\cdot\dfrac{a}{4}=\dfrac{3}{4}"},
-                {"id": "c", "text": r"$\dfrac{2}{3}\cdot\dfrac{5}{7}=\dfrac{29}{21}$", "latex": r"\dfrac{2}{3}\cdot\dfrac{5}{7}=\dfrac{29}{21}"},
-                {"id": "d", "text": r"$\dfrac{2}{3}\cdot 6=\dfrac{2}{18}$", "latex": r"\dfrac{2}{3}\cdot 6=\dfrac{2}{18}"},
+                {
+                    "id": "a",
+                    "text": r"$\dfrac{2}{3}\cdot\dfrac{5}{7}=\dfrac{10}{21}$",
+                    "latex": r"\dfrac{2}{3}\cdot\dfrac{5}{7}=\dfrac{10}{21}",
+                },
+                {
+                    "id": "b",
+                    "text": r"$\dfrac{3}{a}\cdot\dfrac{a}{4}=\dfrac{3}{4}$",
+                    "latex": r"\dfrac{3}{a}\cdot\dfrac{a}{4}=\dfrac{3}{4}",
+                },
+                {
+                    "id": "c",
+                    "text": r"$\dfrac{2}{3}\cdot\dfrac{5}{7}=\dfrac{29}{21}$",
+                    "latex": r"\dfrac{2}{3}\cdot\dfrac{5}{7}=\dfrac{29}{21}",
+                },
+                {
+                    "id": "d",
+                    "text": r"$\dfrac{2}{3}\cdot 6=\dfrac{2}{18}$",
+                    "latex": r"\dfrac{2}{3}\cdot 6=\dfrac{2}{18}",
+                },
             ],
             "expected": ["a", "b"],
             "trap_options": ["c", "d"],
@@ -474,24 +529,48 @@ CONTENT = {
             "dicen en cuáles sirve y en cuáles estorba."
         ),
         "rows": [
-            {"symbol": r"\dfrac{2}{3}\cdot\dfrac{1}{5}", "name": "Producto de dos fracciones", "closed": "yes",
-             "latex": r"\dfrac{2}{15}",
-             "note": "Arriba con arriba y abajo con abajo. No hace falta igualar nada. Es el caso focal."},
-            {"symbol": r"\dfrac{3}{x}\cdot\dfrac{x}{5}", "name": "Con letras que se cancelan", "closed": "yes",
-             "latex": r"\dfrac{3}{5}",
-             "note": "Todo acaba siendo factores de una sola fracción, así que la x se tacha."},
-            {"symbol": r"\dfrac{8}{15}\cdot\dfrac{25}{12}", "name": "Se puede simplificar antes", "closed": "yes",
-             "latex": r"\dfrac{10}{9}",
-             "note": "Cruzar el 8 con el 12 está permitido justo porque es un producto."},
-            {"symbol": r"\dfrac{2}{3}\cdot 6", "name": "Fracción por entero", "closed": "partial",
-             "latex": r"\dfrac{2}{3}\cdot\dfrac{6}{1}=4",
-             "note": "La regla es la misma, pero primero hay que ver el entero como 6/1. Sin ese paso, el 6 se coloca mal."},
-            {"symbol": r"\dfrac{2}{3}+\dfrac{1}{5}", "name": "Una suma", "closed": "no",
-             "latex": r"\dfrac{10}{15}+\dfrac{3}{15}",
-             "note": "Aquí sí hace falta el denominador común. La herramienta no es mala: era de otra operación."},
-            {"symbol": r"\dfrac{2}{3}\div\dfrac{1}{5}", "name": "Una división", "closed": "no",
-             "latex": r"\dfrac{2}{3}\cdot\dfrac{5}{1}",
-             "note": "Tampoco se multiplica directo: primero hay que dar la vuelta a una de las dos. Eso es el silo."},
+            {
+                "symbol": r"\dfrac{2}{3}\cdot\dfrac{1}{5}",
+                "name": "Producto de dos fracciones",
+                "closed": "yes",
+                "latex": r"\dfrac{2}{15}",
+                "note": "Arriba con arriba y abajo con abajo. No hace falta igualar nada. Es el caso focal.",
+            },
+            {
+                "symbol": r"\dfrac{3}{x}\cdot\dfrac{x}{5}",
+                "name": "Con letras que se cancelan",
+                "closed": "yes",
+                "latex": r"\dfrac{3}{5}",
+                "note": "Todo acaba siendo factores de una sola fracción, así que la x se tacha.",
+            },
+            {
+                "symbol": r"\dfrac{8}{15}\cdot\dfrac{25}{12}",
+                "name": "Se puede simplificar antes",
+                "closed": "yes",
+                "latex": r"\dfrac{10}{9}",
+                "note": "Cruzar el 8 con el 12 está permitido justo porque es un producto.",
+            },
+            {
+                "symbol": r"\dfrac{2}{3}\cdot 6",
+                "name": "Fracción por entero",
+                "closed": "partial",
+                "latex": r"\dfrac{2}{3}\cdot\dfrac{6}{1}=4",
+                "note": "La regla es la misma, pero primero hay que ver el entero como 6/1. Sin ese paso, el 6 se coloca mal.",
+            },
+            {
+                "symbol": r"\dfrac{2}{3}+\dfrac{1}{5}",
+                "name": "Una suma",
+                "closed": "no",
+                "latex": r"\dfrac{10}{15}+\dfrac{3}{15}",
+                "note": "Aquí sí hace falta el denominador común. La herramienta no es mala: era de otra operación.",
+            },
+            {
+                "symbol": r"\dfrac{2}{3}\div\dfrac{1}{5}",
+                "name": "Una división",
+                "closed": "no",
+                "latex": r"\dfrac{2}{3}\cdot\dfrac{5}{1}",
+                "note": "Tampoco se multiplica directo: primero hay que dar la vuelta a una de las dos. Eso es el silo.",
+            },
         ],
         "outro": (
             "La cuarta fila es la que más se falla en un examen con prisa: un entero suelto "
@@ -502,12 +581,32 @@ CONTENT = {
     },
     "abstraction_question": {
         "prompt": "¿Qué comparten los tres registros de la era trabajados en este nodo?",
-        "thumbnails": [r"\dfrac{2}{3}\cdot\dfrac{3}{4}", r"\dfrac{3}{x}\cdot\dfrac{x}{5}", r"\dfrac{8}{15}\cdot\dfrac{25}{12}"],
+        "thumbnails": [
+            r"\dfrac{2}{3}\cdot\dfrac{3}{4}",
+            r"\dfrac{3}{x}\cdot\dfrac{x}{5}",
+            r"\dfrac{8}{15}\cdot\dfrac{25}{12}",
+        ],
         "options": [
-            {"id": "one_fraction", "text": "En los tres el producto acaba siendo una sola fracción, y por eso se puede tachar entre ellas", "correct": True},
-            {"id": "no_common", "text": "En los tres el denominador común no hace ninguna falta", "correct": True},
-            {"id": "bigger", "text": "En los tres el resultado es mayor que las fracciones de partida", "correct": False},
-            {"id": "same_rule", "text": "En los tres se opera igual que en una suma", "correct": False},
+            {
+                "id": "one_fraction",
+                "text": "En los tres el producto acaba siendo una sola fracción, y por eso se puede tachar entre ellas",
+                "correct": True,
+            },
+            {
+                "id": "no_common",
+                "text": "En los tres el denominador común no hace ninguna falta",
+                "correct": True,
+            },
+            {
+                "id": "bigger",
+                "text": "En los tres el resultado es mayor que las fracciones de partida",
+                "correct": False,
+            },
+            {
+                "id": "same_rule",
+                "text": "En los tres se opera igual que en una suma",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

@@ -257,8 +257,7 @@ CONTENT = {
                 "Regla para no volver a caer: cuenta las capas. Al cubo son cuatro, siempre.",
             ],
             "solution": (
-                "(x + 3)³ = x³ + 9x² + 27x + 27. Elevar una suma al cubo deja cuatro "
-                "términos."
+                "(x + 3)³ = x³ + 9x² + 27x + 27. Elevar una suma al cubo deja cuatro " "términos."
             ),
         },
     ],
@@ -272,7 +271,11 @@ CONTENT = {
                 "statement": r"Desarrolla $(m-3)^{3}$.",
                 "given_steps": [r"m^{3}", r"3\cdot m^{2}\cdot 3=9m^{2}\ \text{(resta)}"],
                 "blanks": [
-                    {"id": "P1-b1", "label": r"3\cdot m\cdot 3^{2}=\ \_\_\,m\ \text{, coeficiente}=", "answer": "27"}
+                    {
+                        "id": "P1-b1",
+                        "label": r"3\cdot m\cdot 3^{2}=\ \_\_\,m\ \text{, coeficiente}=",
+                        "answer": "27",
+                    }
                 ],
             },
             {
@@ -281,8 +284,16 @@ CONTENT = {
                 "statement": r"Desarrolla $(3x+2)^{3}$.",
                 "given_steps": [r"(3x)^{3}=27x^{3}", r"2^{3}=8"],
                 "blanks": [
-                    {"id": "P2-b1", "label": r"3\cdot (3x)^{2}\cdot 2\ \text{, coeficiente}=", "answer": "54"},
-                    {"id": "P2-b2", "label": r"3\cdot 3x\cdot 2^{2}\ \text{, coeficiente}=", "answer": "36"},
+                    {
+                        "id": "P2-b1",
+                        "label": r"3\cdot (3x)^{2}\cdot 2\ \text{, coeficiente}=",
+                        "answer": "54",
+                    },
+                    {
+                        "id": "P2-b2",
+                        "label": r"3\cdot 3x\cdot 2^{2}\ \text{, coeficiente}=",
+                        "answer": "36",
+                    },
                 ],
             },
             {
@@ -390,9 +401,7 @@ CONTENT = {
             "id": "E3",
             "kind": "numeric",
             "tipo": "estandar",
-            "prompt": (
-                r"Un bloque tiene arista $x+1$ dedos. Con $x=3$, ¿cuánta arcilla lleva?"
-            ),
+            "prompt": (r"Un bloque tiene arista $x+1$ dedos. Con $x=3$, ¿cuánta arcilla lleva?"),
             "expr": r"(x+1)^{3},\quad x=3",
             "answer": "64",
             "hints": {
@@ -420,9 +429,7 @@ CONTENT = {
             "id": "E5",
             "kind": "single_select",
             "tipo": "detecta_error",
-            "prompt": (
-                r"Un aprendiz anota $(x-2)^{3}=x^{3}-6x^{2}+12x+8$. ¿Dónde está el error?"
-            ),
+            "prompt": (r"Un aprendiz anota $(x-2)^{3}=x^{3}-6x^{2}+12x+8$. ¿Dónde está el error?"),
             "options": [
                 {"id": "last", "text": r"El último: $(-2)^{3}=-8$, no $+8$"},
                 {"id": "middle", "text": r"El de $x^{2}$: debería ser $+6x^{2}$"},

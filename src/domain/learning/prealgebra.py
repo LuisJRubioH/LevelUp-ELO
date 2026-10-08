@@ -269,42 +269,101 @@ _INTERACTION_RULES = {
 # Cada tarjeta es una interacción single_select cuya "opción" es la zona elegida.
 # Las tarjetas/zonas complejas (2i, 3+2i) solo se muestran con rama compleja
 # (gating por banda en el frontend). Aquí se definen igual; el backend solo evalúa.
-_B10_ZONES = ["naturals", "integers", "rationals", "irrationals", "pure_imaginary", "complex_general"]
+_B10_ZONES = [
+    "naturals",
+    "integers",
+    "rationals",
+    "irrationals",
+    "pure_imaginary",
+    "complex_general",
+]
 _B10_REAL_ZONES = ["naturals", "integers", "rationals", "irrationals"]
 
 # value → (expected_zone, {wrong_zone: (feedback_key, misconception_or_None)}, requires_complex)
 _B10_CARDS = {
     "minus3": ("integers", {"naturals": ("minus_three_as_natural", None)}, False),
-    "zero": ("naturals", {z: ("zero_not_natural", "excluye_cero_de_naturales_pese_a_convencion")
-                          for z in _B10_ZONES if z != "naturals"}, False),
-    "half": ("rationals", {
-        "naturals": ("fraction_as_integer", "clasifica_fraccion_como_entero"),
-        "integers": ("fraction_as_integer", "clasifica_fraccion_como_entero"),
-        "irrationals": ("fraction_as_irrational", None),
-    }, False),
-    "sqrt2": ("irrationals", {"rationals": ("sqrt2_as_rational", "clasifica_irracional_como_racional")}, False),
-    "pi": ("irrationals", {"rationals": ("pi_as_rational", "clasifica_irracional_como_racional")}, False),
-    "five": ("naturals", {"integers": ("five_as_integer", "clasifica_entero_positivo_como_Z_en_vez_de_N")}, False),
-    "two_i": ("pure_imaginary", {
-        "irrationals": ("2i_as_irrational", "confunde_i_imaginaria_con_I_irracionales"),
-        "complex_general": ("2i_as_complex_general", None),
-    }, True),
-    "three_plus_two_i": ("complex_general", {
-        "pure_imaginary": ("3plus2i_as_pure", "clasifica_complejo_general_como_imaginario_puro"),
-        **{z: ("3plus2i_as_real", "ubica_complejos_no_reales_en_recta_real") for z in _B10_REAL_ZONES},
-    }, True),
+    "zero": (
+        "naturals",
+        {
+            z: ("zero_not_natural", "excluye_cero_de_naturales_pese_a_convencion")
+            for z in _B10_ZONES
+            if z != "naturals"
+        },
+        False,
+    ),
+    "half": (
+        "rationals",
+        {
+            "naturals": ("fraction_as_integer", "clasifica_fraccion_como_entero"),
+            "integers": ("fraction_as_integer", "clasifica_fraccion_como_entero"),
+            "irrationals": ("fraction_as_irrational", None),
+        },
+        False,
+    ),
+    "sqrt2": (
+        "irrationals",
+        {"rationals": ("sqrt2_as_rational", "clasifica_irracional_como_racional")},
+        False,
+    ),
+    "pi": (
+        "irrationals",
+        {"rationals": ("pi_as_rational", "clasifica_irracional_como_racional")},
+        False,
+    ),
+    "five": (
+        "naturals",
+        {"integers": ("five_as_integer", "clasifica_entero_positivo_como_Z_en_vez_de_N")},
+        False,
+    ),
+    "two_i": (
+        "pure_imaginary",
+        {
+            "irrationals": ("2i_as_irrational", "confunde_i_imaginaria_con_I_irracionales"),
+            "complex_general": ("2i_as_complex_general", None),
+        },
+        True,
+    ),
+    "three_plus_two_i": (
+        "complex_general",
+        {
+            "pure_imaginary": (
+                "3plus2i_as_pure",
+                "clasifica_complejo_general_como_imaginario_puro",
+            ),
+            **{
+                z: ("3plus2i_as_real", "ubica_complejos_no_reales_en_recta_real")
+                for z in _B10_REAL_ZONES
+            },
+        },
+        True,
+    ),
     # Cartas extra de banda Avanzado (gating por banda en el frontend; el backend
     # solo evalúa). No requieren rama compleja.
-    "decimal_0333": ("rationals", {
-        "irrationals": ("decimal_0333_is_rational", "cree_que_todo_decimal_infinito_es_irracional"),
-    }, False),
-    "neg7": ("integers", {
-        "naturals": ("neg7_is_integer", None),
-    }, False),
-    "four_fourths": ("naturals", {
-        "rationals": ("four_fourths_is_one", "confunde_fraccion_aparente_con_racional"),
-        "integers": ("four_fourths_is_one", "confunde_fraccion_aparente_con_racional"),
-    }, False),
+    "decimal_0333": (
+        "rationals",
+        {
+            "irrationals": (
+                "decimal_0333_is_rational",
+                "cree_que_todo_decimal_infinito_es_irracional",
+            ),
+        },
+        False,
+    ),
+    "neg7": (
+        "integers",
+        {
+            "naturals": ("neg7_is_integer", None),
+        },
+        False,
+    ),
+    "four_fourths": (
+        "naturals",
+        {
+            "rationals": ("four_fourths_is_one", "confunde_fraccion_aparente_con_racional"),
+            "integers": ("four_fourths_is_one", "confunde_fraccion_aparente_con_racional"),
+        },
+        False,
+    ),
 }
 
 _LESSONS[CLASSIFIER_BASIC_NODE_ID] = {
@@ -329,7 +388,10 @@ for _value, (_expected, _wrongs, _requires_complex) in _B10_CARDS.items():
         "valid_options": set(_B10_ZONES),
         "expected": _expected,
         "misconception_by_option": {z: m for z, (_f, m) in _wrongs.items() if m},
-        "feedback_by_option": {_expected: "card_correct", **{z: f for z, (f, _m) in _wrongs.items()}},
+        "feedback_by_option": {
+            _expected: "card_correct",
+            **{z: f for z, (f, _m) in _wrongs.items()},
+        },
         "default_feedback": "classify_generic",
     }
 
@@ -339,7 +401,10 @@ for _value, (_expected, _wrongs, _requires_complex) in _B10_CARDS.items():
 # value → (expected, (feedback_wrong, misconception_wrong) | None)
 _B07_GRID = {
     "dec05": ("rational", None),
-    "periodic03": ("rational", ("periodic_as_irrational", "cree_que_todo_decimal_infinito_es_irracional")),
+    "periodic03": (
+        "rational",
+        ("periodic_as_irrational", "cree_que_todo_decimal_infinito_es_irracional"),
+    ),
     "pi": ("irrational", ("irrational_as_rational", "no_reconoce_irracional_como_real")),
     "sqrt2": ("irrational", ("irrational_as_rational", "no_reconoce_irracional_como_real")),
     "seven": ("rational", ("integer_as_irrational", "cree_que_enteros_no_son_racionales")),
@@ -421,41 +486,149 @@ for _key, (_expected, _wrong) in _B08_TF.items():
 # value → (expected_sets, complex_row, [error_rules])
 _B11_COLS = ["n", "z", "q", "i", "r", "c"]
 _B11_ROWS = {
-    "minus3": ({"z", "q", "r", "c"}, False, [
-        {"when_missing": "q", "feedback": "integer_not_rational", "misconception": "no_reconoce_Z_dentro_de_Q_R_C"},
-        {"when_missing": "c", "feedback": "real_not_complex", "misconception": "no_reconoce_reales_como_complejos"},
-        {"when_missing": "r", "feedback": "rational_not_real", "misconception": "no_reconoce_Q_dentro_de_R_C"},
-    ]),
-    "zero": ({"n", "z", "q", "r", "c"}, False, [
-        {"when_missing": "n", "feedback": "zero_not_natural", "misconception": "excluye_cero_de_naturales_pese_a_convencion"},
-        {"when_missing": "c", "feedback": "real_not_complex", "misconception": "no_reconoce_reales_como_complejos"},
-    ]),
-    "half": ({"q", "r", "c"}, False, [
-        {"when_missing": "r", "feedback": "rational_not_real", "misconception": "no_reconoce_Q_dentro_de_R_C"},
-        {"when_missing": "c", "feedback": "real_not_complex", "misconception": "no_reconoce_reales_como_complejos"},
-    ]),
-    "sqrt2": ({"i", "r", "c"}, False, [
-        {"when_selected": "q", "feedback": "irrational_as_rational", "misconception": "clasifica_irracional_como_racional"},
-        {"when_missing": "r", "feedback": "irrational_not_real", "misconception": "no_reconoce_irracionales_como_reales"},
-        {"when_missing": "c", "feedback": "real_not_complex", "misconception": "no_reconoce_reales_como_complejos"},
-    ]),
-    "pi": ({"i", "r", "c"}, False, [
-        {"when_selected": "q", "feedback": "irrational_as_rational", "misconception": "clasifica_irracional_como_racional"},
-        {"when_missing": "r", "feedback": "irrational_not_real", "misconception": "no_reconoce_irracionales_como_reales"},
-        {"when_missing": "c", "feedback": "real_not_complex", "misconception": "no_reconoce_reales_como_complejos"},
-    ]),
-    "five": ({"n", "z", "q", "r", "c"}, False, [
-        {"when_missing": "z", "feedback": "only_most_specific", "misconception": "marca_solo_conjunto_mas_especifico"},
-        {"when_missing": "c", "feedback": "real_not_complex", "misconception": "no_reconoce_reales_como_complejos"},
-    ]),
-    "two_i": ({"c"}, True, [
-        {"when_selected": "r", "feedback": "two_i_as_real", "misconception": "ubica_complejos_no_reales_en_recta_real"},
-        {"when_selected": "i", "feedback": "two_i_as_irrational", "misconception": "confunde_imaginario_puro_con_irracional"},
-    ]),
-    "three_plus_two_i": ({"c"}, True, [
-        {"when_selected": "r", "feedback": "three_plus_two_i_as_real", "misconception": "ubica_complejos_no_reales_en_recta_real"},
-        {"when_selected": "i", "feedback": "three_plus_two_i_as_real", "misconception": "ubica_complejos_no_reales_en_recta_real"},
-    ]),
+    "minus3": (
+        {"z", "q", "r", "c"},
+        False,
+        [
+            {
+                "when_missing": "q",
+                "feedback": "integer_not_rational",
+                "misconception": "no_reconoce_Z_dentro_de_Q_R_C",
+            },
+            {
+                "when_missing": "c",
+                "feedback": "real_not_complex",
+                "misconception": "no_reconoce_reales_como_complejos",
+            },
+            {
+                "when_missing": "r",
+                "feedback": "rational_not_real",
+                "misconception": "no_reconoce_Q_dentro_de_R_C",
+            },
+        ],
+    ),
+    "zero": (
+        {"n", "z", "q", "r", "c"},
+        False,
+        [
+            {
+                "when_missing": "n",
+                "feedback": "zero_not_natural",
+                "misconception": "excluye_cero_de_naturales_pese_a_convencion",
+            },
+            {
+                "when_missing": "c",
+                "feedback": "real_not_complex",
+                "misconception": "no_reconoce_reales_como_complejos",
+            },
+        ],
+    ),
+    "half": (
+        {"q", "r", "c"},
+        False,
+        [
+            {
+                "when_missing": "r",
+                "feedback": "rational_not_real",
+                "misconception": "no_reconoce_Q_dentro_de_R_C",
+            },
+            {
+                "when_missing": "c",
+                "feedback": "real_not_complex",
+                "misconception": "no_reconoce_reales_como_complejos",
+            },
+        ],
+    ),
+    "sqrt2": (
+        {"i", "r", "c"},
+        False,
+        [
+            {
+                "when_selected": "q",
+                "feedback": "irrational_as_rational",
+                "misconception": "clasifica_irracional_como_racional",
+            },
+            {
+                "when_missing": "r",
+                "feedback": "irrational_not_real",
+                "misconception": "no_reconoce_irracionales_como_reales",
+            },
+            {
+                "when_missing": "c",
+                "feedback": "real_not_complex",
+                "misconception": "no_reconoce_reales_como_complejos",
+            },
+        ],
+    ),
+    "pi": (
+        {"i", "r", "c"},
+        False,
+        [
+            {
+                "when_selected": "q",
+                "feedback": "irrational_as_rational",
+                "misconception": "clasifica_irracional_como_racional",
+            },
+            {
+                "when_missing": "r",
+                "feedback": "irrational_not_real",
+                "misconception": "no_reconoce_irracionales_como_reales",
+            },
+            {
+                "when_missing": "c",
+                "feedback": "real_not_complex",
+                "misconception": "no_reconoce_reales_como_complejos",
+            },
+        ],
+    ),
+    "five": (
+        {"n", "z", "q", "r", "c"},
+        False,
+        [
+            {
+                "when_missing": "z",
+                "feedback": "only_most_specific",
+                "misconception": "marca_solo_conjunto_mas_especifico",
+            },
+            {
+                "when_missing": "c",
+                "feedback": "real_not_complex",
+                "misconception": "no_reconoce_reales_como_complejos",
+            },
+        ],
+    ),
+    "two_i": (
+        {"c"},
+        True,
+        [
+            {
+                "when_selected": "r",
+                "feedback": "two_i_as_real",
+                "misconception": "ubica_complejos_no_reales_en_recta_real",
+            },
+            {
+                "when_selected": "i",
+                "feedback": "two_i_as_irrational",
+                "misconception": "confunde_imaginario_puro_con_irracional",
+            },
+        ],
+    ),
+    "three_plus_two_i": (
+        {"c"},
+        True,
+        [
+            {
+                "when_selected": "r",
+                "feedback": "three_plus_two_i_as_real",
+                "misconception": "ubica_complejos_no_reales_en_recta_real",
+            },
+            {
+                "when_selected": "i",
+                "feedback": "three_plus_two_i_as_real",
+                "misconception": "ubica_complejos_no_reales_en_recta_real",
+            },
+        ],
+    ),
 }
 
 _LESSONS[CLASSIFIER_RIGOROUS_NODE_ID] = {
@@ -505,8 +678,9 @@ for _value, _expected in _B11_DESCRIPTORS.items():
         "valid_options": {"pure_imaginary", "complex_non_real", "none"},
         "expected": _expected,
         "misconception_by_option": {
-            ("pure_imaginary" if _expected == "complex_non_real" else "complex_non_real"):
-                "confunde_conjunto_formal_con_descriptor",
+            (
+                "pure_imaginary" if _expected == "complex_non_real" else "complex_non_real"
+            ): "confunde_conjunto_formal_con_descriptor",
         },
         "feedback_by_option": {_expected: "desc_correct"},
         "default_feedback": _wrong_fb,
@@ -584,32 +758,60 @@ _LESSONS[CLOSING_NODE_ID] = {
 # a un edificio, no paseando por un mercado. El contexto de cada nodo sale de lo
 # que se hace dentro de su edificio, y ningún edificio presta su oficio a otro.
 _N2_BUILDINGS = [
-    {"id": "E01", "operation": "suma", "symbol": "+", "node_id": N2_SUM_NODE_ID,
-     "building": "El Granero Público",
-     "trade": "Entra y sale grano; todo se anota en una sola tablilla, con signo.",
-     "card": "El granero recibe 14 medidas de trigo y despacha 9. ¿Cómo queda la tablilla?"},
-    {"id": "E02", "operation": "resta", "symbol": "-", "node_id": N2_SUBTRACTION_NODE_ID,
-     "building": "La Casa de Cuentas",
-     "trade": "Se llevan las deudas y los pagos de la ciudad; aquí un saldo puede quedar por debajo de cero.",
-     "card": "Un cliente trae 7 óbolos y debe 12. ¿Cómo queda su cuenta?"},
-    {"id": "E03", "operation": "multiplicacion", "symbol": "x",
-     "node_id": N2_MULTIPLICATION_NODE_ID,
-     "building": "El Taller de Mosaicos",
-     "trade": "Se arman mosaicos por filas y columnas de teselas, y se copian a otras escalas.",
-     "card": "Un mosaico lleva 7 filas de 8 teselas. ¿Cuántas teselas se piden a la bodega?"},
-    {"id": "E04", "operation": "division", "symbol": "÷", "node_id": N2_DIVISION_NODE_ID,
-     "building": "El Comedor Comunal",
-     "trade": "Se sirven raciones iguales a quien llegue; lo que sobra también se reparte.",
-     "card": "Hay 12 hogazas para 4 mesas iguales. ¿Cuántas hogazas por mesa?"},
-    {"id": "E05", "operation": "potenciacion", "symbol": "a^n",
-     "node_id": N2_EXPONENTIATION_NODE_ID,
-     "building": "El Invernadero",
-     "trade": "Se cultivan esquejes que se duplican solos; cada día multiplica al anterior.",
-     "card": "Un esqueje se duplica cada día. Si hoy hay 1, ¿cuántos habrá en 3 días?"},
-    {"id": "E06", "operation": "radicacion", "symbol": "√", "node_id": N2_RADICATION_NODE_ID,
-     "building": "La Cantera",
-     "trade": "Se cortan losas cuadradas: se encarga la superficie y hay que deducir el lado.",
-     "card": "Encargan una losa cuadrada de 16 palmos². ¿Cuánto mide cada lado?"},
+    {
+        "id": "E01",
+        "operation": "suma",
+        "symbol": "+",
+        "node_id": N2_SUM_NODE_ID,
+        "building": "El Granero Público",
+        "trade": "Entra y sale grano; todo se anota en una sola tablilla, con signo.",
+        "card": "El granero recibe 14 medidas de trigo y despacha 9. ¿Cómo queda la tablilla?",
+    },
+    {
+        "id": "E02",
+        "operation": "resta",
+        "symbol": "-",
+        "node_id": N2_SUBTRACTION_NODE_ID,
+        "building": "La Casa de Cuentas",
+        "trade": "Se llevan las deudas y los pagos de la ciudad; aquí un saldo puede quedar por debajo de cero.",
+        "card": "Un cliente trae 7 óbolos y debe 12. ¿Cómo queda su cuenta?",
+    },
+    {
+        "id": "E03",
+        "operation": "multiplicacion",
+        "symbol": "x",
+        "node_id": N2_MULTIPLICATION_NODE_ID,
+        "building": "El Taller de Mosaicos",
+        "trade": "Se arman mosaicos por filas y columnas de teselas, y se copian a otras escalas.",
+        "card": "Un mosaico lleva 7 filas de 8 teselas. ¿Cuántas teselas se piden a la bodega?",
+    },
+    {
+        "id": "E04",
+        "operation": "division",
+        "symbol": "÷",
+        "node_id": N2_DIVISION_NODE_ID,
+        "building": "El Comedor Comunal",
+        "trade": "Se sirven raciones iguales a quien llegue; lo que sobra también se reparte.",
+        "card": "Hay 12 hogazas para 4 mesas iguales. ¿Cuántas hogazas por mesa?",
+    },
+    {
+        "id": "E05",
+        "operation": "potenciacion",
+        "symbol": "a^n",
+        "node_id": N2_EXPONENTIATION_NODE_ID,
+        "building": "El Invernadero",
+        "trade": "Se cultivan esquejes que se duplican solos; cada día multiplica al anterior.",
+        "card": "Un esqueje se duplica cada día. Si hoy hay 1, ¿cuántos habrá en 3 días?",
+    },
+    {
+        "id": "E06",
+        "operation": "radicacion",
+        "symbol": "√",
+        "node_id": N2_RADICATION_NODE_ID,
+        "building": "La Cantera",
+        "trade": "Se cortan losas cuadradas: se encarga la superficie y hay que deducir el lado.",
+        "card": "Encargan una losa cuadrada de 16 palmos². ¿Cuánto mide cada lado?",
+    },
 ]
 
 _N2_HUB_CONTENT = {
@@ -705,12 +907,48 @@ _N2_HUB_CONTENT = {
 
 _N2_SEQUENCE = [
     (N2_HUB_NODE_ID, "level_hub_3d", "ciudad_operaciones", "prealgebra.n2.e00", CLOSING_NODE_ID),
-    (N2_SUM_NODE_ID, "operation_building_manipulative", "suma", "prealgebra.n2.e01", N2_HUB_NODE_ID),
-    (N2_SUBTRACTION_NODE_ID, "operation_building_situations", "resta", "prealgebra.n2.e02", N2_HUB_NODE_ID),
-    (N2_MULTIPLICATION_NODE_ID, "operation_building_progressive", "multiplicacion", "prealgebra.n2.e03", N2_HUB_NODE_ID),
-    (N2_DIVISION_NODE_ID, "operation_building_manipulative", "division", "prealgebra.n2.e04", N2_HUB_NODE_ID),
-    (N2_EXPONENTIATION_NODE_ID, "operation_building_growth_table", "potenciacion", "prealgebra.n2.e05", N2_HUB_NODE_ID),
-    (N2_RADICATION_NODE_ID, "operation_building_geometric_last", "radicacion", "prealgebra.n2.e06", N2_HUB_NODE_ID),
+    (
+        N2_SUM_NODE_ID,
+        "operation_building_manipulative",
+        "suma",
+        "prealgebra.n2.e01",
+        N2_HUB_NODE_ID,
+    ),
+    (
+        N2_SUBTRACTION_NODE_ID,
+        "operation_building_situations",
+        "resta",
+        "prealgebra.n2.e02",
+        N2_HUB_NODE_ID,
+    ),
+    (
+        N2_MULTIPLICATION_NODE_ID,
+        "operation_building_progressive",
+        "multiplicacion",
+        "prealgebra.n2.e03",
+        N2_HUB_NODE_ID,
+    ),
+    (
+        N2_DIVISION_NODE_ID,
+        "operation_building_manipulative",
+        "division",
+        "prealgebra.n2.e04",
+        N2_HUB_NODE_ID,
+    ),
+    (
+        N2_EXPONENTIATION_NODE_ID,
+        "operation_building_growth_table",
+        "potenciacion",
+        "prealgebra.n2.e05",
+        N2_HUB_NODE_ID,
+    ),
+    (
+        N2_RADICATION_NODE_ID,
+        "operation_building_geometric_last",
+        "radicacion",
+        "prealgebra.n2.e06",
+        N2_HUB_NODE_ID,
+    ),
 ]
 
 for _index, (_node_id, _node_type, _topic, _prefix, _unlock_after) in enumerate(_N2_SEQUENCE):
@@ -737,13 +975,15 @@ for _index, (_node_id, _node_type, _topic, _prefix, _unlock_after) in enumerate(
 
 for _building in _N2_BUILDINGS:
     _interaction_id = f"{N2_HUB_NODE_ID}-CARD-{_building['id']}"
-    _LESSONS[N2_HUB_NODE_ID]["interactions"].append({
-        "interaction_id": _interaction_id,
-        "type": "single_select",
-        "prompt_key": _building["operation"],
-        "option_keys": ["opened"],
-        "can_retry": False,
-    })
+    _LESSONS[N2_HUB_NODE_ID]["interactions"].append(
+        {
+            "interaction_id": _interaction_id,
+            "type": "single_select",
+            "prompt_key": _building["operation"],
+            "option_keys": ["opened"],
+            "can_retry": False,
+        }
+    )
     _INTERACTION_RULES[_interaction_id] = {
         "node_id": N2_HUB_NODE_ID,
         "valid_options": {"opened"},
@@ -852,7 +1092,10 @@ _N3_HUB_CONTENT = {
                 ],
                 "prompt": "¿Qué marcarán las dos balanzas al final?",
                 "options": [
-                    {"id": "a", "text": "Lo mismo: 8 kg en ambas, el orden no cambió el peso total."},
+                    {
+                        "id": "a",
+                        "text": "Lo mismo: 8 kg en ambas, el orden no cambió el peso total.",
+                    },
                     {"id": "b", "text": "La segunda balanza marcará menos."},
                     {"id": "c", "text": "No se puede saber sin pesarlos de nuevo."},
                 ],
@@ -897,12 +1140,48 @@ _N3_HUB_CONTENT = {
 }
 
 _N3_SEQUENCE = [
-    (N3_HUB_NODE_ID, "level_hub_laboratory", "laboratorio_propiedades", "prealgebra.n3.m00", N2_RADICATION_NODE_ID),
-    (N3_COMMUTATIVE_NODE_ID, "property_machine_guided_discovery", "conmutativa", "prealgebra.n3.m01", N3_HUB_NODE_ID),
-    (N3_ASSOCIATIVE_NODE_ID, "property_machine_guided_discovery", "asociativa", "prealgebra.n3.m02", N3_COMMUTATIVE_NODE_ID),
-    (N3_DISTRIBUTIVE_NODE_ID, "property_machine_guided_discovery", "distributiva", "prealgebra.n3.m03", N3_ASSOCIATIVE_NODE_ID),
-    (N3_IDENTITY_NODE_ID, "property_machine_guided_discovery", "elemento_neutro", "prealgebra.n3.m04", N3_DISTRIBUTIVE_NODE_ID),
-    (N3_INVERSES_NODE_ID, "property_machine_cancellation_last", "inversos", "prealgebra.n3.m05", N3_IDENTITY_NODE_ID),
+    (
+        N3_HUB_NODE_ID,
+        "level_hub_laboratory",
+        "laboratorio_propiedades",
+        "prealgebra.n3.m00",
+        N2_RADICATION_NODE_ID,
+    ),
+    (
+        N3_COMMUTATIVE_NODE_ID,
+        "property_machine_guided_discovery",
+        "conmutativa",
+        "prealgebra.n3.m01",
+        N3_HUB_NODE_ID,
+    ),
+    (
+        N3_ASSOCIATIVE_NODE_ID,
+        "property_machine_guided_discovery",
+        "asociativa",
+        "prealgebra.n3.m02",
+        N3_COMMUTATIVE_NODE_ID,
+    ),
+    (
+        N3_DISTRIBUTIVE_NODE_ID,
+        "property_machine_guided_discovery",
+        "distributiva",
+        "prealgebra.n3.m03",
+        N3_ASSOCIATIVE_NODE_ID,
+    ),
+    (
+        N3_IDENTITY_NODE_ID,
+        "property_machine_guided_discovery",
+        "elemento_neutro",
+        "prealgebra.n3.m04",
+        N3_DISTRIBUTIVE_NODE_ID,
+    ),
+    (
+        N3_INVERSES_NODE_ID,
+        "property_machine_cancellation_last",
+        "inversos",
+        "prealgebra.n3.m05",
+        N3_IDENTITY_NODE_ID,
+    ),
 ]
 
 for _index, (_node_id, _node_type, _topic, _prefix, _unlock_after) in enumerate(_N3_SEQUENCE):
@@ -929,13 +1208,15 @@ for _index, (_node_id, _node_type, _topic, _prefix, _unlock_after) in enumerate(
 
 for _machine in _N3_MACHINES:
     _interaction_id = f"{N3_HUB_NODE_ID}-MACHINE-{_machine['id']}"
-    _LESSONS[N3_HUB_NODE_ID]["interactions"].append({
-        "interaction_id": _interaction_id,
-        "type": "single_select",
-        "prompt_key": _machine["property"],
-        "option_keys": ["introduced"],
-        "can_retry": False,
-    })
+    _LESSONS[N3_HUB_NODE_ID]["interactions"].append(
+        {
+            "interaction_id": _interaction_id,
+            "type": "single_select",
+            "prompt_key": _machine["property"],
+            "option_keys": ["introduced"],
+            "can_retry": False,
+        }
+    )
     _INTERACTION_RULES[_interaction_id] = {
         "node_id": N3_HUB_NODE_ID,
         "valid_options": {"introduced"},
@@ -948,15 +1229,18 @@ for _machine in _N3_MACHINES:
 # no un parser. Un termino es un numero, una fraccion, una raiz o un monomio; una
 # respuesta es un termino o una suma de hasta cuatro.
 _TEXT_TERM = (
-    r"\d{0,4}[a-z](?:\^\d{1,2})?"                # 8x, x, 12x^5
-    r"|\d{1,4}(?:/\d{1,4})?"                      # 12, 3/4
-    r"|sqrt\d{1,4}(?:/\d{1,4})?|1/sqrt\d{1,4}"    # sqrt2, sqrt2/2, 1/sqrt2
+    r"\d{0,4}[a-z](?:\^\d{1,2})?"  # 8x, x, 12x^5
+    r"|\d{1,4}(?:/\d{1,4})?"  # 12, 3/4
+    r"|sqrt\d{1,4}(?:/\d{1,4})?|1/sqrt\d{1,4}"  # sqrt2, sqrt2/2, 1/sqrt2
 )
 _TEXT_ANSWER_RE = re.compile(rf"-?(?:{_TEXT_TERM})(?:[+-](?:{_TEXT_TERM})){{0,3}}")
 
 
 def _register_mixed_interactions(
-    node_id: str, concept_slug: str, items: list[dict], required: bool = True,
+    node_id: str,
+    concept_slug: str,
+    items: list[dict],
+    required: bool = True,
 ) -> None:
     """Registra interacciones de tipo mixto (numeric/single_select/multi_select).
 
@@ -974,13 +1258,15 @@ def _register_mixed_interactions(
         kind = item["kind"]
         if kind == "numeric":
             if required:
-                _LESSONS[node_id]["interactions"].append({
-                    "interaction_id": interaction_id,
-                    "type": "numeric_input",
-                    "prompt_key": item["id"],
-                    "option_keys": [],
-                    "can_retry": True,
-                })
+                _LESSONS[node_id]["interactions"].append(
+                    {
+                        "interaction_id": interaction_id,
+                        "type": "numeric_input",
+                        "prompt_key": item["id"],
+                        "option_keys": [],
+                        "can_retry": True,
+                    }
+                )
             _INTERACTION_RULES[interaction_id] = {
                 "node_id": node_id,
                 "input_kind": "numeric",
@@ -994,13 +1280,15 @@ def _register_mixed_interactions(
             # respuesta es algebraica (`6r+3`) y ofrecer opciones regalaria el
             # resultado. Sin diagnostico por distractor: para eso esta single_select.
             if required:
-                _LESSONS[node_id]["interactions"].append({
-                    "interaction_id": interaction_id,
-                    "type": "text_input",
-                    "prompt_key": item["id"],
-                    "option_keys": [],
-                    "can_retry": True,
-                })
+                _LESSONS[node_id]["interactions"].append(
+                    {
+                        "interaction_id": interaction_id,
+                        "type": "text_input",
+                        "prompt_key": item["id"],
+                        "option_keys": [],
+                        "can_retry": True,
+                    }
+                )
             _INTERACTION_RULES[interaction_id] = {
                 "node_id": node_id,
                 "input_kind": "text_exact",
@@ -1014,13 +1302,15 @@ def _register_mixed_interactions(
         elif kind == "single_select":
             option_ids = {opt["id"] for opt in item["options"]}
             if required:
-                _LESSONS[node_id]["interactions"].append({
-                    "interaction_id": interaction_id,
-                    "type": "single_select",
-                    "prompt_key": item["id"],
-                    "option_keys": [opt["id"] for opt in item["options"]],
-                    "can_retry": True,
-                })
+                _LESSONS[node_id]["interactions"].append(
+                    {
+                        "interaction_id": interaction_id,
+                        "type": "single_select",
+                        "prompt_key": item["id"],
+                        "option_keys": [opt["id"] for opt in item["options"]],
+                        "can_retry": True,
+                    }
+                )
             _INTERACTION_RULES[interaction_id] = {
                 "node_id": node_id,
                 "valid_options": option_ids,
@@ -1031,13 +1321,15 @@ def _register_mixed_interactions(
             }
         elif kind == "multi_select":
             if required:
-                _LESSONS[node_id]["interactions"].append({
-                    "interaction_id": interaction_id,
-                    "type": "multi_select",
-                    "prompt_key": item["id"],
-                    "option_keys": sorted(item["valid_options"]),
-                    "can_retry": True,
-                })
+                _LESSONS[node_id]["interactions"].append(
+                    {
+                        "interaction_id": interaction_id,
+                        "type": "multi_select",
+                        "prompt_key": item["id"],
+                        "option_keys": sorted(item["valid_options"]),
+                        "can_retry": True,
+                    }
+                )
             _INTERACTION_RULES[interaction_id] = {
                 "node_id": node_id,
                 "input_kind": "multi_select",
@@ -1057,18 +1349,54 @@ def _register_mixed_interactions(
 
 
 _N4_CARDS = [
-    {"id": "C01", "concept": "divisibilidad", "symbol": "b \\mid a", "node_id": N4_DIVISIBILITY_NODE_ID,
-     "destination": "Corinto · el reparto exacto", "teaser": "Reparte la carga de un barco sin que sobre nada."},
-    {"id": "C02", "concept": "multiplos", "symbol": "M(b)", "node_id": N4_MULTIPLES_NODE_ID,
-     "destination": "Rodas · lo que se repite", "teaser": "Descubre los barcos que zarpan cada cierto número de días."},
-    {"id": "C03", "concept": "primos", "symbol": "p", "node_id": N4_PRIMES_NODE_ID,
-     "destination": "Delos · la isla indivisible", "teaser": "Encuentra las polis con una sola ruta directa al puerto."},
-    {"id": "C04", "concept": "factorizacion_prima", "symbol": "2\\times3\\times5", "node_id": N4_FACTORIZATION_NODE_ID,
-     "destination": "Mileto · piezas fundamentales", "teaser": "Desmonta la carga de un barco en sus piezas más pequeñas."},
-    {"id": "C05", "concept": "mcd", "symbol": "\\text{MCD}", "node_id": N4_GCD_NODE_ID,
-     "destination": "Atenas · lo más grande en común", "teaser": "Halla el contenedor más grande que reparte exacto dos cargamentos."},
-    {"id": "C06", "concept": "mcm", "symbol": "\\text{MCM}", "node_id": N4_LCM_NODE_ID,
-     "destination": "Esparta · donde coinciden las rutas", "teaser": "Calcula cada cuánto coinciden dos barcos en el mismo muelle."},
+    {
+        "id": "C01",
+        "concept": "divisibilidad",
+        "symbol": "b \\mid a",
+        "node_id": N4_DIVISIBILITY_NODE_ID,
+        "destination": "Corinto · el reparto exacto",
+        "teaser": "Reparte la carga de un barco sin que sobre nada.",
+    },
+    {
+        "id": "C02",
+        "concept": "multiplos",
+        "symbol": "M(b)",
+        "node_id": N4_MULTIPLES_NODE_ID,
+        "destination": "Rodas · lo que se repite",
+        "teaser": "Descubre los barcos que zarpan cada cierto número de días.",
+    },
+    {
+        "id": "C03",
+        "concept": "primos",
+        "symbol": "p",
+        "node_id": N4_PRIMES_NODE_ID,
+        "destination": "Delos · la isla indivisible",
+        "teaser": "Encuentra las polis con una sola ruta directa al puerto.",
+    },
+    {
+        "id": "C04",
+        "concept": "factorizacion_prima",
+        "symbol": "2\\times3\\times5",
+        "node_id": N4_FACTORIZATION_NODE_ID,
+        "destination": "Mileto · piezas fundamentales",
+        "teaser": "Desmonta la carga de un barco en sus piezas más pequeñas.",
+    },
+    {
+        "id": "C05",
+        "concept": "mcd",
+        "symbol": "\\text{MCD}",
+        "node_id": N4_GCD_NODE_ID,
+        "destination": "Atenas · lo más grande en común",
+        "teaser": "Halla el contenedor más grande que reparte exacto dos cargamentos.",
+    },
+    {
+        "id": "C06",
+        "concept": "mcm",
+        "symbol": "\\text{MCM}",
+        "node_id": N4_LCM_NODE_ID,
+        "destination": "Esparta · donde coinciden las rutas",
+        "teaser": "Calcula cada cuánto coinciden dos barcos en el mismo muelle.",
+    },
 ]
 
 _N4_HUB_CONTENT = {
@@ -1172,13 +1500,55 @@ _N4_HUB_CONTENT = {
 }
 
 _N4_SEQUENCE = [
-    (N4_HUB_NODE_ID, "level_hub_port", "puerto_de_la_polis", "prealgebra.n4.c00", N3_INVERSES_NODE_ID),
-    (N4_DIVISIBILITY_NODE_ID, "divisibility_concept_guided_discovery", "divisibilidad", "prealgebra.n4.c01", N4_HUB_NODE_ID),
-    (N4_MULTIPLES_NODE_ID, "divisibility_concept_guided_discovery", "multiplos", "prealgebra.n4.c02", N4_DIVISIBILITY_NODE_ID),
-    (N4_PRIMES_NODE_ID, "divisibility_concept_guided_discovery", "primos", "prealgebra.n4.c03", N4_MULTIPLES_NODE_ID),
-    (N4_FACTORIZATION_NODE_ID, "divisibility_concept_guided_discovery", "factorizacion_prima", "prealgebra.n4.c04", N4_PRIMES_NODE_ID),
-    (N4_GCD_NODE_ID, "divisibility_concept_guided_discovery", "mcd", "prealgebra.n4.c05", N4_FACTORIZATION_NODE_ID),
-    (N4_LCM_NODE_ID, "divisibility_concept_guided_discovery", "mcm", "prealgebra.n4.c06", N4_GCD_NODE_ID),
+    (
+        N4_HUB_NODE_ID,
+        "level_hub_port",
+        "puerto_de_la_polis",
+        "prealgebra.n4.c00",
+        N3_INVERSES_NODE_ID,
+    ),
+    (
+        N4_DIVISIBILITY_NODE_ID,
+        "divisibility_concept_guided_discovery",
+        "divisibilidad",
+        "prealgebra.n4.c01",
+        N4_HUB_NODE_ID,
+    ),
+    (
+        N4_MULTIPLES_NODE_ID,
+        "divisibility_concept_guided_discovery",
+        "multiplos",
+        "prealgebra.n4.c02",
+        N4_DIVISIBILITY_NODE_ID,
+    ),
+    (
+        N4_PRIMES_NODE_ID,
+        "divisibility_concept_guided_discovery",
+        "primos",
+        "prealgebra.n4.c03",
+        N4_MULTIPLES_NODE_ID,
+    ),
+    (
+        N4_FACTORIZATION_NODE_ID,
+        "divisibility_concept_guided_discovery",
+        "factorizacion_prima",
+        "prealgebra.n4.c04",
+        N4_PRIMES_NODE_ID,
+    ),
+    (
+        N4_GCD_NODE_ID,
+        "divisibility_concept_guided_discovery",
+        "mcd",
+        "prealgebra.n4.c05",
+        N4_FACTORIZATION_NODE_ID,
+    ),
+    (
+        N4_LCM_NODE_ID,
+        "divisibility_concept_guided_discovery",
+        "mcm",
+        "prealgebra.n4.c06",
+        N4_GCD_NODE_ID,
+    ),
 ]
 
 for _index, (_node_id, _node_type, _topic, _prefix, _unlock_after) in enumerate(_N4_SEQUENCE):
@@ -1241,40 +1611,119 @@ ALG_PERCENT_NODE_ID = "ALG-N1-R03-PORCENTAJES"
 ALG_VARIATION_NODE_ID = "ALG-N1-R04-VARIACION"
 
 _ALG_N1_SEQUENCE = [
-    (ALG_HUB_NODE_ID, "level_hub_cards", "papiro_cuatro_casas",
-     "algebra.a00", N4_LCM_NODE_ID),
-    (ALG_VARIABLES_NODE_ID, "algebra_concept_guided_discovery", "variables",
-     "algebra.n1.l01", ALG_HUB_NODE_ID),
-    (ALG_CONSTANTS_NODE_ID, "algebra_concept_guided_discovery", "constantes",
-     "algebra.n1.l02", ALG_VARIABLES_NODE_ID),
-    (ALG_TRANSLATION_NODE_ID, "algebra_concept_guided_discovery", "traduccion",
-     "algebra.n1.l03", ALG_CONSTANTS_NODE_ID),
-    (ALG_NUMERIC_VALUE_NODE_ID, "algebra_concept_guided_discovery", "valor_numerico",
-     "algebra.n1.l04", ALG_TRANSLATION_NODE_ID),
-    (ALG_OPERATIONS_NODE_ID, "algebra_concept_guided_discovery", "terminos_semejantes",
-     "algebra.n2.o01", ALG_NUMERIC_VALUE_NODE_ID),
-    (ALG_SIGNS_NODE_ID, "algebra_concept_guided_discovery", "signos_y_parentesis",
-     "algebra.n2.o02", ALG_OPERATIONS_NODE_ID),
-    (ALG_PRODUCT_NODE_ID, "algebra_concept_guided_discovery", "producto_de_monomios",
-     "algebra.n2.o03", ALG_SIGNS_NODE_ID),
-    (ALG_QUOTIENT_NODE_ID, "algebra_concept_guided_discovery", "cociente_de_monomios",
-     "algebra.n2.o04", ALG_PRODUCT_NODE_ID),
-    (ALG_FRACTIONS_NODE_ID, "algebra_concept_guided_discovery", "fracciones_algebraicas",
-     "algebra.n1.b03", ALG_QUOTIENT_NODE_ID),
-    (ALG_FRAC_SUM_NODE_ID, "algebra_concept_guided_discovery", "suma_de_fracciones_algebraicas",
-     "algebra.n3.f02", ALG_FRACTIONS_NODE_ID),
-    (ALG_FRAC_PRODUCT_NODE_ID, "algebra_concept_guided_discovery", "producto_de_fracciones_algebraicas",
-     "algebra.n3.f03", ALG_FRAC_SUM_NODE_ID),
-    (ALG_FRAC_DIVISION_NODE_ID, "algebra_concept_guided_discovery", "division_de_fracciones_algebraicas",
-     "algebra.n3.f04", ALG_FRAC_PRODUCT_NODE_ID),
-    (ALG_RATIOS_NODE_ID, "algebra_concept_guided_discovery", "razones_y_proporciones",
-     "algebra.n4.r01", ALG_FRAC_DIVISION_NODE_ID),
-    (ALG_RULE_OF_THREE_NODE_ID, "algebra_concept_guided_discovery", "regla_de_tres",
-     "algebra.n4.r02", ALG_RATIOS_NODE_ID),
-    (ALG_PERCENT_NODE_ID, "algebra_concept_guided_discovery", "porcentajes",
-     "algebra.n4.r03", ALG_RULE_OF_THREE_NODE_ID),
-    (ALG_VARIATION_NODE_ID, "algebra_concept_guided_discovery", "variacion_directa_e_inversa",
-     "algebra.n4.r04", ALG_PERCENT_NODE_ID),
+    (ALG_HUB_NODE_ID, "level_hub_cards", "papiro_cuatro_casas", "algebra.a00", N4_LCM_NODE_ID),
+    (
+        ALG_VARIABLES_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "variables",
+        "algebra.n1.l01",
+        ALG_HUB_NODE_ID,
+    ),
+    (
+        ALG_CONSTANTS_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "constantes",
+        "algebra.n1.l02",
+        ALG_VARIABLES_NODE_ID,
+    ),
+    (
+        ALG_TRANSLATION_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "traduccion",
+        "algebra.n1.l03",
+        ALG_CONSTANTS_NODE_ID,
+    ),
+    (
+        ALG_NUMERIC_VALUE_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "valor_numerico",
+        "algebra.n1.l04",
+        ALG_TRANSLATION_NODE_ID,
+    ),
+    (
+        ALG_OPERATIONS_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "terminos_semejantes",
+        "algebra.n2.o01",
+        ALG_NUMERIC_VALUE_NODE_ID,
+    ),
+    (
+        ALG_SIGNS_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "signos_y_parentesis",
+        "algebra.n2.o02",
+        ALG_OPERATIONS_NODE_ID,
+    ),
+    (
+        ALG_PRODUCT_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "producto_de_monomios",
+        "algebra.n2.o03",
+        ALG_SIGNS_NODE_ID,
+    ),
+    (
+        ALG_QUOTIENT_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "cociente_de_monomios",
+        "algebra.n2.o04",
+        ALG_PRODUCT_NODE_ID,
+    ),
+    (
+        ALG_FRACTIONS_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "fracciones_algebraicas",
+        "algebra.n1.b03",
+        ALG_QUOTIENT_NODE_ID,
+    ),
+    (
+        ALG_FRAC_SUM_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "suma_de_fracciones_algebraicas",
+        "algebra.n3.f02",
+        ALG_FRACTIONS_NODE_ID,
+    ),
+    (
+        ALG_FRAC_PRODUCT_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "producto_de_fracciones_algebraicas",
+        "algebra.n3.f03",
+        ALG_FRAC_SUM_NODE_ID,
+    ),
+    (
+        ALG_FRAC_DIVISION_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "division_de_fracciones_algebraicas",
+        "algebra.n3.f04",
+        ALG_FRAC_PRODUCT_NODE_ID,
+    ),
+    (
+        ALG_RATIOS_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "razones_y_proporciones",
+        "algebra.n4.r01",
+        ALG_FRAC_DIVISION_NODE_ID,
+    ),
+    (
+        ALG_RULE_OF_THREE_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "regla_de_tres",
+        "algebra.n4.r02",
+        ALG_RATIOS_NODE_ID,
+    ),
+    (
+        ALG_PERCENT_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "porcentajes",
+        "algebra.n4.r03",
+        ALG_RULE_OF_THREE_NODE_ID,
+    ),
+    (
+        ALG_VARIATION_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "variacion_directa_e_inversa",
+        "algebra.n4.r04",
+        ALG_PERCENT_NODE_ID,
+    ),
 ]
 
 ALG_N1_NODE_IDS = [_row[0] for _row in _ALG_N1_SEQUENCE]
@@ -1289,16 +1738,41 @@ ALG_CUBE_NODE_ID = "ALG-N2-P03-CUBO"
 ALG_COMMON_TERM_NODE_ID = "ALG-N2-P04-TERMINO-COMUN"
 
 _ALG_N2_SEQUENCE = [
-    (ALG_BAGDAD_HUB_NODE_ID, "level_hub_cards", "casa_de_la_sabiduria",
-     "algebra.s00", ALG_VARIATION_NODE_ID),
-    (ALG_SQUARE_NODE_ID, "algebra_concept_guided_discovery", "cuadrado_de_binomio",
-     "algebra.n5.p01", ALG_BAGDAD_HUB_NODE_ID),
-    (ALG_CONJUGATE_NODE_ID, "algebra_concept_guided_discovery", "binomios_conjugados",
-     "algebra.n5.p02", ALG_SQUARE_NODE_ID),
-    (ALG_CUBE_NODE_ID, "algebra_concept_guided_discovery", "cubo_de_binomio",
-     "algebra.n5.p03", ALG_CONJUGATE_NODE_ID),
-    (ALG_COMMON_TERM_NODE_ID, "algebra_concept_guided_discovery", "producto_con_termino_comun",
-     "algebra.n5.p04", ALG_CUBE_NODE_ID),
+    (
+        ALG_BAGDAD_HUB_NODE_ID,
+        "level_hub_cards",
+        "casa_de_la_sabiduria",
+        "algebra.s00",
+        ALG_VARIATION_NODE_ID,
+    ),
+    (
+        ALG_SQUARE_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "cuadrado_de_binomio",
+        "algebra.n5.p01",
+        ALG_BAGDAD_HUB_NODE_ID,
+    ),
+    (
+        ALG_CONJUGATE_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "binomios_conjugados",
+        "algebra.n5.p02",
+        ALG_SQUARE_NODE_ID,
+    ),
+    (
+        ALG_CUBE_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "cubo_de_binomio",
+        "algebra.n5.p03",
+        ALG_CONJUGATE_NODE_ID,
+    ),
+    (
+        ALG_COMMON_TERM_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "producto_con_termino_comun",
+        "algebra.n5.p04",
+        ALG_CUBE_NODE_ID,
+    ),
 ]
 
 ALG_N2_NODE_IDS = [_row[0] for _row in _ALG_N2_SEQUENCE]
@@ -1312,16 +1786,41 @@ ALG_CUBES_NODE_ID = "ALG-N3-G04-CUBOS"
 ALG_FULL_FACTOR_NODE_ID = "ALG-N3-G05-EXPEDICION"
 
 _ALG_N3_SEQUENCE = [
-    (ALG_COMMON_FACTOR_NODE_ID, "algebra_concept_guided_discovery", "factor_comun_y_agrupacion",
-     "algebra.n6.g01", ALG_COMMON_TERM_NODE_ID),
-    (ALG_SQUARES_NODE_ID, "algebra_concept_guided_discovery", "diferencia_de_cuadrados_y_tcp",
-     "algebra.n6.g02", ALG_COMMON_FACTOR_NODE_ID),
-    (ALG_TRINOMIAL_NODE_ID, "algebra_concept_guided_discovery", "trinomio_general",
-     "algebra.n6.g03", ALG_SQUARES_NODE_ID),
-    (ALG_CUBES_NODE_ID, "algebra_concept_guided_discovery", "suma_y_diferencia_de_cubos",
-     "algebra.n6.g04", ALG_TRINOMIAL_NODE_ID),
-    (ALG_FULL_FACTOR_NODE_ID, "algebra_concept_guided_discovery", "factorizacion_completa",
-     "algebra.n6.g05", ALG_CUBES_NODE_ID),
+    (
+        ALG_COMMON_FACTOR_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "factor_comun_y_agrupacion",
+        "algebra.n6.g01",
+        ALG_COMMON_TERM_NODE_ID,
+    ),
+    (
+        ALG_SQUARES_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "diferencia_de_cuadrados_y_tcp",
+        "algebra.n6.g02",
+        ALG_COMMON_FACTOR_NODE_ID,
+    ),
+    (
+        ALG_TRINOMIAL_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "trinomio_general",
+        "algebra.n6.g03",
+        ALG_SQUARES_NODE_ID,
+    ),
+    (
+        ALG_CUBES_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "suma_y_diferencia_de_cubos",
+        "algebra.n6.g04",
+        ALG_TRINOMIAL_NODE_ID,
+    ),
+    (
+        ALG_FULL_FACTOR_NODE_ID,
+        "algebra_concept_guided_discovery",
+        "factorizacion_completa",
+        "algebra.n6.g05",
+        ALG_CUBES_NODE_ID,
+    ),
 ]
 
 ALG_N3_NODE_IDS = [_row[0] for _row in _ALG_N3_SEQUENCE]
@@ -1366,13 +1865,15 @@ for _hub_id, _hub_module, _hub_slug in (
 ):
     for _card in _hub_module.CARDS:
         _interaction_id = f"{_hub_id}-CARD-{_card['id']}"
-        _LESSONS[_hub_id]["interactions"].append({
-            "interaction_id": _interaction_id,
-            "type": "single_select",
-            "prompt_key": _card["concept"],
-            "option_keys": ["opened"],
-            "can_retry": False,
-        })
+        _LESSONS[_hub_id]["interactions"].append(
+            {
+                "interaction_id": _interaction_id,
+                "type": "single_select",
+                "prompt_key": _card["concept"],
+                "option_keys": ["opened"],
+                "can_retry": False,
+            }
+        )
         _INTERACTION_RULES[_interaction_id] = {
             "node_id": _hub_id,
             "valid_options": {"opened"},
@@ -1381,18 +1882,23 @@ for _hub_id, _hub_module, _hub_slug in (
             "feedback_by_option": {"opened": "card_opened"},
         }
     _register_mixed_interactions(
-        _hub_id, _hub_slug, _hub_module.CONTENT["icebreaker"]["items"], required=False,
+        _hub_id,
+        _hub_slug,
+        _hub_module.CONTENT["icebreaker"]["items"],
+        required=False,
     )
 
 for _card in _N4_CARDS:
     _interaction_id = f"{N4_HUB_NODE_ID}-CARD-{_card['id']}"
-    _LESSONS[N4_HUB_NODE_ID]["interactions"].append({
-        "interaction_id": _interaction_id,
-        "type": "single_select",
-        "prompt_key": _card["concept"],
-        "option_keys": ["opened"],
-        "can_retry": False,
-    })
+    _LESSONS[N4_HUB_NODE_ID]["interactions"].append(
+        {
+            "interaction_id": _interaction_id,
+            "type": "single_select",
+            "prompt_key": _card["concept"],
+            "option_keys": ["opened"],
+            "can_retry": False,
+        }
+    )
     _INTERACTION_RULES[_interaction_id] = {
         "node_id": N4_HUB_NODE_ID,
         "valid_options": {"opened"},
@@ -1401,9 +1907,15 @@ for _card in _N4_CARDS:
         "feedback_by_option": {"opened": "card_opened"},
     }
 
-_register_mixed_interactions(N4_HUB_NODE_ID, "puerto", _N4_HUB_CONTENT["icebreaker"]["items"], required=False)
-_register_mixed_interactions(N2_HUB_NODE_ID, "ciudad", _N2_HUB_CONTENT["icebreaker"]["items"], required=False)
-_register_mixed_interactions(N3_HUB_NODE_ID, "laboratorio", _N3_HUB_CONTENT["icebreaker"]["items"], required=False)
+_register_mixed_interactions(
+    N4_HUB_NODE_ID, "puerto", _N4_HUB_CONTENT["icebreaker"]["items"], required=False
+)
+_register_mixed_interactions(
+    N2_HUB_NODE_ID, "ciudad", _N2_HUB_CONTENT["icebreaker"]["items"], required=False
+)
+_register_mixed_interactions(
+    N3_HUB_NODE_ID, "laboratorio", _N3_HUB_CONTENT["icebreaker"]["items"], required=False
+)
 
 # ---------------------------------------------------------------------------
 # B06 — reconstrucción bajo la arquitectura de 11 bloques.
@@ -1441,7 +1953,9 @@ for _node_module in NODE_MODULES:
     _register_mixed_interactions(_node_id, _slug, _content.get("practice", []))
     if _content.get("closing_item"):
         _register_mixed_interactions(
-            _node_id, _slug, [{**_content["closing_item"], "kind": "numeric"}],
+            _node_id,
+            _slug,
+            [{**_content["closing_item"], "kind": "numeric"}],
         )
     for _optional_block in ("diagnostic", "post_diagnostic"):
         _items = (_content.get(_optional_block) or {}).get("items", [])
@@ -1458,9 +1972,15 @@ for _node_module in NODE_MODULES:
     )
 
 DIAGNOSTIC_NODE_IDS = [
-    NATURALS_NODE_ID, INTEGERS_NODE_ID, RATIONALS_NODE_ID, IRRATIONALS_NODE_ID,
-    REALS_NODE_ID, COMPLEX_NODE_ID, CLASSIFIER_BASIC_NODE_ID,
-    CLASSIFIER_RIGOROUS_NODE_ID, DETECTIVE_NODE_ID,
+    NATURALS_NODE_ID,
+    INTEGERS_NODE_ID,
+    RATIONALS_NODE_ID,
+    IRRATIONALS_NODE_ID,
+    REALS_NODE_ID,
+    COMPLEX_NODE_ID,
+    CLASSIFIER_BASIC_NODE_ID,
+    CLASSIFIER_RIGOROUS_NODE_ID,
+    DETECTIVE_NODE_ID,
 ]
 
 # Posición de cada nodo en la ruta. Sirve para ordenar recomendaciones de repaso
@@ -1563,17 +2083,19 @@ def curriculum_map_rows(state_of, *, complex_visible: bool = True) -> list[dict]
             state = "available"
         else:
             state, current_taken = "current", True
-        rows.append({
-            "topic": lesson["topic"],
-            "label": label,
-            "label_key": label_key,
-            "node_id": node_id,
-            "node_type": lesson["node_type"],
-            "elo": 0,
-            "rd": 0,
-            "item_count": item_count,
-            "state": state,
-        })
+        rows.append(
+            {
+                "topic": lesson["topic"],
+                "label": label,
+                "label_key": label_key,
+                "node_id": node_id,
+                "node_type": lesson["node_type"],
+                "elo": 0,
+                "rd": 0,
+                "item_count": item_count,
+                "state": state,
+            }
+        )
     return rows
 
 
@@ -1619,19 +2141,54 @@ def recommended_node_for_misconception(tag: str) -> str | None:
         return NATURALS_NODE_ID
     if any(k in t for k in ("equilibrio", "deuda", "abono")) or "no_enteros_en_enteros" in t:
         return INTEGERS_NODE_ID
-    if any(k in t for k in ("numerador", "reparto", "fraccion_como_division", "decimal_desde_division",
-                            "enteros_no_son_racionales", "decimal_exacto_periodico")):
+    if any(
+        k in t
+        for k in (
+            "numerador",
+            "reparto",
+            "fraccion_como_division",
+            "decimal_desde_division",
+            "enteros_no_son_racionales",
+            "decimal_exacto_periodico",
+        )
+    ):
         return RATIONALS_NODE_ID
-    if any(k in t for k in ("decimal_infinito", "periodico", "aproximacion", "pi_termina",
-                            "sqrt2", "irracional_como_real")):
+    if any(
+        k in t
+        for k in (
+            "decimal_infinito",
+            "periodico",
+            "aproximacion",
+            "pi_termina",
+            "sqrt2",
+            "irracional_como_real",
+        )
+    ):
         return IRRATIONALS_NODE_ID
-    if any(k in t for k in ("irracionales_como_reales", "reales_con_racionales",
-                            "todo_real_es_racional", "inclusion_de_conjuntos", "complejos_en_recta_real")):
+    if any(
+        k in t
+        for k in (
+            "irracionales_como_reales",
+            "reales_con_racionales",
+            "todo_real_es_racional",
+            "inclusion_de_conjuntos",
+            "complejos_en_recta_real",
+        )
+    ):
         return REALS_NODE_ID
-    if any(k in t for k in ("imaginaria", "unidad_imaginaria", "parte_real", "complejos_no_reales")):
+    if any(
+        k in t for k in ("imaginaria", "unidad_imaginaria", "parte_real", "complejos_no_reales")
+    ):
         return COMPLEX_NODE_ID
-    if any(k in t for k in ("conjunto_mas_especifico", "_dentro_de_", "reales_como_complejos",
-                            "imaginario_puro_con_irracional")):
+    if any(
+        k in t
+        for k in (
+            "conjunto_mas_especifico",
+            "_dentro_de_",
+            "reales_como_complejos",
+            "imaginario_puro_con_irracional",
+        )
+    ):
         return CLASSIFIER_RIGOROUS_NODE_ID
     if t.startswith("clasifica_"):
         return CLASSIFIER_BASIC_NODE_ID
@@ -1669,6 +2226,7 @@ def evaluate_interaction(node_id: str, interaction_id: str, selected_option: str
         }
 
     if input_kind == "text_exact":
+
         def _normalize_text_answer(value: str) -> str:
             normalized = value.strip().lower().replace(" ", "").replace("−", "-")
             normalized = re.sub(r"\\frac\{(-?\d{1,4})\}\{(\d{1,4})\}", r"\1/\2", normalized)

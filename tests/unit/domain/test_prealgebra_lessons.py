@@ -131,9 +131,19 @@ def test_eleven_block_node_has_the_eleven_blocks(node_id):
 
     assert content["kind"] == "eleven_block_node"
     for block in (
-        "intro", "diagnostic", "katia", "discovery", "definition_katex",
-        "worked_examples", "bridge", "method_comparison", "practice",
-        "closure", "abstraction_question", "closing_item", "post_diagnostic",
+        "intro",
+        "diagnostic",
+        "katia",
+        "discovery",
+        "definition_katex",
+        "worked_examples",
+        "bridge",
+        "method_comparison",
+        "practice",
+        "closure",
+        "abstraction_question",
+        "closing_item",
+        "post_diagnostic",
         "footer",
     ):
         assert block in content, f"{node_id}: falta el bloque {block}"
@@ -223,15 +233,9 @@ def test_integers_trap_catches_magnitude_without_sign():
 
 def test_rationals_trap_catches_the_truncated_decimal():
     """La misconception del nodo: el decimal cortado NO es el número."""
-    trap = evaluate_interaction(
-        RATIONALS_NODE_ID, f"{RATIONALS_NODE_ID}-E5", "true_same"
-    )
-    ok = evaluate_interaction(
-        RATIONALS_NODE_ID, f"{RATIONALS_NODE_ID}-E5", "false_cut"
-    )
-    transfer = evaluate_interaction(
-        RATIONALS_NODE_ID, f"{RATIONALS_NODE_ID}-E6", "exact"
-    )
+    trap = evaluate_interaction(RATIONALS_NODE_ID, f"{RATIONALS_NODE_ID}-E5", "true_same")
+    ok = evaluate_interaction(RATIONALS_NODE_ID, f"{RATIONALS_NODE_ID}-E5", "false_cut")
+    transfer = evaluate_interaction(RATIONALS_NODE_ID, f"{RATIONALS_NODE_ID}-E6", "exact")
 
     assert trap["is_expected"] is False
     assert trap["misconception_tag"] == "decimal_truncado_es_el_numero"
@@ -327,7 +331,12 @@ def test_level_two_closure_always_carries_the_six_sets():
     for node_id in N2_OPERATION_NODE_IDS:
         rows = get_lesson(node_id)["content"]["closure"]["rows"]
         assert [row["name"] for row in rows] == [
-            "Naturales", "Enteros", "Racionales", "Irracionales", "Reales", "Complejos",
+            "Naturales",
+            "Enteros",
+            "Racionales",
+            "Irracionales",
+            "Reales",
+            "Complejos",
         ], node_id
 
 
@@ -372,7 +381,9 @@ def test_level_three_stations_have_distinct_names_and_misconceptions():
 
     assert len(set(stations)) == 5, stations
     assert len(set(misconceptions)) == 5, misconceptions
-    hub_stations = [m["station"].split(" · ")[0] for m in get_lesson(N3_HUB_NODE_ID)["content"]["machines"]]
+    hub_stations = [
+        m["station"].split(" · ")[0] for m in get_lesson(N3_HUB_NODE_ID)["content"]["machines"]
+    ]
     assert hub_stations == stations
 
 
@@ -383,7 +394,12 @@ def test_level_three_closure_is_by_operation_except_inverses():
         names = [row["name"] for row in rows]
         if node_id == N3_INVERSES_NODE_ID:
             assert names == [
-                "Naturales", "Enteros", "Racionales", "Irracionales", "Reales", "Complejos",
+                "Naturales",
+                "Enteros",
+                "Racionales",
+                "Irracionales",
+                "Reales",
+                "Complejos",
             ]
         else:
             assert "Naturales" not in names, (node_id, names)
@@ -391,7 +407,9 @@ def test_level_three_closure_is_by_operation_except_inverses():
 
 def test_level_three_accepts_decimal_comma():
     decimal = evaluate_interaction(
-        N3_INVERSES_NODE_ID, f"{N3_INVERSES_NODE_ID}-E2", "0.125",
+        N3_INVERSES_NODE_ID,
+        f"{N3_INVERSES_NODE_ID}-E2",
+        "0.125",
     )
 
     assert decimal["selected_option"] == "0,125"
@@ -503,10 +521,7 @@ def test_algebra_nodes_declare_house_and_guide():
 
 def test_every_focal_misconception_is_distinct():
     """Escribir muchos nodos seguidos tiende a repetir el mismo error focal."""
-    tags = [
-        get_lesson(module.NODE_ID)["content"]["misconception"]
-        for module in NODE_MODULES
-    ]
+    tags = [get_lesson(module.NODE_ID)["content"]["misconception"] for module in NODE_MODULES]
     assert len(set(tags)) == len(tags), "hay un misconception focal repetido"
 
 
@@ -526,12 +541,12 @@ def test_algebra_l01_trap_reads_the_letter_as_a_label():
 @pytest.mark.parametrize(
     "typed,expected",
     [
-        ("6r+3", True),      # la clave tal cual
-        ("6r + 3", True),    # los espacios dan igual
-        ("3+6r", True),      # forma equivalente declarada en `accepted`
-        ("7r", False),       # combinó lo que no era semejante
-        ("6r", False),       # perdió la constante
-        ("2(r+1)", None),    # con paréntesis no se evalúa: el motor lo rechaza
+        ("6r+3", True),  # la clave tal cual
+        ("6r + 3", True),  # los espacios dan igual
+        ("3+6r", True),  # forma equivalente declarada en `accepted`
+        ("7r", False),  # combinó lo que no era semejante
+        ("6r", False),  # perdió la constante
+        ("2(r+1)", None),  # con paréntesis no se evalúa: el motor lo rechaza
         ("'; drop table users", None),
     ],
 )
@@ -547,6 +562,7 @@ def test_typed_answers_are_validated_before_being_compared(typed, expected):
 
 
 # ── Ruta de repaso (C4) ──────────────────────────────────────────────────────
+
 
 def test_every_focal_misconception_routes_to_its_own_node():
     """El nodo que enseña un error es el que se recomienda para repasarlo."""
@@ -578,6 +594,7 @@ def test_review_order_survives_nodes_outside_the_first_level():
 
 # ── Mapa derivado de la ruta (B4) ────────────────────────────────────────────
 
+
 def test_every_lesson_has_a_row_in_the_map_presentation():
     """Un nodo sin fila desaparece del mapa; que falle aquí y no en producción."""
     faltan = [node_id for node_id in _LESSONS if node_id not in _MAP_PRESENTATION]
@@ -596,9 +613,7 @@ def test_map_states_come_from_unlock_after():
 
 def test_completing_a_node_opens_exactly_the_next_one():
     completados = {WELCOME_NODE_ID}
-    rows = curriculum_map_rows(
-        lambda n: "completed" if n in completados else "not_started"
-    )
+    rows = curriculum_map_rows(lambda n: "completed" if n in completados else "not_started")
     por_id = {r["node_id"]: r["state"] for r in rows}
     assert por_id[WELCOME_NODE_ID] == "completed"
     assert por_id[TRIGGER_NODE_ID] == "current"
@@ -608,9 +623,7 @@ def test_completing_a_node_opens_exactly_the_next_one():
 def test_the_optional_complex_detour_is_never_the_next_step():
     """B09 y B10 se abren a la vez tras los Reales; el siguiente paso es B10."""
     hasta_reales = set(list(_LESSONS)[: list(_LESSONS).index(REALS_NODE_ID) + 1])
-    rows = curriculum_map_rows(
-        lambda n: "completed" if n in hasta_reales else "not_started"
-    )
+    rows = curriculum_map_rows(lambda n: "completed" if n in hasta_reales else "not_started")
     por_id = {r["node_id"]: r["state"] for r in rows}
     assert por_id[COMPLEX_NODE_ID] == "available"
     assert por_id[CLASSIFIER_BASIC_NODE_ID] == "current"
@@ -668,9 +681,7 @@ def test_a_content_error_seen_in_many_nodes_has_a_node_that_teaches_it():
       simplificar. No tiene dueño y no debe tenerlo: no hay ningún nodo que
       enseñe «verificar». Se marcan con prefijo para quedar fuera de la regla.
     """
-    focales = {
-        m.CONTENT["misconception"] for m in NODE_MODULES if m.CONTENT.get("misconception")
-    }
+    focales = {m.CONTENT["misconception"] for m in NODE_MODULES if m.CONTENT.get("misconception")}
     emisores: dict[str, set[str]] = {}
     for regla in _INTERACTION_RULES.values():
         tags = list((regla.get("misconception_by_option") or {}).values())
@@ -697,6 +708,6 @@ def test_a_content_error_seen_in_many_nodes_has_a_node_that_teaches_it():
         "toda_raiz_es_irracional",
         "confunde_la_operacion_dictada",
     }
-    assert set(huerfanos) <= conocidos, (
-        f"tags de contenido nuevos sin nodo dueño: {set(huerfanos) - conocidos}"
-    )
+    assert (
+        set(huerfanos) <= conocidos
+    ), f"tags de contenido nuevos sin nodo dueño: {set(huerfanos) - conocidos}"

@@ -94,8 +94,14 @@ CONTENT = {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",
             "options": [
-                {"id": "a", "text": "Se escribe el número en el hueco de la letra y se lee lo que quede"},
-                {"id": "b", "text": "Se pone el número y además se hace la operación que había entre medias"},
+                {
+                    "id": "a",
+                    "text": "Se escribe el número en el hueco de la letra y se lee lo que quede",
+                },
+                {
+                    "id": "b",
+                    "text": "Se pone el número y además se hace la operación que había entre medias",
+                },
                 {"id": "c", "text": "Se suma el número al que ya estaba delante"},
             ],
             "response": (
@@ -142,11 +148,31 @@ CONTENT = {
         "sigan funcionando."
     ),
     "definition_symbols": [
-        {"symbol": r"3n\to 3\cdot(4)", "reads": "tres por cuatro", "means": "el producto callado reaparece"},
-        {"symbol": r"3+n\to 3+(4)", "reads": "tres más cuatro", "means": "la operación ya estaba escrita"},
-        {"symbol": r"n^{2}\to (4)^{2}", "reads": "cuatro al cuadrado", "means": "el exponente afecta a todo el valor"},
-        {"symbol": r"5-n\to 5-(-3)", "reads": "cinco menos, menos tres", "means": "con negativos, el paréntesis es obligatorio"},
-        {"symbol": r"2n^{2}\to 2\cdot(3)^{2}", "reads": "dos por tres al cuadrado", "means": "primero la potencia, después el producto"},
+        {
+            "symbol": r"3n\to 3\cdot(4)",
+            "reads": "tres por cuatro",
+            "means": "el producto callado reaparece",
+        },
+        {
+            "symbol": r"3+n\to 3+(4)",
+            "reads": "tres más cuatro",
+            "means": "la operación ya estaba escrita",
+        },
+        {
+            "symbol": r"n^{2}\to (4)^{2}",
+            "reads": "cuatro al cuadrado",
+            "means": "el exponente afecta a todo el valor",
+        },
+        {
+            "symbol": r"5-n\to 5-(-3)",
+            "reads": "cinco menos, menos tres",
+            "means": "con negativos, el paréntesis es obligatorio",
+        },
+        {
+            "symbol": r"2n^{2}\to 2\cdot(3)^{2}",
+            "reads": "dos por tres al cuadrado",
+            "means": "primero la potencia, después el producto",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -209,10 +235,14 @@ CONTENT = {
                 "wrong_latex": r"3n=34",
                 "right_latex": r"3n=3\cdot 4=12",
                 "rows": [
-                    {"wrong": "El 3 y el 4 se escriben seguidos: 34",
-                     "right": "El 3 y la n estaban multiplicándose: 3 · 4 = 12"},
-                    {"wrong": "34 medidas → 34 carros",
-                     "right": "12 medidas → 12 carros, y sobran 22"},
+                    {
+                        "wrong": "El 3 y el 4 se escriben seguidos: 34",
+                        "right": "El 3 y la n estaban multiplicándose: 3 · 4 = 12",
+                    },
+                    {
+                        "wrong": "34 medidas → 34 carros",
+                        "right": "12 medidas → 12 carros, y sobran 22",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -396,7 +426,10 @@ CONTENT = {
                 r"valor de $n$ al lado del 2.»"
             ),
             "options": [
-                {"id": "false", "text": r"Falsa: $2n$ es $2\cdot n$, así que con $n=7$ vale 14, no 27"},
+                {
+                    "id": "false",
+                    "text": r"Falsa: $2n$ es $2\cdot n$, así que con $n=7$ vale 14, no 27",
+                },
                 {"id": "true", "text": "Verdadera: por eso se escriben pegados"},
                 {"id": "true_small", "text": "Verdadera si el valor es de una sola cifra"},
                 {"id": "false_never", "text": "Falsa: nunca se puede sustituir directamente"},
@@ -423,9 +456,7 @@ CONTENT = {
             "id": "E6",
             "kind": "multi_select",
             "tipo": "estandar",
-            "prompt": (
-                r"Con $x=3$, selecciona TODOS los registros cuyo valor numérico es $9$."
-            ),
+            "prompt": (r"Con $x=3$, selecciona TODOS los registros cuyo valor numérico es $9$."),
             "valid_options": ["a", "b", "c", "d"],
             "options": [
                 {"id": "a", "text": r"$3x$", "latex": r"3x"},
@@ -467,24 +498,48 @@ CONTENT = {
             "sabidas y que al poner el número tienen que volver a escribirse."
         ),
         "rows": [
-            {"symbol": r"n+3", "name": "Suma escrita", "closed": "yes",
-             "latex": r"(4)+3=7",
-             "note": "Nada que reponer: la operación ya estaba a la vista."},
-            {"symbol": r"3n", "name": "Producto callado", "closed": "no",
-             "latex": r"3\cdot(4)=12",
-             "note": "Hay que devolver el punto. Es el caso focal: pegado significa multiplicar."},
-            {"symbol": r"n^{2}", "name": "Potencia", "closed": "no",
-             "latex": r"(4)^{2}=16",
-             "note": "El exponente afecta a todo el valor sustituido, no a una cifra suelta."},
-            {"symbol": r"5-n", "name": "Valor negativo", "closed": "no",
-             "latex": r"5-(-3)=8",
-             "note": "Sin paréntesis quedan dos signos seguidos y la cuenta deja de ser legible."},
-            {"symbol": r"2n^{2}", "name": "Potencia y producto juntos", "closed": "no",
-             "latex": r"2\cdot(3)^{2}=18",
-             "note": "Además del punto y el paréntesis, hay que respetar el orden: potencia antes que producto."},
-            {"symbol": r"-n", "name": "Menos delante de la letra", "closed": "partial",
-             "latex": r"-(-4)=4",
-             "note": "Se sustituye igual que los demás, pero el resultado sale positivo: ese menos no dice «negativo», dice «el opuesto»."},
+            {
+                "symbol": r"n+3",
+                "name": "Suma escrita",
+                "closed": "yes",
+                "latex": r"(4)+3=7",
+                "note": "Nada que reponer: la operación ya estaba a la vista.",
+            },
+            {
+                "symbol": r"3n",
+                "name": "Producto callado",
+                "closed": "no",
+                "latex": r"3\cdot(4)=12",
+                "note": "Hay que devolver el punto. Es el caso focal: pegado significa multiplicar.",
+            },
+            {
+                "symbol": r"n^{2}",
+                "name": "Potencia",
+                "closed": "no",
+                "latex": r"(4)^{2}=16",
+                "note": "El exponente afecta a todo el valor sustituido, no a una cifra suelta.",
+            },
+            {
+                "symbol": r"5-n",
+                "name": "Valor negativo",
+                "closed": "no",
+                "latex": r"5-(-3)=8",
+                "note": "Sin paréntesis quedan dos signos seguidos y la cuenta deja de ser legible.",
+            },
+            {
+                "symbol": r"2n^{2}",
+                "name": "Potencia y producto juntos",
+                "closed": "no",
+                "latex": r"2\cdot(3)^{2}=18",
+                "note": "Además del punto y el paréntesis, hay que respetar el orden: potencia antes que producto.",
+            },
+            {
+                "symbol": r"-n",
+                "name": "Menos delante de la letra",
+                "closed": "partial",
+                "latex": r"-(-4)=4",
+                "note": "Se sustituye igual que los demás, pero el resultado sale positivo: ese menos no dice «negativo», dice «el opuesto».",
+            },
         ],
         "outro": (
             "La última fila es la que más cuesta: −n no es «un número negativo», es «el "
@@ -497,10 +552,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres arqueos trabajados en este nodo?",
         "thumbnails": [r"5r+8", r"5-d", r"3n"],
         "options": [
-            {"id": "restore", "text": "En los tres hay que reponer algo que el registro daba por sabido", "correct": True},
-            {"id": "order", "text": "En los tres el resultado depende de operar en el orden correcto", "correct": True},
-            {"id": "fill", "text": "En los tres basta con escribir el número donde estaba la letra", "correct": False},
-            {"id": "same", "text": "En los tres el valor numérico es el mismo cualquiera que sea la letra", "correct": False},
+            {
+                "id": "restore",
+                "text": "En los tres hay que reponer algo que el registro daba por sabido",
+                "correct": True,
+            },
+            {
+                "id": "order",
+                "text": "En los tres el resultado depende de operar en el orden correcto",
+                "correct": True,
+            },
+            {
+                "id": "fill",
+                "text": "En los tres basta con escribir el número donde estaba la letra",
+                "correct": False,
+            },
+            {
+                "id": "same",
+                "text": "En los tres el valor numérico es el mismo cualquiera que sea la letra",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

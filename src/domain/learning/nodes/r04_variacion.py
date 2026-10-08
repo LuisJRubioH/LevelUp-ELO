@@ -141,9 +141,21 @@ CONTENT = {
     "definition_symbols": [
         {"symbol": r"\dfrac{y}{x}=k", "reads": "directa", "means": "el cociente no cambia"},
         {"symbol": r"x\,y=k", "reads": "inversa", "means": "el producto no cambia"},
-        {"symbol": r"4\cdot 12=48", "reads": "la constante", "means": "las noches de lámpara que da la tinaja"},
-        {"symbol": r"x=\dfrac{48}{6}", "reads": "despejar", "means": "con la constante, la cuarta cantidad sale sola"},
-        {"symbol": r"\dfrac{a}{b}=\dfrac{d}{c}", "reads": "regla de tres inversa", "means": "la misma cuenta, con una razón dada la vuelta"},
+        {
+            "symbol": r"4\cdot 12=48",
+            "reads": "la constante",
+            "means": "las noches de lámpara que da la tinaja",
+        },
+        {
+            "symbol": r"x=\dfrac{48}{6}",
+            "reads": "despejar",
+            "means": "con la constante, la cuarta cantidad sale sola",
+        },
+        {
+            "symbol": r"\dfrac{a}{b}=\dfrac{d}{c}",
+            "reads": "regla de tres inversa",
+            "means": "la misma cuenta, con una razón dada la vuelta",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
     "worked_examples": [
@@ -173,8 +185,7 @@ CONTENT = {
             "eyebrow": "Ejemplo 2 · Manos para el friso",
             "title": "Decidir el tipo antes de calcular",
             "statement": (
-                "Seis pintores acaban el friso en 10 días. ¿Cuántos días tardarían 15 "
-                "pintores?"
+                "Seis pintores acaban el friso en 10 días. ¿Cuántos días tardarían 15 " "pintores?"
             ),
             "latex": r"6\cdot 10=15\cdot x",
             "image_slot": False,
@@ -206,10 +217,14 @@ CONTENT = {
                 "wrong_latex": r"\dfrac{4}{12}=\dfrac{6}{x}\Rightarrow x=18",
                 "right_latex": r"4\cdot 12=6\cdot x\Rightarrow x=8",
                 "rows": [
-                    {"wrong": "Más lámparas, más noches",
-                     "right": "Más lámparas, menos noches: el aceite se reparte entre más"},
-                    {"wrong": "Se conserva el cociente 4/12",
-                     "right": "Se conserva el producto 4 · 12 = 48"},
+                    {
+                        "wrong": "Más lámparas, más noches",
+                        "right": "Más lámparas, menos noches: el aceite se reparte entre más",
+                    },
+                    {
+                        "wrong": "Se conserva el cociente 4/12",
+                        "right": "Se conserva el producto 4 · 12 = 48",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -301,8 +316,7 @@ CONTENT = {
             "kind": "numeric",
             "tipo": "estandar",
             "prompt": (
-                "Con 6 lámparas la reserva dura 10 noches. ¿Cuántas noches dura con 4 "
-                "lámparas?"
+                "Con 6 lámparas la reserva dura 10 noches. ¿Cuántas noches dura con 4 " "lámparas?"
             ),
             "expr": r"6\cdot 10=4\cdot x",
             "answer": "15",
@@ -320,8 +334,16 @@ CONTENT = {
                 "Diez pintores acaban un muro en 12 días. ¿Cómo se calcula lo que tardan 8?"
             ),
             "options": [
-                {"id": "ok", "text": r"$x=\dfrac{10\cdot 12}{8}$", "latex": r"x=\dfrac{10\cdot 12}{8}"},
-                {"id": "direct", "text": r"$x=\dfrac{8\cdot 12}{10}$", "latex": r"x=\dfrac{8\cdot 12}{10}"},
+                {
+                    "id": "ok",
+                    "text": r"$x=\dfrac{10\cdot 12}{8}$",
+                    "latex": r"x=\dfrac{10\cdot 12}{8}",
+                },
+                {
+                    "id": "direct",
+                    "text": r"$x=\dfrac{8\cdot 12}{10}$",
+                    "latex": r"x=\dfrac{8\cdot 12}{10}",
+                },
                 {"id": "sub", "text": r"$x=12-2$", "latex": r"x=12-2"},
                 {"id": "same", "text": r"$x=12$", "latex": r"x=12"},
             ],
@@ -368,7 +390,10 @@ CONTENT = {
                 "16». ¿Dónde está el error?"
             ),
             "options": [
-                {"id": "inverse", "text": r"Es inversa: el doble de pintores tarda la mitad, $4$ días"},
+                {
+                    "id": "inverse",
+                    "text": r"Es inversa: el doble de pintores tarda la mitad, $4$ días",
+                },
                 {"id": "calc", "text": "Multiplicó mal: son 15 días"},
                 {"id": "direct", "text": "Es directa pero se equivocó en el factor"},
                 {"id": "none", "text": "No hay error"},
@@ -401,7 +426,10 @@ CONTENT = {
                 "calcular siempre con una regla de tres directa.»"
             ),
             "options": [
-                {"id": "false", "text": "Falsa: si una sube cuando la otra baja, lo que se conserva es el producto"},
+                {
+                    "id": "false",
+                    "text": "Falsa: si una sube cuando la otra baja, lo que se conserva es el producto",
+                },
                 {"id": "true", "text": "Verdadera: para eso sirve la regla de tres"},
                 {"id": "true_num", "text": "Verdadera siempre que los tres datos sean números"},
                 {"id": "false_never", "text": "Falsa: la regla de tres directa no sirve para nada"},
@@ -471,24 +499,48 @@ CONTENT = {
             "qué cantidad no cambia cuando las otras dos se mueven."
         ),
         "rows": [
-            {"symbol": r"\text{tinte y lino}", "name": "Directa", "closed": "yes",
-             "latex": r"\dfrac{3}{12}=\dfrac{5}{20}",
-             "note": "Suben juntas y el cociente se conserva. Es lo de la tina."},
-            {"symbol": r"\text{lado y perímetro}", "name": "Directa también", "closed": "yes",
-             "latex": r"\dfrac{P}{\ell}=4",
-             "note": "Al doble de lado, el doble de perímetro. El cociente vale 4 siempre."},
-            {"symbol": r"\text{lámparas y noches}", "name": "Inversa", "closed": "no",
-             "latex": r"4\cdot 12=6\cdot 8",
-             "note": "Una sube y la otra baja: lo constante es el producto. Es el caso focal."},
-            {"symbol": r"\text{pintores y días}", "name": "Inversa también", "closed": "no",
-             "latex": r"6\cdot 10=15\cdot 4",
-             "note": "El producto es el trabajo total, y no cambia por repartirlo entre más manos."},
-            {"symbol": r"\text{lado y área}", "name": "Ni una cosa ni la otra", "closed": "partial",
-             "latex": r"\ell=2\to A=4;\ \ell=4\to A=16",
-             "note": "Crecen juntas, pero al doble de lado el área se hace CUATRO veces mayor. Ni el cociente ni el producto se conservan."},
-            {"symbol": r"\text{edad y brazadas}", "name": "Sin relación", "closed": "partial",
-             "latex": r"\text{---}",
-             "note": "No hay nada que conservar. Aquí ninguna de las dos reglas devuelve un número con sentido."},
+            {
+                "symbol": r"\text{tinte y lino}",
+                "name": "Directa",
+                "closed": "yes",
+                "latex": r"\dfrac{3}{12}=\dfrac{5}{20}",
+                "note": "Suben juntas y el cociente se conserva. Es lo de la tina.",
+            },
+            {
+                "symbol": r"\text{lado y perímetro}",
+                "name": "Directa también",
+                "closed": "yes",
+                "latex": r"\dfrac{P}{\ell}=4",
+                "note": "Al doble de lado, el doble de perímetro. El cociente vale 4 siempre.",
+            },
+            {
+                "symbol": r"\text{lámparas y noches}",
+                "name": "Inversa",
+                "closed": "no",
+                "latex": r"4\cdot 12=6\cdot 8",
+                "note": "Una sube y la otra baja: lo constante es el producto. Es el caso focal.",
+            },
+            {
+                "symbol": r"\text{pintores y días}",
+                "name": "Inversa también",
+                "closed": "no",
+                "latex": r"6\cdot 10=15\cdot 4",
+                "note": "El producto es el trabajo total, y no cambia por repartirlo entre más manos.",
+            },
+            {
+                "symbol": r"\text{lado y área}",
+                "name": "Ni una cosa ni la otra",
+                "closed": "partial",
+                "latex": r"\ell=2\to A=4;\ \ell=4\to A=16",
+                "note": "Crecen juntas, pero al doble de lado el área se hace CUATRO veces mayor. Ni el cociente ni el producto se conservan.",
+            },
+            {
+                "symbol": r"\text{edad y brazadas}",
+                "name": "Sin relación",
+                "closed": "partial",
+                "latex": r"\text{---}",
+                "note": "No hay nada que conservar. Aquí ninguna de las dos reglas devuelve un número con sentido.",
+            },
         ],
         "outro": (
             "La quinta fila es la más importante de todo el nodo: dos cantidades pueden "
@@ -502,10 +554,26 @@ CONTENT = {
         "prompt": "¿Qué comparten los tres casos de la sala trabajados en este nodo?",
         "thumbnails": [r"4\cdot 12=6\cdot 8", r"6\cdot 10=15\cdot 4", r"x\cdot 9=72"],
         "options": [
-            {"id": "product", "text": "En los tres hay una cantidad total fija que se reparte, y es el producto", "correct": True},
-            {"id": "direction", "text": "En los tres se puede saber antes de calcular si el resultado sube o baja", "correct": True},
-            {"id": "quotient", "text": "En los tres lo que se conserva es el cociente de las dos magnitudes", "correct": False},
-            {"id": "always", "text": "En los tres sirve la misma regla de tres que en la tina de tinte", "correct": False},
+            {
+                "id": "product",
+                "text": "En los tres hay una cantidad total fija que se reparte, y es el producto",
+                "correct": True,
+            },
+            {
+                "id": "direction",
+                "text": "En los tres se puede saber antes de calcular si el resultado sube o baja",
+                "correct": True,
+            },
+            {
+                "id": "quotient",
+                "text": "En los tres lo que se conserva es el cociente de las dos magnitudes",
+                "correct": False,
+            },
+            {
+                "id": "always",
+                "text": "En los tres sirve la misma regla de tres que en la tina de tinte",
+                "correct": False,
+            },
         ],
     },
     "closing_item": {

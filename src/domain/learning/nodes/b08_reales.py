@@ -170,12 +170,28 @@ CONTENT = {
         "nombre, cada nombre tiene punto, y entre dos cualesquiera siempre hay otro."
     ),
     "definition_symbols": [
-        {"symbol": r"\mathbb{R}", "reads": "los reales", "means": "todos los puntos de la recta numérica, sin huecos"},
+        {
+            "symbol": r"\mathbb{R}",
+            "reads": "los reales",
+            "means": "todos los puntos de la recta numérica, sin huecos",
+        },
         {"symbol": r"\cup", "reads": "unión", "means": "junta los dos conjuntos en uno solo"},
         {"symbol": r"\cap", "reads": "intersección", "means": "lo que tienen en común"},
-        {"symbol": r"\varnothing", "reads": "conjunto vacío", "means": "nada: ningún número es racional e irracional a la vez"},
-        {"symbol": r"\mathbb{N}\subset\mathbb{Z}\subset\mathbb{Q}\subset\mathbb{R}", "reads": "la cadena de inclusiones", "means": "cada peldaño contiene enterito al anterior; no se perdió nada"},
-        {"symbol": r"\dfrac{a+b}{2}", "reads": "el promedio de a y b", "means": "la receta para meter siempre un número entre otros dos"},
+        {
+            "symbol": r"\varnothing",
+            "reads": "conjunto vacío",
+            "means": "nada: ningún número es racional e irracional a la vez",
+        },
+        {
+            "symbol": r"\mathbb{N}\subset\mathbb{Z}\subset\mathbb{Q}\subset\mathbb{R}",
+            "reads": "la cadena de inclusiones",
+            "means": "cada peldaño contiene enterito al anterior; no se perdió nada",
+        },
+        {
+            "symbol": r"\dfrac{a+b}{2}",
+            "reads": "el promedio de a y b",
+            "means": "la receta para meter siempre un número entre otros dos",
+        },
     ],
     # --- Bloque 5 · Ejemplos resueltos (a, b, trampa) ------------------------
     "worked_examples": [
@@ -244,10 +260,14 @@ CONTENT = {
                 "wrong_latex": r"\text{entre }2{,}5\text{ y }2{,}6:\ \text{nada}",
                 "right_latex": r"2{,}5<2{,}55<2{,}555<\ldots<2{,}6",
                 "rows": [
-                    {"wrong": "Después de 2,5 viene 2,6",
-                     "right": "No hay «el siguiente»: el promedio 2,55 se cuela en medio"},
-                    {"wrong": "En ℤ pasa igual que en ℝ",
-                     "right": "En ℤ sí hay siguiente (3 sigue a 2); en ℝ nunca"},
+                    {
+                        "wrong": "Después de 2,5 viene 2,6",
+                        "right": "No hay «el siguiente»: el promedio 2,55 se cuela en medio",
+                    },
+                    {
+                        "wrong": "En ℤ pasa igual que en ℝ",
+                        "right": "En ℤ sí hay siguiente (3 sigue a 2); en ℝ nunca",
+                    },
                 ],
             },
             "explain_prompt": (
@@ -414,9 +434,18 @@ CONTENT = {
                 "los irracionales no caben en la recta». ¿Dónde está el error?"
             ),
             "options": [
-                {"id": "both", "text": "Dos errores: √9 = 3 es racional, y los irracionales SÍ están en la recta"},
-                {"id": "only_root", "text": "Solo uno: √9 = 3, pero es cierto que los irracionales no caben"},
-                {"id": "only_line", "text": "Solo uno: los irracionales sí caben, pero √9 sí es irracional"},
+                {
+                    "id": "both",
+                    "text": "Dos errores: √9 = 3 es racional, y los irracionales SÍ están en la recta",
+                },
+                {
+                    "id": "only_root",
+                    "text": "Solo uno: √9 = 3, pero es cierto que los irracionales no caben",
+                },
+                {
+                    "id": "only_line",
+                    "text": "Solo uno: los irracionales sí caben, pero √9 sí es irracional",
+                },
                 {"id": "none", "text": "Ningún error, está bien"},
             ],
             "expected": "both",
@@ -476,9 +505,15 @@ CONTENT = {
                 "«entonces solo existen pesos de 10 en 10». ¿Qué le respondes?"
             ),
             "options": [
-                {"id": "instrument", "text": "Que la balanza es el límite del instrumento, no del peso: entre 10 y 20 g hay infinitos pesos posibles"},
+                {
+                    "id": "instrument",
+                    "text": "Que la balanza es el límite del instrumento, no del peso: entre 10 y 20 g hay infinitos pesos posibles",
+                },
                 {"id": "agree", "text": "Que tiene razón: si no se puede medir, no existe"},
-                {"id": "finer", "text": "Que con una balanza más fina sí existirían todos los pesos intermedios"},
+                {
+                    "id": "finer",
+                    "text": "Que con una balanza más fina sí existirían todos los pesos intermedios",
+                },
                 {"id": "integers", "text": "Que los pesos siempre son enteros"},
             ],
             "expected": "instrument",
@@ -535,16 +570,41 @@ CONTENT = {
         "title": "¿Toda raíz cuadrada vive en el conjunto?",
         "intro": "Cerraste la recta. Ahora la pregunta que la parte otra vez.",
         "rows": [
-            {"symbol": r"\mathbb{N}", "name": "Naturales", "closed": "no",
-             "latex": r"\sqrt{2}\notin\mathbb{N}", "note": "No alcanza ni para la diagonal."},
-            {"symbol": r"\mathbb{Z}", "name": "Enteros", "closed": "no",
-             "latex": r"\sqrt{2}\notin\mathbb{Z}", "note": "Los negativos no ayudaron aquí."},
-            {"symbol": r"\mathbb{Q}", "name": "Racionales", "closed": "no",
-             "latex": r"\sqrt{2}\notin\mathbb{Q}", "note": "El golpe de B07: la diagonal no es fracción."},
-            {"symbol": r"\mathbb{R}", "name": "Reales", "closed": "no",
-             "latex": r"\sqrt{-4}\notin\mathbb{R}", "note": "Casi: todas las raíces de positivos sí, pero las de negativos no."},
-            {"symbol": r"\mathbb{C}", "name": "Complejos", "closed": "yes",
-             "latex": r"\sqrt{-4}=2i\in\mathbb{C}", "note": "Para eso hay que salirse de la recta. Desvío opcional: B09."},
+            {
+                "symbol": r"\mathbb{N}",
+                "name": "Naturales",
+                "closed": "no",
+                "latex": r"\sqrt{2}\notin\mathbb{N}",
+                "note": "No alcanza ni para la diagonal.",
+            },
+            {
+                "symbol": r"\mathbb{Z}",
+                "name": "Enteros",
+                "closed": "no",
+                "latex": r"\sqrt{2}\notin\mathbb{Z}",
+                "note": "Los negativos no ayudaron aquí.",
+            },
+            {
+                "symbol": r"\mathbb{Q}",
+                "name": "Racionales",
+                "closed": "no",
+                "latex": r"\sqrt{2}\notin\mathbb{Q}",
+                "note": "El golpe de B07: la diagonal no es fracción.",
+            },
+            {
+                "symbol": r"\mathbb{R}",
+                "name": "Reales",
+                "closed": "no",
+                "latex": r"\sqrt{-4}\notin\mathbb{R}",
+                "note": "Casi: todas las raíces de positivos sí, pero las de negativos no.",
+            },
+            {
+                "symbol": r"\mathbb{C}",
+                "name": "Complejos",
+                "closed": "yes",
+                "latex": r"\sqrt{-4}=2i\in\mathbb{C}",
+                "note": "Para eso hay que salirse de la recta. Desvío opcional: B09.",
+            },
         ],
         "outro": (
             "Con ℝ tienes toda la recta y no falta ni un punto. Pero la recta tiene un "
@@ -555,11 +615,23 @@ CONTENT = {
     },
     "abstraction_question": {
         "prompt": "¿Qué comparten los tres momentos clave de este nodo?",
-        "thumbnails": [r"\dfrac{0{,}3+0{,}4}{2}", r"1<\sqrt{2}<2", r"\mathbb{R}=\mathbb{Q}\cup\mathbb{I}"],
+        "thumbnails": [
+            r"\dfrac{0{,}3+0{,}4}{2}",
+            r"1<\sqrt{2}<2",
+            r"\mathbb{R}=\mathbb{Q}\cup\mathbb{I}",
+        ],
         "options": [
             {"id": "line", "text": "Los tres hablan de puntos de una misma recta", "correct": True},
-            {"id": "dense", "text": "Los tres muestran que entre dos puntos siempre cabe otro", "correct": False},
-            {"id": "complete", "text": "Los tres apuntan a que la recta queda completa sin huecos", "correct": True},
+            {
+                "id": "dense",
+                "text": "Los tres muestran que entre dos puntos siempre cabe otro",
+                "correct": False,
+            },
+            {
+                "id": "complete",
+                "text": "Los tres apuntan a que la recta queda completa sin huecos",
+                "correct": True,
+            },
             {"id": "roots", "text": "Los tres necesitan raíces cuadradas", "correct": False},
         ],
     },

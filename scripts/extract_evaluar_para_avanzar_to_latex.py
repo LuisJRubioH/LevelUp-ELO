@@ -24,9 +24,7 @@ from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_ROOT = Path(
-    r"C:\Users\orian\OneDrive\Documentos\IE Los Andes\Libros\Evaluar para avanzar 8"
-)
+SOURCE_ROOT = Path(r"C:\Users\orian\OneDrive\Documentos\IE Los Andes\Libros\Evaluar para avanzar 8")
 DEFAULT_OUTPUT = ROOT / "output" / "latex" / "evaluar_para_avanzar_matematicas_8"
 DEFAULT_TEMP = ROOT / "tmp" / "pdfs" / "cuadernillos"
 DEFAULT_PDFTOPPM = Path(
@@ -196,9 +194,7 @@ def extract_questions(booklet: Booklet) -> list[Question]:
     actual_numbers = [question.number for question in questions]
     expected_numbers = list(range(1, 21))
     if actual_numbers != expected_numbers:
-        raise ValueError(
-            f"{booklet.title}: expected questions 1-20, found {actual_numbers}"
-        )
+        raise ValueError(f"{booklet.title}: expected questions 1-20, found {actual_numbers}")
     return questions
 
 
@@ -215,9 +211,7 @@ def mark_duplicates(questions: list[Question]) -> None:
 def rendered_page_path(render_dir: Path, pdf_page: int) -> Path:
     candidates = sorted(render_dir.glob(f"page-*{pdf_page:02d}.jpg"))
     exact = [
-        candidate
-        for candidate in candidates
-        if int(candidate.stem.rsplit("-", 1)[-1]) == pdf_page
+        candidate for candidate in candidates if int(candidate.stem.rsplit("-", 1)[-1]) == pdf_page
     ]
     if len(exact) != 1:
         raise FileNotFoundError(
@@ -309,9 +303,7 @@ def format_question_text(text: str) -> str:
     )
     escaped = re.sub(
         r"\b(cm|mm|km|m)\s*([23])\b",
-        lambda match: (
-            rf"\ensuremath{{\mathrm{{{match.group(1)}}}^{{{match.group(2)}}}}}"
-        ),
+        lambda match: (rf"\ensuremath{{\mathrm{{{match.group(1)}}}^{{{match.group(2)}}}}}"),
         escaped,
     )
     escaped = re.sub(r"\s+", " ", escaped).strip()
