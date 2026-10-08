@@ -211,17 +211,17 @@ docs/sdd/f1-semillero-survey.md § 4.3.`
 **Traceability check (A-2, PR #5):** it no longer depends on the branch name. A PR that changes
 any path in spec 001's *Code Scope*, or a test its Traceability cites, is a code change for spec
 001 and fails while any spec 001 row is `PENDING`. So F-1's code PR must clear every row above,
-and while these rows are `PENDING` on `redesign` no other PR may change spec 001's code — F-4's
-code PR included. Merge order: § 7.
+and once A-2 is merged, no other PR may change spec 001's code while these rows are `PENDING` on
+its base — F-4's code PR included. Merge order: § 7.
 
 ## 7. Order with F-4 and the production switch
 
-A-2 judges each PR by spec, not by row: while spec 001 has a `PENDING` row on the base branch,
-every PR that changes spec 001's code fails, including PR #3 (`redesign` → `main`), which changes
-nearly all of it. Two consequences:
+Once the traceability check (A-2, PR #5) is merged, it judges each PR by spec, not by row: while
+spec 001 has a `PENDING` row on the base branch, every PR that changes spec 001's code fails until
+the PR that closes them lands. Consequences:
 
-- F-4 (needed before the switch) and F-1 cannot have their docs merged at the same time; the
+- F-4 (needed before the switch) and F-1 should not have their docs merged at the same time; the
   order that keeps each code PR green is **F-4 docs → F-4 code → this docs PR → F-1 code**.
-- If this docs PR is merged before the switch, F-1's code must also land before the switch, and
-  with it the read-only checks of § 3 and § 4.3 step 1. If F-1 should ship after the switch, this
-  PR stays unmerged until PR #3 is merged.
+- PR #5 is planned to merge after the switch, so it does not gate PR #3. Merging this docs PR
+  before the switch is still allowed by the process (a docs PR may carry `PENDING`), but F-1's
+  code then reaches production only with the read-only checks of § 3 and § 4.3 step 1 done first.
