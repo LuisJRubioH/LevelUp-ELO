@@ -185,9 +185,10 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
             raise ValueError("Solo estudiantes pueden entrar a PvP")
         user_id = user["user_id"]
         username = user["username"]
+        # get_user_enrollments returns each course under "id" (both repositories); reading
+        # "course_id" raised KeyError and shut every enrolled student out (follow-up F-5).
         enrollments = {
-            row["course_id"]
-            for row in await asyncio.to_thread(repo.get_user_enrollments, user_id)
+            row["id"] for row in await asyncio.to_thread(repo.get_user_enrollments, user_id)
         }
         if course_id not in enrollments:
             raise ValueError("El estudiante no está inscrito en el curso")
@@ -298,6 +299,11 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
                 await t
             except BaseException:
                 pass
+        # A player who leaves while waiting ends receive_text() with WebSocketDisconnect: read
+        # it, or asyncio logs "Task exception was never retrieved" on every such exit (F-5).
+        for t in done:
+            if not t.cancelled():
+                t.exception()
 
         if matched_task not in done:
             # Desconexión o timeout → limpiar lobby y cerrar
