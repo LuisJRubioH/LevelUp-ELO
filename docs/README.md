@@ -15,7 +15,8 @@ Si solo vas a leer una cosa, que sea el [README de la raíz](../README.md).
 | [guia-estudiante.md](guia-estudiante.md) | Estudiantes — qué es el ELO, el diagnóstico, el mapa, la liga, los procedimientos |
 | [guia-docente.md](guia-docente.md) | Docentes — leer el dashboard sin malinterpretar el ELO, calificar procedimientos, exportar |
 | [ruta-de-aprendizaje.md](ruta-de-aprendizaje.md) | Quien escriba contenido: los 60 nodos, los 11 bloques, cómo añadir uno |
-| [arquitectura.md](arquitectura.md) | Quien toque el backend: decisiones, límites conocidos y procedimiento de despliegue |
+| [arquitectura.md](arquitectura.md) | Quien toque el backend: decisiones, límites conocidos y the runtime contract a deployment must meet |
+| [transfer.md](transfer.md) | The owner, when moving finished work to the final deployment repository (this repository is not deployed) |
 
 > Los PDF de la raíz (`guia_estudiante.pdf`, `guia_docente.pdf`) son **de mayo de
 > 2026 y están obsoletos**: no cubren el diagnóstico, el mapa, la ruta de

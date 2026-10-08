@@ -1,10 +1,12 @@
 # Arquitectura — referencia vigente
 
-Estado del sandbox de rediseño (repo `Oulad_redesing`), al **2026-09-07**.
+State of the redesign's development copy (repo `Oulad_redesing`, **not deployed**), as of
+**2026-09-07**; deployment notes updated 2026-10-08.
 
 Este documento sustituye a `v2-tecnico.md` y `v2-plan.md`, que describen mayo de 2026 y se
 conservan solo por trazabilidad. Aquí hay tres cosas: **qué se decidió y por qué**, **qué límites
-tiene el sistema hoy**, y **cómo se despliega**. Las reglas operativas cortas viven en
+tiene el sistema hoy**, y **what a deployment must provide** (the transfer itself:
+[transfer.md](transfer.md)). Las reglas operativas cortas viven en
 [AGENTS.md](../AGENTS.md); esto es el porqué detrás de ellas.
 
 Origen: la [auditoría de arquitectura del 2026-09-05](auditoria-arquitectura-2026-09-05.md).
@@ -13,8 +15,8 @@ Origen: la [auditoría de arquitectura del 2026-09-05](auditoria-arquitectura-20
 
 ## Forma del sistema
 
-Monolito modular. Un proceso FastAPI sirve la API y los WebSockets; el frontend React se despliega
-aparte en Vercel. La auditoría concluyó que **conservar el monolito es lo razonable** y que no hay
+Monolito modular. Un proceso FastAPI sirve la API y los WebSockets; the React frontend is a static
+build served separately. La auditoría concluyó que **conservar el monolito es lo razonable** y que no hay
 nada que justifique separar servicios: los problemas eran de integridad y de coordinación, no de
 tamaño.
 
@@ -214,8 +216,10 @@ persistencia caída no recibe tráfico. El arranque no traga el error de inicial
 
 ## Despliegue
 
-Frontend en Vercel, backend en Render, base en Supabase. Los tres son del **sandbox**, aparte de
-producción.
+This repository is **not deployed**. This section is the runtime contract a deployment in the
+final repository must meet; the step-by-step transfer is [transfer.md](transfer.md). The templates
+here (`render.yaml`, `frontend/vercel.json`) assume Render for the API, a static host for the SPA
+and Supabase for PostgreSQL and Storage.
 
 ### Variables de entorno del backend
 
@@ -225,8 +229,8 @@ producción.
 | `MIGRATION_DATABASE_URL` | Solo `scripts/migrate.py` — conexión directa (5432) o pooler de sesión |
 | `RUN_MIGRATIONS` | `0` en el proceso web: el esquema lo aplica el paso previo |
 | `WEB_CONCURRENCY` | `1`, obligatorio — ver § Un solo proceso |
-| `JWT_SECRET_KEY` | ≥32 caracteres; Render lo genera |
-| `CORS_ORIGINS` | JSON con el dominio exacto de Vercel. Sin `localhost` en producción |
+| `JWT_SECRET_KEY` | ≥32 caracteres, random |
+| `CORS_ORIGINS` | JSON with the frontend's exact origin. Sin `localhost` en producción |
 | `RATE_LIMIT_STORAGE_URI` | Redis/Valkey. `memory://` está prohibido en producción |
 | `SUPABASE_URL` / `SUPABASE_KEY` | Bucket `procedimientos` |
 | `SYSTEM_AI_API_KEY` | IA. Sin ella la IA degrada con gracia y el resto funciona |
@@ -237,7 +241,7 @@ arrancar que arrancar en un estado que nadie va a notar.
 
 ### Orden de arranque
 
-El `startCommand` es `python scripts/migrate.py && uvicorn api.main:app ...`. Primero migra en un
+In the `render.yaml` template, `startCommand` is `python scripts/migrate.py && uvicorn api.main:app ...`. Primero migra en un
 proceso corto que termina, después sirve. Si la migración falla, uvicorn no arranca y el health
 check no pasa — fallo visible en lugar de esquema viejo sirviendo tráfico.
 
@@ -287,7 +291,7 @@ rápida que 0.1 vCPU compartida. La realidad solo puede ser peor.
 
 En orden, y ninguno es el código:
 
-1. **El spin-down del free tier.** Render apaga un servicio free tras 15 minutos sin tráfico y
+1. **El spin-down del free tier** (if the final host sleeps idle services). Render, for example, apaga un servicio free tras 15 minutos sin tráfico y
    tarda ~1 minuto en volver. En una clase eso es el primer estudiante de cada sesión esperando
    un minuto delante de una pantalla de carga. Es la razón más fuerte para salir del free.
 2. **0.1 vCPU compartida.** La tabla dice que da para el objetivo a ritmo normal, pero sin
