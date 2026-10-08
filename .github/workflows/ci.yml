@@ -1,6 +1,8 @@
 # .github/workflows/ci.yml
 # CI/CD para LevelUp-ELO — 9 jobs
 # Disparadores: push a main, pull_request hacia main
+# Also pull requests into `redesign`, the staging branch stacked work targets until the redesign
+# lands on main.
 
 name: LevelUp-ELO CI
 
@@ -8,7 +10,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, redesign]
 
 env:
   PYTHON_VERSION: "3.11"
