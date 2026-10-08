@@ -274,6 +274,10 @@ An invalid attempt is recorded with before = after and moves nothing. With an `I
   `scripts/migrate.py` against `MIGRATION_DATABASE_URL` (direct connection, port 5432); the web
   process runs with `RUN_MIGRATIONS=0`. Local dev and tests keep
   the in-process bootstrap (default `RUN_MIGRATIONS=1`).
+- In-process, a bootstrap step whose advisory lock another session holds is skipped (another
+  instance is doing it). `scripts/migrate.py` instead exits 1 naming the skipped steps
+  (`bootstrap_skipped_steps()`, both repositories), so `migrate.py && uvicorn` never starts the
+  web process on a schema that was not migrated. Tests: `tests/integration/test_migrate_lock.py`.
 - WebSockets: repositories are synchronous. From `async def`, call them through
   `await asyncio.to_thread(...)`, and **never** while holding the PvP lobby `_lock`. From a `def`
   endpoint, notify with `notify_sync`, which uses the loop bound at startup.

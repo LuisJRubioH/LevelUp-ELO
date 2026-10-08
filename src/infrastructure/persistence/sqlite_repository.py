@@ -30,6 +30,9 @@ class SQLiteRepository:
         self.db_name = db_name or os.environ.get("DB_PATH", self._DEFAULT_DB_PATH)
         os.makedirs(os.path.dirname(self.db_name), exist_ok=True)
         self.hashing = HashingService()
+        # Parity with PostgresRepository: SQLite has no advisory locks and serialises writers,
+        # so no bootstrap step is ever skipped and this stays empty.
+        self._skipped_locked_steps: list[str] = []
         if _migrations_enabled():
             self._bootstrap_schema()
 
@@ -53,6 +56,10 @@ class SQLiteRepository:
             self._seed_test_students()
         self._reconcile_legacy_ratings()
         self.expire_stale_pvp_matches()
+
+    def bootstrap_skipped_steps(self) -> list[str]:
+        """Bootstrap steps skipped because another session held their advisory lock (R17)."""
+        return list(self._skipped_locked_steps)
 
     def get_connection(self, timeout: float = 30.0):
         return sqlite3.connect(self.db_name, timeout=timeout)

@@ -220,6 +220,9 @@ class PostgresRepository:
 
         self.hashing = HashingService()
         self._storage = SupabaseStorage()
+        # Bootstrap steps skipped because another session held their advisory lock. In-process
+        # that is the intended no-op; scripts/migrate.py treats any entry as a failure (R17).
+        self._skipped_locked_steps: list[str] = []
         if _migrations_enabled():
             self._bootstrap_schema()
         else:
@@ -260,6 +263,10 @@ class PostgresRepository:
         print("Iniciando _reconcile_legacy_ratings...")
         print("_reconcile_legacy_ratings OK: %d filas" % self._reconcile_legacy_ratings())
         self.expire_stale_pvp_matches()
+
+    def bootstrap_skipped_steps(self) -> list[str]:
+        """Bootstrap steps skipped because another session held their advisory lock (R17)."""
+        return list(self._skipped_locked_steps)
 
     def get_connection(self, timeout: float = 30.0):
         """Obtiene una conexión del pool. Caller debe devolverla con put_connection().
@@ -585,6 +592,7 @@ class PostgresRepository:
             cursor.execute("SELECT pg_try_advisory_lock(12345)")
             locked = cursor.fetchone()["pg_try_advisory_lock"]
             if not locked:
+                self._skipped_locked_steps.append("migrate_db")
                 return  # Otra instancia está migrando; salir sin bloquear
 
             # users
@@ -1311,6 +1319,7 @@ class PostgresRepository:
             cursor.execute("SELECT pg_try_advisory_lock(12346)")
             locked = cursor.fetchone()["pg_try_advisory_lock"]
             if not locked:
+                self._skipped_locked_steps.append("seed_admin")
                 return
             try:
                 cursor.execute("SELECT id FROM users WHERE username = %s", (admin_user,))
@@ -1352,6 +1361,7 @@ class PostgresRepository:
             cursor.execute("SELECT pg_try_advisory_lock(12347)")
             locked = cursor.fetchone()["pg_try_advisory_lock"]
             if not locked:
+                self._skipped_locked_steps.append("seed_demo_data")
                 return
             try:
 
@@ -2350,6 +2360,7 @@ class PostgresRepository:
             cursor.execute("SELECT pg_try_advisory_xact_lock(12345) AS locked")
             if not cursor.fetchone()["locked"]:
                 conn.rollback()
+                self._skipped_locked_steps.append("reconcile_legacy_ratings")
                 return 0
             results = []
             for query in (
@@ -3363,6 +3374,7 @@ class PostgresRepository:
             cursor.execute("SELECT pg_try_advisory_lock(12348)")
             locked = cursor.fetchone()["pg_try_advisory_lock"]
             if not locked:
+                self._skipped_locked_steps.append("sync_items_from_bank_folder")
                 return
             try:
 
@@ -3515,6 +3527,7 @@ class PostgresRepository:
             cursor.execute("SELECT pg_try_advisory_lock(12349)")
             locked = cursor.fetchone()["pg_try_advisory_lock"]
             if not locked:
+                self._skipped_locked_steps.append("seed_test_students")
                 return
             try:
 

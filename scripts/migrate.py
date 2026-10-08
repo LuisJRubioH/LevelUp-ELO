@@ -19,6 +19,9 @@ En Render encabeza el startCommand (preDeployCommand no existe en plan free),
 con el servicio web en RUN_MIGRATIONS=0. Si falla, uvicorn no arranca.
 Es idempotente: solo ALTER TABLE ADD COLUMN IF NOT EXISTS y seeds que no
 sobrescriben (AGENTS.md R8).
+
+Exits with status 1, without "Migraciones completadas.", when another session holds the advisory
+lock of any bootstrap step: that step did not run, so the web process must not start (R17).
 """
 
 import os
@@ -49,7 +52,18 @@ def run_migrations() -> None:
 
     from src.infrastructure.persistence.postgres_repository import PostgresRepository
 
-    PostgresRepository()  # __init__ ejecuta _bootstrap_schema()
+    repo = PostgresRepository()  # __init__ ejecuta _bootstrap_schema()
+    skipped = repo.bootstrap_skipped_steps()
+    if skipped:
+        # A step whose advisory lock another session held did not run: the schema, the seeds or
+        # the reconciliation may be incomplete. Exit non-zero so `migrate.py && uvicorn` never
+        # starts the web process on it (AGENTS.md R17).
+        print(
+            "ERROR: migration lock held by another session; skipped: "
+            + ", ".join(skipped)
+            + ". Stop the other process (e.g. V1) and run the migration again."
+        )
+        sys.exit(1)
     print("Migraciones completadas.")
 
 
