@@ -1,0 +1,182 @@
+# transfer-ops — one-off operations for the redesign transfer (docs/transfer.md § 4–6).
+# Lives only on ops/* branches; never merged to main. Each job runs when its branch is pushed:
+#
+#   ops/transfer-backup    full + public-schema pg_dump, procedimientos bucket backup, migration
+#                          rehearsal on a throwaway PostgreSQL 17 (scripts/rehearse_migration.py),
+#                          everything encrypted with BACKUP_PASSPHRASE into one artifact.
+#   ops/transfer-dbcheck   read-only SQL checks on production after the switch (§ 5 queries).
+#   ops/transfer-verify    scripts/verify_deployment.py against production with the test accounts.
+#
+# Production secrets live in the GitHub Environment `production-ops` (MIGRATION_DATABASE_URL =
+# Supabase SESSION pooler, port 5432; SUPABASE_URL; SUPABASE_KEY; BACKUP_PASSPHRASE). Nothing here
+# writes to production except verify, which writes through the test accounts only.
+
+name: transfer-ops
+
+on:
+  push:
+    branches: [ops/transfer-backup, ops/transfer-dbcheck, ops/transfer-verify]
+
+permissions:
+  contents: read
+
+env:
+  PGSSLMODE: require
+
+jobs:
+  backup-and-rehearse:
+    if: github.ref_name == 'ops/transfer-backup'
+    runs-on: ubuntu-24.04
+    environment: production-ops
+    timeout-minutes: 45
+    services:
+      scratch:
+        image: postgres:17
+        env:
+          POSTGRES_USER: scratch
+          POSTGRES_PASSWORD: scratch_local_only
+          POSTGRES_DB: scratch
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U scratch -d scratch"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+      SCRATCH_URL: postgresql://scratch:scratch_local_only@localhost:5432/scratch
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Required secrets
+        run: |
+          for v in MIGRATION_DATABASE_URL SUPABASE_URL SUPABASE_KEY BACKUP_PASSPHRASE; do
+            [ -n "${!v}" ] || { echo "::error::Secret $v is missing in environment production-ops"; exit 1; }
+          done
+          case "$MIGRATION_DATABASE_URL" in
+            *:6543/*) echo "::error::MIGRATION_DATABASE_URL is the transaction pooler (6543); use the session pooler (5432)"; exit 1;;
+          esac
+          [ ${#BACKUP_PASSPHRASE} -ge 20 ] || { echo "::error::BACKUP_PASSPHRASE must have at least 20 characters"; exit 1; }
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install API requirements
+        run: pip install -r requirements-api.txt
+
+      - name: PostgreSQL 17 client tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -q postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      - name: Source server
+        run: |
+          pg_dump --version
+          psql "$MIGRATION_DATABASE_URL" -Atc "SELECT version()"
+          psql "$MIGRATION_DATABASE_URL" -Atc "SELECT 'users', COUNT(*) FROM users UNION ALL SELECT 'attempts', COUNT(*) FROM attempts UNION ALL SELECT 'student_topic_elo', COUNT(*) FROM student_topic_elo UNION ALL SELECT 'exam_sessions', COUNT(*) FROM exam_sessions UNION ALL SELECT 'procedure_submissions', COUNT(*) FROM procedure_submissions"
+          psql "$MIGRATION_DATABASE_URL" -Atc "SELECT to_regclass('public.student_course_topic_elo') IS NULL AS not_migrated_yet"
+
+      - name: Full backup (every schema the role can read)
+        run: |
+          mkdir -p backup
+          pg_dump --format=custom --no-owner --no-privileges --file=backup/full.dump "$MIGRATION_DATABASE_URL" \
+            || { rm -f backup/full.dump; echo "::warning::Full dump failed (Supabase-managed schemas); backup/public.dump is the application backup"; }
+
+      - name: Application backup (public schema)
+        run: pg_dump --format=custom --no-owner --no-privileges --schema=public --file=backup/public.dump "$MIGRATION_DATABASE_URL"
+
+      - name: Supabase roles in the scratch database
+        # Policies or grants in a Supabase dump may name these roles; they must exist to restore.
+        run: psql "$SCRATCH_URL" -c "CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN;"
+        env:
+          PGSSLMODE: disable
+
+      - name: Rehearsal (restore, migrate twice, verify)
+        run: |
+          DUMP=backup/full.dump; [ -f "$DUMP" ] || DUMP=backup/public.dump
+          python scripts/rehearse_migration.py --dump "$DUMP" --scratch-url "$SCRATCH_URL" \
+            --scratch-sslmode disable --report backup/rehearsal.txt
+
+      - name: Bucket backup (procedimientos)
+        if: always()
+        run: python scripts/backup_storage_bucket.py --out backup/procedimientos --database-url "$MIGRATION_DATABASE_URL" | tee backup/bucket.txt
+
+      - name: Encrypt the backup
+        if: always()
+        run: |
+          STAMP=$(date -u +%Y%m%dT%H%MZ)
+          echo "STAMP=$STAMP" >> "$GITHUB_ENV"
+          (cd backup && if ls *.dump >/dev/null 2>&1; then sha256sum *.dump | tee SHA256SUMS; else echo "::error::no dump was produced"; fi)
+          tar -C backup -czf "levelup-backup-$STAMP.tar.gz" .
+          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --symmetric --cipher-algo AES256 \
+            -o "levelup-backup-$STAMP.tar.gz.gpg" "levelup-backup-$STAMP.tar.gz" <<< "$BACKUP_PASSPHRASE"
+          sha256sum "levelup-backup-$STAMP.tar.gz.gpg"
+          cp backup/rehearsal.txt backup/bucket.txt . 2>/dev/null || true
+          rm -rf backup "levelup-backup-$STAMP.tar.gz"
+
+      - name: Upload the encrypted backup
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: levelup-backup-${{ env.STAMP }}-encrypted
+          path: levelup-backup-*.tar.gz.gpg
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload the reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transfer-reports-${{ env.STAMP }}
+          path: |
+            rehearsal.txt
+            bucket.txt
+          retention-days: 30
+
+  dbcheck:
+    if: github.ref_name == 'ops/transfer-dbcheck'
+    runs-on: ubuntu-24.04
+    environment: production-ops
+    timeout-minutes: 10
+    env:
+      MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+    steps:
+      - name: Read-only checks (docs/transfer.md § 5)
+        run: |
+          q() { psql "$MIGRATION_DATABASE_URL" -v ON_ERROR_STOP=1 -c "$1"; }
+          q "SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2 ORDER BY 1, 2"
+          q "SELECT COUNT(*) AS reconciled_without_provenance FROM student_course_topic_elo WHERE origin LIKE 'legacy\_%' AND (approximate IS NOT TRUE OR legacy_source_key IS NULL OR reconciled_at IS NULL)"
+          q "SELECT COUNT(*) AS student_topic_elo FROM student_topic_elo"
+          q "SELECT COUNT(*) AS exam_sessions_unknown_status FROM exam_sessions WHERE global_elo_status IS NULL"
+          q "SELECT COUNT(*) AS users, COUNT(*) FILTER (WHERE role = 'admin') AS admins FROM users"
+
+  verify:
+    if: github.ref_name == 'ops/transfer-verify'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements-api.txt
+      - name: Deployed commit
+        run: git log -1 --format='%H %s'
+      - name: verify_deployment.py
+        run: |
+          python scripts/verify_deployment.py --api-url https://levelup-elo.onrender.com \
+            --frontend-url https://luislevelupelo.vercel.app --wait 300 --report verify.txt
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-report
+          path: verify.txt
+          retention-days: 90
