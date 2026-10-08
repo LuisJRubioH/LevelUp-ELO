@@ -21,14 +21,15 @@ a `zdp.py` module and skill files that did not exist.
 
 Every piece of state and every rule has exactly one owner; everything else derives from it.
 
-- A student's rating lives only in `student_topic_elo`. `users.current_elo` is its derived
-  average; `attempts` is a log and MUST NOT be used to reconstruct a rating.
+- A student's rating lives only in `student_course_topic_elo`, one row per student, course and
+  topic. Course and overall ratings are derived from it and never stored; `student_topic_elo` and
+  `users.current_elo` are legacy and not written. `attempts` is a log and MUST NOT be used to
+  reconstruct a rating.
 - Each rating writer (diagnostic baseline, valid answer, teacher-validated procedure, finished
   PvP match) MUST apply its effect exactly once, guarded by persisted state, and all writers
   MUST use the same canonical rating key for the same practice context (key defined in spec 001).
 - Shared constants (rating formulas, rank tables, thresholds) MUST be defined once in `domain/`
-  and consumed, not copied, by other layers. A frontend preview MUST use the backend's numbers
-  (current exception: see Known Deviations, D-2).
+  and consumed, not copied, by other layers. A frontend preview MUST use the backend's numbers.
 - Each rule has one **normative owner** that holds its full detail; other documents MAY summarise
   it in a sentence and MUST link to the owner instead of restating its detail:
 
@@ -58,7 +59,7 @@ src/interface/, api/ composition layer: the only places that wire infrastructure
 
 ### IV. Dual-Database Parity
 
-SQLite (local, tests) and PostgreSQL (Supabase, deploy) expose an identical public API.
+SQLite (local, tests) and PostgreSQL (Supabase in a deployment) expose an identical public API.
 
 - A change to one repository MUST be mirrored in the other in the same commit, and
   `python scripts/db_sync_check.py` MUST pass before any commit that touches a repository.
@@ -116,12 +117,13 @@ Oulad exists to make students learn mathematics, not to maximise engagement.
 
 ## Project Nature & Technology Stack
 
-**What it is.** Oulad is the redesign sandbox of LevelUp-ELO: an adaptive mathematics practice
+**What it is.** Oulad is the redesign of LevelUp-ELO: an adaptive mathematics practice
 platform for Colombian school, university and olympiad ("semillero", contest) students and their
 teachers. A per-topic Elo rating with uncertainty (RD) drives item selection toward a target
 success probability; teachers review handwritten procedures; an AI tutor (KatIA) gives Socratic
-hints. Production of the original product lives in `LuisJRubioH/LevelUp-ELO`; this repo deploys
-its own sandbox.
+hints. Production of the original product lives in `LuisJRubioH/LevelUp-ELO`. This repository is
+a development copy and is **not deployed**: the owner transfers finished work to the final
+deployment repository by hand (`docs/transfer.md`).
 
 **Users.** student · teacher (requires approval) · admin.
 
@@ -132,10 +134,10 @@ its own sandbox.
 | Backend API | Python 3.11, FastAPI, uvicorn, single process (`WEB_CONCURRENCY=1`) |
 | Frontend | React 19, TypeScript, Vite, Tailwind v4, Zustand, TanStack Query, react-katex, Framer Motion; pnpm |
 | Legacy UI (V1) | Streamlit — **frozen** (see below) |
-| Data | PostgreSQL on Supabase (deploy), SQLite (local/tests), Supabase Storage (private bucket) |
+| Data | PostgreSQL on Supabase (deployment target), SQLite (local/tests), Supabase Storage (private bucket) |
 | Realtime | FastAPI WebSockets (PvP, notifications), in-process state |
 | AI | Multi-provider client selected by key prefix; degrades gracefully without a key |
-| Deploy | Vercel (frontend), Render (backend), auto-deploy on push to `main` |
+| Deploy | None from this repository; manual transfer by the owner (`docs/transfer.md`). Inert templates: `render.yaml` (backend), `frontend/vercel.json` (frontend) |
 | Quality | pytest, Playwright (e2e), black (100 cols), flake8, GitHub Actions |
 
 **V1 is frozen** (decided 2026-10-05). `src/interface/streamlit/` receives no features and no
@@ -241,9 +243,9 @@ is tolerated but MUST NOT spread to new code.
 
 | ID | Deviation | Contradicts | Fixed by | Deadline |
 |---|---|---|---|---|
-| D-1 | Rating writers use different keys (course name in V1, topic or `course_id` in V2, topic for procedures, `course_id` for PvP) | II | spec 001 | M1 |
-| D-2 | Frontend preview `estimateEloDelta()` uses its own K (32/24); `AGENTS.md` V2-R3 permits it. V2-R3 is superseded by this constitution and is rewritten in step 0.3 | II | spec 001 | M1 |
-| D-3 | Badge errors swallowed with `except Exception: pass` in `StudentService.process_answer` | Validation | spec 001 | M1 |
+
+None open. D-1 (rating writers used different keys), D-2 (frontend preview with its own K) and
+D-3 (swallowed badge errors) were resolved by spec 001, merged 2026-10-08, and removed in 1.0.1.
 
 Not a deviation: existing Spanish development text is permitted by the language policy and is
 tracked as **documentation debt** (`AGENTS.md` is translated in step 0.3). Only new or modified
@@ -288,4 +290,4 @@ development text written in Spanish is noncompliance.
 - **Review.** The constitution and its Known Deviations are reviewed at the end of each roadmap
   milestone.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-05
+**Version**: 1.0.1 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-08
