@@ -284,6 +284,16 @@ class TestNextQuestion:
 
 
 class TestAnswer:
+    @pytest.fixture(autouse=True)
+    def _enrolled(self, api_client, student_headers):
+        """Practice needs an enrolment (spec 001 FR-037). estudiante1 is a universidad student,
+        so this colegio course is enrolled directly, as an invitation would — not through
+        /enroll, and not left to TestNextQuestion having run first."""
+        from api.dependencies import get_repository
+
+        user_id = api_client.get("/api/auth/me", headers=student_headers).json()["user_id"]
+        get_repository().enroll_user(user_id, _COURSE_ID)
+
     def test_ignores_tampered_item_data(self, api_client, student_headers):
         from api.dependencies import get_repository
         from src.domain.elo.model import expected_score
