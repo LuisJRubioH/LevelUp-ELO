@@ -94,7 +94,11 @@ last step the browser blocks every call and the API looks down.
 2. **Prove the dump restores:** `pg_restore --list pre-transfer-YYYYMMDD.dump` and a full restore
    into a scratch database (`createdb scratch && pg_restore --no-owner -d scratch pre-transfer-YYYYMMDD.dump`).
    An untested backup is not a backup.
-3. **Storage:** export the `procedimientos` bucket (procedure images) with the provider's tools.
+3. **Storage:** export the `procedimientos` bucket (procedure images). The dashboard has no bulk
+   download; `python scripts/backup_storage_bucket.py --out backup-procedimientos-YYYYMMDD
+   --database-url "$MIGRATION_DATABASE_URL"` saves every object with a SHA-256 manifest and checks
+   that each `procedure_submissions.storage_url` is in the backup (needs `SUPABASE_URL`,
+   `SUPABASE_KEY`).
 4. **Record the legacy rating state** for the reconciliation audit (§ 5) — row counts of
    `student_topic_elo`, `users` (with `current_elo`), `attempts` and `exam_sessions`.
 5. Keep the dump and the export until § 6 passes. The dump holds student data: never commit it.
@@ -177,6 +181,12 @@ refuses any non-local host. Never point tests at the production database.
    reconciled topics show "aproximado"/≈; exam history loads.
 5. With a test teacher: the dashboard lists students with display rating and rank label.
 6. The SQL checks from § 5 return the same answers as on the rehearsal copy.
+
+`scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
+runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer
+whose rating change equals the preview, the course map, every lesson image served by the frontend,
+and a procedure uploaded, seen by the teacher with the same image bytes and graded. Run it from a
+checkout of the deployed commit (it reads the lesson content to list the images).
 
 ## 7. Known operating constraints
 

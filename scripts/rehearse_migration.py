@@ -225,7 +225,9 @@ def main():
     ap.add_argument("--dump", required=True, help="dump file to create (with --source-url) or use")
     ap.add_argument("--source-url", help="database to back up (read-only; direct port 5432)")
     ap.add_argument("--scratch-url", required=True, help="EMPTY throwaway database to restore into")
-    ap.add_argument("--schema", default="public", help="schema to dump (default: public)")
+    ap.add_argument(
+        "--schema", default="public", help="schema to dump and restore (default: public)"
+    )
     ap.add_argument("--source-sslmode", default=os.environ.get("DATABASE_SSLMODE", "require"))
     ap.add_argument("--scratch-sslmode", default="prefer")
     ap.add_argument(
@@ -297,7 +299,16 @@ def main():
         return finish(r, args)
     env = dict(os.environ, PGSSLMODE=args.scratch_sslmode)
     proc = subprocess.run(
-        ["pg_restore", "--no-owner", "--no-privileges", f"--dbname={args.scratch_url}", args.dump],
+        # Only the application's schema: a full Supabase dump also holds Supabase's own schemas,
+        # which do not restore into a plain PostgreSQL.
+        [
+            "pg_restore",
+            "--no-owner",
+            "--no-privileges",
+            f"--schema={args.schema}",
+            f"--dbname={args.scratch_url}",
+            args.dump,
+        ],
         env=env,
         capture_output=True,
         text=True,
