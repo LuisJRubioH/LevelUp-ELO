@@ -9,16 +9,14 @@
 [![React](https://img.shields.io/badge/react-19-61DAFB)](https://react.dev/)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-orange)](LICENSE)
 
-> **Este repo es el playground del rediseño**, no producción. Aquí se
-> reestructura el frontend y se construye contenido nuevo antes de portarlo al
-> repo de producción (`LuisJRubioH/LevelUp-ELO`, donde la plataforma todavía se
-> llama LevelUp-ELO). El port a producción está **bloqueado hasta el visto bueno
-> del equipo**.
+> **Producción.** `main` se despliega solo: Vercel publica el frontend y Render el API
+> (`levelup-elo.onrender.com`). El rediseño (Oulad) se construyó en la copia de desarrollo
+> `Ori-G-A/Oulad_redesing` y llega aquí por la rama `redesign` siguiendo
+> [docs/transfer.md](docs/transfer.md): backup, ensayo de la migración y configuración de los
+> hosts **antes** de fusionar.
 >
-> **This repository is a development copy and is not deployed.** Pushing or
-> merging here deploys nothing and migrates no remote database. The owner
-> transfers finished work to the final deployment repository by hand — see
-> [Deployment](#deployment) and [docs/transfer.md](docs/transfer.md).
+> **`main` is production.** Merging to it deploys the frontend (Vercel) and the API (Render), and
+> the API's start migrates the production database. See [Deployment](#deployment).
 
 ---
 
@@ -355,10 +353,12 @@ Prioridad por request: key del usuario > key de función > key general
 
 ## Deployment
 
-This repository is not deployed. `render.yaml` and `frontend/vercel.json` are templates for the
-final environment and are inert here. Transferring the work to the final deployment repository —
-code, dependencies, environment variables, backups, migrations and verification — is a manual step
-done by the owner: [docs/transfer.md](docs/transfer.md).
+`main` deploys automatically: Vercel builds `frontend/` with `frontend/vercel.json` (pnpm) and
+Render redeploys the API; its start command runs `scripts/migrate.py` before uvicorn (`render.yaml`).
+A merge is a release, and a merge that changes the schema migrates production on the next start, so
+only the owner merges to `main`. The checklist for the redesign's arrival — code, dependencies,
+environment variables, backups, the migration rehearsal (`scripts/rehearse_migration.py`) and
+verification — is [docs/transfer.md](docs/transfer.md).
 
 ---
 
@@ -377,7 +377,7 @@ at a throwaway **local** database (`tests/conftest.py` refuses any other host).
 
 CI in GitHub Actions, 8 jobs: item bank, lint (Black + Flake8), unit tests with coverage ≥ 70 %,
 integration, DB parity, PostgreSQL (the integration suite on an ephemeral PostgreSQL service), API
-and frontend build. CI only tests; it deploys nothing.
+and frontend build. CI only tests; Vercel and Render deploy `main` on their own.
 
 ---
 

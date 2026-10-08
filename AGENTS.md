@@ -38,12 +38,15 @@ V1 is frozen — see the constitution § Stack for what that allows.
 
 ### Deploy
 
-**None from this repository.** It is a development copy: pushing or merging deploys nothing and
-migrates no remote database. Never attempt a deployment, never treat a host's status as a blocker
-and never claim a remote migration happened. The owner transfers finished work to the final
-deployment repository by hand ([`docs/transfer.md`](docs/transfer.md)); `render.yaml` and
-`frontend/vercel.json` are inert templates for it. The original product's production lives in
-`LuisJRubioH/LevelUp-ELO`.
+**`main` is production.** A push or merge to `main` deploys: Vercel builds `frontend/` (project
+`luislevelupelo`) and Render redeploys the API (`levelup-elo.onrender.com`), whose start runs
+`scripts/migrate.py` against the production database. Agents never merge to `main`, never run a
+migration against production and never claim one happened; they prepare the change and verify it
+locally. Work reaches `main` through pull requests the owner merges. The redesign arrived from
+the development copy `Ori-G-A/Oulad_redesing` through the checklist in
+[`docs/transfer.md`](docs/transfer.md) — backup, rehearsal (`scripts/rehearse_migration.py`) and
+host settings come before the merge. `render.yaml` and `frontend/vercel.json` describe the hosting;
+the Render dashboard holds the settings the running service actually uses.
 
 ### Verify before saying "done"
 

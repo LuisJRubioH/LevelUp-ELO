@@ -1,7 +1,7 @@
 # Arquitectura — referencia vigente
 
-State of the redesign's development copy (repo `Oulad_redesing`, **not deployed**), as of
-**2026-09-07**; deployment notes updated 2026-10-08.
+State of the redesign, built in the development copy `Oulad_redesing` and transferred to this
+repository (`main` deploys), as of **2026-09-07**; deployment notes updated 2026-10-08.
 
 Este documento sustituye a `v2-tecnico.md` y `v2-plan.md`, que describen mayo de 2026 y se
 conservan solo por trazabilidad. Aquí hay tres cosas: **qué se decidió y por qué**, **qué límites
@@ -216,8 +216,8 @@ persistencia caída no recibe tráfico. El arranque no traga el error de inicial
 
 ## Despliegue
 
-This repository is **not deployed**. This section is the runtime contract a deployment in the
-final repository must meet; the step-by-step transfer is [transfer.md](transfer.md). The templates
+`main` deploys (Vercel for the SPA, Render for the API). This section is the runtime contract
+that deployment must meet; the step-by-step transfer is [transfer.md](transfer.md). The templates
 here (`render.yaml`, `frontend/vercel.json`) assume Render for the API, a static host for the SPA
 and Supabase for PostgreSQL and Storage.
 

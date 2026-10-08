@@ -1,10 +1,11 @@
-## render.yaml — Backend del sandbox de UX testing (repo Oulad_redesing)
-## No es el servicio de producción: ese vive en el repo LuisJRubioH/LevelUp-ELO.
-## Documentación: https://render.com/docs/blueprint-spec
+## render.yaml — production API service (levelup-elo.onrender.com), deployed from `main`.
+## Render applies this file only to a Blueprint-managed service. If the service was created in the
+## dashboard, set the same start command and environment variables there by hand (docs/transfer.md § 3).
+## Documentation: https://render.com/docs/blueprint-spec
 
 services:
   - type: web
-    name: oulad-sandbox-api
+    name: levelup-elo-api
     plan: free
     runtime: python
     pythonVersion: "3.11.9"
@@ -75,7 +76,7 @@ services:
         sync: false
 
       # ── CORS ─────────────────────────────────────────────────────────────
-      # Formato JSON. Pegar el dominio exacto que Vercel asigne al sandbox:
-      #   '["https://<proyecto>.vercel.app","http://localhost:5173"]'
+      # JSON list with the frontend's exact origin. No localhost: validate_runtime() refuses it
+      # in production. Today: '["https://luislevelupelo.vercel.app"]'
       - key: CORS_ORIGINS
         sync: false

@@ -1,10 +1,12 @@
-# Transfer to the final deployment repository
+# Transfer of the redesign into the deployment repository
 
-This repository is a **development copy and is not deployed**. Nothing in it is connected to a
-host as part of the project's scope: no push, merge or CI run here deploys anything or migrates a
-remote database. The owner transfers the finished work to the final deployment repository by hand.
-This guide is the checklist for that transfer. **Agents working in this repository never execute
-it.**
+The redesign was built in the development copy `Ori-G-A/Oulad_redesing`, which deploys nothing.
+This repository, `LuisJRubioH/LevelUp-ELO`, is the deployment repository: **its `main` deploys
+automatically** (Vercel builds the frontend, Render redeploys the API and runs its migration on
+start). This guide is the checklist for bringing the redesign into it. § 1 is the pull request from
+the `redesign` branch; § 3–6 need the production hosts and credentials, so **only the owner runs
+them**. Agents prepare and verify locally; they never merge that pull request and never run the
+migration against production.
 
 The order matters: back up and rehearse first, then migrate, then start the new code, then verify.
 
@@ -12,12 +14,13 @@ The order matters: back up and rehearse first, then migrate, then start the new 
 
 ## 1. Code
 
-1. **Pick the source commit.** Use a commit on `main` whose GitHub CI run is green. Tag it so the
-   transfer is traceable, e.g. `git tag transfer-YYYY-MM-DD <sha> && git push origin --tags`.
-2. **Bring it into the final repository as a branch, not straight onto its main branch.** For
-   example, add this repository as a remote there (`git remote add dev <url>`), fetch the tag, and
-   open a pull request from a branch containing it. The final repository's own CI then runs on it,
-   and the owner reviews the diff against what is deployed today.
+1. **Source.** The branch `redesign` holds the development copy's history (its `main` at
+   `461e999` and the constitution amendment `34b6da7`) with this repository's previous `main` as
+   an ancestor, so the pull request to `main` shows the full replacement and the development
+   history stays traceable.
+2. **Review it as a pull request, never a direct push.** This repository's CI runs on it, Vercel
+   builds a preview of it, and the owner reviews the diff against what is deployed today. Merging
+   it is the switch (§ 5–6): do not merge before § 3–5 are done.
 3. **Transfer only tracked files.** Never copy:
 
    | Path | Why |
@@ -30,10 +33,11 @@ The order matters: back up and rehearse first, then migrate, then start the new 
 
    `specs/`, `.specify/`, `docs/` and `AGENTS.md` are documentation; keep them if the final
    repository follows the same spec-driven process.
-4. **Templates to review before using.** `render.yaml` (backend service, `autoDeploy: true`, service
-   name `oulad-sandbox-api`) and `frontend/vercel.json` (SPA rewrites and cache headers) describe the
-   hosting this project was designed around. They are inert here. Rename the service and decide on
-   `autoDeploy` in the final repository.
+4. **Host configuration.** `render.yaml` (backend service, `autoDeploy: true`) and
+   `frontend/vercel.json` (pnpm install and build, SPA rewrites, cache headers) describe the
+   hosting. Vercel reads `frontend/vercel.json` on every build. Render applies `render.yaml` only
+   if the service is managed as a Blueprint; otherwise its dashboard settings (start command,
+   environment variables) are what runs, and they must be set by hand to match § 3.
 
 ## 2. Dependencies
 
@@ -68,6 +72,10 @@ wrong):
 | `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_STUDENT_ANALYSIS`, `AI_KEY_TEACHER_ANALYSIS` |
 | `DATABASE_SSLMODE`, `LOG_LEVEL` | optional |
 
+If V1 (Streamlit Community Cloud) is still deployed from `main`, it builds this same repository
+and its repository bootstraps the schema on start unless told not to: set `RUN_MIGRATIONS=0` in its
+secrets (or pause the app) before the merge, so that only the migration step migrates.
+
 Frontend (build time): `VITE_API_URL` = the API's public origin. **Never** put a secret in a
 `VITE_*` variable — Vite bundles them into the JavaScript every visitor downloads.
 
@@ -89,7 +97,20 @@ last step the browser blocks every call and the API looks down.
 3. **Storage:** export the `procedimientos` bucket (procedure images) with the provider's tools.
 4. **Record the legacy rating state** for the reconciliation audit (§ 5) — row counts of
    `student_topic_elo`, `users` (with `current_elo`), `attempts` and `exam_sessions`.
-5. Keep the dump and the export until § 6 passes.
+5. Keep the dump and the export until § 6 passes. The dump holds student data: never commit it.
+
+`scripts/rehearse_migration.py` runs steps 1, 2 and 4 and the whole § 5 rehearsal in one command,
+against a throwaway local PostgreSQL, and exits non-zero if any check fails:
+
+```bash
+python scripts/rehearse_migration.py --source-url "$MIGRATION_DATABASE_URL" \
+    --dump pre-transfer-YYYYMMDD.dump --scratch-url postgresql://u:p@localhost:5432/scratch \
+    --report rehearsal-YYYYMMDD.txt
+```
+
+It dumps the `public` schema (the application's tables; Supabase's own schemas do not restore into
+a plain PostgreSQL), so keep a full backup from the Supabase dashboard as well. `pg_dump` must be at
+least as new as the server (the Supabase project uses PostgreSQL 17).
 
 ## 5. Migrations
 
