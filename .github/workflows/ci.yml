@@ -1,5 +1,5 @@
 # .github/workflows/ci.yml
-# CI/CD para LevelUp-ELO — 8 jobs
+# CI/CD para LevelUp-ELO — 9 jobs
 # Disparadores: push a main, pull_request hacia main
 
 name: LevelUp-ELO CI
@@ -231,3 +231,45 @@ jobs:
         working-directory: frontend
         env:
           VITE_API_URL: "https://levelup-elo.onrender.com"
+
+  # ── Job 9: E2E Playwright (roadmap A-1) ──────────────────────────────
+  # Frontend flows in Chromium against a mocked API (frontend/e2e/fixtures.ts fails a test that
+  # calls an unmocked endpoint); backend behaviour is covered by the pytest jobs. No retries.
+  e2e:
+    name: "E2E Playwright"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Configurar pnpm desde packageManager
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - name: Instalar dependencias desde lockfile
+        run: pnpm install --frozen-lockfile
+        working-directory: frontend
+
+      - name: Install Chromium for the pinned Playwright version
+        run: pnpm exec playwright install --with-deps chromium
+        working-directory: frontend
+
+      - name: Playwright (frontend/e2e)
+        run: pnpm exec playwright test
+        working-directory: frontend
+
+      - name: Upload report, traces and screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 14

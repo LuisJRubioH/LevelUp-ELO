@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
-import { injectAuth, mockLoginEndpoint, mockStudentApi, MOCK_STUDENT } from "./helpers/auth";
+import { test, expect } from "./fixtures";
+import { injectAuth, mockLoginEndpoint, mockPublicApi, mockStudentApi, MOCK_STUDENT } from "./helpers/auth";
 
 test.describe("Autenticación", () => {
   test("login con credenciales válidas → redirige a /student", async ({ page }) => {
@@ -89,6 +89,7 @@ test.describe("Autenticación", () => {
   });
 
   test("la portada pública sigue disponible para un usuario autenticado", async ({ page }) => {
+    await mockPublicApi(page);
     await injectAuth(page, MOCK_STUDENT);
     await page.goto("/");
     await expect(page).toHaveURL("/");
