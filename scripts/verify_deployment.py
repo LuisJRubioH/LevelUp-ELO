@@ -175,8 +175,15 @@ def main():
 
     r.log(f"== 3. Diagnostic ({diag_student})")
     courses = c.get("/api/student/courses", headers=hd).json()
+    # The diagnostic needs an enrolment (spec 001 FR-037): the enrolled courses first, then one
+    # catalogue course without a diagnostic, enrolled here.
+    candidates = [x for x in courses if x.get("enrolled")] + [
+        x for x in courses if not x.get("enrolled") and not x.get("diagnostic_done")
+    ][:1]
     pending = None
-    for course in courses:
+    for course in candidates:
+        if not course.get("enrolled"):
+            c.post("/api/student/enroll", headers=hd, json={"course_id": course["id"]})
         status = c.get(f"/api/student/diagnostic/{course['id']}", headers=hd)
         if (
             status.status_code == 200

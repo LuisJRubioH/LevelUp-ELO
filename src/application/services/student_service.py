@@ -300,6 +300,17 @@ class StudentService:
         """Matricula al estudiante en un curso asociándolo al grupo elegido."""
         self.repository.enroll_user(user_id, course_id, group_id)
 
+    def ensure_enrolled(self, user_id: int, course_id: str) -> None:
+        """Practice, answers and diagnostics only in an enrolled course (spec 001 FR-037, FR-037a).
+
+        An enrolment from the student's level and one made through an invitation are both rows
+        of the student's enrolments, so both pass. Raises PermissionError otherwise, including
+        for a course that does not exist.
+        """
+        enrolled = {e["id"] for e in self.repository.get_user_enrollments(user_id)}
+        if course_id not in enrolled:
+            raise PermissionError("The student is not enrolled in that course.")
+
     def get_available_courses(self, user_id: int) -> list:
         """Devuelve los cursos disponibles para el nivel educativo del estudiante.
 

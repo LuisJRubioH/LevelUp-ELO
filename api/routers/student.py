@@ -98,6 +98,16 @@ def _make_service(repo) -> StudentService:
     return StudentService(repository=repo, calibrator=calibrator)
 
 
+def _require_enrolment(service: StudentService, user_id: int, course_id: str) -> None:
+    """403 before serving an item or touching any rating (spec 001 FR-037, FR-037a)."""
+    try:
+        service.ensure_enrolled(user_id, course_id)
+    except PermissionError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="No estás inscrito en este curso."
+        )
+
+
 # ── Preguntas ──────────────────────────────────────────────────────────────────
 
 
@@ -105,6 +115,7 @@ def _make_service(repo) -> StudentService:
 def next_question(body: NextQuestionRequest, user: CurrentUser, repo: RepoDep):
     """Selecciona la siguiente pregunta adaptativa (ZDP) para el estudiante."""
     service = _make_service(repo)
+    _require_enrolment(service, user["user_id"], body.course_id)
     item, status_str = service.get_next_question(
         student_id=user["user_id"],
         course_id=body.course_id,
@@ -158,6 +169,8 @@ def answer(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Ítem '{body.item_id}' no encontrado.",
         )
+    # Before option validation and the retry replay: a refused answer changes nothing.
+    _require_enrolment(service, user["user_id"], item_db["course_id"])
     if body.selected_option not in item_db["options"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -947,6 +960,7 @@ def diagnostic_status(course_id: str, user: CurrentUser, repo: RepoDep, redo: bo
 
     Si ya está hecho → devuelve el resultado guardado. Si no (o `redo=true`) →
     devuelve ~10 preguntas (sin la opción correcta) para presentarlo."""
+    _require_enrolment(StudentService(repository=repo), user["user_id"], course_id)
     existing = repo.get_diagnostic(user["user_id"], course_id)
     if existing and not redo:
         return DiagnosticStatusResponse(
@@ -978,6 +992,7 @@ def diagnostic_submit(
 
     Evaluativo: no genera intentos. 'No lo sé'/saltar = opción vacía → no
     cambia ELO pero cuenta como vacío del tema."""
+    _require_enrolment(StudentService(repository=repo), user["user_id"], course_id)
     BASE = 1000.0
     by_topic: dict[str, dict] = {}
     correct_total = 0
