@@ -101,6 +101,13 @@ jobs:
       - name: Install API requirements
         run: pip install -r requirements-api.txt
 
+      - name: The app reads MIGRATION_DATABASE_URL as migrate.py will (read only)
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+          SUPABASE_URL: ""
+          SUPABASE_KEY: ""
+        run: python .github/scripts/app_url_check.py
+
       - name: PostgreSQL 17 client tools
         run: |
           sudo apt-get update -q
@@ -344,6 +351,22 @@ jobs:
           done
           [ ${#BACKUP_PASSPHRASE} -ge 20 ] || { echo "::error::BACKUP_PASSPHRASE must have at least 20 characters"; exit 1; }
           echo "secrets present"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install API requirements
+        run: pip install -r requirements-api.txt
+
+      - name: The app reads MIGRATION_DATABASE_URL as migrate.py will (read only)
+        # pg_dump/psql read a ?query part and decode %XX; the app's own parser does neither.
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+          SUPABASE_URL: ""
+          SUPABASE_KEY: ""
+        run: python .github/scripts/app_url_check.py
 
       - name: courses.block CHECK accepts the four blocks (survey § 4.3 step 1)
         if: steps.check.outcome == 'success'
