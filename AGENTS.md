@@ -554,7 +554,8 @@ satisfies `DeepString<typeof es>`).
 `DATABASE_URL` set → PostgreSQL (Supabase); absent → SQLite (`data/elo_database.db`).
 
 Bootstrap: `init_db()` → `_migrate_db()` → `_seed_admin()` → `_seed_demo_data()` →
-`_backfill_prob_failure()` → `sync_items_from_bank_folder()` → `_seed_test_students()`.
+`_backfill_prob_failure()` → `sync_items_from_bank_folder()` → `_seed_test_students()` →
+`_reconcile_legacy_ratings()` → `expire_stale_pvp_matches()`.
 
 PostgreSQL: `pg_try_advisory_lock` (non-blocking), IDs 12345–12349, always released in `finally`.
 Reconciliation uses `pg_try_advisory_xact_lock(12345)` — also non-blocking, released at commit.
