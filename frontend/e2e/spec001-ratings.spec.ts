@@ -2,7 +2,8 @@
  * Spec 001 (task T062) — frontend flows of the rating model, against a mocked API.
  * These verify what the screens render from the API; backend behaviour is proven by pytest.
  */
-import { test, expect, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { injectAuth, mockStudentApi, MOCK_TEACHER } from "./helpers/auth";
 
 const json = (page: Page, url: string, body: unknown) =>

@@ -201,3 +201,20 @@ export async function mockStudentApi(page: Page) {
     });
   });
 }
+
+/** The public rank scale (GET /api/meta/ranks), as the API serves it (spec 001, FR-031). */
+export const MOCK_RANKS = [
+  { label: "Aspirante", min: 0 }, { label: "Hierro", min: 600 }, { label: "Bronce II", min: 700 },
+  { label: "Bronce I", min: 800 }, { label: "Plata II", min: 900 }, { label: "Plata I", min: 1000 },
+  { label: "Oro II", min: 1100 }, { label: "Oro I", min: 1200 }, { label: "Platino II", min: 1300 },
+  { label: "Platino I", min: 1400 }, { label: "Diamante II", min: 1500 }, { label: "Diamante I", min: 1600 },
+  { label: "Maestro", min: 1800 }, { label: "Gran Maestro", min: 2000 }, { label: "Leyenda", min: 2200 },
+  { label: "Leyenda Suprema", min: 2500 },
+];
+
+/** Mock the public endpoints the landing page reads. */
+export async function mockPublicApi(page: Page) {
+  await page.route("**/api/meta/ranks", async (route) => {
+    await route.fulfill({ json: MOCK_RANKS });
+  });
+}

@@ -3,7 +3,8 @@
  * for a semillero student without a grade, and courses reached by invitation. The API is mocked:
  * these check what the screen does with `in_catalogue` and the student's grade.
  */
-import { test, expect, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { injectAuth, mockStudentApi, MOCK_STUDENT } from "./helpers/auth";
 
 const NOTICE =

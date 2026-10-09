@@ -376,9 +376,14 @@ python scripts/check_traceability.py --run                 # spec → tests (nee
 Storage tests run on SQLite always and also on PostgreSQL when `POSTGRES_TEST_DATABASE_URL` points
 at a throwaway **local** database (`tests/conftest.py` refuses any other host).
 
-CI in GitHub Actions, 9 jobs: item bank, lint (Black + Flake8), unit tests with coverage ≥ 70 %,
+CI in GitHub Actions, 10 jobs: item bank, lint (Black + Flake8), unit tests with coverage ≥ 70 %,
 integration, DB parity, PostgreSQL (the integration suite on an ephemeral PostgreSQL service), API,
-frontend build and traceability. CI only tests; Vercel and Render deploy `main` on their own.
+frontend build, E2E (Playwright, Chromium, no retries; report, traces and screenshots uploaded
+when it fails) and traceability. CI only tests; Vercel and Render deploy `main` on their own.
+
+The E2E tests **mock the API**: they verify frontend flows, not backend integration (pytest covers
+the backend). A request to `/api/*` that a test did not mock fails that test, naming the call
+(`frontend/e2e/fixtures.ts`), so no run depends on a backend being up.
 
 The traceability job (`scripts/check_traceability.py --run`) reads `specs/*/spec.md`: every
 requirement and acceptance scenario must have a row in § Traceability, and every test the row cites
