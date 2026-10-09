@@ -282,6 +282,7 @@ def test_spec001_diagnostic_writes_course_topic_baselines(repo, student, client)
     from tests.integration.conftest import headers_for
 
     course, items = make_course(repo, [TOPIC, "Decimales"], difficulty=1200.0)
+    enroll(repo, student, course)
     other, _ = _course(repo)
     _row(repo, student, other, TOPIC, 1200.0)
     answer(repo, student, items["Decimales"][0])  # practised before the diagnostic

@@ -866,11 +866,11 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | US7-AS4 | `PENDING` |
 | US7-AS5 | `PENDING` |
 | US7-AS6 | `PENDING` |
-| US8-AS1 | `PENDING` |
-| US8-AS2 | `PENDING` |
-| US8-AS3 | `PENDING` |
-| US8-AS4 | `PENDING` |
-| US8-AS5 | `PENDING` |
+| US8-AS1 | `tests/integration/test_spec001_practice_access.py::test_spec001_next_question_outside_enrolment_is_forbidden` |
+| US8-AS2 | `tests/integration/test_spec001_practice_access.py::test_spec001_answer_outside_enrolment_changes_nothing` |
+| US8-AS3 | `tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden` |
+| US8-AS4 | `tests/integration/test_spec001_practice_access.py::test_spec001_enrolled_students_practise_as_before` |
+| US8-AS5 | `tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it` |
 | FR-001 | `tests/unit/domain/test_elo_model.py::TestExpectedScore::test_400_point_advantage_gives_approx_91_percent`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_fr001_both_engine_paths_use_the_same_expected_success` |
 | FR-002 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_rating_delta` |
 | FR-003 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_rd_floor_30_holds_and_scales_the_change`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_next_rd_has_a_floor_of_30` |
@@ -930,8 +930,8 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | FR-034b | `tests/integration/test_spec001_reconciliation.py::test_spec001_existing_rows_and_unassigned_legacy_rows_are_left_alone` |
 | FR-035 | `tests/integration/test_spec001_reconciliation.py::test_spec001_course_row_most_recent_wins_and_is_never_summed` |
 | FR-036 | `tests/integration/test_spec001_reconciliation.py::test_spec001_reconciliation_is_idempotent`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_every_ranking_reads_the_canonical_rating`<br>`tests/api/test_spec001_api.py::test_spec001_every_surface_reads_the_canonical_rating`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_course_topic_ratings_are_new_table_rows_only` |
-| FR-037 | `PENDING` |
-| FR-037a | `PENDING` |
+| FR-037 | `tests/integration/test_spec001_practice_access.py::test_spec001_next_question_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_enrolled_students_practise_as_before`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_ensure_enrolled` |
+| FR-037a | `tests/integration/test_spec001_practice_access.py::test_spec001_answer_outside_enrolment_changes_nothing`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_ensure_enrolled` |
 
 ## Appendix — As-is evidence
 

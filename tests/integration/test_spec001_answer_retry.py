@@ -13,7 +13,14 @@ import uuid
 import pytest
 
 from src.domain.elo.model import rating_delta
-from tests.integration.conftest import headers_for, make_course, rating_of, set_rating, sql
+from tests.integration.conftest import (
+    enroll,
+    headers_for,
+    make_course,
+    rating_of,
+    set_rating,
+    sql,
+)
 
 TOPIC = "Fracciones"
 START = 1181.0
@@ -29,6 +36,7 @@ def test_spec001_boundary_values_are_a_real_boundary():
 def test_spec001_retry_returns_the_persisted_attempt_and_applies_once(repo, student, client):
     course, items = make_course(repo, [TOPIC], difficulty=1000.0)
     item_id = items[TOPIC][0]
+    enroll(repo, student, course)
     set_rating(repo, student, course, TOPIC, START)
     headers = {**headers_for(repo, student), "Idempotency-Key": "spec001-" + uuid.uuid4().hex}
     body = {"item_id": item_id, "selected_option": "A", "time_taken": 20}
