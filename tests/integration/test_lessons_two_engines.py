@@ -5,6 +5,7 @@ today's behaviour; where the survey asks the owner to decide (§ 5), the test sa
 would change it.
 """
 
+from src.domain.learning.prealgebra import DIAGNOSTIC_NODE_IDS
 from tests.integration.conftest import make_student, headers_for, sql
 
 COURSE = "algebra_basica"
@@ -204,3 +205,74 @@ def test_the_complex_numbers_node_opens_from_the_intermediate_band(repo, client)
     opened = client.get(_lesson_url(COMPLEX), headers=headers)
     assert opened.status_code == 200, opened.text
     assert opened.json()["presentation"] == "intermedio"
+
+
+# ── The N1 closing summary (B13), survey L10 ─────────────────────────────────
+
+N1_FOCAL = {
+    "PREALG-N1-B04-NATURALES-CONTAR": "cero_no_es_numero",
+    "PREALG-N1-B05-ENTEROS-DEUDA": "magnitud_sin_signo",
+    "PREALG-N1-B06-RACIONALES-FRACCION-DIVISION": "decimal_truncado_es_el_numero",
+    "PREALG-N1-B07-IRRACIONALES-DECIMALES": "decimal_infinito_es_irracional",
+    "PREALG-N1-B08-REALES-RECTA": "existe_el_siguiente",
+}
+
+
+def _summary(client, headers):
+    response = client.get(f"/api/student/prealgebra-summary/{COURSE}", headers=headers)
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def test_summary_of_a_new_student_leaves_the_optional_node_out(repo, client):
+    user = make_student(repo)
+
+    assert _summary(client, headers_for(repo, user)) == {
+        "course_id": COURSE,
+        "completed_nodes": 0,
+        "total_nodes": len(DIAGNOSTIC_NODE_IDS) - 1,
+        "overall_status": "review",
+        "review": [],
+    }
+
+
+def test_summary_counts_the_optional_node_once_it_is_explored(repo, client):
+    user = make_student(repo)
+    repo.record_lesson_event(user, COURSE, COMPLEX, "node_viewed")
+
+    assert _summary(client, headers_for(repo, user))["total_nodes"] == len(DIAGNOSTIC_NODE_IDS)
+
+
+def test_summary_is_strong_when_every_node_is_done_without_misconceptions(repo, client):
+    user = make_student(repo)
+    for node_id in DIAGNOSTIC_NODE_IDS:
+        if node_id != COMPLEX:
+            repo.record_lesson_event(user, COURSE, node_id, "node_completed")
+
+    summary = _summary(client, headers_for(repo, user))
+
+    assert summary["completed_nodes"] == summary["total_nodes"] == len(DIAGNOSTIC_NODE_IDS) - 1
+    assert summary["overall_status"] == "strong"
+    assert summary["review"] == []
+
+
+def test_summary_sends_a_misconception_to_the_node_that_teaches_it(repo, client):
+    user = make_student(repo)
+    node_id = "PREALG-N1-B05-ENTEROS-DEUDA"
+    repo.save_lesson_interaction(user, COURSE, node_id, "Q", "x", False, N1_FOCAL[node_id])
+
+    summary = _summary(client, headers_for(repo, user))
+
+    assert summary["overall_status"] == "review"
+    assert summary["review"] == [{"node_id": node_id, "label_key": "prealgebra.n1.b05.mapTitle"}]
+
+
+def test_summary_lists_at_most_four_nodes_in_route_order(repo, client):
+    user = make_student(repo)
+    for node_id, tag in reversed(list(N1_FOCAL.items())):
+        repo.save_lesson_interaction(user, COURSE, node_id, "Q", "x", False, tag)
+
+    summary = _summary(client, headers_for(repo, user))
+
+    assert summary["overall_status"] == "attention"
+    assert [entry["node_id"] for entry in summary["review"]] == list(N1_FOCAL)[:4]
