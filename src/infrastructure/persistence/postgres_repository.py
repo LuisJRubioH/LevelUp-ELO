@@ -3360,9 +3360,24 @@ class PostgresRepository:
                 return
             try:
 
-                # 1. Obtener todos los IDs existentes en una sola query
-                cursor.execute("SELECT id FROM items")
-                existing_item_ids = {row["id"] for row in cursor.fetchall()}
+                # 1. Ítems existentes y sus columnas estáticas, en una sola query
+                cursor.execute(
+                    "SELECT id, content, options, correct_option, topic, course_id, "
+                    "image_url, tags, block FROM items"
+                )
+                existing_items = {
+                    row["id"]: (
+                        row["content"],
+                        row["options"],
+                        row["correct_option"],
+                        row["topic"],
+                        row["course_id"],
+                        row["image_url"],
+                        row["tags"],
+                        row["block"],
+                    )
+                    for row in cursor.fetchall()
+                }
 
                 cursor.execute("SELECT id FROM courses")
                 existing_course_ids = {row["id"] for row in cursor.fetchall()}
@@ -3394,7 +3409,7 @@ class PostgresRepository:
                         tags_json = json.dumps(item.get("tags") or [])
                         options_json = json.dumps(item["options"])
                         item_block = item.get("block", "")
-                        if item["id"] not in existing_item_ids:
+                        if item["id"] not in existing_items:
                             new_items_params.append(
                                 (
                                     item["id"],
@@ -3410,20 +3425,21 @@ class PostgresRepository:
                                 )
                             )
                         else:
-                            # Ítem ya existe → re-sincronizar metadatos estáticos.
-                            update_static_params.append(
-                                (
-                                    item["content"],
-                                    options_json,
-                                    item["correct_option"],
-                                    item["topic"],
-                                    course_id,
-                                    img,
-                                    tags_json,
-                                    item_block,
-                                    item["id"],
-                                )
+                            # Ítem ya existe → re-sincronizar metadatos estáticos, solo si
+                            # cambiaron: un arranque sin cambios en el banco no reescribe filas.
+                            static = (
+                                item["content"],
+                                options_json,
+                                item["correct_option"],
+                                item["topic"],
+                                course_id,
+                                img,
+                                tags_json,
+                                item_block,
                             )
+                            if existing_items[item["id"]] != static:
+                                update_static_params.append(static + (item["id"],))
+                                existing_items[item["id"]] = static
 
                 # 3. Si no hay nada que hacer, salir
                 if not new_courses_params and not new_items_params and not update_static_params:
