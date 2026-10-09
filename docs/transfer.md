@@ -318,6 +318,11 @@ whose rating change equals the preview, the course map, every lesson image serve
 and a procedure uploaded, seen by the teacher with the same image bytes and graded. Run it from a
 checkout of the deployed commit (it reads the lesson content to list the images).
 
+The image check passes even without Storage: when the upload or the download fails, the API serves
+the copy kept in the row (R9). The database says which path was used: the verify submission (its id
+is in the report) must have `storage_url` set. A NULL `storage_url` means uploads fall back to the
+row; check `SUPABASE_URL` and `SUPABASE_KEY` on the API host.
+
 ## 7. Known operating constraints
 
 - One API process only (`WEB_CONCURRENCY=1`) until matchmaking and notifications are shared —
