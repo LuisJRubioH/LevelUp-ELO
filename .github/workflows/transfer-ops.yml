@@ -17,9 +17,11 @@
 #                          or with the optional VERIFY_STUDENT / VERIFY_DIAGNOSTIC_STUDENT /
 #                          VERIFY_TEACHER secrets ("user:password"; user names masked in the log).
 #
-# The repository is public: logs carry counts only, connection details are masked, and the only
-# artifact holding data is encrypted. Production secrets live in the GitHub Environment
-# `production-ops` and are given only to the steps that read production.
+# The repository is public: anyone can read these logs and download the artifacts. Logs carry
+# counts only, connection details are masked, raw command output (which can quote rows) stays in
+# the encrypted backup, and the only artifacts holding data are encrypted. Production secrets live
+# in the GitHub Environment `production-ops` and are given only to the steps that read production.
+# Restrict that environment to the ops/transfer-* branches and require the owner's approval.
 
 name: transfer-ops
 
@@ -158,8 +160,17 @@ jobs:
           # This step gets no production secret: the migrations can only reach the scratch database.
           [ -z "${MIGRATION_DATABASE_URL:-}${DATABASE_URL:-}" ] || { echo "::error::production URL in scope"; exit 1; }
           DUMP=backup/full.dump; [ -f "$DUMP" ] || DUMP=backup/public.dump
+          # A failing command's raw output can quote production rows (PostgreSQL: "DETAIL: Key
+          # (email)=(…) is duplicated"). It goes only into the encrypted backup; the log and the
+          # public report get the script's own lines (checks, counts, result).
+          rc=0
           python scripts/rehearse_migration.py --dump "$DUMP" --scratch-url "$SCRATCH_URL" \
-            --scratch-sslmode disable --report backup/rehearsal.txt
+            --scratch-sslmode disable --report backup/rehearsal-full.txt \
+            > backup/rehearsal-output.txt 2>&1 || rc=$?
+          python3 .github/scripts/public_rehearsal_summary.py backup/rehearsal-output.txt \
+            > backup/rehearsal.txt
+          cat backup/rehearsal.txt
+          exit "$rc"
 
       - name: Production, read only — bucket procedimientos (every object, checked against storage.objects)
         if: always() && steps.check.outcome == 'success'
@@ -282,7 +293,11 @@ jobs:
           psql "$SCRATCH_URL" -q -c "CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN;"
           pg_restore --no-owner --no-privileges --schema=public --dbname="$SCRATCH_URL" restored/public.dump \
             2> restore.err || true
-          if grep -i "error:" restore.err | grep -v 'schema "public" already exists'; then exit 1; fi
+          # Count the errors, never print them: pg_restore quotes row data in its messages.
+          ERRORS=$(grep -i "error:" restore.err | grep -vc 'schema "public" already exists' || true)
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "::error::pg_restore reported $ERRORS errors (not shown here: they can quote rows)"; exit 1
+          fi
           psql "$SCRATCH_URL" -X -q -At -v ON_ERROR_STOP=1 > restored-counts.txt <<'SQL'
           SELECT format('SELECT %L || ''|'' || count(*) FROM public.%I', table_name, table_name)
             FROM information_schema.tables
@@ -495,6 +510,26 @@ jobs:
           done
           python scripts/verify_deployment.py --api-url https://levelup-elo.onrender.com \
             --frontend-url https://luislevelupelo.vercel.app --wait 300 --report verify.txt
+      - name: Remove the verification accounts' user names from the report
+        # The log masks them; the artifact is a file, which masking does not touch.
+        if: always()
+        env:
+          SECRET_VERIFY_STUDENT: ${{ secrets.VERIFY_STUDENT }}
+          SECRET_VERIFY_DIAGNOSTIC_STUDENT: ${{ secrets.VERIFY_DIAGNOSTIC_STUDENT }}
+          SECRET_VERIFY_TEACHER: ${{ secrets.VERIFY_TEACHER }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib
+          report = pathlib.Path("verify.txt")
+          if report.exists():
+              text = report.read_text(encoding="utf-8")
+              for var in ("SECRET_VERIFY_STUDENT", "SECRET_VERIFY_DIAGNOSTIC_STUDENT",
+                          "SECRET_VERIFY_TEACHER"):
+                  user = os.environ.get(var, "").partition(":")[0]
+                  if user:
+                      text = text.replace(user, "<" + var.removeprefix("SECRET_") + ">")
+              report.write_text(text, encoding="utf-8")
+          PY
       - if: always()
         uses: actions/upload-artifact@v4
         with:
