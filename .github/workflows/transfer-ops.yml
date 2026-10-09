@@ -102,6 +102,7 @@ jobs:
         run: pip install -r requirements-api.txt
 
       - name: The app reads MIGRATION_DATABASE_URL as migrate.py will (read only)
+        id: app_url
         env:
           MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
           SUPABASE_URL: ""
@@ -180,7 +181,7 @@ jobs:
           exit "$rc"
 
       - name: Production, read only — bucket procedimientos (every object, checked against storage.objects)
-        if: always() && steps.check.outcome == 'success'
+        if: always() && steps.check.outcome == 'success' && steps.app_url.outcome == 'success'
         env:
           MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -360,14 +361,6 @@ jobs:
       - name: Install API requirements
         run: pip install -r requirements-api.txt
 
-      - name: The app reads MIGRATION_DATABASE_URL as migrate.py will (read only)
-        # pg_dump/psql read a ?query part and decode %XX; the app's own parser does neither.
-        env:
-          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
-          SUPABASE_URL: ""
-          SUPABASE_KEY: ""
-        run: python .github/scripts/app_url_check.py
-
       - name: courses.block CHECK accepts the four blocks (survey § 4.3 step 1)
         if: steps.check.outcome == 'success'
         env:
@@ -433,6 +426,16 @@ jobs:
           ROWS=$(( $(wc -l < precheck/semillero-without-valid-grade.csv) - 1 ))
           echo "ACCOUNTS: $ROWS semillero students without a valid grade (listed only in the encrypted artifact)"
           echo "ROWS=$ROWS" >> "$GITHUB_ENV"
+
+      - name: The app reads MIGRATION_DATABASE_URL as migrate.py will (read only)
+        # pg_dump/psql read a ?query part and decode %XX; the app's own parser does neither.
+        # Runs after the counts so that T084 reports them either way; a failure fails the job.
+        if: always() && steps.check.outcome == 'success'
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+          SUPABASE_URL: ""
+          SUPABASE_KEY: ""
+        run: python .github/scripts/app_url_check.py
 
       - name: Encrypt the account list (the only artifact with data)
         id: encrypt
