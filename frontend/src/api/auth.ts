@@ -15,7 +15,7 @@ export interface RegisterRequest {
   username: string;
   password: string;
   role: "student" | "teacher";
-  education_level?: "universidad" | "colegio" | "semillero";
+  education_level?: "universidad" | "colegio" | "semillero" | "concursos";
   grade?: string;
   email?: string;
 }
@@ -44,4 +44,5 @@ export const authApi = {
   register: (body: RegisterRequest) => api.post<{ message: string }>("/api/auth/register", body),
   me: () => api.get<UserProfile>("/api/auth/me"),
   logout: () => api.post<void>("/api/auth/logout"),
+  refresh: () => api.post<TokenResponse>("/api/auth/refresh"),
 };

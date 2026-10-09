@@ -9,7 +9,9 @@ Endpoints de autenticación:
   GET  /auth/me       → perfil del usuario autenticado
 """
 
-from fastapi import APIRouter, HTTPException, Response, status
+from typing import Annotated
+
+from fastapi import APIRouter, Cookie, HTTPException, Request, Response, status
 
 from api.config import settings
 from api.dependencies import (
@@ -26,6 +28,7 @@ from api.schemas.auth import (
     TokenResponse,
     UserProfile,
 )
+from api.rate_limit import limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -33,7 +36,8 @@ _REFRESH_COOKIE = "levelup_refresh"
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(body: LoginRequest, response: Response, repo: RepoDep):
+@limiter.limit(settings.rate_limit_auth)
+def login(request: Request, body: LoginRequest, response: Response, repo: RepoDep):
     """Autentica usuario y retorna access token + refresh token en cookie HttpOnly."""
     result = repo.login_user(body.username, body.password)
     if not result:
@@ -60,7 +64,7 @@ def login(body: LoginRequest, response: Response, repo: RepoDep):
         secure=True,
         samesite="none",  # cross-origin (frontend Vercel ↔ backend Render)
         max_age=settings.refresh_token_expire_days * 86400,
-        path="/auth",
+        path="/api/auth",
     )
 
     return TokenResponse(
@@ -73,7 +77,8 @@ def login(body: LoginRequest, response: Response, repo: RepoDep):
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(body: RegisterRequest, repo: RepoDep):
+@limiter.limit(settings.rate_limit_auth)
+def register(request: Request, body: RegisterRequest, repo: RepoDep):
     """Registra un nuevo usuario (student o teacher)."""
     ok, msg = repo.register_user(
         username=body.username,
@@ -89,9 +94,17 @@ def register(body: RegisterRequest, repo: RepoDep):
 
 
 @router.post("/refresh", response_model=TokenResponse)
-def refresh_token(body: RefreshRequest, response: Response, repo: RepoDep):
+def refresh_token(
+    response: Response,
+    repo: RepoDep,
+    body: RefreshRequest | None = None,
+    cookie_token: Annotated[str | None, Cookie(alias=_REFRESH_COOKIE)] = None,
+):
     """Emite un nuevo access token a partir del refresh token."""
-    payload = decode_token(body.refresh_token)
+    token = cookie_token or (body.refresh_token if body else None)
+    if not token:
+        raise HTTPException(status_code=401, detail="Token de refresh requerido.")
+    payload = decode_token(token)
     if payload.get("type") != "refresh":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token de refresh inválido."
@@ -99,8 +112,6 @@ def refresh_token(body: RefreshRequest, response: Response, repo: RepoDep):
     user_id = int(payload["sub"])
 
     # Verificar que el usuario sigue activo
-    user_row = repo.login_user.__func__  # no podemos llamar login_user sin password
-    # En su lugar consultamos directamente con un método auxiliar
     profile = _get_profile_row(repo, user_id)
     if not profile:
         raise HTTPException(
@@ -117,7 +128,7 @@ def refresh_token(body: RefreshRequest, response: Response, repo: RepoDep):
         secure=True,
         samesite="none",  # cross-origin (frontend Vercel ↔ backend Render)
         max_age=settings.refresh_token_expire_days * 86400,
-        path="/auth",
+        path="/api/auth",
     )
 
     return TokenResponse(
@@ -132,7 +143,7 @@ def refresh_token(body: RefreshRequest, response: Response, repo: RepoDep):
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(response: Response):
     """Elimina la cookie de refresh token."""
-    response.delete_cookie(key=_REFRESH_COOKIE, path="/auth")
+    response.delete_cookie(key=_REFRESH_COOKIE, path="/api/auth")
 
 
 @router.get("/me", response_model=UserProfile)

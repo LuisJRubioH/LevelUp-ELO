@@ -31,6 +31,35 @@ LEVEL_TO_BLOCK = {
 }
 
 
+# The four values of courses.block the code writes (spec 001 FR-028n).
+COURSE_BLOCKS = tuple(LEVEL_TO_BLOCK.values())
+
+# Grades a semillero student may have (spec 001 FR-028k, FR-028m).
+SEMILLERO_GRADES = frozenset({"6", "7", "8", "9", "10", "11"})
+
+
+def valid_semillero_grade(grade) -> bool:
+    """A semillero grade from 6 to 11, as stored ('6' … '11') or as a number."""
+    return grade is not None and str(grade) in SEMILLERO_GRADES
+
+
+def in_catalogue(level: Optional[str], grade, course_id: str, block: str) -> bool:
+    """Whether a course belongs to the catalogue of a student's level (and grade, for semillero).
+
+    Spec 001 FR-028k. Every semillero course has block 'Semillero'; its grade is the id suffix
+    (`algebra_semillero_6`). A semillero student without a valid grade has no catalogue: no
+    grade is ever inferred. An unknown or missing level falls back to universidad.
+    """
+    level = (level or LEVEL_UNIVERSIDAD).lower()
+    if level not in VALID_LEVELS:
+        level = LEVEL_UNIVERSIDAD
+    if block != LEVEL_TO_BLOCK[level]:
+        return False
+    if level == LEVEL_SEMILLERO:
+        return valid_semillero_grade(grade) and course_id.endswith(f"_semillero_{grade}")
+    return True
+
+
 @dataclass
 class Student:
     """Representa a un estudiante con su nivel académico.

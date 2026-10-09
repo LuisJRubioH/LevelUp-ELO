@@ -1,359 +1,633 @@
 /**
  * pages/Login.tsx
  * ================
- * Página de login con wizard de registro en dos pasos.
- * Paso 1: selección de rol (Estudiante / Docente)
- * Paso 2: datos de cuenta
+ * Pantalla de acceso (rediseño) — variante split-screen portada de
+ * docs/redesign/source/Oulad Auth.html (auth-parts.jsx + auth-variations.jsx).
+ *
+ * - Estilos en Login.css, scopeados bajo .lue-auth (tokens propios del
+ *   rediseño; tema claro vía html.light). Marca real LevelUp (logo).
+ * - Cableado al backend real: authApi.login / register / me + authStore.
+ * - i18n local ES/EN sincronizada con la clave "levelup-lang".
+ *
+ * Notas: el login social (Google/Microsoft) y "¿olvidaste tu contraseña?"
+ * no tienen backend todavía — se muestran (fidelidad al diseño) pero
+ * deshabilitados/no operativos para no prometer lo que no existe.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useId, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { authApi } from "../api/auth";
-import { Button } from "../components/ui/Button";
+import { studentApi } from "../api/student";
 import { useAuthStore } from "../stores/authStore";
 import type { AuthUser } from "../stores/authStore";
-import { isStaleChunkError, recoverFromStaleChunk } from "../lib/staleChunk";
+import "./Login.css";
 
-type View = "login" | "register-role" | "register-form";
+const KATIA_GIF = "/katia/correcto_compressed.gif";
+const LS_LANG = "levelup-lang";
+
+type Lang = "es" | "en";
+type Mode = "login" | "signup";
+type Role = "student" | "teacher";
+/** Nivel del diseño → education_level del backend (secundaria = colegio). */
+type DesignLevel = "secundaria" | "universidad" | "semillero" | "concursos";
+type Bi = { es: string; en: string };
+
+const LEVEL_MAP: Record<DesignLevel, "colegio" | "universidad" | "semillero" | "concursos"> = {
+  secundaria: "colegio",
+  universidad: "universidad",
+  semillero: "semillero",
+  concursos: "concursos",
+};
+
+function GoogleIcon() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.3 6.1 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z" />
+      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.3 6.1 29.4 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+      <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.2 35 26.7 36 24 36c-5.3 0-9.7-3.1-11.3-7.5l-6.5 5C9.6 39.6 16.2 44 24 44z" />
+      <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.5l6.3 5.3C41.2 36.4 44 30.8 44 24c0-1.3-.1-2.3-.4-3.5z" />
+    </svg>
+  );
+}
+function MicrosoftIcon() {
+  return (
+    <svg viewBox="0 0 23 23" aria-hidden="true">
+      <path fill="#F25022" d="M1 1h10v10H1z" />
+      <path fill="#7FBA00" d="M12 1h10v10H12z" />
+      <path fill="#00A4EF" d="M1 12h10v10H1z" />
+      <path fill="#FFB900" d="M12 12h10v10H12z" />
+    </svg>
+  );
+}
+
+interface FieldProps {
+  label: string;
+  lead?: string;
+  type?: string;
+  placeholder?: string;
+  value: string;
+  onChange: (v: string) => void;
+  optional?: string;
+  required?: boolean;
+  autoComplete?: string;
+  minLength?: number;
+  showLabel: Bi;
+  hideLabel: Bi;
+  lang: Lang;
+}
+
+function Field({
+  label,
+  lead,
+  type = "text",
+  placeholder,
+  value,
+  onChange,
+  optional,
+  required,
+  autoComplete,
+  minLength,
+  showLabel,
+  hideLabel,
+  lang,
+}: FieldProps) {
+  const inputId = useId();
+  const [show, setShow] = useState(false);
+  const isPw = type === "password";
+  return (
+    <div className="field">
+      <label htmlFor={inputId}>
+        {label}
+        {optional ? <span className="opt">· {optional}</span> : null}
+      </label>
+      <div className="input-wrap">
+        {lead ? <span className="lead">{lead}</span> : null}
+        <input
+          id={inputId}
+          type={isPw && show ? "text" : type}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required={required}
+          autoComplete={autoComplete}
+          minLength={minLength}
+        />
+        {isPw ? (
+          <button type="button" className="reveal-pw" onClick={() => setShow((s) => !s)}>
+            {show ? (lang === "es" ? hideLabel.es : hideLabel.en) : lang === "es" ? showLabel.es : showLabel.en}
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 export function Login() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const setAuth = useAuthStore((s) => s.setAuth);
 
-  const [view, setView] = useState<View>("login");
-  const [selectedRole, setSelectedRole] = useState<"student" | "teacher">("student");
+  const [lang, setLang] = useState<Lang>(() => ((localStorage.getItem(LS_LANG) as Lang) || "es"));
+  const t = (b: Bi) => (lang === "es" ? b.es : b.en);
+  const switchLang = (l: Lang) => {
+    setLang(l);
+    localStorage.setItem(LS_LANG, l);
+    document.documentElement.lang = l;
+  };
+
+  const [mode, setMode] = useState<Mode>("login");
+  const [role, setRole] = useState<Role>("student");
+  const [level, setLevel] = useState<DesignLevel>("secundaria");
+  const [grade, setGrade] = useState("9");
+
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
-  const [slowLoading, setSlowLoading] = useState(false);
-  const slowTimerRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    if (loading) {
-      slowTimerRef.current = window.setTimeout(() => setSlowLoading(true), 5000);
-    } else {
-      setSlowLoading(false);
-      if (slowTimerRef.current !== null) {
-        window.clearTimeout(slowTimerRef.current);
-        slowTimerRef.current = null;
-      }
-    }
-    return () => {
-      if (slowTimerRef.current !== null) {
-        window.clearTimeout(slowTimerRef.current);
-        slowTimerRef.current = null;
-      }
-    };
-  }, [loading]);
+  // login
+  const [loginUser, setLoginUser] = useState("");
+  const [loginPw, setLoginPw] = useState("");
 
-  const [loginData, setLoginData] = useState({ username: "", password: "" });
+  // signup
+  const [suName, setSuName] = useState("");
+  const [suEmail, setSuEmail] = useState("");
+  const [suPw, setSuPw] = useState("");
+  const [suPw2, setSuPw2] = useState("");
+  const [suCode, setSuCode] = useState("");
+  const [terms, setTerms] = useState(true);
 
-  const [regData, setRegData] = useState({
-    username: "",
-    password: "",
-    email: "",
-    education_level: "colegio" as "universidad" | "colegio" | "semillero",
-    grade: "9",
-  });
+  const resetMsgs = () => {
+    setError("");
+    setInfo("");
+  };
+  const changeMode = (m: Mode) => {
+    setMode(m);
+    resetMsgs();
+  };
+
+  const finishLogin = async (username: string, password: string) => {
+    const res = await authApi.login({ username, password });
+    setAuth(res.access_token, {
+      user_id: res.user_id,
+      username: res.username,
+      role: res.role as AuthUser["role"],
+      education_level: null,
+      grade: null,
+      email: null,
+    });
+    const profile = await authApi.me();
+    setAuth(res.access_token, profile as AuthUser);
+    return res;
+  };
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    setError("");
+    resetMsgs();
     setLoading(true);
     try {
-      const res = await authApi.login(loginData);
-      setAuth(res.access_token, {
-        user_id: res.user_id,
-        username: res.username,
-        role: res.role as AuthUser["role"],
-        education_level: null,
-        grade: null,
-        email: null,
-      });
-      const profile = await authApi.me();
-      setAuth(res.access_token, profile as AuthUser);
+      const res = await finishLogin(loginUser, loginPw);
       navigate(res.role === "teacher" ? "/teacher" : res.role === "admin" ? "/admin" : "/student");
     } catch (err: unknown) {
-      if (isStaleChunkError(err) && recoverFromStaleChunk()) return;
-      setError(err instanceof Error ? err.message : t("login.error.invalid"));
+      setError(err instanceof Error ? err.message : t({ es: "Credenciales inválidas.", en: "Invalid credentials." }));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRegister = async (e: FormEvent) => {
+  const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
-    setError("");
+    resetMsgs();
+    if (suPw !== suPw2) {
+      setError(t({ es: "Las contraseñas no coinciden.", en: "Passwords don't match." }));
+      return;
+    }
+    if (!terms) {
+      setError(t({ es: "Debes aceptar los términos.", en: "You must accept the terms." }));
+      return;
+    }
     setLoading(true);
     try {
+      const eduLevel = LEVEL_MAP[level];
       await authApi.register({
-        username: regData.username,
-        password: regData.password,
-        email: regData.email || undefined,
-        role: selectedRole,
-        education_level: regData.education_level,
-        grade: regData.education_level === "semillero" ? regData.grade : undefined,
+        username: suName,
+        password: suPw,
+        email: suEmail || undefined,
+        role,
+        education_level: role === "student" ? eduLevel : undefined,
+        grade: role === "student" && eduLevel === "semillero" ? grade : undefined,
       });
-      const res = await authApi.login({
-        username: regData.username,
-        password: regData.password,
-      });
-      setAuth(res.access_token, {
-        user_id: res.user_id,
-        username: res.username,
-        role: res.role as AuthUser["role"],
-        education_level: null,
-        grade: null,
-        email: null,
-      });
-      const profile = await authApi.me();
-      setAuth(res.access_token, profile as AuthUser);
-      if (selectedRole === "teacher") {
-        setView("login");
-        setError("Registro exitoso. Tu cuenta de docente está pendiente de aprobación.");
-      } else {
-        navigate("/student");
+      if (role === "teacher") {
+        changeMode("login");
+        setInfo(
+          t({
+            es: "Registro exitoso. Tu cuenta de docente está pendiente de aprobación.",
+            en: "Registration successful. Your teacher account is pending approval.",
+          })
+        );
+        return;
       }
+      // estudiante: login + (best-effort) inscripción por código de clase
+      await finishLogin(suName, suPw);
+      if (suCode.trim()) {
+        try {
+          await studentApi.enrollByCode(suCode.trim());
+        } catch {
+          /* código inválido: no bloquea el registro, el alumno puede usarlo luego */
+        }
+      }
+      navigate("/student");
     } catch (err: unknown) {
-      if (isStaleChunkError(err) && recoverFromStaleChunk()) return;
-      setError(err instanceof Error ? err.message : "Error al registrarse.");
+      setError(err instanceof Error ? err.message : t({ es: "Error al registrarse.", en: "Sign up failed." }));
     } finally {
       setLoading(false);
     }
   };
 
+  const showPw: Bi = { es: "ver", en: "show" };
+  const hidePw: Bi = { es: "ocultar", en: "hide" };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 px-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-100">
-            Level<span className="text-violet-400">Up</span>
-          </h1>
-          <p className="text-slate-400 text-sm mt-1">Plataforma educativa adaptativa con ELO</p>
-        </div>
-
-        <div className="bg-slate-800 rounded-2xl p-8 border border-slate-700 shadow-2xl">
-          {/* ── LOGIN ─────────────────────────────────────────────── */}
-          {view === "login" && (
-            <form onSubmit={handleLogin} className="space-y-4">
-              <h2 className="text-xl font-semibold text-slate-100 mb-6">{t("login.title")}</h2>
-
-              <div>
-                <label className="block text-sm text-slate-400 mb-1">{t("login.usernameLabel")}</label>
-                <input
-                  type="text"
-                  value={loginData.username}
-                  onChange={(e) => setLoginData((d) => ({ ...d, username: e.target.value }))}
-                  placeholder={t("login.usernamePlaceholder")}
-                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500 placeholder-slate-600"
-                  required
-                  autoComplete="username"
-                />
+    <div className="lue-auth" lang={lang}>
+      <div className="auth-bg">
+        <div className="grid" />
+      </div>
+      <div className="split">
+        {/* ── PANEL MARCA ─────────────────────────────────────────── */}
+        <aside className="brand-panel">
+          <div className="pbg">
+            <span
+              style={{
+                position: "absolute",
+                width: 360,
+                height: 360,
+                borderRadius: "50%",
+                filter: "blur(90px)",
+                background: "var(--glow-a)",
+                top: -120,
+                left: -90,
+              }}
+            />
+          </div>
+          <a href="/" aria-label="Oulad">
+            <img className="auth-logo auth-logo-dark" src="/oulad-logo-dark.png" alt="Oulad" />
+            <img className="auth-logo auth-logo-light" src="/oulad-logo-light.png" alt="Oulad" />
+          </a>
+          <h2 className="brand-h">
+            {t({ es: "Las matemáticas tienen rango.", en: "Math has a rank." })}{" "}
+            <span className="em">{t({ es: "Sube el tuyo.", en: "Climb yours." })}</span>
+          </h2>
+          <div className="brand-katia">
+            <div className="katia-card" style={{ marginBottom: 20 }}>
+              <div className="hud">
+                <span className="fdot" style={{ background: "#ff5f57" }} />
+                <span className="fdot" style={{ background: "#febc2e" }} />
+                <span className="fdot" style={{ background: "#28c840" }} />
+                <span className="lbl">KATIA.EXE</span>
               </div>
-              <div>
-                <label className="block text-sm text-slate-400 mb-1">{t("login.passwordLabel")}</label>
-                <input
-                  type="password"
-                  value={loginData.password}
-                  onChange={(e) => setLoginData((d) => ({ ...d, password: e.target.value }))}
-                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500"
-                  required
-                  autoComplete="current-password"
-                />
+              <img src={KATIA_GIF} alt="KatIA, tutora socrática pixel-art" />
+              <div className="scan" />
+              <div className="nameplate">
+                <div className="who">
+                  KatIA<small>{t({ es: "Tutora socrática", en: "Socratic tutor" })}</small>
+                </div>
+                <div className="hpbar">
+                  <div className="t">XP 72%</div>
+                  <div className="bar">
+                    <i style={{ width: "72%" }} />
+                  </div>
+                </div>
               </div>
-
-              {error && <p className="text-red-400 text-sm">{error}</p>}
-
-              {slowLoading && (
-                <p className="text-amber-400 text-xs bg-amber-500/10 rounded px-3 py-2">
-                  {t("login.slowConnection")}
-                </p>
-              )}
-
-              <Button type="submit" className="w-full" loading={loading} size="lg">
-                {t("login.submit")}
-              </Button>
-
-              <p className="text-center text-sm text-slate-500">
-                {t("login.noAccount")}{" "}
-                <button
-                  type="button"
-                  onClick={() => { setView("register-role"); setError(""); }}
-                  className="text-violet-400 hover:text-violet-300"
-                >
-                  {t("login.register")}
-                </button>
-              </p>
-            </form>
-          )}
-
-          {/* ── REGISTRO PASO 1: ROL ──────────────────────────────── */}
-          {view === "register-role" && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-slate-100 mb-2">
-                {t("login.registerStep1.title")}
-              </h2>
-              <p className="text-slate-400 text-sm mb-6">{t("login.registerStep1.subtitle")}</p>
-
-              <div className="grid grid-cols-2 gap-4">
-                {(["student", "teacher"] as const).map((role) => (
-                  <button
-                    key={role}
-                    type="button"
-                    onClick={() => setSelectedRole(role)}
-                    className={[
-                      "p-6 rounded-xl border-2 transition-all",
-                      selectedRole === role
-                        ? "border-violet-500 bg-violet-900/30"
-                        : "border-slate-600 bg-slate-800 hover:border-slate-500",
-                    ].join(" ")}
-                  >
-                    <div className="text-2xl mb-2">{role === "student" ? "🎓" : "👨‍🏫"}</div>
-                    <div className="text-sm font-medium text-slate-100">
-                      {role === "student"
-                        ? t("login.registerStep1.student")
-                        : t("login.registerStep1.teacher")}
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              <Button className="w-full" size="lg" onClick={() => setView("register-form")}>
-                {t("login.registerStep1.next")}
-              </Button>
-
-              <button
-                type="button"
-                onClick={() => setView("login")}
-                className="w-full text-center text-sm text-slate-500 hover:text-slate-400"
-              >
-                {t("login.backToLogin")}
-              </button>
             </div>
-          )}
-
-          {/* ── REGISTRO PASO 2: DATOS ────────────────────────────── */}
-          {view === "register-form" && (
-            <form onSubmit={handleRegister} className="space-y-4">
-              <h2 className="text-xl font-semibold text-slate-100 mb-2">
-                {t("login.registerStep2.title")}
-              </h2>
-
+            <div className="brand-stats">
               <div>
-                <label className="block text-sm text-slate-400 mb-1">
-                  {t("login.registerStep2.usernameLabel")}
-                </label>
-                <input
-                  type="text"
-                  value={regData.username}
-                  onChange={(e) => setRegData((d) => ({ ...d, username: e.target.value }))}
-                  placeholder={t("login.registerStep2.usernamePlaceholder")}
-                  minLength={3}
-                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500 placeholder-slate-600"
-                  required
-                />
+                <div className="n">
+                  <span className="a">+1.900</span>
+                </div>
+                <div className="l">{t({ es: "preguntas", en: "questions" })}</div>
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-1">
-                  {t("login.registerStep2.passwordLabel")}
-                </label>
-                <input
-                  type="password"
-                  value={regData.password}
-                  onChange={(e) => setRegData((d) => ({ ...d, password: e.target.value }))}
-                  minLength={6}
-                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500"
-                  required
-                  autoComplete="new-password"
-                />
+                <div className="n">16</div>
+                <div className="l">{t({ es: "rangos", en: "ranks" })}</div>
               </div>
-
               <div>
-                <label className="block text-sm text-slate-400 mb-1">
-                  {t("login.registerStep2.emailLabel")}{" "}
-                  <span className="text-slate-600">({t("login.registerStep2.emailOptional")})</span>
-                </label>
-                <input
-                  type="email"
-                  value={regData.email}
-                  onChange={(e) => setRegData((d) => ({ ...d, email: e.target.value }))}
-                  placeholder={t("login.registerStep2.emailPlaceholder")}
-                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500 placeholder-slate-600"
-                />
+                <div className="n">10+</div>
+                <div className="l">{t({ es: "materias", en: "subjects" })}</div>
               </div>
+            </div>
+          </div>
+        </aside>
 
-              {selectedRole === "student" && (
-                <div>
-                  <label className="block text-sm text-slate-400 mb-1">
-                    {t("login.registerStep2.levelLabel")}
+        {/* ── PANEL FORMULARIO ────────────────────────────────────── */}
+        <main className="form-panel">
+          <div className="form-scroll">
+            <div className="form-topbar">
+              <div className="auth-tabs" role="tablist">
+                <button className={mode === "login" ? "on" : ""} onClick={() => changeMode("login")}>
+                  {t({ es: "Iniciar sesión", en: "Log in" })}
+                </button>
+                <button className={mode === "signup" ? "on" : ""} onClick={() => changeMode("signup")}>
+                  {t({ es: "Crear cuenta", en: "Sign up" })}
+                </button>
+              </div>
+              <span className="auth-lang" role="group" aria-label="Idioma">
+                <button className={lang === "es" ? "on" : ""} onClick={() => switchLang("es")}>
+                  ES
+                </button>
+                <button className={lang === "en" ? "on" : ""} onClick={() => switchLang("en")}>
+                  EN
+                </button>
+              </span>
+            </div>
+
+            <form className="auth-form" onSubmit={mode === "login" ? handleLogin : handleSignup}>
+              <span className="auth-eyebrow">
+                {t(
+                  mode === "login"
+                    ? { es: "Bienvenido de vuelta", en: "Welcome back" }
+                    : { es: "Únete a Oulad", en: "Join Oulad" }
+                )}
+              </span>
+              <h1 className="auth-title">
+                {mode === "login" ? (
+                  <>
+                    {t({ es: "Continúa tu ", en: "Continue your " })}
+                    <span className="em">{t({ es: "ascenso", en: "climb" })}</span>.
+                  </>
+                ) : (
+                  <>
+                    {t({ es: "Crea tu ", en: "Create your " })}
+                    <span className="em">{t({ es: "cuenta", en: "account" })}</span>.
+                  </>
+                )}
+              </h1>
+              <p className="auth-sub">
+                {t(
+                  mode === "login"
+                    ? {
+                        es: "Tu ELO, tus rangos y KatIA te están esperando.",
+                        en: "Your ELO, your ranks and KatIA are waiting for you.",
+                      }
+                    : {
+                        es: "Configura tu perfil y deja que el motor ELO encuentre tu reto perfecto.",
+                        en: "Set up your profile and let the ELO engine find your perfect challenge.",
+                      }
+                )}
+              </p>
+
+              {mode === "login" ? (
+                <>
+                  <div className="fields">
+                    <Field
+                      label={t({ es: "Usuario o correo", en: "Username or email" })}
+                      lead="@"
+                      placeholder={t({ es: "ada.mateus  ·  tu@correo.com", en: "ada.mateus  ·  you@email.com" })}
+                      value={loginUser}
+                      onChange={setLoginUser}
+                      required
+                      autoComplete="username"
+                      showLabel={showPw}
+                      hideLabel={hidePw}
+                      lang={lang}
+                    />
+                    <Field
+                      label={t({ es: "Contraseña", en: "Password" })}
+                      lead="🔒"
+                      type="password"
+                      placeholder="••••••••"
+                      value={loginPw}
+                      onChange={setLoginPw}
+                      required
+                      autoComplete="current-password"
+                      showLabel={showPw}
+                      hideLabel={hidePw}
+                      lang={lang}
+                    />
+                  </div>
+                  <div className="auth-row">
+                    <label className="check">
+                      <input type="checkbox" />
+                      <span className="box" />
+                      {t({ es: "Recordarme", en: "Remember me" })}
+                    </label>
+                    <button
+                      type="button"
+                      className="link-forgot"
+                      title={t({ es: "Próximamente", en: "Coming soon" })}
+                      onClick={() =>
+                        setInfo(
+                          t({
+                            es: "Recuperación de contraseña: próximamente. Contacta a tu docente o admin.",
+                            en: "Password recovery: coming soon. Contact your teacher or admin.",
+                          })
+                        )
+                      }
+                    >
+                      {t({ es: "¿Olvidaste tu contraseña?", en: "Forgot password?" })}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="fields">
+                  <Field
+                    label={t({ es: "Nombre de usuario", en: "Username" })}
+                    lead="👤"
+                    placeholder="ada.mateus"
+                    value={suName}
+                    onChange={setSuName}
+                    required
+                    minLength={3}
+                    autoComplete="username"
+                    showLabel={showPw}
+                    hideLabel={hidePw}
+                    lang={lang}
+                  />
+                  <Field
+                    label={t({ es: "Correo", en: "Email" })}
+                    lead="✉"
+                    type="email"
+                    optional={t({ es: "opcional", en: "optional" })}
+                    placeholder={t({ es: "tu@correo.com", en: "you@email.com" })}
+                    value={suEmail}
+                    onChange={setSuEmail}
+                    autoComplete="email"
+                    showLabel={showPw}
+                    hideLabel={hidePw}
+                    lang={lang}
+                  />
+
+                  <div className="field">
+                    <label>{t({ es: "Soy…", en: "I am a…" })}</label>
+                    <div className="role-seg">
+                      <button type="button" className={role === "student" ? "on" : ""} onClick={() => setRole("student")}>
+                        <span className="ico">🎯</span>
+                        <span className="rl">
+                          <b>{t({ es: "Estudiante", en: "Student" })}</b>
+                          <span>{t({ es: "Quiero subir de rango", en: "I want to rank up" })}</span>
+                        </span>
+                      </button>
+                      <button type="button" className={role === "teacher" ? "on" : ""} onClick={() => setRole("teacher")}>
+                        <span className="ico">🛡️</span>
+                        <span className="rl">
+                          <b>{t({ es: "Docente", en: "Teacher" })}</b>
+                          <span>{t({ es: "Gestiono un grupo", en: "I manage a group" })}</span>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {role === "teacher" && (
+                    <div className="teacher-notice" role="note">
+                      <span className="tn-ico">🛡️</span>
+                      <div className="tn-body">
+                        <b>{t({ es: "Las cuentas docentes se verifican", en: "Teacher accounts are verified" })}</b>
+                        <p>
+                          {t({
+                            es: "Para proteger a los grupos, validamos a cada docente antes de dar acceso al panel. Un administrador aprobará tu cuenta.",
+                            en: "To keep groups safe, we verify every teacher before granting dashboard access. An admin will approve your account.",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {role === "student" && (
+                    <>
+                      <div className="field">
+                        <label>{t({ es: "Nivel educativo", en: "Education level" })}</label>
+                        <div className="level-seg">
+                          <button type="button" className={level === "secundaria" ? "on" : ""} onClick={() => setLevel("secundaria")}>
+                            <span className="ico">📘</span>
+                            <b>{t({ es: "Secundaria", en: "Secondary" })}</b>
+                            <span className="d">{t({ es: "Bachillerato", en: "High school" })}</span>
+                          </button>
+                          <button type="button" className={level === "universidad" ? "on" : ""} onClick={() => setLevel("universidad")}>
+                            <span className="ico">🎓</span>
+                            <b>{t({ es: "Universidad", en: "University" })}</b>
+                            <span className="d">{t({ es: "Pregrado y más", en: "Undergrad & up" })}</span>
+                          </button>
+                          <button type="button" className={level === "semillero" ? "on" : ""} onClick={() => setLevel("semillero")}>
+                            <span className="ico">🌱</span>
+                            <b>{t({ es: "Semillero", en: "Semillero" })}</b>
+                            <span className="d">{t({ es: "Grupo de talento", en: "Talent track" })}</span>
+                          </button>
+                          <button type="button" className={level === "concursos" ? "on" : ""} onClick={() => setLevel("concursos")}>
+                            <span className="ico">🏆</span>
+                            <b>{t({ es: "Concursos", en: "Contests" })}</b>
+                            <span className="d">{t({ es: "DIAN, SENA y más", en: "DIAN, SENA & more" })}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {level === "semillero" && (
+                        <div className="field">
+                          <label>{t({ es: "Grado", en: "Grade" })}</label>
+                          <select value={grade} onChange={(e) => setGrade(e.target.value)}>
+                            {["6", "7", "8", "9", "10", "11"].map((g) => (
+                              <option key={g} value={g}>
+                                {t({ es: "Grado", en: "Grade" })} {g}°
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      <Field
+                        label={t({ es: "Código de clase", en: "Class code" })}
+                        lead="#"
+                        optional={t({ es: "opcional", en: "optional" })}
+                        placeholder={t({ es: "Ej. 9A-MATE", en: "e.g. 9A-MATH" })}
+                        value={suCode}
+                        onChange={setSuCode}
+                        showLabel={showPw}
+                        hideLabel={hidePw}
+                        lang={lang}
+                      />
+                    </>
+                  )}
+
+                  <div className="fields two">
+                    <Field
+                      label={t({ es: "Contraseña", en: "Password" })}
+                      lead="🔒"
+                      type="password"
+                      placeholder="••••••••"
+                      value={suPw}
+                      onChange={setSuPw}
+                      required
+                      minLength={6}
+                      autoComplete="new-password"
+                      showLabel={showPw}
+                      hideLabel={hidePw}
+                      lang={lang}
+                    />
+                    <Field
+                      label={t({ es: "Confirmar contraseña", en: "Confirm password" })}
+                      lead="🔒"
+                      type="password"
+                      placeholder="••••••••"
+                      value={suPw2}
+                      onChange={setSuPw2}
+                      required
+                      minLength={6}
+                      autoComplete="new-password"
+                      showLabel={showPw}
+                      hideLabel={hidePw}
+                      lang={lang}
+                    />
+                  </div>
+
+                  <label className="check terms">
+                    <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
+                    <span className="box" />
+                    <span>
+                      {t({ es: "Acepto los ", en: "I agree to the " })}
+                      <a href="#" onClick={(e) => e.preventDefault()}>
+                        {t({ es: "Términos", en: "Terms" })}
+                      </a>
+                      {t({ es: " y la ", en: " & " })}
+                      <a href="#" onClick={(e) => e.preventDefault()}>
+                        {t({ es: "Privacidad", en: "Privacy" })}
+                      </a>
+                    </span>
                   </label>
-                  <select
-                    value={regData.education_level}
-                    onChange={(e) =>
-                      setRegData((d) => ({
-                        ...d,
-                        education_level: e.target.value as typeof regData.education_level,
-                      }))
-                    }
-                    className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500"
-                  >
-                    <option value="colegio">{t("login.registerStep2.levels.colegio")}</option>
-                    <option value="universidad">{t("login.registerStep2.levels.universidad")}</option>
-                    <option value="semillero">{t("login.registerStep2.levels.semillero")}</option>
-                  </select>
                 </div>
               )}
 
-              {selectedRole === "student" && regData.education_level === "semillero" && (
-                <div>
-                  <label className="block text-sm text-slate-400 mb-1">
-                    {t("login.registerStep2.gradeLabel")}
-                  </label>
-                  <select
-                    value={regData.grade}
-                    onChange={(e) => setRegData((d) => ({ ...d, grade: e.target.value }))}
-                    className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500"
-                  >
-                    {["6", "7", "8", "9", "10", "11"].map((g) => (
-                      <option key={g} value={g}>
-                        {t("login.registerStep2.gradeLabel")} {g}°
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+              {error && <div className="auth-msg error">{error}</div>}
+              {info && <div className="auth-msg info">{info}</div>}
 
-              {selectedRole === "teacher" && (
-                <p className="text-xs text-amber-400 bg-amber-500/10 rounded px-3 py-2">
-                  {t("login.registerStep2.teacherNote")}
-                </p>
-              )}
-
-              {error && <p className="text-red-400 text-sm">{error}</p>}
-
-              {slowLoading && (
-                <p className="text-amber-400 text-xs bg-amber-500/10 rounded px-3 py-2">
-                  {t("login.slowConnection")}
-                </p>
-              )}
-
-              <Button type="submit" className="w-full" size="lg" loading={loading}>
-                {t("login.registerStep2.submit")}
-              </Button>
-
-              <button
-                type="button"
-                onClick={() => setView("register-role")}
-                className="w-full text-center text-sm text-slate-500 hover:text-slate-400"
-              >
-                {t("login.backToLogin")}
+              <button type="submit" className="auth-submit" disabled={loading}>
+                {loading
+                  ? t({ es: "Un momento…", en: "One moment…" })
+                  : t(
+                      mode === "login"
+                        ? { es: "Entrar a Oulad", en: "Enter Oulad" }
+                        : { es: "Crear mi cuenta", en: "Create my account" }
+                    )}
+                <span className="arr">→</span>
               </button>
+
+              <div className="auth-or">{t({ es: "o continúa con", en: "or continue with" })}</div>
+              <div className="social-row">
+                <button type="button" className="social-btn" disabled title={t({ es: "Próximamente", en: "Coming soon" })}>
+                  <GoogleIcon />
+                  Google
+                </button>
+                <button type="button" className="social-btn" disabled title={t({ es: "Próximamente", en: "Coming soon" })}>
+                  <MicrosoftIcon />
+                  Microsoft
+                </button>
+              </div>
+
+              <div className="auth-switch">
+                {t(mode === "login" ? { es: "¿Aún no tienes cuenta?", en: "No account yet?" } : { es: "¿Ya tienes cuenta?", en: "Already have an account?" })}
+                <button type="button" onClick={() => changeMode(mode === "login" ? "signup" : "login")}>
+                  {t(mode === "login" ? { es: "Crear cuenta", en: "Sign up" } : { es: "Iniciar sesión", en: "Log in" })}
+                </button>
+              </div>
             </form>
-          )}
-        </div>
+          </div>
+        </main>
       </div>
     </div>
   );

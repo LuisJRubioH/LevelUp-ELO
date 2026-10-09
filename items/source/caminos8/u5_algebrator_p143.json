@@ -1,0 +1,46 @@
+[
+  {
+    "id": "CS8-U5-P143-ALG01",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza 144x⁸-361y⁶ y usa Algebrator para revisar el procedimiento.",
+    "expr": "144*x**8-361*y**6",
+    "respuesta": "(12*x**4-19*y**3)*(12*x**4+19*y**3)",
+    "conjunto": "R",
+    "seccion": "Trabaja con Algebrator: factorización de polinomios",
+    "unidad": 5,
+    "pagina_pdf": 143,
+    "referencia": "Pasos 3 a 5",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "Es una diferencia de cuadrados: (12x⁴)²-(19y³)².",
+    "dificultad": 550
+  },
+  {
+    "id": "CS8-U5-P143-ALG02",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza 9y²-18y-16 y usa Algebrator para revisar el procedimiento.",
+    "expr": "9*y**2-18*y-16",
+    "respuesta": "(3*y-8)*(3*y+2)",
+    "conjunto": "R",
+    "seccion": "Trabaja con Algebrator: factorización de polinomios",
+    "unidad": 5,
+    "pagina_pdf": 143,
+    "referencia": "Paso 6",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "dificultad": 550
+  },
+  {
+    "id": "CS8-U5-P143-ALG03",
+    "tipo": "simbolico",
+    "enunciado": "Realiza paso a paso la factorización completa de 2n⁴-32 y usa Algebrator para comprobarla.",
+    "expr": "2*n**4-32",
+    "respuesta": "2*(n-2)*(n+2)*(n**2+4)",
+    "conjunto": "R",
+    "seccion": "Trabaja con Algebrator: factorización de polinomios",
+    "unidad": 5,
+    "pagina_pdf": 143,
+    "referencia": "Pasos 7 a 9",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "2n⁴-32=2(n⁴-16)=2(n²-4)(n²+4)=2(n-2)(n+2)(n²+4).",
+    "dificultad": 600
+  }
+]

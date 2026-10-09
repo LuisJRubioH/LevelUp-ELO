@@ -1,0 +1,735 @@
+[
+  {
+    "id": "CS8-U4-P087-A38",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 38",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (a+b-c)**2.",
+    "expr": "(a+b-c)**2",
+    "respuesta": "a**2+b**2+c**2+2*a*b-2*a*c-2*b*c"
+  },
+  {
+    "id": "CS8-U4-P087-A39",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 39",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (a-b+c)**2.",
+    "expr": "(a-b+c)**2",
+    "respuesta": "a**2+b**2+c**2-2*a*b+2*a*c-2*b*c"
+  },
+  {
+    "id": "CS8-U4-P087-A40",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 40",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (a+(b+c))**2.",
+    "expr": "(a+(b+c))**2",
+    "respuesta": "a**2+b**2+c**2+2*a*b+2*a*c+2*b*c"
+  },
+  {
+    "id": "CS8-U4-P087-A41",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 41",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (p**2+(2*q-r))**2.",
+    "expr": "(p**2+(2*q-r))**2",
+    "respuesta": "p**4+4*p**2*q-2*p**2*r+4*q**2-4*q*r+r**2"
+  },
+  {
+    "id": "CS8-U4-P087-A42",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 42",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (m**2+(n+2*m**2*n))**2.",
+    "expr": "(m**2+(n+2*m**2*n))**2",
+    "respuesta": "m**4+n**2+4*m**4*n**2+2*m**2*n+4*m**4*n+4*m**2*n**2"
+  },
+  {
+    "id": "CS8-U4-P087-A43",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 43",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (2*x/5+5*y**2-3*z/5)**2.",
+    "expr": "(2*x/5+5*y**2-3*z/5)**2",
+    "respuesta": "4*x**2/25+25*y**4+9*z**2/25+4*x*y**2-12*x*z/25-6*y**2*z"
+  },
+  {
+    "id": "CS8-U4-P087-A44",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 44",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (a**m+b**(n+1)-c**(2*n))**2.",
+    "expr": "(a**m+b**(n+1)-c**(2*n))**2",
+    "respuesta": "a**(2*m)+b**(2*n+2)+c**(4*n)+2*a**m*b**(n+1)-2*a**m*c**(2*n)-2*b**(n+1)*c**(2*n)"
+  },
+  {
+    "id": "CS8-U4-P087-A45",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 45",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (a+3*b+c)**2.",
+    "expr": "(a+3*b+c)**2",
+    "respuesta": "a**2+9*b**2+c**2+6*a*b+2*a*c+6*b*c"
+  },
+  {
+    "id": "CS8-U4-P087-A46",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 46",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (x**2/2+3*y**2-c**2)**2.",
+    "expr": "(x**2/2+3*y**2-c**2)**2",
+    "respuesta": "x**4/4+9*y**4+c**4+3*x**2*y**2-x**2*c**2-6*y**2*c**2"
+  },
+  {
+    "id": "CS8-U4-P087-A47",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 47",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (m+3*n**2+4)**2.",
+    "expr": "(m+3*n**2+4)**2",
+    "respuesta": "m**2+9*n**4+16+6*m*n**2+8*m+24*n**2"
+  },
+  {
+    "id": "CS8-U4-P087-A48",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 48",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (2*a/3+3*b**n/4+c**(2*n)/6)**2.",
+    "expr": "(2*a/3+3*b**n/4+c**(2*n)/6)**2",
+    "respuesta": "4*a**2/9+9*b**(2*n)/16+c**(4*n)/36+a*b**n+2*a*c**(2*n)/9+b**n*c**(2*n)/4"
+  },
+  {
+    "id": "CS8-U4-P087-A49",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 49",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (w+3*y**3+z**2)**2.",
+    "expr": "(w+3*y**3+z**2)**2",
+    "respuesta": "w**2+9*y**6+z**4+6*w*y**3+2*w*z**2+6*y**3*z**2"
+  },
+  {
+    "id": "CS8-U4-P087-A50",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 50",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (2*p+3*q**2-r**2)**2.",
+    "expr": "(2*p+3*q**2-r**2)**2",
+    "respuesta": "4*p**2+9*q**4+r**4+12*p*q**2-4*p*r**2-6*q**2*r**2"
+  },
+  {
+    "id": "CS8-U4-P087-A51",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 51",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (a**3/2+2*b-2*c**2/3)**2.",
+    "expr": "(a**3/2+2*b-2*c**2/3)**2",
+    "respuesta": "a**6/4+4*b**2+4*c**4/9+2*a**3*b-2*a**3*c**2/3-8*b*c**2/3"
+  },
+  {
+    "id": "CS8-U4-P087-A52",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 52",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (m/2+3*n**x/5+n**2)**2.",
+    "expr": "(m/2+3*n**x/5+n**2)**2",
+    "respuesta": "m**2/4+9*n**(2*x)/25+n**4+3*m*n**x/5+m*n**2+6*n**(x+2)/5"
+  },
+  {
+    "id": "CS8-U4-P087-A53",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 53",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (x-2)**2+(x**2+2*x-1)**2.",
+    "expr": "(x-2)**2+(x**2+2*x-1)**2",
+    "respuesta": "x**4+4*x**3+3*x**2-8*x+5"
+  },
+  {
+    "id": "CS8-U4-P087-A54",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 54",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica a-(a-b)**2+(a+a*b+b)**2.",
+    "expr": "a-(a-b)**2+(a+a*b+b)**2",
+    "respuesta": "a**2*b**2+2*a**2*b+2*a*b**2+4*a*b+a"
+  },
+  {
+    "id": "CS8-U4-P087-A55",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 55",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (w+z)**2-(w+z-z**2)**2.",
+    "expr": "(w+z)**2-(w+z-z**2)**2",
+    "respuesta": "2*w*z**2-z**4+2*z**3"
+  },
+  {
+    "id": "CS8-U4-P087-A56",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 56",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (a+b)**2+(a-b)**2+(a+b+c)**2.",
+    "expr": "(a+b)**2+(a-b)**2+(a+b+c)**2",
+    "respuesta": "3*a**2+2*a*b+2*a*c+3*b**2+2*b*c+c**2"
+  },
+  {
+    "id": "CS8-U4-P087-A57",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 57",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica x**2+2*x*y+(x+y)**2+(x+y-z)**2.",
+    "expr": "x**2+2*x*y+(x+y)**2+(x+y-z)**2",
+    "respuesta": "3*x**2+6*x*y-2*x*z+2*y**2-2*y*z+z**2"
+  },
+  {
+    "id": "CS8-U4-P087-A58",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 58",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (2*m+3*n)**2+6*n**2+(m+n+p)**2.",
+    "expr": "(2*m+3*n)**2+6*n**2+(m+n+p)**2",
+    "respuesta": "5*m**2+14*m*n+2*m*p+16*n**2+2*n*p+p**2"
+  },
+  {
+    "id": "CS8-U4-P087-A59",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 59",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (p+q+r)**2+(p+q-r)**2.",
+    "expr": "(p+q+r)**2+(p+q-r)**2",
+    "respuesta": "2*p**2+4*p*q+2*q**2+2*r**2"
+  },
+  {
+    "id": "CS8-U4-P087-A60",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 60",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (p-q-r)**2+(p-q-r)**2+p**2.",
+    "expr": "(p-q-r)**2+(p-q-r)**2+p**2",
+    "respuesta": "3*p**2-4*p*q-4*p*r+2*q**2+4*q*r+2*r**2",
+    "verificar": "El libro imprime dos veces exactamente (p-q-r)²; la extracción conserva esa repetición literal."
+  },
+  {
+    "id": "CS8-U4-P087-A61",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 61",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (x+y)**2-(x-y)**2-(x-y-r)**2.",
+    "expr": "(x+y)**2-(x-y)**2-(x-y-r)**2",
+    "respuesta": "-r**2+2*r*x-2*r*y-x**2+6*x*y-y**2"
+  },
+  {
+    "id": "CS8-U4-P087-A62",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 62",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "valores_numericos",
+    "enunciado": "Completa la tabla hallando el área de cada cuadrado a partir de la expresión de su lado.",
+    "exprs": {
+      "a": "(a+b-c)**2",
+      "b": "(x/2+x*y-y**2)**2",
+      "c": "(2*m-m*n+n**2/2)**2",
+      "d": "(2*w**2/3-y**3-3*z**4/4)**2"
+    },
+    "respuesta_valores": {
+      "a": "a**2+b**2+c**2+2*a*b-2*a*c-2*b*c",
+      "b": "x**2/4+x**2*y+x**2*y**2-x*y**2-2*x*y**3+y**4",
+      "c": "4*m**2-4*m**2*n+2*m*n**2+m**2*n**2-m*n**3+n**4/4",
+      "d": "4*w**4/9+y**6+9*z**8/16-4*w**2*y**3/3-w**2*z**4+3*y**3*z**4/2"
+    },
+    "respuesta": "Las cuatro áreas desarrolladas aparecen en respuesta_valores."
+  },
+  {
+    "id": "CS8-U4-P087-A63",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 63",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (x+y)*(x-y).",
+    "expr": "(x+y)*(x-y)",
+    "respuesta": "x**2-y**2"
+  },
+  {
+    "id": "CS8-U4-P087-A64",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 64",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (a+4)*(a-4).",
+    "expr": "(a+4)*(a-4)",
+    "respuesta": "a**2-16"
+  },
+  {
+    "id": "CS8-U4-P087-A65",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 65",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (2*x**2+3*y**3)*(2*x**2-3*y**3).",
+    "expr": "(2*x**2+3*y**3)*(2*x**2-3*y**3)",
+    "respuesta": "4*x**4-9*y**6"
+  },
+  {
+    "id": "CS8-U4-P087-A66",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 66",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (x**2*y**3-4*z**2)*(x**2*y**3+4*z**2).",
+    "expr": "(x**2*y**3-4*z**2)*(x**2*y**3+4*z**2)",
+    "respuesta": "x**4*y**6-16*z**4"
+  },
+  {
+    "id": "CS8-U4-P087-A67",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 67",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (m**2/2+5*n**3)*(m**2/2-5*n**3).",
+    "expr": "(m**2/2+5*n**3)*(m**2/2-5*n**3)",
+    "respuesta": "m**4/4-25*n**6"
+  },
+  {
+    "id": "CS8-U4-P087-A68",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 68",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (w/5-6*z**4/5)*(w/5+6*z**4/5).",
+    "expr": "(w/5-6*z**4/5)*(w/5+6*z**4/5)",
+    "respuesta": "w**2/25-36*z**8/25"
+  },
+  {
+    "id": "CS8-U4-P087-A69",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 69",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (2*x**2*y/3-1/4)*(2*x**2*y/3+1/4).",
+    "expr": "(2*x**2*y/3-1/4)*(2*x**2*y/3+1/4)",
+    "respuesta": "4*x**4*y**2/9-1/16"
+  },
+  {
+    "id": "CS8-U4-P087-A70",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 70",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (x**n+y**(2*n))*(x**n-y**(2*n)).",
+    "expr": "(x**n+y**(2*n))*(x**n-y**(2*n))",
+    "respuesta": "x**(2*n)-y**(4*n)"
+  },
+  {
+    "id": "CS8-U4-P087-A71",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 71",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (a**(n+1)*b-c**(n+2))*(a**(n+1)*b+c**(n+2)).",
+    "expr": "(a**(n+1)*b-c**(n+2))*(a**(n+1)*b+c**(n+2))",
+    "respuesta": "a**(2*n+2)*b**2-c**(2*n+4)"
+  },
+  {
+    "id": "CS8-U4-P087-A72",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 72",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (2*x**(n+1)*y**m-6)*(2*x**(n+1)*y**m+6).",
+    "expr": "(2*x**(n+1)*y**m-6)*(2*x**(n+1)*y**m+6)",
+    "respuesta": "4*x**(2*n+2)*y**(2*m)-36"
+  },
+  {
+    "id": "CS8-U4-P087-A73",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 73",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Halla el área del terreno rectangular de lados x+4 y x-4.",
+    "expr": "(x+4)*(x-4)",
+    "respuesta": "x**2-16",
+    "verificar": "Las dos dimensiones se leen en la figura."
+  },
+  {
+    "id": "CS8-U4-P087-A74",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 74",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Halla el área del terreno con base 3x+2 y altura 3x-2.",
+    "expr": "(3*x+2)*(3*x-2)",
+    "respuesta": "9*x**2-4",
+    "verificar": "La forma y las dos dimensiones se leen en la figura."
+  },
+  {
+    "id": "CS8-U4-P087-A75",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 75",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Halla el área del terreno con base w+5 y altura w-5.",
+    "expr": "(w+5)*(w-5)",
+    "respuesta": "w**2-25",
+    "verificar": "La forma y las dos dimensiones se leen en la figura."
+  },
+  {
+    "id": "CS8-U4-P087-A76",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 76",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Halla el área del terreno triangular de base 2x+6 y altura 2x-6.",
+    "expr": "((2*x+6)*(2*x-6))/2",
+    "respuesta": "2*x**2-18",
+    "verificar": "La base y la altura se leen en la figura."
+  },
+  {
+    "id": "CS8-U4-P087-A77",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 77",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Halla el área de la corona circular de radio exterior x e interior y de dos formas distintas.",
+    "expr": "pi*x**2-pi*y**2",
+    "respuesta": "pi*(x+y)*(x-y)",
+    "verificar": "Los radios x e y se identifican en la figura original."
+  },
+  {
+    "id": "CS8-U4-P087-A78",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 78",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 450,
+    "tipo": "simbolico",
+    "enunciado": "Calcula el área de la corona circular anterior si x=10 cm y y=7 cm.",
+    "expr": "pi*10**2-pi*7**2",
+    "respuesta": "51*pi",
+    "verificar": "Los valores se aplican a los radios de la figura de la actividad 77."
+  },
+  {
+    "id": "CS8-U4-P087-A79",
+    "conjunto": "R",
+    "seccion": "Productos notables: trinomios y diferencia de cuadrados",
+    "unidad": 4,
+    "pagina_pdf": 87,
+    "referencia": "Actividad 79",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 450,
+    "tipo": "numerico",
+    "enunciado": "Dos números suman 8 y su diferencia es 2. Calcula la diferencia de sus cuadrados.",
+    "expr": "8*2",
+    "respuesta": "16"
+  }
+]
+

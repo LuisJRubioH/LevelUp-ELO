@@ -1,0 +1,138 @@
+/* ============================================================
+   Oulad — Inicio de materia: diagnóstico + bifurcación (P2).
+   Inspirado en docs/redesign/source/Oulad Diagnostico.html, sobre
+   el sistema de tokens del rediseño. Scopeado bajo .lue-dx.
+   ============================================================ */
+.lue-dx {
+  --canvas: #0a0a0f;
+  --surface: #12121a;
+  --surface-2: #16161f;
+  --surface-3: #1d1d29;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --text: #f3f4f8;
+  --dim: #a9b0c0;
+  --mute: #6b7280;
+  --accent: #8b5cf6;
+  --accent-soft: #a78bfa;
+  --accent-2: #2dd4bf;
+  --gold: #ffd700;
+  --glow-a: rgba(139, 92, 246, 0.42);
+  --glow-b: rgba(45, 212, 191, 0.30);
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-display: "Poppins", "Inter", sans-serif;
+  --font-pixel: "Press Start 2P", monospace;
+  --radius: 18px;
+  --radius-sm: 11px;
+
+  min-height: 100vh;
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-body);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+html.light .lue-dx {
+  --canvas: #f4f6fb; --surface: #ffffff; --surface-2: #f7f9fc; --surface-3: #eef1f8;
+  --border: rgba(15,23,42,.10); --border-strong: rgba(15,23,42,.17);
+  --text: #10162a; --dim: #4a5568; --mute: #8a93a6;
+  --glow-a: rgba(139,92,246,.18); --glow-b: rgba(45,212,191,.16);
+}
+.lue-dx * { box-sizing: border-box; }
+.lue-dx::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    radial-gradient(520px 360px at 18% -10%, var(--glow-a), transparent 70%),
+    radial-gradient(460px 340px at 88% -6%, var(--glow-b), transparent 70%);
+  opacity: .85;
+}
+
+/* top bar */
+.lue-dx .dx-top { position: relative; z-index: 1; display: flex; align-items: center; gap: 16px; padding: 20px clamp(20px, 4vw, 48px); }
+.lue-dx .dx-close { width: 36px; height: 36px; flex: none; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--surface-2); color: var(--mute); cursor: pointer; font-size: 15px; }
+.lue-dx .dx-close:hover { color: var(--text); border-color: var(--border-strong); }
+.lue-dx .dx-progress { flex: 1; height: 8px; border-radius: 5px; background: var(--surface-3); overflow: hidden; border: 1px solid var(--border); }
+.lue-dx .dx-progress i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .4s cubic-bezier(.2,.7,.2,1); }
+.lue-dx .dx-count { flex: none; font-family: var(--font-pixel); font-size: 9px; color: var(--mute); }
+.lue-dx .dx-count b { color: var(--text); }
+
+/* centro */
+.lue-dx .dx-body { position: relative; z-index: 1; flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px clamp(20px, 4vw, 48px) 56px; }
+.lue-dx .dx-center { width: 100%; max-width: 620px; margin: 0 auto; }
+
+/* bienvenida */
+.lue-dx .dx-welcome { text-align: center; }
+.lue-dx .dx-eyebrow { font-family: var(--font-pixel); font-size: 9px; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-2); display: inline-flex; align-items: center; gap: 9px; margin-bottom: 16px; }
+.lue-dx .dx-eyebrow::before { content: ""; width: 18px; height: 2px; background: var(--accent-2); }
+.lue-dx .dx-welcome h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 4.5vw, 42px); letter-spacing: -.025em; line-height: 1.08; margin: 0 0 14px; }
+.lue-dx .dx-welcome h1 .em { font-style: italic; font-weight: 600; color: var(--accent-2); }
+.lue-dx .dx-welcome p { color: var(--dim); font-size: 16px; line-height: 1.6; max-width: 46ch; margin: 0 auto 14px; }
+.lue-dx .dx-points { display: grid; gap: 10px; max-width: 420px; margin: 22px auto 28px; text-align: left; }
+.lue-dx .dx-point { display: flex; gap: 12px; align-items: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; }
+.lue-dx .dx-point .pi { width: 34px; height: 34px; flex: none; border-radius: 10px; display: grid; place-items: center; font-size: 16px; background: color-mix(in srgb, var(--accent) 14%, transparent); border: 1px solid var(--border); }
+.lue-dx .dx-point span { font-size: 13.5px; color: var(--dim); }
+.lue-dx .dx-point b { color: var(--text); font-weight: 600; }
+
+/* pregunta */
+.lue-dx .dx-qmeta { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.lue-dx .dx-qtopic { font-family: var(--font-pixel); font-size: 8px; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-2); }
+.lue-dx .dx-qcard { background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: clamp(22px, 3vw, 32px); box-shadow: 0 30px 70px -44px rgba(0,0,0,.7); }
+.lue-dx .dx-prompt { font-family: var(--font-display); font-weight: 600; font-size: clamp(18px, 2.4vw, 23px); line-height: 1.35; margin: 0 0 22px; }
+.lue-dx .dx-options { display: grid; gap: 10px; }
+.lue-dx .dx-opt { display: flex; align-items: center; gap: 13px; cursor: pointer; text-align: left; background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 14px 16px; transition: border-color .15s, background .15s, transform .1s; color: var(--text); font-size: 15px; font-family: var(--font-body); }
+.lue-dx .dx-opt:hover { border-color: var(--accent-2); transform: translateX(2px); }
+.lue-dx .dx-opt .dx-key { width: 26px; height: 26px; flex: none; border-radius: 8px; display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; font-size: 12px; color: var(--mute); background: var(--surface); border: 1px solid var(--border-strong); }
+.lue-dx .dx-opt.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent); }
+.lue-dx .dx-opt.on .dx-key { background: var(--accent); color: #fff; border-color: transparent; }
+
+/* foot */
+.lue-dx .dx-foot { display: flex; align-items: center; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+.lue-dx .dx-link { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-family: var(--font-body); font-weight: 600; font-size: 13px; color: var(--dim); background: none; border: 1px solid var(--border-strong); border-radius: 9px; padding: 9px 13px; transition: color .15s, border-color .15s; }
+.lue-dx .dx-link:hover { color: var(--text); border-color: var(--border-strong); }
+.lue-dx .dx-grow { flex: 1; }
+.lue-dx .dx-btn { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; font-family: var(--font-body); font-weight: 700; font-size: 15px; color: #fff; background: var(--accent); border: 1px solid transparent; border-radius: var(--radius-sm); padding: 13px 22px; box-shadow: 0 14px 32px -12px var(--glow-a); transition: background .18s, transform .12s; }
+.lue-dx .dx-btn:hover:not(:disabled) { background: var(--accent-soft); transform: translateY(-2px); }
+.lue-dx .dx-btn:disabled { opacity: .5; cursor: default; box-shadow: none; }
+
+/* ============================================================ HUB / RESULTADO */
+.lue-dx .dx-hub { width: 100%; max-width: 760px; margin: 0 auto; }
+.lue-dx .dx-result-head { display: flex; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 18px; box-shadow: 0 30px 70px -46px rgba(0,0,0,.7); flex-wrap: wrap; }
+.lue-dx .dx-elo { flex: none; text-align: center; }
+.lue-dx .dx-elo .ev { font-family: var(--font-display); font-weight: 800; font-size: 40px; letter-spacing: -.03em; line-height: 1; background: linear-gradient(135deg, var(--accent-soft), var(--accent-2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.lue-dx .dx-elo .el { font-family: var(--font-pixel); font-size: 7px; color: var(--mute); margin-top: 8px; letter-spacing: .04em; }
+.lue-dx .dx-result-meta { flex: 1; min-width: 200px; }
+.lue-dx .dx-league { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 700; font-size: 17px; }
+.lue-dx .dx-league .ld { width: 12px; height: 12px; border-radius: 4px; }
+.lue-dx .dx-result-meta p { color: var(--dim); font-size: 13.5px; margin: 8px 0 0; line-height: 1.5; }
+.lue-dx .dx-themes { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 22px; }
+.lue-dx .dx-themes h3 { font-family: var(--font-display); font-weight: 700; font-size: 14px; margin: 0 0 14px; }
+.lue-dx .dx-theme { display: grid; grid-template-columns: 1fr 90px 64px; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.lue-dx .dx-theme:last-child { border: none; }
+.lue-dx .dx-theme .tl { font-size: 13.5px; color: var(--text); }
+.lue-dx .dx-theme .tl span { display: block; font-size: 11px; color: var(--mute); margin-top: 2px; }
+.lue-dx .dx-tag { font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; text-align: center; text-transform: uppercase; letter-spacing: .03em; }
+.lue-dx .dx-tag.strong { color: #34d399; background: color-mix(in srgb, #34d399 14%, transparent); }
+.lue-dx .dx-tag.mid { color: var(--gold); background: color-mix(in srgb, var(--gold) 14%, transparent); }
+.lue-dx .dx-tag.gap { color: #f87171; background: color-mix(in srgb, #f87171 14%, transparent); }
+.lue-dx .dx-theme .te { font-family: var(--font-display); font-weight: 800; font-size: 14px; text-align: right; }
+
+/* bifurcación */
+.lue-dx .dx-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.lue-dx .dx-choice { position: relative; overflow: hidden; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 10px; background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 22px; transition: transform .16s, border-color .16s, box-shadow .16s; color: var(--text); }
+.lue-dx .dx-choice:hover:not(:disabled) { transform: translateY(-3px); border-color: var(--accent-2); box-shadow: 0 24px 50px -30px var(--glow-b); }
+.lue-dx .dx-choice .ci { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; font-size: 24px; background: color-mix(in srgb, var(--accent) 14%, transparent); border: 1px solid var(--border); }
+.lue-dx .dx-choice.alt .ci { background: color-mix(in srgb, var(--accent-2) 14%, transparent); }
+.lue-dx .dx-choice h4 { font-family: var(--font-display); font-weight: 700; font-size: 18px; margin: 0; }
+.lue-dx .dx-choice p { color: var(--dim); font-size: 13px; line-height: 1.5; margin: 0; }
+.lue-dx .dx-choice .cgo { margin-top: auto; font-family: var(--font-display); font-weight: 600; font-size: 13.5px; color: var(--accent-2); }
+.lue-dx .dx-choice.soon { opacity: .65; cursor: default; }
+.lue-dx .dx-soon-badge { position: absolute; top: 14px; right: 14px; font-size: 10px; font-weight: 700; color: var(--mute); background: var(--surface-3); border-radius: 999px; padding: 4px 9px; }
+.lue-dx .dx-redo { display: block; margin: 18px auto 0; cursor: pointer; font-family: var(--font-body); font-weight: 600; font-size: 12.5px; color: var(--mute); background: none; border: none; }
+.lue-dx .dx-redo:hover { color: var(--text); text-decoration: underline; }
+
+@media (max-width: 560px) {
+  .lue-dx .dx-choices { grid-template-columns: 1fr; }
+  .lue-dx .dx-theme { grid-template-columns: 1fr 80px; }
+  .lue-dx .dx-theme .te { display: none; }
+}

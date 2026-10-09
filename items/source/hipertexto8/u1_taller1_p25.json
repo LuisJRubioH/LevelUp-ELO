@@ -1,0 +1,532 @@
+[
+  {
+    "id": "HT8-U1-P25-T1-12a",
+    "tipo": "numerico",
+    "enunciado": "En una ciudad de 1.800.000 habitantes se hace una encuesta sobre cuántas veces al año sale de vacaciones cada persona. Salen 1 vez $\\dfrac{1}{6}$ de la población, 2 veces $\\dfrac{1}{5}$, 3 veces $\\dfrac{1}{8}$ y 4 veces $\\dfrac{1}{2}$. Determina la fracción total de habitantes que no salen de vacaciones.",
+    "expr": "1 - (Rational(1,6)+Rational(1,5)+Rational(1,8)+Rational(1,2))",
+    "respuesta": "1/120",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números racionales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 12, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_numerica"
+    ],
+    "nota": "Las cuatro fracciones suman $\\dfrac{119}{120}$; el resto es la fracción que no sale.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U1-P25-T1-12b",
+    "tipo": "numerico",
+    "enunciado": "Con los datos de la encuesta anterior (población 1.800.000), ¿cuántos habitantes no salen de vacaciones ninguna vez al año?",
+    "expr": "1800000*(1 - (Rational(1,6)+Rational(1,5)+Rational(1,8)+Rational(1,2)))",
+    "respuesta": "15000",
+    "conjunto": "N",
+    "seccion": "Taller 1 — Números racionales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 12, ítem b (caso 0 viajes)",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Los demás casos: 1 vez → 300.000; 2 veces → 360.000; 3 veces → 225.000; 4 veces → 900.000. Los cinco suman 1.800.000, lo que sirve de comprobación.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U1-P25-T1-13",
+    "tipo": "numerico",
+    "enunciado": "Un pilote, que hace parte de la estructura de un puente colgante sobre un río, se encuentra cimentado $60$ m por debajo del lecho marino, la mitad en el agua y $\\dfrac{2}{7}$ por fuera de ella. ¿Cuál es la longitud del pilote?",
+    "expr": "60/(1-Rational(1,2)-Rational(2,7))",
+    "respuesta": "280",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números racionales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 13",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$280$ m. Si $L$ es la longitud total, las tres partes suman $L$: $60+\\dfrac{L}{2}+\\dfrac{2L}{7}=L$, luego $60=L\\left(1-\\dfrac{1}{2}-\\dfrac{2}{7}\\right)=L\\cdot\\dfrac{3}{14}$ y $L=280$. Comprobación: $60$ m cimentados, $140$ m en el agua y $80$ m fuera suman $280$.",
+    "erratum": "El libro imprime 2/7 como 4/7, y con esa fraccion el problema no tiene solucion: 1/2 + 4/7 = 15/14 ya pasa de la longitud total, asi que la parte cimentada tendria que medir menos de cero. La correccion exige que la fraccion f cumpla 1/2 + f < 1; se elige 2/7 porque cambia un solo digito, conserva el denominador impreso y deja la respuesta en un valor entero, 280 m.",
+    "dificultad": 0
+  },
+  {
+    "id": "HT8-U1-P25-T1-14",
+    "tipo": "abierta",
+    "enunciado": "Representa en la recta numérica los siguientes números: a. $\\sqrt{5}$; b. $\\pi-4$; c. $-3\\sqrt{2}$; d. $\\sqrt{3}+2\\sqrt{10}$.",
+    "respuesta": "Aproximaciones para ubicarlos: $\\sqrt{5}\\approx 2{,}24$; $\\pi-4\\approx-0{,}86$; $-3\\sqrt{2}\\approx-4{,}24$; $\\sqrt{3}+2\\sqrt{10}\\approx 8{,}06$.",
+    "conjunto": "I",
+    "seccion": "Taller 1 — Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 14",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Los cuatro son irracionales. El decimal sirve para ubicarlos, pero no los define: el criterio sigue siendo que no son fracción de enteros.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U1-P25-T1-15a",
+    "tipo": "numerico",
+    "enunciado": "Determina la diagonal de un cubo de $5\\text{ cm}$ de arista.",
+    "expr": "sqrt(5**2+5**2+5**2)",
+    "respuesta": "5*sqrt(3)",
+    "conjunto": "I",
+    "seccion": "Taller 1 — Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 15, ítem a",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Diagonal espacial: $\\sqrt{a^2+b^2+c^2}$. Da $5\\sqrt{3}\\approx 8{,}66$ cm, irracional.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U1-P25-T1-15b",
+    "tipo": "numerico",
+    "enunciado": "Determina la diagonal de un prisma rectangular de $12\\text{ cm}\\times 6\\text{ cm}\\times 6\\text{ cm}$.",
+    "expr": "sqrt(12**2+6**2+6**2)",
+    "respuesta": "6*sqrt(6)",
+    "conjunto": "I",
+    "seccion": "Taller 1 — Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 15, ítem b",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$\\sqrt{216}=6\\sqrt{6}\\approx 14{,}70$ cm.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U1-P25-T1-16",
+    "tipo": "numerico",
+    "enunciado": "¿Cuál es el área de una figura formada por cinco triángulos equiláteros de $12\\text{ cm}$ de lado?",
+    "expr": "5*(sqrt(3)/4)*12**2",
+    "respuesta": "180*sqrt(3)",
+    "conjunto": "I",
+    "seccion": "Taller 1 — Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 16",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "nota": "$180\\sqrt{3}\\approx 311{,}77$ cm². El área de un triángulo equilátero de lado $l$ es $\\dfrac{\\sqrt{3}}{4}l^2$, así que con $l=12$ cada uno mide $36\\sqrt{3}$ y cinco miden $180\\sqrt{3}$. El resultado es irracional, que es justo lo que la unidad quiere mostrar: un área perfectamente definida que no se puede escribir como fracción.",
+    "erratum": "El libro habla de un pentagono formado por cinco triangulos equilateros, y esa figura no existe: al descomponer un pentagono regular desde el centro salen cinco triangulos isosceles con angulo central de 72 grados, nunca equilateros (harian falta 60). El calculo que el ejercicio pide, cinco veces el area de un triangulo equilatero, si tiene sentido, asi que se corrige el enunciado quitando la palabra pentagono y dejando figura formada por cinco triangulos equilateros.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c1-r1",
+    "tipo": "numerico",
+    "enunciado": "Con $a=-3$ y $b=4$, halla $-b+a$.",
+    "expr": "-4+(-3)",
+    "respuesta": "-7",
+    "conjunto": "Z",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 1, fila $-b+a$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 850
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c1-r2",
+    "tipo": "numerico",
+    "enunciado": "Con $a=-3$ y $c=-1$, halla $a\\times c$.",
+    "expr": "(-3)*(-1)",
+    "respuesta": "3",
+    "conjunto": "Z",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 1, fila $a\\times c$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c1-r3",
+    "tipo": "numerico",
+    "enunciado": "Con $a=-3$ y $b=4$, halla $|a\\times b|$.",
+    "expr": "Abs((-3)*4)",
+    "respuesta": "12",
+    "conjunto": "Z",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 1, fila $|a\\times b|$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 850
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c1-r4",
+    "tipo": "numerico",
+    "enunciado": "Con $a=-3$, $b=4$ y $c=-1$, halla $(a-b)\\times c$.",
+    "expr": "((-3)-4)*(-1)",
+    "respuesta": "7",
+    "conjunto": "Z",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 1, fila $(a-b)\\times c$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c2-r1",
+    "tipo": "numerico",
+    "enunciado": "Con $a=\\dfrac{3}{2}$ y $b=-\\dfrac{1}{3}$, halla $-b+a$.",
+    "expr": "-Rational(-1,3)+Rational(3,2)",
+    "respuesta": "11/6",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 2, fila $-b+a$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c2-r2",
+    "tipo": "numerico",
+    "enunciado": "Con $a=\\dfrac{3}{2}$ y $c=\\dfrac{2}{5}$, halla $a\\times c$.",
+    "expr": "Rational(3,2)*Rational(2,5)",
+    "respuesta": "3/5",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 2, fila $a\\times c$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c2-r3",
+    "tipo": "numerico",
+    "enunciado": "Con $a=\\dfrac{3}{2}$ y $b=-\\dfrac{1}{3}$, halla $|a\\times b|$.",
+    "expr": "Abs(Rational(3,2)*Rational(-1,3))",
+    "respuesta": "1/2",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 2, fila $|a\\times b|$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c2-r4",
+    "tipo": "numerico",
+    "enunciado": "Con $a=\\dfrac{3}{2}$, $b=-\\dfrac{1}{3}$ y $c=\\dfrac{2}{5}$, halla $(a-b)\\times c$.",
+    "expr": "(Rational(3,2)-Rational(-1,3))*Rational(2,5)",
+    "respuesta": "11/15",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 2, fila $(a-b)\\times c$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c3-r1",
+    "tipo": "numerico",
+    "enunciado": "Con $a=0{,}25$ y $b=-0{,}\\overline{3}$, halla $-b+a$.",
+    "expr": "Rational(1,3)+Rational(1,4)",
+    "respuesta": "7/12",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 3, fila $-b+a$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$-0{,}\\overline{3}=-\\dfrac{1}{3}$, así que $-b=\\dfrac{1}{3}$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c3-r2",
+    "tipo": "numerico",
+    "enunciado": "Con $a=0{,}25$ y $c=+1{,}75$, halla $a\\times c$.",
+    "expr": "0.25*1.75",
+    "respuesta": "7/16",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 3, fila $a\\times c$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$=0{,}4375$, decimal exacto de 4 cifras.",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c3-r3",
+    "tipo": "numerico",
+    "enunciado": "Con $a=0{,}25$ y $b=-0{,}\\overline{3}$, halla $|a\\times b|$.",
+    "expr": "Abs(Rational(1,4)*Rational(-1,3))",
+    "respuesta": "1/12",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 3, fila $|a\\times b|$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c3-r4",
+    "tipo": "numerico",
+    "enunciado": "Con $a=0{,}25$, $b=-0{,}\\overline{3}$ y $c=+1{,}75$, halla $(a-b)\\times c$.",
+    "expr": "(Rational(1,4)-Rational(-1,3))*Rational(7,4)",
+    "respuesta": "49/48",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 3, fila $(a-b)\\times c$",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "nota": "Mezcla decimal exacto, periódico y fracción: conviene pasar todo a fracción antes de operar.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c4-r1",
+    "tipo": "numerico",
+    "enunciado": "Con $a=-\\dfrac{1}{5}$ y $b=0{,}2$, halla $-b+a$.",
+    "expr": "-Rational(1,5)+Rational(-1,5)",
+    "respuesta": "-2/5",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 4, fila $-b+a$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$a$ y $b$ son opuestos: $-b=-\\dfrac{1}{5}$ coincide con $a$.",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c4-r2",
+    "tipo": "numerico",
+    "enunciado": "Con $a=-\\dfrac{1}{5}$ y $c=0{,}18$, halla $a\\times c$.",
+    "expr": "Rational(-1,5)*0.18",
+    "respuesta": "-9/250",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 4, fila $a\\times c$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$=-0{,}036$, decimal exacto.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c4-r3",
+    "tipo": "numerico",
+    "enunciado": "Con $a=-\\dfrac{1}{5}$ y $b=0{,}2$, halla $|a\\times b|$.",
+    "expr": "Abs(Rational(-1,5)*Rational(1,5))",
+    "respuesta": "1/25",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 4, fila $|a\\times b|$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c4-r4",
+    "tipo": "numerico",
+    "enunciado": "Con $a=-\\dfrac{1}{5}$, $b=0{,}2$ y $c=0{,}18$, halla $(a-b)\\times c$.",
+    "expr": "(Rational(-1,5)-Rational(1,5))*0.18",
+    "respuesta": "-9/125",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 4, fila $(a-b)\\times c$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$=-0{,}072$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c5-r1",
+    "tipo": "numerico",
+    "enunciado": "Con $a=3{,}8$ y $b=-\\dfrac{5}{2}$, halla $-b+a$.",
+    "expr": "-Rational(-5,2)+Rational(19,5)",
+    "respuesta": "63/10",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 5, fila $-b+a$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$=6{,}3$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c5-r2",
+    "tipo": "numerico",
+    "enunciado": "Con $a=3{,}8$ y $c=-\\dfrac{3}{7}$, halla $a\\times c$.",
+    "expr": "Rational(19,5)*Rational(-3,7)",
+    "respuesta": "-57/35",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 5, fila $a\\times c$",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "nota": "No da decimal finito ($\\approx-1{,}6286$): en práctica autocalificada habría que pedir la fracción o un redondeo.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c5-r3",
+    "tipo": "numerico",
+    "enunciado": "Con $a=3{,}8$ y $b=-\\dfrac{5}{2}$, halla $|a\\times b|$.",
+    "expr": "Abs(Rational(19,5)*Rational(-5,2))",
+    "respuesta": "19/2",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 5, fila $|a\\times b|$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$=9{,}5$: los cincos se cancelan.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U1-P25-T1-17-c5-r4",
+    "tipo": "numerico",
+    "enunciado": "Con $a=3{,}8$, $b=-\\dfrac{5}{2}$ y $c=-\\dfrac{3}{7}$, halla $(a-b)\\times c$.",
+    "expr": "(Rational(19,5)-Rational(-5,2))*Rational(-3,7)",
+    "respuesta": "-27/10",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 17, columna 5, fila $(a-b)\\times c$",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$=-2{,}7$: el 7 del denominador se cancela con el 63.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U1-P25-T1-18",
+    "tipo": "clasificacion",
+    "enunciado": "Escribe en cada caso $\\in$, $\\notin$, $\\subset$, $\\not\\subset$ o el conjunto numérico correspondiente para que la expresión sea verdadera: a. $\\mathbb{N}\\ \\_\\_\\ \\mathbb{Q}$; b. $8\\ \\_\\_\\ \\mathbb{Z}$; c. $\\mathbb{Z}\\ \\_\\_\\ \\mathbb{R}$; d. $\\dfrac{3}{5}\\ \\_\\_\\ \\mathbb{N}$; e. $\\mathbb{Q}\\ \\_\\_\\ \\mathbb{I}$; f. $0{,}25\\ \\_\\_\\ \\mathbb{N}$; g. $\\sqrt{25}\\ \\_\\_\\ \\mathbb{Z}$; h. $\\mathbb{N}\\ \\_\\_\\ \\mathbb{R}$; i. $\\mathbb{R}\\ \\_\\_\\ \\mathbb{Q}$; j. $-1{,}25\\ \\_\\_\\ \\mathbb{Q}$.",
+    "respuesta": {
+      "a": "$\\subset$",
+      "b": "$\\in$",
+      "c": "$\\subset$",
+      "d": "$\\notin$",
+      "e": "$\\not\\subset$",
+      "f": "$\\notin$",
+      "g": "$\\in$",
+      "h": "$\\subset$",
+      "i": "$\\not\\subset$",
+      "j": "$\\in$"
+    },
+    "conjunto": "R",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 18",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Distingue pertenencia (número ↔ conjunto) de contenencia (conjunto ↔ conjunto): es el eje del ítem. Ojo con g: $\\sqrt{25}=5$, entero. En i, $\\mathbb{R}\\not\\subset\\mathbb{Q}$ porque los irracionales quedan fuera.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U1-P25-T1-19",
+    "tipo": "clasificacion",
+    "enunciado": "Escribe V si la afirmación es verdadera o F si es falsa, y justifica: a. $\\mathbb{Q}\\cup\\mathbb{Z}\\cup\\mathbb{N}=\\mathbb{Q}$; b. $\\mathbb{Q}\\cap\\mathbb{I}=\\mathbb{R}$; c. $\\mathbb{Q}\\cap\\mathbb{Z}\\cap\\mathbb{N}=\\mathbb{N}$; d. Todo número $\\mathbb{R}$ es $\\mathbb{Z}$; e. Todo número $\\mathbb{I}$ es $\\mathbb{R}$; f. Un número $\\mathbb{Z}$ no es $\\mathbb{Q}$; g. Algún número $\\mathbb{Z}$ es $\\mathbb{I}$.",
+    "respuesta": {
+      "a": "V — como $\\mathbb{N}\\subset\\mathbb{Z}\\subset\\mathbb{Q}$, la unión es $\\mathbb{Q}$.",
+      "b": "F — la intersección de racionales e irracionales es VACÍA. Lo que da $\\mathbb{R}$ es la UNIÓN.",
+      "c": "V — la intersección de la cadena es el conjunto más pequeño, $\\mathbb{N}$.",
+      "d": "F — $\\sqrt{2}$ y $0{,}5$ son reales y no son enteros.",
+      "e": "V — los irracionales son parte de los reales.",
+      "f": "F — todo entero $n$ se escribe $\\dfrac{n}{1}$, luego es racional.",
+      "g": "F — ningún entero es irracional; $\\mathbb{Z}\\cap\\mathbb{I}=\\varnothing$."
+    },
+    "conjunto": "R",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 19",
+    "apto_para": [
+      "practica_vf",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El ítem b es la trampa central de todo el capítulo: confundir $\\cap$ con $\\cup$ en $\\mathbb{R}=\\mathbb{Q}\\cup\\mathbb{I}$. Candidato directo a tarjeta trampa del nodo de reales.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U1-P25-T1-20",
+    "tipo": "clasificacion",
+    "enunciado": "Relaciona las operaciones que tienen la misma respuesta. Columna izquierda: a. $-18+3$; b. $-\\dfrac{5}{3}-\\dfrac{2}{8}$; c. $\\pi-2$; d. $\\left|\\sqrt{25}\\right|-\\left|\\sqrt{4}\\right|$; e. $-5+2{,}04$. Columna derecha: 1. $-1-0{,}91\\overline{6}$; 2. $\\dfrac{-5}{3}\\times\\dfrac{-9}{5}$; 3. $-2-0{,}96$; 4. $-[2-(5\\pi-4\\pi)]$; 5. $-35+20$.",
+    "respuesta": {
+      "a": "5 — ambos valen $-15$.",
+      "b": "1 — ambos valen $-\\dfrac{23}{12}$.",
+      "c": "4 — $-[2-\\pi]=\\pi-2$.",
+      "d": "2 — ambos valen $3$.",
+      "e": "3 — ambos valen $-2{,}96$."
+    },
+    "conjunto": "R",
+    "seccion": "Taller 1 — Números reales",
+    "unidad": 1,
+    "pagina_pdf": 25,
+    "referencia": "Taller 1, actividad 20",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "nota": "Las cinco parejas: a–5, b–1, c–4, d–2, e–3. La b es la única que exige pasar el decimal periódico a fracción: $0{,}91\\overline{6}=\\dfrac{11}{12}$, luego $-1-\\dfrac{11}{12}=-\\dfrac{23}{12}$, que es exactamente $-\\dfrac{5}{3}-\\dfrac{2}{8}=-\\dfrac{20}{12}-\\dfrac{3}{12}$.",
+    "erratum": "El libro imprime el item 1 de la columna derecha como -1 - 0,96 con el arco sobre las dos cifras. Ese numero vale -65/33, mientras que el item b vale -23/12: la quinta pareja no casaba y el ejercicio quedaba sin solucion completa. Corregido a -1 - 0,91 con el arco sobre el 6 solamente, que vale exactamente -23/12 y restaura la pareja. Las otras cuatro parejas ya casaban exacto.",
+    "dificultad": 1300
+  }
+]

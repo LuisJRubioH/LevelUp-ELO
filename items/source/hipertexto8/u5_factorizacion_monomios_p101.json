@@ -1,0 +1,714 @@
+[
+  {
+    "id": "HT8-U5-P101-A1a",
+    "tipo": "numerico",
+    "enunciado": "Descompón $10$ en sus factores primos.",
+    "expr": "2*5",
+    "respuesta": "10",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem a",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$10=2\\times5$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P101-A1b",
+    "tipo": "numerico",
+    "enunciado": "Descompón $12$ en sus factores primos.",
+    "expr": "2**2*3",
+    "respuesta": "12",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem b",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$12=2^2\\times3$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P101-A1c",
+    "tipo": "numerico",
+    "enunciado": "Descompón $30$ en sus factores primos.",
+    "expr": "2*3*5",
+    "respuesta": "30",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem c",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$30=2\\times3\\times5$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P101-A1d",
+    "tipo": "numerico",
+    "enunciado": "Descompón $15$ en sus factores primos.",
+    "expr": "3*5",
+    "respuesta": "15",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem d",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$15=3\\times5$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P101-A1e",
+    "tipo": "numerico",
+    "enunciado": "Descompón $40$ en sus factores primos.",
+    "expr": "2**3*5",
+    "respuesta": "40",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem e",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$40=2^3\\times5$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P101-A1f",
+    "tipo": "numerico",
+    "enunciado": "Descompón $72$ en sus factores primos.",
+    "expr": "2**3*3**2",
+    "respuesta": "72",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem f",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$72=2^3\\times3^2$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P101-A1g",
+    "tipo": "numerico",
+    "enunciado": "Descompón $84$ en sus factores primos.",
+    "expr": "2**2*3*7",
+    "respuesta": "84",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem g",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$84=2^2\\times3\\times7$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P101-A1h",
+    "tipo": "numerico",
+    "enunciado": "Descompón $27$ en sus factores primos.",
+    "expr": "3**3",
+    "respuesta": "27",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem h",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$27=3^3$. El único de la lista con un solo primo repetido.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P101-A1i",
+    "tipo": "numerico",
+    "enunciado": "Descompón $48$ en sus factores primos.",
+    "expr": "2**4*3",
+    "respuesta": "48",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem i",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$48=2^4\\times3$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P101-A1j",
+    "tipo": "numerico",
+    "enunciado": "Descompón $120$ en sus factores primos.",
+    "expr": "2**3*3*5",
+    "respuesta": "120",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem j",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$120=2^3\\times3\\times5$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P101-A1k",
+    "tipo": "numerico",
+    "enunciado": "Descompón $360$ en sus factores primos.",
+    "expr": "2**3*3**2*5",
+    "respuesta": "360",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem k",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$360=2^3\\times3^2\\times5$. Se puede reaprovechar el ítem j: $360=3\\times120$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P101-A1l",
+    "tipo": "numerico",
+    "enunciado": "Descompón $350$ en sus factores primos.",
+    "expr": "2*5**2*7",
+    "respuesta": "350",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem l",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$350=2\\times5^2\\times7$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P101-A1m",
+    "tipo": "numerico",
+    "enunciado": "Descompón $1\\,250$ en sus factores primos.",
+    "expr": "2*5**4",
+    "respuesta": "1250",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem m",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$1\\,250=2\\times5^4$. Conviene dividir una vez entre $2$ y luego cuatro veces entre $5$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P101-A1n",
+    "tipo": "numerico",
+    "enunciado": "Descompón $780$ en sus factores primos.",
+    "expr": "2**2*3*5*13",
+    "respuesta": "780",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem n",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$780=2^2\\times3\\times5\\times13$. El único con un primo de dos cifras, el $13$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P101-A1o",
+    "tipo": "numerico",
+    "enunciado": "Descompón $350$ en sus factores primos.",
+    "expr": "2*5**2*7",
+    "respuesta": "350",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem o",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$350=2\\times5^2\\times7$.",
+    "erratum": "El libro pide dos veces el mismo numero: los items l y o son ambos 350. La respuesta del item no cambia por ello; solo conviene quedarse con uno de los dos al armar una practica, para no repetir.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P101-A1p",
+    "tipo": "numerico",
+    "enunciado": "Descompón $1\\,000$ en sus factores primos.",
+    "expr": "2**3*5**3",
+    "respuesta": "1000",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 1, ítem p",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "$1\\,000=2^3\\times5^3$. Atajo: $1\\,000=10^3=(2\\times5)^3$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P101-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el factor que falta para que el producto sea $-8x^2y^4$. El arreglo es: $y^2$, $y$, $\\square$ y $-2x$.",
+    "expr": "(y**2)*(y)*(4*x*y)*(-2*x)",
+    "respuesta": "-8*x**2*y**4",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 2, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "figura": "fila de cuatro casillas con los factores, una de ellas vacía — reconstruible en Python",
+    "nota": "El cuadro vale $4xy$: el producto de los tres factores conocidos es $-2xy^3$, y $\\frac{-8x^2y^4}{-2xy^3}=4xy$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P101-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el factor que falta para que el producto sea $24m^3n^2$. El arreglo es: $-3m$, $m$, $4n$ y $\\square$.",
+    "expr": "(-3*m)*(m)*(4*n)*(-2*m*n)",
+    "respuesta": "24*m**3*n**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 2, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "figura": "fila de cuatro casillas con los factores, una de ellas vacía — reconstruible en Python",
+    "nota": "El cuadro vale $-2mn$. El signo es la clave: como los factores conocidos dan $-12m^2n$ y el producto pedido es positivo, el que falta debe ser negativo.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P101-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el factor que falta para que el producto sea $16wz^3$. El arreglo es: $16$, $w$, $z$ y $\\square$.",
+    "expr": "(16)*(w)*(z)*(z**2)",
+    "respuesta": "16*w*z**3",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 2, ítem c",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "figura": "fila de cuatro casillas con los factores, una de ellas vacía — reconstruible en Python",
+    "nota": "El cuadro vale $z^2$: el único que falta es la potencia de $z$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P101-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el factor que falta para que el producto sea $-\\dfrac{5}{21}a^4b^3c$. El arreglo es: $\\dfrac{1}{3}a$, $\\square$, $a^2$ y $b^2$.",
+    "expr": "(1/3*a)*(-5/7*a*b*c)*(a**2)*(b**2)",
+    "respuesta": "-5/21*a**4*b**3*c",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 2, ítem d",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "figura": "fila de cuatro casillas con los factores, una de ellas vacía — reconstruible en Python",
+    "nota": "El cuadro vale $-\\frac{5}{7}abc$: los tres factores conocidos dan $\\frac13a^3b^2$, y $-\\frac{5}{21}a^4b^3c\\div\\frac13a^3b^2=-\\frac{5}{7}abc$. La $c$ solo puede venir del cuadro, porque no aparece en ningún otro factor.",
+    "dificultad": 1550,
+    "erratum": "El libro rotula este ítem como «c», repitiendo la letra del anterior. Aquí se registra como d."
+  },
+  {
+    "id": "HT8-U5-P101-A3a",
+    "tipo": "numerico",
+    "enunciado": "Halla el mcd de 28 y 36 y di cuál de estas opciones le corresponde: (1) $15$; (2) $30$; (3) $40$; (4) $80$; (5) $12$; (6) $4$; (7) $6$; (8) $10$; (9) $25$.",
+    "expr": "gcd(28, 36)",
+    "respuesta": "4",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 3, ítem a (opción 6)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "mcd $= 4$, opción 6.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P101-A3b",
+    "tipo": "numerico",
+    "enunciado": "Halla el mcd de 120 y 80 y di cuál de estas opciones le corresponde: (1) $15$; (2) $30$; (3) $40$; (4) $80$; (5) $12$; (6) $4$; (7) $6$; (8) $10$; (9) $25$.",
+    "expr": "gcd(120, 80)",
+    "respuesta": "40",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 3, ítem b (opción 3)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "mcd $= 40$, opción 3.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P101-A3c",
+    "tipo": "numerico",
+    "enunciado": "Halla el mcd de 120 y 108 y di cuál de estas opciones le corresponde: (1) $15$; (2) $30$; (3) $40$; (4) $80$; (5) $12$; (6) $4$; (7) $6$; (8) $10$; (9) $25$.",
+    "expr": "gcd(120, 108)",
+    "respuesta": "12",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 3, ítem c (opción 5)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "mcd $= 12$, opción 5.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P101-A3d",
+    "tipo": "numerico",
+    "enunciado": "Halla el mcd de 75, 120 y 225 y di cuál de estas opciones le corresponde: (1) $15$; (2) $30$; (3) $40$; (4) $80$; (5) $12$; (6) $4$; (7) $6$; (8) $10$; (9) $25$.",
+    "expr": "gcd(gcd(75, 120), 225)",
+    "respuesta": "15",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 3, ítem d (opción 1)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "mcd $= 15$, opción 1. Con tres números el mcd se calcula por pasos: primero el de dos y luego el de ese resultado con el tercero.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P101-A3e",
+    "tipo": "numerico",
+    "enunciado": "Halla el mcd de 180, 450 y 240 y di cuál de estas opciones le corresponde: (1) $15$; (2) $30$; (3) $40$; (4) $80$; (5) $12$; (6) $4$; (7) $6$; (8) $10$; (9) $25$.",
+    "expr": "gcd(gcd(180, 450), 240)",
+    "respuesta": "30",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 3, ítem e (opción 2)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "mcd $= 30$, opción 2. Cuidado: $\\mathrm{mcd}(180,450)=90$, pero el $240$ lo baja a $30$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P101-A3f",
+    "tipo": "numerico",
+    "enunciado": "Halla el mcd de 1.040, 720 y 800 y di cuál de estas opciones le corresponde: (1) $15$; (2) $30$; (3) $40$; (4) $80$; (5) $12$; (6) $4$; (7) $6$; (8) $10$; (9) $25$.",
+    "expr": "gcd(gcd(1040, 720), 800)",
+    "respuesta": "80",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 3, ítem f (opción 4)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "mcd $= 80$, opción 4.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P101-A3g",
+    "tipo": "numerico",
+    "enunciado": "Halla el mcd de 20, 60 y 10 y di cuál de estas opciones le corresponde: (1) $15$; (2) $30$; (3) $40$; (4) $80$; (5) $12$; (6) $4$; (7) $6$; (8) $10$; (9) $25$.",
+    "expr": "gcd(gcd(20, 60), 10)",
+    "respuesta": "10",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 3, ítem g (opción 8)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "mcd $= 10$, opción 8. El $10$ divide a los otros dos, así que él mismo es el mcd.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U5-P101-A3h",
+    "tipo": "numerico",
+    "enunciado": "Halla el mcd de 78, 60 y 48 y di cuál de estas opciones le corresponde: (1) $15$; (2) $30$; (3) $40$; (4) $80$; (5) $12$; (6) $4$; (7) $6$; (8) $10$; (9) $25$.",
+    "expr": "gcd(gcd(78, 60), 48)",
+    "respuesta": "6",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 3, ítem h (opción 7)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "mcd $= 6$, opción 7.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P101-A3i",
+    "tipo": "numerico",
+    "enunciado": "Halla el mcd de 75, 100 y 125 y di cuál de estas opciones le corresponde: (1) $15$; (2) $30$; (3) $40$; (4) $80$; (5) $12$; (6) $4$; (7) $6$; (8) $10$; (9) $25$.",
+    "expr": "gcd(gcd(75, 100), 125)",
+    "respuesta": "25",
+    "conjunto": "N",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 3, ítem i (opción 9)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "mcd $= 25$, opción 9. Los tres son múltiplos de $25$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P101-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe cuatro factorizaciones del monomio $8x^3y^2$.",
+    "expr": "(8*x**3)*(y**2)",
+    "respuesta": "8*x**3*y**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 4, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Cuatro posibles: $(8x^3)(y^2)$; $(4x^2)(2xy^2)$; $(2x)(2x)(2x)(y^2)$; $(8)(x)(x)(x)(y)(y)$. La última es la descomposición completa, la que sirve para buscar factores comunes.",
+    "verificar": "La respuesta no es única: la actividad pide CUATRO factorizaciones cualesquiera. Se registra una en `expr` para poder comprobar el producto y las otras tres en la nota; al calificar hay que aceptar cualquier conjunto de factores cuyo producto dé el monomio.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P101-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe cuatro factorizaciones del monomio $-20a^4b^2$.",
+    "expr": "(-20*a**4)*(b**2)",
+    "respuesta": "-20*a**4*b**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 4, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Cuatro posibles: $(-20a^4)(b^2)$; $(-5a^2b)(4a^2b)$; $(4a^4)(-5b^2)$; $(-1)(2)(2)(5)(a^4)(b^2)$. El signo menos puede ir en cualquiera de los factores, pero solo en uno (o en un número impar de ellos).",
+    "verificar": "La respuesta no es única: la actividad pide CUATRO factorizaciones cualesquiera. Se registra una en `expr` para poder comprobar el producto y las otras tres en la nota; al calificar hay que aceptar cualquier conjunto de factores cuyo producto dé el monomio.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P101-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe cuatro factorizaciones del monomio $-54m^3n^4$.",
+    "expr": "(-54*m**3)*(n**4)",
+    "respuesta": "-54*m**3*n**4",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 4, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Cuatro posibles: $(-54m^3)(n^4)$; $(-6m^2n^2)(9mn^2)$; $(-27m^3n)(2n^3)$; $(-2)(27)(m^3)(n^4)$. Como $54=2\\times3^3$, hay muchas repartos posibles del coeficiente.",
+    "verificar": "La respuesta no es única: la actividad pide CUATRO factorizaciones cualesquiera. Se registra una en `expr` para poder comprobar el producto y las otras tres en la nota; al calificar hay que aceptar cualquier conjunto de factores cuyo producto dé el monomio.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P101-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Escribe cuatro factorizaciones del monomio $72x^4y^3z^2$.",
+    "expr": "(72*x**4)*(y**3*z**2)",
+    "respuesta": "72*x**4*y**3*z**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 4, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Cuatro posibles: $(72x^4)(y^3z^2)$; $(8x^2y)(9x^2y^2z^2)$; $(12x^2y^2)(6x^2yz^2)$; $(2)(2)(2)(3)(3)(x^4)(y^3)(z^2)$.",
+    "verificar": "La respuesta no es única: la actividad pide CUATRO factorizaciones cualesquiera. Se registra una en `expr` para poder comprobar el producto y las otras tres en la nota; al calificar hay que aceptar cualquier conjunto de factores cuyo producto dé el monomio.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P101-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Escribe cuatro factorizaciones del monomio $105a^5b^4c^2$.",
+    "expr": "(105*a**5)*(b**4*c**2)",
+    "respuesta": "105*a**5*b**4*c**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 4, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Cuatro posibles: $(105a^5)(b^4c^2)$; $(15a^3b^2)(7a^2b^2c^2)$; $(21a^4bc)(5ab^3c)$; $(3)(5)(7)(a^5)(b^4)(c^2)$. El coeficiente $105=3\\times5\\times7$ no tiene factores repetidos, así que solo hay ocho formas de repartirlo en dos.",
+    "verificar": "La respuesta no es única: la actividad pide CUATRO factorizaciones cualesquiera. Se registra una en `expr` para poder comprobar el producto y las otras tres en la nota; al calificar hay que aceptar cualquier conjunto de factores cuyo producto dé el monomio.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P101-A4f",
+    "tipo": "simbolico",
+    "enunciado": "Escribe cuatro factorizaciones del monomio $\\dfrac{3}{24}m^6n^5$.",
+    "expr": "(3/24*m**6)*(n**5)",
+    "respuesta": "3/24*m**6*n**5",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 4, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Primero conviene simplificar: $\\frac{3}{24}=\\frac18$. Cuatro posibles: $\\left(\\frac18m^6\\right)(n^5)$; $\\left(\\frac18m^3n^2\\right)(m^3n^3)$; $\\left(\\frac12m^2n\\right)\\left(\\frac14m^4n^4\\right)$; $\\left(\\frac12m^2\\right)\\left(\\frac12n^2\\right)\\left(\\frac12m^4n^3\\right)$.",
+    "verificar": "La respuesta no es única: la actividad pide CUATRO factorizaciones cualesquiera. Se registra una en `expr` para poder comprobar el producto y las otras tres en la nota; al calificar hay que aceptar cualquier conjunto de factores cuyo producto dé el monomio.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P101-A4g",
+    "tipo": "simbolico",
+    "enunciado": "Escribe cuatro factorizaciones del monomio $-\\dfrac{1}{4}x^4y^3z^6$.",
+    "expr": "(-1/4*x**4)*(y**3*z**6)",
+    "respuesta": "-1/4*x**4*y**3*z**6",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 4, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Cuatro posibles: $\\left(-\\frac14x^4\\right)(y^3z^6)$; $\\left(-\\frac12x^2y\\right)\\left(\\frac12x^2y^2z^6\\right)$; $\\left(\\frac14\\right)\\left(-x^4y^3z^6\\right)$; $\\left(-\\frac14x^4y^3\\right)(z^6)$.",
+    "verificar": "La respuesta no es única: la actividad pide CUATRO factorizaciones cualesquiera. Se registra una en `expr` para poder comprobar el producto y las otras tres en la nota; al calificar hay que aceptar cualquier conjunto de factores cuyo producto dé el monomio.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P101-A4h",
+    "tipo": "simbolico",
+    "enunciado": "Escribe cuatro factorizaciones del monomio $\\dfrac{8}{75}a^6b^4c^2$.",
+    "expr": "(8/75*a**6)*(b**4*c**2)",
+    "respuesta": "8/75*a**6*b**4*c**2",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 4, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Cuatro posibles: $\\left(\\frac{8}{75}a^6\\right)(b^4c^2)$; $\\left(\\frac25a^3b^2\\right)\\left(\\frac{4}{15}a^3b^2c^2\\right)$; $\\left(\\frac{8}{75}a^6b^4\\right)(c^2)$; $\\left(\\frac23a^2b\\right)\\left(\\frac{4}{25}a^4b^3c^2\\right)$. La fracción también se reparte: $\\frac25\\cdot\\frac{4}{15}=\\frac{8}{75}$.",
+    "verificar": "La respuesta no es única: la actividad pide CUATRO factorizaciones cualesquiera. Se registra una en `expr` para poder comprobar el producto y las otras tres en la nota; al calificar hay que aceptar cualquier conjunto de factores cuyo producto dé el monomio.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P101-A4i",
+    "tipo": "simbolico",
+    "enunciado": "Escribe cuatro factorizaciones del monomio $-\\dfrac{4}{100}m^5n^4p^3$.",
+    "expr": "(-4/100*m**5)*(n**4*p**3)",
+    "respuesta": "-4/100*m**5*n**4*p**3",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de monomios",
+    "unidad": 5,
+    "pagina_pdf": 101,
+    "referencia": "Actividad 4, ítem i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Simplificando, $\\frac{4}{100}=\\frac{1}{25}$. Cuatro posibles: $\\left(-\\frac{1}{25}m^5\\right)(n^4p^3)$; $\\left(-\\frac15m^2n^2\\right)\\left(\\frac15m^3n^2p^3\\right)$; $\\left(-\\frac{1}{25}m^5n^4\\right)(p^3)$; $\\left(-\\frac15m^2n\\right)\\left(\\frac15m^3n^3p^3\\right)$.",
+    "verificar": "La respuesta no es única: la actividad pide CUATRO factorizaciones cualesquiera. Se registra una en `expr` para poder comprobar el producto y las otras tres en la nota; al calificar hay que aceptar cualquier conjunto de factores cuyo producto dé el monomio.",
+    "dificultad": 1500
+  }
+]

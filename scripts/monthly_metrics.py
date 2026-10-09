@@ -102,7 +102,7 @@ def reporte(repo):
         print("  Ninguno.")
 
     # Estado calibrador
-    from src.domain.elo.calibration import IsotonicCalibrator
+    from src.infrastructure.ml.calibration import IsotonicCalibrator
 
     cal = IsotonicCalibrator()
     activo = cal.load()

@@ -1,0 +1,21 @@
+{
+  "base": "Precise localized anatomy correction ONLY. Keep image's original pixel art style, framing, colors, lighting, facial identity, ocular side, ear patch, Egyptian clothing, all other characters, objects and counts EXACTLY unchanged. Do NOT mirror. KatIA's RIGHT arm on viewer LEFT at chin must be completely organic WHITE FUR from shoulder, upper arm, elbow, forearm, wrist through palm and ALL fingers: remove every metal panel and cyan light from this arm. Her LEFT arm on viewer RIGHT must be fully SILVER ROBOTIC from shoulder through upper arm, elbow, forearm, wrist, palm, all fingers. Swap arm MATERIALS without altering pose, do not swap arm positions. Keep the ocular viewer LEFT and orange ear patch viewer RIGHT. No added limbs, no other changes. ",
+  "jobs": [
+    [
+      "l03-traduccion-katia.png",
+      "Left arm viewer RIGHT is mostly hidden behind the grey apprentice. Show silver only in the currently visible shoulder/upper arm area. Preserve occlusion; do not invent a new hand or crossed arm. Chin hand and raised forearm viewer LEFT entirely white fur."
+    ],
+    [
+      "l04-valor-numerico-katia.png",
+      "Raised arm at chin viewer LEFT entirely white fur. Horizontal supporting arm across waist starts at shoulder viewer RIGHT and must be silver throughout, including hand at its far end."
+    ],
+    [
+      "o01-semejantes-katia.png",
+      "Raised arm at chin viewer LEFT entirely white fur. Horizontal supporting arm across waist starts at shoulder viewer RIGHT and must be silver throughout, including hand at its far end."
+    ],
+    [
+      "o02-signos-katia.png",
+      "Raised arm at chin viewer LEFT entirely white fur. Arm on viewer RIGHT resting on table becomes entirely silver shoulder to fingertips. Keep table hand pose and all tablets untouched."
+    ]
+  ]
+}

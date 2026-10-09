@@ -1,0 +1,205 @@
+[
+  {
+    "id": "HT8-U5-P99-Da",
+    "tipo": "abierta",
+    "enunciado": "Resuelve el crucinúmero. En una cuadrícula $2\\times2$ las casillas son $A$ (arriba izq.), $C$ (arriba der.), $B$ (abajo izq.) y $D$ (abajo der.); cada casilla lleva una cifra. Pistas: $AB$ es un factor primo de $26$; $AC$ es un múltiplo de $5$ mayor que $10$; $CD$ es el número cuya descomposición en factores primos es $3\\times19$; $BD$ es el número primo que sigue a $31$.",
+    "respuesta": "$A=1$, $B=3$, $C=5$, $D=7$. La cuadrícula queda $\\begin{smallmatrix}1&5\\\\3&7\\end{smallmatrix}$. Comprobación: $AB=13$, factor primo de $26=2\\times13$ ✓; $AC=15$, múltiplo de $5$ mayor que $10$ ✓; $CD=57=3\\times19$ ✓; $BD=37$, el primo siguiente a $31$ ✓.",
+    "conjunto": "N",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 5,
+    "pagina_pdf": 99,
+    "referencia": "Prepárate para analizar, ítem a",
+    "apto_para": [
+      "procedimiento_abierto",
+      "practica_seleccion"
+    ],
+    "figura": "cuadrícula 2×2 con las casillas rotuladas A, C (arriba) y B, D (abajo) — reconstruible en Python",
+    "nota": "Por dónde empezar: $CD$ está totalmente determinado ($3\\times19=57$), así que $C=5$ y $D=7$ salen de una. Después $BD=37$ da $B=3$, y $AB$ debe ser el factor primo de dos cifras de $26$, o sea $13$, luego $A=1$. La pista $AC=15$ solo sirve de verificación. Toda la unidad de factorización arranca aquí: descomponer $26$ y $57$ en primos es la versión numérica de lo que se hará con polinomios.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P99-Db",
+    "tipo": "ecuacion",
+    "enunciado": "Encuentra dos enteros $a$ y $b$ tales que $a+b=8$ y $a\\times b=-48$.",
+    "ecuacion": "a*(8 - a) = -48",
+    "incognita": "a",
+    "soluciones": [
+      "12",
+      "-4"
+    ],
+    "conjunto": "Z",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 5,
+    "pagina_pdf": 99,
+    "referencia": "Prepárate para analizar, ítem b",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Los números son $12$ y $-4$. Como el producto es negativo, tienen signos contrarios; y como la suma es positiva, el mayor en valor absoluto es el positivo. Buscar dos números que sumen $S$ y multipliquen $P$ es exactamente lo que se hará al factorizar $x^2-8x-48$ en la unidad: es el ejercicio de la página 79 leído al revés.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P99-Dc1",
+    "tipo": "numerico",
+    "enunciado": "Completa: $11^2=12\\underline{\\phantom{0}}$.",
+    "expr": "11**2",
+    "respuesta": "121",
+    "conjunto": "N",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 5,
+    "pagina_pdf": 99,
+    "referencia": "Prepárate para analizar, ítem c",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "Falta la cifra $1$.",
+    "dificultad": 850
+  },
+  {
+    "id": "HT8-U5-P99-Dc2",
+    "tipo": "numerico",
+    "enunciado": "Completa: $12^2=14\\underline{\\phantom{0}}$.",
+    "expr": "12**2",
+    "respuesta": "144",
+    "conjunto": "N",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 5,
+    "pagina_pdf": 99,
+    "referencia": "Prepárate para analizar, ítem c",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "Falta la cifra $4$.",
+    "dificultad": 850
+  },
+  {
+    "id": "HT8-U5-P99-Dc3",
+    "tipo": "numerico",
+    "enunciado": "Completa: $13^2=16\\underline{\\phantom{0}}$.",
+    "expr": "13**2",
+    "respuesta": "169",
+    "conjunto": "N",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 5,
+    "pagina_pdf": 99,
+    "referencia": "Prepárate para analizar, ítem c",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "Falta la cifra $9$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P99-Dc4",
+    "tipo": "numerico",
+    "enunciado": "Completa: $14^2=19\\underline{\\phantom{0}}$.",
+    "expr": "14**2",
+    "respuesta": "196",
+    "conjunto": "N",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 5,
+    "pagina_pdf": 99,
+    "referencia": "Prepárate para analizar, ítem c",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "Falta la cifra $6$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P99-Dc5",
+    "tipo": "numerico",
+    "enunciado": "Completa: $15^2=22\\underline{\\phantom{0}}$.",
+    "expr": "15**2",
+    "respuesta": "225",
+    "conjunto": "N",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 5,
+    "pagina_pdf": 99,
+    "referencia": "Prepárate para analizar, ítem c",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "Falta la cifra $5$. Truco para los cuadrados que acaban en $5$: $15^2=1\\cdot2$ seguido de $25$, es decir $225$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P99-Dc6",
+    "tipo": "numerico",
+    "enunciado": "Completa: $16^2=25\\underline{\\phantom{0}}$.",
+    "expr": "16**2",
+    "respuesta": "256",
+    "conjunto": "N",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 5,
+    "pagina_pdf": 99,
+    "referencia": "Prepárate para analizar, ítem c",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "Falta la cifra $6$. Conviene notar que las diferencias entre cuadrados consecutivos son los impares $23, 25, 27, 29, 31$: es $(n+1)^2-n^2=2n+1$, el cuadrado de binomio de la unidad anterior.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P99-L1",
+    "tipo": "abierta",
+    "enunciado": "Lectura «El príncipe de los matemáticos». ¿Conoces otros aportes de Gauss a las matemáticas?",
+    "respuesta": "Entre otros: la ley de reciprocidad cuadrática y la aritmética modular (Disquisitiones arithmeticae, 1801); la construcción con regla y compás del polígono regular de $17$ lados; la distribución normal o «campana de Gauss» y el método de mínimos cuadrados; el método de eliminación gaussiana para sistemas lineales; el cálculo de la órbita del asteroide Ceres; y en geometría, la curvatura de superficies (Theorema egregium) y los primeros trabajos sobre geometría no euclidiana.",
+    "conjunto": "R",
+    "seccion": "Lectura — El príncipe de los matemáticos",
+    "unidad": 5,
+    "pagina_pdf": 99,
+    "referencia": "Para responder, pregunta 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "La unidad de estadística (unidad 10) volverá sobre la campana de Gauss; vale la pena dejar el gancho puesto aquí.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P99-L2",
+    "tipo": "abierta",
+    "enunciado": "Lectura «El príncipe de los matemáticos». ¿Sabes cuáles son los números triangulares?",
+    "respuesta": "Son los que cuentan puntos dispuestos en triángulo: $1, 3, 6, 10, 15, 21,\\dots$ El $n$-ésimo es la suma $1+2+\\dots+n=\\dfrac{n(n+1)}{2}$, que es justamente la fórmula con la que Gauss resolvió de niño la suma hasta $100$: $\\dfrac{100\\cdot101}{2}=5\\,050$. El «¡Eureka!» de su diario dice que todo entero positivo es suma de tres números triangulares.",
+    "conjunto": "N",
+    "seccion": "Lectura — El príncipe de los matemáticos",
+    "unidad": 5,
+    "pagina_pdf": 99,
+    "referencia": "Para responder, pregunta 2",
+    "apto_para": [
+      "procedimiento_abierto",
+      "practica_numerica"
+    ],
+    "figura": "los primeros cuatro números triangulares dibujados con puntos (1, 3, 6, 10) — reconstruible en Python",
+    "nota": "$\\frac{n(n+1)}{2}$ ya viene factorizada: es el producto de dos factores consecutivos partido por dos. Buen ejemplo de que factorizar es la forma útil de escribir una expresión.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P99-L3",
+    "tipo": "simbolico",
+    "enunciado": "Lectura «El príncipe de los matemáticos». Según el teorema que se menciona en la lectura, ¿puedes escribir el binomio $x^2-1$ como producto de factores?",
+    "expr": "x**2-1",
+    "respuesta": "(x-1)*(x+1)",
+    "conjunto": "R",
+    "seccion": "Lectura — El príncipe de los matemáticos",
+    "unidad": 5,
+    "pagina_pdf": 99,
+    "referencia": "Para responder, pregunta 3",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Sí: $x^2-1=(x-1)(x+1)$. El teorema fundamental del álgebra dice que un polinomio de grado $n$ se factoriza en exactamente $n$ factores de la forma $x-c$, donde los $c$ son sus raíces; aquí $n=2$ y las raíces son $1$ y $-1$. Es también el primer caso de diferencia de cuadrados, que la unidad desarrollará más adelante.",
+    "erratum": "El libro pide escribir x - 1 como producto de factores, y ese binomio ya es de la forma x - c: es irreducible y no admite ninguna descomposicion no trivial, asi que la pregunta no tiene respuesta. Corregido a x^2 - 1, el binomio de grado 2 mas simple, que si ilustra el teorema (dos raices, dos factores) y ademas conecta con la diferencia de cuadrados de la unidad.",
+    "dificultad": 1250
+  }
+]

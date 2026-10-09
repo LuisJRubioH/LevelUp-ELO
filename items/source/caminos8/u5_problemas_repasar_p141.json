@@ -1,0 +1,156 @@
+[
+  {
+    "id": "CS8-U5-P141-A392",
+    "tipo": "simbolico",
+    "enunciado": "El primo de Laura recomienda que el área del jardín sea 6x²+17x-14 m². Expresa las nuevas dimensiones del jardín.",
+    "expr": "6*x**2+17*x-14",
+    "respuesta": "(2*x+7)*(3*x-2)",
+    "restricciones": ["x>2/3"],
+    "conjunto": "R",
+    "seccion": "Problemas para repasar: jardín rectangular",
+    "unidad": 5,
+    "pagina_pdf": 141,
+    "referencia": "Actividad 392",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "6x²+17x-14=6x²+21x-4x-14=(2x+7)(3x-2).",
+    "dificultad": 550
+  },
+  {
+    "id": "CS8-U5-P141-A393",
+    "tipo": "valores_numericos",
+    "enunciado": "Compara las nuevas dimensiones (2x+7) m y (3x-2) m con las dimensiones originales (2x-5) m y (3x+4) m. Indica cuánto aumentó o disminuyó cada una.",
+    "exprs": {
+      "cambio_largo": "(2*x+7)-(2*x-5)",
+      "cambio_ancho": "(3*x-2)-(3*x+4)"
+    },
+    "respuesta_valores": {
+      "cambio_largo": "12",
+      "cambio_ancho": "-6"
+    },
+    "respuesta": "La dimensión asociada al factor de coeficiente 2 aumenta 12 m y la asociada al factor de coeficiente 3 disminuye 6 m.",
+    "conjunto": "R",
+    "seccion": "Problemas para repasar: jardín rectangular",
+    "unidad": 5,
+    "pagina_pdf": 141,
+    "referencia": "Actividad 393",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "verificar": "La comparación sigue la asociación sugerida por el problema resuelto: se emparejan los factores con el mismo coeficiente principal. Las etiquetas largo y ancho no quedan determinadas únicamente por el producto.",
+    "dificultad": 550
+  },
+  {
+    "id": "CS8-U5-P141-A394",
+    "tipo": "simbolico",
+    "enunciado": "Halla el nuevo perímetro del jardín cuyas dimensiones son (2x+7) m y (3x-2) m.",
+    "expr": "2*((2*x+7)+(3*x-2))",
+    "respuesta": "10*x+10",
+    "conjunto": "R",
+    "seccion": "Problemas para repasar: jardín rectangular",
+    "unidad": 5,
+    "pagina_pdf": 141,
+    "referencia": "Actividad 394",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "dificultad": 450
+  },
+  {
+    "id": "CS8-U5-P141-A395",
+    "tipo": "valores_numericos",
+    "enunciado": "Jorge cambia una repisa rectangular de área 4x²-8x-5 cm² por otra de área 4x²+4x-3 cm². ¿Cuántos centímetros más tendrán el largo y el ancho de la nueva repisa?",
+    "exprs": {
+      "area_original": "4*x**2-8*x-5",
+      "area_nueva": "4*x**2+4*x-3",
+      "aumento_largo": "(2*x+3)-(2*x+1)",
+      "aumento_ancho": "(2*x-1)-(2*x-5)"
+    },
+    "respuesta_valores": {
+      "area_original": "(2*x+1)*(2*x-5)",
+      "area_nueva": "(2*x+3)*(2*x-1)",
+      "aumento_largo": "2",
+      "aumento_ancho": "4"
+    },
+    "respuesta": "La repisa original mide (2x+1) cm por (2x-5) cm y la nueva (2x+3) cm por (2x-1) cm. El largo aumenta 2 cm y el ancho aumenta 4 cm.",
+    "restricciones": ["x>5/2"],
+    "conjunto": "R",
+    "seccion": "Problemas para repasar: repisa rectangular",
+    "unidad": 5,
+    "pagina_pdf": 141,
+    "referencia": "Actividad 395",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "dificultad": 600
+  },
+  {
+    "id": "CS8-U5-P141-A396",
+    "tipo": "simbolico",
+    "enunciado": "Halla el perímetro de la nueva repisa cuyas dimensiones son (2x+3) cm y (2x-1) cm.",
+    "expr": "2*((2*x+3)+(2*x-1))",
+    "respuesta": "8*x+4",
+    "conjunto": "R",
+    "seccion": "Problemas para repasar: repisa rectangular",
+    "unidad": 5,
+    "pagina_pdf": 141,
+    "referencia": "Actividad 396",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "dificultad": 450
+  },
+  {
+    "id": "CS8-U5-P141-A397",
+    "tipo": "numerico",
+    "enunciado": "Una ventana rectangular tiene un área de 16x²-81 cm². Una dimensión es de la forma ax+b, donde a y b son enteros. Determina a²+b².",
+    "expr": "4**2+9**2",
+    "respuesta": "97",
+    "conjunto": "Z",
+    "seccion": "Problemas para repasar: factorización aplicada",
+    "unidad": 5,
+    "pagina_pdf": 141,
+    "referencia": "Actividad 397",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "16x²-81=(4x-9)(4x+9); en cualquiera de los factores a=4 y b=±9, por lo que a²+b²=16+81=97.",
+    "dificultad": 500
+  },
+  {
+    "id": "CS8-U5-P141-A398",
+    "tipo": "valores_numericos",
+    "enunciado": "El perímetro de un rectángulo es 4x²+14 m y su área es x⁴+7x²+10 m². Halla la medida de su largo.",
+    "exprs": {
+      "area": "x**4+7*x**2+10",
+      "semiperimetro": "(4*x**2+14)/2",
+      "largo": "x**2+5"
+    },
+    "respuesta_valores": {
+      "area": "(x**2+5)*(x**2+2)",
+      "semiperimetro": "(x**2+5)+(x**2+2)",
+      "largo": "x**2+5"
+    },
+    "respuesta": "Los lados son x²+5 m y x²+2 m; por tanto, el largo es x²+5 m.",
+    "conjunto": "R",
+    "seccion": "Problemas para repasar: factorización aplicada",
+    "unidad": 5,
+    "pagina_pdf": 141,
+    "referencia": "Actividad 398",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "erratum": "El libro imprime la unidad m después de la expresión del área x⁴+7x²+10; por tratarse de un área rectangular, la unidad correcta es m².",
+    "dificultad": 650
+  },
+  {
+    "id": "CS8-U5-P141-A399",
+    "tipo": "valores_numericos",
+    "enunciado": "El volumen de un cilindro es 72πp³+48πp²+8πp. Si V=πr²h, determina cuánto suman el radio y la altura.",
+    "exprs": {
+      "volumen": "pi*(72*p**3+48*p**2+8*p)",
+      "suma_radio_altura": "(3*p+1)+8*p"
+    },
+    "respuesta_valores": {
+      "volumen": "pi*(3*p+1)**2*(8*p)",
+      "suma_radio_altura": "11*p+1"
+    },
+    "respuesta": "La factorización prevista es V=π(3p+1)²(8p), de modo que r=3p+1, h=8p y r+h=11p+1.",
+    "restricciones": ["p>0"],
+    "conjunto": "R",
+    "seccion": "Problemas para repasar: factorización aplicada",
+    "unidad": 5,
+    "pagina_pdf": 141,
+    "referencia": "Actividad 399",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "verificar": "El volumen por sí solo admite otras distribuciones constantes entre r² y h. La respuesta sigue la descomposición escolar natural que toma el factor cuadrado perfecto (3p+1)² como r².",
+    "dificultad": 700
+  }
+]

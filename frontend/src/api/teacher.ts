@@ -21,7 +21,10 @@ export interface Group {
 export interface StudentSummary {
   user_id: number;
   username: string;
-  global_elo: number;
+  global_elo: number | null; // null = pending diagnostic (spec 001)
+  display_rating: number | null; // what screens show (FR-028j)
+  rank_label: string | null;
+  overall_status: "rated" | "pending_diagnostic";
   total_attempts: number;
   accuracy: number;
   last_activity: string | null;
@@ -243,7 +246,36 @@ export const teacherApi = {
     api.delete<void>(
       `/api/teacher/exam-templates/${template_id}/assignments/${assignment_id}`,
     ),
+
+  examResults: (template_id: number) =>
+    api.get<ExamResults>(`/api/teacher/exam-templates/${template_id}/results`),
 };
+
+export interface ExamQuestionStat {
+  item_id: string;
+  content: string;
+  topic: string | null;
+  total: number;
+  correct: number;
+  accuracy: number;
+}
+export interface ExamTopicStat {
+  topic: string;
+  total: number;
+  correct: number;
+  accuracy: number;
+}
+export interface ExamResults {
+  title: string;
+  n_sessions: number;
+  n_students: number;
+  avg_score: number;
+  questions: ExamQuestionStat[];
+  topics: ExamTopicStat[];
+  best_question: ExamQuestionStat | null;
+  worst_question: ExamQuestionStat | null;
+  reinforce_topic: ExamTopicStat | null;
+}
 
 export interface ExamAssignment {
   id: number;

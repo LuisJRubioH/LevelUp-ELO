@@ -22,33 +22,9 @@ class VectorRating:
         """Retorna la desviación del tópico (default 350.0)."""
         return self.ratings.get(concept, (1000.0, 350.0))[1]
 
-    def update(
-        self, concept: str, difficulty: float, result: float, impact_modifier: float = 1.0
-    ) -> Tuple[float, float]:
-        """
-        Actualiza el rating y RD usando el modelo de incertidumbre.
-        Impact_modifier escala el cambio final (mantenemos compatibilidad con IA cognitiva).
-        """
+    def update(self, concept: str, difficulty: float, result: float) -> Tuple[float, float]:
+        """Actualiza el rating y RD del tópico con el modelo de incertidumbre (model.py)."""
         current_r, current_rd = self.ratings.get(concept, (1000.0, 350.0))
-
-        model = RatingModel(current_r, current_rd)
-        new_r, new_rd = model.update(result, difficulty)
-
-        # Aplicar el modificador de impacto al DELTA del rating si es necesario
-        delta = (new_r - current_r) * impact_modifier
-        final_r = current_r + delta
-
-        self.ratings[concept] = (final_r, new_rd)
-        return final_r, new_rd
-
-
-def aggregate_global_elo(vector: VectorRating) -> float:
-    if not vector.ratings:
-        return 1000.0
-    return sum(r for r, rd in vector.ratings.values()) / len(vector.ratings)
-
-
-def aggregate_global_rd(vector: VectorRating) -> float:
-    if not vector.ratings:
-        return 350.0
-    return sum(rd for r, rd in vector.ratings.values()) / len(vector.ratings)
+        new_r, new_rd = RatingModel(current_r, current_rd).update(result, difficulty)
+        self.ratings[concept] = (new_r, new_rd)
+        return new_r, new_rd

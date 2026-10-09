@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 from sklearn.metrics import roc_auc_score, log_loss
 
-from src.domain.elo.calibration import IsotonicCalibrator
+from src.infrastructure.ml.calibration import IsotonicCalibrator
 
 MIN_INTENTOS = 50
 MIN_INTENTOS_RECOMENDADO = 500

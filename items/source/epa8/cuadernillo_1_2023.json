@@ -1,0 +1,562 @@
+[
+  {
+    "id": "EPA8-C1-2023-P01",
+    "content": "María, Marta, Juan, Pedro y Luis se practicaron un control médico que incluía verificar su peso y estatura. La tabla muestra los resultados encontrados.\n\n| | María | Marta | Juan | Pedro | Luis |\n|---|---|---|---|---|---|\n| Estatura (m) | 1,60 | 1,65 | 1,75 | 1,72 | 1,80 |\n| Peso (kg) | 65 | 70 | 75 | 80 | 79 |\n\n¿Cuál gráfica relaciona correctamente la estatura y el peso de cada uno de los cinco trabajadores?",
+    "difficulty": 950,
+    "topic": "Pensamiento aleatorio — representación de datos bivariados",
+    "options": [
+      "Diagrama de dispersión estatura vs. peso con Pedro en (1,72; 80) y Juan en (1,75; 75).",
+      "Diagrama de barras de estatura por trabajador con valores 65, 70, 75, 80 y 80.",
+      "Diagrama de barras que solo muestra la estatura de cada trabajador.",
+      "Diagrama de dispersión estatura vs. peso con Juan en (1,70; 75) y Pedro en (1,75; 80)."
+    ],
+    "correct_option": "Diagrama de dispersión estatura vs. peso con Pedro en (1,72; 80) y Juan en (1,75; 75).",
+    "tags": ["aleatorio", "grado8", "epa", "interpretacion", "dispersion"],
+    "image_url": null,
+    "options_images": [
+      "items/assets/epa8/EPA8-C1-2023-P01_A.svg",
+      "items/assets/epa8/EPA8-C1-2023-P01_B.svg",
+      "items/assets/epa8/EPA8-C1-2023-P01_C.svg",
+      "items/assets/epa8/EPA8-C1-2023-P01_D.svg"
+    ],
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 1, "pagina_pdf": 2},
+    "figura": {"builder": "p2023_01", "descripcion": "4 paneles: dispersión correcta, barras con peso rotulado como estatura, barras solo estatura, dispersión con Juan y Pedro intercambiados"},
+    "solution": [
+      "Relacionar dos variables por individuo exige un diagrama de dispersión: cada persona es un punto (estatura, peso).",
+      "Las barras de B y C muestran una sola variable, así que no relacionan estatura con peso.",
+      "Pedro mide 1,72 m y pesa 80 kg; Juan mide 1,75 m y pesa 75 kg. Solo la opción A ubica a Pedro a la izquierda de Juan."
+    ],
+    "misconception_by_option": {
+      "B": "Confunde relacionar dos variables con graficar una sola; además rotula el eje con la variable equivocada.",
+      "C": "Cree que basta representar una de las dos variables.",
+      "D": "Lee la tabla por orden de aparición y no por el valor de la estatura, intercambiando a Juan y Pedro."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P02",
+    "content": "La figura corresponde al mapa de un parque natural. Cuando ingresan visitantes, se ofrecen las siguientes opciones de recorrido:\n\n- Museo – Zoológico – Piscinas.\n- Museo – Zoológico – Deportes.\n- Museo – Lago – Deportes.\n- Museo – Lago – Piscinas.\n\n¿Cuál de los siguientes diagramas resume los recorridos que ofrece el parque?",
+    "difficulty": 900,
+    "topic": "Pensamiento aleatorio — diagramas de árbol",
+    "options": [
+      "Raíz Museo; Zoológico → {Piscinas, Lago}; Lago → {Piscinas, Zoológico}.",
+      "Raíz Piscinas; Zoológico → {Museo, Lago}; Deportes → {Lago, Museo}.",
+      "Raíz Museo; Zoológico → {Piscinas, Deportes}; Lago → {Piscinas, Deportes}.",
+      "Raíz Piscinas; Zoológico → {Deportes, Museo}; Lago → {Deportes, Museo}."
+    ],
+    "correct_option": "Raíz Museo; Zoológico → {Piscinas, Deportes}; Lago → {Piscinas, Deportes}.",
+    "tags": ["aleatorio", "grado8", "epa", "interpretacion", "arbol"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P02.svg",
+    "options_images": [
+      "items/assets/epa8/EPA8-C1-2023-P02_A.svg",
+      "items/assets/epa8/EPA8-C1-2023-P02_B.svg",
+      "items/assets/epa8/EPA8-C1-2023-P02_C.svg",
+      "items/assets/epa8/EPA8-C1-2023-P02_D.svg"
+    ],
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 2, "pagina_pdf": 3},
+    "figura": {"builder": "p2023_02", "descripcion": "Mapa esquemático del parque (5 zonas + entrada) y 4 árboles de recorrido de dos niveles"},
+    "solution": [
+      "Los cuatro recorridos empiezan siempre en Museo, así que Museo es la raíz del árbol.",
+      "Desde Museo salen dos ramas: Zoológico y Lago.",
+      "De Zoológico salen Piscinas y Deportes; de Lago salen Deportes y Piscinas. Ese es el árbol de la opción C."
+    ],
+    "misconception_by_option": {
+      "A": "Copia destinos del mapa sin respetar los recorridos ofrecidos (repite Zoológico y Lago como destinos).",
+      "B": "Invierte el sentido del recorrido y toma Piscinas como punto de partida.",
+      "D": "Invierte el sentido del recorrido aunque conserve los pares de destinos."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P03",
+    "content": "En la figura se muestra un ladrillo con forma de prisma rectangular de $13\\text{ cm}$ de alto, $2\\text{ cm}$ de profundidad y $1\\text{ cm}$ de ancho. ¿Cuál es el volumen de este ladrillo?",
+    "difficulty": 850,
+    "topic": "Pensamiento métrico — volumen de prismas",
+    "options": ["$15\\text{ cm}^3$", "$28\\text{ cm}^3$", "$26\\text{ cm}^3$", "$39\\text{ cm}^3$"],
+    "correct_option": "$26\\text{ cm}^3$",
+    "tags": ["metrico", "grado8", "epa", "formulacion", "volumen"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P03.svg",
+    "pensamiento": "métrico",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 3, "pagina_pdf": 4},
+    "figura": {"builder": "p2023_03", "descripcion": "Prisma rectangular en perspectiva con cotas 13 cm (alto), 2 cm (profundidad), 1 cm (ancho)"},
+    "solution": [
+      "El volumen de un prisma rectangular es $V=\\text{largo}\\times\\text{ancho}\\times\\text{alto}$.",
+      "$V = 13 \\times 2 \\times 1$.",
+      "$V = 26\\text{ cm}^3$."
+    ],
+    "misconception_by_option": {
+      "A": "Suma dos dimensiones y multiplica por la tercera de forma arbitraria.",
+      "B": "Calcula un área lateral en vez del volumen.",
+      "D": "Multiplica $13\\times 3$ sumando primero las dos dimensiones de la base."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P04",
+    "content": "El cobro de un servicio de transporte privado se hace teniendo en cuenta una \"unidad\". El valor de la unidad varía según la hora del día, como se muestra en la gráfica: $\\$76$ a las 3 p. m., $\\$85$ a las 4 p. m., $\\$100$ a las 5 p. m., $\\$105$ a las 6 p. m., $\\$100$ a las 7 p. m., $\\$85$ a las 8 p. m. y $\\$76$ a las 9 p. m. ¿Cuál es la hora del día en la que se paga el valor máximo por unidad?",
+    "difficulty": 800,
+    "topic": "Pensamiento variacional — lectura de gráficas",
+    "options": ["3 p. m.", "5 p. m.", "6 p. m.", "9 p. m."],
+    "correct_option": "6 p. m.",
+    "tags": ["variacional", "grado8", "epa", "interpretacion", "grafica"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P04.svg",
+    "pensamiento": "variacional",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 4, "pagina_pdf": 4},
+    "figura": {"builder": "p2023_04", "descripcion": "Gráfica de puntos unidos por línea punteada: (3pm,76) (4pm,85) (5pm,100) (6pm,105) (7pm,100) (8pm,85) (9pm,76)"},
+    "solution": [
+      "El valor máximo corresponde al punto más alto de la gráfica.",
+      "El punto más alto vale $\\$105$.",
+      "Ese punto está sobre las 6 p. m."
+    ],
+    "misconception_by_option": {
+      "A": "Lee el primer punto de la gráfica en lugar del más alto.",
+      "B": "Confunde el máximo con el inicio de la meseta de $\\$100$.",
+      "D": "Lee el último punto de la gráfica."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P05",
+    "content": "En la imagen se observa el valor de las entradas para adultos y niños en diferentes salas de cine:\n\n- Cine 1 — Adultos: $\\$7.500$; Niños: $\\$3.350$\n- Cine 2 — Adultos: $\\$6.800$; Niños: $\\$3.200$\n- Cine 3 — Adultos: $\\$5.000$; Niños: $\\$4.000$\n- Cine 4 — Adultos: $\\$6.600$; Niños: $\\$4.400$\n\nSi se pagó $\\$10.000$ en total por una boleta de niño y una de adulto, ¿en cuál cine se compraron las boletas?",
+    "difficulty": 850,
+    "topic": "Pensamiento numérico — suma de decimales y comparación",
+    "options": ["Cine 1.", "Cine 2.", "Cine 3.", "Cine 4."],
+    "correct_option": "Cine 2.",
+    "tags": ["numerico", "grado8", "epa", "formulacion", "suma"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P05.svg",
+    "pensamiento": "numérico",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 5, "pagina_pdf": 5},
+    "figura": {"builder": "p2023_05", "descripcion": "Cuatro carteles de precios (reemplazan la ilustración decorativa original de personas sosteniendo letreros)"},
+    "solution": [
+      "Sumar adulto + niño en cada cine.",
+      "Cine 1: $7.500+3.350 = 10.850$. Cine 2: $6.800+3.200 = 10.000$.",
+      "Cine 3: $5.000+4.000 = 9.000$. Cine 4: $6.600+4.400 = 11.000$.",
+      "Solo el Cine 2 suma exactamente $\\$10.000$."
+    ],
+    "misconception_by_option": {
+      "A": "Redondea $10.850$ a $10.000$.",
+      "C": "Elige la suma menor por debajo de $\\$10.000$ sin verificar la igualdad.",
+      "D": "Elige la primera suma que supera $\\$10.000$."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P06",
+    "content": "La gráfica muestra el promedio de vida, en años, de algunos animales salvajes en una región de un país: guepardo $10$ años, babuino $30$ años y elefante $70$ años. ¿Cuántas veces el promedio de vida de los guepardos es igual al promedio de vida de los elefantes?",
+    "difficulty": 900,
+    "topic": "Pensamiento numérico — razones y división",
+    "options": ["8", "7", "6", "3"],
+    "correct_option": "7",
+    "tags": ["numerico", "grado8", "epa", "interpretacion", "razon"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P06.svg",
+    "pensamiento": "numérico",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 6, "pagina_pdf": 5},
+    "figura": {"builder": "p2023_06", "descripcion": "Barras horizontales: Guepardo 10, Babuino 30, Elefante 70; eje 0-80"},
+    "solution": [
+      "La pregunta equivale a: ¿por cuánto hay que multiplicar 10 para obtener 70?",
+      "$70 \\div 10 = 7$.",
+      "El promedio de vida del guepardo cabe 7 veces en el del elefante."
+    ],
+    "misconception_by_option": {
+      "A": "Lee mal la barra del elefante como 80.",
+      "C": "Estima la razón visualmente sin dividir.",
+      "D": "Divide usando el babuino ($30 \\div 10$) en lugar del elefante."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P07",
+    "content": "Se tiene una moneda corriente, es decir, con la misma probabilidad de obtener cara o sello. El diagrama de árbol muestra los posibles resultados de lanzar la moneda tres veces al aire. Según el diagrama, ¿cuál de las siguientes afirmaciones es **falsa**?",
+    "difficulty": 1000,
+    "topic": "Pensamiento aleatorio — azar y predicción",
+    "options": [
+      "Es posible hallar la cantidad de casos en los que se obtienen dos sellos consecutivos.",
+      "Es posible determinar la cantidad de casos en los que se obtiene únicamente caras.",
+      "Es posible determinar previamente si sale sello en el siguiente lanzamiento.",
+      "Es posible hallar la probabilidad de obtener una cara en los lanzamientos."
+    ],
+    "correct_option": "Es posible determinar previamente si sale sello en el siguiente lanzamiento.",
+    "tags": ["aleatorio", "grado8", "epa", "argumentacion", "azar"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P07.svg",
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 7, "pagina_pdf": 6},
+    "figura": {"builder": "p2023_07", "descripcion": "Dos árboles binarios de 3 niveles (raíz Cara y raíz Sello) con hojas Cara/Sello"},
+    "solution": [
+      "El árbol enumera los 8 resultados posibles, así que sí permite contar casos y calcular probabilidades.",
+      "Lo que un experimento aleatorio no permite es anticipar el resultado de un lanzamiento particular.",
+      "La afirmación falsa es la que asegura poder determinar previamente si sale sello."
+    ],
+    "misconception_by_option": {
+      "A": "Cree que el árbol no permite identificar patrones dentro de una rama.",
+      "B": "Cree que contar una rama específica no es posible con el diagrama.",
+      "D": "Confunde probabilidad teórica con predicción de un resultado individual."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P08",
+    "content": "Un investigador quiere saber cómo aumenta la población de un tipo de mamífero. Para ello, ingresa una pareja de estos en un ecosistema limitado. El crecimiento de la población se registró en la tabla:\n\n| Año | 1 | 2 | 3 | 4 |\n|---|---|---|---|---|\n| Población | 8 | 32 | 128 | 512 |\n\nCon los datos de la tabla, si se mantiene la relación entre el año y la cantidad, es correcto afirmar que la población de mamíferos",
+    "difficulty": 950,
+    "topic": "Pensamiento variacional — crecimiento multiplicativo",
+    "options": [
+      "aumentó 4 veces la cantidad del año anterior.",
+      "aumentó 8 veces la cantidad del año anterior.",
+      "aumentó 16 veces la cantidad del año anterior.",
+      "aumentó 24 veces la cantidad del año anterior."
+    ],
+    "correct_option": "aumentó 4 veces la cantidad del año anterior.",
+    "tags": ["variacional", "grado8", "epa", "interpretacion", "patron"],
+    "image_url": null,
+    "pensamiento": "variacional",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 8, "pagina_pdf": 6, "reaparece_en": ["Cuadernillo 1 - 2020 p12", "Cuadernillo 2 - 2021 p12"]},
+    "figura": null,
+    "solution": [
+      "Dividir cada valor entre el anterior: $32 \\div 8 = 4$.",
+      "$128 \\div 32 = 4$ y $512 \\div 128 = 4$.",
+      "La razón constante es 4: cada año la población es 4 veces la del año anterior."
+    ],
+    "misconception_by_option": {
+      "B": "Toma el primer valor de la tabla (8) como factor de crecimiento.",
+      "C": "Confunde el factor con la diferencia entre exponentes o duplica el factor real.",
+      "D": "Estima a partir de la diferencia $32-8=24$ en vez del cociente."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P09",
+    "content": "En la figura, las fichas 1 y 2 son cuadradas. La ficha 1 tiene lado $6\\text{ cm}$ y la ficha 2 tiene lado $8\\text{ cm}$. ¿Qué se le debe hacer a la ficha 1 para que sea congruente con la ficha 2?",
+    "difficulty": 900,
+    "topic": "Pensamiento espacial — congruencia de figuras",
+    "options": [
+      "Disminuir 4 cm a cada uno de sus lados.",
+      "Aumentar 2 cm a cada uno de sus lados.",
+      "Disminuir 2 cm solamente a dos de sus lados.",
+      "Aumentar 4 cm solamente a dos de sus lados."
+    ],
+    "correct_option": "Aumentar 2 cm a cada uno de sus lados.",
+    "tags": ["espacial", "grado8", "epa", "argumentacion", "congruencia"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P09.svg",
+    "pensamiento": "espacial",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 9, "pagina_pdf": 7, "reaparece_en": ["Cuadernillo 1 - 2020 p18", "Cuadernillo 2 - 2021 p18"]},
+    "figura": {"builder": "p2023_09", "descripcion": "Dos cuadrados rellenos con cota inferior: Ficha 1 de 6 cm y Ficha 2 de 8 cm"},
+    "solution": [
+      "Dos figuras son congruentes si tienen la misma forma y el mismo tamaño.",
+      "La ficha 2 es un cuadrado de lado $8\\text{ cm}$, así que la ficha 1 debe llegar a $8\\text{ cm}$ de lado.",
+      "$8 - 6 = 2$: hay que aumentar $2\\text{ cm}$ a cada lado, no solo a dos, para que siga siendo cuadrado."
+    ],
+    "misconception_by_option": {
+      "A": "Invierte el sentido del cambio y usa la diferencia equivocada.",
+      "C": "Cambia solo dos lados: la figura deja de ser cuadrada y no puede ser congruente.",
+      "D": "Cambia solo dos lados y además usa la diferencia equivocada."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P10",
+    "content": "Un servicio de mensajería tiene un costo básico de $\\$5.000$ para los envíos que tengan un peso menor a $5\\text{ kg}$. Si el peso del paquete es mayor que $5\\text{ kg}$, el costo del envío aumenta como se muestra en la gráfica: $\\$5.000$ a los $5\\text{ kg}$, $\\$5.200$ a los $6\\text{ kg}$, $\\$5.400$ a los $7\\text{ kg}$, $\\$5.600$ a los $8\\text{ kg}$, $\\$5.800$ a los $9\\text{ kg}$ y $\\$6.000$ a los $10\\text{ kg}$. De acuerdo con la gráfica, ¿cuál es el tipo de relación que hay entre el peso del paquete y el costo del envío cuando el paquete pesa entre $5\\text{ kg}$ y $10\\text{ kg}$?",
+    "difficulty": 950,
+    "topic": "Pensamiento variacional — tipos de relación funcional",
+    "options": [
+      "Hay una relación cuadrática entre el peso del paquete y el costo del envío.",
+      "Hay una relación lineal creciente entre el peso del paquete y el costo del envío.",
+      "Hay una relación lineal decreciente entre el peso del paquete y el costo del envío.",
+      "Hay una relación constante entre el peso del paquete y el costo del envío."
+    ],
+    "correct_option": "Hay una relación lineal creciente entre el peso del paquete y el costo del envío.",
+    "tags": ["variacional", "grado8", "epa", "interpretacion", "linealidad"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P10.svg",
+    "pensamiento": "variacional",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 10, "pagina_pdf": 7},
+    "figura": {"builder": "p2023_10", "descripcion": "Gráfica de línea con puntos: (5,5000) (6,5200) (7,5400) (8,5600) (9,5800) (10,6000)"},
+    "solution": [
+      "Calcular el aumento entre puntos consecutivos: siempre $\\$200$ por cada kilogramo.",
+      "Un incremento constante produce una recta.",
+      "Como el costo sube al subir el peso, la relación es lineal creciente."
+    ],
+    "misconception_by_option": {
+      "A": "Interpreta cualquier aumento como crecimiento cuadrático.",
+      "C": "Confunde el sentido de la pendiente.",
+      "D": "Aplica el costo básico fijo a todo el rango, ignorando la parte creciente."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P11",
+    "content": "Una empresa de transporte ofrece 3 rutas para ir de una ciudad a otra. La tabla muestra la cantidad de pasajeros que transportó cada ruta en los cuatro primeros días de una semana.\n\n| Día | Ruta #1 | Ruta #2 | Ruta #3 | Promedio diario |\n|---|---|---|---|---|\n| Lunes | 10 | 12 | 11 | 11 |\n| Martes | 12 | 13 | 11 | 12 |\n| Miércoles | 10 | 10 | 10 | 10 |\n| Jueves | 7 | 11 | 9 | 9 |\n\nEl jefe de transporte debe poner un bus adicional el día en el que se tenga el mayor promedio de pasajeros. ¿En qué día de la semana se debe poner el bus adicional?",
+    "difficulty": 800,
+    "topic": "Pensamiento aleatorio — promedio y comparación",
+    "options": ["Lunes.", "Martes.", "Miércoles.", "Jueves."],
+    "correct_option": "Martes.",
+    "tags": ["aleatorio", "grado8", "epa", "interpretacion", "promedio"],
+    "image_url": null,
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 11, "pagina_pdf": 8},
+    "figura": null,
+    "solution": [
+      "La última columna ya trae el promedio diario: 11, 12, 10 y 9.",
+      "El mayor de esos valores es 12.",
+      "Corresponde al martes."
+    ],
+    "misconception_by_option": {
+      "A": "Elige el primer día de la tabla.",
+      "C": "Busca el día con valores iguales en las tres rutas.",
+      "D": "Elige el menor promedio en lugar del mayor."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P12",
+    "content": "En clase de Geometría el profesor está mencionando algunas características geométricas de las señales de tránsito. Él afirmó que la señal de \"PARE\" está construida en un polígono regular llamado octágono y que varios de los segmentos de este polígono son paralelos. Los lados del octágono están rotulados, en sentido horario desde arriba: $q$ (superior), $r$ (superior derecho), $s$ (derecho), $t$ (inferior derecho), $u$ (inferior), $v$ (inferior izquierdo), $w$ (izquierdo) y $p$ (superior izquierdo). ¿Cuáles son los segmentos paralelos del octágono?",
+    "difficulty": 1050,
+    "topic": "Pensamiento espacial — paralelismo en polígonos regulares",
+    "options": [
+      "$p$ y $q$; $r$ y $s$; $t$ y $u$; $v$ y $w$.",
+      "$q$ y $u$; $r$ y $v$; $s$ y $w$; $t$ y $p$.",
+      "$q$ y $u$; $w$ y $s$; $p$ y $r$; $v$ y $t$.",
+      "$p$, $q$ y $r$; $t$, $u$ y $v$."
+    ],
+    "correct_option": "$q$ y $u$; $r$ y $v$; $s$ y $w$; $t$ y $p$.",
+    "tags": ["espacial", "grado8", "epa", "argumentacion", "paralelismo"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P12.svg",
+    "pensamiento": "espacial",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 12, "pagina_pdf": 8},
+    "figura": {"builder": "p2023_12", "descripcion": "Octágono regular con vértices marcados y los 8 lados rotulados p,q,r,s,t,u,v,w"},
+    "solution": [
+      "En un polígono regular con número par de lados, cada lado es paralelo al lado opuesto.",
+      "En el octágono, el lado opuesto está 4 posiciones más adelante.",
+      "Los pares opuestos son $q$–$u$, $r$–$v$, $s$–$w$ y $t$–$p$."
+    ],
+    "misconception_by_option": {
+      "A": "Empareja lados consecutivos, que en realidad forman un ángulo de 135°.",
+      "C": "Acierta dos pares opuestos y empareja mal los otros dos.",
+      "D": "Agrupa lados por cercanía visual en vez de por posición opuesta."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P13",
+    "content": "El profesor de Educación Física hizo un concurso con 4 estudiantes, los puso a trotar durante media hora y midió la distancia recorrida por cada uno. Las distancias recorridas fueron: Leticia $5,1$ kilómetros; Viviana $5,25$ kilómetros; Eduardo $5$ kilómetros; Javier $5,134$ kilómetros. En el concurso, los puestos se ocuparon según la distancia recorrida, de mayor a menor. ¿Cuál de las siguientes tablas representa correctamente la posición que ocupó cada estudiante en el concurso?",
+    "difficulty": 1000,
+    "topic": "Pensamiento numérico — comparación de decimales",
+    "options": [
+      "Primero Javier, segundo Viviana, tercero Leticia, cuarto Eduardo.",
+      "Primero Viviana, segundo Javier, tercero Leticia, cuarto Eduardo.",
+      "Primero Leticia, segundo Viviana, tercero Eduardo, cuarto Javier.",
+      "Primero Eduardo, segundo Leticia, tercero Viviana, cuarto Javier."
+    ],
+    "correct_option": "Primero Viviana, segundo Javier, tercero Leticia, cuarto Eduardo.",
+    "tags": ["numerico", "grado8", "epa", "interpretacion", "decimales"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P13.svg",
+    "pensamiento": "numérico",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 13, "pagina_pdf": 9},
+    "figura": {"builder": "p2023_13", "descripcion": "Cuatro tarjetas con nombre y distancia; opcionalmente las 4 tablas de puestos"},
+    "solution": [
+      "Igualar la cantidad de cifras decimales: $5,100$; $5,250$; $5,000$; $5,134$.",
+      "Ordenar de mayor a menor: $5,250 > 5,134 > 5,100 > 5,000$.",
+      "Primero Viviana, segundo Javier, tercero Leticia y cuarto Eduardo."
+    ],
+    "misconception_by_option": {
+      "A": "Cree que más cifras decimales significa número mayor y pone a Javier de primero.",
+      "C": "Ordena por la cantidad de cifras después de la coma en sentido inverso.",
+      "D": "Ordena de menor a mayor e ignora el valor posicional."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P14",
+    "content": "La imagen muestra los litros de agua que se utilizan diariamente para algunas actividades en la casa de Rosa, usando botellas como pictograma: cada botella grande equivale a $10$ litros y cada botella pequeña equivale a $5$ litros. Ducharse: 9 botellas grandes y 1 pequeña. Cocinar: 2 botellas grandes. Usar inodoro: 7 botellas grandes y 1 pequeña. Lavar ropa: 11 botellas grandes. ¿Cuál de las siguientes tablas corresponde a la cantidad de agua que se utiliza diariamente en la casa de Rosa?",
+    "difficulty": 1000,
+    "topic": "Pensamiento aleatorio — lectura de pictogramas",
+    "options": [
+      "Ducharse 90; Cocinar 20; Inodoro 70; Lavar ropa 110.",
+      "Ducharse 9,0; Cocinar 2,0; Inodoro 7,0; Lavar ropa 11,0.",
+      "Ducharse 95; Cocinar 20; Inodoro 75; Lavar ropa 110.",
+      "Ducharse 9,5; Cocinar 2,0; Inodoro 7,5; Lavar ropa 11,0."
+    ],
+    "correct_option": "Ducharse 95; Cocinar 20; Inodoro 75; Lavar ropa 110.",
+    "tags": ["aleatorio", "grado8", "epa", "interpretacion", "pictograma"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P14.svg",
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 14, "pagina_pdf": 10},
+    "figura": {"builder": "p2023_14", "descripcion": "Pictograma de botellas por actividad + recuadro de convención (grande=10 L, pequeña=5 L)"},
+    "solution": [
+      "Aplicar la convención: botella grande $=10$ L, botella pequeña $=5$ L.",
+      "Ducharse: $9\\times 10 + 5 = 95$ L. Cocinar: $2\\times 10 = 20$ L.",
+      "Inodoro: $7\\times 10 + 5 = 75$ L. Lavar ropa: $11\\times 10 = 110$ L."
+    ],
+    "misconception_by_option": {
+      "A": "Ignora las botellas pequeñas y solo cuenta las grandes.",
+      "B": "Cuenta botellas en lugar de litros y agrega una coma decimal.",
+      "D": "Cuenta botellas en lugar de litros, aunque reconoce las medias botellas."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P15",
+    "content": "La imagen muestra el diseño de un empaque para jugos con forma de casa: un prisma rectangular de $6\\text{ cm}$ de ancho, $4\\text{ cm}$ de profundidad y $5\\text{ cm}$ de alto, rematado por un prisma triangular cuya altura total desde la base es $8\\text{ cm}$. ¿Qué cantidad de jugo se necesita para llenar totalmente el empaque?",
+    "difficulty": 1150,
+    "topic": "Pensamiento métrico — volumen de cuerpos compuestos",
+    "options": ["$216\\text{ cm}^3$", "$192\\text{ cm}^3$", "$156\\text{ cm}^3$", "$102\\text{ cm}^3$"],
+    "correct_option": "$156\\text{ cm}^3$",
+    "tags": ["metrico", "grado8", "epa", "formulacion", "volumen"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P15.svg",
+    "pensamiento": "métrico",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 15, "pagina_pdf": 10},
+    "figura": {"builder": "p2023_15", "descripcion": "Empaque tipo casa en perspectiva con cotas 8 cm (altura total), 5 cm (altura del cuerpo), 4 cm y 6 cm (base)"},
+    "solution": [
+      "El empaque se descompone en un prisma rectangular y un prisma triangular (el techo).",
+      "Cuerpo: $6\\times 4\\times 5 = 120\\text{ cm}^3$.",
+      "Techo: la altura del triángulo es $8-5=3\\text{ cm}$, luego $\\dfrac{6\\times 3}{2}\\times 4 = 36\\text{ cm}^3$.",
+      "Total: $120+36 = 156\\text{ cm}^3$."
+    ],
+    "misconception_by_option": {
+      "A": "Usa la altura total (8 cm) como si todo el cuerpo fuera un prisma rectangular: $6\\times 4\\times 8$ menos un ajuste arbitrario.",
+      "B": "Calcula el techo como prisma rectangular completo ($6\\times4\\times3=72$) y suma mal.",
+      "D": "Olvida una dimensión del cuerpo o solo suma áreas."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P16",
+    "content": "Lucía registró el aumento de su altura durante 5 años consecutivos y determinó que la moda es $6,5\\text{ cm}$. Teniendo en cuenta la anterior información, ¿cuál gráfica podría corresponder a la cantidad de centímetros que aumentó cada año la altura de Lucía durante los últimos 5 años?",
+    "difficulty": 1100,
+    "topic": "Pensamiento aleatorio — moda",
+    "options": [
+      "Barras con valores 6; 6,2; 6,5; 6,2 y 6.",
+      "Barras con valores 6,3; 6,7; 6,3; 6,7 y 6,3.",
+      "Barras con valores 5; 6,5; 6; 7 y 6,5.",
+      "Barras con valores 5; 6,5; 7; 7 y 6,5."
+    ],
+    "correct_option": "Barras con valores 5; 6,5; 6; 7 y 6,5.",
+    "tags": ["aleatorio", "grado8", "epa", "argumentacion", "moda"],
+    "image_url": null,
+    "options_images": [
+      "items/assets/epa8/EPA8-C1-2023-P16_A.svg",
+      "items/assets/epa8/EPA8-C1-2023-P16_B.svg",
+      "items/assets/epa8/EPA8-C1-2023-P16_C.svg",
+      "items/assets/epa8/EPA8-C1-2023-P16_D.svg"
+    ],
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 16, "pagina_pdf": 11},
+    "figura": {"builder": "p2023_16", "descripcion": "Cuatro diagramas de barras de 5 años con los valores de cada opción rotulados"},
+    "solution": [
+      "La moda es el valor que más veces se repite.",
+      "En A el valor 6,5 aparece una sola vez; en B la moda es 6,3; en D se repiten 6,5 y 7 (bimodal, y 7 aparece igual de seguido).",
+      "En C el valor 6,5 aparece dos veces y ningún otro se repite: la moda es 6,5."
+    ],
+    "misconception_by_option": {
+      "A": "Confunde la moda con el valor máximo de la gráfica.",
+      "B": "Elige una gráfica con un valor repetido sin verificar cuál es.",
+      "D": "Ignora que hay un segundo valor repetido, así que 6,5 no es la única moda."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P17",
+    "content": "Para un juego se pone en una bolsa varias esferas de igual tamaño, unas son de caucho, otras de plástico, y cada una está rellena de pintura. La tabla muestra la cantidad de esferas de cada tipo que hay en la bolsa y el color de pintura con la que están rellenas.\n\n| Color | Esferas de caucho | Esferas de plástico |\n|---|---|---|\n| azul | 20 | 16 |\n| rojo | 10 | 14 |\n| amarillo | 17 | 30 |\n| verde | 18 | 25 |\n\nSi se elige al azar una esfera de la bolsa, ¿cuál es el color y material que tiene menor probabilidad de ser elegido?",
+    "difficulty": 950,
+    "topic": "Pensamiento aleatorio — probabilidad simple",
+    "options": [
+      "Esferas verdes de caucho.",
+      "Esferas amarillas de plástico.",
+      "Esferas rojas de caucho.",
+      "Esferas azules de plástico."
+    ],
+    "correct_option": "Esferas rojas de caucho.",
+    "tags": ["aleatorio", "grado8", "epa", "interpretacion", "probabilidad"],
+    "image_url": null,
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 17, "pagina_pdf": 12},
+    "figura": null,
+    "solution": [
+      "Todas las esferas tienen el mismo tamaño, así que la probabilidad depende solo de la cantidad.",
+      "Las cantidades de las opciones son: verdes de caucho 18, amarillas de plástico 30, rojas de caucho 10, azules de plástico 16.",
+      "La menor cantidad es 10, luego las rojas de caucho tienen la menor probabilidad."
+    ],
+    "misconception_by_option": {
+      "A": "Compara solo dentro de la columna del caucho sin buscar el mínimo real.",
+      "B": "Elige la mayor cantidad en vez de la menor.",
+      "D": "Se queda con el menor de la columna del plástico."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P18",
+    "content": "Liz ubicó una linterna detrás de una estrella de cartón para proyectar su sombra en la pared. La sombra proyectada conserva la forma de la estrella pero es de mayor tamaño. ¿Qué tipo de transformación relaciona la estrella de cartón con su sombra en la pared?",
+    "difficulty": 1050,
+    "topic": "Pensamiento espacial — transformaciones en el plano",
+    "options": ["Traslación.", "Reflexión.", "Homotecia.", "Reducción."],
+    "correct_option": "Homotecia.",
+    "tags": ["espacial", "grado8", "epa", "argumentacion", "transformaciones"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P18.svg",
+    "pensamiento": "espacial",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 18, "pagina_pdf": 12},
+    "figura": {"builder": "p2023_18", "descripcion": "Linterna, estrella pequeña y sombra ampliada en la pared, con rayos desde el foco"},
+    "solution": [
+      "La sombra tiene la misma forma que la estrella pero mayor tamaño: hay un cambio de escala.",
+      "La traslación y la reflexión conservan el tamaño, así que se descartan.",
+      "El cambio de tamaño desde un punto fijo (la linterna) es una homotecia; 'reducción' además contradice que la sombra sea mayor."
+    ],
+    "misconception_by_option": {
+      "A": "Ve el desplazamiento de la figura e ignora el cambio de tamaño.",
+      "B": "Interpreta la proyección como una imagen especular.",
+      "D": "Reconoce el cambio de escala pero invierte el sentido: la sombra amplía, no reduce."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P19",
+    "content": "Un estudiante dibujó un círculo en el plano cartesiano con centro en $(-2,\\,2)$, que corta el eje $x$ en $x=-6$ y en $x=2$. Como el área de un círculo de radio $r$ es $\\pi r^2$, ¿cuál es el área del círculo que dibujó el estudiante?",
+    "difficulty": 1000,
+    "topic": "Pensamiento métrico — área del círculo",
+    "options": ["$16\\pi$", "$4\\pi$", "$64\\pi$", "$8\\pi$"],
+    "correct_option": "$16\\pi$",
+    "tags": ["metrico", "grado8", "epa", "formulacion", "area"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P19.svg",
+    "pensamiento": "métrico",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 19, "pagina_pdf": 13},
+    "figura": {"builder": "p2023_19", "descripcion": "Plano cartesiano con cuadrícula (x de -8 a 8, y de -4 a 6) y círculo de centro (-2,2) y radio 4"},
+    "solution": [
+      "El diámetro va de $x=-6$ a $x=2$, así que mide $8$ unidades.",
+      "El radio es la mitad: $r = 4$.",
+      "$A = \\pi r^2 = \\pi \\cdot 4^2 = 16\\pi$."
+    ],
+    "misconception_by_option": {
+      "B": "Usa el radio sin elevarlo al cuadrado y lo confunde con $2^2$.",
+      "C": "Usa el diámetro como radio: $\\pi\\cdot 8^2$.",
+      "D": "Calcula el perímetro $2\\pi r$ en vez del área."
+    }
+  },
+  {
+    "id": "EPA8-C1-2023-P20",
+    "content": "Se va depositando gradualmente un líquido $P$ en un tazón que ya contenía un líquido $Q$. La gráfica muestra la proporción que hay de cada líquido a medida que se deposita el líquido $P$: la curva de $P$ crece desde cero y la de $Q$ decrece, y ambas se cruzan en un punto. ¿Qué representa el punto donde se intersecan las dos curvas?",
+    "difficulty": 1100,
+    "topic": "Pensamiento variacional — interpretación de puntos de corte",
+    "options": [
+      "Es el punto en el que los líquidos $P$ y $Q$ se comienzan a mezclar en el tazón.",
+      "Es el punto en el que se ha depositado la mitad del líquido $P$.",
+      "Es el punto en el que el tazón contiene la misma proporción de los líquidos $P$ y $Q$.",
+      "Es el punto en el que se han depositado todos los litros del líquido $P$."
+    ],
+    "correct_option": "Es el punto en el que el tazón contiene la misma proporción de los líquidos $P$ y $Q$.",
+    "tags": ["variacional", "grado8", "epa", "argumentacion", "interseccion"],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P20.svg",
+    "pensamiento": "variacional",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2023", "codigo": "M081", "pregunta": 20, "pagina_pdf": 13},
+    "figura": {"builder": "p2023_20", "descripcion": "Dos curvas sin escala numérica: P creciente y Q decreciente que se cortan; ejes 'Tiempo' y 'Proporción de líquido'"},
+    "solution": [
+      "En el eje vertical se lee la proporción de cada líquido.",
+      "Un punto de corte significa que las dos curvas tienen la misma altura.",
+      "Por lo tanto, en ese instante hay la misma proporción de $P$ y de $Q$ en el tazón."
+    ],
+    "misconception_by_option": {
+      "A": "Cree que la mezcla empieza en el corte, cuando empieza desde el primer instante.",
+      "B": "Traslada la idea de 'mitad' al eje equivocado.",
+      "D": "Confunde el corte con el final del proceso."
+    }
+  }
+]

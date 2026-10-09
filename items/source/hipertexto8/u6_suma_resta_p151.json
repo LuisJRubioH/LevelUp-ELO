@@ -1,0 +1,604 @@
+[
+  {
+    "id": "HT8-U6-P151-A1",
+    "tipo": "simbolico",
+    "enunciado": "El ejemplo 1 de la página 147 suma $\\dfrac{6x^3y}{3xy}+\\dfrac{3x^2y}{3xy}+\\dfrac{9xy}{3xy}$ y obtiene $2x^2+x+3$. Si se suma también $\\dfrac{12x^2y^2}{3xy}$, ¿cuál es el resultado?",
+    "expr": "(6*x**3*y+3*x**2*y+9*x*y+12*x**2*y**2)/(3*x*y)",
+    "respuesta": "2*x**2+4*x*y+x+3",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Recupera información, actividad 1",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$2x^2+4xy+x+3$. El sumando nuevo aporta $\\frac{12x^2y^2}{3xy}=4xy$, así que basta agregarlo al resultado anterior. No hay que rehacer nada: el denominador común no cambió.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P151-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la suma $\\dfrac{9x}{y}+\\dfrac{15x}{y}+\\dfrac{18x}{y}$ y simplifica si es posible.",
+    "expr": "9*x/y+15*x/y+18*x/y",
+    "respuesta": "42*x/y",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 2, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{42x}{y}$. $9+15+18=42$ y el denominador se copia. No hay nada que simplificar.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U6-P151-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la suma $\\dfrac{7mn}{3m}+\\dfrac{18mn}{3m}+\\dfrac{5mn}{3m}$ y simplifica si es posible.",
+    "expr": "7*m*n/(3*m)+18*m*n/(3*m)+5*m*n/(3*m)",
+    "respuesta": "10*n",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 2, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$10n$. $\\frac{30mn}{3m}=10n$: se cancelan la $m$ y el 3.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P151-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la suma $\\dfrac{6x+1}{3x^2y}+\\dfrac{7x+8}{3x^2y}+\\dfrac{2x-9}{3x^2y}$ y simplifica si es posible.",
+    "expr": "(6*x+1)/(3*x**2*y)+(7*x+8)/(3*x**2*y)+(2*x-9)/(3*x**2*y)",
+    "respuesta": "5/(x*y)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 2, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{5}{xy}$. Los términos independientes se cancelan entre sí ($1+8-9=0$) y arriba queda $15x$: $\\frac{15x}{3x^2y}=\\frac{5}{xy}$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P151-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la suma $\\dfrac{8a}{a+3}+\\dfrac{6a}{a+3}+\\dfrac{15a}{a+3}$ y simplifica si es posible.",
+    "expr": "8*a/(a+3)+6*a/(a+3)+15*a/(a+3)",
+    "respuesta": "29*a/(a+3)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 2, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{29a}{a+3}$. $\\frac{29a}{a+3}$ y ya no simplifica: $a$ no es factor de $a+3$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P151-A2e",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la suma $\\dfrac{3n+7}{3n^2-6n}+\\dfrac{4n-20}{3n^2-6n}+\\dfrac{n-3}{3n^2-6n}$ y simplifica si es posible.",
+    "expr": "(3*n+7)/(3*n**2-6*n)+(4*n-20)/(3*n**2-6*n)+(n-3)/(3*n**2-6*n)",
+    "respuesta": "8/(3*n)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 2, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{8}{3n}$. Arriba queda $8n-16=8(n-2)$ y abajo $3n(n-2)$: se cancela $n-2$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P151-A2f",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la suma $\\dfrac{4x^2-3x-1}{x^2-25}+\\dfrac{5x-6x^2-5}{x^2-25}+\\dfrac{3x^2-x-4}{x^2-25}$ y simplifica si es posible.",
+    "expr": "(4*x**2-3*x-1)/(x**2-25)+(5*x-6*x**2-5)/(x**2-25)+(3*x**2-x-4)/(x**2-25)",
+    "respuesta": "(x**2+x-10)/(x**2-25)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 2, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{x^2+x-10}{x^2-25}$. $4-6+3=1$, $-3+5-1=1$ y $-1-5-4=-10$, luego arriba queda $x^2+x-10$. **No simplifica**: su discriminante es 41, que no es cuadrado perfecto, así que no comparte factor con $(x-5)(x+5)$. El enunciado dice «si es posible» justamente por casos como este.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P151-A2g",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la suma $\\dfrac{3x^2-6x+1}{(2x-3)^2}+\\dfrac{5x^2-10x+8}{(2x-3)^2}+\\dfrac{4x^2-2x+6}{(2x-3)^2}$ y simplifica si es posible.",
+    "expr": "(3*x**2-6*x+1)/(2*x-3)**2+(5*x**2-10*x+8)/(2*x-3)**2+(4*x**2-2*x+6)/(2*x-3)**2",
+    "respuesta": "3*(4*x**2-6*x+5)/(2*x-3)**2",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 2, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{3(4x^2-6x+5)}{(2x-3)^2}$. Arriba queda $12x^2-18x+15=3(4x^2-6x+5)$. El paréntesis no tiene raíces reales (discriminante $36-80<0$), así que tampoco simplifica.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P151-A2h",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la suma $\\dfrac{x^2-5x-3}{x^2+x-6}+\\dfrac{2x^2+20x+7}{x^2+x-6}+\\dfrac{x^2+3x+14}{x^2+x-6}$ y simplifica si es posible.",
+    "expr": "(x**2-5*x-3)/(x**2+x-6)+(2*x**2+20*x+7)/(x**2+x-6)+(x**2+3*x+14)/(x**2+x-6)",
+    "respuesta": "2*(2*x+3)/(x-2)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 2, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{2(2x+3)}{x-2}$. Arriba queda $4x^2+18x+18=2(2x+3)(x+3)$ y abajo $(x+3)(x-2)$: se cancela $x+3$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P151-A2i",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la suma $\\dfrac{3a^2-8a-5}{4a^2+16a+16}+\\dfrac{-5a^2-3a-28}{4a^2+16a+16}+\\dfrac{12a^2+11a-7}{4a^2+16a+16}$ y simplifica si es posible.",
+    "expr": "(3*a**2-8*a-5)/(4*a**2+16*a+16)+(-5*a**2-3*a-28)/(4*a**2+16*a+16)+(12*a**2+11*a-7)/(4*a**2+16*a+16)",
+    "respuesta": "5*(a-2)/(2*(a+2))",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 2, ítem i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{5(a-2)}{2(a+2)}$. Los términos en $a$ se cancelan ($-8-3+11=0$) y arriba queda $10a^2-40=10(a-2)(a+2)$; abajo, $4(a+2)^2$. Se cancela un $(a+2)$ y el 2 del mcd.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P151-A2j",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la suma $\\dfrac{-2x^2+8x-4}{6x^2+x-12}+\\dfrac{5x^2-6x+8}{6x^2+x-12}+\\dfrac{7x^2+3x-9}{6x^2+x-12}$ y simplifica si es posible.",
+    "expr": "(-2*x**2+8*x-4)/(6*x**2+x-12)+(5*x**2-6*x+8)/(6*x**2+x-12)+(7*x**2+3*x-9)/(6*x**2+x-12)",
+    "respuesta": "5*(2*x-1)*(x+1)/((3*x-4)*(2*x+3))",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 2, ítem j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{5(2x-1)(x+1)}{(3x-4)(2x+3)}$. Arriba queda $10x^2+5x-5=5(2x-1)(x+1)$ y abajo $(3x-4)(2x+3)$. Se factoriza todo y se comprueba que no hay factor repetido: **no simplifica**.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P151-A3a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe dos fracciones algebraicas de igual denominador cuya diferencia sea $\\dfrac{2m^2}{5x}$.",
+    "expr": "3*m**2/(5*x)-m**2/(5*x)",
+    "respuesta": "2*m**2/(5*x)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Razona, actividad 3, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo $\\dfrac{3m^2}{5x}-\\dfrac{m^2}{5x}$. El truco general: se conserva el denominador y se parte el numerador en dos pedazos cuya resta lo reconstruya. Hay infinitas soluciones.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar dos fracciones y sirve cualquier par que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P151-A3b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe dos fracciones algebraicas de igual denominador cuya diferencia sea $\\dfrac{-4x^2}{x+5}$.",
+    "expr": "x**2/(x+5)-5*x**2/(x+5)",
+    "respuesta": "-4*x**2/(x+5)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Razona, actividad 3, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo $\\dfrac{x^2}{x+5}-\\dfrac{5x^2}{x+5}$. El truco general: se conserva el denominador y se parte el numerador en dos pedazos cuya resta lo reconstruya. Hay infinitas soluciones.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar dos fracciones y sirve cualquier par que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P151-A3c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe dos fracciones algebraicas de igual denominador cuya diferencia sea $\\dfrac{-7m^4n^2}{5p^3}$.",
+    "expr": "m**4*n**2/(5*p**3)-8*m**4*n**2/(5*p**3)",
+    "respuesta": "-7*m**4*n**2/(5*p**3)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Razona, actividad 3, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo $\\dfrac{m^4n^2}{5p^3}-\\dfrac{8m^4n^2}{5p^3}$. El truco general: se conserva el denominador y se parte el numerador en dos pedazos cuya resta lo reconstruya. Hay infinitas soluciones.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar dos fracciones y sirve cualquier par que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P151-A3d",
+    "tipo": "simbolico",
+    "enunciado": "Escribe dos fracciones algebraicas de igual denominador cuya diferencia sea $\\dfrac{11x^2y^3}{3a^2}$.",
+    "expr": "12*x**2*y**3/(3*a**2)-x**2*y**3/(3*a**2)",
+    "respuesta": "11*x**2*y**3/(3*a**2)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Razona, actividad 3, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo $\\dfrac{12x^2y^3}{3a^2}-\\dfrac{x^2y^3}{3a^2}$. El truco general: se conserva el denominador y se parte el numerador en dos pedazos cuya resta lo reconstruya. Hay infinitas soluciones.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar dos fracciones y sirve cualquier par que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P151-A3e",
+    "tipo": "simbolico",
+    "enunciado": "Escribe dos fracciones algebraicas de igual denominador cuya diferencia sea $\\dfrac{x^2-7x-8}{3x^2-5x+1}$.",
+    "expr": "x**2/(3*x**2-5*x+1)-(7*x+8)/(3*x**2-5*x+1)",
+    "respuesta": "(x**2-7*x-8)/(3*x**2-5*x+1)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Razona, actividad 3, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo $\\dfrac{x^2}{3x^2-5x+1}-\\dfrac{7x+8}{3x^2-5x+1}$. El truco general: se conserva el denominador y se parte el numerador en dos pedazos cuya resta lo reconstruya. Hay infinitas soluciones.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar dos fracciones y sirve cualquier par que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P151-A3f",
+    "tipo": "simbolico",
+    "enunciado": "Escribe dos fracciones algebraicas de igual denominador cuya diferencia sea $\\dfrac{5x^2+3x-2}{3x^2-8}$.",
+    "expr": "(5*x**2+3*x)/(3*x**2-8)-2/(3*x**2-8)",
+    "respuesta": "(5*x**2+3*x-2)/(3*x**2-8)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Razona, actividad 3, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo $\\dfrac{5x^2+3x}{3x^2-8}-\\dfrac{2}{3x^2-8}$. El truco general: se conserva el denominador y se parte el numerador en dos pedazos cuya resta lo reconstruya. Hay infinitas soluciones.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar dos fracciones y sirve cualquier par que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P151-A3g",
+    "tipo": "simbolico",
+    "enunciado": "Escribe dos fracciones algebraicas de igual denominador cuya diferencia sea $\\dfrac{3x^2-5}{x-3}$.",
+    "expr": "3*x**2/(x-3)-5/(x-3)",
+    "respuesta": "(3*x**2-5)/(x-3)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Razona, actividad 3, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo $\\dfrac{3x^2}{x-3}-\\dfrac{5}{x-3}$. El truco general: se conserva el denominador y se parte el numerador en dos pedazos cuya resta lo reconstruya. Hay infinitas soluciones.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar dos fracciones y sirve cualquier par que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U6-P151-A3h",
+    "tipo": "simbolico",
+    "enunciado": "Escribe dos fracciones algebraicas de igual denominador cuya diferencia sea $\\dfrac{-2x^2+3x-1}{2x-9}$.",
+    "expr": "3*x/(2*x-9)-(2*x**2+1)/(2*x-9)",
+    "respuesta": "(-2*x**2+3*x-1)/(2*x-9)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Razona, actividad 3, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo $\\dfrac{3x}{2x-9}-\\dfrac{2x^2+1}{2x-9}$. El truco general: se conserva el denominador y se parte el numerador en dos pedazos cuya resta lo reconstruya. Hay infinitas soluciones.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar dos fracciones y sirve cualquier par que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P151-A3i",
+    "tipo": "simbolico",
+    "enunciado": "Escribe dos fracciones algebraicas de igual denominador cuya diferencia sea $\\dfrac{-9x^2-6x-5}{x^2+2x+2}$.",
+    "expr": "-9*x**2/(x**2+2*x+2)-(6*x+5)/(x**2+2*x+2)",
+    "respuesta": "(-9*x**2-6*x-5)/(x**2+2*x+2)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Razona, actividad 3, ítem i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo $\\dfrac{-9x^2}{x^2+2x+2}-\\dfrac{6x+5}{x^2+2x+2}$. El truco general: se conserva el denominador y se parte el numerador en dos pedazos cuya resta lo reconstruya. Hay infinitas soluciones.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar dos fracciones y sirve cualquier par que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P151-A3j",
+    "tipo": "simbolico",
+    "enunciado": "Escribe dos fracciones algebraicas de igual denominador cuya diferencia sea $\\dfrac{3x^2-5x+4}{-2x^2+7x-6}$.",
+    "expr": "(3*x**2+4)/(-2*x**2+7*x-6)-5*x/(-2*x**2+7*x-6)",
+    "respuesta": "(3*x**2-5*x+4)/(-2*x**2+7*x-6)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Razona, actividad 3, ítem j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo $\\dfrac{3x^2+4}{-2x^2+7x-6}-\\dfrac{5x}{-2x^2+7x-6}$. El truco general: se conserva el denominador y se parte el numerador en dos pedazos cuya resta lo reconstruya. Hay infinitas soluciones.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar dos fracciones y sirve cualquier par que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P151-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la resta $\\dfrac{5x}{2a^2}-\\dfrac{8x}{8a}$ y simplifica si es posible.",
+    "expr": "5*x/(2*a**2)-8*x/(8*a)",
+    "respuesta": "x*(5-2*a)/(2*a**2)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 4, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{x(5-2a)}{2a^2}$. $\\frac{8x}{8a}=\\frac{x}{a}$. Con denominador común $2a^2$: $\\frac{5x-2ax}{2a^2}=\\frac{x(5-2a)}{2a^2}$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P151-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la resta $\\dfrac{2y}{3x^2}-\\dfrac{2z}{12x^2y^3}$ y simplifica si es posible.",
+    "expr": "2*y/(3*x**2)-2*z/(12*x**2*y**3)",
+    "respuesta": "(4*y**4-z)/(6*x**2*y**3)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 4, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{4y^4-z}{6x^2y^3}$. El mcm de los denominadores es $12x^2y^3$: queda $\\frac{8y^4-2z}{12x^2y^3}$, y el 2 se simplifica.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P151-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la resta $\\dfrac{7m+5}{6m^2n}-\\dfrac{6m+5}{2m^2}$ y simplifica si es posible.",
+    "expr": "(7*m+5)/(6*m**2*n)-(6*m+5)/(2*m**2)",
+    "respuesta": "(7*m+5-18*m*n-15*n)/(6*m**2*n)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 4, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{7m+5-18mn-15n}{6m^2n}$. El mcm es $6m^2n$; la segunda fracción se amplifica por $3n$. Nada se cancela al final.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P151-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la resta $\\dfrac{2a^2}{4a^2-9}-\\dfrac{3ab}{8a-12}$ y simplifica si es posible.",
+    "expr": "2*a**2/(4*a**2-9)-3*a*b/(8*a-12)",
+    "respuesta": "a*(8*a-6*a*b-9*b)/(4*(4*a**2-9))",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 4, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{a(8a-6ab-9b)}{4(4a^2-9)}$. $4a^2-9=(2a-3)(2a+3)$ y $8a-12=4(2a-3)$: el mcm es $4(2a-3)(2a+3)$. La primera se amplifica por 4 y la segunda por $2a+3$.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U6-P151-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la resta $\\dfrac{m}{m^2-1}-\\dfrac{m+1}{(m+1)^2}$ y simplifica si es posible.",
+    "expr": "m/(m**2-1)-(m+1)/(m+1)**2",
+    "respuesta": "1/(m**2-1)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 4, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{1}{m^2-1}$. Conviene simplificar **antes**: $\\frac{m+1}{(m+1)^2}=\\frac{1}{m+1}$. Con denominador común $(m-1)(m+1)$ queda $\\frac{m-(m-1)}{m^2-1}=\\frac{1}{m^2-1}$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P151-A4f",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la resta $\\dfrac{a-1}{6a+6}-\\dfrac{a+3}{9a+9}$ y simplifica si es posible.",
+    "expr": "(a-1)/(6*a+6)-(a+3)/(9*a+9)",
+    "respuesta": "(a-9)/(18*(a+1))",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 4, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{a-9}{18(a+1)}$. $6a+6=6(a+1)$ y $9a+9=9(a+1)$: el mcm es $18(a+1)$. Queda $\\frac{3(a-1)-2(a+3)}{18(a+1)}=\\frac{a-9}{18(a+1)}$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P151-A4g",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la resta $\\dfrac{1}{5x+5}-\\dfrac{1}{10x-10}-\\dfrac{1}{15x-15}$ y simplifica si es posible.",
+    "expr": "1/(5*x+5)-1/(10*x-10)-1/(15*x-15)",
+    "respuesta": "(x-11)/(30*(x**2-1))",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Ejercita, actividad 4, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{x-11}{30(x^2-1)}$. $5(x+1)$, $10(x-1)$ y $15(x-1)$: el mcm es $30(x+1)(x-1)$. Queda $\\frac{6(x-1)-3(x+1)-2(x+1)}{30(x^2-1)}=\\frac{x-11}{30(x^2-1)}$. **Ojo con los signos**: los dos menos afectan a todo el numerador que amplifican.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U6-P151-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Determina el perímetro de un triángulo isósceles cuyos dos lados iguales miden $\\dfrac{a}{a^2+5a+4}$ y cuya base mide $\\dfrac{a}{a^2-2a+1}$.",
+    "expr": "2*a/(a**2+5*a+4)+a/(a**2-2*a+1)",
+    "respuesta": "a*(3*a**2+a+6)/((a+1)*(a+4)*(a-1)**2)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Soluciona problemas, actividad 5, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Triángulo isósceles celeste con las marcas de lados iguales rotulados; reconstruible en Python.",
+    "nota": "$a^2+5a+4=(a+1)(a+4)$ y $a^2-2a+1=(a-1)^2$, que no comparten nada: el mcm es $(a+1)(a+4)(a-1)^2$. El perímetro es $\\dfrac{a(3a^2+a+6)}{(a+1)(a+4)(a-1)^2}$, porque $2a(a-1)^2+a(a+1)(a+4)=3a^3+a^2+6a$. Los dos lados iguales entran multiplicados por 2, no sumados dos veces a mano.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P151-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Determina el perímetro de un rectángulo cuyos lados miden $\\dfrac{2x^2-6x+8}{x^2-49}$ y $\\dfrac{-x^2+10x-29}{x^2-49}$.",
+    "expr": "2*((2*x**2-6*x+8)/(x**2-49)+(-x**2+10*x-29)/(x**2-49))",
+    "respuesta": "2*(x-3)/(x-7)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Soluciona problemas, actividad 5, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Rectángulo rosado con los dos lados rotulados como fracciones algebraicas; reconstruible en Python.",
+    "nota": "Los denominadores ya son iguales: la suma de los dos lados es $\\frac{x^2+4x-21}{x^2-49}=\\frac{(x+7)(x-3)}{(x-7)(x+7)}=\\frac{x-3}{x-7}$, y el perímetro es el doble, $\\dfrac{2(x-3)}{x-7}$. Simplificar antes de duplicar ahorra todo el trabajo.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P151-A5c",
+    "tipo": "simbolico",
+    "enunciado": "Determina el perímetro de un triángulo rectángulo cuyos catetos miden $\\dfrac{m}{6m+12}$ y $\\dfrac{1}{3m+6}$ y cuya hipotenusa mide $\\dfrac{m+12}{12m+24}$.",
+    "expr": "m/(6*m+12)+1/(3*m+6)+(m+12)/(12*m+24)",
+    "respuesta": "(3*m+16)/(12*(m+2))",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 151,
+    "referencia": "Soluciona problemas, actividad 5, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Triángulo rectángulo verde con los tres lados rotulados como fracciones algebraicas; reconstruible en Python.",
+    "nota": "Los tres denominadores son múltiplos de $m+2$: $6(m+2)$, $3(m+2)$ y $12(m+2)$, así que el mcm es $12(m+2)$. Queda $\\dfrac{2m+4+m+12}{12(m+2)}=\\dfrac{3m+16}{12m+24}$, que ya no simplifica.",
+    "dificultad": 1550
+  }
+]

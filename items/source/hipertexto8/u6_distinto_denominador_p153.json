@@ -1,0 +1,235 @@
+[
+  {
+    "id": "HT8-U6-P153-E2",
+    "tipo": "simbolico",
+    "enunciado": "Una granja con forma de trapecio está dividida en zona de animales, zona de cultivo y zona de vivienda. El área total es $\\dfrac{2x}{x^2-4}$, la zona de cultivo mide $\\dfrac{1}{x-2}$ y la de vivienda $\\dfrac{2}{x+2}$. Determina el área de la zona de animales.",
+    "expr": "2*x/(x**2-4)-1/(x-2)-2/(x+2)",
+    "respuesta": "-1/(x+2)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas con distinto denominador",
+    "unidad": 6,
+    "pagina_pdf": 153,
+    "referencia": "Ejemplo 2, la granja en forma de trapecio",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Ilustración de una granja en forma de trapecio, dividida en tres zonas de color.",
+    "nota": "Se factoriza $x^2-4=(x-2)(x+2)$, que ya es el mcm, y queda $\\dfrac{2x-(x+2)-2(x-2)}{(x-2)(x+2)}=\\dfrac{2-x}{(x-2)(x+2)}$. **El libro se detiene ahí**, pero $2-x=-(x-2)$, así que todavía simplifica: el resultado es $-\\dfrac{1}{x+2}$. Y ahí se ve el problema del enunciado: para cualquier $x>2$ —los únicos valores con sentido, porque si no la granja tendría lados negativos— el área de la zona de animales sale **negativa**. El procedimiento algebraico es correcto; los datos del problema no son consistentes.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P153-A1a",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la operación $\\dfrac{2x-4}{5x+2}-\\dfrac{6x+7}{5x+2}+\\dfrac{2x+4}{5x+2}$.",
+    "expr": "(2*x-4)/(5*x+2)-(6*x+7)/(5*x+2)+(2*x+4)/(5*x+2)",
+    "respuesta": "-(2*x+7)/(5*x+2)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas con distinto denominador",
+    "unidad": 6,
+    "pagina_pdf": 153,
+    "referencia": "Ejercita, actividad 1, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$-\\dfrac{2x+7}{5x+2}$. Igual denominador: $2x-6x+2x=-2x$ y $-4-7+4=-7$. **Ojo con el menos**: cambia el signo de los dos términos de la segunda fracción, no solo del primero.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P153-A1b",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la operación $\\dfrac{6a-15}{3a-4}+\\dfrac{8a-4}{3a-4}-\\dfrac{7a-5}{3a-4}$.",
+    "expr": "(6*a-15)/(3*a-4)+(8*a-4)/(3*a-4)-(7*a-5)/(3*a-4)",
+    "respuesta": "7*(a-2)/(3*a-4)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas con distinto denominador",
+    "unidad": 6,
+    "pagina_pdf": 153,
+    "referencia": "Ejercita, actividad 1, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{7(a-2)}{3a-4}$. Arriba queda $7a-14=7(a-2)$. No simplifica con $3a-4$, pero conviene dejarlo factorizado.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P153-A1c",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la operación $\\dfrac{a}{a^2+1}+\\dfrac{1}{3a}-\\dfrac{1}{a^2}$.",
+    "expr": "a/(a**2+1)+1/(3*a)-1/a**2",
+    "respuesta": "(4*a**3-3*a**2+a-3)/(3*a**2*(a**2+1))",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas con distinto denominador",
+    "unidad": 6,
+    "pagina_pdf": 153,
+    "referencia": "Ejercita, actividad 1, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{4a^3-3a^2+a-3}{3a^2(a^2+1)}$. Los tres denominadores son primos entre sí, así que el mcm es su producto, $3a^2(a^2+1)$. El numerador queda $3a^3+(a^3+a)-(3a^2+3)=4a^3-3a^2+a-3$, que no se factoriza.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P153-A1d",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la operación $\\dfrac{7m-4}{m^2+8m-20}+\\dfrac{3m^2-5m+2}{m^2+8m-20}-\\dfrac{2m^2-4m+14}{m^2+8m-20}$.",
+    "expr": "(7*m-4)/(m**2+8*m-20)+(3*m**2-5*m+2)/(m**2+8*m-20)-(2*m**2-4*m+14)/(m**2+8*m-20)",
+    "respuesta": "(m+8)/(m+10)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas con distinto denominador",
+    "unidad": 6,
+    "pagina_pdf": 153,
+    "referencia": "Ejercita, actividad 1, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{m+8}{m+10}$. Arriba queda $m^2+6m-16=(m+8)(m-2)$ y abajo $m^2+8m-20=(m+10)(m-2)$: se cancela $m-2$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P153-A1e",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la operación $\\dfrac{2x^2+7x-3}{4x^2-16x+15}+\\dfrac{-x^2+8x-6}{4x^2-16x+15}-\\dfrac{-5x^2+16x+5}{4x^2-16x+15}$.",
+    "expr": "(2*x**2+7*x-3)/(4*x**2-16*x+15)+(-x**2+8*x-6)/(4*x**2-16*x+15)-(-5*x**2+16*x+5)/(4*x**2-16*x+15)",
+    "respuesta": "(6*x**2-x-14)/((2*x-3)*(2*x-5))",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas con distinto denominador",
+    "unidad": 6,
+    "pagina_pdf": 153,
+    "referencia": "Ejercita, actividad 1, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{6x^2-x-14}{(2x-3)(2x-5)}$. Arriba queda $6x^2-x-14$ y abajo $(2x-3)(2x-5)$. **No simplifica**: el discriminante del numerador es 337, que no es cuadrado perfecto.",
+    "erratum": "El libro imprime el tercer numerador como -5x + 16x + 5, con dos terminos semejantes sin reducir: ningun libro escribe eso. Es el cuadrado perdido de siempre, igual que en el 3e y el 5d de la p142. Corregido a -5x^2 + 16x + 5, que ademas deja los tres numeradores de la actividad como polinomios de grado 2, igual que en el item d.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P153-A1f",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la operación $\\dfrac{1}{x^2+2x-24}+\\dfrac{2}{x^2-2x-8}-\\dfrac{3}{x^2+8x+12}$.",
+    "expr": "1/(x**2+2*x-24)+2/(x**2-2*x-8)-3/(x**2+8*x+12)",
+    "respuesta": "26/((x-4)*(x+2)*(x+6))",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas con distinto denominador",
+    "unidad": 6,
+    "pagina_pdf": 153,
+    "referencia": "Ejercita, actividad 1, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{26}{(x-4)(x+2)(x+6)}$. $(x+6)(x-4)$, $(x-4)(x+2)$ y $(x+6)(x+2)$: cada denominador comparte un factor con los otros dos y el mcm es $(x+6)(x-4)(x+2)$. Arriba queda $(x+2)+2(x+6)-3(x-4)=26$: **toda la $x$ se cancela**.",
+    "erratum": "El libro imprime el primer denominador como x^2 + 2x + 24, que no se factoriza (su discriminante es -92). Asi el mcm es el producto de los cuatro factores y el resultado es una fraccion de grado 5 impropia de octavo. Con x^2 + 2x - 24 = (x + 6)(x - 4) los tres denominadores encajan de a pares -- (x+6)(x-4), (x-4)(x+2) y (x+6)(x+2) -- el mcm son solo tres factores y toda la x del numerador se cancela: queda 26. Un caracter, y el resultado limpio confirma el diseno. Corregido a -24.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U6-P153-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el término que hace verdadera la igualdad $\\dfrac{2}{x+3}+\\Box-\\dfrac{4x-7}{x^2-x-6}=\\dfrac{1}{x+3}$.",
+    "expr": "1/(x+3)-2/(x+3)+(4*x-7)/(x**2-x-6)",
+    "respuesta": "3*(x**2+2*x-5)/((x-3)*(x+2)*(x+3))",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas con distinto denominador",
+    "unidad": 6,
+    "pagina_pdf": 153,
+    "referencia": "Razona, actividad 2, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\Box=\\dfrac{3(x^2+2x-5)}{(x-3)(x+2)(x+3)}$. Se despeja: $\\Box=\\frac{1}{x+3}-\\frac{2}{x+3}+\\frac{4x-7}{(x-3)(x+2)}$. **Vale la pena mirar el enunciado con desconfianza**: $x^2-x-6=(x-3)(x+2)$ no contiene $x+3$, así que este es el único ítem de la actividad cuyo resultado no es una fracción simple — los otros tres dan $\\frac{4a^2}{a^2-b^2}$, $\\frac{1}{n(n+x)}$ y $-\\frac1x$. Si donde dice $x+3$ dijera $x-3$, la caja valdría exactamente $\\frac{3}{x+2}$. No se corrige porque tal como está impreso el ítem sí tiene respuesta.",
+    "erratum": "El libro imprime el tercer numerador como 4a - 7, con una a suelta en una expresion que solo tiene x. Corregido a 4x - 7. La misma confusion de letra aparece en el item c de esta actividad.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U6-P153-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el término que hace verdadera la igualdad $\\dfrac{a-b}{a+b}-\\dfrac{a+b}{a-b}+\\Box=\\dfrac{4a}{a+b}$.",
+    "expr": "4*a/(a+b)-(a-b)/(a+b)+(a+b)/(a-b)",
+    "respuesta": "4*a**2/(a**2-b**2)",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas con distinto denominador",
+    "unidad": 6,
+    "pagina_pdf": 153,
+    "referencia": "Razona, actividad 2, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\Box=\\dfrac{4a^2}{a^2-b^2}$. Al despejar queda $\\frac{3a+b}{a+b}+\\frac{a+b}{a-b}$, y con denominador común $a^2-b^2$ el numerador es $(3a+b)(a-b)+(a+b)^2=4a^2$: se cancelan los términos en $ab$ y en $b^2$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P153-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el término que hace verdadera la igualdad $\\dfrac{1}{nx}-\\Box+\\dfrac{1}{n+x}=\\dfrac{1+x}{x(n+x)}$.",
+    "expr": "1/(n*x)+1/(n+x)-(1+x)/(x*(n+x))",
+    "respuesta": "1/(n*(n+x))",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas con distinto denominador",
+    "unidad": 6,
+    "pagina_pdf": 153,
+    "referencia": "Razona, actividad 2, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\Box=\\dfrac{1}{n(n+x)}=\\dfrac{1}{n^2+nx}$. Con denominador común $nx(n+x)$ el numerador es $(n+x)+nx-n(1+x)=x$, y la $x$ se cancela con la del denominador.",
+    "erratum": "El libro imprime el denominador del lado derecho como x(a + x), con una a en una igualdad que solo tiene n y x. Corregido a x(n + x): con la a la igualdad no se puede resolver, porque a no aparece en ningun otro termino. Es la misma confusion de letra del item a.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P153-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el término que hace verdadera la igualdad $\\dfrac{x}{n^2-nx}+\\dfrac{1}{n}-\\Box=\\dfrac{n}{x(n-x)}$.",
+    "expr": "x/(n**2-n*x)+1/n-n/(x*(n-x))",
+    "respuesta": "-1/x",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas con distinto denominador",
+    "unidad": 6,
+    "pagina_pdf": 153,
+    "referencia": "Razona, actividad 2, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\Box=-\\dfrac{1}{x}$. Con $n^2-nx=n(n-x)$ el mcm es $nx(n-x)$: el numerador queda $x^2+x(n-x)-n^2=nx-n^2=-n(n-x)$, y al simplificar sobra $-\\frac1x$. Que la caja sea negativa sorprende, pero es correcto: la resta de la izquierda es en realidad una suma.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P153-A3",
+    "tipo": "simbolico",
+    "enunciado": "El perímetro de un triángulo es $\\dfrac{3x-4}{x^2+6x+8}$ y dos de sus lados miden $\\dfrac{2x}{x+4}$ y $\\dfrac{3x^2-x}{x+2}$. ¿Cuál es la medida del otro lado?",
+    "expr": "(3*x-4)/(x**2+6*x+8)-2*x/(x+4)-(3*x**2-x)/(x+2)",
+    "respuesta": "-(3*x**3+13*x**2-3*x+4)/((x+2)*(x+4))",
+    "conjunto": "Q",
+    "seccion": "Adición y sustracción de fracciones algebraicas con distinto denominador",
+    "unidad": 6,
+    "pagina_pdf": 153,
+    "referencia": "Razona, actividad 3",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$x^2+6x+8=(x+2)(x+4)$, que ya es el mcm. El tercer lado es $\\dfrac{(3x-4)-2x(x+2)-(3x^2-x)(x+4)}{(x+2)(x+4)}=-\\dfrac{3x^3+13x^2-3x+4}{(x+2)(x+4)}$. **El resultado es negativo para todo $x>0$**, así que no hay ningún triángulo con esas medidas: el lado $\\frac{3x^2-x}{x+2}$ crece como $3x$ mientras el perímetro entero tiende a cero. El ítem sirve como resta de fracciones algebraicas, no como problema de geometría — el mismo descuido del ejemplo 2 de esta página, donde el área de la zona de animales también sale negativa.",
+    "dificultad": 1600
+  }
+]

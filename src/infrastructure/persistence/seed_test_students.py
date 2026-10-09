@@ -1,17 +1,25 @@
 """Seed de estudiantes de prueba con persistencia permanente.
 
-Crea 5 estudiantes de prueba (3 colegio, 2 universidad) matriculados en TODOS
-los cursos de su nivel. Es idempotente: si ya existen no sobrescribe progreso.
+Crea estudiantes de prueba matriculados en TODOS los cursos de su nivel.
+Es idempotente: si ya existen no sobrescribe progreso.
 
 Estudiantes:
-  - estudiante_colegio_1, _2, _3  (nivel colegio, contraseña: test1234)
-  - estudiante_universidad_1, _2   (nivel universidad, contraseña: test1234)
+  - estudiante_colegio_1, _2, _3   (nivel colegio, contraseña: test1234)
+  - estudiante_universidad_1, _2    (nivel universidad, contraseña: test1234)
+  - estudiante_semillero_1, _2      (nivel semillero grados 9 y 11)
+  - estudiante_concursos_1          (nivel concursos: DIAN/SENA)
 
 Uso:
   seed_test_students(repository)  # llamado desde SQLiteRepository.__init__
 """
 
-from src.domain.entities import LEVEL_COLEGIO, LEVEL_UNIVERSIDAD, LEVEL_SEMILLERO, LEVEL_TO_BLOCK
+from src.domain.entities import (
+    LEVEL_COLEGIO,
+    LEVEL_UNIVERSIDAD,
+    LEVEL_SEMILLERO,
+    LEVEL_CONCURSOS,
+    LEVEL_TO_BLOCK,
+)
 
 _TEST_PASSWORD = "test1234"
 
@@ -24,6 +32,7 @@ _TEST_STUDENTS = [
     ("estudiante_universidad_2", LEVEL_UNIVERSIDAD, None),
     ("estudiante_semillero_1", LEVEL_SEMILLERO, "9"),
     ("estudiante_semillero_2", LEVEL_SEMILLERO, "11"),
+    ("estudiante_concursos_1", LEVEL_CONCURSOS, None),
 ]
 
 
@@ -68,6 +77,7 @@ def seed_test_students(repo):
         LEVEL_COLEGIO: ("Grupo Prueba - Colegio", None),
         LEVEL_UNIVERSIDAD: ("Grupo Prueba - Universidad", None),
         LEVEL_SEMILLERO: ("Grupo Prueba - Semillero", None),
+        LEVEL_CONCURSOS: ("Grupo Prueba - Concursos", None),
     }
     for level, (g_name, _) in _level_groups.items():
         g_norm = g_name.strip().lower()

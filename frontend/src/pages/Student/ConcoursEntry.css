@@ -1,0 +1,97 @@
+/* ============================================================
+   Oulad — Concursos (DIAN/SENA): selector de bloque temático.
+   Sobrio, sin gamificación (público adulto). Reusa tokens .lue-dx.
+   ============================================================ */
+.lue-dx .cx-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(26px, 4vw, 38px);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  margin: 0 0 8px;
+}
+.lue-dx .cx-sub {
+  color: var(--dim);
+  font-size: 14.5px;
+  margin: 0 0 28px;
+}
+.lue-dx .cx-sub b { color: var(--text); font-weight: 600; }
+
+.lue-dx .cx-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.lue-dx .cx-block {
+  position: relative;
+  display: grid;
+  grid-template-columns: 4px 1fr auto;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 15px 18px 15px 0;
+  overflow: hidden;
+  color: var(--text);
+  font-family: var(--font-body);
+  transition: border-color 0.16s, background 0.16s, transform 0.12s;
+}
+/* Barra de acento a la izquierda — crece en hover (toque no genérico) */
+.lue-dx .cx-block::before {
+  content: "";
+  grid-column: 1;
+  align-self: stretch;
+  width: 4px;
+  background: var(--accent-2);
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform 0.18s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.lue-dx .cx-block:hover {
+  border-color: var(--accent-2);
+  background: var(--surface-3);
+  transform: translateX(2px);
+}
+.lue-dx .cx-block:hover::before { transform: scaleY(1); }
+
+.lue-dx .cx-block-main { grid-column: 2; }
+.lue-dx .cx-block-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.lue-dx .cx-block-count {
+  grid-column: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  letter-spacing: 0.03em;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.lue-dx .cx-block-count .cx-n {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dim);
+}
+.lue-dx .cx-block:hover .cx-block-count .cx-n { color: var(--accent-2); }
+
+.lue-dx .cx-all {
+  width: 100%;
+  justify-content: center;
+}
+.lue-dx .cx-loading,
+.lue-dx .cx-error {
+  text-align: center;
+  color: var(--dim);
+  font-size: 14px;
+  padding: 48px 0;
+}
+.lue-dx .cx-error { color: #f87171; }

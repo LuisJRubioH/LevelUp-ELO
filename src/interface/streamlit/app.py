@@ -86,13 +86,24 @@ st.session_state["_cookie_manager"] = cookie_manager
 import src.application.services.student_service as ss_mod
 import src.application.services.teacher_service as ts_mod
 
+# Composición: aquí se resuelve infrastructure y se inyecta a los servicios (R2).
+# `enable_cognitive_modifier` desapareció del servicio hace tiempo y este
+# archivo seguía pasándolo: V1 no arrancaba (TypeError en el constructor).
+from src.infrastructure.external_api.ai_client import get_pedagogical_analysis
+from src.infrastructure.ml.calibration import IsotonicCalibrator
+
 if "student_service" not in st.session_state:
+    _calibrator = IsotonicCalibrator()
+    _calibrator.load()
     st.session_state.student_service = ss_mod.StudentService(
         st.session_state.db,
-        enable_cognitive_modifier=False,
+        calibrator=_calibrator,
     )
 if "teacher_service" not in st.session_state:
-    st.session_state.teacher_service = ts_mod.TeacherService(st.session_state.db)
+    st.session_state.teacher_service = ts_mod.TeacherService(
+        st.session_state.db,
+        pedagogical_analysis=get_pedagogical_analysis,
+    )
 
 # ── Configuración de IA ───────────────────────────────────────────────────────
 if "ai_mode" not in st.session_state:

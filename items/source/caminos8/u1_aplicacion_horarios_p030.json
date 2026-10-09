@@ -1,0 +1,41 @@
+[
+  {
+    "id": "CS8-U1-P030-A01",
+    "tipo": "abierta",
+    "enunciado": "¿Los resultados obtenidos al convertir coordenadas de grados, minutos y segundos a grados decimales se pueden considerar números racionales? Explica tu respuesta.",
+    "respuesta": "Sí. Si los grados, minutos y segundos son enteros, el valor convertido tiene la forma g+m/60+s/3600, que es una suma de cocientes de enteros y, por tanto, es racional.",
+    "conjunto": "Q",
+    "seccion": "Aplicación: diferencia horaria",
+    "unidad": 1,
+    "pagina_pdf": 30,
+    "referencia": "Aplicación 1",
+    "apto_para": ["procedimiento_abierto"],
+    "justificacion": "Los denominadores 60 y 3.600 son enteros no nulos; las operaciones indicadas conservan la racionalidad.",
+    "dificultad": 450
+  },
+  {
+    "id": "CS8-U1-P030-A02",
+    "tipo": "valores_numericos",
+    "enunciado": "Usa el método del texto para hallar la diferencia horaria de Madrid (3°41′31″ O), Tokio (139°42′54″ E) y Sídney (151°12′40″ E) con respecto a Bogotá (74°4′33″ O): convierte a grados, aproxima la separación al múltiplo de 15° más cercano y divide entre 15.",
+    "exprs": {
+      "Madrid": "75/15",
+      "Tokio": "210/15",
+      "Sídney": "225/15"
+    },
+    "respuesta_valores": {
+      "Madrid": "5",
+      "Tokio": "14",
+      "Sídney": "15"
+    },
+    "respuesta": "Madrid está 5 horas adelante de Bogotá; Tokio, 14 horas adelante; y Sídney, 15 horas adelante, según el modelo de longitudes del texto.",
+    "conjunto": "N",
+    "seccion": "Aplicación: diferencia horaria",
+    "unidad": 1,
+    "pagina_pdf": 30,
+    "referencia": "Aplicación 2",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "Las separaciones son aproximadamente 70,384°, 213,791° y 225,287°; se aproximan a 75°, 210° y 225°, equivalentes a 5, 14 y 15 horas. Las tres ciudades quedan al oriente de Bogotá bajo el criterio usado en la página.",
+    "nota_modelo": "La respuesta sigue el modelo geométrico simplificado del libro; no incorpora husos civiles, horario de verano ni la fecha al cruzar la línea internacional.",
+    "dificultad": 650
+  }
+]

@@ -1,0 +1,463 @@
+[
+  {
+    "id": "HT8-U4-P79-A1a",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $(x+1)(x+2)$.",
+    "expr": "(x + 1)*(x + 2)",
+    "respuesta": "x**2 + 3*x + 2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "La regla: el coeficiente del término del medio es la SUMA de $a$ y $b$, y el independiente es su PRODUCTO. Aquí $1+2=3$ y $1\\cdot2=2$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U4-P79-A1b",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $(a+5)(a-3)$.",
+    "expr": "(a + 5)*(a - 3)",
+    "respuesta": "a**2 + 2*a - 15",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Signos distintos: la suma es $5-3=2$ y el producto $-15$. El término independiente sale negativo justo cuando $a$ y $b$ tienen signos contrarios.",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U4-P79-A1c",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $(x+7)(x-8)$.",
+    "expr": "(x + 7)*(x - 8)",
+    "respuesta": "x**2 - x - 56",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem c",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "$7-8=-1$, así que el término del medio es $-x$ (coeficiente $1$ que no se escribe).",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U4-P79-A1d",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $(x-11)(x+10)$.",
+    "expr": "(x - 11)*(x + 10)",
+    "respuesta": "x**2 - x - 110",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem d",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U4-P79-A1e",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $(x^2-5)(x^2+9)$.",
+    "expr": "(x**2 - 5)*(x**2 + 9)",
+    "respuesta": "x**4 + 4*x**2 - 45",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem e",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El «$x$» de la fórmula puede ser cualquier expresión: aquí es $x^2$, y su cuadrado es $x^4$. La regla no cambia.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U4-P79-A1f",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $(m^2+1)(m^2-20)$.",
+    "expr": "(m**2 + 1)*(m**2 - 20)",
+    "respuesta": "m**4 - 19*m**2 - 20",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem f",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U4-P79-A1g",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $(a^3+3)(a^3-8)$.",
+    "expr": "(a**3 + 3)*(a**3 - 8)",
+    "respuesta": "a**6 - 5*a**3 - 24",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem g",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U4-P79-A1h",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $(x^6+11)(x^6-5)$.",
+    "expr": "(x**6 + 11)*(x**6 - 5)",
+    "respuesta": "x**12 + 6*x**6 - 55",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem h",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "$(x^6)^2=x^{12}$: el exponente se duplica.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U4-P79-A1i",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $(mn^2-9)(mn^2+12)$.",
+    "expr": "(m*n**2 - 9)*(m*n**2 + 12)",
+    "respuesta": "m**2*n**4 + 3*m*n**2 - 108",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem i",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U4-P79-A1j",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $(x^2y^2-5)(x^2y^2+7)$.",
+    "expr": "(x**2*y**2 - 5)*(x**2*y**2 + 7)",
+    "respuesta": "x**4*y**4 + 2*x**2*y**2 - 35",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem j",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U4-P79-A1k",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $(a^3b^3-8)(a^3b^3+15)$.",
+    "expr": "(a**3*b**3 - 8)*(a**3*b**3 + 15)",
+    "respuesta": "a**6*b**6 + 7*a**3*b**3 - 120",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem k",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U4-P79-A1l",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $(m^4n^6-3)(m^4n^6+12)$.",
+    "expr": "(m**4*n**6 - 3)*(m**4*n**6 + 12)",
+    "respuesta": "m**8*n**12 + 9*m**4*n**6 - 36",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem l",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U4-P79-A1m",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $\\left(x^2-\\dfrac{1}{3}\\right)\\left(x^2+\\dfrac{9}{4}\\right)$.",
+    "expr": "(x**2 - 1/3)*(x**2 + 9/4)",
+    "respuesta": "x**4 + 23/12*x**2 - 3/4",
+    "conjunto": "Q",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem m",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Suma $-\\dfrac{1}{3}+\\dfrac{9}{4}=\\dfrac{23}{12}$ y producto $-\\dfrac{1}{3}\\cdot\\dfrac{9}{4}=-\\dfrac{3}{4}$. La regla funciona igual con fracciones: una suma y un producto, nada más.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U4-P79-A1n",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $\\left(ab^2+\\dfrac{1}{2}\\right)\\left(ab^2-\\dfrac{4}{5}\\right)$.",
+    "expr": "(a*b**2 + 1/2)*(a*b**2 - 4/5)",
+    "respuesta": "a**2*b**4 - 3/10*a*b**2 - 2/5",
+    "conjunto": "Q",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem n",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$\\dfrac{1}{2}-\\dfrac{4}{5}=-\\dfrac{3}{10}$ y $\\dfrac{1}{2}\\cdot\\left(-\\dfrac{4}{5}\\right)=-\\dfrac{2}{5}$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U4-P79-A1o",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $(x^{n+1}+3)(x^{n+1}-10)$.",
+    "expr": "(x**(n+1) + 3)*(x**(n+1) - 10)",
+    "respuesta": "x**(2*n+2) - 7*x**(n+1) - 30",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem o",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Exponente literal: $(x^{n+1})^2=x^{2n+2}$. Los números siguen siendo $3-10=-7$ y $3\\cdot(-10)=-30$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U4-P79-A1p",
+    "tipo": "simbolico",
+    "enunciado": "Realiza el producto: $\\left(\\dfrac{1}{3}a^x-7\\right)\\left(5-\\dfrac{1}{3}a^x\\right)$.",
+    "expr": "(1/3*a**x - 7)*(5 - 1/3*a**x)",
+    "respuesta": "-1/9*a**(2*x) + 4*a**x - 35",
+    "conjunto": "Q",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 1, ítem p",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Este NO tiene la forma $(x+a)(x+b)$: en el segundo factor el término con letra viene RESTANDO. Sacando el signo, $5-\\dfrac{1}{3}a^x=-\\left(\\dfrac{1}{3}a^x-5\\right)$, así que el producto es $-\\left(\\dfrac{1}{3}a^x-7\\right)\\left(\\dfrac{1}{3}a^x-5\\right)$ y el resultado empieza en $-\\dfrac{1}{9}a^{2x}$. Es el único de los 16 donde el coeficiente principal es negativo.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U4-P79-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Completa: $(x+8)(x+3)=x^2+\\square+\\square$. Verifica la identidad completada.",
+    "expr": "(x + 8)*(x + 3)",
+    "respuesta": "x**2 + 11*x + 24",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 2, ítem a",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "Cuadros: $11x$ y $24$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U4-P79-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Completa: $(n-5)(n+\\square)=\\square-\\square-20$. Verifica la identidad completada.",
+    "expr": "(n - 5)*(n + 4)",
+    "respuesta": "n**2 - n - 20",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 2, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El término independiente $-20$ es la pista: $-5\\cdot\\square=-20$ obliga a $\\square=4$. Cuadros: $4$, $n^2$ y $n$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P79-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Completa: $(x+7)\\square=x^2+\\square-21$. Verifica la identidad completada.",
+    "expr": "(x + 7)*(x - 3)",
+    "respuesta": "x**2 + 4*x - 21",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 2, ítem c",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "$7\\cdot\\square=-21$ da $\\square=-3$, y entonces el término del medio es $(7-3)x=4x$. Cuadros: $(x-3)$ y $4x$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P79-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Completa: $\\square(b-8)=b^2+\\square-72$. Verifica la identidad completada.",
+    "expr": "(b + 9)*(b - 8)",
+    "respuesta": "b**2 + b - 72",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 2, ítem d",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "$-8\\cdot\\square=-72$ da $\\square=9$, y el término del medio es $(9-8)b=b$, con coeficiente $1$ que no se escribe. Cuadros: $(b+9)$ y $b$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U4-P79-A2e",
+    "tipo": "simbolico",
+    "enunciado": "Completa: $(xy-4)\\square=\\square-2xy-\\square$. Verifica la identidad completada.",
+    "expr": "(x*y - 4)*(x*y + 2)",
+    "respuesta": "x**2*y**2 - 2*x*y - 8",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 2, ítem e",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Aquí la pista es el término del MEDIO: $-4+\\square=-2$ obliga a $\\square=2$, y de ahí el independiente $-8$. Cuadros: $(xy+2)$, $x^2y^2$ y $8$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P79-A2f",
+    "tipo": "simbolico",
+    "enunciado": "Completa: $(m^2n+7)(m^2n-\\square)=\\square-\\square-56$. Verifica la identidad completada.",
+    "expr": "(m**2*n + 7)*(m**2*n - 8)",
+    "respuesta": "m**4*n**2 - m**2*n - 56",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 2, ítem f",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "$7\\cdot(-\\square)=-56$ da $\\square=8$; el término del medio es $(7-8)m^2n=-m^2n$. Cuadros: $8$, $m^4n^2$ y $m^2n$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P79-A3",
+    "tipo": "simbolico",
+    "enunciado": "Halla el producto de $(m-1)(m-2)$. Luego explica si se puede o no hacer una representación gráfica del producto con áreas, como en el ejemplo de la página.",
+    "expr": "(m - 1)*(m - 2)",
+    "respuesta": "m**2 - 3*m + 2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 3",
+    "apto_para": [
+      "procedimiento_abierto",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El producto es $m^2-3m+2$. Sobre la representación: SÍ se puede dibujar un rectángulo de lados $m-1$ y $m-2$ (siempre que $m>2$, para que los lados sean positivos), pero NO se puede partir en cuatro regiones de área positiva como en el ejemplo de $(x+5)(x+3)$. Allí las cuatro piezas eran $x^2$, $5x$, $3x$ y $15$, todas sumando; aquí dos de los términos RESTAN, y restar áreas no se ve como una partición, sino como recortes que se solapan. El modelo geométrico natural de $(m-1)(m-2)$ es un cuadrado de lado $m$ al que se le quitan dos franjas y se le devuelve el rectángulo contado dos veces — que es exactamente el $+2$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U4-P79-A4a",
+    "tipo": "abierta",
+    "enunciado": "¿Verdadero o falso? «El producto de $(x+a)(x+b)$ es el producto de la suma de $a$ y $b$.» Justifica.",
+    "respuesta": "F. La suma de $a$ y $b$ no es el producto: es el COEFICIENTE del término del medio. El producto completo es $x^2+(a+b)x+ab$, donde $a+b$ aparece multiplicando a $x$ y $ab$ es el término independiente.",
+    "conjunto": "R",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 4, ítem a",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "**F.** La suma de $a$ y $b$ no es el producto: es el **coeficiente** del término del medio. El producto completo es $(x+a)(x+b)=x^2+(a+b)x+ab$, donde $a+b$ multiplica a $x$ y $ab$ es el término independiente. La afirmación del libro está redactada de forma confusa («el producto es el producto de la suma»), pero bajo cualquier lectura razonable es falsa, porque el resultado es un trinomio y no un solo producto.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P79-A4b",
+    "tipo": "abierta",
+    "enunciado": "¿Verdadero o falso? «El signo del término independiente en el producto de $(x+a)(x+b)$ es el producto de los signos de $a$ y $b$.» Justifica.",
+    "respuesta": "V. El término independiente es exactamente $ab$, así que su signo es el que resulta de multiplicar los signos: positivo si $a$ y $b$ tienen el mismo signo, negativo si son contrarios.",
+    "conjunto": "R",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 4, ítem b",
+    "apto_para": [
+      "procedimiento_abierto",
+      "practica_seleccion"
+    ],
+    "nota": "Es la regla práctica más útil de toda la lección, y sirve al revés: si el independiente es negativo, los dos números buscados tienen signos contrarios. Se usará a fondo al factorizar en la unidad 5.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P79-A4c",
+    "tipo": "abierta",
+    "enunciado": "¿Verdadero o falso? $5y(y+9)(y-2)=5y^3-35y^2-90y$. Justifica.",
+    "respuesta": "F. $(y+9)(y-2)=y^2+7y-18$ y al multiplicar por $5y$ queda $5y^3+35y^2-90y$. El término central es POSITIVO, no negativo: el libro lo escribe con signo cambiado.",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 4, ítem c",
+    "apto_para": [
+      "procedimiento_abierto",
+      "practica_seleccion"
+    ],
+    "nota": "La igualdad es falsa por UN signo: $9-2=+7$, no $-7$. El primer y el tercer término sí coinciden, que es lo que hace la trampa efectiva.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P79-A4d",
+    "tipo": "abierta",
+    "enunciado": "¿Verdadero o falso? $3y(3y+3)(3y+1)=9y(y^2+4y+1)$. Justifica.",
+    "respuesta": "F. El lado izquierdo vale $27y^3+36y^2+9y$ y el derecho $9y^3+36y^2+9y$: difieren en el término cúbico. Lo correcto sería $9y(3y^2+4y+1)$, porque $(3y+3)(3y+1)=9y^2+12y+3=3(3y^2+4y+1)$ y ese $3$ se junta con el $3y$ de afuera.",
+    "conjunto": "Z",
+    "seccion": "Actividades — Producto (x+a)(x+b)",
+    "unidad": 4,
+    "pagina_pdf": 79,
+    "referencia": "Actividad 4, ítem d",
+    "apto_para": [
+      "procedimiento_abierto",
+      "practica_seleccion"
+    ],
+    "nota": "El error consiste en sacar factor común mal: al pasar de $3(3y^2+4y+1)$ a la forma final se pierde el $3$ que acompaña a $y^2$. Comprobar con un valor concreto ($y=1$: izquierda $72$, derecha $54$) lo zanja en un renglón.",
+    "dificultad": 1450
+  }
+]

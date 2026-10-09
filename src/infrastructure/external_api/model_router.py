@@ -9,6 +9,7 @@ El registro es extensible: se pueden agregar modelos con `register_model()`.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Literal
 
@@ -86,6 +87,91 @@ def register_model(keyword: str, capabilities: ModelCapabilities) -> None:
     _MODEL_REGISTRY[keyword.lower()] = capabilities
 
 
+# ── Heuristic fallback ────────────────────────────────────────────────────────
+
+_VISION_KEYWORDS = [
+    "vision",
+    "vl",
+    "gpt-4o",
+    "gpt-4.1",
+    "llava",
+    "qwen-vl",
+    "qwen2-vl",
+    "qwen2.5-vl",
+    "moondream",
+    "fuyu",
+    "minicpm-v",
+    "pixtral",
+    "gemma-3",
+    "gemma3",
+    "llama-4",
+    "llama4",
+    "mistral-3",
+    "mistral3",
+    "internvl",
+    "cogvlm",
+    "phi-3-vision",
+    "phi-4-vision",
+    "molmo",
+    "ovis",
+    "idefics",
+    "deepseek-vl",
+]
+_REASONING_KEYWORDS = [
+    "math",
+    "instruct",
+    "reason",
+    "-r1",
+    "-r2",
+    "deepseek",
+    "qwen",
+    "gpt-4",
+    "gpt-3.5",
+    "llama-3",
+    "llama-4",
+    "mistral",
+    "mixtral",
+    "gemma",
+    "phi-3",
+    "phi-4",
+    "claude",
+]
+_REASONING_EXCLUSIONS = [
+    "embed",
+    "embedding",
+    "tts",
+    "whisper",
+    "dall-e",
+    "text-to-speech",
+    "moderation",
+]
+_VISION_EXCLUSIONS = ["qwen2.5-math", "qwen2.5-coder", "gemma-3-1b"]
+_SLOW_KEYWORDS = ["mixtral", "110b", "70b", "72b", "65b"]
+_SIZE_RE = re.compile(r"(\d+\.?\d*)[bB]")
+_MOE_RE = re.compile(r"(\d+)x(\d+\.?\d*)[bB]", re.IGNORECASE)
+
+
+def _detect_from_name(model_name: str) -> ModelCapabilities:
+    """Infiere capacidades de un modelo por heurística de nombre (último recurso)."""
+    if not model_name:
+        return ModelCapabilities()
+    m = model_name.lower()
+    if any(ex in m for ex in _VISION_EXCLUSIONS):
+        vision = False
+    else:
+        vision = any(kw in m for kw in _VISION_KEYWORDS)
+    reasoning = not any(ex in m for ex in _REASONING_EXCLUSIONS) and any(
+        kw in m for kw in _REASONING_KEYWORDS
+    )
+    if any(kw in m for kw in _SLOW_KEYWORDS) or _MOE_RE.search(model_name):
+        speed: Literal["fast", "medium", "slow"] = "slow"
+    else:
+        match = _SIZE_RE.search(model_name)
+        size = float(match.group(1)) if match else None
+        speed = "fast" if size and size <= 9 else ("medium" if not size or size <= 14 else "slow")
+    return ModelCapabilities(text=True, vision=vision, reasoning=reasoning, speed=speed)
+
+
 def detect_model_capabilities(
     model_name: str,
     provider: str | None = None,
@@ -116,18 +202,7 @@ def detect_model_capabilities(
     if provider and provider in _PROVIDER_DEFAULTS:
         return _PROVIDER_DEFAULTS[provider]
 
-    # Fallback: detección automática por heurística del nombre
-    try:
-        from src.infrastructure.external_api.model_capability_detector import (
-            detect_capabilities_from_name,
-        )
-
-        return detect_capabilities_from_name(model_name)
-    except ImportError:
-        pass
-
-    # Fallback conservador
-    return ModelCapabilities(text=True, vision=False, reasoning=False, speed="medium")
+    return _detect_from_name(model_name)
 
 
 def select_model_for_task(
@@ -261,8 +336,6 @@ def validate_socratic_response(response: str) -> bool:
             return False
 
     # Contar oraciones (separadas por . ! ?)
-    import re
-
     sentences = [s.strip() for s in re.split(r"[.!?]+", response) if s.strip()]
     if len(sentences) > _SOCRATIC_MAX_SENTENCES:
         return False

@@ -1,0 +1,1036 @@
+[
+  {
+    "id": "HT8-U6-P142-A1",
+    "tipo": "simbolico",
+    "enunciado": "Explica el procedimiento para hallar el mcm de $x+1$; $x^2-1^2$; $x^2-9^2$ y $x+3$.",
+    "expr": "lcm(lcm(lcm(x+1, x**2-1), x**2-81), x+3)",
+    "respuesta": "(x+1)*(x-1)*(x-9)*(x+9)*(x+3)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Recupera información, actividad 1",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Se factoriza cada uno y se toma **cada factor distinto con su mayor exponente**: $x+1$; $x^2-1=(x-1)(x+1)$; $x^2-81=(x-9)(x+9)$; $x+3$. El mcm es $(x+1)(x-1)(x-9)(x+9)(x+3)$. Escribir las constantes como cuadrados ($1^2$, $9^2$) es la pista de que hay que aplicar diferencia de cuadrados. **Ojo**: con $9^2$ el $x+3$ no se empareja con nada y entra entero al mcm; si el libro hubiera escrito $x^2-3^2$, los cuatro polinomios formarían dos parejas ($x+1$ con $x^2-1$ y $x+3$ con $x^2-9$) y el mcm sería $(x-1)(x+1)(x-3)(x+3)$, que es el diseño que sugiere la notación. Se transcribe lo impreso porque tal cual tiene respuesta.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P142-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el grupo de monomios $3x$; $x^2y$ con su mcm. Opciones: 1. $36x^3y^3$ · 2. $120x^6y^6$ · 3. $m^3n^3p^3$ · 4. $m^3n^3p^2$ · 5. $420x^3y^2$ · 6. $24m^3n^2$ · 7. $3x^2y$ · 8. $24a^2b^2c$ · 9. $45a^4b^2c^4$ · 10. $36m^3n^3$.",
+    "expr": "lcm(3*x, x**2*y)",
+    "respuesta": "3*x**2*y",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 2, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **7**: $\\text{mcm}=3x^2y$. Se toma el mcm de los coeficientes y, de cada letra, el **mayor** exponente — al revés que en el mcd.",
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U6-P142-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el grupo de monomios $m^2n^3$; $m^3np^2$ con su mcm. Opciones: 1. $36x^3y^3$ · 2. $120x^6y^6$ · 3. $m^3n^3p^3$ · 4. $m^3n^3p^2$ · 5. $420x^3y^2$ · 6. $24m^3n^2$ · 7. $3x^2y$ · 8. $24a^2b^2c$ · 9. $45a^4b^2c^4$ · 10. $36m^3n^3$.",
+    "expr": "lcm(m**2*n**3, m**3*n*p**2)",
+    "respuesta": "m**3*n**3*p**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 2, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **4**: $\\text{mcm}=m^3n^3p^2$. Se toma el mcm de los coeficientes y, de cada letra, el **mayor** exponente — al revés que en el mcd.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U6-P142-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el grupo de monomios $12m^2n$; $8m^3n^2$ con su mcm. Opciones: 1. $36x^3y^3$ · 2. $120x^6y^6$ · 3. $m^3n^3p^3$ · 4. $m^3n^3p^2$ · 5. $420x^3y^2$ · 6. $24m^3n^2$ · 7. $3x^2y$ · 8. $24a^2b^2c$ · 9. $45a^4b^2c^4$ · 10. $36m^3n^3$.",
+    "expr": "lcm(12*m**2*n, 8*m**3*n**2)",
+    "respuesta": "24*m**3*n**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 2, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **6**: $\\text{mcm}=24m^3n^2$. Se toma el mcm de los coeficientes y, de cada letra, el **mayor** exponente — al revés que en el mcd.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U6-P142-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el grupo de monomios $9a^4b^2c$; $15a^3bc^4$ con su mcm. Opciones: 1. $36x^3y^3$ · 2. $120x^6y^6$ · 3. $m^3n^3p^3$ · 4. $m^3n^3p^2$ · 5. $420x^3y^2$ · 6. $24m^3n^2$ · 7. $3x^2y$ · 8. $24a^2b^2c$ · 9. $45a^4b^2c^4$ · 10. $36m^3n^3$.",
+    "expr": "lcm(9*a**4*b**2*c, 15*a**3*b*c**4)",
+    "respuesta": "45*a**4*b**2*c**4",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 2, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **9**: $\\text{mcm}=45a^4b^2c^4$. Se toma el mcm de los coeficientes y, de cada letra, el **mayor** exponente — al revés que en el mcd.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P142-A2e",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el grupo de monomios $mn^3p^2$; $m^3np$; $m^2n^2p^3$ con su mcm. Opciones: 1. $36x^3y^3$ · 2. $120x^6y^6$ · 3. $m^3n^3p^3$ · 4. $m^3n^3p^2$ · 5. $420x^3y^2$ · 6. $24m^3n^2$ · 7. $3x^2y$ · 8. $24a^2b^2c$ · 9. $45a^4b^2c^4$ · 10. $36m^3n^3$.",
+    "expr": "lcm(lcm(m*n**3*p**2, m**3*n*p), m**2*n**2*p**3)",
+    "respuesta": "m**3*n**3*p**3",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 2, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **3**: $\\text{mcm}=m^3n^3p^3$. Se toma el mcm de los coeficientes y, de cada letra, el **mayor** exponente — al revés que en el mcd.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P142-A2f",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el grupo de monomios $6xy^2$; $9x^2y^3$; $12x^3y$ con su mcm. Opciones: 1. $36x^3y^3$ · 2. $120x^6y^6$ · 3. $m^3n^3p^3$ · 4. $m^3n^3p^2$ · 5. $420x^3y^2$ · 6. $24m^3n^2$ · 7. $3x^2y$ · 8. $24a^2b^2c$ · 9. $45a^4b^2c^4$ · 10. $36m^3n^3$.",
+    "expr": "lcm(lcm(6*x*y**2, 9*x**2*y**3), 12*x**3*y)",
+    "respuesta": "36*x**3*y**3",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 2, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **1**: $\\text{mcm}=36x^3y^3$. Se toma el mcm de los coeficientes y, de cada letra, el **mayor** exponente — al revés que en el mcd.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P142-A2g",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el grupo de monomios $9m^2n$; $12mn^2$; $18m^3n^3$ con su mcm. Opciones: 1. $36x^3y^3$ · 2. $120x^6y^6$ · 3. $m^3n^3p^3$ · 4. $m^3n^3p^2$ · 5. $420x^3y^2$ · 6. $24m^3n^2$ · 7. $3x^2y$ · 8. $24a^2b^2c$ · 9. $45a^4b^2c^4$ · 10. $36m^3n^3$.",
+    "expr": "lcm(lcm(9*m**2*n, 12*m*n**2), 18*m**3*n**3)",
+    "respuesta": "36*m**3*n**3",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 2, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **10**: $\\text{mcm}=36m^3n^3$. Se toma el mcm de los coeficientes y, de cada letra, el **mayor** exponente — al revés que en el mcd.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P142-A2h",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el grupo de monomios $20x^4y^6$; $24x^6y^2$; $30x^2y^4$ con su mcm. Opciones: 1. $36x^3y^3$ · 2. $120x^6y^6$ · 3. $m^3n^3p^3$ · 4. $m^3n^3p^2$ · 5. $420x^3y^2$ · 6. $24m^3n^2$ · 7. $3x^2y$ · 8. $24a^2b^2c$ · 9. $45a^4b^2c^4$ · 10. $36m^3n^3$.",
+    "expr": "lcm(lcm(20*x**4*y**6, 24*x**6*y**2), 30*x**2*y**4)",
+    "respuesta": "120*x**6*y**6",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 2, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **2**: $\\text{mcm}=120x^6y^6$. Se toma el mcm de los coeficientes y, de cada letra, el **mayor** exponente — al revés que en el mcd.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P142-A2i",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el grupo de monomios $4a^2$; $6a$; $8ab^2$; $12a^2bc$ con su mcm. Opciones: 1. $36x^3y^3$ · 2. $120x^6y^6$ · 3. $m^3n^3p^3$ · 4. $m^3n^3p^2$ · 5. $420x^3y^2$ · 6. $24m^3n^2$ · 7. $3x^2y$ · 8. $24a^2b^2c$ · 9. $45a^4b^2c^4$ · 10. $36m^3n^3$.",
+    "expr": "lcm(lcm(lcm(4*a**2, 6*a), 8*a*b**2), 12*a**2*b*c)",
+    "respuesta": "24*a**2*b**2*c",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 2, ítem i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **8**: $\\text{mcm}=24a^2b^2c$. Se toma el mcm de los coeficientes y, de cada letra, el **mayor** exponente — al revés que en el mcd.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P142-A2j",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el grupo de monomios $6x^2y$; $4x^3y^2$; $21xy^2$; $10x^3y$ con su mcm. Opciones: 1. $36x^3y^3$ · 2. $120x^6y^6$ · 3. $m^3n^3p^3$ · 4. $m^3n^3p^2$ · 5. $420x^3y^2$ · 6. $24m^3n^2$ · 7. $3x^2y$ · 8. $24a^2b^2c$ · 9. $45a^4b^2c^4$ · 10. $36m^3n^3$.",
+    "expr": "lcm(lcm(lcm(6*x**2*y, 4*x**3*y**2), 21*x*y**2), 10*x**3*y)",
+    "respuesta": "420*x**3*y**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 2, ítem j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **5**: $\\text{mcm}=420x^3y^2$. Se toma el mcm de los coeficientes y, de cada letra, el **mayor** exponente — al revés que en el mcd.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U6-P142-A3a",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $m^2n$; $m^3n^2$.",
+    "expr": "lcm(m**2*n, m**3*n**2)",
+    "respuesta": "m**3*n**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=m^3n^2$. Mayor exponente de cada letra.",
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U6-P142-A3b",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $9ab^3$; $15a^3b^2$.",
+    "expr": "lcm(9*a*b**3, 15*a**3*b**2)",
+    "respuesta": "45*a**3*b**3",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=45a^3b^3$. $\\text{mcm}(9,15)=45$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U6-P142-A3c",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $64x^5y^6$; $50x^3y^4z^2$.",
+    "expr": "lcm(64*x**5*y**6, 50*x**3*y**4*z**2)",
+    "respuesta": "1600*x**5*y**6*z**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=1600x^5y^6z^2$. $64=2^6$ y $50=2\\cdot 5^2$, luego $\\text{mcm}(64,50)=2^6\\cdot 5^2=1600$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P142-A3d",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $8a^3b^2$; $32a^4b$; $60ab$.",
+    "expr": "lcm(lcm(8*a**3*b**2, 32*a**4*b), 60*a*b)",
+    "respuesta": "480*a**4*b**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=480a^4b^2$. $\\text{mcm}(8,32,60)=480$: $32=2^5$ y $60=2^2\\cdot 3\\cdot 5$, así que hace falta $2^5\\cdot 3\\cdot 5$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P142-A3e",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $9x^3y$; $24xy^4$; $30xyz^2$.",
+    "expr": "lcm(lcm(9*x**3*y, 24*x*y**4), 30*x*y*z**2)",
+    "respuesta": "360*x**3*y**4*z**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=360x^3y^4z^2$. $\\text{mcm}(9,24,30)=360$.",
+    "erratum": "El libro imprime el primer monomio como 9x^{3y}, con la y subida al exponente. Debe ser 9x^3y: un exponente literal 3y no pertenece al capitulo. Es el mismo desliz de composicion del 5d y del 6b de esta misma pagina, y del 6a de la p139.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P142-A3f",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $10m^7$; $25m^2$; $m^4$.",
+    "expr": "lcm(lcm(10*m**7, 25*m**2), m**4)",
+    "respuesta": "50*m**7",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=50m^7$. $\\text{mcm}(10,25)=50$ y el mayor exponente es 7.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U6-P142-A3g",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $2x^7y^4$; $45x^6yz^3$; $x^3y^4$.",
+    "expr": "lcm(lcm(2*x**7*y**4, 45*x**6*y*z**3), x**3*y**4)",
+    "respuesta": "90*x**7*y**4*z**3",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=90x^7y^4z^3$. $\\text{mcm}(2,45)=90$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P142-A3h",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $4x^2y^3$; $14x^3y^2$.",
+    "expr": "lcm(4*x**2*y**3, 14*x**3*y**2)",
+    "respuesta": "28*x**3*y**3",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=28x^3y^3$. $\\text{mcm}(4,14)=28$, no 56: comparten el factor 2.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U6-P142-A3i",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $18m^5n^6$; $33m^3n^2p^4$.",
+    "expr": "lcm(18*m**5*n**6, 33*m**3*n**2*p**4)",
+    "respuesta": "198*m**5*n**6*p**4",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=198m^5n^6p^4$. $18=2\\cdot 3^2$ y $33=3\\cdot 11$: $\\text{mcm}=2\\cdot 3^2\\cdot 11=198$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P142-A3j",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $2x^2$; $5xy$; $7x^3y^2$.",
+    "expr": "lcm(lcm(2*x**2, 5*x*y), 7*x**3*y**2)",
+    "respuesta": "70*x**3*y**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=70x^3y^2$. Los tres coeficientes son primos entre sí: $2\\cdot 5\\cdot 7=70$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U6-P142-A3k",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $7mn$; $12m^3n^4$; $20m^2n^2$.",
+    "expr": "lcm(lcm(7*m*n, 12*m**3*n**4), 20*m**2*n**2)",
+    "respuesta": "420*m**3*n**4",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem k",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=420m^3n^4$. $\\text{mcm}(7,12,20)=420$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P142-A3l",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $6a^2b^2$; $20a^4b^5$; $60a^5bc^2$.",
+    "expr": "lcm(lcm(6*a**2*b**2, 20*a**4*b**5), 60*a**5*b*c**2)",
+    "respuesta": "60*a**5*b**5*c**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem l",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=60a^5b^5c^2$. $\\text{mcm}(6,20,60)=60$ y cada letra toma su máximo en un monomio distinto.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P142-A3m",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $12x^3y^3$; $5x^5y^4$; $-7y^4x^7$.",
+    "expr": "lcm(lcm(12*x**3*y**3, 5*x**5*y**4), 7*y**4*x**7)",
+    "respuesta": "420*x**7*y**4",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem m",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=420x^7y^4$. El signo menos del tercer monomio **no cuenta**: el mcm se escribe siempre positivo. $\\text{mcm}(12,5,7)=420$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P142-A3n",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los monomios $-24m^4n^2$; $12m^3n$; $36n$.",
+    "expr": "lcm(lcm(24*m**4*n**2, 12*m**3*n), 36*n)",
+    "respuesta": "72*m**4*n**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 3, ítem n",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=72m^4n^2$. $\\text{mcm}(24,12,36)=72$, y otra vez el signo menos se ignora. El tercer monomio no tiene $m$, pero eso da igual: se toma el **mayor** exponente, no el menor.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P142-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Determina si el mcm es correcto: para $4xy$; $6x^2$; $3y^2$ se afirma que $\\text{mcm}=12x^2y^2$.",
+    "expr": "lcm(lcm(4*x*y, 6*x**2), 3*y**2)",
+    "respuesta": "12*x**2*y**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 4, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Correcto.** El mcm es $12x^2y^2$. $\\text{mcm}(4,6,3)=12$ y los mayores exponentes son $x^2$ y $y^2$.",
+    "erratum": "El libro imprime el mcm como 12x^{2y2}, con la y y el 2 subidos al exponente. Es la misma falla de composicion del 3e y el 5d de esta pagina: debe leerse 12x^2y^2, que ademas es el resultado correcto.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P142-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Determina si el mcm es correcto: para $a^3$; $ab^2$; $a^2b$ se afirma que $\\text{mcm}=a^2b^2$.",
+    "expr": "lcm(lcm(a**3, a*b**2), a**2*b)",
+    "respuesta": "a**3*b**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 4, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Incorrecto.** El mcm es $a^3b^2$. El mayor exponente de $a$ es 3, no 2: el mcm es $a^3b^2$. Confundir mcm con mcd es el error típico.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P142-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Determina si el mcm es correcto: para $3m^2n^3p$; $4m^3n^4$; $6m^4n^5p^2$ se afirma que $\\text{mcm}=24m^4n^5p^2$.",
+    "expr": "lcm(lcm(3*m**2*n**3*p, 4*m**3*n**4), 6*m**4*n**5*p**2)",
+    "respuesta": "12*m**4*n**5*p**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 4, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Incorrecto.** El mcm es $12m^4n^5p^2$. La parte literal está bien; el error es el coeficiente: $\\text{mcm}(3,4,6)=12$, no 24. Se multiplicaron los tres números en vez de tomar su mcm.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P142-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Determina si el mcm es correcto: para $5x^2y^5z$; $10x^3y^4z^2$; $15x^4y^3z^2$ se afirma que $\\text{mcm}=30x^4y^5z^2$.",
+    "expr": "lcm(lcm(5*x**2*y**5*z, 10*x**3*y**4*z**2), 15*x**4*y**3*z**2)",
+    "respuesta": "30*x**4*y**5*z**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 4, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Correcto.** El mcm es $30x^4y^5z^2$. $\\text{mcm}(5,10,15)=30$ y cada letra toma su máximo: $x^4$, $y^5$, $z^2$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P142-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Determina si el mcm es correcto: para $24a^2b^3c^2$; $70a^3bc$; $20a^4b^3c^3$ se afirma que $\\text{mcm}=840a^4b^3c^3$.",
+    "expr": "lcm(lcm(24*a**2*b**3*c**2, 70*a**3*b*c), 20*a**4*b**3*c**3)",
+    "respuesta": "840*a**4*b**3*c**3",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 4, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Correcto.** El mcm es $840a^4b^3c^3$. $24=2^3\\cdot 3$, $70=2\\cdot 5\\cdot 7$ y $20=2^2\\cdot 5$: el mcm es $2^3\\cdot 3\\cdot 5\\cdot 7=840$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U6-P142-A4f",
+    "tipo": "simbolico",
+    "enunciado": "Determina si el mcm es correcto: para $(x+y)^2$; $x^2+y^2$ se afirma que $\\text{mcm}=(x+y)^2$.",
+    "expr": "lcm((x+y)**2, x**2+y**2)",
+    "respuesta": "(x+y)**2*(x**2+y**2)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 4, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Incorrecto.** El mcm es $(x+y)^2(x^2+y^2)$. $x^2+y^2$ **no** es $(x+y)^2$: la suma de cuadrados no se factoriza, así que es un factor aparte y el mcm es $(x+y)^2(x^2+y^2)$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P142-A4g",
+    "tipo": "simbolico",
+    "enunciado": "Determina si el mcm es correcto: para $x(m-n)^3$; $x^2(m^3-n^3)$ se afirma que $\\text{mcm}=x^2(m-n)^3(m^2+n^2)$.",
+    "expr": "lcm(x*(m-n)**3, x**2*(m**3-n**3))",
+    "respuesta": "x**2*(m-n)**3*(m**2+m*n+n**2)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 4, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Incorrecto.** El mcm es $x^2(m-n)^3(m^2+mn+n^2)$. Falta el término del medio: $m^3-n^3=(m-n)(m^2+mn+n^2)$, no $(m-n)(m^2+n^2)$. El resto del procedimiento está bien.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P142-A4h",
+    "tipo": "simbolico",
+    "enunciado": "Determina si el mcm es correcto: para $2x^2+2x$; $3x^2-3x$ se afirma que $\\text{mcm}=2x(x+2)(x+1)$.",
+    "expr": "lcm(2*x**2+2*x, 3*x**2-3*x)",
+    "respuesta": "6*x*(x-1)*(x+1)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 4, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Incorrecto.** El mcm es $6x(x-1)(x+1)$. Dos errores: $3x^2-3x=3x(x-1)$, así que aparece $x-1$ y no $x+2$; y el coeficiente es $\\text{mcm}(2,3)=6$, no 2.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P142-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $4x-8$; $8x^2-20$.",
+    "expr": "lcm(4*x-8, 8*x**2-20)",
+    "respuesta": "4*(x-2)*(2*x**2-5)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=4(x-2)(2x^2-5)$. $4(x-2)$ y $4(2x^2-5)$. Comparten el 4, así que no se multiplica dos veces.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P142-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $(m-1)^2$; $m^2-1$.",
+    "expr": "lcm((m-1)**2, m**2-1)",
+    "respuesta": "(m-1)**2*(m+1)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=(m-1)^2(m+1)$. $m^2-1=(m-1)(m+1)$: de $m-1$ se toma el exponente 2, el mayor.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P142-A5c",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $4(b-c)^2$; $8(b^2-c^2)$.",
+    "expr": "lcm(4*(b-c)**2, 8*(b**2-c**2))",
+    "respuesta": "8*(b-c)**2*(b+c)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=8(b-c)^2(b+c)$. $\\text{mcm}(4,8)=8$, $(b-c)$ con exponente 2 y $(b+c)$ con exponente 1.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P142-A5d",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $6x(a+b)^3$; $4x^2y(a^3+b^3)$.",
+    "expr": "lcm(6*x*(a+b)**3, 4*x**2*y*(a**3+b**3))",
+    "respuesta": "12*x**2*y*(a+b)**3*(a**2-a*b+b**2)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=12x^2y(a+b)^3(a^2-ab+b^2)$. $a^3+b^3=(a+b)(a^2-ab+b^2)$, así que $(a+b)$ aparece en ambos y se toma con exponente 3.",
+    "erratum": "El libro imprime 4x^{2y}(a^3 + b^3), con la y subida al exponente. Debe ser 4x^2y: es el mismo desliz de composicion del 3e y el 6b de esta pagina.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P142-A5e",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $x^2-9$; $x^3-27$; $2x+6$.",
+    "expr": "lcm(lcm(x**2-9, x**3-27), 2*x+6)",
+    "respuesta": "2*(x-3)*(x+3)*(x**2+3*x+9)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=2(x-3)(x+3)(x^2+3x+9)$. Diferencia de cuadrados, diferencia de cubos y factor común: $(x-3)(x+3)$, $(x-3)(x^2+3x+9)$ y $2(x+3)$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P142-A5f",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $6x^2+6$; $9x+9$; $3x^2-3$.",
+    "expr": "lcm(lcm(6*x**2+6, 9*x+9), 3*x**2-3)",
+    "respuesta": "18*(x-1)*(x+1)*(x**2+1)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=18(x-1)(x+1)(x^2+1)$. $6(x^2+1)$, $9(x+1)$ y $3(x-1)(x+1)$. El coeficiente es $\\text{mcm}(6,9,3)=18$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P142-A5g",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $20(m^2-n^2)$; $15(m-n)^2$; $12(m+n)^2$.",
+    "expr": "lcm(lcm(20*(m**2-n**2), 15*(m-n)**2), 12*(m+n)**2)",
+    "respuesta": "60*(m-n)**2*(m+n)**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=60(m-n)^2(m+n)^2$. $\\text{mcm}(20,15,12)=60$, y de $(m-n)$ y $(m+n)$ se toma el exponente 2 en ambos.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P142-A5h",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $2(3x-2)^2$; $135x^3-40$; $12x-8$.",
+    "expr": "lcm(lcm(2*(3*x-2)**2, 135*x**3-40), 12*x-8)",
+    "respuesta": "20*(3*x-2)**2*(9*x**2+6*x+4)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=20(3x-2)^2(9x^2+6x+4)$. $135x^3-40=5(27x^3-8)=5(3x-2)(9x^2+6x+4)$ y $12x-8=4(3x-2)$. El coeficiente es $\\text{mcm}(2,5,4)=20$.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U6-P142-A5i",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $a^4-4a^2-32$; $a^4b+2a^3b+4a^2b$.",
+    "expr": "lcm(a**4-4*a**2-32, a**4*b+2*a**3*b+4*a**2*b)",
+    "respuesta": "a**2*b*(a**2-8)*(a**2+4)*(a**2+2*a+4)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=a^2b(a^2-8)(a^2+4)(a^2+2a+4)$. $a^4-4a^2-32=(a^2-8)(a^2+4)$ y $a^4b+2a^3b+4a^2b=a^2b(a^2+2a+4)$. No comparten ningún factor, así que el mcm es el producto entero.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U6-P142-A5j",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $m^2+3m-10$; $4m^2-7m-2$.",
+    "expr": "lcm(m**2+3*m-10, 4*m**2-7*m-2)",
+    "respuesta": "(m-2)*(m+5)*(4*m+1)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=(m-2)(m+5)(4m+1)$. $(m+5)(m-2)$ y $(4m+1)(m-2)$: el factor repetido, $m-2$, se escribe una sola vez.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P142-A5k",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $x^2+x-30$; $x^2+3x-18$.",
+    "expr": "lcm(x**2+x-30, x**2+3*x-18)",
+    "respuesta": "(x-5)*(x-3)*(x+6)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem k",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=(x-5)(x-3)(x+6)$. $(x+6)(x-5)$ y $(x+6)(x-3)$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U6-P142-A5l",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $18a^3+60a^2+50a$; $15a^5b^2+15a^4b^2-15a^3b^2$.",
+    "expr": "lcm(18*a**3+60*a**2+50*a, 15*a**5*b**2+15*a**4*b**2-15*a**3*b**2)",
+    "respuesta": "30*a**3*b**2*(3*a+5)**2*(a**2+a-1)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem l",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=30a^3b^2(3a+5)^2(a^2+a-1)$. $2a(3a+5)^2$ y $15a^3b^2(a^2+a-1)$. El trinomio $a^2+a-1$ no se factoriza sobre los racionales (su discriminante, 5, no es cuadrado perfecto), así que se queda tal cual. Lo único común es la $a$: el coeficiente es $\\text{mcm}(2,15)=30$ y de $a$ se toma el exponente 3.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U6-P142-A5m",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $4b^2x^2+4a^2b^3$; $2a^2x-2a^2x^2$; $(1-a)^2$.",
+    "expr": "lcm(lcm(4*b**2*x**2+4*a**2*b**3, 2*a**2*x-2*a**2*x**2), (1-a)**2)",
+    "respuesta": "4*a**2*b**2*x*(1-a)**2*(1-x)*(a**2*b+x**2)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem m",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=4a^2b^2x(1-a)^2(1-x)(a^2b+x^2)$. $4b^2(x^2+a^2b)$, $2a^2x(1-x)$ y $(1-a)^2$. Los tres son prácticamente primos entre sí — solo se repite el factor numérico 2 — así que el mcm es casi el producto. Es el caso extremo: cuando no hay nada en común, el mcm es el producto.",
+    "dificultad": 1700
+  },
+  {
+    "id": "HT8-U6-P142-A5n",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcm de los polinomios $m^4-10m^2+9$; $m^2+4m+3$; $m^2-4m+3$.",
+    "expr": "lcm(lcm(m**4-10*m**2+9, m**2+4*m+3), m**2-4*m+3)",
+    "respuesta": "(m-3)*(m-1)*(m+1)*(m+3)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Ejercita, actividad 5, ítem n",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcm}=(m-3)(m-1)(m+1)(m+3)=m^4-10m^2+9$. $m^4-10m^2+9=(m^2-1)(m^2-9)$, $m^2+4m+3=(m+1)(m+3)$ y $m^2-4m+3=(m-1)(m-3)$. Los dos últimos reparten entre sí los cuatro factores del primero, así que **el mcm es el primer polinomio**.",
+    "erratum": "El libro imprime el primer polinomio como m^4 - 10m^2 + m. Asi es m(m^3 - 10m + 1), con un cubico sin raices racionales, y el mcm queda en un producto de grado 7 sin ninguna estructura. Con +9 el diseno aparece completo: m^4 - 10m^2 + 9 = (m^2 - 1)(m^2 - 9) = (m - 1)(m + 1)(m - 3)(m + 3), y sus cuatro factores son exactamente la union de los de los otros dos polinomios, (m + 1)(m + 3) y (m - 1)(m - 3). El mcm es entonces el primer polinomio mismo. Un caracter. Corregido a +9.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P142-A6a",
+    "tipo": "simbolico",
+    "enunciado": "Identifica el error en este cálculo del mcm de $x^2+2x+1;\\ x^2-1$: $x^2+2x+1=(x+1)^2$, $x^2-1=(x+1)(x-1)$, mcm $=(x+1)(x-1)$.",
+    "expr": "lcm(x**2+2*x+1, x**2-1)",
+    "respuesta": "(x+1)**2*(x-1)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Razona, actividad 6, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El mcm correcto es $(x+1)^2(x-1)$. Las dos factorizaciones están bien; el error está en el último paso. De $(x+1)$ hay que tomar el **mayor** exponente, que es 2, no 1. El mcm es $(x+1)^2(x-1)$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P142-A6b",
+    "tipo": "simbolico",
+    "enunciado": "Identifica el error en este cálculo del mcm de $3m^2n-9m^2;\\ n^2-6n+9$: $3m^2n-9m^2=3m^2(n-3)$, $n^2-6n+9=(n+3)^2$, mcm $=3m^2(n+3)^2$.",
+    "expr": "lcm(3*m**2*n-9*m**2, n**2-6*n+9)",
+    "respuesta": "3*m**2*(n-3)**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Razona, actividad 6, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El mcm correcto es $3m^2(n-3)^2$. El error está en la segunda factorización: $n^2-6n+9=(n-3)^2$, con signo **menos** — el término del medio es $-6n$. Corregido eso, el mcm es $3m^2(n-3)^2$, y además coincide con el paréntesis que ya había salido en la primera línea.",
+    "erratum": "Ademas del error que el ejercicio pide encontrar, el libro imprime el primer polinomio como 3m^{2n} - 9m^2, con la n subida al exponente. Su propio desarrollo lo delata: escribe 3m^2(n - 3), que solo sale de 3m^2n - 9m^2. Es el mismo desliz de composicion del 3e y el 5d de esta pagina.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P142-A6c",
+    "tipo": "simbolico",
+    "enunciado": "Identifica el error en este cálculo del mcm de $a^3-25a;\\ a^2+2a-15$: $a^3-25a=a(a+5)(a-5)$, $a^2+2a-15=(a+5)(a-3)$, mcm $=a(a+5)^2(a-5)(a-3)$.",
+    "expr": "lcm(a**3-25*a, a**2+2*a-15)",
+    "respuesta": "a*(a-5)*(a-3)*(a+5)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Razona, actividad 6, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El mcm correcto es $a(a+5)(a-5)(a-3)$. El error es el cuadrado: $(a+5)$ aparece **una** vez en cada polinomio, así que su mayor exponente es 1. No se suman los exponentes, se toma el mayor. El mcm es $a(a+5)(a-5)(a-3)$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P142-A6d",
+    "tipo": "simbolico",
+    "enunciado": "Identifica el error en este cálculo del mcm de $x^2y^4-2xy^2-3;\\ x^2y^4+3xy^2+2$: $x^2y^4-2xy^2-3=(xy^2-3)(xy^2-1)$, $x^2y^4+3xy^2+2=(xy^2+2)(xy^2+1)$, mcm $=(xy^2+1)(xy^2-1)(xy^2+2)(xy^2-3)$.",
+    "expr": "lcm(x**2*y**4-2*x*y**2-3, x**2*y**4+3*x*y**2+2)",
+    "respuesta": "(x*y**2-3)*(x*y**2+1)*(x*y**2+2)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Razona, actividad 6, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El mcm correcto es $(xy^2-3)(xy^2+1)(xy^2+2)$. El error está en la primera factorización: $(xy^2-3)(xy^2-1)$ da $x^2y^4-4xy^2+3$, no lo pedido. Lo correcto es $(xy^2-3)(xy^2+1)$ — dos números que multiplicados den $-3$ y sumados $-2$ son $-3$ y $+1$. Con el signo bien, $(xy^2+1)$ queda repetido en los dos polinomios y el mcm baja a tres factores: $(xy^2-3)(xy^2+1)(xy^2+2)$.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U6-P142-A7a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe dos monomios cuyo mcm sea $12x^3y^2$.",
+    "expr": "lcm(12*x**3, 12*y**2)",
+    "respuesta": "12*x**3*y**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Razona, actividad 7, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo $12x^3$ y $12y^2$, o $4x^3y$ y $6xy^2$, o incluso $12x^3y^2$ y $x$. La condición solo obliga a que entre los dos aparezcan $x^3$, $y^2$ y un coeficiente cuyo mcm sea 12.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P142-A7b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe dos binomios que tengan como mcm a $(a+1)(a-1)$.",
+    "expr": "lcm(a+1, a-1)",
+    "respuesta": "(a+1)*(a-1)",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Razona, actividad 7, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Lo más simple es $a+1$ y $a-1$. También sirve $a^2-1$ con cualquiera de los dos, porque $a^2-1=(a+1)(a-1)$ y sigue siendo un binomio.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U6-P142-A7c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe dos trinomios cuyo mcm sea $(x+2)(x-3)^2$.",
+    "expr": "lcm(x**2-x-6, x**2-6*x+9)",
+    "respuesta": "(x+2)*(x-3)**2",
+    "conjunto": "Z",
+    "seccion": "Mínimo común múltiplo de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 142,
+    "referencia": "Razona, actividad 7, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Por ejemplo $x^2-x-6=(x+2)(x-3)$ y $x^2-6x+9=(x-3)^2$. Hay que repartir los factores de modo que $(x-3)$ llegue a exponente 2 en alguno de los dos y que $(x+2)$ aparezca al menos una vez.",
+    "verificar": "La respuesta no es unica: la actividad pide inventar expresiones y sirve cualquiera que cumpla la condicion. Se registra un ejemplo verificable; al calificar hay que aceptar cualquier propuesta correcta.",
+    "dificultad": 1500
+  }
+]

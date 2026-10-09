@@ -1,0 +1,40 @@
+[
+  {
+    "id": "CS8-U7-P184-EJ01A",
+    "tipo": "elementos_ecuacion",
+    "enunciado": "Identifica el primer miembro, el segundo miembro, la incógnita, los términos independientes y el grado de la ecuación 3x+5=8.",
+    "ecuacion": "3*x+5=8",
+    "primer_miembro": "3*x+5",
+    "segundo_miembro": "8",
+    "incognita": "x",
+    "terminos_independientes": ["5", "8"],
+    "grado": 1,
+    "respuesta": "Primer miembro: 3x+5; segundo miembro: 8; incógnita: x; términos independientes: 5 y 8; grado: 1.",
+    "conjunto": "R",
+    "seccion": "Elementos de una ecuación: ejemplo resuelto",
+    "unidad": 7,
+    "pagina_pdf": 184,
+    "referencia": "Ejemplo, ecuación 1",
+    "apto_para": ["procedimiento_abierto"],
+    "dificultad": 300
+  },
+  {
+    "id": "CS8-U7-P184-EJ01B",
+    "tipo": "elementos_ecuacion",
+    "enunciado": "Identifica el primer miembro, el segundo miembro, la incógnita, los términos independientes y el grado de la ecuación 9a²+3=4−a.",
+    "ecuacion": "9*a**2+3=4-a",
+    "primer_miembro": "9*a**2+3",
+    "segundo_miembro": "4-a",
+    "incognita": "a",
+    "terminos_independientes": ["3", "4"],
+    "grado": 2,
+    "respuesta": "Primer miembro: 9a²+3; segundo miembro: 4−a; incógnita: a; términos independientes: 3 y 4; grado: 2.",
+    "conjunto": "R",
+    "seccion": "Elementos de una ecuación: ejemplo resuelto",
+    "unidad": 7,
+    "pagina_pdf": 184,
+    "referencia": "Ejemplo, ecuación 2",
+    "apto_para": ["procedimiento_abierto"],
+    "dificultad": 350
+  }
+]

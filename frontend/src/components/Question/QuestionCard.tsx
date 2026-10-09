@@ -5,9 +5,9 @@
  * y una imagen opcional.
  */
 
-import katex from "katex";
-import "katex/dist/katex.min.css";
 import { QuestionImage } from "./QuestionImage";
+import { MathText } from "../Math/MathContent";
+import "../../pages/Student/StudentContent.css";
 
 interface QuestionCardProps {
   content: string;
@@ -17,37 +17,6 @@ interface QuestionCardProps {
   imageUrl?: string;
   timerFormatted: string;
   questionNumber: number;
-}
-
-/** Renderiza texto que puede contener LaTeX inline: $expr$ */
-function RenderContent({ text }: { text: string }) {
-  const parts = text.split(/(\$[^$]+\$)/g);
-  return (
-    <>
-      {parts.map((part, i) => {
-        if (part.startsWith("$") && part.endsWith("$")) {
-          const math = part.slice(1, -1);
-          try {
-            const html = katex.renderToString(math, {
-              displayMode: false,
-              throwOnError: false,
-              errorColor: "#ef4444",
-            });
-            return (
-              <span
-                key={i}
-                className="inline-block align-middle"
-                dangerouslySetInnerHTML={{ __html: html }}
-              />
-            );
-          } catch {
-            return <span key={i} className="text-red-400">{part}</span>;
-          }
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </>
-  );
 }
 
 function DifficultyStars({ difficulty }: { difficulty: number }) {
@@ -74,7 +43,7 @@ export function QuestionCard({
   questionNumber,
 }: QuestionCardProps) {
   return (
-    <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700 fade-in">
+    <div className="sp-card fade-in">
       {/* Header: tópico, dificultad y timer.
           flex-wrap permite que el grupo de tópico+estrellas y el grupo de
           número+timer se apilen en mobile (375px) en lugar de solaparse. */}
@@ -115,7 +84,7 @@ export function QuestionCard({
 
       {/* Enunciado */}
       <p className="text-base leading-relaxed text-slate-100 mb-4">
-        <RenderContent text={content} />
+        <MathText text={content} />
       </p>
 
       {/* Imagen opcional */}

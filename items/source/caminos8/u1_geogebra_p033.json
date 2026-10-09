@@ -1,0 +1,20 @@
+[
+  {
+    "id": "CS8-U1-P033-GEO01",
+    "tipo": "construccion_geogebra",
+    "enunciado": "Continúa la construcción iniciada en la página 32: con D como centro y A o C como punto, traza la circunferencia de diámetro AC; levanta por B una perpendicular a BC; llama E a una intersección de la perpendicular con la circunferencia; oculta la recta EB, dibuja el segmento BE y mide su longitud.",
+    "respuesta": "El segmento BE mide √6 unidades, aproximadamente 2,45. Es la media geométrica entre AB=3 y BC=2 porque BE²=AB·BC=6.",
+    "valor": "sqrt(6)",
+    "aproximacion": "2.449489743",
+    "conjunto": "I",
+    "seccion": "Trabaja con GeoGebra: construcción de irracionales positivos",
+    "unidad": 1,
+    "pagina_pdf": 33,
+    "continuacion_de_pagina_pdf": 32,
+    "referencia": "Trabaja con GeoGebra, pasos 9 a 14",
+    "apto_para": ["procedimiento_abierto"],
+    "justificacion": "El triángulo AEC es rectángulo por estar inscrito en una semicircunferencia. La altura BE a la hipotenusa cumple BE²=AB·BC=3·2=6.",
+    "verificar": "La medida exacta está fijada, pero la construcción, la perpendicular y la intersección deben revisarse gráficamente en el archivo o captura de GeoGebra del estudiante.",
+    "dificultad": 650
+  }
+]

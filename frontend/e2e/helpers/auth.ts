@@ -20,8 +20,7 @@ export const MOCK_TEACHER = {
 
 /** Inject Zustand auth state directly into localStorage to skip the login UI. */
 export async function injectAuth(page: Page, user = MOCK_STUDENT) {
-  await page.goto("/");
-  await page.evaluate((authData) => {
+  await page.addInitScript((authData) => {
     localStorage.setItem(
       "levelup-auth",
       JSON.stringify({
@@ -34,6 +33,7 @@ export async function injectAuth(page: Page, user = MOCK_STUDENT) {
         version: 0,
       })
     );
+    localStorage.setItem("levelup-lang", "es");
   }, user);
 }
 
@@ -68,6 +68,9 @@ export async function mockLoginEndpoint(page: Page, user = MOCK_STUDENT) {
 
 /** Mock the common student endpoints used in most tests. */
 export async function mockStudentApi(page: Page) {
+  await page.route("**/api/student/map/*", async (route) => {
+    await route.fulfill({ json: { course_id: "calculo", course_name: "Cálculo Diferencial", diagnostic_done: true, nodes: [] } });
+  });
   await page.route("**/api/student/courses", async (route) => {
     await route.fulfill({
       status: 200,
@@ -118,7 +121,11 @@ export async function mockStudentApi(page: Page) {
       contentType: "application/json",
       body: JSON.stringify({
         user_id: 1,
+        // Spec 001 API shape: screens render display_rating and rank_label as given.
         global_elo: 1050,
+        display_rating: 1050,
+        overall_status: "rated",
+        course_ratings: [],
         topic_elos: [
           { topic: "Aritmética", rating: 1050, rd: 335 },
           { topic: "Álgebra", rating: 980, rd: 340 },
@@ -134,7 +141,7 @@ export async function mockStudentApi(page: Page) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify([]),
+      body: JSON.stringify({ attempts: [] }),
     });
   });
 
@@ -142,7 +149,7 @@ export async function mockStudentApi(page: Page) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify([]),
+      body: JSON.stringify({ activity: {} }),
     });
   });
 
@@ -150,7 +157,7 @@ export async function mockStudentApi(page: Page) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify([]),
+      body: JSON.stringify({ achievements: [], catalog: [] }),
     });
   });
 
@@ -158,7 +165,7 @@ export async function mockStudentApi(page: Page) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify([]),
+      body: JSON.stringify({ ranking: [], my_rank: null }),
     });
   });
 
@@ -168,5 +175,46 @@ export async function mockStudentApi(page: Page) {
       contentType: "application/json",
       body: JSON.stringify({ available: false, provider: null }),
     });
+  });
+
+  await page.route("**/api/student/exam/history", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+  });
+
+  await page.route("**/api/student/diagnostic/*", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        completed: true,
+        course_id: "calculo",
+        result: {
+          initial_elo: 1050,
+          score_pct: 60,
+          league: { name: "Aprendiz", min: 1000, color: "#6C63FF", rank: "I" },
+          themes: [],
+          correct_total: 3,
+          answered: 5,
+          completed: true,
+        },
+      }),
+    });
+  });
+}
+
+/** The public rank scale (GET /api/meta/ranks), as the API serves it (spec 001, FR-031). */
+export const MOCK_RANKS = [
+  { label: "Aspirante", min: 0 }, { label: "Hierro", min: 600 }, { label: "Bronce II", min: 700 },
+  { label: "Bronce I", min: 800 }, { label: "Plata II", min: 900 }, { label: "Plata I", min: 1000 },
+  { label: "Oro II", min: 1100 }, { label: "Oro I", min: 1200 }, { label: "Platino II", min: 1300 },
+  { label: "Platino I", min: 1400 }, { label: "Diamante II", min: 1500 }, { label: "Diamante I", min: 1600 },
+  { label: "Maestro", min: 1800 }, { label: "Gran Maestro", min: 2000 }, { label: "Leyenda", min: 2200 },
+  { label: "Leyenda Suprema", min: 2500 },
+];
+
+/** Mock the public endpoints the landing page reads. */
+export async function mockPublicApi(page: Page) {
+  await page.route("**/api/meta/ranks", async (route) => {
+    await route.fulfill({ json: MOCK_RANKS });
   });
 }

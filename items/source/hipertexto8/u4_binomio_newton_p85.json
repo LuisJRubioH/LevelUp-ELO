@@ -1,0 +1,677 @@
+[
+  {
+    "id": "HT8-U4-P85-A1",
+    "tipo": "abierta",
+    "enunciado": "Construye el triángulo de Pascal hasta la décima fila.",
+    "respuesta": "Fila 1: $1$. Fila 2: $1\\ 1$. Fila 3: $1\\ 2\\ 1$. Fila 4: $1\\ 3\\ 3\\ 1$. Fila 5: $1\\ 4\\ 6\\ 4\\ 1$. Fila 6: $1\\ 5\\ 10\\ 10\\ 5\\ 1$. Fila 7: $1\\ 6\\ 15\\ 20\\ 15\\ 6\\ 1$. Fila 8: $1\\ 7\\ 21\\ 35\\ 35\\ 21\\ 7\\ 1$. Fila 9: $1\\ 8\\ 28\\ 56\\ 70\\ 56\\ 28\\ 8\\ 1$. Fila 10: $1\\ 9\\ 36\\ 84\\ 126\\ 126\\ 84\\ 36\\ 9\\ 1$.",
+    "conjunto": "N",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "figura": "triángulo de Pascal de 10 filas — reconstruible en Python",
+    "nota": "Cada número es la suma de los dos que tiene encima; los extremos son siempre $1$. Con esta numeración la fila $k$ da los coeficientes de $(a+b)^{k-1}$, convención que el propio libro usa en la actividad 5 (la fila $1,9,36,\\dots$ corresponde a $(x+s)^9$).",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U4-P85-A2",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el desarrollo de $(a+b)^7$ y, con él, sus coeficientes.",
+    "expr": "(a + b)**7",
+    "respuesta": "a**7 + 7*a**6*b + 21*a**5*b**2 + 35*a**4*b**3 + 35*a**3*b**4 + 21*a**2*b**5 + 7*a*b**6 + b**7",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 2",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Coeficientes: $1, 7, 21, 35, 35, 21, 7, 1$ (octava fila del triángulo). Son simétricos, así que basta calcular la mitad y reflejarla.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U4-P85-A3a",
+    "tipo": "simbolico",
+    "enunciado": "Calcula la potencia del monomio: $(3x^2)^3$.",
+    "expr": "(3*x**2)**3",
+    "respuesta": "27*x**6",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 3, ítem a",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U4-P85-A3b",
+    "tipo": "simbolico",
+    "enunciado": "Calcula la potencia del monomio: $(5xy^2)^4$.",
+    "expr": "(5*x*y**2)**4",
+    "respuesta": "625*x**4*y**8",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 3, ítem b",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U4-P85-A3c",
+    "tipo": "simbolico",
+    "enunciado": "Calcula la potencia del monomio: $(-7m^2n)^3$.",
+    "expr": "(-7*m**2*n)**3",
+    "respuesta": "-343*m**6*n**3",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 3, ítem c",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Exponente impar: el signo negativo sobrevive.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U4-P85-A3d",
+    "tipo": "simbolico",
+    "enunciado": "Calcula la potencia del monomio: $(-2a^2b^3)^5$.",
+    "expr": "(-2*a**2*b**3)**5",
+    "respuesta": "-32*a**10*b**15",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 3, ítem d",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P85-A3e",
+    "tipo": "simbolico",
+    "enunciado": "Calcula la potencia del monomio: $\\left(\\dfrac{1}{2}m^7n^4\\right)^6$.",
+    "expr": "(1/2*m**7*n**4)**6",
+    "respuesta": "m**42*n**24/64",
+    "conjunto": "Q",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 3, ítem e",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P85-A3f",
+    "tipo": "simbolico",
+    "enunciado": "Calcula la potencia del monomio: $\\left(\\dfrac{4}{3}a^3b^4\\right)^6$.",
+    "expr": "(4/3*a**3*b**4)**6",
+    "respuesta": "4096*a**18*b**24/729",
+    "conjunto": "Q",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 3, ítem f",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$4^6=4096$ y $3^6=729$: la fracción NO se simplifica, conviene calcular numerador y denominador por separado.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U4-P85-A3g",
+    "tipo": "simbolico",
+    "enunciado": "Calcula la potencia del monomio: $(-4x^{3n}y^{2n})^4$.",
+    "expr": "(-4*x**(3*n)*y**(2*n))**4",
+    "respuesta": "256*x**(12*n)*y**(8*n)",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 3, ítem g",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Exponente par: el resultado queda positivo aunque la base sea negativa.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U4-P85-A3h",
+    "tipo": "simbolico",
+    "enunciado": "Calcula la potencia del monomio: $(3m^{x+1}n^{x-2})^5$.",
+    "expr": "(3*m**(x + 1)*n**(x - 2))**5",
+    "respuesta": "243*m**(5*x + 5)*n**(5*x - 10)",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 3, ítem h",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Los dos exponentes son binomios y hay que multiplicarlos enteros: $5(x+1)=5x+5$ y $5(x-2)=5x-10$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U4-P85-A3i",
+    "tipo": "simbolico",
+    "enunciado": "Calcula la potencia del monomio: $\\left(\\dfrac{1}{5}x^ny^{3n}\\right)^4$.",
+    "expr": "(1/5*x**n*y**(3*n))**4",
+    "respuesta": "x**(4*n)*y**(12*n)/625",
+    "conjunto": "Q",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 3, ítem i",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U4-P85-A3j",
+    "tipo": "simbolico",
+    "enunciado": "Calcula la potencia del monomio: $\\left(\\dfrac{3}{2}a^{2n}b^{n+2}\\right)^7$.",
+    "expr": "(3/2*a**(2*n)*b**(n + 2))**7",
+    "respuesta": "2187*a**(14*n)*b**(7*n + 14)/128",
+    "conjunto": "Q",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 3, ítem j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "El más pesado de la actividad: $3^7=2187$, $2^7=128$, $7(n+2)=7n+14$.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U4-P85-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla aplicando el triángulo de Pascal: $(m+2)^4$.",
+    "expr": "(m + 2)**4",
+    "respuesta": "m**4 + 8*m**3 + 24*m**2 + 32*m + 16",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 4, ítem a",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Fila $1,4,6,4,1$ multiplicada por las potencias de $2$: $1,2,4,8,16$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U4-P85-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla aplicando el triángulo de Pascal: $(m-5)^5$.",
+    "expr": "(m - 5)**5",
+    "respuesta": "m**5 - 25*m**4 + 250*m**3 - 1250*m**2 + 3125*m - 3125",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 4, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Fila $1,5,10,10,5,1$ por las potencias de $5$, con signos alternados.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P85-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla aplicando el triángulo de Pascal: $(x+2y)^6$.",
+    "expr": "(x + 2*y)**6",
+    "respuesta": "x**6 + 12*x**5*y + 60*x**4*y**2 + 160*x**3*y**3 + 240*x**2*y**4 + 192*x*y**5 + 64*y**6",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 4, ítem c",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Ojo: los coeficientes finales NO son los de Pascal, son los de Pascal multiplicados por $2^k$: $1,6,15,20,15,6,1$ se vuelven $1,12,60,160,240,192,64$ y pierden la simetría.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U4-P85-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla aplicando el triángulo de Pascal: $(1-x^4)^7$.",
+    "expr": "(1 - x**4)**7",
+    "respuesta": "1 - 7*x**4 + 21*x**8 - 35*x**12 + 35*x**16 - 21*x**20 + 7*x**24 - x**28",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 4, ítem d",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Como el primer término es $1$, los coeficientes de Pascal quedan intactos y solo alternan de signo. Los exponentes suben de $4$ en $4$.",
+    "erratum": "El operador entre el $1$ y el $x^4$ está cubierto por una mancha del escaneo; a 1200 dpi se ve el trazo horizontal de un signo menos y ninguna barra vertical, así que se lee $(1-x^4)^7$. Vale la pena confirmarlo con un ejemplar físico.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U4-P85-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla aplicando el triángulo de Pascal: $(x^2+y^3)^4$.",
+    "expr": "(x**2 + y**3)**4",
+    "respuesta": "x**8 + 4*x**6*y**3 + 6*x**4*y**6 + 4*x**2*y**9 + y**12",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 4, ítem e",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Los exponentes de $x$ bajan de $2$ en $2$ y los de $y$ suben de $3$ en $3$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P85-A4f",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla aplicando el triángulo de Pascal: $(2-a^5)^8$.",
+    "expr": "(2 - a**5)**8",
+    "respuesta": "256 - 1024*a**5 + 1792*a**10 - 1792*a**15 + 1120*a**20 - 448*a**25 + 112*a**30 - 16*a**35 + a**40",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 4, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Fila $1,8,28,56,70,56,28,8,1$ combinada con las potencias de $2$ desde $2^8=256$ hasta $2^0=1$.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U4-P85-A4g",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla aplicando el triángulo de Pascal: $(x^n+y^{2n})^4$.",
+    "expr": "(x**n + y**(2*n))**4",
+    "respuesta": "x**(4*n) + 4*x**(3*n)*y**(2*n) + 6*x**(2*n)*y**(4*n) + 4*x**n*y**(6*n) + y**(8*n)",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 4, ítem g",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U4-P85-A4h",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla aplicando el triángulo de Pascal: $(3a^m-2b^m)^3$.",
+    "expr": "(3*a**m - 2*b**m)**3",
+    "respuesta": "27*a**(3*m) - 54*a**(2*m)*b**m + 36*a**m*b**(2*m) - 8*b**(3*m)",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 4, ítem h",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U4-P85-A4i",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla aplicando el triángulo de Pascal: $(-2a^mx^9-y^m)^4$.",
+    "expr": "(-2*a**m*x**9 - y**m)**4",
+    "respuesta": "16*a**(4*m)*x**36 + 32*a**(3*m)*x**27*y**m + 24*a**(2*m)*x**18*y**(2*m) + 8*a**m*x**9*y**(3*m) + y**(4*m)",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 4, ítem i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Los DOS términos son negativos, así que se puede sacar el $-1$ afuera: $(-1)^4=1$ y todo el desarrollo queda positivo. Es el atajo que evita ocho cambios de signo.",
+    "dificultad": 1700
+  },
+  {
+    "id": "HT8-U4-P85-A4j",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla aplicando el triángulo de Pascal: $(5a^{3x}b^y-3)^6$.",
+    "expr": "(5*a**(3*x)*b**y - 3)**6",
+    "respuesta": "15625*a**(18*x)*b**(6*y) - 56250*a**(15*x)*b**(5*y) + 84375*a**(12*x)*b**(4*y) - 67500*a**(9*x)*b**(3*y) + 30375*a**(6*x)*b**(2*y) - 7290*a**(3*x)*b**y + 729",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 4, ítem j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "El más largo de la página: hay que combinar la fila $1,6,15,20,15,6,1$ con las potencias de $5$ (hasta $15625$) y las de $3$ (hasta $729$), y además triplicar el exponente $3x$ hasta $18x$.",
+    "dificultad": 1800
+  },
+  {
+    "id": "HT8-U4-P85-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Halla el desarrollo de $(a+b)^4$ y di cuál de estas listas de coeficientes le corresponde: (1) $1,5,10,10,5,1$; (2) $1,9,36,84,126,126,84,36,9,1$; (3) $1,7,21,35,35,21,7,1$; (4) $1,6,15,20,15,6,1$; (5) $1,4,6,4,1$.",
+    "expr": "(a + b)**4",
+    "respuesta": "a**4 + 4*a**3*b + 6*a**2*b**2 + 4*a*b**3 + b**4",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 5, ítem a (opción 5)",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Corresponde a la lista 5. Atajo: un binomio elevado a $n$ tiene $n+1$ términos, así que basta contar cuántos números trae cada lista.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P85-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Halla el desarrollo de $(m+n)^5$ y di cuál de las cinco listas de coeficientes de la actividad le corresponde.",
+    "expr": "(m + n)**5",
+    "respuesta": "m**5 + 5*m**4*n + 10*m**3*n**2 + 10*m**2*n**3 + 5*m*n**4 + n**5",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 5, ítem b (opción 1)",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Corresponde a la lista 1: $1,5,10,10,5,1$, seis términos.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P85-A5c",
+    "tipo": "simbolico",
+    "enunciado": "Halla el desarrollo de $(x+y)^6$ y di cuál de las cinco listas de coeficientes de la actividad le corresponde.",
+    "expr": "(x + y)**6",
+    "respuesta": "x**6 + 6*x**5*y + 15*x**4*y**2 + 20*x**3*y**3 + 15*x**2*y**4 + 6*x*y**5 + y**6",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 5, ítem c (opción 4)",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Corresponde a la lista 4: $1,6,15,20,15,6,1$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U4-P85-A5d",
+    "tipo": "simbolico",
+    "enunciado": "Halla el desarrollo de $(x+s)^9$ y di cuál de las cinco listas de coeficientes de la actividad le corresponde.",
+    "expr": "(x + s)**9",
+    "respuesta": "x**9 + 9*x**8*s + 36*x**7*s**2 + 84*x**6*s**3 + 126*x**5*s**4 + 126*x**4*s**5 + 84*x**3*s**6 + 36*x**2*s**7 + 9*x*s**8 + s**9",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 5, ítem d (opción 2)",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Corresponde a la lista 2: $1,9,36,84,126,126,84,36,9,1$, que es justamente la décima fila pedida en la actividad 1.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U4-P85-A5e",
+    "tipo": "simbolico",
+    "enunciado": "Halla el desarrollo de $(z+y)^7$ y di cuál de las cinco listas de coeficientes de la actividad le corresponde.",
+    "expr": "(z + y)**7",
+    "respuesta": "z**7 + 7*z**6*y + 21*z**5*y**2 + 35*z**4*y**3 + 35*z**3*y**4 + 21*z**2*y**5 + 7*z*y**6 + y**7",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 5, ítem e (opción 3)",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Corresponde a la lista 3: $1,7,21,35,35,21,7,1$, los mismos coeficientes de la actividad 2.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P85-A6a",
+    "tipo": "simbolico",
+    "enunciado": "Determina el tercer término del desarrollo de $(x-4)^4$ (contando desde el primero).",
+    "expr": "binomial(4, 2)*x**2*(-4)**2",
+    "respuesta": "96*x**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 6, ítem a",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El término $k$ de $(A+B)^N$ es $\\binom{N}{k-1}A^{N-k+1}B^{k-1}$. Aquí $\\binom{4}{2}=6$ y $(-4)^2=16$, luego $6\\cdot16=96$. No hace falta desarrollar todo.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U4-P85-A6b",
+    "tipo": "simbolico",
+    "enunciado": "Determina el cuarto término del desarrollo de $(2x+5)^5$ (contando desde el primero).",
+    "expr": "binomial(5, 3)*(2*x)**2*5**3",
+    "respuesta": "5000*x**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 6, ítem b",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$\\binom{5}{3}=10$, $(2x)^2=4x^2$, $5^3=125$: $10\\cdot4\\cdot125=5000$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U4-P85-A6c",
+    "tipo": "simbolico",
+    "enunciado": "Determina el sexto término del desarrollo de $(y-2x)^8$ (contando desde el primero).",
+    "expr": "binomial(8, 5)*y**3*(-2*x)**5",
+    "respuesta": "-1792*x**5*y**3",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 6, ítem c",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\binom{8}{5}=56$ y $(-2x)^5=-32x^5$: $56\\cdot(-32)=-1792$. El exponente impar del segundo término es lo que deja el resultado negativo.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U4-P85-A6d",
+    "tipo": "simbolico",
+    "enunciado": "Determina el octavo término del desarrollo de $(m^2n+3n)^{10}$ (contando desde el primero).",
+    "expr": "binomial(10, 7)*(m**2*n)**3*(3*n)**7",
+    "respuesta": "262440*m**6*n**10",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 6, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\binom{10}{7}=120$ y $3^7=2187$: $120\\cdot2187=262\\,440$. Las dos $n$ se juntan: $n^3\\cdot n^7=n^{10}$.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U4-P85-A6e",
+    "tipo": "simbolico",
+    "enunciado": "Determina el décimo término del desarrollo de $(2y^2z-5yz^3)^{15}$ (contando desde el primero).",
+    "expr": "binomial(15, 9)*(2*y**2*z)**6*(-5*y*z**3)**9",
+    "respuesta": "-625625000000*y**21*z**33",
+    "conjunto": "Z",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 6, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\binom{15}{9}=5005$, $2^6=64$, $(-5)^9=-1\\,953\\,125$: el coeficiente es $-625\\,625\\,000\\,000$. Es el ejemplo que justifica la fórmula del término general: desarrollar los 16 términos a mano sería absurdo.",
+    "dificultad": 1800
+  },
+  {
+    "id": "HT8-U4-P85-A6f",
+    "tipo": "simbolico",
+    "enunciado": "Determina el quinto término del desarrollo de $\\left(\\dfrac{1}{3}x-\\dfrac{1}{6}y\\right)^{10}$ (contando desde el primero).",
+    "expr": "binomial(10, 4)*(1/3*x)**6*(-1/6*y)**4",
+    "respuesta": "35*x**6*y**4/157464",
+    "conjunto": "Q",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 6, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\binom{10}{4}=210$, $3^6=729$, $6^4=1296$: $\\frac{210}{729\\cdot1296}=\\frac{210}{944784}=\\frac{35}{157464}$. Positivo porque el exponente del término negativo es par.",
+    "dificultad": 1750
+  },
+  {
+    "id": "HT8-U4-P85-A6g",
+    "tipo": "simbolico",
+    "enunciado": "En el desarrollo de $\\left(\\dfrac{2}{3}a^4b^5-6\\right)^6$, determina el término que contiene $a^4b^5$.",
+    "expr": "binomial(6, 5)*(2/3*a**4*b**5)**1*(-6)**5",
+    "respuesta": "-31104*a**4*b**5",
+    "conjunto": "Q",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 6, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Primero hay que deducir CUÁL término es: $a^4b^5$ aparece con exponente $1$, así que es el sexto. Luego $6\\cdot\\frac{2}{3}\\cdot(-6)^5=4\\cdot(-7776)=-31\\,104$.",
+    "dificultad": 1750
+  },
+  {
+    "id": "HT8-U4-P85-A6h",
+    "tipo": "simbolico",
+    "enunciado": "Determina el segundo término del desarrollo de $\\left(\\dfrac{3}{4}x^n-8y^{n+1}\\right)^8$ (contando desde el primero).",
+    "expr": "binomial(8, 1)*(3/4*x**n)**7*(-8*y**(n + 1))",
+    "respuesta": "-2187*x**(7*n)*y**(n + 1)/256",
+    "conjunto": "Q",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 6, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "$8\\cdot\\left(\\frac{3}{4}\\right)^7\\cdot(-8)=-64\\cdot\\frac{2187}{16384}=-\\frac{2187}{256}$.",
+    "dificultad": 1800
+  },
+  {
+    "id": "HT8-U4-P85-A6i",
+    "tipo": "simbolico",
+    "enunciado": "Determina el quinto término del desarrollo de $\\left(\\dfrac{1}{3}y^{2n}-\\dfrac{1}{2}z^{n-1}\\right)^4$ (contando desde el primero).",
+    "expr": "binomial(4, 4)*(-1/2*z**(n - 1))**4",
+    "respuesta": "z**(4*n - 4)/16",
+    "conjunto": "Q",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 6, ítem i",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El quinto de cinco términos: es el último, $\\left(-\\frac{1}{2}z^{n-1}\\right)^4$, y el primer término desaparece por completo. $4(n-1)=4n-4$.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U4-P85-A6j",
+    "tipo": "simbolico",
+    "enunciado": "Determina el tercer término del desarrollo de $\\left(\\dfrac{1}{5}a^{n-1}b^n-\\dfrac{1}{4}a^n\\right)^4$ (contando desde el primero).",
+    "expr": "binomial(4, 2)*(1/5*a**(n - 1)*b**n)**2*(-1/4*a**n)**2",
+    "respuesta": "3*a**(4*n - 2)*b**(2*n)/200",
+    "conjunto": "Q",
+    "seccion": "Actividades — Binomio de Newton y triángulo de Pascal",
+    "unidad": 4,
+    "pagina_pdf": 85,
+    "referencia": "Actividad 6, ítem j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Las dos partes aportan potencias de $a$ que se suman: $a^{2n-2}\\cdot a^{2n}=a^{4n-2}$. Coeficiente: $6\\cdot\\frac{1}{25}\\cdot\\frac{1}{16}=\\frac{6}{400}=\\frac{3}{200}$.",
+    "dificultad": 1800
+  }
+]

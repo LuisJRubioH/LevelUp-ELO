@@ -1,139 +1,115 @@
 /**
- * pages/Teacher/Export.tsx
- * =========================
- * Descarga de datos de estudiantes en CSV y Excel.
+ * pages/Teacher/Export.tsx — Exportar datos (rediseño)
+ * ====================================================
+ * Portado al diseño del console (selector de formato + descarga real).
+ * Acciones reales: teacherApi.downloadCsv() / downloadXlsx().
+ * (El preview/filtros/columnas/recents del prototipo eran mock; se omiten.)
  */
 
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { teacherApi } from "../../api/teacher";
-import { Button } from "../../components/ui/Button";
 
-interface ExportCardProps {
-  icon: string;
-  title: string;
-  description: string;
-  sheets?: string[];
-  buttonLabel: string;
-  onDownload: () => Promise<void>;
-}
+type Fmt = "csv" | "xlsx";
 
-function ExportCard({ icon, title, description, sheets, buttonLabel, onDownload }: ExportCardProps) {
-  const { t } = useTranslation();
+const SHEETS = ["Intentos", "Matrículas", "Procedimientos", "KatIA"];
+
+const FIELDS: { k: string; d: string }[] = [
+  { k: "elo_before / elo_after", d: "ELO del estudiante antes y después de cada intento." },
+  { k: "time_taken", d: "Segundos que tardó en responder." },
+  { k: "rating_deviation", d: "Incertidumbre del ELO (RD) en ese momento." },
+  { k: "prob_failure", d: "Probabilidad estimada de fallo de la pregunta." },
+  { k: "confidence_score", d: "Confianza declarada por el estudiante." },
+];
+
+export function TeacherExport() {
+  const [fmt, setFmt] = useState<Fmt>("csv");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [done, setDone] = useState(false);
+  const [toast, setToast] = useState(false);
 
-  const handleClick = async () => {
-    setLoading(true);
+  const handleExport = async () => {
     setError("");
-    setDone(false);
+    setLoading(true);
     try {
-      await onDownload();
-      setDone(true);
-      setTimeout(() => setDone(false), 3000);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t("teacherExport.downloadError"));
+      if (fmt === "csv") await teacherApi.downloadCsv();
+      else await teacherApi.downloadXlsx();
+      setToast(true);
+      setTimeout(() => setToast(false), 3200);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "No se pudo descargar el archivo.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-4">
-      <div className="flex items-start gap-4">
-        <div className="text-3xl">{icon}</div>
-        <div className="flex-1">
-          <h3 className="font-semibold text-slate-100 text-base">{title}</h3>
-          <p className="text-slate-400 text-sm mt-1">{description}</p>
-          {sheets && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
-              {sheets.map((s) => (
-                <span
-                  key={s}
-                  className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded"
-                >
-                  {s}
-                </span>
-              ))}
-            </div>
-          )}
+    <>
+      <div className="tc-head">
+        <div className="ttl">
+          <h1>Exportar datos</h1>
+          <p>Descarga la actividad de tus estudiantes para tu registro o análisis externo.</p>
         </div>
       </div>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
-      {done && <p className="text-green-400 text-sm">{t("teacherExport.downloadStarted")}</p>}
+      <div className="xp-card">
+        <span className="xp-lbl">Formato</span>
+        <div className="xp-formats">
+          <button className={"xp-fmt" + (fmt === "csv" ? " on" : "")} onClick={() => setFmt("csv")}>
+            <span className="xpf-ic">📄</span>
+            <b>CSV</b>
+            <span className="xpf-note">Tabla única de intentos. Ideal para hojas de cálculo.</span>
+          </button>
+          <button className={"xp-fmt" + (fmt === "xlsx" ? " on" : "")} onClick={() => setFmt("xlsx")}>
+            <span className="xpf-ic">📊</span>
+            <b>Excel (XLSX)</b>
+            <span className="xpf-note">Libro completo con varias hojas de datos.</span>
+          </button>
+        </div>
 
-      <Button
-        onClick={handleClick}
-        loading={loading}
-        variant={done ? "secondary" : "primary"}
-        className="w-full"
-      >
-        {done ? t("teacherExport.downloaded") : buttonLabel}
-      </Button>
-    </div>
-  );
-}
+        {fmt === "xlsx" && (
+          <div className="xp-sheets">
+            {SHEETS.map((s) => (
+              <span key={s} className="xp-sheet">
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
 
-export function TeacherExport() {
-  const { t } = useTranslation();
-  return (
-    <div className="max-w-2xl mx-auto py-6 px-4 space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-slate-100">{t("teacherExport.title")}</h2>
-        <p className="text-slate-400 text-sm mt-1">{t("teacherExport.intro")}</p>
+        {error && <p className="xp-err">{error}</p>}
+
+        <div className="xp-export-bar">
+          <div className="xp-export-info">
+            <b>{fmt === "csv" ? "levelup_intentos.csv" : "levelup_datos_completos.xlsx"}</b>
+            <span>{fmt === "csv" ? "Un archivo CSV con todos los intentos." : "Un archivo Excel con 4 hojas de datos."}</span>
+          </div>
+          <button className="btn-pri xp-export-btn" onClick={handleExport} disabled={loading}>
+            {loading ? "Generando…" : "⬇ Descargar"}
+          </button>
+        </div>
       </div>
 
-      <div className="space-y-4">
-        <ExportCard
-          icon="📄"
-          title={t("teacherExport.csvTitle")}
-          description={t("teacherExport.csvDesc")}
-          buttonLabel={t("teacherExport.csvButton")}
-          onDownload={teacherApi.downloadCsv}
-        />
-
-        <ExportCard
-          icon="📊"
-          title={t("teacherExport.xlsxTitle")}
-          description={t("teacherExport.xlsxDesc")}
-          sheets={[
-            t("teacherExport.sheetAttempts"),
-            t("teacherExport.sheetEnrollments"),
-            t("teacherExport.sheetProcedures"),
-            t("teacherExport.sheetKatia"),
-          ]}
-          buttonLabel={t("teacherExport.xlsxButton")}
-          onDownload={teacherApi.downloadXlsx}
-        />
-      </div>
-
-      <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-        <h4 className="text-sm font-semibold text-slate-300 mb-2">{t("teacherExport.fieldsTitle")}</h4>
-        <ul className="text-xs text-slate-400 space-y-1">
-          <li>
-            <span className="text-slate-300 font-medium">elo_before / elo_after:</span>{" "}
-            {t("teacherExport.fieldEloBeforeAfter")}
-          </li>
-          <li>
-            <span className="text-slate-300 font-medium">time_taken:</span>{" "}
-            {t("teacherExport.fieldTimeTaken")}
-          </li>
-          <li>
-            <span className="text-slate-300 font-medium">rating_deviation:</span>{" "}
-            {t("teacherExport.fieldRD")}
-          </li>
-          <li>
-            <span className="text-slate-300 font-medium">prob_failure:</span>{" "}
-            {t("teacherExport.fieldProbFailure")}
-          </li>
-          <li>
-            <span className="text-slate-300 font-medium">confidence_score:</span>{" "}
-            {t("teacherExport.fieldConfidence")}
-          </li>
+      <div className="xp-card">
+        <h4>Qué incluye el detalle</h4>
+        <div className="xp-sub">Algunas columnas clave de cada intento exportado.</div>
+        <ul className="xp-fields">
+          {FIELDS.map((f) => (
+            <li key={f.k}>
+              <b>{f.k}</b> — {f.d}
+            </li>
+          ))}
         </ul>
       </div>
-    </div>
+
+      {toast && (
+        <div className="xp-toast">
+          <span className="xpt-ic">✓</span>
+          <div>
+            <b>Descarga iniciada</b>
+            <span>Revisa tu carpeta de descargas.</span>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

@@ -14,7 +14,7 @@ Endpoints del panel del docente:
 
 import io
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from fastapi.responses import StreamingResponse
 
 from api.dependencies import CurrentUser, RepoDep, require_role
@@ -33,9 +33,12 @@ from api.schemas.teacher import (
     ItemCatalogEntry,
     PendingProcedure,
     StudentReportResponse,
+    StudentAIAnalysisRequest,
     UserAdminRow,
 )
 from src.application.services.teacher_service import TeacherService
+from api.config import settings
+from api.rate_limit import limiter
 
 router = APIRouter(
     prefix="/teacher",
@@ -45,7 +48,25 @@ router = APIRouter(
 
 
 def _svc(repo) -> TeacherService:
-    return TeacherService(repository=repo)
+    """Composición: la capa de entrada es la que conoce infrastructure (R2)."""
+    from src.infrastructure.external_api.ai_client import get_pedagogical_analysis
+
+    return TeacherService(repository=repo, pedagogical_analysis=get_pedagogical_analysis)
+
+
+def _require_teacher_group(repo, group_id: int, user: dict) -> None:
+    """Aplica el mismo alcance de grupos que el dashboard del usuario."""
+    groups = repo.get_groups_by_teacher(user["user_id"])
+    if not any(group["group_id"] == group_id for group in groups):
+        raise HTTPException(status_code=404, detail="Grupo no encontrado.")
+
+
+def _require_teacher_student(repo, student_id: int, user: dict) -> dict:
+    student = repo.get_user_by_id(student_id)
+    if not student or student.get("role") != "student" or not student.get("group_id"):
+        raise HTTPException(status_code=404, detail="Estudiante no encontrado.")
+    _require_teacher_group(repo, student["group_id"], user)
+    return student
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -54,8 +75,18 @@ def _svc(repo) -> TeacherService:
 @router.get("/dashboard")
 def dashboard(user: CurrentUser, repo: RepoDep):
     """Resumen de grupos, ELO promedio y últimos intentos de los estudiantes."""
+    svc = _svc(repo)
     students = repo.get_teacher_dashboard_stats(user["user_id"])
-    _, groups = _svc(repo).get_dashboard_data(user["user_id"])
+    views = svc.ratings.ratings_view_bulk([s["user_id"] for s in students])
+    for s in students:  # the overall rating as the student sees it (FR-028a, FR-028j)
+        view = views[s["user_id"]]
+        s.update(
+            global_elo=view["overall"],
+            display_rating=view["display_rating"],
+            rank_label=view["rank_label"],
+            overall_status=view["overall_status"],
+        )
+    _, groups = svc.get_dashboard_data(user["user_id"])
     return {"students": students, "groups": groups}
 
 
@@ -110,6 +141,7 @@ def create_group(body: CreateGroupRequest, user: CurrentUser, repo: RepoDep):
 @router.post("/groups/{group_id}/invite-code")
 def generate_invite_code(group_id: int, user: CurrentUser, repo: RepoDep):
     """Genera o renueva el código de invitación del grupo."""
+    _require_teacher_group(repo, group_id, user)
     code = repo.generate_group_invite_code(group_id)
     return {"invite_code": code}
 
@@ -188,21 +220,34 @@ def procedure_image(submission_id: int, user: CurrentUser, repo: RepoDep):
 @router.post("/procedures/grade", response_model=GradeResponse)
 def grade_procedure(body: GradeRequest, user: CurrentUser, repo: RepoDep):
     """Califica un procedimiento y aplica el delta ELO al estudiante."""
-    svc = _svc(repo)
-    ok, msg, elo_delta = svc.validate_procedure(
-        teacher_id=user["user_id"],
-        submission_id=body.submission_id,
-        teacher_score=body.teacher_score,
-        teacher_feedback=body.teacher_feedback or "",
+    # Usar la misma cola autorizada que el panel/visor; no confiar en el ID
+    # enviado por el cliente ni permitir recalificar entregas ya cerradas.
+    submission = next(
+        (
+            row
+            for row in repo.get_pending_submissions_for_teacher(user["user_id"])
+            if row["id"] == body.submission_id
+        ),
+        None,
     )
-    if not ok:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+    if submission is None:
+        raise HTTPException(status_code=404, detail="Procedimiento pendiente no encontrado.")
+
+    svc = _svc(repo)
+    try:
+        elo_delta = svc.validate_procedure(
+            submission_id=body.submission_id,
+            teacher_score=body.teacher_score,
+            feedback=body.teacher_feedback or "",
+            teacher_id=user["user_id"],
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     # Notificar al estudiante en tiempo real (WebSocket)
     try:
-        submission = repo.get_procedure_submission(body.submission_id)
         if submission:
-            student_id = submission["user_id"] if isinstance(submission, dict) else submission[1]
+            student_id = submission["student_id"]
             from api.websocket.notifications import notify_sync
 
             notify_sync(
@@ -232,6 +277,7 @@ def grade_procedure(body: GradeRequest, user: CurrentUser, repo: RepoDep):
 @router.get("/student/{student_id}")
 def student_report(student_id: int, user: CurrentUser, repo: RepoDep):
     """Reporte detallado de un estudiante (ELO, intentos, procedimientos)."""
+    _require_teacher_student(repo, student_id, user)
     svc = _svc(repo)
     return svc.get_student_dashboard(student_id)
 
@@ -239,6 +285,7 @@ def student_report(student_id: int, user: CurrentUser, repo: RepoDep):
 @router.get("/student/{student_id}/elo-history")
 def student_elo_history(student_id: int, user: CurrentUser, repo: RepoDep, limit: int = 20):
     """Historial de ELO del estudiante para el gráfico temporal."""
+    _require_teacher_student(repo, student_id, user)
     attempts = repo.get_latest_attempts(student_id, limit=limit)
     return {"attempts": list(reversed(attempts))}
 
@@ -246,35 +293,33 @@ def student_elo_history(student_id: int, user: CurrentUser, repo: RepoDep, limit
 @router.get("/student/{student_id}/katia-history")
 def student_katia_history(student_id: int, user: CurrentUser, repo: RepoDep):
     """Historial de interacciones socrátidas del estudiante con KatIA."""
+    _require_teacher_student(repo, student_id, user)
     rows = repo.get_katia_interactions(student_id)
     return {"interactions": [dict(r) if not isinstance(r, dict) else r for r in (rows or [])]}
 
 
 @router.post("/student/{student_id}/ai-analysis")
+@limiter.limit(settings.rate_limit_socratic)
 def student_ai_analysis(
     student_id: int,
+    request: Request,
     user: CurrentUser,
     repo: RepoDep,
-    api_key: str | None = None,
-    provider: str = "groq",
+    body: StudentAIAnalysisRequest = Body(default_factory=StudentAIAnalysisRequest),
 ):
     """Genera un análisis pedagógico del estudiante. Key: docente > AI_KEY_TEACHER_ANALYSIS > general."""
+    _require_teacher_student(repo, student_id, user)
     from api.config import settings
 
     svc = _svc(repo)
-    from src.domain.elo.vector_elo import aggregate_global_elo
-    from api.dependencies import build_vector_rating
-
-    effective_key = settings.get_ai_key("teacher_analysis", api_key or "")
-
-    vector = build_vector_rating(student_id, repo)
-    global_elo = aggregate_global_elo(vector)
+    effective_key = settings.get_ai_key("teacher_analysis", body.api_key)
+    global_elo = svc.ratings.ratings_view(student_id)["overall"]
 
     analysis = svc.generate_ai_analysis(
         student_id=student_id,
         global_elo=global_elo,
         api_key=effective_key,
-        provider=provider,
+        provider=body.provider,
     )
     return {"analysis": analysis}
 
@@ -288,17 +333,15 @@ def teacher_metrics(user: CurrentUser, repo: RepoDep):
 @router.get("/student/{student_id}/ranking")
 def student_group_ranking(student_id: int, user: CurrentUser, repo: RepoDep):
     """Ranking del grupo al que pertenece el estudiante."""
-    student = repo.get_user_by_id(student_id)
-    if not student:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Estudiante no encontrado."
-        )
+    from api.routers.student import ranking_response
+
+    student = _require_teacher_student(repo, student_id, user)
     group_id = student.get("group_id")
     if not group_id:
-        return {"ranking": [], "my_rank": None}
-    ranking = repo.get_group_ranking(group_id)
-    my_rank = next((r["rank_pos"] for r in ranking if r["user_id"] == student_id), None)
-    return {"ranking": ranking, "my_rank": my_rank}
+        return {"basis": None, "ranking": [], "my_rank": None}
+    # No requested course here: the group's course, else the overall rating (FR-028d).
+    view = _svc(repo).ratings.ranking_view("group", group_id=group_id)
+    return ranking_response(repo, view, student_id)
 
 
 # ── Exportación ───────────────────────────────────────────────────────────────
@@ -409,6 +452,8 @@ def list_exam_templates(
 )
 def create_exam_template(body: ExamTemplateCreateRequest, user: CurrentUser, repo: RepoDep):
     """Crea una plantilla de examen manual."""
+    if len(body.item_ids) != len(set(body.item_ids)):
+        raise HTTPException(status_code=400, detail="La plantilla contiene items duplicados.")
     # Validar que todos los item_ids existan en el curso indicado
     bank_items = repo.get_items_from_db(course_id=body.course_id)
     valid_ids = {it["id"] for it in bank_items}
@@ -443,6 +488,8 @@ def update_exam_template(
     if template["teacher_id"] != user["user_id"] and user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="No es tu plantilla.")
     if body.item_ids is not None:
+        if len(body.item_ids) != len(set(body.item_ids)):
+            raise HTTPException(status_code=400, detail="La plantilla contiene items duplicados.")
         bank_items = repo.get_items_from_db(course_id=template["course_id"])
         valid_ids = {it["id"] for it in bank_items}
         invalid = [i for i in body.item_ids if i not in valid_ids]
@@ -541,8 +588,20 @@ def delete_template_assignment(
 ):
     """Elimina una asignación específica."""
     _ensure_owns_template(repo, template_id, user)
-    repo.delete_exam_assignment(assignment_id)
+    if not repo.delete_exam_assignment(assignment_id, template_id=template_id):
+        raise HTTPException(status_code=404, detail="Asignación no encontrada.")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/exam-templates/{template_id}/results")
+def exam_template_results(template_id: int, user: CurrentUser, repo: RepoDep):
+    """Análisis de resultados del examen: por pregunta, por tópico, mejor/peor
+    pregunta y tema a reforzar. Los exámenes se califican automáticamente; este
+    endpoint solo agrega las respuestas ya guardadas (no afecta ELO)."""
+    template = _ensure_owns_template(repo, template_id, user)
+    analysis = repo.get_exam_template_results(template_id)
+    analysis["title"] = template["title"]
+    return analysis
 
 
 @router.get("/courses")

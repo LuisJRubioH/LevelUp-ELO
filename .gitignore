@@ -45,6 +45,7 @@ KatIA/errores.gif
 
 # Node / Playwright MCP (no es parte de la app Python)
 node_modules/
+.pnpm-store/
 # Ignorar solo los del raíz (MCP), no los del frontend
 /package.json
 /package-lock.json
@@ -94,3 +95,21 @@ models/*.json
 
 # Backups de base de datos (contienen PII — nunca subir al repo)
 backups/
+
+# Logs de dev servers locales
+/.backend*.log
+/.frontend*.log
+
+# Previews temporales de assets (composites de QA visual)
+/tmp_*.jpg
+
+# Extracción de libros (EPA8 / Hipertexto 8): intermedios regenerables.
+# Lo que SÍ se versiona son items/source/*.json (transcripciones verificadas),
+# items/assets/ (figuras SVG) y los scripts. Estos dos son subproductos:
+#   output/ → OCR crudo del PDF, inservible para matemáticas
+#   tmp/    → renders de página a alto DPI (scripts/pagina_hipertexto8.py los rehace)
+/output/
+/tmp/
+
+# Database dumps from the migration rehearsal (student data — never commit)
+*.dump

@@ -1,0 +1,817 @@
+[
+  {
+    "id": "HT8-U4-P83-A1a",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el monomio con su cubo: $3x^2$.",
+    "expr": "(3*x**2)**3",
+    "respuesta": "27*x**6",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 1, ítem a (opción 2)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Se eleva al cubo el coeficiente y se triplica el exponente: $3^3=27$ y $(x^2)^3=x^6$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U4-P83-A1b",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el monomio con su cubo: $7m^3$.",
+    "expr": "(7*m**3)**3",
+    "respuesta": "343*m**9",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 1, ítem b (opción 5)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U4-P83-A1c",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el monomio con su cubo: $9a^3b^2$.",
+    "expr": "(9*a**3*b**2)**3",
+    "respuesta": "729*a**9*b**6",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 1, ítem c (opción 3)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U4-P83-A1d",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el monomio con su cubo: $5b^3m^2$.",
+    "expr": "(5*b**3*m**2)**3",
+    "respuesta": "125*b**9*m**6",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 1, ítem d (opción 8)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U4-P83-A1e",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el monomio con su cubo: $8x^{3m}$.",
+    "expr": "(8*x**(3*m))**3",
+    "respuesta": "512*x**(9*m)",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 1, ítem e (opción 4)",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Exponente literal: $(x^{3m})^3=x^{9m}$. La regla es la misma, se multiplican los exponentes aunque uno sea una letra.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U4-P83-A1f",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el monomio con su cubo: $\\dfrac{1}{5}n^3$.",
+    "expr": "(1/5*n**3)**3",
+    "respuesta": "n**9/125",
+    "conjunto": "Q",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 1, ítem f (opción 1)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U4-P83-A1g",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el monomio con su cubo: $\\dfrac{2}{3}x^2y$.",
+    "expr": "(2/3*x**2*y)**3",
+    "respuesta": "8*x**6*y**3/27",
+    "conjunto": "Q",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 1, ítem g (opción 6)",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U4-P83-A1h",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el monomio con su cubo: $\\dfrac{1}{9}a^{3n-1}b^{2n}$.",
+    "expr": "(1/9*a**(3*n - 1)*b**(2*n))**3",
+    "respuesta": "a**(9*n - 3)*b**(6*n)/729",
+    "conjunto": "Q",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 1, ítem h (opción 7)",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "El más difícil de la actividad: hay que triplicar un exponente que ya es un binomio, $3(3n-1)=9n-3$. El error típico es escribir $a^{9n-1}$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U4-P83-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $(y+2)^3$.",
+    "expr": "(y + 2)**3",
+    "respuesta": "y**3 + 6*y**2 + 12*y + 8",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem a",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$(a+b)^3=a^3+3a^2b+3ab^2+b^3$. Coeficientes $1,3,3,1$ (cuarta fila del triángulo de Pascal).",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U4-P83-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $(m-3)^3$.",
+    "expr": "(m - 3)**3",
+    "respuesta": "m**3 - 9*m**2 + 27*m - 27",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem b",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Con resta los signos alternan: $+,-,+,-$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U4-P83-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $(2a-3)^3$.",
+    "expr": "(2*a - 3)**3",
+    "respuesta": "8*a**3 - 36*a**2 + 54*a - 27",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem c",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P83-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $(3x+2)^3$.",
+    "expr": "(3*x + 2)**3",
+    "respuesta": "27*x**3 + 54*x**2 + 36*x + 8",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem d",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P83-A2e",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $(ab^2-ab)^3$.",
+    "expr": "(a*b**2 - a*b)**3",
+    "respuesta": "a**3*b**6 - 3*a**3*b**5 + 3*a**3*b**4 - a**3*b**3",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem e",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Los dos términos comparten factor $ab$, así que todo el desarrollo tiene $a^3$ y se puede escribir $a^3b^3(b-1)^3$. Comprobarlo por los dos caminos es un buen control.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P83-A2f",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $(2m^2n-n^2)^3$.",
+    "expr": "(2*m**2*n - n**2)**3",
+    "respuesta": "8*m**6*n**3 - 12*m**4*n**4 + 6*m**2*n**5 - n**6",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem f",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P83-A2g",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $\\left(\\dfrac{1}{2}x+\\dfrac{1}{5}\\right)^3$.",
+    "expr": "(1/2*x + 1/5)**3",
+    "respuesta": "x**3/8 + 3*x**2/20 + 3*x/50 + 1/125",
+    "conjunto": "Q",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem g",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Términos centrales: $3\\cdot\\frac{1}{4}x^2\\cdot\\frac{1}{5}=\\frac{3}{20}x^2$ y $3\\cdot\\frac{1}{2}x\\cdot\\frac{1}{25}=\\frac{3}{50}x$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U4-P83-A2h",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $(x^2y^3z+2xy^2)^3$.",
+    "expr": "(x**2*y**3*z + 2*x*y**2)**3",
+    "respuesta": "x**6*y**9*z**3 + 6*x**5*y**8*z**2 + 12*x**4*y**7*z + 8*x**3*y**6",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U4-P83-A2i",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $(5a^3b+3c^3)^3$.",
+    "expr": "(5*a**3*b + 3*c**3)**3",
+    "respuesta": "125*a**9*b**3 + 225*a**6*b**2*c**3 + 135*a**3*b*c**6 + 27*c**9",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U4-P83-A2j",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $(x^n-3)^3$.",
+    "expr": "(x**n - 3)**3",
+    "respuesta": "x**(3*n) - 9*x**(2*n) + 27*x**n - 27",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem j",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Con exponente literal: $(x^n)^2=x^{2n}$ y $(x^n)^3=x^{3n}$. Nunca $x^{n^2}$ ni $x^{n+2}$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U4-P83-A2k",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $(2m^{x-1}+4)^3$.",
+    "expr": "(2*m**(x - 1) + 4)**3",
+    "respuesta": "8*m**(3*x - 3) + 48*m**(2*x - 2) + 96*m**(x - 1) + 64",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem k",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "El exponente $x-1$ se multiplica entero: $2(x-1)=2x-2$ y $3(x-1)=3x-3$. Olvidar el paréntesis mental es el error clásico.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U4-P83-A2l",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $(a^{x+2}-b^x)^3$.",
+    "expr": "(a**(x + 2) - b**x)**3",
+    "respuesta": "a**(3*x + 6) - 3*a**(2*x + 4)*b**x + 3*a**(x + 2)*b**(2*x) - b**(3*x)",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem l",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U4-P83-A2m",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $\\left(\\dfrac{1}{3}x^{2n}-4y^n\\right)^3$.",
+    "expr": "(1/3*x**(2*n) - 4*y**n)**3",
+    "respuesta": "x**(6*n)/27 - 4*x**(4*n)*y**n/3 + 16*x**(2*n)*y**(2*n) - 64*y**(3*n)",
+    "conjunto": "Q",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem m",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Junta las dos dificultades de la actividad: fracciones y exponentes literales. Término central: $3\\cdot\\frac{1}{9}x^{4n}\\cdot(-4y^n)=-\\frac{4}{3}x^{4n}y^n$.",
+    "dificultad": 1700
+  },
+  {
+    "id": "HT8-U4-P83-A2n",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla el cubo del binomio: $\\left(\\dfrac{1}{6}a^3b^2-\\dfrac{5}{6}b^3\\right)^3$.",
+    "expr": "(1/6*a**3*b**2 - 5/6*b**3)**3",
+    "respuesta": "a**9*b**6/216 - 5*a**6*b**7/72 + 25*a**3*b**8/72 - 125*b**9/216",
+    "conjunto": "Q",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 2, ítem n",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Los denominadores no se simplifican igual en todos los términos: $216$, $72$, $72$, $216$. Vale la pena sacar factor común $\\frac{b^6}{216}$ y comprobar $(a^3-5b)^3$.",
+    "dificultad": 1700
+  },
+  {
+    "id": "HT8-U4-P83-A3a",
+    "tipo": "simbolico",
+    "enunciado": "¿Coinciden $1;\\ -9;\\ 27;\\ -27$ con los coeficientes del desarrollo de $(x-3)^3$? Desarrolla para decidirlo.",
+    "expr": "(x - 3)**3",
+    "respuesta": "x**3 - 9*x**2 + 27*x - 27",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 3, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "SÍ coincide (✓). Coeficientes $1,-9,27,-27$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U4-P83-A3b",
+    "tipo": "simbolico",
+    "enunciado": "¿Coinciden $1;\\ -6;\\ -12;\\ 8$ con los coeficientes del desarrollo de $(1-2a)^3$? Desarrolla para decidirlo.",
+    "expr": "(1 - 2*a)**3",
+    "respuesta": "1 - 6*a + 12*a**2 - 8*a**3",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 3, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "NO coincide. Los coeficientes reales son $1,-6,+12,-8$: en la lista del libro el tercero y el cuarto tienen el signo cambiado. Con una resta los signos SIEMPRE alternan, así que dos negativos seguidos delatan el error sin hacer la cuenta.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U4-P83-A3c",
+    "tipo": "simbolico",
+    "enunciado": "¿Coinciden $1;\\ 15;\\ 75;\\ 125$ con los coeficientes del desarrollo de $(m^2+5)^3$? Desarrolla para decidirlo.",
+    "expr": "(m**2 + 5)**3",
+    "respuesta": "m**6 + 15*m**4 + 75*m**2 + 125",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 3, ítem c",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "SÍ coincide (✓).",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U4-P83-A3d",
+    "tipo": "simbolico",
+    "enunciado": "¿Coinciden $27;\\ -108;\\ 144;\\ -64$ con los coeficientes del desarrollo de $(3x^2-4)^3$? Desarrolla para decidirlo.",
+    "expr": "(3*x**2 - 4)**3",
+    "respuesta": "27*x**6 - 108*x**4 + 144*x**2 - 64",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 3, ítem d",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "SÍ coincide (✓).",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P83-A3e",
+    "tipo": "simbolico",
+    "enunciado": "¿Coinciden $216;\\ -108;\\ 3;\\ -1$ con los coeficientes del desarrollo de $(6x^3-y)^3$? Desarrolla para decidirlo.",
+    "expr": "(6*x**3 - y)**3",
+    "respuesta": "216*x**9 - 108*x**6*y + 18*x**3*y**2 - y**3",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 3, ítem e",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "NO coincide. El tercer coeficiente es $3\\cdot6\\cdot1=18$, no $3$: quien escribió $3$ se quedó con el $3$ de la fórmula y olvidó multiplicarlo por el $6$ del primer término.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P83-A3f",
+    "tipo": "simbolico",
+    "enunciado": "¿Coinciden $1;\\ -3;\\ 3;\\ 1$ con los coeficientes del desarrollo de $(a^3b^2-c^4)^3$? Desarrolla para decidirlo.",
+    "expr": "(a**3*b**2 - c**4)**3",
+    "respuesta": "a**9*b**6 - 3*a**6*b**4*c**4 + 3*a**3*b**2*c**8 - c**12",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 3, ítem f",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "NO coincide: el último coeficiente es $-1$, no $+1$.",
+    "erratum": "El libro imprime este ítem (y el g) SIN el exponente $3$ fuera del paréntesis: escribe «$(a^3b^2-c^4)$». Por el enunciado de la actividad («el cubo del binomio») el exponente es claramente una omisión tipográfica; se transcribe como cubo.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U4-P83-A3g",
+    "tipo": "simbolico",
+    "enunciado": "¿Coinciden $64;\\ -48;\\ 12;\\ -1$ con los coeficientes del desarrollo de $(4x^2y-z^2)^3$? Desarrolla para decidirlo.",
+    "expr": "(4*x**2*y - z**2)**3",
+    "respuesta": "64*x**6*y**3 - 48*x**4*y**2*z**2 + 12*x**2*y*z**4 - z**6",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 3, ítem g",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "SÍ coincide (✓).",
+    "erratum": "También aquí el libro omite el exponente $3$ fuera del paréntesis. Se transcribe como cubo, igual que en el ítem f.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U4-P83-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Señala el error y corrígelo: el libro escribe $(y-4)^3=y^3-12y^2-48y^3-64$. Halla el desarrollo correcto.",
+    "expr": "(y - 4)**3",
+    "respuesta": "y**3 - 12*y**2 + 48*y - 64",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 4, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Dos errores en el tercer término: el signo (debe ser $+$, porque con resta los signos alternan) y el grado (debe ser $y$, no $y^3$). Los grados tienen que bajar $3,2,1,0$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U4-P83-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Señala el error y corrígelo: el libro escribe $(3x+1)^3=27x^3-27x^2+27x+3$. Halla el desarrollo correcto.",
+    "expr": "(3*x + 1)**3",
+    "respuesta": "27*x**3 + 27*x**2 + 9*x + 1",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 4, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Tres errores: el signo del segundo término (es una suma, todos van $+$), el tercero es $3\\cdot3x\\cdot1^2=9x$ y el último es $1^3=1$, no $3$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U4-P83-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Señala el error y corrígelo: el libro escribe $(2x^2y-3)^3=8x^6y^3-36x^2y^2+54x^2y-27$. Halla el desarrollo correcto.",
+    "expr": "(2*x**2*y - 3)**3",
+    "respuesta": "8*x**6*y**3 - 36*x**4*y**2 + 54*x**2*y - 27",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 4, ítem c",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "El error está en el segundo término: $3(2x^2y)^2(-3)=-36x^4y^2$, no $-36x^2y^2$. Se elevó al cuadrado el $y$ pero no el $x^2$.",
+    "erratum": "En el libro este ítem aparece con exponente $2$ fuera del paréntesis, $(2x^2y-3)^2$, aunque el desarrollo impreso es de grado 3 y la actividad pide cubos. Se transcribe como cubo, que es la única lectura coherente.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U4-P83-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Señala el error y corrígelo: el libro escribe $(a^3b^2-2b^3)^3=a^9b^6-6a^5b^7+12a^3b^7-8b^4$. Halla el desarrollo correcto.",
+    "expr": "(a**3*b**2 - 2*b**3)**3",
+    "respuesta": "a**9*b**6 - 6*a**6*b**7 + 12*a**3*b**8 - 8*b**9",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 4, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Tres exponentes mal: $a^5$ debe ser $a^6$, el $b^7$ del tercer término debe ser $b^8$ y $b^4$ debe ser $b^9$. Control rápido: todos los términos han de tener grado total $9$, y $-8b^4$ tiene grado $4$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U4-P83-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Resuelve el producto: $(m+n)(m^2-mn+n^2)$.",
+    "expr": "(m + n)*(m**2 - m*n + n**2)",
+    "respuesta": "m**3 + n**3",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 5, ítem a",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Caso base de la suma de cubos: $(x+a)(x^2-ax+a^2)=x^3+a^3$. Los seis términos del producto se cancelan de a pares y solo sobreviven los cubos.",
+    "erratum": "En la teoría de la página 82 el libro escribe este producto notable como «$(2m+y)(4m^2-2my+y^2)=(2m)^3-(y)^3=8m^3+y^3$»: el paso intermedio lleva un $-$ que debería ser $+$ (el resultado final sí es correcto). Erratum de la página de teoría, no de esta actividad.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P83-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Resuelve el producto: $(x-5)(x^2+5x+25)$.",
+    "expr": "(x - 5)*(x**2 + 5*x + 25)",
+    "respuesta": "x**3 - 125",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 5, ítem b",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Diferencia de cubos: $(x-a)(x^2+ax+a^2)=x^3-a^3$. Aquí $a=5$ y $5^3=125$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P83-A5c",
+    "tipo": "simbolico",
+    "enunciado": "Resuelve el producto: $(2x-3y)(4x^2+6xy+9y^2)$.",
+    "expr": "(2*x - 3*y)*(4*x**2 + 6*x*y + 9*y**2)",
+    "respuesta": "8*x**3 - 27*y**3",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 5, ítem c",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Con $x\\to2x$ y $a\\to3y$: el trinomio debe ser $(2x)^2+(2x)(3y)+(3y)^2$, y en efecto $4x^2+6xy+9y^2$ encaja.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P83-A5d",
+    "tipo": "simbolico",
+    "enunciado": "Resuelve el producto: $\\left(\\dfrac{1}{3}a-3b\\right)\\left(\\dfrac{1}{9}a^2+ab+9b^2\\right)$.",
+    "expr": "(1/3*a - 3*b)*(1/9*a**2 + a*b + 9*b**2)",
+    "respuesta": "a**3/27 - 27*b**3",
+    "conjunto": "Q",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 5, ítem d",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "El término central del trinomio es $\\frac{1}{3}a\\cdot3b=ab$, por eso aparece sin coeficiente. Resultado: $\\left(\\frac{1}{3}a\\right)^3-(3b)^3$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U4-P83-A5e",
+    "tipo": "simbolico",
+    "enunciado": "Resuelve el producto: $(ab+c)(a^2b^2-abc+c^2)$.",
+    "expr": "(a*b + c)*(a**2*b**2 - a*b*c + c**2)",
+    "respuesta": "a**3*b**3 + c**3",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 5, ítem e",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El «primer término» de la fórmula puede ser un producto entero: aquí $x=ab$, así que $x^3=a^3b^3$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U4-P83-A5f",
+    "tipo": "simbolico",
+    "enunciado": "Resuelve el producto: $(x^{2n}-y^n)(x^{4n}+x^{2n}y^n+y^{2n})$.",
+    "expr": "(x**(2*n) - y**n)*(x**(4*n) + x**(2*n)*y**n + y**(2*n))",
+    "respuesta": "x**(6*n) - y**(3*n)",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 5, ítem f",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Reconocer la forma es todo el trabajo: con $x^{2n}$ y $y^n$ como «primer y segundo término», el trinomio $x^{4n}+x^{2n}y^n+y^{2n}$ es exactamente el que pide la fórmula.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U4-P83-A5g",
+    "tipo": "simbolico",
+    "enunciado": "Resuelve el producto: $(3a^{x-1}-b^{2x})(9a^{2x-2}+3a^{x-1}b^{2x}+b^{4x})$.",
+    "expr": "(3*a**(x - 1) - b**(2*x))*(9*a**(2*x - 2) + 3*a**(x - 1)*b**(2*x) + b**(4*x))",
+    "respuesta": "27*a**(3*x - 3) - b**(6*x)",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 5, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "El más difícil de la página: $(3a^{x-1})^3=27a^{3x-3}$ y $(b^{2x})^3=b^{6x}$. Comprobación de que el trinomio es el correcto: $(3a^{x-1})^2=9a^{2x-2}$ ✓.",
+    "dificultad": 1700
+  },
+  {
+    "id": "HT8-U4-P83-A6a",
+    "tipo": "simbolico",
+    "enunciado": "Determina el volumen de un cubo de arista $m-3$.",
+    "expr": "(m - 3)**3",
+    "respuesta": "m**3 - 9*m**2 + 27*m - 27",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 6, ítem a",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "figura": "cubo verde con la arista inferior rotulada m−3 — reconstruible en Python",
+    "nota": "Aquí el cubo del binomio deja de ser una fórmula: es literalmente el volumen de un cubo. La misma expansión que en la actividad 2, ítem b.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U4-P83-A6b",
+    "tipo": "simbolico",
+    "enunciado": "Determina el volumen de un cubo de arista $3x^2+2$.",
+    "expr": "(3*x**2 + 2)**3",
+    "respuesta": "27*x**6 + 54*x**4 + 36*x**2 + 8",
+    "conjunto": "Z",
+    "seccion": "Actividades — Cubo de un binomio y suma/diferencia de cubos",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 6, ítem b",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "figura": "cubo naranja con la arista inferior rotulada 3x²+2 — reconstruible en Python",
+    "nota": "Solo aparecen potencias pares de $x$ porque la arista es par en $x$: útil como control rápido del resultado.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P83-A7a",
+    "tipo": "simbolico",
+    "enunciado": "Un cubo de arista $4x+5y$ tiene un hueco cúbico de arista $\\dfrac{2}{3}x+y$ excavado en una esquina. Determina una expresión para el volumen del sólido.",
+    "expr": "(4*x + 5*y)**3 - (2/3*x + y)**3",
+    "respuesta": "1720*x**3/27 + 716*x**2*y/3 + 298*x*y**2 + 124*y**3",
+    "conjunto": "Q",
+    "seccion": "Soluciona problemas",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 7, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "figura": "cubo naranja de arista 4x+5y con un cubo de arista (2/3)x+y removido de la esquina superior derecha frontal — reconstruible en Python",
+    "nota": "Es una diferencia de cubos, así que también se puede escribir factorizada con la fórmula de la actividad 5: con $A=4x+5y$ y $B=\\frac{2}{3}x+y$, $A-B=\\frac{10}{3}x+4y$ y el volumen es $(A-B)(A^2+AB+B^2)$. Los coeficientes con denominador $27$ salen de $\\left(\\frac{2}{3}\\right)^3$.",
+    "dificultad": 1700
+  },
+  {
+    "id": "HT8-U4-P83-A7b",
+    "tipo": "simbolico",
+    "enunciado": "Un cubo de arista $3x^2y+y^2$ tiene adosado un cubo de arista $x+2$ en cada una de sus seis caras. Determina una expresión para el volumen del sólido.",
+    "expr": "(3*x**2*y + y**2)**3 + 6*(x + 2)**3",
+    "respuesta": "27*x**6*y**3 + 27*x**4*y**4 + 9*x**2*y**5 + y**6 + 6*x**3 + 36*x**2 + 72*x + 48",
+    "conjunto": "Z",
+    "seccion": "Soluciona problemas",
+    "unidad": 4,
+    "pagina_pdf": 83,
+    "referencia": "Actividad 7, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "figura": "cruz tridimensional rosada: cubo central de arista 3x²y+y² con seis cubos de arista x+2 sobresaliendo, uno por cara — reconstruible en Python",
+    "nota": "Dos cubos de binomio independientes que se suman; no hay término mixto entre ellos porque los seis salientes no se tocan entre sí.",
+    "verificar": "La figura muestra silueta de cruz tanto de frente como de perfil, lo que fija seis salientes iguales (uno por cara), pero el saliente trasero no es visible en el dibujo y solo se deduce de la simetría. Los seis rótulos $x+2$ del dibujo son consistentes con esa lectura.",
+    "dificultad": 1750
+  }
+]

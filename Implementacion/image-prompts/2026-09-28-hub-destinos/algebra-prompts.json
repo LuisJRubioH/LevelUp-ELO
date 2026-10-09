@@ -1,0 +1,35 @@
+{
+  "base": "Create ONE standalone 3:2 landscape environmental illustration for a learning hub destination card. Match reference's crisp detailed pixel art with visible clusters/dithering, rich warm stone and readable blue shadows. Architecture and place are the main subject, small adult anthropomorphic feline inhabitants only for scale, no KatIA or foreground portrait. No words, equations, labels, numerals, UI, collage or watermark. Evocative location, no math answers. ",
+  "jobs": [
+    [
+      "a1-casa-vida.png",
+      "Ancient Egyptian Kemet House of Life: scholarly sandstone archive compound with broad monumental doorway, lotus columns, blue and gold painted cornices, open shaded courtyard showing papyrus shelving and scribal desks; small feline scribes in linen, palms and Nile visible behind. Broad three-quarter exterior, morning sunlight.",
+      "05-alg-n1-kemet/a00-hub-papiro-katia.png"
+    ],
+    [
+      "a2-obra-piramide.png",
+      "Kemet pyramid construction site: large partly built pyramid with stepped stone courses, earth hauling ramp, timber scaffold, limestone block sledges and ropes, workers in Egyptian linen, small foreman's shelter with papyrus records. Warm dry desert sunlight, distant palms and Nile. Place dominant wide establishing scene.",
+      "05-alg-n1-kemet/a00-hub-papiro-katia.png"
+    ],
+    [
+      "a3-campos-crecida.png",
+      "Kemet fields after Nile flood: wide fertile landscape with receding shallow irrigation channels, damp dark earth plots, green shoots, farmers measuring boundaries with knotted rope, small mudbrick granary and river sailboats behind, palms and sandstone village. The cultivated land and channels are main subject. Mud on working farmers is contextually appropriate. No numerical field diagram.",
+      "05-alg-n1-kemet/a00-hub-papiro-katia.png"
+    ],
+    [
+      "a4-taller-canon.png",
+      "Kemet workshop of sculptural canon: elegant open-front sandstone artisan building with lotus columns and blue/gold cornice, larger and smaller feline stone statues at differing stages, measuring rods and sculptor tools, small linen-clad feline artisans comparing proportions. Sunny courtyard and palms; no marked numerical grids or equations.",
+      "05-alg-n1-kemet/a00-hub-papiro-katia.png"
+    ],
+    [
+      "s1-sala-troqueles.png",
+      "Abbasid Baghdad House of Wisdom stamping workshop wing: inviting pointed-arch doorway from tiled courtyard into a bronze die press workshop, patterned carved timber doors, warm brick, turquoise ceramic details, sheet metal blanks and patterned stamp molds, small feline artisans in period robes. Architecture dominates, no Greek columns, no Egyptian motifs, no equations.",
+      "06-alg-n2-troqueles/s00-hub-patio-katia.png"
+    ],
+    [
+      "s2-almacen-caravana.png",
+      "Abbasid Baghdad House of Wisdom caravan storehouse wing: broad pointed-arch entrance with carved timber doors opening onto shelves of bound bales, partially opened bundles and geometric wooden packing pieces, small feline merchants examining contents at workbench; courtyard with stacked travelling chests, warm brick and turquoise tile accents. Distinct warehouse scene, architecture dominant, no Greek columns or equations.",
+      "06-alg-n2-troqueles/s00-hub-patio-katia.png"
+    ]
+  ]
+}

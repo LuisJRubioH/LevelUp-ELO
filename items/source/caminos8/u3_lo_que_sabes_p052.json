@@ -1,0 +1,37 @@
+[
+  {
+    "id": "CS8-U3-P052-A1",
+    "tipo": "clasificacion_conjuntos",
+    "enunciado": "Clasifica en N, Z, Q o I los coeficientes de estos monomios: 0,3a⁴b⁷; -(√2/3)h⁵k⁸; -8x²y⁴z⁷; -√5xyz; m¹¹n¹⁵; (1/5)k²m.",
+    "valores": ["3/10", "-sqrt(2)/3", "-8", "-sqrt(5)", "1", "1/5"],
+    "respuesta": {
+      "N": ["1"],
+      "Z": ["-8"],
+      "Q": ["3/10", "1/5"],
+      "I": ["-sqrt(2)/3", "-sqrt(5)"]
+    },
+    "conjunto": "R",
+    "seccion": "Lo que sabes: clasificación de coeficientes",
+    "unidad": 3,
+    "pagina_pdf": 52,
+    "referencia": "Actividad 1, literales a-f",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "0,3=3/10 y 1/5 son racionales no enteros; -8 es entero; 1 es natural; los múltiplos racionales no nulos de √2 y √5 son irracionales.",
+    "dificultad": 450
+  },
+  {
+    "id": "CS8-U3-P052-A2",
+    "tipo": "abierta",
+    "enunciado": "Para cada monomio dado, escribe un monomio homogéneo y uno heterogéneo: -7xy⁴z; 8a⁴b⁸c¹²; 10w¹¹z; -(3/2)m⁵n⁷p¹³; p²q²r².",
+    "respuesta": "Ejemplos por fila: para -7xy⁴z (grado 6), 2u²v⁴ y 3u⁵; para 8a⁴b⁸c¹² (grado 24), x²⁴ y x²³; para 10w¹¹z (grado 12), 5r⁷s⁵ y r¹¹; para -(3/2)m⁵n⁷p¹³ (grado 25), 7x¹⁰y¹⁵ y x²⁴; para p²q²r² (grado 6), 3u³v³ y 3u⁵. El primer ejemplo de cada par tiene el mismo grado absoluto y el segundo tiene uno diferente.",
+    "conjunto": "R",
+    "seccion": "Lo que sabes: monomios homogéneos y heterogéneos",
+    "unidad": 3,
+    "pagina_pdf": 52,
+    "referencia": "Actividad 2, tabla",
+    "apto_para": ["procedimiento_abierto"],
+    "justificacion": "Dos monomios son homogéneos cuando tienen igual grado absoluto; son heterogéneos cuando sus grados absolutos son distintos.",
+    "verificar": "La respuesta no es única. Revisar en cada fila que el monomio homogéneo conserve el grado absoluto del dado y que el heterogéneo tenga un grado diferente.",
+    "dificultad": 550
+  }
+]

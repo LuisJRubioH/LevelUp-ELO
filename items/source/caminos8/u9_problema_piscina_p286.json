@@ -1,0 +1,18 @@
+[
+  {
+    "id": "CS8-U9-P286-EJ01",
+    "tipo": "numerico",
+    "enunciado": "Un terreno de 30 hm² contiene una piscina rectangular de 10 m por 15 m. Alrededor de la piscina se construye una zona de césped de 70 cm de ancho, con cuatro esquinas exteriores redondeadas mediante cuartos de círculo de radio 0,7 m. ¿Qué área del terreno no forma parte de la piscina ni del césped?",
+    "expr": "300000-(10*15+2*0.7*10+2*0.7*15+pi*0.7**2)",
+    "respuesta": "299815-49*pi/100",
+    "respuesta_texto": "El área que no forma parte de la piscina ni del césped es 299 815−0,49π m²≈299 813,46 m². Con el redondeo intermedio del libro se obtiene 299 813,47 m².",
+    "conjunto": "R",
+    "seccion": "Problema modelo: áreas de figuras compuestas",
+    "unidad": 9,
+    "pagina_pdf": 286,
+    "referencia": "Problema modelo resuelto",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "La zona conjunta mide 150+2(0,7·10)+2(0,7·15)+π(0,7)²=185+0,49π m², mientras que 30 hm²=300 000 m².",
+    "dificultad": 500
+  }
+]

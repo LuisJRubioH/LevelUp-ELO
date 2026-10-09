@@ -6,8 +6,9 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { studentApi, type Course } from "../../api/student";
+import { studentApi } from "../../api/student";
 import { AnswerOptions } from "../../components/Question/AnswerOptions";
 import { QuestionCard } from "../../components/Question/QuestionCard";
 import { KatIAAvatar } from "../../components/KatIA/KatIAAvatar";
@@ -20,39 +21,28 @@ import { useTimer } from "../../hooks/useTimer";
 import { usePracticeStore } from "../../stores/practiceStore";
 import { useSettingsStore } from "../../stores/settingsStore";
 import { ProcedureSection } from "../../components/Procedure/ProcedureSection";
+import "./StudentContent.css";
 
 /** Estima delta ELO antes de enviar (K=24, fórmula ELO clásica). */
-function estimateEloDelta(studentElo: number, itemDifficulty: number) {
-  const expected = 1 / (1 + Math.pow(10, (itemDifficulty - studentElo) / 400));
-  const K = studentElo < 1400 ? 32 : 24;
-  const onCorrect = +(K * (1 - expected)).toFixed(1);
-  const onWrong = +(K * (0 - expected)).toFixed(1);
-  return { onCorrect, onWrong };
-}
-
 const STREAK_MILESTONES = [5, 10, 20];
 
 export function Practice() {
   const { t } = useTranslation();
-  const { courseId, startSession, resetSession, setPhase } = usePracticeStore();
+  const navigate = useNavigate();
+  const { courseId, resetSession, setPhase } = usePracticeStore();
   const { currentItem, lastAnswer, phase, isLoading, sessionQuestionsCount, loadNextQuestion, submitAnswer } =
     useStudentSession();
   const { apiKey, provider } = useSettingsStore();
 
-  // Cursos matriculados (enrolled=true) y disponibles (enrolled=false).
-  // Mostramos AMBOS en la pantalla inicial: matriculados primero (entrada
-  // directa a sesión) y disponibles abajo (matrícula + entrada en un click).
-  const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
-  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
-  const [coursesLoading, setCoursesLoading] = useState(true);
-  const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
   // Opción seleccionada por el estudiante (antes de enviar)
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   // Si la respuesta ya fue enviada (esperando o recibida)
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [globalElo, setGlobalElo] = useState(1000);
-  const [rankLabel, setRankLabel] = useState("Aspirante");
+  // Header: the API's display value and label (null while the diagnostic is pending).
+  const [displayRating, setDisplayRating] = useState<number | null>(null);
+  const [rankLabel, setRankLabel] = useState<string | null>(null);
+  const preview = usePracticeStore((s) => s.preview);
   const [deltaElo, setDeltaElo] = useState<number | undefined>(undefined);
   const [showChat, setShowChat] = useState(false);
   // Racha de respuestas correctas consecutivas
@@ -62,22 +52,23 @@ export function Practice() {
   // Timer por pregunta — se resetea al cargar la nueva pregunta
   const timer = useTimer({ autoStart: true });
 
-  // Cargar cursos disponibles al montar
+  // Cargar ELO global al montar (para el header RankBadge)
   useEffect(() => {
-    studentApi.courses()
-      .then((c) => {
-        setEnrolledCourses(c.filter((x) => x.enrolled));
-        setAvailableCourses(c.filter((x) => !x.enrolled));
-      })
-      .catch(() => {/* silencioso — el backend puede estar durmiendo */})
-      .finally(() => setCoursesLoading(false));
     studentApi.stats()
       .then((s) => {
-        setGlobalElo(s.global_elo);
-        setRankLabel(s.rank_label ?? "Aspirante");
+        setDisplayRating(s.display_rating ?? null);
+        setRankLabel(s.rank_label ?? null);
       })
       .catch(() => {/* silencioso */});
   }, []);
+
+  // Sin materia activa: la sala de práctica ya no tiene selector propio —
+  // el flujo es siempre Materias → escoger curso → practicar.
+  useEffect(() => {
+    if (!courseId) {
+      navigate("/student/courses", { replace: true });
+    }
+  }, [courseId, navigate]);
 
   // Cargar primera pregunta cuando el curso está seleccionado
   useEffect(() => {
@@ -134,8 +125,8 @@ export function Practice() {
 
       studentApi.stats()
         .then((s) => {
-          setGlobalElo(s.global_elo);
-          setRankLabel(s.rank_label ?? rankLabel);
+          setDisplayRating(s.display_rating ?? null);
+          setRankLabel(s.rank_label ?? null);
         })
         .catch(() => {/* silencioso — siguiente respuesta volverá a intentar */});
 
@@ -147,92 +138,15 @@ export function Practice() {
         return next;
       });
     }
-  }, [lastAnswer]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [lastAnswer]);
 
   const dismissStreakToast = useCallback(() => setStreakToast(null), []);
 
-  // Click en curso disponible: matricula + arranca sesión en un solo paso.
-  const enrollAndStart = async (cid: string) => {
-    setEnrollingCourseId(cid);
-    try {
-      await studentApi.enroll(cid);
-      startSession(cid);
-    } catch (e) {
-      console.error("Error matriculando en curso", e);
-      setEnrollingCourseId(null);
-    }
-  };
-
-  // ── Sin curso seleccionado: selector de cursos ────────────────────────────
+  // ── Sin curso seleccionado: redirigiendo a Materias (ver useEffect arriba) ─
   if (!courseId) {
-    const hasEnrolled = enrolledCourses.length > 0;
-    const hasAvailable = availableCourses.length > 0;
     return (
-      <div className="max-w-xl mx-auto py-8 px-4">
-        <h2 className="text-xl font-bold text-slate-100 mb-2">{t("practice.title")}</h2>
-        <p className="text-slate-400 text-sm mb-6">
-          {hasEnrolled ? t("practice.subtitle") : t("practice.subtitleAvailable")}
-        </p>
-
-        {coursesLoading ? (
-          <div className="text-center text-slate-500 animate-pulse py-8">{t("practice.loadingCourses")}</div>
-        ) : !hasEnrolled && !hasAvailable ? (
-          <div className="bg-slate-800 rounded-2xl p-8 text-center border border-slate-700">
-            <p className="text-slate-400">{t("practice.noCourses")}</p>
-            <a href="/student/courses" className="text-violet-400 text-sm mt-2 block hover:underline">
-              {t("practice.browseCourses")}
-            </a>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {hasEnrolled && (
-              <div className="grid gap-3">
-                {enrolledCourses.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => startSession(c.id)}
-                    className="w-full text-left bg-slate-800 hover:bg-slate-700 rounded-xl px-4 py-4 border border-slate-700 hover:border-violet-500 transition-all"
-                  >
-                    <div className="font-medium text-slate-100">{c.name}</div>
-                    <div className="text-xs text-slate-500 mt-1">{c.block}</div>
-                  </button>
-                ))}
-              </div>
-            )}
-            {hasAvailable && (
-              <div>
-                <p className="text-xs uppercase tracking-wider text-slate-500 mb-2">
-                  {hasEnrolled
-                    ? t("practice.availableMore")
-                    : t("practice.availableEnroll")}
-                </p>
-                <div className="grid gap-3">
-                  {availableCourses.map((c) => {
-                    const loading = enrollingCourseId === c.id;
-                    return (
-                      <button
-                        key={c.id}
-                        disabled={loading}
-                        onClick={() => enrollAndStart(c.id)}
-                        className="w-full text-left bg-slate-900/60 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-wait rounded-xl px-4 py-4 border border-violet-700/40 hover:border-violet-500 transition-all"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div>
-                            <div className="font-medium text-slate-100">{c.name}</div>
-                            <div className="text-xs text-slate-500 mt-1">{c.block}</div>
-                          </div>
-                          <span className="text-xs text-violet-300 font-medium whitespace-nowrap">
-                            {loading ? t("practice.enrolling") : t("practice.enrollAndStart")}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+      <div className="sp-page">
+        <div className="sp-mute text-center animate-pulse py-8">{t("practice.loadingCourses")}</div>
       </div>
     );
   }
@@ -281,9 +195,9 @@ export function Practice() {
   const answerReceived = submitted && !!lastAnswer;
   const answerFailed = submitted && !submitting && !lastAnswer;
 
-  // Cálculo ELO preview (estimado, antes de enviar)
-  const eloPreview = currentItem && selectedOption && !submitted
-    ? estimateEloDelta(globalElo, currentItem.difficulty)
+  // Previsión del motor (spec 001, FR-030): la API la calcula con la misma fórmula del update.
+  const eloPreview = currentItem && selectedOption && !submitted && preview
+    ? { onCorrect: preview.on_correct, onWrong: preview.on_wrong }
     : null;
 
   return (
@@ -301,7 +215,7 @@ export function Practice() {
         >
           {t("practice.changeCourse")}
         </button>
-        <RankBadge elo={globalElo} rankLabel={rankLabel} deltaElo={deltaElo} />
+        <RankBadge displayRating={displayRating} rankLabel={rankLabel} deltaElo={deltaElo} />
       </div>
 
       {/* Tarjeta de pregunta */}

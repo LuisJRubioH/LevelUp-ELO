@@ -1,0 +1,14 @@
+.math-rendered { display: inline-block; max-width: 100%; vertical-align: middle; }
+.math-rendered.math-display { display: block; margin-block: .5rem; overflow-x: auto; text-align: center; }
+.math-rendered .katex-display { margin: 0; overflow-x: auto; overflow-y: hidden; }
+.math-fallback {
+  display: inline-block;
+  max-width: 100%;
+  padding: .08em .35em;
+  overflow-wrap: anywhere;
+  color: var(--color-slate-200);
+  border-bottom: 1px dashed var(--color-wrong);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: .92em;
+}
+.math-fallback.math-display { display: block; padding: .75rem; overflow-x: auto; text-align: center; }

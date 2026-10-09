@@ -1,0 +1,427 @@
+[
+  {
+    "id": "CS8-U1-P017-A43",
+    "tipo": "numerico",
+    "enunciado": "Escribe un número decimal asociado al racional -5/8.",
+    "expr": "-5/8",
+    "respuesta": "-0.625",
+    "respuesta_decimal": "-0,625",
+    "conjunto": "Q",
+    "seccion": "Expresión decimal de un racional",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 43",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "-5÷8=-0,625.",
+    "dificultad": 300
+  },
+  {
+    "id": "CS8-U1-P017-A44",
+    "tipo": "ejemplo_abierto",
+    "enunciado": "Escribe un número decimal infinito periódico puro mayor que 9/2.",
+    "respuesta": "Por ejemplo, 4,666... con período 6, que equivale a 14/3.",
+    "valor_ejemplo": "14/3",
+    "conjunto": "Q",
+    "seccion": "Decimales periódicos",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 44",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "14/3=4,666... y 14/3>9/2 porque 28>27 al multiplicar en cruz.",
+    "verificar": "La respuesta no es única: sirve cualquier decimal periódico puro estrictamente mayor que 4,5. El valor registrado es solo un ejemplo; evaluar la periodicidad pura y la desigualdad.",
+    "dificultad": 450
+  },
+  {
+    "id": "CS8-U1-P017-A45",
+    "tipo": "numerico",
+    "enunciado": "Escribe un número decimal finito menor que -4 y mayor que -5.",
+    "expr": "-9/2",
+    "respuesta": "-4.5",
+    "respuesta_decimal": "-4,5",
+    "conjunto": "Q",
+    "seccion": "Orden de decimales",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 45",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "-5<-4,5<-4 y -4,5 es un decimal finito.",
+    "verificar": "La respuesta no es única. Se registró -4,5 como ejemplo, pero debe aceptarse cualquier decimal finito estrictamente comprendido entre -5 y -4.",
+    "dificultad": 300
+  },
+  {
+    "id": "CS8-U1-P017-A46",
+    "tipo": "numerico",
+    "enunciado": "Anota el número decimal representado por el punto B en la recta de -1 a 0.",
+    "expr": "-1+1/10",
+    "respuesta": "-0.9",
+    "respuesta_decimal": "-0,9",
+    "conjunto": "Q",
+    "seccion": "Representación decimal en la recta",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 46",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "El intervalo de -1 a 0 está dividido en diez partes; B está una décima a la derecha de -1: -1+0,1=-0,9.",
+    "dificultad": 350
+  },
+  {
+    "id": "CS8-U1-P017-A47",
+    "tipo": "numerico",
+    "enunciado": "Anota el número decimal representado por el punto D en la recta de 2,1 a 2,2.",
+    "expr": "21/10+4/100",
+    "respuesta": "2.14",
+    "respuesta_decimal": "2,14",
+    "conjunto": "Q",
+    "seccion": "Representación decimal en la recta",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 47",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "De 2,1 a 2,2 hay diez partes de 0,01 y D está en la cuarta: 2,1+0,04=2,14.",
+    "dificultad": 400
+  },
+  {
+    "id": "CS8-U1-P017-A48",
+    "tipo": "numerico",
+    "enunciado": "Anota el número decimal representado por la cuadrícula de 10×10, en la que hay 36 cuadros sombreados.",
+    "expr": "36/100",
+    "respuesta": "0.36",
+    "respuesta_decimal": "0,36",
+    "conjunto": "Q",
+    "seccion": "Modelos gráficos de decimales",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 48",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "La cuadrícula tiene 100 cuadros y 36 están sombreados: 36/100=0,36.",
+    "dificultad": 400
+  },
+  {
+    "id": "CS8-U1-P017-A49",
+    "tipo": "numerico",
+    "enunciado": "Anota el número decimal representado por el arreglo triangular de diez círculos, cuatro de ellos sombreados.",
+    "expr": "4/10",
+    "respuesta": "0.4",
+    "respuesta_decimal": "0,4",
+    "conjunto": "Q",
+    "seccion": "Modelos gráficos de decimales",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 49",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Hay 4 círculos sombreados de 10: 4/10=0,4.",
+    "dificultad": 300
+  },
+  {
+    "id": "CS8-U1-P017-A50",
+    "tipo": "decimal_a_fraccion",
+    "enunciado": "Expresa 0,8 en la forma a/b.",
+    "decimal": "0.8",
+    "respuesta": "4/5",
+    "conjunto": "Q",
+    "seccion": "Conversión de decimal a fracción",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 50",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "0,8=8/10=4/5.",
+    "dificultad": 300
+  },
+  {
+    "id": "CS8-U1-P017-A51",
+    "tipo": "decimal_a_fraccion",
+    "enunciado": "Expresa 2,75 en la forma a/b.",
+    "decimal": "2.75",
+    "respuesta": "11/4",
+    "conjunto": "Q",
+    "seccion": "Conversión de decimal a fracción",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 51",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "2,75=275/100=11/4.",
+    "dificultad": 350
+  },
+  {
+    "id": "CS8-U1-P017-A52",
+    "tipo": "decimal_a_fraccion",
+    "enunciado": "Expresa -0,66... con período 6 en la forma a/b.",
+    "decimal": "-0.(6)",
+    "respuesta": "-2/3",
+    "conjunto": "Q",
+    "seccion": "Conversión de decimal periódico a fracción",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 52",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "0,666...=6/9=2/3; al conservar el signo, -0,666...=-2/3.",
+    "dificultad": 450
+  },
+  {
+    "id": "CS8-U1-P017-A53",
+    "tipo": "decimal_a_fraccion",
+    "enunciado": "Expresa 3,5 en la forma a/b.",
+    "decimal": "3.5",
+    "respuesta": "7/2",
+    "conjunto": "Q",
+    "seccion": "Conversión de decimal a fracción",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 53",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "3,5=35/10=7/2.",
+    "dificultad": 300
+  },
+  {
+    "id": "CS8-U1-P017-A54",
+    "tipo": "decimal_a_fraccion",
+    "enunciado": "Expresa 4,5 en la forma a/b.",
+    "decimal": "4.5",
+    "respuesta": "9/2",
+    "conjunto": "Q",
+    "seccion": "Conversión de decimal a fracción",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 54",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "4,5=45/10=9/2.",
+    "dificultad": 300
+  },
+  {
+    "id": "CS8-U1-P017-A55",
+    "tipo": "decimal_a_fraccion",
+    "enunciado": "Expresa -1,44... con período 4 en la forma a/b.",
+    "decimal": "-1.(4)",
+    "respuesta": "-13/9",
+    "conjunto": "Q",
+    "seccion": "Conversión de decimal periódico a fracción",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 55",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "1,444...=(14-1)/9=13/9; con signo negativo resulta -13/9.",
+    "dificultad": 500
+  },
+  {
+    "id": "CS8-U1-P017-A56",
+    "tipo": "decimal_a_fraccion",
+    "enunciado": "Expresa 3,75 en la forma a/b.",
+    "decimal": "3.75",
+    "respuesta": "15/4",
+    "conjunto": "Q",
+    "seccion": "Conversión de decimal a fracción",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 56",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "3,75=375/100=15/4.",
+    "dificultad": 350
+  },
+  {
+    "id": "CS8-U1-P017-A57",
+    "tipo": "decimal_a_fraccion",
+    "enunciado": "Expresa -2,77... con período 7 en la forma a/b.",
+    "decimal": "-2.(7)",
+    "respuesta": "-25/9",
+    "conjunto": "Q",
+    "seccion": "Conversión de decimal periódico a fracción",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 57",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "2,777...=(27-2)/9=25/9; con signo negativo resulta -25/9.",
+    "dificultad": 500
+  },
+  {
+    "id": "CS8-U1-P017-A58",
+    "tipo": "verdadero_falso",
+    "enunciado": "Todo número entero es un número decimal. Escribe V o F y justifica.",
+    "respuesta": "V",
+    "conjunto": "Q",
+    "seccion": "Clasificación de decimales",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 58",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Todo entero n puede escribirse como decimal finito n,0; por ejemplo, -3=-3,0.",
+    "dificultad": 350
+  },
+  {
+    "id": "CS8-U1-P017-A59",
+    "tipo": "verdadero_falso",
+    "enunciado": "Existe un decimal finito cuya expresión fraccionaria es a/3, con a entero. Escribe V o F y justifica.",
+    "respuesta": "V",
+    "conjunto": "Q",
+    "seccion": "Expresión fraccionaria de decimales",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 59",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Basta tomar a múltiplo de 3. Por ejemplo, a=3 produce 3/3=1=1,0, que es decimal finito.",
+    "verificar": "La lectura literal es verdadera porque el enunciado no exige que a/3 sea irreducible. Si la intención editorial era suponer que a no es múltiplo de 3, la respuesta sería falsa; esa condición no está impresa. No autocalificar sin fijar la intención.",
+    "dificultad": 550
+  },
+  {
+    "id": "CS8-U1-P017-A60",
+    "tipo": "verdadero_falso",
+    "enunciado": "No existe ningún número entero a tal que a/5 represente un número decimal infinito periódico puro. Escribe V o F y justifica.",
+    "respuesta": "V",
+    "conjunto": "Q",
+    "seccion": "Expresión fraccionaria de decimales",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 60",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Para todo entero a, a/5=2a/10 tiene una representación decimal finita; por ello no puede ser periódico puro no terminante.",
+    "dificultad": 500
+  },
+  {
+    "id": "CS8-U1-P017-A61",
+    "tipo": "verificacion_fraccionaria",
+    "enunciado": "Verifica las expresiones fraccionarias de 0,666... con período 6 y 4,1919... con período 19.",
+    "respuesta": "0,666...=2/3 y 4,1919...=415/99.",
+    "conjunto": "Q",
+    "seccion": "Conversión de decimal periódico a fracción",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 61",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Si x=0,666..., entonces 10x-x=6 y x=6/9=2/3. Si y=4,1919..., entonces 100y-y=419-4=415 y y=415/99.",
+    "dificultad": 550
+  },
+  {
+    "id": "CS8-U1-P017-A62",
+    "tipo": "conceptual",
+    "enunciado": "Formula y comprueba una regla para convertir un número decimal en fracción.",
+    "respuesta": "Para un decimal finito con m cifras decimales, se elimina la coma y se divide entre 10^m, simplificando después. Para un periódico puro con período de k cifras, se resta al número formado por la parte entera seguida del período la parte entera y se divide entre un número de k nueves; luego se simplifica. Por ejemplo, 2,75=275/100=11/4 y 4,1919...=(419-4)/99=415/99.",
+    "conjunto": "Q",
+    "seccion": "Conversión de decimal a fracción",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 62",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Se aceptan formulaciones algebraicas equivalentes que distingan correctamente decimales finitos, periódicos puros y, si se amplía la regla, periódicos mixtos.",
+    "dificultad": 600
+  },
+  {
+    "id": "CS8-U1-P017-A63",
+    "tipo": "conversion_multiple",
+    "enunciado": "El deshielo aporta anualmente 7/50 mm en Alaska, 13/100 mm en Groenlandia y 1/5 mm en el mar Amundsen. ¿Qué cantidad decimal aporta cada lugar?",
+    "respuesta": "Alaska: 0,14 mm; Groenlandia: 0,13 mm; mar Amundsen: 0,2 mm.",
+    "valores": {
+      "Alaska": "0.14",
+      "Groenlandia": "0.13",
+      "mar Amundsen": "0.2"
+    },
+    "conjunto": "Q",
+    "seccion": "Aplicación de decimales",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 63",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "7/50=14/100=0,14; 13/100=0,13; 1/5=2/10=0,2.",
+    "dificultad": 400
+  },
+  {
+    "id": "CS8-U1-P017-A64",
+    "tipo": "orden_asociado",
+    "enunciado": "¿Cuál de los tres lugares aporta más al aumento anual del nivel del mar?",
+    "datos": {
+      "mar Amundsen": "1/5",
+      "Alaska": "7/50",
+      "Groenlandia": "13/100"
+    },
+    "direccion": "mayor_a_menor",
+    "respuesta": [
+      "mar Amundsen",
+      "Alaska",
+      "Groenlandia"
+    ],
+    "respuesta_pregunta": "El mar Amundsen, con 0,2 mm anuales.",
+    "conjunto": "Q",
+    "seccion": "Comparación de decimales",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 64",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "0,2>0,14>0,13.",
+    "dificultad": 350
+  },
+  {
+    "id": "CS8-U1-P017-A65",
+    "tipo": "numerico",
+    "enunciado": "¿En cuánto aumentó en total el nivel del mar al considerar los aportes de Alaska, Groenlandia y el mar Amundsen?",
+    "expr": "7/50+13/100+1/5",
+    "respuesta": "0.47",
+    "respuesta_decimal": "0,47 mm",
+    "conjunto": "Q",
+    "seccion": "Aplicación de decimales",
+    "unidad": 1,
+    "pagina_pdf": 17,
+    "referencia": "Actividad 65",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "0,14+0,13+0,2=0,47 mm.",
+    "dificultad": 400
+  }
+]

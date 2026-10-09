@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LevelUp-ELO — Matemáticas con rango adaptativo</title>
+<meta name="description" content="Practica matemáticas con ELO adaptativo y tutoría socrática de KatIA. Sube de nivel, una jugada a la vez." />
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="landing.css" />
+</head>
+<body>
+
+<!-- ===================== NAV ===================== -->
+<header class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="#top" aria-label="LevelUp ELO"><img class="nav-logo" src="assets/logo.png" alt="LevelUp ELO" /></a>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#features" data-es="Funciones" data-en="Features">Funciones</a></li>
+        <li><a href="#engine" data-es="Cómo funciona" data-en="How it works">Cómo funciona</a></li>
+        <li><a href="#katia" data-es="KatIA" data-en="KatIA">KatIA</a></li>
+        <li><a href="#teachers" data-es="Docentes" data-en="Teachers">Docentes</a></li>
+        <li><a href="#about" data-es="Nosotros" data-en="About">Nosotros</a></li>
+        <li><a href="#faq" data-es="FAQ" data-en="FAQ">FAQ</a></li>
+      </ul>
+    </nav>
+    <div class="nav-actions">
+      <div class="lang" role="group" aria-label="Idioma">
+        <button class="on" data-l="es">ES</button><button data-l="en">EN</button>
+      </div>
+      <a class="nav-login" href="https://luislevelupelo.vercel.app" target="_blank" rel="noopener" data-es="Iniciar sesión" data-en="Log in">Iniciar sesión</a>
+      <a class="btn btn-primary" href="https://luislevelupelo.vercel.app" target="_blank" rel="noopener" data-es="Empezar gratis" data-en="Start free">Empezar gratis</a>
+      <button class="nav-burger" id="burger" aria-label="Menú">☰</button>
+    </div>
+  </div>
+</header>
+<nav class="mobile-menu" id="mobileMenu">
+  <a href="#features" data-es="Funciones" data-en="Features">Funciones</a>
+  <a href="#engine" data-es="Cómo funciona" data-en="How it works">Cómo funciona</a>
+  <a href="#katia" data-es="KatIA" data-en="KatIA">KatIA</a>
+  <a href="#teachers" data-es="Docentes" data-en="Teachers">Docentes</a>
+  <a href="#about" data-es="Nosotros" data-en="About">Nosotros</a>
+  <a href="#faq" data-es="FAQ" data-en="FAQ">FAQ</a>
+  <a href="https://luislevelupelo.vercel.app" target="_blank" rel="noopener" data-es="Iniciar sesión →" data-en="Log in →">Iniciar sesión →</a>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="top">
+  <div class="hero-bg"><span class="glow a"></span><span class="glow b"></span></div>
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow"><span class="dot"></span><span data-es="Aprendizaje adaptativo con ELO" data-en="Adaptive learning powered by ELO">Aprendizaje adaptativo con ELO</span></span>
+      <h1 class="hero-h1" data-es-html="Las matemáticas tienen rango. <span class='em'>Sube el tuyo.</span>" data-en-html="Math has a rank. <span class='em'>Climb yours.</span>">Las matemáticas tienen rango. <span class="em">Sube el tuyo.</span></h1>
+      <p class="hero-sub" data-es="LevelUp-ELO mide tu nivel en tiempo real y te sirve siempre el reto perfecto — ni tan fácil que aburra, ni tan difícil que frustre. Con KatIA, tu tutora socrática, guiándote en cada jugada." data-en="LevelUp-ELO measures your level in real time and always serves the perfect challenge — never too easy, never too hard. With KatIA, your socratic tutor, guiding every move.">LevelUp-ELO mide tu nivel en tiempo real y te sirve siempre el reto perfecto — ni tan fácil que aburra, ni tan difícil que frustre. Con KatIA, tu tutora socrática, guiándote en cada jugada.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary btn-lg" href="https://luislevelupelo.vercel.app" target="_blank" rel="noopener" data-es="Crear mi cuenta" data-en="Create my account">Crear mi cuenta</a>
+        <a class="btn btn-ghost btn-lg" href="#engine" data-es="Ver cómo funciona" data-en="See how it works">Ver cómo funciona</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="n"><span class="a">+1.900</span></div><div class="l" data-es="preguntas calibradas" data-en="calibrated questions">preguntas calibradas</div></div>
+        <div class="hero-stat"><div class="n">16</div><div class="l" data-es="rangos por escalar" data-en="ranks to climb">rangos por escalar</div></div>
+        <div class="hero-stat"><div class="n">10+</div><div class="l" data-es="materias" data-en="subjects">materias</div></div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="float-chip chip-elo"><div class="ico">♛</div><div><div class="ck">ELO</div><div class="cv">1.847</div></div></div>
+      <div class="float-chip chip-rank"><div class="ico">▲</div><div><div class="ck" data-es="RANGO" data-en="RANK">RANGO</div><div class="cv">Diamante I</div></div></div>
+      <div class="charframe">
+        <div class="hud"><span class="fdot" style="background:#ff5f57"></span><span class="fdot" style="background:#febc2e"></span><span class="fdot" style="background:#28c840"></span><span class="lbl">KATIA.EXE</span></div>
+        <img src="assets/katia-correcto.gif" alt="KatIA, tutora socrática pixel-art" />
+        <div class="nameplate">
+          <div class="who">KatIA<small data-es="Tutora socrática" data-en="Socratic tutor">Tutora socrática</small></div>
+          <div class="hpbar"><div class="t">XP 72%</div><div class="bar"><i id="heroXp"></i></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== MARQUEE ===================== -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>ÁLGEBRA · CÁLCULO · GEOMETRÍA · TRIGONOMETRÍA · PROBABILIDAD · ARITMÉTICA · LÓGICA · COMBINATORIA · ÁLGEBRA LINEAL · </span>
+    <span>ÁLGEBRA · CÁLCULO · GEOMETRÍA · TRIGONOMETRÍA · PROBABILIDAD · ARITMÉTICA · LÓGICA · COMBINATORIA · ÁLGEBRA LINEAL · </span>
+  </div>
+</div>
+
+<!-- ===================== FEATURES ===================== -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker" data-es="Funciones" data-en="Features">Funciones</span>
+      <h2 class="section-title" data-es-html="Todo lo que necesitas para <span class='em'>avanzar de verdad.</span>" data-en-html="Everything you need to <span class='em'>truly progress.</span>">Todo lo que necesitas para <span class="em">avanzar de verdad.</span></h2>
+      <p class="section-sub" data-es="Un motor de rating que se adapta a ti, una tutora con IA que te guía sin darte la respuesta, y una plataforma completa pensada para el aula." data-en="A rating engine that adapts to you, an AI tutor that guides you without handing over the answer, and a full platform built for the classroom.">Un motor de rating que se adapta a ti, una tutora con IA que te guía sin darte la respuesta, y una plataforma completa pensada para el aula.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="card feat t1 reveal">
+        <div class="ficon">♟</div>
+        <h3 data-es="Motor ELO adaptativo" data-en="Adaptive ELO engine">Motor ELO adaptativo</h3>
+        <p data-es="El mismo rating del ajedrez, por tópico. Cada respuesta recalibra tu nivel y el de la pregunta." data-en="The same rating used in chess, per topic. Every answer recalibrates your level and the question's.">El mismo rating del ajedrez, por tópico. Cada respuesta recalibra tu nivel y el de la pregunta.</p>
+        <ul>
+          <li><span data-es="ELO vectorial por materia" data-en="Vector ELO per subject">ELO vectorial por materia</span></li>
+          <li><span data-es="Factor K dinámico según tu experiencia" data-en="Dynamic K-factor based on your experience">Factor K dinámico según tu experiencia</span></li>
+          <li><span data-es="Selección por Zona de Desarrollo Próximo" data-en="Zone of Proximal Development selection">Selección por Zona de Desarrollo Próximo</span></li>
+        </ul>
+      </div>
+      <div class="card feat t2 reveal">
+        <div class="ficon">🐱</div>
+        <h3 data-es="KatIA, tutora con IA" data-en="KatIA, AI tutor">KatIA, tutora con IA</h3>
+        <p data-es="Una tutora socrática que te hace la pregunta correcta y revisa tus procedimientos paso a paso." data-en="A socratic tutor that asks you the right question and reviews your handwritten work step by step.">Una tutora socrática que te hace la pregunta correcta y revisa tus procedimientos paso a paso.</p>
+        <ul>
+          <li><span data-es="Chat socrático que no revela la solución" data-en="Socratic chat that never reveals the solution">Chat socrático que no revela la solución</span></li>
+          <li><span data-es="Revisión de procedimientos manuscritos" data-en="Handwritten procedure review">Revisión de procedimientos manuscritos</span></li>
+          <li><span data-es="Mensajes según tu racha y tu rango" data-en="Messages based on your streak and rank">Mensajes según tu racha y tu rango</span></li>
+        </ul>
+      </div>
+      <div class="card feat t3 reveal">
+        <div class="ficon">🏆</div>
+        <h3 data-es="Progresión gamificada" data-en="Gamified progression">Progresión gamificada</h3>
+        <p data-es="16 rangos por escalar, de Aspirante a Leyenda Suprema. Rachas, logros y ranking del grupo." data-en="16 ranks to climb, from Aspirant to Supreme Legend. Streaks, achievements and group ranking.">16 rangos por escalar, de Aspirante a Leyenda Suprema. Rachas, logros y ranking del grupo.</p>
+        <ul>
+          <li><span data-es="Insignias de rango por materia" data-en="Rank badges per subject">Insignias de rango por materia</span></li>
+          <li><span data-es="Rachas diarias y logros animados" data-en="Daily streaks and animated achievements">Rachas diarias y logros animados</span></li>
+          <li><span data-es="Ranking de tu grupo en tiempo real" data-en="Real-time group leaderboard">Ranking de tu grupo en tiempo real</span></li>
+        </ul>
+      </div>
+
+      <div class="card feat feat-wide t4 reveal">
+        <div>
+          <div class="ficon">🛡️</div>
+          <h3 style="margin-top:15px" data-es="Una plataforma completa, segura y bilingüe" data-en="A complete, secure, bilingual platform">Una plataforma completa, segura y bilingüe</h3>
+          <p style="margin-top:10px;max-width:46ch" data-es="Tres roles, dashboard docente, exámenes asignables y exportación de datos. Funciona en el celular y cambia entre español e inglés sin recargar." data-en="Three roles, a teacher dashboard, assignable exams and data export. Works on mobile and switches between Spanish and English without reloading.">Tres roles, dashboard docente, exámenes asignables y exportación de datos. Funciona en el celular y cambia entre español e inglés sin recargar.</p>
+        </div>
+        <ul style="align-self:center">
+          <li><span data-es="Estudiante, docente y administrador" data-en="Student, teacher and admin">Estudiante, docente y administrador</span></li>
+          <li><span data-es="Contraseñas protegidas con Argon2id" data-en="Passwords protected with Argon2id">Contraseñas protegidas con Argon2id</span></li>
+          <li><span data-es="Mobile-ready y bilingüe ES / EN" data-en="Mobile-ready and bilingual ES / EN">Mobile-ready y bilingüe ES / EN</span></li>
+          <li><span data-es="Materias de colegio, universidad y concursos" data-en="School, university and contest subjects">Materias de colegio, universidad y concursos</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ELO DEMO ===================== -->
+<section class="section" id="engine" style="padding-top:0">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="kicker" style="justify-content:center" data-es="El motor en acción" data-en="The engine in action">El motor en acción</span>
+      <h2 class="section-title" data-es-html="Responde. Recalibra. <span class='em'>Sube de nivel.</span>" data-en-html="Answer. Recalibrate. <span class='em'>Level up.</span>">Responde. Recalibra. <span class="em">Sube de nivel.</span></h2>
+      <p class="section-sub" data-es="Mira cómo tu ELO sube con cada acierto y te acerca al siguiente rango. Así se siente progresar en LevelUp." data-en="Watch your ELO rise with every correct answer and bring the next rank closer. This is what progress feels like in LevelUp.">Mira cómo tu ELO sube con cada acierto y te acerca al siguiente rango. Así se siente progresar en LevelUp.</p>
+    </div>
+
+    <div class="demo-wrap reveal" id="eloDemo">
+      <span class="glow a" style="top:-120px;left:-80px"></span>
+      <div class="demo-left">
+        <div class="pixel" style="font-size:9px;color:var(--mute);margin-bottom:14px" data-es="TU ELO ACTUAL" data-en="YOUR CURRENT ELO">TU ELO ACTUAL</div>
+        <div class="demo-elo" id="demoElo">1.180</div>
+        <div class="demo-rank"><span id="demoRankName" style="color:var(--accent-2)">Oro I</span><span class="delta" id="demoDelta">+24</span></div>
+        <div class="demo-bar"><i id="demoBar"></i></div>
+        <div class="demo-meta"><span id="demoRankLow" data-es="Oro I" data-en="Gold I">Oro I</span><span id="demoRankHigh" data-es="Platino I" data-en="Platinum I">Platino I</span></div>
+        <div class="demo-cta">
+          <button class="btn btn-primary" id="demoAnswer" data-es="Responder bien ✓" data-en="Answer correctly ✓">Responder bien ✓</button>
+          <button class="demo-replay" id="demoReset" data-es="Reiniciar" data-en="Reset">Reiniciar</button>
+        </div>
+      </div>
+      <div class="ladder" id="ladder"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== KATIA ===================== -->
+<section class="section" id="katia">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker" data-es="Conoce a KatIA" data-en="Meet KatIA">Conoce a KatIA</span>
+      <h2 class="section-title" data-es-html="No te da la respuesta. <span class='em'>Te enseña a encontrarla.</span>" data-en-html="She won't give you the answer. <span class='em'>She teaches you to find it.</span>">No te da la respuesta. <span class="em">Te enseña a encontrarla.</span></h2>
+    </div>
+    <div class="katia-wrap">
+      <div class="reveal">
+        <div class="katia-art">
+          <img src="assets/katia-correcto.gif" alt="KatIA escribiendo con pluma sobre un pergamino" />
+          <div class="scan"></div>
+        </div>
+        <div class="katia-points">
+          <div class="kpt"><div class="ki">💬</div><div><h4 data-es="Método socrático" data-en="Socratic method">Método socrático</h4><p data-es="Te guía con preguntas hasta que la solución surge de ti. Nunca la regala." data-en="She guides you with questions until the solution comes from you. Never hands it over.">Te guía con preguntas hasta que la solución surge de ti. Nunca la regala.</p></div></div>
+          <div class="kpt"><div class="ki">✍️</div><div><h4 data-es="Revisa tu procedimiento" data-en="Reviews your work">Revisa tu procedimiento</h4><p data-es="Sube una foto de tu desarrollo a mano y KatIA lo analiza paso a paso." data-en="Upload a photo of your handwritten work and KatIA analyses it step by step.">Sube una foto de tu desarrollo a mano y KatIA lo analiza paso a paso.</p></div></div>
+        </div>
+      </div>
+
+      <div class="chat reveal" id="chat">
+        <div class="chat-top">
+          <div class="av"><img src="assets/katia-correcto.gif" alt="KatIA" /></div>
+          <div>
+            <div class="nm">KatIA</div>
+            <div class="st" data-es="en línea" data-en="online">en línea</div>
+          </div>
+        </div>
+        <div class="chat-body" id="chatBody"></div>
+        <div class="chat-input" id="chatPrompts"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TEACHERS ===================== -->
+<section class="section" id="teachers">
+  <div class="container">
+    <div class="teach reveal">
+      <span class="glow b" style="top:-100px;right:-80px;opacity:.4"></span>
+      <div style="position:relative;z-index:1">
+        <span class="kicker" data-es="Para docentes" data-en="For teachers">Para docentes</span>
+        <h2 class="section-title" style="font-size:clamp(28px,3.6vw,40px);margin:16px 0 14px" data-es-html="Ve el progreso real de cada estudiante, <span class='em'>tópico por tópico.</span>" data-en-html="See each student's real progress, <span class='em'>topic by topic.</span>">Ve el progreso real de cada estudiante, <span class="em">tópico por tópico.</span></h2>
+        <p class="section-sub" data-es="Un panel pensado para el aula: identifica fortalezas y debilidades, revisa procedimientos y exporta calificaciones en un clic." data-en="A dashboard built for the classroom: spot strengths and weaknesses, review work, and export grades in one click.">Un panel pensado para el aula: identifica fortalezas y debilidades, revisa procedimientos y exporta calificaciones en un clic.</p>
+        <div class="teach-list">
+          <div class="tfeat"><span class="ti">📈</span><div><h4 data-es="ELO temporal por alumno" data-en="ELO over time per student">ELO temporal por alumno</h4><p data-es="Evolución y radar por tópico." data-en="Trend and per-topic radar.">Evolución y radar por tópico.</p></div></div>
+          <div class="tfeat"><span class="ti">🧠</span><div><h4 data-es="Análisis pedagógico con IA" data-en="AI pedagogical analysis">Análisis pedagógico con IA</h4><p data-es="Resúmenes y recomendaciones." data-en="Summaries and recommendations.">Resúmenes y recomendaciones.</p></div></div>
+          <div class="tfeat"><span class="ti">📝</span><div><h4 data-es="Exámenes asignables" data-en="Assignable exams">Exámenes asignables</h4><p data-es="Por grupo y ventana de tiempo." data-en="By group and time window.">Por grupo y ventana de tiempo.</p></div></div>
+          <div class="tfeat"><span class="ti">📤</span><div><h4 data-es="Exportación CSV / XLSX" data-en="CSV / XLSX export">Exportación CSV / XLSX</h4><p data-es="Calificaciones listas para tu registro." data-en="Grades ready for your records.">Calificaciones listas para tu registro.</p></div></div>
+        </div>
+        <a class="btn btn-primary" href="https://luislevelupelo.vercel.app" target="_blank" rel="noopener" data-es="Solicitar acceso docente" data-en="Request teacher access">Solicitar acceso docente</a>
+      </div>
+      <div class="teach-visual" style="position:relative;z-index:1">
+        <div class="tv-head"><span class="pixel" data-es="ELO POR TÓPICO" data-en="ELO BY TOPIC">ELO POR TÓPICO</span><span class="pixel" style="color:var(--accent-2)">9° A</span></div>
+        <div class="mini-bars" id="miniBars"></div>
+        <div class="mini-row"><span data-es="Álgebra" data-en="Algebra">Álgebra</span><span data-es="Geometría" data-en="Geometry">Geometría</span><span data-es="Aritmética" data-en="Arithmetic">Aritmética</span><span data-es="Lógica" data-en="Logic">Lógica</span><span data-es="Prob." data-en="Prob.">Prob.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ABOUT ===================== -->
+<section class="section" id="about">
+  <div class="container about-grid">
+    <div class="reveal">
+      <span class="kicker" data-es="Nosotros" data-en="About us">Nosotros</span>
+      <h2 class="section-title" style="font-size:clamp(28px,3.6vw,42px);margin-top:16px" data-es-html="Aprender debería sentirse <span class='em'>justo.</span>" data-en-html="Learning should feel <span class='em'>fair.</span>">Aprender debería sentirse <span class="em">justo.</span></h2>
+    </div>
+    <div class="about-body reveal">
+      <p data-es-html="LevelUp-ELO nació de una idea simple: cada estudiante avanza a su propio ritmo, y la dificultad debería ajustarse a la persona — no al revés. Tomamos el <strong>sistema de rating del ajedrez</strong> y lo aplicamos a la educación matemática." data-en-html="LevelUp-ELO was born from a simple idea: every student moves at their own pace, and difficulty should adapt to the person — not the other way around. We took the <strong>chess rating system</strong> and applied it to math education.">LevelUp-ELO nació de una idea simple: cada estudiante avanza a su propio ritmo, y la dificultad debería ajustarse a la persona — no al revés. Tomamos el <strong>sistema de rating del ajedrez</strong> y lo aplicamos a la educación matemática.</p>
+      <p data-es-html="El resultado: un reto siempre a tu medida, una tutora que respeta tu proceso, y datos que ayudan a docentes a enseñar mejor. Desde el <strong>colegio hasta la universidad</strong>, pasando por semilleros y concursos." data-en-html="The result: a challenge always tailored to you, a tutor that respects your process, and data that helps teachers teach better. From <strong>school to university</strong>, including talent programs and contests.">El resultado: un reto siempre a tu medida, una tutora que respeta tu proceso, y datos que ayudan a docentes a enseñar mejor. Desde el <strong>colegio hasta la universidad</strong>, pasando por semilleros y concursos.</p>
+      <div class="values">
+        <div class="card val"><span class="vi">🎯</span><div><h4 data-es="El reto justo" data-en="The right challenge">El reto justo</h4><p data-es="Ni aburrimiento ni frustración: siempre en tu zona de aprendizaje." data-en="No boredom, no frustration: always in your learning zone.">Ni aburrimiento ni frustración: siempre en tu zona de aprendizaje.</p></div></div>
+        <div class="card val"><span class="vi">🤝</span><div><h4 data-es="Guiar, no resolver" data-en="Guide, don't solve">Guiar, no resolver</h4><p data-es="KatIA te acompaña para que el aprendizaje sea tuyo de verdad." data-en="KatIA walks beside you so the learning is genuinely yours.">KatIA te acompaña para que el aprendizaje sea tuyo de verdad.</p></div></div>
+        <div class="card val"><span class="vi">📊</span><div><h4 data-es="Decisiones con datos" data-en="Data-driven decisions">Decisiones con datos</h4><p data-es="Métricas claras por tópico para estudiantes y docentes." data-en="Clear per-topic metrics for students and teachers.">Métricas claras por tópico para estudiantes y docentes.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FAQ ===================== -->
+<section class="section" id="faq">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="kicker" style="justify-content:center" data-es="Preguntas frecuentes" data-en="FAQ">Preguntas frecuentes</span>
+      <h2 class="section-title" data-es="¿Tienes dudas?" data-en="Got questions?">¿Tienes dudas?</h2>
+    </div>
+    <div class="faq" id="faq-list"></div>
+  </div>
+</section>
+
+<!-- ===================== FINAL CTA ===================== -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="cta-final reveal">
+      <span class="kicker" data-es="Empieza hoy" data-en="Start today">Empieza hoy</span>
+      <h2 data-es-html="¿Listo para <span class='em'>subir de nivel?</span>" data-en-html="Ready to <span class='em'>level up?</span>">¿Listo para <span class="em">subir de nivel?</span></h2>
+      <p data-es="Crea tu cuenta gratis y deja que el motor ELO encuentre tu reto perfecto. KatIA ya te está esperando." data-en="Create your free account and let the ELO engine find your perfect challenge. KatIA is already waiting for you.">Crea tu cuenta gratis y deja que el motor ELO encuentre tu reto perfecto. KatIA ya te está esperando.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary btn-lg" href="https://luislevelupelo.vercel.app" target="_blank" rel="noopener" data-es="Crear mi cuenta" data-en="Create my account">Crear mi cuenta</a>
+        <a class="btn btn-ghost btn-lg" href="#katia" data-es="Conocer a KatIA" data-en="Meet KatIA">Conocer a KatIA</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <img class="nav-logo" src="assets/logo.png" alt="LevelUp ELO" style="height:28px" />
+        <p data-es="Matemáticas con rango adaptativo. Sube de nivel, una jugada a la vez." data-en="Math with adaptive rank. Level up, one move at a time.">Matemáticas con rango adaptativo. Sube de nivel, una jugada a la vez.</p>
+      </div>
+      <div class="foot-col">
+        <h5 data-es="Producto" data-en="Product">Producto</h5>
+        <ul>
+          <li><a href="#features" data-es="Funciones" data-en="Features">Funciones</a></li>
+          <li><a href="#engine" data-es="Cómo funciona" data-en="How it works">Cómo funciona</a></li>
+          <li><a href="#katia" data-es="KatIA" data-en="KatIA">KatIA</a></li>
+          <li><a href="#teachers" data-es="Para docentes" data-en="For teachers">Para docentes</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h5 data-es="Recursos" data-en="Resources">Recursos</h5>
+        <ul>
+          <li><a href="#about" data-es="Nosotros" data-en="About">Nosotros</a></li>
+          <li><a href="#faq" data-es="FAQ" data-en="FAQ">FAQ</a></li>
+          <li><a href="https://github.com/LuisJRubioH/LevelUp-ELO" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h5 data-es="Cuenta" data-en="Account">Cuenta</h5>
+        <ul>
+          <li><a href="https://luislevelupelo.vercel.app" target="_blank" rel="noopener" data-es="Iniciar sesión" data-en="Log in">Iniciar sesión</a></li>
+          <li><a href="https://luislevelupelo.vercel.app" target="_blank" rel="noopener" data-es="Crear cuenta" data-en="Sign up">Crear cuenta</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <span>© 2026 LevelUp-ELO</span>
+      <span class="pixel" style="font-size:8px" data-es="HECHO PARA SUBIR DE NIVEL" data-en="MADE TO LEVEL UP">HECHO PARA SUBIR DE NIVEL</span>
+    </div>
+  </div>
+</footer>
+
+<div id="tweaks-root"></div>
+
+<script src="landing.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="tweaks-config.jsx"></script>
+
+<style id="__om-edit-overrides"></style>
+</body>
+</html>

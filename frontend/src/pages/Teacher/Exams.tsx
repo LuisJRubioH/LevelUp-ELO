@@ -1,73 +1,164 @@
 /**
- * pages/Teacher/Exams.tsx
- * ========================
- * Gestión de plantillas de examen manuales — Sprint C.
- * Tabs:
- *   - Mis exámenes: lista de templates activos + acciones editar/archivar
- *   - Crear/Editar: selector de items por curso con preview
- * El docente arma una lista de preguntas; el orden se preserva tal cual.
+ * pages/Teacher/Exams.tsx — Exámenes (rediseño)
+ * =============================================
+ * Gestión de plantillas de examen + asignación a grupos. Reskin al diseño
+ * del console (.lue-tc); la lógica real (templates, catálogo de ítems,
+ * asignaciones con ventana de tiempo) se conserva intacta.
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
-import katex from "katex";
-import "katex/dist/katex.min.css";
+import { MathText } from "../../components/Math/MathContent";
 import {
   teacherApi,
   type ExamAssignment,
+  type ExamResults,
   type ExamTemplate,
   type Group,
   type ItemCatalogEntry,
 } from "../../api/teacher";
 
 type Tab = "list" | "form";
-
 interface Course {
   id: string;
   name: string;
   block: string;
 }
 
-function RenderMath({ text }: { text: string }) {
-  const parts = text.split(/(\$\$[^$]+\$\$|\$[^$\n]+\$)/g);
-  if (parts.length === 1) return <>{text}</>;
+const accColor = (a: number) => (a >= 80 ? "#34d399" : a >= 60 ? "#fbbf24" : "#f87171");
+
+/* ── drawer de resultados del examen ─────────────────────────────────────── */
+function ExamResultsDrawer({ template, onClose }: { template: ExamTemplate; onClose: () => void }) {
+  const [data, setData] = useState<ExamResults | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+    teacherApi
+      .examResults(template.id)
+      .then((d) => alive && setData(d))
+      .catch(() => alive && setErr("No se pudieron cargar los resultados."))
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, [template.id]);
+
+  const stripMath = (s: string) => s.replace(/\$\$?/g, "").slice(0, 90);
+
   return (
-    <>
-      {parts.map((p, i) => {
-        let math: string | null = null;
-        let display = false;
-        if (p.startsWith("$$") && p.endsWith("$$") && p.length >= 4) {
-          math = p.slice(2, -2);
-          display = true;
-        } else if (p.startsWith("$") && p.endsWith("$") && p.length >= 2) {
-          math = p.slice(1, -1);
-        }
-        if (math !== null) {
-          try {
-            const html = katex.renderToString(math, {
-              displayMode: display,
-              throwOnError: false,
-              errorColor: "#ef4444",
-            });
-            return (
-              <span
-                key={i}
-                className={display ? "block my-1" : "inline-block align-middle"}
-                dangerouslySetInnerHTML={{ __html: html }}
-              />
-            );
-          } catch {
-            return <span key={i}>{p}</span>;
-          }
-        }
-        return <span key={i}>{p}</span>;
-      })}
-    </>
+    <div className="grp-backdrop" onClick={onClose}>
+      <aside className="grp-drawer" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Resultados del examen">
+        <div className="gd-head">
+          <div className="gd-htop">
+            <span className="gd-ic" style={{ background: "var(--accent)" }}>
+              📊
+            </span>
+            <button className="gd-x" onClick={onClose} aria-label="Cerrar">
+              ✕
+            </button>
+          </div>
+          <h2>{template.title}</h2>
+          <p className="gd-sub">Análisis de resultados</p>
+        </div>
+
+        {loading ? (
+          <div className="gd-section">
+            <p style={{ color: "var(--mute)", fontSize: 13 }}>Cargando…</p>
+          </div>
+        ) : err ? (
+          <div className="gd-section">
+            <p style={{ color: "#f87171", fontSize: 13 }}>{err}</p>
+          </div>
+        ) : !data || data.n_sessions === 0 ? (
+          <div className="gd-section">
+            <p style={{ color: "var(--mute)", fontSize: 13.5, lineHeight: 1.5 }}>
+              Aún nadie ha presentado este examen. Cuando tus estudiantes lo respondan, aquí verás la pregunta
+              más acertada, la más fallada y el tema a reforzar.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="gd-stats">
+              <div className="gds">
+                <span className="l">Presentaciones</span>
+                <b>{data.n_sessions}</b>
+              </div>
+              <div className="gds">
+                <span className="l">Estudiantes</span>
+                <b>{data.n_students}</b>
+              </div>
+              <div className="gds">
+                <span className="l">Nota promedio</span>
+                <b style={{ color: accColor(data.avg_score) }}>{data.avg_score}%</b>
+              </div>
+            </div>
+
+            <div className="gd-section">
+              <h4>Resumen</h4>
+              <div className="ex-res-hl">
+                <div className="ex-hl good">
+                  <span className="hl-l">Más acertada</span>
+                  <span className="hl-v">{data.best_question ? `${data.best_question.accuracy}%` : "—"}</span>
+                  {data.best_question && <span className="hl-s">{stripMath(data.best_question.content)}</span>}
+                </div>
+                <div className="ex-hl bad">
+                  <span className="hl-l">Más fallada</span>
+                  <span className="hl-v">{data.worst_question ? `${data.worst_question.accuracy}%` : "—"}</span>
+                  {data.worst_question && <span className="hl-s">{stripMath(data.worst_question.content)}</span>}
+                </div>
+                <div className="ex-hl warn">
+                  <span className="hl-l">Tema a reforzar</span>
+                  <span className="hl-v" style={{ fontSize: 15 }}>
+                    {data.reinforce_topic ? data.reinforce_topic.topic : "—"}
+                  </span>
+                  {data.reinforce_topic && <span className="hl-s">{data.reinforce_topic.accuracy}% de acierto</span>}
+                </div>
+              </div>
+            </div>
+
+            <div className="gd-section">
+              <h4>Por pregunta</h4>
+              {data.questions.map((q) => (
+                <div className="ex-qstat" key={q.item_id}>
+                  <div className="q-main">
+                    <div className="q-txt">{stripMath(q.content)}</div>
+                    <div className="q-meta">
+                      {q.topic ?? "—"} · {q.correct}/{q.total} correctas
+                    </div>
+                  </div>
+                  <div className="q-acc">
+                    <b style={{ color: accColor(q.accuracy) }}>{q.accuracy}%</b>
+                    <div className="q-bar">
+                      <i style={{ width: q.accuracy + "%", background: accColor(q.accuracy) }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {data.topics.length > 0 && (
+              <div className="gd-section">
+                <h4>Por tópico</h4>
+                {data.topics.map((tp) => (
+                  <div className="mastery-row" key={tp.topic}>
+                    <div className="ml">{tp.topic}</div>
+                    <div className="mbar">
+                      <i style={{ width: tp.accuracy + "%", background: accColor(tp.accuracy) }} />
+                    </div>
+                    <div className="mv">{tp.accuracy}%</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </aside>
+    </div>
   );
 }
 
 export function TeacherExams() {
-  const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>("list");
   const [courses, setCourses] = useState<Course[]>([]);
   const [filterCourse, setFilterCourse] = useState<string>("");
@@ -75,7 +166,6 @@ export function TeacherExams() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Estado del formulario (crear/editar)
   const [editing, setEditing] = useState<ExamTemplate | null>(null);
   const [formCourseId, setFormCourseId] = useState("");
   const [formTitle, setFormTitle] = useState("");
@@ -83,8 +173,9 @@ export function TeacherExams() {
   const [formItemIds, setFormItemIds] = useState<string[]>([]);
   const [catalog, setCatalog] = useState<ItemCatalogEntry[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(false);
+  const [filterTopic, setFilterTopic] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  // Asignación a grupos
   const [assigningTo, setAssigningTo] = useState<ExamTemplate | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
   const [assignments, setAssignments] = useState<ExamAssignment[]>([]);
@@ -93,10 +184,8 @@ export function TeacherExams() {
   const [assignEndsAt, setAssignEndsAt] = useState("");
   const [assignSaving, setAssignSaving] = useState(false);
   const [assignError, setAssignError] = useState("");
-  const [filterTopic, setFilterTopic] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [resultsFor, setResultsFor] = useState<ExamTemplate | null>(null);
 
-  // ── Cargar cursos al montar ───────────────────────────────────────────────
   useEffect(() => {
     teacherApi
       .allCourses()
@@ -104,11 +193,10 @@ export function TeacherExams() {
         setCourses(cs);
         if (cs.length && !filterCourse) setFilterCourse(cs[0].id);
       })
-      .catch(() => setError(t("teacherExams.errorLoadCourses")));
+      .catch(() => setError("No se pudieron cargar los cursos."));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Cargar templates cuando cambia el filtro de curso ─────────────────────
   useEffect(() => {
     if (!filterCourse) return;
     setLoading(true);
@@ -116,12 +204,11 @@ export function TeacherExams() {
     teacherApi
       .examTemplates(filterCourse)
       .then(setTemplates)
-      .catch(() => setError(t("teacherExams.errorLoadTemplates")))
+      .catch(() => setError("No se pudieron cargar los exámenes."))
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterCourse]);
 
-  // ── Cargar catálogo de items cuando se cambia el curso del formulario ─────
   useEffect(() => {
     if (!formCourseId) {
       setCatalog([]);
@@ -131,7 +218,7 @@ export function TeacherExams() {
     teacherApi
       .itemsCatalog(formCourseId)
       .then(setCatalog)
-      .catch(() => setError(t("teacherExams.errorLoadCatalog")))
+      .catch(() => setError("No se pudo cargar el catálogo de preguntas."))
       .finally(() => setCatalogLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formCourseId]);
@@ -144,18 +231,15 @@ export function TeacherExams() {
 
   const filteredCatalog = useMemo(
     () => (filterTopic ? catalog.filter((it) => it.topic === filterTopic) : catalog),
-    [catalog, filterTopic],
+    [catalog, filterTopic]
   );
 
-  const toggleItem = (id: string) => {
-    setFormItemIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  };
+  const toggleItem = (id: string) =>
+    setFormItemIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   const startCreate = () => {
     setEditing(null);
-    setFormCourseId(filterCourse || (courses[0]?.id ?? ""));
+    setFormCourseId(filterCourse || courses[0]?.id || "");
     setFormTitle("");
     setFormTime(20);
     setFormItemIds([]);
@@ -163,27 +247,26 @@ export function TeacherExams() {
     setTab("form");
   };
 
-  const startEdit = (t: ExamTemplate) => {
-    setEditing(t);
-    setFormCourseId(t.course_id);
-    setFormTitle(t.title);
-    setFormTime(t.time_limit_min);
-    setFormItemIds(t.item_ids);
+  const startEdit = (tpl: ExamTemplate) => {
+    setEditing(tpl);
+    setFormCourseId(tpl.course_id);
+    setFormTitle(tpl.title);
+    setFormTime(tpl.time_limit_min);
+    setFormItemIds(tpl.item_ids);
     setFilterTopic("");
     setTab("form");
   };
 
   const archive = async (tpl: ExamTemplate) => {
-    if (!confirm(t("teacherExams.confirmArchive", { title: tpl.title }))) return;
+    if (!confirm(`¿Archivar "${tpl.title}"?`)) return;
     try {
       await teacherApi.archiveExamTemplate(tpl.id);
       setTemplates((prev) => prev.filter((x) => x.id !== tpl.id));
     } catch {
-      setError(t("teacherExams.errorArchive"));
+      setError("No se pudo archivar el examen.");
     }
   };
 
-  // ── Modal de asignación a grupos ────────────────────────────────────────
   const openAssign = async (tpl: ExamTemplate) => {
     setAssigningTo(tpl);
     setAssignError("");
@@ -191,14 +274,11 @@ export function TeacherExams() {
     setAssignStartsAt("");
     setAssignEndsAt("");
     try {
-      const [grps, assigns] = await Promise.all([
-        teacherApi.groups(),
-        teacherApi.listAssignments(tpl.id),
-      ]);
+      const [grps, assigns] = await Promise.all([teacherApi.groups(), teacherApi.listAssignments(tpl.id)]);
       setGroups(grps);
       setAssignments(assigns);
     } catch {
-      setAssignError(t("teacherExams.errorLoadAssignments"));
+      setAssignError("No se pudieron cargar las asignaciones.");
     }
   };
 
@@ -213,7 +293,7 @@ export function TeacherExams() {
 
   const submitAssignments = async () => {
     if (!assigningTo || assignGroupIds.length === 0) {
-      setAssignError(t("teacherExams.errorAssignNoGroups"));
+      setAssignError("Selecciona al menos un grupo.");
       return;
     }
     setAssignSaving(true);
@@ -229,7 +309,7 @@ export function TeacherExams() {
       setAssignStartsAt("");
       setAssignEndsAt("");
     } catch (e) {
-      setAssignError(e instanceof Error ? e.message : t("teacherExams.errorAssignSave"));
+      setAssignError(e instanceof Error ? e.message : "No se pudo guardar la asignación.");
     } finally {
       setAssignSaving(false);
     }
@@ -237,30 +317,29 @@ export function TeacherExams() {
 
   const removeAssignment = async (assignmentId: number) => {
     if (!assigningTo) return;
-    if (!confirm(t("teacherExams.confirmRemoveAssignment"))) return;
+    if (!confirm("¿Quitar esta asignación?")) return;
     try {
       await teacherApi.deleteAssignment(assigningTo.id, assignmentId);
       setAssignments((prev) => prev.filter((a) => a.id !== assignmentId));
     } catch {
-      setAssignError(t("teacherExams.errorRemoveAssignment"));
+      setAssignError("No se pudo quitar la asignación.");
     }
   };
 
-  const formatDateTime = (iso: string | null): string => {
-    if (!iso) return "—";
-    const d = new Date(iso);
-    return d.toLocaleString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  const fmtDT = (iso: string | null) =>
+    !iso
+      ? "—"
+      : new Date(iso).toLocaleString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
 
   const submitForm = async () => {
     if (!formTitle.trim() || !formCourseId || formItemIds.length === 0) {
-      setError(t("teacherExams.errorRequired"));
+      setError("Completa título, curso y al menos una pregunta.");
       return;
     }
     setSaving(true);
@@ -280,180 +359,129 @@ export function TeacherExams() {
           item_ids: formItemIds,
         });
       }
-      // recargar lista
       const updated = await teacherApi.examTemplates(filterCourse);
       setTemplates(updated);
       setTab("list");
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("teacherExams.errorSave"));
+      setError(e instanceof Error ? e.message : "No se pudo guardar el examen.");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-100 mb-1">{t("teacherExams.title")}</h1>
-      <p className="text-sm text-slate-400 mb-5">{t("teacherExams.intro")}</p>
+    <>
+      <div className="tc-head">
+        <div className="ttl">
+          <h1>Exámenes</h1>
+          <p>Arma plantillas de examen con preguntas calibradas y asígnalas a tus grupos con ventana de tiempo.</p>
+        </div>
+      </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 border-b border-slate-700 mb-5">
-        <button
-          onClick={() => setTab("list")}
-          className={[
-            "px-4 py-2 text-sm font-medium transition-colors border-b-2",
-            tab === "list"
-              ? "border-violet-500 text-violet-300"
-              : "border-transparent text-slate-400 hover:text-slate-200",
-          ].join(" ")}
-        >
-          {t("teacherExams.tabList")}
+      <div className="view-tabs">
+        <button className={tab === "list" ? "on" : ""} onClick={() => setTab("list")}>
+          📋 Mis exámenes
         </button>
-        <button
-          onClick={startCreate}
-          className={[
-            "px-4 py-2 text-sm font-medium transition-colors border-b-2",
-            tab === "form"
-              ? "border-violet-500 text-violet-300"
-              : "border-transparent text-slate-400 hover:text-slate-200",
-          ].join(" ")}
-        >
-          {editing ? t("teacherExams.tabEdit") : t("teacherExams.tabCreate")}
+        <button className={tab === "form" ? "on" : ""} onClick={startCreate}>
+          ＋ {editing ? "Editar examen" : "Crear examen"}
         </button>
       </div>
 
-      {error && (
-        <div className="mb-4 text-sm text-red-400 bg-red-900/20 border border-red-800/40 rounded px-3 py-2">
-          {error}
-        </div>
-      )}
+      {error && <div className="auth-msg error" style={{ marginBottom: 16 }}>{error}</div>}
 
       {/* ── LISTA ─────────────────────────────────────────────────────────── */}
       {tab === "list" && (
-        <div>
-          <div className="flex items-end gap-3 mb-4">
-            <div className="flex-1 max-w-xs">
-              <label className="block text-xs text-slate-400 mb-1">{t("teacherExams.course")}</label>
-              <select
-                value={filterCourse}
-                onChange={(e) => setFilterCourse(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200"
-              >
+        <>
+          <div className="ex-toolbar">
+            <label className="gm-field">
+              <span>Curso</span>
+              <select value={filterCourse} onChange={(e) => setFilterCourse(e.target.value)}>
                 {courses.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
                 ))}
               </select>
-            </div>
-            <button
-              onClick={startCreate}
-              className="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-            >
-              {t("teacherExams.createButton")}
+            </label>
+            <button className="btn-pri" onClick={startCreate}>
+              ＋ Crear examen
             </button>
           </div>
 
           {loading ? (
-            <p className="text-sm text-slate-500">{t("teacherExams.loading")}</p>
+            <div className="tc-soon">
+              <div className="box">
+                <div className="em-ic">⏳</div>
+                <h2>Cargando…</h2>
+              </div>
+            </div>
           ) : templates.length === 0 ? (
-            <div className="text-center py-12 border border-dashed border-slate-700 rounded-xl">
-              <p className="text-sm text-slate-400 mb-2">{t("teacherExams.empty")}</p>
-              <button
-                onClick={startCreate}
-                className="text-violet-400 hover:text-violet-300 text-sm font-medium"
-              >
-                {t("teacherExams.createFirst")}
-              </button>
+            <div className="panel">
+              <div className="empty">
+                <div className="em-ic">📋</div>
+                <p>No hay exámenes en este curso. Crea el primero.</p>
+              </div>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="ex-grid">
               {templates.map((tpl) => (
-                <div
-                  key={tpl.id}
-                  className="bg-slate-800 border border-slate-700 rounded-xl p-4 flex items-start gap-4"
-                >
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-medium text-slate-100 mb-1">{tpl.title}</h3>
-                    <p className="text-xs text-slate-500">
-                      {t(
-                        tpl.item_ids.length === 1
-                          ? "teacherExams.questionCount"
-                          : "teacherExams.questionCountPlural",
-                        {
-                          count: tpl.item_ids.length,
-                          time: tpl.time_limit_min,
-                          date: tpl.created_at,
-                        },
-                      )}
-                    </p>
+                <div className="ex-card" key={tpl.id}>
+                  <h3>{tpl.title}</h3>
+                  <div className="ex-meta">
+                    <span>
+                      {tpl.item_ids.length} {tpl.item_ids.length === 1 ? "pregunta" : "preguntas"}
+                    </span>
+                    <i />
+                    <span>{tpl.time_limit_min} min</span>
+                    <i />
+                    <span>{String(tpl.created_at).slice(0, 10)}</span>
                   </div>
-                  <button
-                    onClick={() => openAssign(tpl)}
-                    className="text-xs text-emerald-400 hover:text-emerald-300 px-2 py-1"
-                  >
-                    {t("teacherExams.assign")}
-                  </button>
-                  <button
-                    onClick={() => startEdit(tpl)}
-                    className="text-xs text-violet-400 hover:text-violet-300 px-2 py-1"
-                  >
-                    {t("teacherExams.edit")}
-                  </button>
-                  <button
-                    onClick={() => archive(tpl)}
-                    className="text-xs text-red-400 hover:text-red-300 px-2 py-1"
-                  >
-                    {t("teacherExams.archive")}
-                  </button>
+                  <div className="ex-actions">
+                    <button className="ex-act results" onClick={() => setResultsFor(tpl)}>
+                      Resultados
+                    </button>
+                    <button className="ex-act assign" onClick={() => openAssign(tpl)}>
+                      Asignar
+                    </button>
+                    <button className="ex-act edit" onClick={() => startEdit(tpl)}>
+                      Editar
+                    </button>
+                    <button className="ex-act archive" onClick={() => archive(tpl)}>
+                      Archivar
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </>
       )}
 
       {/* ── FORMULARIO ────────────────────────────────────────────────────── */}
       {tab === "form" && (
-        <div className="grid md:grid-cols-2 gap-5">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">{t("teacherExams.course")}</label>
-              <select
-                value={formCourseId}
-                onChange={(e) => setFormCourseId(e.target.value)}
-                disabled={!!editing}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 disabled:opacity-60"
-              >
+        <div className="ex-form">
+          <div className="ex-config">
+            <label className="gm-field">
+              <span>Curso</span>
+              <select value={formCourseId} onChange={(e) => setFormCourseId(e.target.value)} disabled={!!editing}>
                 {courses.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
                 ))}
               </select>
-              {editing && (
-                <p className="text-[10px] text-slate-500 mt-1">
-                  {t("teacherExams.courseCannotChange")}
-                </p>
-              )}
-            </div>
+              {editing && <span className="ex-hint">El curso no se puede cambiar al editar.</span>}
+            </label>
 
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">{t("teacherExams.examTitle")}</label>
-              <input
-                type="text"
-                value={formTitle}
-                onChange={(e) => setFormTitle(e.target.value)}
-                placeholder={t("teacherExams.examTitlePlaceholder")}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200"
-              />
-            </div>
+            <label className="gm-field">
+              <span>Título del examen</span>
+              <input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Ej. Parcial de Álgebra" />
+            </label>
 
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">
-                {t("teacherExams.timeLimit")}:{" "}
-                <span className="text-violet-400 font-semibold">{formTime} min</span>
-              </label>
+            <label className="gm-field">
+              <span>
+                Tiempo límite: <b style={{ color: "var(--accent-soft)" }}>{formTime} min</b>
+              </span>
               <input
                 type="range"
                 min={5}
@@ -461,52 +489,31 @@ export function TeacherExams() {
                 step={5}
                 value={formTime}
                 onChange={(e) => setFormTime(Number(e.target.value))}
-                className="w-full accent-violet-500"
+                style={{ width: "100%", accentColor: "var(--accent)" }}
               />
+            </label>
+
+            <div className="ex-selected">
+              Preguntas seleccionadas: <b>{formItemIds.length}</b>
+              {formItemIds.length === 0 && <span className="warn">Selecciona al menos una pregunta del catálogo.</span>}
             </div>
 
-            <div className="bg-slate-800/60 border border-slate-700 rounded-xl px-4 py-3 text-sm">
-              <p className="text-slate-300 mb-1">
-                {t("teacherExams.selectedQuestions")}{" "}
-                <span className="font-semibold text-violet-300">{formItemIds.length}</span>
-              </p>
-              {formItemIds.length === 0 && (
-                <p className="text-xs text-amber-400">{t("teacherExams.needAtLeastOne")}</p>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => setTab("list")}
-                className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm py-2 rounded-lg transition-colors"
-              >
-                {t("teacherExams.cancel")}
+            <div className="gm-foot">
+              <button className="btn-soft" onClick={() => setTab("list")}>
+                Cancelar
               </button>
-              <button
-                onClick={submitForm}
-                disabled={saving}
-                className="flex-1 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition-colors"
-              >
-                {saving
-                  ? t("teacherExams.saving")
-                  : editing
-                    ? t("teacherExams.saveChanges")
-                    : t("teacherExams.tabCreate")}
+              <button className="btn-pri" onClick={submitForm} disabled={saving}>
+                {saving ? "Guardando…" : editing ? "Guardar cambios" : "Crear examen"}
               </button>
             </div>
           </div>
 
-          {/* Catálogo */}
-          <div className="bg-slate-800/40 border border-slate-700 rounded-xl p-3 max-h-[600px] overflow-y-auto">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-slate-200">{t("teacherExams.catalogTitle")}</h3>
+          <div className="ex-catalog">
+            <div className="ex-cat-head">
+              <h3>Catálogo de preguntas</h3>
               {topics.length > 0 && (
-                <select
-                  value={filterTopic}
-                  onChange={(e) => setFilterTopic(e.target.value)}
-                  className="text-xs bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-300"
-                >
-                  <option value="">{t("teacherExams.allTopics")}</option>
+                <select className="sort-sel" value={filterTopic} onChange={(e) => setFilterTopic(e.target.value)}>
+                  <option value="">Todos los tópicos</option>
                   {topics.map((tp) => (
                     <option key={tp} value={tp}>
                       {tp}
@@ -515,212 +522,138 @@ export function TeacherExams() {
                 </select>
               )}
             </div>
-
             {catalogLoading ? (
-              <p className="text-xs text-slate-500 p-2">{t("teacherExams.loading")}</p>
+              <p style={{ color: "var(--mute)", fontSize: 13 }}>Cargando…</p>
             ) : filteredCatalog.length === 0 ? (
-              <p className="text-xs text-slate-500 p-2">{t("teacherExams.catalogEmpty")}</p>
+              <p style={{ color: "var(--mute)", fontSize: 13 }}>Sin preguntas para este curso.</p>
             ) : (
-              <ul className="space-y-1.5">
+              <div className="ex-cat-list">
                 {filteredCatalog.map((it) => {
                   const checked = formItemIds.includes(it.id);
                   const order = checked ? formItemIds.indexOf(it.id) + 1 : null;
                   return (
-                    <li
+                    <div
                       key={it.id}
+                      className={"ex-item" + (checked ? " on" : "")}
                       onClick={() => toggleItem(it.id)}
-                      className={[
-                        "px-3 py-2 rounded-lg cursor-pointer transition-colors border",
-                        checked
-                          ? "bg-violet-900/30 border-violet-500/60"
-                          : "bg-slate-900/40 border-slate-700 hover:bg-slate-800",
-                      ].join(" ")}
                     >
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="text-[10px] uppercase tracking-wide text-slate-500">
-                          {it.topic} · {t("teacherExams.difficultyShort")} {Math.round(it.difficulty)}
+                      <div className="ex-item-top">
+                        <span className="ex-item-meta">
+                          {it.topic} · dif {Math.round(it.difficulty)}
                         </span>
-                        {order && (
-                          <span className="text-xs font-mono text-violet-400">#{order}</span>
-                        )}
+                        {order && <span className="ex-item-order">#{order}</span>}
                       </div>
-                      <p className="text-xs text-slate-300 line-clamp-3 leading-snug">
-                        <RenderMath text={it.content} />
+                      <p>
+                        <MathText text={it.content} />
                       </p>
-                    </li>
+                    </div>
                   );
                 })}
-              </ul>
+              </div>
             )}
           </div>
         </div>
       )}
 
-      {/* ── MODAL DE ASIGNACIÓN A GRUPOS ──────────────────────────────────── */}
+      {/* ── MODAL DE ASIGNACIÓN ───────────────────────────────────────────── */}
       {assigningTo && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-          onClick={closeAssign}
-          role="dialog"
-          aria-label={t("teacherExams.assignModalTitle")}
-        >
+        <div className="grp-backdrop center" onClick={closeAssign}>
           <div
-            className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="grp-modal"
+            style={{ width: "min(560px, 100%)" }}
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-label="Asignar examen"
           >
-            <div className="p-5 border-b border-slate-700 flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-slate-100">
-                  {t("teacherExams.assignModalTitle")}
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  {t("teacherExams.assignModalSubtitle", { title: assigningTo.title })}
-                </p>
-              </div>
-              <button
-                onClick={closeAssign}
-                className="text-slate-400 hover:text-slate-200 text-2xl leading-none"
-                aria-label={t("teacherExams.close")}
-              >
-                ×
+            <div className="gm-head">
+              <h3>Asignar examen</h3>
+              <button className="gd-x" onClick={closeAssign} aria-label="Cerrar">
+                ✕
               </button>
             </div>
+            <p className="gm-sub">{assigningTo.title}</p>
 
-            <div className="p-5 space-y-5">
-              {assignError && (
-                <div className="text-sm text-red-400 bg-red-900/20 border border-red-800/40 rounded px-3 py-2">
-                  {assignError}
+            {assignError && <p className="gm-err">{assignError}</p>}
+
+            <div style={{ marginBottom: 18 }}>
+              <span className="xp-lbl">Asignaciones actuales</span>
+              {assignments.length === 0 ? (
+                <p style={{ color: "var(--mute)", fontSize: 12.5 }}>Aún no está asignado a ningún grupo.</p>
+              ) : (
+                <div className="ex-assign-list">
+                  {assignments.map((a) => (
+                    <div className="ex-assign-row" key={a.id}>
+                      <div>
+                        <div className="ar-b">👥 {a.group_name}</div>
+                        <div className="ar-when">
+                          {fmtDT(a.starts_at)} · hasta {fmtDT(a.ends_at)}
+                        </div>
+                      </div>
+                      <button className="ar-x" onClick={() => removeAssignment(a.id)} aria-label="Quitar">
+                        ✕
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
+            </div>
 
-              {/* Asignaciones existentes */}
-              <div>
-                <h3 className="text-sm font-semibold text-slate-200 mb-2">
-                  {t("teacherExams.currentAssignments")}
-                </h3>
-                {assignments.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">
-                    {t("teacherExams.noAssignments")}
-                  </p>
-                ) : (
-                  <ul className="space-y-1.5">
-                    {assignments.map((a) => (
-                      <li
-                        key={a.id}
-                        className="flex items-center justify-between gap-3 bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm text-slate-200 font-medium truncate">
-                            👥 {a.group_name}
-                          </p>
-                          <p className="text-[11px] text-slate-500 mt-0.5">
-                            {t("teacherExams.from")} {formatDateTime(a.starts_at)}{" "}
-                            · {t("teacherExams.until")} {formatDateTime(a.ends_at)}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => removeAssignment(a.id)}
-                          className="text-xs text-red-400 hover:text-red-300 px-2 py-1 shrink-0"
-                          aria-label={t("teacherExams.removeAssignment")}
-                        >
-                          ✕
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              {/* Nueva asignación */}
-              <div className="border-t border-slate-700 pt-5">
-                <h3 className="text-sm font-semibold text-slate-200 mb-3">
-                  {t("teacherExams.addAssignment")}
-                </h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs text-slate-400 mb-1.5">
-                      {t("teacherExams.assignGroupsLabel")}
+            <span className="xp-lbl">Nueva asignación</span>
+            <label className="gm-field">
+              <span>Grupos</span>
+              {groups.length === 0 ? (
+                <p style={{ color: "var(--mute)", fontSize: 12.5 }}>No tienes grupos disponibles.</p>
+              ) : (
+                <div className="ex-grp-list">
+                  {groups.map((g) => (
+                    <label key={g.group_id} className="ex-grp-opt">
+                      <input
+                        type="checkbox"
+                        checked={assignGroupIds.includes(g.group_id)}
+                        onChange={() =>
+                          setAssignGroupIds((prev) =>
+                            prev.includes(g.group_id)
+                              ? prev.filter((id) => id !== g.group_id)
+                              : [...prev, g.group_id]
+                          )
+                        }
+                      />
+                      <span>{g.name}</span>
+                      <span className="cnt">{g.student_count} est.</span>
                     </label>
-                    {groups.length === 0 ? (
-                      <p className="text-xs text-slate-500 italic">
-                        {t("teacherExams.noGroupsAvailable")}
-                      </p>
-                    ) : (
-                      <div className="space-y-1 max-h-32 overflow-y-auto bg-slate-800/40 border border-slate-700 rounded-lg p-2">
-                        {groups.map((g) => {
-                          const checked = assignGroupIds.includes(g.group_id);
-                          return (
-                            <label
-                              key={g.group_id}
-                              className="flex items-center gap-2 px-2 py-1 rounded hover:bg-slate-800 cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => {
-                                  setAssignGroupIds((prev) =>
-                                    prev.includes(g.group_id)
-                                      ? prev.filter((id) => id !== g.group_id)
-                                      : [...prev, g.group_id],
-                                  );
-                                }}
-                                className="accent-violet-500"
-                              />
-                              <span className="text-sm text-slate-200">{g.name}</span>
-                              <span className="text-[10px] text-slate-500 ml-auto">
-                                {g.student_count} {t("teacherExams.studentsShort")}
-                              </span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1.5">
-                        {t("teacherExams.startsAt")}
-                      </label>
-                      <input
-                        type="datetime-local"
-                        value={assignStartsAt}
-                        onChange={(e) => setAssignStartsAt(e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200"
-                      />
-                      <p className="text-[10px] text-slate-500 mt-1">
-                        {t("teacherExams.emptyIsNow")}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-400 mb-1.5">
-                        {t("teacherExams.endsAt")}
-                      </label>
-                      <input
-                        type="datetime-local"
-                        value={assignEndsAt}
-                        onChange={(e) => setAssignEndsAt(e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200"
-                      />
-                      <p className="text-[10px] text-slate-500 mt-1">
-                        {t("teacherExams.emptyIsOpen")}
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={submitAssignments}
-                    disabled={assignSaving || assignGroupIds.length === 0}
-                    className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-                  >
-                    {assignSaving ? t("teacherExams.saving") : t("teacherExams.saveAssignments")}
-                  </button>
+                  ))}
                 </div>
-              </div>
+              )}
+            </label>
+
+            <div className="ex-dt-grid">
+              <label className="gm-field">
+                <span>Inicio</span>
+                <input type="datetime-local" value={assignStartsAt} onChange={(e) => setAssignStartsAt(e.target.value)} />
+                <span className="ex-hint">Vacío = disponible ya.</span>
+              </label>
+              <label className="gm-field">
+                <span>Fin</span>
+                <input type="datetime-local" value={assignEndsAt} onChange={(e) => setAssignEndsAt(e.target.value)} />
+                <span className="ex-hint">Vacío = sin cierre.</span>
+              </label>
+            </div>
+
+            <div className="gm-foot">
+              <button className="btn-soft" onClick={closeAssign}>
+                Cerrar
+              </button>
+              <button className="btn-pri" onClick={submitAssignments} disabled={assignSaving || assignGroupIds.length === 0}>
+                {assignSaving ? "Guardando…" : "Guardar asignación"}
+              </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+
+      {resultsFor && (
+        <ExamResultsDrawer template={resultsFor} onClose={() => setResultsFor(null)} />
+      )}
+    </>
   );
 }

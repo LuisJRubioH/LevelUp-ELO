@@ -9,41 +9,8 @@
  * si la pregunta vuelve a aparecer.
  */
 
-import katex from "katex";
-import "katex/dist/katex.min.css";
 import { useTranslation } from "react-i18next";
-
-/** Renderiza texto con LaTeX inline: $expr$ */
-function RenderOption({ text }: { text: string }) {
-  const parts = text.split(/(\$[^$]+\$)/g);
-  if (parts.length === 1) return <>{text}</>;
-  return (
-    <>
-      {parts.map((part, i) => {
-        if (part.startsWith("$") && part.endsWith("$")) {
-          const math = part.slice(1, -1);
-          try {
-            const html = katex.renderToString(math, {
-              displayMode: false,
-              throwOnError: false,
-              errorColor: "#ef4444",
-            });
-            return (
-              <span
-                key={i}
-                className="inline-block align-middle"
-                dangerouslySetInnerHTML={{ __html: html }}
-              />
-            );
-          } catch {
-            return <span key={i} className="text-red-400">{part}</span>;
-          }
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </>
-  );
-}
+import { MathText } from "../Math/MathContent";
 
 interface AnswerOptionsProps {
   options: string[];
@@ -115,7 +82,7 @@ export function AnswerOptions({
             >
               {label}
             </span>
-            <RenderOption text={option} />
+            <MathText text={option} />
             {answered && isSelected && (
               <span
                 className={`ml-2 ${isCorrect ? "text-green-400" : "text-red-400"}`}

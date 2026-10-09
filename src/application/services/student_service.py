@@ -1,9 +1,24 @@
-from src.domain.elo.model import expected_score
-from src.domain.elo.calibration import IsotonicCalibrator
+import logging
+
+from src.domain.elo.model import (
+    expected_score,
+    is_valid_response_time,
+    item_difficulty_delta,
+    next_rd,
+    rating_delta,
+)
 from src.domain.selector.item_selector import AdaptiveItemSelector
-from src.domain.entities import VALID_LEVELS, LEVEL_UNIVERSIDAD, LEVEL_SEMILLERO
-from src.infrastructure.external_api.ai_client import get_socratic_guidance
+from src.domain.entities import (
+    LEVEL_SEMILLERO,
+    LEVEL_UNIVERSIDAD,
+    VALID_LEVELS,
+    valid_semillero_grade,
+)
 from src.application.interfaces.repositories import IStudentRepository
+from src.application.services.rating_read_service import RatingReadService
+
+
+logger = logging.getLogger(__name__)
 
 
 class StudentService:
@@ -15,50 +30,52 @@ class StudentService:
         self,
         repository: IStudentRepository,
         ai_client=None,
-        enable_cognitive_modifier: bool = False,
+        calibrator=None,
+        ratings=None,
     ):
+        """El calibrador se inyecta desde la composición (R2).
+
+        `calibrator` es cualquier objeto con `predict(p_raw) -> float`; vive en
+        infrastructure/ml porque carga un pickle de disco. Sin él —tests, o
+        despliegue sin modelo entrenado— se usa p_raw, que es exactamente lo
+        que hacía el calibrador sin modelo. El delta ELO siempre usa p_raw:
+        el valor calibrado solo alimenta los dashboards.
+        """
         self.repository = repository
         self.ai_client = ai_client
-        self.enable_cognitive_modifier = enable_cognitive_modifier
-        if enable_cognitive_modifier:
-            from src.domain.elo.cognitive import CognitiveAnalyzer
-
-            self.cognitive_analyzer = CognitiveAnalyzer()
-        else:
-            self.cognitive_analyzer = None
-
-        # Calibrador isotónico: corrige sesgo en expected_score guardado en DB.
-        # Si no hay modelo entrenado, degrada con gracia (retorna p_raw).
-        # El delta ELO siempre usa p_raw — nunca el valor calibrado.
-        self._calibrator = IsotonicCalibrator()
-        self._calibrator.load()
+        self._calibrator = calibrator
+        # Every current rating, rank and ranking is read through here (spec 001).
+        self.ratings = ratings or RatingReadService(repository)
 
     def get_next_question(
         self,
         student_id,
-        topic,
-        vector_rating,
+        course_id,
+        topic_filter=None,
         session_correct_ids=None,
         session_wrong_timestamps=None,
         session_questions_count=0,
-        course_id=None,
+        block=None,
     ):
-        """Orquesta la selección de la siguiente pregunta.
+        """Choose the next practice item of `course_id` (FR-016–019).
 
-        Si se proporciona course_id, el pool de ítems se restringe EXCLUSIVAMENTE
-        al curso activo. El motor ZDP (AdaptiveItemSelector) solo evalúa ese subconjunto.
+        `block` narrows the pool to a thematic block (concursos); `topic_filter` to one topic
+        (practice from the map) when that topic has items. The selection rating is the topic's
+        rating with a filter, otherwise the course rating (spec 001, FR-029a).
         """
         session_correct_ids = session_correct_ids or set()
         session_wrong_timestamps = session_wrong_timestamps or {}
 
-        # Filtrado por curso (Tarea F) — prioritario sobre filtro por topic
-        if course_id:
-            pool = self.repository.get_items_from_db(course_id=course_id)
-        else:
-            pool = self.repository.get_items_from_db(topic)
+        pool = self.repository.get_items_from_db(course_id=course_id, block=block)
+        # Refuerzo desde el mapa: restringir a un tópico del curso.
+        # Solo si quedan ítems — evita un pool vacío por un tópico inexistente.
+        if topic_filter:
+            by_topic = [i for i in pool if i.get("topic") == topic_filter]
+            if by_topic:
+                pool = by_topic
 
         answered_ids = set(self.repository.get_answered_item_ids(student_id))
-        current_elo = vector_rating.get(topic)
+        current_elo = self.ratings.selection_rating(student_id, course_id, topic_filter)
 
         # Excluir siempre las respondidas correctamente en esta sesión
         eligible = [i for i in pool if i["id"] not in session_correct_ids]
@@ -102,7 +119,11 @@ class StudentService:
         target_item_obj = selector.select_optimal_item(current_elo, items_objs)
 
         if target_item_obj:
-            item_data = next(i for i in filtered if i["difficulty"] == target_item_obj.difficulty)
+            # Dos ítems pueden tener la misma dificultad: conservar la identidad
+            # sorteada, sin volver a escoger el primero que tenga ese valor.
+            item_data = next(
+                data for obj, data in zip(items_objs, filtered) if obj is target_item_obj
+            )
             return item_data, "ok"
         return None, "empty"
 
@@ -113,89 +134,72 @@ class StudentService:
         selected_option,
         reasoning,
         time_taken,
-        vector_rating,
-        elo_topic=None,
+        request_id=None,
+        request_fingerprint=None,
     ):
-        """Orquesta el procesamiento de una respuesta.
+        """Process one practice answer (spec 001, FR-001…FR-010, FR-015, FR-029).
 
-        elo_topic: clave del VectorRating para buscar/actualizar ELO.
-            Si no se pasa, usa item_data['topic'] (retrocompatible).
-            Para cursos con subtemas heterogéneos (e.g., DIAN) se debe pasar
-            el nombre del curso para que el ELO se consolide en una sola clave.
+        The rating moved is the item's own (course, topic); the repository reads it under lock
+        and calls `compute`. An attempt outside 3–600 s (or an explicit 0 s) is recorded with
+        before = after and moves nothing (FR-008, FR-008a, FR-009). Returns
+        `(is_correct, result)` with `elo_before`, `elo_after`, `rd_after` and `elo_valid`.
         """
         is_correct = selected_option == item_data["correct_option"]
-        _topic_key = elo_topic or item_data["topic"]
-        current_elo = vector_rating.get(_topic_key)
+        score = 1.0 if is_correct else 0.0
+        valid = is_valid_response_time(time_taken)
+        result = {"confidence_score": None, "error_type": "none"}
 
-        # 1. Análisis cognitivo — controlado por feature flag
-        if self.enable_cognitive_modifier and self.cognitive_analyzer is not None:
-            cog_data = self.cognitive_analyzer.analyze_cognition(reasoning, is_correct, time_taken)
-            impact_modifier = cog_data.get("impact_modifier", 1.0)
-        else:
-            # Feature flag desactivado — neutro explícito
-            impact_modifier = 1.0
-            cog_data = {
-                "confidence_score": None,
-                "error_type": "none",
-                "impact_modifier": 1.0,
-                "reasoning": "Análisis cognitivo desactivado",
+        def compute(state):
+            """Domain calculation on the state read under lock (no I/O)."""
+            rating, rd, difficulty = state["elo"], state["rd"], state["item_difficulty"]
+            if valid:
+                rating_after = rating + rating_delta(rating, rd, difficulty, score)
+                rd_after = next_rd(rd)
+                difficulty_after = difficulty + item_difficulty_delta(rating, difficulty, score)
+            else:
+                rating_after, rd_after, difficulty_after = rating, rd, difficulty
+
+            # The calibrated value only feeds dashboards; the delta always uses the raw P.
+            p_success = expected_score(rating, difficulty)
+            p_display = self._calibrator.predict(p_success) if self._calibrator else p_success
+
+            result.update(
+                elo_before=rating, elo_after=rating_after, rd_after=rd_after, elo_valid=valid
+            )
+            attempt_data = {
+                "is_correct": is_correct,
+                "difficulty": difficulty,
+                "topic": state.get("topic", item_data.get("topic")),
+                "elo_before": rating,
+                "elo_after": rating_after,
+                "rating_deviation": rd_after,
+                "elo_valid": valid,
+                "prob_failure": 1.0 - p_display,
+                "expected_score": p_display,
+                "time_taken": time_taken,
+                "confidence_score": result["confidence_score"],
+                "error_type": result["error_type"],
             }
+            return attempt_data, difficulty_after, state["item_rd"]
 
-        # 2. Actualizar ELO del estudiante
-        result = 1.0 if is_correct else 0.0
-        new_r, new_rd = vector_rating.update(
-            _topic_key,
-            item_data["difficulty"],
-            result,
-            impact_modifier=impact_modifier,
-        )
+        save_kwargs = dict(user_id=user_id, item_id=item_data["id"], compute=compute)
+        if request_id is not None:
+            save_kwargs.update(request_id=request_id, request_fingerprint=request_fingerprint)
+        if self.repository.save_answer_transaction(**save_kwargs) is False:
+            result["idempotent_replay"] = True
+            return is_correct, result
 
-        # 3. Calcular nueva dificultad del ítem (ELO simétrico)
-        p_success = expected_score(current_elo, item_data["difficulty"])
-        item_score = 1.0 - result
-        p_item_wins = 1.0 - p_success
-        k_item = 32.0
-        new_item_difficulty = item_data["difficulty"] + k_item * (item_score - p_item_wins)
-        item_rd_current = item_data.get("rating_deviation", 350.0)
-
-        # Calibrar expected_score para el dashboard (no afecta el delta ELO).
-        # El delta siempre usa p_success raw — regla crítica del calibrador.
-        p_success_display = self._calibrator.predict(p_success)
-
-        # 4. Persistir ítem + intento de forma atómica
-        attempt_data = {
-            "is_correct": is_correct,
-            "difficulty": item_data["difficulty"],
-            "topic": _topic_key,
-            "elo_after": new_r,
-            "prob_failure": 1.0 - p_success_display,
-            "expected_score": p_success_display,
-            "time_taken": time_taken,
-            "confidence_score": cog_data["confidence_score"],
-            "error_type": cog_data["error_type"],
-            "rating_deviation": new_rd,
-        }
-        self.repository.save_answer_transaction(
-            user_id=user_id,
-            item_id=item_data["id"],
-            item_difficulty_new=new_item_difficulty,
-            item_rd_new=item_rd_current,
-            attempt_data=attempt_data,
-        )
-
-        # 5. Verificar y otorgar logros (no bloquea si falla)
+        # Achievements never block the answer, but a failure is logged (FR-015).
         try:
             new_badges = self._check_and_award_achievements(
-                user_id=user_id,
-                is_correct=is_correct,
-                new_elo=new_r,
+                user_id=user_id, is_correct=is_correct, new_elo=result["elo_after"]
             )
             if new_badges:
-                cog_data["new_badges"] = new_badges
+                result["new_badges"] = new_badges
         except Exception:
-            pass
+            logger.exception("Awarding achievements failed for user %s", user_id)
 
-        return is_correct, cog_data
+        return is_correct, result
 
     # ── CATÁLOGO DE BADGES ────────────────────────────────────────────────────
     # Definición: (badge_id, label, descripción, check_fn(user_id, is_correct, new_elo, repo))
@@ -297,9 +301,40 @@ class StudentService:
         """Devuelve los grupos disponibles para inscribirse en un curso específico."""
         return self.repository.get_available_groups_for_course(course_id)
 
-    def enroll_in_course(self, user_id: int, course_id: str, group_id: int = None) -> None:
-        """Matricula al estudiante en un curso asociándolo al grupo elegido."""
+    def enroll_from_catalogue(self, user_id: int, course_id: str, group_id: int = None) -> None:
+        """Enrol only in a course of the student's catalogue (spec 001 FR-028m).
+
+        Raises PermissionError for any other course; invitations go through
+        `enroll_by_invitation` instead.
+        """
+        if course_id not in {c["id"] for c in self.get_available_courses(user_id)}:
+            raise PermissionError("The course is not in the student's catalogue.")
         self.repository.enroll_user(user_id, course_id, group_id)
+
+    def enroll_by_invitation(self, user_id: int, group_id: int, course_id: str) -> None:
+        """Enrol in an invitation group's course, at any level (spec 001 FR-028l).
+
+        A semillero student needs a grade first (PermissionError otherwise). Neither the level
+        nor the grade changes, and the course does not join the catalogue: it is accessible
+        but never current for the overall rating.
+        """
+        level = (self.repository.get_education_level(user_id) or "").lower()
+        if level == LEVEL_SEMILLERO and not valid_semillero_grade(
+            self.repository.get_grade(user_id)
+        ):
+            raise PermissionError("A semillero student needs a grade to use an invitation.")
+        self.repository.enroll_user(user_id, course_id, group_id)
+
+    def ensure_enrolled(self, user_id: int, course_id: str) -> None:
+        """Practice, answers and diagnostics only in an enrolled course (spec 001 FR-037, FR-037a).
+
+        An enrolment from the student's level and one made through an invitation are both rows
+        of the student's enrolments, so both pass. Raises PermissionError otherwise, including
+        for a course that does not exist.
+        """
+        enrolled = {e["id"] for e in self.repository.get_user_enrollments(user_id)}
+        if course_id not in enrolled:
+            raise PermissionError("The student is not enrolled in that course.")
 
     def get_available_courses(self, user_id: int) -> list:
         """Devuelve los cursos disponibles para el nivel educativo del estudiante.
@@ -315,26 +350,3 @@ class StudentService:
         if level == LEVEL_SEMILLERO:
             grade = self.repository.get_grade(user_id)
         return self.repository.get_available_courses_by_level(level, grade=grade)
-
-    def get_socratic_help(
-        self,
-        student_rating,
-        topic,
-        content,
-        last_answer,
-        correct_answer,
-        all_options,
-        model_name,
-        ai_url,
-    ):
-        """Orquesta la obtención de guía socrática adaptativa y contextualizada."""
-        return get_socratic_guidance(
-            student_rating,
-            topic,
-            content,
-            last_answer,
-            correct_answer=correct_answer,
-            all_options=all_options,
-            base_url=ai_url,
-            model_name=model_name,
-        )

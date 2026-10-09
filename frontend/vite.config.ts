@@ -69,9 +69,11 @@ export default defineConfig({
     port: 5173,
     proxy: {
       // Proxy todas las peticiones /api/* a FastAPI en dev
+      // ws: true → reenvía también el upgrade WebSocket (liga PvP)
       "/api": {
         target: "http://localhost:8000",
         changeOrigin: true,
+        ws: true,
       },
     },
   },

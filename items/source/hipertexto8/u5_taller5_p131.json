@@ -1,0 +1,704 @@
+[
+  {
+    "id": "HT8-U5-P131-A12a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza completamente el binomio $x^6-y^6$.",
+    "expr": "x**6-y**6",
+    "respuesta": "(x-y)*(x+y)*(x**2+x*y+y**2)*(x**2-x*y+y**2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización de binomios, actividad 12, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-y)(x+y)(x^2+xy+y^2)(x^2-xy+y^2)$. Conviene ver primero la **diferencia de cuadrados**: $x^6-y^6=(x^3-y^3)(x^3+y^3)$, y después la diferencia y la suma de cubos. Si se empieza por los cubos hay que reconocer además que $x^4+x^2y^2+y^4=(x^2+xy+y^2)(x^2-xy+y^2)$, que es mucho menos evidente.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P131-A12b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza completamente el binomio $a^4-b^4$.",
+    "expr": "a**4-b**4",
+    "respuesta": "(a-b)*(a+b)*(a**2+b**2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización de binomios, actividad 12, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a-b)(a+b)(a^2+b^2)$. Diferencia de cuadrados dos veces. $a^2+b^2$ es una **suma** de cuadrados y ya no se factoriza.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P131-A12c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza completamente el binomio $n^{10}-m^{10}$.",
+    "expr": "n**10-m**10",
+    "respuesta": "(n-m)*(n+m)*(n**4+n**3*m+n**2*m**2+n*m**3+m**4)*(n**4-n**3*m+n**2*m**2-n*m**3+m**4)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización de binomios, actividad 12, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(n-m)(n+m)(n^4+n^3m+n^2m^2+nm^3+m^4)(n^4-n^3m+n^2m^2-nm^3+m^4)$. Diferencia de cuadrados, $n^{10}-m^{10}=(n^5-m^5)(n^5+m^5)$, y después la diferencia y la suma de potencias de exponente **impar**: $n^5-m^5=(n-m)(n^4+n^3m+n^2m^2+nm^3+m^4)$ y $n^5+m^5=(n+m)(n^4-n^3m+n^2m^2-nm^3+m^4)$, con signos alternados en el segundo.",
+    "dificultad": 1700
+  },
+  {
+    "id": "HT8-U5-P131-A12d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza completamente el binomio $y^{12}-z^{12}$.",
+    "expr": "y**12-z**12",
+    "respuesta": "(y-z)*(y+z)*(y**2+z**2)*(y**2+y*z+z**2)*(y**2-y*z+z**2)*(y**4-y**2*z**2+z**4)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización de binomios, actividad 12, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(y-z)(y+z)(y^2+z^2)(y^2+yz+z^2)(y^2-yz+z^2)(y^4-y^2z^2+z^4)$. Seis factores. Cuadrados primero: $y^{12}-z^{12}=(y^6-z^6)(y^6+z^6)$. El primero se abre como en el item a; el segundo es una **suma de cubos** con $A=y^2$ y $B=z^2$: $(y^2+z^2)(y^4-y^2z^2+z^4)$.",
+    "dificultad": 1750
+  },
+  {
+    "id": "HT8-U5-P131-A13a",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el trinomio $12x^2-7x-12$ con el caso que se debe aplicar para factorizarlo. Casos: 1. Trinomio cuadrado perfecto · 2. Factor común · 3. Trinomio $ax^{2n}+bx^n+c$ · 4. Trinomio $x^{2n}+bx^n+c$ · 5. Trinomio por adición y sustracción.",
+    "expr": "12*x**2-7*x-12",
+    "respuesta": "(3*x-4)*(4*x+3)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización de trinomios, actividad 13, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Caso 3**, y la factorización es $(3x-4)(4x+3)$. Caso 3: el coeficiente principal no es 1. Se multiplica y divide por 12: $\\dfrac{(12x)^2-7(12x)-144}{12}=\\dfrac{(12x-16)(12x+9)}{12}$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P131-A13b",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el trinomio $x^8+x^4-240$ con el caso que se debe aplicar para factorizarlo. Casos: 1. Trinomio cuadrado perfecto · 2. Factor común · 3. Trinomio $ax^{2n}+bx^n+c$ · 4. Trinomio $x^{2n}+bx^n+c$ · 5. Trinomio por adición y sustracción.",
+    "expr": "x**8+x**4-240",
+    "respuesta": "(x**4-15)*(x**4+16)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización de trinomios, actividad 13, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Caso 4**, y la factorización es $(x^4-15)(x^4+16)$. Caso 4: es $x^{2n}+bx^n+c$ con $n=4$. Dos números que multiplicados den $-240$ y sumados $+1$: $-15$ y $+16$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P131-A13c",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el trinomio $81n^8+2n^4+1$ con el caso que se debe aplicar para factorizarlo. Casos: 1. Trinomio cuadrado perfecto · 2. Factor común · 3. Trinomio $ax^{2n}+bx^n+c$ · 4. Trinomio $x^{2n}+bx^n+c$ · 5. Trinomio por adición y sustracción.",
+    "expr": "81*n**8+2*n**4+1",
+    "respuesta": "(9*n**4-4*n**2+1)*(9*n**4+4*n**2+1)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización de trinomios, actividad 13, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Caso 5**, y la factorización es $(9n^4-4n^2+1)(9n^4+4n^2+1)$. Caso 5: al segundo término le falta para ser cuadrado perfecto, porque $2\\cdot 9n^4\\cdot 1=18n^4$. Se suma y se resta $16n^4$: $(9n^4+1)^2-16n^4$, que ya es diferencia de cuadrados.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P131-A13d",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el trinomio $169x^2-52xy^2+4y^4$ con el caso que se debe aplicar para factorizarlo. Casos: 1. Trinomio cuadrado perfecto · 2. Factor común · 3. Trinomio $ax^{2n}+bx^n+c$ · 4. Trinomio $x^{2n}+bx^n+c$ · 5. Trinomio por adición y sustracción.",
+    "expr": "169*x**2-52*x*y**2+4*y**4",
+    "respuesta": "(13*x-2*y**2)**2",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización de trinomios, actividad 13, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Caso 1**, y la factorización es $(13x-2y^2)^2$. Caso 1: $\\sqrt{169x^2}=13x$, $\\sqrt{4y^4}=2y^2$ y $2(13x)(2y^2)=52xy^2$, que es justo el término del medio.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P131-A13e",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el trinomio $x^7-x^5+x^3$ con el caso que se debe aplicar para factorizarlo. Casos: 1. Trinomio cuadrado perfecto · 2. Factor común · 3. Trinomio $ax^{2n}+bx^n+c$ · 4. Trinomio $x^{2n}+bx^n+c$ · 5. Trinomio por adición y sustracción.",
+    "expr": "x**7-x**5+x**3",
+    "respuesta": "x**3*(x**4-x**2+1)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización de trinomios, actividad 13, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Caso 2**, y la factorización es $x^3(x^4-x^2+1)$. Caso 2: el factor común es $x^3$, la potencia de menor exponente. Lo que queda dentro ya no se factoriza sobre los racionales.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P131-A14a",
+    "tipo": "simbolico",
+    "enunciado": "El volumen de un cubo es $8n^3+12n^2+6n+1$. Determina la medida de su arista.",
+    "expr": "8*n**3+12*n**2+6*n+1",
+    "respuesta": "(2*n+1)**3",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización de un cubo perfecto, actividad 14, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Cubo en perspectiva con el volumen rotulado al lado; reconstruible en Python.",
+    "nota": "La arista mide $2n+1$. Cubo perfecto: $\\sqrt[3]{8n^3}=2n$ y $\\sqrt[3]{1}=1$. Se comprueban los dos términos del medio: $3(2n)^2(1)=12n^2$ y $3(2n)(1)^2=6n$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P131-A14b",
+    "tipo": "simbolico",
+    "enunciado": "El volumen de un cubo es $x^3-15x^2+75x-125$. Determina la medida de su arista.",
+    "expr": "x**3-15*x**2+75*x-125",
+    "respuesta": "(x-5)**3",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización de un cubo perfecto, actividad 14, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Cubo en perspectiva con el volumen rotulado al lado; reconstruible en Python.",
+    "nota": "La arista mide $x-5$. Cubo perfecto con signos alternados: $\\sqrt[3]{x^3}=x$ y $\\sqrt[3]{125}=5$. Se comprueba $3x^2(5)=15x^2$ y $3x(25)=75x$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P131-A15a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el polinomio al que corresponde la factorización $(m^2+6)^2$.",
+    "expr": "(m**2+6)**2",
+    "respuesta": "m**4+12*m**2+36",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 15, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$m^4+12m^2+36$. Cuadrado de un binomio: $(m^2)^2+2(m^2)(6)+6^2$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P131-A15b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el polinomio al que corresponde la factorización $(3x+2)(2x-8)$.",
+    "expr": "(3*x+2)*(2*x-8)",
+    "respuesta": "6*x**2-20*x-16",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 15, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$6x^2-20x-16$. Producto de dos binomios cualesquiera: $6x^2-24x+4x-16$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P131-A15c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el polinomio al que corresponde la factorización $(a^2+a+1)(a^2-a+1)$.",
+    "expr": "(a**2+a+1)*(a**2-a+1)",
+    "respuesta": "a**4+a**2+1",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 15, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$a^4+a^2+1$. Es el producto del caso de **adición y sustracción**: $(a^2+1)^2-a^2=a^4+2a^2+1-a^2$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P131-A15d",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el polinomio al que corresponde la factorización $(1-2x)(1+2x+4x^2)$.",
+    "expr": "(1-2*x)*(1+2*x+4*x**2)",
+    "respuesta": "1-8*x**3",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 15, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$1-8x^3$. Diferencia de cubos al revés: $1^3-(2x)^3$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P131-A15e",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el polinomio al que corresponde la factorización $(3m-4n)^3$.",
+    "expr": "(3*m-4*n)**3",
+    "respuesta": "27*m**3-108*m**2*n+144*m*n**2-64*n**3",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 15, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$27m^3-108m^2n+144mn^2-64n^3$. Cubo de un binomio con signo menos: $A^3-3A^2B+3AB^2-B^3$ con $A=3m$ y $B=4n$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P131-A15f",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el polinomio al que corresponde la factorización $(a+1)(a^4-a^3+a^2-a+1)$.",
+    "expr": "(a+1)*(a**4-a**3+a**2-a+1)",
+    "respuesta": "a**5+1",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 15, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$a^5+1$. Suma de potencias de exponente **impar**: $a^5+1=(a+1)(a^4-a^3+a^2-a+1)$, con los signos alternados dentro del paréntesis.",
+    "erratum": "El libro imprime (a^2 + 1)(a^4 - a^3 + a^2 + a + 1). Ese producto da a^6 - a^5 + 2a^4 + 2a^2 + a + 1, un polinomio sin ninguna estructura: los otros cinco items de la actividad son productos notables limpios. Los signos alternados del segundo parentesis son la firma de la suma de potencias de exponente impar, y esa identidad exige (a + 1) al frente y -a en el cuarto termino. Corregido a (a + 1)(a^4 - a^3 + a^2 - a + 1) = a^5 + 1, que cambia dos caracteres y deja un producto notable del propio capitulo.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P131-A16a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores puede ser expresado $1-a^8$ al factorizarlo completamente.",
+    "expr": "1-a**8",
+    "respuesta": "(1-a)*(1+a)*(1+a**2)*(1+a**4)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 16, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**4 factores**: $(1-a)(1+a)(1+a^2)(1+a^4)$. Diferencia de cuadrados tres veces. $1+a^4$ es una suma y ya no se abre.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P131-A16b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores puede ser expresado $3-3a^6$ al factorizarlo completamente.",
+    "expr": "3-3*a**6",
+    "respuesta": "3*(1-a)*(1+a)*(1+a+a**2)*(1-a+a**2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 16, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**5 factores**: $3(1-a)(1+a)(1+a+a^2)(1-a+a^2)$. Factor común 3, luego diferencia de cuadrados y por último la diferencia y la suma de cubos. Contando el factor numérico son cinco.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P131-A16c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores puede ser expresado $x^5-40x^3+144x$ al factorizarlo completamente.",
+    "expr": "x**5-40*x**3+144*x",
+    "respuesta": "x*(x-2)*(x+2)*(x-6)*(x+6)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 16, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**5 factores**: $x(x-2)(x+2)(x-6)(x+6)$. Factor común $x$, después el trinomio $x^4-40x^2+144=(x^2-4)(x^2-36)$ y cada paréntesis es una diferencia de cuadrados.",
+    "erratum": "El libro imprime x^5 - 40x^3 + 144, sin la x del ultimo termino. Asi escrito el polinomio no tiene ninguna raiz racional y es irreducible: no admite responder 'en cuantos factores'. Con la x el polinomio es homogeneo en grado impar y se abre en cinco factores. Es la misma errata de la x perdida que ya aparecio en el 6c de la p127. Corregido a 144x.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P131-A16d",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores puede ser expresado $m^4-8m^2-128$ al factorizarlo completamente.",
+    "expr": "m**4-8*m**2-128",
+    "respuesta": "(m-4)*(m+4)*(m**2+8)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 16, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**3 factores**: $(m-4)(m+4)(m^2+8)$. Trinomio $x^{2n}+bx^n+c$: $(m^2-16)(m^2+8)$, y el primero es diferencia de cuadrados.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P131-A16e",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores puede ser expresado $x^6-25x^3-54$ al factorizarlo completamente.",
+    "expr": "x**6-25*x**3-54",
+    "respuesta": "(x-3)*(x**2+3*x+9)*(x**3+2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 16, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**3 factores**: $(x-3)(x^2+3x+9)(x^3+2)$. Trinomio con $n=3$: $(x^3-27)(x^3+2)$. El primero es una diferencia de cubos; $x^3+2$ no se abre sobre los racionales.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P131-A16f",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores puede ser expresado $4a^6-4a^2$ al factorizarlo completamente.",
+    "expr": "4*a**6-4*a**2",
+    "respuesta": "4*a**2*(a-1)*(a+1)*(a**2+1)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 16, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**4 factores**: $4a^2(a-1)(a+1)(a^2+1)$. Factor común $4a^2$ y luego diferencia de cuadrados dos veces.",
+    "erratum": "El libro imprime 4a^{2x3} - 4a^2, con un exponente que no significa nada: el 2x3 es la multiplicacion 2 por 3 que quedo sin resolver en el original. Leido literalmente, con x como variable, sympy solo devuelve -4(a - a^x)(a + a^x), que no tiene sentido en un taller de octavo. Corregido a 4a^6 - 4a^2, que da cuatro factores.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P131-A16g",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores puede ser expresado $a^5-a^3b^2+a^2b^3-b^5$ al factorizarlo completamente.",
+    "expr": "a**5-a**3*b**2+a**2*b**3-b**5",
+    "respuesta": "(a-b)*(a+b)**2*(a**2-a*b+b**2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 16, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**4 factores**: $(a-b)(a+b)^2(a^2-ab+b^2)$. Agrupación: $a^3(a^2-b^2)+b^3(a^2-b^2)=(a^2-b^2)(a^3+b^3)$, y después diferencia de cuadrados y suma de cubos. El factor $(a+b)$ aparece dos veces.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P131-A16h",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores puede ser expresado $1-2x^3+x^6$ al factorizarlo completamente.",
+    "expr": "1-2*x**3+x**6",
+    "respuesta": "(1-x)**2*(1+x+x**2)**2",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Factorización completa, actividad 16, item h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**4 factores**: $(1-x)^2(1+x+x^2)^2$. Es un trinomio cuadrado perfecto en $x^3$: $(1-x^3)^2$, y cada paréntesis es una diferencia de cubos.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P131-A17a",
+    "tipo": "simbolico",
+    "enunciado": "Determina los factores que definen el perímetro del hexágono cuyos lados miden $m^2-48$, $-5m$, $5m+2$, $2m+4$, $6m+5$ y $2m+13$.",
+    "expr": "(m**2-48)+(-5*m)+(5*m+2)+(2*m+4)+(6*m+5)+(2*m+13)",
+    "respuesta": "(m+12)*(m-2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Actividad 17, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Hexágono con los seis lados rotulados; reconstruible en Python.",
+    "nota": "El perímetro es $m^2+10m-24=(m+12)(m-2)$. Al sumar, $-5m+5m$ se cancelan y quedan $2m+6m+2m=10m$ y $-48+2+4+5+13=-24$. **Ojo con la figura**: el libro rotula un lado como $-5m$, una longitud negativa, imposible en un hexágono real. Ese término es el que hace cerrar la suma, así que la respuesta no admite duda, pero conviene reutilizar el ítem como suma de polinomios y no como perímetro.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P131-A17b",
+    "tipo": "simbolico",
+    "enunciado": "Determina los factores que definen el perímetro del triángulo cuyos lados miden $16a^2$, $25b^4$ y $40ab^2$.",
+    "expr": "16*a**2+25*b**4+40*a*b**2",
+    "respuesta": "(4*a+5*b**2)**2",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Actividad 17, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Triángulo escaleno con los tres lados rotulados; reconstruible en Python.",
+    "nota": "El perímetro es $16a^2+40ab^2+25b^4=(4a+5b^2)^2$, un trinomio cuadrado perfecto: $\\sqrt{16a^2}=4a$, $\\sqrt{25b^4}=5b^2$ y $2(4a)(5b^2)=40ab^2$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P131-A18a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el polinomio que representa el área de la figura y factorízalo completamente. Es un rectángulo de base $m+6$ y altura $m$ al que se le recorta, por el lado superior, una muesca de $4m-3$ de ancho y $3$ de profundidad.",
+    "expr": "m*(m+6)-3*(4*m-3)",
+    "respuesta": "(m-3)**2",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Actividad 18, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Figura en forma de U: rectángulo (m+6) por m con una muesca rectangular en el borde superior; reconstruible en Python.",
+    "nota": "$m(m+6)-3(4m-3)=m^2+6m-12m+9=m^2-6m+9=(m-3)^2$. Es un trinomio cuadrado perfecto.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P131-A18b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el polinomio que representa el área de la figura y factorízalo completamente. Es una escalera de tres peldaños, todos de $2y$ de ancho; el lado izquierdo mide $3y^3-4$ y cada peldaño baja $y^3$, de modo que el último tramo vertical mide $y^3-4$.",
+    "expr": "2*y*((3*y**3-4)+(2*y**3-4)+(y**3-4))",
+    "respuesta": "12*y*(y**3-2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Actividad 18, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Escalera descendente de tres columnas de ancho 2y y alturas 3y^3-4, 2y^3-4 y y^3-4; reconstruible en Python.",
+    "nota": "Las tres columnas miden $3y^3-4$, $2y^3-4$ y $y^3-4$ de alto, y todas $2y$ de ancho: el área es $2y(6y^3-12)=12y^4-24y=12y(y^3-2)$. El factor $y^3-2$ ya no se abre sobre los racionales.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P131-A18c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el polinomio que representa el área de la figura y factorízalo completamente. Es una L formada por una columna de base $m$ y altura $5m-21$ y, en la parte superior, un brazo de $m+3$ de largo y $4$ de alto.",
+    "expr": "m*(5*m-21)+4*(m+3)",
+    "respuesta": "(m-1)*(5*m-12)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Actividad 18, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Figura en L: columna vertical de ancho m con un brazo horizontal en la parte superior; reconstruible en Python.",
+    "nota": "$m(5m-21)+4(m+3)=5m^2-21m+4m+12=5m^2-17m+12=(m-1)(5m-12)$. Es el trinomio $ax^2+bx+c$.",
+    "erratum": "El libro rotula la altura de la columna como 5m - 11. Con ese rotulo el area es 5m^2 - 7m + 12, cuyo discriminante es 49 - 240 = -191: no tiene ni siquiera raices reales, asi que no hay nada que factorizar y el enunciado queda sin respuesta. Se probaron todas las variantes de un solo caracter en los cuatro rotulos: la unica que cambia un solo digito y conserva las proporciones del dibujo (columna mas alta que ancha) es 5m - 21, que da 5m^2 - 17m + 12 = (m - 1)(5m - 12), justo el caso ax^2 + bx + c del capitulo. Borrar el 5 tambien funciona -- m(m - 11) + 4(m + 3) = (m - 3)(m - 4) -- pero deja la columna mas baja que ancha, al reves de la figura.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P131-A18d",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el polinomio que representa el área de la figura y factorízalo completamente. Es una L formada por una columna de base $x^2$ y altura $x^4$ con una solapa superior izquierda de $3$ de ancho y $3$ de alto.",
+    "expr": "x**2*x**4+3*3",
+    "respuesta": "x**6+9",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Actividad 18, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Figura en L: columna x^2 por x^4 con una solapa cuadrada de 3 por 3 arriba a la izquierda; reconstruible en Python.",
+    "nota": "El área es $x^6+9$ y **no se factoriza**: es la suma de cuadrados $(x^3)^2+3^2$, y una suma de cuadrados no tiene factorización sobre los reales. Es el contraejemplo del caso de la página 108: solo la *diferencia* de cuadrados se abre.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P131-A19a",
+    "tipo": "simbolico",
+    "enunciado": "En un torneo de microfútbol cinco colegios obtuvieron los puntajes de la tabla. Colegio 1: A $=(5-m^2n)(5+m^2n)$, B $=(b^2-20c)(b^2-c)$. Colegio 2: A $=b^4-21b^2c+20c^2$, B $=(5x-4)(3x+2)$. Colegio 3: A $=(x^3-2)^3$, B $=25-m^4n^2$. Colegio 4: A $=64m^2+48mn+9n^2$, B $=x^9-6x^6+12x^3-8$. Colegio 5: A $=15x^2-2x-8$, B $=(8m+3n)^2$. ¿Cuál colegio en la categoría B obtuvo el mismo puntaje que el colegio 2 en la categoría A?",
+    "expr": "b**4-21*b**2*c+20*c**2",
+    "respuesta": "(b**2-20*c)*(b**2-c)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Actividad 19, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Tabla de 5 filas por 3 columnas (Colegio, Categoría A, Categoría B).",
+    "nota": "El **colegio 1**. $b^4-21b^2c+20c^2$ es el trinomio $x^{2n}+bx^n+c$ con $x=b$: dos números que multiplicados den $20c^2$ y sumados $-21c$ son $-20c$ y $-c$, luego $(b^2-20c)(b^2-c)$, que es justo la casilla B del colegio 1. El libro escribe esa casilla como $(b^2-20c)(b^2-1c)$, con un $1$ delante de la $c$ que sobra.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P131-A19b",
+    "tipo": "simbolico",
+    "enunciado": "Con los datos de la tabla del torneo (Colegio 1: A $=(5-m^2n)(5+m^2n)$, B $=(b^2-20c)(b^2-c)$. Colegio 2: A $=b^4-21b^2c+20c^2$, B $=(5x-4)(3x+2)$. Colegio 3: A $=(x^3-2)^3$, B $=25-m^4n^2$. Colegio 4: A $=64m^2+48mn+9n^2$, B $=x^9-6x^6+12x^3-8$. Colegio 5: A $=15x^2-2x-8$, B $=(8m+3n)^2$.) ¿cuál colegio de la categoría A obtuvo el mismo puntaje del colegio 4 de la categoría B?",
+    "expr": "x**9-6*x**6+12*x**3-8",
+    "respuesta": "(x**3-2)**3",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Actividad 19, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Tabla de 5 filas por 3 columnas (Colegio, Categoría A, Categoría B).",
+    "nota": "El **colegio 3**. $x^9-6x^6+12x^3-8$ es un cubo perfecto con $A=x^3$ y $B=2$: $\\sqrt[3]{x^9}=x^3$, $\\sqrt[3]{8}=2$, $3(x^3)^2(2)=6x^6$ y $3(x^3)(4)=12x^3$. Luego es $(x^3-2)^3$, la casilla A del colegio 3.",
+    "erratum": "El libro imprime la casilla B del colegio 4 como x^9 - 6x^6 + 13x^3 - 8. Con 13 el polinomio se abre en (x - 1)(x^2 + x + 1)(x^2 + x + 2)(x^4 - x^3 - x^2 - 2x + 4), que no coincide con ninguna casilla de la categoria A y deja la pregunta b sin respuesta. La tabla esta disenada como un emparejamiento perfecto: A1=B3, A2=B1, A4=B5 y A5=B2 coinciden exactamente, y el unico par que falla es A3 con B4. El cubo (x^3 - 2)^3 = x^9 - 6x^6 + 12x^3 - 8, un solo digito. Corregido a 12x^3.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P131-A19c",
+    "tipo": "simbolico",
+    "enunciado": "Con los datos de la tabla del torneo (Colegio 1: A $=(5-m^2n)(5+m^2n)$, B $=(b^2-20c)(b^2-c)$. Colegio 2: A $=b^4-21b^2c+20c^2$, B $=(5x-4)(3x+2)$. Colegio 3: A $=(x^3-2)^3$, B $=25-m^4n^2$. Colegio 4: A $=64m^2+48mn+9n^2$, B $=x^9-6x^6+12x^3-8$. Colegio 5: A $=15x^2-2x-8$, B $=(8m+3n)^2$.) ¿quién obtuvo mayor puntaje entre el colegio 4 de la categoría A y el colegio 5 de la categoría B?",
+    "expr": "64*m**2+48*m*n+9*n**2",
+    "respuesta": "(8*m+3*n)**2",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Actividad 19, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Tabla de 5 filas por 3 columnas (Colegio, Categoría A, Categoría B).",
+    "nota": "**Ninguno: empatan.** $64m^2+48mn+9n^2$ es un trinomio cuadrado perfecto, $(8m+3n)^2$, que es exactamente lo que aparece en la casilla B del colegio 5.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P131-A19d",
+    "tipo": "simbolico",
+    "enunciado": "Con los datos de la tabla del torneo (Colegio 1: A $=(5-m^2n)(5+m^2n)$, B $=(b^2-20c)(b^2-c)$. Colegio 2: A $=b^4-21b^2c+20c^2$, B $=(5x-4)(3x+2)$. Colegio 3: A $=(x^3-2)^3$, B $=25-m^4n^2$. Colegio 4: A $=64m^2+48mn+9n^2$, B $=x^9-6x^6+12x^3-8$. Colegio 5: A $=15x^2-2x-8$, B $=(8m+3n)^2$.) ¿puede afirmarse que el colegio 5 en la categoría A obtuvo un puntaje mayor que el 2 de la categoría B?",
+    "expr": "15*x**2-2*x-8",
+    "respuesta": "(5*x-4)*(3*x+2)",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Actividad 19, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Tabla de 5 filas por 3 columnas (Colegio, Categoría A, Categoría B).",
+    "nota": "**No.** $15x^2-2x-8$ es el trinomio $ax^2+bx+c$ y se factoriza como $(5x-4)(3x+2)$, que es la casilla B del colegio 2: los dos puntajes son iguales.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P131-A19e",
+    "tipo": "simbolico",
+    "enunciado": "Con los datos de la tabla del torneo (Colegio 1: A $=(5-m^2n)(5+m^2n)$, B $=(b^2-20c)(b^2-c)$. Colegio 2: A $=b^4-21b^2c+20c^2$, B $=(5x-4)(3x+2)$. Colegio 3: A $=(x^3-2)^3$, B $=25-m^4n^2$. Colegio 4: A $=64m^2+48mn+9n^2$, B $=x^9-6x^6+12x^3-8$. Colegio 5: A $=15x^2-2x-8$, B $=(8m+3n)^2$.) ¿cómo son los puntajes del colegio 3 de la categoría B y el 1 de la categoría A?",
+    "expr": "(5-m**2*n)*(5+m**2*n)",
+    "respuesta": "25-m**4*n**2",
+    "conjunto": "Z",
+    "seccion": "Taller 5",
+    "unidad": 5,
+    "pagina_pdf": 131,
+    "referencia": "Actividad 19, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Tabla de 5 filas por 3 columnas (Colegio, Categoría A, Categoría B).",
+    "nota": "**Iguales.** $(5-m^2n)(5+m^2n)$ es una suma por diferencia y da $25-m^4n^2$, que es la casilla B del colegio 3.",
+    "dificultad": 1300
+  }
+]
