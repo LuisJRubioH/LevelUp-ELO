@@ -13,6 +13,7 @@ import { Button } from "../../components/ui/Button";
 import { CoursesSkeleton } from "../../components/ui/Skeleton";
 import { CourseBanner } from "../../components/CourseCard/CourseBanner";
 import { PageHeader } from "../../components/ui/PageHeader";
+import { useAuthStore } from "../../stores/authStore";
 import "./StudentContent.css";
 
 export function Courses() {
@@ -22,6 +23,10 @@ export function Courses() {
   const [tab, setTab] = useState<"explore" | "enrolled" | "code">("explore");
   const [inviteCode, setInviteCode] = useState("");
   const [codeMsg, setCodeMsg] = useState("");
+  // Spec 001 FR-028o: a semillero student without a grade has no catalogue. No grade is ever
+  // assigned here; their enrolments stay listed.
+  const user = useAuthStore((s) => s.user);
+  const needsGrade = user?.education_level === "semillero" && !user?.grade;
 
   const { data: courses = [], isLoading } = useQuery({
     queryKey: ["courses"],
@@ -60,7 +65,9 @@ export function Courses() {
   ];
 
   const enrolled = courses.filter((c) => c.enrolled);
-  const displayed: Course[] = tab === "enrolled" ? enrolled : courses;
+  // Explorar offers the catalogue only; an invited course lives under Mis matrículas (FR-028l).
+  const catalogue = courses.filter((c) => c.in_catalogue !== false);
+  const displayed: Course[] = tab === "enrolled" ? enrolled : catalogue;
 
   return (
     <div className="sp-page-wide">
@@ -81,6 +88,16 @@ export function Courses() {
           </button>
         ))}
       </div>
+
+      {needsGrade && (
+        <p
+          role="status"
+          className="sp-card text-sm mb-4"
+          style={{ borderLeft: "3px solid var(--color-partial)", color: "var(--text)" }}
+        >
+          {t("courses.gradeRequired")}
+        </p>
+      )}
 
       {/* Código de acceso */}
       {tab === "code" && (
@@ -123,9 +140,11 @@ export function Courses() {
           {isLoading ? (
             <CoursesSkeleton />
           ) : displayed.length === 0 ? (
-            <div className="sp-card sp-empty-text text-center py-12">
-              {tab === "enrolled" ? t("courses.noEnrolled") : t("courses.noAvailable")}
-            </div>
+            needsGrade && tab === "explore" ? null : (
+              <div className="sp-card sp-empty-text text-center py-12">
+                {tab === "enrolled" ? t("courses.noEnrolled") : t("courses.noAvailable")}
+              </div>
+            )
           ) : (
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {displayed.map((c) => (
@@ -146,6 +165,11 @@ export function Courses() {
                       <p className="sp-mute text-[11px] uppercase tracking-wider mt-1">
                         {c.block}
                       </p>
+                      {c.in_catalogue === false && (
+                        <p className="text-[11px] mt-1" style={{ color: "var(--color-partial)" }}>
+                          {t("courses.byInvitation")}
+                        </p>
+                      )}
                     </div>
 
                     {tab === "explore" && (

@@ -81,43 +81,61 @@ last step the browser blocks every call and the API looks down.
 
 ### 3.1 V1 (Streamlit Community Cloud) during the switch
 
-V1 deploys from `main` and redeploys on every push, so the merge hands it the new code. Its
-repository then bootstraps the schema on the first session unless `RUN_MIGRATIONS=0`, and also
-seeds demo and test accounts unless `ENVIRONMENT=production`. It would do so from a web session,
-over its own connection (on Streamlit Cloud normally the transaction pooler, where the advisory
-locks protect nothing). Rehearsed locally: the new V1 opened an unmigrated copy without the
-variable, added the eight spec 001 tables, changed existing ones (new columns, seeds, item sync)
-and ran the reconciliation.
+V1 must have no way into the production database from the backup until the owner decides what to
+do with it, for two reasons:
 
-Streamlit Community Cloud has no pause:
+- **Before the merge, Streamlit runs the old code** (`main`), which knows no `RUN_MIGRATIONS`.
+  Every answer moves the legacy ratings (`student_topic_elo`, `users.current_elo`). Whatever it
+  writes after the backup is lost by a rollback, and rating changes it makes after the migration
+  land in tables the new version no longer reads.
+- **The merge redeploys V1 with the new code.** Still connected and without `RUN_MIGRATIONS=0`,
+  its first session runs the whole bootstrap from a web session: schema, reconciliation, and demo
+  and test accounts unless `ENVIRONMENT=production`. It uses its own connection (on Streamlit Cloud
+  normally the transaction pooler, where the advisory locks protect nothing) and may overlap
+  Render's `scripts/migrate.py`. If V1 holds a bootstrap lock at that moment, `migrate.py` exits 1
+  and the API does not start (R17): safe, but the switch stalls. Rehearsed locally, the new V1
+  migrated an unmigrated copy from its first page.
 
-- Commenting out `DATABASE_URL` does not stop V1: it falls back to SQLite and keeps serving.
-- An app asleep (after 12 h without traffic) is not stopped: any visitor wakes it.
-- "Only specific people can view this app" limits who can wake it. The app still runs and still
-  redeploys on the merge.
+Streamlit Community Cloud has no pause. What each option does, checked on 2026-10-08 by running
+V1 headless with the code Streamlit runs today (`main`, `c5ebac8`) and the code the merge gives it:
 
-**Disconnecting means deleting the app**, before the backup that will be the rollback point and
-before the merge. Deleting needs admin rights on the GitHub repository.
+| Option | What V1 does (both versions) | Production database and bucket | A pause? |
+|---|---|---|---|
+| Remove `DATABASE_URL` | Falls back to a throwaway SQLite and keeps serving, login form included | Untouched (the SQLite repository never uses Storage) | **No**: anyone can log in and practise; everything is lost |
+| **`DATABASE_URL` pointing at a host that cannot exist** | Shows only «Error al conectar con la base de datos» in 0.2 s and stops: no repository, no login, no Storage, no AI | Untouched | **Yes, in practice**, and undone by pasting the original value back |
+| Let it sleep, or "Only specific people can view this app" | Any allowed visitor wakes it; it still redeploys on the merge | Reachable | No |
+| Delete the app | Gone | Untouched | Yes, but it has to be recreated (needs admin rights on the repository) |
 
-1. In the app's *Settings*, record in the password manager (never in the repository or a chat):
-   the app URL (custom subdomain), repository, branch, main file path
-   (`src/interface/streamlit/app.py`), Python version and the full *Secrets* text.
-2. Use the app's ⋮ menu → *Delete*. The process stops, its database connections close and the
-   merge no longer redeploys it. The subdomain becomes free and can be claimed again.
+**Temporary disconnection**, before the backup that will be the rollback point. V1 stays like
+this through the merge and the verification of § 6: the new code shows the same error.
 
-**Do not reconnect V1 automatically.** Reconnect only when the owner decides, after § 6 passes:
-
-1. *Create app* with the same repository, branch `main`, main file, Python 3.11 and the recorded
-   subdomain.
-2. Use the recorded secrets plus these two keys **at root level**. Root keys become environment
-   variables; keys under a `[section]` do not.
+1. Copy the current value of `DATABASE_URL` from the app's *Settings → Secrets* into the password
+   manager (never into the repository or a chat). Leave every other secret as it is.
+2. Replace only that value, then save:
 
    ```toml
-   RUN_MIGRATIONS = "0"
-   ENVIRONMENT = "production"
+   DATABASE_URL = "postgresql://mantenimiento:mantenimiento@mantenimiento.invalid:5432/mantenimiento"
    ```
 
-What was checked before allowing that (2026-10-08, new V1 code on PostgreSQL copies of the legacy
+   `.invalid` is a reserved top-level domain: the name never resolves, so V1 cannot connect
+   anywhere.
+3. Reboot the app (⋮ → *Reboot app*). A process that is already running keeps its open
+   connections to production until it restarts.
+4. Open the app's URL. It must show only «Error al conectar con la base de datos: No se pudo
+   conectar a PostgreSQL…», with no login form. Take the backup only after this check.
+
+**Reconnecting V1 is a later decision, not a step of the transfer.** Nothing in the switch or in
+§ 6 depends on V1. If the owner later decides to bring it back, it is done in one save of the
+secrets — the original `DATABASE_URL` plus these two keys **at root level** (root keys become
+environment variables; keys under a `[section]` do not) — then a reboot, a login and a check that
+V1 shows the same ratings as V2:
+
+```toml
+RUN_MIGRATIONS = "0"
+ENVIRONMENT = "production"
+```
+
+Checked so that decision can be taken (2026-10-08, new V1 code on PostgreSQL copies of the legacy
 data):
 
 - **`RUN_MIGRATIONS=0` is respected.** On an unmigrated copy, V1's first page left the schema and
@@ -198,9 +216,9 @@ python scripts/restore_storage_bucket.py --backup backup/procedimientos --apply
 ```
 
 **Returning production to the exact pre-transfer state** (destructive; the owner only, with the
-Render service suspended and Streamlit disconnected). Drop the tables the migration added, then
-restore the application schema; rehearsed locally, the result is identical to the state before
-the migration:
+Render service suspended and V1 disconnected as in § 3.1). Drop the tables the migration added,
+then restore the application schema; rehearsed locally, the result is identical to the state
+before the migration:
 
 ```sql
 DROP TABLE IF EXISTS active_exam_sessions, diagnostics, exam_responses, lesson_interactions,
@@ -253,6 +271,22 @@ pre-transfer state, restore the § 4 dump.
 ## 6. Verification in the final environment
 
 **Before the switch** (on the final repository's pull request):
+
+- Roadmap follow-up **F-4** is merged into the branch being switched: `next-question`, `/answer`
+  and the diagnostic serve only courses the student is enrolled in (spec 001 FR-037, FR-037a).
+  Today any course is served.
+- Roadmap follow-up **F-5** is merged into the branch being switched: PvP lets enrolled students
+  in. Without it the redesign's PvP refuses every student (`docs/sdd/roadmap.md` § Follow-ups).
+- Roadmap follow-up **F-1** is merged into the branch being switched (decided 2026-10-09):
+  Semillero students see the six courses of their grade and invitation codes work. Its read-only
+  production checks (spec 001 task T084; `docs/sdd/f1-semillero-survey.md` § 3 step 1 and § 4.3
+  step 1) are done by the owner first, with the counts recorded:
+  - the Semillero students without a grade, listed. They get their grade by the survey's
+    procedure, or the owner accepts the ones left; until then they see the notice asking for their
+    grade, and their enrolments stay open;
+  - the `courses.block` CHECK, read. If it lacks one of `Universidad`, `Colegio`, `Concursos`,
+    `Semillero`, the migration stops with an error naming the missing values (FR-028n) and the
+    switch waits for a manual repair prepared and reviewed separately, with a backup.
 
 ```bash
 python scripts/db_sync_check.py          # SQLite ↔ PostgreSQL parity

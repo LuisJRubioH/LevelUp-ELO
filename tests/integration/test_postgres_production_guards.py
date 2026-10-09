@@ -61,6 +61,8 @@ def postgres_context():
         conn.commit()
     finally:
         repo.put_connection(conn)
+    # The group's student practises its course: an enrolment is required (spec 001 FR-037).
+    repo.enroll_user(student_id, "calculo_diferencial", group_id)
 
     deps._repo_instance = repo
     client = TestClient(app, base_url="https://postgres-audit.local", raise_server_exceptions=False)

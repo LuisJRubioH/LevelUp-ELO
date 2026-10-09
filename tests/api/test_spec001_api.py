@@ -12,7 +12,7 @@ from tests.integration.conftest import sql
 
 def test_spec001_invalid_time_reports_and_records_no_change(api_client):
     repo, user_id, headers = _student(api_client)
-    _, (item,) = _item(repo)
+    _, (item,) = _item(repo, user_id)
 
     response = api_client.post(
         "/api/student/answer",
@@ -30,8 +30,8 @@ def test_spec001_invalid_time_reports_and_records_no_change(api_client):
 
 
 def test_spec001_valid_answer_reports_elo_valid(api_client):
-    repo, _, headers = _student(api_client)
-    _, (item,) = _item(repo)
+    repo, user_id, headers = _student(api_client)
+    _, (item,) = _item(repo, user_id)
 
     body = _answer(api_client, headers, item).json()
 

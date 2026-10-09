@@ -28,8 +28,10 @@ def _student(api_client):
     return repo, user_id, {"Authorization": "Bearer " + token}
 
 
-def _item(repo, **kwargs):
+def _item(repo, user_id, **kwargs):
+    """A fresh course the student is enrolled in (practice needs an enrolment, FR-037)."""
     course_id, items = make_course(repo, [TOPIC], **kwargs)
+    repo.enroll_user(user_id, course_id)
     return course_id, [repo.get_item_by_id(i) for i in items[TOPIC]]
 
 
@@ -58,7 +60,7 @@ def _state(repo, user_id, items):
 def test_spec001_retry_with_the_same_key_returns_the_stored_result(api_client):
     """US1-AS4: same key, same answer → the stored result, one attempt, nothing moves again."""
     repo, user_id, headers = _student(api_client)
-    _, (item,) = _item(repo)
+    _, (item,) = _item(repo, user_id)
     key = "spec001-" + uuid.uuid4().hex
 
     first = _answer(api_client, headers, item, key=key)
@@ -76,7 +78,7 @@ def test_spec001_retry_with_the_same_key_returns_the_stored_result(api_client):
 def test_spec001_same_key_for_another_answer_is_a_conflict(api_client):
     """US1-AS5: the key belongs to option A; option B under it → 409, nothing recorded."""
     repo, user_id, headers = _student(api_client)
-    _, (item,) = _item(repo)
+    _, (item,) = _item(repo, user_id)
     key = "spec001-" + uuid.uuid4().hex
     assert _answer(api_client, headers, item, "A", key=key).status_code == 200
     after_first = _state(repo, user_id, [item])
@@ -92,7 +94,7 @@ def test_spec001_same_key_for_another_answer_is_a_conflict(api_client):
 def test_spec001_retry_key_length_is_1_to_128(api_client, key, status):
     """Edge "retry key empty or > 128 chars": rejected before anything is recorded."""
     repo, user_id, headers = _student(api_client)
-    _, (item,) = _item(repo)
+    _, (item,) = _item(repo, user_id)
 
     response = _answer(api_client, headers, item, key=key)
 
@@ -102,8 +104,8 @@ def test_spec001_retry_key_length_is_1_to_128(api_client, key, status):
 
 def test_spec001_no_response_carries_the_correct_option(api_client):
     """FR-014: neither /answer nor the exam endpoints send the correct option."""
-    repo, _, headers = _student(api_client)
-    course_id, items = _item(repo, items_per_topic=3)
+    repo, user_id, headers = _student(api_client)
+    course_id, items = _item(repo, user_id, items_per_topic=3)
 
     answered = _answer(api_client, headers, items[0])
     start = api_client.post(
@@ -128,7 +130,7 @@ def test_spec001_no_response_carries_the_correct_option(api_client):
 def test_spec001_exam_submission_changes_no_rating(api_client):
     """FR-032, US6-AS4 (API half): an all-correct exam leaves ratings and difficulties as is."""
     repo, user_id, headers = _student(api_client)
-    course_id, items = _item(repo, items_per_topic=3)
+    course_id, items = _item(repo, user_id, items_per_topic=3)
     assert _answer(api_client, headers, items[0]).status_code == 200
     before = _state(repo, user_id, items)
 
@@ -164,7 +166,7 @@ def _diagnostic(api_client, headers, course_id, answers):
 def test_spec001_diagnostic_correct_at_1200_and_a_skipped_answer(api_client):
     """US3-AS1 + US3-AS4: one correct at difficulty 1200 → 1000 + 22; the skip adds nothing."""
     repo, user_id, headers = _student(api_client)
-    course_id, (solved, skipped) = _item(repo, difficulty=1200.0, items_per_topic=2)
+    course_id, (solved, skipped) = _item(repo, user_id, difficulty=1200.0, items_per_topic=2)
 
     response = _diagnostic(
         api_client, headers, course_id, [(solved["id"], "A"), (skipped["id"], "")]
@@ -184,7 +186,7 @@ def test_spec001_diagnostic_correct_at_1200_and_a_skipped_answer(api_client):
 def test_spec001_diagnostic_floor_is_760(api_client):
     """US3-AS2: thirteen wrong answers below 1100 → 1000 − 260 = 740, floored at 760."""
     repo, user_id, headers = _student(api_client)
-    course_id, items = _item(repo, difficulty=1000.0, items_per_topic=13)
+    course_id, items = _item(repo, user_id, difficulty=1000.0, items_per_topic=13)
 
     response = _diagnostic(api_client, headers, course_id, [(i["id"], "B") for i in items])
 

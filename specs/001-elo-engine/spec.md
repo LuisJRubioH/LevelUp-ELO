@@ -81,6 +81,39 @@ easy or too hard and teachers act on false information.
   rejected: it is a type change (AGENTS R8). *(Found at the Phase 3 checkpoint: a first response of
   1243.66 and a retry of 1243.67.)*
 
+### Session 2026-10-08 (follow-up F-1, owner decisions)
+
+Found while surveying roadmap follow-up F-1 (`docs/sdd/f1-semillero-survey.md`): a semillero
+student with a grade was offered no course, one without a grade was offered all 36, registration
+accepted semillero without a grade and `/enroll` accepted any existing course.
+
+- Q: Does a semillero student need a grade? → A: yes, a grade from 6 to 11 is mandatory; a
+  registration without one is rejected, and the catalogue is exactly the six semillero courses of
+  that grade (FR-028k, FR-028m).
+- Q: Which courses may a student enrol in? → A: only the courses of their catalogue, on every
+  level; any other enrolment request is rejected (FR-028m).
+- Q: What do teacher invitations do? → A: they keep their purpose, explicit access to the group's
+  course across levels, but a semillero student needs a grade to use one. An invitation never
+  changes the student's level or grade, and the invited course does not become part of the
+  catalogue, so it never counts toward the overall rating (FR-028l).
+- Q: What about existing semillero students without a grade? → A: no grade is assigned
+  automatically. Before the change ships they are counted and given their grade by the documented
+  procedure (`docs/sdd/f1-semillero-survey.md` § 3); any account still without a grade has an
+  empty catalogue, no current course and a "pending diagnostic" rating (FR-028k, FR-028b).
+- Q: Who changes a student's grade later (promotion)? → A: out of this spec — spec 004
+  (identity and access); FR-028c already defines what promotion does to ratings.
+- Q: What does a semillero student without a grade see? → A: an empty catalogue with the notice
+  «Necesitamos registrar tu grado para mostrar tus cursos. Contacta a tu docente o al
+  administrador.» No grade is assigned automatically, and the courses they are already enrolled
+  in — including any reached by a valid invitation — stay listed and open for practice (FR-028o).
+- Q: Where does a course reached by invitation appear? → A: among the student's enrolments,
+  marked as outside the catalogue; it is never offered in the catalogue to explore (FR-028l).
+- Q: What if an old database's `courses.block` constraint does not accept one of the four
+  blocks? → A: the migration stops with a clear error naming the missing values and changes
+  nothing; the automatic widenings (PostgreSQL drop and re-add, SQLite table rebuild) are removed.
+  Any manual repair is prepared and reviewed separately, with a backup; this decision does not
+  authorise running that DDL (FR-028n, `docs/sdd/f1-semillero-survey.md` § 4.3).
+
 ### Session 2026-10-05 (/speckit-clarify)
 
 - Q: What happens to ratings already stored under a course id or course name? → A: existing topic
@@ -97,6 +130,24 @@ easy or too hard and teachers act on false information.
   stay unchanged; an applied delta of 0 is persisted with reason `no_rated_topics` and reported;
   the opponent's delta applies normally; completion stays idempotent; matchmaking eligibility is
   a follow-up for spec 007 (FR-029c).
+
+### Session 2026-10-08 (follow-up F-4, owner decisions)
+
+Found while surveying follow-up F-1 (`docs/sdd/f1-semillero-survey.md` § 1): `next-question`,
+`/answer` and the diagnostic endpoints worked on any course. A colegio student with no enrolment
+was served a `probabilidad` (universidad) item and its answer stored a rating of 1018 there.
+
+- Q: Which practice endpoints check enrolment? → A: all three doors — the next practice item, the
+  practice answer and the diagnostic (its status and questions, and its submission) (FR-037,
+  FR-037a).
+- Q: What counts as enrolled? → A: any enrolment of the student in that course, from their
+  level's courses or through a valid invitation code; an invitation course is practised like any
+  other.
+- Q: When is a request refused? → A: before any item is served and before any rating, attempt,
+  item difficulty, retry record or diagnostic result is read for update or written; a refused
+  request changes nothing (FR-037a).
+- Q: How is it tested? → A: allowed and denied access, the denied side with no side effect
+  (US8-AS1 … AS5).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -279,6 +330,78 @@ shows them.
 
 ---
 
+### User Story 7 - My catalogue matches my level and grade (Priority: P2)
+
+A student sees, and can enrol in, the courses of their education level — for semillero, of their
+grade — and those are the courses whose ratings make up their overall rating. A teacher's
+invitation can open a course of another level without changing either.
+
+**Why this priority**: today a semillero student with a grade is offered no course at all, and the
+courses offered and the courses counted in the overall rating come from two different rules.
+
+**Independent Test**: register students of each level (semillero with each grade), list their
+catalogue, try to enrol inside and outside it, join a group of another level by invitation, and
+compare the overall rating before and after.
+
+**Acceptance Scenarios**:
+
+1. **US7-AS1** — **Given** a semillero student of grade 7, **When** their catalogue is shown,
+   **Then** it is exactly the six grade-7 semillero courses, and those are the courses that count
+   as current for their overall rating.
+2. **US7-AS2** — **Given** a registration as a semillero student without a grade, or with a grade
+   outside 6–11, **When** it is submitted, **Then** it is rejected and no account is created.
+3. **US7-AS3** — **Given** a colegio student and a grade-6 semillero student, **When** they ask to
+   enrol in a universidad course and in a grade-7 semillero course respectively, **Then** both
+   requests are rejected and nothing is enrolled; a course of their own catalogue enrols normally.
+4. **US7-AS4** — **Given** a grade-6 semillero student with an overall rating, **When** they join,
+   through its invitation code, a group whose course is a colegio course, **Then** they are
+   enrolled in it and can practise it; their level and grade stay the same; the course is not in
+   their catalogue; and their overall rating is still computed from their grade-6 courses only.
+5. **US7-AS5** — **Given** a semillero student without a grade (an account created before this
+   rule), **When** their catalogue and overall rating are shown, **Then** the catalogue is empty
+   and the screen shows «Necesitamos registrar tu grado para mostrar tus cursos. Contacta a tu
+   docente o al administrador.», the rating reads "pending diagnostic", a new invitation code is
+   refused until a grade is set, and the courses they are already enrolled in stay listed and
+   open for practice.
+6. **US7-AS6** — **Given** a colegio student enrolled by invitation in a universidad course,
+   **When** their courses are listed, **Then** the course appears among their enrolments marked
+   as outside the catalogue, is not offered in the catalogue to explore, and opens for practice.
+
+---
+
+### User Story 8 - I practise only the courses I am enrolled in (Priority: P1)
+
+A student gets practice items, answers them and takes a course's diagnostic only in the courses
+they are enrolled in — through their catalogue or through a teacher's invitation. Any other
+course is refused before anything is served or stored.
+
+**Why this priority**: today any signed-in student can be served items, answer them and set a
+diagnostic baseline in any course, so ratings appear in courses the student never joined and
+change what teachers and rankings read.
+
+**Independent Test**: with one student enrolled through the catalogue, one through an invitation
+and one not enrolled, request the next item, answer one, open and submit the diagnostic of the
+same course; compare attempts, ratings, item difficulty and diagnostics before and after.
+
+**Acceptance Scenarios**:
+
+1. **US8-AS1** — **Given** a colegio student not enrolled in `probabilidad`, **When** they ask for
+   its next practice item, **Then** the request is refused as forbidden and no item is served.
+2. **US8-AS2** — **Given** that student and an item of `probabilidad`, **When** they submit an
+   answer to it, with or without a retry key, **Then** it is refused as forbidden and no attempt,
+   rating, item difficulty or retry record changes.
+3. **US8-AS3** — **Given** that student, **When** they open `probabilidad`'s diagnostic or submit
+   one, **Then** both are refused as forbidden: no question is served and no baseline or
+   diagnostic result is stored.
+4. **US8-AS4** — **Given** a student enrolled in a course of their catalogue and another enrolled
+   through an invitation in a course outside their level, **When** each asks for that course's
+   next item, answers it and takes its diagnostic, **Then** all of it works as today for both.
+5. **US8-AS5** — **Given** a student who practised a course and then left it, **When** they ask
+   for its next item or answer one of its items, **Then** it is refused as forbidden and their
+   stored ratings in that course stay unchanged.
+
+---
+
 ### Edge Cases
 
 - Response time exactly 3 s or exactly 600 s → valid (inclusive bounds).
@@ -306,8 +429,23 @@ shows them.
   it reads "pending diagnostic".
 - Two items with the same difficulty → the chosen one is kept by identity, not by difficulty.
 - Practice filtered to a topic that has no items → falls back to the whole course pool.
+- Practice, an answer or a diagnostic for a course that does not exist → refused like a course the
+  student is not enrolled in (FR-037).
+- A retry of an accepted answer after the student left the course → refused like any answer; the
+  stored attempt stays as it was (FR-037a).
 - A retry key longer than 128 characters or empty → rejected.
 - A diagnostic containing the same item twice, or an item from another course → rejected.
+- An invitation to a course that is already in the student's catalogue → an ordinary enrolment:
+  the course counts as current (FR-028l only covers courses outside the catalogue).
+- A semillero course of another grade reached by invitation → accessible, never current; the
+  student's grade does not change (FR-028l).
+- A semillero account without a grade → empty catalogue, the notice of FR-028o and "pending
+  diagnostic" until its grade is set; no grade is inferred from its enrolments (FR-028k). Its
+  existing enrolments are not removed: they stay listed and open for practice, and none counts as
+  current.
+- A database whose block constraint lacks one of the four blocks → the migration stops before
+  changing anything, naming the missing values (FR-028n); one that accepts the four plus extra
+  values → no DDL, the extra values stay.
 
 ## Requirements *(mandatory)*
 
@@ -486,6 +624,45 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   rating of 999.6 is shown as 1000 with "Plata I"; 999.4 as 999 with "Plata II"; 999.5 as 1000
   with "Plata I". *(Today the label is computed from the full-precision value while the screen
   rounds it, so 999.6 shows "1000" next to "Plata II".)*
+- **FR-028k** [CHANGE]: The system shall define a student's **catalogue** from their education
+  level and, for semillero, their grade: for universidad, colegio and concursos, every course of
+  that level's block; for semillero with grade *g* (6–11), exactly the semillero courses of grade
+  *g* (those whose id ends in `_semillero_g`); for semillero without a grade, no course. The
+  catalogue offered to the student and the "current level and grade" of FR-028a are the same set,
+  computed by one domain rule. *(Today: a semillero student with a grade is offered no course,
+  because the catalogue looks for a block `Semillero g°` that no course has; one without a grade
+  is offered all 36 courses and has every grade's courses counted as current.)*
+- **FR-028l** [CHANGE]: When a student joins a group through its invitation code, the system shall
+  enrol them in the group's course even if it is outside their catalogue — provided a semillero
+  student has a grade — and shall change neither the student's level nor their grade; the invited
+  course shall not become part of the catalogue, so it never counts toward the overall rating
+  (FR-028a) while the student keeps access to practise it. When the student's courses are listed,
+  the system shall list such a course among their enrolments, marked as outside the catalogue, and
+  shall not offer it in the catalogue to explore. *(Today: `POST /api/student/enroll-by-code`
+  answers 500 for every valid code on both engines — it reads the group's id under a key the
+  repositories do not return; the rule does not check a semillero student's grade; and the course
+  list returns only the catalogue, so a course reached by invitation appears on no screen.)*
+- **FR-028m** [CHANGE]: The system shall reject a registration as a semillero student without a
+  grade from 6 to 11, and shall reject any enrolment request — other than through an invitation
+  (FR-028l) — for a course outside the student's catalogue, on every level. *(Today: both are
+  accepted; only the screens keep students to their catalogue.)* Registration and enrolment belong
+  to identity and access: these two rules are stated here because they decide the catalogue, and
+  move to spec 004 when it is written.
+- **FR-028n** [CHANGE]: When the schema is migrated, the system shall check, without changing it,
+  that the `courses.block` constraint accepts the four blocks (`Universidad`, `Colegio`,
+  `Concursos`, `Semillero`). If it does, the system shall issue no DDL for it and shall keep any
+  extra value it already allows. If it does not, the system shall stop the migration with an
+  error that names the missing values, before any change to that constraint or table, and shall
+  never drop, re-add or rebuild them automatically (AGENTS R8, R17). A new database is created
+  with a constraint that accepts the same set on both engines. *(Today: PostgreSQL drops and
+  re-adds the constraint on every migration; SQLite rebuilds the table when its probe fails,
+  leaving the other tables' foreign keys pointing at a dropped table.)* Persistence belongs to
+  spec 002; this rule is stated here because the catalogue depends on it, and moves there.
+- **FR-028o** [CHANGE]: While a semillero student has no grade, the courses screen shall show the
+  notice «Necesitamos registrar tu grado para mostrar tus cursos. Contacta a tu docente o al
+  administrador.» in place of the empty catalogue, shall keep listing the courses the student is
+  already enrolled in (FR-028l) with their access to practise, and shall offer no way to set the
+  grade. *(Today: such a student is offered all 36 semillero courses.)*
 - **FR-029** [CHANGE]: The system shall store every rating change — practice answer, diagnostic,
   procedure — under the **course and topic of the item involved**, identified by the course's
   stable identifier and the topic within it. There is one stored rating per student, course and
@@ -548,6 +725,21 @@ items of that course, or the student's diagnostic for that course.
 - **FR-036** [CHANGE]: The system shall keep legacy rows stored but exclude them from every rating
   read, derived course rating, overall rating and rank; reconciliation shall not replay historical
   attempts, and running it again shall change nothing.
+
+**Practice access (follow-up F-4)**
+
+- **FR-037** [CHANGE]: When a student asks for the next practice item of a course, or for a
+  course's diagnostic (its status or its questions), the system shall serve it only if the
+  student is enrolled in that course — whether they enrolled from their level's courses or
+  through a teacher's invitation code; otherwise it shall refuse the request as forbidden
+  (HTTP 403) and serve no item.
+  *(Today: any course is served.)*
+- **FR-037a** [CHANGE]: When a student submits a practice answer or a diagnostic, the system shall
+  check that the student is enrolled in the course of the answered item — for a diagnostic, the
+  diagnosed course — before reading for update or writing any rating, attempt, item difficulty,
+  retry record or diagnostic result; if the student is not enrolled, it shall refuse the request
+  as forbidden (HTTP 403) and change nothing. The check comes before a retry-key replay (FR-012a).
+  *(Today: the answer is stored and sets a rating in a course the student never joined.)*
 
 ### Key Entities
 
@@ -614,8 +806,13 @@ items of that course, or the student's diagnostic for that course.
 - Procedure upload, AI review and the teacher review UI — spec 006 (only the rating effect is here).
 - Course map node unlocking and the 1250 "completed" threshold — spec 003 (it reads ratings
   defined here).
+- Access to exams, the course map and lessons (`/exam/start`, `/map/{course}`, the lesson
+  endpoints): exams change no rating (FR-032) and the map and lessons belong to spec 003; F-4
+  does not check them.
 - Badge/achievement rules themselves (only their failure handling, FR-015).
 - New features or screens in V1.
+- Changing a student's grade after registration (promotion) — spec 004 (FR-028c defines what it
+  does to ratings).
 
 ## Traceability *(mandatory)*
 
@@ -663,6 +860,17 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | US6-AS7 | `tests/api/test_spec001_api.py::test_spec001_group_ranking_basis_errors_and_pending`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_group_ranking_never_substitutes_another_rating`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_group_ranking_on_the_group_course_without_substitution`<br>`frontend/e2e/spec001-ratings.spec.ts › Ranking del grupo: base, empates con el mismo puesto, valor tal cual y pendientes al final (US6-AS7/AS8)` |
 | US6-AS8 | `tests/unit/domain/test_spec001_domain.py::test_spec001_rank_competition`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_rankings_follow_participation_and_competition`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_competition_ranks_and_limit`<br>`frontend/e2e/spec001-ratings.spec.ts › Ranking del grupo: base, empates con el mismo puesto, valor tal cual y pendientes al final (US6-AS7/AS8)` |
 | US6-AS9 | `tests/unit/domain/test_spec001_domain.py::test_spec001_rating_display_number_and_label_agree`<br>`tests/api/test_spec001_api.py::test_spec001_number_and_label_agree_on_every_surface`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`frontend/e2e/spec001-ratings.spec.ts › Número y rango salen del mismo valor: 999.6 → 1000 «Plata I» (US6-AS9)`<br>`frontend/e2e/spec001-ratings.spec.ts › La pantalla muestra display_rating tal cual, sin redondear por su cuenta (FR-028i/j)` |
+| US7-AS1 | `tests/integration/test_spec001_catalogue.py::test_spec001_semillero_catalogue_by_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_current_courses_are_the_catalogue`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_courses_of_a_grade_7_student` |
+| US7-AS2 | `tests/integration/test_spec001_catalogue.py::test_spec001_register_user_rejects_semillero_without_a_valid_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_api_registration_rejects_semillero_without_a_valid_grade` |
+| US7-AS3 | `tests/integration/test_spec001_catalogue.py::test_spec001_enrol_only_in_the_catalogue` |
+| US7-AS4 | `tests/integration/test_spec001_catalogue.py::test_spec001_invitation_crosses_levels_without_changing_them` |
+| US7-AS5 | `tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_course_list_is_its_enrolments`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_current_courses_are_the_catalogue`<br>`frontend/e2e/f1-catalogue.spec.ts › Semillero sin grado: aviso, sin catálogo y con sus matrículas abiertas (FR-028o)` |
+| US7-AS6 | `tests/integration/test_spec001_catalogue.py::test_spec001_course_list_marks_invited_courses`<br>`frontend/e2e/f1-catalogue.spec.ts › Un curso por invitación solo aparece en Mis matrículas (FR-028l)` |
+| US8-AS1 | `tests/integration/test_spec001_practice_access.py::test_spec001_next_question_outside_enrolment_is_forbidden` |
+| US8-AS2 | `tests/integration/test_spec001_practice_access.py::test_spec001_answer_outside_enrolment_changes_nothing` |
+| US8-AS3 | `tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden` |
+| US8-AS4 | `tests/integration/test_spec001_practice_access.py::test_spec001_enrolled_students_practise_as_before` |
+| US8-AS5 | `tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it` |
 | FR-001 | `tests/unit/domain/test_elo_model.py::TestExpectedScore::test_400_point_advantage_gives_approx_91_percent`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_fr001_both_engine_paths_use_the_same_expected_success` |
 | FR-002 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_rating_delta` |
 | FR-003 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_rd_floor_30_holds_and_scales_the_change`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_next_rd_has_a_floor_of_30` |
@@ -703,6 +911,11 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | FR-028h | `tests/unit/domain/test_spec001_domain.py::test_spec001_rank_competition`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_competition_ranks_and_limit`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_rankings_follow_participation_and_competition` |
 | FR-028i | `tests/unit/domain/test_spec001_domain.py::test_spec001_round_for_display_is_half_up`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_average_then_round_once`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_full_precision_until_the_one_rounding`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`tests/integration/test_spec001_answer_retry.py::test_spec001_retry_returns_the_persisted_attempt_and_applies_once`<br>`frontend/e2e/spec001-ratings.spec.ts › La pantalla muestra display_rating tal cual, sin redondear por su cuenta (FR-028i/j)` |
 | FR-028j | `tests/unit/domain/test_spec001_domain.py::test_spec001_rating_display_number_and_label_agree`<br>`tests/api/test_spec001_api.py::test_spec001_number_and_label_agree_on_every_surface`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`frontend/e2e/spec001-ratings.spec.ts › Número y rango salen del mismo valor: 999.6 → 1000 «Plata I» (US6-AS9)`<br>`frontend/e2e/spec001-ratings.spec.ts › Panel docente usa display_rating y rank_label de la API (US6-AS3, FR-028j)`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_number_and_rank_come_from_one_display_value`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_views_rank_only_through_the_display_value` |
+| FR-028k | `tests/unit/domain/test_spec001_catalogue.py::test_spec001_semillero_catalogue_is_the_courses_of_the_grade`<br>`tests/unit/domain/test_spec001_catalogue.py::test_spec001_semillero_without_a_grade_has_no_course`<br>`tests/unit/domain/test_spec001_catalogue.py::test_spec001_other_levels_are_their_block`<br>`tests/unit/domain/test_spec001_catalogue.py::test_spec001_unknown_level_falls_back_to_universidad`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_semillero_catalogue_by_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_current_courses_are_the_catalogue` |
+| FR-028l | `tests/integration/test_spec001_catalogue.py::test_spec001_invitation_crosses_levels_without_changing_them`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_course_list_marks_invited_courses`<br>`frontend/e2e/f1-catalogue.spec.ts › Un curso por invitación solo aparece en Mis matrículas (FR-028l)` |
+| FR-028m | `tests/unit/domain/test_spec001_catalogue.py::test_spec001_valid_semillero_grades_are_6_to_11`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_register_user_rejects_semillero_without_a_valid_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_api_registration_rejects_semillero_without_a_valid_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_enrol_only_in_the_catalogue` |
+| FR-028n | `tests/integration/test_spec001_course_block_constraint.py::test_spec001_new_database_accepts_exactly_the_four_blocks`<br>`tests/integration/test_spec001_course_block_constraint.py::test_spec001_constraint_with_extra_values_is_left_as_it_is`<br>`tests/integration/test_spec001_course_block_constraint.py::test_spec001_old_database_stops_the_migration`<br>`tests/integration/test_spec001_course_block_constraint.py::test_spec001_migrate_py_exits_1_on_an_old_database` |
+| FR-028o | `tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_course_list_is_its_enrolments`<br>`frontend/e2e/f1-catalogue.spec.ts › Semillero sin grado: aviso, sin catálogo y con sus matrículas abiertas (FR-028o)`<br>`frontend/e2e/f1-catalogue.spec.ts › Semillero con grado: sin aviso (FR-028o)` |
 | FR-029 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_answer_writes_only_the_items_course_topic`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_answer_lands_on_the_items_course_and_topic`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_writes_course_topic_baselines`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once` |
 | FR-029a | `tests/unit/application/test_spec001_service.py::test_spec001_selection_rating_is_topic_or_course`<br>`tests/unit/application/test_spec001_service.py::test_spec001_unrated_course_selects_at_1000_and_ignores_the_diagnostic_average`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_course_rating_of`<br>`tests/unit/application/test_spec001_service.py::test_spec001_pvp_shows_pending_never_the_1000_fallback`<br>`tests/api/test_spec001_api.py::test_spec001_course_map_shows_unrated_topics_as_pending` |
 | FR-029b | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
@@ -717,6 +930,8 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | FR-034b | `tests/integration/test_spec001_reconciliation.py::test_spec001_existing_rows_and_unassigned_legacy_rows_are_left_alone` |
 | FR-035 | `tests/integration/test_spec001_reconciliation.py::test_spec001_course_row_most_recent_wins_and_is_never_summed` |
 | FR-036 | `tests/integration/test_spec001_reconciliation.py::test_spec001_reconciliation_is_idempotent`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_every_ranking_reads_the_canonical_rating`<br>`tests/api/test_spec001_api.py::test_spec001_every_surface_reads_the_canonical_rating`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_course_topic_ratings_are_new_table_rows_only` |
+| FR-037 | `tests/integration/test_spec001_practice_access.py::test_spec001_next_question_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_enrolled_students_practise_as_before`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_ensure_enrolled` |
+| FR-037a | `tests/integration/test_spec001_practice_access.py::test_spec001_answer_outside_enrolment_changes_nothing`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_ensure_enrolled` |
 
 ## Appendix — As-is evidence
 
@@ -749,8 +964,14 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-028h | `ORDER BY elo DESC` / `ORDER BY ue.global_elo DESC` with no tie-break in every ranking query (both repos) |
 | FR-028i | PostgreSQL rating columns are `REAL` (4-byte: `999.4999999::real` = 999.5); `round(..., 2)` (half-to-even) in API responses; `Math.round` on every rating in `Stats.tsx:142, 199, 229`, `RankBadge.tsx:52`, teacher `fmtMiles` |
 | FR-028j | label from full precision: `api/routers/student.py:287` (`_elo_to_rank(global_elo)`), `Teacher/Dashboard.tsx:137, 207, 400` (`rankFor(s.global_elo)`); number rounded on screen: `Stats.tsx:142`, `RankBadge.tsx:52` |
+| FR-028k | `get_available_courses_by_level` (both repos) filters on block `Semillero {grade}°`, which no course has; without a grade it returns every `Semillero` course; `student_view.py` `_student_block` (V1) |
+| FR-028l | `enroll_by_code` (`api/routers/student.py:311`) reads `group["id"]` while `get_group_by_invite_code` returns `group_id` (500 on both engines), and has no grade check; `GET /api/student/courses` returns only `get_available_courses` |
+| FR-028m | `api/schemas/auth.py:22` (`grade` optional for every level); `POST /api/student/enroll` checks only that the course exists |
+| FR-028n | `_migrate_courses_block_check`: `postgres_repository.py:1228` (returns only if the definition contains `'Semillero 6'`, so it drops and re-adds every run), `sqlite_repository.py:915` (probe insert, then rename → create → copy → drop) |
+| FR-028o | `frontend/src/pages/Student/Courses.tsx` shows `courses.noAvailable` for an empty catalogue |
 | FR-028g | `weekly_rankings` table; `save_weekly_ranking`, `get_ranking_history` ← `teacher_view.py:550, 556` |
 | FR-029 | `student_view.py:385`, `api/routers/student.py:166`, `useStudentSession.ts:74`, `finish_pvp_match`, `validate_procedure_submission`, diagnostic submit |
 | FR-030 | `frontend/src/pages/Student/Practice.tsx:27-33` |
 | FR-031 | `api/routers/student.py:1497` (`_RANK_THRESHOLDS`), `src/interface/streamlit/state.py:31`, `frontend/src/pages/Teacher/Dashboard.tsx:20`, `Teacher/Groups.tsx:14`, `Home.tsx:36`, `api/routers/student.py:963` (`_DIAG_LEAGUES`) |
 | FR-032 | `api/routers/student.py` exam submit ("examen no afecta ELO") |
+| FR-037, FR-037a | `api/routers/student.py` `next_question`, `answer`, `diagnostic_status`, `diagnostic_submit`: no enrolment check (only PvP checks it, `api/websocket/pvp.py`) |

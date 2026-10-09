@@ -173,6 +173,8 @@ const es = {
     loading: "Cargando cursos...",
     noEnrolled: "No estás matriculado en ningún curso aún.",
     noAvailable: "No hay cursos disponibles para tu nivel.",
+    gradeRequired: "Necesitamos registrar tu grado para mostrar tus cursos. Contacta a tu docente o al administrador.",
+    byInvitation: "Acceso por invitación",
     codeActivated: "Acceso especial activado para {{course}}",
     enrollByCode: "Acceder con código",
     join: "Unirse",
