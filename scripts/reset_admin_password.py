@@ -5,17 +5,18 @@ existing admin), and the app has no endpoint to change a password, so changing A
 the host's settings does not change the admin's password. This script does, directly in the
 database, with the app's own Argon2id hashing.
 
-Usage (run from the repository root, on your own machine):
+Usage (run from the repository root, on your own machine, after
+`pip install -r requirements-api.txt`):
 
-    # PostgreSQL: the URL comes from the environment, never from the command line
-    export MIGRATION_DATABASE_URL='postgresql://…'          # or DATABASE_URL
+    # PostgreSQL: asks for the database URL with a hidden prompt (never typed into a command, so
+    # it stays out of the shell history), then for the new password twice
     python scripts/reset_admin_password.py --username admin
 
     # SQLite (local development)
     python scripts/reset_admin_password.py --sqlite data/elo_database.db --username admin
 
-The new password is read with a hidden prompt (asked twice), or from NEW_ADMIN_PASSWORD when no
-terminal is available. It is never printed, logged or passed as an argument. The script never
+Without a terminal, the URL comes from MIGRATION_DATABASE_URL (or DATABASE_URL) and the password
+from NEW_ADMIN_PASSWORD. Neither is ever printed, logged or passed as an argument. The script never
 builds a repository (so it runs no migration); it changes one row, `users.password_hash` of the
 named user whose role is `admin`, in one transaction, and exits 1 if that is not exactly one row.
 """
@@ -64,12 +65,36 @@ def set_admin_password(conn, placeholder: str, username: str, password_hash: str
         raise
 
 
-def _connect(args):
+def database_url(env=os.environ, prompt=getpass.getpass, interactive=None) -> str | None:
+    """The PostgreSQL URL from the environment or, in a terminal, from a hidden prompt."""
+    url = env.get("MIGRATION_DATABASE_URL") or env.get("DATABASE_URL")
+    if url:
+        return url
+    if interactive is None:
+        interactive = sys.stdin.isatty()
+    return (prompt("PostgreSQL URL (hidden): ").strip() or None) if interactive else None
+
+
+def connection_error(exc: Exception, url: str | None) -> str:
+    """The reason a connection failed, without the URL or its password.
+
+    libpq quotes a malformed URL back in its error, password included
+    (`invalid percent-encoded token: "<password>"`), so that error is never shown as given.
+    """
+    message = str(exc).strip()
+    if "invalid dsn" in message:
+        return "the URL is not a valid PostgreSQL URL (postgresql://user:password@host:port/db)"
+    if url:
+        password = url.split("://", 1)[-1].rpartition("@")[0].partition(":")[2]
+        for secret in (url, password):
+            if secret:
+                message = message.replace(secret, "***")
+    return message
+
+
+def _connect(args, url):
     if args.sqlite:
         return sqlite3.connect(args.sqlite), "?"
-    url = os.environ.get("MIGRATION_DATABASE_URL") or os.environ.get("DATABASE_URL")
-    if not url:
-        raise SystemExit("Set MIGRATION_DATABASE_URL (or DATABASE_URL), or pass --sqlite PATH.")
     import psycopg2
 
     sslmode = os.environ.get("DATABASE_SSLMODE", "require")
@@ -82,6 +107,14 @@ def main(argv=None) -> int:
     ap.add_argument("--sqlite", help="path of a local SQLite database instead of PostgreSQL")
     args = ap.parse_args(argv)
 
+    url = None if args.sqlite else database_url()
+    if not args.sqlite and not url:
+        print(
+            "ERROR: no database URL. Run it in a terminal, set MIGRATION_DATABASE_URL, "
+            "or pass --sqlite PATH. Nothing changed.",
+            file=sys.stderr,
+        )
+        return 2
     try:
         password = read_new_password()
     except ValueError as exc:
@@ -90,7 +123,14 @@ def main(argv=None) -> int:
 
     password_hash = HashingService().hash_password(password)
     del password
-    conn, placeholder = _connect(args)
+    try:
+        conn, placeholder = _connect(args, url)
+    except Exception as exc:
+        print(
+            f"ERROR: cannot connect: {connection_error(exc, url)}. Nothing changed.",
+            file=sys.stderr,
+        )
+        return 1
     try:
         changed = set_admin_password(conn, placeholder, args.username, password_hash)
     finally:
