@@ -15,7 +15,13 @@ venv/
 env/
 
 # Configuración sensible
+# Never commit secrets: every env file except the template, and Streamlit secrets.
 .env
+.env.*
+!.env.example
+*.env
+secrets.toml
+*.pem
 
 # Archivos temporales de Python
 __pycache__/
