@@ -275,8 +275,8 @@ pre-transfer state, restore the § 4 dump.
 - Roadmap follow-up **F-4** is merged into the branch being switched: `next-question`, `/answer`
   and the diagnostic serve only courses the student is enrolled in (spec 001 FR-037, FR-037a).
   Today any course is served.
-- Roadmap follow-up **F-5**, if the owner includes it: PvP lets enrolled students in. Today the
-  redesign's PvP refuses every student (`docs/sdd/roadmap.md` § Follow-ups).
+- Roadmap follow-up **F-5** is merged into the branch being switched: PvP lets enrolled students
+  in. Without it the redesign's PvP refuses every student (`docs/sdd/roadmap.md` § Follow-ups).
 
 ```bash
 python scripts/db_sync_check.py          # SQLite ↔ PostgreSQL parity
