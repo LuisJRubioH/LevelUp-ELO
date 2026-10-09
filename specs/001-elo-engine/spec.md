@@ -11,6 +11,47 @@ next practice item is chosen, and every path that writes a rating.
 next and how a teacher reads a student's level. If it is wrong, students get items that are too
 easy or too hard and teachers act on false information.
 
+## Code Scope *(mandatory)*
+
+The code whose behaviour this spec defines. A pull request that changes any of these paths, or a
+test file cited in § Traceability, is a code change for this spec whatever its branch, and the
+traceability check (`scripts/check_traceability.py`) then rejects this spec's `PENDING` rows. An
+entry ending in `/` covers everything below it.
+
+- `src/domain/elo/` — rating formulas, aggregation, ranks, reconciliation
+- `src/domain/selector/` — item selection
+- `src/domain/entities.py` — levels, blocks and the catalogue rule
+- `src/application/interfaces/repositories.py`
+- `src/application/services/student_service.py`
+- `src/application/services/rating_read_service.py`
+- `src/application/services/teacher_service.py`
+- `src/infrastructure/persistence/` — both repositories: rating writers, schema, reconciliation
+- `src/interface/streamlit/` — V1's rating writer and rating screens
+- `scripts/migrate.py` — runs the bootstrap and the reconciliation
+- `api/routers/student.py`
+- `api/routers/teacher.py`
+- `api/routers/meta.py`
+- `api/schemas/auth.py` — registration: Semillero requires a grade
+- `api/schemas/student.py`
+- `api/websocket/pvp.py`
+- `frontend/src/api/student.ts`
+- `frontend/src/api/teacher.ts`
+- `frontend/src/components/ELO/`
+- `frontend/src/components/Course/CourseRail.tsx`
+- `frontend/src/hooks/useStudentSession.ts`
+- `frontend/src/hooks/usePvpMatch.ts`
+- `frontend/src/stores/practiceStore.ts`
+- `frontend/src/pages/Home.tsx`
+- `frontend/src/pages/Student/Practice.tsx`
+- `frontend/src/pages/Student/CourseEntry.tsx`
+- `frontend/src/pages/Student/CourseMap.tsx`
+- `frontend/src/pages/Student/Stats.tsx`
+- `frontend/src/pages/Student/League.tsx`
+- `frontend/src/pages/Student/Exam.tsx`
+- `frontend/src/pages/Student/Courses.tsx` — catalogue, invited courses, the grade notice
+- `frontend/src/pages/Teacher/Dashboard.tsx`
+- `frontend/src/pages/Teacher/Groups.tsx`
+
 ## Clarifications
 
 ### Session 2026-10-05 (during /speckit-specify)

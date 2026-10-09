@@ -1,6 +1,8 @@
 # .github/workflows/ci.yml
-# CI/CD para LevelUp-ELO — 8 jobs
+# CI/CD para LevelUp-ELO — 10 jobs
 # Disparadores: push a main, pull_request hacia main
+# Also pull requests into `redesign`, the staging branch stacked work targets until the redesign
+# lands on main.
 
 name: LevelUp-ELO CI
 
@@ -8,7 +10,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, redesign]
 
 env:
   PYTHON_VERSION: "3.11"
@@ -233,3 +235,120 @@ jobs:
         working-directory: frontend
         env:
           VITE_API_URL: "https://levelup-elo.onrender.com"
+
+  # ── Job 9: E2E Playwright (roadmap A-1) ──────────────────────────────
+  # Frontend flows in Chromium against a mocked API (frontend/e2e/fixtures.ts fails a test that
+  # calls an unmocked endpoint); backend behaviour is covered by the pytest jobs. No retries.
+  e2e:
+    name: "E2E Playwright"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Configurar pnpm desde packageManager
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - name: Instalar dependencias desde lockfile
+        run: pnpm install --frozen-lockfile
+        working-directory: frontend
+
+      - name: Install Chromium for the pinned Playwright version
+        run: pnpm exec playwright install --with-deps chromium
+        working-directory: frontend
+
+      - name: Playwright (frontend/e2e)
+        run: pnpm exec playwright test
+        working-directory: frontend
+
+      - name: Upload report, traces and screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 14
+
+  # ── Job 10: Trazabilidad spec → tests (roadmap A-2) ──────────────────
+  # scripts/check_traceability.py: every FR and acceptance scenario of specs/*/spec.md has a row
+  # whose tests are collected, pass and are not skipped (PostgreSQL branch included, so the
+  # service and both requirement files are needed). PENDING is rejected on a pull request that
+  # changes a spec's code (its Code Scope or a test it cites), whatever the branch, so the files
+  # the pull request changes are passed in.
+  traceability:
+    name: "Trazabilidad spec → tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: levelup_audit
+          POSTGRES_PASSWORD: audit_local_only
+          POSTGRES_DB: levelup_audit
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U levelup_audit -d levelup_audit"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # On a pull request HEAD is the merge commit; HEAD^1 is the base it is compared with.
+          fetch-depth: 2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Instalar dependencias (V1 y API)
+        run: pip install -r requirements.txt -r requirements-api.txt
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Configurar pnpm desde packageManager
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - name: Instalar dependencias del frontend desde lockfile
+        run: pnpm install --frozen-lockfile
+        working-directory: frontend
+
+      - name: Install Chromium for the pinned Playwright version
+        run: pnpm exec playwright install --with-deps chromium
+        working-directory: frontend
+
+      - name: Files the pull request changes
+        if: github.event_name == 'pull_request'
+        # --no-renames lists a moved file under its old and its new path, so moving code out of a
+        # spec's Code Scope still counts as changing it.
+        run: git diff --name-only --no-renames HEAD^1 HEAD > "$RUNNER_TEMP/changed-files.txt"
+
+      - name: Verificar trazabilidad (referencias recogidas, en verde y sin omitir)
+        run: |
+          args=(--run)
+          if [ -f "$RUNNER_TEMP/changed-files.txt" ]; then
+            args+=(--changed-files "$RUNNER_TEMP/changed-files.txt")
+          fi
+          python scripts/check_traceability.py "${args[@]}"
+        env:
+          POSTGRES_TEST_DATABASE_URL: postgresql://levelup_audit:audit_local_only@localhost:5432/levelup_audit
+          DATABASE_SSLMODE: disable
+          ADMIN_PASSWORD: testadmin123
+          TESTING: "1"

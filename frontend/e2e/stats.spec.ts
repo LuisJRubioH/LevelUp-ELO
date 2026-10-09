@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { injectAuth, mockStudentApi } from "./helpers/auth";
 
 test.describe("Estadísticas del estudiante", () => {
