@@ -10,6 +10,7 @@ import psycopg2.extras
 import psycopg2.pool
 from psycopg2.extras import RealDictCursor
 from src.infrastructure.security.hashing_service import HashingService
+from src.infrastructure.storage.paths import safe_path_component
 from src.infrastructure.storage.supabase_storage import SupabaseStorage
 from src.domain.elo.model import expected_score
 
@@ -4334,7 +4335,8 @@ class PostgresRepository:
         }.get(mime_type, "bin")
 
         # ── Intentar subir a Supabase Storage ────────────────────────────
-        storage_path = f"{student_id}/{item_id}/{file_hash or int(_time.time())}.{ext}"
+        segment = safe_path_component(item_id)
+        storage_path = f"{student_id}/{segment}/{file_hash or int(_time.time())}.{ext}"
         if self._storage.available:
             print(f"[STORAGE] Subiendo archivo a Supabase Storage...")
         else:
@@ -4356,7 +4358,7 @@ class PostgresRepository:
         if not storage_url:
             if image_data:
                 os.makedirs(os.path.join("data", "uploads", "procedures"), exist_ok=True)
-                img_filename = f"{student_id}_{item_id}_{int(_time.time())}.{ext}"
+                img_filename = f"{student_id}_{segment}_{int(_time.time())}.{ext}"
                 img_path = os.path.join("data", "uploads", "procedures", img_filename)
                 with open(img_path, "wb") as _f:
                     _f.write(image_data)
