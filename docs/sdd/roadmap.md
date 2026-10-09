@@ -68,8 +68,8 @@ Each gets its own branch and PR.
 
 | ID | Task | Acceptance | When | Sessions |
 |---|---|---|---|---|
-| A-1 | **Playwright in CI** — run the existing Chromium suite (`frontend/e2e/`) on PRs | deterministic fixtures, no flaky retries hiding failures; traces + screenshots kept as artifacts on failure; README note that these tests mock the API and verify frontend flows, not backend integration | during M1 | 1 |
-| A-2 | **Traceability check in CI** — script over `specs/*/spec.md` | unique FR / scenario IDs; every FR and scenario has a row; each reference resolves to a collected test (`pytest --collect-only`, Playwright `--list`); `PENDING` allowed on spec branches before the code PR, rejected on the code PR; referenced tests pass and are not skipped. Assertion adequacy stays a review item | with spec 001 code PR (needs its first traceability table) | 1 |
+| A-1 | **Playwright in CI** — run the existing Chromium suite (`frontend/e2e/`) on PRs | deterministic fixtures, no flaky retries hiding failures; traces + screenshots kept as artifacts on failure; README note that these tests mock the API and verify frontend flows, not backend integration | during M1 — **Done 2026-10-09** (PR #4, merged into `redesign`) | 1 |
+| A-2 | **Traceability check in CI** — script over `specs/*/spec.md` | unique FR / scenario IDs; every FR and scenario has a row; each reference resolves to a collected test (`pytest --collect-only`, Playwright `--list`); `PENDING` allowed on spec branches before the code PR, rejected on the code PR; referenced tests pass and are not skipped. Assertion adequacy stays a review item | with spec 001 code PR (needs its first traceability table) — **Done 2026-10-09** (PR #5, merged into `redesign`; branch-independent, by Code Scope) | 1 |
 
 ### Follow-ups found while implementing specs
 
