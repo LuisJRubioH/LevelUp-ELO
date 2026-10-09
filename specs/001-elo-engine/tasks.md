@@ -318,3 +318,27 @@ nothing here touches production.
 
 V1 stays frozen: it receives the shared repository and service changes only (its own
 `Semillero {grade}°` enrolment filter in `student_view.py` is left as is).
+
+## Phase 13: Follow-up F-4 — practice only in enrolled courses (owner decisions 2026-10-08)
+
+Spec: FR-037, FR-037a, User Story 8 (Clarifications 2026-10-08, follow-up F-4). Phase 12 is
+follow-up F-1, in its own docs PR. Docs on `fix/f4-practice-access`; tests first — each
+`[CHANGE]` test fails on the code before its implementation task. V2 only: V1 offers practice
+only in the student's enrolments and is frozen.
+
+**Tests first**
+
+- [ ] T101 [CHANGE] API test: `next-question` for a course the student is not enrolled in (colegio student, `probabilidad`) and for a course that does not exist → 403, no item, per FR-037, US8-AS1 (fails today: 200 with an item)
+- [ ] T102 [CHANGE] API test: `/answer` to an item of a course the student is not enrolled in, with and without `Idempotency-Key` → 403; the student's attempts, `student_course_topic_elo` rows, the item's difficulty and the retry record are unchanged, per FR-037a, US8-AS2 (fails today: 200 and a stored rating)
+- [ ] T103 [CHANGE] API test: `GET /diagnostic/{course}` and `POST /diagnostic/{course}/submit` for a course the student is not enrolled in → 403; no question served, no diagnostic and no baseline stored, per FR-037, FR-037a, US8-AS3 (fails today: 200)
+- [ ] T104 [AS-IS] API test: a student enrolled from their level's courses and one enrolled through an invitation code in a course of another level both get the next item, answer it (the rating moves) and take the diagnostic as today, per FR-037, US8-AS4 (passes on unchanged code)
+- [ ] T105 [CHANGE] API test: after practising a course and leaving it (`DELETE /enroll/{course}`), `next-question` and `/answer` for it → 403, a retry of the accepted answer → 403 with the stored attempt unchanged, and the stored ratings in it are unchanged, per FR-037, FR-037a, US8-AS5
+- [ ] T106 [CHANGE] Two-engine test: `StudentService.ensure_enrolled(user_id, course_id)` passes for an ordinary enrolment and for one made through an invitation (`enroll_user` with the group), and raises `PermissionError` for no enrolment, after unenrolment and for an unknown course, per FR-037, FR-037a, SC-001
+
+**Implementation**
+
+- [ ] T107 `StudentService.ensure_enrolled` (application layer, reads `get_user_enrollments`); `api/routers/student.py` calls it first in `next_question`, `diagnostic_status` and `diagnostic_submit`, and in `answer` right after the item lookup (404 for an unknown item stays) and before option validation and the retry replay, answering 403 «No estás inscrito en este curso.»; existing API tests that practised without enrolling enrol first (FR-037, FR-037a; depends on T101–T106)
+
+**Close**
+
+- [ ] T108 Replace the `PENDING` rows of FR-037, FR-037a and US8-AS1 … AS5 with the tests above; `python scripts/check_traceability.py --run` (once A-2 is merged), the full suite on PostgreSQL and Playwright pass
