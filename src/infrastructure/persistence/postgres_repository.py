@@ -3489,6 +3489,7 @@ class PostgresRepository:
             LEVEL_UNIVERSIDAD,
             LEVEL_SEMILLERO,
             LEVEL_TO_BLOCK,
+            in_catalogue,
         )
 
         _TEST_PASSWORD = "test1234"
@@ -3550,17 +3551,12 @@ class PostgresRepository:
                     )
                     row = cursor.fetchone()
                     if not row:
-                        # Para semillero: buscar cualquier curso de algún grado
-                        if level == LEVEL_SEMILLERO:
-                            cursor.execute(
-                                "SELECT id FROM courses WHERE block LIKE 'Semillero %' ORDER BY name ASC LIMIT 1",
-                            )
-                        else:
-                            block = LEVEL_TO_BLOCK[level]
-                            cursor.execute(
-                                "SELECT id FROM courses WHERE block = %s ORDER BY name ASC LIMIT 1",
-                                (block,),
-                            )
+                        # Semillero courses share the block 'Semillero' (the grade is the id
+                        # suffix), so the group points at the first course of the level's block.
+                        cursor.execute(
+                            "SELECT id FROM courses WHERE block = %s ORDER BY name ASC LIMIT 1",
+                            (LEVEL_TO_BLOCK[level],),
+                        )
                         first_course = cursor.fetchone()
                         course_id = first_course["id"] if first_course else None
                         cursor.execute(
@@ -3585,27 +3581,27 @@ class PostgresRepository:
                     )
                 conn.commit()
 
-                # Matricular estudiantes nuevos en TODOS los cursos de su nivel/grado
+                # Enrol each new student in exactly the catalogue of their level and grade
+                # (in_catalogue, spec 001 FR-028k): for semillero, the courses whose id ends in
+                # `_semillero_{grade}`.
                 for username, edu_level, _grade in students_to_create:
                     cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
                     student_id = cursor.fetchone()["id"]
                     group_id = _level_groups[edu_level][1]
 
-                    # Para semillero: filtrar por bloque específico del grado
-                    if edu_level == LEVEL_SEMILLERO and _grade:
-                        block = f"Semillero {_grade}°"
-                    else:
-                        block = LEVEL_TO_BLOCK[edu_level]
-
                     cursor.execute(
-                        "SELECT id FROM courses WHERE block = %s",
-                        (block,),
+                        "SELECT id, block FROM courses WHERE block = %s",
+                        (LEVEL_TO_BLOCK[edu_level],),
                     )
-                    courses = cursor.fetchall()
-                    for course_row in courses:
+                    courses = [
+                        course_row["id"]
+                        for course_row in cursor.fetchall()
+                        if in_catalogue(edu_level, _grade, course_row["id"], course_row["block"])
+                    ]
+                    for course_id in courses:
                         cursor.execute(
                             "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
-                            (student_id, course_row["id"], group_id),
+                            (student_id, course_id, group_id),
                         )
 
                 conn.commit()
