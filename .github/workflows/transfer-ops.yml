@@ -11,8 +11,11 @@
 #   ops/transfer-precheck  before F-1 ships (spec 001 T084, docs/transfer.md § 6): read-only. Does
 #                         the courses.block CHECK accept the four blocks, and how many Semillero
 #                         students lack a valid grade (the list only in an encrypted artifact).
-#   ops/transfer-dbcheck   read-only SQL checks on production after the switch (§ 5 queries).
-#   ops/transfer-verify    scripts/verify_deployment.py against production with the test accounts.
+#   ops/transfer-dbcheck   read-only SQL checks on production after the switch (§ 5 queries), and
+#                          whether the newest procedures reached Storage. Run it after verify.
+#   ops/transfer-verify    scripts/verify_deployment.py against production with the test accounts,
+#                          or with the optional VERIFY_STUDENT / VERIFY_DIAGNOSTIC_STUDENT /
+#                          VERIFY_TEACHER secrets ("user:password"; user names masked in the log).
 #
 # The repository is public: logs carry counts only, connection details are masked, and the only
 # artifact holding data is encrypted. Production secrets live in the GitHub Environment
@@ -465,6 +468,7 @@ jobs:
   verify:
     if: github.ref_name == 'ops/transfer-verify'
     runs-on: ubuntu-24.04
+    environment: production-ops
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -476,7 +480,19 @@ jobs:
       - name: Deployed commit
         run: git log -1 --format='%H %s'
       - name: verify_deployment.py
+        env:
+          # Optional "user:password" secrets; each one left unset keeps the script's default account.
+          SECRET_VERIFY_STUDENT: ${{ secrets.VERIFY_STUDENT }}
+          SECRET_VERIFY_DIAGNOSTIC_STUDENT: ${{ secrets.VERIFY_DIAGNOSTIC_STUDENT }}
+          SECRET_VERIFY_TEACHER: ${{ secrets.VERIFY_TEACHER }}
         run: |
+          for v in VERIFY_STUDENT VERIFY_DIAGNOSTIC_STUDENT VERIFY_TEACHER; do
+            s="SECRET_$v"
+            if [ -n "${!s}" ]; then
+              echo "::add-mask::${!s%%:*}"
+              export "$v=${!s}"
+            fi
+          done
           python scripts/verify_deployment.py --api-url https://levelup-elo.onrender.com \
             --frontend-url https://luislevelupelo.vercel.app --wait 300 --report verify.txt
       - if: always()
