@@ -31,6 +31,7 @@ entry ending in `/` covers everything below it.
 - `api/routers/student.py`
 - `api/routers/teacher.py`
 - `api/routers/meta.py`
+- `api/schemas/auth.py` — registration: Semillero requires a grade
 - `api/schemas/student.py`
 - `api/websocket/pvp.py`
 - `frontend/src/api/student.ts`
@@ -47,6 +48,7 @@ entry ending in `/` covers everything below it.
 - `frontend/src/pages/Student/Stats.tsx`
 - `frontend/src/pages/Student/League.tsx`
 - `frontend/src/pages/Student/Exam.tsx`
+- `frontend/src/pages/Student/Courses.tsx` — catalogue, invited courses, the grade notice
 - `frontend/src/pages/Teacher/Dashboard.tsx`
 - `frontend/src/pages/Teacher/Groups.tsx`
 
