@@ -82,7 +82,7 @@ each engine, 19 only on SQLite, 13 only on PostgreSQL (CI job "Guardas PostgreSQ
 
 | # | Kind | Finding | Evidence | Status |
 |---|---|---|---|---|
-| P1 | **Bug risk** | **A rating delta can be lost.** The answer transaction reads the topic rating without a lock and overwrites it with an absolute value; a validated procedure or a finished PvP match that commits its `+delta` on the same row between that read and that write is erased. Breaks R15 ("each writer applies its effect exactly once"). Narrow window, but silent. | P:1683-1700, 1632-1645, 1656, 4042 | Code verified; race inferred |
+| P1 | **Bug risk** | **A rating delta can be lost.** The answer transaction reads the topic rating without a lock and overwrites it with an absolute value; a validated procedure or a finished PvP match that commits its `+delta` on the same row between that read and that write is erased. Breaks R15 ("each writer applies its effect exactly once"). Narrow window, but silent. | P:1683-1700, 1632-1645, 1656, 4042 | **Reproduced** on local PostgreSQL 16 (§ 4.1) |
 | P2 | **Data precision** | **PostgreSQL `REAL` is 4-byte float**: `items.difficulty`/`rating_deviation`, every `attempts` rating column, `users.current_elo`, procedure and PvP deltas, exam and diagnostic scores keep ~7 significant digits (1189.34495 → 1189.345). Only `student_course_topic_elo` is `DOUBLE PRECISION` (P:974-975). SQLite `REAL` is 8-byte. | P:355, 372-378, 393-394; S:115-121, 137-138 | Verified on PG 16 |
 | P3 | **Parity (F-3)** | **`attempts.difficulty` is declared `INTEGER` on both engines**, not REAL on SQLite as the roadmap says. SQLite's integer affinity keeps 598.3854 as a real value; PostgreSQL rounds it to 598. | S:113, P:370 | Verified (PG 16, SQLite) |
 | P4 | **Parity** | **Foreign keys differ by engine.** SQLite never enables `PRAGMA foreign_keys`, so none of its declared FKs is enforced; PostgreSQL declares only five FKs, so most relations (attempts, enrollments, procedure submissions, PvP, lessons, items → courses) are enforced on neither engine. | S:64-65 (no pragma); FK lists in both `_migrate_db` | Verified |
@@ -116,6 +116,18 @@ each engine, 19 only on SQLite, 13 only on PostgreSQL (CI job "Guardas PostgreSQ
   `test_spec001_course_block_constraint.py` (FR-028n).
 - **Rehearsal:** `scripts/rehearse_migration.py` (restore, migrate twice, compare) — PASS on the
   legacy simulation.
+### 4.1 Reproduction of P1 (2026-10-09)
+
+On a throwaway local PostgreSQL 16 database bootstrapped by the repository itself, through its
+public methods only: a student's `(course, topic)` rating set to 1000; a procedure submission for
+an item of that topic; then `save_answer_transaction` with a `compute` that, between the
+transaction's read and its write, calls `validate_procedure_submission(score=100)` (+10, committed
+on another pooled connection) and returns an answer worth +5. Read 1000 → after the procedure
+1010 → final **1005**, not 1015: the procedure's +10 is gone while the submission says
+`elo_applied = 1`. The PvP finish uses the same `GREATEST(0, current_elo + delta)` update, so it is
+exposed the same way. SQLite is not: `BEGIN IMMEDIATE` holds the database's write lock for the
+whole answer.
+
 - **Not covered:** numeric precision and types across engines (P2, P3), FK enforcement (P4),
   the lost update (P1), pool reuse (P8), the async boundary (P9), the Storage read fallback
   (P10), startup data rewrites (P6, P7).
