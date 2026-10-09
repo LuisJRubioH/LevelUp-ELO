@@ -47,7 +47,8 @@ class Run:
 
 
 def _account(var, default):
-    user, _, password = os.environ.get(var, default).partition(":")
+    # An unset CI secret arrives as an empty variable: it means "use the default".
+    user, _, password = (os.environ.get(var) or default).partition(":")
     return user, password
 
 
