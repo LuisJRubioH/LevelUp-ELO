@@ -4288,6 +4288,19 @@ class SQLiteRepository:
             "completed_at": str(row[4]) if row[4] else None,
         }
 
+    def get_lesson_states(self, user_id: int, course_id: str) -> dict[str, str]:
+        """Estado guardado de cada nodo con progreso en la materia, en una sola lectura."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """SELECT node_id, state FROM lesson_progress
+               WHERE user_id = ? AND course_id = ?""",
+            (user_id, course_id),
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return {row[0]: row[1] for row in rows}
+
     def record_lesson_event(self, user_id: int, course_id: str, node_id: str, event: str) -> dict:
         """Registra un hito curricular idempotente sin afectar ELO."""
         conn = self.get_connection()

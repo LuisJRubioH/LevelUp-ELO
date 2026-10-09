@@ -1402,7 +1402,8 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
         r["topic"]: {"elo": r["elo"], "rd": r["rd"], "approximate": r["approximate"]}
         for r in repo.get_course_topic_ratings(user["user_id"], course_id=course_id)
     }
-    diagnostic_done = repo.get_diagnostic(user["user_id"], course_id) is not None
+    diagnostic = repo.get_diagnostic(user["user_id"], course_id)
+    diagnostic_done = diagnostic is not None
 
     # agrupar ítems por tópico con sus dificultades
     by_topic: dict[str, list[float]] = {}
@@ -1447,22 +1448,19 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
     curriculum: list[MapNode] = []
     curriculum_completed = True
     if course_id == PREALGEBRA_COURSE_ID:
-        # Una sola lectura por nodo; la ruta y los estados los deriva el dominio
-        # de `unlock_after`. El endpoint ya no sabe de nodos concretos: añadir
-        # uno no se toca aquí.
-        _cache: dict[str, str] = {}
+        # Una sola lectura del progreso de la materia (no una por nodo: cada lectura
+        # cuesta viajes de red a la base); un nodo sin fila está `available`, como en
+        # `get_lesson_progress`. La ruta y los estados los deriva el dominio de
+        # `unlock_after`. El endpoint ya no sabe de nodos concretos: añadir uno no se
+        # toca aquí.
+        _states = repo.get_lesson_states(user["user_id"], course_id)
 
         def _state_of(node_id: str) -> str:
-            if node_id not in _cache:
-                _cache[node_id] = repo.get_lesson_progress(
-                    user["user_id"], course_id, node_id
-                )["state"]
-            return _cache[node_id]
+            return _states.get(node_id, "available")
 
         # B09 (complejos) solo visible para banda intermedia/avanzada (callejón opcional).
-        _diag = repo.get_diagnostic(user["user_id"], course_id)
         complex_visible = presentation_band(
-            _diag.get("score_pct") if _diag else None
+            diagnostic.get("score_pct") if diagnostic else None
         ) in ("intermedio", "avanzado")
         curriculum = [
             MapNode(**row)

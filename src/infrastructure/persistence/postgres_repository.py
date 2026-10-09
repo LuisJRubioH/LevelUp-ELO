@@ -4871,6 +4871,21 @@ class PostgresRepository:
             "completed_at": str(row["completed_at"]) if row["completed_at"] else None,
         }
 
+    def get_lesson_states(self, user_id: int, course_id: str) -> dict[str, str]:
+        """Estado guardado de cada nodo con progreso en la materia, en una sola lectura."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """SELECT node_id, state FROM lesson_progress
+                       WHERE user_id = %s AND course_id = %s""",
+                    (user_id, course_id),
+                )
+                rows = cursor.fetchall()
+        finally:
+            self.put_connection(conn)
+        return {row["node_id"]: row["state"] for row in rows}
+
     def record_lesson_event(self, user_id: int, course_id: str, node_id: str, event: str) -> dict:
         """Registra un hito curricular idempotente sin afectar ELO."""
         conn = self.get_connection()
