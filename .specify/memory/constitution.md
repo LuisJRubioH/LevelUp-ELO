@@ -274,7 +274,11 @@ development text written in Spanish is noncompliance.
 - **Compliance — enforced today by CI** (`.github/workflows/ci.yml`): item-bank validation, black +
   flake8, unit tests (including architecture layers and repository contracts) with a **coverage
   floor of 70 % over `src/domain` + `src/application`** (`--cov-fail-under=70`, unit job), integration
-  tests, `db_sync_check.py`, ELO tests against a real PostgreSQL, API tests, frontend build. The
+  tests, `db_sync_check.py`, ELO tests against a real PostgreSQL, API tests, frontend build,
+  Playwright e2e in Chromium with no retries (its tests mock the API, so they verify frontend
+  flows, not backend integration), and FR → test traceability (`scripts/check_traceability.py
+  --run`: every FR and acceptance scenario has a row whose tests are collected, pass and are not
+  skipped; `PENDING` is rejected on a pull request that changes the spec's code). The coverage
   floor may rise, never fall, without an amendment.
 - **Coverage and traceability are complementary.** Coverage shows code was executed;
   traceability shows each requirement has a test. Neither proves the assertions are adequate: a
@@ -282,12 +286,10 @@ development text written in Spanish is noncompliance.
   to relevant executable tests, and review MUST check that their assertions prove the stated
   behaviour.
 - **Compliance — not yet automated** (enforced by review until its task lands, see
-  `docs/sdd/roadmap.md` § Automation tasks): Playwright e2e (exists in `frontend/e2e/`, not run in
-  CI; its tests mock the API, so they verify frontend flows, not backend integration); FR → test
-  traceability; the Spec Kit gates after clarify, analyze and converge
+  `docs/sdd/roadmap.md` § Automation tasks): the Spec Kit gates after clarify, analyze and converge
   (`.specify/workflows/speckit/workflow.yml` only gates after specify and plan); V1 startup smoke
   check.
 - **Review.** The constitution and its Known Deviations are reviewed at the end of each roadmap
   milestone.
 
-**Version**: 1.0.2 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-08
+**Version**: 1.0.3 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-09
