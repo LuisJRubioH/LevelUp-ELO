@@ -595,6 +595,9 @@ class PostgresRepository:
                 self._skipped_locked_steps.append("migrate_db")
                 return  # Otra instancia está migrando; salir sin bloquear
 
+            # First, before any change: an old courses.block CHECK stops the migration.
+            self._check_courses_block_constraint(cursor)
+
             # users
             self._add_column_if_not_exists(cursor, "users", "role", "TEXT DEFAULT 'student'")
             self._add_column_if_not_exists(cursor, "users", "approved", "INTEGER DEFAULT 1")
@@ -742,12 +745,7 @@ class PostgresRepository:
                 CREATE TABLE IF NOT EXISTS courses (
                     id TEXT PRIMARY KEY,
                     name TEXT NOT NULL,
-                    block TEXT NOT NULL CHECK (block IN (
-                        'Universidad', 'Colegio', 'Concursos',
-                        'Semillero',
-                        'Semillero', 'Semillero', 'Semillero',
-                        'Semillero', 'Semillero', 'Semillero 11°'
-                    )),
+                    block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio', 'Concursos', 'Semillero')),
                     description TEXT DEFAULT ''
                 )
             """
@@ -787,9 +785,6 @@ class PostgresRepository:
             self._add_column_if_not_exists(cursor, "items", "tags", "TEXT")
             # Bloque temático dentro del curso (p.ej. "Constitución Política" en DIAN)
             self._add_column_if_not_exists(cursor, "items", "block", "TEXT DEFAULT ''")
-
-            # ── Migración: ampliar CHECK constraint de courses.block ──────
-            self._migrate_courses_block_check(cursor)
 
             # ── Unicidad de nombre de grupo por profesor (case-insensitive) ─
             self._add_column_if_not_exists(cursor, "groups", "name_normalized", "TEXT")
@@ -1225,41 +1220,24 @@ class PostgresRepository:
                     pass
             self.put_connection(conn)
 
-    def _migrate_courses_block_check(self, cursor):
-        """Actualiza el CHECK constraint de courses.block para incluir todos los bloques.
+    def _check_courses_block_constraint(self, cursor):
+        """Read-only: the courses.block CHECK must accept the four blocks (spec 001 FR-028n).
 
-        Solo ejecuta el DROP/ADD si el constraint actual no incluye ya los bloques
-        de grado específicos ('Semillero 6°' … 'Semillero 11°').
+        No DDL either way. PostgreSQL widens a CHECK only by DROP + ADD CONSTRAINT — not
+        additive (AGENTS R8) — so a constraint that lacks a block stops the migration instead,
+        and one that accepts them keeps its oid and any extra value it allows.
         """
-        # Verificar si el constraint ya incluye los bloques de grado específicos
+        from src.infrastructure.persistence.course_blocks import require_course_blocks
+
         cursor.execute(
             """
-            SELECT pg_get_constraintdef(oid)
+            SELECT pg_get_constraintdef(oid) AS definition
             FROM pg_constraint
-            WHERE conname = 'courses_block_check'
-              AND conrelid = 'courses'::regclass
+            WHERE conrelid = to_regclass('courses') AND contype = 'c'
         """
         )
-        row = cursor.fetchone()
-        if row and "Semillero 6" in row["pg_get_constraintdef"]:
-            return  # Ya está actualizado, no hacer nada
-
-        cursor.execute(
-            """
-            ALTER TABLE courses DROP CONSTRAINT IF EXISTS courses_block_check
-        """
-        )
-        cursor.execute(
-            """
-            ALTER TABLE courses ADD CONSTRAINT courses_block_check
-            CHECK (block IN (
-                'Universidad', 'Colegio', 'Concursos',
-                'Semillero',
-                'Semillero', 'Semillero', 'Semillero',
-                'Semillero', 'Semillero', 'Semillero 11°'
-            ))
-        """
-        )
+        # A new database has no courses table yet: this migration creates it below.
+        require_course_blocks(" ".join(r["definition"] for r in cursor.fetchall()))
 
     def _backfill_prob_failure(self):
         """Rellena prob_failure para intentos históricos que tienen NULL.
@@ -1499,6 +1477,11 @@ class PostgresRepository:
             return False, "La contraseña es obligatoria."
         if len(password.strip()) < 6:
             return False, "La contraseña debe tener al menos 6 caracteres."
+        # Semillero sin grado 6–11 no tiene catálogo: no se registra (spec 001 FR-028m).
+        from src.domain.entities import valid_semillero_grade
+
+        if education_level == "semillero" and not valid_semillero_grade(grade):
+            return False, "Semillero requiere un grado de 6.º a 11.º."
         # Validar email si se provee
         if email is not None:
             email = email.strip() or None
@@ -1512,7 +1495,7 @@ class PostgresRepository:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             password_hash = self.hashing.hash_password(password)
             approved = 0 if role == "teacher" else 1
-            _grade = grade if education_level == "semillero" else None
+            _grade = str(grade) if education_level == "semillero" else None
             cursor.execute(
                 "INSERT INTO users (username, password_hash, role, approved, group_id, "
                 "rating_deviation, education_level, grade, email) "
@@ -3643,22 +3626,22 @@ class PostgresRepository:
 
     @_timing
     def get_available_courses_by_level(self, level: str, grade=None):
-        """Retorna los cursos disponibles filtrados ESTRICTAMENTE por nivel educativo.
+        """The catalogue of a level — for semillero, of the grade (spec 001 FR-028k).
 
-        Para semillero, usar grade ('6'–'11') para filtrar por bloque específico de grado.
+        The courses of the level's block, kept by the domain rule `in_catalogue`: a semillero
+        grade *g* gives the `*_semillero_g` courses, and no grade gives none. An unknown level
+        falls back to universidad.
         """
-        from src.domain.entities import LEVEL_TO_BLOCK, LEVEL_UNIVERSIDAD
+        from src.domain.entities import LEVEL_TO_BLOCK, LEVEL_UNIVERSIDAD, in_catalogue
 
-        if level.lower() == "semillero" and grade:
-            _block = f"Semillero {grade}°"
-        else:
-            _block = LEVEL_TO_BLOCK.get(level.lower(), LEVEL_TO_BLOCK[LEVEL_UNIVERSIDAD])
+        level = (level or LEVEL_UNIVERSIDAD).lower()
+        block = LEVEL_TO_BLOCK.get(level, LEVEL_TO_BLOCK[LEVEL_UNIVERSIDAD])
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 "SELECT id, name, block, description FROM courses WHERE block = %s ORDER BY name ASC",
-                (_block,),
+                (block,),
             )
             rows = cursor.fetchall()
             return [
@@ -3669,6 +3652,7 @@ class PostgresRepository:
                     "description": r["description"],
                 }
                 for r in rows
+                if in_catalogue(level, grade, r["id"], r["block"])
             ]
         finally:
             self.put_connection(conn)

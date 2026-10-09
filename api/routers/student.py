@@ -273,22 +273,32 @@ def stats(user: CurrentUser, repo: RepoDep):
 
 @router.get("/courses", response_model=list[CourseResponse])
 def courses(user: CurrentUser, repo: RepoDep):
-    """Catálogo de cursos disponibles para el nivel educativo del estudiante."""
+    """The student's catalogue, then the courses they are enrolled in outside it.
+
+    Spec 001 FR-028k, FR-028l: a course reached by invitation is listed as enrolled with
+    `in_catalogue: false`; a semillero student without a grade has no catalogue, so only their
+    enrolments are listed (FR-028o).
+    """
     service = _make_service(repo)
     available = service.get_available_courses(user["user_id"])
-    enrolled_ids = {e["id"] for e in repo.get_user_enrollments(user["user_id"])}
+    enrolments = {e["id"]: e for e in repo.get_user_enrollments(user["user_id"])}
     diag_done = set(repo.get_completed_diagnostic_course_ids(user["user_id"]))
+    catalogue_ids = {c["id"] for c in available}
+    listed = [(c, True) for c in available] + [
+        (e, False) for course_id, e in enrolments.items() if course_id not in catalogue_ids
+    ]
 
     return [
         CourseResponse(
             id=c["id"],
             name=c["name"],
             block=c.get("block", ""),
-            enrolled=c["id"] in enrolled_ids,
-            group_id=c.get("group_id"),
+            enrolled=c["id"] in enrolments,
+            group_id=(enrolments.get(c["id"]) or {}).get("group_id"),
             diagnostic_done=c["id"] in diag_done,
+            in_catalogue=in_catalogue,
         )
-        for c in available
+        for c, in_catalogue in listed
     ]
 
 
@@ -316,7 +326,13 @@ def enroll(body: EnrollRequest, user: CurrentUser, repo: RepoDep):
             detail=f"El curso '{body.course_id}' no existe.",
         )
     service = _make_service(repo)
-    service.enroll_in_course(user["user_id"], body.course_id, body.group_id)
+    try:
+        service.enroll_from_catalogue(user["user_id"], body.course_id, body.group_id)
+    except PermissionError:
+        # Spec 001 FR-028m: other levels' courses are reached only through an invitation.
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Ese curso no está en tu catálogo."
+        )
     return {"message": f"Matriculado en {body.course_id} correctamente."}
 
 
@@ -329,14 +345,25 @@ def enroll_by_code(body: EnrollByCodeRequest, user: CurrentUser, repo: RepoDep):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Código de invitación inválido o expirado.",
         )
-    group_id = group["id"] if isinstance(group, dict) else group[0]
-    course_id = group["course_id"] if isinstance(group, dict) else group[2]
+    # Both repositories return the group's id as `group_id` (reading `id` was a 500 for every
+    # valid code).
+    group_id = group["group_id"]
+    course_id = group["course_id"]
     if not course_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="El grupo no tiene un curso asignado.",
         )
-    repo.enroll_user(user["user_id"], course_id, group_id)
+    try:
+        _make_service(repo).enroll_by_invitation(user["user_id"], group_id, course_id)
+    except PermissionError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Necesitamos registrar tu grado para usar un código de invitación. "
+                "Contacta a tu docente o al administrador."
+            ),
+        )
     return {"message": "Acceso especial activado correctamente.", "course_id": course_id}
 
 

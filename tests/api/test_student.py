@@ -20,6 +20,16 @@ _COURSE_ID = "algebra_basica"  # Colegio — presente en el banco de preguntas
 _COURSE_UNIV = "calculo_diferencial"  # Universidad
 
 
+def _enrol_directly(api_client, headers, course_id):
+    """estudiante1 is a universidad student: a colegio course is outside their catalogue, so
+    /enroll refuses it (spec 001 FR-028m). Enrol directly, as an invitation would, so each test
+    sets up its own enrolment instead of relying on another class having run first."""
+    from api.dependencies import get_repository
+
+    user_id = api_client.get("/api/auth/me", headers=headers).json()["user_id"]
+    get_repository().enroll_user(user_id, course_id)
+
+
 @pytest.mark.parametrize("from_map", [False, True])
 def test_first_practice_uses_diagnostic_rating(api_client, monkeypatch, from_map):
     """Spec 001 (FR-004, FR-029a; flipped by T045): the first practice starts from the
@@ -214,10 +224,10 @@ class TestStats:
 
 class TestEnroll:
     def test_enroll_in_course(self, api_client, student_headers):
-        """POST /student/enroll → 201 (o 200 si ya estaba matriculado)."""
+        """POST /student/enroll → 201 for a course of the student's catalogue (universidad)."""
         r = api_client.post(
             "/api/student/enroll",
-            json={"course_id": _COURSE_ID},
+            json={"course_id": _COURSE_UNIV},
             headers=student_headers,
         )
         assert r.status_code in (200, 201)
@@ -247,11 +257,7 @@ class TestNextQuestion:
     @pytest.fixture(autouse=True, scope="class")
     def ensure_enrolled(self, api_client, student_headers):
         """Asegura matrícula antes de solicitar preguntas."""
-        api_client.post(
-            "/api/student/enroll",
-            json={"course_id": _COURSE_ID},
-            headers=student_headers,
-        )
+        _enrol_directly(api_client, student_headers, _COURSE_ID)
 
     def test_next_question_returns_item_or_empty(self, api_client, student_headers):
         """POST /student/next-question → status 'ok' o 'empty'/'course_empty'."""
@@ -286,13 +292,8 @@ class TestNextQuestion:
 class TestAnswer:
     @pytest.fixture(autouse=True)
     def _enrolled(self, api_client, student_headers):
-        """Practice needs an enrolment (spec 001 FR-037). estudiante1 is a universidad student,
-        so this colegio course is enrolled directly, as an invitation would — not through
-        /enroll, and not left to TestNextQuestion having run first."""
-        from api.dependencies import get_repository
-
-        user_id = api_client.get("/api/auth/me", headers=student_headers).json()["user_id"]
-        get_repository().enroll_user(user_id, _COURSE_ID)
+        """Practice needs an enrolment (spec 001 FR-037)."""
+        _enrol_directly(api_client, student_headers, _COURSE_ID)
 
     def test_ignores_tampered_item_data(self, api_client, student_headers):
         from api.dependencies import get_repository
@@ -500,9 +501,7 @@ class TestAchievements:
     def test_first_correct_badge_awarded(self, api_client, student_headers):
         """Después de responder correctamente, el badge first_correct debe estar en logros."""
         # Garantizar matrícula
-        api_client.post(
-            "/api/student/enroll", json={"course_id": _COURSE_ID}, headers=student_headers
-        )
+        _enrol_directly(api_client, student_headers, _COURSE_ID)
         # Obtener pregunta
         q = api_client.post(
             "/api/student/next-question",
@@ -532,9 +531,7 @@ class TestExamMode:
     @pytest.fixture(autouse=True, scope="class")
     def ensure_enrolled(self, api_client, student_headers):
         """Matricular al estudiante en el curso de prueba antes del examen."""
-        api_client.post(
-            "/api/student/enroll", json={"course_id": _COURSE_ID}, headers=student_headers
-        )
+        _enrol_directly(api_client, student_headers, _COURSE_ID)
 
     def test_exam_start(self, api_client, student_headers):
         """POST /student/exam/start → lista de preguntas + tiempo límite."""

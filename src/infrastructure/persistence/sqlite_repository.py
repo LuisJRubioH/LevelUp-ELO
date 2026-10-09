@@ -296,6 +296,12 @@ class SQLiteRepository:
         """Agrega columnas nuevas de forma segura si no existen (migración)."""
         conn = self.get_connection()
         cursor = conn.cursor()
+        try:
+            # First, before any change: an old courses.block CHECK stops the migration.
+            self._check_courses_block_constraint(cursor)
+        except Exception:
+            conn.close()
+            raise
 
         # users
         self._add_column_if_not_exists(cursor, "users", "role", "TEXT DEFAULT 'student'")
@@ -427,6 +433,8 @@ class SQLiteRepository:
         self._add_column_if_not_exists(cursor, "procedure_submissions", "ai_feedback", "TEXT")
         # v6 — hash SHA-256 del archivo subido para detección anti-plagio (T7)
         self._add_column_if_not_exists(cursor, "procedure_submissions", "file_hash", "TEXT")
+        # v7b — PostgreSQL runs ALTER TABLE procedure_submissions … DROP NOT NULL on image_data
+        # (NULL when the file lives in Storage); SQLite always keeps the bytes: no step here.
 
         # ── LMS: Cursos y Matrículas ─────────────────────────────────────────────
 
@@ -477,12 +485,6 @@ class SQLiteRepository:
         self._add_column_if_not_exists(cursor, "items", "tags", "TEXT")
         # Bloque temático dentro del curso (p.ej. "Constitución Política" en DIAN)
         self._add_column_if_not_exists(cursor, "items", "block", "TEXT DEFAULT ''")
-
-        # ── Migración: ampliar CHECK constraint de courses.block ──────────────
-        # SQLite no soporta ALTER TABLE para modificar constraints; hay que
-        # recrear la tabla. Solo se ejecuta si el CHECK actual no permite
-        # 'Concursos' (detección: intentar INSERT + ROLLBACK).
-        self._migrate_courses_block_check(cursor)
 
         # ── Unicidad de nombre de grupo por profesor (case-insensitive) ────
         # Columna auxiliar para el índice único normalizado
@@ -912,50 +914,20 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
-    def _migrate_courses_block_check(self, cursor):
-        """Recrea la tabla courses si el CHECK constraint no incluye todos los bloques.
+    def _check_courses_block_constraint(self, cursor):
+        """Read-only: the courses.block CHECK must accept the four blocks (spec 001 FR-028n).
 
-        SQLite no permite ALTER CHECK, así que se usa rename-recreate-copy.
-        Es idempotente: si el CHECK ya es correcto, no hace nada.
+        No DDL either way. Widening it would mean rebuilding the table — not additive (AGENTS
+        R8), and the old rename-based rebuild left other tables' foreign keys on a dropped
+        table — so a constraint that lacks a block stops the migration instead.
         """
-        # Detectar si 'Semillero' ya es aceptado (implica que el CHECK está actualizado)
-        try:
-            cursor.execute(
-                "INSERT INTO courses (id, name, block, description) "
-                "VALUES ('__check_probe__', '__probe__', 'Semillero', '')"
-            )
-            # Si llegó aquí, el INSERT fue aceptado → CHECK ya lo permite
-            cursor.execute("DELETE FROM courses WHERE id = '__check_probe__'")
-            return  # No hace falta migrar
-        except Exception:
-            # CHECK constraint rechazó 'Semillero' → necesitamos migrar
-            pass
+        from src.infrastructure.persistence.course_blocks import require_course_blocks
 
-        # 1. Renombrar tabla actual
-        cursor.execute("ALTER TABLE courses RENAME TO _courses_old")
-
-        # 2. Crear tabla nueva con CHECK ampliado (incluye Semillero)
-        cursor.execute(
-            """
-            CREATE TABLE courses (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio', 'Concursos', 'Semillero')),
-                description TEXT DEFAULT ''
-            )
-        """
-        )
-
-        # 3. Copiar datos existentes
-        cursor.execute(
-            """
-            INSERT INTO courses (id, name, block, description)
-            SELECT id, name, block, description FROM _courses_old
-        """
-        )
-
-        # 4. Eliminar tabla antigua
-        cursor.execute("DROP TABLE _courses_old")
+        row = cursor.execute(
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'courses'"
+        ).fetchone()
+        # A new database has no courses table yet: this migration creates it below.
+        require_course_blocks(row[0] if row else "")
 
     def _backfill_prob_failure(self):
         """Rellena prob_failure para intentos históricos que tienen NULL.
@@ -1162,6 +1134,11 @@ class SQLiteRepository:
             return False, "La contraseña es obligatoria."
         if len(password.strip()) < 6:
             return False, "La contraseña debe tener al menos 6 caracteres."
+        # Semillero sin grado 6–11 no tiene catálogo: no se registra (spec 001 FR-028m).
+        from src.domain.entities import valid_semillero_grade
+
+        if education_level == "semillero" and not valid_semillero_grade(grade):
+            return False, "Semillero requiere un grado de 6.º a 11.º."
         # Validar email si se provee
         if email is not None:
             email = email.strip() or None
@@ -1176,7 +1153,7 @@ class SQLiteRepository:
             password_hash = self.hashing.hash_password(password)
             # Teachers necesitan aprobación; students y admin se aprueban solos
             approved = 0 if role == "teacher" else 1
-            _grade = grade if education_level == "semillero" else None
+            _grade = str(grade) if education_level == "semillero" else None
             cursor.execute(
                 "INSERT INTO users (username, password_hash, role, approved, group_id, "
                 "rating_deviation, education_level, grade, email) "
@@ -3081,28 +3058,29 @@ class SQLiteRepository:
         seed_test_students(self)
 
     def get_available_courses_by_level(self, level: str, grade=None):
-        """Retorna los cursos disponibles filtrados ESTRICTAMENTE por nivel educativo.
+        """The catalogue of a level — for semillero, of the grade (spec 001 FR-028k).
 
-        Parámetro level: 'universidad' | 'colegio' | 'concursos' | 'semillero' (case-insensitive).
-        Para semillero, usar grade ('6'–'11') para filtrar por bloque específico de grado.
-        La consulta usa WHERE block = ? sin fallback a todos los cursos;
-        si el nivel no existe en la tabla, devuelve lista vacía.
+        The courses of the level's block, kept by the domain rule `in_catalogue`: a semillero
+        grade *g* gives the `*_semillero_g` courses, and no grade gives none. An unknown level
+        falls back to universidad.
         """
-        from src.domain.entities import LEVEL_TO_BLOCK, LEVEL_UNIVERSIDAD
+        from src.domain.entities import LEVEL_TO_BLOCK, LEVEL_UNIVERSIDAD, in_catalogue
 
-        if level.lower() == "semillero" and grade:
-            _block = f"Semillero {grade}°"
-        else:
-            _block = LEVEL_TO_BLOCK.get(level.lower(), LEVEL_TO_BLOCK[LEVEL_UNIVERSIDAD])
+        level = (level or LEVEL_UNIVERSIDAD).lower()
+        block = LEVEL_TO_BLOCK.get(level, LEVEL_TO_BLOCK[LEVEL_UNIVERSIDAD])
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
             "SELECT id, name, block, description FROM courses WHERE block = ? ORDER BY name ASC",
-            (_block,),
+            (block,),
         )
         rows = cursor.fetchall()
         conn.close()
-        return [{"id": r[0], "name": r[1], "block": r[2], "description": r[3]} for r in rows]
+        return [
+            {"id": r[0], "name": r[1], "block": r[2], "description": r[3]}
+            for r in rows
+            if in_catalogue(level, grade, r[0], r[2])
+        ]
 
     def get_courses(self, block=None):
         """Devuelve todos los cursos, opcionalmente filtrados por bloque."""
