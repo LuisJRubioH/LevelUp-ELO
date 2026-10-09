@@ -192,10 +192,16 @@ The `transfer-ops` workflow (branch `ops/transfer`, never merged) produces one a
 `levelup-backup-<stamp>-encrypted`: a `.tar.gz.gpg` encrypted with `BACKUP_PASSPHRASE` (AES-256).
 Inside: `full.dump` (when Supabase allows a full dump), `public.dump` (the application's schema),
 `procedimientos/` (`objects/`, `manifest.json`, `backup-report.json`), `source-counts.txt` (rows
-per table when the dump was taken), `SHA256SUMS` and the rehearsal report. The workflow's second
-job already downloads that artifact, checks its SHA-256, decrypts it, verifies every file and
-restores `public.dump` into a throwaway database with the same row counts. GitHub keeps the
-artifact 7 days: download it and store it with the passphrase kept separately.
+per table when the dump was taken), `SHA256SUMS`, the rehearsal report and the rehearsal's full
+output. The workflow's second job already downloads that artifact, checks its SHA-256, decrypts it,
+verifies every file and restores `public.dump` into a throwaway database with the same row counts.
+GitHub keeps the artifact 7 days: download it and store it with the passphrase kept separately.
+
+The repository is public, so anyone can read the run logs and download the other artifacts. They
+carry check results and counts only. When a step fails, PostgreSQL quotes row data in its errors
+(`DETAIL: Key (email)=(…) is duplicated`), so the rehearsal's raw output goes only into the
+encrypted backup; read it there. Restrict the `production-ops` environment to the
+`ops/transfer-*` branches and require the owner's approval for every run.
 
 Restore (Git Bash on Windows ships `gpg`, `tar` and `sha256sum`; `pg_restore` needs the
 PostgreSQL 17 client tools):
@@ -311,12 +317,44 @@ refuses any non-local host. Never point tests at the production database.
    reconciled topics show "aproximado"/≈; exam history loads.
 5. With a test teacher: the dashboard lists students with display rating and rank label.
 6. The SQL checks from § 5 return the same answers as on the rehearsal copy.
+7. No answer was saved by the old API after the migration (§ 6.1): the query below returns 0.
 
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer
 whose rating change equals the preview, the course map, every lesson image served by the frontend,
 and a procedure uploaded, seen by the teacher with the same image bytes and graded. Run it from a
 checkout of the deployed commit (it reads the lesson content to list the images).
+
+### 6.1 The minutes between the merge and the new API
+
+Merging deploys the frontend (Vercel) at once, while the API changes only when the new Render
+instance has run `scripts/migrate.py` and passed its health check; until then Render keeps routing
+to the old instance. Rehearsed locally on 2026-10-09 with `main`'s code and the redesign:
+
+- **New frontend, old API.** No JavaScript error. Home, courses, stats, exams and the teacher
+  dashboard work; the course page, the map, the lessons and the league get 404 until the new API
+  answers.
+- **Migration beside the old API.** `migrate.py` does not wait on the old instance (0.5 s on the
+  rehearsal copy) and the old API keeps answering without errors.
+- **Answers in between.** An answer the old API saves after the migration is logged in `attempts`
+  but moves only the legacy table, so the new rating never sees it. The old code leaves
+  `attempts.elo_before` NULL, which the new code always sets; the `dbcheck` job counts them:
+
+  ```sql
+  SELECT COUNT(*) AS old_api_answers_after_migration, COUNT(DISTINCT user_id) AS students
+    FROM attempts
+   WHERE elo_before IS NULL
+     AND timestamp > (SELECT MIN(reconciled_at) FROM student_course_topic_elo);
+  ```
+
+- **A student with the old app open.** Without a service worker (main's build has not registered
+  one since 2026-04-25) the next reload loads the new app. With main's service worker it takes up
+  to three reloads, and the old app works against the new API in between. Keeping
+  `JWT_SECRET_KEY` keeps sessions open; a new key sends everyone to the sign-in page, without
+  errors.
+
+So: switch when nobody is practising, start Render's deploy right after merging, and check the
+count above afterwards.
 
 ## 7. Known operating constraints
 
