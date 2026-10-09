@@ -63,7 +63,7 @@ server; the client only blocks clicks on `blocked` nodes.
 | L2 | **Answer keys on the client** | `LessonDetailResponse.content` is the node's whole `CONTENT`, including the keys of the items that gate completion: `answer`, `expected`, `accepted`, `valid_options`, `trap_options`, `misconception_by_option`, `closing_item.answer`, bridge blanks (e.g. `N/b06_racionales.py:47, 58, 79, 285`). The endpoint's docstring says "sin exponer respuestas". The renderer does not display them, but a student can read them in the browser. | `api/schemas/student.py:313-331`; `S:1219` | Verified |
 | L3 | **Completion** | `node_completed` checks that answers **exist**, not that they are right; B01, B13, the N4 hub, A00 and S00 have no check at all, so a client can complete them directly. | `S:1261-1278` | Presence check verified; list of unchecked nodes from code reading |
 | L4 | **Unsent learning data** | The genuine attempt, self-explanations, trap confidence and explanation, hints used, the abstraction answer and the B02 challenge are **never sent**; mastery and the post-diagnostic outcome are computed in the browser and lost. The repository test pins that responses carry no free-text field, which may be deliberate (privacy). | `LessonBlocks.tsx:340-341, 422, 596-597, 771, 798`; `ElevenBlockLesson.tsx:168-187`; `test_sqlite_repository.py:56-115` | Code verified |
-| L5 | **Unlock rules in two places** | The map follows `unlock_after` only, where the N3 hub follows E06; the API also requires all six N2 nodes. A student who finished E06 first sees the N3 hub available on the map and gets 403 on opening it. Nothing tests that the tree has one root, no dangling reference and no cycle. | `L:1148`, `S:1156-1158`; `test_prealgebra_lessons.py:606-611` | Mismatch inferred; tree checked by import |
+| L5 | **Unlock rules in two places** | The map follows `unlock_after` only, where the N3 hub follows E06; the API also requires all six N2 nodes. A student who finished E06 first sees the N3 hub available on the map and gets 403 on opening it. Nothing tests that the tree has one root, no dangling reference and no cycle. | `L:1148`, `S:1156-1158`; `test_prealgebra_lessons.py:606-611` | **Reproduced** (§ 4.1); tree checked by import |
 | L6 | **Hard-coded node ids** | Server: hub auto-completion, the B09 rule, a dead `STAIRCASE` entry (B03 is now eleven-block), the 409 text "Responde las dos preguntas" for every node. Client: id lists for N2/N3/N4/ALG hubs, B02, B13, the B01 fallback screen. V2-R16 says `Lesson.tsx` no longer whitelists ids. | `S:1113-1178, 1250, 1264`; `FE/Lesson.tsx:21-50, 205-305` | Verified |
 | L7 | **Dead renderers** | Every non-hub node is eleven-block, so `LevelTwoOperation`, `LevelThreeMachine` and `LevelFourConcept` are unreachable; the "Resultado esperado: {answer}" fallback lives only there. | `FE/Lesson.tsx:127-169`; `FE/lessons/LevelTwoLesson.tsx:226`, `LevelThreeLesson.tsx:284` | Inferred (grep of `kind`) |
 | L8 | **Overwritten history** | Re-answering an interaction, even after completion, replaces the earlier answer and its misconception tag; there is no event history, so the teacher summary sees only the last answer. | repositories `save_lesson_interaction` (upsert) | Code verified |
@@ -90,6 +90,13 @@ server; the client only blocks clicks on `blocked` nodes.
 - **API** (`test_student.py:633-1112`): welcome completion, 409 until answered, `is_expected`
   stored without touching ratings, N2/N3 hub gating, ALG map order. **Repository**
   (`test_sqlite_repository.py:56-115`): idempotent events, no rating change, no free-text field.
+
+### 4.1 Reproduction of L5 (2026-10-09)
+
+On a throwaway SQLite database bootstrapped by the repository, every ancestor of the N3 hub is
+marked completed through `record_lesson_event` (B01–B08, B10–B13, E00, E06), none of E01–E05.
+Calling the router functions directly: `course_map` gives the N3 hub the state **`available`**,
+and `lesson_detail` for the same node answers **403 «Completa el Nivel 2 primero»**.
 
 ## 5. Decisions for the owner (input for `/speckit-clarify`)
 
