@@ -4,8 +4,6 @@ student typed, but the Storage key (PostgreSQL) and the local fallback file stay
 student's folder / `data/uploads/procedures` (AGENTS R9). See test_storage_paths.py.
 """
 
-from pathlib import Path
-
 from tests.integration.conftest import is_postgres, make_student, sql
 
 HOSTILE = "../../999/victim"
@@ -64,4 +62,4 @@ def test_local_fallback_file_stays_in_the_uploads_folder(repo, monkeypatch, tmp_
     assert written[0].name.startswith(f"{student}__999_victim_")
     rows = sql(repo, "SELECT item_id FROM procedure_submissions WHERE student_id = ?", (student,))
     assert rows == [(HOSTILE,)]
-    assert not Path(tmp_path.parent / "999").exists()
+    assert [p.name for p in (tmp_path / "data" / "uploads").iterdir()] == ["procedures"]
