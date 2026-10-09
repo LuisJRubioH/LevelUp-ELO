@@ -274,6 +274,10 @@ the migrated schema. But ratings written after the switch live only in `student_
 which the previous version does not read, so a rollback hides them. To return to the exact
 pre-transfer state, restore the § 4 dump.
 
+Rehearsed from a browser (2026-10-09, locally): a student whose browser runs the redesign's service
+worker gets `main`'s app back by the third reload after Vercel's Instant Rollback and Render's
+redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no errors.
+
 ## 6. Verification in the final environment
 
 **Before the switch** (on the final repository's pull request):
