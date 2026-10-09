@@ -97,6 +97,8 @@ export interface Course {
   enrolled: boolean;
   group_id?: number;
   diagnostic_done?: boolean;
+  /** false: reached by invitation outside the student's catalogue (spec 001 FR-028l). */
+  in_catalogue?: boolean;
 }
 
 // ── Examen diagnóstico (inicio de materia) ──────────────────────────────────
