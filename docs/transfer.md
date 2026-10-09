@@ -277,6 +277,16 @@ pre-transfer state, restore the § 4 dump.
   Today any course is served.
 - Roadmap follow-up **F-5** is merged into the branch being switched: PvP lets enrolled students
   in. Without it the redesign's PvP refuses every student (`docs/sdd/roadmap.md` § Follow-ups).
+- Roadmap follow-up **F-1** is merged into the branch being switched (decided 2026-10-09):
+  Semillero students see the six courses of their grade and invitation codes work. Its read-only
+  production checks (spec 001 task T084; `docs/sdd/f1-semillero-survey.md` § 3 step 1 and § 4.3
+  step 1) are done by the owner first, with the counts recorded:
+  - the Semillero students without a grade, listed. They get their grade by the survey's
+    procedure, or the owner accepts the ones left; until then they see the notice asking for their
+    grade, and their enrolments stay open;
+  - the `courses.block` CHECK, read. If it lacks one of `Universidad`, `Colegio`, `Concursos`,
+    `Semillero`, the migration stops with an error naming the missing values (FR-028n) and the
+    switch waits for a manual repair prepared and reviewed separately, with a backup.
 
 ```bash
 python scripts/db_sync_check.py          # SQLite ↔ PostgreSQL parity
