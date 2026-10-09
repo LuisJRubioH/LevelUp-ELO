@@ -72,6 +72,14 @@ wrong):
 | `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_STUDENT_ANALYSIS`, `AI_KEY_TEACHER_ANALYSIS` |
 | `DATABASE_SSLMODE`, `LOG_LEVEL` | optional |
 
+Both database URLs take the form `postgresql://user:password@host:port/database` and nothing more.
+The app splits them with its own pattern instead of handing them to libpq: a `?sslmode=…` (or any
+`?query`) part becomes part of the database name, and a percent-encoded password (`%40`) is sent
+as written. `pg_dump`, `psql` and the backup workflow read both forms, so a URL can pass the backup
+and still stop `migrate.py`. Write the password as is, and prefer one of letters and digits, which
+every reader takes the same way; SSL comes from `DATABASE_SSLMODE` (default `require`). The
+`transfer-ops` precheck and backup connect with the app's own parser first and stop if it cannot.
+
 Frontend (build time): `VITE_API_URL` = the API's public origin. **Never** put a secret in a
 `VITE_*` variable — Vite bundles them into the JavaScript every visitor downloads.
 
