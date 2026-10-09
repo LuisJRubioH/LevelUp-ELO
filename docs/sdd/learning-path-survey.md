@@ -59,7 +59,7 @@ server; the client only blocks clicks on `blocked` nodes.
 
 | # | Kind | Finding | Evidence | Status |
 |---|---|---|---|---|
-| L1 | **Access** | **No enrolment check on any learning-path endpoint.** Lesson, events, interactions, summary and map accept any authenticated user, any role, in any course the student is not enrolled in. Spec 001 FR-037 left the map and lessons out of its scope on purpose. | `S:101-108` called only at `S:118, 173, 990, 1022` | Verified |
+| L1 | **Access** | **No enrolment check on any learning-path endpoint.** Lesson, events, interactions, summary and map accept any authenticated user, any role, in any course the student is not enrolled in. Spec 001 FR-037 left the map and lessons out of its scope on purpose. | `S:101-108` called only at `S:118, 173, 990, 1022` | **Reproduced** (§ 4.1) |
 | L2 | **Answer keys on the client** | `LessonDetailResponse.content` is the node's whole `CONTENT`, including the keys of the items that gate completion: `answer`, `expected`, `accepted`, `valid_options`, `trap_options`, `misconception_by_option`, `closing_item.answer`, bridge blanks (e.g. `N/b06_racionales.py:47, 58, 79, 285`). The endpoint's docstring says "sin exponer respuestas". The renderer does not display them, but a student can read them in the browser. | `api/schemas/student.py:313-331`; `S:1219` | Verified |
 | L3 | **Completion** | `node_completed` checks that answers **exist**, not that they are right; B01, B13, the N4 hub, A00 and S00 have no check at all, so a client can complete them directly. | `S:1261-1278` | Presence check verified; list of unchecked nodes from code reading |
 | L4 | **Unsent learning data** | The genuine attempt, self-explanations, trap confidence and explanation, hints used, the abstraction answer and the B02 challenge are **never sent**; mastery and the post-diagnostic outcome are computed in the browser and lost. The repository test pins that responses carry no free-text field, which may be deliberate (privacy). | `LessonBlocks.tsx:340-341, 422, 596-597, 771, 798`; `ElevenBlockLesson.tsx:168-187`; `test_sqlite_repository.py:56-115` | Code verified |
@@ -91,12 +91,17 @@ server; the client only blocks clicks on `blocked` nodes.
   stored without touching ratings, N2/N3 hub gating, ALG map order. **Repository**
   (`test_sqlite_repository.py:56-115`): idempotent events, no rating change, no free-text field.
 
-### 4.1 Reproduction of L5 (2026-10-09)
+### 4.1 Reproductions (2026-10-09)
 
-On a throwaway SQLite database bootstrapped by the repository, every ancestor of the N3 hub is
-marked completed through `record_lesson_event` (B01–B08, B10–B13, E00, E06), none of E01–E05.
-Calling the router functions directly: `course_map` gives the N3 hub the state **`available`**,
-and `lesson_detail` for the same node answers **403 «Completa el Nivel 2 primero»**.
+Throwaway SQLite databases bootstrapped by the repository; router functions called directly.
+
+**L1.** `estudiante1`, enrolled only in `calculo_diferencial`: `lesson_detail` for B01 of
+`algebra_basica` → 200; `lesson_event(node_completed)` → 200 and the node is `completed`;
+`course_map` → 200 with the course's nodes.
+
+**L5.** Every ancestor of the N3 hub is marked completed through `record_lesson_event` (B01–B08,
+B10–B13, E00, E06), none of E01–E05: `course_map` gives the N3 hub the state **`available`**, and
+`lesson_detail` for the same node answers **403 «Completa el Nivel 2 primero»**.
 
 ## 5. Decisions for the owner (input for `/speckit-clarify`)
 
