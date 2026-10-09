@@ -207,9 +207,10 @@ def procedure_image(submission_id: int, user: CurrentUser, repo: RepoDep):
         except Exception:
             pass
 
-    # Fallback a BYTEA en DB
+    # Fallback a BYTEA en DB. The queue leaves image_data out when the row has a storage_url
+    # (so it does not load every image); read it for this one submission if Storage failed.
     if not image_bytes:
-        image_bytes = row.get("image_data")
+        image_bytes = row.get("image_data") or repo.get_submission_image_data(submission_id)
 
     if not image_bytes:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Imagen no disponible.")
