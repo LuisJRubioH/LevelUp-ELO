@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { authApi } from "../api/auth";
 import { studentApi } from "../api/student";
-import { resetClientAccountState } from "../lib/accountCleanup";
+import { prepareClientForAccount } from "../lib/accountCleanup";
 import { useAuthStore } from "../stores/authStore";
 import type { AuthUser } from "../stores/authStore";
 import "./Login.css";
@@ -170,8 +170,8 @@ export function Login() {
 
   const finishLogin = async (username: string, password: string) => {
     const res = await authApi.login({ username, password });
-    // Una sesión abierta de otra cuenta no debe dejar sus datos ni su API key a esta.
-    await resetClientAccountState(queryClient);
+    // Otra cuenta no debe dejar sus datos ni su API key a esta; la misma que vuelve conserva los suyos.
+    await prepareClientForAccount(queryClient, res.user_id);
     setAuth(res.access_token, {
       user_id: res.user_id,
       username: res.username,
