@@ -472,6 +472,13 @@ jobs:
           SELECT COUNT(*) AS student_topic_elo FROM student_topic_elo;
           SELECT COUNT(*) AS exam_sessions_unknown_status FROM exam_sessions WHERE global_elo_status IS NULL;
           SELECT COUNT(*) AS users, COUNT(*) FILTER (WHERE role = 'admin') AS admins FROM users;
+          -- Answers the OLD API saved after the migration, while Render still routed to it: the old
+          -- code leaves elo_before NULL and moved only the legacy table, so the new rating did not
+          -- change. 0 is expected when the switch ran with nobody practising.
+          SELECT COUNT(*) AS old_api_answers_after_migration, COUNT(DISTINCT user_id) AS students
+            FROM attempts
+           WHERE elo_before IS NULL
+             AND timestamp > (SELECT MIN(reconciled_at) FROM student_course_topic_elo);
           -- After ops/transfer-verify: its procedure (the newest row) must show in_storage = t.
           -- f means the upload fell back to the row's copy (R9): check SUPABASE_URL/KEY on Render.
           SELECT id AS latest_submission, submitted_at::date AS day,
