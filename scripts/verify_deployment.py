@@ -323,8 +323,12 @@ def main():
     img = c.get(f"/api/teacher/procedures/{sid}/image", headers=ht)
     r.check(
         img.status_code == 200 and img.content == png,
-        "teacher gets the same image bytes back (storage)",
-        img.status_code,
+        "teacher gets the same image bytes back",
+        f"{img.status_code}, submission {sid}",
+    )
+    # The API also serves the row's copy when Storage fails (R9), so this passes without Storage.
+    r.log(
+        f"  [INFO] submission {sid}: its storage_url in the database says whether Storage took it"
     )
     before = c.get("/api/student/stats", headers=hs).json()
     grade = c.post(
