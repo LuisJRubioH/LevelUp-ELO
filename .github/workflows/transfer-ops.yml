@@ -454,6 +454,11 @@ jobs:
           SELECT COUNT(*) AS student_topic_elo FROM student_topic_elo;
           SELECT COUNT(*) AS exam_sessions_unknown_status FROM exam_sessions WHERE global_elo_status IS NULL;
           SELECT COUNT(*) AS users, COUNT(*) FILTER (WHERE role = 'admin') AS admins FROM users;
+          -- After ops/transfer-verify: its procedure (the newest row) must show in_storage = t.
+          -- f means the upload fell back to the row's copy (R9): check SUPABASE_URL/KEY on Render.
+          SELECT id AS latest_submission, submitted_at::date AS day,
+                 storage_url IS NOT NULL AS in_storage, image_data IS NOT NULL AS in_row
+            FROM procedure_submissions ORDER BY id DESC LIMIT 5;
           COMMIT;
           SQL
 
