@@ -8,6 +8,9 @@
 #                          2. verify-backup-artifact: downloads that artifact, checks its SHA-256,
 #                             decrypts it, verifies every file and restores the dump into a second
 #                             throwaway database with the same row counts as production.
+#   ops/transfer-precheck  before F-1 ships (spec 001 T084, docs/transfer.md § 6): read-only. Does
+#                         the courses.block CHECK accept the four blocks, and how many Semillero
+#                         students lack a valid grade (the list only in an encrypted artifact).
 #   ops/transfer-dbcheck   read-only SQL checks on production after the switch (§ 5 queries).
 #   ops/transfer-verify    scripts/verify_deployment.py against production with the test accounts.
 #
@@ -19,7 +22,7 @@ name: transfer-ops
 
 on:
   push:
-    branches: [ops/transfer-backup, ops/transfer-dbcheck, ops/transfer-verify]
+    branches: [ops/transfer-precheck, ops/transfer-backup, ops/transfer-dbcheck, ops/transfer-verify]
 
 permissions:
   contents: read
@@ -291,6 +294,134 @@ jobs:
       - name: Remove the plaintext from the runner
         if: always()
         run: rm -rf restored downloaded restored-counts.txt restore.err
+
+  precheck:
+    # Spec 001 task T084, before F-1 is deployed (docs/transfer.md § 6). Read-only, like dbcheck.
+    # The log carries counts and the courses.block verdict; the list of accounts (student data)
+    # goes only into an artifact encrypted with BACKUP_PASSPHRASE.
+    if: github.ref_name == 'ops/transfer-precheck'
+    runs-on: ubuntu-24.04
+    environment: production-ops
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Mask connection details and check the secrets
+        id: check
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          python3 - <<'PY'
+          import os, urllib.parse
+          u = urllib.parse.urlsplit(os.environ.get("MIGRATION_DATABASE_URL", ""))
+          parts = [u.password, u.hostname, u.netloc]
+          if u.username and "." in u.username:
+              parts += [u.username] + u.username.split(".")[1:]
+          for p in filter(None, parts):
+              print(f"::add-mask::{p}")
+          PY
+          for v in MIGRATION_DATABASE_URL BACKUP_PASSPHRASE; do
+            [ -n "${!v}" ] || { echo "::error::Secret $v is missing in environment production-ops"; exit 1; }
+          done
+          [ ${#BACKUP_PASSPHRASE} -ge 20 ] || { echo "::error::BACKUP_PASSPHRASE must have at least 20 characters"; exit 1; }
+          echo "secrets present"
+
+      - name: courses.block CHECK accepts the four blocks (survey § 4.3 step 1)
+        if: steps.check.outcome == 'success'
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          psql "$MIGRATION_DATABASE_URL" -X -q -At -v ON_ERROR_STOP=1 > block-check.txt <<'SQL'
+          BEGIN TRANSACTION READ ONLY;
+          SELECT pg_get_constraintdef(oid) FROM pg_constraint
+           WHERE conrelid = to_regclass('public.courses') AND contype = 'c';
+          COMMIT;
+          SQL
+          # Schema only, no data: the constraint definitions themselves.
+          echo "CHECK constraints on courses: $(grep -c . block-check.txt || true)"
+          cat block-check.txt
+          # The same parser and rule the migration applies (src/infrastructure/persistence/course_blocks.py).
+          python3 - <<'PY'
+          import sys
+          sys.path.insert(0, ".")
+          from src.infrastructure.persistence.course_blocks import (
+              CourseBlockConstraintError, allowed_blocks, require_course_blocks)
+          sql = " ".join(line for line in open("block-check.txt").read().splitlines() if line)
+          try:
+              require_course_blocks(sql)
+          except CourseBlockConstraintError as exc:
+              print(f"::error::BLOCK CHECK: FAIL — the migration would stop on it: {exc}")
+              sys.exit(1)
+          allowed = allowed_blocks(sql)
+          print("BLOCK CHECK: PASS — " + ("no CHECK on courses.block" if allowed is None
+                else f"accepts the four blocks; allowed values: {sorted(allowed)}"))
+          PY
+
+      - name: Semillero students without a valid grade (survey § 3 step 1)
+        if: always() && steps.check.outcome == 'success'
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          # Counts only in the log; a grade outside 6–11 is reported as invalid, never printed.
+          psql "$MIGRATION_DATABASE_URL" -X -q -At -F ': ' -v ON_ERROR_STOP=1 <<'SQL'
+          BEGIN TRANSACTION READ ONLY;
+          SELECT CASE WHEN grade IS NULL OR grade = '' THEN 'semillero students without a grade'
+                      WHEN grade IN ('6', '7', '8', '9', '10', '11') THEN 'semillero students in grade ' || grade
+                      ELSE 'semillero students with an invalid grade' END,
+                 count(*) || ' (' || count(*) FILTER (WHERE is_test_user = 1) || ' test users)'
+            FROM users WHERE role = 'student' AND education_level = 'semillero'
+           GROUP BY 1 ORDER BY 1;
+          COMMIT;
+          SQL
+          mkdir -p precheck
+          psql "$MIGRATION_DATABASE_URL" -X -q -v ON_ERROR_STOP=1 > precheck/semillero-without-valid-grade.csv <<'SQL'
+          BEGIN TRANSACTION READ ONLY;
+          COPY (
+            SELECT u.id, u.username, u.grade, u.is_test_user, u.created_at,
+                   string_agg(e.course_id, ', ' ORDER BY e.course_id) AS enrolled_courses
+              FROM users u
+              LEFT JOIN enrollments e ON e.user_id = u.id
+             WHERE u.role = 'student' AND u.education_level = 'semillero'
+               AND (u.grade IS NULL OR u.grade NOT IN ('6', '7', '8', '9', '10', '11'))
+             GROUP BY u.id, u.username, u.grade, u.is_test_user, u.created_at
+             ORDER BY u.id
+          ) TO STDOUT WITH CSV HEADER;
+          COMMIT;
+          SQL
+          ROWS=$(( $(wc -l < precheck/semillero-without-valid-grade.csv) - 1 ))
+          echo "ACCOUNTS: $ROWS semillero students without a valid grade (listed only in the encrypted artifact)"
+          echo "ROWS=$ROWS" >> "$GITHUB_ENV"
+
+      - name: Encrypt the account list (the only artifact with data)
+        id: encrypt
+        if: always() && env.ROWS != ''
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          STAMP=$(date -u +%Y%m%dT%H%MZ)
+          OUT="t084-precheck-$STAMP.csv.gpg"
+          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --symmetric \
+            --cipher-algo AES256 --s2k-mode 3 --s2k-digest-algo SHA512 --s2k-count 65011712 \
+            -o "$OUT" precheck/semillero-without-valid-grade.csv <<< "$BACKUP_PASSPHRASE"
+          PLAIN=$(sha256sum precheck/semillero-without-valid-grade.csv | cut -d' ' -f1)
+          ROUND=$(gpg --batch --quiet --pinentry-mode loopback --passphrase-fd 0 --decrypt "$OUT" <<< "$BACKUP_PASSPHRASE" | sha256sum | cut -d' ' -f1)
+          [ "$PLAIN" = "$ROUND" ] || { echo "::error::decryption self-test failed"; exit 1; }
+          echo "encrypted list $OUT; decryption self-test OK"
+          echo "stamp=$STAMP" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the encrypted list
+        if: always() && steps.encrypt.outputs.stamp != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: t084-precheck-${{ steps.encrypt.outputs.stamp }}-encrypted
+          path: t084-precheck-*.csv.gpg
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Remove the plaintext from the runner
+        if: always()
+        run: rm -rf precheck block-check.txt
 
   dbcheck:
     if: github.ref_name == 'ops/transfer-dbcheck'
