@@ -3,6 +3,7 @@ import os
 import sqlite3
 import logging
 from src.infrastructure.security.hashing_service import HashingService
+from src.infrastructure.storage.paths import safe_path_component
 
 logger = logging.getLogger(__name__)
 
@@ -3689,7 +3690,7 @@ class SQLiteRepository:
             "application/pdf": "pdf",
         }.get(mime_type, "bin")
         os.makedirs(os.path.join("data", "uploads", "procedures"), exist_ok=True)
-        img_filename = f"{student_id}_{item_id}_{int(_time.time())}.{ext}"
+        img_filename = f"{student_id}_{safe_path_component(item_id)}_{int(_time.time())}.{ext}"
         img_path = os.path.join("data", "uploads", "procedures", img_filename)
         with open(img_path, "wb") as _f:
             _f.write(image_data)
