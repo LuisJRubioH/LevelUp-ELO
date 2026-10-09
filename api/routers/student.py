@@ -1110,6 +1110,20 @@ _LESSON_EVENTS = {
 }
 
 
+# El estado de un nodo sin fila de progreso: lo que devuelve `get_lesson_progress`.
+_NO_PROGRESS = "available"
+
+
+def _lesson_states(repo, user_id: int, course_id: str):
+    """`node_id -> estado guardado` de toda la materia en una sola lectura.
+
+    Cada lectura del repositorio cuesta viajes de red a la base; leer nodo por nodo hacía que el
+    mapa y las lecciones de N3 tardaran segundos en PostgreSQL.
+    """
+    states = repo.get_lesson_states(user_id, course_id)
+    return lambda node_id: states.get(node_id, _NO_PROGRESS)
+
+
 def _ensure_n2_hub_completed_if_cards_opened(repo, user_id: int, course_id: str) -> None:
     """Repara estados previos: 6 carteles abiertos => hub N2 completado."""
     progress = repo.get_lesson_progress(user_id, course_id, N2_HUB_NODE_ID)
@@ -1140,11 +1154,8 @@ def _ensure_n3_hub_completed_if_machines_introduced(repo, user_id: int, course_i
         repo.record_lesson_event(user_id, course_id, N3_HUB_NODE_ID, "node_completed")
 
 
-def _all_nodes_completed(repo, user_id: int, course_id: str, node_ids: list[str]) -> bool:
-    return all(
-        repo.get_lesson_progress(user_id, course_id, node_id)["state"] == "completed"
-        for node_id in node_ids
-    )
+def _all_nodes_completed(state_of, node_ids: list[str]) -> bool:
+    return all(state_of(node_id) == "completed" for node_id in node_ids)
 
 
 def _lesson_with_progress(repo, user_id: int, course_id: str, lesson: dict) -> dict:
@@ -1153,14 +1164,14 @@ def _lesson_with_progress(repo, user_id: int, course_id: str, lesson: dict) -> d
         _ensure_n2_hub_completed_if_cards_opened(repo, user_id, course_id)
     if lesson["node_id"] == N3_HUB_NODE_ID or lesson.get("unlock_after") == N3_HUB_NODE_ID:
         _ensure_n3_hub_completed_if_machines_introduced(repo, user_id, course_id)
+    state_of = _lesson_states(repo, user_id, course_id)
     if lesson["node_id"] in {N3_HUB_NODE_ID, *N3_MACHINE_NODE_IDS}:
-        if not _all_nodes_completed(repo, user_id, course_id, N2_OPERATION_NODE_IDS):
+        if not _all_nodes_completed(state_of, N2_OPERATION_NODE_IDS):
             raise HTTPException(status_code=403, detail="Completa el Nivel 2 primero")
 
     unlock_after = lesson.get("unlock_after")
     if unlock_after:
-        prerequisite = repo.get_lesson_progress(user_id, course_id, unlock_after)
-        if prerequisite["state"] != "completed":
+        if state_of(unlock_after) != "completed":
             raise HTTPException(status_code=403, detail="Completa el nodo anterior primero")
 
     progress = repo.get_lesson_progress(user_id, course_id, lesson["node_id"])
@@ -1179,8 +1190,7 @@ def _lesson_with_progress(repo, user_id: int, course_id: str, lesson: dict) -> d
 
     # explored_complex_branch (derivado): el estudiante abrió/completó B09.
     # Gobierna el contenido complejo en cascada (B10–B13).
-    complex_state = repo.get_lesson_progress(user_id, course_id, COMPLEX_NODE_ID)["state"]
-    explored_complex_branch = complex_state in ("viewed", "completed")
+    explored_complex_branch = state_of(COMPLEX_NODE_ID) in ("viewed", "completed")
 
     lesson_payload = {**lesson}
     if lesson["node_id"] == N3_HUB_NODE_ID and lesson.get("content"):
@@ -1188,16 +1198,16 @@ def _lesson_with_progress(repo, user_id: int, course_id: str, lesson: dict) -> d
         machines = []
         previous_completed = True
         for machine in content.get("machines", []):
-            machine_progress = repo.get_lesson_progress(user_id, course_id, machine["node_id"])
+            machine_state = state_of(machine["node_id"])
             state = (
                 "completed"
-                if machine_progress["state"] == "completed"
+                if machine_state == "completed"
                 else "current"
                 if previous_completed
                 else "blocked"
             )
             machines.append({**machine, "state": state})
-            previous_completed = machine_progress["state"] == "completed"
+            previous_completed = machine_state == "completed"
         content["machines"] = machines
         lesson_payload["content"] = content
 
@@ -1344,16 +1354,14 @@ def prealgebra_summary(course_id: str, user: CurrentUser, repo: RepoDep):
     No afecta ELO. MVP: persiste/lee misconceptions de las interacciones y
     propone hasta 4 nodos de repaso. Sin panel docente todavía.
     """
-    explored = repo.get_lesson_progress(
-        user["user_id"], course_id, COMPLEX_NODE_ID
-    )["state"] in ("viewed", "completed")
+    state_of = _lesson_states(repo, user["user_id"], course_id)
+    explored = state_of(COMPLEX_NODE_ID) in ("viewed", "completed")
 
     applicable = [n for n in DIAGNOSTIC_NODE_IDS if n != COMPLEX_NODE_ID or explored]
     completed_nodes = 0
     misconceptions: list[str] = []
     for node_id in applicable:
-        progress = repo.get_lesson_progress(user["user_id"], course_id, node_id)
-        if progress["state"] == "completed":
+        if state_of(node_id) == "completed":
             completed_nodes += 1
         responses = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
         for resp in responses.values():
@@ -1402,7 +1410,8 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
         r["topic"]: {"elo": r["elo"], "rd": r["rd"], "approximate": r["approximate"]}
         for r in repo.get_course_topic_ratings(user["user_id"], course_id=course_id)
     }
-    diagnostic_done = repo.get_diagnostic(user["user_id"], course_id) is not None
+    diagnostic = repo.get_diagnostic(user["user_id"], course_id)
+    diagnostic_done = diagnostic is not None
 
     # agrupar ítems por tópico con sus dificultades
     by_topic: dict[str, list[float]] = {}
@@ -1447,22 +1456,14 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
     curriculum: list[MapNode] = []
     curriculum_completed = True
     if course_id == PREALGEBRA_COURSE_ID:
-        # Una sola lectura por nodo; la ruta y los estados los deriva el dominio
-        # de `unlock_after`. El endpoint ya no sabe de nodos concretos: añadir
-        # uno no se toca aquí.
-        _cache: dict[str, str] = {}
-
-        def _state_of(node_id: str) -> str:
-            if node_id not in _cache:
-                _cache[node_id] = repo.get_lesson_progress(
-                    user["user_id"], course_id, node_id
-                )["state"]
-            return _cache[node_id]
+        # Una sola lectura del progreso (`_lesson_states`). La ruta y los estados los
+        # deriva el dominio de `unlock_after`. El endpoint ya no sabe de nodos concretos:
+        # añadir uno no se toca aquí.
+        _state_of = _lesson_states(repo, user["user_id"], course_id)
 
         # B09 (complejos) solo visible para banda intermedia/avanzada (callejón opcional).
-        _diag = repo.get_diagnostic(user["user_id"], course_id)
         complex_visible = presentation_band(
-            _diag.get("score_pct") if _diag else None
+            diagnostic.get("score_pct") if diagnostic else None
         ) in ("intermedio", "avanzado")
         curriculum = [
             MapNode(**row)
