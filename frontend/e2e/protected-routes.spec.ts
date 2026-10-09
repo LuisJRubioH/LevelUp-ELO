@@ -1,8 +1,9 @@
-import { test, expect } from "@playwright/test";
-import { injectAuth, mockStudentApi, MOCK_TEACHER } from "./helpers/auth";
+import { test, expect } from "./fixtures";
+import { injectAuth, mockPublicApi, mockStudentApi, MOCK_TEACHER } from "./helpers/auth";
 
 test.describe("Rutas protegidas — redirección", () => {
   test("/ sin autenticación → muestra la portada pública", async ({ page }) => {
+    await mockPublicApi(page);
     await page.goto("/");
     await expect(page).toHaveURL("/");
     await expect(page.getByRole("link", { name: /Oulad/ }).first()).toBeVisible();
