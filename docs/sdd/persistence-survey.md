@@ -101,6 +101,7 @@ each engine, 19 only on SQLite, 13 only on PostgreSQL (CI job "Guardas PostgreSQ
 | P17 | **R12 (V1)** | V1's `_REPO_SINGLETON` lives in the main script, which Streamlit re-executes on every rerun, so it is likely rebuilt per browser session (one pool each) — only `session_state` keeps it. V1 is frozen and disconnected during the transfer; this matters only if it is reconnected. V2's singleton has no lock but is built once at startup. | `app.py:50-76`; `api/dependencies.py:30-54`; `api/main.py:63` | Inferred |
 | P18 | **Smell** | `save_procedure_submission` does SELECT-then-INSERT with no UNIQUE `(student_id, item_id)`: concurrent submissions can duplicate rows. `_retry_on_deadlock` says it rolls back but does not, and wraps two read-only methods. `DATABASE_URL` is parsed with a regex whose last group would swallow a `?query` suffix into the database name. | P:4376-4421, 34-57, 175 | Code verified; the regex was run: `…:5432/postgres?sslmode=require` parses to the database name `postgres?sslmode=require`; other effects inferred |
 | P19 | **Drift** | AGENTS.md § Database lists the bootstrap without `_reconcile_legacy_ratings` and `expire_stale_pvp_matches`; the roadmap's F-3 wording (P3); `docs/arquitectura.md` § Persistencia says parity is proven by `test_elo_single_source.py` (now 88 two-engine cases across many files). | `AGENTS.md:556-557`; `docs/sdd/roadmap.md` F-3 | Verified |
+| P20 | **Latency** | **Every PostgreSQL repository call pays about three network round trips.** psycopg2 sends `BEGIN` before the first statement, then the statement; a read's transaction is closed by the pool's `ROLLBACK` when the connection is returned, a write's by its `COMMIT`. Endpoints that read once per element multiply this. The course map made 59 reads: 2.0 s at a simulated 10 ms round trip, 5.6 s at 30 ms (fixed separately in PR #22). `/stats` makes 6 reads, about 0.2 s at 10 ms. Reads in autocommit would take one round trip each. | P:271-294 (pool); `api/routers/student.py` (map) | **Measured** on local PostgreSQL 16 through a proxy: a read is 3 client→server messages, `record_lesson_event` 6; times with a proxy that delays every message |
 
 ## 4. Existing evidence
 
@@ -155,9 +156,10 @@ Each is a real choice; none blocks the transfer (PR #3).
    or move the one-off data repairs to scripts.
 6. **Lost update (P1).** It is a rating-writer defect (spec 001's R15 rule). Fix it as a spec 001
    follow-up (test first, own PR) or inside spec 002 ("locks")?
-7. **Async boundary (P9) and pool (P8).** In spec 002's scope, or a separate follow-up? Raising
-   `minconn` keeps warm connections without raising `maxconn` (R4); the Supabase free tier limits
-   apply to both.
+7. **Async boundary (P9), pool (P8) and round trips per read (P20).** In spec 002's scope, or a
+   separate follow-up? Raising `minconn` keeps warm connections without raising `maxconn` (R4); the
+   Supabase free tier limits apply to both. Reads in autocommit, or several reads on one checkout,
+   cut the round trips per request; where Render and Supabase run decides how much that matters.
 
 ## 6. Proposed scope for spec 002 (draft)
 
