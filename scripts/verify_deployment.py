@@ -52,6 +52,16 @@ def _account(var, default):
     return user, password
 
 
+def matches_preview(delta: float, preview: float) -> bool:
+    """The applied change agrees with the preview shown before answering.
+
+    The preview is the exact change rounded once to 0.1; `/answer` reports it rounded to 0.01.
+    Rounding that again to 0.1 fails on a half (5.4466 → 5.45 → 5.5, preview 5.4), so compare
+    within both roundings instead.
+    """
+    return abs(delta - preview) <= 0.05 + 0.005 + 1e-9
+
+
 def _png(seed: int) -> bytes:
     """A small, unique PNG (the API rejects a file whose hash it has already seen)."""
     rng = random.Random(seed)
@@ -237,7 +247,7 @@ def main():
         a = ans.json()
         expected = preview["on_correct"] if a["is_correct"] else preview["on_wrong"]
         r.check(
-            a["elo_valid"] and round(a["delta_elo"], 1) == expected,
+            a["elo_valid"] and matches_preview(a["delta_elo"], expected),
             "rating moved by the previewed amount",
             f"{a['elo_before']:.2f} → {a['elo_after']:.2f} (Δ {a['delta_elo']:+.2f},"
             f" preview {expected:+.1f})",
