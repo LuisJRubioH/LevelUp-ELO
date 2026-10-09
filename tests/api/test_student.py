@@ -43,6 +43,10 @@ def test_first_practice_uses_diagnostic_rating(api_client, monkeypatch, from_map
     token = login.json()["access_token"]
     headers = {"Authorization": "Bearer " + token}
     user_id = int(decode_token(token)["sub"])
+    enrolled = api_client.post(
+        "/api/student/enroll", headers=headers, json={"course_id": _COURSE_UNIV}
+    )
+    assert enrolled.status_code == 201  # practice needs an enrolment (spec 001 FR-037)
     items = repo.get_items_from_db(course_id=_COURSE_UNIV)[:10]
     diagnostic = api_client.post(
         f"/api/student/diagnostic/{_COURSE_UNIV}/submit",
@@ -280,6 +284,16 @@ class TestNextQuestion:
 
 
 class TestAnswer:
+    @pytest.fixture(autouse=True)
+    def _enrolled(self, api_client, student_headers):
+        """Practice needs an enrolment (spec 001 FR-037). estudiante1 is a universidad student,
+        so this colegio course is enrolled directly, as an invitation would — not through
+        /enroll, and not left to TestNextQuestion having run first."""
+        from api.dependencies import get_repository
+
+        user_id = api_client.get("/api/auth/me", headers=student_headers).json()["user_id"]
+        get_repository().enroll_user(user_id, _COURSE_ID)
+
     def test_ignores_tampered_item_data(self, api_client, student_headers):
         from api.dependencies import get_repository
         from src.domain.elo.model import expected_score
@@ -447,16 +461,13 @@ class TestHistory:
 
 class TestRoleProtection:
     def test_teacher_cannot_access_student_answer(self, api_client, teacher_headers):
-        """El endpoint /student/answer requiere rol student (o admin)."""
-        # El endpoint acepta cualquier usuario autenticado — solo probamos que llega bien
+        """Practice needs an enrolment (spec 001 FR-037): a teacher has none, so 403."""
         r = api_client.post(
             "/api/student/next-question",
             json={"course_id": _COURSE_ID},
             headers=teacher_headers,
         )
-        # El docente puede acceder a estos endpoints (CurrentUser, no RequireRole)
-        # Si no tiene matriculaciones, devuelve empty
-        assert r.status_code in (200, 400, 404)
+        assert r.status_code == 403
 
 
 class TestAchievements:
