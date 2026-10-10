@@ -346,6 +346,31 @@ def student_group_ranking(student_id: int, user: CurrentUser, repo: RepoDep):
 
 # ── Exportación ───────────────────────────────────────────────────────────────
 
+# Exported cells hold text students typed (usernames, KatIA messages). A spreadsheet runs a cell
+# that starts like a formula, so text starting with one of these is written as text (OWASP CSV
+# injection); in the workbook only "=" makes a formula.
+_FORMULA_STARTS = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_cell(value):
+    """Text that would start a formula gets a leading apostrophe, which Excel shows as text."""
+    if isinstance(value, str) and value.startswith(_FORMULA_STARTS):
+        return "'" + value
+    return value
+
+
+def _append_xlsx_row(ws, values) -> None:
+    """Append a row as data: characters a workbook cannot hold are dropped, and text starting
+    with "=" is stored as text instead of a formula."""
+    from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+
+    ws.append(
+        [ILLEGAL_CHARACTERS_RE.sub("", v) if isinstance(v, str) else v for v in values]
+    )
+    for cell in ws[ws.max_row]:
+        if cell.data_type == "f":
+            cell.data_type = "s"
+
 
 @router.get("/export/csv")
 def export_csv(user: CurrentUser, repo: RepoDep):
@@ -360,15 +385,17 @@ def export_csv(user: CurrentUser, repo: RepoDep):
         )
 
     output = io.StringIO()
+    # The byte-order mark tells Excel the file is UTF-8, so accents read correctly.
+    output.write("\ufeff")
     keys = list(rows[0].keys()) if isinstance(rows[0], dict) else []
     writer = csv.DictWriter(output, fieldnames=keys)
     writer.writeheader()
-    writer.writerows([dict(r) for r in rows])
+    writer.writerows([{k: _csv_cell(v) for k, v in dict(r).items()} for r in rows])
 
     output.seek(0)
     return StreamingResponse(
         iter([output.getvalue()]),
-        media_type="text/csv",
+        media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": "attachment; filename=levelup_data.csv"},
     )
 
@@ -400,7 +427,7 @@ def export_xlsx(user: CurrentUser, repo: RepoDep):
             headers = list(rows[0].keys()) if isinstance(rows[0], dict) else []
             ws.append(headers)
             for row in rows:
-                ws.append(list(dict(row).values()))
+                _append_xlsx_row(ws, list(dict(row).values()))
 
     buf = io.BytesIO()
     wb.save(buf)
