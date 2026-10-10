@@ -13,6 +13,7 @@ Endpoints del panel del docente:
 """
 
 import io
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
 from fastapi.responses import StreamingResponse
@@ -522,6 +523,43 @@ def archive_exam_template(template_id: int, user: CurrentUser, repo: RepoDep):
 # ── Asignación de plantillas a grupos + ventana de tiempo ────────────────────
 
 
+def _as_utc(value: datetime) -> datetime:
+    """A time with no zone is UTC."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def _stored_utc(value: datetime | None) -> str | None:
+    """A window bound as naive UTC text: what both engines compare with their own clock
+    (`datetime('now')` on SQLite, `NOW()` on PostgreSQL)."""
+    return None if value is None else _as_utc(value).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _utc_iso(value) -> str | None:
+    """A stored time (naive UTC, or ISO text from older rows) as ISO 8601 with its zone, so a
+    browser reads it as UTC and shows it in the teacher's time."""
+    if value in (None, ""):
+        return None
+    if not isinstance(value, datetime):
+        try:
+            value = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except ValueError:
+            return str(value)
+    return _as_utc(value).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _assignment_response(row: dict) -> ExamAssignmentResponse:
+    return ExamAssignmentResponse(
+        **{
+            **row,
+            "starts_at": _utc_iso(row.get("starts_at")),
+            "ends_at": _utc_iso(row.get("ends_at")),
+            "created_at": _utc_iso(row.get("created_at")) or "",
+        }
+    )
+
+
 def _ensure_owns_template(repo, template_id: int, user: dict) -> dict:
     """Carga la plantilla y verifica autoría (o rol admin). Lanza HTTPException."""
     template = repo.get_exam_template(template_id)
@@ -540,7 +578,7 @@ def list_template_assignments(template_id: int, user: CurrentUser, repo: RepoDep
     """Lista a qué grupos está asignada esta plantilla y sus ventanas de tiempo."""
     _ensure_owns_template(repo, template_id, user)
     rows = repo.list_assignments_for_template(template_id)
-    return [ExamAssignmentResponse(**r) for r in rows]
+    return [_assignment_response(r) for r in rows]
 
 
 @router.post(
@@ -569,11 +607,11 @@ def create_template_assignments(
         repo.create_exam_assignment(
             template_id=template_id,
             group_id=gid,
-            starts_at=body.starts_at,
-            ends_at=body.ends_at,
+            starts_at=_stored_utc(body.starts_at),
+            ends_at=_stored_utc(body.ends_at),
         )
     rows = repo.list_assignments_for_template(template_id)
-    return [ExamAssignmentResponse(**r) for r in rows]
+    return [_assignment_response(r) for r in rows]
 
 
 @router.delete(
