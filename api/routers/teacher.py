@@ -313,14 +313,27 @@ def student_ai_analysis(
 
     svc = _svc(repo)
     effective_key = settings.get_ai_key("teacher_analysis", body.api_key)
+    # Igual que KatIA y la revisión de procedimientos: sin key no hay proveedor. Antes
+    # caía al servidor local (localhost:1234), su ConnectionError llegaba como 500 sin
+    # cabeceras CORS y el navegador lo mostraba como un error de red.
+    if not effective_key:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No hay API key de IA configurada. Pide al administrador que configure "
+            "SYSTEM_AI_API_KEY.",
+        )
     global_elo = svc.ratings.ratings_view(student_id)["overall"]
 
-    analysis = svc.generate_ai_analysis(
-        student_id=student_id,
-        global_elo=global_elo,
-        api_key=effective_key,
-        provider=body.provider,
-    )
+    try:
+        analysis = svc.generate_ai_analysis(
+            student_id=student_id,
+            global_elo=global_elo,
+            api_key=effective_key,
+            provider=body.provider,
+        )
+    except (ConnectionError, TimeoutError) as exc:
+        # ai_client los lanza con un mensaje ya pensado para el usuario.
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
     return {"analysis": analysis}
 
 

@@ -47,8 +47,11 @@ def resources(api_client, teacher_token):
 def test_student_routes_require_current_teacher_relationship(
     api_client, teacher_headers, resources, monkeypatch, suffix
 ):
+    from api.config import settings
     from src.application.services.teacher_service import TeacherService
 
+    # The analysis is mocked; a key only gets past the "no key configured" answer.
+    monkeypatch.setattr(settings, "system_ai_api_key", "gsk_test_only")
     analysis = Mock(return_value="Análisis local")
     monkeypatch.setattr(TeacherService, "generate_ai_analysis", analysis)
     method = "POST" if suffix == "/ai-analysis" else "GET"
@@ -127,3 +130,34 @@ def test_assignment_must_belong_to_authorized_template(api_client, teacher_heade
     )
     assert repo.list_assignments_for_template(own) == []
     assert repo.list_assignments_for_template(foreign) == before
+
+
+def test_ai_analysis_without_a_key_says_so(api_client, teacher_headers, resources, monkeypatch):
+    """No key anywhere → 422 naming the setting, as KatIA and the procedure review answer."""
+    from api.config import settings
+
+    for attr in ("system_ai_api_key", "ai_key_teacher_analysis"):
+        monkeypatch.setattr(settings, attr, "")
+    response = api_client.post(
+        f"/api/teacher/student/{resources['student_id']}/ai-analysis", headers=teacher_headers
+    )
+    assert response.status_code == 422
+    assert "SYSTEM_AI_API_KEY" in response.json()["detail"]
+
+
+@pytest.mark.parametrize("error", [ConnectionError, TimeoutError])
+def test_ai_analysis_with_an_unreachable_model_answers_503(
+    api_client, teacher_headers, resources, monkeypatch, error
+):
+    """ai_client raises these with a user-facing message; they used to surface as a 500."""
+    from api.config import settings
+    from src.application.services.teacher_service import TeacherService
+
+    monkeypatch.setattr(settings, "system_ai_api_key", "gsk_test_only")
+    message = "⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos."
+    monkeypatch.setattr(TeacherService, "generate_ai_analysis", Mock(side_effect=error(message)))
+    response = api_client.post(
+        f"/api/teacher/student/{resources['student_id']}/ai-analysis", headers=teacher_headers
+    )
+    assert response.status_code == 503
+    assert response.json()["detail"] == message
