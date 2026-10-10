@@ -104,6 +104,7 @@
 .block-options button.is-off { opacity: 0.45; }
 
 .block-numeric { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+.block-multi { display: grid; gap: 0.75rem; justify-items: start; }
 
 .block-numeric input {
   width: 9rem;
