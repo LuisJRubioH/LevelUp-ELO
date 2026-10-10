@@ -639,12 +639,12 @@ CONTENT = {
             "Salim recibe un fardo anotado como $20m^{4}-30m^{3}$. Si el factor común es "
             "$km^{p}$, ¿cuánto vale $k+p$?"
         ),
-        "polya": [
-            "Entender: hay que hallar el factor común completo y sumar su coeficiente y su exponente.",
-            "Planear: MCD de los coeficientes, y menor potencia de la letra.",
-            "Ejecutar: MCD(20, 30) = 10 y la menor potencia es m³, así que k = 10 y p = 3.",
-            "Comprobar: 10m³(2m − 3), y dentro 2 y 3 no comparten nada ✓. 10 + 3 = 13.",
-        ],
+        "polya": {
+            "comprender": "Hay que hallar el factor común completo y sumar su coeficiente y su exponente.",
+            "planear": "MCD de los coeficientes, y menor potencia de la letra.",
+            "ejecutar": "MCD(20, 30) = 10 y la menor potencia es m³, así que k = 10 y p = 3.",
+            "comprobar": "10m³(2m − 3), y dentro 2 y 3 no comparten nada ✓. 10 + 3 = 13.",
+        },
         "prompt": "¿Cuánto vale k + p?",
         "answer": "13",
         "hints": {

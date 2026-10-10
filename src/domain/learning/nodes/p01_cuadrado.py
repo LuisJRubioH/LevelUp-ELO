@@ -605,12 +605,12 @@ CONTENT = {
             "Rayhana necesita una lámina cuadrada de lado 4x + 5 dedos. Con x = 2, "
             "¿cuánto cobre ocupa?"
         ),
-        "polya": [
-            "Entender: el lado es 4x + 5 y hay que hallar el área del cuadrado.",
-            "Planear: o sustituyo primero y elevo, o estampo el troquel y sustituyo después.",
-            "Ejecutar: 4·2 + 5 = 13, y 13² = 169.",
-            "Comprobar: por el troquel, 16x² + 40x + 25 con x = 2 da 64 + 80 + 25 = 169 ✓.",
-        ],
+        "polya": {
+            "comprender": "El lado es 4x + 5 y hay que hallar el área del cuadrado.",
+            "planear": "O sustituyo primero y elevo, o estampo el troquel y sustituyo después.",
+            "ejecutar": "4·2 + 5 = 13, y 13² = 169.",
+            "comprobar": "Por el troquel, 16x² + 40x + 25 con x = 2 da 64 + 80 + 25 = 169 ✓.",
+        },
         "prompt": "¿Cuántos dedos de cobre ocupa la lámina?",
         "answer": "169",
         "hints": {
