@@ -107,12 +107,6 @@ const queryClient = new QueryClient({
   },
 });
 
-function RequireAuth({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <>{children}</>;
-}
-
 function RequireRole({
   role,
   children,
@@ -146,9 +140,9 @@ function TeacherRoute({ children }: { children: React.ReactNode }) {
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
   return (
-    <RequireAuth>
+    <RequireRole role="admin">
       <Layout>{children}</Layout>
-    </RequireAuth>
+    </RequireRole>
   );
 }
 
