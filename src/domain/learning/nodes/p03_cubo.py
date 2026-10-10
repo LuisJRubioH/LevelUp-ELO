@@ -615,12 +615,12 @@ CONTENT = {
         "statement": (
             "Rayhana necesita un bloque de arista $x+2$ dedos. Con $x=2$, ¿cuánta arcilla lleva?"
         ),
-        "polya": [
-            "Entender: la arista es x + 2 y hay que hallar el volumen del cubo.",
-            "Planear: o sustituyo primero y elevo al cubo, o uso el molde y sustituyo después.",
-            "Ejecutar: 2 + 2 = 4, y 4³ = 64.",
-            "Comprobar: por el molde, x³ + 6x² + 12x + 8 con x = 2 da 8 + 24 + 24 + 8 = 64 ✓.",
-        ],
+        "polya": {
+            "comprender": "La arista es x + 2 y hay que hallar el volumen del cubo.",
+            "planear": "O sustituyo primero y elevo al cubo, o uso el molde y sustituyo después.",
+            "ejecutar": "2 + 2 = 4, y 4³ = 64.",
+            "comprobar": "Por el molde, x³ + 6x² + 12x + 8 con x = 2 da 8 + 24 + 24 + 8 = 64 ✓.",
+        },
         "prompt": "¿Cuántos dedos de arcilla lleva el bloque?",
         "answer": "64",
         "hints": {

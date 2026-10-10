@@ -600,12 +600,12 @@ CONTENT = {
             "Salim despieza $x^{2}+11x+24$. Si los dos listones miden $p$ y $q$, ¿cuánto vale "
             "el mayor menos el menor?"
         ),
-        "polya": [
-            "Entender: hay que hallar la pareja y luego restar.",
-            "Planear: listo las parejas que multiplican 24 y elijo la que suma 11.",
-            "Ejecutar: 1·24, 2·12, 3·8, 4·6. La que suma 11 es 3 y 8.",
-            "Comprobar: (x + 3)(x + 8) = x² + 11x + 24 ✓. Y 8 − 3 = 5.",
-        ],
+        "polya": {
+            "comprender": "Hay que hallar la pareja y luego restar.",
+            "planear": "Listo las parejas que multiplican 24 y elijo la que suma 11.",
+            "ejecutar": "1·24, 2·12, 3·8, 4·6. La que suma 11 es 3 y 8.",
+            "comprobar": "(x + 3)(x + 8) = x² + 11x + 24 ✓. Y 8 − 3 = 5.",
+        },
         "prompt": "¿Cuánto vale el mayor menos el menor?",
         "answer": "5",
         "hints": {

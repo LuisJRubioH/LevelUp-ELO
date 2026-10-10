@@ -625,12 +625,12 @@ CONTENT = {
             "Salim arquea la remesa $125m^{3}+8$. Si se abre como $(am+b)(\\dots)$, ¿cuánto "
             "vale $a+b$?"
         ),
-        "polya": [
-            "Entender: hay que hallar las raíces cúbicas y sumar sus coeficientes.",
-            "Planear: raíz cúbica de cada término; el binomio lleva la suma de ambas.",
-            "Ejecutar: ∛(125m³) = 5m y ∛8 = 2, así que a = 5 y b = 2.",
-            "Comprobar: (5m + 2)(25m² − 10m + 4) estampa 125m³ + 8 ✓. Y 5 + 2 = 7.",
-        ],
+        "polya": {
+            "comprender": "Hay que hallar las raíces cúbicas y sumar sus coeficientes.",
+            "planear": "Raíz cúbica de cada término; el binomio lleva la suma de ambas.",
+            "ejecutar": "∛(125m³) = 5m y ∛8 = 2, así que a = 5 y b = 2.",
+            "comprobar": "(5m + 2)(25m² − 10m + 4) estampa 125m³ + 8 ✓. Y 5 + 2 = 7.",
+        },
         "prompt": "¿Cuánto vale a + b?",
         "answer": "7",
         "hints": {

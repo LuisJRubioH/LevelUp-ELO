@@ -606,12 +606,12 @@ CONTENT = {
             "Rayhana encarga una greca de $(x^{n}+1)$ por $(x^{n}-1)$. Si $n=3$ y $x=2$, "
             "¿cuánta greca ocupa?"
         ),
-        "polya": [
-            "Entender: son conjugados, con xⁿ de primer término y 1 de segundo.",
-            "Planear: aplico el troquel, x^{2n} − 1, y luego sustituyo.",
-            "Ejecutar: con n = 3 queda x⁶ − 1; con x = 2, 64 − 1 = 63.",
-            "Comprobar: directo, (8 + 1)(8 − 1) = 9 · 7 = 63 ✓.",
-        ],
+        "polya": {
+            "comprender": "Son conjugados, con xⁿ de primer término y 1 de segundo.",
+            "planear": "Aplico el troquel, x^{2n} − 1, y luego sustituyo.",
+            "ejecutar": "Con n = 3 queda x⁶ − 1; con x = 2, 64 − 1 = 63.",
+            "comprobar": "Directo, (8 + 1)(8 − 1) = 9 · 7 = 63 ✓.",
+        },
         "prompt": "¿Cuántos dedos de greca ocupa?",
         "answer": "63",
         "hints": {

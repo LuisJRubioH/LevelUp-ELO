@@ -168,6 +168,20 @@ def test_eleven_block_node_has_the_eleven_blocks(node_id):
 
 
 @pytest.mark.parametrize("node_id", ELEVEN_BLOCK_NODES)
+def test_eleven_block_polya_closing_names_its_four_phases(node_id):
+    """El renderer (PolyaClosing en LessonBlocks.tsx) lee las fases por nombre.
+
+    Con una lista, «Empezar por comprender» pintaba `undefined` y la página caía al
+    error boundary: el cierre no se podía responder y el nodo no se podía terminar.
+    """
+    polya = get_lesson(node_id)["content"]["closing_item"]["polya"]
+
+    assert isinstance(polya, dict), f"{node_id}: polya es {type(polya).__name__}, no dict"
+    assert set(polya) == {"comprender", "planear", "ejecutar", "comprobar"}
+    assert all(isinstance(text, str) and text.strip() for text in polya.values())
+
+
+@pytest.mark.parametrize("node_id", ELEVEN_BLOCK_NODES)
 def test_eleven_block_node_gates_only_practice_and_closing(node_id):
     """Diagnóstico, puente y post-diagnóstico guían pero no bloquean el nodo."""
     content = get_lesson(node_id)["content"]
