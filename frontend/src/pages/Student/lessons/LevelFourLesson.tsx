@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
   studentApi,
@@ -70,6 +70,17 @@ function LevelFourHub({ lesson, courseId, onBack, onFinish, finishing }: Props) 
   });
 
   const allOpened = opened.size >= cards.length;
+  // Los destinos se abren en orden (V2-R14) y el hub mismo los bloquea hasta
+  // terminarse: «Zarpar» solo aparece donde el mapa ya deja entrar. Antes los
+  // seis llevaban a «No pudimos cargar esta lección» (403).
+  const { data: map } = useQuery({
+    queryKey: ["course-map", courseId],
+    queryFn: () => studentApi.courseMap(courseId),
+  });
+  const canSail = (nodeId: string) => {
+    const state = map?.nodes.find((n) => n.node_id === nodeId)?.state;
+    return state !== undefined && state !== "blocked";
+  };
 
   return (
     <article className="lesson-page n4-page n4-hub" aria-labelledby="lesson-title">
@@ -140,7 +151,7 @@ function LevelFourHub({ lesson, courseId, onBack, onFinish, finishing }: Props) 
                 <div className={`n4-card-copy ${isOpened ? "revealed" : ""}`}>
                   <span>{card.destination}</span>
                   {isOpened ? <p>{card.teaser}</p> : <p className="n4-card-closed">{content?.card_closed_hint ?? "Haz click en el muelle para ver su ruta."}</p>}
-                  {allOpened && (
+                  {allOpened && canSail(card.node_id) && (
                     <button
                       type="button"
                       onClick={() => navigate(`/student/course/${courseId}/lesson/${card.node_id}`)}

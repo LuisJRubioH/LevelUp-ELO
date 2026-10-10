@@ -56,7 +56,7 @@ export function Lesson() {
   const queryClient = useQueryClient();
   const viewedRef = useRef(false);
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["lesson", courseId, nodeId],
     queryFn: () => studentApi.lesson(courseId, nodeId),
     enabled: Boolean(courseId && nodeId),
@@ -118,6 +118,18 @@ export function Lesson() {
   // tocarla con cada nodo nuevo: el backend ya devuelve 404 para un nodo que no
   // existe, y eso llega como `isError`. Las listas N2/N3/N4 siguen abajo porque
   // eligen renderer, que es otra cosa.
+  // 403 = la lección existe pero aún está bloqueada (se abre en orden). Decirlo
+  // y dar la salida al mapa; «no pudimos cargarla» hacía pensar en una falla.
+  if (isError && (error as { status?: number } | null)?.status === 403) {
+    return (
+      <div className="lesson-state">
+        <p>{t("prealgebra.locked")}</p>
+        <Button variant="secondary" onClick={() => navigate(`/student/course/${courseId}/map`)}>
+          {t("prealgebra.backToMap")}
+        </Button>
+      </div>
+    );
+  }
   if (isError || !data) {
     return <div className="lesson-state error">{t("prealgebra.error")}</div>;
   }

@@ -743,6 +743,7 @@ const es = {
   prealgebra: {
     loading: "Cargando lección...",
     error: "No pudimos cargar esta lección.",
+    locked: "Esta lección todavía está bloqueada: se abre al terminar la anterior en el mapa.",
     backToMap: "Volver al mapa",
     safeZone: "Zona segura. No afecta tu ELO",
     optionalBranch: "Desvío opcional. No afecta tu ELO",
@@ -900,7 +901,8 @@ const es = {
         },
         footerLabel: "Nivel 1 completado",
         footerBody: "Cerraste el recorrido de conjuntos numéricos. Puedes repasar cuando quieras.",
-        finish: "Volver al mapa",
+        // Distinto de «Volver al mapa» (el botón de al lado), que sale SIN cerrar el nivel.
+        finish: "Terminar el nivel 1",
       },
     },
   },
