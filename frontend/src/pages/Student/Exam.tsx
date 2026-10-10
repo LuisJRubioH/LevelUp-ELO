@@ -2,7 +2,9 @@
  * pages/Student/Exam.tsx
  * =======================
  * Modo examen cronometrado: configuración → N preguntas → timer → resultados.
- * Sin KatIA ni feedback inmediato. ELO se actualiza al enviar todas las respuestas.
+ * Sin KatIA ni feedback inmediato. El examen no mueve el rating (spec 001).
+ * El reloj del examen es el de pared: el navegador frena los temporizadores en una pestaña de
+ * fondo, y el servidor cierra la sesión a su propia hora.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -10,7 +12,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { studentApi } from "../../api/student";
-import { api } from "../../api/client";
+import { api, ApiError } from "../../api/client";
 import { QuestionImage } from "../../components/Question/QuestionImage";
 import { MathText } from "../../components/Math/MathContent";
 import { PageHeader } from "../../components/ui/PageHeader";
@@ -495,6 +497,8 @@ export function Exam() {
   useEffect(() => {
     if (phase !== "loading" || !courseId) return;
 
+    // The server starts its clock after this moment, so counting from here never runs late.
+    const requestedAt = Date.now();
     api
       .post<{
         session_id: string;
@@ -513,7 +517,7 @@ export function Exam() {
         setItems(data.items);
         setTimeLeft(data.time_limit_seconds);
         itemStartTime.current = Date.now();
-        startedAtRef.current = Date.now();
+        startedAtRef.current = requestedAt;
         timeLimitSecondsRef.current = data.time_limit_seconds;
         setPhase("answering");
       })
@@ -611,14 +615,18 @@ export function Exam() {
         return;
       } catch (err) {
         lastError = err;
+        // The server refused the submission (expired, already closed, invalid): retrying cannot
+        // change that, and its reason is what the student needs to read.
+        if (err instanceof ApiError && err.status >= 400 && err.status < 500) break;
       }
     }
 
-    // Los 3 intentos fallaron — mantener al estudiante en "answering" con
+    // Los intentos fallaron — mantener al estudiante en "answering" con
     // el banner de error visible. El borrador sigue en localStorage, así
     // que aunque recargue la página puede reintentar.
-    void lastError;
-    setSubmitError(t("exam.submitErrorDetail"));
+    const refused =
+      lastError instanceof ApiError && lastError.status >= 400 && lastError.status < 500;
+    setSubmitError(refused ? (lastError as ApiError).detail : t("exam.submitErrorDetail"));
     setSubmitAttempt(0);
     setPhase("answering");
   }, [items, currentIdx, answers, sessionId, courseId, courseName, templateId, t]);
@@ -632,17 +640,23 @@ export function Exam() {
 
   useEffect(() => {
     if (phase !== "answering") return;
-    const interval = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) {
-          clearInterval(interval);
-          submitRef.current?.();
-          return 0;
-        }
-        return t - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
+    // Each tick reads the wall clock: a background tab may fire this once a minute.
+    const tick = () => {
+      const elapsed = (Date.now() - startedAtRef.current) / 1000;
+      const left = Math.max(0, Math.ceil(timeLimitSecondsRef.current - elapsed));
+      setTimeLeft(left);
+      if (left <= 0) {
+        clearInterval(interval);
+        document.removeEventListener("visibilitychange", tick);
+        submitRef.current?.();
+      }
+    };
+    const interval = setInterval(tick, 1000);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", tick);
+    };
   }, [phase]);
 
   // ── Navegación entre preguntas ─────────────────────────────────────────────
