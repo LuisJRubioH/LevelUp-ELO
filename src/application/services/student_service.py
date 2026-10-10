@@ -301,15 +301,15 @@ class StudentService:
         """Devuelve los grupos disponibles para inscribirse en un curso específico."""
         return self.repository.get_available_groups_for_course(course_id)
 
-    def enroll_from_catalogue(self, user_id: int, course_id: str, group_id: int = None) -> None:
+    def enroll_from_catalogue(self, user_id: int, course_id: str) -> None:
         """Enrol only in a course of the student's catalogue (spec 001 FR-028m).
 
-        Raises PermissionError for any other course; invitations go through
-        `enroll_by_invitation` instead.
+        Raises PermissionError for any other course. It joins no group: groups, and courses
+        outside the catalogue, are reached through `enroll_by_invitation` and its code.
         """
         if course_id not in {c["id"] for c in self.get_available_courses(user_id)}:
             raise PermissionError("The course is not in the student's catalogue.")
-        self.repository.enroll_user(user_id, course_id, group_id)
+        self.repository.enroll_user(user_id, course_id)
 
     def enroll_by_invitation(self, user_id: int, group_id: int, course_id: str) -> None:
         """Enrol in an invitation group's course, at any level (spec 001 FR-028l).
