@@ -160,22 +160,22 @@ change and no account deletion. An email change exists only in the shared `Layou
 
 | # | Kind | Finding | Evidence | Status |
 |---|---|---|---|---|
-| I1 | **Bug** | **An email longer than 50 characters cannot be used to log in.** Registration accepts emails up to 254 characters, but `LoginRequest.username` stops at 50: the API answers 422 before checking anything. The username still works. | `api/schemas/auth.py:11, 23` | **Reproduced** (45-character local part: register 201, login with the email 422, with the username 200) |
+| I1 | **Bug** | **An email longer than 50 characters cannot be used to log in.** Registration accepts emails up to 254 characters, but `LoginRequest.username` stops at 50: the API answers 422 before checking anything. The username still works. | `api/schemas/auth.py:11, 23` | **Reproduced** (45-character local part: register 201, login with the email 422, with the username 200); fixed in #38 |
 | I2 | **Identity** | **Usernames are not normalised.** Case and surrounding spaces are kept, and uniqueness is exact on both engines: `Estudiante1` and ` estudiante1 ` register next to `estudiante1`. Emails are trimmed but not lower-cased; their partial unique index is case-sensitive. V1's caption promises «solo letras, números y guion bajo», which nothing enforces. | P:349, 619; S:91, 324; `api/schemas/auth.py:16`; `auth_view.py:165-168` | **Reproduced** (both registered, 201) |
 | I3 | **Registration** | A student can register through the API without a level (201); the catalogue then falls back to universidad. The screen always sends one. | `api/schemas/auth.py:19-21`; `student_service.py:346-348` | **Reproduced** |
-| I4 | **Admin** | **Failures are reported as success.** Moving a student to a group that does not exist answers 204: the repository's `(ok, message)` is discarded. Deactivate, reactivate, delete group and resolve report answer 204 for unknown ids. Approve has no role filter. | `api/routers/admin.py:47-119`; P:3235-3295 | **Reproduced** (move to a missing group, deactivate an unknown id) |
+| I4 | **Admin** | **Failures are reported as success.** Moving a student to a group that does not exist answers 204: the repository's `(ok, message)` is discarded. Deactivate, reactivate, delete group and resolve report answer 204 for unknown ids. Approve has no role filter. | `api/routers/admin.py:47-119`; P:3235-3295 | **Reproduced** (move to a missing group, deactivate an unknown id); the move's refusal is reported since #38, unknown ids are decision 2 |
 | I5 | **Admin** | **«Reject» deletes any teacher, approved ones included.** It is the only path that deletes a user. Their groups are left behind: PostgreSQL has no foreign key on `groups.teacher_id`, and SQLite's are not enforced. The groups vanish from `/admin/groups` (inner join), their codes stop resolving, and students keep a `group_id` that points at nothing. | P:2481-2488 S:2076-2081; `admin.py:47-61`; P:2715-2733 | **Reproduced** (approved `profesor1` rejected by id: 200, row gone) |
 | I6 | **Admin** | **An admin can deactivate any account, including their own.** Self-deactivation locks out the only admin: the next call and the next login answer 401. Neither `_seed_admin` nor the #15 reset script reactivates an account, so recovery is SQL. The V2 Users list shows students only, so approved teachers cannot be deactivated from V2 screens. | `admin.py:64-73`; P:2449-2468, 2510-2536 | **Reproduced** (self-deactivation) |
 | I7 | **Groups** | **The dashboard and per-student access disagreed.** The dashboard lists students by main group or by enrolment group. The report, histories, AI analysis and ranking accepted only the main group. Joining a second group by code replaces the main group, so the first teacher kept the student on the dashboard and got 404 when opening them. | `teacher.py:57-69`; P:2776-2851 | **Reproduced**; access fixed in #36. Who takes part in a group ranking (main group only) is decision 3 |
 | I8 | **Groups** | **Membership is written inconsistently.** An invitation join silently replaces the main group, with no audit. The admin move writes only the main group, so the enrolment still names the old one. `unenroll` leaves the main group, so the student stays in that group's ranking and dashboard. A group deletion is not audited. On SQLite its exam assignments stay, because the cascade is declared but not enforced. | P:3721-3738, 3741-3752, 2736-2773, 3276-3286 | Code verified; effects inferred |
 | I9 | **Audit** | Only admin group moves are audited. Approvals, rejections (deletions), (de)activations, group deletions and invitation joins leave no trace. | `audit_group_changes` P:639-647 | Verified |
-| I10 | **Bug (SQLite)** | **`/admin/audit` answers 500 on SQLite once any audit row exists**: `dict(row)` on a plain tuple. Local development and tests only; PostgreSQL is fine. | S:1612 | **Reproduced** |
+| I10 | **Bug (SQLite)** | **`/admin/audit` answers 500 on SQLite once any audit row exists**: `dict(row)` on a plain tuple. Local development and tests only; PostgreSQL is fine. | S:1612 | **Reproduced**; fixed in #38 |
 | I11 | **Role boundary** | `/student/*` checks authentication, not role. An approved teacher or the admin can enrol, practise, join a group by code and appear as a student wherever rankings do not filter by role. | `api/routers/student.py:89` | Verified |
 | I12 | **Test accounts (R6)** | `is_test_user` means «hidden from teacher views, exports and calibration», not «protected». Rankings include test students, and deactivation and rejection do not check the flag. AGENTS R6 and the constitution say «protected, never remove». | P:610, 1765-1781, 2024, 2576, 2841, 2921, 3066, 3180, 3220; P:2264-2318 | Verified |
 | I13 | **Seeds** | Demo and test accounts with published passwords exist in any process without `ENVIRONMENT=production`, and the same unset variable skips `validate_runtime()`. Seeds never remove accounts, so setting it later does not undo them. SQLite seeds one more test student than PostgreSQL (`estudiante_concursos_1`). `docs/transfer.md` already requires the variable on both hosts. | P:249, 259; S:51, 55; `seed_test_students.py:35`; `api/config.py:80-81` | Verified |
 | I14 | **Promotion** | Nothing changes a student's level or grade after registration: `set_grade` has no caller, and `set_education_level` is reachable only from V1 onboarding without semillero. Grade-less semillero accounts depend on the manual SQL of the F-1 survey. | P:3820-3851; `student_view.py:136-154` | Verified |
 | I15 | **Self-service** | No password change or recovery, no username change, no account deletion or data request. The email change is reachable only from the admin pages. The «Recordarme» checkbox does nothing. | `FE/pages/Login.tsx:408-426`; `FE/pages/Layout.tsx:87-110` | Verified |
-| I16 | **Browser session** | The stored role is trusted until the next login. A refresh does not re-read the profile. `/admin` has no role guard: non-admins see the admin page shell with empty data. The login page shows even with a valid session. 401, 403 and 429 show the backend's text. | `FE/App.tsx:110-153`; `FE/stores/authStore.ts:43`; `FE/api/client.ts:127-141` | Verified |
+| I16 | **Browser session** | The stored role is trusted until the next login. A refresh does not re-read the profile. `/admin` has no role guard: non-admins see the admin page shell with empty data. The login page shows even with a valid session. 401, 403 and 429 show the backend's text. | `FE/App.tsx:110-153`; `FE/stores/authStore.ts:43`; `FE/api/client.ts:127-141` | Verified; the `/admin` guard is fixed in #38 |
 | I17 | **Capacity** | **Each password check holds 64 MiB.** With the API's thread pool, 30 simultaneous logins peaked at 1,097 MB on a 144 MB process, more than a 512 MB instance (`render.yaml` declares the free plan). One check costs 0.24 s of CPU. | `hashing_service.py:12-18` | **Reproduced** (real server, 30 logins). Bounded to two checks at a time in #35 (peak 219 MB); the parameters themselves are decision 9 |
 | I18 | **Rate limits** | Login and registration were keyed by any bearer header, valid or not, and the AI limits by token instead of account. | `api/rate_limit.py` | **Reproduced**; fixed in #33 |
 | I19 | **Drift** | AGENTS.md § Roles says «student — group required»; in V2 registration and catalogue enrolment join no group. It says «admin — reassigns students (audited)»; V2 has the API but no screen. R6, see I12. The `/admin/users` docstring says «all users», but it returns students only. | `AGENTS.md` § Roles, R6; `admin.py:33-37` | Verified |
@@ -197,18 +197,18 @@ change and no account deletion. An email change exists only in the shared `Layou
   `tests/integration/test_spec001_catalogue.py`; `tests/integration/test_enrol_joins_no_group.py`
   (#34).
 - **Teacher scope:** `tests/integration/test_teacher_student_scope.py` (#36).
+- **Edges (I1, I4, I10):** `tests/integration/test_identity_edges.py` (#38).
 - **Browser:** `frontend/e2e/auth.spec.ts` (5) and `protected-routes.spec.ts` (12) — redirects
   for anonymous users and wrong roles, login per role, a wrong password, and the registration form.
 - **Not covered:**
-  - admin failure paths and unknown ids (I4);
+  - admin unknown ids (I4; the move's refusal is covered by #38);
   - rejecting an approved teacher (I5);
   - self-deactivation (I6);
   - membership writes (I8);
-  - the audit on SQLite (I10);
   - non-student callers of `/student/*` (I11);
   - username and email normalisation (I1, I2);
   - the invitation code's lifecycle (regenerate, deleted teacher);
-  - `/admin` opened by a non-admin in the browser (I16).
+  - a stored role that changed on the server (I16).
 
 ## 5. Decisions for the owner (input for `/speckit-clarify`)
 
@@ -238,8 +238,8 @@ None blocks the transfer (PR #3).
 9. **Hashing cost (I17).** Keep Argon2 at 64 MiB with the concurrency bound of #35, or lower the
    parameters (for example m = 19 MiB, t = 2, p = 1: 0.05 s of CPU instead of 0.24 s). Stored
    hashes are re-hashed at each user's next login. This depends on the Render plan actually in use.
-10. **Role boundary (I11, I16).** Restrict `/student/*` to students, or allow admins and teachers
-    (for example to preview)? Add the `/admin` role guard to the browser.
+10. **Role boundary (I11).** Restrict `/student/*` to students, or allow admins and teachers (for
+    example to preview)? The browser's `/admin` guard (I16) is fixed in #38.
 
 ## 6. Proposed scope for spec 004 (draft)
 
