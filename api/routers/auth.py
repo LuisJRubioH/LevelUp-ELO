@@ -28,7 +28,7 @@ from api.schemas.auth import (
     TokenResponse,
     UserProfile,
 )
-from api.rate_limit import limiter
+from api.rate_limit import client_ip, limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -36,7 +36,7 @@ _REFRESH_COOKIE = "levelup_refresh"
 
 
 @router.post("/login", response_model=TokenResponse)
-@limiter.limit(settings.rate_limit_auth)
+@limiter.limit(settings.rate_limit_auth, key_func=client_ip)
 def login(request: Request, body: LoginRequest, response: Response, repo: RepoDep):
     """Autentica usuario y retorna access token + refresh token en cookie HttpOnly."""
     result = repo.login_user(body.username, body.password)
@@ -77,7 +77,7 @@ def login(request: Request, body: LoginRequest, response: Response, repo: RepoDe
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-@limiter.limit(settings.rate_limit_auth)
+@limiter.limit(settings.rate_limit_auth, key_func=client_ip)
 def register(request: Request, body: RegisterRequest, repo: RepoDep):
     """Registra un nuevo usuario (student o teacher)."""
     ok, msg = repo.register_user(
