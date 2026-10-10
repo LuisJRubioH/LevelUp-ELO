@@ -465,8 +465,8 @@ export const studentApi = {
 
   courses: () => api.get<Course[]>("/api/student/courses"),
 
-  enroll: (course_id: string, group_id?: number) =>
-    api.post<{ message: string }>("/api/student/enroll", { course_id, group_id }),
+  enroll: (course_id: string) =>
+    api.post<{ message: string }>("/api/student/enroll", { course_id }),
 
   enrollByCode: (invite_code: string) =>
     api.post<{ message: string; course_id: string }>("/api/student/enroll-by-code", {
