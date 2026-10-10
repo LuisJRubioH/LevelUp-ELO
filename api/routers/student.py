@@ -707,6 +707,11 @@ def update_profile(body: dict, user: CurrentUser, repo: RepoDep):
 # ── Modo Examen ───────────────────────────────────────────────────────────────
 
 
+# Seconds a submission may arrive after the time limit shown to the student (network and a
+# browser's slowed timers); after that the session is closed (409).
+EXAM_SUBMIT_GRACE_SECONDS = 30
+
+
 def _build_standard_exam(repo, course_id: str, n: int) -> list[dict]:
     """
     Construye un examen estándar de N preguntas con curva de dificultad fija.
@@ -853,7 +858,11 @@ def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
     ]
 
     session_id = uuid.uuid4().hex
-    expires_at = datetime.now(timezone.utc) + timedelta(seconds=time_limit_seconds)
+    # The student sees `time_limit_seconds`; the server accepts the submission a little longer,
+    # because the answers leave the browser when its clock reaches zero and still have to arrive.
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        seconds=time_limit_seconds + EXAM_SUBMIT_GRACE_SECONDS
+    )
     repo.create_active_exam_session(
         session_id=session_id,
         user_id=user["user_id"],
