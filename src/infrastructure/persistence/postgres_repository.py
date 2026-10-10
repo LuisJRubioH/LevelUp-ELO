@@ -2514,7 +2514,8 @@ class PostgresRepository:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 """
-                SELECT u.id, u.username, u.active, u.created_at, g.name as group_name
+                SELECT u.id, u.username, u.role, u.education_level, u.active, u.created_at,
+                       g.name as group_name
                 FROM users u
                 LEFT JOIN groups g ON u.group_id = g.id
                 WHERE u.role = 'student'
@@ -2526,6 +2527,8 @@ class PostgresRepository:
                 {
                     "id": r["id"],
                     "username": r["username"],
+                    "role": r["role"],
+                    "education_level": r["education_level"],
                     "active": r["active"],
                     "created_at": r["created_at"],
                     "group_name": r["group_name"],
