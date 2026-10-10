@@ -20,6 +20,8 @@ import { useAuthStore } from "../../stores/authStore";
 import { useThemeStore } from "../../stores/themeStore";
 import { useSettingsStore, PROVIDER_MODELS } from "../../stores/settingsStore";
 import { clearAccountCaches } from "../../lib/accountCleanup";
+import { useSideDrawer } from "../../hooks/useSideDrawer";
+import { MobileBar } from "../../components/Layout/MobileBar";
 import "./TeacherConsole.css";
 
 const NAV = [
@@ -46,6 +48,7 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
   const availableModels = PROVIDER_MODELS[provider] ?? [];
 
   const [aiOpen, setAiOpen] = useState(false);
+  const { open: menuOpen, setOpen: setMenuOpen, closeRef, closeOnLink } = useSideDrawer();
   const lang = i18n.language?.startsWith("en") ? "en" : "es";
 
   const handleLogout = async () => {
@@ -65,7 +68,18 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="lue-tc">
-      <aside className="tc-side">
+      <MobileBar home="/teacher" open={menuOpen} onOpen={() => setMenuOpen(true)} />
+      {menuOpen && <div className="tc-scrim" aria-hidden="true" onClick={() => setMenuOpen(false)} />}
+      <aside id="tc-side" className={"tc-side" + (menuOpen ? " open" : "")} onClick={closeOnLink}>
+        <button
+          ref={closeRef}
+          type="button"
+          className="tc-side-close"
+          aria-label="Cerrar menú"
+          onClick={() => setMenuOpen(false)}
+        >
+          ✕
+        </button>
         <div className="tc-brand">
           <Link to="/teacher" aria-label="Oulad">
             <img className="brand-logo brand-logo-dark" src="/oulad-logo-dark.png" alt="Oulad" />

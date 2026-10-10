@@ -306,10 +306,41 @@ html.light .lue-tc .tc-brand .brand-logo-dark { display: none; }
   .lue-tc .tc-main { padding-bottom: 66px; }
 }
 
+/* barra superior + cajón (≤1024px): sin ellos, bajo 1024px la barra lateral
+   desaparece con todo lo que solo vive en ella — cerrar sesión, reportar un
+   problema, tema, idioma, la key de IA y (docente) toda la navegación. */
+.lue-tc .tc-mobbar, .lue-tc .tc-side-close, .lue-tc .tc-scrim { display: none; }
+
 /* ============================================================ RESPONSIVE */
 @media (max-width: 1024px) {
-  .lue-tc { grid-template-columns: 1fr; }
+  .lue-tc { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
   .lue-tc .tc-side { display: none; }
+  .lue-tc .tc-mobbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--canvas) 92%, transparent); backdrop-filter: blur(12px);
+  }
+  .lue-tc .tc-mobbar .brand-logo { height: 26px; width: auto; display: block; }
+  .lue-tc .tc-mobbar .brand-logo-light { display: none; }
+  html.light .lue-tc .tc-mobbar .brand-logo-light { display: block; }
+  html.light .lue-tc .tc-mobbar .brand-logo-dark { display: none; }
+  .lue-tc .tc-mobbar-menu {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    font-family: var(--font-pixel); font-size: 8px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text); background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 9px 14px;
+  }
+  .lue-tc .tc-mobbar-menu .ic { font-family: var(--font-body); font-size: 15px; line-height: 1; }
+  .lue-tc .tc-side.open {
+    display: flex; position: fixed; inset: 0 auto 0 0; z-index: 70;
+    width: min(300px, 86vw); height: 100dvh; box-shadow: 18px 0 48px rgb(0 0 0 / 0.45);
+  }
+  .lue-tc .tc-side.open .tc-side-close {
+    display: block; position: absolute; top: 14px; right: 14px; z-index: 1; cursor: pointer;
+    width: 34px; height: 34px; border-radius: 10px; font-size: 15px; color: var(--dim);
+    background: var(--surface-2); border: 1px solid var(--border);
+  }
+  .lue-tc .tc-scrim { display: block; position: fixed; inset: 0; z-index: 65; background: rgb(0 0 0 / 0.55); }
   .lue-tc .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .lue-tc .metrics-grid { grid-template-columns: 1fr; }
 }
