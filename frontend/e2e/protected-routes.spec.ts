@@ -58,6 +58,19 @@ test.describe("Rutas protegidas — control de roles", () => {
     await page.goto("/student");
     await expect(page).toHaveURL("/login");
   });
+
+  test("estudiante en /admin → redirige a /login", async ({ page }) => {
+    await mockStudentApi(page);
+    await injectAuth(page); // estudiante
+    await page.goto("/admin");
+    await expect(page).toHaveURL("/login");
+  });
+
+  test("docente en /admin/groups → redirige a /login", async ({ page }) => {
+    await injectAuth(page, MOCK_TEACHER);
+    await page.goto("/admin/groups");
+    await expect(page).toHaveURL("/login");
+  });
 });
 
 test.describe("Página de login", () => {
