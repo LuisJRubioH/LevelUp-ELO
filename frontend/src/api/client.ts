@@ -100,6 +100,26 @@ async function safeFetchWithRetry(
   }
 }
 
+/**
+ * fetch al API con el token de la sesión, que se renueva una vez ante un 401 como en `request`.
+ * Para respuestas que se leen como stream (el SSE de KatIA): devuelve la Response tal cual.
+ */
+export async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const { useAuthStore } = await import("../stores/authStore");
+  const send = (token: string | null) => {
+    const headers = new Headers(init.headers);
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    return safeFetchWithRetry(`${API_BASE}${path}`, { ...init, headers, credentials: "include" });
+  };
+  const token = useAuthStore.getState().accessToken;
+  const res = await send(token);
+  if (res.status === 401 && token) {
+    const renewed = await refreshAccessToken();
+    if (renewed) return send(renewed);
+  }
+  return res;
+}
+
 async function request<T>(
   method: string,
   path: string,
