@@ -15,6 +15,7 @@ Endpoints del flujo de práctica del estudiante:
   POST /student/exam/submit    → envía respuestas del examen y obtiene resultados
 """
 
+import asyncio
 import hashlib
 import random
 import uuid
@@ -474,7 +475,11 @@ async def submit_procedure(
     """
     image_data, mime = await read_validated_upload(file)
     file_hash = hashlib.sha256(image_data).hexdigest()
-    if repo.check_file_hash_duplicate(item_id, user["user_id"], file_hash):
+    # La base y el Storage son síncronos: van a un hilo para no frenar el event loop, que en un
+    # solo proceso (R18) atiende a todos los demás (R17).
+    if await asyncio.to_thread(
+        repo.check_file_hash_duplicate, item_id, user["user_id"], file_hash
+    ):
         raise HTTPException(status_code=409, detail="Este archivo ya fue enviado por otro estudiante.")
 
     ai_proposed_score = None
@@ -491,7 +496,8 @@ async def submit_procedure(
         ai_proposed_score = review.get("score")
         ai_feedback = review.get("feedback") or ""
 
-    submission_id = repo.save_procedure_submission(
+    submission_id = await asyncio.to_thread(
+        repo.save_procedure_submission,
         student_id=user["user_id"],
         item_id=item_id,
         item_content=item_content,
@@ -502,7 +508,8 @@ async def submit_procedure(
 
     if ai_proposed_score is not None:
         try:
-            repo.save_ai_proposed_score(
+            await asyncio.to_thread(
+                repo.save_ai_proposed_score,
                 user["user_id"],
                 item_id,
                 float(ai_proposed_score),
@@ -530,6 +537,17 @@ def ai_status():
         return {"available": False, "provider": None}
     provider = settings.system_ai_provider or detect_provider_from_key(procedure_key) or "unknown"
     return {"available": True, "provider": provider}
+
+
+def _pdf_first_page_png(pdf_bytes: bytes) -> bytes:
+    """La primera página de un PDF como PNG a 200 dpi (lo que ve el modelo de visión)."""
+    import fitz  # PyMuPDF
+
+    pdf_doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    try:
+        return pdf_doc[0].get_pixmap(dpi=200).tobytes("png")
+    finally:
+        pdf_doc.close()
 
 
 @router.post("/procedure/analyze")
@@ -566,16 +584,13 @@ async def analyze_procedure(
     image_data = original_data
     file_hash = hashlib.sha256(original_data).hexdigest()
 
+    # La revisión espera segundos (o minutos, con los reintentos del SDK) al proveedor de IA. Todo
+    # lo bloqueante va a un hilo: en un solo proceso (R18), esperar en el event loop congelaba
+    # cualquier otra petición y los sockets de PvP mientras durara (R17).
     if mime == "application/pdf":
         try:
-            import fitz  # PyMuPDF
-
-            pdf_doc = fitz.open(stream=image_data, filetype="pdf")
-            page = pdf_doc[0]
-            pix = page.get_pixmap(dpi=200)
-            image_data = pix.tobytes("png")
+            image_data = await asyncio.to_thread(_pdf_first_page_png, image_data)
             mime = "image/png"
-            pdf_doc.close()
         except Exception as pdf_err:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -588,7 +603,8 @@ async def analyze_procedure(
         )
 
         try:
-            review = review_math_procedure(
+            review = await asyncio.to_thread(
+                review_math_procedure,
                 image_data,
                 mime,
                 api_key=effective_key,
@@ -613,7 +629,8 @@ async def analyze_procedure(
         from src.infrastructure.external_api.ai_client import analyze_procedure_image
 
         try:
-            result = analyze_procedure_image(
+            result = await asyncio.to_thread(
+                analyze_procedure_image,
                 image_data,
                 mime,
                 question_content=item_content or "",
