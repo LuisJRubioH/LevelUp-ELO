@@ -445,7 +445,7 @@ export const studentApi = {
         draw: boolean;
         my_score: number;
         opp_score: number;
-        elo_delta: number;
+        elo_delta: number | null;
         opponent: string;
         finished_at: string;
       }>
