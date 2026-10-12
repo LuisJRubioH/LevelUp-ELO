@@ -453,3 +453,12 @@ Técnicamente: fuente Segoe UI registrada como TTF para soporte UTF-8 completo (
 ### Estado de la sesión
 
 Backend, frontend, DB y docs alineados con la nueva feature. **V2 lista para etiquetar `v2.1.0`** después de la prueba real de hoy 6 pm.
+
+## Checklist antes de abrir al público
+
+Pospuesto el 2026-10-12: no es obligatorio mientras la app no esté abierta al público.
+
+- [ ] Límite de gasto mensual y alertas (50 % / 80 %) en la consola del proveedor de la key de IA del sistema (`SYSTEM_AI_API_KEY` y las `AI_KEY_*` que haya en Render). En Gemini los presupuestos solo alertan: el tope real se pone con cuotas de requests/día.
+- [ ] Opcional: key aparte para KatIA en `AI_KEY_KATIA` (workspace de Anthropic o proyecto de OpenAI con su propio límite), para que un abuso del chat no agote la revisión de procedimientos.
+- [ ] Conectar el rate limiting: `rate_limit_socratic` y `rate_limit_review` ya están en `api/config.py` y `slowapi` en `requirements-api.txt`, pero ningún `Limiter` está registrado en `api/main.py` ni aplicado en `api/routers/ai.py`.
+- [ ] Retirar la app V1 de Streamlit Cloud (sin uso) o revocar la `GROQ_API_KEY` de sus Secrets.
