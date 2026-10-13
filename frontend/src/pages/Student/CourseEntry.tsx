@@ -179,6 +179,8 @@ function Diagnostic({
 
 /* ── bifurcación / resultado ─────────────────────────────────────────────── */
 const STATUS_LABEL: Record<string, string> = { strong: "Fuerte", mid: "Medio", gap: "Vacío" };
+// Spec 001 FR-020c: what this diagnostic did to each topic.
+const OUTCOME_LABEL: Record<string, string> = { initialized: "Inicializado", kept: "Conservado" };
 
 function CourseHub({
   courseId,
@@ -194,6 +196,10 @@ function CourseHub({
   const navigate = useNavigate();
   const startSession = usePracticeStore((s) => s.startSession);
   const league = result.league;
+  // Spec 001 FR-020a: the course's current rating, as the backend rounds it — never the
+  // diagnostic's own values, which a topic with practice did not take (FR-021).
+  const current = result.course_rating;
+  const kept = result.themes.some((t) => t.outcome === "kept");
 
   const practice = () => {
     startSession(courseId);
@@ -207,8 +213,13 @@ function CourseHub({
           <span className="dx-eyebrow">Diagnóstico completado · {courseName}</span>
           <div className="dx-result-head" style={{ marginTop: 12 }}>
             <div className="dx-elo">
-              <div className="ev">{Math.round(result.initial_elo).toLocaleString("es-CO")}</div>
-              <div className="el">ELO INICIAL</div>
+              <div className="ev">
+                {current?.display_rating != null ? current.display_rating.toLocaleString("es-CO") : "—"}
+              </div>
+              <div className="el">
+                {current?.status === "pending_diagnostic" ? "DIAGNÓSTICO PENDIENTE" : "TU ELO EN EL CURSO"}
+              </div>
+              {current?.rank_label && <div className="er">{current.rank_label}</div>}
             </div>
             <div className="dx-result-meta">
               <span className="dx-league">
@@ -217,8 +228,10 @@ function CourseHub({
                 <span style={{ color: "var(--mute)", fontWeight: 500, fontSize: 13 }}>· {league?.rank ?? ""}</span>
               </span>
               <p>
-                Acertaste {result.correct_total} de {result.answered} respondidas ({result.score_pct}%). Ya fijamos tu
-                punto de partida por tema.
+                Acertaste {result.correct_total} de {result.answered} respondidas ({result.score_pct}%).{" "}
+                {kept
+                  ? "Fijamos tu punto de partida en los temas nuevos; los que ya practicabas conservan su ELO."
+                  : "Ya fijamos tu punto de partida por tema."}
               </p>
             </div>
           </div>
@@ -231,10 +244,11 @@ function CourseHub({
                   {t.topic}
                   <span>
                     {t.correct}/{t.total} correctas
+                    {t.outcome && <em className={"dx-outcome " + t.outcome}>{OUTCOME_LABEL[t.outcome]}</em>}
                   </span>
                 </div>
                 <span className={"dx-tag " + t.status}>{STATUS_LABEL[t.status] ?? t.status}</span>
-                <span className="te">{Math.round(t.elo)}</span>
+                <span className="te">{t.current_rating ?? "—"}</span>
               </div>
             ))}
           </div>

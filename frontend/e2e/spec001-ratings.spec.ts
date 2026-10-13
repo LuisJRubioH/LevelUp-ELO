@@ -197,4 +197,37 @@ test.describe("Spec 001 · calificaciones en pantalla", () => {
     await expect(page.getByText("ELO 1100+", { exact: true })).toBeVisible();
     await expect(page.getByText("ELO 1120+", { exact: true })).toHaveCount(0);
   });
+
+  test("Diagnóstico: muestra el ELO actual del curso y qué temas conservó (US3-AS6, FR-020a–c)", async ({ page }) => {
+    await mockStudentApi(page);
+    await json(page, "**/api/student/diagnostic/*", {
+      completed: true,
+      course_id: "calculo",
+      result: {
+        initial_elo: 920, // the diagnostic's own placement: never shown as the rating
+        score_pct: 50,
+        league: { name: "Bronce", min: 0, color: "#cd7f32", rank: "II" },
+        themes: [
+          { topic: "Límites", correct: 0, total: 2, ratio: 0, status: "gap", elo: 920, current_rating: 1058, outcome: "kept" },
+          { topic: "Derivadas", correct: 2, total: 2, ratio: 1, status: "strong", elo: 1068, current_rating: 1068, outcome: "initialized" },
+        ],
+        correct_total: 2,
+        answered: 4,
+        completed: true,
+        course_rating: { display_rating: 1063, rank_label: "Plata I", status: "rated" },
+      },
+    });
+    await injectAuth(page);
+    await page.goto("/student/course/calculo");
+
+    await expect(page.locator(".dx-elo .ev")).toHaveText(/^1\.?063$/);
+    await expect(page.locator(".dx-elo")).toContainText("Plata I");
+    await expect(page.locator(".dx-elo")).not.toContainText("920");
+    const limites = page.locator(".dx-theme").filter({ hasText: "Límites" });
+    await expect(limites.locator(".dx-outcome")).toHaveText("Conservado");
+    await expect(limites.locator(".te")).toHaveText("1058");
+    const derivadas = page.locator(".dx-theme").filter({ hasText: "Derivadas" });
+    await expect(derivadas.locator(".dx-outcome")).toHaveText("Inicializado");
+    await expect(page.getByText(/los que ya practicabas conservan su ELO/)).toBeVisible();
+  });
 });
