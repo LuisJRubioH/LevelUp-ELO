@@ -191,11 +191,23 @@ spec named in brackets; changing them requires a `[CHANGE]` requirement in that 
 - **Fail loudly at startup.** `validate_runtime()` MUST reject production start on missing
   `DATABASE_URL`, weak `JWT_SECRET_KEY`, localhost CORS, in-memory rate limiting, or
   `WEB_CONCURRENCY > 1`. A failed migration stops the service.
-- **Readiness, not liveness.** `/api/health` checks the database and returns 503 when it is down.
+- **Readiness, not liveness.** `/api/health` checks the database and the rate limits. It returns
+  503 when the database is down or the limits cannot be applied (neither the shared store nor its
+  fallback works), and 200 otherwise, stating in the body whether the limits run normally or
+  degraded — without internal addresses or credentials. Monitors MUST read that body state, not
+  only the status code.
 - **No silent swallowing.** `except Exception: pass` is forbidden. A failure in a non-critical
   side effect (badges, notifications) MAY be tolerated only if it is logged and the primary
   operation's result is unaffected.
 - **Transactions roll back** on any exception and re-raise; partial writes are never committed.
+- **Rate-limit store fallback** (the one runtime exception to the shared store). If the shared
+  rate-limit store fails while the API runs, the counters MAY fall back to the process's memory,
+  with the same configured limits and only while a single process serves (`WEB_CONCURRENCY=1`).
+  It is temporary, never a substitute: startup still refuses a production configuration without
+  the shared store. Store calls have configurable connect and operation timeouts; during a
+  sustained outage requests do not wait on the store, its recovery is probed in a controlled way,
+  and returning to it grants no new allowance. Entering and leaving the fallback are logged once
+  each. A restart loses the local counters.
 - **Graceful degradation** applies to optional integrations only (AI, calibrator, storage
   upload falls back to DB bytes) and MUST be visible in logs.
 
@@ -228,9 +240,9 @@ the five prompt gaps.
 6. **Brownfield safety.** Before refactoring an area, characterization tests pin its current
    behaviour and pass against the unchanged code. A refactor that changes a pinned behaviour
    MUST be backed by a `[CHANGE]` requirement and flip the test explicitly.
-7. **Workflow gates.** One branch per spec, one commit per approved Spec Kit step, a docs PR after
-   `/speckit-tasks` + `/speckit-analyze`, and a code PR after `/speckit-converge` reports no gaps.
-   The owner merges.
+7. **Workflow gates.** One branch per spec — per delivery, when the spec declares deliveries —
+   one commit per approved Spec Kit step, a docs PR after `/speckit-tasks` + `/speckit-analyze`,
+   and a code PR after `/speckit-converge` reports no gaps. The owner merges.
 8. **Verification before "done".** For any change: the relevant tests, `db_sync_check.py` if a
    repository changed, `validate_bank.py` if `items/` changed, and `pnpm run build` if `frontend/`
    changed.
@@ -277,8 +289,12 @@ development text written in Spanish is noncompliance.
   tests, `db_sync_check.py`, ELO tests against a real PostgreSQL, API tests, frontend build,
   Playwright e2e in Chromium with no retries (its tests mock the API, so they verify frontend
   flows, not backend integration), and FR → test traceability (`scripts/check_traceability.py
-  --run`: every FR and acceptance scenario has a row whose tests are collected, pass and are not
-  skipped; `PENDING` is rejected on a pull request that changes the spec's code). The coverage
+  --run`: every FR and acceptance scenario, recognised whatever its Markdown formatting, has a row
+  whose tests are collected, pass and are not skipped. A spec delivered in steps declares its
+  deliveries and assigns every requirement and scenario to one; `PENDING` is allowed only in rows
+  of a delivery that is not closed, and the pull request that closes a delivery leaves none of its
+  rows `PENDING`. In a spec without deliveries, `PENDING` is rejected on a pull request that
+  changes the spec's code). The coverage
   floor may rise, never fall, without an amendment.
 - **Coverage and traceability are complementary.** Coverage shows code was executed;
   traceability shows each requirement has a test. Neither proves the assertions are adequate: a
@@ -292,4 +308,4 @@ development text written in Spanish is noncompliance.
 - **Review.** The constitution and its Known Deviations are reviewed at the end of each roadmap
   milestone.
 
-**Version**: 1.0.3 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-09
+**Version**: 1.1.0 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-13
