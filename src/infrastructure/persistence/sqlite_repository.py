@@ -620,6 +620,32 @@ class SQLiteRepository:
         """
         )
 
+        # Spec 005: each KatIA turn belongs to a serving and records its outcome; a serving is
+        # one delivery of an item by next-question (research R1, R2).
+        self._add_column_if_not_exists(cursor, "katia_interactions", "serve_id", "INTEGER")
+        self._add_column_if_not_exists(cursor, "katia_interactions", "guard_outcome", "TEXT")
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_katia_interactions_serve "
+            "ON katia_interactions(serve_id)"
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS item_serves (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                item_id TEXT NOT NULL,
+                course_id TEXT,
+                attempt_watermark INTEGER NOT NULL DEFAULT 0,
+                served_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+        """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_item_serves_user_item "
+            "ON item_serves(user_id, item_id, id)"
+        )
+
         # ── Tabla achievements (logros/badges del estudiante) ─────────────
         cursor.execute(
             """
@@ -1623,17 +1649,109 @@ class SQLiteRepository:
         item_topic: str,
         student_message: str,
         katia_response: str = None,
+        serve_id: int | None = None,
+        guard_outcome: str | None = None,
     ) -> None:
-        """Registra una interacción del estudiante con el chat socrático de KatIA."""
+        """Records a KatIA turn: what the student wrote and what they were shown (spec 005 FR-037).
+
+        `serve_id` and `guard_outcome` are absent for V1's turns.
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO katia_interactions (user_id, course_id, item_id, item_topic, "
-            "student_message, katia_response) VALUES (?, ?, ?, ?, ?, ?)",
-            (user_id, course_id, item_id, item_topic, student_message, katia_response),
+            "student_message, katia_response, serve_id, guard_outcome) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                user_id,
+                course_id,
+                item_id,
+                item_topic,
+                student_message,
+                katia_response,
+                serve_id,
+                guard_outcome,
+            ),
         )
         conn.commit()
         conn.close()
+
+    # ── KatIA servings (spec 005) ──────────────────────────────────────
+
+    def record_item_serve(self, user_id: int, item_id: str, course_id: str | None = None) -> int:
+        """Records that next-question served the item, with the student's latest attempt id."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.execute(
+                "INSERT INTO item_serves (user_id, item_id, course_id, attempt_watermark) "
+                "VALUES (?, ?, ?, (SELECT COALESCE(MAX(id), 0) FROM attempts WHERE user_id = ?))",
+                (user_id, item_id, course_id, user_id),
+            )
+            conn.commit()
+            return cursor.lastrowid
+        finally:
+            conn.close()
+
+    def get_latest_item_serve(self, user_id: int, item_id: str) -> dict | None:
+        """The current serving of the item for the student, or None if it was never served."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute(
+                "SELECT id, attempt_watermark FROM item_serves WHERE user_id = ? AND item_id = ? "
+                "ORDER BY id DESC LIMIT 1",
+                (user_id, item_id),
+            ).fetchone()
+        finally:
+            conn.close()
+        return {"id": row[0], "attempt_watermark": row[1]} if row else None
+
+    def has_attempt_after(self, user_id: int, item_id: str, attempt_id: int) -> bool:
+        """Whether the student answered the item after the given attempt id."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute(
+                "SELECT 1 FROM attempts WHERE user_id = ? AND item_id = ? AND id > ? LIMIT 1",
+                (user_id, item_id, attempt_id),
+            ).fetchone()
+        finally:
+            conn.close()
+        return row is not None
+
+    def get_open_exam_item_ids(self, user_id: int) -> list:
+        """Items of the student's exam sessions neither submitted nor expired.
+
+        Same condition as `complete_active_exam_session`: what can still be submitted is open.
+        """
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                "SELECT item_ids FROM active_exam_sessions WHERE user_id = ? "
+                "AND submitted_at IS NULL AND datetime(expires_at) >= datetime('now')",
+                (user_id,),
+            ).fetchall()
+        finally:
+            conn.close()
+        item_ids = []
+        for row in rows:
+            for item_id in json.loads(row[0]):
+                if item_id not in item_ids:
+                    item_ids.append(item_id)
+        return item_ids
+
+    def get_katia_turns(self, serve_id: int) -> list:
+        """The serving's turns, oldest first."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                "SELECT student_message, katia_response, guard_outcome FROM katia_interactions "
+                "WHERE serve_id = ? ORDER BY id",
+                (serve_id,),
+            ).fetchall()
+        finally:
+            conn.close()
+        return [
+            {"student_message": r[0], "katia_response": r[1], "guard_outcome": r[2]} for r in rows
+        ]
 
     def get_katia_interactions(self, user_id: int, limit: int = 200) -> list:
         """Retorna las interacciones de un estudiante con KatIA."""

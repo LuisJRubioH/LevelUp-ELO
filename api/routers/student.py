@@ -16,6 +16,7 @@ Endpoints del flujo de práctica del estudiante:
 """
 
 import hashlib
+import logging
 import random
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -87,6 +88,7 @@ from src.domain.learning.prealgebra import (
 )
 
 router = APIRouter(prefix="/student", tags=["student"])
+logger = logging.getLogger("api.student")
 
 
 def _make_service(repo) -> StudentService:
@@ -128,6 +130,13 @@ def next_question(body: NextQuestionRequest, user: CurrentUser, repo: RepoDep):
 
     if item is None:
         return NextQuestionResponse(item=None, status=status_str)
+
+    # Spec 005 FR-022: KatIA binds to this serving. Not recording it must not break practice:
+    # KatIA then refuses this item (409) until the next question.
+    try:
+        repo.record_item_serve(user["user_id"], item["id"], body.course_id)
+    except Exception:
+        logger.exception("next-question: the serving of item %s was not recorded", item["id"])
 
     return NextQuestionResponse(
         preview=service.ratings.answer_preview(user["user_id"], body.course_id, item),

@@ -254,8 +254,9 @@ def test_spec001_group_ranking_basis_errors_and_pending(api_client):
 
 
 def test_spec001_every_surface_reads_the_canonical_rating(api_client, monkeypatch):
+    from src.application.interfaces.tutor import TutorCompletion
     from src.application.services.rating_read_service import RatingReadService
-    import src.infrastructure.external_api.ai_client as ai_client
+    import src.application.services.katia_service as katia_service
 
     repo = _repo(api_client)
     teacher, course, items, _, s = _classroom(repo, {"s": {"a": 1234.4, "b": 1100.0}})
@@ -275,22 +276,25 @@ def test_spec001_every_surface_reads_the_canonical_rating(api_client, monkeypatc
     report = _get(api_client, repo, teacher, f"/api/teacher/student/{student}")
     ranking = _get(api_client, repo, student, "/api/student/group-ranking")
     captured = {}
+    instructions = katia_service.build_instructions
 
-    def fake_guidance(rating, *args, **kwargs):
-        captured["rating"] = rating
-        return "ok"
+    def capture_level(facts, topic, lang, level, reference=None):
+        captured["rating"] = level
+        return instructions(facts, topic, lang, level, reference=reference)
 
-    monkeypatch.setattr(ai_client, "get_socratic_guidance", fake_guidance)
+    class _Tutor:
+        def complete(self, system, messages):
+            return TutorCompletion("¿Qué observas?")
+
+    # KatIA's level comes from the same read (spec 005 moved the model behind make_tutor and
+    # answers only about an item served to the student).
+    monkeypatch.setattr(katia_service, "build_instructions", capture_level)
+    monkeypatch.setattr("api.routers.ai.make_tutor", lambda *_a, **_k: _Tutor())
+    repo.record_item_serve(student, items["a"][0], course)
     api_client.post(
         "/api/ai/socratic",
         headers=headers_for(repo, student),
-        json={
-            "item_id": items["a"][0],
-            "item_content": "x",
-            "student_message": "ayuda",
-            "course_id": course,
-            "api_key": "sk-test",
-        },
+        json={"item_id": items["a"][0], "student_message": "ayuda", "api_key": "sk-test"},
     )
     start = api_client.post(
         "/api/student/exam/start",

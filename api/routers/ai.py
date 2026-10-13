@@ -2,13 +2,13 @@
 api/routers/ai.py
 =================
 Endpoints de IA:
-  POST /ai/socratic          → respuesta socrática (SSE streaming)
+  POST /ai/socratic          → KatIA's reply as SSE (spec 005)
   POST /ai/review-procedure  → revisión de procedimiento manuscrito (multipart)
 """
 
+import asyncio
 import json
 import logging
-from typing import AsyncGenerator
 
 from fastapi import APIRouter, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
@@ -18,18 +18,55 @@ from api.schemas.student import SocraticRequest
 from api.config import settings
 from api.rate_limit import limiter
 from api.upload_validation import read_validated_upload
+from src.application.interfaces.tutor import TutorUnavailable
+from src.application.services.katia_service import KatiaRefused, KatiaService
+from src.application.services.rating_read_service import RatingReadService
+from src.infrastructure.external_api.katia_tutor import ProviderTutor, RouteError, resolve_route
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 logger = logging.getLogger("api.ai")
 
-# `_call_ai_api` reports a provider failure as text ("ERROR_401: …", "❌ Error …"), not as an
-# exception. That text is not KatIA speaking: it is neither streamed as her reply nor saved.
-_PROVIDER_ERROR_PREFIXES = ("ERROR_", "❌")
 _KATIA_UNAVAILABLE = "KatIA no pudo responder ahora. Intenta de nuevo en un momento."
 
+# Every refusal is decided before the stream starts (research R9). The chat translates by code.
+_REFUSALS = {
+    "item_not_found": (status.HTTP_404_NOT_FOUND, "Ese ejercicio no existe."),
+    "not_enrolled": (status.HTTP_403_FORBIDDEN, "No estás inscrito en el curso de este ejercicio."),
+    "exam_active": (
+        status.HTTP_403_FORBIDDEN,
+        "KatIA no está disponible para las preguntas de un examen en curso.",
+    ),
+    "not_served": (
+        status.HTTP_409_CONFLICT,
+        "KatIA ayuda con la pregunta que estás practicando. Pide la siguiente pregunta.",
+    ),
+    "message_too_long": (422, "Tu mensaje es demasiado largo. Escribe una pregunta más corta."),
+    "katia_not_configured": (422, "KatIA no tiene una API key de IA configurada."),
+    "unknown_provider": (422, "No reconocemos el proveedor de tu API key."),
+    "katia_unavailable": (status.HTTP_503_SERVICE_UNAVAILABLE, _KATIA_UNAVAILABLE),
+}
 
-def _is_provider_error(text: str | None) -> bool:
-    return not (text or "").strip() or text.lstrip().startswith(_PROVIDER_ERROR_PREFIXES)
+
+def _refusal(code: str) -> HTTPException:
+    status_code, message = _REFUSALS[code]
+    return HTTPException(status_code=status_code, detail={"code": code, "message": message})
+
+
+def make_tutor(route, api_key: str, max_tokens: int) -> ProviderTutor:
+    """The model client for one request (tests replace it with a fake)."""
+    return ProviderTutor(route, api_key, max_tokens)
+
+
+def _events(events: list[dict]) -> StreamingResponse:
+    async def stream():
+        for event in events:
+            yield f"data: {json.dumps(event)}\n\n"
+
+    return StreamingResponse(
+        stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 # ── Chat socrático (SSE) ──────────────────────────────────────────────────────
@@ -38,125 +75,54 @@ def _is_provider_error(text: str | None) -> bool:
 @router.post("/socratic")
 @limiter.limit(settings.rate_limit_socratic)
 async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, repo: RepoDep):
-    """
-    Respuesta socrática de KatIA como Server-Sent Events (streaming).
+    """KatIA's reply to one message, as Server-Sent Events (spec 005, contracts/api.md).
 
-    El cliente recibe tokens en tiempo real via EventSource:
-        data: {"token": "..."}
+        data: {"token": "..."}            the reply, word by word
         data: {"done": true, "full_text": "..."}
+        data: {"error": "..."}            the model failed; nothing was stored
 
-    La API key viaja en el body (nunca se persiste).
+    The key the request carries is the student's own and is never stored.
     """
-    from api.config import settings
-    from src.application.services.rating_read_service import RatingReadService
-    from src.infrastructure.external_api.ai_client import (
-        detect_provider_from_key,
-        get_socratic_guidance,
-        PROVIDERS,
-    )
-
-    effective_key = settings.get_ai_key("katia", body.api_key or "")
-
-    if not effective_key:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="No hay API key de IA configurada para KatIA.",
+    own_key = (body.api_key or "").strip()
+    api_key = settings.get_ai_key("katia", own_key)
+    if not api_key:
+        raise _refusal("katia_not_configured")
+    try:
+        route = resolve_route(
+            api_key,
+            own_key=bool(own_key),
+            configured_provider=settings.system_ai_provider,
+            requested_provider=body.provider,
         )
+    except RouteError as error:
+        if own_key:
+            raise _refusal("unknown_provider")
+        # The reason only: never the key (FR-028, FR-030).
+        logger.error("KatIA: the system provider configuration is not usable (%s)", error.code)
+        raise _refusal("katia_unavailable")
 
-    # Obtener datos del ítem desde DB (correct_option nunca viaja al frontend)
-    item_db = repo.get_item_by_id(body.item_id)
-    if not item_db:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Ítem {body.item_id} no encontrado.",
-        )
+    limits = settings.katia_limits()
+    service = KatiaService(repo, make_tutor(route, api_key, limits.max_output_tokens), limits)
 
-    correct_answer = item_db.get("correct_option", "")
-    all_options = item_db.get("options", [])
-    if isinstance(all_options, str):
-        import json as _json
+    def reply():
+        level = RatingReadService(repo).ratings_view(user["user_id"])["overall"]
+        return service.reply(user["user_id"], body.item_id, body.student_message, body.lang, level)
 
-        try:
-            all_options = _json.loads(all_options)
-        except Exception:
-            all_options = []
-    topic = item_db.get("topic", body.course_id or "")
+    try:
+        katia = await asyncio.to_thread(reply)
+    except KatiaRefused as refused:
+        raise _refusal(refused.code)
+    except TutorUnavailable as failure:
+        logger.warning("KatIA: no reply from %s (%s)", route.provider, failure.code)
+        return _events([{"error": _KATIA_UNAVAILABLE}])
+    except Exception:
+        # The detail stays in the server log; the student gets a plain message.
+        logger.exception("KatIA: socratic reply failed")
+        return _events([{"error": _KATIA_UNAVAILABLE}])
 
-    # Rating global del estudiante (None mientras el diagnóstico está pendiente).
-    student_rating = RatingReadService(repo).ratings_view(user["user_id"])["overall"]
-
-    # Resolver proveedor y modelo
-    provider = body.provider or ""
-    if not provider and effective_key:
-        provider = detect_provider_from_key(effective_key) or "groq"
-    prov_cfg = PROVIDERS.get(provider, PROVIDERS.get("groq", {}))
-    base_url = prov_cfg.get("base_url", "") or ""
-    model_name = prov_cfg.get("model_cog", "") or ""
-
-    async def _generate() -> AsyncGenerator[str, None]:
-        try:
-            import asyncio
-            from functools import partial
-
-            loop = asyncio.get_event_loop()
-            full_text = await loop.run_in_executor(
-                None,
-                partial(
-                    get_socratic_guidance,
-                    student_rating,
-                    topic,
-                    body.item_content,
-                    body.student_message,
-                    correct_answer,
-                    all_options,
-                    base_url,
-                    model_name,
-                    effective_key,
-                    provider,
-                    body.lang,
-                ),
-            )
-
-            if _is_provider_error(full_text):
-                logger.warning("KatIA: provider %s failed: %s", provider, (full_text or "")[:120])
-                yield f"data: {json.dumps({'error': _KATIA_UNAVAILABLE})}\n\n"
-                return
-
-            # Simular streaming token a token (dividir en palabras)
-            words = (full_text or "").split(" ")
-            for i, word in enumerate(words):
-                chunk = word + (" " if i < len(words) - 1 else "")
-                yield f"data: {json.dumps({'token': chunk})}\n\n"
-
-            # Guardar interacción en DB
-            await loop.run_in_executor(
-                None,
-                partial(
-                    repo.save_katia_interaction,
-                    user["user_id"],
-                    body.course_id,
-                    body.item_id,
-                    topic,
-                    body.student_message,
-                    full_text or "",
-                ),
-            )
-
-            yield f"data: {json.dumps({'done': True, 'full_text': full_text})}\n\n"
-
-        except Exception:
-            # The detail stays in the server log; the student gets a plain message.
-            logger.exception("KatIA: socratic reply failed")
-            yield f"data: {json.dumps({'error': _KATIA_UNAVAILABLE})}\n\n"
-
-    return StreamingResponse(
-        _generate(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",  # deshabilita buffering en nginx
-        },
-    )
+    words = katia.text.split(" ")
+    tokens = [{"token": w + (" " if i < len(words) - 1 else "")} for i, w in enumerate(words)]
+    return _events(tokens + [{"done": True, "full_text": katia.text}])
 
 
 # ── Revisión de procedimientos ────────────────────────────────────────────────

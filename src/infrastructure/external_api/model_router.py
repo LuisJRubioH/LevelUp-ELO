@@ -13,6 +13,10 @@ import re
 from dataclasses import dataclass
 from typing import Literal
 
+# The Socratic output limit is defined once in the domain (spec 005 research R11); V1 and
+# ai_client read it from here.
+from src.domain.katia.limits import SOCRATIC_MAX_TOKENS  # noqa: F401
+
 # ── Tipos ────────────────────────────────────────────────────────────────────
 
 TaskType = Literal["tutor_socratic", "image_procedure_analysis", "general_chat"]
@@ -349,6 +353,3 @@ SOCRATIC_CORRECTION_PROMPT = (
     "No reveles la solución. Solo formula preguntas breves que guíen al estudiante. "
     "Máximo 3-5 oraciones, todas deben ser preguntas o pistas breves."
 )
-
-# Límite de tokens para respuestas del tutor socrático (optimización de latencia)
-SOCRATIC_MAX_TOKENS = 120

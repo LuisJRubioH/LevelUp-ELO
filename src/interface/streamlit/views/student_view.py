@@ -50,7 +50,6 @@ from src.interface.streamlit.components.timers import _render_live_timer
 # Funciones de IA extraídas de módulos
 analyze_performance_local = ai_mod.analyze_performance_local
 get_active_models = ai_mod.get_active_models
-get_socratic_guidance_stream = ai_mod.get_socratic_guidance_stream
 get_katia_chat_stream = ai_mod.get_katia_chat_stream
 analyze_procedure_image = ai_mod.analyze_procedure_image
 validate_procedure_relevance = ai_mod.validate_procedure_relevance

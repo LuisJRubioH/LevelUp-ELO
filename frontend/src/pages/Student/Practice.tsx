@@ -253,8 +253,6 @@ export function Practice() {
       {!submitted && showChat && (
         <SocraticChat
           itemId={currentItem.id}
-          itemContent={currentItem.content}
-          courseId={courseId ?? ""}
           apiKey={apiKey}
           provider={provider}
         />
@@ -353,8 +351,6 @@ export function Practice() {
           {showChat && (
             <SocraticChat
               itemId={currentItem.id}
-              itemContent={currentItem.content}
-              courseId={courseId ?? ""}
               apiKey={apiKey}
               provider={provider}
             />

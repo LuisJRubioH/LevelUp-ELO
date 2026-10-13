@@ -231,8 +231,21 @@ const en: TranslationKeys = {
     send: "Send",
     thinking: "thinking...",
     shortCircuit: "Meow... my circuits short-circuited. Can you try again?",
-    errorPrefix: "Purrr... error: ",
     connectionLost: "Purrr... looks like I lost the connection. Can you try again?",
+    errors: {
+      item_not_found: "I can't find that exercise. Ask for the next question and let's go on.",
+      not_enrolled: "Purrr... this exercise belongs to a course you are not enrolled in.",
+      exam_active:
+        "During an exam I can't help you with its questions. You can do it! Let's talk when you finish.",
+      not_served:
+        "Meow, I can only help with the question you are practising now. Ask for the next question and let's go on.",
+      message_too_long: "Your message is too long for my whiskers. Ask your question in fewer words.",
+      rate_limited: "You asked many questions in a row. Wait a minute and let's go on.",
+      katia_unavailable: "Meow... I can't answer right now. Try again in a moment.",
+      katia_not_configured: "KatIA has no AI provider configured yet. Tell your teacher.",
+      unknown_provider: "I don't recognise your API key's provider. Check it in the AI settings.",
+      generic: "Purrr... something went wrong. Can you try again?",
+    },
     welcome: {
       sensors:
         "My sensors detect you have an interesting doubt. Let's untangle this yarn together... which part of the problem has you thinking?",

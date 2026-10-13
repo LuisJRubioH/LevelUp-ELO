@@ -4,7 +4,7 @@ api/schemas/student.py
 Pydantic schemas para los endpoints del estudiante.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 # ── Preguntas ─────────────────────────────────────────────────────────────────
@@ -335,13 +335,30 @@ class LessonDetailResponse(BaseModel):
 
 
 class SocraticRequest(BaseModel):
-    item_id: str
-    item_content: str
-    student_message: str = Field(..., min_length=1, max_length=1000)
-    course_id: str | None = None
+    """KatIA's chat request (spec 005 contracts/api.md).
+
+    The server reads the exercise from the store and the conversation from its own record:
+    a statement (`item_content`) or a history sent by an older client is ignored (FR-018).
+    """
+
+    item_id: str = Field(..., min_length=1, max_length=128)
+    # Outer bound of the request; the configured limit (KATIA_MAX_MESSAGE_CHARS) is the service's.
+    student_message: str = Field(..., min_length=1, max_length=2000)
+    lang: str = Field(default="es", max_length=10, description="'es' or 'en'.")
     api_key: str = Field(
         default="",
-        description="API key del proveedor de IA (opcional — usa la del sistema si vacía)",
+        max_length=512,
+        description="The student's own key (optional); empty uses the system key.",
     )
-    provider: str = Field(default="groq", description="Proveedor: groq, anthropic, openai, etc.")
-    lang: str = Field(default="es", description="Idioma de la respuesta de KatIA: 'es' o 'en'.")
+    provider: str = Field(
+        default="",
+        max_length=32,
+        description="Read only with the student's own key when its prefix names no provider.",
+    )
+
+    @field_validator("student_message")
+    @classmethod
+    def _not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("student_message is blank")
+        return value.strip()

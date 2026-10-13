@@ -64,7 +64,7 @@ export function CourseRail({ courseId, currentNodeId }: { courseId: string; curr
 
   const [open, setOpen] = useState(false); // toggle por tap (móvil / sin hover)
   const [chatOpen, setChatOpen] = useState(false);
-  const [anchor, setAnchor] = useState<{ id: string; content: string } | null>(null);
+  const [anchor, setAnchor] = useState<{ id: string } | null>(null);
   const [anchorLoading, setAnchorLoading] = useState(false);
 
   const { data } = useQuery({
@@ -105,7 +105,7 @@ export function CourseRail({ courseId, currentNodeId }: { courseId: string; curr
     setAnchorLoading(true);
     try {
       const res = await studentApi.nextQuestion({ course_id: courseId });
-      if (res.item) setAnchor({ id: res.item.id, content: res.item.content });
+      if (res.item) setAnchor({ id: res.item.id });
     } catch {
       /* sin ítem → el chat muestra el estado de carga/fallback */
     } finally {
@@ -171,8 +171,6 @@ export function CourseRail({ courseId, currentNodeId }: { courseId: string; curr
             {anchor ? (
               <SocraticChat
                 itemId={anchor.id}
-                itemContent={anchor.content}
-                courseId={courseId}
                 apiKey={apiKey}
                 provider={provider}
               />

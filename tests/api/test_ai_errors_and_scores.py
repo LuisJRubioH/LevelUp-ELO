@@ -4,6 +4,9 @@ streamed as her reply nor saved as her answer in katia_interactions (the teacher
 history and exports it). An unexpected failure shows a generic message, not the exception text.
 The procedure review's AI score is advisory and lives on a 0-100 scale: a value outside it is
 brought into range before it is signed and shown.
+
+Spec 005 moved KatIA's model behind `api.routers.ai.make_tutor` and asks only about an item
+served to the student in an enrolled course; the helpers below set that up (FR-035 pins these).
 """
 
 import io
@@ -34,14 +37,19 @@ def _saved_replies(student_message):
 
 
 def _ask(api_client, headers, message):
+    from api.dependencies import decode_token, get_repository
+
+    repo = get_repository()
+    user_id = int(decode_token(headers["Authorization"][7:])["sub"])
+    if "calculo_integral" not in {e["id"] for e in repo.get_user_enrollments(user_id)}:
+        repo.enroll_user(user_id, "calculo_integral")
+    repo.record_item_serve(user_id, ITEM, "calculo_integral")
     return api_client.post(
         "/api/ai/socratic",
         headers=headers,
         json={
             "item_id": ITEM,
-            "item_content": "Fórmula de integración por partes",
             "student_message": message,
-            "course_id": "calculo_integral",
             "api_key": "gsk_fake_test_key",
         },
     )
@@ -55,30 +63,32 @@ def _fresh_limits():
 
 
 def _reply_with(monkeypatch, outcome):
-    def fake_guidance(*_args, **_kwargs):
-        if isinstance(outcome, Exception):
-            raise outcome
-        return outcome
+    from src.application.interfaces.tutor import TutorCompletion
 
-    monkeypatch.setattr(
-        "src.infrastructure.external_api.ai_client.get_socratic_guidance", fake_guidance
-    )
+    class _Tutor:
+        def complete(self, system, messages):
+            if isinstance(outcome, Exception):
+                raise outcome
+            return TutorCompletion(outcome)
+
+    monkeypatch.setattr("api.routers.ai.make_tutor", lambda *_args, **_kwargs: _Tutor())
+
+
+def _failure(code):
+    from src.application.interfaces.tutor import TutorUnavailable
+
+    return TutorUnavailable(code)
 
 
 @pytest.mark.parametrize(
     "provider_says",
-    [
-        "ERROR_401: ❌ API Key inválida o expirada para groq. Verifica tu clave en el panel lateral.",
-        "ERROR_429: ⏳ Límite de solicitudes alcanzado. Espera un momento antes de continuar.",
-        "❌ Error inesperado: APIError. Contacta al administrador.",
-        "",
-    ],
+    [_failure("auth"), _failure("rate_limited"), _failure("provider_error"), ""],
     ids=["bad-key", "rate-limited", "unexpected", "empty"],
 )
 def test_a_provider_failure_is_not_katias_reply(
     api_client, student_headers, monkeypatch, provider_says
 ):
-    message = f"failure probe {provider_says[:9]}"
+    message = f"failure probe {str(provider_says)[:9]}"
     _reply_with(monkeypatch, provider_says)
 
     events = _events(_ask(api_client, student_headers, message))

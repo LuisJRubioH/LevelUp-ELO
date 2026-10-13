@@ -102,12 +102,40 @@ class IAdminRepository(Protocol):
 
 
 @runtime_checkable
-class IRepository(
-    IStudentRepository, ITeacherRepository, IRatingReadRepository, IAdminRepository, Protocol
-):
-    """Un repositorio completo — lo que `RepoDep` inyecta en los routers.
+class IKatiaRepository(Protocol):
+    """What KatiaService needs (spec 005): the item, access, exams, the serving and its turns."""
 
-    Es la unión de los tres roles, no el catálogo entero: los routers usan más
-    métodos de los que aparecen aquí. Sirve para que `RepoDep` deje de estar
-    tipado como `object` y para anclar el test de contratos.
+    def get_item_by_id(self, item_id: str): ...
+    def get_user_enrollments(self, user_id) -> list: ...
+    def get_open_exam_item_ids(self, user_id: int) -> list: ...
+    def record_item_serve(self, user_id: int, item_id: str, course_id: Optional[str] = None): ...
+    def get_latest_item_serve(self, user_id: int, item_id: str): ...
+    def has_attempt_after(self, user_id: int, item_id: str, attempt_id: int) -> bool: ...
+    def get_katia_turns(self, serve_id: int) -> list: ...
+    def save_katia_interaction(
+        self,
+        user_id: int,
+        course_id: str,
+        item_id: str,
+        item_topic: str,
+        student_message: str,
+        katia_response: Optional[str] = None,
+        serve_id: Optional[int] = None,
+        guard_outcome: Optional[str] = None,
+    ) -> None: ...
+
+
+@runtime_checkable
+class IRepository(
+    IStudentRepository,
+    ITeacherRepository,
+    IRatingReadRepository,
+    IAdminRepository,
+    IKatiaRepository,
+    Protocol,
+):
+    """A complete repository — what `RepoDep` injects into the routers.
+
+    It is the union of the consumer roles, not the whole catalogue: the routers use more
+    methods than these. It types `RepoDep` and anchors the contract test.
     """

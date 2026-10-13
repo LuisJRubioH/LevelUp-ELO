@@ -5,7 +5,12 @@ Configuración centralizada para la API FastAPI vía pydantic-settings.
 Lee variables de entorno o del archivo .env en la raíz del repo.
 """
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from src.domain.katia.limits import KatiaLimits
+
+_KATIA = KatiaLimits()
 
 
 class Settings(BaseSettings):
@@ -34,7 +39,9 @@ class Settings(BaseSettings):
     # ── IA del sistema ─────────────────────────────────────────────────────────
     # Key general (fallback si no hay key específica por función)
     system_ai_api_key: str = ""  # gsk_, sk-ant-, sk-, AIzaSy… — cualquier proveedor
-    system_ai_provider: str = ""  # groq, anthropic, openai, google (auto-detectado si vacío)
+    # KatIA sends the system key only here (spec 005 FR-027): groq, anthropic, openai, gemini
+    # (alias google), huggingface; empty → the key's prefix decides.
+    system_ai_provider: str = ""
 
     # Keys opcionales por función — si vacías, usan system_ai_api_key
     ai_key_katia: str = ""  # chat socrático (KatIA)
@@ -56,6 +63,22 @@ class Settings(BaseSettings):
         if specific:
             return specific
         return self.system_ai_api_key.strip()
+
+    # ── KatIA (spec 005): the domain's defaults, configurable per deployment ──
+    katia_max_output_tokens: int = Field(default=_KATIA.max_output_tokens, gt=0)
+    katia_max_message_chars: int = Field(default=_KATIA.max_message_chars, gt=0)
+    katia_history_turns: int = Field(default=_KATIA.history_turns, ge=0)
+    katia_max_turns_per_serving: int = Field(default=_KATIA.max_turns_per_serving, gt=0)
+    katia_max_flagged_turns: int = Field(default=_KATIA.max_flagged_turns, gt=0)
+
+    def katia_limits(self) -> KatiaLimits:
+        return KatiaLimits(
+            max_output_tokens=self.katia_max_output_tokens,
+            max_message_chars=self.katia_max_message_chars,
+            history_turns=self.katia_history_turns,
+            max_turns_per_serving=self.katia_max_turns_per_serving,
+            max_flagged_turns=self.katia_max_flagged_turns,
+        )
 
     # ── Rate limiting (slowapi) ───────────────────────────────────────────────
     rate_limit_socratic: str = "10/minute"  # peticiones IA socrática por usuario

@@ -3,7 +3,11 @@
  * ===================================
  * Chat socrático con KatIA usando SSE streaming desde /api/ai/socratic.
  * Muestra el avatar de KatIA (gata cyborg) junto a cada mensaje.
- * Personalidad: metáforas felinas + tecnológicas, socrática, nunca revela respuestas.
+ *
+ * Spec 005: the request carries the exercise's id, the message and the language — the server
+ * reads the exercise from its store and the conversation from its own record (FR-018). A
+ * provider is named only with the student's own key (FR-029). Every refusal arrives with a
+ * code and is shown as a translated message, never as a raw status (FR-036).
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -21,19 +25,45 @@ interface Message {
 
 interface SocraticChatProps {
   itemId: string;
-  itemContent: string;
-  courseId: string;
   apiKey?: string;
   provider?: string;
 }
 
-export function SocraticChat({
-  itemId,
-  itemContent,
-  courseId,
-  apiKey = "",
-  provider = "groq",
-}: SocraticChatProps) {
+/** Refusal codes the API sends (spec 005 contracts/api.md); each has a translated message. */
+const REFUSAL_CODES = [
+  "item_not_found",
+  "not_enrolled",
+  "exam_active",
+  "not_served",
+  "message_too_long",
+  "katia_not_configured",
+  "unknown_provider",
+  "katia_unavailable",
+  "rate_limited",
+] as const;
+
+class KatiaRefusal extends Error {
+  code: string;
+
+  constructor(code: string) {
+    super(code);
+    this.code = code;
+  }
+}
+
+async function refusalCode(res: Response): Promise<string> {
+  if (res.status === 429) return "rate_limited";
+  try {
+    const body = await res.json();
+    const code = body?.detail?.code;
+    if ((REFUSAL_CODES as readonly string[]).includes(code)) return code;
+  } catch {
+    /* not JSON: the generic message */
+  }
+  return "generic";
+}
+
+export function SocraticChat({ itemId, apiKey = "", provider = "" }: SocraticChatProps) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.startsWith("en") ? "en" : "es";
 
@@ -81,23 +111,13 @@ export function SocraticChat({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             item_id: itemId,
-            item_content: itemContent,
             student_message: text,
-            course_id: courseId,
-            api_key: apiKey,
-            provider,
             lang,
+            ...(apiKey ? { api_key: apiKey, provider } : {}),
           }),
         });
 
-        if (!res.ok) {
-          let detail = `Error ${res.status}`;
-          try {
-            const errBody = await res.json();
-            detail = errBody.detail ?? detail;
-          } catch { /* ignore */ }
-          throw new Error(detail);
-        }
+        if (!res.ok) throw new KatiaRefusal(await refusalCode(res));
         if (!res.body) throw new Error("Sin respuesta del servidor");
 
         const reader = res.body.getReader();
@@ -151,8 +171,10 @@ export function SocraticChat({
           }
         }
       } catch (err) {
-        const detail = err instanceof Error ? err.message : "";
-        const text = detail ? `${t("socratic.errorPrefix")}${detail}` : t("socratic.connectionLost");
+        const text =
+          err instanceof KatiaRefusal
+            ? t(`socratic.errors.${err.code}`)
+            : t("socratic.connectionLost");
         setMessages((prev) =>
           prev.map((m, i) =>
             i === prev.length - 1
@@ -166,7 +188,7 @@ export function SocraticChat({
         inputRef.current?.focus();
       }
     },
-    [input, sending, itemId, itemContent, courseId, apiKey, provider, lang, scrollToBottom, t],
+    [input, sending, itemId, apiKey, provider, lang, scrollToBottom, t],
   );
 
   return (

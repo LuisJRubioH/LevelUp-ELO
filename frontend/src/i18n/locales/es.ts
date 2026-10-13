@@ -229,8 +229,22 @@ const es = {
     send: "Enviar",
     thinking: "pensando...",
     shortCircuit: "Miau... mis circuitos tuvieron un cortocircuito. ¿Puedes intentarlo de nuevo?",
-    errorPrefix: "Purrr... error: ",
     connectionLost: "Purrr... parece que perdí la conexión. ¿Puedes intentarlo de nuevo?",
+    // Spec 005 FR-036: one message per refusal code of /api/ai/socratic.
+    errors: {
+      item_not_found: "No encuentro ese ejercicio. Pide la siguiente pregunta y seguimos.",
+      not_enrolled: "Purrr... este ejercicio es de un curso en el que no estás inscrito.",
+      exam_active:
+        "Durante un examen no puedo ayudarte con sus preguntas. ¡Tú puedes! Hablamos al terminar.",
+      not_served:
+        "Miau, solo puedo ayudarte con la pregunta que estás practicando ahora. Pide la siguiente pregunta y seguimos.",
+      message_too_long: "Tu mensaje es muy largo para mis bigotes. Escribe tu pregunta en menos palabras.",
+      rate_limited: "Hiciste muchas preguntas seguidas. Espera un minuto y seguimos.",
+      katia_unavailable: "Miau... ahora no puedo responder. Intenta de nuevo en un momento.",
+      katia_not_configured: "KatIA todavía no tiene un proveedor de IA configurado. Avísale a tu docente.",
+      unknown_provider: "No reconozco el proveedor de tu API key. Revísala en la configuración de IA.",
+      generic: "Purrr... algo salió mal. ¿Puedes intentarlo de nuevo?",
+    },
     welcome: {
       sensors:
         "Mis sensores detectan que tienes una duda interesante. Desenredemos este ovillo juntos... ¿qué parte del problema te tiene pensando?",
