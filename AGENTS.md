@@ -529,15 +529,19 @@ Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectur
   the best `P(1−P)`.
 - `learning/` — nodes, map, lessons (V2-R11 … V2-R18).
 - `katia/katia_messages.py` — predefined KatIA messages by score band and streak.
+- `katia/guardrails.py`, `tutor_prompt.py`, `reviewed_messages.py`, `limits.py` — KatIA's chat
+  checks, instructions, reviewed redirects/hints and limits (spec 005).
 
 **`application/services/`** — `student_service.py` (`process_answer`, `get_next_question`,
 badges), `teacher_service.py`, `rating_read_service.py` (`RatingReadService`: every current
-rating, rank, ranking, selection rating and answer preview). Interfaces: `application/interfaces/repositories.py`, checked
+rating, rank, ranking, selection rating and answer preview), `katia_service.py` (KatIA's chat,
+spec 005; the model behind `interfaces/tutor.py`). Interfaces: `application/interfaces/repositories.py`, checked
 both ways by `tests/unit/application/test_repository_contracts.py`.
 
 **`infrastructure/`** — `persistence/sqlite_repository.py`, `persistence/postgres_repository.py`
 (`RealDictCursor`, `ThreadedConnectionPool(1–5)`), `storage/supabase_storage.py`,
-`external_api/ai_client.py`, `external_api/math_procedure_review.py`,
+`external_api/ai_client.py`, `external_api/katia_tutor.py` (KatIA's provider routing and model
+client), `external_api/math_procedure_review.py`,
 `security/hashing_service.py`, `ml/calibration.py` (isotonic calibrator, display only).
 
 **`api/`** — `main.py`, `config.py` (settings + `validate_runtime()`), `dependencies.py`,
@@ -606,8 +610,21 @@ degrades gracefully without a provider.
 
 Per request: user key > function key > general key, via `settings.get_ai_key("procedure", user_key)`.
 
-- **Socratic chat** (`api/routers/ai.py`, SSE): `SOCRATIC_MAX_TOKENS=120`; post-validation rejects
-  replies that reveal the answer or exceed 3 sentences.
+- **KatIA's chat, V2** (`api/routers/ai.py` → `KatiaService`; behaviour owned by
+  [spec 005](specs/005-ai-integration/spec.md)): only about an item `next-question` served to the
+  student, in an enrolled course, outside an open exam; the statement and options come from the
+  store, the key only after the server recorded an answer to that serving. Messages that ask for
+  the answer, propose an option or override the rules get a reviewed redirect without a model
+  call; every reply is checked server-side (`src/domain/katia/guardrails.py`) and a revealing one
+  becomes a reviewed hint. With the system key the server picks the provider
+  (`SYSTEM_AI_PROVIDER` or the key's prefix; never a local provider). Limits:
+  `KATIA_MAX_OUTPUT_TOKENS` (120 = `SOCRATIC_MAX_TOKENS`, defined in `src/domain/katia/limits.py`),
+  `KATIA_MAX_MESSAGE_CHARS`, `KATIA_HISTORY_TURNS`, `KATIA_MAX_TURNS_PER_SERVING`,
+  `KATIA_MAX_FLAGGED_TURNS`, `RATE_LIMIT_SOCRATIC`. **Neither the instructions nor the checks
+  guarantee that a solution is never revealed** — spec 005 § Known limits.
+- **KatIA's chat, V1** (frozen): its own prompt still receives the key; `validate_socratic_response`
+  (fixed Spanish phrases, `model_router.py`) runs only there. Model comparison for V2:
+  `scripts/evaluate_katia_models.py` (needs keys; never in CI).
 - **Procedure review**: Groq + `meta-llama/llama-4-scout-17b-16e-instruct` (rigorous), other
   vision providers (generic). Score 0–100 is advisory; only `teacher_score` moves the rating
   (`(score − 50) × 0.2`).

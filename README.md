@@ -92,9 +92,14 @@ celular, docentes desde el escritorio.
   y no toca el ELO, ni en Concursos ni en ningún otro bloque.
 
 ### IA pedagógica
-- **KatIA** — tutora socrática con avatar y GIFs. Chat con streaming SSE, tope de
-  120 tokens, y **post-validación que descarta la respuesta si revela la
-  solución**.
+- **KatIA** — tutora socrática con avatar y GIFs. En V2 (spec 005) solo conversa
+  sobre la pregunta que el servidor le sirvió al estudiante, nunca durante un
+  examen; no recibe la clave hasta que el estudiante responde; los mensajes que
+  piden la respuesta o proponen una opción reciben una redirección revisada sin
+  llamar al modelo, y cada respuesta del modelo se revisa en el servidor antes de
+  mostrarse (tope de 120 tokens). Ni las instrucciones ni los filtros garantizan
+  que nunca se revele una solución: ver los límites en
+  `specs/005-ai-integration/spec.md`.
 - **Revisión de procedimientos** — Groq + Llama 4 Scout para revisión rigurosa;
   otros proveedores con visión para la genérica. `ai_proposed_score` **nunca**
   toca el ELO: solo `teacher_score`, vía `(score − 50) × 0,2`.
@@ -336,7 +341,8 @@ importar `src.*`. Sin `DATABASE_URL` usa SQLite y crea la base con datos demo.
 | `JWT_SECRET_KEY` | Firma de los JWT | V2 |
 | `CORS_ORIGINS` | Orígenes permitidos | V2 |
 | `SYSTEM_AI_API_KEY` | Key de IA del sistema | V2 |
-| `SYSTEM_AI_PROVIDER` | Proveedor explícito; autodetectado si falta | No |
+| `SYSTEM_AI_PROVIDER` | Proveedor de la key del sistema (`groq`, `anthropic`, `openai`, `gemini`/`google`, `huggingface`); autodetectado por el prefijo si falta. Si contradice el prefijo, KatIA responde «no disponible» (spec 005) | No |
+| `KATIA_MAX_OUTPUT_TOKENS` · `KATIA_MAX_MESSAGE_CHARS` · `KATIA_HISTORY_TURNS` · `KATIA_MAX_TURNS_PER_SERVING` · `KATIA_MAX_FLAGGED_TURNS` | Límites de KatIA: 120 · 500 · 4 · 12 · 3 por defecto (spec 005) | No |
 | `AI_KEY_KATIA` / `_PROCEDURE` / `_STUDENT_ANALYSIS` / `_TEACHER_ANALYSIS` | Key por función; caen a `SYSTEM_AI_API_KEY` | No |
 | `VITE_API_URL` | URL del backend, en el frontend | V2 |
 

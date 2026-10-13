@@ -4,8 +4,9 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft — `/speckit-specify` and `/speckit-clarify` of the owner's approved block 6
-(KatIA), recorded before any code. Nothing here is implemented yet.
+**Status**: Implemented on this branch — specify + clarify (`914e8b8`), plan (`f5cc732`) and
+tasks (`11e59a0`) were committed before any code; every requirement and scenario below has its
+tests in § Traceability. The model evaluation (§ Model evaluation) is the owner's step.
 
 **Input**: The owner's block 6 decisions of 2026-10-13 (points 1–9, § Clarifications) and the
 review of KatIA on `redesign @ 1d6fcf6` with LuisJRubioH/LevelUp-ELO#56 and
@@ -33,21 +34,25 @@ ending in `/` covers everything below it. Paths shared with spec 001 belong to b
 - `api/routers/student.py` — `next-question` records the serving KatIA binds to
 - `src/application/interfaces/repositories.py`
 - `src/infrastructure/persistence/` — servings, open exams and KatIA turns in both repositories
-- `src/domain/katia/`
+- `src/domain/katia/` — checks, instructions, reviewed messages, limits
+- `src/application/interfaces/tutor.py`
+- `src/application/services/katia_service.py` — the use case
+- `src/infrastructure/external_api/katia_tutor.py` — provider routing and the model client
 - `frontend/src/components/KatIA/SocraticChat.tsx`
 - `frontend/src/pages/Student/Practice.tsx`
 - `frontend/src/components/Course/CourseRail.tsx`
 
-The implementing pull request adds the files it creates (service, tutor client, tests).
-
 ## Delivery *(read first)*
 
-The traceability check rejects **all** of a spec's `PENDING` rows on any code pull request for
-that spec. This docs step therefore writes requirements and scenarios with **plain IDs**
-(`FR-001`, `US1-AS1`), which the check does not read, like spec 004. The implementing commits
-make every ID bold and add its § Traceability row together with its tests; the IDs are final.
-Until then this spec blocks no other pull request that touches the files above
-(LuisJRubioH/LevelUp-ELO#55 and #57 touch `api/routers/ai.py`).
+The docs steps (`914e8b8`, `f5cc732`, `11e59a0`) wrote the requirements with plain IDs, like
+spec 004, so that a docs-only pull request would block no other pull request touching the files
+above (LuisJRubioH/LevelUp-ELO#55 and #57 touch `api/routers/ai.py`). The implementing commits on
+the same branch made every ID bold and filled § Traceability; the IDs did not change.
+
+Found while doing so: a spec with no bold requirement fails
+`tests/unit/scripts/test_check_traceability.py::test_the_repository_specs_pass_the_static_checks`
+(it requires every spec to define at least one checked requirement), so a plain-ID docs PR is red
+in the unit job — spec 004's draft (#58) included.
 
 ## Clarifications
 
@@ -129,24 +134,24 @@ English and inspect what the model received, what the student received and what 
 
 **Acceptance Scenarios**:
 
-1. US1-AS1 — **Given** an item served to the student and not yet answered, **When** they ask
+1. **US1-AS1** — **Given** an item served to the student and not yet answered, **When** they ask
    KatIA a question, **Then** the model receives the bank's statement and options, the student's
    message as a separate turn after the instructions, and nothing that tells which option is
    correct (the request is identical whichever option is the key).
-2. US1-AS2 — **Given** that item, **When** the student proposes options one after another, by
+2. **US1-AS2** — **Given** that item, **When** the student proposes options one after another, by
    letter, by position or by their content, in Spanish or English, **Then** every reply is a
    reviewed redirect that does not depend on which option is correct, and the model is not called.
-3. US1-AS3 — **Given** that item, **When** the student asks for the answer, for the correct option
+3. **US1-AS3** — **Given** that item, **When** the student asks for the answer, for the correct option
    or for the complete solution, in Spanish or English, **Then** the reply is a reviewed redirect
    and the model is not called.
-4. US1-AS4 — **Given** that item, **When** the student's message tells KatIA to ignore or change
+4. **US1-AS4** — **Given** that item, **When** the student's message tells KatIA to ignore or change
    her instructions, in Spanish or English, **Then** the reply is a reviewed redirect and the model
    is not called.
-5. US1-AS5 — **Given** a model reply that states the correct option, an equal value, an option by
+5. **US1-AS5** — **Given** a model reply that states the correct option, an equal value, an option by
    letter or position, a verdict on a proposal, an eliminated option or a worked solution, **When**
    the server checks it, **Then** the student receives a reviewed conceptual hint instead, and the
    rejected text is neither shown nor stored.
-6. US1-AS6 — **Given** a conversation on one serving where KatIA's accepted replies already carry
+6. **US1-AS6** — **Given** a conversation on one serving where KatIA's accepted replies already carry
    intermediate equations, **When** a new reply would complete a worked solution across turns,
    **Then** it is rejected like a single-turn solution; and **Given** three flagged turns in a
    serving, **When** the student writes again, **Then** KatIA answers with a reviewed hint without
@@ -168,13 +173,13 @@ same item again and ask before answering; compare what the model received each t
 
 **Acceptance Scenarios**:
 
-1. US2-AS1 — **Given** the student answered the serving they are looking at, **When** they ask
+1. **US2-AS1** — **Given** the student answered the serving they are looking at, **When** they ask
    KatIA, **Then** the model's instructions carry the correct option as an internal reference
    marked not to be revealed.
-2. US2-AS2 — **Given** the student answered an earlier serving of the same item and the item is
+2. **US2-AS2** — **Given** the student answered an earlier serving of the same item and the item is
    served again, **When** they ask before answering the new serving, **Then** the model receives
    no key.
-3. US2-AS3 — **Given** the student answered, **When** the model's reply states the correct option,
+3. **US2-AS3** — **Given** the student answered, **When** the model's reply states the correct option,
    **Then** it is rejected and replaced as in US1-AS5.
 
 ---
@@ -194,16 +199,16 @@ over-long message and after several turns; check statuses, the model's input and
 
 **Acceptance Scenarios**:
 
-1. US3-AS1 — **Given** a served item, **When** the request carries some other text as the
+1. **US3-AS1** — **Given** a served item, **When** the request carries some other text as the
    statement, **Then** the model receives the bank's statement and never the client's text.
-2. US3-AS2 — **Given** a student not enrolled in the item's course, **When** they ask KatIA about
+2. **US3-AS2** — **Given** a student not enrolled in the item's course, **When** they ask KatIA about
    it, **Then** the request is refused as forbidden, the model is not called and nothing is stored.
-3. US3-AS3 — **Given** an item of an enrolled course never served to the student, **When** they ask
+3. **US3-AS3** — **Given** an item of an enrolled course never served to the student, **When** they ask
    about it, **Then** the request is refused as a conflict and the model is not called.
-4. US3-AS4 — **Given** an unknown item id, **When** the student asks about it, **Then** not found.
-5. US3-AS5 — **Given** a message longer than the configured limit, **When** it is sent, **Then** it
+4. **US3-AS4** — **Given** an unknown item id, **When** the student asks about it, **Then** not found.
+5. **US3-AS5** — **Given** a message longer than the configured limit, **When** it is sent, **Then** it
    is refused with a clear reason and the model is not called.
-6. US3-AS6 — **Given** a serving with more accepted turns than the configured history, **When** the
+6. **US3-AS6** — **Given** a serving with more accepted turns than the configured history, **When** the
    student asks again, **Then** the model receives only the latest configured number of turns of
    that serving, from the server's record.
 
@@ -221,12 +226,12 @@ submit the exam, ask again; let another exam expire, ask again.
 
 **Acceptance Scenarios**:
 
-1. US4-AS1 — **Given** an open exam of the student containing an item, **When** they ask KatIA
+1. **US4-AS1** — **Given** an open exam of the student containing an item, **When** they ask KatIA
    about that item — even served in practice, even with any client flag — **Then** it is refused as
    forbidden, the model is not called and nothing is stored.
-2. US4-AS2 — **Given** that exam submitted, or expired, **When** they ask about the item served in
+2. **US4-AS2** — **Given** that exam submitted, or expired, **When** they ask about the item served in
    practice, **Then** KatIA answers.
-3. US4-AS3 — **Given** the exam screen, **Then** it offers no KatIA.
+3. **US4-AS3** — **Given** the exam screen, **Then** it offers no KatIA.
 
 ---
 
@@ -245,16 +250,16 @@ the key in its error text.
 
 **Acceptance Scenarios**:
 
-1. US5-AS1 — **Given** the system key, **When** the request names another provider, **Then** the
+1. **US5-AS1** — **Given** the system key, **When** the request names another provider, **Then** the
    key goes to the configured provider (or, when none is configured, to the provider its prefix
    identifies) with that provider's default model.
-2. US5-AS2 — **Given** a configured provider that is not a supported cloud provider or contradicts
+2. **US5-AS2** — **Given** a configured provider that is not a supported cloud provider or contradicts
    the system key's prefix, **When** the student asks, **Then** KatIA is unavailable and the key is
    sent nowhere.
-3. US5-AS3 — **Given** the student's own key, **When** they ask, **Then** it goes only to the cloud
+3. **US5-AS3** — **Given** the student's own key, **When** they ask, **Then** it goes only to the cloud
    provider its prefix identifies — or, for an unrecognised prefix, to the cloud provider named in
    the request — and never to a local provider.
-4. US5-AS4 — **Given** a provider failure whose text contains the key, **When** the student asks,
+4. **US5-AS4** — **Given** a provider failure whose text contains the key, **When** the student asks,
    **Then** the chat shows a plain message and neither the response, the server log nor the stored
    history contains the key.
 
@@ -273,15 +278,15 @@ languages.
 
 **Acceptance Scenarios**:
 
-1. US6-AS1 — **Given** any accepted request, **Then** the model is asked for at most the configured
+1. **US6-AS1** — **Given** any accepted request, **Then** the model is asked for at most the configured
    number of output tokens (120 by default).
-2. US6-AS2 — **Given** a reply cut off by that limit, **Then** the student receives its complete
+2. **US6-AS2** — **Given** a reply cut off by that limit, **Then** the student receives its complete
    sentences, or a reviewed hint when none is complete.
-3. US6-AS3 — **Given** ten KatIA requests in a minute from one session, **When** an eleventh
+3. **US6-AS3** — **Given** ten KatIA requests in a minute from one session, **When** an eleventh
    arrives, **Then** it is refused as too many requests and the chat says to wait.
-4. US6-AS4 — **Given** a serving that reached the configured number of turns, **When** the student
+4. **US6-AS4** — **Given** a serving that reached the configured number of turns, **When** the student
    writes again, **Then** KatIA answers with a fixed closing message without calling the model.
-5. US6-AS5 — **Given** each refusal (not enrolled, open exam, not served, message too long, too
+5. **US6-AS5** — **Given** each refusal (not enrolled, open exam, not served, message too long, too
    many requests, KatIA unavailable), **Then** the chat shows a translated message (es, en), never a
    raw status or an internal detail.
 
@@ -312,109 +317,109 @@ languages.
 
 **The pedagogical rule (US1)**
 
-- FR-001 [CHANGE]: The system shall instruct the tutor model, on every request, that it may
+- **FR-001** [CHANGE]: The system shall instruct the tutor model, on every request, that it may
   explain concepts, ask questions and suggest an intermediate step, and that it must not give the
   result, say or hint which option is correct or incorrect, name an option by letter or position,
   eliminate options or solve the exercise completely; the instructions shall contain no rule that
   rewards a correct proposal or analyses a distractor.
-- FR-002 [CHANGE]: The system shall send the student's message to the tutor model as a separate
+- **FR-002** [CHANGE]: The system shall send the student's message to the tutor model as a separate
   user turn after the tutor's instructions, never inside them.
-- FR-003 [CHANGE]: If a student's message asks for the answer, the correct option or a complete
+- **FR-003** [CHANGE]: If a student's message asks for the answer, the correct option or a complete
   solution, then the system shall reply with a reviewed redirect in the conversation's language
   without calling the tutor model.
-- FR-004 [CHANGE]: If a student's message proposes an option — by letter, by position or by its
+- **FR-004** [CHANGE]: If a student's message proposes an option — by letter, by position or by its
   content — then the system shall reply with a reviewed redirect that does not depend on which
   option is correct, without calling the tutor model.
-- FR-005 [CHANGE]: If a student's message tries to change or reveal the tutor's instructions, then
+- **FR-005** [CHANGE]: If a student's message tries to change or reveal the tutor's instructions, then
   the system shall reply with a reviewed redirect without calling the tutor model.
 
 **What KatIA receives (US2)**
 
-- FR-006 [CHANGE]: While the current serving of an item has no answer from the student, the system
+- **FR-006** [CHANGE]: While the current serving of an item has no answer from the student, the system
   shall give the tutor model the item's statement and options without indicating the correct one.
-- FR-007 [CHANGE]: When the student has an answer recorded by the server for the current serving
+- **FR-007** [CHANGE]: When the student has an answer recorded by the server for the current serving
   of the item, the system shall add the correct option to the tutor's instructions as an internal
   reference that must not be revealed or confirmed.
-- FR-008 [CHANGE]: The system shall treat an answer to an earlier serving of the same item as no
+- **FR-008** [CHANGE]: The system shall treat an answer to an earlier serving of the same item as no
   answer for the current serving.
 
 **Checking the reply (US1)**
 
-- FR-009 [CHANGE]: The system shall check every reply of the tutor model on the server before it is
+- **FR-009** [CHANGE]: The system shall check every reply of the tutor model on the server before it is
   shown or stored; a rejected reply is never shown nor stored.
-- FR-010 [CHANGE]: If a reply contains the correct option's text, after normalising LaTeX and
+- **FR-010** [CHANGE]: If a reply contains the correct option's text, after normalising LaTeX and
   spacing, or a number equal to the correct option's value, and that text or number is not part of
   the statement, then the system shall reject it.
-- FR-011 [CHANGE]: If a reply refers to an option by letter or by position, then the system shall
+- **FR-011** [CHANGE]: If a reply refers to an option by letter or by position, then the system shall
   reject it.
-- FR-012 [CHANGE]: If a reply mentions another option's text of three or more characters not
+- **FR-012** [CHANGE]: If a reply mentions another option's text of three or more characters not
   present in the statement, or negates or discards any option, then the system shall reject it.
-- FR-013 [CHANGE]: If a reply passes a verdict on a proposal — a confirmation or a rejection such as
+- **FR-013** [CHANGE]: If a reply passes a verdict on a proposal — a confirmation or a rejection such as
   "correcto", "así es", "vas bien", "no es esa", "that's right", "not quite" — then the system shall
   reject it.
-- FR-014 [CHANGE]: If a reply presents a worked solution — step labels, "la respuesta es" / "the
+- **FR-014** [CHANGE]: If a reply presents a worked solution — step labels, "la respuesta es" / "the
   answer is", or three or more equations not taken from the statement — then the system shall
   reject it.
-- FR-015 [CHANGE]: If the equations not taken from the statement across the serving's accepted
+- **FR-015** [CHANGE]: If the equations not taken from the statement across the serving's accepted
   replies and the new reply reach four, then the system shall reject the new reply.
-- FR-016 [CHANGE]: While a serving has the configured number of flagged turns (redirected messages
+- **FR-016** [CHANGE]: While a serving has the configured number of flagged turns (redirected messages
   or rejected replies; 3 by default), the system shall answer with reviewed hints without calling
   the tutor model.
-- FR-017 [CHANGE]: When a reply is rejected, the system shall show a reviewed conceptual hint in the
+- **FR-017** [CHANGE]: When a reply is rejected, the system shall show a reviewed conceptual hint in the
   conversation's language instead.
 
 **The exercise comes from the server (US3)**
 
-- FR-018 [CHANGE]: The system shall read the statement, options, topic and course of the item from
+- **FR-018** [CHANGE]: The system shall read the statement, options, topic and course of the item from
   the item store and ignore any statement or history text the client sends.
-- FR-019 [CHANGE]: If the student is not enrolled in the item's course, then the system shall refuse
+- **FR-019** [CHANGE]: If the student is not enrolled in the item's course, then the system shall refuse
   the request as forbidden, without calling the tutor model or storing anything.
-- FR-020 [CHANGE]: If the item was never served to the student, then the system shall refuse the
+- **FR-020** [CHANGE]: If the item was never served to the student, then the system shall refuse the
   request as a conflict, without calling the tutor model or storing anything.
-- FR-021 [AS-IS]: If the item does not exist, then the system shall refuse the request as not found.
-- FR-022 [CHANGE]: When `next-question` serves an item, the system shall record the serving: the
+- **FR-021** [AS-IS]: If the item does not exist, then the system shall refuse the request as not found.
+- **FR-022** [CHANGE]: When `next-question` serves an item, the system shall record the serving: the
   student, the item, its course and the student's latest recorded attempt at that moment.
-- FR-023 [CHANGE]: The system shall give the tutor model at most the configured number of previous
+- **FR-023** [CHANGE]: The system shall give the tutor model at most the configured number of previous
   accepted turns of the current serving (4 by default), read from its own record.
-- FR-024 [CHANGE]: If the student's message is longer than the configured limit (500 characters by
+- **FR-024** [CHANGE]: If the student's message is longer than the configured limit (500 characters by
   default), then the system shall refuse it with a reason, without calling the tutor model.
 
 **Exams (US4)**
 
-- FR-025 [CHANGE]: While an item belongs to an exam session of the student that is neither
+- **FR-025** [CHANGE]: While an item belongs to an exam session of the student that is neither
   submitted nor expired, the system shall refuse KatIA requests about that item as forbidden,
   without calling the tutor model or storing anything.
-- FR-026 [AS-IS]: The exam screen shall offer no KatIA.
+- **FR-026** [AS-IS]: The exam screen shall offer no KatIA.
 
 **Provider and keys (US5)**
 
-- FR-027 [CHANGE]: While a request uses the system key, the system shall send it to the provider
+- **FR-027** [CHANGE]: While a request uses the system key, the system shall send it to the provider
   set in `SYSTEM_AI_PROVIDER`, or, when that is empty, to the provider the key's prefix identifies,
   with that provider's default model, and shall ignore the provider the client names.
-- FR-028 [CHANGE]: If the system key's provider is not a supported cloud provider or contradicts the
+- **FR-028** [CHANGE]: If the system key's provider is not a supported cloud provider or contradicts the
   key's prefix, then the system shall report KatIA as unavailable without sending the key.
-- FR-029 [CHANGE]: Where the student supplies their own key, the system shall send it only to the
+- **FR-029** [CHANGE]: Where the student supplies their own key, the system shall send it only to the
   cloud provider its prefix identifies, or, for an unrecognised prefix, to the cloud provider the
   client names, and never to a local provider.
-- FR-030 [CHANGE]: The system shall keep API keys out of logs, responses, error messages and stored
+- **FR-030** [CHANGE]: The system shall keep API keys out of logs, responses, error messages and stored
   turns.
 
 **Consumption and errors (US6)**
 
-- FR-031 [CHANGE]: The system shall ask the tutor model for at most the configured number of output
+- **FR-031** [CHANGE]: The system shall ask the tutor model for at most the configured number of output
   tokens per reply (120 by default, the documented Socratic limit).
-- FR-032 [CHANGE]: If a reply is cut off by the token limit, then the system shall keep only its
+- **FR-032** [CHANGE]: If a reply is cut off by the token limit, then the system shall keep only its
   complete sentences, and show a reviewed hint when none remains.
-- FR-033 [AS-IS]: The system shall accept at most the configured number of KatIA requests per
+- **FR-033** [AS-IS]: The system shall accept at most the configured number of KatIA requests per
   signed-in session and minute (10 by default) and refuse the rest as too many requests.
-- FR-034 [CHANGE]: If a serving has reached the configured number of turns (12 by default), then the
+- **FR-034** [CHANGE]: If a serving has reached the configured number of turns (12 by default), then the
   system shall answer with a fixed closing message without calling the tutor model.
-- FR-035 [AS-IS]: If the tutor model fails, then the system shall send the chat an error event with
+- **FR-035** [AS-IS]: If the tutor model fails, then the system shall send the chat an error event with
   a plain message and store nothing.
-- FR-036 [CHANGE]: The chat shall show a translated message (es, en) for each refusal — not
+- **FR-036** [CHANGE]: The chat shall show a translated message (es, en) for each refusal — not
   enrolled, open exam, not served, message too long, too many requests, unavailable — never a raw
   status or internal detail.
-- FR-037 [CHANGE]: The system shall store, with each turn, the serving it belongs to and its
+- **FR-037** [CHANGE]: The system shall store, with each turn, the serving it belongs to and its
   outcome: accepted, redirected (with its reason), rejected (with its reasons), cut off, or closed.
 
 ### Key Entities
@@ -454,12 +459,22 @@ Neither the instructions nor the checks guarantee that KatIA never reveals a sol
   model sees in paraphrase. Proposals that name an option never reach the model (FR-004), but a
   paraphrase that matches no option's text does.
 - Wording outside the listed verdicts and markers passes; a value written in the statement cannot
-  be told apart from the answer.
+  be told apart from the answer. In the bank of 2026-10-13, **125 of 2031 items (6 %)** write
+  their key's text inside the statement: for them the literal check is blind, and a proposal of
+  the key is recognised only with a cue ("¿es …?", "da …").
 - Before an answer the model does not get the key, but it can solve the exercise itself.
 
 What reduces the risk is measured, not assumed: each turn stores its outcome (FR-037) and the
 model evaluation (§ Model evaluation) reports leak rates on real replies. Passing tests prove the
 controls behave as written; they do not prove the guarantee.
+
+Measured over every bank item (pinned by
+`tests/unit/domain/test_spec005_guardrails.py::test_spec005_the_checks_hold_over_every_bank_item`):
+neutral Socratic replies in es and en and a verbatim quote of the statement pass, two genuine
+questions are never redirected, "¿Es <key>?" is always recognised and "La respuesta es <key>"
+always rejected. The first run of that probe rejected **every** neutral reply (adverbs such as
+"exactly" read as verdicts; prose options compared without spaces, so "en un caso" contained
+"Nunca") — the reason strictness is measured on the whole bank and not on hand-picked examples.
 
 ## Model evaluation *(block 6 point 8; not a system behaviour)*
 
@@ -475,7 +490,9 @@ the same prompt and checks as production:
   the run.
 
 These evaluations call real models and are kept apart from the backend tests: they never run in
-CI, need a key, and their report is presented to the owner before any decision.
+CI, need a key, and their report is presented to the owner before any decision. The harness is
+`scripts/evaluate_katia_models.py` (its arithmetic is unit-tested with a fake model); protocol,
+command and the place for results: `docs/sdd/katia-model-evaluation.md`.
 
 ## Assumptions
 
@@ -500,12 +517,77 @@ CI, need a key, and their report is presented to the owner before any decision.
 **Automated tests are explicitly required for every functional requirement and acceptance
 scenario. Reuse adequate existing tests; create or strengthen tests where coverage is missing.**
 
-Backend-control tests use a fake model and run in CI. Evaluations with real model replies live
-in § Model evaluation and are never cited here. Rows are added, with bold IDs, by the
-implementing commits.
+Backend-control tests use a fake model and run in CI; Playwright tests mock the API and verify
+the chat's behaviour. Evaluations with real model replies live in § Model evaluation and are
+never cited here. Each `[CHANGE]` test failed on the base before its implementation; the
+`[AS-IS]` pins (FR-021, FR-026, FR-033, FR-035) passed on it.
 
 | Requirement / Scenario | Test |
 |---|---|
+| FR-001 | `tests/unit/domain/test_spec005_tutor_prompt.py::test_spec005_instructions_state_what_katia_may_and_may_not_do`<br>`tests/unit/domain/test_spec005_tutor_prompt.py::test_spec005_instructions_reward_no_proposal_and_analyse_no_distractor` |
+| FR-002 | `tests/unit/domain/test_spec005_tutor_prompt.py::test_spec005_the_message_is_its_own_last_turn`<br>`tests/api/test_spec005_katia_api.py::test_spec005_the_model_gets_the_stores_exercise_and_no_key` |
+| FR-003 | `tests/unit/domain/test_spec005_guardrails.py::test_spec005_requests_for_the_answer_are_redirected`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_flagged_messages_get_a_reviewed_redirect`<br>`tests/api/test_spec005_katia_api.py::test_spec005_requests_for_the_answer_and_overrides_never_reach_the_model` |
+| FR-004 | `tests/unit/domain/test_spec005_guardrails.py::test_spec005_proposed_options_are_recognised`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_short_numeric_proposals_are_recognised`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_short_word_proposals_need_a_cue`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_genuine_questions_are_not_flagged`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_a_number_from_the_statement_is_not_a_proposal`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_proposing_each_option_gets_the_same_reply_whichever_is_correct`<br>`tests/api/test_spec005_katia_api.py::test_spec005_successive_options_get_the_same_redirect_whichever_is_correct` |
+| FR-005 | `tests/unit/domain/test_spec005_guardrails.py::test_spec005_instruction_overrides_are_recognised`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_flagged_messages_get_a_reviewed_redirect`<br>`tests/api/test_spec005_katia_api.py::test_spec005_requests_for_the_answer_and_overrides_never_reach_the_model` |
+| FR-006 | `tests/unit/domain/test_spec005_tutor_prompt.py::test_spec005_before_an_answer_the_request_is_the_same_whichever_option_is_correct`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_before_an_answer_the_model_gets_no_key`<br>`tests/api/test_spec005_katia_api.py::test_spec005_before_an_answer_the_request_does_not_depend_on_the_key` |
+| FR-007 | `tests/unit/domain/test_spec005_tutor_prompt.py::test_spec005_after_an_answer_the_key_is_an_internal_reference`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_after_an_answer_to_this_serving_the_key_is_a_reference`<br>`tests/api/test_spec005_katia_api.py::test_spec005_after_answering_this_serving_the_key_is_a_reference` |
+| FR-008 | `tests/integration/test_spec005_katia_store.py::test_spec005_a_serving_is_answered_only_by_a_later_attempt`<br>`tests/api/test_spec005_katia_api.py::test_spec005_an_answer_to_an_earlier_serving_unlocks_nothing` |
+| FR-009 | `tests/unit/application/test_spec005_katia_service.py::test_spec005_a_revealing_reply_is_replaced_and_never_stored`<br>`tests/api/test_spec005_katia_api.py::test_spec005_a_revealing_reply_is_replaced_before_anyone_sees_it` |
+| FR-010 | `tests/unit/domain/test_spec005_guardrails.py::test_spec005_the_correct_option_text_is_rejected`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_a_value_equal_to_the_key_is_rejected`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_values_of_the_statement_and_exponents_are_not_the_key`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_a_short_word_key_counts_only_with_a_cue`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_the_checks_hold_over_every_bank_item` |
+| FR-011 | `tests/unit/domain/test_spec005_guardrails.py::test_spec005_options_named_by_position_are_rejected` |
+| FR-012 | `tests/unit/domain/test_spec005_guardrails.py::test_spec005_another_options_text_is_rejected`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_eliminations_are_rejected` |
+| FR-013 | `tests/unit/domain/test_spec005_guardrails.py::test_spec005_verdicts_are_rejected`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_socratic_replies_pass`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_the_checks_hold_over_every_bank_item` |
+| FR-014 | `tests/unit/domain/test_spec005_guardrails.py::test_spec005_worked_solutions_are_rejected` |
+| FR-015 | `tests/unit/domain/test_spec005_guardrails.py::test_spec005_equations_accumulated_over_the_serving_are_rejected`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_equations_accumulated_in_the_serving_reject_the_reply`<br>`tests/api/test_spec005_katia_api.py::test_spec005_a_multi_turn_conversation_cannot_assemble_the_solution` |
+| FR-016 | `tests/unit/application/test_spec005_katia_service.py::test_spec005_after_three_flagged_turns_only_reviewed_hints`<br>`tests/api/test_spec005_katia_api.py::test_spec005_a_multi_turn_conversation_cannot_assemble_the_solution` |
+| FR-017 | `tests/unit/application/test_spec005_katia_service.py::test_spec005_a_revealing_reply_is_replaced_and_never_stored`<br>`tests/api/test_spec005_katia_api.py::test_spec005_a_revealing_reply_is_replaced_before_anyone_sees_it` |
+| FR-018 | `tests/api/test_spec005_katia_api.py::test_spec005_the_model_gets_the_stores_exercise_and_no_key`<br>`tests/api/test_spec005_katia_api.py::test_spec005_the_model_sees_at_most_the_configured_history`<br>`frontend/e2e/katia-chat.spec.ts › KatIA › la petición lleva el ejercicio, el mensaje y el idioma; nunca el enunciado` |
+| FR-019 | `tests/unit/application/test_spec005_katia_service.py::test_spec005_refusals_call_no_model_and_store_nothing`<br>`tests/api/test_spec005_katia_api.py::test_spec005_a_course_the_student_is_not_enrolled_in_is_forbidden` |
+| FR-020 | `tests/unit/application/test_spec005_katia_service.py::test_spec005_refusals_call_no_model_and_store_nothing`<br>`tests/api/test_spec005_katia_api.py::test_spec005_an_item_never_served_is_a_conflict` |
+| FR-021 | `tests/api/test_spec005_katia_api.py::test_spec005_unknown_item_is_not_found`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_refusals_call_no_model_and_store_nothing` |
+| FR-022 | `tests/api/test_spec005_katia_api.py::test_spec005_the_model_gets_the_stores_exercise_and_no_key`<br>`tests/integration/test_spec005_katia_store.py::test_spec005_a_serving_is_answered_only_by_a_later_attempt`<br>`tests/integration/test_spec005_katia_store.py::test_spec005_the_migration_is_idempotent` |
+| FR-023 | `tests/unit/application/test_spec005_katia_service.py::test_spec005_history_is_the_servings_latest_accepted_turns`<br>`tests/api/test_spec005_katia_api.py::test_spec005_the_model_sees_at_most_the_configured_history` |
+| FR-024 | `tests/unit/application/test_spec005_katia_service.py::test_spec005_refusals_call_no_model_and_store_nothing`<br>`tests/api/test_spec005_katia_api.py::test_spec005_an_over_long_message_is_refused` |
+| FR-025 | `tests/integration/test_spec005_katia_store.py::test_spec005_open_exam_items_are_those_neither_submitted_nor_expired`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_refusals_call_no_model_and_store_nothing`<br>`tests/api/test_spec005_katia_api.py::test_spec005_an_open_exams_item_is_refused_from_any_screen`<br>`tests/api/test_spec005_katia_api.py::test_spec005_after_the_exam_katia_answers_again` |
+| FR-026 | `frontend/e2e/katia-chat.spec.ts › KatIA › el examen no ofrece KatIA` |
+| FR-027 | `tests/unit/infrastructure/test_spec005_katia_tutor.py::test_spec005_system_key_goes_where_the_server_says`<br>`tests/api/test_spec005_katia_api.py::test_spec005_the_system_key_goes_where_the_server_says` |
+| FR-028 | `tests/unit/infrastructure/test_spec005_katia_tutor.py::test_spec005_an_invalid_system_configuration_sends_the_key_nowhere`<br>`tests/api/test_spec005_katia_api.py::test_spec005_an_invalid_system_provider_disables_katia` |
+| FR-029 | `tests/unit/infrastructure/test_spec005_katia_tutor.py::test_spec005_a_students_key_goes_only_to_its_provider`<br>`tests/unit/infrastructure/test_spec005_katia_tutor.py::test_spec005_a_students_unrecognised_key_needs_a_cloud_provider`<br>`tests/api/test_spec005_katia_api.py::test_spec005_a_students_key_goes_only_to_its_provider`<br>`frontend/e2e/katia-chat.spec.ts › KatIA › en el mapa usa la key y el proveedor del estudiante` |
+| FR-030 | `tests/unit/infrastructure/test_spec005_katia_tutor.py::test_spec005_a_failure_carries_a_code_and_never_the_key`<br>`tests/api/test_spec005_katia_api.py::test_spec005_a_provider_failure_never_shows_the_key`<br>`tests/api/test_spec005_katia_api.py::test_spec005_an_invalid_system_provider_disables_katia` |
+| FR-031 | `tests/unit/infrastructure/test_spec005_katia_tutor.py::test_spec005_the_model_is_asked_for_the_configured_output_limit`<br>`tests/api/test_spec005_katia_api.py::test_spec005_the_model_is_asked_for_120_output_tokens` |
+| FR-032 | `tests/unit/domain/test_spec005_guardrails.py::test_spec005_cut_off_reply_keeps_complete_sentences`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_a_period_inside_math_does_not_end_a_sentence`<br>`tests/unit/infrastructure/test_spec005_katia_tutor.py::test_spec005_a_reply_cut_by_the_limit_is_flagged`<br>`tests/unit/infrastructure/test_spec005_katia_tutor.py::test_spec005_anthropic_replies_report_truncation`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_a_cut_off_reply_keeps_its_complete_sentences`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_a_cut_off_reply_with_no_complete_sentence_becomes_a_hint`<br>`tests/api/test_spec005_katia_api.py::test_spec005_a_cut_off_reply_shows_its_complete_sentences` |
+| FR-033 | `tests/api/test_rate_limit.py::test_socratic_rate_limit_is_enforced_per_access_token` |
+| FR-034 | `tests/unit/application/test_spec005_katia_service.py::test_spec005_a_serving_closes_after_its_turns`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_english_conversations_get_english_reviewed_texts`<br>`tests/api/test_spec005_katia_api.py::test_spec005_a_serving_closes_after_twelve_turns` |
+| FR-035 | `tests/api/test_ai_errors_and_scores.py::test_a_provider_failure_is_not_katias_reply`<br>`tests/api/test_ai_errors_and_scores.py::test_an_unexpected_failure_shows_no_internal_detail`<br>`tests/api/test_ai_errors_and_scores.py::test_a_reply_is_streamed_and_saved`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_a_model_failure_stores_nothing`<br>`tests/api/test_spec005_katia_api.py::test_spec005_a_model_failure_is_an_error_event_and_stores_nothing` |
+| FR-036 | `frontend/e2e/katia-chat.spec.ts › KatIA › un rechazo se explica en el chat: exam_active`<br>`frontend/e2e/katia-chat.spec.ts › KatIA › un rechazo se explica en el chat: not_served`<br>`frontend/e2e/katia-chat.spec.ts › KatIA › un rechazo se explica en el chat: not_enrolled`<br>`frontend/e2e/katia-chat.spec.ts › KatIA › un rechazo se explica en el chat: message_too_long`<br>`frontend/e2e/katia-chat.spec.ts › KatIA › un rechazo se explica en el chat: 429`<br>`frontend/e2e/katia-chat.spec.ts › KatIA › en inglés, el rechazo del examen se explica en inglés` |
+| FR-037 | `tests/integration/test_spec005_katia_store.py::test_spec005_turns_are_read_by_serving_with_their_outcome`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_flagged_messages_get_a_reviewed_redirect`<br>`tests/api/test_spec005_katia_api.py::test_spec005_the_model_gets_the_stores_exercise_and_no_key` |
+| US1-AS1 | `tests/api/test_spec005_katia_api.py::test_spec005_the_model_gets_the_stores_exercise_and_no_key`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_before_an_answer_the_model_gets_no_key` |
+| US1-AS2 | `tests/api/test_spec005_katia_api.py::test_spec005_successive_options_get_the_same_redirect_whichever_is_correct`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_proposing_each_option_gets_the_same_reply_whichever_is_correct` |
+| US1-AS3 | `tests/api/test_spec005_katia_api.py::test_spec005_requests_for_the_answer_and_overrides_never_reach_the_model`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_requests_for_the_answer_are_redirected` |
+| US1-AS4 | `tests/api/test_spec005_katia_api.py::test_spec005_requests_for_the_answer_and_overrides_never_reach_the_model`<br>`tests/unit/domain/test_spec005_guardrails.py::test_spec005_instruction_overrides_are_recognised` |
+| US1-AS5 | `tests/api/test_spec005_katia_api.py::test_spec005_a_revealing_reply_is_replaced_before_anyone_sees_it`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_a_revealing_reply_is_replaced_and_never_stored` |
+| US1-AS6 | `tests/api/test_spec005_katia_api.py::test_spec005_a_multi_turn_conversation_cannot_assemble_the_solution`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_equations_accumulated_in_the_serving_reject_the_reply`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_after_three_flagged_turns_only_reviewed_hints` |
+| US2-AS1 | `tests/api/test_spec005_katia_api.py::test_spec005_after_answering_this_serving_the_key_is_a_reference` |
+| US2-AS2 | `tests/api/test_spec005_katia_api.py::test_spec005_an_answer_to_an_earlier_serving_unlocks_nothing`<br>`tests/integration/test_spec005_katia_store.py::test_spec005_a_serving_is_answered_only_by_a_later_attempt` |
+| US2-AS3 | `tests/api/test_spec005_katia_api.py::test_spec005_after_answering_a_revealing_reply_is_still_replaced` |
+| US3-AS1 | `tests/api/test_spec005_katia_api.py::test_spec005_the_model_gets_the_stores_exercise_and_no_key` |
+| US3-AS2 | `tests/api/test_spec005_katia_api.py::test_spec005_a_course_the_student_is_not_enrolled_in_is_forbidden` |
+| US3-AS3 | `tests/api/test_spec005_katia_api.py::test_spec005_an_item_never_served_is_a_conflict` |
+| US3-AS4 | `tests/api/test_spec005_katia_api.py::test_spec005_unknown_item_is_not_found` |
+| US3-AS5 | `tests/api/test_spec005_katia_api.py::test_spec005_an_over_long_message_is_refused` |
+| US3-AS6 | `tests/api/test_spec005_katia_api.py::test_spec005_the_model_sees_at_most_the_configured_history`<br>`tests/unit/application/test_spec005_katia_service.py::test_spec005_history_is_the_servings_latest_accepted_turns` |
+| US4-AS1 | `tests/api/test_spec005_katia_api.py::test_spec005_an_open_exams_item_is_refused_from_any_screen`<br>`tests/integration/test_spec005_katia_store.py::test_spec005_open_exam_items_are_those_neither_submitted_nor_expired` |
+| US4-AS2 | `tests/api/test_spec005_katia_api.py::test_spec005_after_the_exam_katia_answers_again` |
+| US4-AS3 | `frontend/e2e/katia-chat.spec.ts › KatIA › el examen no ofrece KatIA` |
+| US5-AS1 | `tests/api/test_spec005_katia_api.py::test_spec005_the_system_key_goes_where_the_server_says`<br>`tests/unit/infrastructure/test_spec005_katia_tutor.py::test_spec005_system_key_goes_where_the_server_says` |
+| US5-AS2 | `tests/api/test_spec005_katia_api.py::test_spec005_an_invalid_system_provider_disables_katia`<br>`tests/unit/infrastructure/test_spec005_katia_tutor.py::test_spec005_an_invalid_system_configuration_sends_the_key_nowhere` |
+| US5-AS3 | `tests/api/test_spec005_katia_api.py::test_spec005_a_students_key_goes_only_to_its_provider`<br>`tests/unit/infrastructure/test_spec005_katia_tutor.py::test_spec005_a_students_key_goes_only_to_its_provider`<br>`tests/unit/infrastructure/test_spec005_katia_tutor.py::test_spec005_a_students_unrecognised_key_needs_a_cloud_provider` |
+| US5-AS4 | `tests/api/test_spec005_katia_api.py::test_spec005_a_provider_failure_never_shows_the_key`<br>`tests/unit/infrastructure/test_spec005_katia_tutor.py::test_spec005_a_failure_carries_a_code_and_never_the_key` |
+| US6-AS1 | `tests/api/test_spec005_katia_api.py::test_spec005_the_model_is_asked_for_120_output_tokens` |
+| US6-AS2 | `tests/api/test_spec005_katia_api.py::test_spec005_a_cut_off_reply_shows_its_complete_sentences` |
+| US6-AS3 | `tests/api/test_rate_limit.py::test_socratic_rate_limit_is_enforced_per_access_token`<br>`frontend/e2e/katia-chat.spec.ts › KatIA › un rechazo se explica en el chat: 429` |
+| US6-AS4 | `tests/api/test_spec005_katia_api.py::test_spec005_a_serving_closes_after_twelve_turns` |
+| US6-AS5 | `frontend/e2e/katia-chat.spec.ts › KatIA › un rechazo se explica en el chat: exam_active`<br>`frontend/e2e/katia-chat.spec.ts › KatIA › un rechazo se explica en el chat: not_served`<br>`frontend/e2e/katia-chat.spec.ts › KatIA › un rechazo se explica en el chat: not_enrolled`<br>`frontend/e2e/katia-chat.spec.ts › KatIA › un rechazo se explica en el chat: message_too_long`<br>`frontend/e2e/katia-chat.spec.ts › KatIA › un rechazo se explica en el chat: 429`<br>`frontend/e2e/katia-chat.spec.ts › KatIA › en inglés, el rechazo del examen se explica en inglés` |
 
 ## Appendix — As-is evidence
 

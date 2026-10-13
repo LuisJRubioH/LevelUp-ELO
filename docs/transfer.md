@@ -69,7 +69,7 @@ wrong):
 | `RATE_LIMIT_STORAGE_URI` | shared Redis/Valkey URI; `memory://` is refused in production |
 | `SUPABASE_URL`, `SUPABASE_KEY` | Storage for the **private** bucket `procedimientos` (images are served as bytes, never by public URL) |
 | `ADMIN_USER`, `ADMIN_PASSWORD` | seed of the administrator account (only created if the password is set) |
-| `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_STUDENT_ANALYSIS`, `AI_KEY_TEACHER_ANALYSIS` |
+| `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_STUDENT_ANALYSIS`, `AI_KEY_TEACHER_ANALYSIS`. If `SYSTEM_AI_PROVIDER` is set, it must name the provider of the key KatIA uses (spec 005 FR-028): otherwise KatIA answers 503 and logs `provider_mismatch` |
 | `DATABASE_SSLMODE`, `LOG_LEVEL` | optional |
 
 Frontend (build time): `VITE_API_URL` = the API's public origin. **Never** put a secret in a

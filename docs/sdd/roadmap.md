@@ -51,7 +51,7 @@ analyze → implement. If it contradicts a principle, `/speckit-constitution` fi
 | **002** | Persistence | repository contract, SQLite/Postgres parity, migrations (additive), pool, locks, storage paths | 6 |
 | **003** | Learning path | course map, 11-block nodes, unlock chain, misconception tags, diagnostic gating | 6 |
 | 004 | Identity & access | JWT/refresh, roles, teacher approval, groups, admin, test users; changing a student's grade (promotion); takes over spec 001 FR-028m (registration and enrolment rules) | 4 |
-| 005 | AI integration | provider detection, key precedence, KatIA socratic guardrails, procedure review | 4 |
+| 005 | AI integration | provider detection, key precedence, KatIA socratic guardrails, procedure review — **started 2026-10-13 by the owner's block 6** (KatIA's V2 chat; spec on touch) | 4 |
 | 006 | Teacher console & exams | dashboard metrics, exports, exam mode, procedure grading flow | 5 |
 | 007 | PvP leagues | lobby, match lifecycle, single-process constraint (ELO effect lives in 001) | 4 |
 | 008 | Item bank | JSON schema, validation, course→block map, calibration | 4 |
