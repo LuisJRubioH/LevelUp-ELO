@@ -153,36 +153,6 @@ data):
 - **Rank names differ by design** (spec 001 research R16: V1 keeps its own labels). The same 917
   reads "Punto de Partida" in V1 and "Plata II" in V2.
 
-### 3.2 Rate limits: their store and the client's address
-
-The API limits login and registration (`RATE_LIMIT_AUTH`, 20/minute) and the AI routes
-(`RATE_LIMIT_SOCRATIC`, `RATE_LIMIT_REVIEW`). Its counters live in `RATE_LIMIT_STORAGE_URI`.
-
-- **What the store holds**: one counter per key and window, expiring with the window — keyed by
-  the caller's address for login and registration, by token (by account after
-  LuisJRubioH/LevelUp-ELO#33) for the AI routes. No password, token, name or answer.
-- **Which store**: any Redis-protocol server the API reaches — a Render Key Value instance in the
-  API's region (its *internal* URL, `redis://…:6379`) or an external one over TLS (`rediss://…`).
-  The URI carries a password: it goes only in Render's environment (`render.yaml` declares it
-  `sync: false`), never in the repository or a chat.
-- **If the store stops answering**: today every limited route answers 500, so nobody can sign in.
-  With LuisJRubioH/LevelUp-ELO#59 the limits are counted in the process's memory until the store
-  answers again (same limit with one process).
-- **Which address the limits see.** uvicorn trusts `X-Forwarded-For` only from `127.0.0.1` unless
-  `FORWARDED_ALLOW_IPS` says otherwise, and the start command sets neither. Behind Render's proxy
-  every request may therefore be counted under the proxy's address: the 20 logins per minute
-  would be shared by every user, and a class of more than 20 signing in within the same minute
-  would get 429. Trusting every proxy instead (`FORWARDED_ALLOW_IPS='*'`) counts the left-most
-  `X-Forwarded-For` entry, which a client can write if the proxy appends to the header rather
-  than replacing it — reported for Render, not verified here. Both behaviours were reproduced
-  locally with uvicorn 0.53; spec 004 part A (limits per account) removes the dependence on the
-  address. **Check it after the switch, outside class hours:** from one network (for example a
-  phone's mobile data) send 21 logins within a minute with a username that does not exist; within
-  the same minute, try one login from another network. A 429 on the second network means the
-  limit is shared. Until part A ships, raising `RATE_LIMIT_AUTH` in Render (for example
-  `300/minute`) lets a class sign in at the cost of a weaker cap on password guessing — the
-  owner's call.
-
 ## 4. Backups (before any migration)
 
 1. **Database:** a full logical dump of the final database over a direct connection:
