@@ -8,6 +8,9 @@ sentences (FR-032). Spanish and English throughout. These are heuristics with do
 (spec § Known limits): the tests prove the rules as written, not a guarantee.
 """
 
+import json
+from pathlib import Path
+
 import pytest
 
 from src.domain.katia.guardrails import (
@@ -293,3 +296,50 @@ def test_spec005_cut_off_reply_keeps_complete_sentences():
 
 def test_spec005_a_period_inside_math_does_not_end_a_sentence():
     assert trim_to_sentences("Mira $0.5 + x$ y luego") == ""
+
+
+# ── K4 measured over the whole bank, not assumed from examples ───────────────
+
+_BANK = Path(__file__).resolve().parents[3] / "items" / "bank"
+
+
+def _bank_items():
+    for path in sorted(_BANK.rglob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        for row in data if isinstance(data, list) else data.get("items", []):
+            if isinstance(row, dict) and row.get("options") and row.get("correct_option"):
+                yield row
+
+
+def test_spec005_the_checks_hold_over_every_bank_item():
+    """For every item: neutral Socratic replies and quotes of the statement pass, genuine
+    questions reach the model, proposing the key is recognised and stating it is rejected.
+
+    The probe that found two false-positive sources (adverbs such as "exactly" read as verdicts;
+    prose options matched without spaces, so "en un caso" contained "Nunca")."""
+    neutral = (
+        "¿Qué te pide exactamente el enunciado y qué datos tienes? Piensa en la definición.",
+        "Purrr, buena pregunta. ¿Qué concepto del tema se relaciona con lo que te piden? "
+        "Escríbelo con tus palabras y piensa en un caso sencillo.",
+        "What exactly does the statement ask, and what data do you have?",
+    )
+    genuine = ("No sé por dónde empezar", "No entiendo el enunciado, ¿me lo explicas?")
+    failures = []
+    count = 0
+    for item in _bank_items():
+        count += 1
+        facts = ItemFacts(item["content"], tuple(item["options"]), item["correct_option"])
+        quote = f"Releamos el enunciado: {item['content']} ¿Qué te piden encontrar?"
+        for reply in neutral + (quote,):
+            if inspect_reply(reply, facts):
+                failures.append((item["id"], "reply", reply[:30], inspect_reply(reply, facts)))
+        for message in genuine:
+            if inspect_message(message, facts):
+                failures.append((item["id"], "message", message))
+        if PROPOSES_OPTION not in inspect_message(f"¿Es {item['correct_option']}?", facts):
+            failures.append((item["id"], "proposal missed"))
+        if not inspect_reply(f"La respuesta es {item['correct_option']}.", facts):
+            failures.append((item["id"], "stated key passed"))
+
+    assert count > 2000
+    assert failures == []

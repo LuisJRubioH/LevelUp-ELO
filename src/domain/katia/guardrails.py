@@ -19,6 +19,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from fractions import Fraction
+from functools import lru_cache
 
 # ── Reason codes ─────────────────────────────────────────────────────────────
 
@@ -155,6 +156,9 @@ class _Option:
     compact: str
     value: Fraction | None
     in_statement: bool
+    # Notation (digits, symbols, LaTeX) compares without spaces; prose compares word by word —
+    # without spaces "en un caso" would contain the option "Nunca".
+    math: bool
 
     @property
     def short(self) -> bool:
@@ -165,25 +169,32 @@ class _Option:
         return self.value is None and self.compact.isalpha()
 
 
-def _options(facts: ItemFacts) -> tuple[list[_Option], _Option]:
+@lru_cache(maxsize=256)
+def _options(facts: ItemFacts) -> tuple[tuple[_Option, ...], _Option]:
     statement_light = _light(facts.statement)
     statement_compact = _compact(facts.statement)
     built = []
     correct = None
     for text in facts.options:
-        light, compact = _light(text), _compact(text)
-        if len(compact) <= SHORT_OPTION:
-            in_statement = _token_in(light, statement_light)
-        else:
-            in_statement = compact in statement_compact
-        option = _Option(light, compact, _option_value(text), in_statement)
-        built.append(option)
+        built.append(_option(text, statement_light, statement_compact))
         if text == facts.correct_option:
-            correct = option
+            correct = built[-1]
     if correct is None:
-        light = _light(facts.correct_option)
-        correct = _Option(light, _compact(facts.correct_option), None, False)
-    return built, correct
+        correct = _option(facts.correct_option, statement_light, statement_compact)
+    return tuple(built), correct
+
+
+_NOTATION = re.compile(r"[\d=+\-*/^_\\()<>|$]")
+
+
+def _option(text: str, statement_light: str, statement_compact: str) -> _Option:
+    light, compact = _light(text), _compact(text)
+    math = bool(_NOTATION.search(text))
+    if math and len(compact) > SHORT_OPTION:
+        in_statement = compact in statement_compact
+    else:
+        in_statement = _token_in(light, statement_light)
+    return _Option(light, compact, _option_value(text), in_statement, math)
 
 
 def _token_pattern(light: str) -> str:
@@ -208,9 +219,9 @@ def _mentions(option: _Option, light: str, compact: str, *, cue_for_words: bool)
     """Whether the text names this option (statement occurrences never count)."""
     if option.in_statement or not option.compact:
         return False
-    if not option.short:
+    if option.math and not option.short:
         return option.compact in compact
-    if option.is_word and cue_for_words:
+    if option.is_word and option.short and cue_for_words:
         return _with_cue(option.light, light) or _whole_message_is(option.light, light)
     return _token_in(option.light, light)
 
@@ -240,12 +251,19 @@ _LETTER_PROPOSAL = re.compile(
     r"|^\W*[a-f]\W*$"
 )
 
+# A verdict on a proposal (FR-013). Common words that only confirm as a sentence of their own
+# ("¡Exacto!", "Correcto.", "Perfect,") are matched only there: "el valor exacto", "the correct
+# rule" or "what exactly does it ask?" are not verdicts.
 _VERDICTS = re.compile(
-    r"\b(?:correct[oa]s?|incorrect[oa]s?|acertaste|has acertado|acertad[oa]|exact[oa]|exactamente|"
-    r"asi es|eso es|tienes razon|estas en lo cierto|vas (?:muy )?bien|buen camino|bien hecho|"
-    r"muy bien|perfecto|te equivocaste|equivocad[oa]|no es esa|esa no es|esa no|"
-    r"correct|incorrect|right answer|you'?re right|you are right|that'?s right|exactly|that'?s it|"
-    r"well done|wrong|not quite|right track|spot on|nailed it|good job|great job|perfect)\b"
+    r"\b(?:es (?:la )?correct[oa]|es (?:la )?incorrect[oa]|son correct[oa]s|son incorrect[oa]s|"
+    r"esta (?:bien|mal)|estas en lo cierto|acertaste|has acertado|acertad[oa]|tienes razon|"
+    r"vas (?:muy )?bien|buen camino|bien hecho|muy bien|te equivocaste|equivocad[oa]|"
+    r"no es esa|esa no es|"
+    r"is (?:the )?(?:correct|incorrect|right|wrong)|you'?re right|you are right|that'?s right|"
+    r"that'?s (?:correct|wrong|incorrect)|right answer|wrong answer|right track|not quite|"
+    r"spot on|nailed it|good job|great job|well done)\b"
+    r"|(?:^|[.!?¡¿]\s*)(?:correct[oa]|incorrect[oa]|exact[oa]|perfect[oa]|asi es|eso es|esa no|"
+    r"correct|incorrect|exactly|perfect|right|wrong|that'?s it|yes|si|no)\s*[!.,;:]"
 )
 _SOLUTION_MARKERS = re.compile(
     r"\b(?:paso\s*\d|step\s*\d|la respuesta (?:correcta )?es|la solucion es|el resultado es|"
@@ -299,12 +317,11 @@ def inspect_message(message: str, facts: ItemFacts) -> tuple[str, ...]:
     for option in options:
         if proposes:
             break
-        if option.in_statement:
-            continue
-        if option.short:
+        if option.in_statement or option.short:
+            # Text the statement also contains counts only as a proposal: "¿es 4?", "da 4", "4".
             proposes = _with_cue(option.light, light) or _whole_message_is(option.light, light)
         else:
-            proposes = option.compact in compact
+            proposes = _mentions(option, light, compact, cue_for_words=True)
         if not proposes and option.value is not None and option.value not in statement_values:
             proposes = _proposed_value(option.value, light)
     if proposes:
@@ -325,10 +342,12 @@ def _proposed_value(value: Fraction, light: str) -> bool:
 # ── Model replies ────────────────────────────────────────────────────────────
 
 
-def _equations(text: str, statement_compact: str) -> int:
-    """`=` signs outside segments that quote the statement."""
+def _equations(text: str, statement: str) -> int:
+    """`=` signs outside the statement's own text and outside math quoted from it."""
+    statement_compact = _compact(statement)
+    folded = _without_statement(_fold(text), _fold(statement))
     count = 0
-    for segment in re.split(r"[.;?!\n]|\s(?:y|luego|asi|entonces|and|then|so)\s", _fold(text)):
+    for segment in re.split(r"[.;?!\n]|\s(?:y|luego|asi|entonces|and|then|so)\s", folded):
         for piece in re.split(r"\$", segment):
             if "=" not in piece:
                 continue
@@ -340,6 +359,16 @@ def _equations(text: str, statement_compact: str) -> int:
     return count
 
 
+def _without_statement(light: str, statement_light: str) -> str:
+    """The reply's light text with the statement, and each of its sentences, taken out."""
+    text = light.replace(statement_light, " ") if statement_light else light
+    for sentence in re.split(r"(?<=[.?!])\s+", statement_light):
+        sentence = sentence.strip(" ¿?¡!.,")
+        if len(sentence) >= 12:
+            text = text.replace(sentence, " ")
+    return text
+
+
 def inspect_reply(
     reply: str, facts: ItemFacts, accepted_replies: list[str] | tuple[str, ...] = ()
 ) -> tuple[str, ...]:
@@ -348,14 +377,15 @@ def inspect_reply(
     compact = _compact(reply)
     options, correct = _options(facts)
     statement_values = _values(_light(facts.statement))
-    statement_compact = _compact(facts.statement)
     reasons = set()
 
     if _mentions(correct, light, compact, cue_for_words=True):
         reasons.add(ANSWER_TEXT)
     if _mentions_value(correct, light, statement_values):
         reasons.add(ANSWER_VALUE)
-    if _POSITION.search(light):
+    # Quoting the statement neither names a position nor passes a verdict.
+    own_words = _without_statement(light, _light(facts.statement))
+    if _POSITION.search(own_words):
         reasons.add(OPTION_POSITION)
     for option in options:
         if option is correct or option.compact == correct.compact:
@@ -373,12 +403,12 @@ def inspect_reply(
             _NEGATIONS + r"\s+(?:la\s+|el\s+)?" + re.escape(option.light), light
         ):
             reasons.add(ELIMINATION)
-    if _VERDICTS.search(light):
+    if _VERDICTS.search(own_words):
         reasons.add(VERDICT)
-    equations = _equations(reply, statement_compact)
-    if _SOLUTION_MARKERS.search(light) or equations >= SOLUTION_EQUATIONS:
+    equations = _equations(reply, facts.statement)
+    if _SOLUTION_MARKERS.search(own_words) or equations >= SOLUTION_EQUATIONS:
         reasons.add(SOLUTION)
-    earlier = sum(_equations(text, statement_compact) for text in accepted_replies)
+    earlier = sum(_equations(text, facts.statement) for text in accepted_replies)
     if accepted_replies and earlier + equations >= ACCUMULATED_EQUATIONS:
         reasons.add(ACCUMULATED_SOLUTION)
     return tuple(sorted(reasons))
