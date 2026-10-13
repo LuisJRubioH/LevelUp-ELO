@@ -990,11 +990,15 @@ def diagnostic_status(course_id: str, user: CurrentUser, repo: RepoDep, redo: bo
     _require_enrolment(StudentService(repository=repo), user["user_id"], course_id)
     existing = repo.get_diagnostic(user["user_id"], course_id)
     if existing and not redo:
+        stored = {
+            **existing["result"],
+            "initial_elo": existing["initial_elo"],
+            "score_pct": existing["score_pct"],
+        }
         return DiagnosticStatusResponse(
             completed=True,
             course_id=course_id,
-            result={**existing["result"], "initial_elo": existing["initial_elo"],
-                    "score_pct": existing["score_pct"]},
+            result=_diagnostic_result_view(repo, user["user_id"], course_id, stored),
         )
 
     items = _build_standard_exam(repo, course_id, _DIAG_N)
@@ -1057,7 +1061,8 @@ def diagnostic_submit(
         elos.append(elo)
         # Un nuevo diagnóstico puede medir progreso, pero nunca reinicia una
         # línea ELO que ya contiene práctica real del alumno.
-        if not repo.has_practice_attempts(user["user_id"], course_id, topic):
+        initialized = not repo.has_practice_attempts(user["user_id"], course_id, topic)
+        if initialized:
             repo.set_topic_rating_baseline(user["user_id"], course_id, topic, elo)
         ratio = t["correct"] / t["total"] if t["total"] else 0.0
         status = "strong" if ratio >= 0.67 else "mid" if ratio >= 0.34 else "gap"
@@ -1069,6 +1074,7 @@ def diagnostic_submit(
                 "ratio": round(ratio, 2),
                 "status": status,
                 "elo": elo,
+                "outcome": "initialized" if initialized else "kept",  # FR-020c
             }
         )
 
@@ -1089,14 +1095,40 @@ def diagnostic_submit(
         user["user_id"], course_id, initial_elo, score_pct, _json.dumps(result_payload)
     )
 
+    view = _diagnostic_result_view(repo, user["user_id"], course_id, result_payload)
     return DiagnosticResultResponse(
         initial_elo=initial_elo,
         score_pct=score_pct,
         league=league,
-        themes=themes,
+        themes=view["themes"],
         correct_total=correct_total,
         answered=answered,
+        course_rating=view["course_rating"],
+        outcome_summary=view["outcome_summary"],
     )
+
+
+def _diagnostic_result_view(repo, user_id: int, course_id: str, result: dict) -> dict:
+    """A diagnostic result as the screen shows it (spec 001 FR-020a–c, FR-031a): the course's
+    current rating as the one figure, and that diagnostic's per-topic breakdown with each topic's
+    initialized/kept mark and the outcome of them all. A result stored before the mark existed
+    has none (`outcome` and `outcome_summary` None)."""
+    themes = [{**theme, "outcome": theme.get("outcome")} for theme in result.get("themes", [])]
+    outcomes = {theme["outcome"] for theme in themes}
+    if not themes or None in outcomes:
+        summary = None
+    elif len(outcomes) == 1:
+        summary = outcomes.pop()  # "initialized" or "kept"
+    else:
+        summary = "mixed"
+    return {
+        **result,
+        "themes": themes,
+        "outcome_summary": summary,
+        "course_rating": StudentService(repository=repo).ratings.course_rating_view(
+            user_id, course_id
+        ),
+    }
 
 
 # ── Mapa de contenido ─────────────────────────────────────────────────────────

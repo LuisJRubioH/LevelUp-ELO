@@ -256,13 +256,16 @@ class DiagnosticSubmitRequest(BaseModel):
 
 
 class DiagnosticResultResponse(BaseModel):
+    # The diagnostic's own estimate and placement league: a record, never shown (FR-020a, FR-031a).
     initial_elo: float
     score_pct: float
     league: dict
-    themes: list[dict]
+    themes: list[dict]  # breakdown + `outcome` per topic: "initialized" | "kept" (FR-020b, c)
     correct_total: int
     answered: int
     completed: bool = True
+    course_rating: dict | None = None  # the one figure shown: the current rating (FR-020a)
+    outcome_summary: str | None = None  # "initialized" | "kept" | "mixed" (FR-020c)
 
 
 # ── Mapa de contenido (nodos = tópicos del curso) ─────────────────────────────

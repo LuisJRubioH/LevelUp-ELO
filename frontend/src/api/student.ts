@@ -115,7 +115,16 @@ export interface DiagnosticTheme {
   total: number;
   ratio: number;
   status: "strong" | "mid" | "gap";
+  /** The diagnostic's own value for the topic: a record, never shown (spec 001 FR-020a, FR-020b). */
   elo: number;
+  /** What this diagnostic did to the topic; null for a result stored before the mark (FR-020c). */
+  outcome?: "initialized" | "kept" | null;
+}
+/** The student's current rating in the course (spec 001 FR-020a). */
+export interface DiagnosticCourseRating {
+  display_rating: number | null;
+  rank_label: string | null;
+  status: "rated" | "pending_diagnostic";
 }
 export interface DiagnosticLeague {
   name: string;
@@ -131,6 +140,9 @@ export interface DiagnosticResult {
   correct_total: number;
   answered: number;
   completed?: boolean;
+  course_rating?: DiagnosticCourseRating | null;
+  /** All topics initialized, all kept, or some of each; null when unknown (FR-020c). */
+  outcome_summary?: "initialized" | "kept" | "mixed" | null;
 }
 export interface DiagnosticStatus {
   completed: boolean;
