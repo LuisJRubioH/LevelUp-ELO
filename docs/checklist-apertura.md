@@ -16,7 +16,7 @@ Trasladado de la rama `claude/great-mayer-4617ix` (commit `13d4f76`, que lo aña
   ([`transfer.md`](transfer.md) § 3.1) y reconectarla es una decisión aparte. Si se decide no
   volver a usarla, borrar la app o, como mínimo, revocar la `GROQ_API_KEY` de sus Secrets. Si se
   reconecta, su formulario de registro sigue abierto
-  ([spec 004](../specs/004-identity/spec.md) § Assumptions).
+  ([spec 004](../specs/004-identity/spec.md) § Edge Cases).
 
 ## Retirado en la revisión
 
@@ -25,5 +25,5 @@ Trasladado de la rama `claude/great-mayer-4617ix` (commit `13d4f76`, que lo aña
   `RATE_LIMIT_SOCRATIC`), a la revisión de procedimientos (`api/routers/ai.py:148` y
   `api/routers/student.py:536`, `RATE_LIMIT_REVIEW`), al análisis con IA del docente
   (`api/routers/teacher.py:302`) y al login y el registro (`api/routers/auth.py:39,80`). Lo que
-  falta sobre límites —por cuenta en el login y la dirección que ve la API detrás del proxy de
-  Render— está en la [spec 004](../specs/004-identity/spec.md), parte A.
+  falta sobre límites —por cuenta y global en el login, sin límite por dirección— está en la
+  [spec 004](../specs/004-identity/spec.md), entrega E1.

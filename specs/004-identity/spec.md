@@ -4,482 +4,341 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft — `/speckit-specify` of the approved part of the owner's block 4, for review.
-Nothing here is implemented yet.
+**Status**: Draft — `/speckit-specify` + owner decisions of 2026-10-13, for review. Requirements
+of delivery E1 only; nothing implemented yet.
 
-**Input**: The owner's block 4 (import of students from a Google Forms export in Excel or CSV,
-temporary accounts, credentials, expiration and access limits — brief §1–§7) with the owner's
-decisions; the review of that brief against `redesign @ 1d6fcf6` (2026-10-12); and the as-is
-survey `docs/sdd/identity-survey.md` (LuisJRubioH/LevelUp-ELO#37), whose findings are cited as
-I1 … I19.
+**Input**: The owner's block 4 (students enrolled through Google Forms and imported by the admin,
+temporary accounts, credentials, expiration, access limits) and the owner's decisions of
+2026-10-13; the review of block 4 against `redesign @ 1d6fcf6` (2026-10-12); the as-is survey
+`docs/sdd/identity-survey.md` (LuisJRubioH/LevelUp-ELO#37), whose findings are cited as I1 … I19.
 
-**Outcome served** (constitution VIII): the school, not the public, decides who has an account.
-A student receives a working account without having to sign up or invent a password, keeps it
-only for as long as the school intends, and is shown to classmates by name, never by
-identification number. Teachers can then trust that the students they see are their students.
+**Outcome served** (constitution VIII): the school, not the public, decides who has an account. A
+student receives a working account without signing up or inventing a password, keeps it only
+until the date the school sets, and is shown to classmates by a name, never by identification
+number. Teachers can trust that the students they see are their students.
 
 This is the first time a feature touches identity, so under the roadmap's lean scope this spec
-covers only what block 4 changes. The rest of the roadmap's spec 004 area (§ Out of Scope) enters
-by amendment when a feature needs it.
+covers only block 4. The rest of the roadmap's spec 004 area (§ Out of Scope) enters by amendment
+when a feature needs it.
 
 ## Code Scope *(mandatory)*
 
-The code whose behaviour this spec defines. A pull request that changes any of these paths, or a
-test file cited in § Traceability, is a code change for this spec whatever its branch. An entry
-ending in `/` covers everything below it. Paths shared with spec 001 belong to both.
+The code whose behaviour this spec defines **so far** (delivery E1). A pull request that changes
+any of these paths, or a test file cited in § Traceability, is a code change for this spec
+whatever its branch. Each later delivery's amendment adds the files it changes (§ Deliveries).
 
-- `api/routers/auth.py` — login, self-registration, password change
-- `api/schemas/auth.py`
+- `api/routers/auth.py` — login and self-registration
 - `api/rate_limit.py` — login limits
-- `api/dependencies.py` — the per-request account check that expiration relies on
-- `api/routers/admin.py` — account creation and import
-- `api/routers/student.py` — names in the group ranking and the PvP history
-- `api/websocket/pvp.py` — the rival's name
-- `src/application/interfaces/repositories.py`
-- `src/infrastructure/persistence/` — accounts in both repositories
-- `frontend/src/api/auth.ts`
+- `api/config.py` — the limit settings
 - `frontend/src/pages/Login.tsx`
-- `frontend/src/pages/Admin/Users.tsx`
-- `frontend/src/pages/Student/Stats.tsx`
-- `frontend/src/pages/Student/League.tsx`
-- `frontend/src/hooks/usePvpMatch.ts`
+- `frontend/src/api/auth.ts`
 
-Each part adds the files it creates (§ Delivery).
+## Deliveries *(mandatory for this spec)*
 
-## Delivery in four parts *(read first)*
+Block 4 is delivered in four steps. Every step follows the project's rules unchanged: its
+requirements and scenarios enter this spec as checked IDs (bold, each with a § Traceability row)
+in a docs pull request, where rows may say `PENDING`; its code pull request then replaces every
+`PENDING` row with tests that exist and pass. Only **E1** has requirements in this version. The
+owner decisions behind E2–E4 are recorded now in § Clarifications; their requirements are written
+in each step's amendment, after its pending decisions (§ Pending Owner Decisions) are settled.
 
-The traceability check rejects **all** of a spec's `PENDING` rows on every code pull request for
-that spec (AGENTS.md § Spec-driven development: "the check is per spec, not per row"). A spec with
-four parts written as checked requirements would therefore block part A's code until part D's
-tests existed, and would block every other pull request that touches the shared files above.
+| Step | Content | Decisions it implements | Order rule |
+|---|---|---|---|
+| **E1** | Self-registration closed on the server; login limits per account and global | 6 | Needed for the switch (LuisJRubioH/LevelUp-ELO#3). Creates no account. |
+| **E2** | Display name in every view between students; password change; a password change or reset ends the account's other sessions | 2 (change), 5 | Must be in production before any real student is created (decision 5). |
+| **E3** | Temporary student accounts: individual creation by the admin (identification as username and initial password, mandatory expiration); expiration enforced; admin changes or extends it | 2, 4 | Not merged before E2 is in production. |
+| **E4** | Import from a Google Forms export (`.xlsx`, `.csv`): column mapping, destination group and expiration, preview, confirmation, re-import without changes, audit | 1, 3 | After E3, whose creation rules it reuses. |
 
-So this spec states every approved requirement now, for one review, but each part's requirements
-and scenarios become **checked** — bold ID and a § Traceability row — in the pull request that
-implements that part, together with its tests. Until then they are written with plain IDs
-(`FR-001`, `US1-AS1`), which the check does not read. The IDs are final: activating a part only
-makes them bold and adds their rows.
-
-| Part | Content | Brief | Requirements | State |
-|---|---|---|---|---|
-| A | Self-registration closed; accounts created by the admin; login limits per account | §5, §6 | US1, US2 · FR-001 … FR-014 | planned |
-| B | Account expiration | §4 | US3 · FR-015 … FR-019 | planned |
-| C | Display name between students; password change | — | US4, US5 · FR-020 … FR-026 | planned |
-| D | Import from a Google Forms export: column mapping, preview, confirmation, audit | §1–§3 | US6 · FR-027 … FR-036 | planned |
-
-Part A is what the switch to the redesign needs (LuisJRubioH/LevelUp-ELO#3): with the redesign in
-production, today's public sign-up is open to anyone. Each part's tests run on SQLite and
-PostgreSQL (brief §7, SC-001).
-
-**Order constraint.** Until part C is in production, a student created with the identification as
-username appears by that username in rankings and PvP. Real students are therefore created —
-individually or by import — only once part C is in production, or parts A and C ship together;
-until then, part A's individual creation serves teachers and test accounts.
+**One amendment in flight at a time.** The traceability check rejects every `PENDING` row of this
+spec on any pull request that changes its Code Scope (AGENTS.md § Spec-driven development). E1's
+scope is identity files only, so while E1 is in flight it blocks only identity work, which should
+merge first (LuisJRubioH/LevelUp-ELO#33, LuisJRubioH/LevelUp-ELO#35, LuisJRubioH/LevelUp-ELO#38,
+LuisJRubioH/LevelUp-ELO#24 touch these files). E3 and E4 must add both repositories to the Code
+Scope; while either is in flight, every pull request that touches a repository would fail, whatever
+its spec. How to avoid blocking unrelated work then is decision P13.
 
 ## Clarifications
 
-### Session 2026-10-12/13 (owner decisions on block 4, recorded before `/speckit-specify`)
+### Session 2026-10-13 (owner decisions on block 4)
 
-- Q: Who creates accounts? → A: the school. Public self-registration is closed on the server
-  (brief §5); students are created by import (part D) or individually by the admin, who can also
-  create teachers, since self-registration was the only way to create one (part A).
-- Q: What are a student's credentials? → A: the username is the student's identification number,
-  and the initial password is that same identification. The student can change it (part C).
-- Q: How do classmates see each other? → A: by a display name, which accounts do not have today;
-  every view between students shows it instead of the username (part C).
-- Q: Are accounts permanent? → A: no; an account can expire (brief §4, part B).
-- Q: Which limits apply? → A: login limits per account (brief §6, part A).
+Recorded as given; the step that turns each into requirements is in brackets.
 
-Five further questions from the same review are **not decided** and are not specified here
-(§ Out of Scope, D1 … D5). Where a requirement depends on one, it says so.
+1. **Enrolment and data.**
+   - Q: How do students enrol? → A: through a Google Form; the admin imports its responses from
+     Excel (`.xlsx`) or CSV in the admin panel. [E4]
+   - Q: Which fields does the form have? → A: only the identification number is confirmed. The
+     import lets the admin map columns to fields; which other columns exist is still to be
+     confirmed, and none is assumed. [E4]
+   - Q: What does the admin choose during an import? → A: the destination group and the
+     expiration. [E4]
+   - Q: How is the identification read? → A: as text, keeping leading zeros; duplicates are
+     detected within the file and against existing accounts. [E3, E4]
+2. **Credentials and their reach.**
+   - Q: What are a temporary student's credentials? → A: the identification is the username and
+     the initial password, with no forced change at first sign-in; the student can change it
+     later. An explicit decision of the product owner. [E3, E4; the change: E2]
+   - Q: How is the password stored? → A: only with the existing secure hash; never readable in the
+     database, logs or reports. [E3, E4]
+   - Q: Whom does it cover? → A: individual creation and import of **students** only. Credentials
+     based on the identification never apply to teachers or administrators. The admin creating
+     teachers was not part of the approved scope. [E3, E4]
+3. **Import and audit.**
+   - Q: What happens before saving? → A: a preview of new accounts, existing accounts, duplicates
+     and errors, row by row; nothing is saved without the admin's confirmation. [E4]
+   - Q: What does a re-import do? → A: it never duplicates accounts and never changes the
+     password, groups, expiration or progress of an existing account; those changes need an
+     explicit administrative action. [E4]
+   - Q: What is audited? → A: the admin responsible, date and time, an operation identifier, the
+     affected accounts by internal ID and each row's result; never passwords or the whole file.
+     [E4]
+4. **Expiration.**
+   - Q: Who sets it? → A: the admin, mandatorily, when creating a temporary account or importing
+     a batch; the admin can change it per account and extend it. It is shown in Colombian time.
+     [E3, E4]
+   - Q: What does it block? → A: new sign-ins, session renewals and authenticated access from
+     sessions already open. Academic data is kept. [E3]
+   - Q: Does a PvP match in progress finish? → A: no exception: the connection is closed and the
+     match is treated by the existing disconnection or abandonment rules, with no new rating
+     effect; any case those rules leave open is documented (§ Edge Cases). [E3]
+5. **Display name and sessions.**
+   - Q: Where may the identification appear? → A: never in rankings, PvP or any other view of
+     classmates. That protection is in place before real students are created: E2 ships before
+     E3 (or creation stays unavailable until it does). Where the display name comes from is still
+     to be confirmed. [E2]
+   - Q: What does a password change or reset do to other sessions? → A: it ends them, including
+     their ability to renew. How this reaches access tokens still within their lifetime is to be
+     specified (P3). [E2]
+6. **Registration and limits.**
+   - Q: Is public registration open? → A: closed by default and blocked on the server.
+     Administrative creation stays available, with its own permissions and limits. [E1; creation:
+     E3]
+   - Q: Which login limits? → A: 10 sign-in attempts per account per minute and a global ceiling
+     of 300 per minute, both configurable. The per-account counter was not defined as counting
+     only failed attempts. [E1]
+   - Q: What is the minimum check? → A: 30 different students sign in from the same IP address
+     within one minute and none is blocked for sharing the network. [E1]
+   - Q: And the import? → A: a class import has its own controls, independent of the login
+     limits. [E4]
+7. **Delivery.** Steps are allowed, without formatting tricks to get around traceability; any
+   change to the checker is proposed explicitly with its scope (P13).
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Only the school creates accounts (Priority: P1) — part A
+### User Story 1 - Nobody creates an account by themselves (Priority: P1) — E1
 
-Nobody can create an account from the login screen or the API. The admin creates students one by
-one (and teachers), with the identification as username and initial password.
+Neither the login screen nor the API lets anyone create an account. Accounts that already exist
+keep working as today.
 
 **Why this priority**: once the redesign is in production, anyone who finds the sign-up can create
-a student or a pending teacher account (`api/routers/auth.py:79-92`). Closing it is needed on the
-day of the switch, and closing it requires another way to create accounts.
+a student, or a teacher pending approval (`api/routers/auth.py:79-92`).
 
-**Independent Test**: a sign-up request creates nothing; an account created by the admin signs in.
+**Independent Test**: a self-registration request creates nothing; existing accounts sign in.
 
 **Acceptance Scenarios**:
 
-1. US1-AS1 **Given** any caller, signed in or not, **When** they send a self-registration request
-   to the API, **Then** it is refused and no account is created.
-2. US1-AS2 **Given** the login screen, **When** it loads, **Then** it offers no way to create an
-   account.
-3. US1-AS3 **Given** the admin, **When** they create a student with an identification, a level and,
-   for semillero, a grade, **Then** the student signs in with the identification as both username
-   and password.
-4. US1-AS4 **Given** the admin, **When** they create a teacher, **Then** the teacher signs in
-   without a separate approval step.
-5. US1-AS5 **Given** the admin, **When** they create a semillero student without a grade from 6 to
-   11, or an account whose username already exists, **Then** it is refused and nothing changes.
-6. US1-AS6 **Given** a student or a teacher, **When** they request an account creation, **Then** it
-   is refused and nothing is created.
-7. US1-AS7 **Given** a teacher who registered before the closure and is pending approval, **When**
-   the admin approves them, **Then** they can sign in, as today.
+1. **US1-AS1** — **Given** any caller, signed in or not, **When** they send a self-registration
+   request to the API, **Then** it is refused and no account is created.
+2. **US1-AS2** — **Given** the login screen, **When** it loads, **Then** it offers no way to create
+   an account.
+3. **US1-AS3** — **Given** a teacher who registered before the closure and is pending approval,
+   **When** the admin approves them, **Then** they can sign in, as today.
 
 ---
 
-### User Story 2 - Guessing a password is limited per account (Priority: P1) — part A
+### User Story 2 - Login limits protect each account without blocking a class (Priority: P1) — E1
 
-Repeated failed logins against one account are stopped, wherever they come from, and a class
-signing in together from the school's single address is not stopped.
+Repeated sign-in attempts against one account are stopped wherever they come from, a flood of
+attempts against the service is capped, and a class signing in together from the school's single
+address is not stopped.
 
-**Why this priority**: with the identification as initial password (US1), the account is the unit
-to protect. Today the only login limit counts per address (20 per minute, `api/config.py:63`), and
-behind the hosting proxy every client may share one address (§ Edge Cases).
+**Why this priority**: with the identification as initial password (E3) the account is the unit to
+protect. Today the only login limit counts per address (20 per minute, `api/config.py:63`): the
+21st student of a class signing in within one minute from the school's address is refused, and
+behind the hosting proxy every user may share one address (§ Edge Cases).
 
-**Independent Test**: failed logins against one account are refused after the limit while another
-account still signs in; a class-sized burst of correct logins from one address all succeed.
+**Independent Test**: the 11th attempt in a minute against one account is refused while another
+account signs in; 30 students from one address sign in; the 301st attempt in a minute is refused.
 
 **Acceptance Scenarios**:
 
-1. US2-AS1 **Given** an account, **When** its failed logins reach the limit within the window, from
-   any addresses, **Then** further logins for it are refused until the window ends, even with the
-   right password, and other accounts are unaffected.
-2. US2-AS2 **Given** an identifier that matches no account, **When** its failed logins reach the
-   limit, **Then** the refusal looks the same as for an existing account.
-3. US2-AS3 **Given** a class of students signing in from one address within one minute, **When**
-   each enters the right password once, **Then** none is refused by a limit.
-4. US2-AS4 **Given** a production configuration whose limit counters are kept in process memory,
+1. **US2-AS1** — **Given** an account, **When** its 11th sign-in attempt within one minute arrives,
+   right password or not, from any address, **Then** it is refused, and another account still
+   signs in.
+2. **US2-AS2** — **Given** an identifier that matches no account, **When** its 11th attempt within
+   one minute arrives, **Then** the refusal is identical to the one of US2-AS1.
+3. **US2-AS3** — **Given** 30 different students on one IP address, **When** each signs in once with
+   the right password within one minute, **Then** all 30 succeed.
+4. **US2-AS4** — **Given** 300 sign-in attempts within one minute, from any accounts and addresses,
+   **When** the 301st arrives, **Then** it is refused.
+5. **US2-AS5** — **Given** other values in the settings, **When** the API starts, **Then** both
+   limits follow them.
+6. **US2-AS6** — **Given** a production configuration whose limit counters live in process memory,
    **When** the API starts, **Then** it refuses to start, as today.
-
----
-
-### User Story 3 - An account stops working when it expires (Priority: P2) — part B
-
-A temporary account works until its expiration date and then neither signs in nor keeps a session
-open. Nothing it did is lost.
-
-**Why this priority**: block 4 creates accounts for a course or a period; the school needs them to
-end without deleting anyone's work.
-
-**Independent Test**: an account past its expiration date is refused at login and on its next
-request; its ratings and attempts are unchanged.
-
-**Acceptance Scenarios**:
-
-1. US3-AS1 **Given** an account whose expiration has passed, **When** it signs in with the right
-   password, **Then** it is refused.
-2. US3-AS2 **Given** a signed-in account that expires, **When** its next request, session refresh
-   or realtime connection arrives after the expiration, **Then** it is refused.
-3. US3-AS3 **Given** an expired account, **When** its data is read, **Then** its ratings, attempts,
-   enrolments and submissions are unchanged.
-4. US3-AS4 **Given** an account without an expiration date (every account that exists today),
-   **When** it signs in, **Then** it works as today.
-
----
-
-### User Story 4 - Classmates see my name, not my identification (Priority: P1) — part C
-
-Rankings and PvP show each student by a display name. A student's identification never reaches
-another student's screen or browser.
-
-**Why this priority**: once the username is the identification (US1), every place that shows a
-username to other students would publish identification numbers of minors: the group ranking
-(`frontend/src/pages/Student/Stats.tsx:257`), the PvP rival (`League.tsx:142,171`,
-`api/websocket/pvp.py:331,335`) and the PvP history (`League.tsx:243`,
-`postgres_repository.py:4096`, `sqlite_repository.py:3494`).
-
-**Independent Test**: the ranking and PvP responses a student receives contain other students'
-display names and no other student's username.
-
-**Acceptance Scenarios**:
-
-1. US4-AS1 **Given** a group ranking, **When** a student opens it, **Then** every other student
-   appears by display name, and the response contains no other student's username.
-2. US4-AS2 **Given** a PvP match, **When** two students are paired, **Then** each sees the other's
-   display name, and no message carries the rival's username.
-3. US4-AS3 **Given** a PvP history, **When** a student opens it, **Then** each rival appears by
-   display name.
-4. US4-AS4 **Given** an account without a display name (every account created before part C),
-   **When** another student sees it, **Then** it appears by its username, as today.
-
----
-
-### User Story 5 - I can change my password (Priority: P1) — part C
-
-A student (or teacher) replaces the initial password with one only they know.
-
-**Why this priority**: the initial password is the identification, which classmates may know from
-class lists or ID cards. Today no endpoint or screen changes a password (I15).
-
-**Independent Test**: after a change, the new password signs in and the old one does not.
-
-**Acceptance Scenarios**:
-
-1. US5-AS1 **Given** a signed-in user, **When** they give their current password and a valid new
-   one, **Then** the new one signs in and the old one is refused.
-2. US5-AS2 **Given** a signed-in user, **When** the current password they give is wrong, **Then**
-   the change is refused and the password is unchanged.
-3. US5-AS3 **Given** a signed-in user, **When** the new password is shorter than the account rule
-   allows, **Then** the change is refused and the password is unchanged.
-4. US5-AS4 **Given** a student or a teacher, **When** they open their screens, **Then** they find
-   where to change their password.
-
----
-
-### User Story 6 - The admin creates a class from a Forms export (Priority: P2) — part D
-
-The admin uploads the responses of the school's Google Form, exported as Excel or CSV, says which
-column holds each field, reviews what will be created and confirms.
-
-**Why this priority**: it is how a whole class gets accounts at once; individual creation (US1)
-covers the day of the switch and the exceptions.
-
-**Independent Test**: a file with valid and invalid rows previews each row's outcome, creates
-nothing until confirmed, then creates exactly the valid rows and records the import.
-
-**Acceptance Scenarios**:
-
-1. US6-AS1 **Given** a Forms export as `.xlsx` or `.csv`, **When** the admin uploads it, **Then**
-   its columns are listed and the admin maps each account field to one of them.
-2. US6-AS2 **Given** a mapped file, **When** the preview is shown, **Then** each row says whether
-   its account will be created or why it will not, and no account exists yet.
-3. US6-AS3 **Given** a preview, **When** the admin confirms it, **Then** exactly the rows shown as
-   creatable become accounts with the identification as username and initial password and the
-   mapped display name, and the admin sees how many were created and refused.
-4. US6-AS4 **Given** a row whose identification is already a username, or repeats an earlier row of
-   the file, **When** the preview is shown, **Then** that row is shown as refused and is never
-   created.
-5. US6-AS5 **Given** a confirmed import, **When** the audit is read, **Then** it records who
-   imported, when, and how many rows were created and refused.
-6. US6-AS6 **Given** the preview is abandoned, **When** nothing is confirmed, **Then** no account is
-   created and the file is not kept.
-7. US6-AS7 **Given** a student or a teacher, **When** they upload a file to the import, **Then** it
-   is refused.
 
 ---
 
 ### Edge Cases
 
-- **A class signs in at once from the school's one public address.** Today 20 logins per minute
-  per address are allowed (`api/config.py:63`); the 21st student of the minute is refused (US2-AS3).
-- **Behind the hosting proxy, the API may not see the client's address.** Reproduced locally with
-  uvicorn 0.53 (the version installed by `requirements-api.txt`): a request arriving from a
-  non-loopback proxy is keyed by the proxy's address whatever `X-Forwarded-For` says; trusting
-  every proxy instead (`FORWARDED_ALLOW_IPS='*'`) keys it by the left-most `X-Forwarded-For` entry,
-  which a client can write. Render's start command (`render.yaml:23`) sets neither. A limit keyed
-  only by address is therefore either shared by every user or avoidable; the per-account limit
-  (FR-011) does not depend on it. Which address the limits see in production is for the plan to
-  establish.
-- **An expiration passes during a session.** The next request, refresh or new realtime connection
-  is refused (FR-016). Whether an already open PvP match is cut at that instant is not specified
-  here. [NEEDS CLARIFICATION: open realtime connection at expiry — recommendation: let the match in
-  progress finish; every later request is refused]
-- **A password change while another session is open** (for example, a classmate who signed in with
-  the identification). Today a session lives up to 7 days through its refresh token and nothing
-  ends it early (survey § 2). [NEEDS CLARIFICATION: does a password change end the account's other
-  sessions? — recommendation: yes, since it is the remedy for the risk of US5]
-- **Between preview and confirmation another account takes a row's username.** That row is refused
-  at confirmation and reported with the others (FR-031).
-- **Leading zeros, thousands separators or scientific notation in the identification column of a
-  spreadsheet.** How identifications are read and normalised is decision D2.
-- **A student who already signed up alone appears in the file.** Their old account has no
-  identification; what the import does with them is decision D1.
+- **The hosting proxy hides the client's address.** Reproduced locally with uvicorn 0.53 (the
+  version `requirements-api.txt` installs): behind a proxy that is not on loopback, every request
+  is counted under the proxy's address; trusting every proxy (`FORWARDED_ALLOW_IPS='*'`) counts the
+  left-most `X-Forwarded-For` entry, which a client can write. E1 keeps no per-address login limit
+  (FR-006), so neither case affects sign-in; no header is trusted for it.
+- **An account with an email** can sign in with its username or its email: both count toward the
+  same account's limit (FR-004).
+- **Attempts above the limit with the right password** are refused too, until the minute ends; the
+  agreed counter counts every attempt (decision 6). No change to that is proposed.
+- **A teacher who needs an account after the closure** has no way to get one: self-registration
+  was the only way to create teachers, and the admin creating teachers is outside the approved
+  scope. Decision P1.
+- **V1's own sign-up form** (`src/interface/streamlit/views/auth_view.py`) writes to the same
+  database and is not closed by this spec; V1 is disconnected during the switch
+  (`docs/transfer.md` § 3.1). If V1 is ever reconnected, its sign-up must be closed first.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-Plain IDs: planned, checked when their part is implemented (§ Delivery).
+**E1 — self-registration closed (US1)**
 
-**Part A — accounts are created by the school (US1)**
-
-- FR-001 [CHANGE]: If anyone sends a self-registration request, then the system shall refuse it and
-  create no account. *(Today `POST /api/auth/register` creates a student, or a teacher pending
-  approval, for any caller — `api/routers/auth.py:79-92`.)*
-- FR-002 [CHANGE]: The login screen shall offer no way to create an account. *(Today it has a
+- **FR-001** [CHANGE]: If anyone sends a self-registration request, then the system shall refuse
+  it and create no account. *(Today `POST /api/auth/register` creates a student, or a teacher
+  pending approval, for any caller — `api/routers/auth.py:79-92`.)* Whether a server setting may
+  reopen it is decision P2; by default it is closed.
+- **FR-002** [CHANGE]: The login screen shall offer no way to create an account. *(Today it has a
   «Crear cuenta» tab — `frontend/src/pages/Login.tsx:328`.)*
-- FR-003 [CHANGE]: When the admin creates a student account, the system shall set its username to
-  the student's identification and its initial password to that same identification.
-  [NEEDS CLARIFICATION: D2 — accepted identification formats and their normalisation]
-- FR-004 [CHANGE]: When the admin creates an account, the system shall let them choose the role
-  student or teacher, and for a student the level and, for semillero, the grade.
-  [NEEDS CLARIFICATION: brief — whether a teacher's username and initial password follow FR-003]
-- FR-005 [CHANGE]: When the admin creates a teacher account, the system shall create it approved.
-- FR-006 [CHANGE]: If the admin creates a semillero student without a grade from 6 to 11, then the
-  system shall refuse it. *(Spec 001 FR-028m states this rule for registration and says it moves
-  to spec 004; part A moves it.)*
-- FR-007 [CHANGE]: If an account creation would use a username that already exists, then the
-  system shall refuse it and change nothing.
-- FR-008 [CHANGE]: If a user other than the admin requests an account creation, then the system
-  shall refuse it and create nothing.
-- FR-009 [AS-IS]: While a teacher account is pending approval, the system shall let the admin
+- **FR-003** [AS-IS]: While a teacher account is pending approval, the system shall let the admin
   approve or reject it (`api/routers/admin.py:40-61`).
-- FR-010 [AS-IS]: The system shall store every password, including an initial one, as an Argon2id
-  hash (`src/infrastructure/security/hashing_service.py:13-16`; constitution VI).
 
-**Part A — login limits (US2)**
+**E1 — login limits (US2)**
 
-- FR-011 [CHANGE]: When the failed logins for one account identifier reach the limit within the
-  window, the system shall refuse further logins for that identifier until the window ends,
-  whatever address they come from and without checking the password.
-  [NEEDS CLARIFICATION: brief §6 — the limit and the window]
-- FR-012 [CHANGE]: The system shall answer a login refused by FR-011 identically whether or not an
-  account with that identifier exists.
-- FR-013 [CHANGE]: While the students of one class sign in from a single address, the system shall
-  not refuse a correct login because of a per-address limit, for a class of up to [NEEDS
-  CLARIFICATION: brief §6 — class size] students signing in within one minute. *(Today 20 per
-  minute per address, `api/config.py:63`.)*
-- FR-014 [AS-IS]: Where the API runs in production, the system shall refuse to start while its
+- **FR-004** [CHANGE]: When an account receives more sign-in attempts within one minute than the
+  per-account limit (default 10), counting every attempt — right or wrong password, by username or
+  by email, from any address — the system shall refuse the extra attempts without checking the
+  password until the minute ends.
+- **FR-005** [CHANGE]: When the service receives more sign-in attempts within one minute than the
+  global limit (default 300), across all accounts and addresses, the system shall refuse the extra
+  attempts without checking the password until the minute ends.
+- **FR-006** [CHANGE]: The system shall not refuse a sign-in because other users share its address:
+  no per-address limit applies to sign-in. *(Today 20 per minute per address,
+  `api/config.py:63`.)*
+- **FR-007** [CHANGE]: The system shall take both limits of FR-004 and FR-005 from settings, with
+  defaults 10 and 300 per minute.
+- **FR-008** [CHANGE]: The system shall answer an attempt refused by FR-004 identically whether or
+  not an account with that identifier exists.
+- **FR-009** [CHANGE]: The system shall not keep an identifier or email in readable form in the
+  limit counters, nor write it to the logs when a limit refuses an attempt.
+- **FR-010** [AS-IS]: Where the API runs in production, the system shall refuse to start while its
   limit counters are kept in process memory (`api/config.py:93`).
-
-**Part B — expiration (US3)**
-
-- FR-015 [CHANGE]: The system shall let an account carry an expiration date.
-  [NEEDS CLARIFICATION: brief §4 — who sets it, when (individual creation, import, later), and
-  whether the admin can change it]
-- FR-016 [CHANGE]: While an account is past its expiration, the system shall refuse its login, its
-  session refresh, each of its authenticated requests and each new realtime connection.
-  [NEEDS CLARIFICATION: D3 — the instant an expiration date ends and what the refusal says]
-  *(The API already re-reads the account on every authenticated request and realtime
-  authentication — `api/dependencies.py:134-148`.)*
-- FR-017 [CHANGE]: When an account expires, the system shall keep the account and all its data
-  unchanged.
-- FR-018 [AS-IS]: While an account has no expiration date, the system shall treat it as it does
-  today; no existing account receives an expiration date from this spec.
-- FR-019 [AS-IS]: If an inactive account signs in, then the system shall refuse it with the same
-  answer as a wrong password (`api/routers/auth.py:43-47`).
-
-**Part C — display name (US4)**
-
-- FR-020 [CHANGE]: When the school creates a student account, individually or by import, the
-  system shall require a display name and store it with the account.
-- FR-021 [CHANGE]: When the system shows a student to another student — in a group ranking, as a
-  PvP rival or in a PvP history — it shall show the display name.
-- FR-022 [CHANGE]: The system shall not send another student's username in any response or message
-  addressed to a student about rankings or PvP.
-- FR-023 [CHANGE]: While an account has no display name (one created before part C), the system
-  shall show its username in its place.
-
-**Part C — password change (US5)**
-
-- FR-024 [CHANGE]: When a signed-in user gives their current password and a new one, the system
-  shall replace the password, so that only the new one signs in.
-- FR-025 [CHANGE]: If the current password given is wrong, or the new one is shorter than 6
-  characters after trimming (the account rule today, `postgres_repository.py:1476-1478`), then
-  the system shall refuse the change and keep the password.
-- FR-026 [CHANGE]: The student and teacher screens shall offer the password change. *(Today only
-  the admin layout offers any account setting — I15.)*
-
-**Part D — import (US6)**
-
-- FR-027 [CHANGE]: When the admin uploads a Google Forms export as `.xlsx` or `.csv`, the system
-  shall list its columns and let the admin map each account field to one of them: identification,
-  display name, level, grade [NEEDS CLARIFICATION: brief §1 — the full list of fields the form
-  collects and which are required].
-- FR-028 [CHANGE]: Before creating anything, the system shall show a preview that gives each row's
-  outcome: created, or refused with its reason.
-- FR-029 [CHANGE]: The system shall create no account from a file until the admin confirms its
-  preview.
-- FR-030 [CHANGE]: When the admin confirms a preview, the system shall create exactly the rows it
-  showed as creatable, each with the credentials of FR-003 and its mapped display name, and shall
-  report how many rows were created and refused.
-- FR-031 [CHANGE]: If a row's identification is already a username, or repeats an earlier row of
-  the file, then the system shall show it as refused and not create it; a username taken between
-  preview and confirmation is refused at confirmation and reported.
-- FR-032 [CHANGE]: If a row breaks a rule of individual creation (FR-003, FR-006), then the system
-  shall show it as refused with that rule as its reason.
-- FR-033 [CHANGE]: When an import is confirmed, the system shall record who imported, when, and
-  how many rows were created and refused. [NEEDS CLARIFICATION: brief §3 — anything else the audit
-  keeps]
-- FR-034 [CHANGE]: The system shall not keep the uploaded file once its import is confirmed or
-  abandoned.
-- FR-035 [CHANGE]: If a user other than the admin uploads a file to the import, then the system
-  shall refuse it.
-- FR-036 [CHANGE]: The system shall not write a row's identification or display name to the
-  application logs.
 
 ### Key Entities
 
-- **Account**: username (the identification for accounts the school creates), password hash, role,
-  level, grade, active, approved; new here: display name and expiration date.
-- **Identification**: the student's identity document number as the school records it; the
-  username of a school-created student. Its accepted formats are decision D2.
-- **Display name**: what other students see (part C).
-- **Import**: one confirmed file — who, when, counts of rows created and refused (part D). The
-  uploaded file itself is not an entity: it is not kept (FR-034).
-- **Login limit counter**: failed logins per identifier within a window, kept in the shared limit
-  store in production (FR-011, FR-014).
+- **Sign-in attempt counter**: attempts per account per minute, and all attempts per minute, kept
+  in the shared limit store in production (FR-004, FR-005, FR-010). Holds no readable identifier
+  (FR-009).
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: For 100 % of each part's acceptance scenarios, an automated check reproduces the
-  outcome; every scenario that depends on stored data runs on SQLite and PostgreSQL with identical
-  results (brief §7).
-- **SC-002**: After part A, 0 accounts can be created by anyone other than the admin.
-- **SC-003**: A class of the size fixed for FR-013 signs in within one minute from one address with
-  0 refusals, while 100 % of logins against one account beyond the FR-011 limit are refused.
-- **SC-004**: After an account's expiration, 0 of its requests, refreshes or new realtime
-  connections succeed, and 0 of its rows change.
-- **SC-005**: 0 responses or messages addressed to a student about rankings or PvP contain another
-  student's username.
-- **SC-006**: An import whose preview shows K creatable rows creates 0 accounts before
-  confirmation and exactly K after it.
+- **SC-001**: For 100 % of E1's acceptance scenarios, an automated check reproduces the outcome.
+- **SC-002**: After E1, 0 accounts can be created through self-registration.
+- **SC-003**: 30 students sign in from one address within one minute with 0 refusals, while 100 %
+  of attempts beyond the 10th per account and the 300th overall within a minute are refused.
 
 ## Assumptions
 
-- **Defaults chosen in this draft, open to `/speckit-clarify`**: a teacher created by the admin is
-  approved (FR-005); a limited login does not reveal whether an account exists (FR-012);
-  expiration deletes nothing (FR-017); the uploaded file is not kept (FR-034); an account without
-  a display name shows its username (FR-023).
-- **Existing data is kept**: no existing account changes username, password, expiration or
-  display name because of this spec (FR-018, FR-023).
-- **V1** is frozen and is disconnected during the switch (`docs/transfer.md` § 3.1). Its own
-  sign-up form (`src/interface/streamlit/views/auth_view.py`) writes to the same database and is
-  not closed by this spec. If V1 is ever reconnected, its sign-up must be closed or V1 kept
-  without it — decided then.
-- **Test data uses invented identifications only.** The repository is public: no real
+- **Defaults chosen in this draft, open to review**: a limited attempt does not reveal whether an
+  account exists (FR-008); the limit store and the logs hold no readable identifier (FR-009).
+- Existing accounts keep their username and password; E1 changes no stored data.
+- Test data uses invented identifications only. The repository is public: no real
   identification, name or form export appears in tests, fixtures, logs or CI artifacts.
-- The import's cost is bounded by the password hashing of FR-010 (64 MiB and about 0.24 s of CPU
-  per new password, at most two at a time since LuisJRubioH/LevelUp-ELO#35; survey I17). The file
-  size it accepts is decision D5.
+- E1's code pull request moves the tests that create accounts through self-registration (8 calls,
+  in `tests/api/test_auth.py`, `tests/api/test_student.py`,
+  `tests/integration/test_spec001_catalogue.py`,
+  `tests/integration/test_postgres_production_guards.py`) to the repository, and turns the
+  registration form test of `frontend/e2e/auth.spec.ts` into US1-AS2.
 
 ### Risks (recorded, not decided here)
 
-- **Password = identification.** Anyone who knows a classmate's identification (class lists, ID
-  cards) can sign in as them until the password is changed; the per-account limit does not stop
-  someone who knows the password. Mitigations (for example a notice while the initial password is
-  unchanged) are not specified.
+- **Password = identification** (decision 2). Anyone who knows a classmate's identification can
+  sign in as them until the password is changed; the per-account limit does not stop someone who
+  knows the password. Mitigations beyond E2's password change are not specified.
 - **Minors' personal data (Colombian Law 1581 of 2012).** Collecting minors' identifications
   through a form requires the guardians' authorisation and a privacy notice; that is the school's
-  process, outside this software. The software side is FR-034 and FR-036; deleting the responses
-  file from the form's storage after the import is the school's step.
+  process, outside this software. Deleting the responses file from the form's storage after the
+  import is the school's step.
+
+## Pending Owner Decisions
+
+Each needs the owner's answer before the step named. A recommendation is not a decision.
+
+| # | Step | Question | Recommendation |
+|---|---|---|---|
+| P1 | E1 | How is a new teacher's account created once self-registration closes? | A script the owner runs on the server, like the admin password reset of LuisJRubioH/LevelUp-ELO#15, until a teacher-creation feature is approved. |
+| P2 | E1 | "Closed by default": may a server setting reopen self-registration, or is it removed for good? | No setting: reopening becomes a reviewed code change (constitution VII). |
+| P3 | E2 | How does ending other sessions reach access tokens still within their 15 minutes? | Every request already re-reads the account (`api/dependencies.py:134-148`): tokens carry the account's credential version, and a token older than the account's current version is refused at its next use — access and refresh alike. The session that made the change gets a new pair. Open realtime connections of the account close within 30 s. |
+| P4 | E2, E4 | Where does the display name come from? | At individual creation the admin types it; at import, a mapped column that the form must include (the import refuses a mapping without it). |
+| P5 | E2 | May the display name be changed later, and by whom? | By the admin only. |
+| P6 | E2, E3 | Is the admin's password reset of a student in scope, and to what value? | Yes, back to the identification, ending other sessions (decision 5). |
+| P7 | E3 | Does the admin choose a date (valid until 23:59:59 that day, Colombian time) or a date and time? What does an expired account see on signing in? | A date. The «cuenta vencida» message only after the right password, so it does not reveal which accounts exist. |
+| P8 | E3 | Does individual creation also place the student in a group, and does joining it work like an invitation code (main group and enrolment in the group's course, spec 001 FR-028l)? | Yes to both, same as the import. |
+| P9 | E3, E4 | Where do a created student's level and grade come from (needed for the catalogue, and the grade mandatory for semillero — spec 001 FR-028m)? | From the destination group's course where it fixes them; otherwise chosen by the admin for the batch. |
+| P10 | E3, E4 | Beyond text with leading zeros: which characters and lengths are valid; are thousands separators removed; what happens to an Excel numeric cell, whose leading zeros are already lost? | Letters and digits, 6–15 characters; remove dots and spaces; reject scientific notation and decimals; a numeric cell is an error asking for the column as text. |
+| P11 | E4 | What happens to a student who already has a self-created account (its username is not the identification)? | Shown as «posible existente» when username or email match; linked only by an explicit admin action. |
+| P12 | E3, E4 | Limits of administrative creation and of the import: rate per admin, rows per file, synchronous or in the background? | 200 rows per file, processed in the background; one import at a time per admin. |
+| P13 | E3, E4 | While E3's or E4's amendment is in flight, every pull request touching a repository fails, whatever its spec. Accept that window (merge the docs and code PRs back to back, or as one PR as with spec 001's block 5), or correct the checker? | Correct the checker, explicitly: a Code Scope entry marked `(shared)` does not by itself make a pull request a code change for the spec; the spec's own entries, its cited tests and its directory still do. Scope: `scripts/check_traceability.py` rule 3a, its tests, the template comment and AGENTS.md § Spec-driven development. |
+| P14 | E3 | Who else sees the identification: the student's teachers and the admin? | Yes; other students never (decision 5). |
+| P15 | E3 | The rating of an expired account can still change once, when a match it left is closed by the timer with the existing rules (see below the table). Accept it? | Accept: it is the existing rule for any disconnection and adds no new rating effect. |
+
+**What the existing PvP rules do when E3 closes an expired player's connection** (`api/websocket/
+pvp.py` on `redesign`, unchanged by LuisJRubioH/LevelUp-ELO#46): waiting in the lobby → removed, no
+match; in a match → the match continues on its timer and closes after 180 s with the scores so far,
+applying the normal result to both players (the one who left keeps their score and usually loses);
+a server restart before that → the match is closed as abandoned with no rating change. Cases these
+rules leave open: the opponent waits up to 180 s against nobody; the expired player's rating
+changes once after expiry (P15); the player cannot rejoin the match.
 
 ## Out of Scope *(mandatory)*
 
-- **Decisions D1 … D5 of the 2026-10-12 review, until the owner decides them**: D1 students who
-  already have a self-created account; D2 identification formats and normalisation; D3 the
-  expiration instant and message; D4 who else (teachers, admin) sees the identification; D5 the
-  import's size limit or background processing. Each enters by amendment.
-- **Block 5** (showing the current rating after the diagnostic) — spec 001, its own amendment.
+- The requirements of E2, E3 and E4, until their amendments (§ Deliveries).
+- Creating teachers or administrators from the admin panel, and credentials based on the
+  identification for them (decision 2).
+- Forcing a password change at first sign-in (decision 2).
+- **Block 5** (the diagnostic result) — spec 001, LuisJRubioH/LevelUp-ELO#62.
 - **Blocks 6, 7 and 8** of the owner's plan — under discussion.
 - The rest of the roadmap's spec 004 area, until a feature needs it (survey § 5): username and
-  email normalisation (I1, I2), password recovery, admin powers (I4–I6), group membership
-  (I7, I8), auditing other actions (I9), the student-route role boundary (I11), test and demo
-  accounts (I12, I13), changing a student's level or grade (I14), session lifetime and revocation
-  beyond the edge case above, and hashing cost (I17).
-- What teachers' and the admin's screens show — decision D4.
+  email normalisation (I1, I2), password recovery by the student, admin powers (I4–I6), group
+  membership (I7, I8), auditing other actions (I9), the student-route role boundary (I11), test and
+  demo accounts (I12, I13), changing a student's level or grade (I14), session lifetime, and
+  hashing cost (I17).
 - Rating effects of any account action — spec 001. Persistence mechanics — spec 002. AI keys and
-  limits — spec 005. Teacher console — spec 006. The PvP match lifecycle — spec 007 (only the
-  rival's name is here).
-- V1, beyond the assumption above.
+  limits — spec 005. Teacher console — spec 006. The PvP match lifecycle — spec 007.
+- V1, beyond the edge case above.
 
 ## Traceability *(mandatory)*
 
 **Automated tests are explicitly required for every functional requirement and acceptance
 scenario. Reuse adequate existing tests; create or strengthen tests where coverage is missing.**
 
-Rows are added when each part is activated (§ Delivery), with tests that exist and pass in that
-part's pull request. No requirement is checked yet.
-
 | Requirement / Scenario | Test |
 |---|---|
+| US1-AS1 | `PENDING` |
+| US1-AS2 | `PENDING` |
+| US1-AS3 | `PENDING` |
+| US2-AS1 | `PENDING` |
+| US2-AS2 | `PENDING` |
+| US2-AS3 | `PENDING` |
+| US2-AS4 | `PENDING` |
+| US2-AS5 | `PENDING` |
+| US2-AS6 | `PENDING` |
+| FR-001 | `PENDING` |
+| FR-002 | `PENDING` |
+| FR-003 | `PENDING` |
+| FR-004 | `PENDING` |
+| FR-005 | `PENDING` |
+| FR-006 | `PENDING` |
+| FR-007 | `PENDING` |
+| FR-008 | `PENDING` |
+| FR-009 | `PENDING` |
+| FR-010 | `PENDING` |
