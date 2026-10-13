@@ -69,6 +69,7 @@ wrong):
 | `RATE_LIMIT_STORAGE_URI` | shared Redis/Valkey URI; `memory://` is refused in production |
 | `PUBLIC_REGISTRATION_ENABLED` | unset (closed). **Production today lets anyone register; after the merge nobody can** until it is set to `true` — accounts come from the administrator (spec 004 FR-005) |
 | `RATE_LIMIT_LOGIN_ACCOUNT`, `RATE_LIMIT_LOGIN_GLOBAL`, `RATE_LIMIT_REGISTER` | optional; defaults `10/minute` per account, `300/minute` for all logins, `20/minute` per address for public registration (spec 004 E1). `RATE_LIMIT_AUTH` no longer exists |
+| `RATE_LIMIT_STORAGE_CONNECT_TIMEOUT`, `RATE_LIMIT_STORAGE_TIMEOUT`, `RATE_LIMIT_STORAGE_PROBE_INTERVAL`, `RATE_LIMIT_FALLBACK_MAX_KEYS` | optional; defaults 0.5 s, 0.5 s, 10 s and 50 000 — the fallback when the limit store fails (§ 3.2, spec 004 E6) |
 | `SUPABASE_URL`, `SUPABASE_KEY` | Storage for the **private** bucket `procedimientos` (images are served as bytes, never by public URL) |
 | `ADMIN_USER`, `ADMIN_PASSWORD` | seed of the administrator account (only created if the password is set) |
 | `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_STUDENT_ANALYSIS`, `AI_KEY_TEACHER_ANALYSIS` |
@@ -157,52 +158,48 @@ data):
 
 ### 3.2 Rate limits: their store and the client's address
 
-The API limits login and registration (`RATE_LIMIT_AUTH`, 20/minute) and the AI routes
+The API limits sign-in (`RATE_LIMIT_LOGIN_ACCOUNT`, 10 attempts per account per minute, and
+`RATE_LIMIT_LOGIN_GLOBAL`, 300 per minute overall), public registration while it is open
+(`RATE_LIMIT_REGISTER`, 20 per address per minute) and the AI routes per account
 (`RATE_LIMIT_SOCRATIC`, `RATE_LIMIT_REVIEW`). Its counters live in `RATE_LIMIT_STORAGE_URI`.
 Nothing in this section changes a host's settings or the start command; the owner does that.
 
 - **What the store holds**: one counter per key and window, expiring with the window — keyed by
-  the caller's address for login and registration, by token (by account after
-  LuisJRubioH/LevelUp-ELO#33) for the AI routes. No password, token, name or answer.
+  account for sign-in (an identifier that names no account, only as its SHA-256), by address for
+  registration, by account for the AI routes. No password, token, name or answer.
 - **Which store**: any Redis-protocol server the API reaches — a Render Key Value instance in the
   API's region (its *internal* URL, `redis://…:6379`) or an external one over TLS (`rediss://…`).
   The URI carries a password: it goes only in Render's environment (`render.yaml` declares it
   `sync: false`), never in the repository or a chat.
-- **If the store stops answering**: every limited route answers 500 — login, registration, the
-  KatIA chat and procedure review — until it answers again, so a Redis outage is a sign-in outage.
-  `GET /api/health` does not check Redis; the 500s show in Render's logs. Approved, not yet
-  implemented: a temporary in-memory fallback with timeouts, controlled recovery, no new allowance
-  on return and a degraded state in `/api/health` (constitution 1.1.0, LuisJRubioH/LevelUp-ELO#63;
-  spec 004 delivery E6). A restart will lose the local counters. Render's health check reads only
-  the status code, so a degraded 200 needs an external monitor that reads the body.
+- **If the store stops answering** (spec 004 E6, constitution 1.1.0): the call that finds the
+  failure waits at most its timeouts (`RATE_LIMIT_STORAGE_CONNECT_TIMEOUT` and
+  `RATE_LIMIT_STORAGE_TIMEOUT`, 0.5 s each, no client retries); from then on the API counts every
+  limit in its own memory with the same values, and no request calls the store. Render's log shows
+  one warning, `Rate-limit store unreachable (…)`. A background probe checks the store at most every
+  `RATE_LIMIT_STORAGE_PROBE_INTERVAL` (10 s), started by a limited request or a health check. When
+  it answers, what memory counted is added to the store, one warning `Rate-limit store recovered`
+  is logged and the store is used again: no key gets a new allowance on return. Limits of the
+  fallback:
+  - counts kept in the store before the outage cannot be read during it, so for a key counted just
+    before, memory starts from zero;
+  - a restart during the outage loses the memory counters;
+  - memory holds at most `RATE_LIMIT_FALLBACK_MAX_KEYS` (50 000) counters, and serves only while
+    one process runs (`WEB_CONCURRENCY=1`). Beyond that the limits cannot be applied: limited
+    routes answer 503 and so does `/api/health`.
+- **`GET /api/health`** answers 200 with `"limits": "normal"` or `"degraded"` (and `"status"`
+  `"ok"` or `"degraded"`), and 503 if the database fails or the limits cannot be applied. Render's
+  health check reads only the status code, so a degraded 200 keeps the instance in service and
+  alerts nobody: an external monitor that reads the body is the owner's step (spec 004 N8).
 - **Which address the limits see.** uvicorn trusts `X-Forwarded-For` only from `127.0.0.1` unless
   `FORWARDED_ALLOW_IPS` says otherwise, and the start command sets neither. Behind Render's proxy
-  every request may therefore be counted under the proxy's address, so the 20 logins per minute
-  would be shared by every user. Reproduced locally with uvicorn 0.53, together with the opposite
-  case: trusting every proxy counts the left-most `X-Forwarded-For` entry, which a client can
-  write if the proxy appends to the header rather than replacing it (reported for Render, not
-  verified here). **Do not set `FORWARDED_ALLOW_IPS` to `*`, or to any address list Render does not
-  publish**: either lets a client choose the address it is counted under. Spec 004 delivery E1
-  removes the per-address sign-in limit altogether (10 attempts per normalised account and 300
-  overall per minute, configurable), so sign-in stops depending on the address.
-- **A class behind one school address** exceeds 20 sign-ins per minute as soon as it has 21
-  students, whatever the proxy does.
-
-**Check after the switch, outside class hours** (whether the limit is shared by everyone): from
-one network, for example a phone's mobile data, send 21 logins within one minute with a username
-that does not exist; within the same minute, try one login from another network. A 429 on the
-second network means every user shares the limit. Expect up to a minute of 429s for everyone
-while it runs.
-
-**Proposal for the owner — a temporary sign-in limit until E1** (not applied; the owner decides):
-
-| | |
-|---|---|
-| Value | `RATE_LIMIT_AUTH=300/minute` (the global ceiling agreed for E1) |
-| Scope | The environment of the Render API service only. It governs `/api/auth/login` and `/api/auth/register` and no other route. |
-| When | Before the first class signs in after the switch, whatever the check above shows: a class of more than 20 on one school address needs it either way. |
-| What it costs | Until E1 there is no per-account limit, so up to 300 attempts per minute could go against accounts, against 20 today. |
-| Removed when | Spec 004 E1 is in production and its acceptance check passes there (30 students from one address within one minute, none refused): delete the variable, since E1 replaces the per-address sign-in limit. |
+  every request may therefore be counted under the proxy's address. Reproduced locally with
+  uvicorn 0.53, together with the opposite case: trusting every proxy counts the left-most
+  `X-Forwarded-For` entry, which a client can write if the proxy appends to the header rather than
+  replacing it (reported for Render, not verified here). **Do not set `FORWARDED_ALLOW_IPS` to `*`,
+  or to any address list Render does not publish**: either lets a client choose the address it is
+  counted under. Sign-in does not depend on the address (spec 004 E1): a class behind one school
+  address signs in without sharing a limit. Only public registration counts per address, so if it
+  is opened (`PUBLIC_REGISTRATION_ENABLED`), its 20 per minute may be shared by everyone.
 
 ## 4. Backups (before any migration)
 
@@ -354,7 +351,8 @@ refuses any non-local host. Never point tests at the production database.
 1. The migration step exits 0 and prints `Migraciones completadas.`; the web process started
    (startup does not swallow an initialisation error, and `validate_runtime()` stops it on a bad
    production setting).
-2. `GET /api/health` → 200 (readiness: it queries the database and answers 503 if it cannot).
+2. `GET /api/health` → 200 with `"limits": "normal"` (readiness: it queries the database and the
+   limit store; 503 if either cannot serve, `"degraded"` if Redis does not answer — § 3.2).
 3. `GET /api/meta/ranks` → 200, 16 ranks ascending from "Aspirante" to "Leyenda Suprema", with
    `Cache-Control: public, max-age=3600`.
 4. With a test student: stats shows a rating with its rank, or "Diagnóstico pendiente" — never a

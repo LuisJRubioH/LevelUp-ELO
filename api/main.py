@@ -23,6 +23,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -33,7 +34,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 from api.config import settings
-from api.rate_limit import limiter
+from api.rate_limit import LimitsUnavailable, limiter, limits_state
 from api.routers import admin, ai, auth, meta, student, teacher
 from api.websocket.notifications import ws_router
 from api.websocket.pvp import pvp_router
@@ -91,6 +92,21 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+
+_LIMITS_UNAVAILABLE = "El servicio no puede aplicar sus límites ahora. Inténtalo en un minuto."
+
+
+async def _limits_unavailable_handler(request, exc):
+    """Spec 004 FR-095: with no way to count a limit, the limited request is refused."""
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={"detail": _LIMITS_UNAVAILABLE},
+        headers={"Retry-After": "60"},
+    )
+
+
+app.add_exception_handler(LimitsUnavailable, _limits_unavailable_handler)
+
 # ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
@@ -131,7 +147,12 @@ def root():
 
 @app.get("/api/health", tags=["health"])
 def health():
-    """Health check detallado: verifica conectividad con la DB."""
+    """Readiness: la base y los límites (constitución 1.1.0; spec 004 FR-094).
+
+    503 si la base falla o si los límites no se pueden aplicar; 200 si no, con `limits` en
+    "normal" o "degraded" (contando en memoria porque el almacén compartido no responde). Los
+    monitores deben leer el cuerpo, no solo el código. Sin direcciones internas ni credenciales.
+    """
     try:
         from api.dependencies import get_repository
 
@@ -154,8 +175,20 @@ def health():
             detail="Base de datos no disponible.",
         ) from exc
 
+    try:
+        limits = limits_state()
+    except Exception as exc:
+        logger.error("Readiness de los límites falló: %s", type(exc).__name__)
+        limits = "unavailable"
+    if limits == "unavailable":
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Límites no disponibles.",
+        )
+
     return {
-        "status": "ok",
+        "status": "ok" if limits == "normal" else "degraded",
         "db": "ok",
+        "limits": limits,
         "version": settings.app_version,
     }

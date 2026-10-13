@@ -5,8 +5,8 @@
 **Created**: 2026-10-13
 
 **Status**: Draft for review — all approved decisions of blocks 4 and 8 and of the rate-limit
-store (owner, 2026-10-13) are specified. E1 is implemented and closed (its pull request);
-E2 … E6 are `planned`.
+store (owner, 2026-10-13) are specified. E1 and E6 are implemented and closed (their pull
+requests); E2 … E5 are `planned`.
 
 **Input**: The owner's approved orders of 2026-10-13: block 4 (enrolment through Google Forms,
 account creation and access limits) with its clarifications P1–P15 and supplementary precisions,
@@ -62,7 +62,7 @@ request that completes a delivery marks it `closed` and fills all its rows.
 | **E3** | Temporary student accounts created one by one: identification as username and initial password, existing group, level and grade, display name, last day of access; expiration enforced, also on open sessions and PvP; the admin changes, extends or reactivates | Not merged before E2 is in production. | planned |
 | **E4** | Import of a Google Forms export (`.xlsx`, `.csv`): mapping, preview, confirmation, re-import without changes, linking, audit, own limits | After E3, whose creation rules it reuses. | planned |
 | **E5** | Session renewal without third-party cookies (block 8): same-origin proxy, cookie scope, CSRF, no caching, revocation and expiry respected; Safari verified | After E2 (revocation). E3's tests include renewal of an expired account. | planned |
-| **E6** | Rate-limit store continuity (constitution 1.1.0): temporary memory fallback, timeouts, controlled recovery, no new allowance, health state | After LuisJRubioH/LevelUp-ELO#63; replaces the code of LuisJRubioH/LevelUp-ELO#59. Same file as E1: one after the other. | planned |
+| **E6** | Rate-limit store continuity (constitution 1.1.0): temporary memory fallback, timeouts, controlled recovery, no new allowance, health state | After LuisJRubioH/LevelUp-ELO#63; replaces the code of LuisJRubioH/LevelUp-ELO#59. Same file as E1: one after the other. | closed |
 
 ## Clarifications
 
@@ -641,6 +641,8 @@ in a minute is refused; the 301st attempt in a minute is refused.
 | N6 | E5 | The hosting proxy for the same origin (Vercel rewrites) does not carry WebSockets, so PvP and notifications keep connecting to the API's origin (token in the first message, no cookie); streaming answers (KatIA) must be checked through the proxy. | Keep WebSockets direct and add an origin check to them (FR-085); verify KatIA's stream through the proxy. |
 | N7 | E3 | Showing the expiry message only after the right password avoids revealing which accounts exist; with a wrong password the answer is the usual one. | Confirm. |
 | N8 | E6 | Render's health check reads only the status code, so a degraded 200 alerts nobody; "monitors read the body" needs an external monitor. | Operational step for the owner, listed apart. |
+| N9 | E6 | FR-091 asked for configurable timeouts and a controlled probe without values. E6 uses 0.5 s to connect and 0.5 s per operation, no client retries, a background probe at most every 10 s and at most 50 000 counters in memory (`RATE_LIMIT_STORAGE_*`, `RATE_LIMIT_FALLBACK_MAX_KEYS`). | Confirm the values. |
+| N10 | E6 | During an outage the store cannot be read, so a key counted just before it starts from zero in memory (up to one more window's allowance while Redis is down); FR-092 holds on return. | Confirm; reading the store's counts is impossible while it is down. |
 
 ## Out of Scope *(mandatory)*
 
@@ -711,11 +713,11 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | US9-AS3 | E5 | `PENDING` |
 | US9-AS4 | E5 | `PENDING` |
 | US9-AS5 | E5 | `PENDING` |
-| US10-AS1 | E6 | `PENDING` |
-| US10-AS2 | E6 | `PENDING` |
-| US10-AS3 | E6 | `PENDING` |
+| US10-AS1 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_api_limits_and_health_during_an_outage`<br>`tests/api/test_spec004_e6_limit_store.py::test_spec004_store_calls_are_bounded_by_their_timeouts` |
+| US10-AS2 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_recovery_carries_memory_counts_over_to_the_store` |
+| US10-AS3 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_without_store_or_fallback_limited_requests_are_refused` |
 | US10-AS4 | E6 | `tests/api/test_production_config.py::test_insecure_production_configuration_is_rejected` |
-| US10-AS5 | E6 | `PENDING` |
+| US10-AS5 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_entering_and_leaving_are_logged_once_each` |
 | FR-001 | E1 | `tests/integration/test_spec004_e1_registration.py::test_spec004_public_registration_is_closed_by_default` |
 | FR-002 | E1 | `tests/integration/test_spec004_e1_registration.py::test_spec004_registration_opens_only_through_its_setting` |
 | FR-003 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_registration_state_is_public`<br>`frontend/e2e/auth.spec.ts › con el registro público cerrado, login no ofrece crear cuenta (spec 004 US1-AS2, FR-003)`<br>`frontend/e2e/auth.spec.ts › con el registro público abierto, el formulario está accesible desde login (spec 004 US1-AS3)` |
@@ -771,10 +773,10 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | FR-083 | E5 | `PENDING` |
 | FR-084 | E5 | `PENDING` |
 | FR-085 | E5 | `PENDING` |
-| FR-090 | E6 | `PENDING` |
-| FR-091 | E6 | `PENDING` |
-| FR-092 | E6 | `PENDING` |
-| FR-093 | E6 | `PENDING` |
-| FR-094 | E6 | `PENDING` |
-| FR-095 | E6 | `PENDING` |
+| FR-090 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_limits_keep_applying_from_memory_when_the_store_fails`<br>`tests/api/test_spec004_e6_limit_store.py::test_spec004_memory_fallback_needs_a_single_process`<br>`tests/api/test_spec004_e6_limit_store.py::test_spec004_the_api_limiter_uses_the_failover_with_a_shared_store` |
+| FR-091 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_no_request_calls_the_store_once_its_failure_is_known`<br>`tests/api/test_spec004_e6_limit_store.py::test_spec004_store_calls_are_bounded_by_their_timeouts`<br>`tests/api/test_spec004_e6_limit_store.py::test_spec004_a_failed_probe_keeps_the_fallback` |
+| FR-092 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_recovery_carries_memory_counts_over_to_the_store`<br>`tests/api/test_spec004_e6_limit_store.py::test_spec004_a_failed_probe_keeps_the_fallback` |
+| FR-093 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_entering_and_leaving_are_logged_once_each` |
+| FR-094 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_health_reports_the_limits_state`<br>`tests/api/test_spec004_e6_limit_store.py::test_spec004_api_limits_and_health_during_an_outage`<br>`tests/api/test_health.py::test_health_returns_503_without_exposing_database_error` |
+| FR-095 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_without_store_or_fallback_limited_requests_are_refused` |
 | FR-096 | E6 | `tests/api/test_production_config.py::test_insecure_production_configuration_is_rejected` |
