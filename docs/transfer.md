@@ -168,9 +168,11 @@ Nothing in this section changes a host's settings or the start command; the owne
   `sync: false`), never in the repository or a chat.
 - **If the store stops answering**: every limited route answers 500 — login, registration, the
   KatIA chat and procedure review — until it answers again, so a Redis outage is a sign-in outage.
-  `GET /api/health` does not check Redis; the 500s show in Render's logs. Counting in the
-  process's memory during an outage is proposed in LuisJRubioH/LevelUp-ELO#59 and **pending the
-  owner's approval**.
+  `GET /api/health` does not check Redis; the 500s show in Render's logs. Approved, not yet
+  implemented: a temporary in-memory fallback with timeouts, controlled recovery, no new allowance
+  on return and a degraded state in `/api/health` (constitution 1.1.0, LuisJRubioH/LevelUp-ELO#63;
+  spec 004 delivery E6). A restart will lose the local counters. Render's health check reads only
+  the status code, so a degraded 200 needs an external monitor that reads the body.
 - **Which address the limits see.** uvicorn trusts `X-Forwarded-For` only from `127.0.0.1` unless
   `FORWARDED_ALLOW_IPS` says otherwise, and the start command sets neither. Behind Render's proxy
   every request may therefore be counted under the proxy's address, so the 20 logins per minute
@@ -179,8 +181,8 @@ Nothing in this section changes a host's settings or the start command; the owne
   write if the proxy appends to the header rather than replacing it (reported for Render, not
   verified here). **Do not set `FORWARDED_ALLOW_IPS` to `*`, or to any address list Render does not
   publish**: either lets a client choose the address it is counted under. Spec 004 delivery E1
-  removes the per-address sign-in limit altogether (10 attempts per account and 300 overall per
-  minute), so sign-in stops depending on the address.
+  removes the per-address sign-in limit altogether (10 attempts per normalised account and 300
+  overall per minute, configurable), so sign-in stops depending on the address.
 - **A class behind one school address** exceeds 20 sign-ins per minute as soon as it has 21
   students, whatever the proxy does.
 
