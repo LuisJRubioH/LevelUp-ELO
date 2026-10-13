@@ -1104,23 +1104,31 @@ def diagnostic_submit(
         correct_total=correct_total,
         answered=answered,
         course_rating=view["course_rating"],
+        outcome_summary=view["outcome_summary"],
     )
 
 
 def _diagnostic_result_view(repo, user_id: int, course_id: str, result: dict) -> dict:
-    """A diagnostic result with today's ratings (spec 001 FR-020a–c): the course's current rating
-    and each diagnosed topic's, next to that diagnostic's breakdown and initialized/kept mark. A
-    result stored before the mark existed has none (`outcome` None)."""
-    current = StudentService(repository=repo).ratings.course_view(user_id, course_id)
-    themes = [
-        {
-            **theme,
-            "outcome": theme.get("outcome"),
-            "current_rating": current["topics"].get(theme["topic"]),
-        }
-        for theme in result.get("themes", [])
-    ]
-    return {**result, "themes": themes, "course_rating": current["course"]}
+    """A diagnostic result as the screen shows it (spec 001 FR-020a–c, FR-031a): the course's
+    current rating as the one figure, and that diagnostic's per-topic breakdown with each topic's
+    initialized/kept mark and the outcome of them all. A result stored before the mark existed
+    has none (`outcome` and `outcome_summary` None)."""
+    themes = [{**theme, "outcome": theme.get("outcome")} for theme in result.get("themes", [])]
+    outcomes = {theme["outcome"] for theme in themes}
+    if not themes or None in outcomes:
+        summary = None
+    elif len(outcomes) == 1:
+        summary = outcomes.pop()  # "initialized" or "kept"
+    else:
+        summary = "mixed"
+    return {
+        **result,
+        "themes": themes,
+        "outcome_summary": summary,
+        "course_rating": StudentService(repository=repo).ratings.course_rating_view(
+            user_id, course_id
+        ),
+    }
 
 
 # ── Mapa de contenido ─────────────────────────────────────────────────────────

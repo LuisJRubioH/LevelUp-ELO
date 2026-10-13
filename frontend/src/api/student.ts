@@ -115,10 +115,8 @@ export interface DiagnosticTheme {
   total: number;
   ratio: number;
   status: "strong" | "mid" | "gap";
-  /** The diagnostic's own value for the topic; not the rating shown (spec 001 FR-020b). */
+  /** The diagnostic's own value for the topic: a record, never shown (spec 001 FR-020a, FR-020b). */
   elo: number;
-  /** The student's current rating in the topic, rounded by the backend (FR-020b, FR-028j). */
-  current_rating?: number | null;
   /** What this diagnostic did to the topic; null for a result stored before the mark (FR-020c). */
   outcome?: "initialized" | "kept" | null;
 }
@@ -143,6 +141,8 @@ export interface DiagnosticResult {
   answered: number;
   completed?: boolean;
   course_rating?: DiagnosticCourseRating | null;
+  /** All topics initialized, all kept, or some of each; null when unknown (FR-020c). */
+  outcome_summary?: "initialized" | "kept" | "mixed" | null;
 }
 export interface DiagnosticStatus {
   completed: boolean;

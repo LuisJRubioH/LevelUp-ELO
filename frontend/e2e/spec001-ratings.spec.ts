@@ -198,36 +198,63 @@ test.describe("Spec 001 · calificaciones en pantalla", () => {
     await expect(page.getByText("ELO 1120+", { exact: true })).toHaveCount(0);
   });
 
-  test("Diagnóstico: muestra el ELO actual del curso y qué temas conservó (US3-AS6, FR-020a–c)", async ({ page }) => {
-    await mockStudentApi(page);
-    await json(page, "**/api/student/diagnostic/*", {
-      completed: true,
-      course_id: "calculo",
-      result: {
-        initial_elo: 920, // the diagnostic's own placement: never shown as the rating
-        score_pct: 50,
-        league: { name: "Bronce", min: 0, color: "#cd7f32", rank: "II" },
-        themes: [
-          { topic: "Límites", correct: 0, total: 2, ratio: 0, status: "gap", elo: 920, current_rating: 1058, outcome: "kept" },
-          { topic: "Derivadas", correct: 2, total: 2, ratio: 1, status: "strong", elo: 1068, current_rating: 1068, outcome: "initialized" },
-        ],
-        correct_total: 2,
-        answered: 4,
-        completed: true,
-        course_rating: { display_rating: 1063, rank_label: "Plata I", status: "rated" },
-      },
-    });
-    await injectAuth(page);
-    await page.goto("/student/course/calculo");
+  const DIAGNOSTIC_CASES = [
+    {
+      name: "todos inicializados (US3-AS5)",
+      outcomes: ["initialized", "initialized"],
+      summary: "initialized",
+      message: "Esta es tu valoración inicial.",
+    },
+    {
+      name: "conservados e inicializados (US3-AS6)",
+      outcomes: ["kept", "initialized"],
+      summary: "mixed",
+      message: "Conservamos tu valoración en los temas que ya practicaste y establecimos la inicial en los restantes.",
+    },
+    {
+      name: "todos conservados (US3-AS8)",
+      outcomes: ["kept", "kept"],
+      summary: "kept",
+      message: "Tu valoración se mantiene. Este diagnóstico te ayuda a identificar qué reforzar.",
+    },
+  ] as const;
 
-    await expect(page.locator(".dx-elo .ev")).toHaveText(/^1\.?063$/);
-    await expect(page.locator(".dx-elo")).toContainText("Plata I");
-    await expect(page.locator(".dx-elo")).not.toContainText("920");
-    const limites = page.locator(".dx-theme").filter({ hasText: "Límites" });
-    await expect(limites.locator(".dx-outcome")).toHaveText("Conservado");
-    await expect(limites.locator(".te")).toHaveText("1058");
-    const derivadas = page.locator(".dx-theme").filter({ hasText: "Derivadas" });
-    await expect(derivadas.locator(".dx-outcome")).toHaveText("Inicializado");
-    await expect(page.getByText(/los que ya practicabas conservan su ELO/)).toBeVisible();
-  });
+  for (const c of DIAGNOSTIC_CASES) {
+    test(`Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — ${c.name} (FR-020a–c, FR-031a)`, async ({ page }) => {
+      await mockStudentApi(page);
+      await json(page, "**/api/student/diagnostic/*", {
+        completed: true,
+        course_id: "calculo",
+        result: {
+          initial_elo: 920, // the diagnostic's own estimate: a record, never shown
+          score_pct: 50,
+          league: { name: "Bronce", min: 0, color: "#cd7f32", rank: "II" },
+          themes: [
+            { topic: "Límites", correct: 0, total: 2, ratio: 0, status: "gap", elo: 920, outcome: c.outcomes[0] },
+            { topic: "Derivadas", correct: 2, total: 2, ratio: 1, status: "strong", elo: 1068, outcome: c.outcomes[1] },
+          ],
+          correct_total: 2,
+          answered: 4,
+          completed: true,
+          course_rating: { display_rating: 1063, rank_label: "Plata I", status: "rated" },
+          outcome_summary: c.summary,
+        },
+      });
+      await injectAuth(page);
+      await page.goto("/student/course/calculo");
+
+      // The figure and the league are the backend's current rating and rank label (FR-020a, FR-031a).
+      await expect(page.locator(".dx-elo .ev")).toHaveText(/^1\.?063$/);
+      await expect(page.locator(".dx-league")).toHaveText("Plata I");
+      await expect(page.getByText(c.message, { exact: true })).toBeVisible();
+      // No other rating figure: not the estimate, not the placement league, none per topic (FR-020b).
+      const hub = page.locator(".dx-hub");
+      await expect(hub).not.toContainText("920");
+      await expect(hub).not.toContainText("1068");
+      await expect(hub).not.toContainText("Bronce");
+      const limites = page.locator(".dx-theme").filter({ hasText: "Límites" });
+      await expect(limites.locator(".dx-tag")).toHaveText("Brecha");
+      await expect(limites.locator(".dx-outcome")).toHaveText(c.outcomes[0] === "kept" ? "Conservado" : "Inicializado");
+    });
+  }
 });

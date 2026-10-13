@@ -1,7 +1,8 @@
 """
-Spec 001, block 5 (FR-020a–c, US3-AS5–AS7): the diagnostic result shows the student's current
-ratings — the course's and each diagnosed topic's — and marks each topic as initialized by the
-diagnostic or kept because it already had practice. On both engines.
+Spec 001, block 5 (FR-020a–c, FR-031a, US3-AS5–AS8): the diagnostic result shows one figure, the
+student's current course rating read through RatingReadService, with its rank label; it keeps the
+diagnostic's per-topic breakdown with no rating figure per topic, marks each topic as initialized
+or kept, and summarises the outcome for the message. On both engines.
 
 [CHANGE] tests: written before the code they test.
 """
@@ -44,15 +45,26 @@ def _themes(result):
     return {t["topic"]: t for t in result["themes"]}
 
 
-def _course_display(repo, student, course):
+def _current(repo, student, course):
+    """The course rating as RatingReadService reads it, displayed (FR-028j)."""
     from src.application.services.rating_read_service import RatingReadService
 
-    return rating_display(RatingReadService(repo).course_rating_of(student, course))
+    return {
+        **rating_display(RatingReadService(repo).course_rating_of(student, course)),
+        "status": "rated",
+    }
 
 
-def test_spec001_first_diagnostic_shows_current_ratings_all_initialized(repo, student, client):
-    """US3-AS5, FR-020a, FR-020b, FR-020c: no practice yet → every topic initialized; the course
-    and each topic show the stored ratings as the backend displays them."""
+def _assert_one_figure(result):
+    """FR-020b: the breakdown carries no rating figure per topic."""
+    for theme in result["themes"]:
+        assert "current_rating" not in theme
+        assert set(theme) >= {"topic", "correct", "total", "status", "outcome"}
+
+
+def test_spec001_first_diagnostic_is_all_initialized(repo, student, client):
+    """US3-AS5, FR-020a, FR-020b, FR-020c, FR-031a: no practice yet → every topic initialized;
+    the one figure and its rank label are the current course rating."""
     course, items = make_course(repo, TOPICS, difficulty=1200.0)
     enroll(repo, student, course)
 
@@ -64,23 +76,21 @@ def test_spec001_first_diagnostic_shows_current_ratings_all_initialized(repo, st
         [(items["Fracciones"][0], "A"), (items["Decimales"][0], "B")],
     )
 
-    assert result["course_rating"] == {
-        **_course_display(repo, student, course),
-        "status": "rated",
+    assert result["course_rating"] == _current(repo, student, course)
+    assert result["outcome_summary"] == "initialized"
+    assert {t: v["outcome"] for t, v in _themes(result).items()} == {
+        "Fracciones": "initialized",
+        "Decimales": "initialized",
     }
     themes = _themes(result)
-    for topic in TOPICS:
-        assert themes[topic]["outcome"] == "initialized"
-        stored = rating_of(repo, student, course, topic)
-        assert themes[topic]["current_rating"] == rating_display(stored)["display_rating"]
-    # The diagnostic's own breakdown stays (FR-020b).
     assert (themes["Fracciones"]["correct"], themes["Fracciones"]["total"]) == (1, 1)
     assert (themes["Decimales"]["correct"], themes["Decimales"]["total"]) == (0, 1)
+    _assert_one_figure(result)
 
 
-def test_spec001_retaken_diagnostic_keeps_a_practised_topic_and_shows_it(repo, student, client):
-    """US3-AS6, FR-020a, FR-020c: a practised topic (1058.16) failed in a retake is shown as kept
-    with 1058, and the course rating shown is the current one, not the diagnostic's values."""
+def test_spec001_retaken_diagnostic_keeps_a_practised_topic_mixed(repo, student, client):
+    """US3-AS6, FR-020a, FR-020c, FR-021: a practised topic (1058.16) failed in a retake is kept and
+    its rating unchanged, the other is initialized, and the figure is the current course rating."""
     course, items = make_course(repo, TOPICS, difficulty=1200.0)
     enroll(repo, student, course)
     set_rating(repo, student, course, "Fracciones", 1058.16, origin="practice")
@@ -95,19 +105,42 @@ def test_spec001_retaken_diagnostic_keeps_a_practised_topic_and_shows_it(repo, s
         [(items["Fracciones"][0], "B"), (items["Decimales"][0], "A")],
     )
 
-    themes = _themes(result)
     assert rating_of(repo, student, course, "Fracciones") == practised
+    themes = _themes(result)
     assert themes["Fracciones"]["outcome"] == "kept"
-    assert themes["Fracciones"]["current_rating"] == rating_display(practised)["display_rating"]
     assert themes["Decimales"]["outcome"] == "initialized"
-    shown = _course_display(repo, student, course)
-    assert result["course_rating"]["display_rating"] == shown["display_rating"]
-    assert result["course_rating"]["rank_label"] == shown["rank_label"]
+    assert result["outcome_summary"] == "mixed"
+    assert result["course_rating"] == _current(repo, student, course)
+    assert result["course_rating"]["display_rating"] != round(result["initial_elo"])
+    _assert_one_figure(result)
 
 
-def test_spec001_returning_to_the_course_shows_current_ratings(repo, student, client):
-    """US3-AS7, FR-020a, FR-020b: after practice, the stored result is shown with today's ratings
-    and with that diagnostic's breakdown and marks unchanged."""
+def test_spec001_retaken_diagnostic_with_every_topic_practised_keeps_all(repo, student, client):
+    """US3-AS8, FR-020c, FR-021: practice in every topic → all kept, no rating moves."""
+    course, items = make_course(repo, TOPICS, difficulty=1200.0)
+    enroll(repo, student, course)
+    for topic in TOPICS:
+        set_rating(repo, student, course, topic, 1100.0, origin="practice")
+        answer(repo, student, items[topic][0])
+    before = {topic: rating_of(repo, student, course, topic) for topic in TOPICS}
+
+    result = _submit(
+        client,
+        repo,
+        student,
+        course,
+        [(items["Fracciones"][0], "B"), (items["Decimales"][0], "B")],
+    )
+
+    assert {topic: rating_of(repo, student, course, topic) for topic in TOPICS} == before
+    assert result["outcome_summary"] == "kept"
+    assert {v["outcome"] for v in result["themes"]} == {"kept"}
+    assert result["course_rating"] == _current(repo, student, course)
+
+
+def test_spec001_returning_to_the_course_shows_the_current_rating(repo, student, client):
+    """US3-AS7, FR-020a, FR-020b: after practice, the stored result is shown with today's course
+    rating and with that diagnostic's breakdown, marks and outcome unchanged."""
     course, items = make_course(repo, TOPICS, difficulty=1200.0, items_per_topic=2)
     enroll(repo, student, course)
     submitted = _submit(
@@ -121,22 +154,18 @@ def test_spec001_returning_to_the_course_shows_current_ratings(repo, student, cl
 
     shown = _status(client, repo, student, course)
 
-    now = rating_of(repo, student, course, "Fracciones")
-    themes = _themes(shown)
-    assert themes["Fracciones"]["current_rating"] == rating_display(now)["display_rating"]
-    assert (
-        themes["Fracciones"]["current_rating"] != _themes(submitted)["Fracciones"]["current_rating"]
-    )
-    assert shown["course_rating"]["display_rating"] == (
-        _course_display(repo, student, course)["display_rating"]
-    )
+    assert shown["course_rating"] == _current(repo, student, course)
+    assert shown["course_rating"] != submitted["course_rating"]
+    assert shown["outcome_summary"] == submitted["outcome_summary"] == "initialized"
     for topic in TOPICS:
         for key in ("correct", "total", "status", "outcome"):
-            assert themes[topic][key] == _themes(submitted)[topic][key]
+            assert _themes(shown)[topic][key] == _themes(submitted)[topic][key]
+    _assert_one_figure(shown)
 
 
 def test_spec001_a_result_stored_before_block_5_has_no_mark(repo, student, client):
-    """Edge case (FR-020c): a stored result without marks shows current ratings and no mark."""
+    """Edge case (FR-020c): a stored result without marks shows the current rating, no mark and
+    no outcome."""
     course, items = make_course(repo, TOPICS, difficulty=1200.0)
     enroll(repo, student, course)
     set_rating(repo, student, course, "Fracciones", 1100.0)
@@ -159,7 +188,6 @@ def test_spec001_a_result_stored_before_block_5_has_no_mark(repo, student, clien
 
     shown = _status(client, repo, student, course)
 
-    theme = _themes(shown)["Fracciones"]
-    assert theme["outcome"] is None
-    assert theme["current_rating"] == 1100
+    assert _themes(shown)["Fracciones"]["outcome"] is None
+    assert shown["outcome_summary"] is None
     assert shown["course_rating"]["display_rating"] == 1100
