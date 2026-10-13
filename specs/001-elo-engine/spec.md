@@ -190,6 +190,26 @@ was served a `probabilidad` (universidad) item and its answer stored a rating of
 - Q: How is it tested? → A: allowed and denied access, the denied side with no side effect
   (US8-AS1 … AS5).
 
+### Session 2026-10-13 (block 5, owner decision — planned amendment)
+
+Found while reviewing the diagnostic screen: its result shows «ELO INICIAL», the average of the
+diagnostic's per-topic values, including topics the diagnostic did not set because they already
+had practice (FR-021). Reproduced on `redesign @ 1d6fcf6`: a student whose topic rating was
+1058.16 retook the diagnostic and saw 920 for the course and for that topic, while the stored
+rating stayed 1058.16; the course page kept showing 920 afterwards.
+
+- Q: What rating does the diagnostic result show? → A: the student's current rating, both right
+  after the submission and whenever the result is shown again (FR-020a).
+- Q: Is the per-topic breakdown kept? → A: yes, the diagnostic's own breakdown per topic, with each
+  topic's current rating (FR-020b).
+- Q: How does the result tell apart what the diagnostic did? → A: each topic is marked as
+  initialized by this diagnostic or kept because it already had practice (FR-020c).
+
+These requirements are **planned**: plain IDs, no § Traceability rows yet. They become checked —
+bold, with their rows and tests — in the pull request that implements them, so that their
+`PENDING` rows never sit on the base branch and block the other pull requests that touch this
+spec's Code Scope (AGENTS.md § Spec-driven development).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A practice answer updates my rating correctly (Priority: P1)
@@ -275,6 +295,18 @@ without ever erasing progress they already made in practice.
    diagnostic, **Then** that topic's rating is not overwritten.
 4. **US3-AS4** — **Given** a skipped question ("I don't know"), **When** it is scored, **Then** it
    does not change the rating.
+
+Planned (block 5, 2026-10-13):
+
+5. US3-AS5 — **Given** no practice yet, **When** the student submits the diagnostic, **Then** the
+   result shows their current rating in the course, as display rating and rank label, and every
+   diagnosed topic marked as initialized with its current rating.
+6. US3-AS6 — **Given** a topic with practice (rating 1058.16), **When** the student retakes the
+   diagnostic and fails that topic's questions, **Then** that topic is shown as kept with 1058,
+   and the course rating shown is the current one, not the diagnostic's values.
+7. US3-AS7 — **Given** a diagnostic taken earlier and practice since, **When** the student returns
+   to the course, **Then** the result shows the current ratings, with that diagnostic's
+   breakdown and marks unchanged.
 
 ---
 
@@ -487,6 +519,8 @@ same course; compare attempts, ratings, item difficulty and diagnostics before a
 - A database whose block constraint lacks one of the four blocks → the migration stops before
   changing anything, naming the missing values (FR-028n); one that accepts the four plus extra
   values → no DDL, the extra values stay.
+- A diagnostic result stored before block 5 (planned) → it never recorded which topics it set; its
+  topics are shown with their current ratings and without the initialized/kept mark (FR-020c).
 
 ## Requirements *(mandatory)*
 
@@ -567,6 +601,21 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   correct/incorrect answer, ignoring skipped questions, with a floor of 760.
 - **FR-021** [AS-IS]: While a topic already has practice attempts, the system shall not overwrite
   its rating with a diagnostic result.
+
+Planned (block 5, 2026-10-13; checked when implemented):
+
+- FR-020a [CHANGE]: When a diagnostic result is shown — right after its submission or when the
+  student returns to the course — the system shall show the student's current rating in that
+  course, as the display rating and rank label of FR-028j, or "pending diagnostic" when the course
+  has no rated topic. *(Today it shows «ELO INICIAL»: the average of the diagnostic's per-topic
+  values, kept topics included, rounded by the browser, and frozen at submission time.)*
+- FR-020b [CHANGE]: When a diagnostic result is shown, the system shall list each diagnosed topic
+  with that diagnostic's correct and total answers and strength, and the student's current rating
+  in the topic (display rating, FR-028j). *(Today each topic shows the diagnostic's value, even
+  where FR-021 kept the stored rating.)*
+- FR-020c [CHANGE]: When a diagnostic result is shown, the system shall mark each diagnosed topic
+  as **initialized** (this diagnostic set its starting rating, FR-020) or **kept** (it already
+  had practice and its rating was not changed, FR-021).
 
 **Teacher-validated procedure (US4)**
 
@@ -995,6 +1044,7 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-016, FR-019 | `student_service.py:66-98` |
 | FR-017–018 | `src/domain/selector/item_selector.py:40-80` |
 | FR-020–021 | `api/routers/student.py:954-960, 1007-1053` |
+| FR-020a–c (planned) | `api/routers/student.py:996` (a stored result is returned as saved), `:1060` (FR-021 check), `:1071` (each topic carries the diagnostic's value), `:1076` (`initial_elo` = mean of those values); `frontend/src/pages/Student/CourseEntry.tsx:210-211` («ELO INICIAL», rounded in the browser), `:237` |
 | FR-022–024 | `procedure_elo_delta` in `src/domain/elo/model.py`; `validate_procedure_submission` (both repos) |
 | FR-025, FR-027 | `api/websocket/pvp.py:28, 83-125`; `finish_pvp_match`, `expire_stale_pvp_matches` |
 | FR-026 | `api/websocket/pvp.py:191` (global `current_elo`) vs `finish_pvp_match` (course key) |
