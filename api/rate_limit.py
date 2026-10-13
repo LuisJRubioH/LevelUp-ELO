@@ -1,7 +1,10 @@
 """Rate limiting compartido para operaciones costosas de la API."""
 
+import hashlib
+
 import jwt
 from jwt.exceptions import InvalidTokenError
+from limits import parse
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -34,3 +37,25 @@ def _client_key(request) -> str:
 
 
 limiter = Limiter(key_func=_client_key, storage_uri=settings.rate_limit_storage_uri)
+
+
+def login_limit_key(account_id: int | None, identifier: str) -> str:
+    """Spec 004 FR-006, FR-011: the counter a sign-in attempt goes to.
+
+    An attempt that names an active account — by username or by email — counts for that account.
+    Any other identifier counts for itself, after trimming outer spaces and ignoring letter case,
+    and only as a one-way digest: the limit store holds no readable identifier (FR-011).
+    """
+    if account_id is not None:
+        return f"account:{account_id}"
+    digest = hashlib.sha256(identifier.strip().casefold().encode("utf-8")).hexdigest()
+    return f"identifier:{digest}"
+
+
+def login_allowed(key: str) -> bool:
+    """Spec 004 FR-006, FR-007: count one attempt on the global and on the key's counter; False if
+    either is over its limit for the current minute. Values come from settings at each call."""
+    strategy = limiter.limiter
+    overall = strategy.hit(parse(settings.rate_limit_login_global), "login", "all")
+    account = strategy.hit(parse(settings.rate_limit_login_account), "login", key)
+    return overall and account

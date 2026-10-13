@@ -24,6 +24,6 @@ Trasladado de la rama `claude/great-mayer-4617ix` (commit `13d4f76`, que lo aña
   `api/main.py:91-92` y se aplica al chat socrático (`api/routers/ai.py:28`,
   `RATE_LIMIT_SOCRATIC`), a la revisión de procedimientos (`api/routers/ai.py:148` y
   `api/routers/student.py:536`, `RATE_LIMIT_REVIEW`), al análisis con IA del docente
-  (`api/routers/teacher.py:302`) y al login y el registro (`api/routers/auth.py:39,80`). Lo que
-  falta sobre límites —por cuenta y global en el login, sin límite por dirección— está en la
-  [spec 004](../specs/004-identity/spec.md), entrega E1.
+  (`api/routers/teacher.py:302`) y al registro (`api/routers/auth.py:100`). El login cuenta por
+  cuenta y con un techo global, sin límite por dirección
+  ([spec 004](../specs/004-identity/spec.md), entrega E1).

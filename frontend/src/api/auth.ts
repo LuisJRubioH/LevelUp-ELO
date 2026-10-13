@@ -45,4 +45,6 @@ export const authApi = {
   me: () => api.get<UserProfile>("/api/auth/me"),
   logout: () => api.post<void>("/api/auth/logout"),
   refresh: () => api.post<TokenResponse>("/api/auth/refresh"),
+  /** Whether public sign-up is open on the server (spec 004 FR-003); closed by default. */
+  registration: () => api.get<{ enabled: boolean }>("/api/auth/registration"),
 };

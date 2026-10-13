@@ -60,7 +60,13 @@ class Settings(BaseSettings):
     # ── Rate limiting (slowapi) ───────────────────────────────────────────────
     rate_limit_socratic: str = "10/minute"  # peticiones IA socrática por usuario
     rate_limit_review: str = "3/minute"  # revisión de procedimientos
-    rate_limit_auth: str = "20/minute"  # login/registro por origen
+    # Spec 004 E1: login is limited per account and overall, never per address (FR-006 … FR-009);
+    # public sign-up, when open, has its own per-address limit (FR-004, decision N2: 20/minute).
+    rate_limit_login_account: str = "10/minute"
+    rate_limit_login_global: str = "300/minute"
+    rate_limit_register: str = "20/minute"
+    # Spec 004 FR-001/FR-002: public registration is closed unless this server setting opens it.
+    public_registration_enabled: bool = False
     rate_limit_default: str = "60/minute"  # endpoints normales
     rate_limit_storage_uri: str = "memory://"  # producción: Redis compartido entre instancias
 
