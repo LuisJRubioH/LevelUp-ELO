@@ -519,6 +519,17 @@ async def submit_procedure(
     )
 
 
+def _ai_score_in_range(value) -> float | None:
+    """The AI's procedure score kept within 0-100; None when it gave no number."""
+    try:
+        score = float(value)
+    except (TypeError, ValueError):
+        return None
+    if score != score:  # NaN
+        return None
+    return max(0.0, min(100.0, score))
+
+
 @router.get("/ai-status")
 def ai_status():
     """Indica al frontend si el servidor tiene IA configurada (sin revelar keys)."""
@@ -601,10 +612,12 @@ async def analyze_procedure(
         except Exception as exc:
             raise HTTPException(status_code=500, detail=f"Error al revisar procedimiento: {exc}")
 
+        # Advisory and on a 0-100 scale: a value outside it (or not a number) is not shown as is.
+        review["score_procedimiento"] = _ai_score_in_range(review.get("score_procedimiento"))
         return {
             "item_id": item_id, "provider": "groq", "review": review,
             "analysis_token": create_procedure_review_token(
-                user["user_id"], item_id, file_hash, review.get("score_procedimiento"),
+                user["user_id"], item_id, file_hash, review["score_procedimiento"],
                 review.get("evaluacion_global") or "",
             ),
         }
