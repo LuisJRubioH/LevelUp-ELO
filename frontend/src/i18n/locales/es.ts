@@ -527,6 +527,7 @@ const es = {
     confirmYes: "Sí, eliminar",
     cancel: "Cancelar",
     delete: "Eliminar",
+    deleteError: "No se pudo eliminar el grupo. Inténtalo de nuevo.",
   },
 
   // ── Pantallas docente — Exámenes (plantillas) ───────────────────────────────

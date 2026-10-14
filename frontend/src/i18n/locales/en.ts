@@ -526,6 +526,7 @@ const en: TranslationKeys = {
     confirmYes: "Yes, delete",
     cancel: "Cancel",
     delete: "Delete",
+    deleteError: "The group could not be deleted. Please try again.",
   },
 
   // ── Teacher — Exams (templates) ─────────────────────────────────────────────
