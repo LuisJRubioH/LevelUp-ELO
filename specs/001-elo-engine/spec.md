@@ -255,6 +255,22 @@ through (rating 3, grade 0: −3 applied, −10 stored). No history of grades is
 - Q: How is it proven? → A: on SQLite and PostgreSQL: equal, higher and lower regrade, pending
   resubmission, retries, concurrency and the floor (US9).
 
+### Session 2026-10-14 (block 7, owner answers — delivery B7)
+
+- B7-P1, B7-P2 and B7-P3: the recommendations are approved. A regrade comes with the new
+  submission (B7-P3).
+- B7-P4 is replaced by rules for a file that was already uploaded (compared by its SHA-256):
+  - another student's file, in any exercise: the new upload is graded 0 automatically, marked as a
+    copy and shown so to the teacher (FR-024i);
+  - the student's own file from another exercise: refused, telling them it belongs to another
+    exercise (FR-024j);
+  - the same file again in the same exercise: refused, telling them it was already uploaded;
+    nothing changes (FR-024k).
+- The automatic 0 is a procedure signal that no teacher gives: the constitution's rule «Teacher
+  authority» and its list of rating writers are amended for it (LuisJRubioH/LevelUp-ELO#71).
+- Production may already hold two procedures for one student and item. A read-only count comes
+  before FR-024a's constraint; any merge is prepared apart, with a backup.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A practice answer updates my rating correctly (Priority: P1)
@@ -558,6 +574,15 @@ with the latest grade's delta.
    the time.
 9. **US9-AS9** — **Given** a graded procedure, **When** the student or the teacher sees its result,
    **Then** the rating effect shown is the amount applied, not the computed delta.
+10. **US9-AS10** — **Given** a file another student already uploaded, for any item, **When** a
+    student uploads it, **Then** the procedure is graded 0 and marked as a copy, the rating of the
+    item's topic falls by 10 (floor 0), and the teacher sees it marked.
+11. **US9-AS11** — **Given** a file the student already uploaded for another item, **When** they
+    upload it for this one, **Then** it is refused with a message that it belongs to another
+    exercise, and nothing changes.
+12. **US9-AS12** — **Given** a file the student already uploaded for this item, **When** they upload
+    it again, **Then** it is refused with a message that it was already uploaded, and nothing
+    changes.
 
 ---
 
@@ -573,8 +598,8 @@ with the latest grade's delta.
 - A regrade whose correction would take the rating below 0 → the floor applies again; the amount
   applied is recorded and the contribution is the previous one plus that amount (FR-024d).
 - The same grade again after a penalty the floor limited (rating 3, grade 0: −3 applied) → the
-  correction is −7 (−10 − (−3)) if the rating allows it now; whether a same-grade regrade may
-  apply that remainder is decision B7-P2.
+  correction is −7 (−10 − (−3)) if the rating allows it now: a same-grade regrade applies that
+  remainder (B7-P2).
 - Two first submissions of one procedure at the same time → one procedure (FR-024a).
 - Course with no rated topics → selection and PvP expectation use 1000; every display shows
   "pending diagnostic" (FR-029a).
@@ -743,9 +768,21 @@ is the net amount its gradings actually applied to the rating.
   delta. *(Today the response, the notification and the student's card show the computed delta.)*
 - **FR-024g** [CHANGE]: If a grading is retried or two gradings of one review arrive at once, then the
   system shall apply one correction and return the same result to each.
-- **FR-024h** [CHANGE]: The system shall change no existing rating when block 7 is installed; the
-  contribution of a procedure graded before it is taken from data that identify the amount
-  actually applied. [NEEDS CLARIFICATION: B7-P1]
+- **FR-024h** [CHANGE]: The system shall change no existing rating when block 7 is installed. The
+  contribution of a procedure graded before it is its stored delta where the floor of 0 cannot have
+  limited it; any other such procedure keeps its rating unchanged until it is reviewed one by one
+  (B7-P1), after a read-only count in production.
+- **FR-024i** [CHANGE]: When a student uploads a file that another student already uploaded, for any
+  item, the system shall record the procedure as graded 0 and marked as a copy, apply its delta
+  `(0 − 50) × 0.2` to the item's topic with the floor of 0 exactly once, as FR-024d does, and
+  record the system, not a teacher, as its grader; the teacher sees the procedure marked as a
+  copy. *(Today the same file for the same item from another student is refused with 409 and
+  nothing else happens; across items nothing is checked.)*
+- **FR-024j** [CHANGE]: When a student uploads a file they already uploaded for another item, the
+  system shall refuse it, tell them it belongs to another exercise, and change nothing.
+- **FR-024k** [CHANGE]: When a student uploads for an item the same file they already uploaded for
+  it, the system shall refuse it, tell them it was already uploaded, and change nothing — no new
+  review and no regrade.
 
 **PvP result (US5)**
 
@@ -1018,10 +1055,10 @@ items of that course, or the student's diagnostic for that course.
 
 | # | Question | Recommendation |
 |---|---|---|
-| B7-P1 | Procedures graded before block 7 store the computed delta, and a resubmission erased earlier grades: their contribution cannot always be known. Which baseline does their next regrade use? | First a read-only count in production: graded procedures, and those whose topic rating could have hit 0 at grading. Use the stored delta as the contribution where the floor cannot have applied; leave the rest unchanged until reviewed one by one. |
-| B7-P2 | After a penalty the floor limited (rating 3, grade 0: −3 applied), may a regrade with the same grade apply the remainder (−7) once the rating allows it? | Yes: FR-024d keeps the contribution equal to the latest grade's delta; "same grade" then means the same contribution, not "no change". |
-| B7-P3 | May a teacher regrade a graded procedure without a resubmission? | Not in block 7: a regrade follows a resubmission, as today's review queue does. |
-| B7-P4 | If production already holds two procedures for one student and item, how are they merged before FR-024a's constraint? | A read-only count first; merging, if any, prepared and reviewed separately, with a backup. |
+| B7-P1 | Procedures graded before block 7 store the computed delta, and a resubmission erased earlier grades: their contribution cannot always be known. Which baseline does their next regrade use? | First a read-only count in production: graded procedures, and those whose topic rating could have hit 0 at grading. Use the stored delta as the contribution where the floor cannot have applied; leave the rest unchanged until reviewed one by one. **Decided** (owner, 2026-10-14). |
+| B7-P2 | After a penalty the floor limited (rating 3, grade 0: −3 applied), may a regrade with the same grade apply the remainder (−7) once the rating allows it? | Yes: FR-024d keeps the contribution equal to the latest grade's delta; "same grade" then means the same contribution, not "no change". **Decided** (owner, 2026-10-14). |
+| B7-P3 | May a teacher regrade a graded procedure without a resubmission? | Not in block 7: a regrade follows a resubmission, as today's review queue does. **Decided** (owner, 2026-10-14): the regrade comes with the new submission. |
+| B7-P4 | If production already holds two procedures for one student and item, how are they merged before FR-024a's constraint? | **Replaced** (owner, 2026-10-14) by the rules for a file already uploaded (FR-024i … FR-024k). The read-only count before the constraint stays, as an operational step. |
 
 ## Out of Scope *(mandatory)*
 
@@ -1030,7 +1067,8 @@ items of that course, or the student's diagnostic for that course.
 - PvP lobby, matchmaking and realtime events — spec 007. Follow-up recorded for spec 007: whether
   a player with no rated topic in a course should be eligible for matchmaking (see FR-029c).
 - Procedure upload, AI review and the teacher review UI — spec 006 (only the rating effect is here;
-  block 7's resubmission flow is here only for its rating effect and its history).
+  block 7's resubmission flow is here only for its rating effect and its history; the rules for a
+  file already uploaded, FR-024i … FR-024k, are here because block 7 delivers them).
 - Course map node unlocking and the 1250 "completed" threshold — spec 003 (it reads ratings
   defined here).
 - Access to exams, the course map and lessons (`/exam/start`, `/map/{course}`, the lesson
@@ -1113,6 +1151,9 @@ match the scenarios' text.
 | US9-AS7 | B7 | `PENDING` |
 | US9-AS8 | B7 | `PENDING` |
 | US9-AS9 | B7 | `PENDING` |
+| US9-AS10 | B7 | `PENDING` |
+| US9-AS11 | B7 | `PENDING` |
+| US9-AS12 | B7 | `PENDING` |
 | FR-001 | S1 | `tests/unit/domain/test_elo_model.py::TestExpectedScore::test_400_point_advantage_gives_approx_91_percent`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_fr001_both_engine_paths_use_the_same_expected_success` |
 | FR-002 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_rating_delta` |
 | FR-003 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_rd_floor_30_holds_and_scales_the_change`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_next_rd_has_a_floor_of_30` |
@@ -1150,6 +1191,9 @@ match the scenarios' text.
 | FR-024f | B7 | `PENDING` |
 | FR-024g | B7 | `PENDING` |
 | FR-024h | B7 | `PENDING` |
+| FR-024i | B7 | `PENDING` |
+| FR-024j | B7 | `PENDING` |
+| FR-024k | B7 | `PENDING` |
 | FR-025 | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_pvp_deltas`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_pvp_equal_ratings_win_and_draw`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_closing_a_match_twice_applies_the_delta_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
 | FR-026 | S1 | `tests/unit/application/test_spec001_service.py::test_spec001_pvp_lobby_rating_is_the_course_rating_read_outside_the_lock` |
 | FR-027 | S1 | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_matches_orphaned_by_a_restart_are_closed`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_a_live_match_is_left_alone`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_spec001_abandonment_starts_after_600_seconds` |
