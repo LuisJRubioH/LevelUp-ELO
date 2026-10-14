@@ -62,11 +62,22 @@ def _require_teacher_group(repo, group_id: int, user: dict) -> None:
 
 
 def _require_teacher_student(repo, student_id: int, user: dict) -> dict:
+    """The student as this teacher sees them, with `group_id` set to the teacher's group.
+
+    Same students as the dashboard: those whose main group is the teacher's, and those enrolled
+    through one of the teacher's groups (joining a second group by code replaces the main one).
+    """
     student = repo.get_user_by_id(student_id)
-    if not student or student.get("role") != "student" or not student.get("group_id"):
+    if not student or student.get("role") != "student":
         raise HTTPException(status_code=404, detail="Estudiante no encontrado.")
-    _require_teacher_group(repo, student["group_id"], user)
-    return student
+    own = {group["group_id"] for group in repo.get_groups_by_teacher(user["user_id"])}
+    candidates = [student.get("group_id")] + [
+        enrolment.get("group_id") for enrolment in repo.get_user_enrollments(student_id)
+    ]
+    group_id = next((group for group in candidates if group in own), None)
+    if group_id is None:
+        raise HTTPException(status_code=404, detail="Estudiante no encontrado.")
+    return {**student, "group_id": group_id}
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
