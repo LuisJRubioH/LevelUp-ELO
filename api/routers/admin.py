@@ -79,12 +79,21 @@ def reactivate(user_id: int, user: CurrentUser, repo: RepoDep):
 @router.patch("/students/group", status_code=status.HTTP_204_NO_CONTENT)
 def change_group(body: ChangeGroupRequest, user: CurrentUser, repo: RepoDep):
     """Reasigna a un estudiante a otro grupo (auditado en audit_group_changes)."""
-    repo.change_student_group(
+    ok, message = repo.change_student_group(
         student_id=body.student_id,
         new_group_id=body.new_group_id,
         admin_id=user["user_id"],
         allow_null=body.new_group_id is None,
     )
+    if not ok:
+        # The repository explains a refusal (unknown student or group, same group); a database
+        # error carries its own text, which stays out of the response.
+        if message.startswith("Error crítico"):
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="No se pudo reasignar el grupo.",
+            )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
 
 
 # ── Grupos ────────────────────────────────────────────────────────────────────

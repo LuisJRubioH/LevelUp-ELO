@@ -76,6 +76,15 @@ class RatingReadService:
         rows = self.repository.get_course_topic_ratings(user_id, course_id=course_id)
         return course_rating([r["elo"] for r in rows])
 
+    def course_rating_view(self, user_id: int, course_id: str) -> dict:
+        """One course's current rating as screens show it (FR-028j): display rating, rank label
+        and status ("pending_diagnostic" when no topic of the course is rated)."""
+        rating = self.course_rating_of(user_id, course_id)
+        return {
+            **rating_display(rating),
+            "status": "pending_diagnostic" if rating is None else "rated",
+        }
+
     def selection_rating(self, user_id: int, course_id: str, topic=None) -> float:
         """The rating item selection uses (FR-016–019): the topic's rating when practising one
         topic, otherwise the derived course rating; 1000 when nothing is rated (FR-004)."""

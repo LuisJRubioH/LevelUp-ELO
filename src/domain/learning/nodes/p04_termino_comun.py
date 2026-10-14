@@ -623,12 +623,12 @@ CONTENT = {
             "Rayhana registra una bandeja de $(x+6)$ por $(x-2)$. Con $x=4$, ¿cuántas fichas "
             "lleva?"
         ),
-        "polya": [
-            "Entender: comparten la x; los no comunes son +6 y −2.",
-            "Planear: o multiplico directo, o uso el troquel y sustituyo.",
-            "Ejecutar: 4 + 6 = 10 y 4 − 2 = 2, así que 10 · 2 = 20.",
-            "Comprobar: por el troquel, x² + 4x − 12 con x = 4 da 16 + 16 − 12 = 20 ✓.",
-        ],
+        "polya": {
+            "comprender": "Comparten la x; los no comunes son +6 y −2.",
+            "planear": "O multiplico directo, o uso el troquel y sustituyo.",
+            "ejecutar": "4 + 6 = 10 y 4 − 2 = 2, así que 10 · 2 = 20.",
+            "comprobar": "Por el troquel, x² + 4x − 12 con x = 4 da 16 + 16 − 12 = 20 ✓.",
+        },
         "prompt": "¿Cuántas fichas lleva la bandeja?",
         "answer": "20",
         "hints": {
