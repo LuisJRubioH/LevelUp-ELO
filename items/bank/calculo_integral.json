@@ -86,7 +86,7 @@
             "$uv - \\int v \\, du$",
             "$uv + \\int v \\, du$",
             "$\\int uv - \\int vu$",
-            "$u v - \\int v \\, du$"
+            "$uv - \\int u \\, dv$"
         ],
         "correct_option": "$uv - \\int v \\, du$"
     },
