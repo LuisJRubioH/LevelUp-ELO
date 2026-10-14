@@ -1609,7 +1609,8 @@ class SQLiteRepository:
         """,
             (limit,),
         )
-        rows = [dict(r) for r in cursor.fetchall()]
+        columns = [column[0] for column in cursor.description]
+        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
         conn.close()
         return rows
 
