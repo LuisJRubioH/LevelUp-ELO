@@ -650,12 +650,12 @@ CONTENT = {
         "statement": (
             "Salim expide la remesa $2x^{4}-32$. ¿En cuántos factores queda al abrirla del " "todo?"
         ),
-        "polya": [
-            "Entender: hay que factorizar completamente y contar los factores.",
-            "Planear: común primero, después contar términos y repetir en cada trozo.",
-            "Ejecutar: 2(x⁴ − 16) = 2(x² + 4)(x² − 4) = 2(x² + 4)(x + 2)(x − 2).",
-            "Comprobar: x² + 4 es suma de cuadrados, irreducible. Cuatro factores.",
-        ],
+        "polya": {
+            "comprender": "Hay que factorizar completamente y contar los factores.",
+            "planear": "Común primero, después contar términos y repetir en cada trozo.",
+            "ejecutar": "2(x⁴ − 16) = 2(x² + 4)(x² − 4) = 2(x² + 4)(x + 2)(x − 2).",
+            "comprobar": "x² + 4 es suma de cuadrados, irreducible. Cuatro factores.",
+        },
         "prompt": "¿En cuántos factores queda?",
         "answer": "4",
         "hints": {

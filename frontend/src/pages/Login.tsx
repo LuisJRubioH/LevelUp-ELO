@@ -17,8 +17,10 @@
 import { useId, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { authApi } from "../api/auth";
 import { studentApi } from "../api/student";
+import { prepareClientForAccount } from "../lib/accountCleanup";
 import { useAuthStore } from "../stores/authStore";
 import type { AuthUser } from "../stores/authStore";
 import "./Login.css";
@@ -126,6 +128,7 @@ function Field({
 export function Login() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const queryClient = useQueryClient();
 
   const [lang, setLang] = useState<Lang>(() => ((localStorage.getItem(LS_LANG) as Lang) || "es"));
   const t = (b: Bi) => (lang === "es" ? b.es : b.en);
@@ -167,6 +170,8 @@ export function Login() {
 
   const finishLogin = async (username: string, password: string) => {
     const res = await authApi.login({ username, password });
+    // Otra cuenta no debe dejar sus datos ni su API key a esta; la misma que vuelve conserva los suyos.
+    await prepareClientForAccount(queryClient, res.user_id);
     setAuth(res.access_token, {
       user_id: res.user_id,
       username: res.username,

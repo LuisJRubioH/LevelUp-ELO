@@ -101,13 +101,14 @@ html.light .lue-dx {
 .lue-dx .dx-elo { flex: none; text-align: center; }
 .lue-dx .dx-elo .ev { font-family: var(--font-display); font-weight: 800; font-size: 40px; letter-spacing: -.03em; line-height: 1; background: linear-gradient(135deg, var(--accent-soft), var(--accent-2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 .lue-dx .dx-elo .el { font-family: var(--font-pixel); font-size: 7px; color: var(--mute); margin-top: 8px; letter-spacing: .04em; }
+.lue-dx .dx-outcome-msg { color: var(--text); font-weight: 600; }
 .lue-dx .dx-result-meta { flex: 1; min-width: 200px; }
 .lue-dx .dx-league { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 700; font-size: 17px; }
 .lue-dx .dx-league .ld { width: 12px; height: 12px; border-radius: 4px; }
 .lue-dx .dx-result-meta p { color: var(--dim); font-size: 13.5px; margin: 8px 0 0; line-height: 1.5; }
 .lue-dx .dx-themes { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 22px; }
 .lue-dx .dx-themes h3 { font-family: var(--font-display); font-weight: 700; font-size: 14px; margin: 0 0 14px; }
-.lue-dx .dx-theme { display: grid; grid-template-columns: 1fr 90px 64px; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.lue-dx .dx-theme { display: grid; grid-template-columns: 1fr 96px; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
 .lue-dx .dx-theme:last-child { border: none; }
 .lue-dx .dx-theme .tl { font-size: 13.5px; color: var(--text); }
 .lue-dx .dx-theme .tl span { display: block; font-size: 11px; color: var(--mute); margin-top: 2px; }
@@ -115,7 +116,10 @@ html.light .lue-dx {
 .lue-dx .dx-tag.strong { color: #34d399; background: color-mix(in srgb, #34d399 14%, transparent); }
 .lue-dx .dx-tag.mid { color: var(--gold); background: color-mix(in srgb, var(--gold) 14%, transparent); }
 .lue-dx .dx-tag.gap { color: #f87171; background: color-mix(in srgb, #f87171 14%, transparent); }
-.lue-dx .dx-theme .te { font-family: var(--font-display); font-weight: 800; font-size: 14px; text-align: right; }
+/* Spec 001 FR-020c: initialized by this diagnostic, or kept because the topic had practice. */
+.lue-dx .dx-theme .tl .dx-outcome { margin-left: 8px; font-style: normal; font-weight: 600; letter-spacing: .02em; }
+.lue-dx .dx-theme .tl .dx-outcome.initialized { color: var(--accent); }
+.lue-dx .dx-theme .tl .dx-outcome.kept { color: var(--gold); }
 
 /* bifurcación */
 .lue-dx .dx-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -134,5 +138,4 @@ html.light .lue-dx {
 @media (max-width: 560px) {
   .lue-dx .dx-choices { grid-template-columns: 1fr; }
   .lue-dx .dx-theme { grid-template-columns: 1fr 80px; }
-  .lue-dx .dx-theme .te { display: none; }
 }
