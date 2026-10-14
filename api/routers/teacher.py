@@ -15,7 +15,7 @@ Endpoints del panel del docente:
 import io
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
 
 from api.dependencies import CurrentUser, RepoDep, require_role
@@ -296,7 +296,9 @@ def student_report(student_id: int, user: CurrentUser, repo: RepoDep):
 
 
 @router.get("/student/{student_id}/elo-history")
-def student_elo_history(student_id: int, user: CurrentUser, repo: RepoDep, limit: int = 20):
+def student_elo_history(
+    student_id: int, user: CurrentUser, repo: RepoDep, limit: int = Query(20, ge=1, le=200)
+):
     """Historial de ELO del estudiante para el gráfico temporal."""
     _require_teacher_student(repo, student_id, user)
     attempts = repo.get_latest_attempts(student_id, limit=limit)
