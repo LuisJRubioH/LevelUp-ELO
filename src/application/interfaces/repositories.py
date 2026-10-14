@@ -100,10 +100,30 @@ class IAdminRepository(Protocol):
     def get_problem_reports(self, status: Optional[str] = None) -> list: ...
     def mark_problem_resolved(self, report_id: int) -> None: ...
 
+    # Spec 004 E2: administrative account operations, each recorded without the password.
+    def get_accounts_admin(self) -> list: ...
+    def reset_user_password(self, admin_id, user_id, temporary_password): ...
+    def create_teacher_account(self, admin_id, username, temporary_password, email=None): ...
+    def get_account_audit(self, limit=100) -> list: ...
+
+
+@runtime_checkable
+class IAccountRepository(Protocol):
+    """Spec 004 E2: the account's own credentials — password and security version."""
+
+    def get_user_by_id(self, user_id: int): ...
+    def verify_user_password(self, user_id, password) -> bool: ...
+    def set_user_password(self, user_id, password, must_change=False): ...
+
 
 @runtime_checkable
 class IRepository(
-    IStudentRepository, ITeacherRepository, IRatingReadRepository, IAdminRepository, Protocol
+    IStudentRepository,
+    ITeacherRepository,
+    IRatingReadRepository,
+    IAdminRepository,
+    IAccountRepository,
+    Protocol,
 ):
     """Un repositorio completo — lo que `RepoDep` inyecta en los routers.
 

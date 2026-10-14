@@ -319,6 +319,15 @@ class SQLiteRepository:
         self._add_column_if_not_exists(cursor, "users", "current_elo", "REAL DEFAULT 1000.0")
         # Correo electrónico — NULL para usuarios existentes, UNIQUE parcial (solo no-NULL)
         self._add_column_if_not_exists(cursor, "users", "email", "TEXT")
+        # Spec 004 E2: security version checked on every credential, forced change of a temporary
+        # password, who created the account.
+        self._add_column_if_not_exists(
+            cursor, "users", "security_version", "INTEGER NOT NULL DEFAULT 0"
+        )
+        self._add_column_if_not_exists(
+            cursor, "users", "must_change_password", "INTEGER NOT NULL DEFAULT 0"
+        )
+        self._add_column_if_not_exists(cursor, "users", "created_by", "INTEGER")
         cursor.execute(
             """
             CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
@@ -350,6 +359,22 @@ class SQLiteRepository:
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(student_id) REFERENCES users(id),
                 FOREIGN KEY(admin_id) REFERENCES users(id)
+            )
+        """
+        )
+        # Spec 004 E2: administrative account operations (password reset, teacher creation).
+        # Never a password.
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS audit_account_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                actor_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                action TEXT NOT NULL,
+                detail TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(actor_id) REFERENCES users(id),
+                FOREIGN KEY(user_id) REFERENCES users(id)
             )
         """
         )
@@ -1172,7 +1197,8 @@ class SQLiteRepository:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, username, role, group_id, education_level, current_elo, active, approved "
+            "SELECT id, username, role, group_id, education_level, current_elo, active, approved, "
+            "security_version, must_change_password "
             "FROM users WHERE id = ?",
             (user_id,),
         )
@@ -1189,6 +1215,8 @@ class SQLiteRepository:
             "current_elo": row[5],
             "active": bool(row[6]),
             "approved": bool(row[7]),
+            "security_version": int(row[8] or 0),
+            "must_change_password": bool(row[9]),
         }
 
     def login_user(self, username, password):
@@ -2128,6 +2156,171 @@ class SQLiteRepository:
             {"id": r[0], "username": r[1], "active": r[2], "created_at": r[3], "group_name": r[4]}
             for r in rows
         ]
+
+    # ── Spec 004 E2: passwords, security version, administrative account operations ──────
+
+    def get_accounts_admin(self):
+        """Students and teachers for the admin panel: role, state, group, forced change."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.execute(
+                """
+                SELECT u.id, u.username, u.role, u.approved, u.active, u.must_change_password,
+                       u.created_at, g.name AS group_name
+                FROM users u
+                LEFT JOIN groups g ON u.group_id = g.id
+                WHERE u.role IN ('student', 'teacher')
+                ORDER BY u.role, u.username
+            """
+            )
+            cols = [c[0] for c in cursor.description]
+            return [dict(zip(cols, r)) for r in cursor.fetchall()]
+        finally:
+            conn.close()
+
+    def verify_user_password(self, user_id, password):
+        """FR-026: whether `password` is the current password of the active account."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute(
+                "SELECT password_hash FROM users WHERE id = ? AND active = 1", (user_id,)
+            ).fetchone()
+        finally:
+            conn.close()
+        if not row or not row[0] or not row[0].strip():
+            return False
+        if row[0].startswith("$argon2id$"):
+            try:
+                verified, _ = self.hashing.verify_and_update(password, row[0])
+            except ValueError:  # malformed hash: not this password
+                return False
+            return bool(verified)
+        return self.hashing.verify_legacy_sha256(password, row[0])
+
+    def set_user_password(self, user_id, password, must_change=False):
+        """FR-028: replace the password (Argon2id), set or clear the forced change and advance the
+        security version, in one transaction. The new version, or None without such an account."""
+        password_hash = self.hashing.hash_password(password)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE users SET password_hash = ?, must_change_password = ?,"
+                " security_version = COALESCE(security_version, 0) + 1 WHERE id = ?",
+                (password_hash, 1 if must_change else 0, user_id),
+            )
+            if cursor.rowcount == 0:
+                conn.rollback()
+                return None
+            version = cursor.execute(
+                "SELECT security_version FROM users WHERE id = ?", (user_id,)
+            ).fetchone()[0]
+            conn.commit()
+            return int(version)
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    @staticmethod
+    def _is_active_admin(cursor, admin_id):
+        cursor.execute("SELECT role FROM users WHERE id = ? AND active = 1", (admin_id,))
+        row = cursor.fetchone()
+        return bool(row) and row[0] == "admin"
+
+    def reset_user_password(self, admin_id, user_id, temporary_password):
+        """FR-029: the admin gives a student or teacher a temporary password that must be changed;
+        every earlier session ends (security version) and the operation is recorded, without the
+        password. Returns (ok, message)."""
+        password_hash = self.hashing.hash_password(temporary_password)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            if not self._is_active_admin(cursor, admin_id):
+                return False, "Solo un administrador puede restablecer el acceso."
+            cursor.execute("SELECT role FROM users WHERE id = ?", (user_id,))
+            row = cursor.fetchone()
+            if not row or row[0] not in ("student", "teacher"):
+                return False, "La cuenta no existe o no es de estudiante ni de docente."
+            cursor.execute(
+                "UPDATE users SET password_hash = ?, must_change_password = 1,"
+                " security_version = COALESCE(security_version, 0) + 1 WHERE id = ?",
+                (password_hash, user_id),
+            )
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action)"
+                " VALUES (?, ?, 'password_reset')",
+                (admin_id, user_id),
+            )
+            conn.commit()
+            return True, "Contraseña restablecida."
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def create_teacher_account(self, admin_id, username, temporary_password, email=None):
+        """FR-031: an approved teacher with a temporary password to change at first access,
+        recorded with who created it. Returns (ok, message, user_id)."""
+        if email is not None:
+            email = email.strip() or None
+        if email is not None:
+            if not self._valid_email_format(email):
+                return False, "Formato de correo inválido.", None
+            if self.email_exists(email):
+                return False, "Este correo ya está registrado.", None
+        password_hash = self.hashing.hash_password(temporary_password)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            if not self._is_active_admin(cursor, admin_id):
+                return False, "Solo un administrador puede crear docentes.", None
+            cursor.execute(
+                "INSERT INTO users (username, password_hash, role, approved, active,"
+                " rating_deviation, email, must_change_password, created_by)"
+                " VALUES (?, ?, 'teacher', 1, 1, 350.0, ?, 1, ?)",
+                (username, password_hash, email, admin_id),
+            )
+            user_id = cursor.lastrowid
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action)"
+                " VALUES (?, ?, 'teacher_created')",
+                (admin_id, user_id),
+            )
+            conn.commit()
+            return True, "Docente creado.", int(user_id)
+        except sqlite3.IntegrityError:
+            conn.rollback()
+            return False, "El nombre de usuario ya existe.", None
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def get_account_audit(self, limit=100):
+        """FR-029, FR-031: administrative account operations, most recent first."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.execute(
+                """
+                SELECT e.id, e.action, e.detail, e.created_at,
+                       e.actor_id, ad.username AS admin_username,
+                       e.user_id, u.username AS user_username, u.role AS user_role
+                FROM audit_account_events e
+                LEFT JOIN users ad ON ad.id = e.actor_id
+                LEFT JOIN users u ON u.id = e.user_id
+                ORDER BY e.id DESC
+                LIMIT ?
+            """,
+                (limit,),
+            )
+            cols = [c[0] for c in cursor.description]
+            return [dict(zip(cols, r)) for r in cursor.fetchall()]
+        finally:
+            conn.close()
 
     # ─── Gestión de GRUPOS ────────────────────────────────────────────────────────
 

@@ -17,6 +17,8 @@ import random
 from dataclasses import dataclass, field
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
+from api.websocket import connections
 from starlette.websockets import WebSocketState
 
 from src.domain.elo.model import pvp_deltas
@@ -208,6 +210,8 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
     slot = LobbySlot(
         user_id=user_id, username=username, elo=player_elo, ws=websocket, shown_elo=shown_elo
     )
+    # Spec 004 FR-027: a password change or a reset closes this socket at once.
+    connections.register(user_id, websocket)
     match: ActiveMatch | None = None
     is_creator = False  # True = segundo en entrar (emite game_start y arranca timer)
 

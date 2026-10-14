@@ -37,6 +37,15 @@ class TokenResponse(BaseModel):
     user_id: int
     username: str
     role: str
+    # Spec 004 FR-030: a temporary password must be changed before anything else.
+    must_change_password: bool = False
+
+
+class PasswordChangeRequest(BaseModel):
+    """Spec 004 FR-026. No length rule here: a 422 would echo the password back in its body."""
+
+    current_password: str
+    new_password: str
 
 
 class RefreshRequest(BaseModel):
@@ -51,3 +60,4 @@ class UserProfile(BaseModel):
     education_level: str | None
     grade: str | None
     email: str | None = None
+    must_change_password: bool = False

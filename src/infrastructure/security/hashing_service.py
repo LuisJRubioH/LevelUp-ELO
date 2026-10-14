@@ -1,5 +1,14 @@
 from passlib.context import CryptContext
 import hashlib
+import secrets
+
+# No 0/O, 1/l/I: the administrator reads the temporary password to the person (spec 004 FR-029).
+_TEMPORARY_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"
+
+
+def generate_temporary_password(length: int = 12) -> str:
+    """Spec 004 FR-029, FR-031: a random temporary password from a cryptographic source."""
+    return "".join(secrets.choice(_TEMPORARY_ALPHABET) for _ in range(length))
 
 
 class HashingService:

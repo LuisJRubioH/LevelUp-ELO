@@ -13,12 +13,21 @@ Endpoints del panel de administración:
   GET  /admin/reports            → reportes de problemas técnicos pendientes
   PATCH /admin/reports/{id}/resolve → marcar reporte como resuelto
   GET  /admin/audit              → log de reasignaciones de grupo
+  Spec 004 E2:
+  POST /admin/users/{id}/reset-password → contraseña temporal; cierra todas sus sesiones
+  POST /admin/teachers                  → crea un docente aprobado con contraseña temporal
+  GET  /admin/account-audit             → operaciones sobre cuentas (sin contraseñas)
 """
 
+import re
+
 from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel, Field
 
 from api.dependencies import CurrentUser, RepoDep, require_role
 from api.schemas.teacher import ChangeGroupRequest
+from api.websocket.connections import close_user_sync
+from src.infrastructure.security.hashing_service import generate_temporary_password
 
 router = APIRouter(
     prefix="/admin",
@@ -32,9 +41,79 @@ router = APIRouter(
 
 @router.get("/users")
 def all_users(user: CurrentUser, repo: RepoDep):
-    """Lista completa de usuarios con rol, estado y grupo."""
-    rows = repo.get_all_students_admin()
-    return {"users": [dict(r) if isinstance(r, dict) else _row_to_dict(r) for r in rows]}
+    """Estudiantes y docentes con rol, estado, grupo y si deben cambiar una contraseña temporal
+    (spec 004 E2: el admin restablece el acceso de ambos)."""
+    return {
+        "users": [
+            {
+                **r,
+                "approved": bool(r.get("approved")),
+                "active": bool(r.get("active")),
+                "must_change_password": bool(r.get("must_change_password")),
+                "created_at": str(r["created_at"]) if r.get("created_at") else None,
+            }
+            for r in repo.get_accounts_admin()
+        ]
+    }
+
+
+# ── Spec 004 E2: acceso de las cuentas ────────────────────────────────────────
+
+_USERNAME = re.compile(r"^[A-Za-z0-9._@-]{3,50}$")
+
+
+class CreateTeacherRequest(BaseModel):
+    username: str = Field(..., max_length=50)
+    email: str | None = Field(default=None, max_length=254)
+
+
+@router.post("/users/{user_id}/reset-password")
+def reset_password(user_id: int, user: CurrentUser, repo: RepoDep):
+    """FR-029: contraseña temporal aleatoria que la persona debe cambiar al entrar; todas sus
+    sesiones terminan. Se audita quién, a quién y cuándo — nunca la contraseña. La respuesta la
+    muestra una sola vez al administrador."""
+    temporary = generate_temporary_password()
+    ok, message = repo.reset_user_password(user["user_id"], user_id, temporary)
+    if not ok:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_404_NOT_FOUND if "no existe" in message else status.HTTP_400_BAD_REQUEST
+            ),
+            detail=message,
+        )
+    close_user_sync(user_id)
+    return {"user_id": user_id, "temporary_password": temporary}
+
+
+@router.post("/teachers", status_code=status.HTTP_201_CREATED)
+def create_teacher(body: CreateTeacherRequest, user: CurrentUser, repo: RepoDep):
+    """FR-031 (P1): docente aprobado, con contraseña temporal aleatoria que cambia en su primer
+    acceso; queda registrado quién lo creó."""
+    username = body.username.strip()
+    if not _USERNAME.match(username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Usuario de 3 a 50 caracteres: letras, números, punto, guion, guion bajo o @.",
+        )
+    temporary = generate_temporary_password()
+    ok, message, teacher_id = repo.create_teacher_account(
+        user["user_id"], username, temporary, email=body.email
+    )
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+    return {"user_id": teacher_id, "username": username, "temporary_password": temporary}
+
+
+@router.get("/account-audit")
+def account_audit(user: CurrentUser, repo: RepoDep, limit: int = 100):
+    """FR-029, FR-031: quién hizo qué sobre qué cuenta y cuándo, sin contraseñas."""
+    rows = repo.get_account_audit(limit=max(1, min(limit, 500)))
+    return {
+        "events": [
+            {**r, "created_at": str(r["created_at"]) if r.get("created_at") else None}
+            for r in rows
+        ]
+    }
 
 
 @router.get("/teachers/pending")

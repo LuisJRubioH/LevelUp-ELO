@@ -106,6 +106,10 @@ async def websocket_notifications(websocket: WebSocket, room: str):
 
     async with _lock:
         _rooms[room].add(websocket)
+    # Spec 004 FR-027: a password change or a reset closes this socket at once.
+    from api.websocket import connections
+
+    connections.register(user_id, websocket)
 
     try:
         await websocket.send_json({"type": "connected", "room": room})
@@ -118,6 +122,7 @@ async def websocket_notifications(websocket: WebSocket, room: str):
     except Exception as exc:
         logger.warning("WS error sala=%s: %s", room, exc)
     finally:
+        connections.unregister(user_id, websocket)
         async with _lock:
             _rooms[room].discard(websocket)
             if not _rooms[room]:
