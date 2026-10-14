@@ -3761,6 +3761,17 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    def get_submission_image_data(self, submission_id) -> bytes | None:
+        """The bytes kept in the submission row (BLOB), for when Storage cannot serve them (R9)."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute(
+                "SELECT image_data FROM procedure_submissions WHERE id = ?", (submission_id,)
+            ).fetchone()
+            return bytes(row[0]) if row and row[0] is not None else None
+        finally:
+            conn.close()
+
     def resolve_storage_image(self, storage_url: str):
         """Stub — SQLite backend does not use Supabase Storage."""
         return None

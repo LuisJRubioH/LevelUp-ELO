@@ -293,6 +293,19 @@ class PostgresRepository:
                 conn = self._pool.getconn()
             return conn
 
+    def get_submission_image_data(self, submission_id) -> bytes | None:
+        """The bytes kept in the submission row (BYTEA), for when Storage cannot serve them (R9)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT image_data FROM procedure_submissions WHERE id = %s", (submission_id,)
+            )
+            row = cursor.fetchone()
+            return bytes(row["image_data"]) if row and row["image_data"] is not None else None
+        finally:
+            self.put_connection(conn)
+
     def resolve_storage_image(self, storage_url: str) -> bytes | None:
         """Download procedure image bytes from Supabase Storage.
 
