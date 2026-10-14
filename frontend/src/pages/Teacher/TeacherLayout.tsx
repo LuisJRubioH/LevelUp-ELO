@@ -19,7 +19,7 @@ import { authApi } from "../../api/auth";
 import { useAuthStore } from "../../stores/authStore";
 import { useThemeStore } from "../../stores/themeStore";
 import { useSettingsStore, PROVIDER_MODELS } from "../../stores/settingsStore";
-import { clearAccountCaches } from "../../lib/accountCleanup";
+import { resetClientAccountState } from "../../lib/accountCleanup";
 import { useSideDrawer } from "../../hooks/useSideDrawer";
 import { MobileBar } from "../../components/Layout/MobileBar";
 import "./TeacherConsole.css";
@@ -57,9 +57,7 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
     } catch {
       /* ignorar */
     }
-    await clearAccountCaches();
-    queryClient.clear();
-    setApiKey("");
+    await resetClientAccountState(queryClient);
     clearAuth();
     navigate("/login");
   };

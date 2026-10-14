@@ -20,7 +20,7 @@ import { useSettingsStore, PROVIDER_MODELS } from "../../stores/settingsStore";
 import { usePracticeStore } from "../../stores/practiceStore";
 import { ReportProblemButton } from "../../components/ReportProblem/ReportProblemButton";
 import { CourseRail } from "../../components/Course/CourseRail";
-import { clearAccountCaches } from "../../lib/accountCleanup";
+import { resetClientAccountState } from "../../lib/accountCleanup";
 import { useSideDrawer } from "../../hooks/useSideDrawer";
 import { MobileBar } from "../../components/Layout/MobileBar";
 import "../Teacher/TeacherConsole.css";
@@ -70,10 +70,7 @@ export function StudentLayout({ children }: { children: ReactNode }) {
     } catch {
       /* ignorar */
     }
-    await clearAccountCaches();
-    queryClient.clear();
-    setApiKey("");
-    usePracticeStore.getState().resetSession();
+    await resetClientAccountState(queryClient);
     clearAuth();
     navigate("/login");
   };
