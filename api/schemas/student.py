@@ -134,8 +134,10 @@ class CourseResponse(BaseModel):
 
 
 class EnrollRequest(BaseModel):
+    """Catalogue enrolment. It joins no group: a group is joined only through its invitation code
+    (`EnrollByCodeRequest`), so a `group_id` sent here is ignored."""
+
     course_id: str
-    group_id: int | None = None
 
 
 class EnrollByCodeRequest(BaseModel):
@@ -156,7 +158,8 @@ class ProcedureSubmitResponse(BaseModel):
 
 
 class ExamStartRequest(BaseModel):
-    course_id: str = Field(..., description="Curso para el examen")
+    # Required: an empty id selects no course, and the bank query would return every course.
+    course_id: str = Field(..., min_length=1, description="Curso para el examen")
     n_questions: int = Field(default=10, ge=1, le=30, description="Número de preguntas (máx 30)")
     time_limit_minutes: int = Field(
         default=20, ge=5, le=180, description="Minutos disponibles para el examen"

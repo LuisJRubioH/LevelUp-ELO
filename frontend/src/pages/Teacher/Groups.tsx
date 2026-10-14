@@ -438,8 +438,9 @@ export function TeacherGroups() {
   const [createError, setCreateError] = useState("");
   const [q, setQ] = useState("");
   const [genId, setGenId] = useState<number | null>(null);
+  const [genError, setGenError] = useState("");
 
-  const { data: groups = [], isLoading } = useQuery({
+  const { data: groups = [], isLoading, isError } = useQuery({
     queryKey: ["teacher-groups"],
     queryFn: () => teacherApi.groups(),
     staleTime: 30_000,
@@ -479,9 +480,12 @@ export function TeacherGroups() {
 
   const generateCode = async (group_id: number) => {
     setGenId(group_id);
+    setGenError("");
     try {
       await teacherApi.generateInviteCode(group_id);
       qc.invalidateQueries({ queryKey: ["teacher-groups"] });
+    } catch (err) {
+      setGenError(err instanceof Error ? err.message : "No se pudo generar el código.");
     } finally {
       setGenId(null);
     }
@@ -505,6 +509,18 @@ export function TeacherGroups() {
         <div className="box">
           <div className="em-ic">⏳</div>
           <h2>Cargando grupos…</h2>
+        </div>
+      </div>
+    );
+  }
+  // A failed load is not «0 grupos».
+  if (isError) {
+    return (
+      <div className="tc-soon">
+        <div className="box" role="alert">
+          <div className="em-ic">⚠️</div>
+          <h2>No pudimos cargar tus grupos</h2>
+          <p>Revisa tu conexión e inténtalo de nuevo.</p>
         </div>
       </div>
     );
@@ -536,6 +552,12 @@ export function TeacherGroups() {
           </button>
         </div>
       </div>
+
+      {genError && (
+        <p className="gm-err" role="alert">
+          {genError}
+        </p>
+      )}
 
       <div className="grp-summary">
         <span>

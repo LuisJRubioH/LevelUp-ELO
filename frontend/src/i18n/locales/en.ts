@@ -745,6 +745,7 @@ const en: TranslationKeys = {
   prealgebra: {
     loading: "Loading lesson...",
     error: "We couldn't load this lesson.",
+    locked: "This lesson is still locked: it opens when you finish the previous one on the map.",
     backToMap: "Back to map",
     safeZone: "Safe zone. Your ELO will not change",
     optionalBranch: "Optional detour. Your ELO will not change",
@@ -902,7 +903,7 @@ const en: TranslationKeys = {
         },
         footerLabel: "Level 1 complete",
         footerBody: "You closed the number-sets journey. You can review anytime.",
-        finish: "Back to map",
+        finish: "Finish level 1",
       },
     },
   },
