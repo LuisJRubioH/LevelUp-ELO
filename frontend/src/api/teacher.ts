@@ -175,7 +175,8 @@ export const teacherApi = {
       provider,
     }),
 
-  procedureImage: async (submission_id: number): Promise<string> => {
+  /** The submitted file as an object URL with its type: a photo, or a PDF as uploaded. */
+  procedureImage: async (submission_id: number): Promise<{ url: string; type: string }> => {
     const { useAuthStore } = await import("../stores/authStore");
     const token = useAuthStore.getState().accessToken;
     const r = await fetch(`${API_BASE}/api/teacher/procedures/${submission_id}/image`, {
@@ -184,7 +185,7 @@ export const teacherApi = {
     });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const blob = await r.blob();
-    return URL.createObjectURL(blob);
+    return { url: URL.createObjectURL(blob), type: blob.type };
   },
 
   metrics: () => api.get<TeacherMetrics>("/api/teacher/metrics"),

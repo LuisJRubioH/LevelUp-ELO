@@ -173,6 +173,59 @@ function OptionRow({
 }
 
 /**
+ * multi_select: el motor compara la selección COMPLETA ("a,c") con la esperada,
+ * así que marcar no envía nada; se envía al comprobar. Con OptionRow cada toque
+ * mandaba una sola opción y un ítem con dos o más respuestas nunca quedaba
+ * correcto: el nodo no se podía terminar.
+ */
+function MultiOptionRow({
+  item,
+  engine,
+  disabled,
+}: {
+  item: LessonItem;
+  engine: ItemEngine;
+  disabled: boolean;
+}) {
+  const [chosen, setChosen] = useState<Set<string>>(
+    () => new Set((engine.answerOf(item.id) ?? "").split(",").filter(Boolean)),
+  );
+  const toggle = (optionId: string) =>
+    setChosen((current) => {
+      const next = new Set(current);
+      if (next.has(optionId)) next.delete(optionId);
+      else next.add(optionId);
+      return next;
+    });
+  return (
+    <div className="block-multi">
+      <div className="block-options" role="group" aria-label={item.prompt}>
+        {(item.options ?? []).map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            className={chosen.has(option.id) ? "selected" : ""}
+            disabled={disabled || engine.pending}
+            aria-pressed={chosen.has(option.id)}
+            aria-label={option.text ?? option.id}
+            onClick={() => toggle(option.id)}
+          >
+            <OptionLabel option={option} />
+          </button>
+        ))}
+      </div>
+      <Button
+        variant="secondary"
+        disabled={disabled || chosen.size === 0 || engine.pending}
+        onClick={() => engine.submit(item.id, [...chosen].sort().join(","))}
+      >
+        Comprobar
+      </Button>
+    </div>
+  );
+}
+
+/**
  * Una opción se muestra UNA vez: si trae `latex`, se renderiza la fórmula y el
  * `text` queda solo como etiqueta accesible (lectura vocalizada). Mostrar los
  * dos duplicaba la fracción en pantalla.
@@ -282,6 +335,8 @@ export function LessonItemCard({
         {isTrap && item.confidence === "fija" && <ConfidenceSlider itemId={item.id} />}
         {item.kind === "numeric" || item.kind === "text_exact" ? (
           <NumericField item={item} engine={engine} disabled={done} />
+        ) : item.kind === "multi_select" ? (
+          <MultiOptionRow item={item} engine={engine} disabled={done} />
         ) : (
           <OptionRow item={item} engine={engine} disabled={done} />
         )}
