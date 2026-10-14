@@ -2099,7 +2099,8 @@ class SQLiteRepository:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT u.id, u.username, u.active, u.created_at, g.name as group_name
+            SELECT u.id, u.username, u.role, u.education_level, u.active, u.created_at,
+                   g.name as group_name
             FROM users u
             LEFT JOIN groups g ON u.group_id = g.id
             WHERE u.role = 'student'
@@ -2109,7 +2110,15 @@ class SQLiteRepository:
         rows = cursor.fetchall()
         conn.close()
         return [
-            {"id": r[0], "username": r[1], "active": r[2], "created_at": r[3], "group_name": r[4]}
+            {
+                "id": r[0],
+                "username": r[1],
+                "role": r[2],
+                "education_level": r[3],
+                "active": r[4],
+                "created_at": r[5],
+                "group_name": r[6],
+            }
             for r in rows
         ]
 
