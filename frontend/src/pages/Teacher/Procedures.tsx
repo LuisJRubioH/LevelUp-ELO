@@ -191,7 +191,7 @@ function ProcedureDetail({ proc }: { proc: PendingProcedure }) {
 export function TeacherProcedures() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const { data: procedures = [], isLoading } = useQuery({
+  const { data: procedures = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["teacher-procedures"],
     queryFn: () => teacherApi.procedures(),
     refetchInterval: 30_000,
@@ -217,6 +217,21 @@ export function TeacherProcedures() {
         <div className="box">
           <div className="em-ic">⏳</div>
           <h2>Cargando procedimientos…</h2>
+        </div>
+      </div>
+    );
+  }
+  // A failed load is not an empty queue: «¡Al día!» would hide submissions waiting for a grade.
+  if (isError && procedures.length === 0) {
+    return (
+      <div className="tc-soon">
+        <div className="box" role="alert">
+          <div className="em-ic">⚠️</div>
+          <h2>No pudimos cargar los procedimientos</h2>
+          <p>Revisa tu conexión e inténtalo de nuevo.</p>
+          <button type="button" className="btn-pri" onClick={() => refetch()}>
+            Reintentar
+          </button>
         </div>
       </div>
     );
