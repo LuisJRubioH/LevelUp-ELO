@@ -3,6 +3,7 @@ import os
 import sqlite3
 import logging
 from src.infrastructure.security.hashing_service import HashingService
+from src.infrastructure.storage.paths import safe_path_component
 
 logger = logging.getLogger(__name__)
 
@@ -2308,12 +2309,19 @@ class SQLiteRepository:
         }
 
     def get_all_groups(self):
-        """Lista todos los grupos disponibles (para el registro de estudiantes)."""
+        """Lista todos los grupos con su docente y su número de estudiantes (vista del admin).
+
+        `student_count` cuenta lo mismo que `get_groups_by_teacher`: estudiantes activos cuyo grupo
+        es este, sin las cuentas de prueba.
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT g.id, g.name, u.username as teacher_name
+            SELECT g.id, g.name, g.teacher_id, u.username as teacher_name,
+                   (SELECT COUNT(*) FROM users u2
+                    WHERE u2.group_id = g.id AND u2.active = 1 AND u2.role = 'student'
+                      AND COALESCE(u2.is_test_user, 0) = 0) AS student_count
             FROM groups g
             JOIN users u ON g.teacher_id = u.id
             ORDER BY g.name ASC
@@ -2321,7 +2329,16 @@ class SQLiteRepository:
         )
         rows = cursor.fetchall()
         conn.close()
-        return [{"id": r[0], "name": r[1], "teacher_name": r[2]} for r in rows]
+        return [
+            {
+                "id": r[0],
+                "name": r[1],
+                "teacher_id": r[2],
+                "teacher_name": r[3],
+                "student_count": int(r[4]),
+            }
+            for r in rows
+        ]
 
     def delete_group(self, group_id, admin_id):
         """Elimina un grupo (solo admin). Desvincula estudiantes y matrículas del grupo.
@@ -3717,7 +3734,7 @@ class SQLiteRepository:
             "application/pdf": "pdf",
         }.get(mime_type, "bin")
         os.makedirs(os.path.join("data", "uploads", "procedures"), exist_ok=True)
-        img_filename = f"{student_id}_{item_id}_{int(_time.time())}.{ext}"
+        img_filename = f"{student_id}_{safe_path_component(item_id)}_{int(_time.time())}.{ext}"
         img_path = os.path.join("data", "uploads", "procedures", img_filename)
         with open(img_path, "wb") as _f:
             _f.write(image_data)
