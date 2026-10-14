@@ -8,7 +8,8 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class LoginRequest(BaseModel):
-    username: str = Field(..., min_length=1, max_length=50)
+    # Username or email: as long as the longest email registration accepts (254).
+    username: str = Field(..., min_length=1, max_length=254)
     password: str = Field(..., min_length=1)
 
 

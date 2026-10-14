@@ -293,6 +293,19 @@ class PostgresRepository:
                 conn = self._pool.getconn()
             return conn
 
+    def get_submission_image_data(self, submission_id) -> bytes | None:
+        """The bytes kept in the submission row (BYTEA), for when Storage cannot serve them (R9)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT image_data FROM procedure_submissions WHERE id = %s", (submission_id,)
+            )
+            row = cursor.fetchone()
+            return bytes(row["image_data"]) if row and row["image_data"] is not None else None
+        finally:
+            self.put_connection(conn)
+
     def resolve_storage_image(self, storage_url: str) -> bytes | None:
         """Download procedure image bytes from Supabase Storage.
 
@@ -2556,7 +2569,8 @@ class PostgresRepository:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 """
-                SELECT u.id, u.username, u.active, u.created_at, g.name as group_name
+                SELECT u.id, u.username, u.role, u.education_level, u.active, u.created_at,
+                       g.name as group_name
                 FROM users u
                 LEFT JOIN groups g ON u.group_id = g.id
                 WHERE u.role = 'student'
@@ -2568,6 +2582,8 @@ class PostgresRepository:
                 {
                     "id": r["id"],
                     "username": r["username"],
+                    "role": r["role"],
+                    "education_level": r["education_level"],
                     "active": r["active"],
                     "created_at": r["created_at"],
                     "group_name": r["group_name"],
@@ -3510,9 +3526,8 @@ class PostgresRepository:
         """Escanea items/bank/*.json, registra cada archivo como curso y sincroniza
         sus ítems sin sobreescribir ratings ELO ya calculados.
 
-        Optimización: máximo 2 SELECTs + 2 INSERTs en total.
-        Carga IDs existentes en un set, filtra localmente y hace
-        un solo executemany() para courses y otro para items.
+        Optimización: carga IDs existentes en un set, filtra localmente y escribe con
+        execute_batch() — por páginas, no un viaje de red por fila como executemany().
         """
         import json
         import glob as _glob
@@ -3570,9 +3585,24 @@ class PostgresRepository:
                 return
             try:
 
-                # 1. Obtener todos los IDs existentes en una sola query
-                cursor.execute("SELECT id FROM items")
-                existing_item_ids = {row["id"] for row in cursor.fetchall()}
+                # 1. Ítems existentes y sus columnas estáticas, en una sola query
+                cursor.execute(
+                    "SELECT id, content, options, correct_option, topic, course_id, "
+                    "image_url, tags, block FROM items"
+                )
+                existing_items = {
+                    row["id"]: (
+                        row["content"],
+                        row["options"],
+                        row["correct_option"],
+                        row["topic"],
+                        row["course_id"],
+                        row["image_url"],
+                        row["tags"],
+                        row["block"],
+                    )
+                    for row in cursor.fetchall()
+                }
 
                 cursor.execute("SELECT id FROM courses")
                 existing_course_ids = {row["id"] for row in cursor.fetchall()}
@@ -3604,7 +3634,7 @@ class PostgresRepository:
                         tags_json = json.dumps(item.get("tags") or [])
                         options_json = json.dumps(item["options"])
                         item_block = item.get("block", "")
-                        if item["id"] not in existing_item_ids:
+                        if item["id"] not in existing_items:
                             new_items_params.append(
                                 (
                                     item["id"],
@@ -3620,20 +3650,21 @@ class PostgresRepository:
                                 )
                             )
                         else:
-                            # Ítem ya existe → re-sincronizar metadatos estáticos.
-                            update_static_params.append(
-                                (
-                                    item["content"],
-                                    options_json,
-                                    item["correct_option"],
-                                    item["topic"],
-                                    course_id,
-                                    img,
-                                    tags_json,
-                                    item_block,
-                                    item["id"],
-                                )
+                            # Ítem ya existe → re-sincronizar metadatos estáticos, solo si
+                            # cambiaron: un arranque sin cambios en el banco no reescribe filas.
+                            static = (
+                                item["content"],
+                                options_json,
+                                item["correct_option"],
+                                item["topic"],
+                                course_id,
+                                img,
+                                tags_json,
+                                item_block,
                             )
+                            if existing_items[item["id"]] != static:
+                                update_static_params.append(static + (item["id"],))
+                                existing_items[item["id"]] = static
 
                 # 3. Si no hay nada que hacer, salir
                 if not new_courses_params and not new_items_params and not update_static_params:
@@ -3641,14 +3672,16 @@ class PostgresRepository:
 
                 # 4. Insertar/actualizar
                 if new_courses_params:
-                    cursor.executemany(
+                    psycopg2.extras.execute_batch(
+                        cursor,
                         "INSERT INTO courses (id, name, block, description) "
                         "VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",
                         new_courses_params,
                     )
 
                 if new_items_params:
-                    cursor.executemany(
+                    psycopg2.extras.execute_batch(
+                        cursor,
                         """
                         INSERT INTO items
                             (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block)
@@ -3659,7 +3692,8 @@ class PostgresRepository:
                     )
 
                 if update_static_params:
-                    cursor.executemany(
+                    psycopg2.extras.execute_batch(
+                        cursor,
                         """
                         UPDATE items SET
                             content = %s,
@@ -4965,7 +4999,8 @@ class PostgresRepository:
                 row = cursor.fetchone()
                 session_id = row["id"]
                 if responses:
-                    cursor.executemany(
+                    psycopg2.extras.execute_batch(
+                        cursor,
                         """INSERT INTO exam_responses
                            (session_id, template_id, user_id, item_id, topic, is_correct)
                            VALUES (%s, %s, %s, %s, %s, %s)""",
@@ -5079,6 +5114,21 @@ class PostgresRepository:
             "viewed_at": str(row["viewed_at"]) if row["viewed_at"] else None,
             "completed_at": str(row["completed_at"]) if row["completed_at"] else None,
         }
+
+    def get_lesson_states(self, user_id: int, course_id: str) -> dict[str, str]:
+        """Estado guardado de cada nodo con progreso en la materia, en una sola lectura."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """SELECT node_id, state FROM lesson_progress
+                       WHERE user_id = %s AND course_id = %s""",
+                    (user_id, course_id),
+                )
+                rows = cursor.fetchall()
+        finally:
+            self.put_connection(conn)
+        return {row["node_id"]: row["state"] for row in rows}
 
     def record_lesson_event(self, user_id: int, course_id: str, node_id: str, event: str) -> dict:
         """Registra un hito curricular idempotente sin afectar ELO."""
@@ -5297,7 +5347,8 @@ class PostgresRepository:
                 )
                 history_id = cursor.fetchone()["id"]
                 if responses:
-                    cursor.executemany(
+                    psycopg2.extras.execute_batch(
+                        cursor,
                         """INSERT INTO exam_responses
                            (session_id, template_id, user_id, item_id, topic, is_correct)
                            VALUES (%s, %s, %s, %s, %s, %s)""",

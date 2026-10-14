@@ -1504,7 +1504,9 @@ class SQLiteRepository:
                     ORDER BY a.timestamp""",
                 params,
             )
-            return [dict(row) for row in cursor.fetchall()]
+            # Plain tuples (no row_factory): name the columns as PostgreSQL's RealDictCursor does.
+            columns = [c[0] for c in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
         finally:
             conn.close()
 
@@ -1653,7 +1655,8 @@ class SQLiteRepository:
         """,
             (limit,),
         )
-        rows = [dict(r) for r in cursor.fetchall()]
+        columns = [column[0] for column in cursor.description]
+        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
         conn.close()
         return rows
 
@@ -2143,7 +2146,8 @@ class SQLiteRepository:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT u.id, u.username, u.active, u.created_at, g.name as group_name
+            SELECT u.id, u.username, u.role, u.education_level, u.active, u.created_at,
+                   g.name as group_name
             FROM users u
             LEFT JOIN groups g ON u.group_id = g.id
             WHERE u.role = 'student'
@@ -2153,7 +2157,15 @@ class SQLiteRepository:
         rows = cursor.fetchall()
         conn.close()
         return [
-            {"id": r[0], "username": r[1], "active": r[2], "created_at": r[3], "group_name": r[4]}
+            {
+                "id": r[0],
+                "username": r[1],
+                "role": r[2],
+                "education_level": r[3],
+                "active": r[4],
+                "created_at": r[5],
+                "group_name": r[6],
+            }
             for r in rows
         ]
 
@@ -3970,6 +3982,17 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    def get_submission_image_data(self, submission_id) -> bytes | None:
+        """The bytes kept in the submission row (BLOB), for when Storage cannot serve them (R9)."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute(
+                "SELECT image_data FROM procedure_submissions WHERE id = ?", (submission_id,)
+            ).fetchone()
+            return bytes(row[0]) if row and row[0] is not None else None
+        finally:
+            conn.close()
+
     def resolve_storage_image(self, storage_url: str):
         """Stub — SQLite backend does not use Supabase Storage."""
         return None
@@ -4496,6 +4519,19 @@ class SQLiteRepository:
             "viewed_at": str(row[3]) if row[3] else None,
             "completed_at": str(row[4]) if row[4] else None,
         }
+
+    def get_lesson_states(self, user_id: int, course_id: str) -> dict[str, str]:
+        """Estado guardado de cada nodo con progreso en la materia, en una sola lectura."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                """SELECT node_id, state FROM lesson_progress
+                   WHERE user_id = ? AND course_id = ?""",
+                (user_id, course_id),
+            ).fetchall()
+        finally:
+            conn.close()
+        return {row[0]: row[1] for row in rows}
 
     def record_lesson_event(self, user_id: int, course_id: str, node_id: str, event: str) -> dict:
         """Registra un hito curricular idempotente sin afectar ELO."""
