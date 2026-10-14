@@ -59,6 +59,11 @@ N3_MACHINE_NODE_IDS = [
 ]
 N3_NODE_IDS = [N3_HUB_NODE_ID, *N3_MACHINE_NODE_IDS]
 
+# Prerrequisitos además de `unlock_after`: el laboratorio de N3 cuelga de E06, pero él y sus
+# máquinas piden los seis edificios de N2 completos. Es la regla que la API aplica al abrir la
+# lección (`_lesson_with_progress`); el mapa la usa para no ofrecer lo que la API rechaza.
+LEVEL_GATES: dict[str, list[str]] = {node_id: N2_OPERATION_NODE_IDS for node_id in N3_NODE_IDS}
+
 N4_HUB_NODE_ID = "PREALG-N4-C00-PUERTO-DE-LA-POLIS"
 N4_DIVISIBILITY_NODE_ID = "PREALG-N4-C01-DIVISIBILIDAD"
 N4_MULTIPLES_NODE_ID = "PREALG-N4-C02-MULTIPLOS"
@@ -2061,11 +2066,12 @@ def curriculum_map_rows(state_of, *, complex_visible: bool = True) -> list[dict]
     `state_of` es una función `node_id -> estado guardado`; el que llama decide
     de dónde sale (repositorio, caché, test). Aquí no se toca la base.
 
-    El estado se deriva de `unlock_after`, que ya declara la ruta entera: un
-    nodo se abre cuando su prerrequisito está completo, y de los abiertos sin
-    completar el primero de la ruta es `current` y el resto `available`. Los
-    desvíos opcionales —los complejos— nunca son `current`: están disponibles,
-    pero no son el siguiente paso de nadie.
+    El estado se deriva de `unlock_after`, que ya declara la ruta entera, más
+    las puertas de nivel (`LEVEL_GATES`): un nodo se abre cuando sus
+    prerrequisitos están completos, y de los abiertos sin completar el primero
+    de la ruta es `current` y el resto `available`. Los desvíos opcionales —los
+    complejos— nunca son `current`: están disponibles, pero no son el siguiente
+    paso de nadie.
     """
     rows: list[dict] = []
     current_taken = False
@@ -2074,7 +2080,8 @@ def curriculum_map_rows(state_of, *, complex_visible: bool = True) -> list[dict]
             continue
         label, item_count, label_key = _MAP_PRESENTATION[node_id]
         prerequisite = lesson.get("unlock_after")
-        unlocked = prerequisite is None or state_of(prerequisite) == "completed"
+        required = ([prerequisite] if prerequisite else []) + LEVEL_GATES.get(node_id, [])
+        unlocked = all(state_of(needed) == "completed" for needed in required)
         if not unlocked:
             state = "blocked"
         elif state_of(node_id) == "completed":
