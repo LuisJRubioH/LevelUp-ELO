@@ -1460,7 +1460,9 @@ class SQLiteRepository:
                     ORDER BY a.timestamp""",
                 params,
             )
-            return [dict(row) for row in cursor.fetchall()]
+            # Plain tuples (no row_factory): name the columns as PostgreSQL's RealDictCursor does.
+            columns = [c[0] for c in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
         finally:
             conn.close()
 
