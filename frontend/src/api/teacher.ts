@@ -83,6 +83,26 @@ export interface AdminUser {
   active: boolean | number;
   education_level: string | null;
   group_name: string | null;
+  /** Spec 004 FR-030: a temporary password is still pending. */
+  must_change_password?: boolean;
+}
+
+/** Spec 004 E2: shown once to the admin, never stored readable. */
+export interface TemporaryPassword {
+  user_id: number;
+  username?: string;
+  temporary_password: string;
+}
+
+export interface AccountEvent {
+  id: number;
+  action: "password_reset" | "teacher_created" | string;
+  actor_id: number;
+  admin_username?: string | null;
+  user_id: number;
+  user_username?: string | null;
+  user_role?: string | null;
+  created_at: string | null;
 }
 
 export interface AdminGroup {
@@ -337,4 +357,14 @@ export const adminApi = {
 
   audit: (limit: number = 100) =>
     api.get<{ entries: AuditEntry[] }>(`/api/admin/audit?limit=${limit}`),
+
+  // Spec 004 E2 (FR-029, FR-031)
+  resetPassword: (user_id: number) =>
+    api.post<TemporaryPassword>(`/api/admin/users/${user_id}/reset-password`),
+
+  createTeacher: (body: { username: string; email?: string }) =>
+    api.post<TemporaryPassword>("/api/admin/teachers", body),
+
+  accountAudit: (limit: number = 100) =>
+    api.get<{ events: AccountEvent[] }>(`/api/admin/account-audit?limit=${limit}`),
 };

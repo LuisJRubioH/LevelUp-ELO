@@ -36,6 +36,9 @@ export function isNetworkError(err: unknown): err is NetworkError {
   return err instanceof NetworkError;
 }
 
+/** The API's refusal while a temporary password is pending (api/dependencies.py). */
+export const PASSWORD_CHANGE_REQUIRED = "Debes cambiar tu contraseña temporal antes de continuar.";
+
 let refreshPromise: Promise<string | null> | null = null;
 
 async function refreshAccessToken(): Promise<string | null> {
@@ -157,6 +160,10 @@ async function request<T>(
     } catch {
       /* ignorar */
     }
+    if (res.status === 403 && detail === PASSWORD_CHANGE_REQUIRED) {
+      // Spec 004 FR-030: the route guards send the user to the password change.
+      useAuthStore.getState().setMustChangePassword(true);
+    }
     throw new ApiError(res.status, detail);
   }
 
@@ -197,6 +204,10 @@ async function requestForm<T>(
       detail = err.detail ?? detail;
     } catch {
       /* ignorar */
+    }
+    if (res.status === 403 && detail === PASSWORD_CHANGE_REQUIRED) {
+      // Spec 004 FR-030: the route guards send the user to the password change.
+      useAuthStore.getState().setMustChangePassword(true);
     }
     throw new ApiError(res.status, detail);
   }

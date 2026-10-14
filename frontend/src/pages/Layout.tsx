@@ -382,6 +382,13 @@ Oulad
           </div>
           {/* PWA install deshabilitada — la plataforma se usa solo desde
               navegador. Ver guard global en App.tsx (beforeinstallprompt). */}
+          {/* Spec 004 FR-026: el propio usuario cambia su contraseña. */}
+          <button
+            onClick={() => navigate("/cambiar-contrasena")}
+            className="block text-xs text-slate-500 hover:text-slate-300 transition-colors mb-1"
+          >
+            Cambiar contraseña
+          </button>
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"

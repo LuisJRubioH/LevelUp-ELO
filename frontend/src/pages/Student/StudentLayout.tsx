@@ -174,6 +174,10 @@ export function StudentLayout({ children }: { children: ReactNode }) {
               🌐 {lang.toUpperCase()}
             </button>
           </div>
+          {/* Spec 004 FR-026: el propio usuario cambia su contraseña. */}
+          <button className="tc-logout" onClick={() => navigate("/cambiar-contrasena")}>
+            Cambiar contraseña
+          </button>
           <button className="tc-logout" onClick={handleLogout}>
             Cerrar sesión →
           </button>

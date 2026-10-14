@@ -6,7 +6,9 @@
 
 **Status**: Draft for review — all approved decisions of blocks 4 and 8 and of the rate-limit
 store (owner, 2026-10-13) are specified. E1 and E6 are implemented and closed (their pull
-requests); E2 … E5 are `planned`.
+requests). E2 is in progress: its passwords and sessions are implemented; its display names wait on
+the owner's answers on the scope of the initial import's decisions (2026-10-14). E3 … E5 are
+`planned`.
 
 **Input**: The owner's approved orders of 2026-10-13: block 4 (enrolment through Google Forms,
 account creation and access limits) with its clarifications P1–P15 and supplementary precisions,
@@ -58,7 +60,7 @@ request that completes a delivery marks it `closed` and fills all its rows.
 | Delivery | Content | Order rule | State |
 |---|---|---|---|
 | **E1** | Public registration closed by default (one server setting, refused on the server, reflected by the screen); login limits per normalised account and global | Needed for the switch (LuisJRubioH/LevelUp-ELO#3). Built on LuisJRubioH/LevelUp-ELO#33, whose login-by-address limit it replaces. | closed |
-| **E2** | Display name everywhere classmates look; who sees the identification; password change; security version that revokes tokens, renewals and persistent connections; admin password reset; teachers created by the admin | Before any real student is created (decision 5). Teachers created by the admin need its forced password change (N3). | planned |
+| **E2** | Display name everywhere classmates look; who sees the identification; password change; security version that revokes tokens, renewals and persistent connections; admin password reset; teachers created by the admin | Before any real student is created (decision 5). Teachers created by the admin need its forced password change (N3). | in progress |
 | **E3** | Temporary student accounts created one by one: identification as username and initial password, existing group, level and grade, display name, last day of access; expiration enforced, also on open sessions and PvP; the admin changes, extends or reactivates | Not merged before E2 is in production. | planned |
 | **E4** | Import of a Google Forms export (`.xlsx`, `.csv`): mapping, preview, confirmation, re-import without changes, linking, audit, own limits | After E3, whose creation rules it reuses. | planned |
 | **E5** | Session renewal without third-party cookies (block 8): same-origin proxy, cookie scope, CSRF, no caching, revocation and expiry respected; Safari verified | After E2 (revocation). E3's tests include renewal of an expired account. | planned |
@@ -681,13 +683,13 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | US3-AS4 | E2 | `PENDING` |
 | US3-AS5 | E2 | `PENDING` |
 | US3-AS6 | E2 | `PENDING` |
-| US4-AS1 | E2 | `PENDING` |
-| US4-AS2 | E2 | `PENDING` |
-| US4-AS3 | E2 | `PENDING` |
-| US5-AS1 | E2 | `PENDING` |
-| US5-AS2 | E2 | `PENDING` |
-| US5-AS3 | E2 | `PENDING` |
-| US5-AS4 | E2 | `PENDING` |
+| US4-AS1 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_password_change_replaces_it_and_keeps_this_session` |
+| US4-AS2 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_other_sessions_end_on_password_change`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_a_password_change_revokes_earlier_tokens` |
+| US4-AS3 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_a_refused_change_changes_nothing`<br>`frontend/e2e/spec004-passwords.spec.ts › el estudiante cambia su contraseña desde el menú (spec 004 US4-AS3, FR-026)` |
+| US5-AS1 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_admin_reset_gives_a_temporary_password_that_must_be_changed`<br>`frontend/e2e/spec004-passwords.spec.ts › una contraseña temporal se cambia antes de seguir (spec 004 US5-AS1, FR-030)`<br>`frontend/e2e/spec004-passwords.spec.ts › el admin restablece el acceso y crea un docente; ve la contraseña temporal una vez (spec 004 US5-AS1, US5-AS2)` |
+| US5-AS2 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_admin_creates_an_approved_teacher_with_a_temporary_password`<br>`frontend/e2e/spec004-passwords.spec.ts › el admin restablece el acceso y crea un docente; ve la contraseña temporal una vez (spec 004 US5-AS1, US5-AS2)` |
+| US5-AS3 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_account_audit_names_admin_account_and_time_never_the_password`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_reset_is_admin_only_and_audited_without_the_password` |
+| US5-AS4 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_only_the_admin_resets_access_or_creates_teachers` |
 | US6-AS1 | E3 | `PENDING` |
 | US6-AS2 | E3 | `PENDING` |
 | US6-AS3 | E3 | `PENDING` |
@@ -736,13 +738,13 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | FR-023 | E2 | `PENDING` |
 | FR-024 | E2 | `PENDING` |
 | FR-025 | E2 | `PENDING` |
-| FR-026 | E2 | `PENDING` |
-| FR-027 | E2 | `PENDING` |
-| FR-028 | E2 | `PENDING` |
-| FR-029 | E2 | `PENDING` |
-| FR-030 | E2 | `PENDING` |
-| FR-031 | E2 | `PENDING` |
-| FR-032 | E2 | `PENDING` |
+| FR-026 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_password_change_replaces_it_and_keeps_this_session`<br>`tests/api/test_spec004_e2_passwords.py::test_spec004_a_refused_change_changes_nothing`<br>`tests/api/test_spec004_e2_passwords.py::test_spec004_password_change_attempts_count_against_the_account_limit`<br>`frontend/e2e/spec004-passwords.spec.ts › el estudiante cambia su contraseña desde el menú (spec 004 US4-AS3, FR-026)` |
+| FR-027 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_other_sessions_end_on_password_change`<br>`tests/api/test_spec004_e2_passwords.py::test_spec004_tokens_from_before_the_security_version_still_work`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_set_user_password_advances_the_security_version`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_account_columns_and_audit_table_are_additive` |
+| FR-028 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_password_change_replaces_it_and_keeps_this_session`<br>`tests/api/test_spec004_e2_passwords.py::test_spec004_other_sessions_end_on_password_change`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_a_password_change_revokes_earlier_tokens` |
+| FR-029 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_admin_reset_gives_a_temporary_password_that_must_be_changed`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_reset_is_admin_only_and_audited_without_the_password` |
+| FR-030 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_admin_reset_gives_a_temporary_password_that_must_be_changed`<br>`frontend/e2e/spec004-passwords.spec.ts › una contraseña temporal se cambia antes de seguir (spec 004 US5-AS1, FR-030)`<br>`frontend/e2e/spec004-passwords.spec.ts › si la API exige el cambio, la app lleva a la pantalla de cambio (spec 004 FR-030)` |
+| FR-031 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_admin_creates_an_approved_teacher_with_a_temporary_password`<br>`tests/api/test_spec004_e2_passwords.py::test_spec004_a_teacher_username_already_taken_is_refused`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_teacher_creation_is_admin_only_approved_and_audited` |
+| FR-032 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_account_audit_names_admin_account_and_time_never_the_password`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_set_user_password_advances_the_security_version` |
 | FR-033 | E2 | `PENDING` |
 | FR-040 | E3 | `PENDING` |
 | FR-041 | E3 | `PENDING` |

@@ -72,6 +72,8 @@ def _issue_session(response: Response, user_id: int, account: dict) -> TokenResp
         role=account["role"],
         must_change_password=bool(account.get("must_change_password")),
     )
+
+
 _REGISTRATION_CLOSED = "El registro público está cerrado. Pide tu cuenta a tu colegio."
 
 

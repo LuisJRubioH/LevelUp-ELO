@@ -458,6 +458,18 @@ const en: TranslationKeys = {
     deactivate: "Deactivate",
     activate: "Activate",
     noMatches: "No matching users.",
+    resetPassword: "Reset password",
+    resetConfirm: "Reset {{username}}'s password? All of their sessions will end.",
+    temporaryTitle: "Temporary password for {{username}}",
+    temporaryHint: "Give it to the person: it is shown only once. They must change it when they sign in.",
+    close: "Close",
+    mustChange: "must change password",
+    createTeacherTitle: "Create teacher",
+    createTeacherHint:
+      "The teacher is approved and gets a temporary password to change at first sign-in.",
+    createTeacherUsername: "Username",
+    createTeacherEmail: "Email (optional)",
+    createTeacherSubmit: "Create teacher",
   },
 
   // ── Admin — Reports ─────────────────────────────────────────────────────────
@@ -489,6 +501,13 @@ const en: TranslationKeys = {
     colAdmin: "Admin",
     colDate: "Date",
     empty: "No reassignments recorded.",
+    accountTitle: "Account access",
+    accountIntro: "Password resets and teachers created. The password is never stored.",
+    accountEmpty: "No account operations.",
+    colAccount: "Account",
+    colOperation: "Operation",
+    actionPasswordReset: "Password reset",
+    actionTeacherCreated: "Teacher created",
   },
 
   // ── Admin — System groups ───────────────────────────────────────────────────

@@ -27,6 +27,13 @@ export interface TokenResponse {
   user_id: number;
   username: string;
   role: string;
+  /** Spec 004 FR-030: a temporary password must be changed before anything else. */
+  must_change_password?: boolean;
+}
+
+export interface PasswordChange {
+  current_password: string;
+  new_password: string;
 }
 
 export interface UserProfile {
@@ -37,6 +44,7 @@ export interface UserProfile {
   education_level: string | null;
   grade: string | null;
   email: string | null;
+  must_change_password?: boolean;
 }
 
 export const authApi = {
@@ -45,6 +53,8 @@ export const authApi = {
   me: () => api.get<UserProfile>("/api/auth/me"),
   logout: () => api.post<void>("/api/auth/logout"),
   refresh: () => api.post<TokenResponse>("/api/auth/refresh"),
+  /** Spec 004 FR-026, FR-028: returns new credentials; every other session ends. */
+  changePassword: (body: PasswordChange) => api.post<TokenResponse>("/api/auth/password", body),
   /** Whether public sign-up is open on the server (spec 004 FR-003); closed by default. */
   registration: () => api.get<{ enabled: boolean }>("/api/auth/registration"),
 };

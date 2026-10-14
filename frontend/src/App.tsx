@@ -17,6 +17,9 @@ import { PageSkeleton } from "./components/ui/PageSkeleton";
 
 // Landing pública — cargada bajo demanda
 const Home = lazy(() => import("./pages/Home").then((m) => ({ default: m.Home })));
+const ChangePassword = lazy(() =>
+  import("./pages/ChangePassword").then((m) => ({ default: m.ChangePassword }))
+);
 
 // Shell de la Consola Docente (rediseño) — reemplaza el Layout para /teacher/*
 const TeacherLayout = lazy(() =>
@@ -115,10 +118,19 @@ function RequireRole({
   children: React.ReactNode;
 }) {
   const user = useAuthStore((s) => s.user);
+  const mustChangePassword = useAuthStore((s) => s.mustChangePassword);
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== role && user.role !== "admin") {
     return <Navigate to="/login" replace />;
   }
+  // Spec 004 FR-030: a temporary password is changed before anything else.
+  if (mustChangePassword) return <Navigate to="/cambiar-contrasena" replace />;
+  return <>{children}</>;
+}
+
+function RequireSignedIn({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user);
+  if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
@@ -170,6 +182,10 @@ export default function App() {
               {/* Público */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
+              <Route
+                path="/cambiar-contrasena"
+                element={<RequireSignedIn><ChangePassword /></RequireSignedIn>}
+              />
 
               {/* ── Estudiante ─────────────────────────────────────────── */}
               <Route

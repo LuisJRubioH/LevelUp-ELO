@@ -128,6 +128,7 @@ function Field({
 export function Login() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const setMustChangePassword = useAuthStore((s) => s.setMustChangePassword);
   const queryClient = useQueryClient();
 
   const [lang, setLang] = useState<Lang>(() => ((localStorage.getItem(LS_LANG) as Lang) || "es"));
@@ -195,6 +196,8 @@ export function Login() {
     });
     const profile = await authApi.me();
     setAuth(res.access_token, profile as AuthUser);
+    // Spec 004 FR-030: a temporary password (reset or new teacher) is changed first.
+    setMustChangePassword(Boolean(res.must_change_password));
     return res;
   };
 
@@ -204,6 +207,10 @@ export function Login() {
     setLoading(true);
     try {
       const res = await finishLogin(loginUser, loginPw);
+      if (res.must_change_password) {
+        navigate("/cambiar-contrasena");
+        return;
+      }
       navigate(res.role === "teacher" ? "/teacher" : res.role === "admin" ? "/admin" : "/student");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t({ es: "Credenciales inválidas.", en: "Invalid credentials." }));
