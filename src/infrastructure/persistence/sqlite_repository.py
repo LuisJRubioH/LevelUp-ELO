@@ -2293,12 +2293,19 @@ class SQLiteRepository:
         }
 
     def get_all_groups(self):
-        """Lista todos los grupos disponibles (para el registro de estudiantes)."""
+        """Lista todos los grupos con su docente y su número de estudiantes (vista del admin).
+
+        `student_count` cuenta lo mismo que `get_groups_by_teacher`: estudiantes activos cuyo grupo
+        es este, sin las cuentas de prueba.
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT g.id, g.name, u.username as teacher_name
+            SELECT g.id, g.name, g.teacher_id, u.username as teacher_name,
+                   (SELECT COUNT(*) FROM users u2
+                    WHERE u2.group_id = g.id AND u2.active = 1 AND u2.role = 'student'
+                      AND COALESCE(u2.is_test_user, 0) = 0) AS student_count
             FROM groups g
             JOIN users u ON g.teacher_id = u.id
             ORDER BY g.name ASC
@@ -2306,7 +2313,16 @@ class SQLiteRepository:
         )
         rows = cursor.fetchall()
         conn.close()
-        return [{"id": r[0], "name": r[1], "teacher_name": r[2]} for r in rows]
+        return [
+            {
+                "id": r[0],
+                "name": r[1],
+                "teacher_id": r[2],
+                "teacher_name": r[3],
+                "student_count": int(r[4]),
+            }
+            for r in rows
+        ]
 
     def delete_group(self, group_id, admin_id):
         """Elimina un grupo (solo admin). Desvincula estudiantes y matrículas del grupo.

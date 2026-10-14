@@ -27,6 +27,18 @@ repos:
         files: ^items/bank/
       - id: check-merge-conflict
         name: "Detectar marcadores de conflicto"
+      - id: detect-private-key
+        name: "Detect private keys"
+
+  # ── Secret files: refuse env files and Streamlit secrets even if force-added ──
+  - repo: local
+    hooks:
+      - id: forbid-secret-files
+        name: "Refuse env and secrets files (use .env.example as the template)"
+        entry: "Env and secrets files must not be committed; keep secrets in the host's settings."
+        language: fail
+        files: '(^|/)(\.env(\..*)?|[^/]*\.env|secrets\.toml)$'
+        exclude: '^\.env\.example$'
 
   # ── Black (formateo Python) ────────────────────────────────────────────
   - repo: https://github.com/psf/black
