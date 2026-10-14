@@ -293,6 +293,12 @@ function MetricsView({ students }: { students: StudentSummary[] }) {
 
   return (
     <div className="metrics-grid">
+      {metricsQ.isError && (
+        // Without this the cards below read «Sin datos…» as if nothing had been practised.
+        <p className="gm-err" role="alert" style={{ gridColumn: "1 / -1", margin: 0 }}>
+          No pudimos cargar las métricas de actividad y tópicos. Inténtalo de nuevo más tarde.
+        </p>
+      )}
       <div className="metric-card">
         <h4>Dominio por tópico</h4>
         <div className="mc-sub">Acierto promedio de los estudiantes en cada curso</div>

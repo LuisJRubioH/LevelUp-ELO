@@ -60,6 +60,7 @@ entry ending in `/` covers everything below it.
   derived average of its topics, never stored (FR-029, FR-029a).
 - Q: Which rank scale is shared by every surface? → A: the student API's 16 levels "Aspirante →
   Leyenda Suprema"; the diagnostic league stays a separate placement label (FR-031, FR-031a).
+  *(Superseded for the result screen on 2026-10-13: it shows the current rank label, FR-031a.)*
 - Q: Which topics receive a PvP delta? → A: every topic the player has rated in the match's
   course, shifted by the full delta, so the course average moves by exactly the delta (FR-029b).
 
@@ -190,6 +191,33 @@ was served a `probabilidad` (universidad) item and its answer stored a rating of
 - Q: How is it tested? → A: allowed and denied access, the denied side with no side effect
   (US8-AS1 … AS5).
 
+### Session 2026-10-13 (block 5, owner decision)
+
+Found while reviewing the diagnostic screen: its result shows «ELO INICIAL», the average of the
+diagnostic's per-topic values, including topics the diagnostic did not set because they already
+had practice (FR-021). Reproduced on `redesign @ 1d6fcf6`: a student whose topic rating was
+1058.16 retook the diagnostic and saw 920 for the course and for that topic, while the stored
+rating stayed 1058.16; the course page kept showing 920 afterwards.
+
+- Q: What rating does the diagnostic result show? → A: one figure only, the student's current
+  rating read through `RatingReadService`, with its `display_rating` and `rank_label` — right after
+  the submission and whenever the result is shown again. The diagnostic's own estimate is never
+  presented as the current rating, and no other rating figure appears next to it (FR-020a).
+- Q: Which league does it show? → A: the rank label of that current rating; the separate
+  placement league of the diagnostic is no longer shown (FR-031a, superseding its earlier text).
+- Q: Is the per-topic breakdown kept? → A: yes, the diagnostic's own breakdown — strengths,
+  intermediate, gaps — kept apart from the accumulated rating, with no rating figure per topic
+  (FR-020b).
+- Q: How does the result tell apart what the diagnostic did? → A: each topic is marked as
+  initialized or kept, and the message follows the actual outcome: all initialized «Esta es tu
+  valoración inicial»; all kept «Tu valoración se mantiene. Este diagnóstico te ayuda a identificar
+  qué reforzar»; some of each «Conservamos tu valoración en los temas que ya practicaste y
+  establecimos la inicial en los restantes» (FR-020c). The rule that protects practised topics
+  (FR-021) is unchanged.
+
+Delivered as one pull request holding the amendment, its implementation, its tests and its
+§ Traceability rows, so no `PENDING` row of this spec reaches the base branch.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A practice answer updates my rating correctly (Priority: P1)
@@ -275,6 +303,21 @@ without ever erasing progress they already made in practice.
    diagnostic, **Then** that topic's rating is not overwritten.
 4. **US3-AS4** — **Given** a skipped question ("I don't know"), **When** it is scored, **Then** it
    does not change the rating.
+
+5. **US3-AS5** — **Given** no practice yet, **When** the student submits the diagnostic, **Then** the
+   result shows the current course rating as its only figure, with its rank label, every
+   diagnosed topic marked as initialized, and «Esta es tu valoración inicial».
+6. **US3-AS6** — **Given** one topic with practice (rating 1058.16) and one without, **When** the
+   student retakes the diagnostic and fails the practised topic's questions, **Then** that topic
+   is marked kept and its rating stays 1058.16, the other is marked initialized, the figure shown
+   is the current course rating (not the diagnostic's values), and the message is «Conservamos tu
+   valoración en los temas que ya practicaste y establecimos la inicial en los restantes».
+7. **US3-AS7** — **Given** a diagnostic taken earlier and practice since, **When** the student returns
+   to the course, **Then** the figure is the current course rating, with that diagnostic's
+   breakdown, marks and message unchanged.
+8. **US3-AS8** — **Given** practice in every diagnosed topic, **When** the student retakes the
+   diagnostic, **Then** every topic is marked kept, no rating changes, and the message is «Tu
+   valoración se mantiene. Este diagnóstico te ayuda a identificar qué reforzar».
 
 ---
 
@@ -487,6 +530,9 @@ same course; compare attempts, ratings, item difficulty and diagnostics before a
 - A database whose block constraint lacks one of the four blocks → the migration stops before
   changing anything, naming the missing values (FR-028n); one that accepts the four plus extra
   values → no DDL, the extra values stay.
+- A diagnostic result stored before block 5 → it never recorded which topics it set; the
+  figure is the current rating, and its topics carry no initialized/kept mark and no outcome
+  message (FR-020c).
 
 ## Requirements *(mandatory)*
 
@@ -567,6 +613,23 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   correct/incorrect answer, ignoring skipped questions, with a floor of 760.
 - **FR-021** [AS-IS]: While a topic already has practice attempts, the system shall not overwrite
   its rating with a diagnostic result.
+
+- **FR-020a** [CHANGE]: When a diagnostic result is shown — right after its submission or when the
+  student returns to the course — the system shall show one rating figure: the student's current
+  rating in that course read through `RatingReadService`, as the display rating and rank label of
+  FR-028j, or "pending diagnostic" when the course has no rated topic. The diagnostic's own
+  estimate shall not be shown. *(Today it shows «ELO INICIAL»: the average of the diagnostic's
+  per-topic values, kept topics included, rounded by the browser, and frozen at submission.)*
+- **FR-020b** [CHANGE]: When a diagnostic result is shown, the system shall list each diagnosed topic
+  with that diagnostic's correct and total answers and its strength (strong, intermediate, gap),
+  with no rating figure per topic. *(Today each topic shows the diagnostic's value, even where
+  FR-021 kept the stored rating.)*
+- **FR-020c** [CHANGE]: When a diagnostic result is shown, the system shall mark each diagnosed topic
+  as **initialized** (this diagnostic set its starting rating, FR-020) or **kept** (it already
+  had practice and its rating was not changed, FR-021), and shall show the message of the
+  outcome: all initialized «Esta es tu valoración inicial»; all kept «Tu valoración se mantiene.
+  Este diagnóstico te ayuda a identificar qué reforzar»; some of each «Conservamos tu valoración
+  en los temas que ya practicaste y establecimos la inicial en los restantes».
 
 **Teacher-validated procedure (US4)**
 
@@ -732,9 +795,11 @@ practising one topic, or the derived course rating (FR-029a) when practising the
   Suprema" currently served by the student API. *(Today five scales coexist: that one; 16
   different levels in V1; 7 levels "Hierro → Maestro" on teacher screens; 8 tiers "Plata I →
   Maestro" on the home page; 4 diagnostic leagues.)*
-- **FR-031a** [AS-IS]: When a diagnostic result is shown, the system shall label the starting
-  point with its own league (Bronce / Plata / Oro / Diamante), presented as a placement, not as a
-  rank.
+- **FR-031a** [CHANGE]: When a diagnostic result is shown, the system shall show as its league the
+  rank label of the student's current course rating (FR-031), and shall not show the
+  diagnostic's own placement league. *(Until 2026-10-13 it labelled the starting point with its
+  own league — Bronce / Plata / Oro / Diamante — presented as a placement; block 5 superseded it.
+  The API keeps returning that estimate and league as a record of the diagnostic.)*
 - **FR-032** [AS-IS]: The system shall not change any rating from an exam submission.
 
 **Legacy ratings (one-time reconciliation, FR-029)**
@@ -882,6 +947,10 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | US3-AS2 | `tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_floor_is_760`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_baseline` |
 | US3-AS3 | `tests/integration/test_elo_single_source.py::test_diagnostic_baseline_survives_until_the_first_practice`<br>`tests/api/test_student.py::test_first_practice_uses_diagnostic_rating` |
 | US3-AS4 | `tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_correct_at_1200_and_a_skipped_answer`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_baseline` |
+| US3-AS5 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos inicializados (US3-AS5) (FR-020a–c, FR-031a)` |
+| US3-AS6 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_keeps_a_practised_topic_mixed`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)` |
+| US3-AS7 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_returning_to_the_course_shows_the_current_rating` |
+| US3-AS8 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_with_every_topic_practised_keeps_all`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos conservados (US3-AS8) (FR-020a–c, FR-031a)` |
 | US4-AS1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_validated_grade_adds_grade_minus_50_times_02`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_creates_an_absent_row_and_floors_at_zero` |
 | US4-AS2 | `tests/integration/test_elo_single_source.py::test_a_validated_procedure_delta_is_applied_exactly_once` |
 | US4-AS3 | `tests/integration/test_spec001_repository_pins.py::test_spec001_grade_out_of_range_changes_nothing` |
@@ -935,6 +1004,9 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | FR-019 | `tests/unit/application/test_spec001_service_pins.py::test_spec001_exhausted_pool_mastery_threshold` |
 | FR-020 | `tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_correct_at_1200_and_a_skipped_answer`<br>`tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_floor_is_760`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_tier`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_baseline` |
 | FR-021 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_writes_course_topic_baselines`<br>`tests/api/test_student.py::test_first_practice_uses_diagnostic_rating`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_permissions_diagnostic_and_canonical_answer` |
+| FR-020a | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_keeps_a_practised_topic_mixed`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_returning_to_the_course_shows_the_current_rating`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)` |
+| FR-020b | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_returning_to_the_course_shows_the_current_rating`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)` |
+| FR-020c | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_keeps_a_practised_topic_mixed`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_with_every_topic_practised_keeps_all`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_a_result_stored_before_block_5_has_no_mark`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos inicializados (US3-AS5) (FR-020a–c, FR-031a)`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos conservados (US3-AS8) (FR-020a–c, FR-031a)` |
 | FR-022 | `tests/integration/test_spec001_repository_pins.py::test_spec001_validated_grade_adds_grade_minus_50_times_02`<br>`tests/integration/test_elo_single_source.py::test_a_validated_procedure_delta_is_applied_exactly_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once` |
 | FR-023 | `tests/integration/test_spec001_repository_pins.py::test_spec001_grade_out_of_range_changes_nothing`<br>`tests/api/test_procedure_grading.py::test_other_teacher_cannot_grade_or_view_submission`<br>`tests/api/test_procedure_grading.py::test_reassignment_between_lookup_and_update_prevents_grading` |
 | FR-024 | `tests/integration/test_spec001_repository_pins.py::test_spec001_ai_proposed_score_changes_no_rating` |
@@ -963,7 +1035,7 @@ of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
 | FR-029c | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_player_without_rated_topics_gets_zero`<br>`tests/unit/infrastructure/test_pvp_logic.py::test_spec001_game_end_sends_the_applied_delta_and_reason`<br>`tests/unit/infrastructure/test_pvp_logic.py::test_spec001_game_end_reports_not_applied_when_persistence_fails` |
 | FR-030 | `tests/api/test_spec001_api.py::test_spec001_preview_equals_the_applied_change`<br>`frontend/e2e/spec001-ratings.spec.ts › Práctica muestra la previsión que envía la API (US6-AS2)`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_stakes_preview_is_the_applied_change` |
 | FR-031 | `tests/unit/domain/test_spec001_domain.py::test_spec001_one_rank_scale`<br>`tests/api/test_spec001_api.py::test_spec001_meta_ranks_is_public_and_ascending`<br>`frontend/e2e/spec001-ratings.spec.ts › Inicio lista los rangos de /api/meta/ranks`<br>`tests/api/test_spec001_api.py::test_spec001_meta_ranks_is_cacheable` |
-| FR-031a | `tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_correct_at_1200_and_a_skipped_answer`<br>`tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_floor_is_760` |
+| FR-031a | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_keeps_a_practised_topic_mixed`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos inicializados (US3-AS5) (FR-020a–c, FR-031a)`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos conservados (US3-AS8) (FR-020a–c, FR-031a)` |
 | FR-032 | `tests/api/test_spec001_answer_pins.py::test_spec001_exam_submission_changes_no_rating`<br>`tests/integration/test_spec001_repository_pins.py::test_spec001_exam_storage_writes_no_rating` |
 | FR-033 | `tests/integration/test_spec001_reconciliation.py::test_spec001_existing_rows_and_unassigned_legacy_rows_are_left_alone` |
 | FR-034 | `tests/integration/test_spec001_reconciliation.py::test_spec001_topic_label_row_reaches_only_the_practised_course`<br>`tests/integration/test_spec001_reconciliation.py::test_spec001_course_name_equal_to_a_topic_label`<br>`tests/integration/test_spec001_reconciliation.py::test_spec001_diagnostic_makes_the_courses_topics_eligible`<br>`tests/integration/test_spec001_reconciliation.py::test_spec001_course_row_most_recent_wins_and_is_never_summed` |
@@ -995,6 +1067,7 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-016, FR-019 | `student_service.py:66-98` |
 | FR-017–018 | `src/domain/selector/item_selector.py:40-80` |
 | FR-020–021 | `api/routers/student.py:954-960, 1007-1053` |
+| FR-020a–c | `api/routers/student.py:996` (a stored result is returned as saved), `:1060` (FR-021 check), `:1071` (each topic carries the diagnostic's value), `:1076` (`initial_elo` = mean of those values); `frontend/src/pages/Student/CourseEntry.tsx:210-211` («ELO INICIAL», rounded in the browser), `:237` |
 | FR-022–024 | `procedure_elo_delta` in `src/domain/elo/model.py`; `validate_procedure_submission` (both repos) |
 | FR-025, FR-027 | `api/websocket/pvp.py:28, 83-125`; `finish_pvp_match`, `expire_stale_pvp_matches` |
 | FR-026 | `api/websocket/pvp.py:191` (global `current_elo`) vs `finish_pvp_match` (course key) |
