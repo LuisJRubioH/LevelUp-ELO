@@ -88,9 +88,9 @@ export interface AdminUser {
 export interface AdminGroup {
   id: number;
   name: string;
-  teacher_id?: number;
-  teacher_username?: string;
-  student_count?: number;
+  teacher_id: number;
+  teacher_name: string;
+  student_count: number;
 }
 
 export interface ProblemReport {
