@@ -56,6 +56,8 @@ class ActiveMatch:
     answered: dict[int, set] = field(default_factory=dict)
     done: dict[int, bool] = field(default_factory=dict)
     finished: bool = False
+    # Se activa cuando game_end ya salió hacia los dos: quien cierre en segundo lugar lo espera.
+    closed: asyncio.Event = field(default_factory=asyncio.Event)
 
     def all_done(self) -> bool:
         return self.done.get(self.p1.user_id) and self.done.get(self.p2.user_id)
@@ -104,13 +106,35 @@ async def _lobby_rating(repo, user_id: int, course_id: str) -> float:
     return 1000.0 if rating is None else rating
 
 
-async def _finish_match(match: ActiveMatch, repo) -> None:
-    # Guard contra doble-cierre: ambos loops o el timer pueden disparar a la vez
-    async with _lock:
-        if match.finished:
-            return
-        match.finished = True
+def _judge_answer(match: ActiveMatch, user_id: int, msg: dict) -> tuple[str, bool] | None:
+    """(item_id, is_correct) for an answer that counts; None for one to ignore: the match is over,
+    the item is not one of this match's or was already answered, or the choice is not text."""
+    item_id, selected = msg.get("item_id"), msg.get("selected")
+    if match.finished or not isinstance(item_id, str) or not isinstance(selected, str):
+        return None
+    if item_id not in match.correct or item_id in match.answered[user_id]:
+        return None
+    return item_id, selected == match.correct[item_id]
 
+
+async def _finish_match(match: ActiveMatch, repo) -> None:
+    # Guard contra doble-cierre: ambos loops o el timer pueden disparar a la vez. Quien llega
+    # segundo espera a que game_end haya salido: al volver, su loop termina y cierra el socket.
+    async with _lock:
+        already_closing = match.finished
+        match.finished = True
+    if already_closing:
+        await match.closed.wait()
+        return
+    try:
+        await _close_match(match, repo)
+    finally:
+        match.closed.set()
+        async with _lock:
+            _matches.pop(match.match_id, None)
+
+
+async def _close_match(match: ActiveMatch, repo) -> None:
     s1 = match.score.get(match.p1.user_id, 0)
     s2 = match.score.get(match.p2.user_id, 0)
 
@@ -151,8 +175,13 @@ async def _finish_match(match: ActiveMatch, repo) -> None:
         return_exceptions=True,
     )
 
-    async with _lock:
-        _matches.pop(match.match_id, None)
+
+async def _finish_early(match: ActiveMatch, timer_task: asyncio.Task | None, repo) -> None:
+    """Both players answered everything. The timer is stopped only if it has not started closing
+    the match: cancelled mid-close, it would drop game_end for both players."""
+    if timer_task is not None and not match.finished:
+        timer_task.cancel()
+    await _finish_match(match, repo)
 
 
 async def _timer(match: ActiveMatch, repo) -> None:
@@ -235,10 +264,20 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
             all_items = await asyncio.to_thread(
                 repo.get_items_from_db, course_id=course_id
             )
-        except Exception:
+        except Exception as e:
+            logger.error("get_items_from_db: %s", e)
             all_items = []
 
         selected = random.sample(all_items, min(MATCH_ITEMS, len(all_items)))
+        if not selected:
+            # Sin ítems no hay partida: un 0-0 movería el ELO cuando las expectativas difieren.
+            logger.warning("PvP: no items for course %s", course_id)
+            for ws in (websocket, waiting.ws):
+                try:
+                    await ws.close(code=4404, reason="No items")
+                except Exception:
+                    pass
+            return
         item_ids = [i["id"] for i in selected]
         correct = {i["id"]: i["correct_option"] for i in selected}
         # No revelar correct_option al cliente (V2-R9)
@@ -343,16 +382,13 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
             raw = await websocket.receive_text()
             msg = json.loads(raw)
 
-            if msg.get("type") != "answer":
+            if not isinstance(msg, dict) or msg.get("type") != "answer":
                 continue
 
-            item_id = msg.get("item_id", "")
-            selected = msg.get("selected", "")
-
-            if item_id in match.answered[user_id]:
-                continue  # ya respondió este ítem
-
-            is_correct = (selected == match.correct.get(item_id))
+            judged = _judge_answer(match, user_id, msg)
+            if judged is None:
+                continue  # ítem ajeno a la partida, ya respondido, o la partida terminó
+            item_id, is_correct = judged
             match.answered[user_id].add(item_id)
             if is_correct:
                 match.score[user_id] = match.score.get(user_id, 0) + 1
@@ -384,9 +420,7 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
                 match.done[user_id] = True
 
             if match.all_done():
-                if timer_task:
-                    timer_task.cancel()
-                await _finish_match(match, repo)
+                await _finish_early(match, timer_task, repo)
                 break
 
     except WebSocketDisconnect:

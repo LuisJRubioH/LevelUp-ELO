@@ -47,8 +47,19 @@ class Run:
 
 
 def _account(var, default):
-    user, _, password = os.environ.get(var, default).partition(":")
+    # An unset CI secret arrives as an empty variable: it means "use the default".
+    user, _, password = (os.environ.get(var) or default).partition(":")
     return user, password
+
+
+def matches_preview(delta: float, preview: float) -> bool:
+    """The applied change agrees with the preview shown before answering.
+
+    The preview is the exact change rounded once to 0.1; `/answer` reports it rounded to 0.01.
+    Rounding that again to 0.1 fails on a half (5.4466 → 5.45 → 5.5, preview 5.4), so compare
+    within both roundings instead.
+    """
+    return abs(delta - preview) <= 0.05 + 0.005 + 1e-9
 
 
 def _png(seed: int) -> bytes:
@@ -236,7 +247,7 @@ def main():
         a = ans.json()
         expected = preview["on_correct"] if a["is_correct"] else preview["on_wrong"]
         r.check(
-            a["elo_valid"] and round(a["delta_elo"], 1) == expected,
+            a["elo_valid"] and matches_preview(a["delta_elo"], expected),
             "rating moved by the previewed amount",
             f"{a['elo_before']:.2f} → {a['elo_after']:.2f} (Δ {a['delta_elo']:+.2f},"
             f" preview {expected:+.1f})",
@@ -323,8 +334,12 @@ def main():
     img = c.get(f"/api/teacher/procedures/{sid}/image", headers=ht)
     r.check(
         img.status_code == 200 and img.content == png,
-        "teacher gets the same image bytes back (storage)",
-        img.status_code,
+        "teacher gets the same image bytes back",
+        f"{img.status_code}, submission {sid}",
+    )
+    # The API also serves the row's copy when Storage fails (R9), so this passes without Storage.
+    r.log(
+        f"  [INFO] submission {sid}: its storage_url in the database says whether Storage took it"
     )
     before = c.get("/api/student/stats", headers=hs).json()
     grade = c.post(
