@@ -19,7 +19,7 @@ import { authApi } from "../../api/auth";
 import { useAuthStore } from "../../stores/authStore";
 import { useThemeStore } from "../../stores/themeStore";
 import { useSettingsStore, PROVIDER_MODELS } from "../../stores/settingsStore";
-import { clearAccountCaches } from "../../lib/accountCleanup";
+import { resetClientAccountState } from "../../lib/accountCleanup";
 import "./TeacherConsole.css";
 
 const NAV = [
@@ -54,9 +54,7 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
     } catch {
       /* ignorar */
     }
-    await clearAccountCaches();
-    queryClient.clear();
-    setApiKey("");
+    await resetClientAccountState(queryClient);
     clearAuth();
     navigate("/login");
   };
