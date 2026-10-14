@@ -2,8 +2,9 @@
  * pages/Student/StudentLayout.tsx
  * ===============================
  * Shell del panel estudiante (rediseño) — unificado con la Consola Docente:
- * reusa el shell `.lue-tc` (TeacherConsole.css). Sidebar (escritorio) + nav
- * inferior (móvil, mobile-first). El item "Mapa" aparece al entrar a una
+ * reusa el shell `.lue-tc` (TeacherConsole.css). Sidebar (escritorio); en móvil,
+ * nav inferior + barra superior cuyo «Menú» abre la misma sidebar como cajón
+ * (useSideDrawer). El item "Mapa" aparece al entrar a una
  * materia (cuando hay sesión de práctica activa = post-diagnóstico).
  */
 
@@ -19,7 +20,9 @@ import { useSettingsStore, PROVIDER_MODELS } from "../../stores/settingsStore";
 import { usePracticeStore } from "../../stores/practiceStore";
 import { ReportProblemButton } from "../../components/ReportProblem/ReportProblemButton";
 import { CourseRail } from "../../components/Course/CourseRail";
-import { clearAccountCaches } from "../../lib/accountCleanup";
+import { resetClientAccountState } from "../../lib/accountCleanup";
+import { useSideDrawer } from "../../hooks/useSideDrawer";
+import { MobileBar } from "../../components/Layout/MobileBar";
 import "../Teacher/TeacherConsole.css";
 
 const NAV = [
@@ -49,6 +52,7 @@ export function StudentLayout({ children }: { children: ReactNode }) {
   const courseId = usePracticeStore((s) => s.courseId);
   const availableModels = PROVIDER_MODELS[provider] ?? [];
   const [aiOpen, setAiOpen] = useState(false);
+  const { open: menuOpen, setOpen: setMenuOpen, closeRef, closeOnLink } = useSideDrawer();
 
   const lang = i18n.language?.startsWith("en") ? "en" : "es";
   const onMap = location.pathname.includes("/course/");
@@ -66,17 +70,25 @@ export function StudentLayout({ children }: { children: ReactNode }) {
     } catch {
       /* ignorar */
     }
-    await clearAccountCaches();
-    queryClient.clear();
-    setApiKey("");
-    usePracticeStore.getState().resetSession();
+    await resetClientAccountState(queryClient);
     clearAuth();
     navigate("/login");
   };
 
   return (
     <div className="lue-tc">
-      <aside className="tc-side">
+      <MobileBar home="/student" open={menuOpen} onOpen={() => setMenuOpen(true)} />
+      {menuOpen && <div className="tc-scrim" aria-hidden="true" onClick={() => setMenuOpen(false)} />}
+      <aside id="tc-side" className={"tc-side" + (menuOpen ? " open" : "")} onClick={closeOnLink}>
+        <button
+          ref={closeRef}
+          type="button"
+          className="tc-side-close"
+          aria-label="Cerrar menú"
+          onClick={() => setMenuOpen(false)}
+        >
+          ✕
+        </button>
         <div className="tc-brand">
           <Link to="/student" aria-label="Oulad">
             <img className="brand-logo brand-logo-dark" src="/oulad-logo-dark.png" alt="Oulad" />

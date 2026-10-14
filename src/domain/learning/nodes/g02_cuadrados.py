@@ -652,12 +652,12 @@ CONTENT = {
             "Salim recibe un fardo marcado $x^{2}+14x+c$. Si es un trinomio cuadrado "
             "perfecto, ¿cuánto vale $c$?"
         ),
-        "polya": [
-            "Entender: el del medio es 14x y falta el último término.",
-            "Planear: el del medio es 2ab, con a = x. Despejo b y elevo al cuadrado.",
-            "Ejecutar: 2 · x · b = 14x → b = 7, así que c = 7² = 49.",
-            "Comprobar: x² + 14x + 49 = (x + 7)², y 2 · x · 7 = 14x ✓.",
-        ],
+        "polya": {
+            "comprender": "El del medio es 14x y falta el último término.",
+            "planear": "El del medio es 2ab, con a = x. Despejo b y elevo al cuadrado.",
+            "ejecutar": "2 · x · b = 14x → b = 7, así que c = 7² = 49.",
+            "comprobar": "x² + 14x + 49 = (x + 7)², y 2 · x · 7 = 14x ✓.",
+        },
         "prompt": "¿Cuánto vale c?",
         "answer": "49",
         "hints": {

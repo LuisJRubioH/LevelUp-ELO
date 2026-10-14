@@ -21,7 +21,7 @@ import { useNotifications } from "../hooks/useNotifications";
 import { ReportProblemButton } from "../components/ReportProblem/ReportProblemButton";
 import { ThemeToggle } from "../components/ui/ThemeToggle";
 import { LanguageToggle } from "../components/ui/LanguageToggle";
-import { clearAccountCaches } from "../lib/accountCleanup";
+import { resetClientAccountState } from "../lib/accountCleanup";
 
 interface NavItem {
   path: string;
@@ -164,9 +164,7 @@ export function Layout({ children }: LayoutProps) {
     } catch {
       /* ignorar */
     }
-    await clearAccountCaches();
-    queryClient.clear();
-    setApiKey("");
+    await resetClientAccountState(queryClient);
     clearAuth();
     navigate("/login");
   };
