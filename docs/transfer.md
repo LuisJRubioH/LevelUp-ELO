@@ -70,6 +70,7 @@ wrong):
 | `PUBLIC_REGISTRATION_ENABLED` | unset (closed). **Production today lets anyone register; after the merge nobody can** until it is set to `true` — accounts come from the administrator (spec 004 FR-005) |
 | `RATE_LIMIT_LOGIN_ACCOUNT`, `RATE_LIMIT_LOGIN_GLOBAL`, `RATE_LIMIT_REGISTER` | optional; defaults `10/minute` per account, `300/minute` for all logins, `20/minute` per address for public registration (spec 004 E1). `RATE_LIMIT_AUTH` no longer exists |
 | `RATE_LIMIT_STORAGE_CONNECT_TIMEOUT`, `RATE_LIMIT_STORAGE_TIMEOUT`, `RATE_LIMIT_STORAGE_PROBE_INTERVAL`, `RATE_LIMIT_FALLBACK_MAX_KEYS` | optional; defaults 0.5 s, 0.5 s, 10 s and 50 000 — the fallback when the limit store fails (§ 3.2, spec 004 E6) |
+| `AUTH_COOKIE_SAMESITE` | `none` (default) while the page calls the API from another origin; `lax` after the switch of § 3.3 (spec 004 E5) |
 | `SUPABASE_URL`, `SUPABASE_KEY` | Storage for the **private** bucket `procedimientos` (images are served as bytes, never by public URL) |
 | `ADMIN_USER`, `ADMIN_PASSWORD` | seed of the administrator account (only created if the password is set) |
 | `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_STUDENT_ANALYSIS`, `AI_KEY_TEACHER_ANALYSIS` |
@@ -83,7 +84,7 @@ and still stop `migrate.py`. Write the password as is, and prefer one of letters
 every reader takes the same way; SSL comes from `DATABASE_SSLMODE` (default `require`). The
 `transfer-ops` precheck and backup connect with the app's own parser first and stop if it cannot.
 
-Frontend (build time): `VITE_API_URL` = the API's public origin. **Never** put a secret in a
+Frontend (build time): `VITE_API_URL` = the API's public origin (empty after the switch of § 3.3, with `VITE_WS_URL` = the API's `wss://` origin). **Never** put a secret in a
 `VITE_*` variable — Vite bundles them into the JavaScript every visitor downloads.
 
 Order when the hosts are new: database → API (needs `DATABASE_URL`) → frontend (needs the API URL
@@ -208,6 +209,41 @@ Nothing in this section changes a host's settings or the start command; the owne
   counted under. Sign-in does not depend on the address (spec 004 E1): a class behind one school
   address signs in without sharing a limit. Only public registration counts per address, so if it
   is opened (`PUBLIC_REGISTRATION_ENABLED`), its 20 per minute may be shared by everyone.
+
+### 3.3 Session renewal through the frontend's origin (Safari) — prepared, not active
+
+Safari blocks third-party cookies, and today the renewal cookie comes from the API's origin while
+the page lives on the frontend's: on Safari the session can end when the 15-minute access token
+expires. Spec 004 E5 prepares the fix; it changes nothing until the owner switches it on.
+
+Already in the code, whatever the switch:
+
+- `frontend/vercel.json` forwards `/api/*` from the frontend's origin to the API (unused while
+  `VITE_API_URL` points at the API).
+- Authentication responses carry `Cache-Control: no-store`; a state-changing authentication request
+  with an `Origin` the API does not serve (`CORS_ORIGINS`) is refused; logout deletes the cookie
+  with the same attributes it was set with; a browser WebSocket from another origin is refused.
+
+The switch, outside class hours:
+
+1. **Vercel** (frontend): set `VITE_API_URL` to an empty value and `VITE_WS_URL` to
+   `wss://levelup-elo.onrender.com` (WebSockets cannot go through the proxy), then redeploy.
+   The renewal cookie still works with `SameSite=None` on the same origin, so nothing breaks yet.
+   Everyone signs in once more: the old cookie belonged to the API's domain, the new one to the
+   frontend's.
+2. **Render** (API): set `AUTH_COOKIE_SAMESITE=lax`, then redeploy. From now on the cookie is
+   first-party.
+3. Check, labelling each result *real device* or *automated*: on Safari for iPhone, iPad and
+   desktop, and on Chrome — sign in; wait past 15 minutes (or delete the access token from
+   localStorage) and keep working; reload; sign out and confirm a reload asks to sign in; change
+   the password in one browser and confirm the other is signed out; open the KatIA chat and
+   confirm the answer streams word by word through the proxy (spec 004 N6).
+
+To undo: `AUTH_COOKIE_SAMESITE=none` on Render first, then `VITE_API_URL` back to the API's origin
+on Vercel. The order matters: with `lax` and a cross-origin page, renewal fails everywhere.
+
+Behind the proxy the API sees Vercel's addresses, not the browser's; sign-in limits do not depend on
+the address (§ 3.2), only public registration's per-address limit, which then counts Vercel's.
 
 ## 4. Backups (before any migration)
 

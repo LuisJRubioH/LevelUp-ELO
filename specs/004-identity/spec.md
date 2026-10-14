@@ -7,8 +7,9 @@
 **Status**: Draft for review — all approved decisions of blocks 4 and 8 and of the rate-limit
 store (owner, 2026-10-13) are specified. E1 and E6 are implemented and closed (their pull
 requests). E2 is in progress: its passwords and sessions are implemented; its display names wait on
-the owner's answers on the scope of the initial import's decisions (2026-10-14). E3 … E5 are
-`planned`.
+the owner's answers on the scope of the initial import's decisions (2026-10-14). E5 is in progress:
+prepared and inactive until the owner's switch (docs/transfer.md § 3.3); the expiry part waits on E3
+and Safari on real devices on the owner. E3 and E4 are `planned`.
 
 **Input**: The owner's approved orders of 2026-10-13: block 4 (enrolment through Google Forms,
 account creation and access limits) with its clarifications P1–P15 and supplementary precisions,
@@ -63,7 +64,7 @@ request that completes a delivery marks it `closed` and fills all its rows.
 | **E2** | Display name everywhere classmates look; who sees the identification; password change; security version that revokes tokens, renewals and persistent connections; admin password reset; teachers created by the admin | Before any real student is created (decision 5). Teachers created by the admin need its forced password change (N3). | in progress |
 | **E3** | Temporary student accounts created one by one: identification as username and initial password, existing group, level and grade, display name, last day of access; expiration enforced, also on open sessions and PvP; the admin changes, extends or reactivates | Not merged before E2 is in production. | planned |
 | **E4** | Import of a Google Forms export (`.xlsx`, `.csv`): mapping, preview, confirmation, re-import without changes, linking, audit, own limits | After E3, whose creation rules it reuses. | planned |
-| **E5** | Session renewal without third-party cookies (block 8): same-origin proxy, cookie scope, CSRF, no caching, revocation and expiry respected; Safari verified | After E2 (revocation). E3's tests include renewal of an expired account. | planned |
+| **E5** | Session renewal without third-party cookies (block 8): same-origin proxy, cookie scope, CSRF, no caching, revocation and expiry respected; Safari verified | After E2 (revocation). E3's tests include renewal of an expired account. | in progress |
 | **E6** | Rate-limit store continuity (constitution 1.1.0): temporary memory fallback, timeouts, controlled recovery, no new allowance, health state | After LuisJRubioH/LevelUp-ELO#63; replaces the code of LuisJRubioH/LevelUp-ELO#59. Same file as E1: one after the other. | closed |
 
 ## Clarifications
@@ -710,9 +711,9 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | US8-AS7 | E4 | `PENDING` |
 | US8-AS8 | E4 | `PENDING` |
 | US8-AS9 | E4 | `PENDING` |
-| US9-AS1 | E5 | `PENDING` |
-| US9-AS2 | E5 | `PENDING` |
-| US9-AS3 | E5 | `PENDING` |
+| US9-AS1 | E5 | `frontend/e2e/spec004-session.spec.ts › un access token vencido se renueva solo, por el mismo origen (spec 004 US9-AS1)` |
+| US9-AS2 | E5 | `frontend/e2e/spec004-session.spec.ts › recargar la página conserva la sesión (spec 004 US9-AS2)` |
+| US9-AS3 | E5 | `frontend/e2e/spec004-session.spec.ts › cerrar sesión la termina y pide entrar de nuevo (spec 004 US9-AS3)`<br>`tests/api/test_spec004_e5_session.py::test_spec004_logout_deletes_the_cookie_with_the_same_attributes` |
 | US9-AS4 | E5 | `PENDING` |
 | US9-AS5 | E5 | `PENDING` |
 | US10-AS1 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_api_limits_and_health_during_an_outage`<br>`tests/api/test_spec004_e6_limit_store.py::test_spec004_store_calls_are_bounded_by_their_timeouts` |
@@ -769,12 +770,12 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | FR-067 | E4 | `PENDING` |
 | FR-068 | E4 | `PENDING` |
 | FR-069 | E4 | `PENDING` |
-| FR-080 | E5 | `PENDING` |
-| FR-081 | E5 | `PENDING` |
-| FR-082 | E5 | `PENDING` |
-| FR-083 | E5 | `PENDING` |
+| FR-080 | E5 | `tests/api/test_spec004_e5_session.py::test_spec004_the_frontend_can_reach_the_api_through_its_own_origin`<br>`frontend/e2e/spec004-session.spec.ts › un access token vencido se renueva solo, por el mismo origen (spec 004 US9-AS1)` |
+| FR-081 | E5 | `tests/api/test_spec004_e5_session.py::test_spec004_renewal_cookie_is_http_only_secure_and_scoped`<br>`tests/api/test_spec004_e5_session.py::test_spec004_samesite_setting_accepts_only_known_values`<br>`tests/api/test_spec004_e5_session.py::test_spec004_logout_deletes_the_cookie_with_the_same_attributes` |
+| FR-082 | E5 | `tests/api/test_spec004_e5_session.py::test_spec004_authentication_responses_are_never_cached`<br>`tests/api/test_spec004_e5_session.py::test_spec004_authentication_requests_from_other_origins_are_refused` |
+| FR-083 | E5 | `tests/api/test_spec004_e5_session.py::test_spec004_access_token_lasts_fifteen_minutes` |
 | FR-084 | E5 | `PENDING` |
-| FR-085 | E5 | `PENDING` |
+| FR-085 | E5 | `tests/api/test_spec004_e5_session.py::test_spec004_websockets_from_other_origins_are_refused`<br>`tests/api/test_spec004_e2_passwords.py::test_spec004_other_sessions_end_on_password_change` |
 | FR-090 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_limits_keep_applying_from_memory_when_the_store_fails`<br>`tests/api/test_spec004_e6_limit_store.py::test_spec004_memory_fallback_needs_a_single_process`<br>`tests/api/test_spec004_e6_limit_store.py::test_spec004_the_api_limiter_uses_the_failover_with_a_shared_store` |
 | FR-091 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_no_request_calls_the_store_once_its_failure_is_known`<br>`tests/api/test_spec004_e6_limit_store.py::test_spec004_store_calls_are_bounded_by_their_timeouts`<br>`tests/api/test_spec004_e6_limit_store.py::test_spec004_a_failed_probe_keeps_the_fallback` |
 | FR-092 | E6 | `tests/api/test_spec004_e6_limit_store.py::test_spec004_recovery_carries_memory_counts_over_to_the_store`<br>`tests/api/test_spec004_e6_limit_store.py::test_spec004_a_failed_probe_keeps_the_fallback` |

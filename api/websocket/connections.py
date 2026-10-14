@@ -22,6 +22,18 @@ REVOKED_CODE = 4401  # application close code: credentials revoked
 _by_user: dict[int, "weakref.WeakSet[WebSocket]"] = defaultdict(weakref.WeakSet)
 
 
+def origin_allowed(websocket: WebSocket) -> bool:
+    """Spec 004 FR-085 with decision N6: WebSockets keep connecting straight to the API (the
+    frontend's proxy does not carry them), so a browser socket must come from an origin the API
+    serves. Without `Origin` (other programs, tests) it is not a browser's and passes."""
+    from api.config import settings
+
+    origin = websocket.headers.get("origin")
+    if origin is None:
+        return True
+    return origin.rstrip("/") in {allowed.rstrip("/") for allowed in settings.cors_origins}
+
+
 def register(user_id: int, websocket: WebSocket) -> None:
     """Called on the event loop once a socket has authenticated."""
     _by_user[user_id].add(websocket)
