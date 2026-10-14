@@ -117,9 +117,14 @@ app.add_middleware(
 )
 
 # ── Estáticos: imágenes de items del banco ────────────────────────────────────
+# An item's `image_url` is a path under items/ (items/images/… or items/assets/…); the screens
+# request it from the API as written.
 _IMAGES_DIR = os.path.join(_ROOT, "items", "images")
 if os.path.isdir(_IMAGES_DIR):
     app.mount("/items/images", StaticFiles(directory=_IMAGES_DIR), name="item-images")
+_ASSETS_DIR = os.path.join(_ROOT, "items", "assets")
+if os.path.isdir(_ASSETS_DIR):
+    app.mount("/items/assets", StaticFiles(directory=_ASSETS_DIR), name="item-assets")
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(auth.router, prefix="/api")
