@@ -8,11 +8,14 @@ revocation they cause through the API.
 
 import uuid
 
-from tests.integration.conftest import make_student, sql
+from tests.integration.conftest import make_student, make_teacher, sql
 
 
 def _admin(repo) -> int:
-    return sql(repo, "SELECT id FROM users WHERE role = 'admin' AND active = 1 ORDER BY id")[0][0]
+    """An active admin of the test's own: the seeded one exists only when ADMIN_PASSWORD is set."""
+    admin = make_teacher(repo)
+    sql(repo, "UPDATE users SET role = 'admin', approved = 1, active = 1 WHERE id = ?", (admin,))
+    return admin
 
 
 def _state(repo, user_id):
