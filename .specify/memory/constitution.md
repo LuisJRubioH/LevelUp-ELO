@@ -25,8 +25,9 @@ Every piece of state and every rule has exactly one owner; everything else deriv
   topic. Course and overall ratings are derived from it and never stored; `student_topic_elo` and
   `users.current_elo` are legacy and not written. `attempts` is a log and MUST NOT be used to
   reconstruct a rating.
-- Each rating writer (diagnostic baseline, valid answer, teacher-validated procedure, finished
-  PvP match) MUST apply its effect exactly once, guarded by persisted state, and all writers
+- Each rating writer (diagnostic baseline, valid answer, teacher-validated procedure, the
+  automatic 0 of a procedure copied from another student, finished PvP match) MUST apply its
+  effect exactly once, guarded by persisted state, and all writers
   MUST use the same canonical rating key for the same practice context (key defined in spec 001).
 - Shared constants (rating formulas, rank tables, thresholds) MUST be defined once in `domain/`
   and consumed, not copied, by other layers. A frontend preview MUST use the backend's numbers.
@@ -161,7 +162,9 @@ spec named in brackets; changing them requires a `[CHANGE]` requirement in that 
 - **Item selection** [spec 001]: target success probability band with progressive widening,
   preferring informative items (`P(1−P)`), unseen before failed-with-cooldown before historical.
 - **Teacher authority** [spec 006]: a teacher's procedure score is the only procedure signal
-  that moves the rating; the AI score is advisory.
+  that moves the rating, with one exception: a file another student already uploaded is graded 0
+  automatically and marked as a copy for the teacher (spec 001 FR-024i). The AI score is
+  advisory.
 - **Learning path** [spec 003]: nodes unlock in a declared order; each node declares its focal
   misconception; misconception tags are `<symptom>_<operation>` and unique per node.
 - **Item bank** [spec 008]: items live in `items/bank/**.json`; `correct_option` matches one
@@ -308,4 +311,4 @@ development text written in Spanish is noncompliance.
 - **Review.** The constitution and its Known Deviations are reviewed at the end of each roadmap
   milestone.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-13
+**Version**: 1.2.0 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-14
