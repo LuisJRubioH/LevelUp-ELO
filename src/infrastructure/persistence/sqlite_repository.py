@@ -2177,7 +2177,8 @@ class SQLiteRepository:
         try:
             cursor = conn.execute(
                 """
-                SELECT u.id, u.username, u.role, u.approved, u.active, u.must_change_password,
+                SELECT u.id, u.username, u.role, u.education_level, u.approved, u.active,
+                       u.must_change_password,
                        u.created_at, g.name AS group_name
                 FROM users u
                 LEFT JOIN groups g ON u.group_id = g.id
