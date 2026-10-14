@@ -250,6 +250,14 @@ Documented: a restart loses the local counters.
 - Still open: the columns of the Google Form (the owner sends them when available); what an
   existing account without a name shows (N5); the details of the name filter (N17).
 
+### Session 2026-10-14, evening (owner answers, approved)
+
+- N5: the existing accounts are test accounts; one without a display name shows its username.
+- N17: names may be long and use hyphens — names that are not Spanish — and offensive words in
+  English are refused as well as in Spanish.
+- N1, N2, N3, N6, N9 and N10 are approved (N4 was withdrawn; N8 is the owner's operational step).
+- Still open: N7 (when the expiry message is shown); the columns of the Google Form.
+
 ### Scope of each decision (2026-10-14)
 
 **General product rule** — every account:
@@ -291,8 +299,8 @@ Documented: a restart loses the local counters.
   a linked identification or linked explicitly; another group or last day for an existing account
   needs its own confirmation (P11).
 
-**Waiting on the owner** (§ New Decisions): the columns of the Google Form (FR-060); what an
-existing account without a display name shows (N5); the details of the name filter (N17).
+**Waiting on the owner** (§ New Decisions): the columns of the Google Form (FR-060); when the
+expiry message is shown (N7).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -564,8 +572,9 @@ existing group (N15); credentials based on the identification belong to the init
 - **FR-020** [CHANGE]: The system shall give every new student account a display name,
   independent of the username, which may repeat across accounts: the admin sets it when creating
   the account, the initial import takes it from a mapped column (P4), and a student who registers
-  chooses it. It shall refuse a name the name filter rejects (N17). Existing accounts keep working
-  without one.
+  chooses it. The name filter accepts 2 to 80 letters of any language, spaces, apostrophes and
+  hyphens, and refuses a name that holds an offensive or mocking word in Spanish or English,
+  compared without accents or letter case (N17). Existing accounts keep working without one.
 - **FR-021** [CHANGE]: When the system shows a student to another student — rankings, PvP rival and
   history, any classmates' view — it shall show the display name, or the stand-in of FR-022 while
   the account has none, and no response or message addressed to a student shall carry another
@@ -573,8 +582,7 @@ existing group (N15); credentials based on the identification belong to the init
   `League.tsx:142,171,243`, `api/websocket/pvp.py:331,335`.)*
 - **FR-022** [CHANGE]: While an account of the initial import has no display name, the system shall
   show a neutral alias not derived from its identification. While an existing account has none, it
-  shall show its username or the same kind of alias. [NEEDS CLARIFICATION: N5 — which of the two
-  for existing accounts]
+  shall show its username (N5).
 - **FR-023** [CHANGE]: When a teacher's views show a student, the system shall show the display name
   (or the stand-in of FR-022) and group, and no linked identification.
 - **FR-024** [CHANGE]: The system shall show a linked identification only to its own student and to
@@ -762,13 +770,13 @@ existing group (N15); credentials based on the identification belong to the init
 
 | # | Delivery | Point | Recommendation |
 |---|---|---|---|
-| N1 | E1 | "Per normalised account", as E1 implements it: username and email of one account count together; an identifier naming no account is counted under itself after trimming outer spaces and ignoring letter case (FR-006). | Confirm. |
-| N2 | E1 | Public registration's own per-address limit had no value; E1 uses 20 per minute (`RATE_LIMIT_REGISTER`), the previous one. Behind the hosting proxy it may count every client as one address (LuisJRubioH/LevelUp-ELO#60); no forwarded header is trusted. | Confirm the value. |
-| N3 | E1/E2 | P1 was approved for E1, but a created teacher must change a temporary password at first access, which is E2's mechanism (FR-030). | Create teachers in E2. Until then a new teacher signs up while the server setting opens registration (P2) and is approved, as today. |
+| N1 | E1 | "Per normalised account", as E1 implements it: username and email of one account count together; an identifier naming no account is counted under itself after trimming outer spaces and ignoring letter case (FR-006). | **Approved** (owner, 2026-10-14). |
+| N2 | E1 | Public registration's own per-address limit had no value; E1 uses 20 per minute (`RATE_LIMIT_REGISTER`), the previous one. Behind the hosting proxy it may count every client as one address (LuisJRubioH/LevelUp-ELO#60); no forwarded header is trusted. | **Approved** (owner, 2026-10-14): 20 per minute, no forwarded header trusted. |
+| N3 | E1/E2 | P1 was approved for E1, but a created teacher must change a temporary password at first access, which is E2's mechanism (FR-030). | **Approved** (owner, 2026-10-14): teachers are created in E2. |
 | N4 | E3/E4 | P10 admits digits only, so identifications with letters (passport, PPT, some foreign documents) cannot be created or imported. | **Withdrawn** (owner, 2026-10-14): no condition about documents nobody asked for; the import keeps P10. |
-| N5 | E2 | With N12 decided, an existing account without a display name still has to be shown somehow: by its own username (never an identification for these accounts) or by a neutral alias. | Its username, as today, until a name is set: nothing changes for existing accounts. |
-| N6 | E5 | The hosting proxy for the same origin (Vercel rewrites) does not carry WebSockets, so PvP and notifications keep connecting to the API's origin (token in the first message, no cookie); streaming answers (KatIA) must be checked through the proxy. | Keep WebSockets direct and add an origin check to them (FR-085); verify KatIA's stream through the proxy. |
-| N7 | E3 | Showing the expiry message only after the right password avoids revealing which accounts exist; with a wrong password the answer is the usual one. | Confirm. |
+| N5 | E2 | With N12 decided, an existing account without a display name still has to be shown somehow: by its own username (never an identification for these accounts) or by a neutral alias. | **Decided** (owner, 2026-10-14): its username; the existing accounts are test accounts. |
+| N6 | E5 | The hosting proxy for the same origin (Vercel rewrites) does not carry WebSockets, so PvP and notifications keep connecting to the API's origin (token in the first message, no cookie); streaming answers (KatIA) must be checked through the proxy. | **Approved** (owner, 2026-10-14). |
+| N7 | E3 | When does an expired account see P7's message («El período de acceso de tu cuenta terminó…»)? Shown for any password, anyone who types a username learns that the account exists and has expired — and for the import's accounts the username is an identification number. | Only after the right password; with a wrong one, the usual «usuario o contraseña incorrectos». |
 | N8 | E6 | Render's health check reads only the status code, so a degraded 200 alerts nobody; "monitors read the body" needs an external monitor. | Operational step for the owner, listed apart. |
 | N9 | E6 | FR-091 asked for configurable timeouts and a controlled probe without values. E6 uses 0.5 s to connect and 0.5 s per operation, no client retries, a background probe at most every 10 s and at most 50 000 counters in memory (`RATE_LIMIT_STORAGE_*`, `RATE_LIMIT_FALLBACK_MAX_KEYS`). | Confirm the values. |
 | N10 | E6 | During an outage the store cannot be read, so a key counted just before it starts from zero in memory (up to one more window's allowance while Redis is down); FR-092 holds on return. | Confirm; reading the store's counts is impossible while it is down. |
@@ -778,7 +786,7 @@ existing group (N15); credentials based on the identification belong to the init
 | N14 | E2 | (Question D.) P5: is changing the display name reserved to the admin for every account, or only for the initial import's? | **Decided**: only for the initial import's accounts; the owner of any other account changes their own, under the filter. |
 | N15 | E3 | (Question E.) P8: is an existing group mandatory for students created one by one too? | **Decided**: mandatory for every student — created one by one, imported or semillero. |
 | N16 | E4 | Without leading zeros, an `.xlsx` cell typed as a number that holds a whole number loses nothing when read as its digits. The 2026-10-13 text flagged every numeric cell. | **Decided**: accepted — a whole number of up to 15 digits is read as its digits; only values the spreadsheet already altered (scientific notation, decimals, more digits than it keeps) are flagged. |
-| N17 | E2 | The name filter («censuras lógicas»): what it refuses. | 2 to 40 characters of letters, spaces, apostrophes and hyphens; a list of offensive and mocking words in Spanish, compared without accents or letter case; the admin can always correct a name. |
+| N17 | E2 | The name filter («censuras lógicas»): what it refuses. | **Decided** (owner, 2026-10-14): long names with hyphens are allowed (names that are not Spanish); offensive and mocking words in Spanish and English are refused, compared without accents or letter case; the admin can always correct a name. Recommended limits, not set by the owner: 2 to 80 characters of letters of any language, spaces, apostrophes and hyphens. |
 
 ## Out of Scope *(mandatory)*
 
