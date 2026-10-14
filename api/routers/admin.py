@@ -188,7 +188,18 @@ def all_groups(user: CurrentUser, repo: RepoDep):
 @router.delete("/groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_group(group_id: int, user: CurrentUser, repo: RepoDep):
     """Elimina un grupo (mueve estudiantes a sin grupo)."""
-    repo.delete_group(group_id, admin_id=user["user_id"])
+    ok, message = repo.delete_group(group_id, admin_id=user["user_id"])
+    if not ok:
+        # As in change_group: the repository explains a refusal; a database error carries its own
+        # text, which stays out of the response.
+        if message.startswith("Error al eliminar grupo"):
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="No se pudo eliminar el grupo.",
+            )
+        if message == "El grupo no existe.":
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=message)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
 
 
 # ── Reportes técnicos ─────────────────────────────────────────────────────────
