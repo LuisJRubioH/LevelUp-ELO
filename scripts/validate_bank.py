@@ -17,9 +17,12 @@ Qué verifica:
     - Dificultad en rango válido [100, 3000]
     - Mínimo 2 opciones por ítem
     - IDs únicos en todo el banco (sin duplicados entre archivos)
+    - Ningún texto entre dos `$` que no sea matemática (dos montos en pesos en la misma frase
+      convierten lo de en medio en una fórmula)
 """
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -28,6 +31,29 @@ BANK_DIR = Path("items/bank")
 REQUIRED_FIELDS = {"id", "content", "difficulty", "topic", "options", "correct_option"}
 DIFFICULTY_RANGE = (100, 3000)
 MIN_OPTIONS = 2
+
+# The frontend's MathText split (frontend/src/components/Math/MathContent.tsx): what it renders as
+# math. V1's st.markdown also reads $…$ as math.
+_MATH_TOKEN = re.compile(
+    r"(\$\$(?:\\\$|[\s\S])*?\$\$|\\\[[\s\S]+?\\\]"
+    r"|(?<!\\)\$(?:\\\$|[^$\n])+?(?<!\\)\$|\\\([\s\S]+?\\\))"
+)
+_WORD = re.compile(r"(?<![\\\w])[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{3,}")
+
+
+def prose_read_as_math(text: str) -> list:
+    """Spans rendered as a formula that are really prose: two or more words, no TeX at all.
+
+    "un capital de $10 millones importa maquinaria por $5.000 millones" turns
+    "10 millones importa maquinaria por " into one italic formula with its spaces dropped.
+    """
+    found = []
+    for token in _MATH_TOKEN.findall(text):
+        body = token.strip("$")
+        if "\\" not in body and "{" not in body and len(_WORD.findall(body)) >= 2:
+            found.append(token)
+    return found
+
 
 # ── Estado global del validador ────────────────────────────────────────────────
 errors: list = []
@@ -81,6 +107,15 @@ def validate_item(item: dict, source_file: str) -> None:
     # 6. Content no vacío
     if not str(item.get("content", "")).strip():
         errors.append(f"{prefix}: 'content' está vacío")
+
+    # 7. Nada de prosa entre dos `$`: se vería como una fórmula ilegible
+    texts = [item["content"]] + (item["options"] if isinstance(item["options"], list) else [])
+    for text in (t for t in texts if isinstance(t, str)):
+        for token in prose_read_as_math(text):
+            errors.append(
+                f"{prefix}: {token[:60]!r} se muestra como fórmula; escribe los montos sin $ "
+                "(p. ej. '10 millones de pesos')"
+            )
 
 
 def validate_file(json_file: Path) -> list:
