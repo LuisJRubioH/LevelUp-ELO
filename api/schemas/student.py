@@ -134,8 +134,10 @@ class CourseResponse(BaseModel):
 
 
 class EnrollRequest(BaseModel):
+    """Catalogue enrolment. It joins no group: a group is joined only through its invitation code
+    (`EnrollByCodeRequest`), so a `group_id` sent here is ignored."""
+
     course_id: str
-    group_id: int | None = None
 
 
 class EnrollByCodeRequest(BaseModel):

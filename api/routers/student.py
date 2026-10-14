@@ -327,7 +327,7 @@ def enroll(body: EnrollRequest, user: CurrentUser, repo: RepoDep):
         )
     service = _make_service(repo)
     try:
-        service.enroll_from_catalogue(user["user_id"], body.course_id, body.group_id)
+        service.enroll_from_catalogue(user["user_id"], body.course_id)
     except PermissionError:
         # Spec 001 FR-028m: other levels' courses are reached only through an invitation.
         raise HTTPException(
