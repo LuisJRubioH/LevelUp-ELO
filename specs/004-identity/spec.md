@@ -4,12 +4,12 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft for review — all approved decisions of blocks 4 and 8 and of the rate-limit
-store (owner, 2026-10-13) are specified. E1 and E6 are implemented and closed (their pull
-requests). E2 is in progress: its passwords and sessions are implemented; its display names wait on
-the owner's answers on the scope of the initial import's decisions (2026-10-14). E5 is in progress:
-prepared and inactive until the owner's switch (docs/transfer.md § 3.3); the expiry part waits on E3
-and Safari on real devices on the owner. E3 and E4 are `planned`.
+**Status**: Draft for review — the approved decisions of blocks 4 and 8 that apply to every account,
+and those of the rate-limit store (owner, 2026-10-13 and 2026-10-14), are specified; the initial
+import's decisions live in spec 009 (owner, 2026-10-14). E1 and E6 are implemented and closed (their
+pull requests). E2 is in progress: its passwords and sessions are implemented; its display names
+follow. E5 is in progress: prepared and inactive until the owner's switch (docs/transfer.md § 3.3);
+the expiry part waits on E3 and Safari on real devices on the owner. E3 is `planned`.
 
 **Input**: The owner's approved orders of 2026-10-13: block 4 (enrolment through Google Forms,
 account creation and access limits) with its clarifications P1–P15 and supplementary precisions,
@@ -17,14 +17,13 @@ block 8 (Safari-compatible session renewal) and the decision on LuisJRubioH/Leve
 (continuity of the limits when Redis fails); the owner's corrections of 2026-10-14 on the scope of
 the initial import's decisions. Background: the as-is survey
 `docs/sdd/identity-survey.md` (LuisJRubioH/LevelUp-ELO#37), cited as I1 … I19, and the read-only
-research of 2026-10-13 cited with `file:line` on `redesign @ 1d6fcf6`.
+research of 2026-10-13 cited with `file:line` on `redesign @ 1d6fcf6`. The initial import from
+Google Forms is specified apart, in spec 009 (owner, 2026-10-14): this spec holds the rules every
+account follows, which the import reuses and never changes.
 
 **Outcome served** (constitution VIII): the school, not the public, decides who has an account.
-Accounts with their own credentials and no identification remain possible, and every existing
-account keeps its credentials and its progress. The students of the initial import from Google
-Forms get a working account without signing up or inventing a password, and keep it until the last
-day set for their batch. No identification linked to an account is shown to classmates or teachers.
-Every user can keep a session open on any supported browser — Safari included — for as long as the
+Accounts with their own credentials remain possible, and every existing account keeps its
+credentials and its progress. Classmates and teachers see each student by name. Every user can keep a session open on any supported browser — Safari included — for as long as the
 account and its credentials are valid. Teachers trust that the students they see are theirs.
 
 ## Code Scope *(mandatory)*
@@ -37,8 +36,8 @@ The code whose behaviour this spec defines. A path shared with another spec belo
 - `api/config.py` — the settings of limits, registration and sessions
 - `api/dependencies.py` — the per-request account check
 - `api/main.py` — `/api/health`
-- `api/routers/admin.py` — administrative creation, import, reset, expiration
-- `api/routers/student.py` — names in rankings and PvP history; the student's own identification
+- `api/routers/admin.py` — administrative creation, reset, expiration, display names
+- `api/routers/student.py` — names in rankings and PvP history; the student's own display name
 - `api/routers/teacher.py` — names in teacher views
 - `api/websocket/pvp.py` — rival's name; closing on revocation or expiry
 - `api/websocket/notifications.py` — closing on revocation or expiry
@@ -64,11 +63,13 @@ request that completes a delivery marks it `closed` and fills all its rows.
 | Delivery | Content | Order rule | State |
 |---|---|---|---|
 | **E1** | Public registration closed by default (one server setting, refused on the server, reflected by the screen); login limits per normalised account and global | Needed for the switch (LuisJRubioH/LevelUp-ELO#3). Built on LuisJRubioH/LevelUp-ELO#33, whose login-by-address limit it replaces. | closed |
-| **E2** | Display name everywhere classmates look; who sees the identification; password change; security version that revokes tokens, renewals and persistent connections; admin password reset; teachers created by the admin | Before any real student is created (decision 5). Teachers created by the admin need its forced password change (N3). | in progress |
+| **E2** | Display name everywhere classmates and teachers look; password change; security version that revokes tokens, renewals and persistent connections; admin password reset; teachers created by the admin | Before any real student is created (decision 5). Teachers created by the admin need its forced password change (N3). | in progress |
 | **E3** | Students created one by one by the admin: own username, temporary password changed at first access, display name, existing group, optional last day (N13, N15); the expiry of any account that has a last day of access, also on open sessions and PvP, while an account without one never expires; the admin changes, extends or reactivates | Not merged before E2 is in production. | planned |
-| **E4** | The initial import of a Google Forms export (`.xlsx`, `.csv`): identification as username and initial password, display name from a column, existing group, level and grade, last day per batch; mapping, preview, confirmation, re-import without changes, linking, audit, own limits | After E3, whose creation and expiry rules it reuses. | planned |
 | **E5** | Session renewal without third-party cookies (block 8): same-origin proxy, cookie scope, CSRF, no caching, revocation and expiry respected; Safari verified | After E2 (revocation). E3's tests include renewal of an expired account. | in progress |
 | **E6** | Rate-limit store continuity (constitution 1.1.0): temporary memory fallback, timeouts, controlled recovery, no new allowance, health state | After LuisJRubioH/LevelUp-ELO#63; replaces the code of LuisJRubioH/LevelUp-ELO#59. Same file as E1: one after the other. | closed |
+
+The initial import of a Google Forms export, once delivery E4 here, is spec 009 (owner,
+2026-10-14); the other deliveries keep their names.
 
 ## Clarifications
 
@@ -78,26 +79,9 @@ Recorded as given; the delivery that turns each into requirements is in brackets
 
 **Block 4 — enrolment, account creation and access limits**
 
-- Q: How do students enrol? → A: through a Google Form; the admin downloads the responses and
-  imports the `.xlsx` or `.csv` from the admin panel, mapping the file's columns to the
-  application's fields and choosing the group and the expiration. Every account of this flow is a
-  student. [E4]
-- Q: What are a temporary student's credentials? → A: by the product owner's decision, the
-  identification number is both the username and the initial password, with no change required at
-  first access; the student may change it later. The password is stored only with the existing
-  secure hash, never readable in the database, logs or import reports. [E3, E4; change: E2]
-  *(Scope, 2026-10-14: the initial import only; students created one by one: N13.)*
-- Q: How is the identification read? → A: as text of digits, keeping leading zeros; only outer
-  spaces are removed; other formats are flagged for correction; ambiguous values or values altered
-  by Excel are rejected, never rebuilt. It never appears in rankings or classmates' views. [E3, E4]
-  *(2026-10-14: leading zeros withdrawn — the identifications have none; the format is the initial
-  import's, never a rule for usernames.)*
-- Q: What happens before saving an import? → A: a preview of new accounts, existing accounts,
-  duplicates and errors per row; nothing is saved until the admin confirms. Existing students are
-  detected by an identification already linked; re-importing never duplicates accounts, resets
-  passwords, changes groups, extends expirations or overwrites progress — updates of existing
-  accounts need an explicit administrative action. The result is shown and recorded: who, when,
-  how many accounts were created or skipped. [E4]
+- The questions on enrolment through a Google Form, the credentials of its students, how their
+  identification is read and what happens before saving an import are recorded in spec 009, with
+  the initial import (owner, 2026-10-14).
 - Q: How long is an account valid? → A: temporary accounts require an expiration, set per batch and
   changeable per account by the admin, shown in Colombian time. Once expired, sign-in and
   authenticated access stop, even from an open session; academic data is kept; the admin can
@@ -107,19 +91,19 @@ Recorded as given; the delivery that turns each into requirements is in brackets
 - Q: Is public registration open? → A: closed by default by a server-side control; it can be
   enabled explicitly if needed. Individual creation and import stay available with registration
   closed, through the application's validations and services — no manual inserts. [E1; creation:
-  E3, E4]
+  E3; the import: spec 009]
 - Q: Which limits? → A: separate limits for login, public registration and import. Login: per
   normalised account and a configurable global ceiling, initially 10 per account and 300 overall
   per minute, to be verified against the expected concurrency; blocks are temporary. Public
   registration, when enabled, has its own per-address limit. The import has its own administrative
-  controls able to load a whole class. [E1, E4]
+  controls able to load a whole class. [E1; the import's controls: spec 009]
 - Q: What must tests prove? → A: 30 students sign in from one address within one minute; repeated
   attempts against one account are limited; re-importing a file duplicates no student and changes
   no credential or progress; closed registration is enforced on the server while administrative
   creation goes on; an expired account loses access, also from an open session; identifications
   keep their leading zeros. Parity between SQLite and PostgreSQL; the storage of the limits
   documented for the final repository; no deployment. [all] *(2026-10-14: the leading-zero test
-  is withdrawn.)*
+  is withdrawn; the import's tests are spec 009's.)*
 
 **P1 — creating teachers** [E2, see N3]: from the admin panel, by the admin only; created teachers
 are approved, receive a random temporary password and must change it at first access; credentials
@@ -136,14 +120,16 @@ password change invalidates the earlier tokens; the session that made the change
 credentials. An administrative reset invalidates every session. Revocation applies to renewals and
 to persistent authenticated connections.
 
-**P4 — origin of the display name** [E2, E3, E4]: mandatory for new accounts and imports, taken
-from a form column and reviewable by the admin; never the identification, not even as a fallback.
-Existing accounts without one use, for now, a neutral alias not derived from their identification.
-Repeated display names are allowed. *(Scope, 2026-10-14: mandatory in the initial import; for other
-new accounts, N11; what accounts without one show, N12 and N5.)*
+**P4 — origin of the display name** [E2, E3; the import's column: spec 009]: mandatory for new
+accounts and imports, taken from a form column and reviewable by the admin; never the
+identification, not even as a fallback. Existing accounts without one use, for now, a neutral alias
+not derived from their identification. Repeated display names are allowed. *(Scope, 2026-10-14:
+every new student account, N11; an account without one shows its username, N5; an import row without
+one is an error, spec 009 — no alias.)*
 
 **P5 — changing the display name** [E2]: reserved to the admin and recorded; independent of the
-username used to sign in. *(Scope: N14.)*
+username used to sign in. *(Scope: N14 — the admin alone for the import's accounts, spec 009;
+the owner of any other account changes their own.)*
 
 **P6 — password reset** [E2]: the admin resets with a random temporary password that must be
 changed at first access; every earlier session is invalidated; the operation is recorded —
@@ -155,45 +141,34 @@ Colombian time. From the start of the next day authenticated access is blocked a
 sees «El período de acceso de tu cuenta terminó. Tu progreso está guardado. Contacta al
 administrador si necesitas ampliar el acceso.» Extending never deletes data.
 
-**P8 — group** [E3, E4]: an existing group is required for every new temporary student, created
-individually or imported. No group is created automatically from errors or variations in a file.
-*(Scope, 2026-10-14: the initial import; students created one by one, N15.)*
+**P8 — group** [E3; the import: spec 009]: an existing group is required for every new temporary
+student, created individually or imported. No group is created automatically from errors or
+variations in a file. *(Scope, 2026-10-14: every student the admin creates, one by one or by the
+import, semillero included — N15, at creation; public registration, existing accounts, deleting a
+group and reassigning a student keep today's behaviour.)*
 
-**P9 — level and grade** [E3, E4]: from mapped columns or from values chosen explicitly for the
-batch; shown in the preview; combinations validated; «No aplica» admitted where it applies; never
-deduced silently from the group's name.
+**P9 — level and grade** [E3; the import's columns and batch: spec 009]: from mapped columns or from
+values chosen explicitly for the batch; shown in the preview; combinations validated; «No aplica»
+admitted where it applies; never deduced silently from the group's name.
 
-**P10 — identification format** [E3, E4]: text of digits, leading zeros kept; only outer spaces
-removed; other formats flagged for correction; ambiguous or Excel-altered values rejected without
-rebuilding them. *(2026-10-14: leading zeros withdrawn; the initial import's format, not a general
-validation; no rule about documents not requested — N4 withdrawn.)*
-
-**P11 — students with an existing account** [E4]: existing accounts and their progress are kept;
-matches by an identification already linked; explicit administrative linking where it is missing;
-never merged by name; credentials never reset by an import; changing the group or the expiration
-of an existing account needs a specific confirmation.
-
-**P12 — administrative limits** [E3, E4]: separate from public registration and login. Initially:
-30 individual creations per minute per admin; files up to 500 students and 5 MB; one import
-running per admin. A full load is verified and retries never duplicate accounts. Configurable. If
-the server cannot process 500 students reliably, the result is reported before lowering the limit
-or changing the processing.
+**P12 — administrative limits** [E3; files and imports: spec 009]: separate from public registration
+and login. Initially: 30 individual creations per minute per admin; files up to 500 students and 5
+MB; one import running per admin. A full load is verified and retries never duplicate accounts.
+Configurable. If the server cannot process 500 students reliably, the result is reported before
+lowering the limit or changing the processing.
 
 **P13 — traceability checker** [done: LuisJRubioH/LevelUp-ELO#64]: requirements recognised
 whatever their formatting; deliveries explicit; nothing exigible in a delivery may stay `PENDING`
 when it closes.
-
-**P14 — who sees the identification** [E2]: each student their own; the admin for management;
-teachers use the display name and the group; never other students, nor any response meant for
-public or shared views.
 
 **P15 — expiration during a PvP match** [E3]: a match still active when an account expires is
 closed as abandoned, with no rating effect for either participant; results validly saved before
 the expiry are kept; closing and expiring are atomic and idempotent, with concurrency tests and
 clear messages for both players.
 
-**Audit** [E2, E3, E4]: the admin responsible, date and time, an operation identifier, the
-affected accounts by internal ID and each row's result; never passwords or the whole file.
+**Audit** [E2, E3; the import: spec 009]: the admin responsible, date and time, an operation
+identifier, the affected accounts by internal ID and each row's result; never passwords or the whole
+file.
 
 **Block 8 — session renewal compatible with Safari** [E5]: the authentication flow must not depend
 on third-party cookies: the API is reached from the application's own origin through a proxy to
@@ -242,14 +217,15 @@ Documented: a restart loses the local counters.
   registers chooses it, and names that mock or offend are refused (the filter: N17).
 - N12: classmates and teachers — PvP, rankings, the teacher's views — see the display name, never
   an identification. An imported account without a name yet appears by a neutral alias.
+  *(Withdrawn 2026-10-14, night: an import row without a name is an error, spec 009.)*
 - N13: a student created one by one by the admin gets their own credentials: a username of letters
   and digits and a random temporary password changed at first access. The import stays available
-  with its own credentials (the identification).
-- N14: only the admin changes the display name of an account of the initial import; the owner of
-  any other account may change their own, under the same filter.
+  with its own credentials (the identification; spec 009).
+- N14: only the admin changes the display name of an account of the initial import (spec 009);
+  the owner of any other account may change their own, under the same filter.
 - N15: an existing group is mandatory for every student account — created one by one, imported or
-  semillero.
-- N16: numeric `.xlsx` cells are accepted.
+  semillero. *(Scope, 2026-10-14, night: at creation by the admin.)*
+- N16: numeric `.xlsx` cells are accepted (spec 009).
 - Still open: the columns of the Google Form (the owner sends them when available); what an
   existing account without a name shows (N5); the details of the name filter (N17).
 
@@ -258,8 +234,22 @@ Documented: a restart loses the local counters.
 - N5: the existing accounts are test accounts; one without a display name shows its username.
 - N17: names may be long and use hyphens — names that are not Spanish — and offensive words in
   English are refused as well as in Spanish.
-- N1, N2, N3, N6, N9 and N10 are approved (N4 was withdrawn; N8 is the owner's operational step).
+- N1, N2, N3, N6, N9 and N10 are approved (N4 was withdrawn and now lives in spec 009; N8 is the owner's operational step).
 - Still open: N7 (when the expiry message is shown); the columns of the Google Form.
+
+### Session 2026-10-14, night (owner answers, approved)
+
+- N7 is approved: an expired account sees P7's message only after the right password; with a wrong
+  one, the usual refusal.
+- The initial import from Google Forms is specified apart, in spec 009, so that this spec holds only
+  rules for every account. The decisions approved for the import keep their content and move with
+  it.
+- An import row without a display name is an error the admin corrects before confirming (spec
+  009). No neutral alias is needed: every account shows its display name, or its username while it
+  has none (N5).
+- N15 applies when the admin creates a student — one by one or by the import, semillero included.
+  Public registration, existing accounts, deleting a group and reassigning a student keep today's
+  behaviour.
 
 ### Scope of each decision (2026-10-14)
 
@@ -276,9 +266,10 @@ Documented: a restart loses the local counters.
 - Administrative operations are audited without passwords or files.
 - An account that has a last day of access stops at its end, also in open sessions and PvP, keeps
   its data, and the admin can extend it (P7, P15). An account without a last day never expires.
-- A linked identification is shown only to its own student and to the admin (P14).
-- Classmates and teachers see a student by display name, never by an identification (N12).
-- Every new student account has a display name (N11) and an existing group (N15).
+- Classmates and teachers see a student by display name — by username while an existing account
+  has none (N12, N5) — and never by an identification.
+- Every new student account has a display name (N11); a student the admin creates has an existing
+  group (N15).
 - A student created one by one gets their own username and a temporary password (N13).
 - Session renewal through the application's own origin (block 8) and the continuity of the limits
   when Redis fails (#59).
@@ -287,23 +278,17 @@ Documented: a restart loses the local counters.
 - Public registration closed by default (P2).
 - Login: 10 per account and 300 in total per minute; public registration: 20 per address per minute
   (N2).
-- Administrative limits: 30 individual creations per minute per admin; files of up to 500 students
-  and 5 MB; one import at a time per admin (P12).
+- Administrative limits: 30 individual creations per minute per admin (P12); the import's limits
+  are spec 009's.
 
-**Behaviour of the initial import** — only the accounts the import creates or links:
-- The identification is the username and the initial password, with no forced change.
-- The identification's format: text of digits, only outer spaces removed, values altered by a
-  spreadsheet refused and never rebuilt (P10); a whole number in a numeric cell is accepted (N16).
-- The display name comes from a mapped column (P4) and only the admin changes it (N14).
-- An existing group is chosen for the batch; no group is created from the file (P8).
-- Level and grade come from mapped columns or are chosen for the batch (P9).
-- The last day of access is set per batch and can be changed per account.
-- Mapping, preview and confirmation; a re-import changes nothing; existing accounts are matched by
-  a linked identification or linked explicitly; another group or last day for an existing account
-  needs its own confirmation (P11).
+**Behaviour of the initial import** — spec 009 (owner, 2026-10-14): its credentials, the
+identification's format, the display name's column, the batch's group, level, grade and last day,
+mapping, preview, confirmation, re-import, linking and who sees the identification. It reuses this
+spec's rules for every account and adds two that reach other paths, both stated there: the student
+of an imported account does not rename themselves, and the admin cannot give a new account a
+username that is an identification linked to another.
 
-**Waiting on the owner** (§ New Decisions): the columns of the Google Form (FR-060); when the
-expiry message is shown (N7).
+**Waiting on the owner**: nothing in this spec. The columns of the Google Form wait in spec 009.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -332,7 +317,7 @@ screen offers none; with it enabled, sign-up works within its own limit.
 ### User Story 2 - Login limits protect each account without blocking a class (Priority: P1) — E1
 
 **Why this priority**: for the initial import's accounts the identification is the initial password
-(E4), so the account is the unit to protect; today the only login limit counts 20 per minute per address (`api/config.py:63`), so a
+(spec 009), so the account is the unit to protect; today the only login limit counts 20 per minute per address (`api/config.py:63`), so a
 class of 21 on one school address is refused.
 
 **Independent Test**: 30 students from one address sign in; the 11th attempt against one account
@@ -352,35 +337,33 @@ in a minute is refused; the 301st attempt in a minute is refused.
 5. **US2-AS5** — **Given** other values in the settings, **When** the API starts, **Then** both
    limits follow them.
 
-### User Story 3 - Classmates see my name, never my identification (Priority: P1) — E2
+### User Story 3 - Classmates and teachers see my name (Priority: P1) — E2
 
-*Scope (2026-10-14)*: classmates and teachers see a student by display name and never by an
-identification (P14, N12); every new student account has a name (N11). Only the admin changes the
-name of an imported account; the owner of any other account changes their own (N14). What an
-existing account without a name shows waits on N5.
+*Scope (2026-10-14)*: classmates and teachers see a student by display name (N12); every new student
+account has one (N11); an existing account without one shows its username (N5). The admin changes
+any student's name, and a student changes their own (N14); spec 009 reserves to the admin the names
+of the import's accounts.
 
 **Acceptance Scenarios**:
 
 1. **US3-AS1** — **Given** a group ranking, **When** a student opens it, **Then** each classmate
-   appears by display name — or by the stand-in of FR-022 while they have none — and the response
-   holds no other student's linked identification.
+   appears by display name — or by username while they have none (FR-022) — and the response holds
+   no username of a classmate who has a display name.
 2. **US3-AS2** — **Given** a PvP match or history, **When** a student sees the rival, **Then** it is
-   the rival's display name, or the stand-in of FR-022, and no message carries their linked
-   identification.
-3. **US3-AS3** — **Given** an account of the initial import without a display name, **When** a
-   classmate or a teacher sees it, **Then** it appears by a neutral alias not derived from its
-   identification.
-4. **US3-AS4** — **Given** a teacher's views of their students, **When** they load, **Then** each
-   student appears by display name (or the stand-in of FR-022) and group, and no student's linked
-   identification appears.
-5. **US3-AS5** — **Given** a student with a linked identification, **When** they open their profile,
-   **Then** they see it; the admin sees it for management.
-6. **US3-AS6** — **Given** an account of the initial import, **When** the admin changes its display
-   name, **Then** it changes and the change is recorded; when the student or a teacher tries, it is
-   refused.
-7. **US3-AS7** — **Given** a student whose account is not from the import, **When** they change
-   their own display name, **Then** an allowed name is saved and recorded, and a name the filter
-   refuses changes nothing.
+   the rival's display name, or their username while they have none, and no message carries the
+   username of a rival who has a display name.
+3. **US3-AS3** — **Given** an existing account without a display name, **When** a classmate or a
+   teacher sees it, **Then** it appears by its username (N5).
+4. **US3-AS4** — **Given** a teacher's views of their students — dashboard, groups, procedures, exam
+   results, exports — **When** they load, **Then** each student appears by display name (or the
+   username of FR-022) and group, and no username of a student who has a display name appears.
+5. **US3-AS5** — **Given** the admin's list of users, **When** it loads, **Then** each student shows
+   their username and their display name, so that the admin can find and correct a name.
+6. **US3-AS6** — **Given** a student account, **When** the admin changes its display name, **Then**
+   it changes and the change is recorded; when a teacher or another student tries, it is refused and
+   nothing changes.
+7. **US3-AS7** — **Given** a student, **When** they change their own display name, **Then** an
+   allowed name is saved and recorded, and a name the filter refuses changes nothing.
 8. **US3-AS8** — **Given** public registration enabled, **When** a student registers, **Then** a
    display name is required, and a name the filter refuses is refused.
 
@@ -413,7 +396,8 @@ existing account without a name shows waits on N5.
 ### User Story 6 - The admin creates a student one by one (Priority: P1) — E3
 
 *Scope (2026-10-14)*: a student created one by one gets their own credentials (N13) and an
-existing group (N15); credentials based on the identification belong to the initial import only.
+existing group (N15); credentials based on the identification belong to the initial import only
+(spec 009).
 
 **Acceptance Scenarios**:
 
@@ -426,8 +410,8 @@ existing group (N15); credentials based on the identification belong to the init
 3. **US6-AS3** — **Given** no group, a group that does not exist, a missing display name, or an
    invalid level and grade combination, **When** the admin creates the student, **Then** it is
    refused and nothing is created.
-4. **US6-AS4** — **Given** a username already in use or linked as an identification, **When** the
-   admin creates the student, **Then** it is refused and nothing changes.
+4. **US6-AS4** — **Given** a username already in use, **When** the admin creates the student,
+   **Then** it is refused and nothing changes.
 5. **US6-AS5** — **Given** an admin who already created 30 students in the last minute, **When** they
    create one more, **Then** it is refused for the rest of the minute.
 
@@ -453,34 +437,7 @@ existing group (N15); credentials based on the identification belong to the init
    with its own credentials — **When** any day ends, **Then** it keeps signing in and its sessions
    keep working.
 
-### User Story 8 - The admin imports a class from a Forms export (Priority: P1) — E4
-
-**Acceptance Scenarios**:
-
-1. **US8-AS1** — **Given** a `.xlsx` or `.csv` up to 5 MB and 500 students, **When** the admin
-   uploads it, maps its columns, chooses an existing group, the last day of access and, unless
-   mapped, level and grade, **Then** a preview lists each row as new, existing, duplicate or error,
-   with its level and grade, and nothing is saved.
-2. **US8-AS2** — **Given** a preview, **When** the admin confirms, **Then** exactly the new rows
-   become temporary students with the identification as username and initial password, and the
-   result shows how many were created and skipped.
-3. **US8-AS3** — **Given** the same file imported again, **When** it is confirmed, **Then** no
-   account is duplicated and no password, group, last day or progress changes.
-4. **US8-AS4** — **Given** identifications in a CSV or in an `.xlsx`, **When** they are imported,
-   **Then** each is read as written, with no conversion by the spreadsheet, and a value the
-   spreadsheet already altered (for example, in scientific notation) is flagged for correction and
-   never rebuilt (numeric cells: N16).
-5. **US8-AS5** — **Given** a student with an account but no linked identification, **When** the
-   admin links it explicitly, **Then** later imports find it; nothing is ever merged by name.
-6. **US8-AS6** — **Given** an existing account whose group or last day differs in the file, **When**
-   the admin confirms that change specifically, **Then** only that change is applied.
-7. **US8-AS7** — **Given** a confirmed import, **When** the audit is read, **Then** it names the
-   admin, the time, the operation and each row's result with internal account IDs, and holds no
-   password and not the file.
-8. **US8-AS8** — **Given** an import running, **When** the same admin starts another or retries the
-   confirmation, **Then** it is refused or returns the first result, and nothing is duplicated.
-9. **US8-AS9** — **Given** a student or a teacher, **When** they reach the import, **Then** they are
-   refused.
+The initial import's user story is spec 009's; the stories keep their numbers.
 
 ### User Story 9 - My session renews on any browser, Safari included (Priority: P1) — E5
 
@@ -570,29 +527,28 @@ existing group (N15); credentials based on the identification belong to the init
 - **FR-012** [AS-IS]: Where the API runs in production, the system shall refuse to start while its
   limit counters are kept in process memory (`api/config.py:93`).
 
-**E2 — display name and identification (US3)**
+**E2 — display names (US3)**
 
 - **FR-020** [CHANGE]: The system shall give every new student account a display name,
   independent of the username, which may repeat across accounts: the admin sets it when creating
-  the account, the initial import takes it from a mapped column (P4), and a student who registers
-  chooses it. The name filter accepts 2 to 80 letters of any language, spaces, apostrophes and
+  the account, a student who registers chooses it, and the initial import takes it from a column
+  (spec 009). The name filter accepts 2 to 80 letters of any language, spaces, apostrophes and
   hyphens, and refuses a name that holds an offensive or mocking word in Spanish or English,
   compared without accents or letter case (N17). Existing accounts keep working without one.
 - **FR-021** [CHANGE]: When the system shows a student to another student — rankings, PvP rival and
-  history, any classmates' view — it shall show the display name, or the stand-in of FR-022 while
-  the account has none, and no response or message addressed to a student shall carry another
-  student's linked identification. *(Today: `frontend/src/pages/Student/Stats.tsx:257`,
+  history, any classmates' view — it shall show the display name, or the username of FR-022 while
+  the account has none, and no response or message addressed to a student shall carry the username
+  of another student who has a display name. *(Today: `frontend/src/pages/Student/Stats.tsx:257`,
   `League.tsx:142,171,243`, `api/websocket/pvp.py:331,335`.)*
-- **FR-022** [CHANGE]: While an account of the initial import has no display name, the system shall
-  show a neutral alias not derived from its identification. While an existing account has none, it
-  shall show its username (N5).
-- **FR-023** [CHANGE]: When a teacher's views show a student, the system shall show the display name
-  (or the stand-in of FR-022) and group, and no linked identification.
-- **FR-024** [CHANGE]: The system shall show a linked identification only to its own student and to
-  the admin.
-- **FR-025** [CHANGE]: When the admin changes the display name of an account of the initial import,
-  the system shall apply and record it, and refuse it to anyone else. The owner of any other
-  account may change their own display name under the name filter, and the change is recorded.
+- **FR-022** [CHANGE]: While an account has no display name — only accounts created before this
+  delivery — the system shall show its username (N5).
+- **FR-023** [CHANGE]: When a teacher's views show a student — dashboard, groups, procedures, exam
+  results, exports — the system shall show the display name (or the username of FR-022) and group,
+  and no username of a student who has a display name.
+- **FR-024** [CHANGE]: The system shall show the admin each student's username and display name.
+- **FR-025** [CHANGE]: The system shall let the admin change any student's display name and a
+  student change their own, both under the name filter, record every change — who, which account,
+  when — and refuse it to anyone else.
 
 **E2 — passwords and sessions (US4, US5)**
 
@@ -624,33 +580,28 @@ existing group (N15); credentials based on the identification belong to the init
   applies, combinations validated); the last day of access is optional. It shall issue a random
   temporary password that must be changed at first access (FR-030), shown once to the admin, and
   create the account through the application's services and validations, never by a direct insert.
-- **FR-041** [CHANGE]: The system shall read an identification given for the initial import as text
-  of digits, remove only outer spaces, and refuse for correction any other format, ambiguous value
-  or value altered by a spreadsheet, without rebuilding it. A whole number in a numeric cell of up
-  to 15 digits is read as its digits (N16). This format is no condition on usernames or on
-  accounts without an identification.
-- **FR-042** [CHANGE]: When the initial import creates a student, the system shall set the
-  identification as username and as initial password, link it to the account, and not require a
-  change at first access. A student created one by one never gets these credentials (N13).
-- **FR-043** [CHANGE]: If the username, or in the import the identification, is already a username
-  or linked to an account, then the system shall refuse the creation and change nothing.
-- **FR-044** [CHANGE]: Every student account shall belong to an existing group — created one by one,
-  imported or semillero (N15); the new student joins the chosen group, and no group is created by a
-  creation or an import.
+- **FR-043** [CHANGE]: If the username is already in use, then the system shall refuse the creation
+  and change nothing.
+- **FR-044** [CHANGE]: When the admin creates a student — one by one, or by the import of spec 009,
+  semillero included — the system shall require an existing group (N15); the new student joins it,
+  and no group is created by a creation. Public registration, existing accounts, deleting a group
+  and reassigning a student keep today's behaviour.
 - **FR-045** [CHANGE]: When an admin exceeds 30 individual creations per minute (configurable), the
   system shall refuse the extra creations until the minute ends.
 
 **E3 — expiration (US7)**
 
 - **FR-046** [CHANGE]: The system shall store an account's optional last day of access, inclusive,
-  interpreted and shown in Colombian time; only the initial import's batch or an explicit action of
-  the admin sets it.
+  interpreted and shown in Colombian time; only an explicit action of the admin — or the initial
+  import's batch, spec 009 — sets it.
 - **FR-047** [CHANGE]: From the start of the day after an account's last day, the system shall
   refuse the account's sign-in, renewals, authenticated requests and persistent connections. An
   account without a last day of access never expires.
 - **FR-048** [CHANGE]: When an expired account signs in with the right password, the system shall
   answer «El período de acceso de tu cuenta terminó. Tu progreso está guardado. Contacta al
-  administrador si necesitas ampliar el acceso.» [NEEDS CLARIFICATION: N7]
+  administrador si necesitas ampliar el acceso.» With a wrong password it shall give the usual
+  refusal, the same as for any account, so that the message never tells a stranger that an account
+  exists or has expired (N7).
 - **FR-049** [CHANGE]: When an account expires, the system shall keep its account and academic data
   unchanged.
 - **FR-050** [CHANGE]: The system shall let the admin change an account's last day of access and
@@ -661,31 +612,7 @@ existing group (N15); credentials based on the identification belong to the init
 - **FR-052** [CHANGE]: The system shall close a match and apply an expiry atomically and idempotently,
   so that a match ends once, in one state, whatever arrives first.
 
-**E4 — import (US8)**
-
-- **FR-060** [CHANGE]: When the admin uploads a `.xlsx` or `.csv` of at most 5 MB and 500 students,
-  the system shall list its columns and let the admin map the identification, the display name
-  and, optionally, level and grade, and choose an existing group, the last day of access and the
-  batch's level and grade where not mapped. *(Which columns the form has is to be confirmed.)*
-- **FR-061** [CHANGE]: Before saving, the system shall show each row as new, existing, duplicate (in
-  the file) or error with its reason, with the level and grade it would get.
-- **FR-062** [CHANGE]: The system shall save nothing until the admin confirms the preview, and then
-  create exactly the rows shown as new through the same rules as FR-040 … FR-044.
-- **FR-063** [CHANGE]: When a file is imported again, the system shall create no duplicate and change
-  no password, group, last day of access or progress of an existing account.
-- **FR-064** [CHANGE]: The system shall match existing students only by an identification already
-  linked; let the admin link one explicitly; and never merge accounts by name.
-- **FR-065** [CHANGE]: If the file gives an existing account another group or last day, then the
-  system shall apply it only after the admin confirms that change specifically.
-- **FR-066** [CHANGE]: When an import is confirmed, the system shall record the admin, the date and
-  time, an operation identifier, and each row's result with the internal ID of the account
-  affected — never passwords and never the file.
-- **FR-067** [CHANGE]: The system shall run at most one import per admin at a time, return the first
-  result to a retried confirmation, and keep the import's controls separate from the login and
-  registration limits.
-- **FR-068** [CHANGE]: The system shall keep no uploaded file after its import is confirmed or
-  abandoned, and write no identification or display name to the application logs.
-- **FR-069** [CHANGE]: If anyone other than the admin uses the import, then the system shall refuse.
+The initial import's requirements are spec 009's; the numbers they left are not reused.
 
 **E5 — session renewal (US9)**
 
@@ -730,14 +657,11 @@ existing group (N15); credentials based on the identification belong to the init
 - **Account**: username, password hash, role, approved, active; new: security version,
   must-change-password flag and display name — required for every new student account (N11),
   possibly empty on existing accounts, which keep working. New and optional, never needed for an
-  account to work: linked identification and last day of access.
-- **Identification**: text of digits as given, unique among linked accounts; only the initial
-  import's accounts and accounts the admin links explicitly have one.
+  account to work: the last day of access. The import's identification is spec 009's.
 - **Audit record**: who, when, operation identifier, affected accounts by internal ID, result per
   row; never passwords or files.
-- **Import**: one confirmed file's operation; the file itself is not kept.
 - **Limit counters**: per normalised account and global (login), per address (public sign-up), per
-  admin (creations, imports); shared store with a temporary memory fallback.
+  admin (creations); shared store with a temporary memory fallback.
 
 ## Success Criteria *(mandatory)*
 
@@ -747,27 +671,21 @@ existing group (N15); credentials based on the identification belong to the init
   depend on stored data run on SQLite and PostgreSQL with identical results.
 - **SC-002**: 30 students sign in from one address within one minute with 0 refusals; 100 % of
   attempts beyond the 10th per account and the 300th overall within a minute are refused.
-- **SC-003**: Re-importing a confirmed file creates 0 accounts and changes 0 credentials, groups,
-  last days or progress records.
 - **SC-004**: After expiry, revocation or reset, 0 earlier credentials work — access token,
   renewal or persistent connection.
-- **SC-005**: 0 responses addressed to a student contain another student's linked identification.
-- **SC-006**: A file of 500 students is imported completely and reliably, or the measured result is
-  reported before the limit or the processing changes (P12).
+- **SC-005**: 0 responses addressed to a student or a teacher carry the username of another student
+  who has a display name.
 - **SC-007**: Session renewal works on Safari (iPhone, iPad, desktop) and the other supported
   browsers, each check labelled automated or real device.
+
+The import's criteria, once SC-003 and SC-006 here, are spec 009's.
 
 ## Assumptions
 
 - Test data uses invented identifications only; the repository is public.
-- Existing accounts keep username, password, data and progress, and keep working without a linked
-  identification, a display name or a last day of access. Linking an identification only lets the
-  import recognise an account (P11) and is never required. No account outside the import gets the
-  import's group, last day or credentials unless the admin confirms that change specifically
-  (FR-065). What classmates see of an existing account without a display name waits on N5.
-- Collecting minors' identifications requires the guardians' authorisation and a privacy notice
-  (Colombian Law 1581 of 2012) — the school's process; deleting the form's responses file after the
-  import is the school's step.
+- Existing accounts keep username, password, data and progress, and keep working without a display
+  name or a last day of access; one without a display name shows its username (N5). They are test
+  accounts (owner, 2026-10-14).
 
 ## New Decisions and Contradictions (not assumed approved)
 
@@ -776,30 +694,28 @@ existing group (N15); credentials based on the identification belong to the init
 | N1 | E1 | "Per normalised account", as E1 implements it: username and email of one account count together; an identifier naming no account is counted under itself after trimming outer spaces and ignoring letter case (FR-006). | **Approved** (owner, 2026-10-14). |
 | N2 | E1 | Public registration's own per-address limit had no value; E1 uses 20 per minute (`RATE_LIMIT_REGISTER`), the previous one. Behind the hosting proxy it may count every client as one address (LuisJRubioH/LevelUp-ELO#60); no forwarded header is trusted. | **Approved** (owner, 2026-10-14): 20 per minute, no forwarded header trusted. |
 | N3 | E1/E2 | P1 was approved for E1, but a created teacher must change a temporary password at first access, which is E2's mechanism (FR-030). | **Approved** (owner, 2026-10-14): teachers are created in E2. |
-| N4 | E3/E4 | P10 admits digits only, so identifications with letters (passport, PPT, some foreign documents) cannot be created or imported. | **Withdrawn** (owner, 2026-10-14): no condition about documents nobody asked for; the import keeps P10. |
 | N5 | E2 | With N12 decided, an existing account without a display name still has to be shown somehow: by its own username (never an identification for these accounts) or by a neutral alias. | **Decided** (owner, 2026-10-14): its username; the existing accounts are test accounts. |
 | N6 | E5 | The hosting proxy for the same origin (Vercel rewrites) does not carry WebSockets, so PvP and notifications keep connecting to the API's origin (token in the first message, no cookie); streaming answers (KatIA) must be checked through the proxy. | **Approved** (owner, 2026-10-14). |
-| N7 | E3 | When does an expired account see P7's message («El período de acceso de tu cuenta terminó…»)? Shown for any password, anyone who types a username learns that the account exists and has expired — and for the import's accounts the username is an identification number. | Only after the right password; with a wrong one, the usual «usuario o contraseña incorrectos». |
+| N7 | E3 | When does an expired account see P7's message («El período de acceso de tu cuenta terminó…»)? Shown for any password, anyone who types a username learns that the account exists and has expired — and for the import's accounts the username is an identification number. | **Approved** (owner, 2026-10-14): only after the right password; with a wrong one, the usual «usuario o contraseña incorrectos». |
 | N8 | E6 | Render's health check reads only the status code, so a degraded 200 alerts nobody; "monitors read the body" needs an external monitor. | Operational step for the owner, listed apart. |
 | N9 | E6 | FR-091 asked for configurable timeouts and a controlled probe without values. E6 uses 0.5 s to connect and 0.5 s per operation, no client retries, a background probe at most every 10 s and at most 50 000 counters in memory (`RATE_LIMIT_STORAGE_*`, `RATE_LIMIT_FALLBACK_MAX_KEYS`). | **Approved** (owner, 2026-10-14). |
 | N10 | E6 | During an outage the store cannot be read, so a key counted just before it starts from zero in memory (up to one more window's allowance while Redis is down); FR-092 holds on return. | **Approved** (owner, 2026-10-14). |
 | N11 | E2 | (Question A, 2026-10-14.) The display name outside the initial import — public registration, teachers created by the admin, students created one by one: optional or mandatory? | **Decided** (owner, 2026-10-14): not optional — every new student account has one; a student who registers chooses it under the name filter (N17). |
-| N12 | E2 | (Question B.) Accounts without a linked identification — the existing ones and those with their own credentials: what do classmates and teachers see? | **Decided**: the display name, never an identification; an imported account without one shows a neutral alias. Existing accounts without one: N5. |
+| N12 | E2 | (Question B.) Accounts without a linked identification — the existing ones and those with their own credentials: what do classmates and teachers see? | **Decided**: the display name, never an identification; an imported account without one shows a neutral alias. Existing accounts without one: N5. **Amended** (owner, 2026-10-14, night): no alias — an import row without a name is an error (spec 009). |
 | N13 | E3 | (Question C.) Students created one by one by the admin, outside the import: (1) own credentials — the admin picks the username, a temporary password with a forced change, group and last day optional; (2) also credentials based on the identification when the admin chooses; (3) in the first version only the import creates students. | **Decided**: (1); the import keeps its own credentials. |
-| N14 | E2 | (Question D.) P5: is changing the display name reserved to the admin for every account, or only for the initial import's? | **Decided**: only for the initial import's accounts; the owner of any other account changes their own, under the filter. |
-| N15 | E3 | (Question E.) P8: is an existing group mandatory for students created one by one too? | **Decided**: mandatory for every student — created one by one, imported or semillero. |
-| N16 | E4 | Without leading zeros, an `.xlsx` cell typed as a number that holds a whole number loses nothing when read as its digits. The 2026-10-13 text flagged every numeric cell. | **Decided**: accepted — a whole number of up to 15 digits is read as its digits; only values the spreadsheet already altered (scientific notation, decimals, more digits than it keeps) are flagged. |
+| N14 | E2 | (Question D.) P5: is changing the display name reserved to the admin for every account, or only for the initial import's? | **Decided**: only for the initial import's accounts (spec 009); the owner of any other account changes their own, under the filter. |
+| N15 | E3 | (Question E.) P8: is an existing group mandatory for students created one by one too? | **Decided**: mandatory for every student — created one by one, imported or semillero. **Scope** (owner, 2026-10-14, night): at creation by the admin; public registration, existing accounts, deleting a group and reassigning a student keep today's behaviour. |
 | N17 | E2 | The name filter («censuras lógicas»): what it refuses. | **Decided** (owner, 2026-10-14): long names with hyphens are allowed (names that are not Spanish); offensive and mocking words in Spanish and English are refused, compared without accents or letter case; the admin can always correct a name. Recommended limits, not set by the owner: 2 to 80 characters of letters of any language, spaces, apostrophes and hyphens. |
 
 ## Out of Scope *(mandatory)*
 
-- Forcing students created with their identification to change it at first access (decision).
-- Credentials based on the identification for teachers or admins.
+- The initial import from Google Forms: spec 009 (owner, 2026-10-14).
+- Credentials based on an identification for teachers or admins.
 - Requiring an existing account, or any account outside the initial import, to link an
   identification or to receive a last day of access, a group or credentials based on the
   identification (owner, 2026-10-14).
-- Identity documents other than the import's identifications, such as passports or PPT: not
-  requested, so no rule is written for them (owner, 2026-10-14; N4 withdrawn).
+- Requiring a group of publicly registered students or of existing accounts, or changing how a
+  group is deleted or a student reassigned (N15, owner 2026-10-14).
 - A display name for teachers or admins: not decided; N11 covers student accounts.
 - Blocks 5 and 7 (spec 001: LuisJRubioH/LevelUp-ELO#62, LuisJRubioH/LevelUp-ELO#65) and block 6
   (KatIA, spec 005).
@@ -855,15 +771,6 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | US7-AS5 | E3 | `PENDING` |
 | US7-AS6 | E3 | `PENDING` |
 | US7-AS7 | E3 | `PENDING` |
-| US8-AS1 | E4 | `PENDING` |
-| US8-AS2 | E4 | `PENDING` |
-| US8-AS3 | E4 | `PENDING` |
-| US8-AS4 | E4 | `PENDING` |
-| US8-AS5 | E4 | `PENDING` |
-| US8-AS6 | E4 | `PENDING` |
-| US8-AS7 | E4 | `PENDING` |
-| US8-AS8 | E4 | `PENDING` |
-| US8-AS9 | E4 | `PENDING` |
 | US9-AS1 | E5 | `frontend/e2e/spec004-session.spec.ts › un access token vencido se renueva solo, por el mismo origen (spec 004 US9-AS1)` |
 | US9-AS2 | E5 | `frontend/e2e/spec004-session.spec.ts › recargar la página conserva la sesión (spec 004 US9-AS2)` |
 | US9-AS3 | E5 | `frontend/e2e/spec004-session.spec.ts › cerrar sesión la termina y pide entrar de nuevo (spec 004 US9-AS3)`<br>`tests/api/test_spec004_e5_session.py::test_spec004_logout_deletes_the_cookie_with_the_same_attributes` |
@@ -901,8 +808,6 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | FR-032 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_account_audit_names_admin_account_and_time_never_the_password`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_set_user_password_advances_the_security_version` |
 | FR-033 | E2 | `PENDING` |
 | FR-040 | E3 | `PENDING` |
-| FR-041 | E3 | `PENDING` |
-| FR-042 | E3 | `PENDING` |
 | FR-043 | E3 | `PENDING` |
 | FR-044 | E3 | `PENDING` |
 | FR-045 | E3 | `PENDING` |
@@ -913,16 +818,6 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | FR-050 | E3 | `PENDING` |
 | FR-051 | E3 | `PENDING` |
 | FR-052 | E3 | `PENDING` |
-| FR-060 | E4 | `PENDING` |
-| FR-061 | E4 | `PENDING` |
-| FR-062 | E4 | `PENDING` |
-| FR-063 | E4 | `PENDING` |
-| FR-064 | E4 | `PENDING` |
-| FR-065 | E4 | `PENDING` |
-| FR-066 | E4 | `PENDING` |
-| FR-067 | E4 | `PENDING` |
-| FR-068 | E4 | `PENDING` |
-| FR-069 | E4 | `PENDING` |
 | FR-080 | E5 | `tests/api/test_spec004_e5_session.py::test_spec004_the_frontend_can_reach_the_api_through_its_own_origin`<br>`frontend/e2e/spec004-session.spec.ts › un access token vencido se renueva solo, por el mismo origen (spec 004 US9-AS1)` |
 | FR-081 | E5 | `tests/api/test_spec004_e5_session.py::test_spec004_renewal_cookie_is_http_only_secure_and_scoped`<br>`tests/api/test_spec004_e5_session.py::test_spec004_samesite_setting_accepts_only_known_values`<br>`tests/api/test_spec004_e5_session.py::test_spec004_logout_deletes_the_cookie_with_the_same_attributes` |
 | FR-082 | E5 | `tests/api/test_spec004_e5_session.py::test_spec004_authentication_responses_are_never_cached`<br>`tests/api/test_spec004_e5_session.py::test_spec004_authentication_requests_from_other_origins_are_refused` |
