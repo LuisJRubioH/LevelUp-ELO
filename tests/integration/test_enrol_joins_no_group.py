@@ -1,5 +1,5 @@
-"""Enrolling from the catalogue joins no group; a group is joined only through its invitation
-code. Both engines."""
+"""Enrolling from the catalogue joins no group; a group is joined only through one of its
+invitations (spec 001, delivery INV). Both engines."""
 
 from tests.integration.conftest import headers_for, make_group, make_student, make_teacher, sql
 
@@ -38,12 +38,12 @@ def test_catalogue_enrolment_ignores_a_group_id(repo, client):
     assert student not in {s["id"] for s in repo.get_students_by_teacher(teacher)}
 
 
-def test_invitation_code_still_joins_the_group(repo, client):
-    """The invitation code remains the way into a group."""
+def test_an_invitation_still_joins_the_group(repo, client):
+    """A single-use invitation remains the way into a group."""
     teacher = make_teacher(repo)
     sql(repo, "UPDATE users SET approved = 1 WHERE id = ?", (teacher,))
     group = make_group(repo, teacher, COURSE)
-    code = repo.generate_group_invite_code(group)
+    (code,) = repo.create_group_invitations(teacher, group, 1, 30)
     student = make_student(repo, "colegio")
 
     response = client.post(

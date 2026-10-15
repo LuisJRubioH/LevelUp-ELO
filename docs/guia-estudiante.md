@@ -10,8 +10,10 @@ Te registras con usuario, correo y contraseña, y eliges tu **nivel**: Colegio,
 Universidad, Semillero o Concursos. El nivel decide qué materias ves — no lo
 cambies a mitad de curso sin avisarle a tu docente.
 
-Si tu docente te dio un **código de invitación**, úsalo al registrarte o desde
-Materias: te mete directo a su grupo, incluso si su grupo es de otro nivel.
+Si tu docente te dio un **código de invitación**, úsalo desde Materias: te mete
+directo a su grupo, incluso si su grupo es de otro nivel. Cada código sirve para
+una sola persona, así que no lo compartas. Si te dice que ya fue usado o que
+venció, pídele uno nuevo a tu docente.
 
 Puedes entrar después con tu usuario **o** con tu correo.
 

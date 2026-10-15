@@ -14,8 +14,29 @@ export interface Group {
   group_id: number;
   name: string;
   course_id: string | null;
-  invite_code: string | null;
   student_count: number;
+}
+
+/** Spec 001 FR-028t: a single-use invitation as its group's teacher sees it. */
+export type InvitationStatus = "unused" | "used" | "expired" | "revoked";
+
+export interface Invitation {
+  id: number;
+  /** XXXXX-XXXXX */
+  token: string;
+  status: InvitationStatus;
+  /** "YYYY-MM-DD HH:MM:SS" */
+  created_at: string;
+  expires_at: string;
+  used_at: string | null;
+  /** The student's public name (spec 004 FR-023), for a used invitation. */
+  used_by_name: string | null;
+}
+
+export interface InvitationList {
+  /** Days an unused invitation stays valid (server setting). */
+  ttl_days: number;
+  invitations: Invitation[];
 }
 
 export interface StudentSummary {
@@ -169,8 +190,17 @@ export const teacherApi = {
   createGroup: (course_id: string, group_name: string) =>
     api.post<Group>("/api/teacher/groups", { course_id, group_name }),
 
-  generateInviteCode: (group_id: number) =>
-    api.post<{ invite_code: string }>(`/api/teacher/groups/${group_id}/invite-code`),
+  invitations: (group_id: number) =>
+    api.get<InvitationList>(`/api/teacher/groups/${group_id}/invitations`),
+
+  createInvitations: (group_id: number, count: number) =>
+    api.post<{ tokens: string[]; ttl_days: number }>(
+      `/api/teacher/groups/${group_id}/invitations`,
+      { count },
+    ),
+
+  revokeInvitation: (invitation_id: number) =>
+    api.delete<void>(`/api/teacher/invitations/${invitation_id}`),
 
   procedures: () => api.get<PendingProcedure[]>("/api/teacher/procedures"),
 
