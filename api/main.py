@@ -70,8 +70,18 @@ async def lifespan(app: FastAPI):
         logger.exception("No se pudo preparar el arranque: %s", exc)
         raise
 
+    # Spec 004 FR-047: the sockets of an account whose last day of access ended are closed.
+    from api.websocket.expiry import run_sweeper
+
+    sweeper = asyncio.create_task(run_sweeper(get_repository))
+
     yield
 
+    sweeper.cancel()
+    try:
+        await sweeper
+    except asyncio.CancelledError:
+        pass
     logger.info("=== LevelUp-ELO API detenida ===")
 
 

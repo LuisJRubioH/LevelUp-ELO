@@ -7,7 +7,9 @@
 **Status**: Approved by the owner (2026-10-15). The approved decisions of blocks 4 and 8 that apply to every account,
 and those of the rate-limit store (owner, 2026-10-13 and 2026-10-14), are specified; the initial
 import's decisions live in spec 009 (owner, 2026-10-14). E1 and E6 are implemented and closed (their
-pull requests), and so is E2 — display names, passwords and sessions. E3 and E5 are `planned`.
+pull requests), and so is E2 — display names, passwords and sessions. E3 — students created one by
+one and the last day of access — is implemented and closed, to be merged once E2 is in production.
+E5 is `planned`.
 
 **Input**: The owner's approved orders of 2026-10-13: block 4 (enrolment through Google Forms,
 account creation and access limits) with its clarifications P1–P15 and supplementary precisions,
@@ -39,6 +41,8 @@ The code whose behaviour this spec defines. A path shared with another spec belo
 - `api/routers/teacher.py` — names in teacher views
 - `api/websocket/pvp.py` — rival's name; closing on revocation or expiry
 - `api/websocket/notifications.py` — closing on revocation or expiry
+- `api/websocket/connections.py` — each account's open sockets, closed on revocation or expiry
+- `api/websocket/expiry.py` — the sweep that ends the connections of expired accounts
 - `src/application/interfaces/repositories.py`
 - `src/infrastructure/persistence/` — accounts, history and audit in both repositories
 - `src/infrastructure/security/hashing_service.py`
@@ -50,10 +54,13 @@ The code whose behaviour this spec defines. A path shared with another spec belo
 - `frontend/src/pages/DisplayName.tsx` — the student's own display name
 - `frontend/src/pages/Teacher/Dashboard.tsx`, `frontend/src/pages/Teacher/Groups.tsx`,
   `frontend/src/pages/Teacher/Procedures.tsx` — students by name in the teacher's views
-- `src/domain/identity.py` — the password rule, the name filter and the public name
+- `src/domain/identity.py` — the password rule, the name filter and the public name; level and
+  grade of a new student; the last day of access in Colombian time
 - `frontend/src/pages/Student/Stats.tsx`
 - `frontend/src/pages/Student/League.tsx`
 - `frontend/src/hooks/usePvpMatch.ts`
+- `frontend/src/hooks/useNotifications.ts` — a socket closed by an expiry ends the session
+- `frontend/src/api/teacher.ts` — the admin's account operations
 - `frontend/vercel.json` — the same-origin proxy (prepared, not deployed)
 - `render.yaml`
 
@@ -66,7 +73,7 @@ request that completes a delivery marks it `closed` and fills all its rows.
 |---|---|---|---|
 | **E1** | Public registration closed by default (one server setting, refused on the server, reflected by the screen); login limits per normalised account and global | Needed for the switch (LuisJRubioH/LevelUp-ELO#3). Built on LuisJRubioH/LevelUp-ELO#33, whose login-by-address limit it replaces. | closed |
 | **E2** | Display name everywhere classmates and teachers look; password change; security version that revokes tokens, renewals and persistent connections; admin password reset; teachers created by the admin | Before any real student is created (decision 5). Teachers created by the admin need its forced password change (N3). | closed |
-| **E3** | Students created one by one by the admin: own username, temporary password changed at first access, display name, existing group, optional last day (N13, N15); the expiry of any account that has a last day of access, also on open sessions and PvP, while an account without one never expires; the admin changes, extends or reactivates | Not merged before E2 is in production. | planned |
+| **E3** | Students created one by one by the admin: own username, temporary password changed at first access, display name, existing group, optional last day (N13, N15); the expiry of any account that has a last day of access, also on open sessions and PvP, while an account without one never expires; the admin changes, extends or reactivates | Not merged before E2 is in production. | closed |
 | **E5** | Session renewal without third-party cookies (block 8): same-origin proxy, cookie scope, CSRF, no caching, revocation and expiry respected; Safari verified | After E2 (revocation). E3's tests include renewal of an expired account. | planned |
 | **E6** | Rate-limit store continuity (constitution 1.1.0): temporary memory fallback, timeouts, controlled recovery, no new allowance, health state | After LuisJRubioH/LevelUp-ELO#63; replaces the code of LuisJRubioH/LevelUp-ELO#59. Same file as E1: one after the other. | closed |
 
@@ -745,7 +752,7 @@ The import's criteria, once SC-003 and SC-006 here, are spec 009's.
 
 **Automated tests are explicitly required for every functional requirement and acceptance
 scenario. Reuse adequate existing tests; create or strengthen tests where coverage is missing.**
-Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin them.
+`[AS-IS]` rows cite the existing tests that pin them.
 
 | Requirement / Scenario | Delivery | Test |
 |---|---|---|
@@ -774,18 +781,18 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | US5-AS2 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_admin_creates_an_approved_teacher_with_a_temporary_password`<br>`frontend/e2e/spec004-passwords.spec.ts › el admin restablece el acceso y crea un docente; ve la contraseña temporal una vez (spec 004 US5-AS1, US5-AS2)` |
 | US5-AS3 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_account_audit_names_admin_account_and_time_never_the_password`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_reset_is_admin_only_and_audited_without_the_password` |
 | US5-AS4 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_only_the_admin_resets_access_or_creates_teachers` |
-| US6-AS1 | E3 | `PENDING` |
-| US6-AS2 | E3 | `PENDING` |
-| US6-AS3 | E3 | `PENDING` |
-| US6-AS4 | E3 | `PENDING` |
-| US6-AS5 | E3 | `PENDING` |
-| US7-AS1 | E3 | `PENDING` |
-| US7-AS2 | E3 | `PENDING` |
-| US7-AS3 | E3 | `PENDING` |
-| US7-AS4 | E3 | `PENDING` |
-| US7-AS5 | E3 | `PENDING` |
-| US7-AS6 | E3 | `PENDING` |
-| US7-AS7 | E3 | `PENDING` |
+| US6-AS1 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_admin_creates_a_student_who_changes_the_password_first`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_create_student_account_with_its_group_and_audit`<br>`frontend/e2e/spec004-e3-accounts.spec.ts › el admin crea un estudiante y ve su contraseña temporal una vez (spec 004 US6-AS1, FR-040)` |
+| US6-AS2 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_a_refused_creation_answers_and_creates_nothing`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_a_refused_creation_creates_nothing`<br>`frontend/e2e/spec004-e3-accounts.spec.ts › una creación rechazada muestra el motivo y no da contraseña (spec 004 US6-AS2 … AS4)` |
+| US6-AS3 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_a_refused_creation_answers_and_creates_nothing`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_a_refused_creation_creates_nothing`<br>`tests/unit/domain/test_spec004_e3_rules.py::test_spec004_a_level_and_grade_that_do_not_match_are_refused` |
+| US6-AS4 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_a_username_in_use_is_refused`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_a_refused_creation_creates_nothing`<br>`frontend/e2e/spec004-e3-accounts.spec.ts › una creación rechazada muestra el motivo y no da contraseña (spec 004 US6-AS2 … AS4)` |
+| US6-AS5 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_admin_creations_are_limited_per_minute` |
+| US7-AS1 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_an_expired_account_cannot_sign_in`<br>`tests/unit/domain/test_spec004_e3_rules.py::test_spec004_the_last_day_is_inclusive`<br>`frontend/e2e/spec004-e3-accounts.spec.ts › una cuenta vencida ve el mensaje al iniciar sesión (spec 004 US7-AS1, FR-048)` |
+| US7-AS2 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_an_open_session_ends_when_the_account_expires`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_the_sweep_closes_expired_sockets_and_abandons_their_matches`<br>`frontend/e2e/spec004-e3-accounts.spec.ts › una sesión abierta termina al vencer y el inicio de sesión dice por qué (spec 004 US7-AS2, FR-047)` |
+| US7-AS3 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_expiry_keeps_the_data_and_extending_restores_access` |
+| US7-AS4 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_expiry_keeps_the_data_and_extending_restores_access`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_set_access_until_extends_and_is_recorded`<br>`frontend/e2e/spec004-e3-accounts.spec.ts › el admin ve, amplía y quita el último día de acceso (spec 004 US7-AS4, FR-046, FR-050)` |
+| US7-AS5 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_the_sweep_closes_expired_sockets_and_abandons_their_matches`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_a_match_is_abandoned_once_and_moves_no_rating`<br>`frontend/e2e/spec004-e3-accounts.spec.ts › una partida cerrada por un vencimiento lo explica y no mueve el ELO (spec 004 US7-AS5, FR-051)` |
+| US7-AS6 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_expiry_and_normal_close_end_a_match_once`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_a_match_is_abandoned_once_and_moves_no_rating` |
+| US7-AS7 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_an_account_without_a_last_day_keeps_working`<br>`tests/unit/domain/test_spec004_e3_rules.py::test_spec004_an_account_without_a_last_day_never_expires` |
 | US9-AS1 | E5 | `PENDING` |
 | US9-AS2 | E5 | `PENDING` |
 | US9-AS3 | E5 | `PENDING` |
@@ -822,17 +829,17 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | FR-031 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_admin_creates_an_approved_teacher_with_a_temporary_password`<br>`tests/api/test_spec004_e2_passwords.py::test_spec004_a_teacher_username_already_taken_is_refused`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_teacher_creation_is_admin_only_approved_and_audited` |
 | FR-032 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_account_audit_names_admin_account_and_time_never_the_password`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_set_user_password_advances_the_security_version` |
 | FR-033 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_only_the_admin_resets_access_or_creates_teachers`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_set_display_name_rules_and_audit`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_admin_changes_a_students_name` |
-| FR-040 | E3 | `PENDING` |
-| FR-043 | E3 | `PENDING` |
-| FR-044 | E3 | `PENDING` |
-| FR-045 | E3 | `PENDING` |
-| FR-046 | E3 | `PENDING` |
-| FR-047 | E3 | `PENDING` |
-| FR-048 | E3 | `PENDING` |
-| FR-049 | E3 | `PENDING` |
-| FR-050 | E3 | `PENDING` |
-| FR-051 | E3 | `PENDING` |
-| FR-052 | E3 | `PENDING` |
+| FR-040 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_create_student_account_with_its_group_and_audit`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_admin_creates_a_student_who_changes_the_password_first`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_only_the_admin_creates_students`<br>`tests/unit/domain/test_spec004_e3_rules.py::test_spec004_a_level_with_its_grade_is_accepted`<br>`tests/unit/domain/test_spec004_e3_rules.py::test_spec004_a_level_and_grade_that_do_not_match_are_refused`<br>`frontend/e2e/spec004-e3-accounts.spec.ts › el admin crea un estudiante y ve su contraseña temporal una vez (spec 004 US6-AS1, FR-040)` |
+| FR-043 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_a_username_in_use_is_refused`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_a_refused_creation_creates_nothing` |
+| FR-044 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_create_student_account_with_its_group_and_audit`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_a_refused_creation_creates_nothing`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_a_refused_creation_answers_and_creates_nothing` |
+| FR-045 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_admin_creations_are_limited_per_minute` |
+| FR-046 | E3 | `tests/unit/domain/test_spec004_e3_rules.py::test_spec004_colombian_day_is_utc_minus_five_all_year`<br>`tests/unit/domain/test_spec004_e3_rules.py::test_spec004_a_last_day_is_read_as_a_calendar_date`<br>`tests/unit/domain/test_spec004_e3_rules.py::test_spec004_a_last_day_that_is_not_a_date_is_refused`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_set_access_until_extends_and_is_recorded`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_only_the_admin_changes_a_last_day`<br>`frontend/e2e/spec004-e3-accounts.spec.ts › el admin ve, amplía y quita el último día de acceso (spec 004 US7-AS4, FR-046, FR-050)` |
+| FR-047 | E3 | `tests/unit/domain/test_spec004_e3_rules.py::test_spec004_the_last_day_is_inclusive`<br>`tests/unit/domain/test_spec004_e3_rules.py::test_spec004_an_account_without_a_last_day_never_expires`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_an_expired_account_cannot_sign_in`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_an_open_session_ends_when_the_account_expires`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_the_sweep_closes_expired_sockets_and_abandons_their_matches`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_an_account_without_a_last_day_keeps_working`<br>`frontend/e2e/spec004-e3-accounts.spec.ts › una sesión abierta termina al vencer y el inicio de sesión dice por qué (spec 004 US7-AS2, FR-047)` |
+| FR-048 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_an_expired_account_cannot_sign_in`<br>`tests/unit/domain/test_spec004_e3_rules.py::test_spec004_the_expiry_message_is_the_owners`<br>`frontend/e2e/spec004-e3-accounts.spec.ts › una cuenta vencida ve el mensaje al iniciar sesión (spec 004 US7-AS1, FR-048)` |
+| FR-049 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_expiry_keeps_the_data_and_extending_restores_access` |
+| FR-050 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_set_access_until_extends_and_is_recorded`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_expiry_keeps_the_data_and_extending_restores_access`<br>`frontend/e2e/spec004-e3-accounts.spec.ts › el admin ve, amplía y quita el último día de acceso (spec 004 US7-AS4, FR-046, FR-050)` |
+| FR-051 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_the_sweep_closes_expired_sockets_and_abandons_their_matches`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_a_match_is_abandoned_once_and_moves_no_rating`<br>`frontend/e2e/spec004-e3-accounts.spec.ts › una partida cerrada por un vencimiento lo explica y no mueve el ELO (spec 004 US7-AS5, FR-051)` |
+| FR-052 | E3 | `tests/integration/test_spec004_e3_accounts.py::test_spec004_expiry_and_normal_close_end_a_match_once`<br>`tests/integration/test_spec004_e3_accounts.py::test_spec004_a_match_is_abandoned_once_and_moves_no_rating` |
 | FR-080 | E5 | `PENDING` |
 | FR-081 | E5 | `PENDING` |
 | FR-082 | E5 | `PENDING` |

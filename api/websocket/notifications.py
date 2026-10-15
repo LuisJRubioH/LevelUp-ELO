@@ -101,7 +101,14 @@ async def websocket_notifications(websocket: WebSocket, room: str):
         return
     except Exception as exc:
         logger.warning("WS auth fallida sala=%s: %s", room, exc)
-        await websocket.close(code=4003, reason="Token inválido.")
+        from api.websocket.connections import EXPIRED_CODE, EXPIRED_REASON
+        from src.domain.identity import ACCESS_EXPIRED_MESSAGE
+
+        if getattr(exc, "detail", None) == ACCESS_EXPIRED_MESSAGE:
+            # Spec 004 FR-047: the screen shows why (P7).
+            await websocket.close(code=EXPIRED_CODE, reason=EXPIRED_REASON)
+        else:
+            await websocket.close(code=4003, reason="Token inválido.")
         return
 
     async with _lock:

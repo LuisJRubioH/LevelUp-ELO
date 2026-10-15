@@ -65,6 +65,8 @@ class Settings(BaseSettings):
     rate_limit_login_account: str = "10/minute"
     rate_limit_login_global: str = "300/minute"
     rate_limit_register: str = "20/minute"
+    # Spec 004 FR-045 (P12): students the admin creates one by one, per admin.
+    rate_limit_admin_creations: str = "30/minute"
     # Spec 004 FR-001/FR-002: public registration is closed unless this server setting opens it.
     public_registration_enabled: bool = False
     rate_limit_default: str = "60/minute"  # endpoints normales

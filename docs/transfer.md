@@ -69,6 +69,7 @@ wrong):
 | `RATE_LIMIT_STORAGE_URI` | shared Redis/Valkey URI; `memory://` is refused in production |
 | `PUBLIC_REGISTRATION_ENABLED` | unset (closed). **Production today lets anyone register; after the merge nobody can** until it is set to `true` — accounts come from the administrator (spec 004 FR-005) |
 | `RATE_LIMIT_LOGIN_ACCOUNT`, `RATE_LIMIT_LOGIN_GLOBAL`, `RATE_LIMIT_REGISTER` | optional; defaults `10/minute` per account, `300/minute` for all logins, `20/minute` per address for public registration (spec 004 E1). `RATE_LIMIT_AUTH` no longer exists |
+| `RATE_LIMIT_ADMIN_CREATIONS` | optional; default `30/minute` — students one admin creates one by one (spec 004 E3, FR-045) |
 | `RATE_LIMIT_STORAGE_CONNECT_TIMEOUT`, `RATE_LIMIT_STORAGE_TIMEOUT`, `RATE_LIMIT_STORAGE_PROBE_INTERVAL`, `RATE_LIMIT_FALLBACK_MAX_KEYS` | optional; defaults 0.5 s, 0.5 s, 10 s and 50 000 — the fallback when the limit store fails (§ 3.2, spec 004 E6) |
 | `SUPABASE_URL`, `SUPABASE_KEY` | Storage for the **private** bucket `procedimientos` (images are served as bytes, never by public URL) |
 | `ADMIN_USER`, `ADMIN_PASSWORD` | seed of the administrator account (only created if the password is set) |

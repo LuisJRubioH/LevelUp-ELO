@@ -72,6 +72,11 @@ def _migrations_enabled() -> bool:
     )
 
 
+def _iso_day(value) -> str | None:
+    """A DATE column as SQLite stores it (`YYYY-MM-DD`), so both engines return the same text."""
+    return value.isoformat() if value is not None else None
+
+
 class PostgresRepository:
 
     _COURSE_BLOCK_MAP = {
@@ -640,6 +645,9 @@ class PostgresRepository:
             # Spec 004 E2 (FR-020): the name classmates and teachers see; NULL on existing
             # accounts, which then show their username (N5).
             self._add_column_if_not_exists(cursor, "users", "display_name", "TEXT")
+            # Spec 004 E3 (FR-046): the last day of access, inclusive, Colombian time; NULL —
+            # every existing account — never expires.
+            self._add_column_if_not_exists(cursor, "users", "access_until", "DATE")
             cursor.execute(
                 """
                 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
@@ -1573,7 +1581,7 @@ class PostgresRepository:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 "SELECT id, username, role, group_id, education_level, current_elo, active, approved, "
-                "security_version, must_change_password, display_name "
+                "security_version, must_change_password, display_name, access_until "
                 "FROM users WHERE id = %s",
                 (user_id,),
             )
@@ -1594,6 +1602,7 @@ class PostgresRepository:
             "security_version": int(row["security_version"] or 0),
             "must_change_password": bool(row["must_change_password"]),
             "display_name": row["display_name"],
+            "access_until": _iso_day(row["access_until"]),
         }
 
     @_timing
@@ -2635,7 +2644,7 @@ class PostgresRepository:
             cursor.execute(
                 """
                 SELECT u.id, u.username, u.display_name, u.role, u.education_level, u.approved, u.active,
-                       u.must_change_password,
+                       u.must_change_password, u.access_until,
                        u.created_at, g.name AS group_name
                 FROM users u
                 LEFT JOIN groups g ON u.group_id = g.id
@@ -2643,7 +2652,7 @@ class PostgresRepository:
                 ORDER BY u.role, u.username
             """
             )
-            return [dict(r) for r in cursor.fetchall()]
+            return [{**r, "access_until": _iso_day(r["access_until"])} for r in cursor.fetchall()]
         finally:
             self.put_connection(conn)
 
@@ -2806,6 +2815,146 @@ class PostgresRepository:
             raise
         finally:
             self.put_connection(conn)
+
+    # ── Spec 004 E3: students created one by one, and the last day of access ─────────────
+
+    def create_student_account(
+        self,
+        admin_id,
+        username,
+        temporary_password,
+        display_name,
+        group_id,
+        education_level,
+        grade=None,
+        access_until=None,
+    ):
+        """FR-040, FR-043, FR-044: an active admin creates a student with their own username, a
+        temporary password to change at first access, a display name under the filter, an
+        existing group (and its course), a level and grade that go together and an optional last
+        day of access. One transaction: a refusal creates nothing. Recorded with who created it,
+        never the password. Returns (ok, message, user_id)."""
+        from datetime import datetime, timezone
+
+        from src.domain.identity import (
+            access_expired,
+            display_name_problem,
+            normalize_display_name,
+            parse_last_day,
+            student_level_problem,
+        )
+
+        name = normalize_display_name(display_name)
+        problem = display_name_problem(name) or student_level_problem(education_level, grade)
+        if problem:
+            return False, problem, None
+        try:
+            last_day = parse_last_day(access_until)
+        except ValueError as exc:
+            return False, str(exc), None
+        if access_expired(last_day, datetime.now(timezone.utc)):
+            return False, "El último día de acceso ya pasó.", None
+        _grade = str(grade) if education_level == "semillero" else None
+        password_hash = self.hashing.hash_password(temporary_password)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            if not self._is_active_admin(cursor, admin_id):
+                conn.rollback()
+                return False, "Solo un administrador puede crear estudiantes.", None
+            # FOR SHARE: the group cannot be deleted while the student joins it.
+            cursor.execute("SELECT course_id FROM groups WHERE id = %s FOR SHARE", (group_id,))
+            group = cursor.fetchone()
+            if group is None:
+                conn.rollback()
+                return False, "El grupo no existe.", None
+            cursor.execute(
+                "INSERT INTO users (username, password_hash, role, approved, active, group_id,"
+                " rating_deviation, education_level, grade, display_name, must_change_password,"
+                " created_by, access_until)"
+                " VALUES (%s, %s, 'student', 1, 1, %s, 350.0, %s, %s, %s, 1, %s, %s)"
+                " RETURNING id",
+                (
+                    username,
+                    password_hash,
+                    group_id,
+                    education_level,
+                    _grade,
+                    name,
+                    admin_id,
+                    last_day,
+                ),
+            )
+            user_id = cursor.fetchone()["id"]
+            if group["course_id"]:
+                cursor.execute(
+                    "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (%s, %s, %s)",
+                    (user_id, group["course_id"], group_id),
+                )
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action)"
+                " VALUES (%s, %s, 'student_created')",
+                (admin_id, user_id),
+            )
+            conn.commit()
+            return True, "Estudiante creado.", int(user_id)
+        except psycopg2.IntegrityError:
+            conn.rollback()
+            return False, "El nombre de usuario ya existe.", None
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def set_access_until(self, admin_id, user_id, access_until):
+        """FR-046, FR-050: an active admin sets, changes, extends or removes (None) the last day
+        of access of a student or a teacher — extending reactivates an expired account and
+        deletes nothing. Each change is recorded with the new day. Returns (ok, message)."""
+        from src.domain.identity import parse_last_day
+
+        try:
+            last_day = parse_last_day(access_until)
+        except ValueError as exc:
+            return False, str(exc)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            if not self._is_active_admin(cursor, admin_id):
+                conn.rollback()
+                return False, "Solo un administrador cambia el último día de acceso."
+            cursor.execute("SELECT role FROM users WHERE id = %s FOR UPDATE", (user_id,))
+            row = cursor.fetchone()
+            if not row or row["role"] not in ("student", "teacher"):
+                conn.rollback()
+                return False, "La cuenta no existe o no es de estudiante ni de docente."
+            cursor.execute("UPDATE users SET access_until = %s WHERE id = %s", (last_day, user_id))
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action, detail)"
+                " VALUES (%s, %s, 'access_until_changed', %s)",
+                (admin_id, user_id, last_day.isoformat() if last_day else "sin último día"),
+            )
+            conn.commit()
+            return True, "Último día de acceso actualizado."
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def get_access_until_bulk(self, user_ids):
+        """FR-047: {user_id: last day of access (YYYY-MM-DD) or None} for existing accounts."""
+        ids = [int(u) for u in user_ids]
+        if not ids:
+            return {}
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute("SELECT id, access_until FROM users WHERE id = ANY(%s)", (ids,))
+            rows = cursor.fetchall()
+        finally:
+            self.put_connection(conn)
+        return {r["id"]: _iso_day(r["access_until"]) for r in rows}
 
     def get_account_audit(self, limit=100):
         """FR-029, FR-031: administrative account operations, most recent first."""
@@ -4373,6 +4522,28 @@ class PostgresRepository:
             )
             conn.commit()
             return applied
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def abandon_pvp_match(self, match_id: int, reason: str = "account_expired") -> bool:
+        """Spec 004 FR-051, FR-052: close an active match as abandoned, with no rating change for
+        either player; its saved answers stay. True only for the call that closed it: once
+        closed — abandoned or finished — nothing changes."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                """UPDATE pvp_matches SET status='abandoned', finished_at=NOW(),
+                   elo_delta_p1=0, elo_reason_p1=%s, elo_delta_p2=0, elo_reason_p2=%s
+                   WHERE id=%s AND status='active'""",
+                (reason, reason, match_id),
+            )
+            closed = cursor.rowcount == 1
+            conn.commit()
+            return closed
         except Exception:
             conn.rollback()
             raise
