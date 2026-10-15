@@ -1,0 +1,418 @@
+[
+  {
+    "id": "HT8-U1-P24-T1-01",
+    "tipo": "abierta",
+    "enunciado": "Representa los siguientes conjuntos numéricos en la recta: a. $A=\\{n/n\\in\\mathbb{N},\\, n<6\\}$; b. $B=\\{n/n\\in\\mathbb{N},\\, n\\geq 9\\}$; c. $C=\\{n/n\\in\\mathbb{N},\\, 3<n<10\\}$; d. $D=\\{n/n\\in\\mathbb{N},\\, 5<n\\leq 12\\}$; e. $E=\\{n/n\\in\\mathbb{N},\\, 7\\leq n\\leq 15\\}$.",
+    "respuesta": "Puntos discretos: a. 0–5. b. 9 en adelante. c. 4–9. d. 6–12. e. 7–15.",
+    "conjunto": "N",
+    "seccion": "Taller 1 — Números naturales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U1-P24-T1-02",
+    "tipo": "clasificacion",
+    "enunciado": "Dado el conjunto $A=\\{5,6,7,8,9,10,11,12,13,14,15\\}$, determina: a. el conjunto de números pares contenidos en $A$; b. el de números primos contenidos en $A$; c. el de múltiplos de 3 contenidos en $A$; d. el de divisores de 15 contenidos en $A$.",
+    "respuesta": {
+      "a": "$\\{6,8,10,12,14\\}$",
+      "b": "$\\{5,7,11,13\\}$",
+      "c": "$\\{6,9,12,15\\}$",
+      "d": "$\\{5,15\\}$"
+    },
+    "conjunto": "N",
+    "seccion": "Taller 1 — Números naturales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 2",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Alimenta N4 (divisibilidad): pares, primos, múltiplos y divisores en un solo ítem. En d, los divisores de 15 son 1, 3, 5 y 15, pero solo 5 y 15 están en $A$.",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U1-P24-T1-03a",
+    "tipo": "numerico",
+    "enunciado": "Determina el valor de $3c-2b$ para $a=2$, $b=3$, $c=4$ y $d=5$.",
+    "expr": "3*4 - 2*3",
+    "respuesta": "6",
+    "conjunto": "N",
+    "seccion": "Taller 1 — Números naturales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 3, ítem a",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U1-P24-T1-03b",
+    "tipo": "numerico",
+    "enunciado": "Determina el valor de $5\\times(a+b+c-d)$ para $a=2$, $b=3$, $c=4$ y $d=5$.",
+    "expr": "5*(2+3+4-5)",
+    "respuesta": "20",
+    "conjunto": "N",
+    "seccion": "Taller 1 — Números naturales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 3, ítem b",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 850
+  },
+  {
+    "id": "HT8-U1-P24-T1-03c",
+    "tipo": "numerico",
+    "enunciado": "Determina el valor de $4c-3\\times(2d-3b)$ para $a=2$, $b=3$, $c=4$ y $d=5$.",
+    "expr": "4*4 - 3*(2*5 - 3*3)",
+    "respuesta": "13",
+    "conjunto": "N",
+    "seccion": "Taller 1 — Números naturales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 3, ítem c",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U1-P24-T1-03d",
+    "tipo": "numerico",
+    "enunciado": "Determina el valor de $[3(2d+3a)\\div(3a-b)]$ para $a=2$, $b=3$, $c=4$ y $d=5$.",
+    "expr": "(3*(2*5+3*2))/(3*2-3)",
+    "respuesta": "16",
+    "conjunto": "N",
+    "seccion": "Taller 1 — Números naturales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 3, ítem d",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U1-P24-T1-03e",
+    "tipo": "numerico",
+    "enunciado": "Determina el valor de $3\\times\\{a+b+3[d-2\\times(c-a)+ab]\\}$ para $a=2$, $b=3$, $c=4$ y $d=5$.",
+    "expr": "3*(2+3+3*(5-2*(4-2)+2*3))",
+    "respuesta": "78",
+    "conjunto": "N",
+    "seccion": "Taller 1 — Números naturales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 3, ítem e",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Tres niveles de agrupación anidados: es el ítem más exigente de la actividad.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U1-P24-T1-04",
+    "tipo": "ecuacion",
+    "enunciado": "Un lote de forma rectangular mide 4 m más de largo que de ancho. Si su perímetro es de 20 m, ¿cuáles son las medidas de sus dimensiones?",
+    "ecuacion": "2*(n + (n+4)) = 20",
+    "incognita": "n",
+    "soluciones": [
+      "3"
+    ],
+    "respuesta": "Ancho $3\\text{ m}$ y largo $7\\text{ m}$.",
+    "conjunto": "N",
+    "seccion": "Taller 1 — Números naturales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 4",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_numerica"
+    ],
+    "nota": "La ecuación da el ancho; el largo se obtiene sumándole 4.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U1-P24-T1-06a",
+    "tipo": "numerico",
+    "enunciado": "Halla el valor de la expresión: $|7|$",
+    "expr": "Abs(7)",
+    "respuesta": "7",
+    "conjunto": "Z",
+    "seccion": "Taller 1 — Números enteros",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 6, ítem a",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 700
+  },
+  {
+    "id": "HT8-U1-P24-T1-06b",
+    "tipo": "numerico",
+    "enunciado": "Halla el valor de la expresión: $|-(-2)|$",
+    "expr": "Abs(-(-2))",
+    "respuesta": "2",
+    "conjunto": "Z",
+    "seccion": "Taller 1 — Números enteros",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 6, ítem b",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U1-P24-T1-06c",
+    "tipo": "numerico",
+    "enunciado": "Halla el valor de la expresión: $|-(-(-4))|$",
+    "expr": "Abs(-(-(-4)))",
+    "respuesta": "4",
+    "conjunto": "Z",
+    "seccion": "Taller 1 — Números enteros",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 6, ítem c",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Tres signos anidados dan $-4$, pero el valor absoluto lo devuelve positivo. Distractor esperado: $-4$.",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U1-P24-T1-06d",
+    "tipo": "numerico",
+    "enunciado": "Halla el valor de la expresión: $|-8\\times 5|$",
+    "expr": "Abs(-8*5)",
+    "respuesta": "40",
+    "conjunto": "Z",
+    "seccion": "Taller 1 — Números enteros",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 6, ítem d",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 850
+  },
+  {
+    "id": "HT8-U1-P24-T1-06e",
+    "tipo": "numerico",
+    "enunciado": "Halla el valor de la expresión: $|-9-10|$",
+    "expr": "Abs(-9-10)",
+    "respuesta": "19",
+    "conjunto": "Z",
+    "seccion": "Taller 1 — Números enteros",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 6, ítem e",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Primero se opera dentro de las barras. Error previsto: $|-9|-|10|=-1$.",
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U1-P24-T1-06f",
+    "tipo": "numerico",
+    "enunciado": "Halla el valor de la expresión: $|(-10+4)\\times 2|$",
+    "expr": "Abs((-10+4)*2)",
+    "respuesta": "12",
+    "conjunto": "Z",
+    "seccion": "Taller 1 — Números enteros",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 6, ítem f",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U1-P24-T1-07",
+    "tipo": "abierta",
+    "enunciado": "Escribe la propiedad que justifica cada igualdad: a. $8\\times(-12)=-96$; b. $-84\\times 1=-84$; c. $5\\times(a+b)=5a+5b$; d. $3\\times(7\\times -8)=(3\\times -8)\\times 7$; e. $a+b+c+d=[(a+b)+d]+c$; f. $(3a-5b)\\times 4c=4c\\times(3a-5b)$.",
+    "respuesta": {
+      "a": "Clausurativa: el producto de dos enteros es otro entero (con la ley de signos, negativo).",
+      "b": "Modulativa: 1 es el elemento neutro de la multiplicación.",
+      "c": "Distributiva de la multiplicación respecto a la suma.",
+      "d": "Conmutativa y asociativa: se reordenan y reagrupan los factores.",
+      "e": "Conmutativa y asociativa de la suma.",
+      "f": "Conmutativa de la multiplicación."
+    },
+    "conjunto": "Z",
+    "seccion": "Taller 1 — Números enteros",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 7",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Propiedades: a. clausurativa (el producto de dos enteros es entero); b. modulativa o elemento neutro del producto; c. distributiva del producto respecto de la suma; d. **conmutativa y asociativa a la vez** —se cambia el orden de los factores y también el agrupamiento—; e. según la igualdad, la que corresponda del mismo repertorio. Los ítems d y e admiten más de una propiedad porque en un solo paso se aplican dos: al calificar hay que aceptar la respuesta que nombre las dos, y no usarlos como pregunta de opción única sin reformularlos.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U1-P24-T1-08",
+    "tipo": "numerico",
+    "enunciado": "A un campamento de vacaciones asisten 248 jóvenes, con los que se conforman 16 patrullas y sobran 8 jóvenes. ¿Por cuántos jóvenes está conformada cada patrulla?",
+    "expr": "(248-8)/16",
+    "respuesta": "15",
+    "conjunto": "N",
+    "seccion": "Taller 1 — Números enteros",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 8",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Hay que descontar primero los 8 que sobran. Error previsto: $248\\div 16=15{,}5$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U1-P24-T1-09-tiempo",
+    "tipo": "numerico",
+    "enunciado": "Al conectar un congelador a la corriente su temperatura desciende a razón de 2 grados por cada 8 minutos. Si inicialmente su interior está a $15\\,^\\circ$C, ¿cuánto tiempo tarda en llegar a $-23\\,^\\circ$C?",
+    "expr": "((15-(-23))/2)*8",
+    "respuesta": "152",
+    "conjunto": "Z",
+    "seccion": "Taller 1 — Números enteros",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 9 (primera pregunta)",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Descenso total $15-(-23)=38$ grados; son 19 tramos de 2 grados, es decir $19\\times 8=152$ minutos. El error típico es restar $15-23=-8$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U1-P24-T1-09-temperatura",
+    "tipo": "numerico",
+    "enunciado": "Al conectar un congelador a la corriente su temperatura desciende a razón de 2 grados por cada 8 minutos. Si inicialmente su interior está a $15\\,^\\circ$C, ¿a qué temperatura estará una hora después?",
+    "expr": "15 - (60/8)*2",
+    "respuesta": "0",
+    "conjunto": "Z",
+    "seccion": "Taller 1 — Números enteros",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 9 (segunda pregunta)",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "En 60 minutos caben 7,5 tramos de 8 minutos, o sea 15 grados de descenso: queda exactamente en $0\\,^\\circ$C.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U1-P24-T1-10",
+    "tipo": "abierta",
+    "enunciado": "Representa en la recta los siguientes números racionales: a. $\\dfrac{3}{4}$; b. $0{,}25$; c. $-\\dfrac{5}{7}$; d. $-3{,}85$; e. $\\dfrac{28}{12}$; f. $-5{,}6$.",
+    "respuesta": "Equivalentes decimales: $0{,}75$; $0{,}25$; $\\approx-0{,}714$; $-3{,}85$; $\\dfrac{7}{3}\\approx 2{,}33$; $-5{,}6$.",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números racionales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 10",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{28}{12}$ conviene simplificarla a $\\dfrac{7}{3}$ antes de ubicarla.",
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U1-P24-T1-11a",
+    "tipo": "numerico",
+    "enunciado": "Realiza la operación: $\\dfrac{2}{3}+\\dfrac{-8}{5}+\\dfrac{-7}{3}$",
+    "expr": "Rational(2,3)+Rational(-8,5)+Rational(-7,3)",
+    "respuesta": "-49/15",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números racionales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 11, ítem a",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U1-P24-T1-11b",
+    "tipo": "numerico",
+    "enunciado": "Realiza la operación: $\\left[-\\dfrac{5}{8}\\times\\left(\\dfrac{9}{7}-\\dfrac{-8}{5}\\right)\\right]\\div\\dfrac{-9}{11}$",
+    "expr": "(Rational(-5,8)*(Rational(9,7)-Rational(-8,5)))/Rational(-9,11)",
+    "respuesta": "1111/504",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números racionales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 11, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "nota": "Restar una fracción negativa suma: $\\dfrac{9}{7}+\\dfrac{8}{5}=\\dfrac{101}{35}$. No da decimal finito, así que no sirve para práctica tecleable.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U1-P24-T1-11c",
+    "tipo": "numerico",
+    "enunciado": "Realiza la operación: $[0{,}85\\times(-3{,}15)]+[-1{,}625+(-5{,}17)]$",
+    "expr": "(0.85*(-3.15))+(-1.625+(-5.17))",
+    "respuesta": "-9.4725",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números racionales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 11, ítem c",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Da decimal exacto de 4 cifras: cabe en el regex del backend.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U1-P24-T1-11d",
+    "tipo": "numerico",
+    "enunciado": "Realiza la operación: $\\left(\\dfrac{-8}{7}\\times 0{,}35\\right)\\div\\left(-2{,}57+\\dfrac{5}{6}-\\dfrac{1}{8}\\right)$",
+    "expr": "(Rational(-8,7)*0.35)/(-2.57+Rational(5,6)-Rational(1,8))",
+    "respuesta": "240/1117",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números racionales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 11, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "nota": "El numerador se simplifica bonito ($-\\dfrac{8}{7}\\times\\dfrac{7}{20}=-\\dfrac{2}{5}$), pero el denominador da $-\\dfrac{1117}{600}$: el resultado no es decimal finito.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U1-P24-T1-11e",
+    "tipo": "numerico",
+    "enunciado": "Realiza la operación: $\\dfrac{\\dfrac{4}{8}-\\dfrac{1}{8}}{\\dfrac{1}{2}}$",
+    "expr": "(Rational(4,8)-Rational(1,8))/Rational(1,2)",
+    "respuesta": "3/4",
+    "conjunto": "Q",
+    "seccion": "Taller 1 — Números racionales",
+    "unidad": 1,
+    "pagina_pdf": 24,
+    "referencia": "Taller 1, actividad 11, ítem e",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Fracción compleja: primero el numerador ($\\dfrac{3}{8}$), luego se divide entre $\\dfrac{1}{2}$, o sea se multiplica por 2.",
+    "dificultad": 1150
+  }
+]

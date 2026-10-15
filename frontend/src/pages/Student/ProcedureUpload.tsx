@@ -15,6 +15,9 @@ import { Button } from "../../components/ui/Button";
 import { studentApi, type ProcedureReview } from "../../api/student";
 import { apiClient } from "../../api/client";
 import { useSettingsStore } from "../../stores/settingsStore";
+import { ValidatedCard, PendingCard, classifyStatus } from "./Feedback";
+import { PageHeader } from "../../components/ui/PageHeader";
+import "./StudentContent.css";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 const MAX_SIZE_MB = 10;
@@ -46,6 +49,7 @@ export function ProcedureUpload() {
   const [error, setError] = useState<string | null>(null);
   const [review, setReview] = useState<ProcedureReview | null>(null);
   const [usedProvider, setUsedProvider] = useState<string>("");
+  const [analysisToken, setAnalysisToken] = useState("");
 
   const { data: courses } = useQuery({
     queryKey: ["student-courses"],
@@ -58,12 +62,20 @@ export function ProcedureUpload() {
     staleTime: 300_000,
   });
 
+  const { data: myProcedures } = useQuery({
+    queryKey: ["my-procedures"],
+    queryFn: () => studentApi.myProcedures(),
+    refetchInterval: 30_000,
+  });
+  const submissions = myProcedures?.submissions ?? [];
+
   const enrolled = (courses ?? []).filter((c) => c.enrolled);
   const canAnalyze = !!apiKey || (aiStatus?.available ?? false);
 
   const handleFile = (f: File) => {
     setError(null);
     setReview(null);
+    setAnalysisToken("");
     if (!ALLOWED_TYPES.includes(f.type)) {
       setError(t("procedure.typeNotSupported", { type: f.type }));
       return;
@@ -84,6 +96,7 @@ export function ProcedureUpload() {
     setItemContent("");
     setStage("idle");
     setReview(null);
+    setAnalysisToken("");
     setError(null);
   };
 
@@ -92,7 +105,7 @@ export function ProcedureUpload() {
     setError(null);
     setStage("analyzing");
     try {
-      const { review: r, provider } = await studentApi.analyzeProcedure({
+      const { review: r, provider, analysisToken: token } = await studentApi.analyzeProcedure({
         item_id: selectedItem,
         item_content: itemContent,
         api_key: apiKey || undefined,
@@ -100,6 +113,7 @@ export function ProcedureUpload() {
       });
       setReview(r);
       setUsedProvider(provider);
+      setAnalysisToken(token);
       setStage("result");
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t("procedure.unknownError");
@@ -116,10 +130,7 @@ export function ProcedureUpload() {
       fd.append("item_id", selectedItem);
       fd.append("item_content", itemContent);
       fd.append("file", file);
-      if (opts?.withAI && review?.score_procedimiento !== undefined) {
-        fd.append("ai_proposed_score", String(review.score_procedimiento));
-        fd.append("ai_feedback", review.evaluacion_global ?? "");
-      }
+      if (opts?.withAI && analysisToken) fd.append("analysis_token", analysisToken);
       await apiClient.postForm("/api/student/procedure", fd);
       setStage("sent");
     } catch (e: unknown) {
@@ -130,8 +141,8 @@ export function ProcedureUpload() {
 
   if (stage === "sent") {
     return (
-      <div className="max-w-xl mx-auto py-8 px-4 space-y-6">
-        <h2 className="text-xl font-bold text-slate-100">{t("procedure.sentTitle")}</h2>
+      <div className="sp-page">
+        <h2 className="sp-title">{t("procedure.sentTitle")}</h2>
         <KatIAAvatar
           state="correct"
           message={t("procedure.sentMessage")}
@@ -145,18 +156,18 @@ export function ProcedureUpload() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4 space-y-6">
-      <h2 className="text-xl font-bold text-slate-100">{t("procedure.title")}</h2>
-      <div className="rounded-xl border border-slate-700/50 bg-[var(--surface)] p-4 space-y-1">
-        <p className="text-sm text-slate-300">{t("procedure.intro")}</p>
-        <p className="text-xs text-slate-500">{t("procedure.introHint")}</p>
+    <div className="sp-page">
+      <PageHeader eyebrow={t("procedure.eyebrow")} title={t("procedure.title")} />
+      <div className="sp-card space-y-1">
+        <p className="text-sm" style={{ color: "var(--dim)" }}>{t("procedure.intro")}</p>
+        <p className="sp-mute text-xs">{t("procedure.introHint")}</p>
       </div>
 
       {/* Identificación del ejercicio */}
       {stage === "idle" && (
         <>
-          <div>
-            <label className="block text-xs text-slate-400 mb-1.5">
+          <div className="sp-field">
+            <label>
               {t("procedure.exerciseIdLabel")} <span className="text-red-400">*</span>
             </label>
             <input
@@ -164,10 +175,10 @@ export function ProcedureUpload() {
               value={selectedItem}
               onChange={(e) => setSelectedItem(e.target.value)}
               placeholder={t("procedure.exerciseIdPlaceholder")}
-              className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500"
+              className="sp-input"
             />
             {enrolled.length > 0 && (
-              <p className="text-xs text-slate-600 mt-1">
+              <p className="sp-mute text-xs mt-1">
                 {t("procedure.enrolledCourses", {
                   courses: enrolled.map((c) => c.name).join(", "),
                 })}
@@ -176,8 +187,8 @@ export function ProcedureUpload() {
           </div>
 
           {canAnalyze && (
-            <div>
-              <label className="block text-xs text-slate-400 mb-1.5">
+            <div className="sp-field">
+              <label>
                 {t("procedure.statementLabel")}
               </label>
               <textarea
@@ -185,20 +196,17 @@ export function ProcedureUpload() {
                 onChange={(e) => setItemContent(e.target.value)}
                 rows={3}
                 placeholder={t("procedure.statementPlaceholder")}
-                className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-violet-500 resize-none"
+                className="sp-input"
+                style={{ resize: "none" }}
               />
             </div>
           )}
 
-          {/* Dropzone */}
-          <div
-            className={[
-              "border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all",
-              file
-                ? "border-violet-500 bg-violet-900/10"
-                : "border-slate-600 hover:border-slate-500 bg-slate-800/50",
-            ].join(" ")}
-            onClick={() => fileRef.current?.click()}
+          {/* Dropzone. <label> en vez de <div onClick>: arrastrar no puede ser la
+              unica via, y con `hidden` el input tampoco entraba en el orden de
+              foco. El label abre el selector solo. */}
+          <label
+            className={`sp-dropzone${file ? " active" : ""}`}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
@@ -215,11 +223,11 @@ export function ProcedureUpload() {
             ) : (
               <div className="space-y-2">
                 <div className="text-4xl">📷</div>
-                <p className="text-slate-400 text-sm">
+                <p className="sp-dim text-sm">
                   {t("procedure.dropFile")}{" "}
                   <span className="text-violet-400 underline">{t("procedure.clickToSelect")}</span>
                 </p>
-                <p className="text-xs text-slate-600">
+                <p className="sp-mute text-xs">
                   {t("procedure.fileTypes", { max: MAX_SIZE_MB })}
                 </p>
               </div>
@@ -228,21 +236,21 @@ export function ProcedureUpload() {
               ref={fileRef}
               type="file"
               accept={ALLOWED_TYPES.join(",")}
-              className="hidden"
+              className="sr-only"
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (f) handleFile(f);
               }}
             />
-          </div>
+          </label>
 
           {file && (
-            <div className="flex items-center gap-3 bg-slate-800 rounded-xl px-4 py-2 border border-slate-700">
-              <span className="text-slate-300 text-sm flex-1 truncate">{file.name}</span>
-              <span className="text-xs text-slate-500">{(file.size / 1024).toFixed(0)} KB</span>
+            <div className="sp-row">
+              <span className="text-sm flex-1 truncate" style={{ color: "var(--dim)" }}>{file.name}</span>
+              <span className="sp-mute text-xs">{(file.size / 1024).toFixed(0)} KB</span>
               <button
                 onClick={() => { setFile(null); setPreview(null); }}
-                className="text-slate-500 hover:text-red-400 text-xs"
+                className="sp-mute hover:text-red-400 text-xs"
                 aria-label={t("procedure.removeFile")}
               >
                 ✕
@@ -295,11 +303,11 @@ export function ProcedureUpload() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-slate-700 bg-[var(--surface)] p-8 text-center space-y-4"
+          className="sp-card text-center space-y-4"
         >
           <KatIAAvatar state="thinking" size="lg" />
-          <p className="text-sm text-slate-300 font-medium">{t("procedure.katiaReviewing")}</p>
-          <p className="text-xs text-slate-500">{t("procedure.katiaReviewingHint")}</p>
+          <p className="text-sm font-medium" style={{ color: "var(--dim)" }}>{t("procedure.katiaReviewing")}</p>
+          <p className="sp-mute text-xs">{t("procedure.katiaReviewingHint")}</p>
           <div className="flex justify-center">
             <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
           </div>
@@ -345,9 +353,9 @@ export function ProcedureUpload() {
               </div>
             )}
 
-            <div className="rounded-2xl border border-slate-700 bg-[var(--surface)] p-5 space-y-4">
+            <div className="sp-card space-y-4">
               <div className="flex items-baseline justify-between">
-                <h3 className="text-sm font-semibold text-slate-200">
+                <h3 className="text-sm font-semibold" style={{ color: "var(--text)", margin: 0 }}>
                   {usedProvider === "groq"
                     ? t("procedure.reviewRigorous")
                     : t("procedure.reviewGeneric")}
@@ -468,6 +476,18 @@ export function ProcedureUpload() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Retroalimentación docente — mismos envíos que ve en KatIA/Feedback */}
+      {submissions.length > 0 && (
+        <div className="space-y-3">
+          <h3 style={{ margin: 0 }}>{t("procedure.feedbackListTitle")}</h3>
+          {submissions.map((row) => {
+            const kind = classifyStatus(row.status);
+            if (kind === "validated") return <ValidatedCard key={row.submission_id} row={row} t={t} />;
+            return <PendingCard key={row.submission_id} row={row} kind={kind} t={t} />;
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,620 @@
+[
+  {
+    "id": "HT8-U5-P108-A1",
+    "tipo": "abierta",
+    "enunciado": "Responde: ¿qué producto notable se utiliza para la factorización de una diferencia de cuadrados?",
+    "respuesta": "La suma por diferencia: $(a+b)(a-b)=a^2-b^2$. Factorizar una diferencia de cuadrados es leer esa identidad al revés: se sacan las raíces cuadradas de los dos términos y se escribe su suma multiplicada por su diferencia.",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 1",
+    "apto_para": [
+      "procedimiento_abierto",
+      "practica_seleccion"
+    ],
+    "nota": "El orden de los factores no importa, pero sí cuál lleva el $+$ y cuál el $-$ respecto a las raíces: $a^2-b^2=(a+b)(a-b)$, nunca $(a+b)^2$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P108-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Halla la raíz cuadrada de $4x^2$ (verifica elevándola al cuadrado).",
+    "expr": "(2*x)**2",
+    "respuesta": "2*x",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 2, ítem a",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$\\sqrt{4x^2}=2x$.",
+    "dificultad": 1000,
+    "nota_correccion": "Respuesta corregida 2026-08-13: la extracción había dejado el radicando en vez de la raíz."
+  },
+  {
+    "id": "HT8-U5-P108-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Halla la raíz cuadrada de $121x^4y^2$ (verifica elevándola al cuadrado).",
+    "expr": "(11*x**2*y)**2",
+    "respuesta": "11*x**2*y",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 2, ítem b",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$\\sqrt{121x^4y^2}=11x^2y$: se saca la raíz del coeficiente y se parten a la mitad los exponentes.",
+    "dificultad": 1100,
+    "nota_correccion": "Respuesta corregida 2026-08-13: la extracción había dejado el radicando en vez de la raíz."
+  },
+  {
+    "id": "HT8-U5-P108-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Halla la raíz cuadrada de $25y^6$ (verifica elevándola al cuadrado).",
+    "expr": "(5*y**3)**2",
+    "respuesta": "5*y**3",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 2, ítem c",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$\\sqrt{25y^6}=5y^3$.",
+    "dificultad": 1050,
+    "nota_correccion": "Respuesta corregida 2026-08-13: la extracción había dejado el radicando en vez de la raíz."
+  },
+  {
+    "id": "HT8-U5-P108-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Halla la raíz cuadrada de $\\dfrac{36}{25}x^4y^6$ (verifica elevándola al cuadrado).",
+    "expr": "(6/5*x**2*y**3)**2",
+    "respuesta": "Rational(6,5)*x**2*y**3",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 2, ítem d",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$\\sqrt{\frac{36}{25}x^4y^6}=\frac65x^2y^3$: la raíz de una fracción es la fracción de las raíces.",
+    "dificultad": 1200,
+    "nota_correccion": "Respuesta corregida 2026-08-13: la extracción había dejado el radicando en vez de la raíz."
+  },
+  {
+    "id": "HT8-U5-P108-A2e",
+    "tipo": "simbolico",
+    "enunciado": "Halla la raíz cuadrada de $169z^8$ (verifica elevándola al cuadrado).",
+    "expr": "(13*z**4)**2",
+    "respuesta": "13*z**4",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 2, ítem e",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$\\sqrt{169z^8}=13z^4$. Conviene saberse los cuadrados hasta $15^2$.",
+    "dificultad": 1150,
+    "nota_correccion": "Respuesta corregida 2026-08-13: la extracción había dejado el radicando en vez de la raíz."
+  },
+  {
+    "id": "HT8-U5-P108-A2f",
+    "tipo": "simbolico",
+    "enunciado": "Halla la raíz cuadrada de $\\dfrac{1}{49}x^4$ (verifica elevándola al cuadrado).",
+    "expr": "(1/7*x**2)**2",
+    "respuesta": "Rational(1,7)*x**2",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 2, ítem f",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$\\sqrt{\frac{1}{49}x^4}=\frac17x^2$.",
+    "dificultad": 1100,
+    "nota_correccion": "Respuesta corregida 2026-08-13: la extracción había dejado el radicando en vez de la raíz."
+  },
+  {
+    "id": "HT8-U5-P108-A3a",
+    "tipo": "abierta",
+    "enunciado": "¿Es $4x^2+1$ una diferencia de cuadrados? Si lo es, factorízala.",
+    "respuesta": "NO es una diferencia de cuadrados. Es una SUMA de cuadrados, y una suma de cuadrados no se factoriza en los reales.",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 3, ítem a",
+    "apto_para": [
+      "procedimiento_abierto",
+      "practica_seleccion"
+    ],
+    "nota": "NO es una diferencia de cuadrados. Es una SUMA de cuadrados, y una suma de cuadrados no se factoriza en los reales.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P108-A3b",
+    "tipo": "simbolico",
+    "enunciado": "¿Es $16y^4-4y^2$ una diferencia de cuadrados? Si lo es, factorízala.",
+    "expr": "4*y**2*(2*y - 1)*(2*y + 1)",
+    "respuesta": "16*y**4 - 4*y**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 3, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "SÍ es una diferencia de cuadrados. $(4y^2)^2-(2y)^2=(4y^2+2y)(4y^2-2y)$, y sacando el factor común queda $4y^2(2y+1)(2y-1)$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P108-A3c",
+    "tipo": "abierta",
+    "enunciado": "¿Es $49x^3y^2-x^8y^4$ una diferencia de cuadrados? Si lo es, factorízala.",
+    "respuesta": "NO es una diferencia de cuadrados. $49x^3y^2$ no es un cuadrado perfecto: el exponente de $x$ es impar. Sí admite factor común: $x^3y^2(49-x^5y^2)$.",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 3, ítem c",
+    "apto_para": [
+      "procedimiento_abierto",
+      "practica_seleccion"
+    ],
+    "nota": "NO es una diferencia de cuadrados. $49x^3y^2$ no es un cuadrado perfecto: el exponente de $x$ es impar. Sí admite factor común: $x^3y^2(49-x^5y^2)$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P108-A3d",
+    "tipo": "simbolico",
+    "enunciado": "¿Es $9x^2-1$ una diferencia de cuadrados? Si lo es, factorízala.",
+    "expr": "(3*x - 1)*(3*x + 1)",
+    "respuesta": "9*x**2 - 1",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 3, ítem d",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "SÍ es una diferencia de cuadrados. $(3x)^2-1^2=(3x+1)(3x-1)$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U5-P108-A3e",
+    "tipo": "abierta",
+    "enunciado": "¿Es $25x-4x^4$ una diferencia de cuadrados? Si lo es, factorízala.",
+    "respuesta": "NO es una diferencia de cuadrados. $25x$ no es un cuadrado perfecto (el exponente de $x$ es impar). Sí admite factor común: $x(25-4x^3)$.",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 3, ítem e",
+    "apto_para": [
+      "procedimiento_abierto",
+      "practica_seleccion"
+    ],
+    "nota": "NO es una diferencia de cuadrados. $25x$ no es un cuadrado perfecto (el exponente de $x$ es impar). Sí admite factor común: $x(25-4x^3)$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P108-A3f",
+    "tipo": "abierta",
+    "enunciado": "¿Es $96x^6y^8+36x^4y^6$ una diferencia de cuadrados? Si lo es, factorízala.",
+    "respuesta": "NO es una diferencia de cuadrados. Es una suma, no una diferencia; además $96$ no es cuadrado perfecto. Factor común: $12x^4y^6(8x^2y^2+3)$.",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 3, ítem f",
+    "apto_para": [
+      "procedimiento_abierto",
+      "practica_seleccion"
+    ],
+    "nota": "NO es una diferencia de cuadrados. Es una suma, no una diferencia; además $96$ no es cuadrado perfecto. Factor común: $12x^4y^6(8x^2y^2+3)$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P108-A3g",
+    "tipo": "abierta",
+    "enunciado": "¿Es $36x^4y-24x^2y^2$ una diferencia de cuadrados? Si lo es, factorízala.",
+    "respuesta": "NO es una diferencia de cuadrados. Ninguno de los dos términos es cuadrado perfecto ($y$ y $24$ lo impiden). Factor común: $12x^2y(3x^2-2y)$.",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 3, ítem g",
+    "apto_para": [
+      "procedimiento_abierto",
+      "practica_seleccion"
+    ],
+    "nota": "NO es una diferencia de cuadrados. Ninguno de los dos términos es cuadrado perfecto ($y$ y $24$ lo impiden). Factor común: $12x^2y(3x^2-2y)$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P108-A3h",
+    "tipo": "simbolico",
+    "enunciado": "¿Es $\\dfrac{100}{81}x^4y^6-\\dfrac{36}{64}w^8y^4$ una diferencia de cuadrados? Si lo es, factorízala.",
+    "expr": "(10/9*x**2*y**3 + 3/4*w**4*y**2)*(10/9*x**2*y**3 - 3/4*w**4*y**2)",
+    "respuesta": "100/81*x**4*y**6 - 36/64*w**8*y**4",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 3, ítem h",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "SÍ es una diferencia de cuadrados. Las raíces son $\frac{10}{9}x^2y^3$ y $\frac{6}{8}w^4y^2=\frac34w^4y^2$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P108-A3i",
+    "tipo": "simbolico",
+    "enunciado": "¿Es $\\dfrac{16}{81}x^{2n}y^{4n}-\\dfrac{4}{25}x^{4n}y^{6n}$ una diferencia de cuadrados? Si lo es, factorízala.",
+    "expr": "(4/9*x**n*y**(2*n) + 2/5*x**(2*n)*y**(3*n))*(4/9*x**n*y**(2*n) - 2/5*x**(2*n)*y**(3*n))",
+    "respuesta": "16/81*x**(2*n)*y**(4*n) - 4/25*x**(4*n)*y**(6*n)",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 3, ítem i",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "SÍ es una diferencia de cuadrados. Con exponentes literales la regla es la misma: se parten a la mitad. Raíces: $\frac49x^ny^{2n}$ y $\frac25x^{2n}y^{3n}$.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P108-A3j",
+    "tipo": "simbolico",
+    "enunciado": "¿Es $\\dfrac{64}{36}x^{4n}y^{2n}-\\dfrac{49}{100}x^{2n}y^{4n}$ una diferencia de cuadrados? Si lo es, factorízala.",
+    "expr": "(4/3*x**(2*n)*y**n + 7/10*x**n*y**(2*n))*(4/3*x**(2*n)*y**n - 7/10*x**n*y**(2*n))",
+    "respuesta": "64/36*x**(4*n)*y**(2*n) - 49/100*x**(2*n)*y**(4*n)",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 3, ítem j",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "SÍ es una diferencia de cuadrados. Raíces: $\\sqrt{\frac{64}{36}}=\frac86=\frac43$ por $x^{2n}y^n$, y $\frac{7}{10}x^ny^{2n}$.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P108-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza $x^8-1$.",
+    "expr": "(x - 1)*(x + 1)*(x**2 + 1)*(x**4 + 1)",
+    "respuesta": "x**8 - 1",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 4, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Se puede seguir factorizando: $(x^4-1)(x^4+1)$, luego $(x^2-1)(x^2+1)(x^4+1)$ y por último $(x-1)(x+1)(x^2+1)(x^4+1)$. La suma de cuadrados $x^2+1$ ya no se descompone.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P108-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza $4a^2-9$.",
+    "expr": "(2*a - 3)*(2*a + 3)",
+    "respuesta": "4*a**2 - 9",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 4, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U5-P108-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza $25x^2y^4-121x^4y^2$.",
+    "expr": "x**2*y**2*(5*y - 11*x)*(5*y + 11*x)",
+    "respuesta": "25*x**2*y**4 - 121*x**4*y**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 4, ítem c",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Conviene sacar primero el factor común $x^2y^2$ y después aplicar la diferencia de cuadrados a $25y^2-121x^2$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P108-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza $\\dfrac{1}{64}x^8-\\dfrac{1}{25}y^4$.",
+    "expr": "(1/8*x**4 - 1/5*y**2)*(1/8*x**4 + 1/5*y**2)",
+    "respuesta": "1/64*x**8 - 1/25*y**4",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 4, ítem d",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Raíces: $\frac18x^4$ y $\frac15y^2$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P108-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza $y^4-16$.",
+    "expr": "(y - 2)*(y + 2)*(y**2 + 4)",
+    "respuesta": "y**4 - 16",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 4, ítem e",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Dos pasos: $(y^2-4)(y^2+4)$ y luego $y^2-4=(y-2)(y+2)$. El factor $y^2+4$ es una suma y se queda como está.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P108-A4f",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza $a^2-b^2$.",
+    "expr": "(a - b)*(a + b)",
+    "respuesta": "a**2 - b**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 4, ítem f",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El caso base de la fórmula.",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U5-P108-A4g",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza $49x^6z^6-100x^4z^8$.",
+    "expr": "x**4*z**6*(7*x - 10*z)*(7*x + 10*z)",
+    "respuesta": "49*x**6*z**6 - 100*x**4*z**8",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 4, ítem g",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Factor común $x^4z^6$ y después $49x^2-100z^2$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P108-A4h",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza $100x^2y^4-\\dfrac{1}{16}z^8$.",
+    "expr": "(10*x*y**2 - 1/4*z**4)*(10*x*y**2 + 1/4*z**4)",
+    "respuesta": "100*x**2*y**4 - 1/16*z**8",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 4, ítem h",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Raíces: $10xy^2$ y $\frac14z^4$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P108-A4i",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza $\\dfrac{81}{121}a^{2x}b^{4x}-\\dfrac{36}{169}c^{6x}$.",
+    "expr": "(9/11*a**x*b**(2*x) + 6/13*c**(3*x))*(9/11*a**x*b**(2*x) - 6/13*c**(3*x))",
+    "respuesta": "81/121*a**(2*x)*b**(4*x) - 36/169*c**(6*x)",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 4, ítem i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Raíces: $\frac{9}{11}a^xb^{2x}$ y $\frac{6}{13}c^{3x}$.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P108-A4j",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza $\\dfrac{169}{225}a^{2x+2}c^2-\\dfrac{100}{16}b^{2x+4}$.",
+    "expr": "(13/15*a**(x + 1)*c + 5/2*b**(x + 2))*(13/15*a**(x + 1)*c - 5/2*b**(x + 2))",
+    "respuesta": "169/225*a**(2*x + 2)*c**2 - 100/16*b**(2*x + 4)",
+    "conjunto": "Q",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 4, ítem j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "El más exigente: $\\sqrt{a^{2x+2}}=a^{x+1}$ (se parte el exponente entero, no solo el $2x$) y $\\sqrt{\frac{100}{16}}=\frac{10}{4}=\frac52$.",
+    "dificultad": 1750
+  },
+  {
+    "id": "HT8-U5-P108-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en dos factores y simplifica: $(x+y)^2-a^2$. Si no es posible, indica por qué.",
+    "expr": "(x + y + a)*(x + y - a)",
+    "respuesta": "(x + y)**2 - a**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 5, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Todo el binomio $(x+y)$ hace de primera raíz: $(x+y+a)(x+y-a)$. No hace falta desarrollar el cuadrado.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P108-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en dos factores y simplifica: $9-(x+y)^2$. Si no es posible, indica por qué.",
+    "expr": "(3 + x + y)*(3 - x - y)",
+    "respuesta": "9 - (x + y)**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 5, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Raíces $3$ y $(x+y)$: $(3+x+y)(3-x-y)$. Ojo con el segundo factor: el menos afecta a los dos términos.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P108-A5c",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en dos factores y simplifica: $4(x-y)^2-49y^2$. Si no es posible, indica por qué.",
+    "expr": "(2*x - 9*y)*(2*x + 5*y)",
+    "respuesta": "4*(x - y)**2 - 49*y**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 5, ítem c",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Raíces $2(x-y)$ y $7y$: $(2x-2y+7y)(2x-2y-7y)=(2x+5y)(2x-9y)$. Aquí sí conviene reducir dentro de cada paréntesis.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P108-A5d",
+    "tipo": "abierta",
+    "enunciado": "Descompón en dos factores y simplifica: $6a^2-(a-2b)^2$. Si no es posible, indica por qué.",
+    "respuesta": "NO se puede como diferencia de cuadrados: $6$ no es un cuadrado perfecto, así que $6a^2$ no tiene raíz cuadrada exacta. Desarrollando queda $5a^2+4ab-4b^2$, que tampoco se factoriza con coeficientes racionales.",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 5, ítem d",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Los dos ítems imposibles de la actividad comparten la misma causa: un coeficiente que no es cuadrado perfecto. Es lo primero que hay que mirar.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P108-A5e",
+    "tipo": "abierta",
+    "enunciado": "Descompón en dos factores y simplifica: $81(m+n)^2-5(m-2)^2$. Si no es posible, indica por qué.",
+    "respuesta": "NO se puede: aunque $81$ sí es cuadrado perfecto, $5$ no lo es. Desarrollando queda $76m^2+162mn+81n^2+20m-20$, que no se factoriza.",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 5, ítem e",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Los dos ítems imposibles de la actividad comparten la misma causa: un coeficiente que no es cuadrado perfecto. Es lo primero que hay que mirar.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P108-A5f",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en dos factores y simplifica: $100(a+b^2)^2-121(a^2+b^2)^2$. Si no es posible, indica por qué.",
+    "expr": "-(11*a**2 - 10*a + b**2)*(11*a**2 + 10*a + 21*b**2)",
+    "respuesta": "100*(a + b**2)**2 - 121*(a**2 + b**2)**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 5, ítem f",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Raíces $10(a+b^2)$ y $11(a^2+b^2)$. Sumando y restando: $(11a^2+10a+21b^2)$ y $(10a-11a^2-b^2)$, cuyo producto es la respuesta.",
+    "dificultad": 1700
+  },
+  {
+    "id": "HT8-U5-P108-A6",
+    "tipo": "simbolico",
+    "enunciado": "Un cuadrado de lado $m$ tiene una franja de ancho $n$ a lo largo del borde superior y otra del mismo ancho a lo largo del borde izquierdo. Expresa el área de la región sombreada (el cuadrado que queda) como producto de dos polinomios.",
+    "expr": "m**2 - m*n - (m - n)*n",
+    "respuesta": "(m - n)**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Factorización de la diferencia de cuadrados",
+    "unidad": 5,
+    "pagina_pdf": 108,
+    "referencia": "Actividad 6",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "figura": "cuadrado de lado m dividido en celdas; la esquina inferior derecha, de lado m−n, está sombreada — reconstruible en Python",
+    "nota": "El área sombreada es $(m-n)(m-n)=(m-n)^2$, que es un producto de dos polinomios, que es justo lo que pide el enunciado. Se puede calcular de dos formas: midiendo directamente el cuadrado interior, de lado $m-n$; o restando del cuadrado grande las dos franjas y devolviendo la esquina contada dos veces, $m^2-mn-mn+n^2$. La segunda vía es la que conecta con el trinomio cuadrado perfecto.",
+    "dificultad": 1500
+  }
+]

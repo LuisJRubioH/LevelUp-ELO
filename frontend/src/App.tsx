@@ -15,6 +15,20 @@ import { Login } from "./pages/Login";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { PageSkeleton } from "./components/ui/PageSkeleton";
 
+// Landing pública — cargada bajo demanda
+const Home = lazy(() => import("./pages/Home").then((m) => ({ default: m.Home })));
+const ChangePassword = lazy(() =>
+  import("./pages/ChangePassword").then((m) => ({ default: m.ChangePassword }))
+);
+const DisplayName = lazy(() =>
+  import("./pages/DisplayName").then((m) => ({ default: m.DisplayName }))
+);
+
+// Shell de la Consola Docente (rediseño) — reemplaza el Layout para /teacher/*
+const TeacherLayout = lazy(() =>
+  import("./pages/Teacher/TeacherLayout").then((m) => ({ default: m.TeacherLayout }))
+);
+
 // Estudiante — cargado bajo demanda
 const Practice = lazy(() =>
   import("./pages/Student/Practice").then((m) => ({ default: m.Practice }))
@@ -25,6 +39,18 @@ const Stats = lazy(() =>
 const Courses = lazy(() =>
   import("./pages/Student/Courses").then((m) => ({ default: m.Courses }))
 );
+const CourseEntry = lazy(() =>
+  import("./pages/Student/CourseEntry").then((m) => ({ default: m.CourseEntry }))
+);
+const CourseMap = lazy(() =>
+  import("./pages/Student/CourseMap").then((m) => ({ default: m.CourseMap }))
+);
+const Lesson = lazy(() =>
+  import("./pages/Student/Lesson").then((m) => ({ default: m.Lesson }))
+);
+const StudentLayout = lazy(() =>
+  import("./pages/Student/StudentLayout").then((m) => ({ default: m.StudentLayout }))
+);
 const Exam = lazy(() =>
   import("./pages/Student/Exam").then((m) => ({ default: m.Exam }))
 );
@@ -33,6 +59,9 @@ const ProcedureUpload = lazy(() =>
 );
 const Feedback = lazy(() =>
   import("./pages/Student/Feedback").then((m) => ({ default: m.Feedback }))
+);
+const League = lazy(() =>
+  import("./pages/Student/League").then((m) => ({ default: m.League }))
 );
 
 // Docente — cargado bajo demanda
@@ -84,12 +113,6 @@ const queryClient = new QueryClient({
   },
 });
 
-function RequireAuth({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <>{children}</>;
-}
-
 function RequireRole({
   role,
   children,
@@ -98,17 +121,26 @@ function RequireRole({
   children: React.ReactNode;
 }) {
   const user = useAuthStore((s) => s.user);
+  const mustChangePassword = useAuthStore((s) => s.mustChangePassword);
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== role && user.role !== "admin") {
     return <Navigate to="/login" replace />;
   }
+  // Spec 004 FR-030: a temporary password is changed before anything else.
+  if (mustChangePassword) return <Navigate to="/cambiar-contrasena" replace />;
+  return <>{children}</>;
+}
+
+function RequireSignedIn({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user);
+  if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
 function StudentRoute({ children }: { children: React.ReactNode }) {
   return (
     <RequireRole role="student">
-      <Layout>{children}</Layout>
+      <StudentLayout>{children}</StudentLayout>
     </RequireRole>
   );
 }
@@ -116,16 +148,16 @@ function StudentRoute({ children }: { children: React.ReactNode }) {
 function TeacherRoute({ children }: { children: React.ReactNode }) {
   return (
     <RequireRole role="teacher">
-      <Layout>{children}</Layout>
+      <TeacherLayout>{children}</TeacherLayout>
     </RequireRole>
   );
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
   return (
-    <RequireAuth>
+    <RequireRole role="admin">
       <Layout>{children}</Layout>
-    </RequireAuth>
+    </RequireRole>
   );
 }
 
@@ -151,8 +183,17 @@ export default function App() {
           <Suspense fallback={<PageSkeleton />}>
             <Routes>
               {/* Público */}
+              <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route
+                path="/cambiar-contrasena"
+                element={<RequireSignedIn><ChangePassword /></RequireSignedIn>}
+              />
+              {/* Spec 004 FR-025: the student's own display name. */}
+              <Route
+                path="/mi-nombre"
+                element={<RequireRole role="student"><DisplayName /></RequireRole>}
+              />
 
               {/* ── Estudiante ─────────────────────────────────────────── */}
               <Route
@@ -166,6 +207,22 @@ export default function App() {
               <Route
                 path="/student/courses"
                 element={<StudentRoute><Courses /></StudentRoute>}
+              />
+              <Route
+                path="/student/course/:courseId"
+                element={<StudentRoute><CourseEntry /></StudentRoute>}
+              />
+              <Route
+                path="/student/course/:courseId/map"
+                element={<StudentRoute><CourseMap /></StudentRoute>}
+              />
+              <Route
+                path="/student/course/:courseId/lesson/:nodeId"
+                element={<StudentRoute><Lesson /></StudentRoute>}
+              />
+              <Route
+                path="/student/league"
+                element={<StudentRoute><League /></StudentRoute>}
               />
               <Route
                 path="/student/exam"

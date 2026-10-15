@@ -1,0 +1,714 @@
+[
+  {
+    "id": "CS8-U4-P092-A097",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 97",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 300,
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cubo del monomio m.",
+    "expr": "m**3",
+    "respuesta": "m**3"
+  },
+  {
+    "id": "CS8-U4-P092-A098",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 98",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 300,
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cubo del monomio 3n.",
+    "expr": "(3*n)**3",
+    "respuesta": "27*n**3"
+  },
+  {
+    "id": "CS8-U4-P092-A099",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 99",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 350,
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cubo del monomio 5x².",
+    "expr": "(5*x**2)**3",
+    "respuesta": "125*x**6"
+  },
+  {
+    "id": "CS8-U4-P092-A100",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 100",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 400,
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cubo del monomio (7/3)x³.",
+    "expr": "(7*x**3/3)**3",
+    "respuesta": "343*x**9/27"
+  },
+  {
+    "id": "CS8-U4-P092-A101",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 101",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 400,
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cubo del monomio -6m³b⁴.",
+    "expr": "(-6*m**3*b**4)**3",
+    "respuesta": "-216*m**9*b**12"
+  },
+  {
+    "id": "CS8-U4-P092-A102",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 102",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 450,
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cubo del monomio 0,3x⁴y⁶z².",
+    "expr": "(3*x**4*y**6*z**2/10)**3",
+    "respuesta": "27*x**12*y**18*z**6/1000"
+  },
+  {
+    "id": "CS8-U4-P092-A103",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 103",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cubo del monomio √5·s³p⁷.",
+    "expr": "(sqrt(5)*s**3*p**7)**3",
+    "respuesta": "5*sqrt(5)*s**9*p**21"
+  },
+  {
+    "id": "CS8-U4-P092-A104",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 104",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cubo del monomio -(2/5)x^(3n+1).",
+    "expr": "(-2*x**(3*n+1)/5)**3",
+    "respuesta": "-8*x**(9*n+3)/125"
+  },
+  {
+    "id": "CS8-U4-P092-A105",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 105",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (x-6)**3.",
+    "expr": "(x-6)**3",
+    "respuesta": "x**3-18*x**2+108*x-216"
+  },
+  {
+    "id": "CS8-U4-P092-A106",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 106",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (2*x+3)**3.",
+    "expr": "(2*x+3)**3",
+    "respuesta": "8*x**3+36*x**2+54*x+27"
+  },
+  {
+    "id": "CS8-U4-P092-A107",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 107",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (3*z-1/3)**3.",
+    "expr": "(3*z-1/3)**3",
+    "respuesta": "27*z**3-9*z**2+z-1/27"
+  },
+  {
+    "id": "CS8-U4-P092-A108",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 108",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (x*y**2+4)**3.",
+    "expr": "(x*y**2+4)**3",
+    "respuesta": "x**3*y**6+12*x**2*y**4+48*x*y**2+64"
+  },
+  {
+    "id": "CS8-U4-P092-A109",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 109",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (3*a-2)**3.",
+    "expr": "(3*a-2)**3",
+    "respuesta": "27*a**3-54*a**2+36*a-8"
+  },
+  {
+    "id": "CS8-U4-P092-A110",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 110",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (2*b/3+3/4)**3.",
+    "expr": "(2*b/3+3/4)**3",
+    "respuesta": "8*b**3/27+b**2+9*b/8+27/64"
+  },
+  {
+    "id": "CS8-U4-P092-A111",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 111",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (-1/3+2*x/5)**3.",
+    "expr": "(-1/3+2*x/5)**3",
+    "respuesta": "8*x**3/125-4*x**2/25+2*x/15-1/27"
+  },
+  {
+    "id": "CS8-U4-P092-A112",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 112",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (3*x/5-5)**3.",
+    "expr": "(3*x/5-5)**3",
+    "respuesta": "27*x**3/125-27*x**2/5+45*x-125"
+  },
+  {
+    "id": "CS8-U4-P092-A113",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 113",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (x**m-y**m)**3.",
+    "expr": "(x**m-y**m)**3",
+    "respuesta": "x**(3*m)-3*x**(2*m)*y**m+3*x**m*y**(2*m)-y**(3*m)"
+  },
+  {
+    "id": "CS8-U4-P092-A114",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 114",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (w**(n+1)+1)**3.",
+    "expr": "(w**(n+1)+1)**3",
+    "respuesta": "w**(3*n+3)+3*w**(2*n+2)+3*w**(n+1)+1"
+  },
+  {
+    "id": "CS8-U4-P092-A115",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 115",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (x**n/2-2)**3.",
+    "expr": "(x**n/2-2)**3",
+    "respuesta": "x**(3*n)/8-3*x**(2*n)/2+6*x**n-8"
+  },
+  {
+    "id": "CS8-U4-P092-A116",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 116",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 800,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (2*x**(n+1)/27-6*x)**3.",
+    "expr": "(2*x**(n+1)/27-6*x)**3",
+    "respuesta": "8*x**(3*n+3)/19683-8*x**(2*n+3)/81+8*x**(n+3)-216*x**3"
+  },
+  {
+    "id": "CS8-U4-P092-A117",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 117",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (b/6+3/45)**3.",
+    "expr": "(b/6+3/45)**3",
+    "respuesta": "b**3/216+b**2/180+b/450+1/3375"
+  },
+  {
+    "id": "CS8-U4-P092-A118",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 118",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (4*m*x**2/5-1/4)**3.",
+    "expr": "(4*m*x**2/5-1/4)**3",
+    "respuesta": "64*m**3*x**6/125-12*m**2*x**4/25+3*m*x**2/20-1/64"
+  },
+  {
+    "id": "CS8-U4-P092-A119",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 119",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 600,
+    "tipo": "simbolico",
+    "enunciado": "Comprueba que (a-b)³=a³-3ab(a-b)-b³.",
+    "expr": "(a-b)**3",
+    "respuesta": "a**3-3*a*b*(a-b)-b**3"
+  },
+  {
+    "id": "CS8-U4-P092-A120",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 120",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Decide si (a+1)³=a³+3a²+3a+1 es verdadera o falsa y justifica.",
+    "expr": "(a+1)**3",
+    "respuesta": "a**3+3*a**2+3*a+1",
+    "veredicto": "V"
+  },
+  {
+    "id": "CS8-U4-P092-A121",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 121",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Decide si (b-2)³=b³-3b²+12b-8 es verdadera o falsa y justifica.",
+    "expr": "(b-2)**3",
+    "respuesta": "b**3-6*b**2+12*b-8",
+    "igualdad_impresa": "b**3-3*b**2+12*b-8",
+    "veredicto": "F"
+  },
+  {
+    "id": "CS8-U4-P092-A122",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 122",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Decide si (m+0,2)³=(m²+0,2)(m+0,2)² es verdadera o falsa y justifica.",
+    "expr": "(m+1/5)**3",
+    "respuesta": "m**3+3*m**2/5+3*m/25+1/125",
+    "igualdad_impresa": "(m**2+1/5)*(m+1/5)**2",
+    "veredicto": "F"
+  },
+  {
+    "id": "CS8-U4-P092-A123",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 123",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Decide si (x+y)³=x³+3xy(x+y)+y³ es verdadera o falsa y justifica.",
+    "expr": "(x+y)**3",
+    "respuesta": "x**3+3*x*y*(x+y)+y**3",
+    "veredicto": "V"
+  },
+  {
+    "id": "CS8-U4-P092-A124",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 124",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Completa (x+□)³=x³+3x²+□+1.",
+    "expr": "(x+1)**3",
+    "respuesta": "x**3+3*x**2+3*x+1",
+    "respuesta_casillas": [
+      "1",
+      "3*x"
+    ]
+  },
+  {
+    "id": "CS8-U4-P092-A125",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 125",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Completa (a-2)³=□-6a²+□-8.",
+    "expr": "(a-2)**3",
+    "respuesta": "a**3-6*a**2+12*a-8",
+    "respuesta_casillas": [
+      "a**3",
+      "12*a"
+    ]
+  },
+  {
+    "id": "CS8-U4-P092-A126",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 126",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Completa (□+3)³=y³+□+27y+□.",
+    "expr": "(y+3)**3",
+    "respuesta": "y**3+9*y**2+27*y+27",
+    "respuesta_casillas": [
+      "y",
+      "9*y**2",
+      "27"
+    ]
+  },
+  {
+    "id": "CS8-U4-P092-A127",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 127",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 600,
+    "tipo": "numerico",
+    "enunciado": "Si m+n=6 y mn/2=4, calcula m³+n³.",
+    "expr": "6**3-3*8*6",
+    "respuesta": "72",
+    "justificacion": "mn=8 y m³+n³=(m+n)³-3mn(m+n)."
+  },
+  {
+    "id": "CS8-U4-P092-A128",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 128",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 600,
+    "tipo": "numerico",
+    "enunciado": "Si x+y=11 y xy=24, calcula x³+y³.",
+    "expr": "11**3-3*24*11",
+    "respuesta": "539",
+    "justificacion": "x³+y³=(x+y)³-3xy(x+y)."
+  },
+  {
+    "id": "CS8-U4-P092-A129",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 129",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (x+2)**3-((2*x-1)**3+(2*x+1)**3).",
+    "expr": "(x+2)**3-((2*x-1)**3+(2*x+1)**3)",
+    "respuesta": "-15*x**3+6*x**2+8"
+  },
+  {
+    "id": "CS8-U4-P092-A130",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 130",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (x+3)**3-(x-3)**3-9*(x**2+6).",
+    "expr": "(x+3)**3-(x-3)**3-9*(x**2+6)",
+    "respuesta": "9*x**2"
+  },
+  {
+    "id": "CS8-U4-P092-A131",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 131",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 800,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica ((2*a*b+c)**3-(2*a*b-c)**3+10*c**3)/(6*a**2*b**2+3*c**2).",
+    "expr": "((2*a*b+c)**3-(2*a*b-c)**3+10*c**3)/(6*a**2*b**2+3*c**2)",
+    "respuesta": "4*c"
+  },
+  {
+    "id": "CS8-U4-P092-A132",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 132",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Calcula el volumen de la esfera cuyo radio está rotulado 2t-6.",
+    "expr": "4*pi*(2*t-6)**3/3",
+    "respuesta": "32*pi*(t-3)**3/3",
+    "verificar": "La línea rotulada se interpreta como radio porque va del centro aproximado a la superficie; requiere conservar la figura."
+  },
+  {
+    "id": "CS8-U4-P092-A133",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 133",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 800,
+    "tipo": "simbolico",
+    "enunciado": "Calcula el volumen del cubo de arista 2x+y al que se le retira un cubo de arista x/7+y/3.",
+    "expr": "(2*x+y)**3-(x/7+y/3)**3",
+    "respuesta": "2743*x**3/343+587*x**2*y/49+125*x*y**2/21+26*y**3/27",
+    "verificar": "La lectura como cubo exterior con cavidad cúbica depende de la perspectiva y los dos rótulos de la figura."
+  },
+  {
+    "id": "CS8-U4-P092-A134",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 134",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "abierta",
+    "enunciado": "Halla el área del prisma celeste sabiendo que el volumen de toda la figura es 9.261u³ y que cada arista total está dividida en a y 3.",
+    "respuesta": "El cubo completo tiene arista 21, así que a=18. Si «área del prisma» significa área superficial del cubo celeste de arista a, resulta 6a²=1.944u². Si el libro pretendía pedir su volumen, sería a³=5.832u³.",
+    "verificar": "El enunciado dice área, aunque la sección y el dato son de volumen; debe contrastarse con el solucionario. La figura muestra el sólido celeste como un cubo a×a×a."
+  },
+  {
+    "id": "CS8-U4-P092-A135",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 135",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 800,
+    "tipo": "simbolico",
+    "enunciado": "Encuentra y corrige los errores del desarrollo impreso de (2m^x+n^y)³.",
+    "expr": "(2*m**x+n**y)**3",
+    "respuesta": "8*m**(3*x)+12*m**(2*x)*n**y+6*m**x*n**(2*y)+n**(3*y)",
+    "errores_detectados": [
+      "El último cubo se escribió como (2n)³ en lugar de (n^y)³.",
+      "Los términos mixtos no elevaron ni combinaron correctamente coeficientes y exponentes."
+    ]
+  },
+  {
+    "id": "CS8-U4-P092-A136",
+    "conjunto": "R",
+    "seccion": "Cubo de un binomio",
+    "unidad": 4,
+    "pagina_pdf": 92,
+    "referencia": "Actividad 136",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 850,
+    "tipo": "simbolico",
+    "enunciado": "Encuentra y corrige los errores del desarrollo impreso de (x^(y+2)+4y^(x-2))³.",
+    "expr": "(x**(y+2)+4*y**(x-2))**3",
+    "respuesta": "x**(3*y+6)+12*x**(2*y+4)*y**(x-2)+48*x**(y+2)*y**(2*x-4)+64*y**(3*x-6)",
+    "errores_detectados": [
+      "El último término debe ser el cubo del segundo monomio, no su cuadrado.",
+      "Al elevar potencias se multiplican los exponentes y también deben conservarse los factores mixtos completos."
+    ]
+  }
+]
+

@@ -1,0 +1,151 @@
+[
+  {
+    "id": "HT8-U9-P248-A1a",
+    "tipo": "clasificacion",
+    "enunciado": "Clasifica el triángulo ABC de la figura a según sus lados y según sus ángulos.",
+    "respuesta": {
+      "segun_lados": "Escaleno",
+      "segun_angulos": "Rectángulo"
+    },
+    "conjunto": "R",
+    "seccion": "Clasificación de triángulos",
+    "unidad": 9,
+    "pagina_pdf": 248,
+    "referencia": "Actividad 1, figura a",
+    "apto_para": ["procedimiento_abierto"],
+    "verificar": "La clasificación por lados depende de medir o conservar la figura original, pues el libro no imprime longitudes ni marcas de congruencia. La clasificación como rectángulo sí está respaldada por la marca de ángulo recto en C.",
+    "nota": "En el dibujo, AB, BC y AC tienen longitudes distintas.",
+    "dificultad": 500
+  },
+  {
+    "id": "HT8-U9-P248-A1b",
+    "tipo": "clasificacion",
+    "enunciado": "Clasifica el triángulo RST de la figura b según sus lados y según sus ángulos.",
+    "respuesta": {
+      "segun_lados": "Escaleno",
+      "segun_angulos": "Obtusángulo"
+    },
+    "conjunto": "R",
+    "seccion": "Clasificación de triángulos",
+    "unidad": 9,
+    "pagina_pdf": 248,
+    "referencia": "Actividad 1, figura b",
+    "apto_para": ["procedimiento_abierto"],
+    "verificar": "Las dos clasificaciones se leen de la forma del dibujo: no hay medidas ni marcas geométricas. Mantener la imagen original y aceptar pequeñas variaciones de medición; el ángulo obtuso previsto es el de vértice S.",
+    "nota": "Los tres lados se dibujan con longitudes distintas.",
+    "dificultad": 550
+  },
+  {
+    "id": "HT8-U9-P248-A1c",
+    "tipo": "clasificacion",
+    "enunciado": "Clasifica el triángulo PQR de la figura c según sus lados y según sus ángulos.",
+    "respuesta": {
+      "segun_lados": "Escaleno",
+      "segun_angulos": "Acutángulo"
+    },
+    "conjunto": "R",
+    "seccion": "Clasificación de triángulos",
+    "unidad": 9,
+    "pagina_pdf": 248,
+    "referencia": "Actividad 1, figura c",
+    "apto_para": ["procedimiento_abierto"],
+    "verificar": "Las dos clasificaciones dependen de medir la figura, porque no aparecen longitudes, medidas angulares ni marcas de congruencia. No reutilizar sin la imagen.",
+    "nota": "En la ilustración los tres lados son diferentes y los tres ángulos son menores de 90°.",
+    "dificultad": 550
+  },
+  {
+    "id": "HT8-U9-P248-A1d",
+    "tipo": "clasificacion",
+    "enunciado": "Clasifica el triángulo UVW de la figura d según sus lados y según sus ángulos.",
+    "respuesta": {
+      "segun_lados": "Isósceles",
+      "segun_angulos": "Acutángulo"
+    },
+    "conjunto": "R",
+    "seccion": "Clasificación de triángulos",
+    "unidad": 9,
+    "pagina_pdf": 248,
+    "referencia": "Actividad 1, figura d",
+    "apto_para": ["procedimiento_abierto"],
+    "verificar": "El dibujo sugiere UV=UW, pero el libro no incluye marcas de congruencia ni longitudes. La clasificación isósceles y acutángulo es la lectura visual prevista; exigir la imagen o añadir marcas antes de autocalificar.",
+    "nota": "La base VW se dibuja diferente de los dos lados oblicuos.",
+    "dificultad": 500
+  },
+  {
+    "id": "HT8-U9-P248-A2a",
+    "tipo": "numerico",
+    "enunciado": "¿Cuál es la medida de cada ángulo interior de un triángulo equilátero?",
+    "expr": "180/3",
+    "respuesta": "60",
+    "unidad_respuesta": "grados",
+    "conjunto": "R",
+    "seccion": "Propiedades de triángulos según sus lados",
+    "unidad": 9,
+    "pagina_pdf": 248,
+    "referencia": "Actividad 2, ítem a",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "nota": "Los tres ángulos son congruentes y suman 180°.",
+    "dificultad": 450
+  },
+  {
+    "id": "HT8-U9-P248-A2b",
+    "tipo": "abierta",
+    "enunciado": "¿Cómo son las medidas de los ángulos interiores de un triángulo escaleno?",
+    "respuesta": "Los tres ángulos interiores tienen medidas diferentes. Si dos fueran iguales, sus lados opuestos también serían iguales y el triángulo sería isósceles, no escaleno.",
+    "conjunto": "R",
+    "seccion": "Propiedades de triángulos según sus lados",
+    "unidad": 9,
+    "pagina_pdf": 248,
+    "referencia": "Actividad 2, ítem b",
+    "apto_para": ["procedimiento_abierto"],
+    "nota": "Ser escaleno no determina si el triángulo es acutángulo, rectángulo u obtusángulo.",
+    "dificultad": 500
+  },
+  {
+    "id": "HT8-U9-P248-A3x",
+    "tipo": "numerico",
+    "enunciado": "El triángulo STR es isósceles y los lados t y r tienen la misma medida. Si t=2x y r=4x-18, calcula x.",
+    "expr": "18/(4-2)",
+    "respuesta": "9",
+    "conjunto": "R",
+    "seccion": "Lados congruentes en un triángulo isósceles",
+    "unidad": 9,
+    "pagina_pdf": 248,
+    "referencia": "Actividad 3, valor de x",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "nota": "Se igualan 2x=4x-18.",
+    "dificultad": 600
+  },
+  {
+    "id": "HT8-U9-P248-A3-ST",
+    "tipo": "numerico",
+    "enunciado": "En el triángulo STR, el lado ST está representado por r=4x-18 y x=9. Halla la medida de ST.",
+    "expr": "4*9-18",
+    "respuesta": "18",
+    "unidad_respuesta": "unidades",
+    "conjunto": "R",
+    "seccion": "Lados congruentes en un triángulo isósceles",
+    "unidad": 9,
+    "pagina_pdf": 248,
+    "referencia": "Actividad 3, lado ST",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "nota": "ST=r.",
+    "dificultad": 550
+  },
+  {
+    "id": "HT8-U9-P248-A3-SR",
+    "tipo": "numerico",
+    "enunciado": "En el triángulo STR, el lado SR está representado por t=2x y x=9. Halla la medida de SR.",
+    "expr": "2*9",
+    "respuesta": "18",
+    "unidad_respuesta": "unidades",
+    "conjunto": "R",
+    "seccion": "Lados congruentes en un triángulo isósceles",
+    "unidad": 9,
+    "pagina_pdf": 248,
+    "referencia": "Actividad 3, lado SR",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "nota": "SR=t y, como corresponde a un triángulo isósceles, SR=ST=18.",
+    "dificultad": 550
+  }
+]

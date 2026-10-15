@@ -1,0 +1,27 @@
+{
+  "initial": "Repaint and substantially upgrade image 1 to image 2's premium detailed crisp PIXEL ART, rich controlled colors, luminous amber lighting, legible blue shadows, dimensional fabric, precise marble/mosaic/metal textures and adult feline proportions. Image 1 is scene/content/composition reference; image 2 art quality/style reference; image 3 canonical KatIA face only. Preserve original Greek night environment, narrative, props, framing. Full renewal not color filter. KatIA white adult feline, original teal ocular full silver plate on anatomical RIGHT eye (viewer LEFT in frontal view), green LEFT eye, orange/black patch near LEFT ear, silver piercings, ivory tunic/plum mantle/gold details. LEFT anatomical arm entirely robotic shoulder to all fingers; RIGHT entirely organic white fur. No extra limbs, no mirrored character, no photorealism/chibi/blurring. Preserve wide staircase behind KatIA and map table, papyrus, lamps, architecture. Transform mosaic figures to feline scholars consistent with the new series. Raised presenting hand at viewer LEFT entirely organic white fur shoulder to fingertips; stylus-holding hand at viewer RIGHT and ENTIRE ARM including shoulder and upper arm must be silver robot. No white shoulder above robot elbow. No added symbols, numbers or lettering on stairs. High detail 16:9 landscape.",
+  "stairsCorrection": "Edit ONLY staircase geometry. It must have EXACTLY FIVE broad marble steps/riser faces, count 1,2,3,4,5 bottom to top. Replace excess narrow steps with five evenly spaced taller broad risers in same space. Keep stair unlabelled, no numerals. Keep KatIA, arms, face, table, map, lamps, all surrounding architecture and same rich crisp pixel art unchanged.",
+  "base": "Edit this NEW base illustration to create one matching lesson variant. Preserve EXACT composition, camera, character face, clothes, lighting, colors, pixel art, map table and FIVE broad staircase steps. Change ONLY KatIA's raised ORGANIC RIGHT arm on viewer LEFT: extend its white-fur hand with index finger pointing at the specified step, with a small golden sparkle on fingertip and subtle golden highlight at targeted step. Keep this arm entirely white fur, NO metal. Keep her other LEFT arm viewer RIGHT fully robotic shoulder through fingers holding stylus unchanged. NO text, letters or numbers added. ",
+  "jobs": [
+    [
+      "step-naturales.png",
+      "Point downward-left to LOWEST broad step just above table (first of five)."
+    ],
+    [
+      "step-enteros.png",
+      "Point downward-left to SECOND broad step counting bottom upward, one step above lowest."
+    ],
+    [
+      "step-racionales.png",
+      "Point horizontally left to THIRD/MIDDLE broad step, two steps below top."
+    ],
+    [
+      "step-irracionales.png",
+      "Point upward-left to FOURTH broad step from bottom, immediately below topmost."
+    ],
+    [
+      "step-reales.png",
+      "Point upward-left to FIFTH/TOPMOST broad step of staircase, above all the others."
+    ]
+  ]
+}

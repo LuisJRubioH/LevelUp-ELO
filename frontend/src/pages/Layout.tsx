@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
 import { PageTransition } from "../components/ui/PageTransition";
 import { authApi } from "../api/auth";
 import { api } from "../api/client";
@@ -20,6 +21,7 @@ import { useNotifications } from "../hooks/useNotifications";
 import { ReportProblemButton } from "../components/ReportProblem/ReportProblemButton";
 import { ThemeToggle } from "../components/ui/ThemeToggle";
 import { LanguageToggle } from "../components/ui/LanguageToggle";
+import { resetClientAccountState } from "../lib/accountCleanup";
 
 interface NavItem {
   path: string;
@@ -73,6 +75,7 @@ function useSessionTimer(sessionStartTime: number | null) {
 }
 
 export function Layout({ children }: LayoutProps) {
+  const queryClient = useQueryClient();
   const { t } = useTranslation();
   const { user, sessionStartTime, clearAuth } = useAuthStore();
   const { apiKey, provider, model, setApiKey, setProvider, setModel } = useSettingsStore();
@@ -161,17 +164,18 @@ export function Layout({ children }: LayoutProps) {
     } catch {
       /* ignorar */
     }
+    await resetClientAccountState(queryClient);
     clearAuth();
     navigate("/login");
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-slate-900 overflow-hidden">
+    <div className="flex min-h-[100dvh] flex-col overflow-hidden bg-slate-900 md:h-[100dvh] md:flex-row">
       {/* Top bar móvil (solo visible en mobile) */}
       <header className="md:hidden bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <div className="text-base font-bold text-slate-100">
-            Level<span className="text-violet-400">Up</span>
+Oulad
           </div>
           {user?.role === "student" && sessionStartTime && (
             <span className="ml-2 text-xs text-slate-500 font-mono bg-slate-900 rounded px-2 py-0.5">
@@ -180,7 +184,7 @@ export function Layout({ children }: LayoutProps) {
           )}
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-400 truncate max-w-[80px]">{user?.username}</span>
+          <span className="text-xs text-slate-400 truncate max-w-[80px]">{user?.display_name || user?.username}</span>
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"
@@ -196,7 +200,7 @@ export function Layout({ children }: LayoutProps) {
         {/* Logo */}
         <div className="px-4 py-5 border-b border-slate-700">
           <div className="text-lg font-bold text-slate-100">
-            Level<span className="text-violet-400">Up</span>
+Oulad
           </div>
           <div className="text-xs text-slate-500 mt-0.5">v2.0.0 ELO</div>
         </div>
@@ -219,7 +223,7 @@ export function Layout({ children }: LayoutProps) {
                 }}
                 aria-current={active ? "page" : undefined}
                 className={[
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all",
+                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-[color,background-color,border-color,transform]",
                   active
                     ? "bg-violet-600 text-white font-medium shadow-sm"
                     : "text-slate-400 hover:bg-slate-700 hover:text-slate-200",
@@ -302,7 +306,7 @@ export function Layout({ children }: LayoutProps) {
 
         {/* Usuario + timer + logout */}
         <div className="px-4 py-4 border-t border-slate-700">
-          <div className="text-xs text-slate-300 font-medium truncate mb-0.5">{user?.username}</div>
+          <div className="text-xs text-slate-300 font-medium truncate mb-0.5">{user?.display_name || user?.username}</div>
           <div className="text-xs text-slate-600 mb-0.5">{user?.role}</div>
           {user?.education_level && (
             <div className="text-xs text-slate-600 mb-1">
@@ -378,6 +382,13 @@ export function Layout({ children }: LayoutProps) {
           </div>
           {/* PWA install deshabilitada — la plataforma se usa solo desde
               navegador. Ver guard global en App.tsx (beforeinstallprompt). */}
+          {/* Spec 004 FR-026: el propio usuario cambia su contraseña. */}
+          <button
+            onClick={() => navigate("/cambiar-contrasena")}
+            className="block text-xs text-slate-500 hover:text-slate-300 transition-colors mb-1"
+          >
+            Cambiar contraseña
+          </button>
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"

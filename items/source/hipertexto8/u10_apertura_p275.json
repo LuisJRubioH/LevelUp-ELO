@@ -1,0 +1,80 @@
+[
+  {
+    "id": "HT8-U10-P275-R1a",
+    "tipo": "numerico",
+    "enunciado": "En el arreglo triangular con las ocho filas V-O-C-A-C-I-O-N, ¿cuántas veces se puede leer la palabra «vocación» empezando en la V y bajando en cada paso a una de las dos letras adyacentes de la fila siguiente?",
+    "expr": "2**7",
+    "respuesta": "128",
+    "conjunto": "N",
+    "seccion": "Conteo de caminos",
+    "unidad": 10,
+    "pagina_pdf": 275,
+    "referencia": "Prepárate para razonar, ítem a",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "Hay siete descensos entre las ocho filas y en cada descenso se elige izquierda o derecha; por el principio multiplicativo hay 2⁷=128 recorridos.",
+    "nota": "La versión registrada explicita la regla de adyacencia que el impreso deja implícita en la disposición triangular.",
+    "dificultad": 600
+  },
+  {
+    "id": "HT8-U10-P275-R1b",
+    "tipo": "numerico",
+    "enunciado": "En el arreglo triangular A; B,C; D,E,F; G,H,I,J, ¿cuántos caminos hay desde A hasta H si en cada paso se baja a una de las dos letras adyacentes?",
+    "expr": "binomial(3,1)",
+    "respuesta": "3",
+    "conjunto": "N",
+    "seccion": "Conteo de caminos",
+    "unidad": 10,
+    "pagina_pdf": 275,
+    "referencia": "Prepárate para razonar, ítem b",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "Para llegar a la segunda posición de la cuarta fila se hacen tres descensos y exactamente uno debe ir a la derecha. Hay C(3,1)=3 caminos: A-B-D-H, A-B-E-H y A-C-E-H.",
+    "nota": "La versión registrada explicita la regla de movimiento, ausente en el enunciado impreso pero sugerida por el arreglo.",
+    "dificultad": 600
+  },
+  {
+    "id": "HT8-U10-P275-P1a",
+    "tipo": "numerico",
+    "enunciado": "Versión corregida: si los siete movimientos posibles del ajedrecista se consideran igualmente probables y exactamente dos permiten dar jaque mate, ¿cuál es la probabilidad de dar jaque mate?",
+    "expr": "2/7",
+    "respuesta": "2/7",
+    "conjunto": "Q",
+    "seccion": "Probabilidad clásica",
+    "unidad": 10,
+    "pagina_pdf": 275,
+    "referencia": "Para responder, primera pregunta, jaque mate",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "erratum": "El texto solo afirma que había siete movimientos posibles y que dos daban jaque mate; no dice que fueran elegidos al azar ni que fueran equiprobables. Como en una partida real el jugador decide deliberadamente, las cantidades 2 y 7 no bastan para determinar una probabilidad. Se añade la equiprobabilidad para obtener la respuesta escolar 2/7.",
+    "dificultad": 550
+  },
+  {
+    "id": "HT8-U10-P275-P1b",
+    "tipo": "numerico",
+    "enunciado": "Si los siete movimientos posibles se consideran igualmente probables y exactamente dos permiten dar jaque mate, ¿cuál es la probabilidad de no poder dar jaque mate?",
+    "expr": "1-2/7",
+    "respuesta": "5/7",
+    "conjunto": "Q",
+    "seccion": "Probabilidad clásica",
+    "unidad": 10,
+    "pagina_pdf": 275,
+    "referencia": "Para responder, primera pregunta, no dar jaque mate",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "nota": "Es el complemento del evento anterior: 1−2/7=5/7. Sin la equiprobabilidad añadida en el enunciado, tampoco sería determinable.",
+    "dificultad": 550
+  },
+  {
+    "id": "HT8-U10-P275-P2",
+    "tipo": "abierta",
+    "enunciado": "¿Quién fue Abraham de Moivre?",
+    "respuesta": "Abraham de Moivre (1667-1754) fue un matemático nacido en Francia que desarrolló gran parte de su carrera en Inglaterra. Fue pionero de la teoría de la probabilidad y de la geometría analítica, autor de The Doctrine of Chances (1718), y realizó una contribución temprana a la aproximación de la distribución binomial mediante la distribución normal. También es conocido por la fórmula de De Moivre, que relaciona números complejos y trigonometría.",
+    "conjunto": "texto",
+    "seccion": "Historia de la probabilidad",
+    "unidad": 10,
+    "pagina_pdf": 275,
+    "referencia": "Para responder, segunda pregunta",
+    "apto_para": ["procedimiento_abierto"],
+    "fuentes_consulta": [
+      "https://mathshistory.st-andrews.ac.uk/Biographies/De_Moivre/"
+    ],
+    "dificultad": 500
+  }
+]

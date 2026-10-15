@@ -1,0 +1,74 @@
+[
+  {
+    "id": "CS8-U1-P008-A1a",
+    "tipo": "orden_asociado",
+    "enunciado": "La tabla muestra los puntos de fusión de cinco elementos: fósforo, 44 °C; oxígeno, -218 °C; potasio, 64 °C; cloro, -101 °C; e hidrógeno, -259 °C. Ordena los elementos de mayor a menor punto de fusión.",
+    "datos": {
+      "Fósforo": "44",
+      "Oxígeno": "-218",
+      "Potasio": "64",
+      "Cloro": "-101",
+      "Hidrógeno": "-259"
+    },
+    "direccion": "mayor_a_menor",
+    "respuesta": [
+      "Potasio",
+      "Fósforo",
+      "Cloro",
+      "Oxígeno",
+      "Hidrógeno"
+    ],
+    "conjunto": "Z",
+    "seccion": "Lo que sabes",
+    "unidad": 1,
+    "pagina_pdf": 8,
+    "referencia": "Actividad 1, ítem a",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "64 > 44 > -101 > -218 > -259.",
+    "dificultad": 350
+  },
+  {
+    "id": "CS8-U1-P008-A1b",
+    "tipo": "numerico",
+    "enunciado": "El punto de fusión del oxígeno es -218 °C y el del hidrógeno es -259 °C. ¿En cuántos grados difieren?",
+    "expr": "Abs(-218-(-259))",
+    "respuesta": "41",
+    "conjunto": "N",
+    "seccion": "Lo que sabes",
+    "unidad": 1,
+    "pagina_pdf": 8,
+    "referencia": "Actividad 1, ítem b",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "|-218-(-259)|=|41|=41 °C.",
+    "dificultad": 350
+  },
+  {
+    "id": "CS8-U1-P008-A2",
+    "tipo": "lectura_grafica",
+    "enunciado": "¿Qué fracciones representan los puntos A, B, C y D en la recta numérica de la actividad?",
+    "respuesta": "A=-4/3, B=-1/2, C=1/3 y D=5/2.",
+    "valores": {
+      "A": "-4/3",
+      "B": "-1/2",
+      "C": "1/3",
+      "D": "5/2"
+    },
+    "conjunto": "Q",
+    "seccion": "Lo que sabes",
+    "unidad": 1,
+    "pagina_pdf": 8,
+    "referencia": "Actividad 2",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "justificacion": "La lectura prevista ubica A a dos tercios del trayecto de -2 a -1, B en el punto medio de -1 y 0, C a un tercio de 0 a 1 y D en el punto medio de 2 y 3.",
+    "verificar": "La recta imprime marcas en los enteros, pero no subdivisiones iguales que fijen de manera exacta los denominadores. A 600 dpi, las posiciones son consistentes con A=-4/3, B=-1/2, C=1/3 y D=5/2; conservar la figura original o añadir subdivisiones antes de autocalificar.",
+    "dificultad": 500
+  }
+]

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LevelUp-ELO — Dirección A · Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --canvas:#0a0a0f; --surface:#12121a; --surface-2:#16161f;
+    --border:rgba(255,255,255,.08); --border-strong:rgba(255,255,255,.15);
+    --text:#f3f4f8; --dim:#a9b0c0; --mute:#6b7280;
+    --accent:#8b5cf6; --accent-soft:#a78bfa; --accent-2:#2dd4bf; --gold:#ffd700;
+    --pixel:"Press Start 2P",monospace; --disp:"Poppins",sans-serif; --body:"Inter",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--canvas);color:var(--text);font-family:var(--body);-webkit-font-smoothing:antialiased;overflow:hidden;position:relative;}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:99;opacity:.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+  .wrap{position:relative;height:100%;display:flex;flex-direction:column;}
+  .glow{position:absolute;border-radius:50%;filter:blur(95px);pointer-events:none;z-index:0;}
+  .glow.a{width:560px;height:560px;background:rgba(139,92,246,.42);top:-180px;left:-120px;}
+  .glow.b{width:460px;height:460px;background:rgba(45,212,191,.28);top:-60px;right:-120px;}
+  .grid-bg{position:absolute;inset:0;z-index:0;pointer-events:none;
+    background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+    background-size:48px 48px;-webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 30%,transparent 72%);mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 30%,transparent 72%);opacity:.6;}
+
+  nav{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:22px 48px;}
+  .logo{height:30px;}
+  .nlinks{display:flex;gap:30px;list-style:none;}
+  .nlinks a{color:var(--dim);font-size:14.5px;font-weight:500;text-decoration:none;transition:color .2s;}
+  .nlinks a:hover{color:var(--text);}
+  .nact{display:flex;align-items:center;gap:14px;}
+  .lang{display:flex;border:1px solid var(--border-strong);border-radius:8px;overflow:hidden;font-family:var(--pixel);font-size:8px;}
+  .lang button{background:none;border:none;color:var(--mute);padding:8px 9px;cursor:pointer;font-family:inherit;}
+  .lang button.on{background:var(--accent);color:#fff;}
+  .login{color:var(--dim);font-size:14.5px;font-weight:600;text-decoration:none;}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--body);font-weight:600;font-size:14.5px;padding:12px 20px;border-radius:11px;border:1px solid transparent;cursor:pointer;text-decoration:none;transition:transform .15s,box-shadow .25s,background .2s;}
+  .btn-p{background:var(--accent);color:#fff;box-shadow:0 12px 32px -10px rgba(139,92,246,.7);}
+  .btn-p:hover{background:var(--accent-soft);transform:translateY(-2px);}
+  .btn-g{background:transparent;color:var(--text);border-color:var(--border-strong);}
+  .btn-g:hover{border-color:var(--accent-2);}
+
+  .hero{position:relative;z-index:5;flex:1;display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center;padding:18px 48px 30px;}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;padding:7px 14px;border:1px solid var(--border-strong);border-radius:999px;background:rgba(22,22,31,.7);font-size:12px;font-weight:600;color:var(--dim);}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 0 4px rgba(45,212,191,.22);}
+  h1{font-family:var(--disp);font-weight:900;font-size:clamp(44px,5.2vw,68px);line-height:1.02;letter-spacing:-.025em;margin:22px 0;}
+  h1 .hl{color:var(--accent-2);}
+  .sub{font-size:18px;color:var(--dim);line-height:1.6;max-width:44ch;margin-bottom:30px;}
+  .cta{display:flex;gap:14px;flex-wrap:wrap;}
+  .stats{display:flex;gap:34px;margin-top:38px;}
+  .stat .n{font-family:var(--disp);font-weight:800;font-size:28px;letter-spacing:-.02em;}
+  .stat .n .a{color:var(--accent);}
+  .stat .l{font-size:12.5px;color:var(--mute);margin-top:6px;}
+
+  /* character card */
+  .charcard{position:relative;}
+  .frame{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--border-strong);background:#0c0c14;box-shadow:0 50px 100px -34px rgba(0,0,0,.8);}
+  .frame .hud{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:7px;padding:13px 15px;background:linear-gradient(180deg,rgba(0,0,0,.6),transparent);z-index:2;}
+  .fdot{width:9px;height:9px;border-radius:50%;}
+  .hud .lbl{margin-left:auto;font-family:var(--pixel);font-size:8px;color:#fff;opacity:.85;letter-spacing:.05em;}
+  .frame img{width:100%;display:block;image-rendering:pixelated;}
+  .frame .nameplate{position:absolute;left:0;right:0;bottom:0;padding:16px 16px 14px;background:linear-gradient(0deg,rgba(0,0,0,.78),transparent);display:flex;align-items:flex-end;justify-content:space-between;z-index:2;}
+  .nameplate .who{font-family:var(--pixel);font-size:11px;color:#fff;}
+  .nameplate .who small{display:block;font-family:var(--body);font-size:11px;color:var(--accent-2);margin-top:7px;letter-spacing:0;}
+  .hpbar{width:120px;}
+  .hpbar .t{font-family:var(--pixel);font-size:7px;color:var(--gold);margin-bottom:5px;text-align:right;}
+  .hpbar .bar{height:7px;border-radius:4px;background:rgba(255,255,255,.14);overflow:hidden;}
+  .hpbar .bar i{display:block;height:100%;width:72%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:4px;}
+  .chip{position:absolute;background:var(--surface);border:1px solid var(--border-strong);border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:11px;box-shadow:0 20px 44px -18px rgba(0,0,0,.7);z-index:6;}
+  .chip .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:18px;}
+  .chip .ck{font-family:var(--pixel);font-size:8px;color:var(--mute);margin-bottom:5px;}
+  .chip .cv{font-family:var(--disp);font-weight:800;font-size:15px;}
+  .chip-elo{top:-20px;right:-16px;animation:fl 5s ease-in-out infinite;}
+  .chip-elo .ic{background:rgba(255,215,0,.16);color:var(--gold);} .chip-elo .cv{color:var(--gold);}
+  .chip-rank{bottom:84px;left:-26px;animation:fl 5s ease-in-out -2.4s infinite;}
+  .chip-rank .ic{background:rgba(139,92,246,.2);color:var(--accent-soft);}
+  @keyframes fl{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+
+  .marquee{position:relative;z-index:5;border-top:1px solid var(--border);background:var(--surface);overflow:hidden;padding:13px 0;}
+  .mtrack{display:flex;gap:48px;width:max-content;animation:mq 26s linear infinite;font-family:var(--pixel);font-size:10px;color:var(--mute);}
+  .mtrack span{display:inline-flex;gap:48px;align-items:center;}
+  .mtrack span::after{content:"◆";color:var(--accent-2);font-family:var(--body);font-size:8px;}
+  @keyframes mq{to{transform:translateX(-50%);}}
+  .tag{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:20;font-family:var(--pixel);font-size:8px;color:var(--mute);letter-spacing:.1em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="glow a"></div><div class="glow b"></div><div class="grid-bg"></div>
+  <div class="tag">A · ARENA</div>
+  <nav>
+    <img class="logo" src="../assets/logo.png" alt="LevelUp ELO" />
+    <ul class="nlinks">
+      <li><a href="#">Funciones</a></li>
+      <li><a href="#">KatIA</a></li>
+      <li><a href="#">Docentes</a></li>
+      <li><a href="#">Nosotros</a></li>
+      <li><a href="#">FAQ</a></li>
+    </ul>
+    <div class="nact">
+      <div class="lang"><button class="on" data-l="es">ES</button><button data-l="en">EN</button></div>
+      <a class="login" href="#" data-es="Iniciar sesión" data-en="Log in">Iniciar sesión</a>
+      <a class="btn btn-p" href="#" data-es="Empezar gratis" data-en="Start free">Empezar gratis</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div>
+      <span class="eyebrow"><span class="dot"></span><span data-es="Aprendizaje adaptativo con ELO" data-en="Adaptive learning powered by ELO">Aprendizaje adaptativo con ELO</span></span>
+      <h1><span data-es="Las matemáticas tienen rango." data-en="Math has a rank.">Las matemáticas tienen rango.</span> <span class="hl" data-es="Sube el tuyo." data-en="Climb yours.">Sube el tuyo.</span></h1>
+      <p class="sub" data-es="LevelUp-ELO mide tu nivel en tiempo real y te sirve siempre el reto perfecto. Con KatIA, tu tutora socrática, guiándote en cada jugada." data-en="LevelUp-ELO measures your level in real time and always serves the perfect challenge — with KatIA, your socratic tutor, guiding every move.">LevelUp-ELO mide tu nivel en tiempo real y te sirve siempre el reto perfecto. Con KatIA, tu tutora socrática, guiándote en cada jugada.</p>
+      <div class="cta">
+        <a class="btn btn-p" href="#" data-es="Crear mi cuenta" data-en="Create my account">Crear mi cuenta</a>
+        <a class="btn btn-g" href="#" data-es="Ver cómo funciona" data-en="See how it works">Ver cómo funciona</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="n"><span class="a">+1.900</span></div><div class="l" data-es="preguntas calibradas" data-en="calibrated questions">preguntas calibradas</div></div>
+        <div class="stat"><div class="n">16</div><div class="l" data-es="rangos por escalar" data-en="ranks to climb">rangos por escalar</div></div>
+        <div class="stat"><div class="n">10+</div><div class="l" data-es="materias" data-en="subjects">materias</div></div>
+      </div>
+    </div>
+
+    <div class="charcard">
+      <div class="chip chip-elo"><div class="ic">♛</div><div><div class="ck">ELO</div><div class="cv">1.847</div></div></div>
+      <div class="chip chip-rank"><div class="ic">▲</div><div><div class="ck" data-es="RANGO" data-en="RANK">RANGO</div><div class="cv">Diamante I</div></div></div>
+      <div class="frame">
+        <div class="hud"><span class="fdot" style="background:#ff5f57"></span><span class="fdot" style="background:#febc2e"></span><span class="fdot" style="background:#28c840"></span><span class="lbl">KATIA.EXE</span></div>
+        <img src="../assets/katia-correcto.gif" alt="KatIA" />
+        <div class="nameplate">
+          <div class="who">KatIA<small data-es="Tutora socrática" data-en="Socratic tutor">Tutora socrática</small></div>
+          <div class="hpbar"><div class="t">XP 72%</div><div class="bar"><i></i></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="marquee"><div class="mtrack"><span>ÁLGEBRA · CÁLCULO · GEOMETRÍA · TRIGONOMETRÍA · PROBABILIDAD · ARITMÉTICA · LÓGICA · COMBINATORIA · </span><span>ÁLGEBRA · CÁLCULO · GEOMETRÍA · TRIGONOMETRÍA · PROBABILIDAD · ARITMÉTICA · LÓGICA · COMBINATORIA · </span></div></div>
+</div>
+
+<script>
+  const btns=document.querySelectorAll('.lang button');
+  function setLang(l){
+    document.querySelectorAll('[data-es]').forEach(el=>{el.textContent=el.getAttribute('data-'+l);});
+    btns.forEach(b=>b.classList.toggle('on',b.dataset.l===l));
+    document.documentElement.lang=l;
+  }
+  btns.forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.l)));
+</script>
+</body>
+</html>

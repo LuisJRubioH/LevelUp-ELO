@@ -1,0 +1,17 @@
+{
+  "base": "Repaint and substantially upgrade image 1 to image 2's premium detailed crisp PIXEL ART, rich controlled colors, luminous amber lighting, legible blue shadows, dimensional fabric, precise marble/mosaic/metal textures and adult feline proportions. Image 1 is scene/content/composition reference; image 2 art quality/style reference; image 3 canonical KatIA face only. Preserve original Greek night environment, narrative, props, framing. Full renewal not color filter. KatIA white adult feline, original teal ocular full silver plate on anatomical RIGHT eye (viewer LEFT in frontal view), green LEFT eye, orange/black patch near LEFT ear, silver piercings, ivory tunic/plum mantle/gold details. LEFT anatomical arm entirely robotic shoulder to all fingers; RIGHT entirely organic white fur. No extra limbs, no mirrored character, no photorealism/chibi/blurring. ",
+  "jobs": [
+    [
+      "b11-clasificador-ii-v4.png",
+      "KatIA faces viewer, pointing arm at viewer LEFT entirely WHITE FUR from shoulder to fingers. Other arm holding stylus at viewer RIGHT entirely SILVER ROBOT shoulder to fingers. Keep blank classification matrix EXACT text columns N, Z, Q, R\\Q, R; row labels 5, -3, 3,5, fraction 2/3, √2. ALL answer cells empty. Keep seated student audience and props."
+    ],
+    [
+      "b12-detective-falsedades-v4.png",
+      "KatIA magnifying-glass holding arm at viewer LEFT must be entirely white fur, no metal. Other arm resting at viewer RIGHT entirely silver robot including UPPER ARM, shoulder and hand. Preserve five engraved Greek words on tablet exactly as image, magnifying glass, investigative expression, props and scene. No new answers."
+    ],
+    [
+      "b02-pregunta-detonadora-v4.png",
+      "KatIA chin-touching arm at viewer LEFT wholly WHITE FUR. Viewer RIGHT entire arm holding board wholly METAL from shoulder to all fingers. Preserve four students carrying bread, grapes, cheese and coin, food baskets, bread slices, coins, purple purse, rectangle with golden spiral and scroll with circle coordinate diagram. Preserve tablet columns RECIBIDO and PENDIENTE with original tally marks and -2,-1,-3. No invented answers. Exact scene and object roles."
+    ]
+  ]
+}

@@ -1,0 +1,397 @@
+.n3-page {
+  --n3-surface: color-mix(in srgb, var(--surface, #12121a) 91%, white 9%);
+  --n3-panel: color-mix(in srgb, var(--surface, #12121a) 84%, black 16%);
+  --n3-line: color-mix(in srgb, var(--text, #f1f5f9) 15%, transparent);
+  --n3-accent: var(--accent, #6c63ff);
+  --n3-teal: #2dd4bf;
+  --n3-amber: #f59e0b;
+}
+
+.n3-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ponytail: el encabezado del hub ahora es .level-presentation-header +
+   .level-presentation-media (Lesson.css); .n3-hero/.n3-katia-card siguen
+   vivos para el header de cada máquina (LevelThreeMachine, !isUnified) */
+.n3-scene-text {
+  margin: 0;
+  color: var(--text-2, #94a3b8);
+  line-height: 1.6;
+}
+
+/* ponytail: el contador/aviso de gating ahora es .level-gating-hint (Lesson.css) */
+
+/* ---- Rompe-hielo del hub (mismo patrón que N2/N4) ---- */
+.n3-icebreaker {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px dashed var(--n3-line);
+  border-radius: 8px;
+  background: transparent;
+}
+
+.n3-icebreaker-title {
+  margin: 0;
+  color: var(--n3-accent);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.n3-icebreaker header p {
+  margin: 4px 0 0;
+  color: var(--text-2, #94a3b8);
+}
+
+.n3-hero {
+  display: grid;
+  gap: clamp(18px, 4vw, 32px);
+  align-items: stretch;
+  padding: clamp(24px, 5vw, 44px);
+  border: 1px solid var(--n3-line);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--n3-accent) 16%, transparent), transparent 40%),
+    linear-gradient(160deg, color-mix(in srgb, var(--n3-teal) 8%, transparent), transparent 64%),
+    var(--n3-surface);
+}
+
+.n3-hero h1 {
+  max-width: 22ch;
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.04;
+  letter-spacing: 0;
+}
+
+.n3-hero p {
+  max-width: 72ch;
+  margin: 12px 0 0;
+  color: var(--text-2, #94a3b8);
+  line-height: 1.65;
+}
+
+.n3-katia-card {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--n3-line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--n3-panel) 78%, transparent);
+}
+
+.n3-katia-card img {
+  grid-row: span 3;
+  width: 82px;
+  aspect-ratio: 1;
+  object-fit: contain;
+  align-self: start;
+}
+
+.n3-katia-card b,
+.n3-katia-card small {
+  color: var(--n3-teal);
+  font-weight: 900;
+}
+
+.n3-lab {
+  display: grid;
+  gap: 14px;
+}
+
+.n3-machine-card {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--n3-line);
+  border-radius: 8px;
+  background: var(--n3-surface);
+}
+
+.n3-machine-face {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: 14px;
+  color: var(--text, #f1f5f9);
+  border: 0;
+  border-right: 1px solid var(--n3-line);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 22px, color-mix(in srgb, white 9%, transparent) 22px 24px),
+    color-mix(in srgb, var(--n3-accent) 26%, #12121a);
+  cursor: pointer;
+}
+
+.n3-machine-face span {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, white 22%, transparent);
+  font-size: 1.55rem;
+  font-weight: 900;
+}
+
+.n3-machine-face b {
+  color: var(--n3-teal);
+  font-size: .78rem;
+}
+
+.n3-machine-card.introduced .n3-machine-face {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 22px, color-mix(in srgb, white 10%, transparent) 22px 24px),
+    color-mix(in srgb, var(--n3-teal) 34%, #12121a);
+}
+
+.n3-machine-card.blocked {
+  opacity: .64;
+}
+
+.n3-machine-card.completed .n3-machine-face {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 22px, color-mix(in srgb, white 10%, transparent) 22px 24px),
+    color-mix(in srgb, var(--n3-amber) 38%, #12121a);
+}
+
+.n3-machine-copy {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px;
+}
+
+.n3-machine-copy > span,
+.n3-definition span,
+.n3-operations header span,
+.n3-operation > span,
+.n3-formalization span {
+  color: var(--n3-teal);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.n3-machine-copy p,
+.n3-definition p,
+.n3-formalization li,
+.n3-formalization p {
+  margin: 0;
+  color: var(--text-2, #94a3b8);
+  line-height: 1.6;
+}
+
+.n3-machine-copy button {
+  width: fit-content;
+  min-height: 36px;
+  padding: 0 14px;
+  color: #08111f;
+  border: 1px solid var(--n3-teal);
+  border-radius: 8px;
+  background: var(--n3-teal);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.n3-machine-copy button:disabled {
+  color: var(--text-2, #94a3b8);
+  border-color: var(--n3-line);
+  background: transparent;
+  cursor: not-allowed;
+}
+
+.n3-machine-demo,
+.n3-formula,
+.n3-expression {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  overscroll-behavior-inline: contain;
+}
+
+.n3-mixed-math {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.n3-math-connector {
+  color: var(--text-2, #94a3b8);
+  font-size: .82rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.n3-machine-demo .math-rendered,
+.n3-formula .math-rendered,
+.n3-expression .math-rendered,
+.n3-mixed-math .math-rendered {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+  padding: 4px 2px 8px;
+  text-align: center;
+}
+
+.n3-machine-demo .katex,
+.n3-formula .katex,
+.n3-expression .katex,
+.n3-mixed-math .katex {
+  white-space: nowrap;
+}
+
+.n3-katia-final,
+.n3-katia-line {
+  margin: 0;
+  padding: 16px 18px;
+  border-left: 4px solid var(--n3-teal);
+  color: var(--text, #f1f5f9);
+  background: color-mix(in srgb, var(--n3-teal) 12%, transparent);
+  line-height: 1.6;
+}
+
+.n3-definition {
+  display: grid;
+  gap: 16px;
+}
+
+.n3-definition > div,
+.n3-op-group,
+.n3-formalization {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--n3-line);
+  border-radius: 8px;
+  background: var(--n3-surface);
+}
+
+.n3-formula {
+  margin-top: 14px;
+  padding: 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--n3-accent) 14%, transparent);
+}
+
+.n3-examples {
+  display: grid;
+  gap: 10px;
+}
+
+.n3-examples article {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--n3-line);
+  border-radius: 8px;
+}
+
+.n3-operations {
+  display: grid;
+  gap: 14px;
+}
+
+.n3-operations header h2 {
+  max-width: 70ch;
+  margin: 6px 0 0;
+  font-size: 1.1rem;
+  line-height: 1.45;
+}
+
+.n3-op-group {
+  display: grid;
+  gap: 14px;
+}
+
+.n3-op-group.complete {
+  border-color: color-mix(in srgb, var(--n3-teal) 45%, var(--n3-line));
+}
+
+.n3-op-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.n3-operation {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--n3-line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--n3-panel) 72%, transparent);
+}
+
+.n3-expression {
+  margin: 10px 0 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--n3-accent) 14%, transparent);
+}
+
+.n3-operation .numeric-answer {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.n3-operation input {
+  min-height: 42px;
+  width: min(180px, 100%);
+  padding: 0 12px;
+  color: var(--text, #f1f5f9);
+  border: 1px solid var(--n3-line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--n3-surface) 72%, black 28%);
+}
+
+.n3-formalization ul {
+  margin: 12px 0 16px;
+  padding-left: 20px;
+}
+
+html.light .n3-page {
+  --n3-surface: #ffffff;
+  --n3-panel: #f8fafc;
+  --n3-line: rgba(15, 23, 42, .14);
+}
+
+html.light .n3-operation input {
+  color: #10162a;
+  background: #f8fafc;
+}
+
+@media (max-width: 860px) {
+  .n3-machine-card {
+    grid-template-columns: 1fr;
+  }
+
+  .n3-machine-face {
+    border-right: 0;
+    border-bottom: 1px solid var(--n3-line);
+  }
+}
+
+@media (max-width: 560px) {
+  .n3-katia-card {
+    grid-template-columns: 1fr;
+  }
+
+  .n3-katia-card img {
+    grid-row: auto;
+  }
+
+  .n3-machine-copy,
+  .n3-operation {
+    padding: 14px;
+  }
+}

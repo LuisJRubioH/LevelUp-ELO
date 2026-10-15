@@ -8,65 +8,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import katex from "katex";
-import "katex/dist/katex.min.css";
-import { useAuthStore } from "../../stores/authStore";
+import { useTranslation } from "react-i18next";
+import { authorizedFetch } from "../../api/client";
 import { Button } from "../ui/Button";
-
-/**
- * Renderiza texto con LaTeX. Soporta:
- *   - $$expr$$  (display mode)
- *   - $expr$    (inline)
- *   - \(expr\)  (inline alternativo)
- *   - \[expr\]  (display alternativo)
- * Filtra `$` sueltos durante el streaming para evitar delimitadores literales.
- */
-function RenderMath({ text }: { text: string }) {
-  // Orden importa: matchear primero $$...$$ y \[...\] antes que $...$ y \(...\).
-  const regex = /(\$\$[^$]+\$\$|\\\[[\s\S]+?\\\]|\$[^$\n]+\$|\\\([\s\S]+?\\\))/g;
-  const parts = text.split(regex);
-  if (parts.length === 1) return <>{text}</>;
-  return (
-    <>
-      {parts.map((part, i) => {
-        let math: string | null = null;
-        let displayMode = false;
-        if (part.startsWith("$$") && part.endsWith("$$") && part.length >= 4) {
-          math = part.slice(2, -2);
-          displayMode = true;
-        } else if (part.startsWith("\\[") && part.endsWith("\\]")) {
-          math = part.slice(2, -2);
-          displayMode = true;
-        } else if (part.startsWith("$") && part.endsWith("$") && part.length >= 2) {
-          math = part.slice(1, -1);
-        } else if (part.startsWith("\\(") && part.endsWith("\\)")) {
-          math = part.slice(2, -2);
-        }
-        if (math !== null) {
-          try {
-            const html = katex.renderToString(math, {
-              displayMode,
-              throwOnError: false,
-              errorColor: "#ef4444",
-            });
-            return (
-              <span
-                key={i}
-                className={displayMode ? "block my-1" : "inline-block align-middle"}
-                dangerouslySetInnerHTML={{ __html: html }}
-              />
-            );
-          } catch {
-            return <span key={i}>{part}</span>;
-          }
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </>
-  );
-}
-
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+import { MathText } from "../Math/MathContent";
 
 interface Message {
   role: "student" | "katia";
@@ -82,19 +27,6 @@ interface SocraticChatProps {
   provider?: string;
 }
 
-/** Mensajes de bienvenida con personalidad KatIA (selección del banco domain). */
-const WELCOME_MESSAGES = [
-  "Mis sensores detectan que tienes una duda interesante. Desenredemos este ovillo juntos... ¿qué parte del problema te tiene pensando?",
-  "Mis bigotes vibran de emoción al verte aquí. Como decía Sócrates, la sabiduría comienza con buenas preguntas. ¿Cuál es la tuya?",
-  "Purrr... acabo de calibrar mis circuitos para este tema. ¿En qué parte del problema necesitas que afilemos las garras?",
-  "Bip, bip. Protocolos de tutoría activados. Estoy aquí para guiarte, no para darte la respuesta. ¿Qué te tiene atrapado?",
-  "Mis procesadores están listos y mi curiosidad felina al máximo. ¿Qué parte de este problema quieres explorar conmigo?",
-];
-
-function randomWelcome() {
-  return WELCOME_MESSAGES[Math.floor(Math.random() * WELCOME_MESSAGES.length)];
-}
-
 export function SocraticChat({
   itemId,
   itemContent,
@@ -102,6 +34,15 @@ export function SocraticChat({
   apiKey = "",
   provider = "groq",
 }: SocraticChatProps) {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language?.startsWith("en") ? "en" : "es";
+
+  const randomWelcome = useCallback(() => {
+    const bank = t("socratic.welcome", { returnObjects: true }) as Record<string, string>;
+    const values = Object.values(bank);
+    return values[Math.floor(Math.random() * values.length)];
+  }, [t]);
+
   const [messages, setMessages] = useState<Message[]>([
     { role: "katia", text: randomWelcome() },
   ]);
@@ -109,7 +50,6 @@ export function SocraticChat({
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { accessToken } = useAuthStore();
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -135,13 +75,10 @@ export function SocraticChat({
       scrollToBottom();
 
       try {
-        const res = await fetch(`${API_BASE}/api/ai/socratic`, {
+        // Como toda petición del API: si el token caducó (15 min), se renueva y se reintenta.
+        const res = await authorizedFetch("/api/ai/socratic", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          credentials: "include",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             item_id: itemId,
             item_content: itemContent,
@@ -149,6 +86,7 @@ export function SocraticChat({
             course_id: courseId,
             api_key: apiKey,
             provider,
+            lang,
           }),
         });
 
@@ -192,7 +130,7 @@ export function SocraticChat({
                     i === prev.length - 1
                       ? {
                           role: "katia",
-                          text: "Miau... mis circuitos tuvieron un cortocircuito. ¿Puedes intentarlo de nuevo?",
+                          text: t("socratic.shortCircuit"),
                           streaming: false,
                         }
                       : m,
@@ -214,9 +152,7 @@ export function SocraticChat({
         }
       } catch (err) {
         const detail = err instanceof Error ? err.message : "";
-        const text = detail
-          ? `Purrr... error: ${detail}`
-          : "Purrr... parece que perdí la conexión. ¿Puedes intentarlo de nuevo?";
+        const text = detail ? `${t("socratic.errorPrefix")}${detail}` : t("socratic.connectionLost");
         setMessages((prev) =>
           prev.map((m, i) =>
             i === prev.length - 1
@@ -230,7 +166,7 @@ export function SocraticChat({
         inputRef.current?.focus();
       }
     },
-    [input, sending, itemId, itemContent, courseId, apiKey, provider, accessToken, scrollToBottom],
+    [input, sending, itemId, itemContent, courseId, apiKey, provider, lang, scrollToBottom, t],
   );
 
   return (
@@ -247,12 +183,12 @@ export function SocraticChat({
             KatIA
           </span>
           <span className="text-[10px] text-slate-500 leading-tight">
-            Tutora socrática — te guía sin dar la respuesta
+            {t("socratic.subtitle")}
           </span>
         </div>
         {sending && (
           <span className="ml-auto text-[10px] text-violet-400 animate-pulse">
-            pensando...
+            {t("socratic.thinking")}
           </span>
         )}
       </div>
@@ -280,7 +216,7 @@ export function SocraticChat({
                   : "bg-slate-800/80 text-slate-200 border border-slate-700/60 rounded-bl-sm",
               ].join(" ")}
             >
-              {msg.text ? <RenderMath text={msg.text} /> : (msg.streaming ? "" : "...")}
+              {msg.text ? <MathText text={msg.text} /> : (msg.streaming ? "" : "...")}
               {msg.streaming && (
                 <span className="inline-block w-1.5 h-4 bg-violet-400 animate-pulse ml-0.5 rounded-sm align-text-bottom" />
               )}
@@ -300,12 +236,12 @@ export function SocraticChat({
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Escribe tu pregunta a KatIA..."
+          placeholder={t("socratic.placeholder")}
           className="flex-1 bg-slate-800/60 border border-slate-600/50 rounded-lg px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-violet-500/70 transition-colors"
           disabled={sending}
         />
         <Button type="submit" size="sm" loading={sending} disabled={!input.trim()}>
-          Enviar
+          {t("socratic.send")}
         </Button>
       </form>
     </div>

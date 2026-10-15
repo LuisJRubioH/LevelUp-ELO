@@ -1,0 +1,671 @@
+[
+  {
+    "id": "CS8-U4-P084-A01",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 1",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (4+x)**2.",
+    "expr": "(4+x)**2",
+    "respuesta": "x**2+8*x+16"
+  },
+  {
+    "id": "CS8-U4-P084-A02",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 2",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (a/3+b/4)**2.",
+    "expr": "(a/3+b/4)**2",
+    "respuesta": "a**2/9+a*b/6+b**2/16"
+  },
+  {
+    "id": "CS8-U4-P084-A03",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 3",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (9*m+n)**2.",
+    "expr": "(9*m+n)**2",
+    "respuesta": "81*m**2+18*m*n+n**2"
+  },
+  {
+    "id": "CS8-U4-P084-A04",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 4",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (12*x**2+y)**2.",
+    "expr": "(12*x**2+y)**2",
+    "respuesta": "144*x**4+24*x**2*y+y**2"
+  },
+  {
+    "id": "CS8-U4-P084-A05",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 5",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "valores_numericos",
+    "enunciado": "Completa la tabla calculando el cuadrado de cada uno de los catorce monomios.",
+    "exprs": {
+      "a": "(x**2)**2",
+      "b": "(5*m**2)**2",
+      "c": "(-3*m**3*n)**2",
+      "d": "(7*x**2*y**2)**2",
+      "e": "(w**2*z**3/t**2)**2",
+      "f": "(p**4*q*r**2/5)**2",
+      "g": "(-3*m**2*n*r**4/5)**2",
+      "h": "(-r*y**3*t/5)**2",
+      "i": "(15*a**2*b**3/c)**2",
+      "j": "(4*m**2*n/3)**2",
+      "k": "(12*m*y**3)**2",
+      "l": "(2*w**2*z**3*t**4)**2",
+      "m": "(-6*m**2*p**2)**2",
+      "n": "(4*w*p**4*q**3/7)**2"
+    },
+    "respuesta_valores": {
+      "a": "x**4",
+      "b": "25*m**4",
+      "c": "9*m**6*n**2",
+      "d": "49*x**4*y**4",
+      "e": "w**4*z**6/t**4",
+      "f": "p**8*q**2*r**4/25",
+      "g": "9*m**4*n**2*r**8/25",
+      "h": "r**2*y**6*t**2/25",
+      "i": "225*a**4*b**6/c**2",
+      "j": "16*m**4*n**2/9",
+      "k": "144*m**2*y**6",
+      "l": "4*w**4*z**6*t**8",
+      "m": "36*m**4*p**4",
+      "n": "16*w**2*p**8*q**6/49"
+    },
+    "respuesta": "Los catorce cuadrados aparecen en respuesta_valores."
+  },
+  {
+    "id": "CS8-U4-P084-A06",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 6",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (2*x+y)**2.",
+    "expr": "(2*x+y)**2",
+    "respuesta": "4*x**2+4*x*y+y**2"
+  },
+  {
+    "id": "CS8-U4-P084-A07",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 7",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (m*n+2)**2.",
+    "expr": "(m*n+2)**2",
+    "respuesta": "m**2*n**2+4*m*n+4"
+  },
+  {
+    "id": "CS8-U4-P084-A08",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 8",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (7*x**3*y+4)**2.",
+    "expr": "(7*x**3*y+4)**2",
+    "respuesta": "49*x**6*y**2+56*x**3*y+16"
+  },
+  {
+    "id": "CS8-U4-P084-A09",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 9",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (9*x*y+2*x)**2.",
+    "expr": "(9*x*y+2*x)**2",
+    "respuesta": "81*x**2*y**2+36*x**2*y+4*x**2"
+  },
+  {
+    "id": "CS8-U4-P084-A10",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 10",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (x**2/2+y**2)**2.",
+    "expr": "(x**2/2+y**2)**2",
+    "respuesta": "x**4/4+x**2*y**2+y**4"
+  },
+  {
+    "id": "CS8-U4-P084-A11",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 11",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (4*m**2*y**3/3+7*x**2*m*n/3)**2.",
+    "expr": "(4*m**2*y**3/3+7*x**2*m*n/3)**2",
+    "respuesta": "16*m**4*y**6/9+56*m**3*n*x**2*y**3/9+49*x**4*m**2*n**2/9"
+  },
+  {
+    "id": "CS8-U4-P084-A12",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 12",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (3*x*y**3-5)**2.",
+    "expr": "(3*x*y**3-5)**2",
+    "respuesta": "9*x**2*y**6-30*x*y**3+25"
+  },
+  {
+    "id": "CS8-U4-P084-A13",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 13",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (4*w*z**2-4*w**2*z)**2.",
+    "expr": "(4*w*z**2-4*w**2*z)**2",
+    "respuesta": "16*w**2*z**4-32*w**3*z**3+16*w**4*z**2"
+  },
+  {
+    "id": "CS8-U4-P084-A14",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 14",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (m*n**4-n)**2.",
+    "expr": "(m*n**4-n)**2",
+    "respuesta": "m**2*n**8-2*m*n**5+n**2"
+  },
+  {
+    "id": "CS8-U4-P084-A15",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 15",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (a**m-w)**2.",
+    "expr": "(a**m-w)**2",
+    "respuesta": "a**(2*m)-2*a**m*w+w**2"
+  },
+  {
+    "id": "CS8-U4-P084-A16",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 16",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (5*p/7-q/7)**2.",
+    "expr": "(5*p/7-q/7)**2",
+    "respuesta": "25*p**2/49-10*p*q/49+q**2/49"
+  },
+  {
+    "id": "CS8-U4-P084-A17",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 17",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (2*x*y/5-3*x**(2*n+1)/4)**2.",
+    "expr": "(2*x*y/5-3*x**(2*n+1)/4)**2",
+    "respuesta": "4*x**2*y**2/25-3*x**(2*n+2)*y/5+9*x**(4*n+2)/16"
+  },
+  {
+    "id": "CS8-U4-P084-A18",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 18",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Halla el área del cuadrado naranja, cuyo lado mide sqrt(x)+3.",
+    "expr": "(sqrt(x)+3)**2",
+    "respuesta": "x+6*sqrt(x)+9",
+    "verificar": "La medida del lado y la condición de cuadrado dependen de la figura original."
+  },
+  {
+    "id": "CS8-U4-P084-A19",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 19",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Halla el área del cuadrado azul inscrito: el cuadrado exterior tiene lado 7w y las franjas superior y derecha miden n.",
+    "expr": "(7*w-n)**2",
+    "respuesta": "49*w**2-14*w*n+n**2",
+    "verificar": "La interpretación del lado azul como 7w-n depende de la figura."
+  },
+  {
+    "id": "CS8-U4-P084-A20",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 20",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "En el cuadrado AEYU subdividido, escribe como producto el área ACMK.",
+    "expr": "(x+y)**2",
+    "respuesta": "x**2+2*x*y+y**2",
+    "verificar": "Los vértices y las longitudes x e y se leen en la figura."
+  },
+  {
+    "id": "CS8-U4-P084-A21",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 21",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "abierta",
+    "enunciado": "En el cuadrado AEYU subdividido, escribe como producto el área indicada por los vértices GJSQ.",
+    "respuesta": "Con la rotulación literal G-J-S-Q, la región es un trapecio de área 5y²; si el vértice S es una errata por T, el rectángulo GJTQ tiene área (3y)(2y)=6y².",
+    "erratum": "La secuencia GJSQ no delimita uno de los rectángulos de la cuadrícula y contradice la instrucción de escribir el área como producto; probablemente S debería ser T.",
+    "verificar": "Conservar las dos lecturas hasta contrastar con una fe de erratas o una edición distinta."
+  },
+  {
+    "id": "CS8-U4-P084-A22",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 22",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "En el cuadrado AEYU subdividido, escribe como producto el área ADSP.",
+    "expr": "(x+2*y)**2",
+    "respuesta": "x**2+4*x*y+4*y**2",
+    "verificar": "Los vértices y las longitudes se leen en la figura."
+  },
+  {
+    "id": "CS8-U4-P084-A23",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 23",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "En el cuadrado AEYU subdividido, escribe como producto el área AEYU.",
+    "expr": "(x+3*y)**2",
+    "respuesta": "x**2+6*x*y+9*y**2",
+    "verificar": "Los vértices y las longitudes se leen en la figura."
+  },
+  {
+    "id": "CS8-U4-P084-A24",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 24",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "En el cuadrado AEYU subdividido, escribe como producto el área FJYU.",
+    "expr": "(x+3*y)*(3*y)",
+    "respuesta": "3*x*y+9*y**2",
+    "verificar": "Los vértices y las longitudes se leen en la figura."
+  },
+  {
+    "id": "CS8-U4-P084-A25",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 25",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "En el cuadrado AEYU subdividido, escribe como producto el área AETP.",
+    "expr": "(x+3*y)*(x+2*y)",
+    "respuesta": "x**2+5*x*y+6*y**2",
+    "verificar": "Los vértices y las longitudes se leen en la figura."
+  },
+  {
+    "id": "CS8-U4-P084-A26",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 26",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "abierta",
+    "enunciado": "Dibuja un diagrama que represente el producto (a+b+c)².",
+    "respuesta": "Un cuadrado de lado a+b+c subdividido en nueve regiones de áreas a², b², c², ab, ab, ac, ac, bc y bc; en total a²+b²+c²+2ab+2ac+2bc.",
+    "verificar": "La actividad exige una construcción gráfica; evaluar que las nueve regiones y sus dimensiones sean coherentes."
+  },
+  {
+    "id": "CS8-U4-P084-A27",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 27",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (4*m**n+y**n)**2.",
+    "expr": "(4*m**n+y**n)**2",
+    "respuesta": "16*m**(2*n)+8*m**n*y**n+y**(2*n)"
+  },
+  {
+    "id": "CS8-U4-P084-A28",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 28",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (3*a**n+2*b**(n+1))**2.",
+    "expr": "(3*a**n+2*b**(n+1))**2",
+    "respuesta": "9*a**(2*n)+12*a**n*b**(n+1)+4*b**(2*n+2)"
+  },
+  {
+    "id": "CS8-U4-P084-A29",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 29",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (5*y**(m+1)-2*x**m)**2.",
+    "expr": "(5*y**(m+1)-2*x**m)**2",
+    "respuesta": "25*y**(2*m+2)-20*x**m*y**(m+1)+4*x**(2*m)"
+  },
+  {
+    "id": "CS8-U4-P084-A30",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 30",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (m**(n+1)/5+m**(n+3))**2.",
+    "expr": "(m**(n+1)/5+m**(n+3))**2",
+    "respuesta": "m**(2*n+2)/25+2*m**(2*n+4)/5+m**(2*n+6)"
+  },
+  {
+    "id": "CS8-U4-P084-A31",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 31",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (y**(2*x+1)/7-y**(x+2)/4)**2.",
+    "expr": "(y**(2*x+1)/7-y**(x+2)/4)**2",
+    "respuesta": "y**(4*x+2)/49-y**(3*x+3)/14+y**(2*x+4)/16"
+  },
+  {
+    "id": "CS8-U4-P084-A32",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 32",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (4*n**n/9+r**m)**2.",
+    "expr": "(4*n**n/9+r**m)**2",
+    "respuesta": "16*n**(2*n)/81+8*n**n*r**m/9+r**(2*m)"
+  },
+  {
+    "id": "CS8-U4-P084-A33",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 33",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla y simplifica (2*b-c**(x+2))**2.",
+    "expr": "(2*b-c**(x+2))**2",
+    "respuesta": "4*b**2-4*b*c**(x+2)+c**(2*x+4)"
+  },
+  {
+    "id": "CS8-U4-P084-A34",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 34",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (3,2m^(2x+1)+m^(x+2))².",
+    "expr": "(16*m**(2*x+1)/5+m**(x+2))**2",
+    "respuesta": "256*m**(4*x+2)/25+32*m**(3*x+3)/5+m**(2*x+4)"
+  },
+  {
+    "id": "CS8-U4-P084-A35",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 35",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 800,
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla (5 1/3 n^(2+x) - 7 1/2 m^(3+2x))².",
+    "expr": "(16*n**(x+2)/3-15*m**(2*x+3)/2)**2",
+    "respuesta": "256*n**(2*x+4)/9-80*n**(x+2)*m**(2*x+3)+225*m**(4*x+6)/4"
+  },
+  {
+    "id": "CS8-U4-P084-A36",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 36",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica h(t)=-16(t-4)²+256, la altura en pies de una pelota.",
+    "expr": "-16*(t-4)**2+256",
+    "respuesta": "-16*t**2+128*t"
+  },
+  {
+    "id": "CS8-U4-P084-A37",
+    "conjunto": "R",
+    "seccion": "Productos notables: cuadrado de binomios",
+    "unidad": 4,
+    "pagina_pdf": 84,
+    "referencia": "Actividad 37",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 450,
+    "tipo": "numerico",
+    "enunciado": "Determina la altura de la pelota dos segundos después de ser lanzada, si h(t)=-16(t-4)²+256.",
+    "expr": "-16*(2-4)**2+256",
+    "respuesta": "192"
+  }
+]
+

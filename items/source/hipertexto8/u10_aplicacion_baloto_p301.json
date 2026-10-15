@@ -1,0 +1,89 @@
+[
+  {
+    "id": "HT8-U10-P301-A1",
+    "tipo": "interpretacion",
+    "enunciado": "Lectura «Probabilidad en la lotería en línea». Baloto consiste en acertar en cualquier orden 6, 5, 4 o 3 números de una matriz del 1 al 45. ¿Qué aporte tiene para el país el juego de Baloto?",
+    "respuesta": "El recaudo se destina a la **salud**. ETESA, la Empresa Territorial para la Salud, distribuye las transferencias a los municipios, a los departamentos, al Fondo de la Salud y al FONPET (Fondo Nacional de Prestaciones de las Entidades Territoriales de la Salud). La lectura cita la disposición constitucional que lo obliga: «las rentas obtenidas en el ejercicio de los monopolios de suerte y azar estarán destinadas exclusivamente a los servicios de salud».",
+    "conjunto": "R",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · Probabilidad en la lotería en línea",
+    "unidad": 10,
+    "pagina_pdf": 301,
+    "referencia": "Recupera información, actividad 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Es una pregunta de lectura literal: todo está en el primer párrafo. La palabra clave del enunciado constitucional es «exclusivamente».",
+    "erratum": "El rotulo negro de la pagina dice «Para entender la corriente electrica», pero todo su contenido es la probabilidad del Baloto. El subtitulo quedo mal armado en la composicion: pertenece a otra seccion. No afecta ninguna respuesta, pero conviene no reproducirlo al reutilizar la pagina.",
+    "dificultad": 500
+  },
+  {
+    "id": "HT8-U10-P301-A2",
+    "tipo": "numerico",
+    "enunciado": "Lectura «Probabilidad en la lotería en línea». Baloto consiste en acertar en cualquier orden 6, 5, 4 o 3 números de una matriz del 1 al 45. ¿Cuántos elementos tiene el espacio muestral del evento «ganar el premio mayor del Baloto», es decir acertar 6 números de los 45 posibles?",
+    "expr": "binomial(45,6)",
+    "respuesta": "8145060",
+    "conjunto": "N",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · Probabilidad en la lotería en línea",
+    "unidad": 10,
+    "pagina_pdf": 301,
+    "referencia": "Recupera información, actividad 2",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Es una **combinación**, no una permutación, porque el enunciado dice «en cualquier orden»: C(45,6)=45!/(6!·39!)=8.145.060. La lectura da ese mismo número y de ahí sale P=1/8.145.060 para un solo cartón.",
+    "dificultad": 700
+  },
+  {
+    "id": "HT8-U10-P301-A3",
+    "tipo": "grafica_barras",
+    "enunciado": "Lectura «Probabilidad en la lotería en línea». Baloto consiste en acertar en cualquier orden 6, 5, 4 o 3 números de una matriz del 1 al 45. Según el diagrama de barras «Estadísticas de números jugados hasta el sorteo 827 – Marzo 21 2009», ¿cuál es el número que más ha salido en los sorteos de Baloto hasta esa fecha?",
+    "respuesta": "La **balota 02**, con alrededor de 136 salidas: es la barra más alta de las 45. La segunda más alta está cerca de 133 y la más baja ronda las 88, así que entre el número más frecuente y el menos frecuente hay unas 48 salidas de diferencia en 827 sorteos.",
+    "conjunto": "N",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · Probabilidad en la lotería en línea",
+    "unidad": 10,
+    "pagina_pdf": 301,
+    "referencia": "Recupera información, actividad 3",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "figura": "Diagrama de barras de 45 columnas, una por balota, con el eje vertical entre 87 y 137 salidas; reconstruible en Python.",
+    "nota": "El eje vertical del libro imprime solo las dos últimas cifras (89, 91, …, 37), así que hay que leerlo como 89, 91, …, 137. Los valores exactos se estiman de la gráfica; lo que la pregunta pide es identificar la barra, no medirla.",
+    "dificultad": 600
+  },
+  {
+    "id": "HT8-U10-P301-A4",
+    "tipo": "interpretacion",
+    "enunciado": "Lectura «Probabilidad en la lotería en línea». Baloto consiste en acertar en cualquier orden 6, 5, 4 o 3 números de una matriz del 1 al 45. En un sorteo de Baloto, ¿es más probable que salga la balota 01 o la balota 45? Explica tu respuesta.",
+    "respuesta": "**Igual de probable: ninguna de las dos tiene ventaja.** El sorteo es un experimento con 45 resultados equiprobables, así que cada balota tiene la misma probabilidad de salir. Que en la gráfica la 02 lleve 136 salidas y otras ronden las 88 **no** significa que unas «salgan más»: son fluctuaciones del azar. En 827 sorteos de 6 balotas se han extraído 4.962 balotas, y si todas fueran igualmente probables cada una saldría en promedio 4962/45 ≈ 110 veces; las diferencias observadas caben dentro de la variación esperable. Creer que un número «está caliente» o «ya le toca» es la falacia del jugador.",
+    "conjunto": "Q",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · Probabilidad en la lotería en línea",
+    "unidad": 10,
+    "pagina_pdf": 301,
+    "referencia": "Interpreta, actividad 4",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Es la pregunta importante de la página: el diagrama de barras invita justo al error contrario. Conviene contrastar la media esperada (≈110) con el rango observado (88 a 136) antes de responder.",
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U10-P301-A5",
+    "tipo": "numerico",
+    "enunciado": "Lectura «Probabilidad en la lotería en línea». Baloto consiste en acertar en cualquier orden 6, 5, 4 o 3 números de una matriz del 1 al 45. Si un colombiano compra tres cartones de Baloto, todos con combinaciones distintas, ¿cuál es la probabilidad de que gane el premio mayor?",
+    "expr": "3/binomial(45,6)",
+    "respuesta": "1/2715020",
+    "conjunto": "Q",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · Probabilidad en la lotería en línea",
+    "unidad": 10,
+    "pagina_pdf": 301,
+    "referencia": "Plantea y actúa, actividad 5",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Tres cartones distintos son tres de las 8.145.060 combinaciones posibles, y son sucesos mutuamente excluyentes: P = 3/8.145.060 = 1/2.715.020 ≈ 0,000037%. Comprar el triple de cartones triplica la probabilidad, pero sigue siendo una entre casi tres millones.",
+    "nota": "Si los tres cartones llevaran la misma combinación la probabilidad seguiría siendo 1/8.145.060: lo que suma es jugar combinaciones distintas, no gastar más.",
+    "dificultad": 850
+  }
+]

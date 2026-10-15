@@ -416,6 +416,11 @@ def stream_ai_response(
             ) from e
 
 
+def _rating_text(rating) -> str:
+    """The student's level for a prompt; spec 001: no number while the diagnostic is pending."""
+    return "pendiente de diagnóstico" if rating is None else f"{rating:.0f}"
+
+
 def get_socratic_guidance(
     student_rating,
     topic,
@@ -427,9 +432,18 @@ def get_socratic_guidance(
     model_name="google/gemma-3-4b",
     api_key=None,
     provider=None,
+    lang="es",
 ):
-    """Genera una guía socrática adaptativa y altamente alineada para el estudiante."""
+    """Genera una guía socrática adaptativa y altamente alineada para el estudiante.
+
+    ``lang`` controla el idioma de la respuesta ("es" por defecto; "en" para inglés).
+    """
     options_str = "\n".join([f"- {opt}" for opt in all_options])
+    lang_rule = (
+        "8. RESPONSE LANGUAGE: Write your ENTIRE reply in English. Keep all math in LaTeX with $...$."
+        if str(lang).lower().startswith("en")
+        else "8. IDIOMA DE RESPUESTA: Escribe TODA tu respuesta en español. Mantén las matemáticas en LaTeX con $...$."
+    )
     prompt = f"""Eres KatIA, una tutora socrática mitad gata, mitad cyborg. Tu personalidad:
 - Usas metáforas felinas y tecnológicas ("mis sensores detectan", "desenredemos este ovillo")
 - Haces referencias a filósofos griegos (Sócrates, Platón, Diógenes, Aristóteles)
@@ -446,7 +460,7 @@ CONTEXTO DE LA PREGUNTA:
 {options_str}
 
 ESTADO DEL ESTUDIANTE:
-- Nivel ELO (Capacidad): {student_rating:.0f}
+- Nivel ELO (Capacidad): {_rating_text(student_rating)}
 - Opción que el estudiante TIENE SELECCIONADA actualmente: "{student_answer}"
 - Respuesta CORRECTA real: "{correct_answer}"
 
@@ -458,6 +472,7 @@ INSTRUCCIONES CRÍTICAS DE ALINEACIÓN:
 5. NUNCA reveles que la respuesta correcta es "{correct_answer}".
 6. Sé breve, motivadora y puramente socrática (guía mediante preguntas).
 7. REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática exclusivamente en LaTeX usando $...$ o $$...$$.
+{lang_rule}
 """
     return _call_ai_api(prompt, model_name, base_url, api_key=api_key, provider=provider)
 
@@ -494,7 +509,7 @@ CONTEXTO DE LA PREGUNTA:
 {options_str}
 
 ESTADO DEL ESTUDIANTE:
-- Nivel ELO (Capacidad): {student_rating:.0f}
+- Nivel ELO (Capacidad): {_rating_text(student_rating)}
 - Opción que el estudiante TIENE SELECCIONADA actualmente: "{student_answer}"
 - Respuesta CORRECTA real: "{correct_answer}"
 
@@ -788,7 +803,11 @@ def get_pedagogical_analysis(
     )
 
     prompt = _PEDAGOGICAL_PROMPT.format(
-        elo_global=f"{student_data['elo_global']:.1f}",
+        elo_global=(
+            "pendiente de diagnóstico"
+            if student_data["elo_global"] is None
+            else f"{student_data['elo_global']:.1f}"
+        ),
         attempts_count=student_data["attempts_count"],
         topics=", ".join(student_data["topics"]),
         recent_accuracy=f"{student_data['recent_accuracy']:.1%}",
@@ -875,7 +894,7 @@ def analyze_performance_local(
     prompt = f"""Eres un tutor académico experto. Analiza el rendimiento de un estudiante y genera exactamente 3 recomendaciones estructuradas.
 
 DATOS DEL ESTUDIANTE:
-- ELO global: {current_elo:.0f} (escala 600-1800, promedio=1000)
+- ELO global: {_rating_text(current_elo)} (escala 600-1800, promedio=1000)
 - Intentos analizados: {total}
 - Tasa de acierto: {accuracy:.0%}
 - Temas donde acierta: {', '.join(correct_topics) if correct_topics else 'Ninguno registrado aun'}

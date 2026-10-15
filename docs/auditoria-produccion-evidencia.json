@@ -1,0 +1,191 @@
+{
+  "scope": "fresh local SQLite + TestClient; no remote services",
+  "results": [
+    {
+      "check": "refresh_cookie_path",
+      "status": "PASS",
+      "observed": {
+        "path": "/api/auth"
+      }
+    },
+    {
+      "check": "browser_cookie_refresh",
+      "status": "PASS",
+      "observed": {
+        "http": 200
+      }
+    },
+    {
+      "check": "readiness_fails_closed",
+      "status": "PASS",
+      "observed": {
+        "http": 503
+      }
+    },
+    {
+      "check": "production_config_fails_closed",
+      "status": "PASS",
+      "observed": {
+        "rejected": true
+      }
+    },
+    {
+      "check": "ai_rate_limit_enforced",
+      "status": "PASS",
+      "observed": {
+        "http": [
+          422,
+          422,
+          422,
+          422,
+          422,
+          422,
+          422,
+          422,
+          422,
+          422,
+          429
+        ]
+      }
+    },
+    {
+      "check": "auth_rate_limit_enforced",
+      "status": "PASS",
+      "observed": {
+        "last_http": 429
+      }
+    },
+    {
+      "check": "account_cache_cleared_on_logout",
+      "status": "PASS",
+      "observed": {
+        "layouts": 3
+      }
+    },
+    {
+      "check": "upload_content_validated",
+      "status": "PASS",
+      "observed": {
+        "http": 415
+      }
+    },
+    {
+      "check": "client_ai_score_ignored",
+      "status": "PASS",
+      "observed": {
+        "http": 200,
+        "saved_score": null
+      }
+    },
+    {
+      "check": "procedure_antiplagiarism_enforced",
+      "status": "PASS",
+      "observed": {
+        "http": 409
+      }
+    },
+    {
+      "check": "foreign_student_denied",
+      "status": "PASS",
+      "observed": {
+        "foreign_http": [
+          404,
+          404,
+          404,
+          404
+        ],
+        "owner_http": [
+          200,
+          200,
+          200,
+          200
+        ]
+      }
+    },
+    {
+      "check": "foreign_group_invite_denied",
+      "status": "PASS",
+      "observed": {
+        "foreign_http": 404,
+        "unchanged_after_rejection": true,
+        "owner_http": 200
+      }
+    },
+    {
+      "check": "diagnostic_baseline_recovered",
+      "status": "PASS",
+      "observed": {
+        "stored": 1234.0,
+        "topic_recovered": 1234.0,
+        "course_recovered": 1234.0
+      }
+    },
+    {
+      "check": "canonical_item_difficulty",
+      "status": "PASS",
+      "observed": {
+        "http": 200,
+        "new_attempts": 1,
+        "canonical": 600.0,
+        "submitted": 1777,
+        "saved": 600
+      }
+    },
+    {
+      "check": "answer_retry_idempotent",
+      "status": "PASS",
+      "observed": {
+        "new_attempts": 1
+      }
+    },
+    {
+      "check": "grade_contract_handles_request",
+      "status": "PASS",
+      "observed": {
+        "foreign_http": 404,
+        "owner_http": 200,
+        "repeat_http": 404,
+        "persisted": [
+          80.0,
+          80.0,
+          99.0,
+          6.0,
+          "VALIDATED_BY_TEACHER"
+        ]
+      }
+    },
+    {
+      "check": "future_exam_window_enforced",
+      "status": "PASS",
+      "observed": {
+        "http": 404
+      }
+    },
+    {
+      "check": "foreign_assignment_delete_denied",
+      "status": "PASS",
+      "observed": {
+        "foreign_http": 404,
+        "victim_assignment_ids": [
+          1
+        ],
+        "owner_http": 204
+      }
+    },
+    {
+      "check": "duplicate_exam_items_rejected",
+      "status": "PASS",
+      "observed": {
+        "http": 400,
+        "correct_count": null
+      }
+    },
+    {
+      "check": "disabled_user_token_rejected",
+      "status": "PASS",
+      "observed": {
+        "http": 401
+      }
+    }
+  ]
+}

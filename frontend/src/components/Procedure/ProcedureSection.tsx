@@ -50,6 +50,7 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
   const [error, setError] = useState<string | null>(null);
   const [review, setReview] = useState<ProcedureReview | null>(null);
   const [usedProvider, setUsedProvider] = useState<string>("");
+  const [analysisToken, setAnalysisToken] = useState("");
 
   const { data: aiStatus } = useQuery({
     queryKey: ["ai-status"],
@@ -62,6 +63,7 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
   const handleFile = (f: File) => {
     setError(null);
     setReview(null);
+    setAnalysisToken("");
     if (!ALLOWED_TYPES.includes(f.type)) {
       setError(t("procedureSection.typeNotSupported", { type: f.type }));
       return;
@@ -80,6 +82,7 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
     setPreview(null);
     setStage("idle");
     setReview(null);
+    setAnalysisToken("");
     setError(null);
   };
 
@@ -88,7 +91,7 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
     setError(null);
     setStage("analyzing");
     try {
-      const { review: r, provider } = await studentApi.analyzeProcedure({
+      const { review: r, provider, analysisToken: token } = await studentApi.analyzeProcedure({
         item_id: itemId,
         item_content: itemContent,
         api_key: apiKey || undefined,
@@ -96,6 +99,7 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
       });
       setReview(r);
       setUsedProvider(provider);
+      setAnalysisToken(token);
       setStage("result");
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t("procedureSection.unknownError");
@@ -112,10 +116,7 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
       fd.append("item_id", itemId);
       fd.append("item_content", itemContent);
       fd.append("file", file);
-      if (opts?.withAI && review?.score_procedimiento !== undefined) {
-        fd.append("ai_proposed_score", String(review.score_procedimiento));
-        fd.append("ai_feedback", review.evaluacion_global ?? "");
-      }
+      if (opts?.withAI && analysisToken) fd.append("analysis_token", analysisToken);
       await apiClient.postForm("/api/student/procedure", fd);
       setStage("sent");
     } catch (e: unknown) {
@@ -182,15 +183,19 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
               {/* Stage: idle — file upload */}
               {stage === "idle" && (
                 <>
-                  {/* Dropzone */}
-                  <div
+                  {/* Dropzone. Es un <label> y no un <div onClick>: arrastrar no
+                      es la única forma de subir, y el input queda enfocable con
+                      Tab en vez de escondido con `hidden`. El label ya abre el
+                      selector al pulsarlo, así que no hace falta onClick. */}
+                  <label
                     className={[
-                      "border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all",
+                      "block border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all",
+                      // El input real es sr-only: su anillo mediría 1px.
+                      "focus-within:outline focus-within:outline-2 focus-within:outline-offset-[3px]",
                       file
                         ? "border-violet-500/60 bg-violet-900/10"
                         : "border-slate-600/60 hover:border-slate-500 bg-slate-800/30",
                     ].join(" ")}
-                    onClick={() => fileRef.current?.click()}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => {
                       e.preventDefault();
@@ -219,13 +224,13 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
                       ref={fileRef}
                       type="file"
                       accept={ALLOWED_TYPES.join(",")}
-                      className="hidden"
+                      className="sr-only"
                       onChange={(e) => {
                         const f = e.target.files?.[0];
                         if (f) handleFile(f);
                       }}
                     />
-                  </div>
+                  </label>
 
                   {file && (
                     <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg px-3 py-1.5 border border-slate-700/50">

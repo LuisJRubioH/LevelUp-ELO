@@ -1,0 +1,75 @@
+[
+  {
+    "id": "CS8-U4-P104-A01",
+    "tipo": "valores_numericos",
+    "enunciado": "Usa el triángulo de Pascal para escribir el polinomio extendido de la fórmula R=p[i(1+i)^n/((1+i)^n-1)] para préstamos de 4, 5 y 7 cuotas.",
+    "exprs": {
+      "cuatro_cuotas": "p*(i*(1+i)**4)/((1+i)**4-1)",
+      "cinco_cuotas": "p*(i*(1+i)**5)/((1+i)**5-1)",
+      "siete_cuotas": "p*(i*(1+i)**7)/((1+i)**7-1)"
+    },
+    "respuesta_valores": {
+      "cuatro_cuotas": "p*(i*(1+4*i+6*i**2+4*i**3+i**4))/((1+4*i+6*i**2+4*i**3+i**4)-1)",
+      "cinco_cuotas": "p*(i*(1+5*i+10*i**2+10*i**3+5*i**4+i**5))/((1+5*i+10*i**2+10*i**3+5*i**4+i**5)-1)",
+      "siete_cuotas": "p*(i*(1+7*i+21*i**2+35*i**3+35*i**4+21*i**5+7*i**6+i**7))/((1+7*i+21*i**2+35*i**3+35*i**4+21*i**5+7*i**6+i**7)-1)"
+    },
+    "respuesta": "Para 4 cuotas se usa (1+i)^4=1+4i+6i²+4i³+i⁴; para 5, (1+i)^5=1+5i+10i²+10i³+5i⁴+i⁵; para 7, (1+i)^7=1+7i+21i²+35i³+35i⁴+21i⁵+7i⁶+i⁷. Cada desarrollo sustituye a (1+i)^n tanto en el numerador como en el denominador de la fórmula.",
+    "conjunto": "R",
+    "seccion": "Aplicación: cuota de un préstamo bancario",
+    "unidad": 4,
+    "pagina_pdf": 104,
+    "referencia": "Aplicación 1 (a-c)",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "Los coeficientes de cada potencia se toman de las filas 4, 5 y 7 del triángulo de Pascal.",
+    "dificultad": 700
+  },
+  {
+    "id": "CS8-U4-P104-A02",
+    "tipo": "numerico",
+    "enunciado": "Una persona solicita $3.000.000 para comprar un vehículo y pagará el préstamo en 12 meses con interés mensual del 1,5%. Calcula la cuota fija mediante R=p[i(1+i)^n/((1+i)^n-1)].",
+    "expr": "3000000*(0.015*(1+0.015)**12)/((1+0.015)**12-1)",
+    "respuesta": "24486260151532241951975221205000/89028003367383154488338249",
+    "aproximacion": "275039.98",
+    "respuesta_unidad": "pesos por mes",
+    "conjunto": "R",
+    "seccion": "Aplicación: cuota de un préstamo bancario",
+    "unidad": 4,
+    "pagina_pdf": 104,
+    "referencia": "Aplicación 2",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "Con p=3.000.000, i=0,015 y n=12, la fórmula produce 275.039,9787..., es decir, aproximadamente $275.039,98 mensuales.",
+    "dificultad": 650
+  },
+  {
+    "id": "CS8-U4-P104-A03",
+    "tipo": "simbolico",
+    "enunciado": "Para R=p[i(1+3i+3i²+i³)/((1+3i+3i²+i³)-1)], simplifica la expresión e indica para cuántas cuotas está construida si n representa el número de cuotas.",
+    "expr": "p*(i*(1+3*i+3*i**2+i**3))/((1+3*i+3*i**2+i**3)-1)",
+    "respuesta": "p*(1+i)**3/(i**2+3*i+3)",
+    "respuesta_cuotas": 3,
+    "restricciones": ["i!=0", "i**2+3*i+3!=0"],
+    "conjunto": "R",
+    "seccion": "Aplicación: cuota de un préstamo bancario",
+    "unidad": 4,
+    "pagina_pdf": 104,
+    "referencia": "Aplicación 3 (a-b)",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "justificacion": "El denominador es i(3+3i+i²), por lo que se cancela el factor i. Además, 1+3i+3i²+i³=(1+i)³; por eso n=3 y la expresión corresponde a tres cuotas.",
+    "dificultad": 700
+  },
+  {
+    "id": "CS8-U4-P104-A04",
+    "tipo": "abierta",
+    "enunciado": "Consulta el interés mensual de un préstamo de libre inversión con cuota fija y calcula la cuota mensual para comprar un apartamento de $100.000.000, si el préstamo se cancela en cuotas mensuales durante 10 años.",
+    "respuesta": "Con la tasa mensual consultada i y n=120 cuotas, la cuota se calcula como R=100000000[i(1+i)^120/((1+i)^120-1)]. El valor numérico depende de la tasa vigente y de las condiciones de la entidad financiera elegida.",
+    "conjunto": "R",
+    "seccion": "Aplicación: cuota de un préstamo bancario",
+    "unidad": 4,
+    "pagina_pdf": 104,
+    "referencia": "Aplicación 4",
+    "apto_para": ["procedimiento_abierto"],
+    "justificacion": "Diez años de pagos mensuales equivalen a 120 cuotas; falta sustituir la tasa mensual investigada.",
+    "verificar": "La tasa es una consulta abierta y temporalmente variable. Revisar la fuente, la fecha, si la tasa está expresada como mensual efectiva y la sustitución coherente; no exigir un único valor numérico.",
+    "dificultad": 750
+  }
+]

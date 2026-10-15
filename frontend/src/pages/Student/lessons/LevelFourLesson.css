@@ -1,0 +1,269 @@
+.n4-page {
+  --n4-surface: color-mix(in srgb, var(--surface, #12121a) 92%, white 8%);
+  --n4-line: color-mix(in srgb, var(--text, #f1f5f9) 14%, transparent);
+  --n4-accent: var(--accent, #6c63ff);
+  --n4-teal: #2dd4bf;
+}
+
+.n4-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ponytail: el encabezado editorial y el panel de imagen ahora son
+   .level-presentation-header/.level-presentation-media (Lesson.css) —
+   compartidos por todos los hubs de nivel, no solo N4 */
+
+.n4-scene-text {
+  margin: 0;
+  color: var(--text-2, #94a3b8);
+  line-height: 1.6;
+}
+
+/* ponytail: el aviso de gating ahora es .level-gating-hint (Lesson.css) */
+
+/* ---- Rompe-hielo del hub (peso visual más liviano: calentamiento, no la tarea con gate) ---- */
+.n4-icebreaker {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px dashed var(--n4-line);
+  border-radius: 8px;
+  background: transparent;
+}
+
+.n4-icebreaker-title {
+  margin: 0;
+  color: var(--n4-accent);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.n4-icebreaker header p {
+  margin: 4px 0 0;
+  color: var(--text-2, #94a3b8);
+}
+
+/* ---- Muelles (tarjetas del hub) ---- */
+.n4-port {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@keyframes n4-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.n4-card {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  min-height: 164px;
+  border: 1px solid var(--n4-line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--n4-surface);
+  animation: n4-card-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.n4-card:nth-child(1) { animation-delay: 0ms; }
+.n4-card:nth-child(2) { animation-delay: 40ms; }
+.n4-card:nth-child(3) { animation-delay: 80ms; }
+.n4-card:nth-child(4) { animation-delay: 120ms; }
+.n4-card:nth-child(5) { animation-delay: 160ms; }
+.n4-card:nth-child(6) { animation-delay: 200ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .n4-card {
+    animation: none;
+  }
+}
+
+.n4-card-face {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  align-items: center;
+  justify-items: center;
+  padding: 14px 10px;
+  color: var(--text, #f1f5f9);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 18px, color-mix(in srgb, white 8%, transparent) 18px 20px),
+    color-mix(in srgb, var(--n4-accent) 26%, #0a0a0f);
+  border: 0;
+  border-right: 1px solid var(--n4-line);
+  cursor: pointer;
+}
+
+.n4-card-face b {
+  font-size: 12px;
+  color: var(--n4-accent);
+}
+
+.n4-card.opened .n4-card-face {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 18px, color-mix(in srgb, white 9%, transparent) 18px 20px),
+    color-mix(in srgb, var(--n4-teal) 34%, #0a0a0f);
+}
+
+.n4-card-copy {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 18px;
+  opacity: .78;
+  transition: opacity .18s ease, background .18s ease;
+}
+
+.n4-card-copy.revealed {
+  opacity: 1;
+  background: color-mix(in srgb, var(--n4-teal) 7%, transparent);
+}
+
+.n4-card-copy span {
+  color: var(--n4-accent);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.n4-card-copy p {
+  margin: 0;
+  color: var(--text-2, #94a3b8);
+  line-height: 1.5;
+}
+
+.n4-card-closed {
+  font-style: italic;
+}
+
+.n4-card-copy button {
+  width: fit-content;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid var(--n4-accent);
+  color: #ffffff;
+  background: var(--n4-accent);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.n4-katia-final {
+  margin: 0;
+  padding: 18px 20px;
+  border-left: 4px solid var(--n4-teal);
+  color: var(--text, #f1f5f9);
+  background: color-mix(in srgb, var(--n4-teal) 12%, transparent);
+}
+
+/* ---- Caja de formalización ---- */
+.n4-formalization {
+  padding: 20px;
+  border: 1px solid var(--n4-line);
+  border-radius: 8px;
+  background: var(--n4-surface);
+}
+
+.n4-formalization header span {
+  color: var(--n4-teal);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.n4-formalization header h2 {
+  margin: 6px 0;
+}
+
+.n4-formalization header p {
+  margin: 0 0 12px;
+  color: var(--text-2, #94a3b8);
+}
+
+.n4-formalization ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.n4-formalization li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--n4-line);
+  border-radius: 8px;
+}
+
+.n4-formalization li b {
+  color: var(--n4-teal);
+  min-width: 64px;
+}
+
+.n4-formalization li span {
+  color: var(--text-2, #94a3b8);
+  font-weight: 400;
+  text-transform: none;
+}
+
+/* ---- Práctica mixta (numeric/single_select/multi_select) ---- */
+.n4-practice {
+  display: grid;
+  gap: 14px;
+}
+
+.n4-practice header span {
+  color: var(--n4-teal);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+/* ponytail: .n4-practice-item, .n4-item, .n4-options y .n4-option-btn ahora
+   viven en PracticeItem.css (.level-practice-item/...), compartidos por
+   los 3 hubs + la práctica mixta de N4 */
+
+.n4-closing {
+  padding: 16px 20px;
+  border-left: 4px solid var(--n4-accent);
+  background: color-mix(in srgb, var(--n4-accent) 10%, transparent);
+}
+
+.n4-closing p {
+  margin: 0;
+  color: var(--text-2, #94a3b8);
+  line-height: 1.6;
+}
+
+html.light .n4-page {
+  --n4-surface: #ffffff;
+  --n4-line: rgba(15, 23, 42, .14);
+}
+
+@media (max-width: 900px) {
+  .n4-port {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .n4-card {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .n4-card-copy {
+    padding: 14px;
+  }
+}

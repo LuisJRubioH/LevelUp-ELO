@@ -2,18 +2,21 @@
  * pages/Student/Exam.tsx
  * =======================
  * Modo examen cronometrado: configuración → N preguntas → timer → resultados.
- * Sin KatIA ni feedback inmediato. ELO se actualiza al enviar todas las respuestas.
+ * Sin KatIA ni feedback inmediato. El examen no mueve el rating (spec 001).
+ * El reloj del examen es el de pared: el navegador frena los temporizadores en una pestaña de
+ * fondo, y el servidor cierra la sesión a su propia hora.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import katex from "katex";
-import "katex/dist/katex.min.css";
 import { studentApi } from "../../api/student";
-import { api } from "../../api/client";
+import { api, ApiError } from "../../api/client";
 import { QuestionImage } from "../../components/Question/QuestionImage";
+import { MathText } from "../../components/Math/MathContent";
+import { PageHeader } from "../../components/ui/PageHeader";
+import "./StudentContent.css";
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -41,6 +44,7 @@ const DRAFT_KEY = "levelup-exam-draft";
 const DRAFT_MAX_AGE_MS = 6 * 60 * 60 * 1000; // 6 horas
 
 interface ExamDraft {
+  sessionId: string;
   courseId: string;
   courseName: string;
   nQuestions: number;
@@ -59,7 +63,14 @@ function readDraft(): ExamDraft | null {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return null;
     const d = JSON.parse(raw) as ExamDraft;
-    if (!d || typeof d !== "object" || !Array.isArray(d.items)) return null;
+    if (
+      !d ||
+      typeof d !== "object" ||
+      typeof d.sessionId !== "string" ||
+      !d.sessionId ||
+      !Array.isArray(d.items)
+    )
+      return null;
     if (Date.now() - d.savedAt > DRAFT_MAX_AGE_MS) {
       localStorage.removeItem(DRAFT_KEY);
       return null;
@@ -87,37 +98,6 @@ function clearDraft() {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function RenderMath({ text }: { text: string }) {
-  const parts = text.split(/(\$[^$]+\$)/g);
-  if (parts.length === 1) return <>{text}</>;
-  return (
-    <>
-      {parts.map((part, i) => {
-        if (part.startsWith("$") && part.endsWith("$")) {
-          const math = part.slice(1, -1);
-          try {
-            const html = katex.renderToString(math, {
-              displayMode: false,
-              throwOnError: false,
-              errorColor: "#ef4444",
-            });
-            return (
-              <span
-                key={i}
-                className="inline-block align-middle"
-                dangerouslySetInnerHTML={{ __html: html }}
-              />
-            );
-          } catch {
-            return <span key={i}>{part}</span>;
-          }
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </>
-  );
-}
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -164,8 +144,8 @@ function ExamSetup({
 
   return (
     <div className="max-w-md mx-auto py-10 px-4">
-      <h2 className="text-xl font-bold text-slate-100 mb-1">{t("exam.title")}</h2>
-      <p className="text-sm text-slate-400 mb-6">
+      <PageHeader eyebrow={t("exam.eyebrow")} title={t("exam.title")} />
+      <p className="sp-subtitle">
         {t("exam.description")}{" "}
         <span className="text-amber-400">{t("exam.noEloWarning")}</span>
         {t("exam.noEloExplain")}
@@ -360,7 +340,7 @@ function ExamSetup({
 
         {/* Resumen */}
         {selectedCourse && (
-          <div className="bg-slate-800/60 border border-slate-700 rounded-xl px-4 py-3 text-xs text-slate-400 space-y-1">
+          <div className="sp-card sp-dim text-xs space-y-1" style={{ padding: "14px 16px" }}>
             <div className="flex justify-between">
               <span>{t("exam.courseLabel")}</span>
               <span className="text-slate-200">
@@ -450,13 +430,16 @@ export function Exam() {
   const [courseName, setCourseName] = useState(courseIdParam);
   const [nQuestions, setNQuestions] = useState(nParam);
   const [timeLimitMin, setTimeLimitMin] = useState(tParam);
+  const [sessionId, setSessionId] = useState("");
 
   const [items, setItems] = useState<ExamItem[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [timeLeft, setTimeLeft] = useState(0);
   const [results, setResults] = useState<ExamResult[]>([]);
-  const [score, setScore] = useState({ correct: 0, total: 0, pct: 0, eloAfter: 0 });
+  const [score, setScore] = useState<{ correct: number; total: number; pct: number; eloAfter: number | null }>(
+    { correct: 0, total: 0, pct: 0, eloAfter: null }
+  );
   const [error, setError] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const [templateId, setTemplateId] = useState<number | null>(null);
@@ -476,6 +459,7 @@ export function Exam() {
       setNQuestions(n);
       setTimeLimitMin(t);
       setTemplateId(tplId ?? null);
+      setSessionId("");
       setItems([]);
       setCurrentIdx(0);
       setAnswers({});
@@ -488,6 +472,7 @@ export function Exam() {
   );
 
   const handleResume = useCallback((draft: ExamDraft) => {
+    setSessionId(draft.sessionId);
     setCourseId(draft.courseId);
     setCourseName(draft.courseName);
     setNQuestions(draft.nQuestions);
@@ -512,8 +497,11 @@ export function Exam() {
   useEffect(() => {
     if (phase !== "loading" || !courseId) return;
 
+    // The server starts its clock after this moment, so counting from here never runs late.
+    const requestedAt = Date.now();
     api
       .post<{
+        session_id: string;
         items: ExamItem[];
         n_questions: number;
         time_limit_seconds: number;
@@ -525,10 +513,11 @@ export function Exam() {
         template_id: templateId ?? undefined,
       })
       .then((data) => {
+        setSessionId(data.session_id);
         setItems(data.items);
         setTimeLeft(data.time_limit_seconds);
         itemStartTime.current = Date.now();
-        startedAtRef.current = Date.now();
+        startedAtRef.current = requestedAt;
         timeLimitSecondsRef.current = data.time_limit_seconds;
         setPhase("answering");
       })
@@ -542,6 +531,7 @@ export function Exam() {
   useEffect(() => {
     if (phase !== "answering" || items.length === 0) return;
     writeDraft({
+      sessionId,
       courseId,
       courseName,
       nQuestions,
@@ -554,7 +544,18 @@ export function Exam() {
       timeLimitSeconds: timeLimitSecondsRef.current,
       savedAt: Date.now(),
     });
-  }, [phase, items, answers, currentIdx, courseId, courseName, nQuestions, timeLimitMin, templateId]);
+  }, [
+    phase,
+    items,
+    answers,
+    currentIdx,
+    sessionId,
+    courseId,
+    courseName,
+    nQuestions,
+    timeLimitMin,
+    templateId,
+  ]);
 
   // ── Enviar examen ──────────────────────────────────────────────────────────
 
@@ -571,8 +572,10 @@ export function Exam() {
     itemStartTime.current = Date.now();
 
     const payload = {
+      session_id: sessionId,
       course_id: courseId,
       course_name: courseName,
+      template_id: templateId ?? undefined,
       answers: items.map((item) => ({
         item_id: item.id,
         selected_option: answers[item.id] ?? "",
@@ -596,7 +599,7 @@ export function Exam() {
           correct_count: number;
           total_questions: number;
           score_pct: number;
-          global_elo_after: number;
+          global_elo_after: number | null;
         }>("/api/student/exam/submit", payload);
 
         setResults(res.results);
@@ -612,17 +615,21 @@ export function Exam() {
         return;
       } catch (err) {
         lastError = err;
+        // The server refused the submission (expired, already closed, invalid): retrying cannot
+        // change that, and its reason is what the student needs to read.
+        if (err instanceof ApiError && err.status >= 400 && err.status < 500) break;
       }
     }
 
-    // Los 3 intentos fallaron — mantener al estudiante en "answering" con
+    // Los intentos fallaron — mantener al estudiante en "answering" con
     // el banner de error visible. El borrador sigue en localStorage, así
     // que aunque recargue la página puede reintentar.
-    void lastError;
-    setSubmitError(t("exam.submitErrorDetail"));
+    const refused =
+      lastError instanceof ApiError && lastError.status >= 400 && lastError.status < 500;
+    setSubmitError(refused ? (lastError as ApiError).detail : t("exam.submitErrorDetail"));
     setSubmitAttempt(0);
     setPhase("answering");
-  }, [items, currentIdx, answers, courseId, courseName, t]);
+  }, [items, currentIdx, answers, sessionId, courseId, courseName, templateId, t]);
 
   // Mantener ref estable para el timer
   useEffect(() => {
@@ -633,17 +640,23 @@ export function Exam() {
 
   useEffect(() => {
     if (phase !== "answering") return;
-    const interval = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) {
-          clearInterval(interval);
-          submitRef.current?.();
-          return 0;
-        }
-        return t - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
+    // Each tick reads the wall clock: a background tab may fire this once a minute.
+    const tick = () => {
+      const elapsed = (Date.now() - startedAtRef.current) / 1000;
+      const left = Math.max(0, Math.ceil(timeLimitSecondsRef.current - elapsed));
+      setTimeLeft(left);
+      if (left <= 0) {
+        clearInterval(interval);
+        document.removeEventListener("visibilitychange", tick);
+        submitRef.current?.();
+      }
+    };
+    const interval = setInterval(tick, 1000);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", tick);
+    };
   }, [phase]);
 
   // ── Navegación entre preguntas ─────────────────────────────────────────────
@@ -724,7 +737,7 @@ export function Exam() {
         {/* Encabezado de resultados */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">{emoji}</div>
-          <h1 className="text-2xl font-bold text-slate-100 mb-4">{label}</h1>
+          <h1 className="sp-title" style={{ fontSize: 26, marginBottom: 16 }}>{label}</h1>
           <div className="flex items-center justify-center gap-6">
             <div className="text-center">
               <p className="text-3xl font-bold text-slate-100 tabular-nums">{score.pct}%</p>
@@ -785,7 +798,7 @@ export function Exam() {
                     {t("exam.questionShort")} {i + 1}
                   </p>
                   <p className="text-sm text-slate-300 leading-snug line-clamp-2">
-                    {item ? <RenderMath text={item.content} /> : r.item_id}
+                    {item ? <MathText text={item.content} /> : r.item_id}
                   </p>
                 </div>
                 {r.elo_delta !== 0 && (
@@ -926,9 +939,9 @@ export function Exam() {
         {/* Modal de confirmación */}
         {showConfirm && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
-              <h3 className="text-lg font-bold text-slate-100 mb-2">{t("exam.confirmTitle")}</h3>
-              <div className="text-sm text-slate-400 space-y-1 mb-5">
+            <div className="grp-modal mx-4">
+              <h3 className="text-lg font-bold mb-2" style={{ color: "var(--text)" }}>{t("exam.confirmTitle")}</h3>
+              <div className="sp-dim text-sm space-y-1 mb-5">
                 <p>
                   {t("exam.confirmAnsweredPrefix")}{" "}
                   <span className="text-emerald-400 font-semibold">{answeredCount}</span>{" "}
@@ -970,9 +983,9 @@ export function Exam() {
                 {t("exam.questionLabel", { n: currentIdx + 1, total: items.length })}
               </p>
 
-              <div className="bg-slate-800 rounded-xl p-5 mb-5 border border-slate-700">
-                <p className="text-slate-200 leading-relaxed text-[15px]">
-                  <RenderMath text={currentItem.content} />
+              <div className="sp-card mb-5">
+                <p className="leading-relaxed text-[15px]" style={{ color: "var(--text)" }}>
+                  <MathText text={currentItem.content} />
                 </p>
                 <QuestionImage imageUrl={currentItem.image_url} />
 
@@ -992,7 +1005,7 @@ export function Exam() {
                           : "border-slate-600 bg-slate-800/60 text-slate-300 hover:border-slate-500 hover:bg-slate-700/60",
                       ].join(" ")}
                     >
-                      <RenderMath text={opt} />
+                      <MathText text={opt} />
                     </button>
                   );
                 })}

@@ -1,0 +1,913 @@
+[
+  {
+    "id": "HT8-U6-P139-A1a",
+    "tipo": "simbolico",
+    "enunciado": "¿El polinomio $x^3+x$ es un polinomio primo o compuesto?",
+    "expr": "x**3+x",
+    "respuesta": "x*(x**2+1)",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Interpreta, actividad 1, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Compuesto**: $x^3+x=x(x^2+1)$, así que tiene un divisor distinto de 1 y de sí mismo. Que $x^2+1$ ya no se factorice no lo vuelve primo — basta con que se pueda sacar el factor común $x$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U6-P139-A1b",
+    "tipo": "abierta",
+    "enunciado": "Si se tienen dos polinomios que no se pueden factorizar, ¿cuál es su mcd?",
+    "respuesta": "**1**, y entonces son primos relativos. Un polinomio que no se factoriza solo tiene como divisores al 1 y a sí mismo, así que dos de ellos únicamente pueden compartir el 1. La única excepción es que sean el mismo polinomio, o uno múltiplo del otro por un número — como $x+1$ y $2x+2$ —: ahí el mcd es el polinomio mismo.",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Interpreta, actividad 1, ítem b",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Es el análogo del caso numérico: el mcd de dos primos distintos es 1, pero el mcd de 7 con 7 es 7. El libro define en la página 138 que dos polinomios con mcd igual a 1 son **primos relativos**.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P139-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los monomios $m^2n$; $mn^2$.",
+    "expr": "gcd(m**2*n, m*n**2)",
+    "respuesta": "m*n",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Interpreta, actividad 2, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=mn$. De cada letra se toma el **menor** exponente: $m^{\\min(2,1)}n^{\\min(1,2)}$.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U6-P139-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los monomios $18ab^2$; $27a^2b^3c^4$.",
+    "expr": "gcd(18*a*b**2, 27*a**2*b**3*c**4)",
+    "respuesta": "9*a*b**2",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Interpreta, actividad 2, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=9ab^2$. $\\text{mcd}(18,27)=9$; de $a$ y $b$ los menores exponentes; la $c$ no está en el primer monomio, así que no entra.",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U6-P139-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los monomios $6m^2np^3$; $24mn^2p$; $12m^3np^2$.",
+    "expr": "gcd(gcd(6*m**2*n*p**3, 24*m*n**2*p), 12*m**3*n*p**2)",
+    "respuesta": "6*m*n*p",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Interpreta, actividad 2, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=6mnp$. $\\text{mcd}(6,24,12)=6$ y de cada letra el menor exponente: $m^1$, $n^1$, $p^1$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U6-P139-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los monomios $70x^2y^3z^4$; $42x^3y^4z^5$; $21x^4y^5z^6$.",
+    "expr": "gcd(gcd(70*x**2*y**3*z**4, 42*x**3*y**4*z**5), 21*x**4*y**5*z**6)",
+    "respuesta": "7*x**2*y**3*z**4",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Interpreta, actividad 2, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=7x^2y^3z^4$. $\\text{mcd}(70,42,21)=7$. Los menores exponentes están todos en el primer monomio.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U6-P139-A2e",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los monomios $76a^2b^6c^4$; $38ab^4c^7$; $95a^5b^6c$.",
+    "expr": "gcd(gcd(76*a**2*b**6*c**4, 38*a*b**4*c**7), 95*a**5*b**6*c)",
+    "respuesta": "19*a*b**4*c",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Interpreta, actividad 2, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=19ab^4c$. $76=4\\cdot 19$, $38=2\\cdot 19$ y $95=5\\cdot 19$, luego el mcd numérico es 19. Aquí cada letra toma su mínimo en un monomio distinto: $a$ en el segundo, $b$ en el segundo, $c$ en el tercero.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P139-A2f",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los monomios $32x^6y^4z^2$; $64x^4y^2z^4$; $88x^5y^5z^3$.",
+    "expr": "gcd(gcd(32*x**6*y**4*z**2, 64*x**4*y**2*z**4), 88*x**5*y**5*z**3)",
+    "respuesta": "8*x**4*y**2*z**2",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Interpreta, actividad 2, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=8x^4y^2z^2$. $\\text{mcd}(32,64,88)=8$ y los exponentes mínimos son $x^4$, $y^2$, $z^2$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P139-A2g",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los monomios $36m^6n^7p^4$; $81m^5n^8p^5$; $108m^4n^6p^6$.",
+    "expr": "gcd(gcd(36*m**6*n**7*p**4, 81*m**5*n**8*p**5), 108*m**4*n**6*p**6)",
+    "respuesta": "9*m**4*n**6*p**4",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Interpreta, actividad 2, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=9m^4n^6p^4$. $36=4\\cdot 9$, $81=9\\cdot 9$, $108=12\\cdot 9$: el mcd numérico es 9, no 3.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P139-A2h",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los monomios $24ab^4c^5$; $120a^3b^2c^4$; $72a^4bc^3$.",
+    "expr": "gcd(gcd(24*a*b**4*c**5, 120*a**3*b**2*c**4), 72*a**4*b*c**3)",
+    "respuesta": "24*a*b*c**3",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Interpreta, actividad 2, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=24abc^3$. $\\text{mcd}(24,120,72)=24$, y de $b$ el menor exponente es 1 (el del tercer monomio).",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P139-A2i",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los monomios $72x^3y^3z^3$; $120x^5y^5z^5$; $96x^7y^5z^6$.",
+    "expr": "gcd(gcd(72*x**3*y**3*z**3, 120*x**5*y**5*z**5), 96*x**7*y**5*z**6)",
+    "respuesta": "24*x**3*y**3*z**3",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Interpreta, actividad 2, ítem i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=24x^3y^3z^3$. $\\text{mcd}(72,120,96)=24$ y el primer monomio ya tiene todos los exponentes mínimos.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P139-A2j",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los monomios $75a^3b^4c^6$; $225a^5b^3c^5$; $150a^6b^2c^4$.",
+    "expr": "gcd(gcd(75*a**3*b**4*c**6, 225*a**5*b**3*c**5), 150*a**6*b**2*c**4)",
+    "respuesta": "75*a**3*b**2*c**4",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Interpreta, actividad 2, ítem j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=75a^3b^2c^4$. $75=75\\cdot 1$, $225=75\\cdot 3$, $150=75\\cdot 2$: el mcd numérico es 75. Cada letra toma su mínimo en un monomio distinto.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P139-A3a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe V si la afirmación es verdadera o F si es falsa. El monomio $3x^2y^3$ es el mcd de $51x^5y^4$; $69x^2y^3z$; $33x^4y^5z^2$.",
+    "expr": "gcd(gcd(51*x**5*y**4, 69*x**2*y**3*z), 33*x**4*y**5*z**2)",
+    "respuesta": "3*x**2*y**3",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Ejercita, actividad 3, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**V.** $51=3\\cdot 17$, $69=3\\cdot 23$ y $33=3\\cdot 11$, luego el mcd numérico es 3. Los exponentes mínimos son $x^2$, $y^3$, y la $z$ falta en el primer monomio.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P139-A3b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe V si la afirmación es verdadera o F si es falsa. El mcd de $48x^6y^3z$; $60x^5y^4z^2$ y $120x^4y^5z^2$ es $12x^4y^3z^2$.",
+    "expr": "gcd(gcd(48*x**6*y**3*z, 60*x**5*y**4*z**2), 120*x**4*y**5*z**2)",
+    "respuesta": "12*x**4*y**3*z",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Ejercita, actividad 3, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**F.** Todo cuadra salvo la $z$: en el primer monomio aparece con exponente 1, así que el mcd es $12x^4y^3z$, no $12x^4y^3z^2$. Es el error clásico de leer solo los dos últimos monomios.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P139-A3c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe V si la afirmación es verdadera o F si es falsa. Los monomios $15m^6n^4$; $60m^5n^5p$ y $240m^4n^6p^2$ tienen como mcd a $15m^4n^4$.",
+    "expr": "gcd(gcd(15*m**6*n**4, 60*m**5*n**5*p), 240*m**4*n**6*p**2)",
+    "respuesta": "15*m**4*n**4",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Ejercita, actividad 3, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**V.** $\\text{mcd}(15,60,240)=15$, los exponentes mínimos son $m^4$ y $n^4$, y la $p$ no está en el primer monomio.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P139-A3d",
+    "tipo": "simbolico",
+    "enunciado": "Escribe V si la afirmación es verdadera o F si es falsa. El polinomio $x-2$ es el mcd de $x^2-4$ y $x^3-8$.",
+    "expr": "gcd(x**2-4, x**3-8)",
+    "respuesta": "x-2",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Ejercita, actividad 3, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**V.** $x^2-4=(x-2)(x+2)$ y $x^3-8=(x-2)(x^2+2x+4)$. El único factor común es $x-2$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P139-A3e",
+    "tipo": "simbolico",
+    "enunciado": "Escribe V si la afirmación es verdadera o F si es falsa. El mcd de $x^3+27$, $2x^2-6x+18$ y $x^4-3x^3+9x^2$ es $x^2-3x+9$.",
+    "expr": "gcd(gcd(x**3+27, 2*x**2-6*x+18), x**4-3*x**3+9*x**2)",
+    "respuesta": "x**2-3*x+9",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Ejercita, actividad 3, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**V.** $x^3+27=(x+3)(x^2-3x+9)$, $2x^2-6x+18=2(x^2-3x+9)$ y $x^4-3x^3+9x^2=x^2(x^2-3x+9)$. El trinomio $x^2-3x+9$ es el mismo en los tres, y ya no se factoriza.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P139-A3f",
+    "tipo": "simbolico",
+    "enunciado": "Escribe V si la afirmación es verdadera o F si es falsa. Los polinomios $2a^2-ax+4a-2x$, $2ax^2+x^3$, $6a^2+5ax-4x^2$ y $16a^2+72ax-40x^2$ tienen como mcd a $2a-x$.",
+    "expr": "gcd(gcd(gcd(2*a**2-a*x+4*a-2*x, 2*a*x**2+x**3), 6*a**2+5*a*x-4*x**2), 16*a**2+72*a*x-40*x**2)",
+    "respuesta": "1",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Ejercita, actividad 3, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**F.** Tres de los cuatro sí llevan $2a-x$: $(2a-x)(a+2)$, $(2a-x)(3a+4x)$ y $8(2a-x)(a+5x)$. Pero el segundo es $2ax^2+x^3=x^2(2a+x)$, con **suma**, no resta. Basta uno que no lo tenga para que el mcd de todo el grupo sea 1. El anzuelo es exactamente ese cambio de signo.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P139-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Determina si los polinomios $a+1$; $a-2$; $a+3$ son primos relativos.",
+    "expr": "gcd(gcd(a+1, a-2), a+3)",
+    "respuesta": "1",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 4, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El mcd de todo el grupo es $1$, luego **sí** son primos relativos. Los tres son de grado 1 y distintos, así que ninguno divide a otro: son primos relativos también dos a dos.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U6-P139-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Determina si los polinomios $b^2-1$; $b+1$; $b^2+5$; $b+4$ son primos relativos.",
+    "expr": "gcd(gcd(gcd(b**2-1, b+1), b**2+5), b+4)",
+    "respuesta": "1",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 4, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El mcd de todo el grupo es $1$, luego **sí** son primos relativos. **Ojo con el matiz**: el mcd de los cuatro es 1, pero **no** son primos relativos dos a dos — $b^2-1=(b-1)(b+1)$ y $b+1$ comparten $b+1$. Lo que salva al grupo es que $b^2+5$ (irreducible) y $b+4$ no tienen nada en común con ellos.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U6-P139-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Determina si los polinomios $x^2+2x+1$; $x+7$; $3x^2+x-8$ son primos relativos.",
+    "expr": "gcd(gcd(x**2+2*x+1, x+7), 3*x**2+x-8)",
+    "respuesta": "1",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 4, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El mcd de todo el grupo es $1$, luego **sí** son primos relativos. $x^2+2x+1=(x+1)^2$, $x+7$ es de grado 1 y $3x^2+x-8$ no se factoriza sobre los racionales (su discriminante, 97, no es cuadrado perfecto). Primos relativos, y también dos a dos.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P139-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Determina si los polinomios $m+7$; $m-3$; $m^2-10m+21$ son primos relativos.",
+    "expr": "gcd(gcd(m+7, m-3), m**2-10*m+21)",
+    "respuesta": "1",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 4, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El mcd de todo el grupo es $1$, luego **sí** son primos relativos. Mismo matiz que en el ítem b: $m^2-10m+21=(m-3)(m-7)$ comparte $m-3$ con el segundo polinomio, así que **dos a dos no** son primos relativos; pero $m+7$ no aparece en ninguno de los otros dos, y por eso el mcd de los tres sí es 1.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U6-P139-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Determina si los polinomios $x^2+6x+9$; $x^2-9$; $x+3$ son primos relativos.",
+    "expr": "gcd(gcd(x**2+6*x+9, x**2-9), x+3)",
+    "respuesta": "x+3",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 4, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El mcd de todo el grupo es $x+3$, luego **no** son primos relativos. **No son primos relativos**: $x^2+6x+9=(x+3)^2$ y $x^2-9=(x-3)(x+3)$, así que los tres llevan $x+3$ y el mcd es $x+3$, no 1. Es el único grupo de la actividad en el que el mcd no es 1.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P139-A4f",
+    "tipo": "simbolico",
+    "enunciado": "Determina si los polinomios $a^2+8a+16$; $a+8$; $2a^2-14a+24$ son primos relativos.",
+    "expr": "gcd(gcd(a**2+8*a+16, a+8), 2*a**2-14*a+24)",
+    "respuesta": "1",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 4, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El mcd de todo el grupo es $1$, luego **sí** son primos relativos. $a^2+8a+16=(a+4)^2$ y $2a^2-14a+24=2(a-3)(a-4)$. Ningún factor se repite: $a+4$ no es $a+8$ ni $a-4$. Primos relativos, y también dos a dos.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P139-A4g",
+    "tipo": "simbolico",
+    "enunciado": "Determina si los polinomios $m^9-8$; $m^2-4m+4$; $m^2+6m-16$ son primos relativos.",
+    "expr": "gcd(gcd(m**9-8, m**2-4*m+4), m**2+6*m-16)",
+    "respuesta": "1",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 4, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El mcd de todo el grupo es $1$, luego **sí** son primos relativos. La trampa está en $m^9-8$: **no** es $(m-2)(\\dots)$ sino $(m^3)^3-2^3=(m^3-2)(m^6+2m^3+4)$, y $m^3-2$ no es $m-2$. Los otros dos, $(m-2)^2$ y $(m-2)(m+8)$, sí comparten $m-2$ entre ellos, así que dos a dos no son primos relativos; el mcd de los tres, en cambio, es 1.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U6-P139-A4h",
+    "tipo": "simbolico",
+    "enunciado": "Determina si los polinomios $b^4-16b^2+64$; $b^4-16$; $b^4-8b^2+12$ son primos relativos.",
+    "expr": "gcd(gcd(b**4-16*b**2+64, b**4-16), b**4-8*b**2+12)",
+    "respuesta": "1",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 4, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El mcd de todo el grupo es $1$, luego **sí** son primos relativos. $b^4-16b^2+64=(b^2-8)^2$, $b^4-16=(b-2)(b+2)(b^2+4)$ y $b^4-8b^2+12=(b^2-2)(b^2-6)$. Los tres se factorizan y aun así no comparten nada: primos relativos, también dos a dos.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P139-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $15a^2+20a^4$; $6a^5-8a^3$.",
+    "expr": "gcd(15*a**2+20*a**4, 6*a**5-8*a**3)",
+    "respuesta": "a**2",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=a^2$. $15a^2+20a^4=5a^2(3+4a^2)$ y $6a^5-8a^3=2a^3(3a^2-4)$. No hay factor numérico común (5 y 2) ni paréntesis común: solo queda $a^2$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P139-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $6m^2+12m^3$; $3m^4-9m^2$.",
+    "expr": "gcd(6*m**2+12*m**3, 3*m**4-9*m**2)",
+    "respuesta": "3*m**2",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=3m^2$. $6m^2(1+2m)$ y $3m^2(m^2-3)$. Común: $\\text{mcd}(6,3)=3$ y $m^2$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P139-A5c",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $x^3-27$; $x^2-9$.",
+    "expr": "gcd(x**3-27, x**2-9)",
+    "respuesta": "x-3",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=x-3$. Diferencia de cubos y diferencia de cuadrados: $(x-3)(x^2+3x+9)$ y $(x-3)(x+3)$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P139-A5d",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $2m^3+14m^2$; $m^2n+7mn$.",
+    "expr": "gcd(2*m**3+14*m**2, m**2*n+7*m*n)",
+    "respuesta": "m*(m+7)",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=m(m+7)$. $2m^2(m+7)$ y $mn(m+7)$. Común: $m$ (exponente mínimo 1) y el paréntesis $m+7$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P139-A5e",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $x^2-y^2$; $x^2-2xy+y^2$.",
+    "expr": "gcd(x**2-y**2, x**2-2*x*y+y**2)",
+    "respuesta": "x-y",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=x-y$. $(x-y)(x+y)$ y $(x-y)^2$. El factor común con menor exponente es $x-y$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P139-A5f",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $a^3+27$; $2a^2-6a+18$.",
+    "expr": "gcd(a**3+27, 2*a**2-6*a+18)",
+    "respuesta": "a**2-3*a+9",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=a^2-3a+9$. $(a+3)(a^2-3a+9)$ y $2(a^2-3a+9)$. El mcd es el trinomio, que no se factoriza más.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P139-A5g",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $2x^2+4xy+2y^2$; $x^3+y^3$.",
+    "expr": "gcd(2*x**2+4*x*y+2*y**2, x**3+y**3)",
+    "respuesta": "x+y",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=x+y$. $2(x+y)^2$ y $(x+y)(x^2-xy+y^2)$. Se toma $x+y$, el menor exponente; el 2 no está en el segundo.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P139-A5h",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $2m^3-12m^2n+18mn^2$; $m^3p-9mn^2p$.",
+    "expr": "gcd(2*m**3-12*m**2*n+18*m*n**2, m**3*p-9*m*n**2*p)",
+    "respuesta": "m*(m-3*n)",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=m(m-3n)$. $2m(m-3n)^2$ y $mp(m-3n)(m+3n)$. Común: $m$ y $m-3n$ una sola vez. El 2 y la $p$ no se repiten.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P139-A5i",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $2a^2+2a-40$; $4a^2-12a-16$.",
+    "expr": "gcd(2*a**2+2*a-40, 4*a**2-12*a-16)",
+    "respuesta": "2*(a-4)",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=2(a-4)$. $2(a+5)(a-4)$ y $4(a-4)(a+1)$. El factor numérico común es 2, no 4: el mcd es $2(a-4)=2a-8$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U6-P139-A5j",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $y^4-5y^3+6y^2$; $y^4-6y^3+9y^2$.",
+    "expr": "gcd(y**4-5*y**3+6*y**2, y**4-6*y**3+9*y**2)",
+    "respuesta": "y**2*(y-3)",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=y^2(y-3)$. $y^2(y-2)(y-3)$ y $y^2(y-3)^2$. Se sacan primero los $y^2$ y después el paréntesis común.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P139-A5k",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $3x^2+3x-6$; $3x^2-12x+9$.",
+    "expr": "gcd(3*x**2+3*x-6, 3*x**2-12*x+9)",
+    "respuesta": "3*(x-1)",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem k",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=3(x-1)$. $3(x+2)(x-1)$ y $3(x-3)(x-1)$. Conviene sacar el 3 antes de buscar el trinomio.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U6-P139-A5l",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $3m^2n^2+6m^2n-45m^2$; $6mn^2p+24mnp$.",
+    "expr": "gcd(3*m**2*n**2+6*m**2*n-45*m**2, 6*m*n**2*p+24*m*n*p)",
+    "respuesta": "3*m",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem l",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=3m$. $3m^2(n+5)(n-3)$ y $6mnp(n+4)$. Los paréntesis no coinciden — $n+4$ no es $n+5$ ni $n-3$ — así que del mcd solo sobrevive la parte monomia: $\\text{mcd}(3,6)=3$ y $m$. Es el caso que muestra que el mcd puede ser un monomio aunque los dos polinomios se factoricen bien.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P139-A5m",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $x^3+3x^2-4x$; $x^2-4x+3$; $x^3-x$.",
+    "expr": "gcd(gcd(x**3+3*x**2-4*x, x**2-4*x+3), x**3-x)",
+    "respuesta": "x-1",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem m",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=x-1$. $x(x+4)(x-1)$, $(x-1)(x-3)$ y $x(x-1)(x+1)$. La $x$ aparece en el primero y el tercero pero no en el segundo, así que solo queda $x-1$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P139-A5n",
+    "tipo": "simbolico",
+    "enunciado": "Determina el mcd de los polinomios $a^2-2a-8$; $a^2-a-12$; $a^3-9a^2+20a$.",
+    "expr": "gcd(gcd(a**2-2*a-8, a**2-a-12), a**3-9*a**2+20*a)",
+    "respuesta": "a-4",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 5, ítem n",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=a-4$. $(a-4)(a+2)$, $(a-4)(a+3)$ y $a(a-4)(a-5)$. El único factor en los tres es $a-4$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P139-A6a",
+    "tipo": "simbolico",
+    "enunciado": "Indica los dos polinomios cuyo mcd es $x-2$. Opciones: $3x^2-6x$ · $x^2+4x+4$ · $x^2y-2xy$ · $x^2-x-2$.",
+    "expr": "gcd(3*x**2-6*x, x**2-x-2)",
+    "respuesta": "x-2",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 6, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$3x^2-6x=3x(x-2)$, $x^2y-2xy=xy(x-2)$ y $x^2-x-2=(x-2)(x+1)$ llevan el factor; el intruso es $x^2+4x+4=(x+2)^2$, con **suma**. Sirve el primero con el cuarto o el tercero con el cuarto — pero **no** el primero con el tercero, porque ahí el mcd sería $x(x-2)$, con una $x$ de más.",
+    "erratum": "El libro imprime el tercer polinomio como x^{2y} - 2xy, con la y subida al exponente. Un exponente literal 2y no pertenece al capitulo y hace que la expresion no se pueda factorizar: es el mismo desliz de composicion del 6c de la p114 (3m^{2n} por 3m^2n). Corregido a x^2y - 2xy = xy(x - 2).",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P139-A6b",
+    "tipo": "simbolico",
+    "enunciado": "Indica los dos polinomios cuyo mcd es $2(x-1)$. Opciones: $8x^2+8x+2$ · $4x^2+8x-12$ · $2x^2-6x+4$ · $x^2-6x+5$.",
+    "expr": "gcd(4*x**2+8*x-12, 2*x**2-6*x+4)",
+    "respuesta": "2*(x-1)",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 6, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Es el único ítem de la actividad con respuesta única: $4x^2+8x-12=4(x+3)(x-1)$ y $2x^2-6x+4=2(x-2)(x-1)$, cuyo mcd es $2(x-1)$. Los otros dos fallan por el número: $x^2-6x+5=(x-5)(x-1)$ no tiene el 2, y $8x^2+8x+2=2(2x+1)^2$ no tiene el $x-1$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P139-A6c",
+    "tipo": "simbolico",
+    "enunciado": "Indica los dos polinomios cuyo mcd es $3m-1$. Opciones: $3m^2-m$ · $9m^2-6m+1$ · $3mn-n+6m-2$ · $9m^2+6m+1$.",
+    "expr": "gcd(3*m**2-m, 9*m**2-6*m+1)",
+    "respuesta": "3*m-1",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 6, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El intruso es $9m^2+6m+1=(3m+1)^2$, con signo $+$. Los otros tres — $m(3m-1)$, $(3m-1)^2$ y $(3m-1)(n+2)$ — dan $3m-1$ **en cualquier pareja**, así que el enunciado tiene tres respuestas válidas. Lo realmente evaluable es detectar cuál sobra.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P139-A6d",
+    "tipo": "simbolico",
+    "enunciado": "Indica los dos polinomios cuyo mcd es $a+b$. Opciones: $a^3-ab^2$ · $2a^2+4ab+2b^2$ · $a^3+a^2b+ab^2+b^3$ · $a^2-2ab+b^2$.",
+    "expr": "gcd(a**3-a*b**2, 2*a**2+4*a*b+2*b**2)",
+    "respuesta": "a+b",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 6, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El intruso es $a^2-2ab+b^2=(a-b)^2$. Los otros tres — $a(a-b)(a+b)$, $2(a+b)^2$ y $(a+b)(a^2+b^2)$, este último por agrupación — dan $a+b$ en cualquier pareja.",
+    "erratum": "Dos erratas en el mismo item. El segundo polinomio se imprime como 2a^2 + 4ab + 2b, sin el cuadrado en el ultimo termino: asi no es un trinomio cuadrado perfecto y no contiene a + b. Y el tercero se imprime como a^3 + a^{2b} + ab^2 + b^3, con la b subida al exponente igual que en el item a; debe ser a^2b para que la agrupacion de (a + b)(a^2 + b^2). Corregidos a 2b^2 y a^2b.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P139-A7a",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los denominadores del grupo de fracciones $\\dfrac{4}{x^2+xy}$ · $\\dfrac{5}{xy+y^2}$ · $\\dfrac{6}{x^3+x^2y}$.",
+    "expr": "gcd(gcd(x**2+x*y, x*y+y**2), x**3+x**2*y)",
+    "respuesta": "x+y",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 7, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=x+y$. $x(x+y)$, $y(x+y)$ y $x^2(x+y)$. El $x+y$ está en los tres, pero $x$ falta en el segundo: el mcd es solo $x+y$. Ese es el denominador que sirve de base para el mínimo común denominador.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P139-A7b",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los denominadores del grupo de fracciones $\\dfrac{a}{4m^2-n^2}$ · $\\dfrac{b}{8m^3+n^3}$ · $\\dfrac{5}{4m^2+4mn+n^2}$.",
+    "expr": "gcd(gcd(4*m**2-n**2, 8*m**3+n**3), 4*m**2+4*m*n+n**2)",
+    "respuesta": "2*m+n",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 7, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=2m+n$. Diferencia de cuadrados, suma de cubos y trinomio cuadrado perfecto: $(2m-n)(2m+n)$, $(2m+n)(4m^2-2mn+n^2)$ y $(2m+n)^2$. El único factor en los tres es $2m+n$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P139-A7c",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los denominadores del grupo de fracciones $\\dfrac{1}{(a^2-1)^2}$ · $\\dfrac{b}{a^2+4a-5}$ · $\\dfrac{c}{a^4-1}$.",
+    "expr": "gcd(gcd((a**2-1)**2, a**2+4*a-5), a**4-1)",
+    "respuesta": "a-1",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 7, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=a-1$. $(a-1)^2(a+1)^2$, $(a+5)(a-1)$ y $(a-1)(a+1)(a^2+1)$. El $a+1$ está en el primero y el tercero pero no en el segundo, así que sobrevive únicamente $a-1$, y con exponente 1.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P139-A7d",
+    "tipo": "simbolico",
+    "enunciado": "Halla el mcd de los denominadores del grupo de fracciones $\\dfrac{2m-3}{6m^2+7m+2}$ · $\\dfrac{3}{2m+1}$ · $\\dfrac{2m-1}{6m+3}$.",
+    "expr": "gcd(gcd(6*m**2+7*m+2, 2*m+1), 6*m+3)",
+    "respuesta": "2*m+1",
+    "conjunto": "Z",
+    "seccion": "Máximo común divisor de polinomios",
+    "unidad": 6,
+    "pagina_pdf": 139,
+    "referencia": "Razona, actividad 7, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\text{mcd}=2m+1$. $(3m+2)(2m+1)$, $2m+1$ y $3(2m+1)$. El segundo denominador ya **es** el mcd: no puede ser mayor que el más pequeño de los tres.",
+    "dificultad": 1350
+  }
+]

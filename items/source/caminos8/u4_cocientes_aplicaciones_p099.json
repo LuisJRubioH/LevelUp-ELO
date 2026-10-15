@@ -1,0 +1,697 @@
+[
+  {
+    "id": "CS8-U4-P099-A193",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 193",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "La finca rectangular tiene área m^5+1.024n^5 y ancho m+4n. Explica cómo hallar la longitud de la cerca.",
+    "expr": "(m**5+1024*n**5)/(m+4*n)",
+    "respuesta": "m**4-4*m**3*n+16*m**2*n**2-64*m*n**3+256*n**4",
+    "justificacion": "La longitud es el cociente del área entre el ancho; se usa la suma de quintas potencias.",
+    "verificar": "El ancho m+4n y la forma rectangular se leen en la figura."
+  },
+  {
+    "id": "CS8-U4-P099-A194",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 194",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (m**2-25)/(m-5).",
+    "expr": "(m**2-25)/(m-5)",
+    "respuesta": "m+5"
+  },
+  {
+    "id": "CS8-U4-P099-A195",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 195",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (m**4-4)/(m**2-2).",
+    "expr": "(m**4-4)/(m**2-2)",
+    "respuesta": "m**2+2"
+  },
+  {
+    "id": "CS8-U4-P099-A196",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 196",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (81*y**6-1)/(9*y**3+1).",
+    "expr": "(81*y**6-1)/(9*y**3+1)",
+    "respuesta": "9*y**3-1"
+  },
+  {
+    "id": "CS8-U4-P099-A197",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 197",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (8*x**3+27)/(2*x+3).",
+    "expr": "(8*x**3+27)/(2*x+3)",
+    "respuesta": "4*x**2-6*x+9"
+  },
+  {
+    "id": "CS8-U4-P099-A198",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 198",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (a**6*b**3*c**3+1)/(a**2*b*c+1).",
+    "expr": "(a**6*b**3*c**3+1)/(a**2*b*c+1)",
+    "respuesta": "a**4*b**2*c**2-a**2*b*c+1"
+  },
+  {
+    "id": "CS8-U4-P099-A199",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 199",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (216+w**3*z**6)/(6+w*z**2).",
+    "expr": "(216+w**3*z**6)/(6+w*z**2)",
+    "respuesta": "w**2*z**4-6*w*z**2+36"
+  },
+  {
+    "id": "CS8-U4-P099-A200",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 200",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (64*a**3-125*b**3)/(4*a-5*b).",
+    "expr": "(64*a**3-125*b**3)/(4*a-5*b)",
+    "respuesta": "16*a**2+20*a*b+25*b**2"
+  },
+  {
+    "id": "CS8-U4-P099-A201",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 201",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (x**(2*n)-y**(2*n))/(x**n-y**n).",
+    "expr": "(x**(2*n)-y**(2*n))/(x**n-y**n)",
+    "respuesta": "x**n+y**n"
+  },
+  {
+    "id": "CS8-U4-P099-A202",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 202",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (m**4-n**4)/(m-n).",
+    "expr": "(m**4-n**4)/(m-n)",
+    "respuesta": "m**3+m**2*n+m*n**2+n**3"
+  },
+  {
+    "id": "CS8-U4-P099-A203",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 203",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (a**8-b**8)/(a+b).",
+    "expr": "(a**8-b**8)/(a+b)",
+    "respuesta": "a**7-a**6*b+a**5*b**2-a**4*b**3+a**3*b**4-a**2*b**5+a*b**6-b**7"
+  },
+  {
+    "id": "CS8-U4-P099-A204",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 204",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (x**7-y**7)/(x-y).",
+    "expr": "(x**7-y**7)/(x-y)",
+    "respuesta": "x**6+x**5*y+x**4*y**2+x**3*y**3+x**2*y**4+x*y**5+y**6"
+  },
+  {
+    "id": "CS8-U4-P099-A205",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 205",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (16*a**4-b**4)/(2*a+b).",
+    "expr": "(16*a**4-b**4)/(2*a+b)",
+    "respuesta": "8*a**3-4*a**2*b+2*a*b**2-b**3"
+  },
+  {
+    "id": "CS8-U4-P099-A206",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 206",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (m**14-n**14)/(m**2-n**2).",
+    "expr": "(m**14-n**14)/(m**2-n**2)",
+    "respuesta": "m**12+m**10*n**2+m**8*n**4+m**6*n**6+m**4*n**8+m**2*n**10+n**12"
+  },
+  {
+    "id": "CS8-U4-P099-A207",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 207",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Simplifica (y**15-z**15)/(y**3-z**3).",
+    "expr": "(y**15-z**15)/(y**3-z**3)",
+    "respuesta": "y**12+y**9*z**3+y**6*z**6+y**3*z**9+z**12"
+  },
+  {
+    "id": "CS8-U4-P099-A208",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 208",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "abierta",
+    "enunciado": "Completa el divisor de (x²-81) para formar una división exacta y halla el cociente.",
+    "respuesta": "Una solución natural es divisor x-9 y cociente x+9. También divisor x+9 y cociente x-9 produce una división exacta.",
+    "verificar": "Las tres casillas del divisor están completamente vacías; el enunciado no distingue entre x-9 y x+9."
+  },
+  {
+    "id": "CS8-U4-P099-A209",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 209",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Completa (4-□)/(2-7m) como división exacta y halla el cociente.",
+    "expr": "(4-49*m**2)/(2-7*m)",
+    "respuesta": "2+7*m",
+    "respuesta_casillas": [
+      "49*m**2"
+    ]
+  },
+  {
+    "id": "CS8-U4-P099-A210",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 210",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Completa (25m^6n^4-4)/(5m^3n^2-□) y halla el cociente.",
+    "expr": "(25*m**6*n**4-4)/(5*m**3*n**2-2)",
+    "respuesta": "5*m**3*n**2+2",
+    "respuesta_casillas": [
+      "2"
+    ]
+  },
+  {
+    "id": "CS8-U4-P099-A211",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 211",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "abierta",
+    "enunciado": "Completa (x^9y^6z^3-□)/(x^3y^2z-□) para formar una división exacta y halla el cociente.",
+    "respuesta": "Tomando 1 en ambas casillas: (A³-1)/(A-1)=A²+A+1, con A=x³y²z; el cociente es x^6y^4z²+x³y²z+1.",
+    "verificar": "Las dos casillas admiten cualquier monomio B y su cubo B³; la elección B=1 es solo la solución más simple."
+  },
+  {
+    "id": "CS8-U4-P099-A212",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 212",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Completa el divisor de 216a^12b^24-c^27 y halla el cociente.",
+    "expr": "(216*a**12*b**24-c**27)/(6*a**4*b**8-c**9)",
+    "respuesta": "36*a**8*b**16+6*a**4*b**8*c**9+c**18",
+    "respuesta_casillas": [
+      "6*a**4*b**8",
+      "c**9"
+    ]
+  },
+  {
+    "id": "CS8-U4-P099-A213",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 213",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "abierta",
+    "enunciado": "Completa (8m^9n^6-□)/(2m^3n²-□) para formar una división exacta y halla el cociente.",
+    "respuesta": "Tomando 1 en ambas casillas: [(2m³n²)³-1]/(2m³n²-1)=4m^6n^4+2m³n²+1.",
+    "verificar": "Como en 211, cualquier monomio B y su cubo B³ completan una diferencia de cubos; el libro no fija una elección única."
+  },
+  {
+    "id": "CS8-U4-P099-A214",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 214",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Completa el divisor de 1.000m³+8b³ y halla el cociente.",
+    "expr": "(1000*m**3+8*b**3)/(10*m+2*b)",
+    "respuesta": "100*m**2-20*m*b+4*b**2",
+    "respuesta_casillas": [
+      "10*m",
+      "2*b"
+    ]
+  },
+  {
+    "id": "CS8-U4-P099-A215",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 215",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Completa el divisor de w^(3x)-z^(6x) y halla el cociente.",
+    "expr": "(w**(3*x)-z**(6*x))/(w**x-z**(2*x))",
+    "respuesta": "w**(2*x)+w**x*z**(2*x)+z**(4*x)",
+    "respuesta_casillas": [
+      "w**x",
+      "z**(2*x)"
+    ]
+  },
+  {
+    "id": "CS8-U4-P099-A216",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 216",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Determina un dividendo y un divisor cuyo cociente sea a^6-a^4b²+a²b^4-b^6.",
+    "expr": "(a**8-b**8)/(a**2+b**2)",
+    "respuesta": "a**6-a**4*b**2+a**2*b**4-b**6",
+    "respuesta_factores": {
+      "dividendo": "a**8-b**8",
+      "divisor": "a**2+b**2"
+    }
+  },
+  {
+    "id": "CS8-U4-P099-A217",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 217",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Determina un dividendo y un divisor para el cociente x^12-x^9y³+x^6y^6-x³y^9+y^12.",
+    "expr": "(x**15+y**15)/(x**3+y**3)",
+    "respuesta": "x**12-x**9*y**3+x**6*y**6-x**3*y**9+y**12",
+    "respuesta_factores": {
+      "dividendo": "x**15+y**15",
+      "divisor": "x**3+y**3"
+    }
+  },
+  {
+    "id": "CS8-U4-P099-A218",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 218",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Determina un dividendo y un divisor para el cociente a^15-a^10b^5+a^5b^10-b^15.",
+    "expr": "(a**20-b**20)/(a**5+b**5)",
+    "respuesta": "a**15-a**10*b**5+a**5*b**10-b**15",
+    "respuesta_factores": {
+      "dividendo": "a**20-b**20",
+      "divisor": "a**5+b**5"
+    }
+  },
+  {
+    "id": "CS8-U4-P099-A219",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 219",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Halla la base del rectángulo de altura a-2b y área a^4-16b^4.",
+    "expr": "(a**4-16*b**4)/(a-2*b)",
+    "respuesta": "a**3+2*a**2*b+4*a*b**2+8*b**3",
+    "verificar": "La altura conocida y la dimensión solicitada dependen de la figura."
+  },
+  {
+    "id": "CS8-U4-P099-A220",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 220",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Halla la altura del paralelogramo de base a+3 y área a^5+243.",
+    "expr": "(a**5+243)/(a+3)",
+    "respuesta": "a**4-3*a**3+9*a**2-27*a+81",
+    "verificar": "La base a+3 y la altura desconocida se identifican en la figura."
+  },
+  {
+    "id": "CS8-U4-P099-A221",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 221",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 700,
+    "tipo": "simbolico",
+    "enunciado": "Halla la altura del triángulo de base n+m y área n^4-m^4.",
+    "expr": "2*(n**4-m**4)/(n+m)",
+    "respuesta": "2*n**3-2*n**2*m+2*n*m**2-2*m**3",
+    "verificar": "Se usa A=base·altura/2; la base y el ángulo recto se leen en la figura."
+  },
+  {
+    "id": "CS8-U4-P099-A222",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 222",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Halla la altura del rectángulo de base x+5 y área 625-x^4.",
+    "expr": "(625-x**4)/(x+5)",
+    "respuesta": "125-25*x+5*x**2-x**3",
+    "verificar": "La base y la altura desconocida se identifican en la figura."
+  },
+  {
+    "id": "CS8-U4-P099-A223",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 223",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Determina el área de la base si h=2a+b y V=8a³+b³.",
+    "expr": "(8*a**3+b**3)/(2*a+b)",
+    "respuesta": "4*a**2-2*a*b+b**2",
+    "verificar": "La relación V=A·h corresponde al cuerpo dibujado."
+  },
+  {
+    "id": "CS8-U4-P099-A224",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 224",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Determina el área de la base si h=x+2 y V=x^6-64.",
+    "expr": "(x**6-64)/(x+2)",
+    "respuesta": "x**5-2*x**4+4*x**3-8*x**2+16*x-32",
+    "verificar": "La altura y el volumen se leen junto al cuerpo."
+  },
+  {
+    "id": "CS8-U4-P099-A225",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 225",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Determina el área de la base si h=4x-7 y V=64x³-343.",
+    "expr": "(64*x**3-343)/(4*x-7)",
+    "respuesta": "16*x**2+28*x+49",
+    "verificar": "La altura y el volumen se leen junto al cuerpo."
+  },
+  {
+    "id": "CS8-U4-P099-A226",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 226",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Determina el área de la base si h=2m+1 y V=32m^5+1.",
+    "expr": "(32*m**5+1)/(2*m+1)",
+    "respuesta": "16*m**4-8*m**3+4*m**2-2*m+1",
+    "verificar": "La altura y el volumen se leen junto al cuerpo."
+  },
+  {
+    "id": "CS8-U4-P099-A227",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 227",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 450,
+    "tipo": "abierta",
+    "enunciado": "Construye un polinomio de segundo grado divisible entre x-3.",
+    "respuesta": "Ejemplo: (x-3)(x+1)=x²-2x-3.",
+    "verificar": "Hay infinitas respuestas; comprobar grado 2 y divisibilidad por x-3."
+  },
+  {
+    "id": "CS8-U4-P099-A228",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 228",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "abierta",
+    "enunciado": "Construye un polinomio de sexto grado divisible entre m+1 y m-1.",
+    "respuesta": "Ejemplo: m^4(m+1)(m-1)=m^6-m^4.",
+    "verificar": "Hay infinitas respuestas; comprobar grado 6 y ambos factores."
+  },
+  {
+    "id": "CS8-U4-P099-A229",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 229",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Calcula k y s para que (x^4-2x³+2x²-kx+s)÷(x²-2x+1) sea exacta.",
+    "expr": "(x**4-2*x**3+2*x**2-2*x+1)/(x**2-2*x+1)",
+    "respuesta": "x**2+1",
+    "respuesta_parametros": {
+      "k": "2",
+      "s": "1"
+    }
+  },
+  {
+    "id": "CS8-U4-P099-A230",
+    "conjunto": "R",
+    "seccion": "Cocientes notables y aplicaciones",
+    "unidad": 4,
+    "pagina_pdf": 99,
+    "referencia": "Actividad 230",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 750,
+    "tipo": "simbolico",
+    "enunciado": "Calcula k y s para que (4x^4-2x²+kx+s)÷(x²-x+1) sea exacta.",
+    "expr": "(4*x**4-2*x**2+6*x-2)/(x**2-x+1)",
+    "respuesta": "4*x**2+4*x-2",
+    "respuesta_parametros": {
+      "k": "6",
+      "s": "-2"
+    }
+  }
+]
+

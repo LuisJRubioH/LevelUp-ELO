@@ -1,0 +1,549 @@
+[
+  {
+    "id": "HT8-U5-P120-E3",
+    "tipo": "simbolico",
+    "enunciado": "La distancia recorrida por un objeto que se desplaza en línea recta y sin cambiar su velocidad es el producto del tiempo por la velocidad. Si la distancia recorrida es $x^2+8x+15$ y la velocidad es $x+5$, ¿cuál es la expresión que determina el tiempo empleado?",
+    "expr": "x**2+8*x+15",
+    "respuesta": "(x+3)*(x+5)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejemplos, actividad 3",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Como distancia $=$ velocidad $\\times$ tiempo, basta factorizar: se buscan dos números que sumen $8$ y multipliquen $15$, que son $3$ y $5$, luego $x^2+8x+15=(x+3)(x+5)$. Siendo $x+5$ la velocidad, el tiempo es $x+3$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P120-A1a",
+    "tipo": "numerico",
+    "enunciado": "Ayuda al estudiante a encontrar dos números que cumplan la condición: Su suma es $16$ y su producto es $15$. ¿Cuál es su producto?",
+    "expr": "(1)*(15)",
+    "respuesta": "15",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Razona, actividad 1, item a",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "figura": "fotografía de dos estudiantes conversando con un bocadillo de diálogo — material del libro",
+    "nota": "Los números son $1$ y $15$. Como el producto y la suma son positivos, los dos son positivos. $15=1\\cdot 15=3\\cdot 5$, y solo $1+15$ da $16$. Este es exactamente el paso central de la factorización de $x^2+bx+c$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P120-A1b",
+    "tipo": "numerico",
+    "enunciado": "Ayuda al estudiante a encontrar dos números que cumplan la condición: Su suma es $-11$ y su producto es $28$. ¿Cuál es su producto?",
+    "expr": "(-4)*(-7)",
+    "respuesta": "28",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Razona, actividad 1, item b",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "figura": "fotografía de dos estudiantes conversando con un bocadillo de diálogo — material del libro",
+    "nota": "Los números son $-4$ y $-7$. Producto positivo y suma negativa: los dos son negativos. $28=4\\cdot 7$ y $-4-7=-11$. Este es exactamente el paso central de la factorización de $x^2+bx+c$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P120-A1c",
+    "tipo": "numerico",
+    "enunciado": "Ayuda al estudiante a encontrar dos números que cumplan la condición: Su producto es $-14$ y su suma es $5$. ¿Cuál es su producto?",
+    "expr": "(7)*(-2)",
+    "respuesta": "-14",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Razona, actividad 1, item c",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "figura": "fotografía de dos estudiantes conversando con un bocadillo de diálogo — material del libro",
+    "nota": "Los números son $7$ y $-2$. Producto negativo: signos contrarios, y como la suma es positiva el mayor en valor absoluto es el positivo. $14=2\\cdot 7$, y $7-2=5$. Este es exactamente el paso central de la factorización de $x^2+bx+c$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P120-A1d",
+    "tipo": "numerico",
+    "enunciado": "Ayuda al estudiante a encontrar dos números que cumplan la condición: Su producto es $210$ y su suma es $-37$. ¿Cuál es su producto?",
+    "expr": "(-7)*(-30)",
+    "respuesta": "210",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Razona, actividad 1, item d",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "figura": "fotografía de dos estudiantes conversando con un bocadillo de diálogo — material del libro",
+    "nota": "Los números son $-7$ y $-30$. Los dos negativos. Entre las descomposiciones de $210$ ($1\\cdot 210$, $2\\cdot 105$, $3\\cdot 70$, $5\\cdot 42$, $6\\cdot 35$, $7\\cdot 30$, $10\\cdot 21$, $14\\cdot 15$), la que suma $37$ es $7+30$. Este es exactamente el paso central de la factorización de $x^2+bx+c$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P120-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $x^2+4x+3$.",
+    "expr": "x**2+4*x+3",
+    "respuesta": "(x+1)*(x+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x+1)(x+3)$. $1+3=4$ y $1\\cdot 3=3$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U5-P120-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $x^2-9x+20$.",
+    "expr": "x**2-9*x+20",
+    "respuesta": "(x-4)*(x-5)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-4)(x-5)$. Producto positivo y suma negativa: los dos negativos. $-4-5=-9$, $(-4)(-5)=20$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P120-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $m^2-20m+96$.",
+    "expr": "m**2-20*m+96",
+    "respuesta": "(m-8)*(m-12)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m-8)(m-12)$. $96=8\\cdot 12$ y $8+12=20$; ambos negativos.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P120-A2e",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $a^2-2a-35$.",
+    "expr": "a**2-2*a-35",
+    "respuesta": "(a-7)*(a+5)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a-7)(a+5)$. Producto negativo: signos contrarios. $35=5\\cdot 7$ y $-7+5=-2$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P120-A2f",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $a^2-14a+45$.",
+    "expr": "a**2-14*a+45",
+    "respuesta": "(a-5)*(a-9)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a-5)(a-9)$. $45=5\\cdot 9$ y $5+9=14$; ambos negativos.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P120-A2g",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $x^2+9x+18$.",
+    "expr": "x**2+9*x+18",
+    "respuesta": "(x+3)*(x+6)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x+3)(x+6)$. $18=3\\cdot 6$ y $3+6=9$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P120-A2h",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $a^2-27a+50$.",
+    "expr": "a**2-27*a+50",
+    "respuesta": "(a-2)*(a-25)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a-2)(a-25)$. La descomposición que sirve no es la más obvia: $50=2\\cdot 25$ y $2+25=27$, no $5\\cdot 10$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P120-A2i",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $a^2-15a+56$.",
+    "expr": "a**2-15*a+56",
+    "respuesta": "(a-7)*(a-8)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a-7)(a-8)$. $56=7\\cdot 8$ y $7+8=15$; ambos negativos.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P120-A2j",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $x^6-6x^3-7$.",
+    "expr": "x**6-6*x**3-7",
+    "respuesta": "(x**3-7)*(x**3+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x^3-7)(x^3+1)$. Es de la forma $x^{2n}+bx^n+c$ con $n=3$: se trabaja con $x^3$ como si fuera una sola letra. $-7+1=-6$ y $(-7)(1)=-7$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P120-A2k",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $x^2-22xy+72y^2$.",
+    "expr": "x**2-22*x*y+72*y**2",
+    "respuesta": "(x-4*y)*(x-18*y)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item k",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-4y)(x-18y)$. Con dos letras el papel de la constante lo hace $72y^2$: $72=4\\cdot 18$ y $4+18=22$, ambos negativos.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P120-A2l",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $m^4+7m^2n-450n^2$.",
+    "expr": "m**4+7*m**2*n-450*n**2",
+    "respuesta": "(m**2+25*n)*(m**2-18*n)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item l",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m^2+25n)(m^2-18n)$. $n=2$ y dos letras: se buscan dos números de producto $-450$ y suma $7$, que son $25$ y $-18$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P120-A2m",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $a^6-37a^3b^2+210b^4$.",
+    "expr": "a**6-37*a**3*b**2+210*b**4",
+    "respuesta": "(a**3-7*b**2)*(a**3-30*b**2)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item m",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a^3-7b^2)(a^3-30b^2)$. $210=7\\cdot 30$ y $7+30=37$; ambos negativos. Es el mismo par que aparece en el ítem d de la actividad 1.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P120-A2n",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $a^6+55a^3b^2+700b^4$.",
+    "expr": "a**6+55*a**3*b**2+700*b**4",
+    "respuesta": "(a**3+20*b**2)*(a**3+35*b**2)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item n",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a^3+20b^2)(a^3+35b^2)$. $700=20\\cdot 35$ y $20+35=55$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P120-A2o",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $a^4-26a^2b-1.680b^2$.",
+    "expr": "a**4-26*a**2*b-1680*b**2",
+    "respuesta": "(a**2-56*b)*(a**2+30*b)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item o",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a^2-56b)(a^2+30b)$. Producto $-1.680$ y suma $-26$: el par es $-56$ y $30$. Con números grandes conviene descomponer en primos: $1.680=2^4\\cdot 3\\cdot 5\\cdot 7$.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P120-A2p",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $x^4+16x^2+60$.",
+    "expr": "x**4+16*x**2+60",
+    "respuesta": "(x**2+6)*(x**2+10)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item p",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x^2+6)(x^2+10)$. $60=6\\cdot 10$ y $6+10=16$. Ninguno de los dos factores se factoriza más sobre los enteros.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P120-A2q",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $m^4-2m^2n-63n^2$.",
+    "expr": "m**4-2*m**2*n-63*n**2",
+    "respuesta": "(m**2-9*n)*(m**2+7*n)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item q",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m^2-9n)(m^2+7n)$. Producto $-63$ y suma $-2$: $-9$ y $7$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P120-A2r",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $y^6+3y^3x^2-40x^4$.",
+    "expr": "y**6+3*y**3*x**2-40*x**4",
+    "respuesta": "(y**3+8*x**2)*(y**3-5*x**2)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item r",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(y^3+8x^2)(y^3-5x^2)$. Aquí la letra que hace de «$x$» es $y^3$ y la constante es $40x^4$: producto $-40$ y suma $3$, o sea $8$ y $-5$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P120-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $m^2-6m-40$.",
+    "expr": "m**2-6*m-40",
+    "respuesta": "(m-10)*(m+4)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 2, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m-10)(m+4)$. Producto $-40$ y suma $-6$: como el producto es negativo, los dos números tienen signos contrarios, y como la suma es negativa, el mayor en valor absoluto es el negativo. $40=10\\cdot 4$ y $-10+4=-6$.",
+    "erratum": "El libro imprime m^2 - 6m + 40, que es irreducible incluso sobre los reales (discriminante -124), mientras que el enunciado pide factorizar sin ofrecer la salida de si es posible. Habia tres correcciones a un caracter: -40, -13m o -14m. Se elige el cambio de signo del 40 porque es el mas economico (un signo, no un digito) y porque la actividad ya trae varios trinomios de producto negativo, como el item e, a^2 - 2a - 35.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P120-A3a",
+    "tipo": "simbolico",
+    "enunciado": "Determina cuál de los trinomios $x^2+4x+5$ · $x^2+5x+6$ · $x^2+9x+20$ tiene un factor igual al de $x^2+3x+2$, que está en el cuadro.",
+    "expr": "x**2+5*x+6",
+    "respuesta": "(x+2)*(x+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 3, item a",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Es $x^2+5x+6$: el cuadro es $x^2+3x+2=(x+1)(x+2)$ y el ganador es $(x+2)(x+3)$, así que comparten $(x+2)$. $x^2+4x+5$ ni siquiera se factoriza (su discriminante es $-4$), y $x^2+9x+20=(x+4)(x+5)$ no tiene nada en común.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P120-A3b",
+    "tipo": "simbolico",
+    "enunciado": "Determina cuál de los trinomios $x^2+13x+40$ · $x^2+11x+30$ · $x^2+11x+24$ tiene un factor igual al de $x^2+10x+21$, que está en el cuadro.",
+    "expr": "x**2+11*x+24",
+    "respuesta": "(x+3)*(x+8)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 3, item b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Es $x^2+11x+24$: el cuadro es $x^2+10x+21=(x+3)(x+7)$ y el ganador es $(x+3)(x+8)$, así que comparten $(x+3)$. Los otros dos comparten el factor $(x+5)$ entre sí, pero no con el cuadro.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P120-A3c",
+    "tipo": "simbolico",
+    "enunciado": "Determina cuál de los trinomios $x^4+x^2-30$ · $x^4-9x^2+4$ · $x^4+9x^2+9$ tiene un factor igual al de $x^4-8x^2+15$, que está en el cuadro.",
+    "expr": "x**4+x**2-30",
+    "respuesta": "(x**2+6)*(x**2-5)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 3, item c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Es $x^4+x^2-30$: el cuadro es $x^4-8x^2+15=(x^2-3)(x^2-5)$ y el ganador es $(x^2+6)(x^2-5)$, así que comparten $(x^2-5)$. Los otros dos no se factorizan sobre los enteros: en $x^4-9x^2+4$ haría falta un par de producto $4$ y suma $-9$, y en $x^4+9x^2+9$ uno de producto $9$ y suma $9$.",
+    "erratum": "El libro imprime la primera opcion como x^4 + x - 30, sin el exponente 2. Asi no es un trinomio de la forma x^{2n}+bx^n+c y no se factoriza; con x^4 + x^2 - 30 = (x^2+6)(x^2-5) si comparte el factor (x^2-5) con el cuadro. La respuesta del ejercicio no cambia, porque las otras dos opciones son irreducibles sobre los enteros de todos modos.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P120-A3d",
+    "tipo": "simbolico",
+    "enunciado": "Determina cuál de los trinomios $x^2+11x+24$ · $x^2+9x+14$ · $x^2+7x+6$ tiene un factor igual al de $x^2+10x+24$, que está en el cuadro.",
+    "expr": "x**2+7*x+6",
+    "respuesta": "(x+1)*(x+6)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 3, item d",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Es $x^2+7x+6$: el cuadro es $x^2+10x+24=(x+4)(x+6)$ y el ganador es $(x+1)(x+6)$, así que comparten $(x+6)$. Trampa: $x^2+11x+24$ tiene el mismo término independiente que el cuadro, $24$, pero se descompone en $(x+3)(x+8)$ y no comparte ningún factor.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P120-A3e",
+    "tipo": "simbolico",
+    "enunciado": "Determina cuál de los trinomios $x^2-11x+27$ · $x^2+3x-40$ · $x^2+11x+18$ tiene un factor igual al de $x^2+14x+45$, que está en el cuadro.",
+    "expr": "x**2+11*x+18",
+    "respuesta": "(x+2)*(x+9)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 3, item e",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Es $x^2+11x+18$: el cuadro es $x^2+14x+45=(x+5)(x+9)$ y el ganador es $(x+2)(x+9)$, así que comparten $(x+9)$. Otra trampa: $x^2+3x-40=(x-5)(x+8)$ tiene un $5$, pero con signo contrario, así que $(x-5)\\neq(x+5)$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P120-A3f",
+    "tipo": "simbolico",
+    "enunciado": "Determina cuál de los trinomios $x^6+13x^3+42$ · $x^6+7x^3+12$ · $x^6+5x^3+4$ tiene un factor igual al de $x^6+3x^3+2$, que está en el cuadro.",
+    "expr": "x**6+5*x**3+4",
+    "respuesta": "(x**3+1)*(x**3+4)",
+    "conjunto": "Z",
+    "seccion": "Factorización de trinomios de la forma x^{2n} + bx^n + c",
+    "unidad": 5,
+    "pagina_pdf": 120,
+    "referencia": "Ejercita, actividad 3, item f",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Es $x^6+5x^3+4$: el cuadro es $x^6+3x^3+2=(x^3+1)(x^3+2)$ y el ganador es $(x^3+1)(x^3+4)$, así que comparten $(x^3+1)$. Con $n=3$ el procedimiento es idéntico, tomando $x^3$ como la incógnita.",
+    "dificultad": 1450
+  }
+]

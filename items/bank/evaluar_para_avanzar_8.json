@@ -1,0 +1,1244 @@
+[
+  {
+    "id": "EPA8-C1-2020-P01",
+    "content": "En una empresa se les pregunta a $200$ trabajadores: \"¿Cómo se siente con la labor realizada por el gerente?\". Los resultados se muestran en el cartel de la figura: Felices $30\\,\\%$; Tristes $50\\,\\%$; No saben, no responden $20\\,\\%$. El resultado debe presentarse en un informe empresarial y solo se puede usar tablas. La tabla que representa correctamente la información del cartel es",
+    "difficulty": 1050,
+    "topic": "Pensamiento aleatorio — porcentaje sobre un total",
+    "options": [
+      "Número de trabajadores: Felices 230, Tristes 250, No saben 220.",
+      "Porcentaje de trabajadores: Felices 30 %, Tristes 80 %, No saben 100 %.",
+      "Porcentaje de trabajadores: Felices 15 %, Tristes 25 %, No saben 10 %.",
+      "Número de trabajadores: Felices 60, Tristes 100, No saben 40."
+    ],
+    "correct_option": "Número de trabajadores: Felices 60, Tristes 100, No saben 40.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "porcentaje"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P01.svg"
+  },
+  {
+    "id": "EPA8-C1-2020-P02",
+    "content": "Observa las ecuaciones escritas por Óscar en su cuaderno:\n\n- $1{,}5 + \\square = 2$\n- $2{,}5 - \\square = 2$\n- $3 + \\square = 3{,}5$\n\nSi un amigo le contó a Óscar que en $\\square$ debe escribir $0{,}5$, ¿en cuántas expresiones funciona correctamente ese valor?",
+    "difficulty": 900,
+    "topic": "Pensamiento numérico — ecuaciones con decimales",
+    "options": [
+      "En ninguna ecuación.",
+      "En las tres ecuaciones.",
+      "En solo dos ecuaciones.",
+      "Solamente en una ecuación."
+    ],
+    "correct_option": "En las tres ecuaciones.",
+    "tags": [
+      "numerico",
+      "grado8",
+      "epa",
+      "formulacion",
+      "decimales"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2020-P03",
+    "content": "En el colegio le piden a Pedro que construya una cartuchera, de tal forma que las tapas superior e inferior cumplan que: **I.** sean paralelas; **II.** sean congruentes; **III.** tengan el mismo perímetro. Pedro construye una cartuchera con forma de prisma hexagonal cuyas tapas superior e inferior son hexágonos regulares de lado $5\\text{ cm}$ y ángulos de $120°$. De las condiciones que debía cumplir la cartuchera, la que construyó Pedro cumple la condición o condiciones:",
+    "difficulty": 1100,
+    "topic": "Pensamiento espacial — propiedades de las bases de un prisma",
+    "options": [
+      "I solamente.",
+      "II solamente.",
+      "I y III solamente.",
+      "I, II y III."
+    ],
+    "correct_option": "I, II y III.",
+    "tags": [
+      "espacial",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "prismas"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P03.svg"
+  },
+  {
+    "id": "EPA8-C1-2020-P04",
+    "content": "Un pastelero compra bolsas que traen de $3$ a $5$ tazas de harina cada una, y para la elaboración de cada pastel utiliza $\\dfrac{3}{2}$ tazas de harina. ¿Cuál es la cantidad **mínima** de pasteles que puede hacer utilizando $3$ bolsas de harina?",
+    "difficulty": 1250,
+    "topic": "Pensamiento numérico — división por una fracción y estimación de mínimos",
+    "options": [
+      "12",
+      "10",
+      "8",
+      "6"
+    ],
+    "correct_option": "6",
+    "tags": [
+      "numerico",
+      "grado8",
+      "epa",
+      "formulacion",
+      "fracciones"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2020-P05",
+    "content": "El profesor de Martín ha observado su desempeño en las carreras de atletismo durante el primer semestre del año, y afirma que la probabilidad de que gane la siguiente carrera es $\\dfrac{3}{4}$. ¿Cuál de los siguientes hechos sustenta la afirmación del profesor?",
+    "difficulty": 1100,
+    "topic": "Pensamiento aleatorio — frecuencia relativa como probabilidad",
+    "options": [
+      "Martín llegó tercero en cada carrera que participó.",
+      "Martín llegó primero en las carreras con cuatro participantes.",
+      "Martín llegó primero en tres carreras, de las cuatro en las que participó.",
+      "Martín llegó cuarto en tres carreras, de las cuatro en las que participó."
+    ],
+    "correct_option": "Martín llegó primero en tres carreras, de las cuatro en las que participó.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "probabilidad"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2020-P06",
+    "content": "La probabilidad de que Miguel apruebe un examen el sábado depende del número de días que haya estudiado en esa misma semana. En la **semana 1** estudió lunes, martes y jueves (3 días) y la probabilidad de aprobar el examen 1 fue del $60\\,\\%$. En la **semana 2** solo estudió el miércoles (1 día). Según la tabla 2, ¿qué sucede con la probabilidad de que Miguel apruebe el examen 2 respecto a la del examen 1?",
+    "difficulty": 1150,
+    "topic": "Pensamiento aleatorio — proporcionalidad entre variables",
+    "options": [
+      "Aumenta a 80 %.",
+      "Se mantiene en 60 %.",
+      "Corresponde al 10 %.",
+      "Disminuye a 20 %."
+    ],
+    "correct_option": "Disminuye a 20 %.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "proporcionalidad"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2020-P08",
+    "content": "La figura muestra las formas de algunos empaques de dulces: la marca $P$ es un cubo, la marca $Q$ es una pirámide de base cuadrada, la marca $R$ es un prisma triangular y la marca $S$ es una bipirámide de base cuadrada. Los dulces favoritos de Laura vienen en empaques que tienen $6$ vértices. ¿Cuáles son las marcas de los dulces favoritos de Laura?",
+    "difficulty": 1150,
+    "topic": "Pensamiento espacial — elementos de los poliedros",
+    "options": [
+      "Las marcas $R$ y $S$.",
+      "Las marcas $S$ y $P$.",
+      "Las marcas $P$ y $R$.",
+      "Las marcas $Q$ y $R$."
+    ],
+    "correct_option": "Las marcas $R$ y $S$.",
+    "tags": [
+      "espacial",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "poliedros"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P08.svg"
+  },
+  {
+    "id": "EPA8-C1-2020-P09",
+    "content": "Se quiere construir un edificio con las medidas que se muestran en la figura: $18\\text{ m}$ de alto, $12\\text{ m}$ y $8\\text{ m}$ en la base. Para la construcción, se le pide a un arquitecto que realice una maqueta del edificio a una escala $100$ veces menor. ¿Cuál de las siguientes figuras representa la maqueta con las medidas solicitadas?",
+    "difficulty": 1150,
+    "topic": "Pensamiento métrico — escala y conversión de unidades",
+    "options": [
+      "Alto 0,18 m; base 0,12 m y 0,08 m.",
+      "Alto 1,8 m; base 1,2 m y 0,8 m.",
+      "Alto 180 m; base 120 m y 800 m.",
+      "Alto 0,0018 m; base 0,0012 m y 0,008 m."
+    ],
+    "correct_option": "Alto 0,18 m; base 0,12 m y 0,08 m.",
+    "tags": [
+      "metrico",
+      "grado8",
+      "epa",
+      "formulacion",
+      "escala"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P09.svg"
+  },
+  {
+    "id": "EPA8-C1-2020-P10",
+    "content": "En un juego de mesa, cada jugador elige una carta, la cual contiene un personaje y el poder que este tiene, escritos como una pareja ordenada (personaje, poder). Al iniciar el juego, unos amigos obtuvieron las cartas $(1, 5)$, $(4, 6)$ y $(2, 7)$. Los poderes de los personajes de las cartas obtenidas por el grupo de amigos se encuentran entre",
+    "difficulty": 1000,
+    "topic": "Pensamiento numérico — lectura de parejas ordenadas",
+    "options": [
+      "0 y 3.",
+      "1 y 4.",
+      "4 y 6.",
+      "5 y 7."
+    ],
+    "correct_option": "5 y 7.",
+    "tags": [
+      "numerico",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "pares_ordenados"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P10.svg"
+  },
+  {
+    "id": "EPA8-C1-2020-P11",
+    "content": "Alejandro está participando en un juego con sus ojos cubiertos y, para ganar, debe seleccionar una carta que contenga un número par entre un conjunto de tres cartas. Mateo, su amigo, le dice que tiene más posibilidad de ganar que de perder. ¿Cuáles son las cartas que está viendo Mateo para que su afirmación sea correcta?",
+    "difficulty": 1150,
+    "topic": "Pensamiento aleatorio — comparar probabilidad de ganar y perder",
+    "options": [
+      "Las cartas 3, 5 y 7.",
+      "Las cartas 2, 3 y 8.",
+      "Las cartas 2, 3 y 5.",
+      "Las cartas 7, 8 y 9."
+    ],
+    "correct_option": "Las cartas 2, 3 y 8.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "probabilidad"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2020-P13",
+    "content": "La figura muestra el plano a escala de la cara frontal de la casa de Lucía: en el plano, el ancho es de $50\\text{ cm}$ y la altura del frente es de $15\\text{ cm}$. Lucía quiere mandar a pintar el frente, pero no recuerda la altura de este. ¿Qué medida tiene la altura del frente si el ancho real es de $800$ centímetros?",
+    "difficulty": 1250,
+    "topic": "Pensamiento métrico — proporcionalidad y escala",
+    "options": [
+      "240 centímetros.",
+      "525 centímetros.",
+      "750 centímetros.",
+      "835 centímetros."
+    ],
+    "correct_option": "240 centímetros.",
+    "tags": [
+      "metrico",
+      "grado8",
+      "epa",
+      "formulacion",
+      "escala"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P13.svg"
+  },
+  {
+    "id": "EPA8-C1-2020-P14",
+    "content": "En la figura se observa la etiqueta de una caja de azúcar que indica $3$ kilogramos. Recuerda que un kilogramo equivale a mil gramos. Si se cambia la etiqueta por una que muestra el peso en gramos, ¿cuántos gramos mostrará la nueva etiqueta?",
+    "difficulty": 800,
+    "topic": "Pensamiento métrico — conversión de unidades de masa",
+    "options": [
+      "3.000 gramos.",
+      "300 gramos.",
+      "30 gramos.",
+      "0,3 gramos."
+    ],
+    "correct_option": "3.000 gramos.",
+    "tags": [
+      "metrico",
+      "grado8",
+      "epa",
+      "formulacion",
+      "conversion"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2020-P15",
+    "content": "Eduardo es panadero y dice: \"Para hacer tres panes tipo Max requiero $135$ gramos de azúcar. Para hacer cinco panes tipo Max requiero $225$ gramos de azúcar\". ¿Cuántos gramos de azúcar requiere Eduardo para preparar un pan tipo Max?",
+    "difficulty": 950,
+    "topic": "Pensamiento variacional — proporcionalidad directa",
+    "options": [
+      "9 gramos.",
+      "15 gramos.",
+      "45 gramos.",
+      "75 gramos."
+    ],
+    "correct_option": "45 gramos.",
+    "tags": [
+      "variacional",
+      "grado8",
+      "epa",
+      "formulacion",
+      "proporcionalidad"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2020-P16",
+    "content": "En el laboratorio de Biología, los estudiantes realizaron un experimento que consistió en poner $500$ semillas en frascos con tierra abonada, de las cuales $200$ semillas germinaron. De acuerdo con el experimento realizado, ¿cuál es la probabilidad de que una semilla germine si se pone en un frasco con tierra abonada?",
+    "difficulty": 1000,
+    "topic": "Pensamiento aleatorio — frecuencia relativa",
+    "options": [
+      "$\\dfrac{3}{5}$",
+      "$\\dfrac{2}{5}$",
+      "$\\dfrac{2}{3}$",
+      "$\\dfrac{1}{3}$"
+    ],
+    "correct_option": "$\\dfrac{2}{5}$",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "formulacion",
+      "probabilidad"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2020-P17",
+    "content": "La gráfica muestra el número de turistas (en millones) en una ciudad durante los primeros 5 meses de un año: enero $1$; febrero $1{,}5$; marzo $2$; abril $2{,}5$; mayo $3$. Si se mantiene la tendencia en el número de turistas, ¿cuántos habrá en el mes de junio?",
+    "difficulty": 1050,
+    "topic": "Pensamiento variacional — extrapolación de una tendencia lineal",
+    "options": [
+      "3.500.000",
+      "3.000.000",
+      "2.500.000",
+      "2.000.000"
+    ],
+    "correct_option": "3.500.000",
+    "tags": [
+      "variacional",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "tendencia"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P17.svg"
+  },
+  {
+    "id": "EPA8-C1-2020-P19",
+    "content": "Tres de cada cinco resultados son favorables para que suceda un evento. ¿Cuál es la probabilidad de que suceda este evento?",
+    "difficulty": 850,
+    "topic": "Pensamiento aleatorio — probabilidad como razón",
+    "options": [
+      "$\\dfrac{3}{5}$",
+      "$\\dfrac{2}{5}$",
+      "$\\dfrac{2}{3}$",
+      "$\\dfrac{1}{3}$"
+    ],
+    "correct_option": "$\\dfrac{3}{5}$",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "probabilidad"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2020-P20",
+    "content": "La figura muestra un rectángulo de $4\\text{ cm}$ de ancho y $8\\text{ cm}$ de alto. Se necesita una **ampliación** de ese rectángulo. ¿Cuál de los siguientes podría ser el rectángulo que se necesita?",
+    "difficulty": 1150,
+    "topic": "Pensamiento espacial — ampliación y proporcionalidad de lados",
+    "options": [
+      "Rectángulo de 8 cm de ancho y 16 cm de alto.",
+      "Rectángulo de 16 cm de ancho y 16 cm de alto.",
+      "Rectángulo de 4 cm de ancho y 16 cm de alto.",
+      "Rectángulo de 6 cm de ancho y 10 cm de alto."
+    ],
+    "correct_option": "Rectángulo de 8 cm de ancho y 16 cm de alto.",
+    "tags": [
+      "espacial",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "semejanza"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P20.svg"
+  },
+  {
+    "id": "EPA8-C1-2021-P01",
+    "content": "A un conductor, que no conoce el recorrido para llegar a un parque, le entregan el mapa de la figura. En el mapa, cada casilla de la cuadrícula mide $20$ metros de lado, y el recorrido marcado va desde el punto de inicio hacia el occidente, luego al norte, luego al oriente y finalmente al norte hasta el parque. Según el mapa, ¿cuál es el recorrido que debe hacer el conductor para ir desde el punto de inicio hasta el parque?",
+    "difficulty": 1200,
+    "topic": "Pensamiento espacial — desplazamientos y escala en un plano",
+    "options": [
+      "100 m al norte y 80 m al oriente.",
+      "80 m al occidente, 60 m al norte, 160 m al oriente y 40 m al norte.",
+      "40 m al oriente y 50 m al norte.",
+      "50 m al occidente, 30 m al norte, 80 m al occidente y 20 m al norte."
+    ],
+    "correct_option": "80 m al occidente, 60 m al norte, 160 m al oriente y 40 m al norte.",
+    "tags": [
+      "espacial",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "escala"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P01.svg"
+  },
+  {
+    "id": "EPA8-C1-2021-P03",
+    "content": "En la figura se representa la disponibilidad de sillas para la proyección de una película en una sala de cine. Las sillas disponibles son cuatro: $M$ en la fila 6, columna 3; $N$ en la fila 5, columna 4; $P$ en la fila 4, columna 6; y $Q$ en la fila 3, columna 7. Para determinar la ubicación de la silla, se escribe primero el número de la columna seguido del número de la fila correspondiente. ¿Cuál de las siguientes listas corresponde a las sillas disponibles?",
+    "difficulty": 1050,
+    "topic": "Pensamiento espacial — coordenadas y orden del par",
+    "options": [
+      "$M(6, 3)$, $N(5, 4)$, $P(4, 5)$ y $Q(3, 6)$.",
+      "$M(3, 6)$, $N(4, 5)$, $P(6, 4)$ y $Q(7, 3)$.",
+      "$M(6, 3)$, $N(5, 4)$, $P(4, 6)$ y $Q(3, 7)$.",
+      "$M(3, 6)$, $N(4, 5)$, $P(5, 4)$ y $Q(6, 3)$."
+    ],
+    "correct_option": "$M(3, 6)$, $N(4, 5)$, $P(6, 4)$ y $Q(7, 3)$.",
+    "tags": [
+      "espacial",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "coordenadas"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P03.svg"
+  },
+  {
+    "id": "EPA8-C1-2021-P04",
+    "content": "La gráfica muestra la tasa de interés ofrecida por una entidad financiera de acuerdo con el plazo solicitado en un préstamo: $0,012$ a los $0$ meses, $0,014$ a los $2$ meses, $0,016$ a los $4$ meses, $0,018$ a los $6$ meses y $0,020$ a los $8$ meses. Si en la gráfica se mantiene el comportamiento, ¿cuál sería la tasa de interés que ofrece la entidad para un préstamo de $12$ meses?",
+    "difficulty": 1250,
+    "topic": "Pensamiento variacional — extrapolación lineal",
+    "options": [
+      "$0,024$, porque cada mes de plazo adicional representa un aumento de $0,001$ en la tasa de interés.",
+      "$0,022$, porque el aumento de la tasa de interés en el eje vertical es de $0,002$ unidades.",
+      "$0,020$, porque esta es la tasa máxima que ofrece la entidad financiera.",
+      "$0,012$, porque este es el valor donde la gráfica corta el eje vertical."
+    ],
+    "correct_option": "$0,024$, porque cada mes de plazo adicional representa un aumento de $0,001$ en la tasa de interés.",
+    "tags": [
+      "variacional",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "linealidad"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P04.svg"
+  },
+  {
+    "id": "EPA8-C1-2021-P05",
+    "content": "La figura muestra la forma en que doña Eduviges organizó los productos que vende en un estante. En la parte superior ubicó latas, botellas y frascos (todos con base circular) y en la parte inferior ubicó cajas (todas con forma de prisma rectangular). ¿Cuál de las siguientes afirmaciones **NO** es correcta?",
+    "difficulty": 1000,
+    "topic": "Pensamiento espacial — clasificación de sólidos",
+    "options": [
+      "En la parte inferior del estante, doña Eduviges organiza envases cilíndricos.",
+      "En la parte superior del estante, doña Eduviges organiza envases que tienen base circular.",
+      "En la parte inferior del estante, doña Eduviges organiza envases que tienen 6 caras.",
+      "En la parte superior del estante, doña Eduviges organiza envases con 2 caras paralelas."
+    ],
+    "correct_option": "En la parte inferior del estante, doña Eduviges organiza envases cilíndricos.",
+    "tags": [
+      "espacial",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "solidos"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P05.svg"
+  },
+  {
+    "id": "EPA8-C1-2021-P06",
+    "content": "En un juego de parqués, al jugador 1 le faltan tres casillas para llegar y al jugador 2 le falta una casilla. Por tanto, ambos deben hacer lanzamientos con un solo dado. El jugador 1 participó el día anterior en un juego de parqués en el que requería obtener $1$ para ganar, pero al cabo de 8 intentos perdió. El día de hoy el jugador 1 afirma que es más probable que en este juego logre la victoria. Esta afirmación es",
+    "difficulty": 1200,
+    "topic": "Pensamiento aleatorio — independencia de eventos",
+    "options": [
+      "verdadera, porque 3 es mayor que 1 y, por tanto, es el más probable.",
+      "falsa, porque es más probable sacar 1, por estar la ficha más cerca a la llegada.",
+      "verdadera, porque seguro en 8 lanzamientos no se obtiene 1.",
+      "falsa, porque tanto 1 como 3 tienen la misma probabilidad de obtenerse."
+    ],
+    "correct_option": "falsa, porque tanto 1 como 3 tienen la misma probabilidad de obtenerse.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "probabilidad"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P06.svg"
+  },
+  {
+    "id": "EPA8-C1-2021-P07",
+    "content": "Para un juego se tiene una caja que contiene tres bolas blancas, dos negras, tres rojas y cuatro verdes; una persona debe sacar al azar una bola de la caja (sin mirar). La persona debe elegir un color antes de sacar la bola, y gana si coincide el color elegido con el color de la bola que extrae de la caja. Un participante de este juego afirma que la probabilidad de ganar es la misma sin importar el color elegido. ¿El participante tiene razón?",
+    "difficulty": 1100,
+    "topic": "Pensamiento aleatorio — comparación de probabilidades",
+    "options": [
+      "No, porque el verde tiene mayor probabilidad que los otros colores.",
+      "Sí, porque hay bolas de los cuatro colores dentro de la caja.",
+      "No, porque sacar una bola roja es más probable que sacar una blanca.",
+      "Sí, porque cada color tiene igual probabilidad de ser elegido."
+    ],
+    "correct_option": "No, porque el verde tiene mayor probabilidad que los otros colores.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "probabilidad"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2021-P09",
+    "content": "Se construye una figura utilizando algunos triángulos, rectángulos y cuadrados: es un trapecio de $12\\text{ cm}$ de altura, con base mayor de $20\\text{ cm}$ y base menor de $12\\text{ cm}$ (el tramo restante de $8\\text{ cm}$ corresponde a un triángulo rectángulo). Para calcular el área, Juan y Camilo realizaron los siguientes procedimientos:\n\n- **Juan:** $\\dfrac{8\\text{ cm} \\times 12\\text{ cm}}{2} + (12\\text{ cm} \\times 12\\text{ cm})$\n- **Camilo:** $20\\text{ cm} \\times 12\\text{ cm}$\n\n¿Cuál de los procedimientos planteados permite hallar correctamente el área de la figura?",
+    "difficulty": 1200,
+    "topic": "Pensamiento métrico — descomposición de figuras para hallar áreas",
+    "options": [
+      "Solamente el de Juan.",
+      "Solamente el de Camilo.",
+      "El de Juan y el de Camilo.",
+      "Ni el de Juan ni el de Camilo."
+    ],
+    "correct_option": "Solamente el de Juan.",
+    "tags": [
+      "metrico",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "area"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P09.svg"
+  },
+  {
+    "id": "EPA8-C1-2021-P10",
+    "content": "En la tabla se muestra la cantidad de rosas y de girasoles que hay en dos parques de la ciudad.\n\n| Parque | Flor | Cantidad |\n|---|---|---|\n| Parque 1 | Rosas | 150 |\n| Parque 1 | Girasoles | 60 |\n| Parque 2 | Rosas | 10 |\n| Parque 2 | Girasoles | 20 |\n\n¿Cuál de las siguientes afirmaciones es correcta?",
+    "difficulty": 1150,
+    "topic": "Pensamiento aleatorio — promedio y comparación multiplicativa",
+    "options": [
+      "El promedio de girasoles de los dos parques es cuatro veces el promedio de rosas de los dos parques.",
+      "El promedio de rosas de los dos parques es dos veces el promedio de girasoles de los dos parques.",
+      "El promedio de girasoles de los dos parques es tres veces el promedio de rosas de los dos parques.",
+      "El promedio de rosas de los dos parques es siete veces el promedio de girasoles de los dos parques."
+    ],
+    "correct_option": "El promedio de rosas de los dos parques es dos veces el promedio de girasoles de los dos parques.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "promedio"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2021-P11",
+    "content": "Un estudiante lanzó una pelota hacia arriba desde una altura de $5$ metros. La gráfica muestra la altura de la pelota con relación al tiempo transcurrido desde que se lanzó: parte de $5\\text{ m}$ en el segundo $0$, alcanza su punto más alto de $9\\text{ m}$ a los $2$ segundos y llega al suelo a los $5$ segundos. ¿Cuánto tiempo duró subiendo la pelota?",
+    "difficulty": 1000,
+    "topic": "Pensamiento variacional — lectura de gráficas no lineales",
+    "options": [
+      "1 segundo.",
+      "2 segundos.",
+      "5 segundos.",
+      "9 segundos."
+    ],
+    "correct_option": "2 segundos.",
+    "tags": [
+      "variacional",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "grafica"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P11.svg"
+  },
+  {
+    "id": "EPA8-C1-2021-P12",
+    "content": "En el diagrama se muestra el posible color de ojos de hombres y mujeres en un salón de clases: de la rama **Mujer** salen azul, café y verde; de la rama **Hombre** salen azul, café y negro. Según el diagrama de la figura, ¿cuál de las siguientes afirmaciones es correcta?",
+    "difficulty": 950,
+    "topic": "Pensamiento aleatorio — lectura de diagramas de árbol",
+    "options": [
+      "Una mujer puede tener ojos azules.",
+      "Un hombre puede tener ojos verdes.",
+      "Hay 4 colores de ojos para mujeres.",
+      "Hay 6 distintos colores de ojos."
+    ],
+    "correct_option": "Una mujer puede tener ojos azules.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "arbol"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P12.svg"
+  },
+  {
+    "id": "EPA8-C1-2021-P13",
+    "content": "Para su tarea de Estadística, Juliana le preguntó la edad a cada uno de sus 5 tíos y encontró que la moda es de $51$ años. ¿Cuál de las siguientes representaciones corresponde a las edades de los tíos de Juliana?",
+    "difficulty": 1050,
+    "topic": "Pensamiento aleatorio — moda",
+    "options": [
+      "Edades 36, 48, 51, 57 y 63.",
+      "Edades 40, 45, 49, 50 y 51.",
+      "Edades 36, 48, 51, 51 y 63.",
+      "Edades 49, 50, 51, 52 y 53."
+    ],
+    "correct_option": "Edades 36, 48, 51, 51 y 63.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "moda"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2021-P14",
+    "content": "La gráfica muestra la relación entre la edad biológica de un humano y la edad biológica de una raza de perros, a partir del segundo año de la edad biológica del humano: $(2, 24)$, $(4, 28)$, $(6, 32)$ y $(8, 36)$. ¿Cuál es la relación entre la edad biológica del humano y la del perro, a partir del segundo año?",
+    "difficulty": 1150,
+    "topic": "Pensamiento variacional — razón de cambio",
+    "options": [
+      "Por cada 2 años humanos, la edad del perro aumenta 2 años.",
+      "Por cada 4 años humanos, la edad del perro aumenta 2 años.",
+      "Por cada 2 años humanos, la edad del perro aumenta 4 años.",
+      "Por cada 4 años humanos, la edad del perro aumenta 4 años."
+    ],
+    "correct_option": "Por cada 2 años humanos, la edad del perro aumenta 4 años.",
+    "tags": [
+      "variacional",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "razon_de_cambio"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P14.svg"
+  },
+  {
+    "id": "EPA8-C1-2021-P16",
+    "content": "Un artista dibujó una reducción de una de las caras triangulares de una pirámide cuyas medidas registradas en la foto son $410\\text{ cm}$, $410\\text{ cm}$ y $440\\text{ cm}$. De acuerdo con esas medidas, ¿cuál de los siguientes triángulos es el dibujo del artista?",
+    "difficulty": 1200,
+    "topic": "Pensamiento espacial — semejanza y proporcionalidad de lados",
+    "options": [
+      "Triángulo de lados 4 cm, 4 cm y 4 cm.",
+      "Triángulo de lados 41 cm, 43 cm y 42 cm.",
+      "Triángulo de lados 41 cm, 41 cm y 44 cm.",
+      "Triángulo de lados 41 cm, 41 cm y 55 cm."
+    ],
+    "correct_option": "Triángulo de lados 41 cm, 41 cm y 44 cm.",
+    "tags": [
+      "espacial",
+      "grado8",
+      "epa",
+      "formulacion",
+      "semejanza"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P16.svg"
+  },
+  {
+    "id": "EPA8-C1-2021-P17",
+    "content": "Paula posee varias fichas cuadradas de igual tamaño, cada una de $2\\text{ cm}$ por $2\\text{ cm}$. Con ellas formó una figura de tres filas: 4 fichas en la fila superior, 1 ficha en la fila del medio y 4 fichas en la fila inferior. ¿Cuál es el área de la figura formada por Paula?",
+    "difficulty": 1100,
+    "topic": "Pensamiento métrico — área por composición de unidades",
+    "options": [
+      "$4\\text{ cm}^2$",
+      "$9\\text{ cm}^2$",
+      "$36\\text{ cm}^2$",
+      "$40\\text{ cm}^2$"
+    ],
+    "correct_option": "$36\\text{ cm}^2$",
+    "tags": [
+      "metrico",
+      "grado8",
+      "epa",
+      "formulacion",
+      "area"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2021-P17.svg"
+  },
+  {
+    "id": "EPA8-C1-2022-P02",
+    "content": "Una comunicadora social hizo un estudio sobre la veracidad de las noticias que se compartieron durante 5 semanas en una red social y encontró que, en promedio, se compartieron $25$ noticias falsas por semana. ¿Cuál de las siguientes tablas es consistente con la información con la que la comunicadora hizo el estudio?",
+    "difficulty": 1050,
+    "topic": "Pensamiento aleatorio — promedio como reparto equitativo",
+    "options": [
+      "Semanas con 35, 30, 15, 20 y 25 noticias falsas.",
+      "Semanas con 40, 20, 25, 15 y 10 noticias falsas.",
+      "Semanas con 15, 25, 30, 25 y 15 noticias falsas.",
+      "Semanas con 25, 30, 35, 40 y 45 noticias falsas."
+    ],
+    "correct_option": "Semanas con 35, 30, 15, 20 y 25 noticias falsas.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "formulacion",
+      "promedio"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2022-P05",
+    "content": "La tabla muestra las posibles parejas que se pueden obtener al lanzar dos dados, distinguiendo el primer y el segundo dado (36 parejas en total). Si se suman los puntajes obtenidos al lanzar los dados, ¿cuál resultado tiene la mayor probabilidad de obtenerse?",
+    "difficulty": 1100,
+    "topic": "Pensamiento aleatorio — espacio muestral y probabilidad",
+    "options": [
+      "2",
+      "7",
+      "12",
+      "36"
+    ],
+    "correct_option": "7",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "probabilidad"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P05.svg"
+  },
+  {
+    "id": "EPA8-C1-2022-P08",
+    "content": "Pedro invierte su dinero en una empresa en la que, cada mes, obtiene $50\\,\\%$ más de lo que invirtió. Inicialmente invierte $\\$800$ y cada mes reinvierte todo lo que obtiene. ¿Cuánto dinero recibirá en total por la inversión después de 3 meses?",
+    "difficulty": 1150,
+    "topic": "Pensamiento numérico — porcentaje compuesto",
+    "options": [
+      "$\\$1.200$",
+      "$\\$2.000$",
+      "$\\$2.700$",
+      "$\\$3.600$"
+    ],
+    "correct_option": "$\\$2.700$",
+    "tags": [
+      "numerico",
+      "grado8",
+      "epa",
+      "formulacion",
+      "porcentaje"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2022-P09",
+    "content": "Magda utilizó una cuadrícula de $1\\text{ cm}$ de lado para dibujar la figura sombreada, usando dos triángulos rectángulos que comparten un lado de $\\sqrt{2}\\text{ cm}$. El triángulo inferior tiene catetos de $1\\text{ cm}$ y $1\\text{ cm}$; el superior tiene catetos de $\\sqrt{2}\\text{ cm}$ y $1\\text{ cm}$, y su hipotenusa mide $\\sqrt{3}\\text{ cm}$. ¿Cuál es el área de la figura que sombreó Magda?",
+    "difficulty": 1250,
+    "topic": "Pensamiento métrico — área con longitudes irracionales",
+    "options": [
+      "$\\dfrac{1+\\sqrt{2}}{2}\\text{ cm}^2$",
+      "$\\dfrac{2-\\sqrt{3}}{2}\\text{ cm}^2$",
+      "$\\sqrt{3}\\text{ cm}^2$",
+      "$2\\sqrt{2}\\text{ cm}^2$"
+    ],
+    "correct_option": "$\\dfrac{1+\\sqrt{2}}{2}\\text{ cm}^2$",
+    "tags": [
+      "metrico",
+      "grado8",
+      "epa",
+      "formulacion",
+      "area",
+      "irracionales"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P09.svg"
+  },
+  {
+    "id": "EPA8-C1-2022-P10",
+    "content": "La figura muestra las imágenes de dos sombreros triangulares: el sombrero 1 es un triángulo grande y el sombrero 2 es un triángulo más pequeño con la misma forma. ¿Cuál de las siguientes condiciones garantiza que los dos sombreros sean semejantes?",
+    "difficulty": 1100,
+    "topic": "Pensamiento espacial — semejanza de figuras",
+    "options": [
+      "Que el sombrero 2 sea una reducción del sombrero 1.",
+      "Que el área el sombrero 2 sea la mitad del área del sombrero 1.",
+      "Que el perímetro del sombrero 1 sea igual al perímetro del sombrero 2.",
+      "Que el ángulo de la punta del sombrero 1 sea el doble del ángulo de la punta del sombrero 2."
+    ],
+    "correct_option": "Que el sombrero 2 sea una reducción del sombrero 1.",
+    "tags": [
+      "espacial",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "semejanza"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P10.svg"
+  },
+  {
+    "id": "EPA8-C1-2022-P11",
+    "content": "La gráfica muestra el aumento en el precio de una taza de café en el transcurso de 4 años: $\\$200$ en el año 1, $\\$600$ en el año 2, $\\$1.000$ en el año 3 y $\\$1.400$ en el año 4. Si $y$ es el precio de la taza de café y $x$ es el año, ¿cuál de las siguientes ecuaciones representa el precio de la taza de café con respecto al tiempo?",
+    "difficulty": 1200,
+    "topic": "Pensamiento variacional — modelo lineal a partir de una gráfica",
+    "options": [
+      "$400y = 200x$",
+      "$y = 400x - 200$",
+      "$200y = x$",
+      "$y = x + 400$"
+    ],
+    "correct_option": "$y = 400x - 200$",
+    "tags": [
+      "variacional",
+      "grado8",
+      "epa",
+      "formulacion",
+      "linealidad"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P11.svg"
+  },
+  {
+    "id": "EPA8-C1-2022-P14",
+    "content": "Esteban tiene una tienda de plantas ornamentales y está ofreciendo descuentos según la cantidad de artículos que el cliente compre. Según la gráfica, con 1 artículo el descuento es del $10\\,\\%$, sube de forma constante hasta llegar al $25\\,\\%$ con 4 artículos y a partir de ahí se mantiene en $25\\,\\%$. ¿Cuál es el menor porcentaje de descuento que ofrece Esteban en su tienda?",
+    "difficulty": 900,
+    "topic": "Pensamiento variacional — lectura de gráficas por tramos",
+    "options": [
+      "$1\\,\\%$",
+      "$4\\,\\%$",
+      "$10\\,\\%$",
+      "$25\\,\\%$"
+    ],
+    "correct_option": "$10\\,\\%$",
+    "tags": [
+      "variacional",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "grafica"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P14.svg"
+  },
+  {
+    "id": "EPA8-C1-2022-P16",
+    "content": "La guadua es una de las plantas de más rápido crecimiento. Para identificar qué tan rápido crece una guadua, un agrónomo la midió durante varios días. Él observó que el día 1 midió $30\\text{ cm}$ y que la altura de la guadua se puede representar con la función $y = 10x + 20$. ¿Qué significa el número $10$ que aparece en la representación algebraica de la función que representa la altura de la guadua?",
+    "difficulty": 1150,
+    "topic": "Pensamiento variacional — significado de la pendiente",
+    "options": [
+      "Después de 10 años la guadua alcanza su máximo crecimiento.",
+      "La guadua tarda 10 días en alcanzar los 120 metros.",
+      "Al inicio de la siembra, la guadua mide 10 cm.",
+      "Luego de sembrada, la guadua aumenta su altura en 10 cm al día."
+    ],
+    "correct_option": "Luego de sembrada, la guadua aumenta su altura en 10 cm al día.",
+    "tags": [
+      "variacional",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "pendiente"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P16.svg"
+  },
+  {
+    "id": "EPA8-C1-2022-P18",
+    "content": "Daniela preguntó a sus compañeros de curso cuánto tiempo tardan de sus casas al colegio. Los resultados los registró en una gráfica de barras: $20$ estudiantes tardan $5$ minutos, $15$ estudiantes tardan $10$ minutos y $10$ estudiantes tardan $15$ minutos. ¿Cuál es el tiempo promedio que tarda un compañero de Daniela en llegar de la casa al colegio?",
+    "difficulty": 1200,
+    "topic": "Pensamiento aleatorio — promedio ponderado",
+    "options": [
+      "Aproximadamente 13 minutos.",
+      "Aproximadamente 9 minutos.",
+      "Exactamente 15 minutos.",
+      "Exactamente 10 minutos."
+    ],
+    "correct_option": "Aproximadamente 9 minutos.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "formulacion",
+      "promedio"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2022-P18.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P01",
+    "content": "María, Marta, Juan, Pedro y Luis se practicaron un control médico que incluía verificar su peso y estatura. La tabla muestra los resultados encontrados.\n\n| | María | Marta | Juan | Pedro | Luis |\n|---|---|---|---|---|---|\n| Estatura (m) | 1,60 | 1,65 | 1,75 | 1,72 | 1,80 |\n| Peso (kg) | 65 | 70 | 75 | 80 | 79 |\n\n¿Cuál gráfica relaciona correctamente la estatura y el peso de cada uno de los cinco trabajadores?",
+    "difficulty": 950,
+    "topic": "Pensamiento aleatorio — representación de datos bivariados",
+    "options": [
+      "Diagrama de dispersión estatura vs. peso con Pedro en (1,72; 80) y Juan en (1,75; 75).",
+      "Diagrama de barras de estatura por trabajador con valores 65, 70, 75, 80 y 80.",
+      "Diagrama de barras que solo muestra la estatura de cada trabajador.",
+      "Diagrama de dispersión estatura vs. peso con Juan en (1,70; 75) y Pedro en (1,75; 80)."
+    ],
+    "correct_option": "Diagrama de dispersión estatura vs. peso con Pedro en (1,72; 80) y Juan en (1,75; 75).",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "dispersion"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2023-P02",
+    "content": "La figura corresponde al mapa de un parque natural. Cuando ingresan visitantes, se ofrecen las siguientes opciones de recorrido:\n\n- Museo – Zoológico – Piscinas.\n- Museo – Zoológico – Deportes.\n- Museo – Lago – Deportes.\n- Museo – Lago – Piscinas.\n\n¿Cuál de los siguientes diagramas resume los recorridos que ofrece el parque?",
+    "difficulty": 900,
+    "topic": "Pensamiento aleatorio — diagramas de árbol",
+    "options": [
+      "Raíz Museo; Zoológico → {Piscinas, Lago}; Lago → {Piscinas, Zoológico}.",
+      "Raíz Piscinas; Zoológico → {Museo, Lago}; Deportes → {Lago, Museo}.",
+      "Raíz Museo; Zoológico → {Piscinas, Deportes}; Lago → {Piscinas, Deportes}.",
+      "Raíz Piscinas; Zoológico → {Deportes, Museo}; Lago → {Deportes, Museo}."
+    ],
+    "correct_option": "Raíz Museo; Zoológico → {Piscinas, Deportes}; Lago → {Piscinas, Deportes}.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "arbol"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P02.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P03",
+    "content": "En la figura se muestra un ladrillo con forma de prisma rectangular de $13\\text{ cm}$ de alto, $2\\text{ cm}$ de profundidad y $1\\text{ cm}$ de ancho. ¿Cuál es el volumen de este ladrillo?",
+    "difficulty": 850,
+    "topic": "Pensamiento métrico — volumen de prismas",
+    "options": [
+      "$15\\text{ cm}^3$",
+      "$28\\text{ cm}^3$",
+      "$26\\text{ cm}^3$",
+      "$39\\text{ cm}^3$"
+    ],
+    "correct_option": "$26\\text{ cm}^3$",
+    "tags": [
+      "metrico",
+      "grado8",
+      "epa",
+      "formulacion",
+      "volumen"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P03.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P04",
+    "content": "El cobro de un servicio de transporte privado se hace teniendo en cuenta una \"unidad\". El valor de la unidad varía según la hora del día, como se muestra en la gráfica: $\\$76$ a las 3 p. m., $\\$85$ a las 4 p. m., $\\$100$ a las 5 p. m., $\\$105$ a las 6 p. m., $\\$100$ a las 7 p. m., $\\$85$ a las 8 p. m. y $\\$76$ a las 9 p. m. ¿Cuál es la hora del día en la que se paga el valor máximo por unidad?",
+    "difficulty": 800,
+    "topic": "Pensamiento variacional — lectura de gráficas",
+    "options": [
+      "3 p. m.",
+      "5 p. m.",
+      "6 p. m.",
+      "9 p. m."
+    ],
+    "correct_option": "6 p. m.",
+    "tags": [
+      "variacional",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "grafica"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P04.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P05",
+    "content": "En la imagen se observa el valor de las entradas para adultos y niños en diferentes salas de cine:\n\n- Cine 1 — Adultos: $\\$7.500$; Niños: $\\$3.350$\n- Cine 2 — Adultos: $\\$6.800$; Niños: $\\$3.200$\n- Cine 3 — Adultos: $\\$5.000$; Niños: $\\$4.000$\n- Cine 4 — Adultos: $\\$6.600$; Niños: $\\$4.400$\n\nSi se pagó $\\$10.000$ en total por una boleta de niño y una de adulto, ¿en cuál cine se compraron las boletas?",
+    "difficulty": 850,
+    "topic": "Pensamiento numérico — suma de decimales y comparación",
+    "options": [
+      "Cine 1.",
+      "Cine 2.",
+      "Cine 3.",
+      "Cine 4."
+    ],
+    "correct_option": "Cine 2.",
+    "tags": [
+      "numerico",
+      "grado8",
+      "epa",
+      "formulacion",
+      "suma"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P05.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P06",
+    "content": "La gráfica muestra el promedio de vida, en años, de algunos animales salvajes en una región de un país: guepardo $10$ años, babuino $30$ años y elefante $70$ años. ¿Cuántas veces el promedio de vida de los guepardos es igual al promedio de vida de los elefantes?",
+    "difficulty": 900,
+    "topic": "Pensamiento numérico — razones y división",
+    "options": [
+      "8",
+      "7",
+      "6",
+      "3"
+    ],
+    "correct_option": "7",
+    "tags": [
+      "numerico",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "razon"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P06.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P07",
+    "content": "Se tiene una moneda corriente, es decir, con la misma probabilidad de obtener cara o sello. El diagrama de árbol muestra los posibles resultados de lanzar la moneda tres veces al aire. Según el diagrama, ¿cuál de las siguientes afirmaciones es **falsa**?",
+    "difficulty": 1000,
+    "topic": "Pensamiento aleatorio — azar y predicción",
+    "options": [
+      "Es posible hallar la cantidad de casos en los que se obtienen dos sellos consecutivos.",
+      "Es posible determinar la cantidad de casos en los que se obtiene únicamente caras.",
+      "Es posible determinar previamente si sale sello en el siguiente lanzamiento.",
+      "Es posible hallar la probabilidad de obtener una cara en los lanzamientos."
+    ],
+    "correct_option": "Es posible determinar previamente si sale sello en el siguiente lanzamiento.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "azar"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P07.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P08",
+    "content": "Un investigador quiere saber cómo aumenta la población de un tipo de mamífero. Para ello, ingresa una pareja de estos en un ecosistema limitado. El crecimiento de la población se registró en la tabla:\n\n| Año | 1 | 2 | 3 | 4 |\n|---|---|---|---|---|\n| Población | 8 | 32 | 128 | 512 |\n\nCon los datos de la tabla, si se mantiene la relación entre el año y la cantidad, es correcto afirmar que la población de mamíferos",
+    "difficulty": 950,
+    "topic": "Pensamiento variacional — crecimiento multiplicativo",
+    "options": [
+      "aumentó 4 veces la cantidad del año anterior.",
+      "aumentó 8 veces la cantidad del año anterior.",
+      "aumentó 16 veces la cantidad del año anterior.",
+      "aumentó 24 veces la cantidad del año anterior."
+    ],
+    "correct_option": "aumentó 4 veces la cantidad del año anterior.",
+    "tags": [
+      "variacional",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "patron"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2023-P09",
+    "content": "En la figura, las fichas 1 y 2 son cuadradas. La ficha 1 tiene lado $6\\text{ cm}$ y la ficha 2 tiene lado $8\\text{ cm}$. ¿Qué se le debe hacer a la ficha 1 para que sea congruente con la ficha 2?",
+    "difficulty": 900,
+    "topic": "Pensamiento espacial — congruencia de figuras",
+    "options": [
+      "Disminuir 4 cm a cada uno de sus lados.",
+      "Aumentar 2 cm a cada uno de sus lados.",
+      "Disminuir 2 cm solamente a dos de sus lados.",
+      "Aumentar 4 cm solamente a dos de sus lados."
+    ],
+    "correct_option": "Aumentar 2 cm a cada uno de sus lados.",
+    "tags": [
+      "espacial",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "congruencia"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P09.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P10",
+    "content": "Un servicio de mensajería tiene un costo básico de $\\$5.000$ para los envíos que tengan un peso menor a $5\\text{ kg}$. Si el peso del paquete es mayor que $5\\text{ kg}$, el costo del envío aumenta como se muestra en la gráfica: $\\$5.000$ a los $5\\text{ kg}$, $\\$5.200$ a los $6\\text{ kg}$, $\\$5.400$ a los $7\\text{ kg}$, $\\$5.600$ a los $8\\text{ kg}$, $\\$5.800$ a los $9\\text{ kg}$ y $\\$6.000$ a los $10\\text{ kg}$. De acuerdo con la gráfica, ¿cuál es el tipo de relación que hay entre el peso del paquete y el costo del envío cuando el paquete pesa entre $5\\text{ kg}$ y $10\\text{ kg}$?",
+    "difficulty": 950,
+    "topic": "Pensamiento variacional — tipos de relación funcional",
+    "options": [
+      "Hay una relación cuadrática entre el peso del paquete y el costo del envío.",
+      "Hay una relación lineal creciente entre el peso del paquete y el costo del envío.",
+      "Hay una relación lineal decreciente entre el peso del paquete y el costo del envío.",
+      "Hay una relación constante entre el peso del paquete y el costo del envío."
+    ],
+    "correct_option": "Hay una relación lineal creciente entre el peso del paquete y el costo del envío.",
+    "tags": [
+      "variacional",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "linealidad"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P10.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P11",
+    "content": "Una empresa de transporte ofrece 3 rutas para ir de una ciudad a otra. La tabla muestra la cantidad de pasajeros que transportó cada ruta en los cuatro primeros días de una semana.\n\n| Día | Ruta #1 | Ruta #2 | Ruta #3 | Promedio diario |\n|---|---|---|---|---|\n| Lunes | 10 | 12 | 11 | 11 |\n| Martes | 12 | 13 | 11 | 12 |\n| Miércoles | 10 | 10 | 10 | 10 |\n| Jueves | 7 | 11 | 9 | 9 |\n\nEl jefe de transporte debe poner un bus adicional el día en el que se tenga el mayor promedio de pasajeros. ¿En qué día de la semana se debe poner el bus adicional?",
+    "difficulty": 800,
+    "topic": "Pensamiento aleatorio — promedio y comparación",
+    "options": [
+      "Lunes.",
+      "Martes.",
+      "Miércoles.",
+      "Jueves."
+    ],
+    "correct_option": "Martes.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "promedio"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2023-P12",
+    "content": "En clase de Geometría el profesor está mencionando algunas características geométricas de las señales de tránsito. Él afirmó que la señal de \"PARE\" está construida en un polígono regular llamado octágono y que varios de los segmentos de este polígono son paralelos. Los lados del octágono están rotulados, en sentido horario desde arriba: $q$ (superior), $r$ (superior derecho), $s$ (derecho), $t$ (inferior derecho), $u$ (inferior), $v$ (inferior izquierdo), $w$ (izquierdo) y $p$ (superior izquierdo). ¿Cuáles son los segmentos paralelos del octágono?",
+    "difficulty": 1050,
+    "topic": "Pensamiento espacial — paralelismo en polígonos regulares",
+    "options": [
+      "$p$ y $q$; $r$ y $s$; $t$ y $u$; $v$ y $w$.",
+      "$q$ y $u$; $r$ y $v$; $s$ y $w$; $t$ y $p$.",
+      "$q$ y $u$; $w$ y $s$; $p$ y $r$; $v$ y $t$.",
+      "$p$, $q$ y $r$; $t$, $u$ y $v$."
+    ],
+    "correct_option": "$q$ y $u$; $r$ y $v$; $s$ y $w$; $t$ y $p$.",
+    "tags": [
+      "espacial",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "paralelismo"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P12.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P13",
+    "content": "El profesor de Educación Física hizo un concurso con 4 estudiantes, los puso a trotar durante media hora y midió la distancia recorrida por cada uno. Las distancias recorridas fueron: Leticia $5,1$ kilómetros; Viviana $5,25$ kilómetros; Eduardo $5$ kilómetros; Javier $5,134$ kilómetros. En el concurso, los puestos se ocuparon según la distancia recorrida, de mayor a menor. ¿Cuál de las siguientes tablas representa correctamente la posición que ocupó cada estudiante en el concurso?",
+    "difficulty": 1000,
+    "topic": "Pensamiento numérico — comparación de decimales",
+    "options": [
+      "Primero Javier, segundo Viviana, tercero Leticia, cuarto Eduardo.",
+      "Primero Viviana, segundo Javier, tercero Leticia, cuarto Eduardo.",
+      "Primero Leticia, segundo Viviana, tercero Eduardo, cuarto Javier.",
+      "Primero Eduardo, segundo Leticia, tercero Viviana, cuarto Javier."
+    ],
+    "correct_option": "Primero Viviana, segundo Javier, tercero Leticia, cuarto Eduardo.",
+    "tags": [
+      "numerico",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "decimales"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P13.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P14",
+    "content": "La imagen muestra los litros de agua que se utilizan diariamente para algunas actividades en la casa de Rosa, usando botellas como pictograma: cada botella grande equivale a $10$ litros y cada botella pequeña equivale a $5$ litros. Ducharse: 9 botellas grandes y 1 pequeña. Cocinar: 2 botellas grandes. Usar inodoro: 7 botellas grandes y 1 pequeña. Lavar ropa: 11 botellas grandes. ¿Cuál de las siguientes tablas corresponde a la cantidad de agua que se utiliza diariamente en la casa de Rosa?",
+    "difficulty": 1000,
+    "topic": "Pensamiento aleatorio — lectura de pictogramas",
+    "options": [
+      "Ducharse 90; Cocinar 20; Inodoro 70; Lavar ropa 110.",
+      "Ducharse 9,0; Cocinar 2,0; Inodoro 7,0; Lavar ropa 11,0.",
+      "Ducharse 95; Cocinar 20; Inodoro 75; Lavar ropa 110.",
+      "Ducharse 9,5; Cocinar 2,0; Inodoro 7,5; Lavar ropa 11,0."
+    ],
+    "correct_option": "Ducharse 95; Cocinar 20; Inodoro 75; Lavar ropa 110.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "pictograma"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P14.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P15",
+    "content": "La imagen muestra el diseño de un empaque para jugos con forma de casa: un prisma rectangular de $6\\text{ cm}$ de ancho, $4\\text{ cm}$ de profundidad y $5\\text{ cm}$ de alto, rematado por un prisma triangular cuya altura total desde la base es $8\\text{ cm}$. ¿Qué cantidad de jugo se necesita para llenar totalmente el empaque?",
+    "difficulty": 1150,
+    "topic": "Pensamiento métrico — volumen de cuerpos compuestos",
+    "options": [
+      "$216\\text{ cm}^3$",
+      "$192\\text{ cm}^3$",
+      "$156\\text{ cm}^3$",
+      "$102\\text{ cm}^3$"
+    ],
+    "correct_option": "$156\\text{ cm}^3$",
+    "tags": [
+      "metrico",
+      "grado8",
+      "epa",
+      "formulacion",
+      "volumen"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P15.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P16",
+    "content": "Lucía registró el aumento de su altura durante 5 años consecutivos y determinó que la moda es $6,5\\text{ cm}$. Teniendo en cuenta la anterior información, ¿cuál gráfica podría corresponder a la cantidad de centímetros que aumentó cada año la altura de Lucía durante los últimos 5 años?",
+    "difficulty": 1100,
+    "topic": "Pensamiento aleatorio — moda",
+    "options": [
+      "Barras con valores 6; 6,2; 6,5; 6,2 y 6.",
+      "Barras con valores 6,3; 6,7; 6,3; 6,7 y 6,3.",
+      "Barras con valores 5; 6,5; 6; 7 y 6,5.",
+      "Barras con valores 5; 6,5; 7; 7 y 6,5."
+    ],
+    "correct_option": "Barras con valores 5; 6,5; 6; 7 y 6,5.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "moda"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2023-P17",
+    "content": "Para un juego se pone en una bolsa varias esferas de igual tamaño, unas son de caucho, otras de plástico, y cada una está rellena de pintura. La tabla muestra la cantidad de esferas de cada tipo que hay en la bolsa y el color de pintura con la que están rellenas.\n\n| Color | Esferas de caucho | Esferas de plástico |\n|---|---|---|\n| azul | 20 | 16 |\n| rojo | 10 | 14 |\n| amarillo | 17 | 30 |\n| verde | 18 | 25 |\n\nSi se elige al azar una esfera de la bolsa, ¿cuál es el color y material que tiene menor probabilidad de ser elegido?",
+    "difficulty": 950,
+    "topic": "Pensamiento aleatorio — probabilidad simple",
+    "options": [
+      "Esferas verdes de caucho.",
+      "Esferas amarillas de plástico.",
+      "Esferas rojas de caucho.",
+      "Esferas azules de plástico."
+    ],
+    "correct_option": "Esferas rojas de caucho.",
+    "tags": [
+      "aleatorio",
+      "grado8",
+      "epa",
+      "interpretacion",
+      "probabilidad"
+    ]
+  },
+  {
+    "id": "EPA8-C1-2023-P18",
+    "content": "Liz ubicó una linterna detrás de una estrella de cartón para proyectar su sombra en la pared. La sombra proyectada conserva la forma de la estrella pero es de mayor tamaño. ¿Qué tipo de transformación relaciona la estrella de cartón con su sombra en la pared?",
+    "difficulty": 1050,
+    "topic": "Pensamiento espacial — transformaciones en el plano",
+    "options": [
+      "Traslación.",
+      "Reflexión.",
+      "Homotecia.",
+      "Reducción."
+    ],
+    "correct_option": "Homotecia.",
+    "tags": [
+      "espacial",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "transformaciones"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P18.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P19",
+    "content": "Un estudiante dibujó un círculo en el plano cartesiano con centro en $(-2,\\,2)$, que corta el eje $x$ en $x=-6$ y en $x=2$. Como el área de un círculo de radio $r$ es $\\pi r^2$, ¿cuál es el área del círculo que dibujó el estudiante?",
+    "difficulty": 1000,
+    "topic": "Pensamiento métrico — área del círculo",
+    "options": [
+      "$16\\pi$",
+      "$4\\pi$",
+      "$64\\pi$",
+      "$8\\pi$"
+    ],
+    "correct_option": "$16\\pi$",
+    "tags": [
+      "metrico",
+      "grado8",
+      "epa",
+      "formulacion",
+      "area"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P19.svg"
+  },
+  {
+    "id": "EPA8-C1-2023-P20",
+    "content": "Se va depositando gradualmente un líquido $P$ en un tazón que ya contenía un líquido $Q$. La gráfica muestra la proporción que hay de cada líquido a medida que se deposita el líquido $P$: la curva de $P$ crece desde cero y la de $Q$ decrece, y ambas se cruzan en un punto. ¿Qué representa el punto donde se intersecan las dos curvas?",
+    "difficulty": 1100,
+    "topic": "Pensamiento variacional — interpretación de puntos de corte",
+    "options": [
+      "Es el punto en el que los líquidos $P$ y $Q$ se comienzan a mezclar en el tazón.",
+      "Es el punto en el que se ha depositado la mitad del líquido $P$.",
+      "Es el punto en el que el tazón contiene la misma proporción de los líquidos $P$ y $Q$.",
+      "Es el punto en el que se han depositado todos los litros del líquido $P$."
+    ],
+    "correct_option": "Es el punto en el que el tazón contiene la misma proporción de los líquidos $P$ y $Q$.",
+    "tags": [
+      "variacional",
+      "grado8",
+      "epa",
+      "argumentacion",
+      "interseccion"
+    ],
+    "image_url": "items/assets/epa8/EPA8-C1-2023-P20.svg"
+  }
+]

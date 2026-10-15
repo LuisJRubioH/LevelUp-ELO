@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LevelUp-ELO — 3 direcciones</title>
+<style>
+  html,body{margin:0;height:100%;background:#0d0d12;}
+  #root{height:100%;}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { DesignCanvas, DCSection, DCArtboard } = window;
+  const W = 1280, H = 760;
+
+  function Frame({ src }) {
+    return (
+      <iframe
+        src={src}
+        width={W}
+        height={H}
+        style={{ border: 0, display: 'block', background: '#0a0a0f' }}
+        title={src}
+      />
+    );
+  }
+
+  function App() {
+    return (
+      <DesignCanvas>
+        <DCSection id="heroes" title="LevelUp-ELO — Hero · 3 direcciones" subtitle="Misma marca, tres tonos. Toca el ícono de pantalla completa de cada tarjeta para verla en grande. Cada una tiene toggle ES/EN funcional.">
+          <DCArtboard id="a" label="A · Arena — violeta, gamer/esports" width={W} height={H}>
+            <Frame src="directions/hero-a-arena.html" />
+          </DCArtboard>
+          <DCArtboard id="b" label="B · Editorial Academy — teal, limpio/académico" width={W} height={H}>
+            <Frame src="directions/hero-b-editorial.html" />
+          </DCArtboard>
+          <DCArtboard id="c" label="C · Pixel Quest — retro-game, pixel-art total" width={W} height={H}>
+            <Frame src="directions/hero-c-pixelquest.html" />
+          </DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

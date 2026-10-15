@@ -1,17 +1,26 @@
 """Seed de estudiantes de prueba con persistencia permanente.
 
-Crea 5 estudiantes de prueba (3 colegio, 2 universidad) matriculados en TODOS
-los cursos de su nivel. Es idempotente: si ya existen no sobrescribe progreso.
+Crea estudiantes de prueba matriculados en TODOS los cursos de su nivel.
+Es idempotente: si ya existen no sobrescribe progreso.
 
 Estudiantes:
-  - estudiante_colegio_1, _2, _3  (nivel colegio, contraseña: test1234)
-  - estudiante_universidad_1, _2   (nivel universidad, contraseña: test1234)
+  - estudiante_colegio_1, _2, _3   (nivel colegio, contraseña: test1234)
+  - estudiante_universidad_1, _2    (nivel universidad, contraseña: test1234)
+  - estudiante_semillero_1, _2      (nivel semillero grados 9 y 11)
+  - estudiante_concursos_1          (nivel concursos: DIAN/SENA)
 
 Uso:
   seed_test_students(repository)  # llamado desde SQLiteRepository.__init__
 """
 
-from src.domain.entities import LEVEL_COLEGIO, LEVEL_UNIVERSIDAD, LEVEL_SEMILLERO, LEVEL_TO_BLOCK
+from src.domain.entities import (
+    LEVEL_COLEGIO,
+    LEVEL_UNIVERSIDAD,
+    LEVEL_SEMILLERO,
+    LEVEL_CONCURSOS,
+    LEVEL_TO_BLOCK,
+    in_catalogue,
+)
 
 _TEST_PASSWORD = "test1234"
 
@@ -24,6 +33,7 @@ _TEST_STUDENTS = [
     ("estudiante_universidad_2", LEVEL_UNIVERSIDAD, None),
     ("estudiante_semillero_1", LEVEL_SEMILLERO, "9"),
     ("estudiante_semillero_2", LEVEL_SEMILLERO, "11"),
+    ("estudiante_concursos_1", LEVEL_CONCURSOS, None),
 ]
 
 
@@ -68,6 +78,7 @@ def seed_test_students(repo):
         LEVEL_COLEGIO: ("Grupo Prueba - Colegio", None),
         LEVEL_UNIVERSIDAD: ("Grupo Prueba - Universidad", None),
         LEVEL_SEMILLERO: ("Grupo Prueba - Semillero", None),
+        LEVEL_CONCURSOS: ("Grupo Prueba - Concursos", None),
     }
     for level, (g_name, _) in _level_groups.items():
         g_norm = g_name.strip().lower()
@@ -77,19 +88,12 @@ def seed_test_students(repo):
         )
         row = cursor.fetchone()
         if not row:
-            # Para semillero, usar cualquier bloque de grado para encontrar un curso
-            if level == LEVEL_SEMILLERO:
-                block_pattern = "Semillero %"
-                cursor.execute(
-                    "SELECT id FROM courses WHERE block LIKE ? ORDER BY name ASC LIMIT 1",
-                    (block_pattern,),
-                )
-            else:
-                block = LEVEL_TO_BLOCK[level]
-                cursor.execute(
-                    "SELECT id FROM courses WHERE block = ? ORDER BY name ASC LIMIT 1",
-                    (block,),
-                )
+            # Semillero courses share the block 'Semillero' (the grade is the id suffix), so the
+            # group points at the first course of the level's block, as for every other level.
+            cursor.execute(
+                "SELECT id FROM courses WHERE block = ? ORDER BY name ASC LIMIT 1",
+                (LEVEL_TO_BLOCK[level],),
+            )
             first_course = cursor.fetchone()
             course_id = first_course[0] if first_course else None
             cursor.execute(
@@ -113,24 +117,23 @@ def seed_test_students(repo):
         )
     conn.commit()
 
-    # Matricular estudiantes nuevos en TODOS los cursos de su nivel/grado
+    # Enrol each new student in exactly the catalogue of their level and grade (in_catalogue,
+    # spec 001 FR-028k): for semillero, the six courses whose id ends in `_semillero_{grade}`.
     for username, edu_level, _grade in students_to_create:
         cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
         student_id = cursor.fetchone()[0]
         group_id = _level_groups[edu_level][1]
 
-        # Para semillero: filtrar por bloque específico del grado
-        if edu_level == LEVEL_SEMILLERO and _grade:
-            block = f"Semillero {_grade}°"
-        else:
-            block = LEVEL_TO_BLOCK[edu_level]
-
         cursor.execute(
-            "SELECT id FROM courses WHERE block = ?",
-            (block,),
+            "SELECT id, block FROM courses WHERE block = ?",
+            (LEVEL_TO_BLOCK[edu_level],),
         )
-        courses = cursor.fetchall()
-        for (course_id,) in courses:
+        courses = [
+            course_id
+            for course_id, block in cursor.fetchall()
+            if in_catalogue(edu_level, _grade, course_id, block)
+        ]
+        for course_id in courses:
             cursor.execute(
                 "INSERT OR IGNORE INTO enrollments (user_id, course_id, group_id) VALUES (?, ?, ?)",
                 (student_id, course_id, group_id),

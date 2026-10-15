@@ -1,0 +1,62 @@
+[
+  {
+    "id": "HT8-U8-P207-D1a",
+    "tipo": "abierta",
+    "enunciado": "Observa tres automóviles —rojo, azul y blanco— sobre carreteras con inclinaciones diferentes. ¿De qué color es el automóvil que recorre la mayor pendiente?",
+    "respuesta": "El automóvil azul, porque su carretera muestra el mayor ascenso vertical para un desplazamiento horizontal comparable.",
+    "conjunto": "texto",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 8,
+    "pagina_pdf": 207,
+    "referencia": "Prepárate para analizar, ítem a",
+    "apto_para": ["procedimiento_abierto"],
+    "figura": "Tres automóviles sobre tramos rectos: el rojo está en una vía descendente, el azul en la subida más pronunciada y el blanco en una subida suave.",
+    "nota": "La comparación es cualitativa; la figura no proporciona coordenadas ni medidas numéricas de las pendientes.",
+    "dificultad": 700
+  },
+  {
+    "id": "HT8-U8-P207-D1b",
+    "tipo": "numerico",
+    "enunciado": "Una secuencia de montones contiene 2, 4, 6 y 8 palos. ¿Cuántos palos debe tener el siguiente montón?",
+    "expr": "8+2",
+    "respuesta": "10",
+    "respuesta_texto": "El siguiente montón debe tener 10 palos, porque cada término aumenta en 2.",
+    "conjunto": "N",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 8,
+    "pagina_pdf": 207,
+    "referencia": "Prepárate para analizar, ítem b, primera pregunta",
+    "apto_para": ["ejemplo_resuelto", "practica_seleccion", "procedimiento_abierto"],
+    "figura": "Cuatro montones formados, respectivamente, por 2, 4, 6 y 8 palos.",
+    "nota": "Conteo confirmado en la ampliación a 500 dpi; los extremos circulares permiten distinguir cada palo.",
+    "dificultad": 700
+  },
+  {
+    "id": "HT8-U8-P207-D1c",
+    "tipo": "abierta",
+    "enunciado": "Escribe una fórmula para la secuencia de montones con 2, 4, 6 y 8 palos.",
+    "respuesta": "$a_n=2n$ para $n=1,2,3,\\ldots$. La fórmula produce $a_1=2$, $a_2=4$, $a_3=6$ y $a_4=8$.",
+    "conjunto": "N",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 8,
+    "pagina_pdf": 207,
+    "referencia": "Prepárate para analizar, ítem b, segunda pregunta",
+    "apto_para": ["procedimiento_abierto"],
+    "nota": "La regla es una función lineal de la posición $n$ y tiene diferencia constante 2.",
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U8-P207-L1",
+    "tipo": "abierta",
+    "enunciado": "Escribe una función que relacione cada número con su mitad más dos unidades.",
+    "respuesta": "$f(x)=\\dfrac{x}{2}+2$.",
+    "conjunto": "R",
+    "seccion": "Lectura «El cálculo tiene dos padres»",
+    "unidad": 8,
+    "pagina_pdf": 207,
+    "referencia": "Para responder",
+    "apto_para": ["procedimiento_abierto"],
+    "nota": "«Su mitad» se representa por $x/2$ y luego se suman dos unidades.",
+    "dificultad": 750
+  }
+]

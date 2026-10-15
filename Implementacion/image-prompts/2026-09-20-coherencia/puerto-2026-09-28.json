@@ -1,0 +1,21 @@
+{
+  "base": "Renew reference image1 to the high quality crisp detailed pixel art of image2. Keep original scene composition, action, mathematical object counts, harbor sunset setting and aspect ratio. Rich golden light, legible blue shadows, plum and ivory Greek robes, precise pixel clusters and dithering, no blur or photorealism. Image3 defines canonical adult white feline KatIA FACE: full silver facial plate with teal ocular on viewer LEFT, natural green eye viewer RIGHT, small orange/black patch near viewer RIGHT ear, not central forehead; original silver ear piercings, no dangling gold earrings. Her anatomical LEFT arm on viewer RIGHT entirely silver robotic from shoulder through every finger. RIGHT arm on viewer LEFT entirely organic white fur INCLUDING hand and fingers. No mirrored image, no extra limbs, no new text or answers. Other characters feline. ",
+  "jobs": [
+    [
+      "c00-hub-puerto-v4.png",
+      "Preserve wide harbor, five pictorial dock signs, two workers carrying crate, desk with blank papyrus and three tablets, navigation instruments and lanterns. KatIA at right holding telescope with WHITE organic right hand viewer left. Silver left arm rests on desk viewer right. Preserve telescope observation pose."
+    ],
+    [
+      "c00-ice1-naranjas-reparto-v4.png",
+      "Preserve merchant cat left, KatIA right with tablet, large orange basket covered partly by plum fabric, exactly FIVE small empty baskets. Do not expose orange count. Preserve sunset sea, boats, dock."
+    ],
+    [
+      "c00-ice2-postes-primos-v4.png",
+      "Preserve grey apprentice left with rope, five colored posts red blue green yellow purple and taller plain post behind. KatIA hand at chin viewer LEFT must be WHITE FUR continuously through arm. Her viewer RIGHT arm rests on purple post, all silver robotic. Keep original rope arrangement and harbor."
+    ],
+    [
+      "c00-ice3-carretas-tela-v4.png",
+      "Preserve THREE handcarts pulled by THREE feline workers, covers green nearest then blue then red farthest, fabric rolls, harbor and crates. KatIA right with white organic right arm bent at waist and complete silver left arm resting on crate."
+    ]
+  ]
+}

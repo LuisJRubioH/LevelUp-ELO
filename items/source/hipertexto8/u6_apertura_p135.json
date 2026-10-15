@@ -1,0 +1,134 @@
+[
+  {
+    "id": "HT8-U6-P135-D1a",
+    "tipo": "numerico",
+    "enunciado": "Con los números de las tarjetas $48$, $15$, $12$, $30$, $60$ y $45$, cada uno usado a lo sumo una vez, hay que llenar los cuatro huecos de $\\dfrac{?}{?}=\\dfrac{?}{?}$. Construye dos fracciones equivalentes.",
+    "expr": "48/60",
+    "respuesta": "12/15",
+    "conjunto": "Q",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 6,
+    "pagina_pdf": 135,
+    "referencia": "Prepárate para analizar, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Seis tarjetas en dos filas: 48, 15, 12 arriba y 30, 60, 45 abajo, junto al esquema ?/? = ?/?.",
+    "nota": "$\\dfrac{48}{60}=\\dfrac{12}{15}$, y las dos valen $\\dfrac45$. Se probaron las 360 formas de repartir cuatro de las seis tarjetas: **las únicas que sirven usan siempre las mismas cuatro**, $12$, $15$, $48$ y $60$. Las tarjetas $30$ y $45$ son señuelos, no entran en ninguna solución.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P135-D1a2",
+    "tipo": "numerico",
+    "enunciado": "Con los números de las tarjetas $48$, $15$, $12$, $30$, $60$ y $45$, cada uno usado a lo sumo una vez, hay que llenar los cuatro huecos de $\\dfrac{?}{?}=\\dfrac{?}{?}$. Con esas mismas cuatro tarjetas hay otra igualdad posible, distinta de $\\dfrac{48}{60}=\\dfrac{12}{15}$. Escríbela.",
+    "expr": "12/48",
+    "respuesta": "15/60",
+    "conjunto": "Q",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 6,
+    "pagina_pdf": 135,
+    "referencia": "Prepárate para analizar, ítem a (segunda solución)",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Seis tarjetas en dos filas: 48, 15, 12 arriba y 30, 60, 45 abajo.",
+    "nota": "$\\dfrac{12}{48}=\\dfrac{15}{60}=\\dfrac14$. Es la otra manera de emparejar las cuatro tarjetas: en la primera solución los pares son $(12,15)$ y $(48,60)$, y en esta son $(12,48)$ y $(15,60)$. Salvo invertir las dos fracciones a la vez, no hay más.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P135-D1b",
+    "tipo": "numerico",
+    "enunciado": "Los números triangulares son $1$, $3$, $6$, $10$, $15$, … Verifica que el quinto se obtiene con la fórmula general $\\dfrac{n(n+1)}{2}$ sumando $1+2+3+4+5$.",
+    "expr": "1+2+3+4+5",
+    "respuesta": "5*(5+1)/2",
+    "conjunto": "N",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 6,
+    "pagina_pdf": 135,
+    "referencia": "Prepárate para analizar, ítem b (verificar la fórmula)",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Cinco arreglos triangulares de puntos: 1, 3, 6, 10 y 15 puntos; reconstruible en Python.",
+    "nota": "Ambos lados dan $15$. La fórmula sale del truco de Gauss: se escribe la suma dos veces, una al derecho y otra al revés, y cada columna suma $n+1$. Hay $n$ columnas, luego $2\\cdot(1+2+\\cdots+n)=n(n+1)$ y la suma es la mitad. Que aparezca dividido entre 2 no es casual: es la primera fracción algebraica de la unidad.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P135-D1b5",
+    "tipo": "numerico",
+    "enunciado": "¿Cuál es el 5.º número triangular? Usa la fórmula $\\dfrac{n(n+1)}{2}$.",
+    "expr": "5*(5+1)/2",
+    "respuesta": "15",
+    "conjunto": "N",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 6,
+    "pagina_pdf": 135,
+    "referencia": "Prepárate para analizar, ítem b (5.º triangular)",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Arreglo triangular de 15 puntos en 5 filas; reconstruible en Python.",
+    "nota": "$\\dfrac{5\\cdot 6}{2}=15$, que es justo el quinto dibujo de puntos.",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U6-P135-D1b16",
+    "tipo": "numerico",
+    "enunciado": "¿Cuál es el 16.º número triangular? Usa la fórmula $\\dfrac{n(n+1)}{2}$.",
+    "expr": "16*(16+1)/2",
+    "respuesta": "136",
+    "conjunto": "N",
+    "seccion": "Prepárate para... analizar",
+    "unidad": 6,
+    "pagina_pdf": 135,
+    "referencia": "Prepárate para analizar, ítem b (16.º triangular)",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{16\\cdot 17}{2}=136$. Aquí se ve para qué sirve la fórmula: dibujar 136 puntos o sumar $1+2+\\cdots+16$ a mano es absurdo. Y conviene simplificar antes de multiplicar — $\\dfrac{16}{2}=8$ y luego $8\\cdot 17$ — que es exactamente lo que se hará con las fracciones algebraicas.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P135-L1",
+    "tipo": "abierta",
+    "enunciado": "Lectura «La máquina de leer los pensamientos». ¿Cuál materia crees que dictaba el profesor Windbag?",
+    "respuesta": "**Pedagogía.** El propio texto lo dice: «un ser mediocre que enseña aquí pedagogía», y da clases sobre el arte de «medir» las aptitudes de un estudiante o el valor profesional de un maestro.",
+    "conjunto": "R",
+    "seccion": "Lectura «La máquina de leer los pensamientos» (André Maurois)",
+    "unidad": 6,
+    "pagina_pdf": 135,
+    "referencia": "Para responder, pregunta 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "La respuesta está literal en el tercer párrafo. Lo que el fragmento satiriza no son las matemáticas sino su uso decorativo: una fórmula muy aparatosa para medir algo que nadie ha definido.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U6-P135-L2",
+    "tipo": "abierta",
+    "enunciado": "Lectura «La máquina de leer los pensamientos». La ecuación personal de un alumno es $X=\\dfrac{(T_2-T_2N)(I-S_2)}{A-\\dfrac{I}{P_1}-\\dfrac{I}{P_2}}$. ¿Qué variables tiene la ecuación?",
+    "respuesta": "Siete además de $X$: $T$ (horas de clase semanales), $N$ (número de alumnos del grupo), $S$ (el propio narrador dice que ya olvidó qué era), $I$, $A$ (edad de los padres del alumno), $P_1$ (tiempo que duró la educación del padre) y $P_2$ (tiempo de educación de la madre). $X$ es la variable despejada, la «ecuación personal» del alumno.",
+    "conjunto": "R",
+    "seccion": "Lectura «La máquina de leer los pensamientos» (André Maurois)",
+    "unidad": 6,
+    "pagina_pdf": 135,
+    "referencia": "Para responder, pregunta 2",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Vale la pena mirarla como fracción algebraica, que es el tema de la unidad: el numerador se factoriza, $T_2-T_2N=T_2(1-N)$, y el denominador es una resta de fracciones, $A-\\dfrac{I}{P_1}-\\dfrac{I}{P_2}=\\dfrac{AP_1P_2-IP_2-IP_1}{P_1P_2}$. Es decir, una fracción de fracciones — justo lo que se aprende a simplificar en esta unidad.",
+    "erratum": "El libro imprime los dos denominadores de la fraccion grande como P_2 y P_2. Su propia leyenda define P_1 como el tiempo que duro la educacion del padre y P_2 el de la madre, asi que la segunda P_2 deberia ser P_1: tal como esta impreso, P_1 se define pero no aparece en la formula, y los dos terminos se sumarian en uno solo (2I/P_2). Corregido a I/P_1 - I/P_2.",
+    "dificultad": 1100
+  }
+]

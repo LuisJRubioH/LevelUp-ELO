@@ -1,0 +1,852 @@
+[
+  {
+    "id": "HT8-U4-P74-A1a",
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cuadrado del monomio $3x$.",
+    "expr": "(3*x)**2",
+    "respuesta": "9*x**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 1, ítem a",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "El cuadrado afecta al coeficiente Y a la letra: $3^2=9$ y $(x)^2=x^2$. Escribir $3x^2$ es el error de arranque de toda la unidad.",
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U4-P74-A1b",
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cuadrado del monomio $-5m^5$.",
+    "expr": "(-5*m**5)**2",
+    "respuesta": "25*m**10",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 1, ítem b",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "El cuadrado borra el signo: el resultado es positivo. Y $(m^5)^2=m^{10}$, exponentes que se multiplican.",
+    "dificultad": 850
+  },
+  {
+    "id": "HT8-U4-P74-A1c",
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cuadrado del monomio $-7x^5y^3$.",
+    "expr": "(-7*x**5*y**3)**2",
+    "respuesta": "49*x**10*y**6",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 1, ítem c",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 850
+  },
+  {
+    "id": "HT8-U4-P74-A1d",
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cuadrado del monomio $12a^3b^2c^4$.",
+    "expr": "(12*a**3*b**2*c**4)**2",
+    "respuesta": "144*a**6*b**4*c**8",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 1, ítem d",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U4-P74-A1e",
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cuadrado del monomio $\\dfrac{1}{2}m^4n^2$.",
+    "expr": "(1/2*m**4*n**2)**2",
+    "respuesta": "1/4*m**8*n**4",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 1, ítem e",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "El coeficiente fraccionario se eleva completo: $\\left(\\dfrac{1}{2}\\right)^2=\\dfrac{1}{4}$, numerador y denominador.",
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U4-P74-A1f",
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cuadrado del monomio $\\dfrac{6}{5}a^xb^{3x}$.",
+    "expr": "(6/5*a**x*b**(3*x))**2",
+    "respuesta": "36/25*a**(2*x)*b**(6*x)",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 1, ítem f",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Exponentes literales: $(a^x)^2=a^{2x}$ y $(b^{3x})^2=b^{6x}$. Se multiplican igual que si fueran números.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P74-A1g",
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cuadrado del monomio $-12y$.",
+    "expr": "(-12*y)**2",
+    "respuesta": "144*y**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 1, ítem g",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U4-P74-A1h",
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cuadrado del monomio $10n^4$.",
+    "expr": "(10*n**4)**2",
+    "respuesta": "100*n**8",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 1, ítem h",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U4-P74-A1i",
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cuadrado del monomio $-11m^3n^2$.",
+    "expr": "(-11*m**3*n**2)**2",
+    "respuesta": "121*m**6*n**4",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 1, ítem i",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 850
+  },
+  {
+    "id": "HT8-U4-P74-A1j",
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cuadrado del monomio $-9x^4y^5z$.",
+    "expr": "(-9*x**4*y**5*z)**2",
+    "respuesta": "81*x**8*y**10*z**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 1, ítem j",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "La $z$ sin exponente escrito vale $z^1$ y pasa a $z^2$: olvidarla es el descuido típico.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U4-P74-A1k",
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cuadrado del monomio $\\dfrac{7}{4}x^3y^4$.",
+    "expr": "(7/4*x**3*y**4)**2",
+    "respuesta": "49/16*x**6*y**8",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 1, ítem k",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U4-P74-A1l",
+    "tipo": "simbolico",
+    "enunciado": "Calcula el cuadrado del monomio $-\\dfrac{3}{8}m^{4x}n^{2x+1}$.",
+    "expr": "(-3/8*m**(4*x)*n**(2*x+1))**2",
+    "respuesta": "9/64*m**(8*x)*n**(4*x+2)",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 1, ítem l",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$(n^{2x+1})^2=n^{4x+2}$: el exponente entero se multiplica por 2, término a término. Conviene escribirlo con paréntesis, $2(2x+1)$, antes de reducir.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P74-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Halla la potencia: $(6x+1)^2$.",
+    "expr": "(6*x + 1)**2",
+    "respuesta": "36*x**2 + 12*x + 1",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 2, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Primer cuadrado de binomio: cuadrado del primero, más el DOBLE producto, más el cuadrado del segundo. El término $12x$ es el que se olvida al escribir $36x^2+1$.",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U4-P74-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Halla la potencia: $(9m^4-3n)^2$.",
+    "expr": "(9*m**4 - 3*n)**2",
+    "respuesta": "81*m**8 - 54*m**4*n + 9*n**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 2, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Cuadrado de una DIFERENCIA: solo el término del medio queda negativo; el último es $(-3n)^2=+9n^2$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U4-P74-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Halla la potencia: $(11m^4n^2-7m^5n^3)^2$.",
+    "expr": "(11*m**4*n**2 - 7*m**5*n**3)**2",
+    "respuesta": "121*m**8*n**4 - 154*m**9*n**5 + 49*m**10*n**6",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 2, ítem c",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "El doble producto es $2\\cdot11\\cdot7=154$ y las letras se suman: $m^{4+5}n^{2+3}$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P74-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Halla la potencia: $\\left(\\dfrac{3}{5}w+\\dfrac{5}{7}\\right)^2$.",
+    "expr": "(3/5*w + 5/7)**2",
+    "respuesta": "9/25*w**2 + 6/7*w + 25/49",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 2, ítem d",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El doble producto es $2\\cdot\\dfrac{3}{5}\\cdot\\dfrac{5}{7}=\\dfrac{6}{7}$: los cincos se cancelan. Simplificar antes de multiplicar ahorra el paso.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P74-A2e",
+    "tipo": "simbolico",
+    "enunciado": "Halla la potencia: $\\left(\\dfrac{10}{7}x^5y^2-\\dfrac{1}{5}x^3y^4\\right)^2$.",
+    "expr": "(10/7*x**5*y**2 - 1/5*x**3*y**4)**2",
+    "respuesta": "100/49*x**10*y**4 - 4/7*x**8*y**6 + 1/25*x**6*y**8",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 2, ítem e",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Doble producto: $2\\cdot\\dfrac{10}{7}\\cdot\\dfrac{1}{5}=\\dfrac{4}{7}$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U4-P74-A2f",
+    "tipo": "simbolico",
+    "enunciado": "Halla la potencia: $\\left(\\dfrac{7}{8}m^3+\\dfrac{1}{9}n^4\\right)^2$.",
+    "expr": "(7/8*m**3 + 1/9*n**4)**2",
+    "respuesta": "49/64*m**6 + 7/36*m**3*n**4 + 1/81*n**8",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 2, ítem f",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$2\\cdot\\dfrac{7}{8}\\cdot\\dfrac{1}{9}=\\dfrac{7}{36}$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P74-A2g",
+    "tipo": "simbolico",
+    "enunciado": "Halla la potencia: $(4x+5y)^2$.",
+    "expr": "(4*x + 5*y)**2",
+    "respuesta": "16*x**2 + 40*x*y + 25*y**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 2, ítem g",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U4-P74-A2h",
+    "tipo": "simbolico",
+    "enunciado": "Halla la potencia: $(5a^3+11b^4)^2$.",
+    "expr": "(5*a**3 + 11*b**4)**2",
+    "respuesta": "25*a**6 + 110*a**3*b**4 + 121*b**8",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 2, ítem h",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U4-P74-A2i",
+    "tipo": "simbolico",
+    "enunciado": "Halla la potencia: $(6x^3y^2z+2xy^3)^2$.",
+    "expr": "(6*x**3*y**2*z + 2*x*y**3)**2",
+    "respuesta": "36*x**6*y**4*z**2 + 24*x**4*y**5*z + 4*x**2*y**6",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 2, ítem i",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "La $z$ aparece solo en el primer término: al cuadrado da $z^2$ y en el doble producto queda $z^1$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U4-P74-A2j",
+    "tipo": "simbolico",
+    "enunciado": "Halla la potencia: $\\left(\\dfrac{2}{9}x^3y^2-\\dfrac{4}{3}xy^3\\right)^2$.",
+    "expr": "(2/9*x**3*y**2 - 4/3*x*y**3)**2",
+    "respuesta": "4/81*x**6*y**4 - 16/27*x**4*y**5 + 16/9*x**2*y**6",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 2, ítem j",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U4-P74-A2k",
+    "tipo": "simbolico",
+    "enunciado": "Halla la potencia: $\\left(2a^3b-\\dfrac{3}{4}c\\right)^2$.",
+    "expr": "(2*a**3*b - 3/4*c)**2",
+    "respuesta": "4*a**6*b**2 - 3*a**3*b*c + 9/16*c**2",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 2, ítem k",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "El doble producto sale ENTERO ($2\\cdot2\\cdot\\dfrac{3}{4}=3$) aunque uno de los términos sea fraccionario.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P74-A2l",
+    "tipo": "simbolico",
+    "enunciado": "Halla la potencia: $\\left(\\dfrac{9}{5}y^2x^3-10x^4\\right)^2$.",
+    "expr": "(9/5*y**2*x**3 - 10*x**4)**2",
+    "respuesta": "81/25*x**6*y**4 - 36*x**7*y**2 + 100*x**8",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 2, ítem l",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Doble producto $2\\cdot\\dfrac{9}{5}\\cdot10=36$, entero. Ordenado por potencias de $x$ queda $100x^8-36x^7y^2+\\dfrac{81}{25}x^6y^4$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P74-A3a",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla: $\\left(\\dfrac{1}{3}x-y\\right)^2$.",
+    "expr": "(1/3*x - y)**2",
+    "respuesta": "1/9*x**2 - 2/3*x*y + y**2",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 3, ítem a",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U4-P74-A3b",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla: $\\left(\\dfrac{1}{5}m+n\\right)^2$.",
+    "expr": "(1/5*m + n)**2",
+    "respuesta": "1/25*m**2 + 2/5*m*n + n**2",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 3, ítem b",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U4-P74-A3c",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla: $\\left(\\dfrac{2}{3}a^2b-\\dfrac{1}{5}ab^2\\right)^2$.",
+    "expr": "(2/3*a**2*b - 1/5*a*b**2)**2",
+    "respuesta": "4/9*a**4*b**2 - 4/15*a**3*b**3 + 1/25*a**2*b**4",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 3, ítem c",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U4-P74-A3d",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla: $\\left(\\dfrac{5}{7}x^{n+1}-\\dfrac{3}{10}y^n\\right)^2$.",
+    "expr": "(5/7*x**(n+1) - 3/10*y**n)**2",
+    "respuesta": "25/49*x**(2*n+2) - 3/7*x**(n+1)*y**n + 9/100*y**(2*n)",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 3, ítem d",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Exponentes literales: $(x^{n+1})^2=x^{2n+2}$. Y el doble producto se simplifica bonito: $2\\cdot\\dfrac{5}{7}\\cdot\\dfrac{3}{10}=\\dfrac{3}{7}$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U4-P74-A3e",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla: $\\left(\\dfrac{2}{9}m^x-\\dfrac{3}{7}n^{x+2}\\right)^2$.",
+    "expr": "(2/9*m**x - 3/7*n**(x+2))**2",
+    "respuesta": "4/81*m**(2*x) - 4/21*m**x*n**(x+2) + 9/49*n**(2*x+4)",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 3, ítem e",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$(n^{x+2})^2=n^{2x+4}$, no $n^{x+4}$: hay que duplicar TODO el exponente.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U4-P74-A3f",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla: $\\left(\\dfrac{5}{7}x^3y^2+\\dfrac{1}{2}x^2y^3\\right)^2$.",
+    "expr": "(5/7*x**3*y**2 + 1/2*x**2*y**3)**2",
+    "respuesta": "25/49*x**6*y**4 + 5/7*x**5*y**5 + 1/4*x**4*y**6",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 3, ítem f",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "El término central $\\dfrac{5}{7}x^5y^5$ es simétrico en los exponentes: buena señal de que el doble producto está bien.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P74-A3g",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla: $\\left(\\dfrac{1}{4}m^{3x}n^x-\\dfrac{3}{8}\\right)^2$.",
+    "expr": "(1/4*m**(3*x)*n**x - 3/8)**2",
+    "respuesta": "1/16*m**(6*x)*n**(2*x) - 3/16*m**(3*x)*n**x + 9/64",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 3, ítem g",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "El segundo término es una constante, así que el término independiente del desarrollo es $\\dfrac{9}{64}$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U4-P74-A3h",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla: $\\left(\\dfrac{2}{5}a^xb^{x+1}+\\dfrac{1}{6}b\\right)^2$.",
+    "expr": "(2/5*a**x*b**(x+1) + 1/6*b)**2",
+    "respuesta": "4/25*a**(2*x)*b**(2*x+2) + 2/15*a**x*b**(x+2) + 1/36*b**2",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 3, ítem h",
+    "apto_para": [
+      "practica_numerica",
+      "procedimiento_abierto"
+    ],
+    "nota": "En el doble producto las $b$ se juntan: $b^{x+1}\\cdot b=b^{x+2}$. Mezcla exponente literal con exponente numérico en la misma letra.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U4-P74-A3i",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla: $\\left(\\dfrac{1}{2}x^{3a}-5x^a\\right)^2$.",
+    "expr": "(1/2*x**(3*a) - 5*x**a)**2",
+    "respuesta": "1/4*x**(6*a) - 5*x**(4*a) + 25*x**(2*a)",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 3, ítem i",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Los tres exponentes van de $6a$ a $2a$ bajando de $2a$ en $2a$. El doble producto es $2\\cdot\\dfrac{1}{2}\\cdot5=5$, entero.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U4-P74-A3j",
+    "tipo": "simbolico",
+    "enunciado": "Desarrolla: $\\left(\\dfrac{5}{11}m^{a-1}-7m^a\\right)^2$.",
+    "expr": "(5/11*m**(a-1) - 7*m**a)**2",
+    "respuesta": "25/121*m**(2*a-2) - 70/11*m**(2*a-1) + 49*m**(2*a)",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 3, ítem j",
+    "apto_para": [
+      "practica_numerica",
+      "procedimiento_abierto"
+    ],
+    "nota": "En el doble producto los exponentes se SUMAN: $(a-1)+a=2a-1$. Los tres términos quedan en $m^{2a-2}$, $m^{2a-1}$ y $m^{2a}$.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U4-P74-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Determina el área de un cuadrado de lado $2x+y$.",
+    "expr": "(2*x + y)**2",
+    "respuesta": "4*x**2 + 4*x*y + y**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 4, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "figura": "cuadrado de lado 2x+y — reconstruible en Python",
+    "nota": "El cuadrado de un binomio TIENE modelo geométrico: el cuadrado grande se parte en un cuadrado de $4x^2$, otro de $y^2$ y DOS rectángulos de $xy\\cdot2$. Ahí se ve por qué el doble producto no puede faltar.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U4-P74-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Determina el área de un cuadrado de lado $\\dfrac{1}{3}x^2+\\dfrac{1}{4}y^2$.",
+    "expr": "(1/3*x**2 + 1/4*y**2)**2",
+    "respuesta": "1/9*x**4 + 1/6*x**2*y**2 + 1/16*y**4",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 4, ítem b",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "figura": "cuadrado de lado ⅓x² + ¼y² — reconstruible en Python",
+    "nota": "Doble producto $2\\cdot\\dfrac{1}{3}\\cdot\\dfrac{1}{4}=\\dfrac{1}{6}$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P74-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Completa: $(2x-\\square)^2=\\square-20xy+\\square$. Verifica la identidad completada.",
+    "expr": "(2*x - 5*y)**2",
+    "respuesta": "4*x**2 - 20*x*y + 25*y**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 5, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Se resuelve por el término del medio: $-2\\cdot2x\\cdot\\square=-20xy$ obliga a $\\square=5y$. Cuadros: $5y$, $4x^2$ y $25y^2$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U4-P74-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Completa: $(x+\\square)^2=\\square+6x+\\square$. Verifica la identidad completada.",
+    "expr": "(x + 3)**2",
+    "respuesta": "x**2 + 6*x + 9",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 5, ítem b",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "nota": "Cuadros: $3$, $x^2$ y $9$. El doble producto $2\\cdot x\\cdot3=6x$ da la pista.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U4-P74-A5c",
+    "tipo": "simbolico",
+    "enunciado": "Completa: $(2x-\\square)^2=\\square-x+\\square$. Verifica la identidad completada.",
+    "expr": "(2*x - 1/4)**2",
+    "respuesta": "4*x**2 - x + 1/16",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 5, ítem c",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$-2\\cdot2x\\cdot\\square=-x$ obliga a $\\square=\\dfrac{1}{4}$, fracción aunque todo lo visible sea entero. Cuadros: $\\dfrac{1}{4}$, $4x^2$ y $\\dfrac{1}{16}$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U4-P74-A5d",
+    "tipo": "simbolico",
+    "enunciado": "Completa: $(7-\\square)^2=\\square-28x^2+\\square$. Verifica la identidad completada.",
+    "expr": "(7 - 2*x**2)**2",
+    "respuesta": "49 - 28*x**2 + 4*x**4",
+    "conjunto": "Z",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 5, ítem d",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "$-2\\cdot7\\cdot\\square=-28x^2$ da $\\square=2x^2$. Aquí el término constante va PRIMERO, así que el desarrollo empieza en $49$ y termina en $4x^4$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U4-P74-A5e",
+    "tipo": "simbolico",
+    "enunciado": "Completa: $\\left(\\dfrac{1}{4}+\\square\\right)^2=\\square-2ab^2+\\square$. Verifica la identidad completada.",
+    "expr": "(1/4 - 4*a*b**2)**2",
+    "respuesta": "1/16 - 2*a*b**2 + 16*a**2*b**4",
+    "conjunto": "Q",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 5, ítem e",
+    "apto_para": [
+      "practica_numerica",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(\\dfrac{1}{4}-4ab^2\\right)^2=\\dfrac{1}{16}-2ab^2+16a^2b^4$. Convenio adoptado: **el cuadro guarda el término con su signo**, aquí $-4ab^2$, que es lo único que produce el $-2ab^2$ central impreso. Comprobación del doble producto: $2\\cdot\\dfrac{1}{4}\\cdot 4ab^2=2ab^2$, con signo $-$ por el signo del binomio.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U4-P74-A6a",
+    "tipo": "abierta",
+    "enunciado": "¿Verdadero o falso? $(x-y)^2=(y-x)^2$.",
+    "respuesta": "V. Las dos bases son opuestas ($y-x=-(x-y)$) y al elevar al cuadrado el signo desaparece: ambas dan $x^2-2xy+y^2$.",
+    "conjunto": "R",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 6, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Resultado útil y contraintuitivo: el orden de la resta NO importa si después se eleva al cuadrado. Es la razón por la que la distancia entre dos puntos se define con un cuadrado.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U4-P74-A6b",
+    "tipo": "abierta",
+    "enunciado": "¿Verdadero o falso? $(a+b)^2=(-a-b)^2$.",
+    "respuesta": "V. $-a-b=-(a+b)$, es decir, la base opuesta; al elevar al cuadrado las dos dan $a^2+2ab+b^2$.",
+    "conjunto": "R",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 6, ítem b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Mismo principio que el ítem a, escrito de otra forma. Vale la pena que el estudiante note que son la MISMA propiedad.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U4-P74-A6c",
+    "tipo": "abierta",
+    "enunciado": "¿Verdadero o falso? $(pq+pr)^2=p^2(q+r)^2$.",
+    "respuesta": "V. Sacando factor común, $pq+pr=p(q+r)$; al elevar al cuadrado, $[p(q+r)]^2=p^2(q+r)^2$, porque el cuadrado de un producto es el producto de los cuadrados.",
+    "conjunto": "R",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 6, ítem c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Aquí sí hay contenido nuevo: el cuadrado se reparte sobre un PRODUCTO, no sobre una suma. Contrastar con $(q+r)^2\\ne q^2+r^2$ es la mejor forma de fijar la diferencia.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P74-A6d",
+    "tipo": "abierta",
+    "enunciado": "¿Verdadero o falso? $p(q-r)^2=(pq-r)^2$.",
+    "respuesta": "F. A la izquierda $p$ multiplica al cuadrado ya hecho: $p(q^2-2qr+r^2)$. A la derecha la $p$ está DENTRO del binomio y solo afecta a $q$: $(pq-r)^2=p^2q^2-2pqr+r^2$. Basta $p=2$, $q=1$, $r=0$: la izquierda da $2$ y la derecha $4$.",
+    "conjunto": "R",
+    "seccion": "Actividades — Productos notables",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 6, ítem d",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El único falso de la actividad. Refutar con un contraejemplo numérico es más rápido y más convincente que desarrollar los dos lados.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U4-P74-A7a",
+    "tipo": "simbolico",
+    "enunciado": "Un cuadrado grande de lado $4x^2$ está dividido por una franja inferior de altura $3x$ y una franja derecha del mismo ancho. Determina el área del cuadrado sombreado (el superior izquierdo).",
+    "expr": "(4*x**2 - 3*x)**2",
+    "respuesta": "16*x**4 - 24*x**3 + 9*x**2",
+    "conjunto": "Z",
+    "seccion": "Actividades — Soluciona problemas",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 7, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "figura": "cuadrado de lado 4x² con franja inferior 3x y franja derecha 3x; el cuadrado superior izquierdo sombreado — reconstruible en Python",
+    "nota": "El lado del cuadrado sombreado NO está rotulado: se obtiene restando, $4x^2-3x$. Es el modelo geométrico del cuadrado de una DIFERENCIA, y explica por qué al quitar dos franjas hay que devolver la esquina contada dos veces.",
+    "verificar": "La lectura depende de si el $4x^2$ acota el lado completo del cuadrado grande o solo la parte superior. A 700 dpi la llave abarca el lado completo, que además es la lectura que convierte el ejercicio en un cuadrado de binomio (si fuera la parte superior, el área sería simplemente $16x^4$ y el ítem no aportaría nada nuevo).",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U4-P74-A7b",
+    "tipo": "simbolico",
+    "enunciado": "Un cuadrado grande de lado $\\dfrac{2}{3}x^2y^2$ está dividido por una franja superior de altura $\\dfrac{1}{4}xy^2$ y una franja derecha del mismo ancho. Determina el área del cuadrado sombreado (el inferior izquierdo).",
+    "expr": "(2/3*x**2*y**2 - 1/4*x*y**2)**2",
+    "respuesta": "4/9*x**4*y**4 - 1/3*x**3*y**4 + 1/16*x**2*y**4",
+    "conjunto": "Q",
+    "seccion": "Actividades — Soluciona problemas",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 7, ítem b",
+    "apto_para": [
+      "practica_numerica",
+      "procedimiento_abierto"
+    ],
+    "figura": "cuadrado de lado ⅔x²y² con franja superior ¼xy² y franja derecha del mismo ancho; cuadrado inferior izquierdo sombreado — reconstruible en Python",
+    "nota": "Mismo modelo que el ítem a con coeficientes fraccionarios: lado $\\dfrac{2}{3}x^2y^2-\\dfrac{1}{4}xy^2$ y doble producto $2\\cdot\\dfrac{2}{3}\\cdot\\dfrac{1}{4}=\\dfrac{1}{3}$. Los tres términos comparten $y^4$.",
+    "verificar": "Misma consideración de lectura que en el ítem a.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U4-P74-A8a",
+    "tipo": "simbolico",
+    "enunciado": "Un capital $C$ a un porcentaje $x$ se convierte en $C(1+x)^2$ al cabo de 2 años. Desarrolla el binomio $(1+x)^2$ y luego realiza el producto $C(1+x)^2$.",
+    "expr": "C*(1 + x)**2",
+    "respuesta": "C + 2*C*x + C*x**2",
+    "conjunto": "R",
+    "seccion": "Actividades — Soluciona problemas",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 8, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Los tres términos tienen lectura financiera: $C$ es el capital inicial, $2Cx$ el interés simple de los dos años y $Cx^2$ el interés que generan los intereses del primer año. Ese último término es exactamente la diferencia entre interés simple y compuesto, y es el que suele ignorarse.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U4-P74-A8b",
+    "tipo": "numerico",
+    "enunciado": "Si el capital es de $\\$10.000.000$ y el porcentaje es $21\\%$ anual, ¿cuánto capital se tiene al cabo de 2 años?",
+    "expr": "10000000*(1 + 0.21)**2",
+    "respuesta": "14641000",
+    "conjunto": "Q",
+    "seccion": "Actividades — Soluciona problemas",
+    "unidad": 4,
+    "pagina_pdf": 74,
+    "referencia": "Actividad 8, ítem b",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "$10\\,000\\,000\\cdot1{,}21^2=14\\,641\\,000$. Descompuesto según el ítem a: $10\\,000\\,000+4\\,200\\,000+441\\,000$. Esos $\\$441\\,000$ son el término $Cx^2$: lo que rinden los intereses del primer año. A interés simple solo se tendrían $\\$14\\,200\\,000$.",
+    "dificultad": 1400
+  }
+]

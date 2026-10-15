@@ -1,0 +1,368 @@
+[
+  {
+    "id": "HT8-U1-P19-A1a",
+    "tipo": "racionalidad",
+    "enunciado": "Determina si $\\sqrt{4}$ es o no un número irracional.",
+    "valor": "sqrt(4)",
+    "respuesta": "racional",
+    "justificacion": "$\\sqrt{4}=2$: la raíz de un cuadrado perfecto es entera, luego es racional.",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 1, ítem a",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Trampa clásica: 'lleva raíz, luego es irracional'. Es el primer ítem justamente para romper esa regla.",
+    "dificultad": 850
+  },
+  {
+    "id": "HT8-U1-P19-A1b",
+    "tipo": "racionalidad",
+    "enunciado": "Determina si $\\sqrt{141}$ es o no un número irracional.",
+    "valor": "sqrt(141)",
+    "respuesta": "irracional",
+    "justificacion": "141 no es cuadrado perfecto ($11^2=121$, $12^2=144$), luego $\\sqrt{141}$ no se puede escribir como fracción de enteros.",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 1, ítem b",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U1-P19-A1c",
+    "tipo": "racionalidad",
+    "enunciado": "Determina si $\\sqrt{13}$ es o no un número irracional.",
+    "valor": "sqrt(13)",
+    "respuesta": "irracional",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 1, ítem c",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 850
+  },
+  {
+    "id": "HT8-U1-P19-A1d",
+    "tipo": "racionalidad",
+    "enunciado": "Determina si $\\dfrac{\\pi}{3}$ es o no un número irracional.",
+    "valor": "pi/3",
+    "respuesta": "irracional",
+    "justificacion": "Dividir un irracional entre un entero distinto de cero no lo vuelve racional.",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 1, ítem d",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U1-P19-A1e",
+    "tipo": "racionalidad",
+    "enunciado": "Determina si $0{,}555\\ldots$ es o no un número irracional.",
+    "valor": "Rational(5,9)",
+    "respuesta": "racional",
+    "justificacion": "Es periódico puro: $0{,}\\overline{5}=\\dfrac{5}{9}$.",
+    "conjunto": "Q",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 1, ítem e",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U1-P19-A1f",
+    "tipo": "racionalidad",
+    "enunciado": "Determina si $1{,}23452345\\ldots$ es o no un número irracional.",
+    "valor": "1 + Rational(2345,9999)",
+    "respuesta": "racional",
+    "justificacion": "El bloque 2345 se repite: es periódico, luego es fracción de enteros ($1+\\dfrac{2345}{9999}$).",
+    "conjunto": "Q",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 1, ítem f",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Trampa inversa: parece 'desordenado' pero tiene periodo. El patrón decimal es pista, no criterio.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U1-P19-A1g",
+    "tipo": "racionalidad",
+    "enunciado": "Determina si $51{,}\\overline{9}$ es o no un número irracional.",
+    "valor": "51 + Rational(9,9)",
+    "respuesta": "racional",
+    "justificacion": "$51{,}\\overline{9}=52$ exactamente, un entero.",
+    "conjunto": "Z",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 1, ítem g",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Gema del capítulo: no solo es racional, es entero. Mismo fenómeno que $0{,}\\overline{9}=1$ y que el ítem HT8-U1-P17-A3j.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U1-P19-A1h",
+    "tipo": "racionalidad",
+    "enunciado": "Determina si $3{,}51$ es o no un número irracional.",
+    "valor": "Rational(351,100)",
+    "respuesta": "racional",
+    "conjunto": "Q",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 1, ítem h",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U1-P19-A1i",
+    "tipo": "racionalidad",
+    "enunciado": "Determina si $\\dfrac{9}{25}$ es o no un número irracional.",
+    "valor": "Rational(9,25)",
+    "respuesta": "racional",
+    "conjunto": "Q",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 1, ítem i",
+    "apto_para": [
+      "practica_seleccion"
+    ],
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U1-P19-A1j",
+    "tipo": "racionalidad",
+    "enunciado": "Determina si $\\sqrt{2}-2$ es o no un número irracional.",
+    "valor": "sqrt(2)-2",
+    "respuesta": "irracional",
+    "justificacion": "Restar un entero a un irracional deja un irracional: si $\\sqrt{2}-2$ fuera racional, sumarle 2 daría que $\\sqrt{2}$ es racional.",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 1, ítem j",
+    "apto_para": [
+      "practica_seleccion",
+      "ejemplo_resuelto"
+    ],
+    "nota": "Conecta con V2-R12: 𝕀 no es cerrado, pero irracional ± racional sí sigue siendo irracional.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U1-P19-A2",
+    "tipo": "abierta",
+    "enunciado": "Utiliza el procedimiento mostrado en las páginas 18 y 19 (construcción con el teorema de Pitágoras) para ubicar en la recta numérica: a. $\\sqrt{5}$; b. $\\sqrt{6}$; c. $\\sqrt{7}$; d. $\\sqrt{8}$.",
+    "respuesta": "Espiral de Teodoro: cada raíz se obtiene como hipotenusa de un triángulo rectángulo de catetos $\\sqrt{n-1}$ y 1, y se traslada al eje con el compás.",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 2",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Candidato fuerte a reconstrucción en Python: la construcción de √5…√8 sobre la recta es una figura reutilizable en el nodo de irracionales (N1-B07).",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U1-P19-A3a",
+    "tipo": "numerico",
+    "enunciado": "Halla la medida de la diagonal de un cuadrado de $2\\text{ cm}$ de lado y determina si el valor hallado es irracional.",
+    "expr": "sqrt(2**2 + 2**2)",
+    "respuesta": "2*sqrt(2)",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 3, ítem a",
+    "apto_para": [
+      "practica_numerica",
+      "ejemplo_resuelto"
+    ],
+    "nota": "La diagonal vale $2\\sqrt{2}\\approx 2{,}83$ cm y es irracional. Es el caso histórico que rompió a los pitagóricos.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U1-P19-A3b",
+    "tipo": "numerico",
+    "enunciado": "Halla la medida de la diagonal de un rectángulo de $2\\text{ cm}$ de base y $3\\text{ cm}$ de altura, y determina si el valor hallado es irracional.",
+    "expr": "sqrt(2**2 + 3**2)",
+    "respuesta": "sqrt(13)",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 3, ítem b",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$\\sqrt{13}\\approx 3{,}61$ cm, irracional. Coincide con el ítem HT8-U1-P19-A1c.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U1-P19-A4",
+    "tipo": "numerico",
+    "enunciado": "Si un balón tiene un radio de $15\\text{ cm}$, ¿cuál es su volumen? $V=\\dfrac{4}{3}\\pi r^{3}$",
+    "expr": "Rational(4,3)*pi*15**3",
+    "respuesta": "4500*pi",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 4 (Soluciona problemas)",
+    "apto_para": [
+      "ejemplo_resuelto"
+    ],
+    "nota": "$V=4500\\pi\\approx 14\\,137{,}17\\text{ cm}^3$. Es irracional porque $\\pi$ lo es.",
+    "erratum": "El libro imprime $V=\\left(\\dfrac{4}{3}\\pi r^{2}\\right)$ — verificado a 300 dpi, el exponente es 2. Es un error del texto: el volumen de la esfera lleva $r^{3}$. Con la fórmula del libro daría $300\\pi\\approx 942{,}48$, que además serían cm², no cm³. Aquí se registra la fórmula correcta. ERRATA DEL LIBRO corregida (r² → r³). Confirmar antes de usarla con estudiantes que tengan el texto en la mano, porque no coincidirá con su página.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U1-P19-A5a",
+    "tipo": "numerico",
+    "enunciado": "Determina el cociente entre el perímetro y el radio de la circunferencia: perímetro $9{,}42\\text{ cm}$, radio $1{,}5\\text{ cm}$.",
+    "expr": "9.42/1.5",
+    "respuesta": "6.28",
+    "conjunto": "Q",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 5, fila 1",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U1-P19-A5b",
+    "tipo": "numerico",
+    "enunciado": "Determina el cociente entre el perímetro y el radio de la circunferencia: perímetro $31{,}42\\text{ cm}$, radio $5\\text{ cm}$.",
+    "expr": "31.42/5",
+    "respuesta": "6.284",
+    "conjunto": "Q",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 5, fila 2",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U1-P19-A5c",
+    "tipo": "numerico",
+    "enunciado": "Determina el cociente entre el perímetro y el radio de la circunferencia: perímetro $12{,}57\\text{ cm}$, radio $2\\text{ cm}$.",
+    "expr": "12.57/2",
+    "respuesta": "6.285",
+    "conjunto": "Q",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 5, fila 3",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U1-P19-A5d",
+    "tipo": "numerico",
+    "enunciado": "Determina el cociente entre el perímetro y el radio de la circunferencia: perímetro $43{,}98\\text{ cm}$, radio $7\\text{ cm}$.",
+    "expr": "43.98/7",
+    "respuesta": "2199/350",
+    "conjunto": "Q",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 5, fila 4",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "$\\approx 6{,}2829$. No da un decimal finito, así que en práctica autocalificada hay que pedir redondeo a dos cifras.",
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U1-P19-A5e",
+    "tipo": "numerico",
+    "enunciado": "Determina el cociente entre el perímetro y el radio de la circunferencia: perímetro $21{,}99\\text{ cm}$, radio $3{,}5\\text{ cm}$.",
+    "expr": "21.99/3.5",
+    "respuesta": "2199/350",
+    "conjunto": "Q",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 5, fila 5",
+    "apto_para": [
+      "practica_numerica"
+    ],
+    "nota": "Da exactamente el mismo cociente que la fila 4.",
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U1-P19-A5-conclusion",
+    "tipo": "abierta",
+    "enunciado": "Compara los cocientes perímetro/radio de las cinco circunferencias y escribe una conclusión.",
+    "respuesta": "Todos rondan $6{,}28$: el cociente entre el perímetro y el radio es constante y vale $2\\pi$. Las pequeñas diferencias vienen de que los perímetros de la tabla están redondeados.",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 5, cierre",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Es la actividad que descubre $\\pi$ por medición: perfecta como bloque de descubrimiento guiado del nodo de irracionales.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U1-P19-A6",
+    "tipo": "ecuacion",
+    "enunciado": "Se desea cortar un hilo de $50\\text{ cm}$ en dos trozos de igual medida para formar una circunferencia y un cuadrado. ¿Cuál debe ser la medida del radio de la circunferencia?",
+    "ecuacion": "2*pi*r = 25",
+    "incognita": "r",
+    "soluciones": [
+      "25/(2*pi)"
+    ],
+    "respuesta": "$r=\\dfrac{25}{2\\pi}\\approx 3{,}98\\text{ cm}$",
+    "conjunto": "I",
+    "seccion": "Números irracionales",
+    "unidad": 1,
+    "pagina_pdf": 19,
+    "referencia": "Actividad 6 (Soluciona problemas)",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_numerica"
+    ],
+    "nota": "Cada trozo mide $25\\text{ cm}$; ese es el perímetro de la circunferencia. El dato del cuadrado es distractor: no hace falta para hallar el radio.",
+    "dificultad": 1250
+  }
+]

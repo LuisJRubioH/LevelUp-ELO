@@ -1,4 +1,36 @@
-# React + TypeScript + Vite
+# Frontend LevelUp-ELO
+
+Usar Node >=22.13 (Node 24 en CI) y pnpm 11.19.0, fijado en `package.json`.
+
+```powershell
+pnpm --version
+pnpm install --frozen-lockfile
+pnpm run dev
+```
+
+Antes de la primera ejecución E2E o después de actualizar Playwright:
+`pnpm exec playwright install chromium`.
+También se puede usar Chrome ya instalado con `$env:PLAYWRIGHT_CHANNEL='chrome'`
+en PowerShell; sin esa variable, Playwright usa su Chromium versionado.
+
+Validación: `pnpm audit`, `pnpm run build` y
+`pnpm exec playwright test --config=audit.playwright.config.ts`.
+Las pruebas de esa configuración usan APIs simuladas.
+La configuración de auditoría sirve el build de `dist` con `vite preview`:
+ejecutar primero `pnpm run build`. Así el primer login no depende de transformar
+en caliente los módulos de la sala de práctica.
+
+El lockfile versionado es `pnpm-lock.yaml`. Los overrides de dependencias están
+en `pnpm-workspace.yaml`, que es donde los lee pnpm 11. No usar
+`npm install --legacy-peer-deps`: el plugin PWA 1.3 ya admite Vite 8.
+
+Si pnpm responde fuera del frontend pero se queda esperando dentro, comprobar
+la versión global y la fijada en `packageManager`: el cambio automático necesita
+descargar del registro. Tras `pnpm self-update 11.19.0`, verificar que
+`pnpm --version` imprime realmente `11.19.0`; un mensaje de instalación exitosa
+por sí solo no comprueba que el lanzador de Windows funcione.
+
+## Referencia de la plantilla React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

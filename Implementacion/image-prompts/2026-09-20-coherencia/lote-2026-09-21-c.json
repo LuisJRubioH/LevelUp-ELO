@@ -1,0 +1,14 @@
+{
+  "base": "Repaint and substantially upgrade image 1 to image 2's premium detailed crisp PIXEL ART, rich controlled colors, luminous amber lighting, legible blue shadows, dimensional fabric, precise marble/mosaic/metal textures and adult feline proportions. Image 1 is scene/content/composition reference; image 2 art quality/style reference; image 3 canonical KatIA face only. Preserve original Greek night environment, narrative, props, framing. Full renewal not color filter. KatIA white adult feline, original teal ocular full silver plate on anatomical RIGHT eye (viewer LEFT in frontal view), green LEFT eye, orange/black patch near LEFT ear, silver piercings, ivory tunic/plum mantle/gold details. LEFT anatomical arm entirely robotic shoulder to all fingers; RIGHT entirely organic white fur. No extra limbs, no mirrored character, no photorealism/chibi/blurring. ",
+  "jobs": [
+    [
+      "b03-escalera-necesidad-v4.png",
+      "KatIA stepping onto broad stairway and looking back inviting student onward. Preserve location at right of stair, one foot on stair, raised presenting arm. For unambiguous anatomy rotate torso slightly to face viewer, raised inviting arm at viewer LEFT completely organic white fur; lowered arm viewer RIGHT completely robotic including shoulder and all upper arm and hand. Silver shoulder not white. Natural face orientation as reference 3. Keep stairway central, night, no text."
+    ],
+    [
+      "b13-diagnostico-v4.png",
+      "Preserve SUNRISE original scene, warm sun at left, stairs at right, scholars foreground. KatIA on stairs turning to look back toward viewer. Rotate her torso enough toward viewer to clearly show left arm silver metal shoulder to fingertips at viewer RIGHT, right organic arm at viewer LEFT bent at chest. Do not show furry upper arm above metal elbow. Preserve original face, long robe, position and adult proportions. No text."
+    ]
+  ],
+  "upperArmCorrection": "Edit ONLY the white upper arm at the far RIGHT side of KatIA between purple shoulder drape and golden armband. Replace that WHITE UPPER ARM with SILVER ROBOTIC METAL connected continuously to the already robotic elbow and forearm below it. Keep armband. Entire left arm from shoulder to fingertips now metal, no fur above robot elbow. Other arm at viewer left stays white. Preserve all other pixels, scene, text, lighting and pixel art."
+}

@@ -7,22 +7,37 @@ Endpoints de IA:
 """
 
 import json
+import logging
 from typing import AsyncGenerator
 
-from fastapi import APIRouter, HTTPException, UploadFile, status
+from fastapi import APIRouter, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
 
 from api.dependencies import CurrentUser, RepoDep
 from api.schemas.student import SocraticRequest
+from api.config import settings
+from api.rate_limit import limiter
+from api.upload_validation import read_validated_upload
 
 router = APIRouter(prefix="/ai", tags=["ai"])
+logger = logging.getLogger("api.ai")
+
+# `_call_ai_api` reports a provider failure as text ("ERROR_401: …", "❌ Error …"), not as an
+# exception. That text is not KatIA speaking: it is neither streamed as her reply nor saved.
+_PROVIDER_ERROR_PREFIXES = ("ERROR_", "❌")
+_KATIA_UNAVAILABLE = "KatIA no pudo responder ahora. Intenta de nuevo en un momento."
+
+
+def _is_provider_error(text: str | None) -> bool:
+    return not (text or "").strip() or text.lstrip().startswith(_PROVIDER_ERROR_PREFIXES)
 
 
 # ── Chat socrático (SSE) ──────────────────────────────────────────────────────
 
 
 @router.post("/socratic")
-async def socratic(body: SocraticRequest, user: CurrentUser, repo: RepoDep):
+@limiter.limit(settings.rate_limit_socratic)
+async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, repo: RepoDep):
     """
     Respuesta socrática de KatIA como Server-Sent Events (streaming).
 
@@ -33,8 +48,7 @@ async def socratic(body: SocraticRequest, user: CurrentUser, repo: RepoDep):
     La API key viaja en el body (nunca se persiste).
     """
     from api.config import settings
-    from api.dependencies import build_vector_rating
-    from src.domain.elo.vector_elo import aggregate_global_elo
+    from src.application.services.rating_read_service import RatingReadService
     from src.infrastructure.external_api.ai_client import (
         detect_provider_from_key,
         get_socratic_guidance,
@@ -68,9 +82,8 @@ async def socratic(body: SocraticRequest, user: CurrentUser, repo: RepoDep):
             all_options = []
     topic = item_db.get("topic", body.course_id or "")
 
-    # ELO global del estudiante
-    vector = build_vector_rating(user["user_id"], repo)
-    student_rating = aggregate_global_elo(vector)
+    # Rating global del estudiante (None mientras el diagnóstico está pendiente).
+    student_rating = RatingReadService(repo).ratings_view(user["user_id"])["overall"]
 
     # Resolver proveedor y modelo
     provider = body.provider or ""
@@ -100,8 +113,14 @@ async def socratic(body: SocraticRequest, user: CurrentUser, repo: RepoDep):
                     model_name,
                     effective_key,
                     provider,
+                    body.lang,
                 ),
             )
+
+            if _is_provider_error(full_text):
+                logger.warning("KatIA: provider %s failed: %s", provider, (full_text or "")[:120])
+                yield f"data: {json.dumps({'error': _KATIA_UNAVAILABLE})}\n\n"
+                return
 
             # Simular streaming token a token (dividir en palabras)
             words = (full_text or "").split(" ")
@@ -125,8 +144,10 @@ async def socratic(body: SocraticRequest, user: CurrentUser, repo: RepoDep):
 
             yield f"data: {json.dumps({'done': True, 'full_text': full_text})}\n\n"
 
-        except Exception as exc:
-            yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+        except Exception:
+            # The detail stays in the server log; the student gets a plain message.
+            logger.exception("KatIA: socratic reply failed")
+            yield f"data: {json.dumps({'error': _KATIA_UNAVAILABLE})}\n\n"
 
     return StreamingResponse(
         _generate(),
@@ -142,10 +163,12 @@ async def socratic(body: SocraticRequest, user: CurrentUser, repo: RepoDep):
 
 
 @router.post("/review-procedure")
+@limiter.limit(settings.rate_limit_review)
 async def review_procedure(
+    request: Request,
     file: UploadFile,
-    item_id: str,
-    api_key: str = "",
+    item_id: str = Form(...),
+    api_key: str = Form(default=""),
     user: CurrentUser = None,
     repo: RepoDep = None,
 ):
@@ -163,24 +186,12 @@ async def review_procedure(
             detail="No hay API key de IA configurada.",
         )
 
-    if file.content_type not in ("image/jpeg", "image/png", "image/webp", "application/pdf"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Tipo de archivo no soportado. Usa JPG, PNG, WebP o PDF.",
-        )
-
-    MAX_SIZE = 10 * 1024 * 1024
-    contents = await file.read()
-    if len(contents) > MAX_SIZE:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail="Archivo demasiado grande (máx 10 MB).",
-        )
+    contents, mime = await read_validated_upload(file)
 
     try:
         from src.infrastructure.external_api.math_procedure_review import review_math_procedure
 
-        result = review_math_procedure(contents, file.content_type, effective_key)
+        result = review_math_procedure(contents, mime, effective_key)
         return result
     except Exception as exc:
         raise HTTPException(
