@@ -51,6 +51,19 @@ entry ending in `/` covers everything below it.
 - `frontend/src/pages/Student/Courses.tsx` — catalogue, invited courses, the grade notice
 - `frontend/src/pages/Teacher/Dashboard.tsx`
 - `frontend/src/pages/Teacher/Groups.tsx`
+- `frontend/src/pages/Teacher/Procedures.tsx` — the rating effect a grade shows (block 7)
+- `frontend/src/pages/Student/Feedback.tsx` — the rating effect a grade shows (block 7)
+
+## Deliveries *(this spec is delivered in steps since 2026-10-13)*
+
+Constitution 1.1.0, § Governance: `PENDING` is allowed only in rows of an open delivery; the pull
+request that completes a delivery marks it closed and fills all its rows.
+
+| Delivery | Content | State |
+|---|---|---|
+| **S1** | The rating engine as specified 2026-10-05 … 2026-10-08, with follow-ups F-1 and F-4 | closed |
+| **B5** | Block 5: the diagnostic result shows the current rating (LuisJRubioH/LevelUp-ELO#62) | closed |
+| **B7** | Block 7: procedure resubmission and regrading — one current contribution per procedure | planned |
 
 ## Clarifications
 
@@ -217,6 +230,46 @@ rating stayed 1058.16; the course page kept showing 920 afterwards.
 
 Delivered as one pull request holding the amendment, its implementation, its tests and its
 § Traceability rows, so no `PENDING` row of this spec reaches the base branch.
+
+### Session 2026-10-13 (block 7, owner decisions — delivery B7)
+
+Found while surveying procedure grading on `redesign @ 1d6fcf6` (both repositories): a student may
+resubmit a procedure that was already graded; the row goes back to review with the previous grade
+erased, and the next grade adds its **full** delta again — grade 80 (+6), resubmission, grade 30
+(−4) leaves +2 instead of −4. `elo_delta` stores the computed delta, not the one the floor of 0 let
+through (rating 3, grade 0: −3 applied, −10 stored). No history of grades is kept.
+
+- Q: How many contributions does a procedure have? → A: one current contribution to the rating
+  per procedure (FR-024b).
+- Q: What does a resubmission do? → A: it returns the procedure to review and keeps, provisionally,
+  the effect of the last teacher grade (FR-024c).
+- Q: What does a regrade apply? → A: only the difference from that procedure's previous
+  contribution (FR-024d), atomically and idempotently: retries and simultaneous validations never
+  duplicate an effect (FR-024g). AI-proposed scores never move the rating (FR-024).
+- Q: How is the floor of 0 handled? → A: it is respected; the correction is computed from the
+  contribution actually applied, never from the computed delta (FR-024d, specified below). The
+  computed and the applied amounts are kept apart (FR-024e, FR-024f).
+- Q: What history is kept? → A: what explains each review and its adjustment (FR-024e).
+- Q: What about procedures graded before? → A: no stored rating is changed automatically before it
+  is checked that the available data identify the effect actually applied (FR-024h).
+- Q: How is it proven? → A: on SQLite and PostgreSQL: equal, higher and lower regrade, pending
+  resubmission, retries, concurrency and the floor (US9).
+
+### Session 2026-10-14 (block 7, owner answers — delivery B7)
+
+- B7-P1, B7-P2 and B7-P3: the recommendations are approved. A regrade comes with the new
+  submission (B7-P3).
+- B7-P4 is replaced by rules for a file that was already uploaded (compared by its SHA-256):
+  - another student's file, in any exercise: the new upload is graded 0 automatically, marked as a
+    copy and shown so to the teacher (FR-024i);
+  - the student's own file from another exercise: refused, telling them it belongs to another
+    exercise (FR-024j);
+  - the same file again in the same exercise: refused, telling them it was already uploaded;
+    nothing changes (FR-024k).
+- The automatic 0 is a procedure signal that no teacher gives: the constitution's rule «Teacher
+  authority» and its list of rating writers are amended for it (LuisJRubioH/LevelUp-ELO#71).
+- Production may already hold two procedures for one student and item. A read-only count comes
+  before FR-024a's constraint; any merge is prepared apart, with a backup.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -486,6 +539,53 @@ same course; compare attempts, ratings, item difficulty and diagnostics before a
 
 ---
 
+### User Story 9 - A regraded procedure counts once (Priority: P2) — delivery B7
+
+A student resubmits a procedure and the teacher grades it again. The procedure's effect on the
+rating is always that of its latest grade, as far as the floor of 0 allows — never the sum of every
+grade it received.
+
+**Why this priority**: today every regrade adds its full delta, so a procedure graded twice moves the
+rating twice; the teacher's latest judgement must be the one that counts (constitution, Domain
+Rules: teacher authority).
+
+**Independent Test**: grade, resubmit and regrade one procedure on both engines; compare the rating
+with the latest grade's delta.
+
+**Acceptance Scenarios**:
+
+1. **US9-AS1** — **Given** a procedure graded 80 (+6), **When** the student resubmits it and the
+   teacher grades it 80 again, **Then** the rating does not move and the contribution stays +6.
+2. **US9-AS2** — **Given** a procedure graded 60 (+2), **When** it is resubmitted and graded 90 (+8),
+   **Then** the rating rises by 6 and the contribution is +8.
+3. **US9-AS3** — **Given** a procedure graded 80 (+6), **When** it is resubmitted and graded 30 (−4),
+   **Then** the rating falls by 10 and the contribution is −4.
+4. **US9-AS4** — **Given** a procedure graded 80 (+6), **When** the student resubmits it, **Then** it
+   is pending review and the rating keeps the +6 until the next grade.
+5. **US9-AS5** — **Given** a grading request already applied, **When** it is retried, **Then** nothing
+   changes again and the same result is returned.
+6. **US9-AS6** — **Given** a resubmitted procedure, **When** two validations arrive at the same time,
+   **Then** exactly one applies its correction.
+7. **US9-AS7** — **Given** a rating of 3 and a procedure graded 0 (computed −10, applied −3), **When**
+   it is resubmitted and graded 80 (+6) with the rating still 0, **Then** the correction is +9
+   (6 − (−3)), the rating becomes 9 and the contribution is +6.
+8. **US9-AS8** — **Given** two gradings of one procedure, **When** its history is read, **Then** each
+   shows the grade, the computed delta, the correction asked, the amount applied, the teacher and
+   the time.
+9. **US9-AS9** — **Given** a graded procedure, **When** the student or the teacher sees its result,
+   **Then** the rating effect shown is the amount applied, not the computed delta.
+10. **US9-AS10** — **Given** a file another student already uploaded, for any item, **When** a
+    student uploads it, **Then** the procedure is graded 0 and marked as a copy, the rating of the
+    item's topic falls by 10 (floor 0), and the teacher sees it marked.
+11. **US9-AS11** — **Given** a file the student already uploaded for another item, **When** they
+    upload it for this one, **Then** it is refused with a message that it belongs to another
+    exercise, and nothing changes.
+12. **US9-AS12** — **Given** a file the student already uploaded for this item, **When** they upload
+    it again, **Then** it is refused with a message that it was already uploaded, and nothing
+    changes.
+
+---
+
 ### Edge Cases
 
 - Response time exactly 3 s or exactly 600 s → valid (inclusive bounds).
@@ -495,6 +595,12 @@ same course; compare attempts, ratings, item difficulty and diagnostics before a
 - Uncertainty already at the floor (30) → stays at 30; changes are 32 × 30/350 ≈ 2.7 × surprise.
 - A teacher grade of 50 → zero change, but the submission is still marked as applied.
 - Procedure change on a topic with no rating → starts from 1000 and never goes below 0.
+- A regrade whose correction would take the rating below 0 → the floor applies again; the amount
+  applied is recorded and the contribution is the previous one plus that amount (FR-024d).
+- The same grade again after a penalty the floor limited (rating 3, grade 0: −3 applied) → the
+  correction is −7 (−10 − (−3)) if the rating allows it now: a same-grade regrade applies that
+  remainder (B7-P2).
+- Two first submissions of one procedure at the same time → one procedure (FR-024a).
 - Course with no rated topics → selection and PvP expectation use 1000; every display shows
   "pending diagnostic" (FR-029a).
 - Requested ranking course that does not exist → rejected; one the requester may not see →
@@ -638,6 +744,45 @@ practising one topic, or the derived course rating (FR-029a) when practising the
 - **FR-023** [AS-IS]: If a grade is outside 0–100, or the teacher does not own the student's group,
   or the submission is not pending, then the system shall not change any rating.
 - **FR-024** [AS-IS]: The system shall not change any rating from an AI-proposed procedure score.
+
+Block 7 (delivery B7). A procedure is one student's submission for one item; its **contribution**
+is the net amount its gradings actually applied to the rating.
+
+- **FR-024a** [CHANGE]: The system shall keep one procedure per student and item: a resubmission
+  updates it, and concurrent first submissions leave one. *(Today nothing enforces it: the
+  repositories look up then insert, with no unique constraint.)*
+- **FR-024b** [CHANGE]: The system shall keep in the rating exactly one current contribution per
+  procedure.
+- **FR-024c** [AS-IS]: When a graded procedure is resubmitted, the system shall return it to review and
+  keep its contribution in the rating until the next grade.
+- **FR-024d** [CHANGE]: When a teacher grades a procedure whose contribution is C with a grade g, the
+  system shall apply the correction `(g − 50) × 0.2 − C` to the rating of the item's topic with the
+  floor of 0, in one step with the grading, and record the amount actually applied, A; the new
+  contribution is C + A. *(Today it adds the full `(g − 50) × 0.2` on every grading.)*
+- **FR-024e** [CHANGE]: The system shall record every grading of a procedure — grade, computed delta,
+  correction asked, amount applied, contribution after, teacher and time — and shall keep that
+  history when the procedure is resubmitted. *(Today a resubmission erases the previous grade and
+  no history exists.)*
+- **FR-024f** [CHANGE]: The system shall report as a grading's rating effect the amount applied — in the
+  grading response, the notification and the student's and teacher's screens — never the computed
+  delta. *(Today the response, the notification and the student's card show the computed delta.)*
+- **FR-024g** [CHANGE]: If a grading is retried or two gradings of one review arrive at once, then the
+  system shall apply one correction and return the same result to each.
+- **FR-024h** [CHANGE]: The system shall change no existing rating when block 7 is installed. The
+  contribution of a procedure graded before it is its stored delta where the floor of 0 cannot have
+  limited it; any other such procedure keeps its rating unchanged until it is reviewed one by one
+  (B7-P1), after a read-only count in production.
+- **FR-024i** [CHANGE]: When a student uploads a file that another student already uploaded, for any
+  item, the system shall record the procedure as graded 0 and marked as a copy, apply its delta
+  `(0 − 50) × 0.2` to the item's topic with the floor of 0 exactly once, as FR-024d does, and
+  record the system, not a teacher, as its grader; the teacher sees the procedure marked as a
+  copy. *(Today the same file for the same item from another student is refused with 409 and
+  nothing else happens; across items nothing is checked.)*
+- **FR-024j** [CHANGE]: When a student uploads a file they already uploaded for another item, the
+  system shall refuse it, tell them it belongs to another exercise, and change nothing.
+- **FR-024k** [CHANGE]: When a student uploads for an item the same file they already uploaded for
+  it, the system shall refuse it, tell them it was already uploaded, and change nothing — no new
+  review and no regrade.
 
 **PvP result (US5)**
 
@@ -863,6 +1008,9 @@ items of that course, or the student's diagnostic for that course.
   retry key. History, not state.
 - **Diagnostic result**: per-course record that a diagnostic was taken, with its starting point.
 - **Procedure submission**: a teacher's grade and the rating change it produced, applied once.
+  With block 7: one per student and item, with its current contribution (FR-024b).
+- **Procedure grading record**: one grading of a procedure — grade, computed delta, correction,
+  amount applied, contribution after, teacher, time (FR-024e).
 - **PvP match**: two players, scores, status (active / finished / abandoned), changes applied once.
 - **Rank**: a label derived from a rating (FR-031).
 
@@ -903,13 +1051,24 @@ items of that course, or the student's diagnostic for that course.
 - Unused rating code (`calculate_dynamic_k`, `update_elo`, the always-1.0 impact modifier) is
   removed when this area is refactored (constitution VII); it is not behaviour, so no FR covers it.
 
+## Pending Owner Decisions (delivery B7)
+
+| # | Question | Recommendation |
+|---|---|---|
+| B7-P1 | Procedures graded before block 7 store the computed delta, and a resubmission erased earlier grades: their contribution cannot always be known. Which baseline does their next regrade use? | First a read-only count in production: graded procedures, and those whose topic rating could have hit 0 at grading. Use the stored delta as the contribution where the floor cannot have applied; leave the rest unchanged until reviewed one by one. **Decided** (owner, 2026-10-14). |
+| B7-P2 | After a penalty the floor limited (rating 3, grade 0: −3 applied), may a regrade with the same grade apply the remainder (−7) once the rating allows it? | Yes: FR-024d keeps the contribution equal to the latest grade's delta; "same grade" then means the same contribution, not "no change". **Decided** (owner, 2026-10-14). |
+| B7-P3 | May a teacher regrade a graded procedure without a resubmission? | Not in block 7: a regrade follows a resubmission, as today's review queue does. **Decided** (owner, 2026-10-14): the regrade comes with the new submission. |
+| B7-P4 | If production already holds two procedures for one student and item, how are they merged before FR-024a's constraint? | **Replaced** (owner, 2026-10-14) by the rules for a file already uploaded (FR-024i … FR-024k). The read-only count before the constraint stays, as an operational step. |
+
 ## Out of Scope *(mandatory)*
 
 - Redesigning the rating model (Glicko/Elo variants, dynamic K, item uncertainty that shrinks —
   survey F9). This spec pins the current model.
 - PvP lobby, matchmaking and realtime events — spec 007. Follow-up recorded for spec 007: whether
   a player with no rated topic in a course should be eligible for matchmaking (see FR-029c).
-- Procedure upload, AI review and the teacher review UI — spec 006 (only the rating effect is here).
+- Procedure upload, AI review and the teacher review UI — spec 006 (only the rating effect is here;
+  block 7's resubmission flow is here only for its rating effect and its history; the rules for a
+  file already uploaded, FR-024i … FR-024k, are here because block 7 delivers them).
 - Course map node unlocking and the 1250 "completed" threshold — spec 003 (it reads ratings
   defined here).
 - Access to exams, the course map and lessons (`/exam/start`, `/map/{course}`, the lesson
@@ -927,124 +1086,149 @@ scenario. Reuse adequate existing tests; create or strengthen tests where covera
 
 Each row cites collected pytest node ids (`path::test`, parametrised cases included) and Playwright
 titles (`file › title`). Scenarios proven through the API on one engine also cite the two-engine test
-of their storage behaviour (SC-001). Filled by T069 on 2026-10-07.
+of their storage behaviour (SC-001). Filled by T069 on 2026-10-07. Since 2026-10-13 each row names
+its delivery (§ Deliveries). The US4-AS3 and US4-AS5 rows, crossed until then, were swapped to
+match the scenarios' text.
 
-| Requirement / Scenario | Test |
-|---|---|
-| US1-AS1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/application/test_spec001_service_pins.py::test_spec001_answer_moves_rating_and_item_symmetrically`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_answer_writes_only_the_items_course_topic` |
-| US1-AS2 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/application/test_spec001_service_pins.py::test_spec001_answer_moves_rating_and_item_symmetrically`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_answer_writes_only_the_items_course_topic` |
-| US1-AS3 | `tests/integration/test_elo_single_source.py::test_an_invalid_attempt_does_not_move_the_rating`<br>`tests/integration/test_spec001_repository_pins.py::test_spec001_response_time_window_is_inclusive` |
-| US1-AS4 | `tests/api/test_spec001_answer_pins.py::test_spec001_retry_with_the_same_key_returns_the_stored_result`<br>`tests/integration/test_spec001_answer_retry.py::test_spec001_retry_returns_the_persisted_attempt_and_applies_once`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_concurrent_answer_retry_has_one_effect` |
-| US1-AS5 | `tests/api/test_spec001_answer_pins.py::test_spec001_same_key_for_another_answer_is_a_conflict`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_concurrent_answer_retry_has_one_effect` |
-| US1-AS6 | `tests/integration/test_elo_single_source.py::test_concurrent_answers_on_the_same_item_compose_serially` |
-| US1-AS7 | `tests/api/test_student.py::TestAnswer::test_ignores_tampered_item_data`<br>`tests/api/test_student.py::TestAnswer::test_invalid_answer_context_has_no_side_effects`<br>`tests/api/test_student.py::TestAnswer::test_answer_without_legacy_item_data` |
-| US2-AS1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_selection_keeps_the_zdp_window_and_the_probability_band` |
-| US2-AS2 | `tests/unit/domain/test_item_selector.py::test_spec001_band_widens_by_005_up_to_10_steps_then_whole_pool` |
-| US2-AS3 | `tests/unit/application/test_spec001_service_pins.py::test_spec001_failed_item_returns_after_three_questions` |
-| US2-AS4 | `tests/unit/application/test_spec001_service_pins.py::test_spec001_item_correct_this_session_is_never_offered` |
-| US2-AS5 | `tests/unit/application/test_spec001_service_pins.py::test_spec001_exhausted_pool_mastery_threshold`<br>`tests/unit/application/test_spec001_service.py::test_spec001_selection_rating_is_topic_or_course` |
-| US3-AS1 | `tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_correct_at_1200_and_a_skipped_answer`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_writes_course_topic_baselines`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_baseline` |
-| US3-AS2 | `tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_floor_is_760`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_baseline` |
-| US3-AS3 | `tests/integration/test_elo_single_source.py::test_diagnostic_baseline_survives_until_the_first_practice`<br>`tests/api/test_student.py::test_first_practice_uses_diagnostic_rating` |
-| US3-AS4 | `tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_correct_at_1200_and_a_skipped_answer`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_baseline` |
-| US3-AS5 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos inicializados (US3-AS5) (FR-020a–c, FR-031a)` |
-| US3-AS6 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_keeps_a_practised_topic_mixed`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)` |
-| US3-AS7 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_returning_to_the_course_shows_the_current_rating` |
-| US3-AS8 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_with_every_topic_practised_keeps_all`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos conservados (US3-AS8) (FR-020a–c, FR-031a)` |
-| US4-AS1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_validated_grade_adds_grade_minus_50_times_02`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_creates_an_absent_row_and_floors_at_zero` |
-| US4-AS2 | `tests/integration/test_elo_single_source.py::test_a_validated_procedure_delta_is_applied_exactly_once` |
-| US4-AS3 | `tests/integration/test_spec001_repository_pins.py::test_spec001_grade_out_of_range_changes_nothing` |
-| US4-AS4 | `tests/api/test_procedure_grading.py::test_other_teacher_cannot_grade_or_view_submission`<br>`tests/api/test_procedure_grading.py::test_reassignment_between_lookup_and_update_prevents_grading` |
-| US4-AS5 | `tests/integration/test_spec001_repository_pins.py::test_spec001_ai_proposed_score_changes_no_rating` |
-| US5-AS1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_pvp_equal_ratings_win_and_draw`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_pvp_deltas` |
-| US5-AS2 | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_closing_a_match_twice_applies_the_delta_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
-| US5-AS3 | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_matches_orphaned_by_a_restart_are_closed`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_a_live_match_is_left_alone` |
-| US5-AS4 | `tests/integration/test_spec001_repository_pins.py::test_spec001_practice_after_pvp_starts_from_the_post_match_rating` |
-| US5-AS5 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_player_without_rated_topics_gets_zero` |
-| US6-AS1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_overall_rating`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_overall_is_the_mean_of_course_ratings`<br>`tests/api/test_spec001_api.py::test_spec001_stats_overall_is_the_mean_of_current_courses`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_every_ranking_reads_the_canonical_rating` |
-| US6-AS2 | `tests/api/test_spec001_api.py::test_spec001_preview_equals_the_applied_change`<br>`frontend/e2e/spec001-ratings.spec.ts › Práctica muestra la previsión que envía la API (US6-AS2)` |
-| US6-AS3 | `tests/api/test_spec001_api.py::test_spec001_number_and_label_agree_on_every_surface`<br>`tests/api/test_spec001_api.py::test_spec001_meta_ranks_is_public_and_ascending`<br>`frontend/e2e/spec001-ratings.spec.ts › Panel docente usa display_rating y rank_label de la API (US6-AS3, FR-028j)` |
-| US6-AS4 | `tests/api/test_spec001_answer_pins.py::test_spec001_exam_submission_changes_no_rating`<br>`tests/integration/test_spec001_repository_pins.py::test_spec001_exam_storage_writes_no_rating` |
-| US6-AS5 | `tests/api/test_spec001_api.py::test_spec001_promoted_student_is_pending_and_keeps_history`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_pending_diagnostic_and_history_courses`<br>`frontend/e2e/spec001-ratings.spec.ts › Estadísticas: diagnóstico pendiente y cursos de grados anteriores (US6-AS5/AS6)` |
-| US6-AS6 | `tests/api/test_spec001_api.py::test_spec001_promoted_student_is_pending_and_keeps_history`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_pending_diagnostic_and_history_courses` |
-| US6-AS7 | `tests/api/test_spec001_api.py::test_spec001_group_ranking_basis_errors_and_pending`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_group_ranking_never_substitutes_another_rating`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_group_ranking_on_the_group_course_without_substitution`<br>`frontend/e2e/spec001-ratings.spec.ts › Ranking del grupo: base, empates con el mismo puesto, valor tal cual y pendientes al final (US6-AS7/AS8)` |
-| US6-AS8 | `tests/unit/domain/test_spec001_domain.py::test_spec001_rank_competition`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_rankings_follow_participation_and_competition`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_competition_ranks_and_limit`<br>`frontend/e2e/spec001-ratings.spec.ts › Ranking del grupo: base, empates con el mismo puesto, valor tal cual y pendientes al final (US6-AS7/AS8)` |
-| US6-AS9 | `tests/unit/domain/test_spec001_domain.py::test_spec001_rating_display_number_and_label_agree`<br>`tests/api/test_spec001_api.py::test_spec001_number_and_label_agree_on_every_surface`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`frontend/e2e/spec001-ratings.spec.ts › Número y rango salen del mismo valor: 999.6 → 1000 «Plata I» (US6-AS9)`<br>`frontend/e2e/spec001-ratings.spec.ts › La pantalla muestra display_rating tal cual, sin redondear por su cuenta (FR-028i/j)` |
-| US7-AS1 | `tests/integration/test_spec001_catalogue.py::test_spec001_semillero_catalogue_by_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_current_courses_are_the_catalogue`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_courses_of_a_grade_7_student` |
-| US7-AS2 | `tests/integration/test_spec001_catalogue.py::test_spec001_register_user_rejects_semillero_without_a_valid_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_api_registration_rejects_semillero_without_a_valid_grade` |
-| US7-AS3 | `tests/integration/test_spec001_catalogue.py::test_spec001_enrol_only_in_the_catalogue` |
-| US7-AS4 | `tests/integration/test_spec001_catalogue.py::test_spec001_invitation_crosses_levels_without_changing_them` |
-| US7-AS5 | `tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_course_list_is_its_enrolments`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_current_courses_are_the_catalogue`<br>`frontend/e2e/f1-catalogue.spec.ts › Semillero sin grado: aviso, sin catálogo y con sus matrículas abiertas (FR-028o)` |
-| US7-AS6 | `tests/integration/test_spec001_catalogue.py::test_spec001_course_list_marks_invited_courses`<br>`frontend/e2e/f1-catalogue.spec.ts › Un curso por invitación solo aparece en Mis matrículas (FR-028l)` |
-| US8-AS1 | `tests/integration/test_spec001_practice_access.py::test_spec001_next_question_outside_enrolment_is_forbidden` |
-| US8-AS2 | `tests/integration/test_spec001_practice_access.py::test_spec001_answer_outside_enrolment_changes_nothing` |
-| US8-AS3 | `tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden` |
-| US8-AS4 | `tests/integration/test_spec001_practice_access.py::test_spec001_enrolled_students_practise_as_before` |
-| US8-AS5 | `tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it` |
-| FR-001 | `tests/unit/domain/test_elo_model.py::TestExpectedScore::test_400_point_advantage_gives_approx_91_percent`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_fr001_both_engine_paths_use_the_same_expected_success` |
-| FR-002 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_rating_delta` |
-| FR-003 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_rd_floor_30_holds_and_scales_the_change`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_next_rd_has_a_floor_of_30` |
-| FR-004 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/application/test_spec001_service.py::test_spec001_unrated_course_selects_at_1000_and_ignores_the_diagnostic_average`<br>`tests/api/test_student.py::test_first_practice_uses_diagnostic_rating` |
-| FR-005 | `tests/unit/application/test_spec001_service_pins.py::test_spec001_answer_moves_rating_and_item_symmetrically`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_item_difficulty_delta` |
-| FR-006 | `tests/unit/application/test_spec001_service_pins.py::test_spec001_answer_moves_rating_and_item_symmetrically` |
-| FR-007 | `tests/integration/test_elo_single_source.py::test_an_invalid_attempt_does_not_move_the_rating`<br>`tests/integration/test_spec001_repository_pins.py::test_spec001_response_time_window_is_inclusive` |
-| FR-008 | `tests/integration/test_spec001_repository_pins.py::test_spec001_response_time_window_is_inclusive`<br>`tests/integration/test_elo_single_source.py::test_an_invalid_attempt_does_not_move_the_rating`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_is_valid_response_time` |
-| FR-008a | `tests/integration/test_spec001_course_topic_store.py::test_spec001_explicit_zero_seconds_is_invalid`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_is_valid_response_time`<br>`tests/unit/application/test_spec001_service.py::test_spec001_process_answer_reports_validity` |
-| FR-009 | `tests/api/test_spec001_api.py::test_spec001_invalid_time_reports_and_records_no_change`<br>`tests/unit/application/test_spec001_service.py::test_spec001_process_answer_reports_validity` |
-| FR-010 | `tests/integration/test_elo_single_source.py::test_concurrent_answers_on_the_same_item_compose_serially` |
-| FR-011 | `tests/api/test_student.py::TestAnswer::test_ignores_tampered_item_data`<br>`tests/api/test_student.py::TestAnswer::test_invalid_answer_context_has_no_side_effects` |
-| FR-012 | `tests/api/test_spec001_answer_pins.py::test_spec001_retry_with_the_same_key_returns_the_stored_result`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_concurrent_answer_retry_has_one_effect` |
-| FR-012a | `tests/integration/test_spec001_answer_retry.py::test_spec001_retry_returns_the_persisted_attempt_and_applies_once`<br>`tests/integration/test_spec001_answer_retry.py::test_spec001_boundary_values_are_a_real_boundary` |
-| FR-013 | `tests/api/test_spec001_answer_pins.py::test_spec001_same_key_for_another_answer_is_a_conflict`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_concurrent_answer_retry_has_one_effect` |
-| FR-014 | `tests/api/test_spec001_answer_pins.py::test_spec001_no_response_carries_the_correct_option` |
-| FR-015 | `tests/unit/application/test_spec001_service.py::test_spec001_badge_failure_is_logged_and_the_answer_returns` |
-| FR-016 | `tests/unit/application/test_student_service.py::TestGetNextQuestion::test_variety_preserves_unseen_priority_and_session_exclusions`<br>`tests/unit/application/test_spec001_service_pins.py::test_spec001_failed_item_returns_after_three_questions`<br>`tests/unit/application/test_spec001_service_pins.py::test_spec001_item_correct_this_session_is_never_offered`<br>`tests/unit/application/test_student_service.py::TestTopicFilter::test_unknown_topic_filter_falls_back_to_full_pool` |
-| FR-017 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_selection_keeps_the_zdp_window_and_the_probability_band`<br>`tests/unit/domain/test_item_selector.py::test_spec001_band_widens_by_005_up_to_10_steps_then_whole_pool` |
-| FR-018 | `tests/unit/domain/test_item_selector.py::TestControlledVariety::test_variety_stays_near_best_information_and_inside_zdp`<br>`tests/unit/domain/test_item_selector.py::TestFisherInformation::test_prefers_item_closest_to_50_percent_success` |
-| FR-019 | `tests/unit/application/test_spec001_service_pins.py::test_spec001_exhausted_pool_mastery_threshold` |
-| FR-020 | `tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_correct_at_1200_and_a_skipped_answer`<br>`tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_floor_is_760`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_tier`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_baseline` |
-| FR-021 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_writes_course_topic_baselines`<br>`tests/api/test_student.py::test_first_practice_uses_diagnostic_rating`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_permissions_diagnostic_and_canonical_answer` |
-| FR-020a | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_keeps_a_practised_topic_mixed`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_returning_to_the_course_shows_the_current_rating`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)` |
-| FR-020b | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_returning_to_the_course_shows_the_current_rating`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)` |
-| FR-020c | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_keeps_a_practised_topic_mixed`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_with_every_topic_practised_keeps_all`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_a_result_stored_before_block_5_has_no_mark`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos inicializados (US3-AS5) (FR-020a–c, FR-031a)`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos conservados (US3-AS8) (FR-020a–c, FR-031a)` |
-| FR-022 | `tests/integration/test_spec001_repository_pins.py::test_spec001_validated_grade_adds_grade_minus_50_times_02`<br>`tests/integration/test_elo_single_source.py::test_a_validated_procedure_delta_is_applied_exactly_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once` |
-| FR-023 | `tests/integration/test_spec001_repository_pins.py::test_spec001_grade_out_of_range_changes_nothing`<br>`tests/api/test_procedure_grading.py::test_other_teacher_cannot_grade_or_view_submission`<br>`tests/api/test_procedure_grading.py::test_reassignment_between_lookup_and_update_prevents_grading` |
-| FR-024 | `tests/integration/test_spec001_repository_pins.py::test_spec001_ai_proposed_score_changes_no_rating` |
-| FR-025 | `tests/unit/domain/test_spec001_domain.py::test_spec001_pvp_deltas`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_pvp_equal_ratings_win_and_draw`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_closing_a_match_twice_applies_the_delta_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
-| FR-026 | `tests/unit/application/test_spec001_service.py::test_spec001_pvp_lobby_rating_is_the_course_rating_read_outside_the_lock` |
-| FR-027 | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_matches_orphaned_by_a_restart_are_closed`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_a_live_match_is_left_alone`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_spec001_abandonment_starts_after_600_seconds` |
-| FR-028 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_every_ranking_reads_the_canonical_rating`<br>`tests/api/test_spec001_api.py::test_spec001_every_surface_reads_the_canonical_rating`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_course_topic_ratings_are_new_table_rows_only` |
-| FR-028a | `tests/unit/domain/test_spec001_domain.py::test_spec001_overall_rating`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_overall_is_the_mean_of_course_ratings`<br>`tests/api/test_spec001_api.py::test_spec001_stats_overall_is_the_mean_of_current_courses`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_current_context_is_enrollments_in_the_users_catalogue` |
-| FR-028b | `tests/api/test_spec001_api.py::test_spec001_promoted_student_is_pending_and_keeps_history`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_pending_diagnostic_and_history_courses`<br>`tests/api/test_student.py::TestStats::test_stats_initial_elo`<br>`frontend/e2e/spec001-ratings.spec.ts › Estadísticas: diagnóstico pendiente y cursos de grados anteriores (US6-AS5/AS6)`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_pending_exam_snapshot_is_null_not_zero`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_genuine_zero_snapshot_is_reported_as_zero`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_after_the_exam_keeps_the_pending_snapshot`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_snapshot_recorded_before_the_status_is_unknown`<br>`tests/unit/application/test_teacher_service.py::TestGetStudentDashboard::test_pending_student_gets_no_number` |
-| FR-028c | `tests/api/test_spec001_api.py::test_spec001_promoted_student_is_pending_and_keeps_history`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_pending_diagnostic_and_history_courses` |
-| FR-028d | `tests/api/test_spec001_api.py::test_spec001_group_ranking_basis_errors_and_pending`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_group_ranking_never_substitutes_another_rating`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_group_basis_precedence` |
-| FR-028e | `tests/integration/test_spec001_repository_pins.py::test_spec001_attempt_history_keeps_each_attempts_rating` |
-| FR-028f | `tests/integration/test_spec001_course_topic_store.py::test_spec001_rankings_follow_participation_and_competition`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_global_participants_are_active_this_week`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_course_participants_count_only_that_course`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_group_and_weekly_participants`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_weekly_snapshot_stores_the_ranking_as_shown` |
-| FR-028g | `tests/integration/test_spec001_repository_pins.py::test_spec001_weekly_snapshot_is_returned_unchanged`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_weekly_snapshot_stores_the_ranking_as_shown` |
-| FR-028h | `tests/unit/domain/test_spec001_domain.py::test_spec001_rank_competition`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_competition_ranks_and_limit`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_rankings_follow_participation_and_competition` |
-| FR-028i | `tests/unit/domain/test_spec001_domain.py::test_spec001_round_for_display_is_half_up`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_average_then_round_once`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_full_precision_until_the_one_rounding`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`tests/integration/test_spec001_answer_retry.py::test_spec001_retry_returns_the_persisted_attempt_and_applies_once`<br>`frontend/e2e/spec001-ratings.spec.ts › La pantalla muestra display_rating tal cual, sin redondear por su cuenta (FR-028i/j)` |
-| FR-028j | `tests/unit/domain/test_spec001_domain.py::test_spec001_rating_display_number_and_label_agree`<br>`tests/api/test_spec001_api.py::test_spec001_number_and_label_agree_on_every_surface`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`frontend/e2e/spec001-ratings.spec.ts › Número y rango salen del mismo valor: 999.6 → 1000 «Plata I» (US6-AS9)`<br>`frontend/e2e/spec001-ratings.spec.ts › Panel docente usa display_rating y rank_label de la API (US6-AS3, FR-028j)`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_number_and_rank_come_from_one_display_value`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_views_rank_only_through_the_display_value` |
-| FR-028k | `tests/unit/domain/test_spec001_catalogue.py::test_spec001_semillero_catalogue_is_the_courses_of_the_grade`<br>`tests/unit/domain/test_spec001_catalogue.py::test_spec001_semillero_without_a_grade_has_no_course`<br>`tests/unit/domain/test_spec001_catalogue.py::test_spec001_other_levels_are_their_block`<br>`tests/unit/domain/test_spec001_catalogue.py::test_spec001_unknown_level_falls_back_to_universidad`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_semillero_catalogue_by_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_current_courses_are_the_catalogue` |
-| FR-028l | `tests/integration/test_spec001_catalogue.py::test_spec001_invitation_crosses_levels_without_changing_them`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_course_list_marks_invited_courses`<br>`frontend/e2e/f1-catalogue.spec.ts › Un curso por invitación solo aparece en Mis matrículas (FR-028l)` |
-| FR-028m | `tests/unit/domain/test_spec001_catalogue.py::test_spec001_valid_semillero_grades_are_6_to_11`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_register_user_rejects_semillero_without_a_valid_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_api_registration_rejects_semillero_without_a_valid_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_enrol_only_in_the_catalogue` |
-| FR-028n | `tests/integration/test_spec001_course_block_constraint.py::test_spec001_new_database_accepts_exactly_the_four_blocks`<br>`tests/integration/test_spec001_course_block_constraint.py::test_spec001_constraint_with_extra_values_is_left_as_it_is`<br>`tests/integration/test_spec001_course_block_constraint.py::test_spec001_old_database_stops_the_migration`<br>`tests/integration/test_spec001_course_block_constraint.py::test_spec001_migrate_py_exits_1_on_an_old_database` |
-| FR-028o | `tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_course_list_is_its_enrolments`<br>`frontend/e2e/f1-catalogue.spec.ts › Semillero sin grado: aviso, sin catálogo y con sus matrículas abiertas (FR-028o)`<br>`frontend/e2e/f1-catalogue.spec.ts › Semillero con grado: sin aviso (FR-028o)` |
-| FR-029 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_answer_writes_only_the_items_course_topic`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_answer_lands_on_the_items_course_and_topic`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_writes_course_topic_baselines`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once` |
-| FR-029a | `tests/unit/application/test_spec001_service.py::test_spec001_selection_rating_is_topic_or_course`<br>`tests/unit/application/test_spec001_service.py::test_spec001_unrated_course_selects_at_1000_and_ignores_the_diagnostic_average`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_course_rating_of`<br>`tests/unit/application/test_spec001_service.py::test_spec001_pvp_shows_pending_never_the_1000_fallback`<br>`tests/api/test_spec001_api.py::test_spec001_course_map_shows_unrated_topics_as_pending` |
-| FR-029b | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
-| FR-029c | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_player_without_rated_topics_gets_zero`<br>`tests/unit/infrastructure/test_pvp_logic.py::test_spec001_game_end_sends_the_applied_delta_and_reason`<br>`tests/unit/infrastructure/test_pvp_logic.py::test_spec001_game_end_reports_not_applied_when_persistence_fails` |
-| FR-030 | `tests/api/test_spec001_api.py::test_spec001_preview_equals_the_applied_change`<br>`frontend/e2e/spec001-ratings.spec.ts › Práctica muestra la previsión que envía la API (US6-AS2)`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_stakes_preview_is_the_applied_change` |
-| FR-031 | `tests/unit/domain/test_spec001_domain.py::test_spec001_one_rank_scale`<br>`tests/api/test_spec001_api.py::test_spec001_meta_ranks_is_public_and_ascending`<br>`frontend/e2e/spec001-ratings.spec.ts › Inicio lista los rangos de /api/meta/ranks`<br>`tests/api/test_spec001_api.py::test_spec001_meta_ranks_is_cacheable` |
-| FR-031a | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_keeps_a_practised_topic_mixed`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos inicializados (US3-AS5) (FR-020a–c, FR-031a)`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos conservados (US3-AS8) (FR-020a–c, FR-031a)` |
-| FR-032 | `tests/api/test_spec001_answer_pins.py::test_spec001_exam_submission_changes_no_rating`<br>`tests/integration/test_spec001_repository_pins.py::test_spec001_exam_storage_writes_no_rating` |
-| FR-033 | `tests/integration/test_spec001_reconciliation.py::test_spec001_existing_rows_and_unassigned_legacy_rows_are_left_alone` |
-| FR-034 | `tests/integration/test_spec001_reconciliation.py::test_spec001_topic_label_row_reaches_only_the_practised_course`<br>`tests/integration/test_spec001_reconciliation.py::test_spec001_course_name_equal_to_a_topic_label`<br>`tests/integration/test_spec001_reconciliation.py::test_spec001_diagnostic_makes_the_courses_topics_eligible`<br>`tests/integration/test_spec001_reconciliation.py::test_spec001_course_row_most_recent_wins_and_is_never_summed` |
-| FR-034a | `tests/integration/test_spec001_reconciliation.py::test_spec001_topic_label_row_reaches_only_the_practised_course`<br>`tests/integration/test_spec001_reconciliation.py::test_spec001_course_row_most_recent_wins_and_is_never_summed`<br>`tests/api/test_spec001_api.py::test_spec001_stats_marks_approximate_baselines`<br>`tests/unit/application/test_teacher_service.py::TestGetStudentDashboard::test_rated_student_gets_the_derived_rating_and_its_label`<br>`frontend/e2e/spec001-ratings.spec.ts › Estadísticas marcan las líneas base aproximadas de la reconciliación (FR-034a)`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_teacher_topic_table_marks_approximate_baselines`<br>`tests/api/test_spec001_api.py::test_spec001_course_map_marks_approximate_topics`<br>`frontend/e2e/spec001-ratings.spec.ts › Mapa y riel del curso marcan los temas con línea base aproximada (FR-034a)` |
-| FR-034b | `tests/integration/test_spec001_reconciliation.py::test_spec001_existing_rows_and_unassigned_legacy_rows_are_left_alone` |
-| FR-035 | `tests/integration/test_spec001_reconciliation.py::test_spec001_course_row_most_recent_wins_and_is_never_summed` |
-| FR-036 | `tests/integration/test_spec001_reconciliation.py::test_spec001_reconciliation_is_idempotent`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_every_ranking_reads_the_canonical_rating`<br>`tests/api/test_spec001_api.py::test_spec001_every_surface_reads_the_canonical_rating`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_course_topic_ratings_are_new_table_rows_only` |
-| FR-037 | `tests/integration/test_spec001_practice_access.py::test_spec001_next_question_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_enrolled_students_practise_as_before`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_ensure_enrolled` |
-| FR-037a | `tests/integration/test_spec001_practice_access.py::test_spec001_answer_outside_enrolment_changes_nothing`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_ensure_enrolled` |
+| Requirement / Scenario | Delivery | Test |
+|---|---|---|
+| US1-AS1 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/application/test_spec001_service_pins.py::test_spec001_answer_moves_rating_and_item_symmetrically`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_answer_writes_only_the_items_course_topic` |
+| US1-AS2 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/application/test_spec001_service_pins.py::test_spec001_answer_moves_rating_and_item_symmetrically`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_answer_writes_only_the_items_course_topic` |
+| US1-AS3 | S1 | `tests/integration/test_elo_single_source.py::test_an_invalid_attempt_does_not_move_the_rating`<br>`tests/integration/test_spec001_repository_pins.py::test_spec001_response_time_window_is_inclusive` |
+| US1-AS4 | S1 | `tests/api/test_spec001_answer_pins.py::test_spec001_retry_with_the_same_key_returns_the_stored_result`<br>`tests/integration/test_spec001_answer_retry.py::test_spec001_retry_returns_the_persisted_attempt_and_applies_once`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_concurrent_answer_retry_has_one_effect` |
+| US1-AS5 | S1 | `tests/api/test_spec001_answer_pins.py::test_spec001_same_key_for_another_answer_is_a_conflict`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_concurrent_answer_retry_has_one_effect` |
+| US1-AS6 | S1 | `tests/integration/test_elo_single_source.py::test_concurrent_answers_on_the_same_item_compose_serially` |
+| US1-AS7 | S1 | `tests/api/test_student.py::TestAnswer::test_ignores_tampered_item_data`<br>`tests/api/test_student.py::TestAnswer::test_invalid_answer_context_has_no_side_effects`<br>`tests/api/test_student.py::TestAnswer::test_answer_without_legacy_item_data` |
+| US2-AS1 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_selection_keeps_the_zdp_window_and_the_probability_band` |
+| US2-AS2 | S1 | `tests/unit/domain/test_item_selector.py::test_spec001_band_widens_by_005_up_to_10_steps_then_whole_pool` |
+| US2-AS3 | S1 | `tests/unit/application/test_spec001_service_pins.py::test_spec001_failed_item_returns_after_three_questions` |
+| US2-AS4 | S1 | `tests/unit/application/test_spec001_service_pins.py::test_spec001_item_correct_this_session_is_never_offered` |
+| US2-AS5 | S1 | `tests/unit/application/test_spec001_service_pins.py::test_spec001_exhausted_pool_mastery_threshold`<br>`tests/unit/application/test_spec001_service.py::test_spec001_selection_rating_is_topic_or_course` |
+| US3-AS1 | S1 | `tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_correct_at_1200_and_a_skipped_answer`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_writes_course_topic_baselines`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_baseline` |
+| US3-AS2 | S1 | `tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_floor_is_760`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_baseline` |
+| US3-AS3 | S1 | `tests/integration/test_elo_single_source.py::test_diagnostic_baseline_survives_until_the_first_practice`<br>`tests/api/test_student.py::test_first_practice_uses_diagnostic_rating` |
+| US3-AS4 | S1 | `tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_correct_at_1200_and_a_skipped_answer`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_baseline` |
+| US3-AS5 | B5 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos inicializados (US3-AS5) (FR-020a–c, FR-031a)` |
+| US3-AS6 | B5 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_keeps_a_practised_topic_mixed`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)` |
+| US3-AS7 | B5 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_returning_to_the_course_shows_the_current_rating` |
+| US3-AS8 | B5 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_with_every_topic_practised_keeps_all`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos conservados (US3-AS8) (FR-020a–c, FR-031a)` |
+| US4-AS1 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_validated_grade_adds_grade_minus_50_times_02`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_creates_an_absent_row_and_floors_at_zero` |
+| US4-AS2 | S1 | `tests/integration/test_elo_single_source.py::test_a_validated_procedure_delta_is_applied_exactly_once` |
+| US4-AS3 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_ai_proposed_score_changes_no_rating` |
+| US4-AS4 | S1 | `tests/api/test_procedure_grading.py::test_other_teacher_cannot_grade_or_view_submission`<br>`tests/api/test_procedure_grading.py::test_reassignment_between_lookup_and_update_prevents_grading` |
+| US4-AS5 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_grade_out_of_range_changes_nothing` |
+| US5-AS1 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_pvp_equal_ratings_win_and_draw`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_pvp_deltas` |
+| US5-AS2 | S1 | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_closing_a_match_twice_applies_the_delta_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
+| US5-AS3 | S1 | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_matches_orphaned_by_a_restart_are_closed`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_a_live_match_is_left_alone` |
+| US5-AS4 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_practice_after_pvp_starts_from_the_post_match_rating` |
+| US5-AS5 | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_player_without_rated_topics_gets_zero` |
+| US6-AS1 | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_overall_rating`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_overall_is_the_mean_of_course_ratings`<br>`tests/api/test_spec001_api.py::test_spec001_stats_overall_is_the_mean_of_current_courses`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_every_ranking_reads_the_canonical_rating` |
+| US6-AS2 | S1 | `tests/api/test_spec001_api.py::test_spec001_preview_equals_the_applied_change`<br>`frontend/e2e/spec001-ratings.spec.ts › Práctica muestra la previsión que envía la API (US6-AS2)` |
+| US6-AS3 | S1 | `tests/api/test_spec001_api.py::test_spec001_number_and_label_agree_on_every_surface`<br>`tests/api/test_spec001_api.py::test_spec001_meta_ranks_is_public_and_ascending`<br>`frontend/e2e/spec001-ratings.spec.ts › Panel docente usa display_rating y rank_label de la API (US6-AS3, FR-028j)` |
+| US6-AS4 | S1 | `tests/api/test_spec001_answer_pins.py::test_spec001_exam_submission_changes_no_rating`<br>`tests/integration/test_spec001_repository_pins.py::test_spec001_exam_storage_writes_no_rating` |
+| US6-AS5 | S1 | `tests/api/test_spec001_api.py::test_spec001_promoted_student_is_pending_and_keeps_history`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_pending_diagnostic_and_history_courses`<br>`frontend/e2e/spec001-ratings.spec.ts › Estadísticas: diagnóstico pendiente y cursos de grados anteriores (US6-AS5/AS6)` |
+| US6-AS6 | S1 | `tests/api/test_spec001_api.py::test_spec001_promoted_student_is_pending_and_keeps_history`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_pending_diagnostic_and_history_courses` |
+| US6-AS7 | S1 | `tests/api/test_spec001_api.py::test_spec001_group_ranking_basis_errors_and_pending`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_group_ranking_never_substitutes_another_rating`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_group_ranking_on_the_group_course_without_substitution`<br>`frontend/e2e/spec001-ratings.spec.ts › Ranking del grupo: base, empates con el mismo puesto, valor tal cual y pendientes al final (US6-AS7/AS8)` |
+| US6-AS8 | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_rank_competition`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_rankings_follow_participation_and_competition`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_competition_ranks_and_limit`<br>`frontend/e2e/spec001-ratings.spec.ts › Ranking del grupo: base, empates con el mismo puesto, valor tal cual y pendientes al final (US6-AS7/AS8)` |
+| US6-AS9 | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_rating_display_number_and_label_agree`<br>`tests/api/test_spec001_api.py::test_spec001_number_and_label_agree_on_every_surface`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`frontend/e2e/spec001-ratings.spec.ts › Número y rango salen del mismo valor: 999.6 → 1000 «Plata I» (US6-AS9)`<br>`frontend/e2e/spec001-ratings.spec.ts › La pantalla muestra display_rating tal cual, sin redondear por su cuenta (FR-028i/j)` |
+| US7-AS1 | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_semillero_catalogue_by_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_current_courses_are_the_catalogue`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_courses_of_a_grade_7_student` |
+| US7-AS2 | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_register_user_rejects_semillero_without_a_valid_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_api_registration_rejects_semillero_without_a_valid_grade` |
+| US7-AS3 | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_enrol_only_in_the_catalogue` |
+| US7-AS4 | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_invitation_crosses_levels_without_changing_them` |
+| US7-AS5 | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_course_list_is_its_enrolments`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_current_courses_are_the_catalogue`<br>`frontend/e2e/f1-catalogue.spec.ts › Semillero sin grado: aviso, sin catálogo y con sus matrículas abiertas (FR-028o)` |
+| US7-AS6 | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_course_list_marks_invited_courses`<br>`frontend/e2e/f1-catalogue.spec.ts › Un curso por invitación solo aparece en Mis matrículas (FR-028l)` |
+| US8-AS1 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_next_question_outside_enrolment_is_forbidden` |
+| US8-AS2 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_answer_outside_enrolment_changes_nothing` |
+| US8-AS3 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden` |
+| US8-AS4 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_enrolled_students_practise_as_before` |
+| US8-AS5 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it` |
+| US9-AS1 | B7 | `PENDING` |
+| US9-AS2 | B7 | `PENDING` |
+| US9-AS3 | B7 | `PENDING` |
+| US9-AS4 | B7 | `PENDING` |
+| US9-AS5 | B7 | `PENDING` |
+| US9-AS6 | B7 | `PENDING` |
+| US9-AS7 | B7 | `PENDING` |
+| US9-AS8 | B7 | `PENDING` |
+| US9-AS9 | B7 | `PENDING` |
+| US9-AS10 | B7 | `PENDING` |
+| US9-AS11 | B7 | `PENDING` |
+| US9-AS12 | B7 | `PENDING` |
+| FR-001 | S1 | `tests/unit/domain/test_elo_model.py::TestExpectedScore::test_400_point_advantage_gives_approx_91_percent`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_fr001_both_engine_paths_use_the_same_expected_success` |
+| FR-002 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_rating_delta` |
+| FR-003 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_rd_floor_30_holds_and_scales_the_change`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_next_rd_has_a_floor_of_30` |
+| FR-004 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/application/test_spec001_service.py::test_spec001_unrated_course_selects_at_1000_and_ignores_the_diagnostic_average`<br>`tests/api/test_student.py::test_first_practice_uses_diagnostic_rating` |
+| FR-005 | S1 | `tests/unit/application/test_spec001_service_pins.py::test_spec001_answer_moves_rating_and_item_symmetrically`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_item_difficulty_delta` |
+| FR-006 | S1 | `tests/unit/application/test_spec001_service_pins.py::test_spec001_answer_moves_rating_and_item_symmetrically` |
+| FR-007 | S1 | `tests/integration/test_elo_single_source.py::test_an_invalid_attempt_does_not_move_the_rating`<br>`tests/integration/test_spec001_repository_pins.py::test_spec001_response_time_window_is_inclusive` |
+| FR-008 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_response_time_window_is_inclusive`<br>`tests/integration/test_elo_single_source.py::test_an_invalid_attempt_does_not_move_the_rating`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_is_valid_response_time` |
+| FR-008a | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_explicit_zero_seconds_is_invalid`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_is_valid_response_time`<br>`tests/unit/application/test_spec001_service.py::test_spec001_process_answer_reports_validity` |
+| FR-009 | S1 | `tests/api/test_spec001_api.py::test_spec001_invalid_time_reports_and_records_no_change`<br>`tests/unit/application/test_spec001_service.py::test_spec001_process_answer_reports_validity` |
+| FR-010 | S1 | `tests/integration/test_elo_single_source.py::test_concurrent_answers_on_the_same_item_compose_serially` |
+| FR-011 | S1 | `tests/api/test_student.py::TestAnswer::test_ignores_tampered_item_data`<br>`tests/api/test_student.py::TestAnswer::test_invalid_answer_context_has_no_side_effects` |
+| FR-012 | S1 | `tests/api/test_spec001_answer_pins.py::test_spec001_retry_with_the_same_key_returns_the_stored_result`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_concurrent_answer_retry_has_one_effect` |
+| FR-012a | S1 | `tests/integration/test_spec001_answer_retry.py::test_spec001_retry_returns_the_persisted_attempt_and_applies_once`<br>`tests/integration/test_spec001_answer_retry.py::test_spec001_boundary_values_are_a_real_boundary` |
+| FR-013 | S1 | `tests/api/test_spec001_answer_pins.py::test_spec001_same_key_for_another_answer_is_a_conflict`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_concurrent_answer_retry_has_one_effect` |
+| FR-014 | S1 | `tests/api/test_spec001_answer_pins.py::test_spec001_no_response_carries_the_correct_option` |
+| FR-015 | S1 | `tests/unit/application/test_spec001_service.py::test_spec001_badge_failure_is_logged_and_the_answer_returns` |
+| FR-016 | S1 | `tests/unit/application/test_student_service.py::TestGetNextQuestion::test_variety_preserves_unseen_priority_and_session_exclusions`<br>`tests/unit/application/test_spec001_service_pins.py::test_spec001_failed_item_returns_after_three_questions`<br>`tests/unit/application/test_spec001_service_pins.py::test_spec001_item_correct_this_session_is_never_offered`<br>`tests/unit/application/test_student_service.py::TestTopicFilter::test_unknown_topic_filter_falls_back_to_full_pool` |
+| FR-017 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_selection_keeps_the_zdp_window_and_the_probability_band`<br>`tests/unit/domain/test_item_selector.py::test_spec001_band_widens_by_005_up_to_10_steps_then_whole_pool` |
+| FR-018 | S1 | `tests/unit/domain/test_item_selector.py::TestControlledVariety::test_variety_stays_near_best_information_and_inside_zdp`<br>`tests/unit/domain/test_item_selector.py::TestFisherInformation::test_prefers_item_closest_to_50_percent_success` |
+| FR-019 | S1 | `tests/unit/application/test_spec001_service_pins.py::test_spec001_exhausted_pool_mastery_threshold` |
+| FR-020 | S1 | `tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_correct_at_1200_and_a_skipped_answer`<br>`tests/api/test_spec001_answer_pins.py::test_spec001_diagnostic_floor_is_760`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_tier`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_diagnostic_baseline` |
+| FR-021 | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_writes_course_topic_baselines`<br>`tests/api/test_student.py::test_first_practice_uses_diagnostic_rating`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_permissions_diagnostic_and_canonical_answer` |
+| FR-020a | B5 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_keeps_a_practised_topic_mixed`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_returning_to_the_course_shows_the_current_rating`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)` |
+| FR-020b | B5 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_returning_to_the_course_shows_the_current_rating`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)` |
+| FR-020c | B5 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_keeps_a_practised_topic_mixed`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_with_every_topic_practised_keeps_all`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_a_result_stored_before_block_5_has_no_mark`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos inicializados (US3-AS5) (FR-020a–c, FR-031a)`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos conservados (US3-AS8) (FR-020a–c, FR-031a)` |
+| FR-022 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_validated_grade_adds_grade_minus_50_times_02`<br>`tests/integration/test_elo_single_source.py::test_a_validated_procedure_delta_is_applied_exactly_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once` |
+| FR-023 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_grade_out_of_range_changes_nothing`<br>`tests/api/test_procedure_grading.py::test_other_teacher_cannot_grade_or_view_submission`<br>`tests/api/test_procedure_grading.py::test_reassignment_between_lookup_and_update_prevents_grading` |
+| FR-024 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_ai_proposed_score_changes_no_rating` |
+| FR-024a | B7 | `PENDING` |
+| FR-024b | B7 | `PENDING` |
+| FR-024c | B7 | `PENDING` |
+| FR-024d | B7 | `PENDING` |
+| FR-024e | B7 | `PENDING` |
+| FR-024f | B7 | `PENDING` |
+| FR-024g | B7 | `PENDING` |
+| FR-024h | B7 | `PENDING` |
+| FR-024i | B7 | `PENDING` |
+| FR-024j | B7 | `PENDING` |
+| FR-024k | B7 | `PENDING` |
+| FR-025 | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_pvp_deltas`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_pvp_equal_ratings_win_and_draw`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_closing_a_match_twice_applies_the_delta_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
+| FR-026 | S1 | `tests/unit/application/test_spec001_service.py::test_spec001_pvp_lobby_rating_is_the_course_rating_read_outside_the_lock` |
+| FR-027 | S1 | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_matches_orphaned_by_a_restart_are_closed`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_a_live_match_is_left_alone`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_spec001_abandonment_starts_after_600_seconds` |
+| FR-028 | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_every_ranking_reads_the_canonical_rating`<br>`tests/api/test_spec001_api.py::test_spec001_every_surface_reads_the_canonical_rating`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_course_topic_ratings_are_new_table_rows_only` |
+| FR-028a | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_overall_rating`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_overall_is_the_mean_of_course_ratings`<br>`tests/api/test_spec001_api.py::test_spec001_stats_overall_is_the_mean_of_current_courses`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_current_context_is_enrollments_in_the_users_catalogue` |
+| FR-028b | S1 | `tests/api/test_spec001_api.py::test_spec001_promoted_student_is_pending_and_keeps_history`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_pending_diagnostic_and_history_courses`<br>`tests/api/test_student.py::TestStats::test_stats_initial_elo`<br>`frontend/e2e/spec001-ratings.spec.ts › Estadísticas: diagnóstico pendiente y cursos de grados anteriores (US6-AS5/AS6)`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_pending_exam_snapshot_is_null_not_zero`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_genuine_zero_snapshot_is_reported_as_zero`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_after_the_exam_keeps_the_pending_snapshot`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_snapshot_recorded_before_the_status_is_unknown`<br>`tests/unit/application/test_teacher_service.py::TestGetStudentDashboard::test_pending_student_gets_no_number` |
+| FR-028c | S1 | `tests/api/test_spec001_api.py::test_spec001_promoted_student_is_pending_and_keeps_history`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_pending_diagnostic_and_history_courses` |
+| FR-028d | S1 | `tests/api/test_spec001_api.py::test_spec001_group_ranking_basis_errors_and_pending`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_group_ranking_never_substitutes_another_rating`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_group_basis_precedence` |
+| FR-028e | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_attempt_history_keeps_each_attempts_rating` |
+| FR-028f | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_rankings_follow_participation_and_competition`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_global_participants_are_active_this_week`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_course_participants_count_only_that_course`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_group_and_weekly_participants`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_weekly_snapshot_stores_the_ranking_as_shown` |
+| FR-028g | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_weekly_snapshot_is_returned_unchanged`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_weekly_snapshot_stores_the_ranking_as_shown` |
+| FR-028h | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_rank_competition`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_competition_ranks_and_limit`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_rankings_follow_participation_and_competition` |
+| FR-028i | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_round_for_display_is_half_up`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_average_then_round_once`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_full_precision_until_the_one_rounding`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`tests/integration/test_spec001_answer_retry.py::test_spec001_retry_returns_the_persisted_attempt_and_applies_once`<br>`frontend/e2e/spec001-ratings.spec.ts › La pantalla muestra display_rating tal cual, sin redondear por su cuenta (FR-028i/j)` |
+| FR-028j | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_rating_display_number_and_label_agree`<br>`tests/api/test_spec001_api.py::test_spec001_number_and_label_agree_on_every_surface`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`frontend/e2e/spec001-ratings.spec.ts › Número y rango salen del mismo valor: 999.6 → 1000 «Plata I» (US6-AS9)`<br>`frontend/e2e/spec001-ratings.spec.ts › Panel docente usa display_rating y rank_label de la API (US6-AS3, FR-028j)`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_number_and_rank_come_from_one_display_value`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_views_rank_only_through_the_display_value` |
+| FR-028k | S1 | `tests/unit/domain/test_spec001_catalogue.py::test_spec001_semillero_catalogue_is_the_courses_of_the_grade`<br>`tests/unit/domain/test_spec001_catalogue.py::test_spec001_semillero_without_a_grade_has_no_course`<br>`tests/unit/domain/test_spec001_catalogue.py::test_spec001_other_levels_are_their_block`<br>`tests/unit/domain/test_spec001_catalogue.py::test_spec001_unknown_level_falls_back_to_universidad`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_semillero_catalogue_by_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_current_courses_are_the_catalogue` |
+| FR-028l | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_invitation_crosses_levels_without_changing_them`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_course_list_marks_invited_courses`<br>`frontend/e2e/f1-catalogue.spec.ts › Un curso por invitación solo aparece en Mis matrículas (FR-028l)` |
+| FR-028m | S1 | `tests/unit/domain/test_spec001_catalogue.py::test_spec001_valid_semillero_grades_are_6_to_11`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_register_user_rejects_semillero_without_a_valid_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_api_registration_rejects_semillero_without_a_valid_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_enrol_only_in_the_catalogue` |
+| FR-028n | S1 | `tests/integration/test_spec001_course_block_constraint.py::test_spec001_new_database_accepts_exactly_the_four_blocks`<br>`tests/integration/test_spec001_course_block_constraint.py::test_spec001_constraint_with_extra_values_is_left_as_it_is`<br>`tests/integration/test_spec001_course_block_constraint.py::test_spec001_old_database_stops_the_migration`<br>`tests/integration/test_spec001_course_block_constraint.py::test_spec001_migrate_py_exits_1_on_an_old_database` |
+| FR-028o | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_course_list_is_its_enrolments`<br>`frontend/e2e/f1-catalogue.spec.ts › Semillero sin grado: aviso, sin catálogo y con sus matrículas abiertas (FR-028o)`<br>`frontend/e2e/f1-catalogue.spec.ts › Semillero con grado: sin aviso (FR-028o)` |
+| FR-029 | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_answer_writes_only_the_items_course_topic`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_answer_lands_on_the_items_course_and_topic`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_writes_course_topic_baselines`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once` |
+| FR-029a | S1 | `tests/unit/application/test_spec001_service.py::test_spec001_selection_rating_is_topic_or_course`<br>`tests/unit/application/test_spec001_service.py::test_spec001_unrated_course_selects_at_1000_and_ignores_the_diagnostic_average`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_course_rating_of`<br>`tests/unit/application/test_spec001_service.py::test_spec001_pvp_shows_pending_never_the_1000_fallback`<br>`tests/api/test_spec001_api.py::test_spec001_course_map_shows_unrated_topics_as_pending` |
+| FR-029b | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
+| FR-029c | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_player_without_rated_topics_gets_zero`<br>`tests/unit/infrastructure/test_pvp_logic.py::test_spec001_game_end_sends_the_applied_delta_and_reason`<br>`tests/unit/infrastructure/test_pvp_logic.py::test_spec001_game_end_reports_not_applied_when_persistence_fails` |
+| FR-030 | S1 | `tests/api/test_spec001_api.py::test_spec001_preview_equals_the_applied_change`<br>`frontend/e2e/spec001-ratings.spec.ts › Práctica muestra la previsión que envía la API (US6-AS2)`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_stakes_preview_is_the_applied_change` |
+| FR-031 | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_one_rank_scale`<br>`tests/api/test_spec001_api.py::test_spec001_meta_ranks_is_public_and_ascending`<br>`frontend/e2e/spec001-ratings.spec.ts › Inicio lista los rangos de /api/meta/ranks`<br>`tests/api/test_spec001_api.py::test_spec001_meta_ranks_is_cacheable` |
+| FR-031a | B5 | `tests/integration/test_spec001_diagnostic_result.py::test_spec001_first_diagnostic_is_all_initialized`<br>`tests/integration/test_spec001_diagnostic_result.py::test_spec001_retaken_diagnostic_keeps_a_practised_topic_mixed`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos inicializados (US3-AS5) (FR-020a–c, FR-031a)`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — conservados e inicializados (US3-AS6) (FR-020a–c, FR-031a)`<br>`frontend/e2e/spec001-ratings.spec.ts › Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — todos conservados (US3-AS8) (FR-020a–c, FR-031a)` |
+| FR-032 | S1 | `tests/api/test_spec001_answer_pins.py::test_spec001_exam_submission_changes_no_rating`<br>`tests/integration/test_spec001_repository_pins.py::test_spec001_exam_storage_writes_no_rating` |
+| FR-033 | S1 | `tests/integration/test_spec001_reconciliation.py::test_spec001_existing_rows_and_unassigned_legacy_rows_are_left_alone` |
+| FR-034 | S1 | `tests/integration/test_spec001_reconciliation.py::test_spec001_topic_label_row_reaches_only_the_practised_course`<br>`tests/integration/test_spec001_reconciliation.py::test_spec001_course_name_equal_to_a_topic_label`<br>`tests/integration/test_spec001_reconciliation.py::test_spec001_diagnostic_makes_the_courses_topics_eligible`<br>`tests/integration/test_spec001_reconciliation.py::test_spec001_course_row_most_recent_wins_and_is_never_summed` |
+| FR-034a | S1 | `tests/integration/test_spec001_reconciliation.py::test_spec001_topic_label_row_reaches_only_the_practised_course`<br>`tests/integration/test_spec001_reconciliation.py::test_spec001_course_row_most_recent_wins_and_is_never_summed`<br>`tests/api/test_spec001_api.py::test_spec001_stats_marks_approximate_baselines`<br>`tests/unit/application/test_teacher_service.py::TestGetStudentDashboard::test_rated_student_gets_the_derived_rating_and_its_label`<br>`frontend/e2e/spec001-ratings.spec.ts › Estadísticas marcan las líneas base aproximadas de la reconciliación (FR-034a)`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_teacher_topic_table_marks_approximate_baselines`<br>`tests/api/test_spec001_api.py::test_spec001_course_map_marks_approximate_topics`<br>`frontend/e2e/spec001-ratings.spec.ts › Mapa y riel del curso marcan los temas con línea base aproximada (FR-034a)` |
+| FR-034b | S1 | `tests/integration/test_spec001_reconciliation.py::test_spec001_existing_rows_and_unassigned_legacy_rows_are_left_alone` |
+| FR-035 | S1 | `tests/integration/test_spec001_reconciliation.py::test_spec001_course_row_most_recent_wins_and_is_never_summed` |
+| FR-036 | S1 | `tests/integration/test_spec001_reconciliation.py::test_spec001_reconciliation_is_idempotent`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_every_ranking_reads_the_canonical_rating`<br>`tests/api/test_spec001_api.py::test_spec001_every_surface_reads_the_canonical_rating`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_course_topic_ratings_are_new_table_rows_only` |
+| FR-037 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_next_question_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_enrolled_students_practise_as_before`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_ensure_enrolled` |
+| FR-037a | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_answer_outside_enrolment_changes_nothing`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it`<br>`tests/integration/test_spec001_practice_access.py::test_spec001_ensure_enrolled` |
 
 ## Appendix — As-is evidence
 
