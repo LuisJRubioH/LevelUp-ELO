@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft for review — the approved decisions of blocks 4 and 8 that apply to every
+**Status**: Approved by the owner (2026-10-15). The approved decisions of blocks 4 and 8 that apply to every
 account, and those of the rate-limit store (owner, 2026-10-13 and 2026-10-14), are specified; the
 initial import's decisions live in spec 009 (owner, 2026-10-14). Nothing is implemented. Every
 delivery is `planned`.
