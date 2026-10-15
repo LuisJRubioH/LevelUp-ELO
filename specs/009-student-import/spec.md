@@ -6,7 +6,8 @@
 
 **Status**: Draft for review — the owner's approved decisions on the initial import, moved from
 spec 004 on 2026-10-14, night, so that spec 004 holds only rules for every account. Nothing is
-implemented. It waits on the columns of the Google Form (N1).
+implemented. Plan and tasks: [plan-i1.md](plan-i1.md), [tasks-i1.md](tasks-i1.md) (2026-10-15);
+only the parts marked `[N1]` wait on the columns of the Google Form.
 
 **Input**: The owner's orders of 2026-10-13 on block 4 (enrolment through Google Forms) and the
 answers of 2026-10-14 (N4, N12, N14, N16 and the night session), first recorded in spec 004
@@ -262,6 +263,7 @@ shared views.
 | N4 | (Spec 004, 2026-10-13.) P10 admits digits only, so identifications with letters (passport, PPT, some foreign documents) cannot be imported. | **Withdrawn** (owner, 2026-10-14): no condition about documents nobody asked for; the import keeps P10. |
 | N14 | (Spec 004, question D.) Changing the display name of an imported account. | **Decided** (owner, 2026-10-14): only the admin. |
 | N16 | (Spec 004.) Without leading zeros, an `.xlsx` cell typed as a number that holds a whole number loses nothing when read as its digits. The 2026-10-13 text flagged every numeric cell. | **Decided** (owner, 2026-10-14): accepted — a whole number of up to 15 digits is read as its digits; only values the spreadsheet already altered (scientific notation, decimals, more digits than it keeps) are flagged. |
+| N18 | (Plan, 2026-10-15.) The admin links an identification to an existing account (FR-007), but the spec gives no way to remove or correct a link made by mistake. | Let the admin remove a link, recorded; the account's username and credentials never change. |
 
 ## Out of Scope *(mandatory)*
 
