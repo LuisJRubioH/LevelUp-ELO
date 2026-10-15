@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft for review — the approved decisions of blocks 4 and 8 that apply to every account,
+**Status**: Approved by the owner (2026-10-15). The approved decisions of blocks 4 and 8 that apply to every account,
 and those of the rate-limit store (owner, 2026-10-13 and 2026-10-14), are specified; the initial
 import's decisions live in spec 009 (owner, 2026-10-14). E1 and E6 are implemented and closed (their
 pull requests), and so is E2 — display names, passwords and sessions. E3 — students created one by
@@ -259,6 +259,19 @@ Documented: a restart loses the local counters.
 - N15 applies when the admin creates a student — one by one or by the import, semillero included.
   Public registration, existing accounts, deleting a group and reassigning a student keep today's
   behaviour.
+
+### Session 2026-10-15 (owner answers, approved)
+
+- Block 8 is approved: session renewal through the application's own origin (delivery E5).
+  Turning it on — the two Vercel variables and Render's cookie setting — and the checks on real
+  Safari devices remain the owner's operational steps.
+- E3 is approved as delivered (LuisJRubioH/LevelUp-ELO#73), with the choices its plan makes:
+  - a last day already past is refused when the admin creates a student, while an existing
+    account's last day may be set in the past, which ends its access at once;
+  - a student the admin creates joins the group's course at any level, as with an invitation
+    (spec 001 FR-028l);
+  - the per-admin creation limit counts refused attempts too;
+  - V1 does not check the last day; it is disconnected at the switch.
 
 ### Scope of each decision (2026-10-14)
 
