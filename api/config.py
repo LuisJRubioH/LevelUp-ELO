@@ -69,6 +69,13 @@ class Settings(BaseSettings):
     public_registration_enabled: bool = False
     rate_limit_default: str = "60/minute"  # endpoints normales
     rate_limit_storage_uri: str = "memory://"  # producción: Redis compartido entre instancias
+    # Spec 004 E6 (FR-090 … FR-095): if the shared store fails while the API runs, limits are
+    # counted in memory; no call waits longer than these timeouts, and recovery is probed in the
+    # background at most once per interval. The memory fallback holds at most this many counters.
+    rate_limit_storage_connect_timeout: float = 0.5  # seconds
+    rate_limit_storage_timeout: float = 0.5  # seconds, per operation
+    rate_limit_storage_probe_interval: float = 10.0  # seconds
+    rate_limit_fallback_max_keys: int = 50_000
 
     # ── Admin ─────────────────────────────────────────────────────────────────
     admin_user: str = "admin"

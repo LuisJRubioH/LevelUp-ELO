@@ -134,6 +134,11 @@ def main():
         "GET /api/health → 200",
         health.text[:200] if health is not None else "no answer",
     )
+    # Spec 004 E6: a 200 can be "degraded" — limits counted in memory because Redis does not answer.
+    limits = (
+        health.json().get("limits") if health is not None and health.status_code == 200 else None
+    )
+    r.check(limits == "normal", "GET /api/health → limits counted in the shared store", limits)
     ranks = c.get("/api/meta/ranks")
     body = ranks.json() if ranks.status_code == 200 else []
     body = body.get("ranks", body) if isinstance(body, dict) else body
