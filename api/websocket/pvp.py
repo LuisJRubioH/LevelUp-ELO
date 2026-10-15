@@ -23,7 +23,7 @@ from starlette.websockets import WebSocketState
 
 from src.domain.elo.model import pvp_deltas
 from src.domain.elo.ranks import rating_display
-from src.domain.identity import public_name
+from src.domain.identity import ACCESS_EXPIRED_MESSAGE, public_name
 
 logger = logging.getLogger("api.pvp")
 
@@ -179,6 +179,61 @@ async def _close_match(match: ActiveMatch, repo) -> None:
     )
 
 
+def players_in_play() -> set[int]:
+    """Spec 004 FR-051: the accounts waiting in a lobby or playing a match in this process."""
+    players = {slot.user_id for slot in list(_lobby.values())}
+    for match in list(_matches.values()):
+        players.update((match.p1.user_id, match.p2.user_id))
+    return players
+
+
+async def abandon_matches_of(user_id: int, repo, reason: str = "account_expired") -> int:
+    """Spec 004 FR-051, FR-052: close every match of `user_id` still in play as abandoned.
+
+    The same guard as `_finish_match` decides who closes a match, so it ends once: a match whose
+    normal close already started keeps that result, and this waits until both players have it.
+    Returns how many matches this call abandoned.
+    """
+    async with _lock:
+        mine = [m for m in _matches.values() if user_id in (m.p1.user_id, m.p2.user_id)]
+        closing = [m for m in mine if m.finished]
+        abandoning = [m for m in mine if not m.finished]
+        for match in abandoning:
+            match.finished = True
+    for match in closing:
+        await match.closed.wait()
+    for match in abandoning:
+        try:
+            await _abandon_match(match, repo, reason)
+        finally:
+            match.closed.set()
+            async with _lock:
+                _matches.pop(match.match_id, None)
+    return len(abandoning)
+
+
+async def _abandon_match(match: ActiveMatch, repo, reason: str) -> None:
+    """No rating moves for either player; the answers saved before stay. Both are told why."""
+    try:
+        await asyncio.to_thread(repo.abandon_pvp_match, match.match_id, reason)
+    except Exception as e:
+        # The row stays 'active' and `expire_stale_pvp_matches` closes it, also without rating.
+        logger.error("abandon_pvp_match error: %s", e)
+    s1 = match.score.get(match.p1.user_id, 0)
+    s2 = match.score.get(match.p2.user_id, 0)
+    ends = [
+        {"type": "game_end", "your_score": mine, "opp_score": theirs, "won": False,
+         "draw": False, "abandoned": True, "reason": reason,
+         "elo_delta": 0.0, "elo_reason": reason}
+        for mine, theirs in ((s1, s2), (s2, s1))
+    ]  # fmt: skip
+    await asyncio.gather(
+        _send(match.p1.ws, ends[0]),
+        _send(match.p2.ws, ends[1]),
+        return_exceptions=True,
+    )
+
+
 async def _finish_early(match: ActiveMatch, timer_task: asyncio.Task | None, repo) -> None:
     """Both players answered everything. The timer is stopped only if it has not started closing
     the match: cancelled mid-close, it would drop game_end for both players."""
@@ -225,7 +280,13 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
         if course_id not in enrollments:
             raise ValueError("El estudiante no está inscrito en el curso")
     except Exception as exc:
-        await websocket.close(code=4001, reason="Auth failed")
+        if getattr(exc, "detail", None) == ACCESS_EXPIRED_MESSAGE:
+            # Spec 004 FR-047: the screen shows why (P7).
+            await websocket.close(
+                code=connections.EXPIRED_CODE, reason=connections.EXPIRED_REASON
+            )
+        else:
+            await websocket.close(code=4001, reason="Auth failed")
         logger.warning("PvP auth failed: %s", exc)
         return
 

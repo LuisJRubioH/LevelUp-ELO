@@ -308,8 +308,9 @@ An invalid attempt is recorded with before = after and moves nothing. With an `I
   endpoint, notify with `notify_sync`, which uses the loop bound at startup.
 
 ### R18 — The backend is a single process, and checked
-PvP `_lobby` / `_matches` (`api/websocket/pvp.py`) and notification `_rooms` live in process
-memory. `settings.validate_runtime()` refuses to start in production with `WEB_CONCURRENCY > 1`;
+PvP `_lobby` / `_matches` (`api/websocket/pvp.py`), notification `_rooms` and each account's open
+sockets (`api/websocket/connections.py`, closed on revocation and by the expiry sweep of
+`api/websocket/expiry.py`, spec 004 E3) live in process memory. `settings.validate_runtime()` refuses to start in production with `WEB_CONCURRENCY > 1`;
 `render.yaml` sets `"1"`. Scaling needs shared matchmaking, pub/sub event fan-out and
 cross-process wake-up — all three before raising the number. Details:
 [`docs/arquitectura.md` § Límites conocidos](docs/arquitectura.md).
@@ -321,7 +322,9 @@ gets 0 with `elo_reason = 'no_rated_topics'`; it returns the applied deltas, and
 them (`"not_applied"` with 0 if persisting fails). The close is idempotent through
 `AND status='active'`. The lobby reads the course rating outside `_lock` (1000 drives the
 expectation of an unrated player but is never shown). Orphaned matches are closed as `abandoned`
-(no rating change) by `expire_stale_pvp_matches()`.
+(no rating change) by `expire_stale_pvp_matches()`; a match whose player's account expires, by
+`pvp.abandon_matches_of` → `abandon_pvp_match` — no rating change, both players told why, under the
+same `match.finished` guard as the normal close, so it ends once (spec 004 FR-051, FR-052).
 
 ---
 
@@ -574,7 +577,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 | Table | Key fields |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username) |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username), `access_until` (spec 004 E3: last day of access, inclusive, Colombian time; NULL never expires) |
 | `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
 | `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
 | `groups` | unique `(teacher_id, name_normalized)`, `invite_code` |

@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ACCESS_EXPIRED, ACCESS_EXPIRED_CLOSE_CODE, rememberAccessExpired } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
@@ -29,6 +30,9 @@ export interface PvpResult {
   elo_delta: number;
   /** null = applied; 'no_rated_topics' | 'not_applied' = 0 applied (spec 001). */
   elo_reason?: string | null;
+  /** Spec 004 FR-051: closed without a winner and without rating change, and why. */
+  abandoned?: boolean;
+  reason?: string | null;
 }
 
 /** The server's verdict on the last answer, shown on that item before the next one appears. */
@@ -44,6 +48,7 @@ const CLOSE_NOTICES: Record<number, string> = {
   4001: "No pudimos entrar a la arena. Vuelve a iniciar sesión y revisa que estés inscrito en la materia.",
   4404: "Esta materia todavía no tiene preguntas para la liga.",
   4500: "Hubo un problema en el servidor. Intenta de nuevo.",
+  [ACCESS_EXPIRED_CLOSE_CODE]: ACCESS_EXPIRED,
 };
 
 function closeNotice(code: number, phase: PvpPhase): string {
@@ -156,6 +161,8 @@ export function usePvpMatch(courseId: string | null) {
             my_score: msg.your_score, opp_score: msg.opp_score,
             elo_delta: msg.elo_delta,
             elo_reason: msg.elo_reason ?? null,
+            abandoned: !!msg.abandoned,
+            reason: msg.reason ?? null,
           });
           goTo("finished");
           break;
@@ -170,6 +177,9 @@ export function usePvpMatch(courseId: string | null) {
       if (ws.current !== socket) return;
       stopTimer();
       clearFeedback();
+      // Spec 004 FR-047: this account expired. The result stays on screen if it arrived; the
+      // next request ends the session and the login says why.
+      if (e.code === ACCESS_EXPIRED_CLOSE_CODE) rememberAccessExpired();
       if (phaseRef.current === "finished") return;
       setNotice(closeNotice(e.code, phaseRef.current));
       goTo("idle");

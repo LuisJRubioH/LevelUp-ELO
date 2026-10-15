@@ -164,6 +164,7 @@ test.describe("Spec 004 · nombres visibles", () => {
 
   test("el admin ve usuario y nombre, y corrige un nombre (spec 004 US3-AS5, US3-AS6)", async ({ page }) => {
     await json(page, "**/api/admin/teachers/pending", { teachers: [] });
+    await json(page, "**/api/admin/groups", { groups: [] }); // the student creation form (E3)
     await json(page, "**/api/admin/users", {
       users: [
         {

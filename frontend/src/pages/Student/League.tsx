@@ -39,6 +39,13 @@ const ELO_REASONS: Record<string, string> = {
   not_applied: "Tu ELO no cambió: no pudimos guardar el resultado de esta partida.",
 };
 
+/** Why a match closed without a winner (spec 004 FR-051): no rating moved for either player. */
+const ABANDON_REASONS: Record<string, string> = {
+  account_expired:
+    "La partida terminó sin ganador porque el período de acceso de una de las cuentas terminó. Ningún ELO cambió y tus respuestas quedaron guardadas.",
+};
+const ABANDONED_FALLBACK = "La partida terminó sin ganador. Ningún ELO cambió.";
+
 export function League() {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
@@ -146,10 +153,21 @@ export function League() {
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 320, damping: 16 }}
               >
-                {result.draw ? "🤝" : result.won ? "🏆" : "💔"}
+                {result.abandoned ? "⏸" : result.draw ? "🤝" : result.won ? "🏆" : "💔"}
               </motion.div>
-              <h2 className={"pv-result-title " + (result.draw ? "draw" : result.won ? "win" : "loss")}>
-                {result.draw ? "Empate" : result.won ? "¡Ganaste!" : "Perdiste"}
+              <h2
+                className={
+                  "pv-result-title " +
+                  (result.abandoned || result.draw ? "draw" : result.won ? "win" : "loss")
+                }
+              >
+                {result.abandoned
+                  ? "Partida cancelada"
+                  : result.draw
+                    ? "Empate"
+                    : result.won
+                      ? "¡Ganaste!"
+                      : "Perdiste"}
               </h2>
               <div className="pv-board">
                 <div className="pv-board-col">
@@ -166,8 +184,15 @@ export function League() {
                 <span className="lbl">Tu ELO</span>
                 <EloCount value={result.elo_delta} />
               </p>
-              {result.elo_reason && ELO_REASONS[result.elo_reason] && (
-                <p className="pv-sub pv-reason">{ELO_REASONS[result.elo_reason]}</p>
+              {result.abandoned ? (
+                <p className="pv-sub pv-reason" role="status">
+                  {(result.reason && ABANDON_REASONS[result.reason]) || ABANDONED_FALLBACK}
+                </p>
+              ) : (
+                result.elo_reason &&
+                ELO_REASONS[result.elo_reason] && (
+                  <p className="pv-sub pv-reason">{ELO_REASONS[result.elo_reason]}</p>
+                )
               )}
               <button className="dx-btn pv-cta" onClick={disconnect}>Jugar de nuevo</button>
             </motion.div>

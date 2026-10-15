@@ -88,6 +88,19 @@ export interface AdminUser {
   group_name: string | null;
   /** Spec 004 FR-030: a temporary password is still pending. */
   must_change_password?: boolean;
+  /** Spec 004 FR-046: last day of access (YYYY-MM-DD, inclusive, Colombian time); null = none. */
+  access_until?: string | null;
+  access_expired?: boolean;
+}
+
+/** Spec 004 FR-040: a student the admin creates one by one. */
+export interface CreateStudentBody {
+  username: string;
+  display_name: string;
+  group_id: number;
+  education_level: string;
+  grade?: string | null;
+  access_until?: string | null;
 }
 
 /** Spec 004 E2: shown once to the admin, never stored readable. */
@@ -367,6 +380,17 @@ export const adminApi = {
 
   createTeacher: (body: { username: string; email?: string }) =>
     api.post<TemporaryPassword>("/api/admin/teachers", body),
+
+  /** Spec 004 FR-040: the temporary password comes back once. */
+  createStudent: (body: CreateStudentBody) =>
+    api.post<TemporaryPassword>("/api/admin/students", body),
+
+  /** Spec 004 FR-050: set, change, extend or remove (null) an account's last day of access. */
+  setAccessUntil: (user_id: number, access_until: string | null) =>
+    api.put<{ user_id: number; access_until: string | null; access_expired: boolean }>(
+      `/api/admin/users/${user_id}/access-until`,
+      { access_until }
+    ),
 
   /** Spec 004 FR-025: the admin corrects any student's display name. */
   setDisplayName: (user_id: number, display_name: string) =>
