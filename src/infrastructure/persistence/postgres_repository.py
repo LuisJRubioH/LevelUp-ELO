@@ -10,6 +10,7 @@ import psycopg2.extras
 import psycopg2.pool
 from psycopg2.extras import RealDictCursor
 from src.infrastructure.security.hashing_service import HashingService
+from src.infrastructure.storage.paths import safe_path_component
 from src.infrastructure.storage.supabase_storage import SupabaseStorage
 from src.domain.elo.model import expected_score
 
@@ -292,6 +293,19 @@ class PostgresRepository:
                 self._pool.putconn(conn, close=True)
                 conn = self._pool.getconn()
             return conn
+
+    def get_submission_image_data(self, submission_id) -> bytes | None:
+        """The bytes kept in the submission row (BYTEA), for when Storage cannot serve them (R9)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT image_data FROM procedure_submissions WHERE id = %s", (submission_id,)
+            )
+            row = cursor.fetchone()
+            return bytes(row["image_data"]) if row and row["image_data"] is not None else None
+        finally:
+            self.put_connection(conn)
 
     def resolve_storage_image(self, storage_url: str) -> bytes | None:
         """Download procedure image bytes from Supabase Storage.
@@ -614,6 +628,18 @@ class PostgresRepository:
             self._add_column_if_not_exists(cursor, "users", "current_elo", "REAL DEFAULT 1000.0")
             # Correo electrónico — NULL para usuarios existentes, UNIQUE parcial (solo no-NULL)
             self._add_column_if_not_exists(cursor, "users", "email", "TEXT")
+            # Spec 004 E2: security version checked on every credential, forced change of a
+            # temporary password, who created the account.
+            self._add_column_if_not_exists(
+                cursor, "users", "security_version", "INTEGER NOT NULL DEFAULT 0"
+            )
+            self._add_column_if_not_exists(
+                cursor, "users", "must_change_password", "INTEGER NOT NULL DEFAULT 0"
+            )
+            self._add_column_if_not_exists(cursor, "users", "created_by", "INTEGER")
+            # Spec 004 E2 (FR-020): the name classmates and teachers see; NULL on existing
+            # accounts, which then show their username (N5).
+            self._add_column_if_not_exists(cursor, "users", "display_name", "TEXT")
             cursor.execute(
                 """
                 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
@@ -643,6 +669,20 @@ class PostgresRepository:
                     new_group_id INTEGER,
                     admin_id INTEGER NOT NULL,
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+            # Spec 004 E2: administrative account operations (password reset, teacher creation).
+            # Never a password.
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS audit_account_events (
+                    id SERIAL PRIMARY KEY,
+                    actor_id INTEGER NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    action TEXT NOT NULL,
+                    detail TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """
             )
@@ -1467,12 +1507,18 @@ class PostgresRepository:
         education_level=None,
         grade=None,
         email=None,
+        display_name=None,
     ):
         """Registra un nuevo usuario.
 
         `grade` solo aplica cuando education_level = 'semillero' ('6'–'11').
         `email` opcional — si se provee, se valida formato y unicidad.
+        `display_name` (spec 004 FR-020) se guarda normalizado; quien registra valida que el
+        estudiante tenga uno.
         """
+        from src.domain.identity import normalize_display_name
+
+        display_name = normalize_display_name(display_name)
         if not password or not password.strip():
             return False, "La contraseña es obligatoria."
         if len(password.strip()) < 6:
@@ -1498,9 +1544,19 @@ class PostgresRepository:
             _grade = str(grade) if education_level == "semillero" else None
             cursor.execute(
                 "INSERT INTO users (username, password_hash, role, approved, group_id, "
-                "rating_deviation, education_level, grade, email) "
-                "VALUES (%s, %s, %s, %s, %s, 350.0, %s, %s, %s)",
-                (username, password_hash, role, approved, group_id, education_level, _grade, email),
+                "rating_deviation, education_level, grade, email, display_name) "
+                "VALUES (%s, %s, %s, %s, %s, 350.0, %s, %s, %s, %s)",
+                (
+                    username,
+                    password_hash,
+                    role,
+                    approved,
+                    group_id,
+                    education_level,
+                    _grade,
+                    email,
+                    display_name,
+                ),
             )
             conn.commit()
             return True, "Registro exitoso."
@@ -1516,7 +1572,8 @@ class PostgresRepository:
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
-                "SELECT id, username, role, group_id, education_level, current_elo, active, approved "
+                "SELECT id, username, role, group_id, education_level, current_elo, active, approved, "
+                "security_version, must_change_password, display_name "
                 "FROM users WHERE id = %s",
                 (user_id,),
             )
@@ -1534,6 +1591,9 @@ class PostgresRepository:
             "current_elo": row["current_elo"],
             "active": bool(row["active"]),
             "approved": bool(row["approved"]),
+            "security_version": int(row["security_version"] or 0),
+            "must_change_password": bool(row["must_change_password"]),
+            "display_name": row["display_name"],
         }
 
     @_timing
@@ -1601,6 +1661,22 @@ class PostgresRepository:
                 (login, login),
             )
             return cursor.fetchone()
+        finally:
+            self.put_connection(conn)
+
+    def login_account_id(self, login: str):
+        """Spec 004 FR-006: the id of the active account a sign-in names — exactly its username or
+        its email, as `login_user` matches — or None. For the login limit; it checks no password."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT id FROM users WHERE (username = %s OR (email = %s AND email IS NOT NULL))"
+                " AND active = 1 ORDER BY id LIMIT 1",
+                (login, login),
+            )
+            row = cursor.fetchone()
+            return int(row["id"]) if row else None
         finally:
             self.put_connection(conn)
 
@@ -2012,7 +2088,7 @@ class PostgresRepository:
                 _params.append(group_id)
             cursor.execute(
                 f"""
-                SELECT u.id AS student_id, u.username, g.name AS group_name,
+                SELECT u.id AS student_id, COALESCE(u.display_name, u.username) AS name, g.name AS group_name,
                        ki.course_id, c.name AS course_name,
                        ki.item_topic, ki.student_message,
                        ki.katia_response, ki.created_at
@@ -2276,12 +2352,17 @@ class PostgresRepository:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 if scope == "group":
                     cursor.execute(
-                        "SELECT id, username FROM users"
+                        "SELECT id, username, COALESCE(display_name, username) AS name FROM users"
                         " WHERE group_id = %s AND role = 'student' AND active = 1 ORDER BY id",
                         (group_id,),
                     )
                     return [
-                        {"user_id": r["id"], "username": r["username"], "attempts_in_window": 0}
+                        {
+                            "user_id": r["id"],
+                            "username": r["username"],
+                            "name": r["name"],
+                            "attempts_in_window": 0,
+                        }
                         for r in cursor.fetchall()
                     ]
                 where = ["u.role = 'student'", "a.timestamp >= NOW() - (%s * INTERVAL '1 day')"]
@@ -2304,16 +2385,22 @@ class PostgresRepository:
                     where.append("i.course_id = %s")
                     params.append(course_id)
                 cursor.execute(
-                    "SELECT u.id, u.username, COUNT(a.id) AS attempts FROM attempts a"
+                    "SELECT u.id, u.username, COALESCE(u.display_name, u.username) AS name,"
+                    " COUNT(a.id) AS attempts FROM attempts a"
                     f" JOIN users u ON u.id = a.user_id{join} WHERE {' AND '.join(where)}"
-                    " GROUP BY u.id, u.username ORDER BY u.id",
+                    " GROUP BY u.id, u.username, u.display_name ORDER BY u.id",
                     params,
                 )
                 rows = cursor.fetchall()
         finally:
             self.put_connection(conn)
         return [
-            {"user_id": r["id"], "username": r["username"], "attempts_in_window": r["attempts"]}
+            {
+                "user_id": r["id"],
+                "username": r["username"],
+                "name": r["name"],
+                "attempts_in_window": r["attempts"],
+            }
             for r in rows
         ]
 
@@ -2514,7 +2601,8 @@ class PostgresRepository:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 """
-                SELECT u.id, u.username, u.active, u.created_at, g.name as group_name
+                SELECT u.id, u.username, u.role, u.education_level, u.active, u.created_at,
+                       g.name as group_name
                 FROM users u
                 LEFT JOIN groups g ON u.group_id = g.id
                 WHERE u.role = 'student'
@@ -2526,12 +2614,218 @@ class PostgresRepository:
                 {
                     "id": r["id"],
                     "username": r["username"],
+                    "role": r["role"],
+                    "education_level": r["education_level"],
                     "active": r["active"],
                     "created_at": r["created_at"],
                     "group_name": r["group_name"],
                 }
                 for r in rows
             ]
+        finally:
+            self.put_connection(conn)
+
+    # ── Spec 004 E2: passwords, security version, administrative account operations ──────
+
+    def get_accounts_admin(self):
+        """Students and teachers for the admin panel: role, state, group, forced change."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                """
+                SELECT u.id, u.username, u.display_name, u.role, u.education_level, u.approved, u.active,
+                       u.must_change_password,
+                       u.created_at, g.name AS group_name
+                FROM users u
+                LEFT JOIN groups g ON u.group_id = g.id
+                WHERE u.role IN ('student', 'teacher')
+                ORDER BY u.role, u.username
+            """
+            )
+            return [dict(r) for r in cursor.fetchall()]
+        finally:
+            self.put_connection(conn)
+
+    def verify_user_password(self, user_id, password):
+        """FR-026: whether `password` is the current password of the active account."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT password_hash FROM users WHERE id = %s AND active = 1", (user_id,)
+            )
+            row = cursor.fetchone()
+        finally:
+            self.put_connection(conn)
+        stored = row["password_hash"] if row else None
+        if not stored or not stored.strip():
+            return False
+        if stored.startswith("$argon2id$"):
+            try:
+                verified, _ = self.hashing.verify_and_update(password, stored)
+            except ValueError:  # malformed hash: not this password
+                return False
+            return bool(verified)
+        return self.hashing.verify_legacy_sha256(password, stored)
+
+    def set_user_password(self, user_id, password, must_change=False):
+        """FR-028: replace the password (Argon2id), set or clear the forced change and advance the
+        security version, in one transaction. The new version, or None without such an account."""
+        password_hash = self.hashing.hash_password(password)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "UPDATE users SET password_hash = %s, must_change_password = %s,"
+                " security_version = COALESCE(security_version, 0) + 1 WHERE id = %s"
+                " RETURNING security_version",
+                (password_hash, 1 if must_change else 0, user_id),
+            )
+            row = cursor.fetchone()
+            conn.commit()
+            return int(row["security_version"]) if row else None
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    @staticmethod
+    def _is_active_admin(cursor, admin_id):
+        cursor.execute("SELECT role FROM users WHERE id = %s AND active = 1", (admin_id,))
+        row = cursor.fetchone()
+        return bool(row) and row["role"] == "admin"
+
+    def reset_user_password(self, admin_id, user_id, temporary_password):
+        """FR-029: the admin gives a student or teacher a temporary password that must be changed;
+        every earlier session ends (security version) and the operation is recorded, without the
+        password. Returns (ok, message)."""
+        password_hash = self.hashing.hash_password(temporary_password)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            if not self._is_active_admin(cursor, admin_id):
+                conn.rollback()
+                return False, "Solo un administrador puede restablecer el acceso."
+            cursor.execute("SELECT role FROM users WHERE id = %s FOR UPDATE", (user_id,))
+            row = cursor.fetchone()
+            if not row or row["role"] not in ("student", "teacher"):
+                conn.rollback()
+                return False, "La cuenta no existe o no es de estudiante ni de docente."
+            cursor.execute(
+                "UPDATE users SET password_hash = %s, must_change_password = 1,"
+                " security_version = COALESCE(security_version, 0) + 1 WHERE id = %s",
+                (password_hash, user_id),
+            )
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action)"
+                " VALUES (%s, %s, 'password_reset')",
+                (admin_id, user_id),
+            )
+            conn.commit()
+            return True, "Contraseña restablecida."
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def create_teacher_account(self, admin_id, username, temporary_password, email=None):
+        """FR-031: an approved teacher with a temporary password to change at first access,
+        recorded with who created it. Returns (ok, message, user_id)."""
+        if email is not None:
+            email = email.strip() or None
+        if email is not None:
+            if not self._valid_email_format(email):
+                return False, "Formato de correo inválido.", None
+            if self.email_exists(email):
+                return False, "Este correo ya está registrado.", None
+        password_hash = self.hashing.hash_password(temporary_password)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            if not self._is_active_admin(cursor, admin_id):
+                conn.rollback()
+                return False, "Solo un administrador puede crear docentes.", None
+            cursor.execute(
+                "INSERT INTO users (username, password_hash, role, approved, active,"
+                " rating_deviation, email, must_change_password, created_by)"
+                " VALUES (%s, %s, 'teacher', 1, 1, 350.0, %s, 1, %s) RETURNING id",
+                (username, password_hash, email, admin_id),
+            )
+            user_id = cursor.fetchone()["id"]
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action)"
+                " VALUES (%s, %s, 'teacher_created')",
+                (admin_id, user_id),
+            )
+            conn.commit()
+            return True, "Docente creado.", int(user_id)
+        except psycopg2.IntegrityError:
+            conn.rollback()
+            return False, "El nombre de usuario ya existe.", None
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def set_display_name(self, actor_id, user_id, display_name):
+        """FR-025, FR-033: a student changes their own display name, an active admin any student's;
+        anyone else, a refused name (FR-020) or an account that is not a student's changes
+        nothing. Each change is recorded — who, which account, when — without the name.
+        Returns (ok, message)."""
+        from src.domain.identity import display_name_problem, normalize_display_name
+
+        name = normalize_display_name(display_name)
+        problem = display_name_problem(name)
+        if problem:
+            return False, problem
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT role FROM users WHERE id = %s AND active = 1", (actor_id,))
+            actor = cursor.fetchone()
+            cursor.execute("SELECT role FROM users WHERE id = %s", (user_id,))
+            target = cursor.fetchone()
+            if not target or target[0] != "student":
+                return False, "Solo las cuentas de estudiante tienen nombre visible."
+            if not actor or not (actor[0] == "admin" or actor_id == user_id):
+                return False, "Solo el estudiante o un administrador cambian este nombre."
+            cursor.execute("UPDATE users SET display_name = %s WHERE id = %s", (name, user_id))
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action)"
+                " VALUES (%s, %s, 'display_name_changed')",
+                (actor_id, user_id),
+            )
+            conn.commit()
+            return True, name
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def get_account_audit(self, limit=100):
+        """FR-029, FR-031: administrative account operations, most recent first."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                """
+                SELECT e.id, e.action, e.detail, e.created_at,
+                       e.actor_id, ad.username AS admin_username,
+                       e.user_id, u.username AS user_username, u.role AS user_role
+                FROM audit_account_events e
+                LEFT JOIN users ad ON ad.id = e.actor_id
+                LEFT JOIN users u ON u.id = e.user_id
+                ORDER BY e.id DESC
+                LIMIT %s
+            """,
+                (limit,),
+            )
+            return [dict(r) for r in cursor.fetchall()]
         finally:
             self.put_connection(conn)
 
@@ -2713,13 +3007,20 @@ class PostgresRepository:
 
     @_timing
     def get_all_groups(self):
-        """Lista todos los grupos disponibles (para el registro de estudiantes)."""
+        """Lista todos los grupos con su docente y su número de estudiantes (vista del admin).
+
+        `student_count` cuenta lo mismo que `get_groups_by_teacher`: estudiantes activos cuyo grupo
+        es este, sin las cuentas de prueba.
+        """
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 """
-                SELECT g.id, g.name, u.username as teacher_name
+                SELECT g.id, g.name, g.teacher_id, u.username as teacher_name,
+                       (SELECT COUNT(*) FROM users u2
+                        WHERE u2.group_id = g.id AND u2.active = 1 AND u2.role = 'student'
+                          AND COALESCE(u2.is_test_user, 0) = 0) AS student_count
                 FROM groups g
                 JOIN users u ON g.teacher_id = u.id
                 ORDER BY g.name ASC
@@ -2727,7 +3028,14 @@ class PostgresRepository:
             )
             rows = cursor.fetchall()
             return [
-                {"id": r["id"], "name": r["name"], "teacher_name": r["teacher_name"]} for r in rows
+                {
+                    "id": r["id"],
+                    "name": r["name"],
+                    "teacher_id": r["teacher_id"],
+                    "teacher_name": r["teacher_name"],
+                    "student_count": int(r["student_count"]),
+                }
+                for r in rows
             ]
         finally:
             self.put_connection(conn)
@@ -2849,7 +3157,7 @@ class PostgresRepository:
                     WHERE g.teacher_id = %s AND u.active = 1 AND u.role = 'student'
                       AND COALESCE(u.is_test_user, 0) = 0
                 )
-                SELECT u.id AS user_id, u.username, u.education_level,
+                SELECT u.id AS user_id, COALESCE(u.display_name, u.username) AS name, u.education_level,
                        u.group_id, COALESCE(g.name, 'Sin grupo') AS group_name,
                        COUNT(a.id) AS total_attempts,
                        CASE WHEN COUNT(a.id) > 0
@@ -2860,7 +3168,7 @@ class PostgresRepository:
                 JOIN users u ON u.id = ts.user_id
                 LEFT JOIN groups g ON u.group_id = g.id
                 LEFT JOIN attempts a ON a.user_id = ts.user_id
-                GROUP BY u.id, u.username, u.education_level, u.group_id, g.name
+                GROUP BY u.id, u.username, u.display_name, u.education_level, u.group_id, g.name
                 ORDER BY u.username ASC
             """,
                 (teacher_id, teacher_id),
@@ -2869,7 +3177,7 @@ class PostgresRepository:
             return [
                 {
                     "user_id": r["user_id"],
-                    "username": r["username"],
+                    "name": r["name"],
                     "education_level": r["education_level"],
                     "group_id": r["group_id"],
                     "group_name": r["group_name"],
@@ -3078,7 +3386,7 @@ class PostgresRepository:
                 )
                 SELECT
                     u.id AS student_id,
-                    u.username,
+                    COALESCE(u.display_name, u.username) AS name,
                     u.education_level,
                     u.grade,
                     COALESCE(pg.name, 'Sin grupo') AS group_name,
@@ -3164,7 +3472,7 @@ class PostgresRepository:
                 f"""
                 SELECT
                     u.id AS student_id,
-                    u.username,
+                    COALESCE(u.display_name, u.username) AS name,
                     u.education_level,
                     u.grade,
                     g.name AS group_name,
@@ -3202,7 +3510,7 @@ class PostgresRepository:
                 f"""
                 SELECT
                     u.id AS student_id,
-                    u.username,
+                    COALESCE(u.display_name, u.username) AS name,
                     g.name AS group_name,
                     ps.item_id,
                     ps.item_content,
@@ -3301,9 +3609,8 @@ class PostgresRepository:
         """Escanea items/bank/*.json, registra cada archivo como curso y sincroniza
         sus ítems sin sobreescribir ratings ELO ya calculados.
 
-        Optimización: máximo 2 SELECTs + 2 INSERTs en total.
-        Carga IDs existentes en un set, filtra localmente y hace
-        un solo executemany() para courses y otro para items.
+        Optimización: carga IDs existentes en un set, filtra localmente y escribe con
+        execute_batch() — por páginas, no un viaje de red por fila como executemany().
         """
         import json
         import glob as _glob
@@ -3361,9 +3668,24 @@ class PostgresRepository:
                 return
             try:
 
-                # 1. Obtener todos los IDs existentes en una sola query
-                cursor.execute("SELECT id FROM items")
-                existing_item_ids = {row["id"] for row in cursor.fetchall()}
+                # 1. Ítems existentes y sus columnas estáticas, en una sola query
+                cursor.execute(
+                    "SELECT id, content, options, correct_option, topic, course_id, "
+                    "image_url, tags, block FROM items"
+                )
+                existing_items = {
+                    row["id"]: (
+                        row["content"],
+                        row["options"],
+                        row["correct_option"],
+                        row["topic"],
+                        row["course_id"],
+                        row["image_url"],
+                        row["tags"],
+                        row["block"],
+                    )
+                    for row in cursor.fetchall()
+                }
 
                 cursor.execute("SELECT id FROM courses")
                 existing_course_ids = {row["id"] for row in cursor.fetchall()}
@@ -3395,7 +3717,7 @@ class PostgresRepository:
                         tags_json = json.dumps(item.get("tags") or [])
                         options_json = json.dumps(item["options"])
                         item_block = item.get("block", "")
-                        if item["id"] not in existing_item_ids:
+                        if item["id"] not in existing_items:
                             new_items_params.append(
                                 (
                                     item["id"],
@@ -3411,20 +3733,21 @@ class PostgresRepository:
                                 )
                             )
                         else:
-                            # Ítem ya existe → re-sincronizar metadatos estáticos.
-                            update_static_params.append(
-                                (
-                                    item["content"],
-                                    options_json,
-                                    item["correct_option"],
-                                    item["topic"],
-                                    course_id,
-                                    img,
-                                    tags_json,
-                                    item_block,
-                                    item["id"],
-                                )
+                            # Ítem ya existe → re-sincronizar metadatos estáticos, solo si
+                            # cambiaron: un arranque sin cambios en el banco no reescribe filas.
+                            static = (
+                                item["content"],
+                                options_json,
+                                item["correct_option"],
+                                item["topic"],
+                                course_id,
+                                img,
+                                tags_json,
+                                item_block,
                             )
+                            if existing_items[item["id"]] != static:
+                                update_static_params.append(static + (item["id"],))
+                                existing_items[item["id"]] = static
 
                 # 3. Si no hay nada que hacer, salir
                 if not new_courses_params and not new_items_params and not update_static_params:
@@ -3432,14 +3755,16 @@ class PostgresRepository:
 
                 # 4. Insertar/actualizar
                 if new_courses_params:
-                    cursor.executemany(
+                    psycopg2.extras.execute_batch(
+                        cursor,
                         "INSERT INTO courses (id, name, block, description) "
                         "VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",
                         new_courses_params,
                     )
 
                 if new_items_params:
-                    cursor.executemany(
+                    psycopg2.extras.execute_batch(
+                        cursor,
                         """
                         INSERT INTO items
                             (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block)
@@ -3450,7 +3775,8 @@ class PostgresRepository:
                     )
 
                 if update_static_params:
-                    cursor.executemany(
+                    psycopg2.extras.execute_batch(
+                        cursor,
                         """
                         UPDATE items SET
                             content = %s,
@@ -3489,6 +3815,7 @@ class PostgresRepository:
             LEVEL_UNIVERSIDAD,
             LEVEL_SEMILLERO,
             LEVEL_TO_BLOCK,
+            in_catalogue,
         )
 
         _TEST_PASSWORD = "test1234"
@@ -3550,17 +3877,12 @@ class PostgresRepository:
                     )
                     row = cursor.fetchone()
                     if not row:
-                        # Para semillero: buscar cualquier curso de algún grado
-                        if level == LEVEL_SEMILLERO:
-                            cursor.execute(
-                                "SELECT id FROM courses WHERE block LIKE 'Semillero %' ORDER BY name ASC LIMIT 1",
-                            )
-                        else:
-                            block = LEVEL_TO_BLOCK[level]
-                            cursor.execute(
-                                "SELECT id FROM courses WHERE block = %s ORDER BY name ASC LIMIT 1",
-                                (block,),
-                            )
+                        # Semillero courses share the block 'Semillero' (the grade is the id
+                        # suffix), so the group points at the first course of the level's block.
+                        cursor.execute(
+                            "SELECT id FROM courses WHERE block = %s ORDER BY name ASC LIMIT 1",
+                            (LEVEL_TO_BLOCK[level],),
+                        )
                         first_course = cursor.fetchone()
                         course_id = first_course["id"] if first_course else None
                         cursor.execute(
@@ -3585,27 +3907,27 @@ class PostgresRepository:
                     )
                 conn.commit()
 
-                # Matricular estudiantes nuevos en TODOS los cursos de su nivel/grado
+                # Enrol each new student in exactly the catalogue of their level and grade
+                # (in_catalogue, spec 001 FR-028k): for semillero, the courses whose id ends in
+                # `_semillero_{grade}`.
                 for username, edu_level, _grade in students_to_create:
                     cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
                     student_id = cursor.fetchone()["id"]
                     group_id = _level_groups[edu_level][1]
 
-                    # Para semillero: filtrar por bloque específico del grado
-                    if edu_level == LEVEL_SEMILLERO and _grade:
-                        block = f"Semillero {_grade}°"
-                    else:
-                        block = LEVEL_TO_BLOCK[edu_level]
-
                     cursor.execute(
-                        "SELECT id FROM courses WHERE block = %s",
-                        (block,),
+                        "SELECT id, block FROM courses WHERE block = %s",
+                        (LEVEL_TO_BLOCK[edu_level],),
                     )
-                    courses = cursor.fetchall()
-                    for course_row in courses:
+                    courses = [
+                        course_row["id"]
+                        for course_row in cursor.fetchall()
+                        if in_catalogue(edu_level, _grade, course_row["id"], course_row["block"])
+                    ]
+                    for course_id in courses:
                         cursor.execute(
                             "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
-                            (student_id, course_row["id"], group_id),
+                            (student_id, course_id, group_id),
                         )
 
                 conn.commit()
@@ -4093,7 +4415,8 @@ class PostgresRepository:
                 SELECT m.id, m.course_id, m.winner_id, m.score_p1, m.score_p2,
                        m.elo_delta_p1, m.elo_delta_p2, m.finished_at,
                        m.player1_id, m.player2_id,
-                       u1.username as p1_name, u2.username as p2_name
+                       COALESCE(u1.display_name, u1.username) AS p1_name,
+                       COALESCE(u2.display_name, u2.username) AS p2_name
                 FROM pvp_matches m
                 JOIN users u1 ON u1.id = m.player1_id
                 JOIN users u2 ON u2.id = m.player2_id
@@ -4334,7 +4657,8 @@ class PostgresRepository:
         }.get(mime_type, "bin")
 
         # ── Intentar subir a Supabase Storage ────────────────────────────
-        storage_path = f"{student_id}/{item_id}/{file_hash or int(_time.time())}.{ext}"
+        segment = safe_path_component(item_id)
+        storage_path = f"{student_id}/{segment}/{file_hash or int(_time.time())}.{ext}"
         if self._storage.available:
             print(f"[STORAGE] Subiendo archivo a Supabase Storage...")
         else:
@@ -4356,7 +4680,7 @@ class PostgresRepository:
         if not storage_url:
             if image_data:
                 os.makedirs(os.path.join("data", "uploads", "procedures"), exist_ok=True)
-                img_filename = f"{student_id}_{item_id}_{int(_time.time())}.{ext}"
+                img_filename = f"{student_id}_{segment}_{int(_time.time())}.{ext}"
                 img_path = os.path.join("data", "uploads", "procedures", img_filename)
                 with open(img_path, "wb") as _f:
                     _f.write(image_data)
@@ -4564,7 +4888,7 @@ class PostgresRepository:
             if group_id:
                 cursor.execute(
                     """
-                    SELECT ps.id, ps.student_id, u.username AS student_name,
+                    SELECT ps.id, ps.student_id, COALESCE(u.display_name, u.username) AS student_name,
                            ps.item_id, ps.item_content, ps.mime_type,
                            ps.submitted_at, ps.procedure_image_path,
                            ps.status, ps.ai_proposed_score, ps.ai_feedback,
@@ -4582,7 +4906,7 @@ class PostgresRepository:
             else:
                 cursor.execute(
                     """
-                    SELECT ps.id, ps.student_id, u.username AS student_name,
+                    SELECT ps.id, ps.student_id, COALESCE(u.display_name, u.username) AS student_name,
                            ps.item_id, ps.item_content, ps.mime_type,
                            ps.submitted_at, ps.procedure_image_path,
                            ps.status, ps.ai_proposed_score, ps.ai_feedback,
@@ -4756,7 +5080,8 @@ class PostgresRepository:
                 row = cursor.fetchone()
                 session_id = row["id"]
                 if responses:
-                    cursor.executemany(
+                    psycopg2.extras.execute_batch(
+                        cursor,
                         """INSERT INTO exam_responses
                            (session_id, template_id, user_id, item_id, topic, is_correct)
                            VALUES (%s, %s, %s, %s, %s, %s)""",
@@ -4870,6 +5195,21 @@ class PostgresRepository:
             "viewed_at": str(row["viewed_at"]) if row["viewed_at"] else None,
             "completed_at": str(row["completed_at"]) if row["completed_at"] else None,
         }
+
+    def get_lesson_states(self, user_id: int, course_id: str) -> dict[str, str]:
+        """Estado guardado de cada nodo con progreso en la materia, en una sola lectura."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """SELECT node_id, state FROM lesson_progress
+                       WHERE user_id = %s AND course_id = %s""",
+                    (user_id, course_id),
+                )
+                rows = cursor.fetchall()
+        finally:
+            self.put_connection(conn)
+        return {row["node_id"]: row["state"] for row in rows}
 
     def record_lesson_event(self, user_id: int, course_id: str, node_id: str, event: str) -> dict:
         """Registra un hito curricular idempotente sin afectar ELO."""
@@ -5088,7 +5428,8 @@ class PostgresRepository:
                 )
                 history_id = cursor.fetchone()["id"]
                 if responses:
-                    cursor.executemany(
+                    psycopg2.extras.execute_batch(
+                        cursor,
                         """INSERT INTO exam_responses
                            (session_id, template_id, user_id, item_id, topic, is_correct)
                            VALUES (%s, %s, %s, %s, %s, %s)""",

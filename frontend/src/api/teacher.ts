@@ -20,7 +20,8 @@ export interface Group {
 
 export interface StudentSummary {
   user_id: number;
-  username: string;
+  /** Spec 004 FR-023: the display name, else the username of an account without one. */
+  name: string;
   global_elo: number | null; // null = pending diagnostic (spec 001)
   display_rating: number | null; // what screens show (FR-028j)
   rank_label: string | null;
@@ -58,7 +59,7 @@ export interface TeacherMetrics {
 export interface PendingProcedure {
   submission_id: number;
   student_id: number;
-  student_username: string;
+  student_name: string;
   item_id: string;
   item_content: string | null;
   ai_score: number | null;
@@ -78,19 +79,41 @@ export interface AdminUser {
   id?: number;
   user_id?: number;
   username: string;
+  /** Spec 004 FR-024: students only; null on accounts that have none. */
+  display_name?: string | null;
   role: string;
   approved: boolean | number;
   active: boolean | number;
   education_level: string | null;
   group_name: string | null;
+  /** Spec 004 FR-030: a temporary password is still pending. */
+  must_change_password?: boolean;
+}
+
+/** Spec 004 E2: shown once to the admin, never stored readable. */
+export interface TemporaryPassword {
+  user_id: number;
+  username?: string;
+  temporary_password: string;
+}
+
+export interface AccountEvent {
+  id: number;
+  action: "password_reset" | "teacher_created" | string;
+  actor_id: number;
+  admin_username?: string | null;
+  user_id: number;
+  user_username?: string | null;
+  user_role?: string | null;
+  created_at: string | null;
 }
 
 export interface AdminGroup {
   id: number;
   name: string;
-  teacher_id?: number;
-  teacher_username?: string;
-  student_count?: number;
+  teacher_id: number;
+  teacher_name: string;
+  student_count: number;
 }
 
 export interface ProblemReport {
@@ -175,7 +198,8 @@ export const teacherApi = {
       provider,
     }),
 
-  procedureImage: async (submission_id: number): Promise<string> => {
+  /** The submitted file as an object URL with its type: a photo, or a PDF as uploaded. */
+  procedureImage: async (submission_id: number): Promise<{ url: string; type: string }> => {
     const { useAuthStore } = await import("../stores/authStore");
     const token = useAuthStore.getState().accessToken;
     const r = await fetch(`${API_BASE}/api/teacher/procedures/${submission_id}/image`, {
@@ -184,7 +208,7 @@ export const teacherApi = {
     });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const blob = await r.blob();
-    return URL.createObjectURL(blob);
+    return { url: URL.createObjectURL(blob), type: blob.type };
   },
 
   metrics: () => api.get<TeacherMetrics>("/api/teacher/metrics"),
@@ -336,4 +360,21 @@ export const adminApi = {
 
   audit: (limit: number = 100) =>
     api.get<{ entries: AuditEntry[] }>(`/api/admin/audit?limit=${limit}`),
+
+  // Spec 004 E2 (FR-029, FR-031)
+  resetPassword: (user_id: number) =>
+    api.post<TemporaryPassword>(`/api/admin/users/${user_id}/reset-password`),
+
+  createTeacher: (body: { username: string; email?: string }) =>
+    api.post<TemporaryPassword>("/api/admin/teachers", body),
+
+  /** Spec 004 FR-025: the admin corrects any student's display name. */
+  setDisplayName: (user_id: number, display_name: string) =>
+    api.put<{ user_id: number; display_name: string }>(
+      `/api/admin/users/${user_id}/display-name`,
+      { display_name }
+    ),
+
+  accountAudit: (limit: number = 100) =>
+    api.get<{ events: AccountEvent[] }>(`/api/admin/account-audit?limit=${limit}`),
 };

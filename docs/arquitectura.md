@@ -209,8 +209,15 @@ todos los métodos que usan los routers; cubre el núcleo y ancla el test.
 ## Observabilidad
 
 `/api/health` es **readiness**, no liveness: ejecuta una consulta mínima y devuelve **503** si la
-base no responde. El health check del despliegue apunta ahí, así que una instancia con la
-persistencia caída no recibe tráfico. El arranque no traga el error de inicialización.
+base no responde o si los límites no se pueden aplicar. El health check del despliegue apunta ahí,
+así que una instancia con la persistencia caída no recibe tráfico. El arranque no traga el error de
+inicialización.
+
+Si Redis (el almacén de los límites) falla con el proceso en marcha, los límites se cuentan en
+memoria con los mismos valores y `/api/health` responde **200** con `"limits": "degraded"`; al
+volver, lo contado en memoria se suma a Redis (spec 004 E6; [transfer.md](transfer.md) § 3.2). El
+health check de Render solo mira el código, así que el estado degradado lo ve un monitor que lea el
+cuerpo.
 
 ---
 

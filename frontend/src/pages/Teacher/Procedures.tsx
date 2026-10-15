@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { teacherApi, type PendingProcedure } from "../../api/teacher";
+import { MathText } from "../../components/Math/MathContent";
 
 const AVAS = [
   "linear-gradient(140deg,#8b5cf6,#6366f1)",
@@ -27,16 +28,27 @@ const avaFor = (n: string) => AVAS[(n.charCodeAt(0) + n.length) % AVAS.length];
 const gradeColor = (v: number) => (v >= 91 ? "#34d399" : v >= 60 ? "#fbbf24" : "#f87171");
 const judgeLabel = (v: number) => (v >= 91 ? "Excelente" : v >= 60 ? "Aceptable" : "Necesita refuerzo");
 
-/* ── visor de imagen ─────────────────────────────────────────────────────── */
+/* ── visor del envío: foto o PDF, tal como lo subió el estudiante ─────────── */
 function ProcedureImage({ submissionId }: { submissionId: number }) {
-  const { data: url, isLoading, isError } = useQuery({
+  const { data: file, isLoading, isError } = useQuery({
     queryKey: ["procedure-image", submissionId],
     queryFn: () => teacherApi.procedureImage(submissionId),
     staleTime: Infinity,
   });
   if (isLoading) return <div className="pd-image-box">Cargando imagen…</div>;
-  if (isError || !url) return <div className="pd-image-box">Imagen no disponible</div>;
-  return <img className="pd-image" src={url} alt="Procedimiento manuscrito del estudiante" />;
+  if (isError || !file) return <div className="pd-image-box">Imagen no disponible</div>;
+  if (file.type === "application/pdf") {
+    // Un PDF en <img> se ve roto: va en el visor de documentos del navegador.
+    return (
+      <div className="pd-pdf">
+        <object data={file.url} type="application/pdf" aria-label="Procedimiento del estudiante (PDF)">
+          <p className="pd-image-box">Este navegador no muestra el PDF aquí.</p>
+        </object>
+        <a href={file.url} target="_blank" rel="noopener noreferrer">Abrir el PDF</a>
+      </div>
+    );
+  }
+  return <img className="pd-image" src={file.url} alt="Procedimiento manuscrito del estudiante" />;
 }
 
 /* ── detalle ─────────────────────────────────────────────────────────────── */
@@ -67,11 +79,11 @@ function ProcedureDetail({ proc }: { proc: PendingProcedure }) {
           <span className="pd-when">{proc.created_at.slice(0, 10)}</span>
         </div>
         <div className="pd-who">
-          <span className="av" style={{ background: avaFor(proc.student_username) }}>
-            {initials(proc.student_username)}
+          <span className="av" style={{ background: avaFor(proc.student_name) }}>
+            {initials(proc.student_name)}
           </span>
           <div>
-            <b>{proc.student_username}</b>
+            <b>{proc.student_name}</b>
             <span>Envío #{proc.submission_id}</span>
           </div>
         </div>
@@ -82,7 +94,7 @@ function ProcedureDetail({ proc }: { proc: PendingProcedure }) {
           <>
             <span className="pd-lbl">Ejercicio</span>
             <div className="pd-problem">
-              <p>{proc.item_content}</p>
+              <p><MathText text={proc.item_content} /></p>
             </div>
           </>
         )}
@@ -191,7 +203,7 @@ function ProcedureDetail({ proc }: { proc: PendingProcedure }) {
 export function TeacherProcedures() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const { data: procedures = [], isLoading } = useQuery({
+  const { data: procedures = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["teacher-procedures"],
     queryFn: () => teacherApi.procedures(),
     refetchInterval: 30_000,
@@ -217,6 +229,21 @@ export function TeacherProcedures() {
         <div className="box">
           <div className="em-ic">⏳</div>
           <h2>Cargando procedimientos…</h2>
+        </div>
+      </div>
+    );
+  }
+  // A failed load is not an empty queue: «¡Al día!» would hide submissions waiting for a grade.
+  if (isError && procedures.length === 0) {
+    return (
+      <div className="tc-soon">
+        <div className="box" role="alert">
+          <div className="em-ic">⚠️</div>
+          <h2>No pudimos cargar los procedimientos</h2>
+          <p>Revisa tu conexión e inténtalo de nuevo.</p>
+          <button type="button" className="btn-pri" onClick={() => refetch()}>
+            Reintentar
+          </button>
         </div>
       </div>
     );
@@ -248,11 +275,11 @@ export function TeacherProcedures() {
                 onClick={() => setSelectedId(p.submission_id)}
               >
                 <div className="pq-top">
-                  <span className="av" style={{ background: avaFor(p.student_username) }}>
-                    {initials(p.student_username)}
+                  <span className="av" style={{ background: avaFor(p.student_name) }}>
+                    {initials(p.student_name)}
                   </span>
                   <div className="pq-id">
-                    <b>{p.student_username}</b>
+                    <b>{p.student_name}</b>
                     <span>{p.item_id}</span>
                   </div>
                   {p.ai_score != null && <span className="pq-ai">{Math.round(p.ai_score)}</span>}

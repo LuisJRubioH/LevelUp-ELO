@@ -67,10 +67,21 @@ wrong):
 | `JWT_SECRET_KEY` | ≥ 32 random characters (`python -c "import secrets; print(secrets.token_hex(32))"`) |
 | `CORS_ORIGINS` | JSON list with the frontend's exact origin; no `localhost` in production |
 | `RATE_LIMIT_STORAGE_URI` | shared Redis/Valkey URI; `memory://` is refused in production |
+| `PUBLIC_REGISTRATION_ENABLED` | unset (closed). **Production today lets anyone register; after the merge nobody can** until it is set to `true` — accounts come from the administrator (spec 004 FR-005) |
+| `RATE_LIMIT_LOGIN_ACCOUNT`, `RATE_LIMIT_LOGIN_GLOBAL`, `RATE_LIMIT_REGISTER` | optional; defaults `10/minute` per account, `300/minute` for all logins, `20/minute` per address for public registration (spec 004 E1). `RATE_LIMIT_AUTH` no longer exists |
+| `RATE_LIMIT_STORAGE_CONNECT_TIMEOUT`, `RATE_LIMIT_STORAGE_TIMEOUT`, `RATE_LIMIT_STORAGE_PROBE_INTERVAL`, `RATE_LIMIT_FALLBACK_MAX_KEYS` | optional; defaults 0.5 s, 0.5 s, 10 s and 50 000 — the fallback when the limit store fails (§ 3.2, spec 004 E6) |
 | `SUPABASE_URL`, `SUPABASE_KEY` | Storage for the **private** bucket `procedimientos` (images are served as bytes, never by public URL) |
 | `ADMIN_USER`, `ADMIN_PASSWORD` | seed of the administrator account (only created if the password is set) |
 | `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_STUDENT_ANALYSIS`, `AI_KEY_TEACHER_ANALYSIS` |
 | `DATABASE_SSLMODE`, `LOG_LEVEL` | optional |
+
+Both database URLs take the form `postgresql://user:password@host:port/database` and nothing more.
+The app splits them with its own pattern instead of handing them to libpq: a `?sslmode=…` (or any
+`?query`) part becomes part of the database name, and a percent-encoded password (`%40`) is sent
+as written. `pg_dump`, `psql` and the backup workflow read both forms, so a URL can pass the backup
+and still stop `migrate.py`. Write the password as is, and prefer one of letters and digits, which
+every reader takes the same way; SSL comes from `DATABASE_SSLMODE` (default `require`). The
+`transfer-ops` precheck and backup connect with the app's own parser first and stop if it cannot.
 
 Frontend (build time): `VITE_API_URL` = the API's public origin. **Never** put a secret in a
 `VITE_*` variable — Vite bundles them into the JavaScript every visitor downloads.
@@ -153,6 +164,51 @@ data):
 - **Rank names differ by design** (spec 001 research R16: V1 keeps its own labels). The same 917
   reads "Punto de Partida" in V1 and "Plata II" in V2.
 
+### 3.2 Rate limits: their store and the client's address
+
+The API limits sign-in (`RATE_LIMIT_LOGIN_ACCOUNT`, 10 attempts per account per minute, and
+`RATE_LIMIT_LOGIN_GLOBAL`, 300 per minute overall), public registration while it is open
+(`RATE_LIMIT_REGISTER`, 20 per address per minute) and the AI routes per account
+(`RATE_LIMIT_SOCRATIC`, `RATE_LIMIT_REVIEW`). Its counters live in `RATE_LIMIT_STORAGE_URI`.
+Nothing in this section changes a host's settings or the start command; the owner does that.
+
+- **What the store holds**: one counter per key and window, expiring with the window — keyed by
+  account for sign-in (an identifier that names no account, only as its SHA-256), by address for
+  registration, by account for the AI routes. No password, token, name or answer.
+- **Which store**: any Redis-protocol server the API reaches — a Render Key Value instance in the
+  API's region (its *internal* URL, `redis://…:6379`) or an external one over TLS (`rediss://…`).
+  The URI carries a password: it goes only in Render's environment (`render.yaml` declares it
+  `sync: false`), never in the repository or a chat.
+- **If the store stops answering** (spec 004 E6, constitution 1.1.0): the call that finds the
+  failure waits at most its timeouts (`RATE_LIMIT_STORAGE_CONNECT_TIMEOUT` and
+  `RATE_LIMIT_STORAGE_TIMEOUT`, 0.5 s each, no client retries); from then on the API counts every
+  limit in its own memory with the same values, and no request calls the store. Render's log shows
+  one warning, `Rate-limit store unreachable (…)`. A background probe checks the store at most every
+  `RATE_LIMIT_STORAGE_PROBE_INTERVAL` (10 s), started by a limited request or a health check. When
+  it answers, what memory counted is added to the store, one warning `Rate-limit store recovered`
+  is logged and the store is used again: no key gets a new allowance on return. Limits of the
+  fallback:
+  - counts kept in the store before the outage cannot be read during it, so for a key counted just
+    before, memory starts from zero;
+  - a restart during the outage loses the memory counters;
+  - memory holds at most `RATE_LIMIT_FALLBACK_MAX_KEYS` (50 000) counters, and serves only while
+    one process runs (`WEB_CONCURRENCY=1`). Beyond that the limits cannot be applied: limited
+    routes answer 503 and so does `/api/health`.
+- **`GET /api/health`** answers 200 with `"limits": "normal"` or `"degraded"` (and `"status"`
+  `"ok"` or `"degraded"`), and 503 if the database fails or the limits cannot be applied. Render's
+  health check reads only the status code, so a degraded 200 keeps the instance in service and
+  alerts nobody: an external monitor that reads the body is the owner's step (spec 004 N8).
+- **Which address the limits see.** uvicorn trusts `X-Forwarded-For` only from `127.0.0.1` unless
+  `FORWARDED_ALLOW_IPS` says otherwise, and the start command sets neither. Behind Render's proxy
+  every request may therefore be counted under the proxy's address. Reproduced locally with
+  uvicorn 0.53, together with the opposite case: trusting every proxy counts the left-most
+  `X-Forwarded-For` entry, which a client can write if the proxy appends to the header rather than
+  replacing it (reported for Render, not verified here). **Do not set `FORWARDED_ALLOW_IPS` to `*`,
+  or to any address list Render does not publish**: either lets a client choose the address it is
+  counted under. Sign-in does not depend on the address (spec 004 E1): a class behind one school
+  address signs in without sharing a limit. Only public registration counts per address, so if it
+  is opened (`PUBLIC_REGISTRATION_ENABLED`), its 20 per minute may be shared by everyone.
+
 ## 4. Backups (before any migration)
 
 1. **Database:** a full logical dump of the final database over a direct connection:
@@ -192,10 +248,16 @@ The `transfer-ops` workflow (branch `ops/transfer`, never merged) produces one a
 `levelup-backup-<stamp>-encrypted`: a `.tar.gz.gpg` encrypted with `BACKUP_PASSPHRASE` (AES-256).
 Inside: `full.dump` (when Supabase allows a full dump), `public.dump` (the application's schema),
 `procedimientos/` (`objects/`, `manifest.json`, `backup-report.json`), `source-counts.txt` (rows
-per table when the dump was taken), `SHA256SUMS` and the rehearsal report. The workflow's second
-job already downloads that artifact, checks its SHA-256, decrypts it, verifies every file and
-restores `public.dump` into a throwaway database with the same row counts. GitHub keeps the
-artifact 7 days: download it and store it with the passphrase kept separately.
+per table when the dump was taken), `SHA256SUMS`, the rehearsal report and the rehearsal's full
+output. The workflow's second job already downloads that artifact, checks its SHA-256, decrypts it,
+verifies every file and restores `public.dump` into a throwaway database with the same row counts.
+GitHub keeps the artifact 7 days: download it and store it with the passphrase kept separately.
+
+The repository is public, so anyone can read the run logs and download the other artifacts. They
+carry check results and counts only. When a step fails, PostgreSQL quotes row data in its errors
+(`DETAIL: Key (email)=(…) is duplicated`), so the rehearsal's raw output goes only into the
+encrypted backup; read it there. Restrict the `production-ops` environment to the
+`ops/transfer-*` branches and require the owner's approval for every run.
 
 Restore (Git Bash on Windows ships `gpg`, `tar` and `sha256sum`; `pg_restore` needs the
 PostgreSQL 17 client tools):
@@ -268,6 +330,10 @@ the migrated schema. But ratings written after the switch live only in `student_
 which the previous version does not read, so a rollback hides them. To return to the exact
 pre-transfer state, restore the § 4 dump.
 
+Rehearsed from a browser (2026-10-09, locally): a student whose browser runs the redesign's service
+worker gets `main`'s app back by the third reload after Vercel's Instant Rollback and Render's
+redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no errors.
+
 ## 6. Verification in the final environment
 
 **Before the switch** (on the final repository's pull request):
@@ -303,7 +369,8 @@ refuses any non-local host. Never point tests at the production database.
 1. The migration step exits 0 and prints `Migraciones completadas.`; the web process started
    (startup does not swallow an initialisation error, and `validate_runtime()` stops it on a bad
    production setting).
-2. `GET /api/health` → 200 (readiness: it queries the database and answers 503 if it cannot).
+2. `GET /api/health` → 200 with `"limits": "normal"` (readiness: it queries the database and the
+   limit store; 503 if either cannot serve, `"degraded"` if Redis does not answer — § 3.2).
 3. `GET /api/meta/ranks` → 200, 16 ranks ascending from "Aspirante" to "Leyenda Suprema", with
    `Cache-Control: public, max-age=3600`.
 4. With a test student: stats shows a rating with its rank, or "Diagnóstico pendiente" — never a
@@ -311,12 +378,49 @@ refuses any non-local host. Never point tests at the production database.
    reconciled topics show "aproximado"/≈; exam history loads.
 5. With a test teacher: the dashboard lists students with display rating and rank label.
 6. The SQL checks from § 5 return the same answers as on the rehearsal copy.
+7. No answer was saved by the old API after the migration (§ 6.1): the query below returns 0.
 
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer
 whose rating change equals the preview, the course map, every lesson image served by the frontend,
 and a procedure uploaded, seen by the teacher with the same image bytes and graded. Run it from a
 checkout of the deployed commit (it reads the lesson content to list the images).
+
+The image check passes even without Storage: when the upload or the download fails, the API serves
+the copy kept in the row (R9). The database says which path was used: the verify submission (its id
+is in the report) must have `storage_url` set. A NULL `storage_url` means uploads fall back to the
+row; check `SUPABASE_URL` and `SUPABASE_KEY` on the API host.
+
+### 6.1 The minutes between the merge and the new API
+
+Merging deploys the frontend (Vercel) at once, while the API changes only when the new Render
+instance has run `scripts/migrate.py` and passed its health check; until then Render keeps routing
+to the old instance. Rehearsed locally on 2026-10-09 with `main`'s code and the redesign:
+
+- **New frontend, old API.** No JavaScript error. Home, courses, stats, exams and the teacher
+  dashboard work; the course page, the map, the lessons and the league get 404 until the new API
+  answers.
+- **Migration beside the old API.** `migrate.py` does not wait on the old instance (0.5 s on the
+  rehearsal copy) and the old API keeps answering without errors.
+- **Answers in between.** An answer the old API saves after the migration is logged in `attempts`
+  but moves only the legacy table, so the new rating never sees it. The old code leaves
+  `attempts.elo_before` NULL, which the new code always sets; the `dbcheck` job counts them:
+
+  ```sql
+  SELECT COUNT(*) AS old_api_answers_after_migration, COUNT(DISTINCT user_id) AS students
+    FROM attempts
+   WHERE elo_before IS NULL
+     AND timestamp > (SELECT MIN(reconciled_at) FROM student_course_topic_elo);
+  ```
+
+- **A student with the old app open.** Without a service worker (main's build has not registered
+  one since 2026-04-25) the next reload loads the new app. With main's service worker it takes up
+  to three reloads, and the old app works against the new API in between. Keeping
+  `JWT_SECRET_KEY` keeps sessions open; a new key sends everyone to the sign-in page, without
+  errors.
+
+So: switch when nobody is practising, start Render's deploy right after merging, and check the
+count above afterwards.
 
 ## 7. Known operating constraints
 

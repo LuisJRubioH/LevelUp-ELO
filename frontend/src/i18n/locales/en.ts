@@ -458,6 +458,23 @@ const en: TranslationKeys = {
     deactivate: "Deactivate",
     activate: "Activate",
     noMatches: "No matching users.",
+    resetPassword: "Reset password",
+    resetConfirm: "Reset {{username}}'s password? All of their sessions will end.",
+    temporaryTitle: "Temporary password for {{username}}",
+    temporaryHint: "Give it to the person: it is shown only once. They must change it when they sign in.",
+    close: "Close",
+    mustChange: "must change password",
+    noDisplayName: "no display name",
+    changeName: "Change name",
+    nameLabel: "Display name",
+    saveName: "Save",
+    cancelName: "Cancel",
+    createTeacherTitle: "Create teacher",
+    createTeacherHint:
+      "The teacher is approved and gets a temporary password to change at first sign-in.",
+    createTeacherUsername: "Username",
+    createTeacherEmail: "Email (optional)",
+    createTeacherSubmit: "Create teacher",
   },
 
   // ── Admin — Reports ─────────────────────────────────────────────────────────
@@ -489,6 +506,13 @@ const en: TranslationKeys = {
     colAdmin: "Admin",
     colDate: "Date",
     empty: "No reassignments recorded.",
+    accountTitle: "Account access",
+    accountIntro: "Password resets and teachers created. The password is never stored.",
+    accountEmpty: "No account operations.",
+    colAccount: "Account",
+    colOperation: "Operation",
+    actionPasswordReset: "Password reset",
+    actionTeacherCreated: "Teacher created",
   },
 
   // ── Admin — System groups ───────────────────────────────────────────────────
@@ -507,6 +531,7 @@ const en: TranslationKeys = {
     confirmYes: "Yes, delete",
     cancel: "Cancel",
     delete: "Delete",
+    deleteError: "The group could not be deleted. Please try again.",
   },
 
   // ── Teacher — Exams (templates) ─────────────────────────────────────────────
@@ -745,6 +770,7 @@ const en: TranslationKeys = {
   prealgebra: {
     loading: "Loading lesson...",
     error: "We couldn't load this lesson.",
+    locked: "This lesson is still locked: it opens when you finish the previous one on the map.",
     backToMap: "Back to map",
     safeZone: "Safe zone. Your ELO will not change",
     optionalBranch: "Optional detour. Your ELO will not change",
@@ -902,7 +928,7 @@ const en: TranslationKeys = {
         },
         footerLabel: "Level 1 complete",
         footerBody: "You closed the number-sets journey. You can review anytime.",
-        finish: "Back to map",
+        finish: "Finish level 1",
       },
     },
   },

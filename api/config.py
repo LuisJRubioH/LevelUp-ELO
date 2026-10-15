@@ -60,9 +60,22 @@ class Settings(BaseSettings):
     # ── Rate limiting (slowapi) ───────────────────────────────────────────────
     rate_limit_socratic: str = "10/minute"  # peticiones IA socrática por usuario
     rate_limit_review: str = "3/minute"  # revisión de procedimientos
-    rate_limit_auth: str = "20/minute"  # login/registro por origen
+    # Spec 004 E1: login is limited per account and overall, never per address (FR-006 … FR-009);
+    # public sign-up, when open, has its own per-address limit (FR-004, decision N2: 20/minute).
+    rate_limit_login_account: str = "10/minute"
+    rate_limit_login_global: str = "300/minute"
+    rate_limit_register: str = "20/minute"
+    # Spec 004 FR-001/FR-002: public registration is closed unless this server setting opens it.
+    public_registration_enabled: bool = False
     rate_limit_default: str = "60/minute"  # endpoints normales
     rate_limit_storage_uri: str = "memory://"  # producción: Redis compartido entre instancias
+    # Spec 004 E6 (FR-090 … FR-095): if the shared store fails while the API runs, limits are
+    # counted in memory; no call waits longer than these timeouts, and recovery is probed in the
+    # background at most once per interval. The memory fallback holds at most this many counters.
+    rate_limit_storage_connect_timeout: float = 0.5  # seconds
+    rate_limit_storage_timeout: float = 0.5  # seconds, per operation
+    rate_limit_storage_probe_interval: float = 10.0  # seconds
+    rate_limit_fallback_max_keys: int = 50_000
 
     # ── Admin ─────────────────────────────────────────────────────────────────
     admin_user: str = "admin"

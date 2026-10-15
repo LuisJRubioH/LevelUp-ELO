@@ -120,10 +120,10 @@ function AvaStack({ members, max = 5 }: { members: StudentSummary[]; max?: numbe
         <span
           key={s.user_id}
           className="as-ava"
-          style={{ background: avaFor(s.username), zIndex: max - i }}
-          title={s.username}
+          style={{ background: avaFor(s.name), zIndex: max - i }}
+          title={s.name}
         >
-          {initials(s.username)}
+          {initials(s.name)}
         </span>
       ))}
       {rest > 0 ? <span className="as-more">+{rest}</span> : null}
@@ -278,12 +278,12 @@ function GroupDrawer({
                 return (
                   <div className="gdr-row" key={s.user_id}>
                     <span className="gdr-pos">{i + 1}</span>
-                    <span className="av" style={{ background: avaFor(s.username) }}>
-                      {initials(s.username)}
+                    <span className="av" style={{ background: avaFor(s.name) }}>
+                      {initials(s.name)}
                     </span>
                     <div className="gdr-nm">
-                      <b>{s.username}</b>
-                      <span>@{s.username}</span>
+                      <b>{s.name}</b>
+                      <span>{s.total_attempts} intentos</span>
                     </div>
                     <RankPill label={s.rank_label} />
                     <span className="gdr-acc" style={{ color: accColor(acc) }}>
@@ -438,8 +438,9 @@ export function TeacherGroups() {
   const [createError, setCreateError] = useState("");
   const [q, setQ] = useState("");
   const [genId, setGenId] = useState<number | null>(null);
+  const [genError, setGenError] = useState("");
 
-  const { data: groups = [], isLoading } = useQuery({
+  const { data: groups = [], isLoading, isError } = useQuery({
     queryKey: ["teacher-groups"],
     queryFn: () => teacherApi.groups(),
     staleTime: 30_000,
@@ -479,9 +480,12 @@ export function TeacherGroups() {
 
   const generateCode = async (group_id: number) => {
     setGenId(group_id);
+    setGenError("");
     try {
       await teacherApi.generateInviteCode(group_id);
       qc.invalidateQueries({ queryKey: ["teacher-groups"] });
+    } catch (err) {
+      setGenError(err instanceof Error ? err.message : "No se pudo generar el código.");
     } finally {
       setGenId(null);
     }
@@ -505,6 +509,18 @@ export function TeacherGroups() {
         <div className="box">
           <div className="em-ic">⏳</div>
           <h2>Cargando grupos…</h2>
+        </div>
+      </div>
+    );
+  }
+  // A failed load is not «0 grupos».
+  if (isError) {
+    return (
+      <div className="tc-soon">
+        <div className="box" role="alert">
+          <div className="em-ic">⚠️</div>
+          <h2>No pudimos cargar tus grupos</h2>
+          <p>Revisa tu conexión e inténtalo de nuevo.</p>
         </div>
       </div>
     );
@@ -536,6 +552,12 @@ export function TeacherGroups() {
           </button>
         </div>
       </div>
+
+      {genError && (
+        <p className="gm-err" role="alert">
+          {genError}
+        </p>
+      )}
 
       <div className="grp-summary">
         <span>

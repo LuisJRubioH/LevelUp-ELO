@@ -17,6 +17,12 @@ import { PageSkeleton } from "./components/ui/PageSkeleton";
 
 // Landing pública — cargada bajo demanda
 const Home = lazy(() => import("./pages/Home").then((m) => ({ default: m.Home })));
+const ChangePassword = lazy(() =>
+  import("./pages/ChangePassword").then((m) => ({ default: m.ChangePassword }))
+);
+const DisplayName = lazy(() =>
+  import("./pages/DisplayName").then((m) => ({ default: m.DisplayName }))
+);
 
 // Shell de la Consola Docente (rediseño) — reemplaza el Layout para /teacher/*
 const TeacherLayout = lazy(() =>
@@ -107,12 +113,6 @@ const queryClient = new QueryClient({
   },
 });
 
-function RequireAuth({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <>{children}</>;
-}
-
 function RequireRole({
   role,
   children,
@@ -121,10 +121,19 @@ function RequireRole({
   children: React.ReactNode;
 }) {
   const user = useAuthStore((s) => s.user);
+  const mustChangePassword = useAuthStore((s) => s.mustChangePassword);
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== role && user.role !== "admin") {
     return <Navigate to="/login" replace />;
   }
+  // Spec 004 FR-030: a temporary password is changed before anything else.
+  if (mustChangePassword) return <Navigate to="/cambiar-contrasena" replace />;
+  return <>{children}</>;
+}
+
+function RequireSignedIn({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user);
+  if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
@@ -146,9 +155,9 @@ function TeacherRoute({ children }: { children: React.ReactNode }) {
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
   return (
-    <RequireAuth>
+    <RequireRole role="admin">
       <Layout>{children}</Layout>
-    </RequireAuth>
+    </RequireRole>
   );
 }
 
@@ -176,6 +185,15 @@ export default function App() {
               {/* Público */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
+              <Route
+                path="/cambiar-contrasena"
+                element={<RequireSignedIn><ChangePassword /></RequireSignedIn>}
+              />
+              {/* Spec 004 FR-025: the student's own display name. */}
+              <Route
+                path="/mi-nombre"
+                element={<RequireRole role="student"><DisplayName /></RequireRole>}
+              />
 
               {/* ── Estudiante ─────────────────────────────────────────── */}
               <Route

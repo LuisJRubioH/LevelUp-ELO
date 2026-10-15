@@ -146,13 +146,25 @@ process.** Until that is automated, follow this sequence by hand, one commit per
 
 The traceability gates are checked in CI by `scripts/check_traceability.py` (job "Trazabilidad
 spec → tests"): one row per FR and scenario, every cited test collected, passing and not skipped.
-`PENDING` is accepted on a docs PR and rejected on any PR that is a **code change for the spec**,
-whatever its branch: one that changes a non-document file (not under `specs/` or `docs/`, not
-`.md`) matching the spec's `## Code Scope`, or a test file its § Traceability cites, or any
-non-document file together with the spec's own directory. Every spec declares a non-empty Code
-Scope whose entries each name a tracked file. The check is per spec, not per row: while a spec has
-`PENDING` rows on the base branch, every PR that changes its code fails until the PR that closes
-them lands — so a spec carries one amendment in flight at a time.
+A requirement or scenario is recognised **whatever its Markdown formatting**: any line opening with
+its ID followed by `[`, `:` or a dash defines it, and an ID mentioned anywhere else in the spec
+(outside § Traceability and the appendix) must be defined — another spec's ID is written
+"spec 001 FR-028m". Every spec declares a non-empty Code Scope whose entries each name a tracked
+file. Then one of two rules applies (constitution 1.1.0, § Governance):
+
+- **A spec delivered in steps** declares a `## Deliveries` table with a `Delivery` and a `State`
+  column (`planned`, `in progress`, `closed`), and its § Traceability table has a middle
+  `Delivery` column naming a declared delivery on every row. `PENDING` is accepted in rows of an
+  open delivery on any PR, and rejected in a closed delivery on every PR. The PR that completes a
+  delivery marks it `closed` and fills all its rows; the checker cannot tell which delivery a PR
+  implements, so review checks that step and any change of state.
+- **A spec without deliveries**: `PENDING` is accepted on a docs PR and rejected on any PR that
+  is a **code change for the spec**, whatever its branch: one that changes a non-document file
+  (not under `specs/` or `docs/`, not `.md`) matching the spec's `## Code Scope`, or a test file
+  its § Traceability cites, or any non-document file together with the spec's own directory. The
+  check is per spec, not per row: while such a spec has `PENDING` rows on the base branch, every
+  PR that changes its code fails until the PR that closes them lands — so it carries one
+  amendment in flight at a time.
 
 **First-run review of `/speckit-tasks` (required checkpoint before committing spec 001's
 tasks.md).** The upstream skill still says tests are optional unless requested; the overrides make
@@ -562,7 +574,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 | Table | Key fields |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok) |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username) |
 | `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
 | `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
 | `groups` | unique `(teacher_id, name_normalized)`, `invite_code` |

@@ -13,8 +13,9 @@ Endpoints del panel del docente:
 """
 
 import io
+from datetime import datetime, timezone
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
 
 from api.dependencies import CurrentUser, RepoDep, require_role
@@ -62,11 +63,22 @@ def _require_teacher_group(repo, group_id: int, user: dict) -> None:
 
 
 def _require_teacher_student(repo, student_id: int, user: dict) -> dict:
+    """The student as this teacher sees them, with `group_id` set to the teacher's group.
+
+    Same students as the dashboard: those whose main group is the teacher's, and those enrolled
+    through one of the teacher's groups (joining a second group by code replaces the main one).
+    """
     student = repo.get_user_by_id(student_id)
-    if not student or student.get("role") != "student" or not student.get("group_id"):
+    if not student or student.get("role") != "student":
         raise HTTPException(status_code=404, detail="Estudiante no encontrado.")
-    _require_teacher_group(repo, student["group_id"], user)
-    return student
+    own = {group["group_id"] for group in repo.get_groups_by_teacher(user["user_id"])}
+    candidates = [student.get("group_id")] + [
+        enrolment.get("group_id") for enrolment in repo.get_user_enrollments(student_id)
+    ]
+    group_id = next((group for group in candidates if group in own), None)
+    if group_id is None:
+        raise HTTPException(status_code=404, detail="Estudiante no encontrado.")
+    return {**student, "group_id": group_id}
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -165,7 +177,7 @@ def pending_procedures(user: CurrentUser, repo: RepoDep):
             PendingProcedure(
                 submission_id=row.get("id", 0),
                 student_id=row.get("student_id") or row.get("user_id", 0),
-                student_username=row.get("student_name") or row.get("username", ""),
+                student_name=row.get("student_name") or "",
                 item_id=row.get("item_id", ""),
                 item_content=row.get("item_content"),
                 ai_score=row.get("ai_proposed_score"),
@@ -207,9 +219,10 @@ def procedure_image(submission_id: int, user: CurrentUser, repo: RepoDep):
         except Exception:
             pass
 
-    # Fallback a BYTEA en DB
+    # Fallback a BYTEA en DB. The queue leaves image_data out when the row has a storage_url
+    # (so it does not load every image); read it for this one submission if Storage failed.
     if not image_bytes:
-        image_bytes = row.get("image_data")
+        image_bytes = row.get("image_data") or repo.get_submission_image_data(submission_id)
 
     if not image_bytes:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Imagen no disponible.")
@@ -283,7 +296,9 @@ def student_report(student_id: int, user: CurrentUser, repo: RepoDep):
 
 
 @router.get("/student/{student_id}/elo-history")
-def student_elo_history(student_id: int, user: CurrentUser, repo: RepoDep, limit: int = 20):
+def student_elo_history(
+    student_id: int, user: CurrentUser, repo: RepoDep, limit: int = Query(20, ge=1, le=200)
+):
     """Historial de ELO del estudiante para el gráfico temporal."""
     _require_teacher_student(repo, student_id, user)
     attempts = repo.get_latest_attempts(student_id, limit=limit)
@@ -313,14 +328,27 @@ def student_ai_analysis(
 
     svc = _svc(repo)
     effective_key = settings.get_ai_key("teacher_analysis", body.api_key)
+    # Igual que KatIA y la revisión de procedimientos: sin key no hay proveedor. Antes
+    # caía al servidor local (localhost:1234), su ConnectionError llegaba como 500 sin
+    # cabeceras CORS y el navegador lo mostraba como un error de red.
+    if not effective_key:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No hay API key de IA configurada. Pide al administrador que configure "
+            "SYSTEM_AI_API_KEY.",
+        )
     global_elo = svc.ratings.ratings_view(student_id)["overall"]
 
-    analysis = svc.generate_ai_analysis(
-        student_id=student_id,
-        global_elo=global_elo,
-        api_key=effective_key,
-        provider=body.provider,
-    )
+    try:
+        analysis = svc.generate_ai_analysis(
+            student_id=student_id,
+            global_elo=global_elo,
+            api_key=effective_key,
+            provider=body.provider,
+        )
+    except (ConnectionError, TimeoutError) as exc:
+        # ai_client los lanza con un mensaje ya pensado para el usuario.
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
     return {"analysis": analysis}
 
 
@@ -346,6 +374,31 @@ def student_group_ranking(student_id: int, user: CurrentUser, repo: RepoDep):
 
 # ── Exportación ───────────────────────────────────────────────────────────────
 
+# Exported cells hold text students typed (usernames, KatIA messages). A spreadsheet runs a cell
+# that starts like a formula, so text starting with one of these is written as text (OWASP CSV
+# injection); in the workbook only "=" makes a formula.
+_FORMULA_STARTS = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_cell(value):
+    """Text that would start a formula gets a leading apostrophe, which Excel shows as text."""
+    if isinstance(value, str) and value.startswith(_FORMULA_STARTS):
+        return "'" + value
+    return value
+
+
+def _append_xlsx_row(ws, values) -> None:
+    """Append a row as data: characters a workbook cannot hold are dropped, and text starting
+    with "=" is stored as text instead of a formula."""
+    from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+
+    ws.append(
+        [ILLEGAL_CHARACTERS_RE.sub("", v) if isinstance(v, str) else v for v in values]
+    )
+    for cell in ws[ws.max_row]:
+        if cell.data_type == "f":
+            cell.data_type = "s"
+
 
 @router.get("/export/csv")
 def export_csv(user: CurrentUser, repo: RepoDep):
@@ -360,15 +413,17 @@ def export_csv(user: CurrentUser, repo: RepoDep):
         )
 
     output = io.StringIO()
+    # The byte-order mark tells Excel the file is UTF-8, so accents read correctly.
+    output.write("\ufeff")
     keys = list(rows[0].keys()) if isinstance(rows[0], dict) else []
     writer = csv.DictWriter(output, fieldnames=keys)
     writer.writeheader()
-    writer.writerows([dict(r) for r in rows])
+    writer.writerows([{k: _csv_cell(v) for k, v in dict(r).items()} for r in rows])
 
     output.seek(0)
     return StreamingResponse(
         iter([output.getvalue()]),
-        media_type="text/csv",
+        media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": "attachment; filename=levelup_data.csv"},
     )
 
@@ -400,7 +455,7 @@ def export_xlsx(user: CurrentUser, repo: RepoDep):
             headers = list(rows[0].keys()) if isinstance(rows[0], dict) else []
             ws.append(headers)
             for row in rows:
-                ws.append(list(dict(row).values()))
+                _append_xlsx_row(ws, list(dict(row).values()))
 
     buf = io.BytesIO()
     wb.save(buf)
@@ -522,6 +577,43 @@ def archive_exam_template(template_id: int, user: CurrentUser, repo: RepoDep):
 # ── Asignación de plantillas a grupos + ventana de tiempo ────────────────────
 
 
+def _as_utc(value: datetime) -> datetime:
+    """A time with no zone is UTC."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def _stored_utc(value: datetime | None) -> str | None:
+    """A window bound as naive UTC text: what both engines compare with their own clock
+    (`datetime('now')` on SQLite, `NOW()` on PostgreSQL)."""
+    return None if value is None else _as_utc(value).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _utc_iso(value) -> str | None:
+    """A stored time (naive UTC, or ISO text from older rows) as ISO 8601 with its zone, so a
+    browser reads it as UTC and shows it in the teacher's time."""
+    if value in (None, ""):
+        return None
+    if not isinstance(value, datetime):
+        try:
+            value = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except ValueError:
+            return str(value)
+    return _as_utc(value).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _assignment_response(row: dict) -> ExamAssignmentResponse:
+    return ExamAssignmentResponse(
+        **{
+            **row,
+            "starts_at": _utc_iso(row.get("starts_at")),
+            "ends_at": _utc_iso(row.get("ends_at")),
+            "created_at": _utc_iso(row.get("created_at")) or "",
+        }
+    )
+
+
 def _ensure_owns_template(repo, template_id: int, user: dict) -> dict:
     """Carga la plantilla y verifica autoría (o rol admin). Lanza HTTPException."""
     template = repo.get_exam_template(template_id)
@@ -540,7 +632,7 @@ def list_template_assignments(template_id: int, user: CurrentUser, repo: RepoDep
     """Lista a qué grupos está asignada esta plantilla y sus ventanas de tiempo."""
     _ensure_owns_template(repo, template_id, user)
     rows = repo.list_assignments_for_template(template_id)
-    return [ExamAssignmentResponse(**r) for r in rows]
+    return [_assignment_response(r) for r in rows]
 
 
 @router.post(
@@ -569,11 +661,11 @@ def create_template_assignments(
         repo.create_exam_assignment(
             template_id=template_id,
             group_id=gid,
-            starts_at=body.starts_at,
-            ends_at=body.ends_at,
+            starts_at=_stored_utc(body.starts_at),
+            ends_at=_stored_utc(body.ends_at),
         )
     rows = repo.list_assignments_for_template(template_id)
-    return [ExamAssignmentResponse(**r) for r in rows]
+    return [_assignment_response(r) for r in rows]
 
 
 @router.delete(

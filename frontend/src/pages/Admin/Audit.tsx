@@ -7,7 +7,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { adminApi } from "../../api/teacher";
-import type { AuditEntry } from "../../api/teacher";
+import type { AccountEvent, AuditEntry } from "../../api/teacher";
 
 function formatTimestamp(ts: string, lang: string): string {
   if (!ts) return "—";
@@ -42,6 +42,67 @@ function AuditRow({ entry }: { entry: AuditEntry }) {
       </td>
       <td className="px-4 py-3 text-xs text-slate-500">{formatTimestamp(entry.timestamp, i18n.language)}</td>
     </tr>
+  );
+}
+
+/** Spec 004 FR-029, FR-031: who reset or created which account, and when — never the password. */
+function AccountEventsSection() {
+  const { t, i18n } = useTranslation();
+  const { data } = useQuery({
+    queryKey: ["admin-account-audit"],
+    queryFn: () => adminApi.accountAudit(200),
+    staleTime: 30_000,
+  });
+  const events: AccountEvent[] = data?.events ?? [];
+  const label = (action: string) =>
+    action === "password_reset"
+      ? t("adminAudit.actionPasswordReset")
+      : action === "teacher_created"
+        ? t("adminAudit.actionTeacherCreated")
+        : action;
+  return (
+    <section className="space-y-2" aria-label={t("adminAudit.accountTitle")}>
+      <h3 className="text-base font-semibold text-slate-100">{t("adminAudit.accountTitle")}</h3>
+      <p className="text-xs text-slate-500">{t("adminAudit.accountIntro")}</p>
+      <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="text-xs text-slate-500 border-b border-slate-700">
+                <th className="px-4 py-2 text-left">{t("adminAudit.colOperation")}</th>
+                <th className="px-4 py-2 text-left">{t("adminAudit.colAccount")}</th>
+                <th className="px-4 py-2 text-left">{t("adminAudit.colAdmin")}</th>
+                <th className="px-4 py-2 text-left">{t("adminAudit.colDate")}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700/50">
+              {events.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="text-center text-slate-500 text-sm py-8">
+                    {t("adminAudit.accountEmpty")}
+                  </td>
+                </tr>
+              ) : (
+                events.map((e) => (
+                  <tr key={e.id} className="hover:bg-slate-700/30 transition-colors">
+                    <td className="px-4 py-3 text-sm text-teal-300">{label(e.action)}</td>
+                    <td className="px-4 py-3 text-sm text-slate-100">
+                      {e.user_username ?? `ID ${e.user_id}`}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-amber-300">
+                      {e.admin_username ?? `ID ${e.actor_id}`}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-500">
+                      {formatTimestamp(e.created_at ?? "", i18n.language)}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -104,6 +165,8 @@ export function AdminAudit() {
           </table>
         </div>
       </div>
+
+      <AccountEventsSection />
     </div>
   );
 }

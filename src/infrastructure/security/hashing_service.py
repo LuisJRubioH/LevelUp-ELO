@@ -1,5 +1,22 @@
 from passlib.context import CryptContext
 import hashlib
+import secrets
+import threading
+
+# Each Argon2 hash reserves `memory_cost` (64 MiB) while it runs, and the HTTP server runs requests
+# in a thread pool: a class signing in at once would run them all together (10 logins ≈ 600 MB, past
+# a 512 MB instance). One gate for the whole process bounds that memory; the rest wait their turn.
+MAX_CONCURRENT_HASHES = 2
+_HASH_SLOTS = threading.BoundedSemaphore(MAX_CONCURRENT_HASHES)
+
+
+# No 0/O, 1/l/I: the administrator reads the temporary password to the person (spec 004 FR-029).
+_TEMPORARY_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"
+
+
+def generate_temporary_password(length: int = 12) -> str:
+    """Spec 004 FR-029, FR-031: a random temporary password from a cryptographic source."""
+    return "".join(secrets.choice(_TEMPORARY_ALPHABET) for _ in range(length))
 
 
 class HashingService:
@@ -18,15 +35,18 @@ class HashingService:
         )
 
     def hash_password(self, password: str) -> str:
-        return self.pwd_context.hash(password)
+        with _HASH_SLOTS:
+            return self.pwd_context.hash(password)
 
     def verify_password(self, password: str, hashed: str) -> bool:
         """Verifica una contraseña contra un hash (Argon2id)."""
-        return self.pwd_context.verify(password, hashed)
+        with _HASH_SLOTS:
+            return self.pwd_context.verify(password, hashed)
 
     def verify_and_update(self, password: str, hashed: str):
         """Verifica y retorna un nuevo hash si el actual está deprecado."""
-        return self.pwd_context.verify_and_update(password, hashed)
+        with _HASH_SLOTS:
+            return self.pwd_context.verify_and_update(password, hashed)
 
     def verify_legacy_sha256(self, password: str, stored_hash: str) -> bool:
         """Verifica contra SHA-256 plano (migración)."""

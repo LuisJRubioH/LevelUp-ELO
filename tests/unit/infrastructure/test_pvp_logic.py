@@ -49,8 +49,8 @@ class FakeRepo:
 
 
 def _make_match(score_p1, score_p2, elo_p1=1000.0, elo_p2=1000.0):
-    p1 = LobbySlot(user_id=1, username="uno", elo=elo_p1, ws=FakeWS())
-    p2 = LobbySlot(user_id=2, username="dos", elo=elo_p2, ws=FakeWS())
+    p1 = LobbySlot(user_id=1, name="uno", elo=elo_p1, ws=FakeWS())
+    p2 = LobbySlot(user_id=2, name="dos", elo=elo_p2, ws=FakeWS())
     return ActiveMatch(
         match_id=99,
         course_id="curso",
@@ -176,3 +176,106 @@ async def test_spec001_game_end_reports_not_applied_when_persistence_fails():
     for ws in (match.p1.ws, match.p2.ws):
         end = [m for m in ws.sent if m["type"] == "game_end"][0]
         assert (end["elo_delta"], end["elo_reason"]) == (0.0, "not_applied")
+
+
+# ── Closing a match: whoever closes second waits for the result ──────────────
+
+
+class SlowRepo:
+    """finish_pvp_match blocks (in its worker thread) until the test releases it."""
+
+    def __init__(self):
+        import threading
+
+        self.entered = threading.Event()
+        self.release = threading.Event()
+
+    def finish_pvp_match(self, **_kwargs):
+        self.entered.set()
+        self.release.wait(5)
+        return {"p1": (12.0, None), "p2": (-12.0, None)}
+
+
+async def _until_entered(repo):
+    while not repo.entered.is_set():
+        await asyncio.sleep(0.01)
+
+
+def _ends(match):
+    return [len([m for m in s.ws.sent if m["type"] == "game_end"]) for s in (match.p1, match.p2)]
+
+
+@pytest.mark.asyncio
+async def test_a_second_close_returns_only_after_the_result_is_sent():
+    """The player whose answer ends the match closes its socket when _finish_match returns. If the
+    timer is already closing the match, that return must wait for game_end, or the socket closes
+    before its result arrives."""
+    match, repo = _make_match(score_p1=6, score_p2=5), SlowRepo()
+    first = asyncio.create_task(_finish_match(match, repo))
+    await _until_entered(repo)
+    second = asyncio.create_task(_finish_match(match, repo))
+    await asyncio.sleep(0.05)
+    assert not second.done()
+
+    repo.release.set()
+    await asyncio.wait_for(asyncio.gather(first, second), 5)
+    assert _ends(match) == [1, 1]
+
+
+@pytest.mark.asyncio
+async def test_finishing_early_leaves_a_timer_that_is_already_closing(monkeypatch):
+    """Both players answer everything just as the 180 s timer fires: the timer is mid-close, so it
+    is not cancelled (cancelling it there dropped game_end for both and leaked the match)."""
+    monkeypatch.setattr(pvp, "MATCH_DURATION", 0)
+    match, repo = _make_match(score_p1=6, score_p2=5), SlowRepo()
+    pvp._matches[match.match_id] = match
+    timer = asyncio.create_task(pvp._timer(match, repo))
+    await _until_entered(repo)
+
+    early = asyncio.create_task(pvp._finish_early(match, timer, repo))
+    await asyncio.sleep(0.05)
+    repo.release.set()
+    await asyncio.wait_for(early, 5)
+
+    assert _ends(match) == [1, 1]
+    assert match.match_id not in pvp._matches
+
+
+# ── Answers: only the match's own items, once, while it is live ──────────────
+
+
+def _live_match():
+    match = _make_match(score_p1=0, score_p2=0)
+    match.correct = {"i1": "4", "i2": "7"}
+    match.answered = {1: set(), 2: set()}
+    return match
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        {"item_id": "not-in-this-match", "selected": None},
+        {"item_id": "not-in-this-match", "selected": "4"},
+        {"item_id": ["i1"], "selected": "4"},
+        {"item_id": "i1", "selected": None},
+        {"item_id": "i1", "selected": ["4"]},
+        {"selected": "4"},
+    ],
+)
+def test_an_answer_that_is_not_for_this_match_is_ignored(message):
+    assert pvp._judge_answer(_live_match(), 1, {"type": "answer", **message}) is None
+
+
+def test_an_answer_is_judged_once_against_the_items_key():
+    match = _live_match()
+    assert pvp._judge_answer(match, 1, {"item_id": "i1", "selected": "4"}) == ("i1", True)
+    assert pvp._judge_answer(match, 1, {"item_id": "i2", "selected": "4"}) == ("i2", False)
+    match.answered[1].add("i1")
+    assert pvp._judge_answer(match, 1, {"item_id": "i1", "selected": "4"}) is None
+    assert pvp._judge_answer(match, 2, {"item_id": "i1", "selected": "4"}) == ("i1", True)
+
+
+def test_no_answer_counts_once_the_match_is_over():
+    match = _live_match()
+    match.finished = True
+    assert pvp._judge_answer(match, 1, {"item_id": "i1", "selected": "4"}) is None

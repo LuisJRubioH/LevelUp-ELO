@@ -4,7 +4,9 @@ api/schemas/teacher.py
 Pydantic schemas para los endpoints del docente y admin.
 """
 
-from pydantic import BaseModel, Field
+from datetime import datetime, timezone
+
+from pydantic import BaseModel, Field, model_validator
 
 
 # ── Grupos ────────────────────────────────────────────────────────────────────
@@ -69,7 +71,8 @@ class GradeResponse(BaseModel):
 class PendingProcedure(BaseModel):
     submission_id: int
     student_id: int
-    student_username: str
+    # Spec 004 FR-023: the display name, else the username (N5).
+    student_name: str
     item_id: str
     item_content: str | None
     ai_score: float | None
@@ -144,14 +147,25 @@ class ExamAssignmentCreateRequest(BaseModel):
     """Asigna una plantilla a uno o varios grupos con ventana de tiempo opcional."""
 
     group_ids: list[int] = Field(..., min_length=1, max_length=50)
-    starts_at: str | None = Field(
+    starts_at: datetime | None = Field(
         default=None,
-        description="ISO datetime UTC. None = abierto desde ya.",
+        description="ISO 8601; sin zona = UTC. None = abierto desde ya.",
     )
-    ends_at: str | None = Field(
+    ends_at: datetime | None = Field(
         default=None,
-        description="ISO datetime UTC. None = sin fecha de cierre.",
+        description="ISO 8601; sin zona = UTC. None = sin fecha de cierre.",
     )
+
+    @model_validator(mode="after")
+    def _ends_after_it_starts(self):
+        if self.starts_at and self.ends_at and _utc(self.ends_at) <= _utc(self.starts_at):
+            raise ValueError("La fecha de cierre debe ser posterior a la de apertura.")
+        return self
+
+
+def _utc(value: datetime) -> datetime:
+    """A time with no zone is UTC."""
+    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
 
 
 class ExamAssignmentResponse(BaseModel):

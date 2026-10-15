@@ -456,6 +456,26 @@ const es = {
     deactivate: "Desactivar",
     activate: "Activar",
     noMatches: "Sin usuarios que coincidan.",
+    // Spec 004 E2 — acceso de las cuentas
+    resetPassword: "Restablecer contraseña",
+    resetConfirm: "¿Restablecer la contraseña de {{username}}? Se cerrarán todas sus sesiones.",
+    temporaryTitle: "Contraseña temporal de {{username}}",
+    temporaryHint:
+      "Entrégala a la persona: se muestra una sola vez. Deberá cambiarla al iniciar sesión.",
+    close: "Cerrar",
+    mustChange: "debe cambiar contraseña",
+    // Spec 004 FR-024, FR-025: el nombre visible de un estudiante, que el admin corrige.
+    noDisplayName: "sin nombre visible",
+    changeName: "Cambiar nombre",
+    nameLabel: "Nombre visible",
+    saveName: "Guardar",
+    cancelName: "Cancelar",
+    createTeacherTitle: "Crear docente",
+    createTeacherHint:
+      "El docente queda aprobado y recibe una contraseña temporal que cambia en su primer acceso.",
+    createTeacherUsername: "Usuario",
+    createTeacherEmail: "Correo (opcional)",
+    createTeacherSubmit: "Crear docente",
   },
 
   // ── Pantallas admin — Reportes ──────────────────────────────────────────────
@@ -487,6 +507,14 @@ const es = {
     colAdmin: "Admin",
     colDate: "Fecha",
     empty: "Sin reasignaciones registradas.",
+    // Spec 004 E2 — operaciones sobre cuentas
+    accountTitle: "Acceso de las cuentas",
+    accountIntro: "Restablecimientos de contraseña y docentes creados. Nunca se guarda la contraseña.",
+    accountEmpty: "Sin operaciones sobre cuentas.",
+    colAccount: "Cuenta",
+    colOperation: "Operación",
+    actionPasswordReset: "Contraseña restablecida",
+    actionTeacherCreated: "Docente creado",
   },
 
   // ── Pantallas admin — Grupos del sistema ────────────────────────────────────
@@ -505,6 +533,7 @@ const es = {
     confirmYes: "Sí, eliminar",
     cancel: "Cancelar",
     delete: "Eliminar",
+    deleteError: "No se pudo eliminar el grupo. Inténtalo de nuevo.",
   },
 
   // ── Pantallas docente — Exámenes (plantillas) ───────────────────────────────
@@ -743,6 +772,7 @@ const es = {
   prealgebra: {
     loading: "Cargando lección...",
     error: "No pudimos cargar esta lección.",
+    locked: "Esta lección todavía está bloqueada: se abre al terminar la anterior en el mapa.",
     backToMap: "Volver al mapa",
     safeZone: "Zona segura. No afecta tu ELO",
     optionalBranch: "Desvío opcional. No afecta tu ELO",
@@ -900,7 +930,8 @@ const es = {
         },
         footerLabel: "Nivel 1 completado",
         footerBody: "Cerraste el recorrido de conjuntos numéricos. Puedes repasar cuando quieras.",
-        finish: "Volver al mapa",
+        // Distinto de «Volver al mapa» (el botón de al lado), que sale SIN cerrar el nivel.
+        finish: "Terminar el nivel 1",
       },
     },
   },
