@@ -14,7 +14,7 @@
  * deshabilitados/no operativos para no prometer lo que no existe.
  */
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -139,6 +139,19 @@ export function Login() {
   };
 
   const [mode, setMode] = useState<Mode>("login");
+  // Spec 004 FR-003: sign-up is offered only while the server says public registration is open;
+  // closed by default, and an error reads as closed.
+  const [registrationOpen, setRegistrationOpen] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    authApi
+      .registration()
+      .then((r) => alive && setRegistrationOpen(r.enabled === true))
+      .catch(() => alive && setRegistrationOpen(false));
+    return () => {
+      alive = false;
+    };
+  }, []);
   const [role, setRole] = useState<Role>("student");
   const [level, setLevel] = useState<DesignLevel>("secundaria");
   const [grade, setGrade] = useState("9");
@@ -330,9 +343,11 @@ export function Login() {
                 <button className={mode === "login" ? "on" : ""} onClick={() => changeMode("login")}>
                   {t({ es: "Iniciar sesión", en: "Log in" })}
                 </button>
-                <button className={mode === "signup" ? "on" : ""} onClick={() => changeMode("signup")}>
-                  {t({ es: "Crear cuenta", en: "Sign up" })}
-                </button>
+                {registrationOpen && (
+                  <button className={mode === "signup" ? "on" : ""} onClick={() => changeMode("signup")}>
+                    {t({ es: "Crear cuenta", en: "Sign up" })}
+                  </button>
+                )}
               </div>
               <span className="auth-lang" role="group" aria-label="Idioma">
                 <button className={lang === "es" ? "on" : ""} onClick={() => switchLang("es")}>
@@ -344,7 +359,7 @@ export function Login() {
               </span>
             </div>
 
-            <form className="auth-form" onSubmit={mode === "login" ? handleLogin : handleSignup}>
+            <form className="auth-form" onSubmit={mode === "signup" && registrationOpen ? handleSignup : handleLogin}>
               <span className="auth-eyebrow">
                 {t(
                   mode === "login"
@@ -624,12 +639,18 @@ export function Login() {
                 </button>
               </div>
 
-              <div className="auth-switch">
-                {t(mode === "login" ? { es: "¿Aún no tienes cuenta?", en: "No account yet?" } : { es: "¿Ya tienes cuenta?", en: "Already have an account?" })}
-                <button type="button" onClick={() => changeMode(mode === "login" ? "signup" : "login")}>
-                  {t(mode === "login" ? { es: "Crear cuenta", en: "Sign up" } : { es: "Iniciar sesión", en: "Log in" })}
-                </button>
-              </div>
+              {registrationOpen ? (
+                <div className="auth-switch">
+                  {t(mode === "login" ? { es: "¿Aún no tienes cuenta?", en: "No account yet?" } : { es: "¿Ya tienes cuenta?", en: "Already have an account?" })}
+                  <button type="button" onClick={() => changeMode(mode === "login" ? "signup" : "login")}>
+                    {t(mode === "login" ? { es: "Crear cuenta", en: "Sign up" } : { es: "Iniciar sesión", en: "Log in" })}
+                  </button>
+                </div>
+              ) : (
+                <div className="auth-switch" data-testid="registration-closed">
+                  {t({ es: "¿Aún no tienes cuenta? Tu cuenta la crea tu colegio.", en: "No account yet? Your school creates it." })}
+                </div>
+              )}
             </form>
           </div>
         </main>

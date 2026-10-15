@@ -9,6 +9,8 @@ Tests de autenticación:
   POST /api/logout      → cierre de sesión
 """
 
+import pytest
+
 
 class TestLogin:
     def test_login_valid_student(self, api_client):
@@ -64,6 +66,15 @@ class TestLogin:
 
 
 class TestRegister:
+    """Public sign-up as it works while its server setting opens it (spec 004 FR-002); closed by
+    default, it is refused (tests/integration/test_spec004_e1_registration.py)."""
+
+    @pytest.fixture(autouse=True)
+    def _registration_open(self, monkeypatch):
+        from api.config import settings
+
+        monkeypatch.setattr(settings, "public_registration_enabled", True)
+
     def test_register_student(self, api_client):
         """Registro de un estudiante nuevo → 201."""
         r = api_client.post(
@@ -156,9 +167,11 @@ class TestRefreshAndRevocation:
         api_client.cookies.delete("levelup_refresh")
         assert api_client.post("https://testserver/api/auth/refresh").status_code == 401
 
-    def test_disabled_user_loses_access_and_cannot_refresh(self, api_client):
+    def test_disabled_user_loses_access_and_cannot_refresh(self, api_client, monkeypatch):
+        from api.config import settings
         from api.dependencies import get_repository
 
+        monkeypatch.setattr(settings, "public_registration_enabled", True)
         username = "revoked_session_test"
         api_client.post(
             "/api/auth/register",

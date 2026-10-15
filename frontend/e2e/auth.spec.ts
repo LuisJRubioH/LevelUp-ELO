@@ -81,11 +81,25 @@ test.describe("Autenticación", () => {
     await expect(page).toHaveURL("/teacher");
   });
 
-  test("formulario de registro está accesible desde login", async ({ page }) => {
+  test("con el registro público abierto, el formulario está accesible desde login (spec 004 US1-AS3)", async ({ page }) => {
+    await page.route("**/api/auth/registration", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ enabled: true }) }),
+    );
     await page.goto("/login");
     await page.getByRole("button", { name: "Crear cuenta", exact: true }).first().click();
 
     await expect(page.getByRole("button", { name: /Estudiante/ })).toBeVisible();
+  });
+
+  test("con el registro público cerrado, login no ofrece crear cuenta (spec 004 US1-AS2, FR-003)", async ({ page }) => {
+    await page.route("**/api/auth/registration", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ enabled: false }) }),
+    );
+    await page.goto("/login");
+
+    await expect(page.getByRole("button", { name: "Iniciar sesión", exact: true }).first()).toBeVisible();
+    await expect(page.getByTestId("registration-closed")).toContainText("Tu cuenta la crea tu colegio");
+    await expect(page.getByRole("button", { name: "Crear cuenta", exact: true })).toHaveCount(0);
   });
 
   test("la portada pública sigue disponible para un usuario autenticado", async ({ page }) => {

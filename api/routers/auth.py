@@ -28,17 +28,31 @@ from api.schemas.auth import (
     TokenResponse,
     UserProfile,
 )
-from api.rate_limit import client_ip, limiter
+from api.rate_limit import client_ip, limiter, login_allowed, login_limit_key
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 _REFRESH_COOKIE = "levelup_refresh"
 
 
+_LOGIN_LIMITED = "Demasiados intentos de inicio de sesión. Espera un minuto e inténtalo de nuevo."
+_REGISTRATION_CLOSED = "El registro público está cerrado. Pide tu cuenta a tu colegio."
+
+
 @router.post("/login", response_model=TokenResponse)
-@limiter.limit(settings.rate_limit_auth, key_func=client_ip)
 def login(request: Request, body: LoginRequest, response: Response, repo: RepoDep):
-    """Autentica usuario y retorna access token + refresh token en cookie HttpOnly."""
+    """Autentica usuario y retorna access token + refresh token en cookie HttpOnly.
+
+    Spec 004 E1: limited per account and overall, never per address, so a class on one school
+    network signs in (FR-006 … FR-008). A refusal is the same whether the account exists (FR-010).
+    """
+    key = login_limit_key(repo.login_account_id(body.username), body.username)
+    if not login_allowed(key):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=_LOGIN_LIMITED,
+            headers={"Retry-After": "60"},
+        )
     result = repo.login_user(body.username, body.password)
     if not result:
         raise HTTPException(
@@ -76,10 +90,22 @@ def login(request: Request, body: LoginRequest, response: Response, repo: RepoDe
     )
 
 
+@router.get("/registration")
+def registration_status():
+    """Spec 004 FR-003: whether public registration is open, for the login screen."""
+    return {"enabled": settings.public_registration_enabled}
+
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-@limiter.limit(settings.rate_limit_auth, key_func=client_ip)
+@limiter.limit(lambda: settings.rate_limit_register, key_func=client_ip)
 def register(request: Request, body: RegisterRequest, repo: RepoDep):
-    """Registra un nuevo usuario (student o teacher)."""
+    """Registra un nuevo usuario (student o teacher) — solo con el registro público abierto.
+
+    Spec 004 FR-001/FR-002: closed by default and refused here, on the server; its own
+    per-address limit applies (FR-004). A teacher still waits for approval (FR-005).
+    """
+    if not settings.public_registration_enabled:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=_REGISTRATION_CLOSED)
     ok, msg = repo.register_user(
         username=body.username,
         password=body.password,

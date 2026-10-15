@@ -1,4 +1,8 @@
-"""Las operaciones de IA deben aplicar los límites declarados en configuración."""
+"""Las operaciones de IA deben aplicar los límites declarados en configuración.
+
+Login limits (per account and overall, never per address) live in
+tests/api/test_spec004_e1_login_limits.py (spec 004 E1).
+"""
 
 
 def test_socratic_rate_limit_is_enforced_per_access_token(api_client, student_headers):
@@ -20,22 +24,6 @@ def test_socratic_rate_limit_is_enforced_per_access_token(api_client, student_he
     limiter._storage.reset()
 
 
-def test_login_rate_limit_is_enforced_per_origin(api_client):
-    from api.rate_limit import limiter
-
-    limiter._storage.reset()
-    responses = [
-        api_client.post(
-            "/api/auth/login",
-            json={"username": "rate-limit-missing", "password": "invalid-password"},
-        )
-        for _ in range(21)
-    ]
-    assert all(response.status_code == 401 for response in responses[:20])
-    assert responses[20].status_code == 429
-    limiter._storage.reset()
-
-
 def _socratic_payload() -> dict:
     return {
         "item_id": "rate-limit-probe",
@@ -43,26 +31,6 @@ def _socratic_payload() -> dict:
         "student_message": "Ayúdame a pensar",
         "course_id": "calculo_diferencial",
     }
-
-
-def test_login_rate_limit_ignores_an_invented_authorization_header(api_client):
-    """Login is keyed by origin only: a made-up bearer per request is not a fresh allowance."""
-    import secrets
-
-    from api.rate_limit import limiter
-
-    limiter._storage.reset()
-    responses = [
-        api_client.post(
-            "/api/auth/login",
-            json={"username": "rate-limit-missing", "password": "invalid-password"},
-            headers={"Authorization": f"Bearer {secrets.token_hex(16)}"},
-        )
-        for _ in range(21)
-    ]
-    assert all(response.status_code == 401 for response in responses[:20])
-    assert responses[20].status_code == 429
-    limiter._storage.reset()
 
 
 def test_ai_rate_limit_follows_the_account_across_new_tokens(

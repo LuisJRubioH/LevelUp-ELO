@@ -17,8 +17,12 @@ def _admin(repo):
     return admin
 
 
-def test_login_with_an_email_as_long_as_registration_accepts(repo, client):
-    """I1: registration accepts emails up to 254 characters; login accepts the same."""
+def test_login_with_an_email_as_long_as_registration_accepts(repo, client, monkeypatch):
+    """I1: registration accepts emails up to 254 characters; login accepts the same. Public
+    registration is closed by default (spec 004 FR-001): this test opens it by its setting."""
+    from api.config import settings
+
+    monkeypatch.setattr(settings, "public_registration_enabled", True)
     email = f"{uuid.uuid4().hex}{'a' * 40}@example.com"
     username = f"edge_{uuid.uuid4().hex[:8]}"
     registered = client.post(

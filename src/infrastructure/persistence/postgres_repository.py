@@ -1618,6 +1618,22 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    def login_account_id(self, login: str):
+        """Spec 004 FR-006: the id of the active account a sign-in names — exactly its username or
+        its email, as `login_user` matches — or None. For the login limit; it checks no password."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT id FROM users WHERE (username = %s OR (email = %s AND email IS NOT NULL))"
+                " AND active = 1 ORDER BY id LIMIT 1",
+                (login, login),
+            )
+            row = cursor.fetchone()
+            return int(row["id"]) if row else None
+        finally:
+            self.put_connection(conn)
+
     def email_exists(self, email: str) -> bool:
         conn = self.get_connection()
         try:

@@ -4,10 +4,10 @@
 
 **Created**: 2026-10-13
 
-**Status**: Approved by the owner (2026-10-15). The approved decisions of blocks 4 and 8 that apply to every
-account, and those of the rate-limit store (owner, 2026-10-13 and 2026-10-14), are specified; the
-initial import's decisions live in spec 009 (owner, 2026-10-14). Nothing is implemented. Every
-delivery is `planned`.
+**Status**: Approved by the owner (2026-10-15). The approved decisions of blocks 4 and 8 that apply to every account,
+and those of the rate-limit store (owner, 2026-10-13 and 2026-10-14), are specified; the initial
+import's decisions live in spec 009 (owner, 2026-10-14). E1 is implemented and closed (its pull
+request); E2, E3, E5 and E6 are `planned`.
 
 **Input**: The owner's approved orders of 2026-10-13: block 4 (enrolment through Google Forms,
 account creation and access limits) with its clarifications P1–P15 and supplementary precisions,
@@ -60,7 +60,7 @@ request that completes a delivery marks it `closed` and fills all its rows.
 
 | Delivery | Content | Order rule | State |
 |---|---|---|---|
-| **E1** | Public registration closed by default (one server setting, refused on the server, reflected by the screen); login limits per normalised account and global | Needed for the switch (LuisJRubioH/LevelUp-ELO#3). Review the overlap with LuisJRubioH/LevelUp-ELO#33 first. | planned |
+| **E1** | Public registration closed by default (one server setting, refused on the server, reflected by the screen); login limits per normalised account and global | Needed for the switch (LuisJRubioH/LevelUp-ELO#3). Built on LuisJRubioH/LevelUp-ELO#33, whose login-by-address limit it replaces. | closed |
 | **E2** | Display name everywhere classmates and teachers look; password change; security version that revokes tokens, renewals and persistent connections; admin password reset; teachers created by the admin | Before any real student is created (decision 5). Teachers created by the admin need its forced password change (N3). | planned |
 | **E3** | Students created one by one by the admin: own username, temporary password changed at first access, display name, existing group, optional last day (N13, N15); the expiry of any account that has a last day of access, also on open sessions and PvP, while an account without one never expires; the admin changes, extends or reactivates | Not merged before E2 is in production. | planned |
 | **E5** | Session renewal without third-party cookies (block 8): same-origin proxy, cookie scope, CSRF, no caching, revocation and expiry respected; Safari verified | After E2 (revocation). E3's tests include renewal of an expired account. | planned |
@@ -339,8 +339,8 @@ in a minute is refused; the 301st attempt in a minute is refused.
 1. **US2-AS1** — **Given** 30 different students on one address, **When** each signs in once with
    the right password within one minute, **Then** all 30 succeed.
 2. **US2-AS2** — **Given** an account, **When** its 11th attempt within a minute arrives — right
-   password or not, by username or email, in any letter case or with outer spaces, from any
-   address — **Then** it is refused until the block ends, and another account still signs in.
+   password or not, by its username or its email, from any address — **Then** it is refused until
+   the block ends, and another account still signs in.
 3. **US2-AS3** — **Given** 300 attempts within a minute from any accounts, **When** the 301st
    arrives, **Then** it is refused.
 4. **US2-AS4** — **Given** an identifier that matches no account, **When** its 11th attempt arrives,
@@ -488,6 +488,8 @@ The initial import's user story is spec 009's; the stories keep their numbers.
   per-address limit may then count every client as one — no header is trusted for it (N2).
 - **An account with an email** signs in with its username or its email: both count toward the same
   account's login limit (FR-006).
+- **A variant of a username** (other letter case, outer spaces) names no account — sign-in matches
+  exactly — so it cannot sign in, and it is counted under itself, normalised (FR-006).
 - **Attempts above the limit with the right password** are refused too until the block ends; the
   agreed counter counts every attempt, not only failed ones. No change is proposed.
 - **V1's own sign-up form** writes to the same database and is not closed by this spec; V1 is
@@ -519,9 +521,10 @@ The initial import's user story is spec 009's; the stories keep their numbers.
 **E1 — login limits (US2)**
 
 - **FR-006** [CHANGE]: When an account receives more sign-in attempts within one minute than the
-  per-account limit (default 10) — counting every attempt, right or wrong, by username or email,
-  identified after trimming outer spaces and ignoring letter case — the system shall refuse the
-  extra attempts without checking the password until the minute ends.
+  per-account limit (default 10) — counting every attempt, right or wrong, that names it by its
+  username or its email, from any address — the system shall refuse the extra attempts without
+  checking the password until the minute ends. An identifier that names no account is counted the
+  same way under itself, after trimming outer spaces and ignoring letter case.
 - **FR-007** [CHANGE]: When the service receives more sign-in attempts within one minute than the
   global limit (default 300), the system shall refuse the extra attempts until the minute ends.
 - **FR-008** [CHANGE]: The system shall not refuse a sign-in because other users share its address:
@@ -699,8 +702,8 @@ The import's criteria, once SC-003 and SC-006 here, are spec 009's.
 
 | # | Delivery | Point | Recommendation |
 |---|---|---|---|
-| N1 | E1 | "Per normalised account": this spec normalises the typed identifier by trimming outer spaces and ignoring letter case, and counts username and email of one account together (FR-006). | **Approved** (owner, 2026-10-14). |
-| N2 | E1 | Public registration's own per-address limit has no value yet; behind the hosting proxy it may count every client as one address (LuisJRubioH/LevelUp-ELO#60). | **Approved** (owner, 2026-10-14): 20 per minute, no forwarded header trusted. |
+| N1 | E1 | "Per normalised account", as E1 implements it: username and email of one account count together; an identifier naming no account is counted under itself after trimming outer spaces and ignoring letter case (FR-006). | **Approved** (owner, 2026-10-14). |
+| N2 | E1 | Public registration's own per-address limit had no value; E1 uses 20 per minute (`RATE_LIMIT_REGISTER`), the previous one. Behind the hosting proxy it may count every client as one address (LuisJRubioH/LevelUp-ELO#60); no forwarded header is trusted. | **Approved** (owner, 2026-10-14): 20 per minute, no forwarded header trusted. |
 | N3 | E1/E2 | P1 was approved for E1, but a created teacher must change a temporary password at first access, which is E2's mechanism (FR-030). | **Approved** (owner, 2026-10-14): teachers are created in E2. |
 | N5 | E2 | With N12 decided, an existing account without a display name still has to be shown somehow: by its own username (never an identification for these accounts) or by a neutral alias. | **Decided** (owner, 2026-10-14): its username; the existing accounts are test accounts. |
 | N6 | E5 | The hosting proxy for the same origin (Vercel rewrites) does not carry WebSockets, so PvP and notifications keep connecting to the API's origin (token in the first message, no cookie); streaming answers (KatIA) must be checked through the proxy. | **Approved** (owner, 2026-10-14). |
@@ -740,16 +743,16 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 
 | Requirement / Scenario | Delivery | Test |
 |---|---|---|
-| US1-AS1 | E1 | `PENDING` |
-| US1-AS2 | E1 | `PENDING` |
-| US1-AS3 | E1 | `PENDING` |
-| US1-AS4 | E1 | `PENDING` |
+| US1-AS1 | E1 | `tests/integration/test_spec004_e1_registration.py::test_spec004_public_registration_is_closed_by_default` |
+| US1-AS2 | E1 | `frontend/e2e/auth.spec.ts › con el registro público cerrado, login no ofrece crear cuenta (spec 004 US1-AS2, FR-003)` |
+| US1-AS3 | E1 | `tests/integration/test_spec004_e1_registration.py::test_spec004_registration_opens_only_through_its_setting`<br>`frontend/e2e/auth.spec.ts › con el registro público abierto, el formulario está accesible desde login (spec 004 US1-AS3)` |
+| US1-AS4 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_registration_has_its_own_per_address_limit` |
 | US1-AS5 | E1 | `tests/api/test_admin.py::TestPendingTeachers::test_approve_teacher` |
-| US2-AS1 | E1 | `PENDING` |
-| US2-AS2 | E1 | `PENDING` |
-| US2-AS3 | E1 | `PENDING` |
-| US2-AS4 | E1 | `PENDING` |
-| US2-AS5 | E1 | `PENDING` |
+| US2-AS1 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_thirty_students_on_one_address_sign_in` |
+| US2-AS2 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_the_eleventh_attempt_on_one_account_is_refused` |
+| US2-AS3 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_the_global_ceiling_refuses_every_extra_attempt` |
+| US2-AS4 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_a_refusal_does_not_reveal_whether_the_account_exists` |
+| US2-AS5 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_login_limits_follow_their_settings` |
 | US3-AS1 | E2 | `PENDING` |
 | US3-AS2 | E2 | `PENDING` |
 | US3-AS3 | E2 | `PENDING` |
@@ -787,17 +790,17 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | US10-AS3 | E6 | `PENDING` |
 | US10-AS4 | E6 | `tests/api/test_production_config.py::test_insecure_production_configuration_is_rejected` |
 | US10-AS5 | E6 | `PENDING` |
-| FR-001 | E1 | `PENDING` |
-| FR-002 | E1 | `PENDING` |
-| FR-003 | E1 | `PENDING` |
-| FR-004 | E1 | `PENDING` |
-| FR-005 | E1 | `tests/api/test_admin.py::TestPendingTeachers::test_approve_teacher` |
-| FR-006 | E1 | `PENDING` |
-| FR-007 | E1 | `PENDING` |
-| FR-008 | E1 | `PENDING` |
-| FR-009 | E1 | `PENDING` |
-| FR-010 | E1 | `PENDING` |
-| FR-011 | E1 | `PENDING` |
+| FR-001 | E1 | `tests/integration/test_spec004_e1_registration.py::test_spec004_public_registration_is_closed_by_default` |
+| FR-002 | E1 | `tests/integration/test_spec004_e1_registration.py::test_spec004_registration_opens_only_through_its_setting` |
+| FR-003 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_registration_state_is_public`<br>`frontend/e2e/auth.spec.ts › con el registro público cerrado, login no ofrece crear cuenta (spec 004 US1-AS2, FR-003)`<br>`frontend/e2e/auth.spec.ts › con el registro público abierto, el formulario está accesible desde login (spec 004 US1-AS3)` |
+| FR-004 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_registration_has_its_own_per_address_limit` |
+| FR-005 | E1 | `tests/api/test_admin.py::TestPendingTeachers::test_approve_teacher`<br>`tests/integration/test_spec004_e1_registration.py::test_spec004_registration_opens_only_through_its_setting` |
+| FR-006 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_the_eleventh_attempt_on_one_account_is_refused`<br>`tests/integration/test_spec004_e1_registration.py::test_spec004_login_account_id_names_one_active_account` |
+| FR-007 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_the_global_ceiling_refuses_every_extra_attempt` |
+| FR-008 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_thirty_students_on_one_address_sign_in` |
+| FR-009 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_login_limits_follow_their_settings`<br>`tests/api/test_spec004_e1_login_limits.py::test_spec004_the_global_ceiling_refuses_every_extra_attempt` |
+| FR-010 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_a_refusal_does_not_reveal_whether_the_account_exists` |
+| FR-011 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_limits_keep_no_readable_identifier` |
 | FR-012 | E1 | `tests/api/test_production_config.py::test_insecure_production_configuration_is_rejected` |
 | FR-020 | E2 | `PENDING` |
 | FR-021 | E2 | `PENDING` |

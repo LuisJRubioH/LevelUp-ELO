@@ -243,7 +243,10 @@ def test_postgres_atomic_procedure_and_assignment_guards(postgres_context):
     )
 
 
-def test_postgres_cookie_refresh_and_immediate_account_revocation(postgres_context):
+def test_postgres_cookie_refresh_and_immediate_account_revocation(postgres_context, monkeypatch):
+    from api.config import settings
+
+    monkeypatch.setattr(settings, "public_registration_enabled", True)  # spec 004 FR-002
     ctx = postgres_context
     client = ctx["client"]
     username = f"pg_revocation_{uuid.uuid4().hex[:10]}"
