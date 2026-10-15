@@ -18,6 +18,8 @@ export interface RegisterRequest {
   education_level?: "universidad" | "colegio" | "semillero" | "concursos";
   grade?: string;
   email?: string;
+  /** Spec 004 FR-020: required of students, checked by the name filter on the server. */
+  display_name?: string;
 }
 
 export interface TokenResponse {
@@ -29,6 +31,8 @@ export interface TokenResponse {
   role: string;
   /** Spec 004 FR-030: a temporary password must be changed before anything else. */
   must_change_password?: boolean;
+  /** Spec 004 FR-020: the account's own display name (null on existing accounts). */
+  display_name?: string | null;
 }
 
 export interface PasswordChange {
@@ -45,6 +49,7 @@ export interface UserProfile {
   grade: string | null;
   email: string | null;
   must_change_password?: boolean;
+  display_name?: string | null;
 }
 
 export const authApi = {

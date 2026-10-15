@@ -79,11 +79,11 @@ function ProcedureDetail({ proc }: { proc: PendingProcedure }) {
           <span className="pd-when">{proc.created_at.slice(0, 10)}</span>
         </div>
         <div className="pd-who">
-          <span className="av" style={{ background: avaFor(proc.student_username) }}>
-            {initials(proc.student_username)}
+          <span className="av" style={{ background: avaFor(proc.student_name) }}>
+            {initials(proc.student_name)}
           </span>
           <div>
-            <b>{proc.student_username}</b>
+            <b>{proc.student_name}</b>
             <span>Envío #{proc.submission_id}</span>
           </div>
         </div>
@@ -275,11 +275,11 @@ export function TeacherProcedures() {
                 onClick={() => setSelectedId(p.submission_id)}
               >
                 <div className="pq-top">
-                  <span className="av" style={{ background: avaFor(p.student_username) }}>
-                    {initials(p.student_username)}
+                  <span className="av" style={{ background: avaFor(p.student_name) }}>
+                    {initials(p.student_name)}
                   </span>
                   <div className="pq-id">
-                    <b>{p.student_username}</b>
+                    <b>{p.student_name}</b>
                     <span>{p.item_id}</span>
                   </div>
                   {p.ai_score != null && <span className="pq-ai">{Math.round(p.ai_score)}</span>}

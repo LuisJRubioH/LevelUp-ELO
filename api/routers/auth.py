@@ -33,7 +33,12 @@ from api.schemas.auth import (
 )
 from api.rate_limit import client_ip, limiter, login_allowed, login_limit_key
 from api.websocket.connections import close_user_sync
-from src.domain.identity import PASSWORD_MIN_LENGTH, valid_new_password
+from src.domain.identity import (
+    PASSWORD_MIN_LENGTH,
+    display_name_problem,
+    normalize_display_name,
+    valid_new_password,
+)
 
 
 def _same_site_request(request: Request) -> None:
@@ -94,6 +99,7 @@ def _issue_session(response: Response, user_id: int, account: dict) -> TokenResp
         username=account["username"],
         role=account["role"],
         must_change_password=bool(account.get("must_change_password")),
+        display_name=account.get("display_name"),
     )
 
 
@@ -149,6 +155,14 @@ def register(request: Request, body: RegisterRequest, repo: RepoDep):
     """
     if not settings.public_registration_enabled:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=_REGISTRATION_CLOSED)
+    display_name = None
+    if body.role == "student":
+        # Spec 004 FR-020 (N11): a student who registers chooses a name the filter allows. No
+        # display name is decided for teachers.
+        display_name = normalize_display_name(body.display_name)
+        problem = display_name_problem(display_name)
+        if problem:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=problem)
     ok, msg = repo.register_user(
         username=body.username,
         password=body.password,
@@ -156,6 +170,7 @@ def register(request: Request, body: RegisterRequest, repo: RepoDep):
         education_level=body.education_level,
         grade=body.grade,
         email=body.email,
+        display_name=display_name,
     )
     if not ok:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
@@ -216,6 +231,7 @@ def me(user: CurrentUserDuringPasswordChange, repo: RepoDep):
         grade=profile.get("grade"),
         email=profile.get("email"),
         must_change_password=user["must_change_password"],
+        display_name=profile.get("display_name"),
     )
 
 
@@ -263,7 +279,7 @@ def _get_profile_row(repo, user_id: int) -> dict | None:
             ph = "%s" if hasattr(repo, "put_connection") else "?"
             cur.execute(
                 f"SELECT username, role, approved, education_level, grade, email, "
-                f"security_version, must_change_password "
+                f"security_version, must_change_password, display_name "
                 f"FROM users WHERE id = {ph} AND active = 1",
                 (user_id,),
             )
@@ -292,4 +308,5 @@ def _get_profile_row(repo, user_id: int) -> dict | None:
         "email": row[5],
         "security_version": row[6],
         "must_change_password": row[7],
+        "display_name": row[8],
     }

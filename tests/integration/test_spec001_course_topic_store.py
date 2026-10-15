@@ -188,7 +188,7 @@ def test_spec001_group_and_weekly_participants(repo):
     weekly_course = _ids(repo.get_ranking_participants("weekly", group_id=group, course_id=course))
 
     assert _ids(group_rows) == {active: 0, idle: 0}
-    assert all(set(r) == {"user_id", "username", "attempts_in_window"} for r in group_rows)
+    assert all(set(r) == {"user_id", "username", "name", "attempts_in_window"} for r in group_rows)
     assert weekly == {active: 2}
     assert weekly_course == {active: 1}
 

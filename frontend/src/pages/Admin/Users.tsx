@@ -200,6 +200,16 @@ function UserRow({
     mutationFn: () => (isActive ? adminApi.deactivate(uid) : adminApi.reactivate(uid)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
   });
+  // Spec 004 FR-025: the admin corrects a student's display name, under the same filter.
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(user.display_name ?? "");
+  const nameMutation = useMutation({
+    mutationFn: () => adminApi.setDisplayName(uid, nameDraft),
+    onSuccess: () => {
+      setEditingName(false);
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
   const resetMutation = useMutation({
     mutationFn: () => adminApi.resetPassword(uid),
     onSuccess: (res) => {
@@ -212,6 +222,40 @@ function UserRow({
     <tr className="hover:bg-slate-700/30 transition-colors">
       <td className="px-4 py-3">
         <span className="text-slate-100 text-sm font-medium">{user.username}</span>
+        {user.role === "student" && !editingName ? (
+          <span className="block text-xs text-slate-400">
+            {user.display_name || t("adminUsers.noDisplayName")}
+          </span>
+        ) : null}
+        {editingName ? (
+          <form
+            className="mt-1 flex gap-1 items-center"
+            onSubmit={(e) => {
+              e.preventDefault();
+              nameMutation.mutate();
+            }}
+          >
+            <input
+              aria-label={t("adminUsers.nameLabel")}
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              maxLength={80}
+              required
+              className="bg-slate-900 border border-slate-600 rounded px-2 py-0.5 text-xs text-slate-200 focus:outline-none focus:border-violet-500"
+            />
+            <Button size="sm" type="submit" loading={nameMutation.isPending}>
+              {t("adminUsers.saveName")}
+            </Button>
+            <Button size="sm" variant="secondary" type="button" onClick={() => setEditingName(false)}>
+              {t("adminUsers.cancelName")}
+            </Button>
+          </form>
+        ) : null}
+        {nameMutation.isError ? (
+          <span role="alert" className="block text-[11px] text-red-400">
+            {(nameMutation.error as Error).message}
+          </span>
+        ) : null}
         {user.must_change_password ? (
           <span className="block text-[11px] text-amber-400">{t("adminUsers.mustChange")}</span>
         ) : null}
@@ -258,6 +302,18 @@ function UserRow({
               {t("adminUsers.resetPassword")}
             </Button>
           ) : null}
+          {user.role === "student" && !editingName ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                setNameDraft(user.display_name ?? "");
+                setEditingName(true);
+              }}
+            >
+              {t("adminUsers.changeName")}
+            </Button>
+          ) : null}
         </div>
       </td>
     </tr>
@@ -286,7 +342,10 @@ export function AdminUsers() {
 
   const users = data?.users ?? [];
   const filtered = users.filter((u) => {
-    const matchSearch = u.username.toLowerCase().includes(search.toLowerCase());
+    const needle = search.toLowerCase();
+    const matchSearch =
+      u.username.toLowerCase().includes(needle) ||
+      (u.display_name ?? "").toLowerCase().includes(needle);
     const matchRole = roleFilter === "all" || u.role === roleFilter;
     return matchSearch && matchRole;
   });

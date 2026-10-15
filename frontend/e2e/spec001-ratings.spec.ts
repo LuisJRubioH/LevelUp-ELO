@@ -146,10 +146,10 @@ test.describe("Spec 001 · calificaciones en pantalla", () => {
     await json(page, "**/api/student/group-ranking", {
       basis: { kind: "course", course_id: "calculo", course_name: "Cálculo Diferencial", source: "group" },
       ranking: [
-        { user_id: 4, username: "ana", rating: 1250, rank_label: "Oro I", status: "rated", rank: 1 },
-        { user_id: 1, username: "estudiante1", rating: 1201, rank_label: "Oro I", status: "rated", rank: 2 },
-        { user_id: 7, username: "luis", rating: 1201, rank_label: "Oro I", status: "rated", rank: 2 },
-        { user_id: 9, username: "marta", rating: null, rank_label: null, status: "pending_diagnostic", rank: null },
+        { user_id: 4, name: "ana", rating: 1250, rank_label: "Oro I", status: "rated", rank: 1 },
+        { user_id: 1, name: "estudiante1", rating: 1201, rank_label: "Oro I", status: "rated", rank: 2 },
+        { user_id: 7, name: "luis", rating: 1201, rank_label: "Oro I", status: "rated", rank: 2 },
+        { user_id: 9, name: "marta", rating: null, rank_label: null, status: "pending_diagnostic", rank: null },
       ],
       my_rank: 2,
     });
@@ -171,7 +171,7 @@ test.describe("Spec 001 · calificaciones en pantalla", () => {
     await json(page, "**/api/teacher/metrics", {});
     await json(page, "**/api/teacher/dashboard", {
       students: [
-        { user_id: 5, username: "sofia", education_level: "colegio", group_id: 1, group_name: "10A", global_elo: 999.6, display_rating: 1000, rank_label: "Plata I", overall_status: "rated", total_attempts: 12, accuracy: 0.75, last_activity: "2026-10-07" },
+        { user_id: 5, name: "sofia", education_level: "colegio", group_id: 1, group_name: "10A", global_elo: 999.6, display_rating: 1000, rank_label: "Plata I", overall_status: "rated", total_attempts: 12, accuracy: 0.75, last_activity: "2026-10-07" },
       ],
       groups: [],
     });

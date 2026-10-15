@@ -147,9 +147,9 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
 
         <div className="tc-foot">
           <div className="tc-user">
-            <div className="ava">{initials(user?.username ?? "?")}</div>
+            <div className="ava">{initials(user?.display_name || user?.username || "?")}</div>
             <div className="meta">
-              <b>{user?.username}</b>
+              <b>{user?.display_name || user?.username}</b>
               <span>
                 <span className="role">Docente</span>
                 {user?.education_level ? ` · ${user.education_level}` : ""}

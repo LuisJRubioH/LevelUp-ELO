@@ -64,4 +64,4 @@ def test_the_csv_neutralises_formulas_and_declares_utf8(repo, client):
     body = response.content.decode("utf-8")
     assert body.startswith("﻿")
     rows = list(csv.DictReader(io.StringIO(body.lstrip("﻿"))))
-    assert {row["username"] for row in rows} == {"'" + username}
+    assert {row["name"] for row in rows} == {"'" + username}

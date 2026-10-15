@@ -20,7 +20,8 @@ export interface Group {
 
 export interface StudentSummary {
   user_id: number;
-  username: string;
+  /** Spec 004 FR-023: the display name, else the username of an account without one. */
+  name: string;
   global_elo: number | null; // null = pending diagnostic (spec 001)
   display_rating: number | null; // what screens show (FR-028j)
   rank_label: string | null;
@@ -58,7 +59,7 @@ export interface TeacherMetrics {
 export interface PendingProcedure {
   submission_id: number;
   student_id: number;
-  student_username: string;
+  student_name: string;
   item_id: string;
   item_content: string | null;
   ai_score: number | null;
@@ -78,6 +79,8 @@ export interface AdminUser {
   id?: number;
   user_id?: number;
   username: string;
+  /** Spec 004 FR-024: students only; null on accounts that have none. */
+  display_name?: string | null;
   role: string;
   approved: boolean | number;
   active: boolean | number;
@@ -364,6 +367,13 @@ export const adminApi = {
 
   createTeacher: (body: { username: string; email?: string }) =>
     api.post<TemporaryPassword>("/api/admin/teachers", body),
+
+  /** Spec 004 FR-025: the admin corrects any student's display name. */
+  setDisplayName: (user_id: number, display_name: string) =>
+    api.put<{ user_id: number; display_name: string }>(
+      `/api/admin/users/${user_id}/display-name`,
+      { display_name }
+    ),
 
   accountAudit: (limit: number = 100) =>
     api.get<{ events: AccountEvent[] }>(`/api/admin/account-audit?limit=${limit}`),

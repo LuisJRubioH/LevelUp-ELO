@@ -25,6 +25,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 from api.dependencies import CurrentUser, RepoDep, require_role
+from api.schemas.auth import DisplayNameRequest
 from api.schemas.teacher import ChangeGroupRequest
 from api.websocket.connections import close_user_sync
 from src.infrastructure.security.hashing_service import generate_temporary_password
@@ -102,6 +103,16 @@ def create_teacher(body: CreateTeacherRequest, user: CurrentUser, repo: RepoDep)
     if not ok:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
     return {"user_id": teacher_id, "username": username, "temporary_password": temporary}
+
+
+@router.put("/users/{user_id}/display-name")
+def change_display_name(user_id: int, body: DisplayNameRequest, user: CurrentUser, repo: RepoDep):
+    """Spec 004 FR-025 (N17): el admin corrige el nombre visible de cualquier estudiante, con el
+    mismo filtro; queda registrado quién, a quién y cuándo."""
+    ok, message = repo.set_display_name(user["user_id"], user_id, body.display_name)
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+    return {"user_id": user_id, "display_name": message}
 
 
 @router.get("/account-audit")

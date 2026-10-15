@@ -115,6 +115,9 @@ class IAccountRepository(Protocol):
     def verify_user_password(self, user_id, password) -> bool: ...
     def set_user_password(self, user_id, password, must_change=False): ...
 
+    # FR-025: the student's own display name, or any student's by the admin; recorded.
+    def set_display_name(self, actor_id, user_id, display_name): ...
+
 
 @runtime_checkable
 class IRepository(

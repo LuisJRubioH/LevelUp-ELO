@@ -120,10 +120,10 @@ function AvaStack({ members, max = 5 }: { members: StudentSummary[]; max?: numbe
         <span
           key={s.user_id}
           className="as-ava"
-          style={{ background: avaFor(s.username), zIndex: max - i }}
-          title={s.username}
+          style={{ background: avaFor(s.name), zIndex: max - i }}
+          title={s.name}
         >
-          {initials(s.username)}
+          {initials(s.name)}
         </span>
       ))}
       {rest > 0 ? <span className="as-more">+{rest}</span> : null}
@@ -278,12 +278,12 @@ function GroupDrawer({
                 return (
                   <div className="gdr-row" key={s.user_id}>
                     <span className="gdr-pos">{i + 1}</span>
-                    <span className="av" style={{ background: avaFor(s.username) }}>
-                      {initials(s.username)}
+                    <span className="av" style={{ background: avaFor(s.name) }}>
+                      {initials(s.name)}
                     </span>
                     <div className="gdr-nm">
-                      <b>{s.username}</b>
-                      <span>@{s.username}</span>
+                      <b>{s.name}</b>
+                      <span>{s.total_attempts} intentos</span>
                     </div>
                     <RankPill label={s.rank_label} />
                     <span className="gdr-acc" style={{ color: accColor(acc) }}>

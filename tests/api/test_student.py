@@ -46,7 +46,12 @@ def test_first_practice_uses_diagnostic_rating(api_client, monkeypatch, from_map
     username = f"diagnostic_practice_{int(from_map)}"
     registered = api_client.post(
         "/api/auth/register",
-        json={"username": username, "password": "test-local-123", "role": "student"},
+        json={
+            "username": username,
+            "password": "test-local-123",
+            "role": "student",
+            "display_name": "Primera Práctica",
+        },
     )
     assert registered.status_code == 201
     login = api_client.post(

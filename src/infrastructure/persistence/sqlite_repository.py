@@ -329,6 +329,9 @@ class SQLiteRepository:
             cursor, "users", "must_change_password", "INTEGER NOT NULL DEFAULT 0"
         )
         self._add_column_if_not_exists(cursor, "users", "created_by", "INTEGER")
+        # Spec 004 E2 (FR-020): the name classmates and teachers see; NULL on existing
+        # accounts, which then show their username (N5).
+        self._add_column_if_not_exists(cursor, "users", "display_name", "TEXT")
         cursor.execute(
             """
             CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
@@ -1146,6 +1149,7 @@ class SQLiteRepository:
         education_level=None,
         grade=None,
         email=None,
+        display_name=None,
     ):
         """Registra un nuevo usuario.
 
@@ -1154,7 +1158,12 @@ class SQLiteRepository:
         `education_level` determina qué catálogo de cursos podrá ver.
         `grade` solo aplica cuando education_level = 'semillero' ('6'–'11').
         `email` opcional — si se provee, se valida formato y unicidad.
+        `display_name` (spec 004 FR-020) se guarda normalizado; quien registra valida que el
+        estudiante tenga uno.
         """
+        from src.domain.identity import normalize_display_name
+
+        display_name = normalize_display_name(display_name)
         # Validación backend de contraseña (no confiar solo en la UI)
         if not password or not password.strip():
             return False, "La contraseña es obligatoria."
@@ -1182,9 +1191,19 @@ class SQLiteRepository:
             _grade = str(grade) if education_level == "semillero" else None
             cursor.execute(
                 "INSERT INTO users (username, password_hash, role, approved, group_id, "
-                "rating_deviation, education_level, grade, email) "
-                "VALUES (?, ?, ?, ?, ?, 350.0, ?, ?, ?)",
-                (username, password_hash, role, approved, group_id, education_level, _grade, email),
+                "rating_deviation, education_level, grade, email, display_name) "
+                "VALUES (?, ?, ?, ?, ?, 350.0, ?, ?, ?, ?)",
+                (
+                    username,
+                    password_hash,
+                    role,
+                    approved,
+                    group_id,
+                    education_level,
+                    _grade,
+                    email,
+                    display_name,
+                ),
             )
             conn.commit()
             return True, "Registro exitoso."
@@ -1199,7 +1218,7 @@ class SQLiteRepository:
         cursor = conn.cursor()
         cursor.execute(
             "SELECT id, username, role, group_id, education_level, current_elo, active, approved, "
-            "security_version, must_change_password "
+            "security_version, must_change_password, display_name "
             "FROM users WHERE id = ?",
             (user_id,),
         )
@@ -1218,6 +1237,7 @@ class SQLiteRepository:
             "approved": bool(row[7]),
             "security_version": int(row[8] or 0),
             "must_change_password": bool(row[9]),
+            "display_name": row[10],
         }
 
     def login_user(self, username, password):
@@ -1727,7 +1747,7 @@ class SQLiteRepository:
             _params.append(group_id)
         cursor.execute(
             f"""
-            SELECT u.id AS student_id, u.username, g.name AS group_name,
+            SELECT u.id AS student_id, COALESCE(u.display_name, u.username) AS name, g.name AS group_name,
                    ki.course_id, c.name AS course_name,
                    ki.item_topic, ki.student_message,
                    ki.katia_response, ki.created_at
@@ -1747,7 +1767,7 @@ class SQLiteRepository:
         return [
             {
                 "student_id": r[0],
-                "username": r[1],
+                "name": r[1],
                 "group_name": r[2],
                 "course_id": r[3],
                 "course_name": r[4],
@@ -1973,11 +1993,14 @@ class SQLiteRepository:
         try:
             if scope == "group":
                 rows = conn.execute(
-                    "SELECT id, username FROM users"
+                    "SELECT id, username, COALESCE(display_name, username) FROM users"
                     " WHERE group_id = ? AND role = 'student' AND active = 1 ORDER BY id",
                     (group_id,),
                 ).fetchall()
-                return [{"user_id": r[0], "username": r[1], "attempts_in_window": 0} for r in rows]
+                return [
+                    {"user_id": r[0], "username": r[1], "name": r[2], "attempts_in_window": 0}
+                    for r in rows
+                ]
             where = ["u.role = 'student'", "a.timestamp >= datetime('now', ?)"]
             params = ["-%d days" % int(window_days)]
             if scope == "weekly":
@@ -1998,14 +2021,17 @@ class SQLiteRepository:
                 where.append("i.course_id = ?")
                 params.append(course_id)
             rows = conn.execute(
-                "SELECT u.id, u.username, COUNT(a.id) FROM attempts a"
+                "SELECT u.id, u.username, COUNT(a.id), COALESCE(u.display_name, u.username) FROM attempts a"
                 f" JOIN users u ON u.id = a.user_id{join} WHERE {' AND '.join(where)}"
-                " GROUP BY u.id, u.username ORDER BY u.id",
+                " GROUP BY u.id, u.username, u.display_name ORDER BY u.id",
                 params,
             ).fetchall()
         finally:
             conn.close()
-        return [{"user_id": r[0], "username": r[1], "attempts_in_window": r[2]} for r in rows]
+        return [
+            {"user_id": r[0], "username": r[1], "name": r[3], "attempts_in_window": r[2]}
+            for r in rows
+        ]
 
     def get_group_course_id(self, group_id):
         conn = self.get_connection()
@@ -2178,7 +2204,7 @@ class SQLiteRepository:
         try:
             cursor = conn.execute(
                 """
-                SELECT u.id, u.username, u.role, u.education_level, u.approved, u.active,
+                SELECT u.id, u.username, u.display_name, u.role, u.education_level, u.approved, u.active,
                        u.must_change_password,
                        u.created_at, g.name AS group_name
                 FROM users u
@@ -2308,6 +2334,42 @@ class SQLiteRepository:
         except sqlite3.IntegrityError:
             conn.rollback()
             return False, "El nombre de usuario ya existe.", None
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def set_display_name(self, actor_id, user_id, display_name):
+        """FR-025, FR-033: a student changes their own display name, an active admin any student's;
+        anyone else, a refused name (FR-020) or an account that is not a student's changes
+        nothing. Each change is recorded — who, which account, when — without the name.
+        Returns (ok, message)."""
+        from src.domain.identity import display_name_problem, normalize_display_name
+
+        name = normalize_display_name(display_name)
+        problem = display_name_problem(name)
+        if problem:
+            return False, problem
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT role FROM users WHERE id = ? AND active = 1", (actor_id,))
+            actor = cursor.fetchone()
+            cursor.execute("SELECT role FROM users WHERE id = ?", (user_id,))
+            target = cursor.fetchone()
+            if not target or target[0] != "student":
+                return False, "Solo las cuentas de estudiante tienen nombre visible."
+            if not actor or not (actor[0] == "admin" or actor_id == user_id):
+                return False, "Solo el estudiante o un administrador cambian este nombre."
+            cursor.execute("UPDATE users SET display_name = ? WHERE id = ?", (name, user_id))
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action)"
+                " VALUES (?, ?, 'display_name_changed')",
+                (actor_id, user_id),
+            )
+            conn.commit()
+            return True, name
         except Exception:
             conn.rollback()
             raise
@@ -2654,7 +2716,7 @@ class SQLiteRepository:
                 WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
                   AND COALESCE(u.is_test_user, 0) = 0
             )
-            SELECT u.id AS user_id, u.username, u.education_level,
+            SELECT u.id AS user_id, COALESCE(u.display_name, u.username) AS name, u.education_level,
                    u.group_id, COALESCE(g.name, 'Sin grupo') AS group_name,
                    COUNT(a.id) AS total_attempts,
                    CASE WHEN COUNT(a.id) > 0
@@ -2665,7 +2727,7 @@ class SQLiteRepository:
             JOIN users u ON u.id = ts.user_id
             LEFT JOIN groups g ON u.group_id = g.id
             LEFT JOIN attempts a ON a.user_id = ts.user_id
-            GROUP BY u.id, u.username, u.education_level, u.group_id, g.name
+            GROUP BY u.id, u.username, u.display_name, u.education_level, u.group_id, g.name
             ORDER BY u.username ASC
         """,
             (teacher_id, teacher_id),
@@ -2675,7 +2737,7 @@ class SQLiteRepository:
         return [
             {
                 "user_id": r[0],
-                "username": r[1],
+                "name": r[1],
                 "education_level": r[2],
                 "group_id": r[3],
                 "group_name": r[4],
@@ -2867,7 +2929,7 @@ class SQLiteRepository:
             )
             SELECT
                 u.id AS student_id,
-                u.username,
+                COALESCE(u.display_name, u.username) AS name,
                 u.education_level,
                 u.grade,
                 COALESCE(pg.name, 'Sin grupo') AS group_name,
@@ -2942,7 +3004,7 @@ class SQLiteRepository:
             f"""
             SELECT
                 u.id AS student_id,
-                u.username,
+                COALESCE(u.display_name, u.username) AS name,
                 u.education_level,
                 u.grade,
                 g.name AS group_name,
@@ -2977,7 +3039,7 @@ class SQLiteRepository:
             f"""
             SELECT
                 u.id AS student_id,
-                u.username,
+                COALESCE(u.display_name, u.username) AS name,
                 g.name AS group_name,
                 ps.item_id,
                 ps.item_content,
@@ -3730,7 +3792,8 @@ class SQLiteRepository:
             SELECT m.id, m.course_id, m.winner_id, m.score_p1, m.score_p2,
                    m.elo_delta_p1, m.elo_delta_p2, m.started_at, m.finished_at,
                    m.player1_id, m.player2_id,
-                   u1.username as p1_name, u2.username as p2_name
+                   COALESCE(u1.display_name, u1.username) AS p1_name,
+                   COALESCE(u2.display_name, u2.username) AS p2_name
             FROM pvp_matches m
             JOIN users u1 ON u1.id = m.player1_id
             JOIN users u2 ON u2.id = m.player2_id
@@ -4142,7 +4205,7 @@ class SQLiteRepository:
         if group_id:
             cursor.execute(
                 """
-                SELECT ps.id, ps.student_id, u.username AS student_name,
+                SELECT ps.id, ps.student_id, COALESCE(u.display_name, u.username) AS student_name,
                        ps.item_id, ps.item_content, ps.image_data, ps.mime_type,
                        ps.submitted_at, ps.procedure_image_path,
                        ps.status, ps.ai_proposed_score, ps.ai_feedback
@@ -4157,7 +4220,7 @@ class SQLiteRepository:
         else:
             cursor.execute(
                 """
-                SELECT ps.id, ps.student_id, u.username AS student_name,
+                SELECT ps.id, ps.student_id, COALESCE(u.display_name, u.username) AS student_name,
                        ps.item_id, ps.item_content, ps.image_data, ps.mime_type,
                        ps.submitted_at, ps.procedure_image_path,
                        ps.status, ps.ai_proposed_score, ps.ai_feedback

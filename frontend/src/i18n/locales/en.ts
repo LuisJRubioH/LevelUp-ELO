@@ -464,6 +464,11 @@ const en: TranslationKeys = {
     temporaryHint: "Give it to the person: it is shown only once. They must change it when they sign in.",
     close: "Close",
     mustChange: "must change password",
+    noDisplayName: "no display name",
+    changeName: "Change name",
+    nameLabel: "Display name",
+    saveName: "Save",
+    cancelName: "Cancel",
     createTeacherTitle: "Create teacher",
     createTeacherHint:
       "The teacher is approved and gets a temporary password to change at first sign-in.",

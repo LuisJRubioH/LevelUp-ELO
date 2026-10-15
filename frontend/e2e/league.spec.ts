@@ -37,7 +37,7 @@ const START = {
   type: "game_start",
   match_id: 7,
   items: ITEMS,
-  opponent: { username: "rival", elo: 1010 },
+  opponent: { name: "rival", elo: 1010 },
   duration_seconds: 180,
 };
 

@@ -159,7 +159,7 @@ export function League() {
                 <span className="pv-board-vs">vs</span>
                 <div className="pv-board-col">
                   <span className="pv-board-num">{result.opp_score}</span>
-                  <span className="pv-board-lbl">{opponent?.username ?? "Rival"}</span>
+                  <span className="pv-board-lbl">{opponent?.name ?? "Rival"}</span>
                 </div>
               </div>
               <p className={"pv-elo-delta " + (result.elo_delta > 0 ? "up" : result.elo_delta < 0 ? "down" : "flat")}>
@@ -191,7 +191,7 @@ export function League() {
               </div>
 
               <p className="pv-opp-line">
-                vs <b>{opponent?.username ?? "Rival"}</b> ·{" "}
+                vs <b>{opponent?.name ?? "Rival"}</b> ·{" "}
                 {opponent?.elo == null ? t("rating.pending") : `ELO ${opponent.elo}`}
               </p>
 

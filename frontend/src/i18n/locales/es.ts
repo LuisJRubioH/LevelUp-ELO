@@ -464,6 +464,12 @@ const es = {
       "Entrégala a la persona: se muestra una sola vez. Deberá cambiarla al iniciar sesión.",
     close: "Cerrar",
     mustChange: "debe cambiar contraseña",
+    // Spec 004 FR-024, FR-025: el nombre visible de un estudiante, que el admin corrige.
+    noDisplayName: "sin nombre visible",
+    changeName: "Cambiar nombre",
+    nameLabel: "Nombre visible",
+    saveName: "Guardar",
+    cancelName: "Cancelar",
     createTeacherTitle: "Crear docente",
     createTeacherHint:
       "El docente queda aprobado y recibe una contraseña temporal que cambia en su primer acceso.",

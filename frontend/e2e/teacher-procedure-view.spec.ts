@@ -21,7 +21,7 @@ const PNG = Buffer.from(
 const PROCEDURE = {
   submission_id: 7,
   student_id: 11,
-  student_username: "ana_g",
+  student_name: "ana_g",
   item_id: "calc_q1",
   item_content: "Calcula $\\frac{1}{2} + \\frac{1}{3}$",
   ai_score: null,

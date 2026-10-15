@@ -188,6 +188,8 @@ def authenticate_access_token(
         "role": current["role"],
         "security_version": int(current.get("security_version", 0)),
         "must_change_password": bool(current.get("must_change_password")),
+        # Spec 004 FR-021: what others see of this account comes from it (PvP rival).
+        "display_name": current.get("display_name"),
     }
 
 
