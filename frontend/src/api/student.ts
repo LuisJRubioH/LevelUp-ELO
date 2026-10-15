@@ -77,7 +77,8 @@ export interface RankingBasis {
 
 export interface RankingEntry {
   user_id: number;
-  username: string;
+  /** Spec 004 FR-021: the display name, else the username of an account without one. */
+  name: string;
   rating: number | null; // backend whole number: render as given
   rank_label: string | null;
   status: "rated" | "pending_diagnostic";
@@ -479,6 +480,10 @@ export const studentApi = {
 
   enroll: (course_id: string) =>
     api.post<{ message: string }>("/api/student/enroll", { course_id }),
+
+  /** Spec 004 FR-025: the student's own display name, under the name filter. */
+  changeDisplayName: (display_name: string) =>
+    api.put<{ display_name: string }>("/api/student/display-name", { display_name }),
 
   enrollByCode: (invite_code: string) =>
     api.post<{ message: string; course_id: string }>("/api/student/enroll-by-code", {

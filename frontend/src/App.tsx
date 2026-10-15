@@ -20,6 +20,9 @@ const Home = lazy(() => import("./pages/Home").then((m) => ({ default: m.Home })
 const ChangePassword = lazy(() =>
   import("./pages/ChangePassword").then((m) => ({ default: m.ChangePassword }))
 );
+const DisplayName = lazy(() =>
+  import("./pages/DisplayName").then((m) => ({ default: m.DisplayName }))
+);
 
 // Shell de la Consola Docente (rediseño) — reemplaza el Layout para /teacher/*
 const TeacherLayout = lazy(() =>
@@ -185,6 +188,11 @@ export default function App() {
               <Route
                 path="/cambiar-contrasena"
                 element={<RequireSignedIn><ChangePassword /></RequireSignedIn>}
+              />
+              {/* Spec 004 FR-025: the student's own display name. */}
+              <Route
+                path="/mi-nombre"
+                element={<RequireRole role="student"><DisplayName /></RequireRole>}
               />
 
               {/* ── Estudiante ─────────────────────────────────────────── */}

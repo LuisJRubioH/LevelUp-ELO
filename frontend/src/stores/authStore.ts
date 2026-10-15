@@ -15,6 +15,8 @@ export interface AuthUser {
   education_level: string | null;
   grade: string | null;
   email: string | null;
+  /** Spec 004 FR-020: the account's own display name; null on accounts without one. */
+  display_name?: string | null;
 }
 
 interface AuthState {

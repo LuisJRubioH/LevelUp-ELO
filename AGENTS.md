@@ -574,7 +574,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 | Table | Key fields |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok) |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username) |
 | `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
 | `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
 | `groups` | unique `(teacher_id, name_normalized)`, `invite_code` |

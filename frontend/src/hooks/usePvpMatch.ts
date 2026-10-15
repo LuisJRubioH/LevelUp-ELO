@@ -61,7 +61,7 @@ export function usePvpMatch(courseId: string | null) {
   const [myScore, setMyScore] = useState(0);
   const [oppScore, setOppScore] = useState(0);
   // elo = the rival's shown course rating; null = pending diagnostic (spec 001)
-  const [opponent, setOpponent] = useState<{ username: string; elo: number | null } | null>(null);
+  const [opponent, setOpponent] = useState<{ name: string; elo: number | null } | null>(null);
   const [result, setResult] = useState<PvpResult | null>(null);
   const [timeLeft, setTimeLeft] = useState(180);
   const [feedback, setFeedback] = useState<PvpFeedback | null>(null);

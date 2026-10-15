@@ -84,6 +84,7 @@ class TestRegister:
                 "password": "password123",
                 "role": "student",
                 "education_level": "colegio",
+                "display_name": "Estudiante Nuevo",
             },
         )
         assert r.status_code == 201
@@ -175,7 +176,12 @@ class TestRefreshAndRevocation:
         username = "revoked_session_test"
         api_client.post(
             "/api/auth/register",
-            json={"username": username, "password": "password123", "role": "student"},
+            json={
+                "username": username,
+                "password": "password123",
+                "role": "student",
+                "display_name": "Cuenta Desactivada",
+            },
         )
         login = api_client.post(
             "/api/auth/login", json={"username": username, "password": "password123"}
