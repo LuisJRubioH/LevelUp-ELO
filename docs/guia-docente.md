@@ -20,10 +20,15 @@ la que está pensada para celular.
 
 Un estudiante sin grupo no aparece en tu dashboard. Dos formas de que entre:
 
-**Código de invitación** (lo normal). Creas el grupo, generas su código y lo
-repartes. El estudiante lo pega al registrarse o desde Materias. **El código
-funciona entre niveles**: puedes meter a un estudiante de Universidad en un grupo
-de Colegio si tiene sentido para tu curso.
+**Invitaciones de un solo uso** (lo normal). Creas el grupo y, en su panel,
+generas tantas invitaciones como estudiantes vayas a recibir (hasta 50 a la vez).
+Le das una a cada estudiante, que la pega en Materias: la primera persona que la
+usa entra al grupo y nadie más puede volver a usarla. Las que nadie usa vencen a
+los 30 días, y puedes anular una antes de que la usen. La lista te dice cuáles
+siguen sin usar, quién usó cada una, cuáles vencieron y cuáles anulaste. **La
+invitación funciona entre niveles**: puedes meter a un estudiante de Universidad
+en un grupo de Colegio si tiene sentido para tu curso. Los códigos reutilizables
+de antes ya no sirven.
 
 **Reasignación por el administrador.** Si alguien entró al grupo equivocado, el
 admin lo mueve. Queda **auditado** — quién, cuándo y de dónde a dónde.
