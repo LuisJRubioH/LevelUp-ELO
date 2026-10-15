@@ -13,6 +13,14 @@ from src.infrastructure.security.hashing_service import HashingService
 from src.infrastructure.storage.paths import safe_path_component
 from src.infrastructure.storage.supabase_storage import SupabaseStorage
 from src.domain.elo.model import expected_score
+from src.domain.invitations import (
+    REDEEMED,
+    USED,
+    invitation_status,
+    new_token,
+    redemption_refusal,
+    valid_invitation_count,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -887,6 +895,27 @@ class PostgresRepository:
                 CREATE UNIQUE INDEX IF NOT EXISTS idx_groups_invite_code
                 ON groups(invite_code) WHERE invite_code IS NOT NULL
             """
+            )
+
+            # Spec 001, delivery INV: single-use invitations replace the group's reusable code.
+            # The `invite_code` column above stays (R8); V2 no longer reads or writes it.
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS group_invitations (
+                    id SERIAL PRIMARY KEY,
+                    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+                    token TEXT UNIQUE NOT NULL,
+                    created_by INTEGER,
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    expires_at TIMESTAMP NOT NULL,
+                    used_by INTEGER,
+                    used_at TIMESTAMP,
+                    revoked_at TIMESTAMP
+                )
+            """
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_group_invitations_group ON group_invitations(group_id)"
             )
 
             # ── Desactivar usuarios con contraseña vacía o nula ────────────
@@ -3005,6 +3034,186 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    # ─── Spec 001, delivery INV: single-use group invitations ────────────────────
+
+    @staticmethod
+    def _teacher_owns_group(cursor, teacher_id, group_id) -> bool:
+        """The group is `teacher_id`'s, and they are an active, approved teacher."""
+        cursor.execute(
+            """
+            SELECT 1 AS owned FROM groups g JOIN users u ON u.id = g.teacher_id
+            WHERE g.id = %s AND g.teacher_id = %s
+              AND u.role = 'teacher' AND u.active = 1 AND u.approved = 1
+            """,
+            (group_id, teacher_id),
+        )
+        return cursor.fetchone() is not None
+
+    @_timing
+    def create_group_invitations(self, teacher_id, group_id, count, ttl_days):
+        """Spec 001 FR-028p: `count` (1–50) single-use invitations to the teacher's own group,
+        each expiring `ttl_days` days after its creation. Returns their tokens, or None when the
+        group is not this active, approved teacher's. A drawn token that already exists is drawn
+        again."""
+        if not valid_invitation_count(count) or int(ttl_days) < 1:
+            raise ValueError("Se pueden generar de 1 a 50 invitaciones a la vez.")
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            if not self._teacher_owns_group(cursor, teacher_id, group_id):
+                return None
+            tokens = []
+            for _ in range(count + 20):
+                if len(tokens) == count:
+                    break
+                token = new_token()
+                cursor.execute(
+                    "INSERT INTO group_invitations"
+                    " (group_id, token, created_by, created_at, expires_at)"
+                    " VALUES (%s, %s, %s, NOW(), NOW() + make_interval(days => %s))"
+                    " ON CONFLICT (token) DO NOTHING RETURNING id",
+                    (group_id, token, teacher_id, int(ttl_days)),
+                )
+                if cursor.fetchone() is not None:
+                    tokens.append(token)
+            if len(tokens) < count:
+                raise RuntimeError("No se pudieron generar códigos únicos. Intenta de nuevo.")
+            conn.commit()
+            return tokens
+        finally:
+            self.put_connection(conn)
+
+    @_timing
+    def get_group_invitations(self, teacher_id, group_id):
+        """Spec 001 FR-028t: the invitations of the teacher's own group, newest first, or None
+        when the group is not this active, approved teacher's. A used one carries the student's
+        public name (spec 004 FR-023) and no other data of theirs."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            if not self._teacher_owns_group(cursor, teacher_id, group_id):
+                return None
+            cursor.execute(
+                """
+                SELECT gi.id, gi.token, gi.created_at, gi.expires_at, gi.used_at,
+                       gi.used_by IS NOT NULL AS used, gi.revoked_at IS NOT NULL AS revoked,
+                       gi.expires_at <= NOW() AS expired,
+                       COALESCE(u.display_name, u.username) AS used_by_name
+                FROM group_invitations gi
+                LEFT JOIN users u ON u.id = gi.used_by
+                WHERE gi.group_id = %s
+                ORDER BY gi.created_at DESC, gi.id DESC
+                """,
+                (group_id,),
+            )
+            rows = cursor.fetchall()
+        finally:
+            self.put_connection(conn)
+        return [
+            {
+                "id": r["id"],
+                "token": r["token"],
+                "status": invitation_status(
+                    used=r["used"], revoked=r["revoked"], expired=r["expired"]
+                ),
+                "created_at": str(r["created_at"])[:19],
+                "expires_at": str(r["expires_at"])[:19],
+                "used_at": str(r["used_at"])[:19] if r["used_at"] else None,
+                "used_by_name": r["used_by_name"] if r["used"] else None,
+            }
+            for r in rows
+        ]
+
+    @_timing
+    def revoke_group_invitation(self, teacher_id, invitation_id):
+        """Spec 001 FR-028t: revoke an unused, unexpired invitation of the teacher's own group.
+
+        Returns "revoked", "not_found" (no such invitation in a group of this active, approved
+        teacher) or "not_revocable" (already used, expired or revoked).
+        """
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute("SELECT group_id FROM group_invitations WHERE id = %s", (invitation_id,))
+            row = cursor.fetchone()
+            if not row or not self._teacher_owns_group(cursor, teacher_id, row["group_id"]):
+                return "not_found"
+            cursor.execute(
+                "UPDATE group_invitations SET revoked_at = NOW()"
+                " WHERE id = %s AND used_by IS NULL AND revoked_at IS NULL"
+                " AND expires_at > NOW() RETURNING id",
+                (invitation_id,),
+            )
+            if cursor.fetchone() is None:
+                return "not_revocable"
+            conn.commit()
+            return "revoked"
+        finally:
+            self.put_connection(conn)
+
+    @_timing
+    def redeem_group_invitation(self, user_id, token):
+        """Spec 001 FR-028q … FR-028s: consume the invitation and enrol the student in its group's
+        course with the group (as `enroll_user` does), in one transaction.
+
+        Returns {"status", "course_id", "group_id"}. "ok" consumed it; "invalid" (unknown,
+        revoked, or its group's teacher no longer active and approved), "used", "expired",
+        "no_course" and "already_member" (enrolled in that course with that group) change
+        nothing. Locks the student, then the invitation (FOR UPDATE): of two redemptions of one
+        invitation at the same moment exactly one consumes it, and one student's simultaneous
+        redemptions run one after the other.
+        """
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute("SELECT id FROM users WHERE id = %s FOR UPDATE", (user_id,))
+            cursor.execute(
+                """
+                SELECT gi.id, gi.group_id, g.course_id, gi.used_by IS NOT NULL AS used,
+                       gi.revoked_at IS NOT NULL AS revoked, gi.expires_at <= NOW() AS expired,
+                       (u.role = 'teacher' AND u.active = 1 AND u.approved = 1) AS teacher_ok
+                FROM group_invitations gi
+                JOIN groups g ON g.id = gi.group_id
+                JOIN users u ON u.id = g.teacher_id
+                WHERE gi.token = %s
+                FOR UPDATE OF gi
+                """,
+                (token,),
+            )
+            row = cursor.fetchone()
+            member = False
+            if row and row["course_id"]:
+                cursor.execute(
+                    "SELECT 1 AS member FROM enrollments"
+                    " WHERE user_id = %s AND course_id = %s AND group_id = %s",
+                    (user_id, row["course_id"], row["group_id"]),
+                )
+                member = cursor.fetchone() is not None
+            refusal = redemption_refusal(
+                found=bool(row and row["teacher_ok"]),
+                used=bool(row and row["used"]),
+                revoked=bool(row and row["revoked"]),
+                expired=bool(row and row["expired"]),
+                has_course=bool(row and row["course_id"]),
+                already_member=member,
+            )
+            if refusal is None:
+                cursor.execute(
+                    "UPDATE group_invitations SET used_by = %s, used_at = NOW()"
+                    " WHERE id = %s AND used_by IS NULL AND revoked_at IS NULL"
+                    " AND expires_at > NOW() RETURNING id",
+                    (user_id, row["id"]),
+                )
+                refusal = None if cursor.fetchone() is not None else USED
+            if refusal is not None:
+                conn.rollback()
+                return {"status": refusal, "course_id": None, "group_id": None}
+            self._enrol(cursor, user_id, row["course_id"], row["group_id"])
+            conn.commit()
+            return {"status": REDEEMED, "course_id": row["course_id"], "group_id": row["group_id"]}
+        finally:
+            self.put_connection(conn)
+
     @_timing
     def get_all_groups(self):
         """Lista todos los grupos con su docente y su número de estudiantes (vista del admin).
@@ -4045,19 +4254,25 @@ class PostgresRepository:
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            cursor.execute(
-                "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
-                (user_id, course_id, group_id),
-            )
-            if group_id is not None:
-                cursor.execute(
-                    "UPDATE enrollments SET group_id = %s WHERE user_id = %s AND course_id = %s",
-                    (group_id, user_id, course_id),
-                )
-                cursor.execute("UPDATE users SET group_id = %s WHERE id = %s", (group_id, user_id))
+            self._enrol(cursor, user_id, course_id, group_id)
             conn.commit()
         finally:
             self.put_connection(conn)
+
+    @staticmethod
+    def _enrol(cursor, user_id, course_id, group_id=None):
+        """The writes of `enroll_user`, inside the caller's transaction (also used when an
+        invitation is redeemed, spec 001 FR-028q)."""
+        cursor.execute(
+            "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+            (user_id, course_id, group_id),
+        )
+        if group_id is not None:
+            cursor.execute(
+                "UPDATE enrollments SET group_id = %s WHERE user_id = %s AND course_id = %s",
+                (group_id, user_id, course_id),
+            )
+            cursor.execute("UPDATE users SET group_id = %s WHERE id = %s", (group_id, user_id))
 
     @_timing
     def unenroll_user(self, user_id, course_id):

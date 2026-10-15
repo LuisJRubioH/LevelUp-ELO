@@ -5,7 +5,9 @@ Endpoints del panel del docente:
   GET  /teacher/dashboard         → resumen de grupos y estudiantes
   GET  /teacher/groups            → grupos del docente
   POST /teacher/groups            → crear grupo
-  POST /teacher/groups/{id}/invite-code → generar código de invitación
+  POST /teacher/groups/{id}/invitations → invitaciones de un solo uso (spec 001 INV)
+  GET  /teacher/groups/{id}/invitations → invitaciones del grupo y su estado
+  DELETE /teacher/invitations/{id}      → anular una invitación sin usar
   GET  /teacher/procedures        → cola de procedimientos pendientes
   POST /teacher/procedures/grade  → calificar procedimiento
   GET  /teacher/student/{id}      → reporte detallado de un estudiante
@@ -23,6 +25,8 @@ from api.schemas.teacher import (
     ApproveTeacherRequest,
     ChangeGroupRequest,
     CreateGroupRequest,
+    CreateInvitationsRequest,
+    CreatedInvitationsResponse,
     ExamAssignmentCreateRequest,
     ExamAssignmentResponse,
     ExamTemplateCreateRequest,
@@ -31,6 +35,8 @@ from api.schemas.teacher import (
     GradeRequest,
     GradeResponse,
     GroupResponse,
+    InvitationsResponse,
+    InvitationView,
     ItemCatalogEntry,
     PendingProcedure,
     StudentReportResponse,
@@ -38,6 +44,7 @@ from api.schemas.teacher import (
     UserAdminRow,
 )
 from src.application.services.teacher_service import TeacherService
+from src.domain.invitations import format_token
 from api.config import settings
 from api.rate_limit import limiter
 
@@ -53,13 +60,6 @@ def _svc(repo) -> TeacherService:
     from src.infrastructure.external_api.ai_client import get_pedagogical_analysis
 
     return TeacherService(repository=repo, pedagogical_analysis=get_pedagogical_analysis)
-
-
-def _require_teacher_group(repo, group_id: int, user: dict) -> None:
-    """Aplica el mismo alcance de grupos que el dashboard del usuario."""
-    groups = repo.get_groups_by_teacher(user["user_id"])
-    if not any(group["group_id"] == group_id for group in groups):
-        raise HTTPException(status_code=404, detail="Grupo no encontrado.")
 
 
 def _require_teacher_student(repo, student_id: int, user: dict) -> dict:
@@ -99,6 +99,8 @@ def dashboard(user: CurrentUser, repo: RepoDep):
             overall_status=view["overall_status"],
         )
     _, groups = svc.get_dashboard_data(user["user_id"])
+    # The group's reusable code (V1 still reads it) is not sent: spec 001 FR-028u.
+    groups = [{k: v for k, v in g.items() if k != "invite_code"} for g in groups]
     return {"students": students, "groups": groups}
 
 
@@ -118,7 +120,6 @@ def get_groups(user: CurrentUser, repo: RepoDep):
                 "id": r[0],
                 "name": r[1],
                 "course_id": r[2] if len(r) > 2 else None,
-                "invite_code": r[3] if len(r) > 3 else None,
                 "student_count": r[4] if len(r) > 4 else 0,
             }
         )
@@ -127,7 +128,6 @@ def get_groups(user: CurrentUser, repo: RepoDep):
                 group_id=row.get("group_id") or row.get("id"),  # both keys present
                 name=row["name"],
                 course_id=row.get("course_id"),
-                invite_code=row.get("invite_code"),
                 student_count=row.get("student_count", 0),
             )
         )
@@ -145,17 +145,54 @@ def create_group(body: CreateGroupRequest, user: CurrentUser, repo: RepoDep):
         group_id=group_id,
         name=body.group_name,
         course_id=body.course_id,
-        invite_code=None,
         student_count=0,
     )
 
 
-@router.post("/groups/{group_id}/invite-code")
-def generate_invite_code(group_id: int, user: CurrentUser, repo: RepoDep):
-    """Genera o renueva el código de invitación del grupo."""
-    _require_teacher_group(repo, group_id, user)
-    code = repo.generate_group_invite_code(group_id)
-    return {"invite_code": code}
+# ── Invitaciones de un solo uso (spec 001, delivery INV) ──────────────────────
+# The repository answers None / "not_found" for a group or an invitation that is not this
+# teacher's (an admin has none): 404, revealing nothing about it (FR-028p, FR-028t).
+
+
+@router.post(
+    "/groups/{group_id}/invitations",
+    status_code=status.HTTP_201_CREATED,
+    response_model=CreatedInvitationsResponse,
+)
+def create_invitations(
+    group_id: int, body: CreateInvitationsRequest, user: CurrentUser, repo: RepoDep
+):
+    """FR-028p: 1–50 single-use invitations to the teacher's own group."""
+    ttl_days = settings.invitation_ttl_days
+    tokens = repo.create_group_invitations(user["user_id"], group_id, body.count, ttl_days)
+    if tokens is None:
+        raise HTTPException(status_code=404, detail="Grupo no encontrado.")
+    return CreatedInvitationsResponse(tokens=[format_token(t) for t in tokens], ttl_days=ttl_days)
+
+
+@router.get("/groups/{group_id}/invitations", response_model=InvitationsResponse)
+def list_invitations(group_id: int, user: CurrentUser, repo: RepoDep):
+    """FR-028t: the group's invitations, newest first, with their state."""
+    rows = repo.get_group_invitations(user["user_id"], group_id)
+    if rows is None:
+        raise HTTPException(status_code=404, detail="Grupo no encontrado.")
+    return InvitationsResponse(
+        ttl_days=settings.invitation_ttl_days,
+        invitations=[InvitationView(**{**r, "token": format_token(r["token"])}) for r in rows],
+    )
+
+
+@router.delete("/invitations/{invitation_id}", status_code=status.HTTP_204_NO_CONTENT)
+def revoke_invitation(invitation_id: int, user: CurrentUser, repo: RepoDep):
+    """FR-028t: revoke an unused, unexpired invitation of the teacher's own group."""
+    outcome = repo.revoke_group_invitation(user["user_id"], invitation_id)
+    if outcome == "not_found":
+        raise HTTPException(status_code=404, detail="Invitación no encontrada.")
+    if outcome != "revoked":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Solo se puede anular una invitación sin usar y vigente.",
+        )
 
 
 # ── Procedimientos ────────────────────────────────────────────────────────────

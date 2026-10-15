@@ -121,14 +121,21 @@ def test_postgres_permissions_diagnostic_and_canonical_answer(postgres_context):
             == 200
         )
 
-    original_code = repo.generate_group_invite_code(group_id)
+    # Spec 001 FR-028t: another teacher neither creates, lists nor revokes the group's invitations.
+    (token,) = repo.create_group_invitations(ctx["teacher_a"], group_id, 1, 30)
+    (invitation,) = repo.get_group_invitations(ctx["teacher_a"], group_id)
+    path = f"/api/teacher/groups/{group_id}/invitations"
+    assert client.post(path, headers=ctx["b_headers"], json={"count": 1}).status_code == 404
+    assert client.get(path, headers=ctx["b_headers"]).status_code == 404
     assert (
-        client.post(
-            f"/api/teacher/groups/{group_id}/invite-code", headers=ctx["b_headers"]
+        client.delete(
+            f"/api/teacher/invitations/{invitation['id']}", headers=ctx["b_headers"]
         ).status_code
         == 404
     )
-    assert repo.get_group_by_invite_code(original_code)["group_id"] == group_id
+    assert [
+        (i["token"], i["status"]) for i in repo.get_group_invitations(ctx["teacher_a"], group_id)
+    ] == [(token, "unused")]
 
     item = repo.get_items_from_db(course_id="calculo_diferencial")[0]
     repo.save_diagnostic(student_id, "calculo_diferencial", 1234, 75, "{}")

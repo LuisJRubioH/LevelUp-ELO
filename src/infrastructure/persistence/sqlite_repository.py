@@ -2,6 +2,14 @@ import json
 import os
 import sqlite3
 import logging
+from src.domain.invitations import (
+    REDEEMED,
+    USED,
+    invitation_status,
+    new_token,
+    redemption_refusal,
+    valid_invitation_count,
+)
 from src.infrastructure.security.hashing_service import HashingService
 from src.infrastructure.storage.paths import safe_path_component
 
@@ -569,6 +577,28 @@ class SQLiteRepository:
             CREATE UNIQUE INDEX IF NOT EXISTS idx_groups_invite_code
             ON groups(invite_code) WHERE invite_code IS NOT NULL
         """
+        )
+
+        # Spec 001, delivery INV: single-use invitations replace the group's reusable code. The
+        # `invite_code` column above stays (R8); V2 no longer reads or writes it.
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS group_invitations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                group_id INTEGER NOT NULL,
+                token TEXT UNIQUE NOT NULL,
+                created_by INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP NOT NULL,
+                used_by INTEGER,
+                used_at TIMESTAMP,
+                revoked_at TIMESTAMP,
+                FOREIGN KEY(group_id) REFERENCES groups(id) ON DELETE CASCADE
+            )
+        """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_group_invitations_group ON group_invitations(group_id)"
         )
 
         # ── Desactivar usuarios con contraseña vacía o nula ────────────────
@@ -2564,6 +2594,182 @@ class SQLiteRepository:
             "block": r[5],
         }
 
+    # ─── Spec 001, delivery INV: single-use group invitations ────────────────────
+
+    @staticmethod
+    def _teacher_owns_group(cursor, teacher_id, group_id) -> bool:
+        """The group is `teacher_id`'s, and they are an active, approved teacher."""
+        cursor.execute(
+            """
+            SELECT 1 FROM groups g JOIN users u ON u.id = g.teacher_id
+            WHERE g.id = ? AND g.teacher_id = ?
+              AND u.role = 'teacher' AND u.active = 1 AND u.approved = 1
+            """,
+            (group_id, teacher_id),
+        )
+        return cursor.fetchone() is not None
+
+    def create_group_invitations(self, teacher_id, group_id, count, ttl_days):
+        """Spec 001 FR-028p: `count` (1–50) single-use invitations to the teacher's own group,
+        each expiring `ttl_days` days after its creation. Returns their tokens, or None when the
+        group is not this active, approved teacher's. A drawn token that already exists is drawn
+        again."""
+        if not valid_invitation_count(count) or int(ttl_days) < 1:
+            raise ValueError("Se pueden generar de 1 a 50 invitaciones a la vez.")
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            if not self._teacher_owns_group(cursor, teacher_id, group_id):
+                return None
+            tokens = []
+            for _ in range(count + 20):
+                if len(tokens) == count:
+                    break
+                token = new_token()
+                cursor.execute(
+                    "INSERT OR IGNORE INTO group_invitations"
+                    " (group_id, token, created_by, created_at, expires_at)"
+                    " VALUES (?, ?, ?, datetime('now'), datetime('now', ?))",
+                    (group_id, token, teacher_id, f"+{int(ttl_days)} days"),
+                )
+                if cursor.rowcount == 1:
+                    tokens.append(token)
+            if len(tokens) < count:
+                raise RuntimeError("No se pudieron generar códigos únicos. Intenta de nuevo.")
+            conn.commit()
+            return tokens
+        finally:
+            conn.close()
+
+    def get_group_invitations(self, teacher_id, group_id):
+        """Spec 001 FR-028t: the invitations of the teacher's own group, newest first, or None
+        when the group is not this active, approved teacher's. A used one carries the student's
+        public name (spec 004 FR-023) and no other data of theirs."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            if not self._teacher_owns_group(cursor, teacher_id, group_id):
+                return None
+            cursor.execute(
+                """
+                SELECT gi.id, gi.token, gi.created_at, gi.expires_at, gi.used_at,
+                       gi.used_by IS NOT NULL, gi.revoked_at IS NOT NULL,
+                       gi.expires_at <= datetime('now'), COALESCE(u.display_name, u.username)
+                FROM group_invitations gi
+                LEFT JOIN users u ON u.id = gi.used_by
+                WHERE gi.group_id = ?
+                ORDER BY gi.created_at DESC, gi.id DESC
+                """,
+                (group_id,),
+            )
+            rows = cursor.fetchall()
+        finally:
+            conn.close()
+        return [
+            {
+                "id": r[0],
+                "token": r[1],
+                "status": invitation_status(
+                    used=bool(r[5]), revoked=bool(r[6]), expired=bool(r[7])
+                ),
+                "created_at": str(r[2])[:19],
+                "expires_at": str(r[3])[:19],
+                "used_at": str(r[4])[:19] if r[4] else None,
+                "used_by_name": r[8] if r[5] else None,
+            }
+            for r in rows
+        ]
+
+    def revoke_group_invitation(self, teacher_id, invitation_id):
+        """Spec 001 FR-028t: revoke an unused, unexpired invitation of the teacher's own group.
+
+        Returns "revoked", "not_found" (no such invitation in a group of this active, approved
+        teacher) or "not_revocable" (already used, expired or revoked).
+        """
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT group_id FROM group_invitations WHERE id = ?", (invitation_id,))
+            row = cursor.fetchone()
+            if not row or not self._teacher_owns_group(cursor, teacher_id, row[0]):
+                return "not_found"
+            cursor.execute(
+                "UPDATE group_invitations SET revoked_at = datetime('now')"
+                " WHERE id = ? AND used_by IS NULL AND revoked_at IS NULL"
+                " AND expires_at > datetime('now')",
+                (invitation_id,),
+            )
+            if cursor.rowcount != 1:
+                return "not_revocable"
+            conn.commit()
+            return "revoked"
+        finally:
+            conn.close()
+
+    def redeem_group_invitation(self, user_id, token):
+        """Spec 001 FR-028q … FR-028s: consume the invitation and enrol the student in its group's
+        course with the group (as `enroll_user` does), in one transaction.
+
+        Returns {"status", "course_id", "group_id"}. "ok" consumed it; "invalid" (unknown,
+        revoked, or its group's teacher no longer active and approved), "used", "expired",
+        "no_course" and "already_member" (enrolled in that course with that group) change
+        nothing. BEGIN IMMEDIATE serialises redemptions: of two at the same moment, exactly one
+        consumes the invitation.
+        """
+        conn = self.get_connection()
+        conn.isolation_level = None  # explicit transaction, as in save_answer_transaction
+        cursor = conn.cursor()
+        try:
+            cursor.execute("BEGIN IMMEDIATE")
+            cursor.execute(
+                """
+                SELECT gi.id, gi.group_id, g.course_id, gi.used_by IS NOT NULL,
+                       gi.revoked_at IS NOT NULL, gi.expires_at <= datetime('now'),
+                       u.role = 'teacher' AND u.active = 1 AND u.approved = 1
+                FROM group_invitations gi
+                JOIN groups g ON g.id = gi.group_id
+                JOIN users u ON u.id = g.teacher_id
+                WHERE gi.token = ?
+                """,
+                (token,),
+            )
+            row = cursor.fetchone()
+            member = False
+            if row and row[2]:
+                cursor.execute(
+                    "SELECT 1 FROM enrollments WHERE user_id = ? AND course_id = ? AND group_id = ?",
+                    (user_id, row[2], row[1]),
+                )
+                member = cursor.fetchone() is not None
+            refusal = redemption_refusal(
+                found=bool(row and row[6]),
+                used=bool(row and row[3]),
+                revoked=bool(row and row[4]),
+                expired=bool(row and row[5]),
+                has_course=bool(row and row[2]),
+                already_member=member,
+            )
+            if refusal is None:
+                invitation_id, group_id, course_id = row[0], row[1], row[2]
+                cursor.execute(
+                    "UPDATE group_invitations SET used_by = ?, used_at = datetime('now')"
+                    " WHERE id = ? AND used_by IS NULL AND revoked_at IS NULL"
+                    " AND expires_at > datetime('now')",
+                    (user_id, invitation_id),
+                )
+                refusal = None if cursor.rowcount == 1 else USED
+            if refusal is not None:
+                conn.rollback()
+                return {"status": refusal, "course_id": None, "group_id": None}
+            self._enrol(cursor, user_id, course_id, group_id)
+            conn.commit()
+            return {"status": REDEEMED, "course_id": course_id, "group_id": group_id}
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
     def get_all_groups(self):
         """Lista todos los grupos con su docente y su número de estudiantes (vista del admin).
 
@@ -3440,6 +3646,14 @@ class SQLiteRepository:
         """
         conn = self.get_connection()
         cursor = conn.cursor()
+        self._enrol(cursor, user_id, course_id, group_id)
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def _enrol(cursor, user_id, course_id, group_id=None):
+        """The writes of `enroll_user`, inside the caller's transaction (also used when an
+        invitation is redeemed, spec 001 FR-028q)."""
         cursor.execute(
             "INSERT OR IGNORE INTO enrollments (user_id, course_id, group_id) VALUES (?, ?, ?)",
             (user_id, course_id, group_id),
@@ -3452,8 +3666,6 @@ class SQLiteRepository:
             )
             # Mantener users.group_id sincronizado (dashboard docente)
             cursor.execute("UPDATE users SET group_id = ? WHERE id = ?", (group_id, user_id))
-        conn.commit()
-        conn.close()
 
     def unenroll_user(self, user_id, course_id):
         """Elimina la matrícula de un usuario en un curso."""

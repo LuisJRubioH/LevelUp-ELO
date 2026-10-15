@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 
 from pydantic import BaseModel, Field, model_validator
 
+from src.domain.invitations import MAX_INVITATIONS_PER_REQUEST
+
 
 # ── Grupos ────────────────────────────────────────────────────────────────────
 
@@ -18,11 +20,39 @@ class CreateGroupRequest(BaseModel):
 
 
 class GroupResponse(BaseModel):
+    # No reusable invitation code: groups are joined with single-use invitations (spec 001
+    # FR-028u).
     group_id: int
     name: str
     course_id: str | None
-    invite_code: str | None
     student_count: int = 0
+
+
+# ── Invitaciones de un solo uso (spec 001, delivery INV) ──────────────────────
+
+
+class CreateInvitationsRequest(BaseModel):
+    count: int = Field(1, ge=1, le=MAX_INVITATIONS_PER_REQUEST)
+
+
+class CreatedInvitationsResponse(BaseModel):
+    tokens: list[str]  # XXXXX-XXXXX
+    ttl_days: int
+
+
+class InvitationView(BaseModel):
+    id: int
+    token: str  # XXXXX-XXXXX
+    status: str  # unused | used | expired | revoked (FR-028t)
+    created_at: str
+    expires_at: str
+    used_at: str | None = None
+    used_by_name: str | None = None  # the student's public name (spec 004 FR-023)
+
+
+class InvitationsResponse(BaseModel):
+    ttl_days: int
+    invitations: list[InvitationView]
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────

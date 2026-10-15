@@ -39,10 +39,12 @@ def _gradeless_semillero(repo):
 
 
 def _approved_teacher_group(repo, course_id):
+    """An approved teacher's group and one single-use invitation to it (delivery INV)."""
     teacher = make_teacher(repo)
     sql(repo, "UPDATE users SET approved = 1 WHERE id = ?", (teacher,))
     group_id = make_group(repo, teacher, course_id)
-    return group_id, repo.generate_group_invite_code(group_id)
+    (token,) = repo.create_group_invitations(teacher, group_id, 1, 30)
+    return group_id, token
 
 
 def _enrolled(repo, user_id):
@@ -149,8 +151,8 @@ def test_spec001_enrol_only_in_the_catalogue(repo, client, level, grade, outside
 
 
 def test_spec001_invitation_crosses_levels_without_changing_them(repo, client):
-    """US7-AS4: a grade-6 student joins a colegio group by its code: enrolled and able to
-    practise; level and grade unchanged; not current; overall rating unchanged."""
+    """US7-AS4: a grade-6 student joins a colegio group with one of its invitations: enrolled and
+    able to practise; level and grade unchanged; not current; overall rating unchanged."""
     student = make_student(repo, "semillero", "6")
     own = _semillero("6")[0]
     enroll(repo, student, own)
@@ -177,8 +179,8 @@ def test_spec001_invitation_crosses_levels_without_changing_them(repo, client):
 
 
 def test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation(repo, client):
-    """US7-AS5: no grade → a new invitation is refused; the rating reads "pending diagnostic";
-    the courses already enrolled stay open for practice."""
+    """US7-AS5: no grade → a new invitation is refused and left unused; the rating reads
+    "pending diagnostic"; the courses already enrolled stay open for practice."""
     student = _gradeless_semillero(repo)
     earlier = _semillero("6")[0]
     enroll(repo, student, earlier)
@@ -190,6 +192,7 @@ def test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation(repo
     )
 
     assert refused.status_code == 403, refused.text
+    assert sql(repo, "SELECT used_by FROM group_invitations WHERE token = ?", (code,)) == [(None,)]
     assert _enrolled(repo, student) == [earlier]
     assert _user(repo, student) == ("semillero", None)
     assert RatingReadService(repo).ratings_view(student)["overall_status"] == "pending_diagnostic"

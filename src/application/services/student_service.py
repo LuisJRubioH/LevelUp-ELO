@@ -14,6 +14,7 @@ from src.domain.entities import (
     VALID_LEVELS,
     valid_semillero_grade,
 )
+from src.domain.invitations import normalise_token
 from src.application.interfaces.repositories import IStudentRepository
 from src.application.services.rating_read_service import RatingReadService
 
@@ -305,25 +306,31 @@ class StudentService:
         """Enrol only in a course of the student's catalogue (spec 001 FR-028m).
 
         Raises PermissionError for any other course. It joins no group: groups, and courses
-        outside the catalogue, are reached through `enroll_by_invitation` and its code.
+        outside the catalogue, are reached through `enroll_by_invitation` and a single-use
+        invitation.
         """
         if course_id not in {c["id"] for c in self.get_available_courses(user_id)}:
             raise PermissionError("The course is not in the student's catalogue.")
         self.repository.enroll_user(user_id, course_id)
 
-    def enroll_by_invitation(self, user_id: int, group_id: int, course_id: str) -> None:
-        """Enrol in an invitation group's course, at any level (spec 001 FR-028l).
+    def enroll_by_invitation(self, user_id: int, code: str) -> dict:
+        """Redeem a single-use invitation: enrol in its group's course, at any level (spec 001
+        FR-028l, FR-028q … FR-028s).
 
-        A semillero student needs a grade first (PermissionError otherwise). Neither the level
-        nor the grade changes, and the course does not join the catalogue: it is accessible
-        but never current for the overall rating.
+        A semillero student needs a grade, checked before the invitation is touched
+        (PermissionError otherwise), so a refused student leaves it unused. What the student
+        typed is normalised (letter case, spaces and hyphens ignored); the repository consumes
+        the invitation and enrols in one transaction and returns {"status", "course_id",
+        "group_id"} — only "ok" consumed it. Neither the level nor the grade changes, and the
+        course does not join the catalogue: it is accessible but never current for the overall
+        rating.
         """
         level = (self.repository.get_education_level(user_id) or "").lower()
         if level == LEVEL_SEMILLERO and not valid_semillero_grade(
             self.repository.get_grade(user_id)
         ):
             raise PermissionError("A semillero student needs a grade to use an invitation.")
-        self.repository.enroll_user(user_id, course_id, group_id)
+        return self.repository.redeem_group_invitation(user_id, normalise_token(code))
 
     def ensure_enrolled(self, user_id: int, course_id: str) -> None:
         """Practice, answers and diagnostics only in an enrolled course (spec 001 FR-037, FR-037a).
