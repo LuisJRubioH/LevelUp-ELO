@@ -45,6 +45,8 @@ export function StudentLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const user = useAuthStore((s) => s.user);
+  // Spec 004 FR-022: the own display name, else the username.
+  const ownName = user?.display_name || user?.username;
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const queryClient = useQueryClient();
   const { theme, toggleTheme } = useThemeStore();
@@ -154,9 +156,9 @@ export function StudentLayout({ children }: { children: ReactNode }) {
 
         <div className="tc-foot">
           <div className="tc-user">
-            <div className="ava">{initials(user?.username ?? "?")}</div>
+            <div className="ava">{initials(ownName ?? "?")}</div>
             <div className="meta">
-              <b>{user?.username}</b>
+              <b>{ownName}</b>
               <span>
                 <span className="role">Estudiante</span>
                 {user?.education_level ? ` · ${user.education_level}` : ""}
@@ -174,6 +176,14 @@ export function StudentLayout({ children }: { children: ReactNode }) {
               🌐 {lang.toUpperCase()}
             </button>
           </div>
+          {/* Spec 004 FR-025: el estudiante cambia su nombre visible. */}
+          <button className="tc-logout" onClick={() => navigate("/mi-nombre")}>
+            Mi nombre
+          </button>
+          {/* Spec 004 FR-026: el propio usuario cambia su contraseña. */}
+          <button className="tc-logout" onClick={() => navigate("/cambiar-contrasena")}>
+            Cambiar contraseña
+          </button>
           <button className="tc-logout" onClick={handleLogout}>
             Cerrar sesión →
           </button>

@@ -7,7 +7,7 @@
 **Status**: Approved by the owner (2026-10-15). The approved decisions of blocks 4 and 8 that apply to every account,
 and those of the rate-limit store (owner, 2026-10-13 and 2026-10-14), are specified; the initial
 import's decisions live in spec 009 (owner, 2026-10-14). E1 and E6 are implemented and closed (their
-pull requests); E2, E3 and E5 are `planned`.
+pull requests), and so is E2 — display names, passwords and sessions. E3 and E5 are `planned`.
 
 **Input**: The owner's approved orders of 2026-10-13: block 4 (enrolment through Google Forms,
 account creation and access limits) with its clarifications P1–P15 and supplementary precisions,
@@ -47,6 +47,10 @@ The code whose behaviour this spec defines. A path shared with another spec belo
 - `frontend/src/stores/authStore.ts`
 - `frontend/src/pages/Login.tsx`
 - `frontend/src/pages/Admin/Users.tsx`
+- `frontend/src/pages/DisplayName.tsx` — the student's own display name
+- `frontend/src/pages/Teacher/Dashboard.tsx`, `frontend/src/pages/Teacher/Groups.tsx`,
+  `frontend/src/pages/Teacher/Procedures.tsx` — students by name in the teacher's views
+- `src/domain/identity.py` — the password rule, the name filter and the public name
 - `frontend/src/pages/Student/Stats.tsx`
 - `frontend/src/pages/Student/League.tsx`
 - `frontend/src/hooks/usePvpMatch.ts`
@@ -61,7 +65,7 @@ request that completes a delivery marks it `closed` and fills all its rows.
 | Delivery | Content | Order rule | State |
 |---|---|---|---|
 | **E1** | Public registration closed by default (one server setting, refused on the server, reflected by the screen); login limits per normalised account and global | Needed for the switch (LuisJRubioH/LevelUp-ELO#3). Built on LuisJRubioH/LevelUp-ELO#33, whose login-by-address limit it replaces. | closed |
-| **E2** | Display name everywhere classmates and teachers look; password change; security version that revokes tokens, renewals and persistent connections; admin password reset; teachers created by the admin | Before any real student is created (decision 5). Teachers created by the admin need its forced password change (N3). | planned |
+| **E2** | Display name everywhere classmates and teachers look; password change; security version that revokes tokens, renewals and persistent connections; admin password reset; teachers created by the admin | Before any real student is created (decision 5). Teachers created by the admin need its forced password change (N3). | closed |
 | **E3** | Students created one by one by the admin: own username, temporary password changed at first access, display name, existing group, optional last day (N13, N15); the expiry of any account that has a last day of access, also on open sessions and PvP, while an account without one never expires; the admin changes, extends or reactivates | Not merged before E2 is in production. | planned |
 | **E5** | Session renewal without third-party cookies (block 8): same-origin proxy, cookie scope, CSRF, no caching, revocation and expiry respected; Safari verified | After E2 (revocation). E3's tests include renewal of an expired account. | planned |
 | **E6** | Rate-limit store continuity (constitution 1.1.0): temporary memory fallback, timeouts, controlled recovery, no new allowance, health state | After LuisJRubioH/LevelUp-ELO#63; replaces the code of LuisJRubioH/LevelUp-ELO#59. Same file as E1: one after the other. | closed |
@@ -755,21 +759,21 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | US2-AS3 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_the_global_ceiling_refuses_every_extra_attempt` |
 | US2-AS4 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_a_refusal_does_not_reveal_whether_the_account_exists` |
 | US2-AS5 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_login_limits_follow_their_settings` |
-| US3-AS1 | E2 | `PENDING` |
-| US3-AS2 | E2 | `PENDING` |
-| US3-AS3 | E2 | `PENDING` |
-| US3-AS4 | E2 | `PENDING` |
-| US3-AS5 | E2 | `PENDING` |
-| US3-AS6 | E2 | `PENDING` |
-| US3-AS7 | E2 | `PENDING` |
-| US3-AS8 | E2 | `PENDING` |
-| US4-AS1 | E2 | `PENDING` |
-| US4-AS2 | E2 | `PENDING` |
-| US4-AS3 | E2 | `PENDING` |
-| US5-AS1 | E2 | `PENDING` |
-| US5-AS2 | E2 | `PENDING` |
-| US5-AS3 | E2 | `PENDING` |
-| US5-AS4 | E2 | `PENDING` |
+| US3-AS1 | E2 | `tests/integration/test_spec004_e2_display_names.py::test_spec004_group_ranking_shows_classmates_by_name`<br>`frontend/e2e/spec004-display-names.spec.ts › el ranking muestra a cada compañero por su nombre (spec 004 US3-AS1, FR-021)` |
+| US3-AS2 | E2 | `tests/integration/test_spec004_e2_display_names.py::test_spec004_pvp_rival_is_named_in_the_match`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_pvp_history_shows_the_rival_by_name`<br>`frontend/e2e/spec004-display-names.spec.ts › en la liga, el rival aparece por su nombre (spec 004 US3-AS2, FR-021)` |
+| US3-AS3 | E2 | `tests/integration/test_spec004_e2_display_names.py::test_spec004_group_ranking_shows_classmates_by_name`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_lists_carry_the_public_name` |
+| US3-AS4 | E2 | `tests/integration/test_spec004_e2_display_names.py::test_spec004_teacher_views_show_name_and_group`<br>`frontend/e2e/spec004-display-names.spec.ts › el panel docente muestra nombre y grupo, sin el usuario (spec 004 US3-AS4, FR-023)`<br>`frontend/e2e/spec004-display-names.spec.ts › los procedimientos pendientes muestran el nombre del estudiante (spec 004 US3-AS4)` |
+| US3-AS5 | E2 | `tests/integration/test_spec004_e2_display_names.py::test_spec004_admin_sees_username_and_display_name`<br>`frontend/e2e/spec004-display-names.spec.ts › el admin ve usuario y nombre, y corrige un nombre (spec 004 US3-AS5, US3-AS6)` |
+| US3-AS6 | E2 | `tests/integration/test_spec004_e2_display_names.py::test_spec004_admin_changes_a_students_name`<br>`frontend/e2e/spec004-display-names.spec.ts › el admin ve usuario y nombre, y corrige un nombre (spec 004 US3-AS5, US3-AS6)` |
+| US3-AS7 | E2 | `tests/integration/test_spec004_e2_display_names.py::test_spec004_student_changes_their_own_name`<br>`frontend/e2e/spec004-display-names.spec.ts › el estudiante cambia su propio nombre (spec 004 US3-AS7, FR-025)` |
+| US3-AS8 | E2 | `tests/integration/test_spec004_e2_display_names.py::test_spec004_registration_asks_students_for_a_name`<br>`frontend/e2e/spec004-display-names.spec.ts › el registro pide el nombre al estudiante (spec 004 US3-AS8, FR-020)` |
+| US4-AS1 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_password_change_replaces_it_and_keeps_this_session` |
+| US4-AS2 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_other_sessions_end_on_password_change`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_a_password_change_revokes_earlier_tokens` |
+| US4-AS3 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_a_refused_change_changes_nothing`<br>`frontend/e2e/spec004-passwords.spec.ts › el estudiante cambia su contraseña desde el menú (spec 004 US4-AS3, FR-026)` |
+| US5-AS1 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_admin_reset_gives_a_temporary_password_that_must_be_changed`<br>`frontend/e2e/spec004-passwords.spec.ts › una contraseña temporal se cambia antes de seguir (spec 004 US5-AS1, FR-030)`<br>`frontend/e2e/spec004-passwords.spec.ts › el admin restablece el acceso y crea un docente; ve la contraseña temporal una vez (spec 004 US5-AS1, US5-AS2)` |
+| US5-AS2 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_admin_creates_an_approved_teacher_with_a_temporary_password`<br>`frontend/e2e/spec004-passwords.spec.ts › el admin restablece el acceso y crea un docente; ve la contraseña temporal una vez (spec 004 US5-AS1, US5-AS2)` |
+| US5-AS3 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_account_audit_names_admin_account_and_time_never_the_password`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_reset_is_admin_only_and_audited_without_the_password` |
+| US5-AS4 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_only_the_admin_resets_access_or_creates_teachers` |
 | US6-AS1 | E3 | `PENDING` |
 | US6-AS2 | E3 | `PENDING` |
 | US6-AS3 | E3 | `PENDING` |
@@ -804,20 +808,20 @@ Nothing new is implemented yet; `[AS-IS]` rows cite the existing tests that pin 
 | FR-010 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_a_refusal_does_not_reveal_whether_the_account_exists` |
 | FR-011 | E1 | `tests/api/test_spec004_e1_login_limits.py::test_spec004_limits_keep_no_readable_identifier` |
 | FR-012 | E1 | `tests/api/test_production_config.py::test_insecure_production_configuration_is_rejected` |
-| FR-020 | E2 | `PENDING` |
-| FR-021 | E2 | `PENDING` |
-| FR-022 | E2 | `PENDING` |
-| FR-023 | E2 | `PENDING` |
-| FR-024 | E2 | `PENDING` |
-| FR-025 | E2 | `PENDING` |
-| FR-026 | E2 | `PENDING` |
-| FR-027 | E2 | `PENDING` |
-| FR-028 | E2 | `PENDING` |
-| FR-029 | E2 | `PENDING` |
-| FR-030 | E2 | `PENDING` |
-| FR-031 | E2 | `PENDING` |
-| FR-032 | E2 | `PENDING` |
-| FR-033 | E2 | `PENDING` |
+| FR-020 | E2 | `tests/unit/domain/test_spec004_display_names.py::test_spec004_display_name_is_trimmed_and_its_spaces_collapsed`<br>`tests/unit/domain/test_spec004_display_names.py::test_spec004_names_of_any_language_with_hyphens_are_accepted`<br>`tests/unit/domain/test_spec004_display_names.py::test_spec004_names_out_of_the_format_are_refused`<br>`tests/unit/domain/test_spec004_display_names.py::test_spec004_offensive_or_mocking_names_are_refused_in_spanish_and_english`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_register_user_keeps_a_normalised_display_name`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_registration_asks_students_for_a_name` |
+| FR-021 | E2 | `tests/unit/domain/test_spec004_display_names.py::test_spec004_the_name_others_see_is_the_display_name_else_the_username`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_group_ranking_shows_classmates_by_name`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_pvp_rival_is_named_in_the_match`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_pvp_history_shows_the_rival_by_name` |
+| FR-022 | E2 | `tests/unit/domain/test_spec004_display_names.py::test_spec004_the_name_others_see_is_the_display_name_else_the_username`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_lists_carry_the_public_name` |
+| FR-023 | E2 | `tests/integration/test_spec004_e2_display_names.py::test_spec004_teacher_views_show_name_and_group`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_lists_carry_the_public_name` |
+| FR-024 | E2 | `tests/integration/test_spec004_e2_display_names.py::test_spec004_admin_sees_username_and_display_name` |
+| FR-025 | E2 | `tests/integration/test_spec004_e2_display_names.py::test_spec004_set_display_name_rules_and_audit`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_admin_changes_a_students_name`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_student_changes_their_own_name` |
+| FR-026 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_password_change_replaces_it_and_keeps_this_session`<br>`tests/api/test_spec004_e2_passwords.py::test_spec004_a_refused_change_changes_nothing`<br>`tests/api/test_spec004_e2_passwords.py::test_spec004_password_change_attempts_count_against_the_account_limit`<br>`frontend/e2e/spec004-passwords.spec.ts › el estudiante cambia su contraseña desde el menú (spec 004 US4-AS3, FR-026)` |
+| FR-027 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_other_sessions_end_on_password_change`<br>`tests/api/test_spec004_e2_passwords.py::test_spec004_tokens_from_before_the_security_version_still_work`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_set_user_password_advances_the_security_version`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_account_columns_and_audit_table_are_additive` |
+| FR-028 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_password_change_replaces_it_and_keeps_this_session`<br>`tests/api/test_spec004_e2_passwords.py::test_spec004_other_sessions_end_on_password_change`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_a_password_change_revokes_earlier_tokens` |
+| FR-029 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_admin_reset_gives_a_temporary_password_that_must_be_changed`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_reset_is_admin_only_and_audited_without_the_password` |
+| FR-030 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_admin_reset_gives_a_temporary_password_that_must_be_changed`<br>`frontend/e2e/spec004-passwords.spec.ts › una contraseña temporal se cambia antes de seguir (spec 004 US5-AS1, FR-030)`<br>`frontend/e2e/spec004-passwords.spec.ts › si la API exige el cambio, la app lleva a la pantalla de cambio (spec 004 FR-030)` |
+| FR-031 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_admin_creates_an_approved_teacher_with_a_temporary_password`<br>`tests/api/test_spec004_e2_passwords.py::test_spec004_a_teacher_username_already_taken_is_refused`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_teacher_creation_is_admin_only_approved_and_audited` |
+| FR-032 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_account_audit_names_admin_account_and_time_never_the_password`<br>`tests/integration/test_spec004_e2_accounts.py::test_spec004_set_user_password_advances_the_security_version` |
+| FR-033 | E2 | `tests/api/test_spec004_e2_passwords.py::test_spec004_only_the_admin_resets_access_or_creates_teachers`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_set_display_name_rules_and_audit`<br>`tests/integration/test_spec004_e2_display_names.py::test_spec004_admin_changes_a_students_name` |
 | FR-040 | E3 | `PENDING` |
 | FR-043 | E3 | `PENDING` |
 | FR-044 | E3 | `PENDING` |

@@ -17,10 +17,13 @@ import random
 from dataclasses import dataclass, field
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
+from api.websocket import connections
 from starlette.websockets import WebSocketState
 
 from src.domain.elo.model import pvp_deltas
 from src.domain.elo.ranks import rating_display
+from src.domain.identity import public_name
 
 logger = logging.getLogger("api.pvp")
 
@@ -35,7 +38,7 @@ MATCH_DURATION = 180  # segundos
 @dataclass
 class LobbySlot:
     user_id: int
-    username: str
+    name: str  # what the rival sees: the display name, else the username (spec 004 FR-021)
     elo: float  # expectation only: 1000 when unrated (FR-029a) — never shown
     ws: WebSocket
     shown_elo: int | None = None  # what the opponent sees; None = pending diagnostic
@@ -213,7 +216,7 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
         if user["role"] != "student":
             raise ValueError("Solo estudiantes pueden entrar a PvP")
         user_id = user["user_id"]
-        username = user["username"]
+        name = public_name(user.get("display_name"), user["username"])
         # get_user_enrollments returns each course under "id" (both repositories); reading
         # "course_id" raised KeyError and shut every enrolled student out (follow-up F-5).
         enrollments = {
@@ -235,8 +238,10 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
     player_elo, shown_elo = _slot_ratings(course_rating)
 
     slot = LobbySlot(
-        user_id=user_id, username=username, elo=player_elo, ws=websocket, shown_elo=shown_elo
+        user_id=user_id, name=name, elo=player_elo, ws=websocket, shown_elo=shown_elo
     )
+    # Spec 004 FR-027: a password change or a reset closes this socket at once.
+    connections.register(user_id, websocket)
     match: ActiveMatch | None = None
     is_creator = False  # True = segundo en entrar (emite game_start y arranca timer)
 
@@ -367,11 +372,11 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
         await asyncio.gather(
             _send(match.p1.ws, {"type": "game_start", "match_id": match.match_id,
                                  "items": match.items,
-                                 "opponent": {"username": match.p2.username, "elo": match.p2.shown_elo},
+                                 "opponent": {"name": match.p2.name, "elo": match.p2.shown_elo},
                                  "duration_seconds": MATCH_DURATION}),
             _send(match.p2.ws, {"type": "game_start", "match_id": match.match_id,
                                  "items": match.items,
-                                 "opponent": {"username": match.p1.username, "elo": match.p1.shown_elo},
+                                 "opponent": {"name": match.p1.name, "elo": match.p1.shown_elo},
                                  "duration_seconds": MATCH_DURATION}),
         )
         timer_task = asyncio.create_task(_timer(match, repo))

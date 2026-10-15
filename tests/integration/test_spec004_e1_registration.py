@@ -19,6 +19,7 @@ def _body(role="student"):
         "password": "password123",
         "role": role,
         "education_level": "colegio",
+        "display_name": "Ana Ruiz",  # spec 004 FR-020: students register with a name
     }
 
 

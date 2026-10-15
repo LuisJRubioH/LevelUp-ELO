@@ -128,6 +128,7 @@ function Field({
 export function Login() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const setMustChangePassword = useAuthStore((s) => s.setMustChangePassword);
   const queryClient = useQueryClient();
 
   const [lang, setLang] = useState<Lang>(() => ((localStorage.getItem(LS_LANG) as Lang) || "es"));
@@ -166,6 +167,8 @@ export function Login() {
 
   // signup
   const [suName, setSuName] = useState("");
+  // Spec 004 FR-020: the name classmates and teachers will see (students only).
+  const [suDisplay, setSuDisplay] = useState("");
   const [suEmail, setSuEmail] = useState("");
   const [suPw, setSuPw] = useState("");
   const [suPw2, setSuPw2] = useState("");
@@ -192,9 +195,12 @@ export function Login() {
       education_level: null,
       grade: null,
       email: null,
+      display_name: res.display_name ?? null,
     });
     const profile = await authApi.me();
     setAuth(res.access_token, profile as AuthUser);
+    // Spec 004 FR-030: a temporary password (reset or new teacher) is changed first.
+    setMustChangePassword(Boolean(res.must_change_password));
     return res;
   };
 
@@ -204,6 +210,10 @@ export function Login() {
     setLoading(true);
     try {
       const res = await finishLogin(loginUser, loginPw);
+      if (res.must_change_password) {
+        navigate("/cambiar-contrasena");
+        return;
+      }
       navigate(res.role === "teacher" ? "/teacher" : res.role === "admin" ? "/admin" : "/student");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t({ es: "Credenciales inválidas.", en: "Invalid credentials." }));
@@ -233,6 +243,7 @@ export function Login() {
         role,
         education_level: role === "student" ? eduLevel : undefined,
         grade: role === "student" && eduLevel === "semillero" ? grade : undefined,
+        display_name: role === "student" ? suDisplay : undefined,
       });
       if (role === "teacher") {
         changeMode("login");
@@ -512,6 +523,19 @@ export function Login() {
 
                   {role === "student" && (
                     <>
+                      <Field
+                        label={t({ es: "Tu nombre", en: "Your name" })}
+                        lead="🪪"
+                        placeholder={t({ es: "Como te verán tus compañeros", en: "As classmates will see you" })}
+                        value={suDisplay}
+                        onChange={setSuDisplay}
+                        required
+                        minLength={2}
+                        autoComplete="name"
+                        showLabel={showPw}
+                        hideLabel={hidePw}
+                        lang={lang}
+                      />
                       <div className="field">
                         <label>{t({ es: "Nivel educativo", en: "Education level" })}</label>
                         <div className="level-seg">
@@ -613,7 +637,11 @@ export function Login() {
                 </div>
               )}
 
-              {error && <div className="auth-msg error">{error}</div>}
+              {error && (
+                <div className="auth-msg error" role="alert">
+                  {error}
+                </div>
+              )}
               {info && <div className="auth-msg info">{info}</div>}
 
               <button type="submit" className="auth-submit" disabled={loading}>

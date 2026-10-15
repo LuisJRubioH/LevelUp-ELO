@@ -32,6 +32,7 @@ def test_login_with_an_email_as_long_as_registration_accepts(repo, client, monke
             "password": "secret12",
             "education_level": "colegio",
             "email": email,
+            "display_name": "Correo Largo",
         },
     )
     assert registered.status_code == 201, registered.text

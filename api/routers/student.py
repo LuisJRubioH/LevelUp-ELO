@@ -29,6 +29,7 @@ from api.dependencies import (
 from api.rate_limit import limiter
 from api.config import settings
 from api.upload_validation import read_validated_upload
+from api.schemas.auth import DisplayNameRequest
 from api.schemas.student import (
     AnswerRequest,
     AnswerResponse,
@@ -311,8 +312,23 @@ def course_blocks(course_id: str, user: CurrentUser, repo: RepoDep):
 
 @router.get("/pvp/history")
 def pvp_history(user: CurrentUser, repo: RepoDep):
-    """Historial de partidas PvP del estudiante autenticado."""
+    """Historial de partidas PvP del estudiante autenticado; el rival, por su nombre visible
+    (spec 004 FR-021)."""
     return repo.get_pvp_history(user["user_id"])
+
+
+@router.put("/display-name")
+def change_display_name(body: DisplayNameRequest, user: CurrentUser, repo: RepoDep):
+    """Spec 004 FR-025: the student changes their own display name, under the name filter
+    (FR-020); the change is recorded. No display name is decided for teachers."""
+    if user["role"] != "student":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Solo los estudiantes tienen nombre visible."
+        )
+    ok, message = repo.set_display_name(user["user_id"], user["user_id"], body.display_name)
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+    return {"display_name": message}
 
 
 @router.post("/enroll", status_code=status.HTTP_201_CREATED)
@@ -425,7 +441,15 @@ def ranking_response(repo, view: dict, user_id: int) -> dict:
     basis = dict(view["basis"])
     names = {c["id"]: c["name"] for c in repo.get_courses()}
     basis["course_name"] = names.get(basis["course_id"]) if basis["course_id"] else None
-    ranking = [{**e, "global_elo": e["rating"], "rank_pos": e["rank"]} for e in view["entries"]]
+    # Spec 004 FR-021: classmates by `name`; the username of a named student never leaves.
+    ranking = [
+        {
+            **{k: v for k, v in e.items() if k != "username"},
+            "global_elo": e["rating"],
+            "rank_pos": e["rank"],
+        }
+        for e in view["entries"]
+    ]
     my_rank = next((e["rank"] for e in ranking if e["user_id"] == user_id), None)
     return {"basis": basis, "ranking": ranking, "my_rank": my_rank}
 

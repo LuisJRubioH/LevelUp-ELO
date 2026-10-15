@@ -49,8 +49,8 @@ class FakeRepo:
 
 
 def _make_match(score_p1, score_p2, elo_p1=1000.0, elo_p2=1000.0):
-    p1 = LobbySlot(user_id=1, username="uno", elo=elo_p1, ws=FakeWS())
-    p2 = LobbySlot(user_id=2, username="dos", elo=elo_p2, ws=FakeWS())
+    p1 = LobbySlot(user_id=1, name="uno", elo=elo_p1, ws=FakeWS())
+    p2 = LobbySlot(user_id=2, name="dos", elo=elo_p2, ws=FakeWS())
     return ActiveMatch(
         match_id=99,
         course_id="curso",

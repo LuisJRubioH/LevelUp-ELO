@@ -22,6 +22,8 @@ class RegisterRequest(BaseModel):
     )
     grade: str | None = Field(default=None, pattern="^([6-9]|10|11)$")
     email: str | None = Field(default=None, max_length=254)
+    # Spec 004 FR-020 (N11): required of students, checked by the name filter in the endpoint.
+    display_name: str | None = Field(default=None, max_length=200)
 
     @model_validator(mode="after")
     def _semillero_needs_a_grade(self):
@@ -38,6 +40,17 @@ class TokenResponse(BaseModel):
     user_id: int
     username: str
     role: str
+    # Spec 004 FR-030: a temporary password must be changed before anything else.
+    must_change_password: bool = False
+    # Spec 004 FR-020: the account's own display name (None on existing accounts).
+    display_name: str | None = None
+
+
+class PasswordChangeRequest(BaseModel):
+    """Spec 004 FR-026. No length rule here: a 422 would echo the password back in its body."""
+
+    current_password: str
+    new_password: str
 
 
 class RefreshRequest(BaseModel):
@@ -52,3 +65,11 @@ class UserProfile(BaseModel):
     education_level: str | None
     grade: str | None
     email: str | None = None
+    must_change_password: bool = False
+    display_name: str | None = None
+
+
+class DisplayNameRequest(BaseModel):
+    """Spec 004 FR-025: a new display name, checked by the name filter (FR-020)."""
+
+    display_name: str = Field(..., max_length=200)

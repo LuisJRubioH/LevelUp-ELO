@@ -177,7 +177,7 @@ def pending_procedures(user: CurrentUser, repo: RepoDep):
             PendingProcedure(
                 submission_id=row.get("id", 0),
                 student_id=row.get("student_id") or row.get("user_id", 0),
-                student_username=row.get("student_name") or row.get("username", ""),
+                student_name=row.get("student_name") or "",
                 item_id=row.get("item_id", ""),
                 item_content=row.get("item_content"),
                 ai_score=row.get("ai_proposed_score"),

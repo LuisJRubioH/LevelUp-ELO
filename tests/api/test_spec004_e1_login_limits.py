@@ -140,7 +140,11 @@ def test_spec004_registration_has_its_own_per_address_limit(api_client, monkeypa
     statuses = [
         api_client.post(
             "/api/auth/register",
-            json={"username": "e1_" + uuid.uuid4().hex[:10], "password": "password123"},
+            json={
+                "username": "e1_" + uuid.uuid4().hex[:10],
+                "password": "password123",
+                "display_name": "Ana Ruiz",
+            },
         ).status_code
         for _ in range(4)
     ]

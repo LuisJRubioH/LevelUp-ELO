@@ -184,7 +184,7 @@ Oulad
           )}
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-400 truncate max-w-[80px]">{user?.username}</span>
+          <span className="text-xs text-slate-400 truncate max-w-[80px]">{user?.display_name || user?.username}</span>
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"
@@ -306,7 +306,7 @@ Oulad
 
         {/* Usuario + timer + logout */}
         <div className="px-4 py-4 border-t border-slate-700">
-          <div className="text-xs text-slate-300 font-medium truncate mb-0.5">{user?.username}</div>
+          <div className="text-xs text-slate-300 font-medium truncate mb-0.5">{user?.display_name || user?.username}</div>
           <div className="text-xs text-slate-600 mb-0.5">{user?.role}</div>
           {user?.education_level && (
             <div className="text-xs text-slate-600 mb-1">
@@ -382,6 +382,13 @@ Oulad
           </div>
           {/* PWA install deshabilitada — la plataforma se usa solo desde
               navegador. Ver guard global en App.tsx (beforeinstallprompt). */}
+          {/* Spec 004 FR-026: el propio usuario cambia su contraseña. */}
+          <button
+            onClick={() => navigate("/cambiar-contrasena")}
+            className="block text-xs text-slate-500 hover:text-slate-300 transition-colors mb-1"
+          >
+            Cambiar contraseña
+          </button>
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"

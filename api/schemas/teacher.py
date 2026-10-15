@@ -71,7 +71,8 @@ class GradeResponse(BaseModel):
 class PendingProcedure(BaseModel):
     submission_id: int
     student_id: int
-    student_username: str
+    # Spec 004 FR-023: the display name, else the username (N5).
+    student_name: str
     item_id: str
     item_content: str | None
     ai_score: float | None

@@ -253,7 +253,12 @@ def test_postgres_cookie_refresh_and_immediate_account_revocation(postgres_conte
     assert (
         client.post(
             "/api/auth/register",
-            json={"username": username, "password": "password123", "role": "student"},
+            json={
+                "username": username,
+                "password": "password123",
+                "role": "student",
+                "display_name": "Sesión Revocada",
+            },
         ).status_code
         == 201
     )
