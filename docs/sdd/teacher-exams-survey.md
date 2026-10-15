@@ -175,7 +175,8 @@ None blocks the transfer (PR #3).
 9. **The procedures queue (T15).** Should it follow the item's course or the student's group? What
    happens to inactive or test students, and to a submission whose student has no group?
 10. **AI score as the starting grade (T16).** Keep it, or start the slider empty?
-11. **Exam grace period (#39).** 30 seconds was my choice. Keep it or change it?
+11. **Exam grace period (#39).** 30 seconds was my choice. Keep it or change it? **Answered
+    (owner, 2026-10-15): keep 30 seconds.**
 
 ## 6. Proposed scope for spec 006 (draft)
 
