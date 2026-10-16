@@ -148,8 +148,11 @@ SQLite y PostgreSQL mantienen **API pública idéntica**. Cualquier cambio en un
 otro; `python scripts/db_sync_check.py` es obligatorio antes de un commit que toque repositorios.
 
 Ese verificador compara texto, firmas y DDL: **no demuestra equivalencia de resultados**. Para eso
-está `tests/integration/test_elo_single_source.py`, parametrizado sobre los dos motores; el job
-`test-postgres` de CI levanta un PostgreSQL efímero y ejecuta la rama PostgreSQL.
+están los fixtures `repo` y `client` de `tests/integration/conftest.py`: cada test que los usa
+corre sobre SQLite y, si `POSTGRES_TEST_DATABASE_URL` apunta a una base local desechable, también
+sobre PostgreSQL. El job `test-postgres` de CI levanta un PostgreSQL efímero y ejecuta
+`tests/integration/` completo. Los tests de `tests/api/` corren solo sobre SQLite; un endpoint se
+prueba sobre los dos motores con el fixture `client`.
 
 ### Migraciones
 
