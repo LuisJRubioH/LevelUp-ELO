@@ -254,7 +254,7 @@ export function Stats() {
                 <div key={r.user_id} className={`sp-row${isMe ? " me" : ""}`}>
                   <span className="pos">{medal ?? (r.rank === null ? "—" : `#${r.rank}`)}</span>
                   <span className={`nm${isMe ? " me" : ""}`}>
-                    {r.username} {isMe && t("stats.you")}
+                    {r.name} {isMe && t("stats.you")}
                   </span>
                   <span className="val">{r.rating ?? t("rating.pending")}</span>
                 </div>

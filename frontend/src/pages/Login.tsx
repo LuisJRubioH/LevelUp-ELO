@@ -14,11 +14,13 @@
  * deshabilitados/no operativos para no prometer lo que no existe.
  */
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { authApi } from "../api/auth";
 import { studentApi } from "../api/student";
+import { prepareClientForAccount } from "../lib/accountCleanup";
 import { useAuthStore } from "../stores/authStore";
 import type { AuthUser } from "../stores/authStore";
 import "./Login.css";
@@ -126,6 +128,8 @@ function Field({
 export function Login() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const setMustChangePassword = useAuthStore((s) => s.setMustChangePassword);
+  const queryClient = useQueryClient();
 
   const [lang, setLang] = useState<Lang>(() => ((localStorage.getItem(LS_LANG) as Lang) || "es"));
   const t = (b: Bi) => (lang === "es" ? b.es : b.en);
@@ -136,6 +140,19 @@ export function Login() {
   };
 
   const [mode, setMode] = useState<Mode>("login");
+  // Spec 004 FR-003: sign-up is offered only while the server says public registration is open;
+  // closed by default, and an error reads as closed.
+  const [registrationOpen, setRegistrationOpen] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    authApi
+      .registration()
+      .then((r) => alive && setRegistrationOpen(r.enabled === true))
+      .catch(() => alive && setRegistrationOpen(false));
+    return () => {
+      alive = false;
+    };
+  }, []);
   const [role, setRole] = useState<Role>("student");
   const [level, setLevel] = useState<DesignLevel>("secundaria");
   const [grade, setGrade] = useState("9");
@@ -150,6 +167,8 @@ export function Login() {
 
   // signup
   const [suName, setSuName] = useState("");
+  // Spec 004 FR-020: the name classmates and teachers will see (students only).
+  const [suDisplay, setSuDisplay] = useState("");
   const [suEmail, setSuEmail] = useState("");
   const [suPw, setSuPw] = useState("");
   const [suPw2, setSuPw2] = useState("");
@@ -167,6 +186,8 @@ export function Login() {
 
   const finishLogin = async (username: string, password: string) => {
     const res = await authApi.login({ username, password });
+    // Otra cuenta no debe dejar sus datos ni su API key a esta; la misma que vuelve conserva los suyos.
+    await prepareClientForAccount(queryClient, res.user_id);
     setAuth(res.access_token, {
       user_id: res.user_id,
       username: res.username,
@@ -174,9 +195,12 @@ export function Login() {
       education_level: null,
       grade: null,
       email: null,
+      display_name: res.display_name ?? null,
     });
     const profile = await authApi.me();
     setAuth(res.access_token, profile as AuthUser);
+    // Spec 004 FR-030: a temporary password (reset or new teacher) is changed first.
+    setMustChangePassword(Boolean(res.must_change_password));
     return res;
   };
 
@@ -186,6 +210,10 @@ export function Login() {
     setLoading(true);
     try {
       const res = await finishLogin(loginUser, loginPw);
+      if (res.must_change_password) {
+        navigate("/cambiar-contrasena");
+        return;
+      }
       navigate(res.role === "teacher" ? "/teacher" : res.role === "admin" ? "/admin" : "/student");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t({ es: "Credenciales inválidas.", en: "Invalid credentials." }));
@@ -215,6 +243,7 @@ export function Login() {
         role,
         education_level: role === "student" ? eduLevel : undefined,
         grade: role === "student" && eduLevel === "semillero" ? grade : undefined,
+        display_name: role === "student" ? suDisplay : undefined,
       });
       if (role === "teacher") {
         changeMode("login");
@@ -325,9 +354,11 @@ export function Login() {
                 <button className={mode === "login" ? "on" : ""} onClick={() => changeMode("login")}>
                   {t({ es: "Iniciar sesión", en: "Log in" })}
                 </button>
-                <button className={mode === "signup" ? "on" : ""} onClick={() => changeMode("signup")}>
-                  {t({ es: "Crear cuenta", en: "Sign up" })}
-                </button>
+                {registrationOpen && (
+                  <button className={mode === "signup" ? "on" : ""} onClick={() => changeMode("signup")}>
+                    {t({ es: "Crear cuenta", en: "Sign up" })}
+                  </button>
+                )}
               </div>
               <span className="auth-lang" role="group" aria-label="Idioma">
                 <button className={lang === "es" ? "on" : ""} onClick={() => switchLang("es")}>
@@ -339,7 +370,7 @@ export function Login() {
               </span>
             </div>
 
-            <form className="auth-form" onSubmit={mode === "login" ? handleLogin : handleSignup}>
+            <form className="auth-form" onSubmit={mode === "signup" && registrationOpen ? handleSignup : handleLogin}>
               <span className="auth-eyebrow">
                 {t(
                   mode === "login"
@@ -492,6 +523,19 @@ export function Login() {
 
                   {role === "student" && (
                     <>
+                      <Field
+                        label={t({ es: "Tu nombre", en: "Your name" })}
+                        lead="🪪"
+                        placeholder={t({ es: "Como te verán tus compañeros", en: "As classmates will see you" })}
+                        value={suDisplay}
+                        onChange={setSuDisplay}
+                        required
+                        minLength={2}
+                        autoComplete="name"
+                        showLabel={showPw}
+                        hideLabel={hidePw}
+                        lang={lang}
+                      />
                       <div className="field">
                         <label>{t({ es: "Nivel educativo", en: "Education level" })}</label>
                         <div className="level-seg">
@@ -593,7 +637,11 @@ export function Login() {
                 </div>
               )}
 
-              {error && <div className="auth-msg error">{error}</div>}
+              {error && (
+                <div className="auth-msg error" role="alert">
+                  {error}
+                </div>
+              )}
               {info && <div className="auth-msg info">{info}</div>}
 
               <button type="submit" className="auth-submit" disabled={loading}>
@@ -619,12 +667,18 @@ export function Login() {
                 </button>
               </div>
 
-              <div className="auth-switch">
-                {t(mode === "login" ? { es: "¿Aún no tienes cuenta?", en: "No account yet?" } : { es: "¿Ya tienes cuenta?", en: "Already have an account?" })}
-                <button type="button" onClick={() => changeMode(mode === "login" ? "signup" : "login")}>
-                  {t(mode === "login" ? { es: "Crear cuenta", en: "Sign up" } : { es: "Iniciar sesión", en: "Log in" })}
-                </button>
-              </div>
+              {registrationOpen ? (
+                <div className="auth-switch">
+                  {t(mode === "login" ? { es: "¿Aún no tienes cuenta?", en: "No account yet?" } : { es: "¿Ya tienes cuenta?", en: "Already have an account?" })}
+                  <button type="button" onClick={() => changeMode(mode === "login" ? "signup" : "login")}>
+                    {t(mode === "login" ? { es: "Crear cuenta", en: "Sign up" } : { es: "Iniciar sesión", en: "Log in" })}
+                  </button>
+                </div>
+              ) : (
+                <div className="auth-switch" data-testid="registration-closed">
+                  {t({ es: "¿Aún no tienes cuenta? Tu cuenta la crea tu colegio.", en: "No account yet? Your school creates it." })}
+                </div>
+              )}
             </form>
           </div>
         </main>

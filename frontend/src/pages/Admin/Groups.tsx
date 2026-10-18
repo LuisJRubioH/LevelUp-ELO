@@ -7,6 +7,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { ApiError } from "../../api/client";
 import { adminApi } from "../../api/teacher";
 import type { AdminGroup } from "../../api/teacher";
 import { Button } from "../../components/ui/Button";
@@ -26,8 +27,8 @@ function GroupRow({
   return (
     <tr className="hover:bg-slate-700/30 transition-colors">
       <td className="px-4 py-3 text-slate-100 text-sm font-medium">{group.name}</td>
-      <td className="px-4 py-3 text-slate-400 text-sm">{group.teacher_username ?? `ID ${group.teacher_id}`}</td>
-      <td className="px-4 py-3 text-center text-slate-300 text-sm">{group.student_count ?? "—"}</td>
+      <td className="px-4 py-3 text-slate-400 text-sm">{group.teacher_name}</td>
+      <td className="px-4 py-3 text-center text-slate-300 text-sm">{group.student_count}</td>
       <td className="px-4 py-3">
         {confirm ? (
           <div className="flex items-center gap-2">
@@ -59,6 +60,7 @@ export function AdminGroups() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-groups"],
@@ -72,10 +74,19 @@ export function AdminGroups() {
       qc.invalidateQueries({ queryKey: ["admin-groups"] });
       setDeletingId(null);
     },
-    onError: () => setDeletingId(null),
+    onError: (err) => {
+      setDeletingId(null);
+      // A refusal (unknown group) comes with its reason; anything else gets the generic text.
+      setDeleteError(
+        err instanceof ApiError && err.status >= 400 && err.status < 500
+          ? err.detail
+          : t("adminGroups.deleteError"),
+      );
+    },
   });
 
   const handleDelete = (group_id: number) => {
+    setDeleteError(null);
     setDeletingId(group_id);
     deleteMutation.mutate(group_id);
   };
@@ -103,6 +114,15 @@ export function AdminGroups() {
       <div className="bg-amber-900/20 border border-amber-700/30 rounded-lg px-4 py-2 text-xs text-amber-300">
         {t("adminGroups.warning")}
       </div>
+
+      {deleteError && (
+        <div
+          role="alert"
+          className="bg-red-900/20 border border-red-700/30 rounded-lg px-4 py-2 text-xs text-red-300"
+        >
+          {deleteError}
+        </div>
+      )}
 
       <input
         type="text"

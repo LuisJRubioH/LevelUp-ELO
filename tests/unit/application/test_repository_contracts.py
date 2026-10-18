@@ -25,6 +25,7 @@ import pathlib
 import pytest
 
 from src.application.interfaces.repositories import (
+    IAccountRepository,
     IAdminRepository,
     IRatingReadRepository,
     IStudentRepository,
@@ -34,7 +35,13 @@ from src.infrastructure.persistence.postgres_repository import PostgresRepositor
 from src.infrastructure.persistence.sqlite_repository import SQLiteRepository
 
 REPOS = [SQLiteRepository, PostgresRepository]
-PROTOCOLS = [IStudentRepository, ITeacherRepository, IRatingReadRepository, IAdminRepository]
+PROTOCOLS = [
+    IStudentRepository,
+    ITeacherRepository,
+    IRatingReadRepository,
+    IAdminRepository,
+    IAccountRepository,
+]
 
 _SRC = pathlib.Path(__file__).resolve().parents[3] / "src"
 

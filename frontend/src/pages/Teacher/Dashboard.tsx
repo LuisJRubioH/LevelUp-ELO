@@ -84,13 +84,13 @@ function StudentsView({
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"elo" | "acc" | "name">("elo");
   const rows = useMemo(() => {
-    let r = students.filter((s) => s.username.toLowerCase().includes(q.toLowerCase()));
+    let r = students.filter((s) => s.name.toLowerCase().includes(q.toLowerCase()));
     r = [...r].sort((a, b) =>
       sort === "elo"
         ? byRatingDesc(a, b)
         : sort === "acc"
         ? toPct(b.accuracy) - toPct(a.accuracy)
-        : a.username.localeCompare(b.username)
+        : a.name.localeCompare(b.name)
     );
     return r;
   }, [students, q, sort]);
@@ -137,10 +137,10 @@ function StudentsView({
             return (
               <div className="stu-row" key={s.user_id}>
                 <div className="stu-id">
-                  <div className="av" style={{ background: avaFor(s.username) }}>{initials(s.username)}</div>
+                  <div className="av" style={{ background: avaFor(s.name) }}>{initials(s.name)}</div>
                   <div className="nm">
-                    <b>{s.username}</b>
-                    <span>@{s.username}</span>
+                    <b>{s.name}</b>
+                    <span>{s.education_level ?? ""}</span>
                   </div>
                 </div>
                 <div className="stu-group">
@@ -215,12 +215,12 @@ function RankingView({ students }: { students: StudentSummary[] }) {
                       color: "#fff",
                       fontFamily: "var(--font-display)",
                       fontWeight: 700,
-                      background: avaFor(s.username),
+                      background: avaFor(s.name),
                     }}
                   >
-                    {initials(s.username)}
+                    {initials(s.name)}
                   </div>
-                  <div className="pname">{s.username}</div>
+                  <div className="pname">{s.name}</div>
                   <div className="pelo">{fmtRating(s.display_rating)}</div>
                   <RankPill label={rk} />
                 </div>
@@ -232,9 +232,9 @@ function RankingView({ students }: { students: StudentSummary[] }) {
               <div className="rank-line" key={s.user_id}>
                 <div className="pos">{i + 4}</div>
                 <div className="who">
-                  <div className="av" style={{ background: avaFor(s.username) }}>{initials(s.username)}</div>
+                  <div className="av" style={{ background: avaFor(s.name) }}>{initials(s.name)}</div>
                   <div>
-                    <b>{s.username}</b>{" "}
+                    <b>{s.name}</b>{" "}
                     <span style={{ color: "var(--mute)", fontSize: 12 }}>· {s.group_name ?? "Sin grupo"}</span>
                   </div>
                 </div>
@@ -293,6 +293,12 @@ function MetricsView({ students }: { students: StudentSummary[] }) {
 
   return (
     <div className="metrics-grid">
+      {metricsQ.isError && (
+        // Without this the cards below read «Sin datos…» as if nothing had been practised.
+        <p className="gm-err" role="alert" style={{ gridColumn: "1 / -1", margin: 0 }}>
+          No pudimos cargar las métricas de actividad y tópicos. Inténtalo de nuevo más tarde.
+        </p>
+      )}
       <div className="metric-card">
         <h4>Dominio por tópico</h4>
         <div className="mc-sub">Acierto promedio de los estudiantes en cada curso</div>
@@ -370,9 +376,9 @@ function MetricsView({ students }: { students: StudentSummary[] }) {
         ) : (
           attn.map((s) => (
             <div className="attn-row" key={s.user_id}>
-              <div className="av" style={{ background: avaFor(s.username) }}>{initials(s.username)}</div>
+              <div className="av" style={{ background: avaFor(s.name) }}>{initials(s.name)}</div>
               <div className="ab">
-                <b>{s.username}</b>
+                <b>{s.name}</b>
                 <span>
                   ELO {fmtRating(s.display_rating)} · {toPct(s.accuracy)}% acierto
                 </span>
@@ -411,13 +417,13 @@ function StudentDrawer({ student, onClose }: { student: StudentSummary; onClose:
   return (
     <>
       <div className="stu-backdrop" onClick={onClose} />
-      <aside className="stu-drawer" role="dialog" aria-label={`Perfil de ${student.username}`}>
+      <aside className="stu-drawer" role="dialog" aria-label={`Perfil de ${student.name}`}>
         <div className="sd-head">
           <div className="sd-htop">
             <div className="sd-who">
-              <div className="av" style={{ background: avaFor(student.username) }}>{initials(student.username)}</div>
+              <div className="av" style={{ background: avaFor(student.name) }}>{initials(student.name)}</div>
               <div className="nm">
-                <b>{student.username}</b>
+                <b>{student.name}</b>
                 <span>{student.group_name ?? "Sin grupo"}</span>
               </div>
             </div>
@@ -455,7 +461,7 @@ function StudentDrawer({ student, onClose }: { student: StudentSummary; onClose:
             <div className="sd-ai-out">{analysis}</div>
           ) : (
             <p className="sd-ai-hint">
-              Genera un resumen del desempeño de {student.username} y recomendaciones pedagógicas a partir de su
+              Genera un resumen del desempeño de {student.name} y recomendaciones pedagógicas a partir de su
               actividad reciente. Usa la API de IA configurada en la barra lateral.
             </p>
           )}

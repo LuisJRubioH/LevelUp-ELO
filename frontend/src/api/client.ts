@@ -36,6 +36,9 @@ export function isNetworkError(err: unknown): err is NetworkError {
   return err instanceof NetworkError;
 }
 
+/** The API's refusal while a temporary password is pending (api/dependencies.py). */
+export const PASSWORD_CHANGE_REQUIRED = "Debes cambiar tu contraseña temporal antes de continuar.";
+
 let refreshPromise: Promise<string | null> | null = null;
 
 async function refreshAccessToken(): Promise<string | null> {
@@ -100,6 +103,26 @@ async function safeFetchWithRetry(
   }
 }
 
+/**
+ * fetch al API con el token de la sesión, que se renueva una vez ante un 401 como en `request`.
+ * Para respuestas que se leen como stream (el SSE de KatIA): devuelve la Response tal cual.
+ */
+export async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const { useAuthStore } = await import("../stores/authStore");
+  const send = (token: string | null) => {
+    const headers = new Headers(init.headers);
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    return safeFetchWithRetry(`${API_BASE}${path}`, { ...init, headers, credentials: "include" });
+  };
+  const token = useAuthStore.getState().accessToken;
+  const res = await send(token);
+  if (res.status === 401 && token) {
+    const renewed = await refreshAccessToken();
+    if (renewed) return send(renewed);
+  }
+  return res;
+}
+
 async function request<T>(
   method: string,
   path: string,
@@ -136,6 +159,10 @@ async function request<T>(
       detail = err.detail ?? detail;
     } catch {
       /* ignorar */
+    }
+    if (res.status === 403 && detail === PASSWORD_CHANGE_REQUIRED) {
+      // Spec 004 FR-030: the route guards send the user to the password change.
+      useAuthStore.getState().setMustChangePassword(true);
     }
     throw new ApiError(res.status, detail);
   }
@@ -178,6 +205,10 @@ async function requestForm<T>(
     } catch {
       /* ignorar */
     }
+    if (res.status === 403 && detail === PASSWORD_CHANGE_REQUIRED) {
+      // Spec 004 FR-030: the route guards send the user to the password change.
+      useAuthStore.getState().setMustChangePassword(true);
+    }
     throw new ApiError(res.status, detail);
   }
 
@@ -191,6 +222,7 @@ export const api = {
   postWithHeaders: <T>(path: string, body: unknown, headers: Record<string, string>) =>
     request<T>("POST", path, body, headers),
   patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
+  put: <T>(path: string, body?: unknown) => request<T>("PUT", path, body),
   delete: <T>(path: string) => request<T>("DELETE", path),
   postForm: <T>(path: string, formData: FormData) => requestForm<T>(path, formData),
 };

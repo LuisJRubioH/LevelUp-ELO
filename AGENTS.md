@@ -146,13 +146,25 @@ process.** Until that is automated, follow this sequence by hand, one commit per
 
 The traceability gates are checked in CI by `scripts/check_traceability.py` (job "Trazabilidad
 spec → tests"): one row per FR and scenario, every cited test collected, passing and not skipped.
-`PENDING` is accepted on a docs PR and rejected on any PR that is a **code change for the spec**,
-whatever its branch: one that changes a non-document file (not under `specs/` or `docs/`, not
-`.md`) matching the spec's `## Code Scope`, or a test file its § Traceability cites, or any
-non-document file together with the spec's own directory. Every spec declares a non-empty Code
-Scope whose entries each name a tracked file. The check is per spec, not per row: while a spec has
-`PENDING` rows on the base branch, every PR that changes its code fails until the PR that closes
-them lands — so a spec carries one amendment in flight at a time.
+A requirement or scenario is recognised **whatever its Markdown formatting**: any line opening with
+its ID followed by `[`, `:` or a dash defines it, and an ID mentioned anywhere else in the spec
+(outside § Traceability and the appendix) must be defined — another spec's ID is written
+"spec 001 FR-028m". Every spec declares a non-empty Code Scope whose entries each name a tracked
+file. Then one of two rules applies (constitution 1.1.0, § Governance):
+
+- **A spec delivered in steps** declares a `## Deliveries` table with a `Delivery` and a `State`
+  column (`planned`, `in progress`, `closed`), and its § Traceability table has a middle
+  `Delivery` column naming a declared delivery on every row. `PENDING` is accepted in rows of an
+  open delivery on any PR, and rejected in a closed delivery on every PR. The PR that completes a
+  delivery marks it `closed` and fills all its rows; the checker cannot tell which delivery a PR
+  implements, so review checks that step and any change of state.
+- **A spec without deliveries**: `PENDING` is accepted on a docs PR and rejected on any PR that
+  is a **code change for the spec**, whatever its branch: one that changes a non-document file
+  (not under `specs/` or `docs/`, not `.md`) matching the spec's `## Code Scope`, or a test file
+  its § Traceability cites, or any non-document file together with the spec's own directory. The
+  check is per spec, not per row: while such a spec has `PENDING` rows on the base branch, every
+  PR that changes its code fails until the PR that closes them lands — so it carries one
+  amendment in flight at a time.
 
 **First-run review of `/speckit-tasks` (required checkpoint before committing spec 001's
 tasks.md).** The upstream skill still says tests are optional unless requested; the overrides make
@@ -259,8 +271,9 @@ overall ratings are **derived** by `RatingReadService` and never stored. `studen
 |---|---|---|
 | Diagnostic | `set_topic_rating_baseline` → `_set_course_topic_rating` | sets the value; skipped for a topic already practised in that course |
 | Answer with `elo_valid` | `save_answer_transaction` → `_set_course_topic_rating` | sets the item's (course, topic) value |
-| Teacher-validated procedure | `validate_procedure_submission` → `_bump_course_topic_rating` | adds `elo_delta` (floor 0), sets `elo_applied=1` |
-| Finished PvP match | `finish_pvp_match` | adds the delta to every rated topic of the course (R19) |
+| Teacher-validated procedure | `grade_procedure_transaction` → `_apply_procedure_grading` | applies only the correction `(grade − 50) × 0.2 − contribution` (floor 0) and records the amount applied as the procedure's new contribution, once per review round (spec 001 block 7) |
+| Copied procedure (system) | `submit_procedure` → `_apply_procedure_grading` | another student's file: graded 0 in the upload's transaction, the same correction (FR-024i) |
+| Finished PvP match | `finish_pvp_match` | locks both students (id order), then adds the delta to every rated topic of the course (R19) |
 | Legacy reconciliation | `_reconcile_legacy_ratings` (bootstrap, idempotent) | inserts approximate baselines with provenance |
 
 Never rebuild a rating from `attempts`. Repositories return raw rows and ranking participants —
@@ -282,8 +295,9 @@ An invalid attempt is recorded with before = after and moves nothing. With an `I
 
 ### R17 — No migrations or blocking I/O inside the HTTP process
 - In a deployed environment (the final repository): schema bootstrap runs in
-  `scripts/migrate.py` against `MIGRATION_DATABASE_URL` (direct connection, port 5432); the web
-  process runs with `RUN_MIGRATIONS=0`. Local dev and tests keep
+  `scripts/migrate.py` against `MIGRATION_DATABASE_URL` (port 5432: on Supabase the **session
+  pooler**, because the direct host has only IPv6, which Render and GitHub-hosted runners do not
+  reach; never the transaction pooler, 6543); the web process runs with `RUN_MIGRATIONS=0`. Local dev and tests keep
   the in-process bootstrap (default `RUN_MIGRATIONS=1`). A deployed V1 is a web process too: its
   Streamlit secrets carry root-level `RUN_MIGRATIONS = "0"` (docs/transfer.md § 3.1; pinned by
   `tests/integration/test_v1_run_migrations.py`).
@@ -304,7 +318,8 @@ cross-process wake-up — all three before raising the number. Details:
 
 ### R19 — A PvP result moves every rated topic of the match's course
 `finish_pvp_match` adds each player's delta to all of that player's rated topics in the course
-(atomic, floor 0), so the course rating moves by exactly the delta. A player with no rated topic
+(atomic, floor 0; both students locked first, in id order, so an answer in flight cannot
+overwrite it), so the course rating moves by exactly the delta. A player with no rated topic
 gets 0 with `elo_reason = 'no_rated_topics'`; it returns the applied deltas, and `game_end` reports
 them (`"not_applied"` with 0 if persisting fails). The close is idempotent through
 `AND status='active'`. The lobby reads the course rating outside `_lock` (1000 drives the
@@ -564,13 +579,15 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 | Table | Key fields |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok) |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username) |
 | `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
 | `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
 | `groups` | unique `(teacher_id, name_normalized)`, `invite_code` |
+| `group_invitations` | single-use invitations (spec 001 delivery INV): `token` UNIQUE (10 chars, stored without the hyphen), `group_id`, `created_by`, `expires_at`, `used_by`/`used_at`, `revoked_at`. V2 no longer reads `groups.invite_code` (only frozen V1 does) |
 | `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array) |
 | `attempts` | `elo_before`, `elo_after`, `elo_valid`, `prob_failure`, `expected_score`, `time_taken`, `request_id` |
-| `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta`, `elo_applied`, `file_hash` |
+| `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta` (computed), `elo_applied`, `file_hash`, `contribution` (net amount applied; NULL = unknown, B7-P1), `contribution_origin`, `review_round`, `is_copy`; unique `(student_id, item_id)` when no duplicate exists |
+| `procedure_gradings`, `procedure_files`, `procedure_uploads` | block 7: every grading (unique per review round); each file's first sender; each student's uploads (unique `(student_id, file_hash)`) |
 | `pvp_matches` | `status` (active/finished/abandoned), `course_id`, applied deltas, `elo_reason_p1/p2` |
 | `exam_sessions` | `global_elo_after` + `global_elo_status` (`rated`/`pending`; NULL = before spec 001, unknown) — the overall rating at submission |
 | `katia_interactions`, `problem_reports`, `audit_group_changes`, `diagnostics` | see repositories |

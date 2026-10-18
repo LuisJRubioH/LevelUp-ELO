@@ -63,6 +63,12 @@ async def websocket_notifications(websocket: WebSocket, room: str):
         { "token": "<access_token>" }
     Luego permanece a la escucha de eventos JSON.
     """
+    from api.websocket import connections
+
+    # Spec 004 FR-085 / N6: a browser socket only from an origin the API serves.
+    if not connections.origin_allowed(websocket):
+        await websocket.close(code=4003, reason="Origen no permitido.")
+        return
     await websocket.accept()
 
     # Autenticación básica por token en primer mensaje
@@ -106,6 +112,8 @@ async def websocket_notifications(websocket: WebSocket, room: str):
 
     async with _lock:
         _rooms[room].add(websocket)
+    # Spec 004 FR-027: a password change or a reset closes this socket at once.
+    connections.register(user_id, websocket)
 
     try:
         await websocket.send_json({"type": "connected", "room": room})
@@ -118,6 +126,7 @@ async def websocket_notifications(websocket: WebSocket, room: str):
     except Exception as exc:
         logger.warning("WS error sala=%s: %s", room, exc)
     finally:
+        connections.unregister(user_id, websocket)
         async with _lock:
             _rooms[room].discard(websocket)
             if not _rooms[room]:
