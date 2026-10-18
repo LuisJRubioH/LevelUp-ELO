@@ -82,6 +82,11 @@ class Settings(BaseSettings):
     rate_limit_storage_probe_interval: float = 10.0  # seconds
     rate_limit_fallback_max_keys: int = 50_000
 
+    # ── Group invitations (spec 001, delivery INV, FR-028p) ───────────────────
+    # Days an unused single-use invitation stays valid. The owner set no period; 30 is the
+    # recommended default (INVITATION_TTL_DAYS).
+    invitation_ttl_days: int = 30
+
     # ── Admin ─────────────────────────────────────────────────────────────────
     admin_user: str = "admin"
     admin_password: str = ""  # solo si se quiere seed automático

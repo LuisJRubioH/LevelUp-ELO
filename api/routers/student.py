@@ -8,7 +8,7 @@ Endpoints del flujo de práctica del estudiante:
   GET  /student/achievements   → logros/badges desbloqueados
   GET  /student/courses        → catálogo de cursos disponibles
   POST /student/enroll         → matricularse en un curso
-  POST /student/enroll-by-code → acceso especial por código de invitación
+  POST /student/enroll-by-code → invitación de un solo uso de un grupo (spec 001 INV)
   DELETE /student/enroll/{course_id} → darse de baja
   GET  /student/history        → historial de intentos
   POST /student/exam/start     → inicia sesión de examen cronometrado
@@ -62,6 +62,7 @@ from api.schemas.student import (
 )
 from src.application.services.student_service import StudentService
 from src.domain.elo.model import diagnostic_baseline
+from src.domain.procedures import COPY, REFUSE_OTHER_ITEM, REFUSE_SAME_ITEM
 from src.domain.learning.prealgebra import (
     CLASSIFIER_BASIC_NODE_ID,
     CLASSIFIER_RIGOROUS_NODE_ID,
@@ -353,26 +354,33 @@ def enroll(body: EnrollRequest, user: CurrentUser, repo: RepoDep):
     return {"message": f"Matriculado en {body.course_id} correctamente."}
 
 
+# Spec 001 FR-028r, FR-028s: a refused invitation stays as it was.
+_INVITATION_REFUSALS = {
+    "invalid": (status.HTTP_404_NOT_FOUND, "Código de invitación inválido."),
+    "used": (
+        status.HTTP_409_CONFLICT,
+        "Este código ya fue usado. Pide uno nuevo a tu docente.",
+    ),
+    "expired": (status.HTTP_410_GONE, "Este código venció. Pide uno nuevo a tu docente."),
+    "already_member": (status.HTTP_409_CONFLICT, "Ya estás en este grupo."),
+    "no_course": (status.HTTP_400_BAD_REQUEST, "El grupo no tiene un curso asignado."),
+}
+
+
 @router.post("/enroll-by-code", status_code=status.HTTP_201_CREATED)
 def enroll_by_code(body: EnrollByCodeRequest, user: CurrentUser, repo: RepoDep):
-    """Acceso especial inter-nivel mediante código de invitación del docente."""
-    group = repo.get_group_by_invite_code(body.invite_code)
-    if not group:
+    """Redeem a single-use invitation of a teacher's group (spec 001 FR-028l, FR-028q … FR-028u).
+
+    The first student who redeems it consumes it. The group's reusable code of the old system
+    (`groups.invite_code`) is not read: it is an unknown invitation.
+    """
+    if user["role"] != "student":
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Código de invitación inválido o expirado.",
-        )
-    # Both repositories return the group's id as `group_id` (reading `id` was a 500 for every
-    # valid code).
-    group_id = group["group_id"]
-    course_id = group["course_id"]
-    if not course_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El grupo no tiene un curso asignado.",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo los estudiantes pueden usar un código de invitación.",
         )
     try:
-        _make_service(repo).enroll_by_invitation(user["user_id"], group_id, course_id)
+        result = _make_service(repo).enroll_by_invitation(user["user_id"], body.invite_code)
     except PermissionError:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -381,7 +389,10 @@ def enroll_by_code(body: EnrollByCodeRequest, user: CurrentUser, repo: RepoDep):
                 "Contacta a tu docente o al administrador."
             ),
         )
-    return {"message": "Acceso especial activado correctamente.", "course_id": course_id}
+    if result["status"] in _INVITATION_REFUSALS:
+        code, detail = _INVITATION_REFUSALS[result["status"]]
+        raise HTTPException(status_code=code, detail=detail)
+    return {"message": "Acceso especial activado correctamente.", "course_id": result["course_id"]}
 
 
 @router.delete("/enroll/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -499,12 +510,6 @@ async def submit_procedure(
     """
     image_data, mime = await read_validated_upload(file)
     file_hash = hashlib.sha256(image_data).hexdigest()
-    # La base y el Storage son síncronos: van a un hilo para no frenar el event loop, que en un
-    # solo proceso (R18) atiende a todos los demás (R17).
-    if await asyncio.to_thread(
-        repo.check_file_hash_duplicate, item_id, user["user_id"], file_hash
-    ):
-        raise HTTPException(status_code=409, detail="Este archivo ya fue enviado por otro estudiante.")
 
     ai_proposed_score = None
     ai_feedback = None
@@ -520,15 +525,32 @@ async def submit_procedure(
         ai_proposed_score = review.get("score")
         ai_feedback = review.get("feedback") or ""
 
-    submission_id = await asyncio.to_thread(
-        repo.save_procedure_submission,
-        student_id=user["user_id"],
-        item_id=item_id,
-        item_content=item_content,
-        image_data=image_data,
-        mime_type=mime,
-        file_hash=file_hash,
+    # La base y el Storage son síncronos: van a un hilo para no frenar el event loop, que en un
+    # solo proceso (R18) atiende a todos los demás (R17).
+    result = await asyncio.to_thread(
+        _make_service(repo).submit_procedure,
+        user["user_id"],
+        item_id,
+        item_content,
+        image_data,
+        mime,
+        file_hash,
     )
+    if result["outcome"] == REFUSE_SAME_ITEM:  # spec 001 FR-024k
+        raise HTTPException(status_code=409, detail="Ya subiste este archivo para este ejercicio.")
+    if result["outcome"] == REFUSE_OTHER_ITEM:  # spec 001 FR-024j
+        raise HTTPException(status_code=409, detail="Este archivo pertenece a otro ejercicio.")
+    submission_id = result["submission_id"]
+    if result["outcome"] == COPY:  # spec 001 FR-024i: graded 0, never sent to the AI or review
+        return ProcedureSubmitResponse(
+            submission_id=submission_id,
+            ai_score=None,
+            ai_feedback=None,
+            status="graded",
+            is_copy=True,
+            teacher_score=result["grading"]["grade"],
+            elo_delta=result["grading"]["applied"],
+        )
 
     if ai_proposed_score is not None:
         try:

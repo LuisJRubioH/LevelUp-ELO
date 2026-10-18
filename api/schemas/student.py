@@ -152,6 +152,11 @@ class ProcedureSubmitResponse(BaseModel):
     ai_score: float | None
     ai_feedback: str | None
     status: str
+    # Spec 001 FR-024i: a file another student uploaded first is graded 0 at once, as a copy;
+    # `elo_delta` is then the amount applied to the rating (FR-024f).
+    is_copy: bool = False
+    teacher_score: float | None = None
+    elo_delta: float | None = None
 
 
 # ── Modo Examen ───────────────────────────────────────────────────────────────

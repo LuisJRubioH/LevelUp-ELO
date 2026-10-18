@@ -14,8 +14,29 @@ export interface Group {
   group_id: number;
   name: string;
   course_id: string | null;
-  invite_code: string | null;
   student_count: number;
+}
+
+/** Spec 001 FR-028t: a single-use invitation as its group's teacher sees it. */
+export type InvitationStatus = "unused" | "used" | "expired" | "revoked";
+
+export interface Invitation {
+  id: number;
+  /** XXXXX-XXXXX */
+  token: string;
+  status: InvitationStatus;
+  /** "YYYY-MM-DD HH:MM:SS" */
+  created_at: string;
+  expires_at: string;
+  used_at: string | null;
+  /** The student's public name (spec 004 FR-023), for a used invitation. */
+  used_by_name: string | null;
+}
+
+export interface InvitationList {
+  /** Days an unused invitation stays valid (server setting). */
+  ttl_days: number;
+  invitations: Invitation[];
 }
 
 export interface StudentSummary {
@@ -66,13 +87,29 @@ export interface PendingProcedure {
   status: string;
   created_at: string;
   has_image: boolean;
+  /** Spec 001 FR-024g: the review being graded, sent back with the grade. */
+  review_round?: number;
 }
 
 export interface GradeResult {
   submission_id: number;
   teacher_score: number;
+  /** Spec 001 FR-024f: the amount applied to the rating, never the computed delta. */
   elo_delta: number;
   status: string;
+  computed_delta?: number | null;
+  contribution?: number | null;
+  review_round?: number | null;
+}
+
+/** Spec 001 FR-024i: a procedure graded 0 automatically as a copy. */
+export interface ProcedureCopy {
+  submission_id: number;
+  student_id: number;
+  student_name: string;
+  item_id: string;
+  item_content: string | null;
+  reviewed_at: string | null;
 }
 
 export interface AdminUser {
@@ -169,17 +206,34 @@ export const teacherApi = {
   createGroup: (course_id: string, group_name: string) =>
     api.post<Group>("/api/teacher/groups", { course_id, group_name }),
 
-  generateInviteCode: (group_id: number) =>
-    api.post<{ invite_code: string }>(`/api/teacher/groups/${group_id}/invite-code`),
+  invitations: (group_id: number) =>
+    api.get<InvitationList>(`/api/teacher/groups/${group_id}/invitations`),
+
+  createInvitations: (group_id: number, count: number) =>
+    api.post<{ tokens: string[]; ttl_days: number }>(
+      `/api/teacher/groups/${group_id}/invitations`,
+      { count },
+    ),
+
+  revokeInvitation: (invitation_id: number) =>
+    api.delete<void>(`/api/teacher/invitations/${invitation_id}`),
 
   procedures: () => api.get<PendingProcedure[]>("/api/teacher/procedures"),
 
-  gradeProcedure: (submission_id: number, teacher_score: number, teacher_feedback?: string) =>
+  gradeProcedure: (
+    submission_id: number,
+    teacher_score: number,
+    teacher_feedback?: string,
+    review_round?: number,
+  ) =>
     api.post<GradeResult>("/api/teacher/procedures/grade", {
       submission_id,
       teacher_score,
       teacher_feedback,
+      review_round,
     }),
+
+  procedureCopies: () => api.get<ProcedureCopy[]>("/api/teacher/procedures/copies"),
 
   studentReport: (student_id: number) =>
     api.get<Record<string, unknown>>(`/api/teacher/student/${student_id}`),

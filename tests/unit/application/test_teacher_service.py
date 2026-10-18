@@ -88,10 +88,17 @@ class TestCreateNewGroup:
 
 
 class TestValidateProcedure:
+    """Spec 001 block 7: the grading goes through grade_procedure_transaction with the domain's
+    computation; validate_procedure returns the amount applied (FR-024f)."""
+
     def test_valid_score_calls_repo(self, service, repo):
-        """Score en [0, 100] → llama a validate_procedure_submission."""
+        """Score en [0, 100] → la transacción de calificación, con el cálculo del dominio."""
+        repo.grade_procedure_transaction.return_value = {"applied": 7.0, "created": True}
         delta = service.validate_procedure(submission_id=5, teacher_score=85.0, feedback="Bien")
-        repo.validate_procedure_submission.assert_called_once_with(5, 85.0, "Bien")
+        args, kwargs = repo.grade_procedure_transaction.call_args
+        assert args[:2] == (5, 85.0)
+        assert kwargs == {"feedback": "Bien", "teacher_id": None, "review_round": None}
+        assert args[2](0.0, 1000.0).applied == 7.0  # (85 − 50) × 0.2, first grading
         assert delta == 7.0
 
     def test_score_below_zero_raises_value_error(self, service):
@@ -106,9 +113,16 @@ class TestValidateProcedure:
 
     def test_boundary_values_are_valid(self, service, repo):
         """Scores 0.0 y 100.0 son límites válidos (no deben lanzar excepción)."""
+        repo.grade_procedure_transaction.return_value = {"applied": 0.0, "created": True}
         service.validate_procedure(submission_id=1, teacher_score=0.0)
         service.validate_procedure(submission_id=2, teacher_score=100.0)
-        assert repo.validate_procedure_submission.call_count == 2
+        assert repo.grade_procedure_transaction.call_count == 2
+
+    def test_out_of_range_never_reaches_the_repository(self, service, repo):
+        """FR-023: nothing is locked or written for a grade outside 0–100."""
+        with pytest.raises(ValueError):
+            service.validate_procedure(submission_id=1, teacher_score=101.0)
+        repo.grade_procedure_transaction.assert_not_called()
 
 
 class TestGenerateAiAnalysis:

@@ -18,8 +18,10 @@ def _teacher_with_code(repo, client, course_id):
     )
     assert created.status_code == 201, created.text
     group = created.json()["group_id"]
-    code = client.post(f"/api/teacher/groups/{group}/invite-code", headers=headers)
-    return headers, group, code.json()["invite_code"]
+    invited = client.post(
+        f"/api/teacher/groups/{group}/invitations", headers=headers, json={"count": 1}
+    )
+    return headers, group, invited.json()["tokens"][0]
 
 
 def test_a_student_who_joined_a_second_group_stays_open_to_the_first_teacher(repo, client):

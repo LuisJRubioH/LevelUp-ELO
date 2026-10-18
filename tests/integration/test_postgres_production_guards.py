@@ -121,14 +121,21 @@ def test_postgres_permissions_diagnostic_and_canonical_answer(postgres_context):
             == 200
         )
 
-    original_code = repo.generate_group_invite_code(group_id)
+    # Spec 001 FR-028t: another teacher neither creates, lists nor revokes the group's invitations.
+    (token,) = repo.create_group_invitations(ctx["teacher_a"], group_id, 1, 30)
+    (invitation,) = repo.get_group_invitations(ctx["teacher_a"], group_id)
+    path = f"/api/teacher/groups/{group_id}/invitations"
+    assert client.post(path, headers=ctx["b_headers"], json={"count": 1}).status_code == 404
+    assert client.get(path, headers=ctx["b_headers"]).status_code == 404
     assert (
-        client.post(
-            f"/api/teacher/groups/{group_id}/invite-code", headers=ctx["b_headers"]
+        client.delete(
+            f"/api/teacher/invitations/{invitation['id']}", headers=ctx["b_headers"]
         ).status_code
         == 404
     )
-    assert repo.get_group_by_invite_code(original_code)["group_id"] == group_id
+    assert [
+        (i["token"], i["status"]) for i in repo.get_group_invitations(ctx["teacher_a"], group_id)
+    ] == [(token, "unused")]
 
     item = repo.get_items_from_db(course_id="calculo_diferencial")[0]
     repo.save_diagnostic(student_id, "calculo_diferencial", 1234, 75, "{}")
@@ -386,8 +393,14 @@ def test_postgres_procedure_review_token_and_antiplagiarism(postgres_context):
 
     ctx = postgres_context
     repo = ctx["repo"]
+    from PIL.PngImagePlugin import PngInfo
+
+    # A file nobody sent before: this database keeps earlier runs' files, and another
+    # student's file is a copy (spec 001 FR-024i).
+    meta = PngInfo()
+    meta.add_text("run", uuid.uuid4().hex)
     output = io.BytesIO()
-    Image.new("RGB", (2, 2), (25, 90, 150)).save(output, format="PNG")
+    Image.new("RGB", (2, 2), (25, 90, 150)).save(output, format="PNG", pnginfo=meta)
     image = output.getvalue()
     item_id = "pg-upload-" + uuid.uuid4().hex
     token = dependencies.create_procedure_review_token(
@@ -427,4 +440,6 @@ def test_postgres_procedure_review_token_and_antiplagiarism(postgres_context):
         data={"item_id": item_id},
         files={"file": ("copy.png", image, "image/png")},
     )
-    assert duplicate.status_code == 409
+    # Spec 001 FR-024i (block 7) flips the earlier 409: another student's file is a copy.
+    assert duplicate.status_code == 200
+    assert duplicate.json()["is_copy"] is True
