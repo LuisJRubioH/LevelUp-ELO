@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-18
 
-**Status**: Draft for the owner's approval. Written from the as-is survey
+**Status**: Approved by the owner, with the recommendations of N1 … N6 (2026-10-18). Written from the as-is survey
 (`docs/sdd/learning-path-survey.md`, LuisJRubioH/LevelUp-ELO#13) and the owner's decisions of
 2026-10-18 (its § 7). Nothing in deliveries L1 … L5 is implemented.
 
@@ -236,16 +236,16 @@ records an event and opens the map.
   one.
 - Lessons never move a rating (FR-001); ratings belong to spec 001.
 
-## New Decisions and Contradictions (not assumed approved)
+## New Decisions and Contradictions
 
 | # | Point | Recommendation |
 |---|---|---|
-| N1 | B01 (welcome) completes on view today. | Keep it: it has no question. |
-| N2 | B13 (closing diagnostic) has no completion check today. | It completes when every item has an answer, right or not: a diagnostic measures, it does not gate. |
-| N3 | The hubs (N2, N3, N4, A00, S00) complete when their cards are opened, some on the client only. | One rule on the server: a hub completes when the student has opened every card. |
-| N4 | L9: the map shows practice-topic nodes blocked until B08, but practice ignores the path. | Keep practice independent of the path (spec 001) and drop the block from the map. |
-| N5 | L7: three renderers are unreachable (`LevelTwoOperation`, `LevelThreeMachine`, `LevelFourConcept`), the only place showing «Resultado esperado: {answer}». | Remove them with L2. |
-| N6 | L10: the summary endpoint has no response model and does not check the course. | Give it one and validate the course with L1. |
+| N1 | B01 (welcome) completes on view today. | **Approved** (owner, 2026-10-18): Keep it: it has no question. |
+| N2 | B13 (closing diagnostic) has no completion check today. | **Approved** (owner, 2026-10-18): It completes when every item has an answer, right or not: a diagnostic measures, it does not gate. |
+| N3 | The hubs (N2, N3, N4, A00, S00) complete when their cards are opened, some on the client only. | **Approved** (owner, 2026-10-18): One rule on the server: a hub completes when the student has opened every card. |
+| N4 | L9: the map shows practice-topic nodes blocked until B08, but practice ignores the path. | **Approved** (owner, 2026-10-18): Keep practice independent of the path (spec 001) and drop the block from the map. |
+| N5 | L7: three renderers are unreachable (`LevelTwoOperation`, `LevelThreeMachine`, `LevelFourConcept`), the only place showing «Resultado esperado: {answer}». | **Approved** (owner, 2026-10-18): Remove them with L2. |
+| N6 | L10: the summary endpoint has no response model and does not check the course. | **Approved** (owner, 2026-10-18): Give it one and validate the course with L1. |
 
 ## Out of Scope *(mandatory)*
 
