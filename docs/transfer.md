@@ -343,6 +343,14 @@ EXISTS`, never `DROP` or a type change), and `scripts/migrate.py` is idempotent.
 
 After it, nothing writes `student_topic_elo` or `users.current_elo`.
 
+Spec 002 D1 adds the tables `schema_versions` and `bank_syncs`. The first start of this code on a
+database applies the whole migration once, in one transaction, and records version 1; every later
+start with the version current and the item bank unchanged issues no DDL and writes no data. The
+start no longer repairs data: if `migrate.py` stops with «Run `python scripts/repairs/….py`»,
+run that script without arguments (it only counts), then with `--apply`, and start again — it
+changed nothing before stopping. The other two repairs (`deactivate_users_without_password.py`,
+`backfill_prob_failure.py`) are the owner's choice; the start does not need them.
+
 **Rehearse on the restored copy first** (the scratch database from § 4):
 
 ```bash

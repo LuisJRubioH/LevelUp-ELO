@@ -22,6 +22,14 @@ from src.domain.invitations import (
     valid_invitation_count,
 )
 from src.domain.procedures import ReviewRoundSuperseded
+from src.infrastructure.persistence.course_blocks import CourseBlockConstraintError
+from src.infrastructure.persistence.schema_version import (
+    REPAIR_GROUPS,
+    SCHEMA_VERSION,
+    MigrationFailed,
+    MigrationNeedsRepair,
+    bank_fingerprint,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -90,6 +98,8 @@ def _migrations_enabled() -> bool:
 
 
 class PostgresRepository:
+    # The item bank the start syncs (spec 002 FR-016); a test points it at a copy.
+    BANK_DIR = os.path.join("items", "bank")
 
     _COURSE_BLOCK_MAP = {
         # ── Bloque Universidad ────────────────────────────────────────────────
@@ -255,11 +265,13 @@ class PostgresRepository:
         Por eso esto corre una sola vez y por conexión directa o pooler de
         sesión — ver scripts/migrate.py y el startCommand de render.yaml.
         """
-        print("Iniciando init_db...")
-        self.init_db()
-        print("init_db OK")
         print("Iniciando _migrate_db...")
-        self._migrate_db()  # no-op si otra instancia ya tiene el lock
+        if not self._migrate_db():
+            # Another session holds the migration lock and the schema is behind: every later
+            # step reads that schema, so none runs (FR-011; tasks-d1 T002).
+            self._skipped_locked_steps += self._steps_after_migration()
+            print("_migrate_db omitido: otra sesión migra; no corre ningún paso más.")
+            return
         print("_migrate_db OK")
         print("Iniciando _seed_admin...")
         self._seed_admin()
@@ -268,11 +280,8 @@ class PostgresRepository:
             print("Iniciando _seed_demo_data...")
             self._seed_demo_data()
             print("_seed_demo_data OK")
-        print("Iniciando _backfill_prob_failure...")
-        self._backfill_prob_failure()
-        print("_backfill_prob_failure OK")
         print("Iniciando sync_items_from_bank_folder...")
-        self.sync_items_from_bank_folder()
+        self._sync_bank_if_changed()
         print("sync_items_from_bank_folder OK")
         if os.environ.get("ENVIRONMENT", "development").lower() != "production":
             print("Iniciando _seed_test_students...")
@@ -281,6 +290,59 @@ class PostgresRepository:
         print("Iniciando _reconcile_legacy_ratings...")
         print("_reconcile_legacy_ratings OK: %d filas" % self._reconcile_legacy_ratings())
         self.expire_stale_pvp_matches()
+
+    @staticmethod
+    def _steps_after_migration() -> list[str]:
+        steps = ["seed_admin", "seed_demo_data", "sync_items_from_bank_folder"]
+        steps += ["seed_test_students", "reconcile_legacy_ratings"]
+        if os.environ.get("ENVIRONMENT", "development").lower() == "production":
+            steps = [s for s in steps if s not in ("seed_demo_data", "seed_test_students")]
+        return steps
+
+    def _sync_bank_if_changed(self):
+        """Spec 002 FR-016: sync the item bank only when its fingerprint differs from the last
+        one recorded, then record it; an unchanged bank writes nothing."""
+        fingerprint = bank_fingerprint(self.BANK_DIR)
+        if fingerprint is None:
+            return
+        conn = self.get_connection()
+        locked = False
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            # Compared under the sync's lock: another session syncing is reported (FR-011).
+            cursor.execute("SELECT pg_try_advisory_lock(12348)")
+            locked = cursor.fetchone()["pg_try_advisory_lock"]
+            if not locked:
+                self._skipped_locked_steps.append("sync_items_from_bank_folder")
+                return
+            cursor.execute("SELECT fingerprint FROM bank_syncs ORDER BY id DESC LIMIT 1")
+            last = cursor.fetchone()
+        finally:
+            if locked:
+                try:
+                    conn.rollback()
+                    cursor.execute("SELECT pg_advisory_unlock(12348)")
+                    conn.commit()
+                except Exception:
+                    pass
+            self.put_connection(conn)
+        if last and last["fingerprint"] == fingerprint:
+            return
+        self.sync_items_from_bank_folder(self.BANK_DIR)
+        if "sync_items_from_bank_folder" in self._skipped_locked_steps:
+            return  # another session holds the sync lock: it did not run, nothing to record
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO bank_syncs (fingerprint) SELECT %s WHERE NOT EXISTS ("
+                "SELECT 1 FROM bank_syncs WHERE fingerprint = %s"
+                " AND id = (SELECT MAX(id) FROM bank_syncs))",
+                (fingerprint, fingerprint),
+            )
+            conn.commit()
+        finally:
+            self.put_connection(conn)
 
     def bootstrap_skipped_steps(self) -> list[str]:
         """Bootstrap steps skipped because another session held their advisory lock (R17)."""
@@ -354,103 +416,105 @@ class PostgresRepository:
         self._pool.putconn(conn)
 
     @_timing
-    def init_db(self):
-        conn = self.get_connection()
-        try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
+    def init_db(self, cursor=None):
+        """Base tables. With the migration's cursor, inside its transaction (spec 002 FR-017)."""
+        if cursor is None:
+            conn = self.get_connection()
+            try:
+                self.init_db(conn.cursor(cursor_factory=RealDictCursor))
+                conn.commit()
+            finally:
+                self.put_connection(conn)
+            return
 
-            # Tabla de grupos
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS groups (
-                    id SERIAL PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    teacher_id INTEGER NOT NULL,
-                    course_id TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+        # Tabla de grupos
+        cursor.execute(
             """
+            CREATE TABLE IF NOT EXISTS groups (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                teacher_id INTEGER NOT NULL,
+                course_id TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        """
+        )
 
-            # Tabla de usuarios
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS users (
-                    id SERIAL PRIMARY KEY,
-                    username TEXT UNIQUE NOT NULL,
-                    password_hash TEXT NOT NULL,
-                    role TEXT DEFAULT 'student' CHECK (role IN ('student', 'teacher', 'admin')),
-                    approved INTEGER DEFAULT 1,
-                    active INTEGER DEFAULT 1,
-                    group_id INTEGER,
-                    rating_deviation REAL DEFAULT 350.0,
-                    education_level TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+        # Tabla de usuarios
+        cursor.execute(
             """
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                role TEXT DEFAULT 'student' CHECK (role IN ('student', 'teacher', 'admin')),
+                approved INTEGER DEFAULT 1,
+                active INTEGER DEFAULT 1,
+                group_id INTEGER,
+                rating_deviation REAL DEFAULT 350.0,
+                education_level TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        """
+        )
 
-            # Tabla de intentos/progreso
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS attempts (
-                    id SERIAL PRIMARY KEY,
-                    user_id INTEGER,
-                    item_id TEXT,
-                    is_correct BOOLEAN,
-                    difficulty INTEGER,
-                    topic TEXT,
-                    elo_after REAL,
-                    prob_failure REAL,
-                    expected_score REAL,
-                    time_taken REAL,
-                    confidence_score REAL,
-                    error_type TEXT,
-                    rating_deviation REAL,
-                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+        # Tabla de intentos/progreso
+        cursor.execute(
             """
+            CREATE TABLE IF NOT EXISTS attempts (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER,
+                item_id TEXT,
+                is_correct BOOLEAN,
+                difficulty INTEGER,
+                topic TEXT,
+                elo_after REAL,
+                prob_failure REAL,
+                expected_score REAL,
+                time_taken REAL,
+                confidence_score REAL,
+                error_type TEXT,
+                rating_deviation REAL,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        """
+        )
 
-            # Tabla de ítems (preguntas con rating propio)
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS items (
-                    id TEXT PRIMARY KEY,
-                    topic TEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    options TEXT NOT NULL,
-                    correct_option TEXT NOT NULL,
-                    difficulty REAL NOT NULL,
-                    rating_deviation REAL DEFAULT 350.0,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
+        # Tabla de ítems (preguntas con rating propio)
+        cursor.execute(
             """
+            CREATE TABLE IF NOT EXISTS items (
+                id TEXT PRIMARY KEY,
+                topic TEXT NOT NULL,
+                content TEXT NOT NULL,
+                options TEXT NOT NULL,
+                correct_option TEXT NOT NULL,
+                difficulty REAL NOT NULL,
+                rating_deviation REAL DEFAULT 350.0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        """
+        )
 
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS sessions (
-                    token TEXT PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    expires_at TIMESTAMP NOT NULL
-                )
+        cursor.execute(
             """
+            CREATE TABLE IF NOT EXISTS sessions (
+                token TEXT PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                expires_at TIMESTAMP NOT NULL
             )
+        """
+        )
 
-            # ── Índices para acelerar JOINs y filtros frecuentes ─────────
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_attempts_user_id ON attempts(user_id)")
-            # Índice compuesto para DISTINCT ON (topic) ORDER BY topic, timestamp DESC
-            # Acelera las consultas de intentos por (user_id, topic) de O(n_intentos) a O(log n)
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_attempts_user_topic_ts "
-                "ON attempts(user_id, topic, timestamp DESC)"
-            )
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher_id ON groups(teacher_id)")
-
-            conn.commit()
-        finally:
-            self.put_connection(conn)
+        # ── Índices para acelerar JOINs y filtros frecuentes ─────────
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_attempts_user_id ON attempts(user_id)")
+        # Índice compuesto para DISTINCT ON (topic) ORDER BY topic, timestamp DESC
+        # Acelera las consultas de intentos por (user_id, topic) de O(n_intentos) a O(log n)
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_attempts_user_topic_ts "
+            "ON attempts(user_id, topic, timestamp DESC)"
+        )
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher_id ON groups(teacher_id)")
 
     @_timing
     def get_student_procedure_scores(self, student_id):
@@ -615,697 +679,668 @@ class PostgresRepository:
         """Ejecuta ALTER TABLE ADD COLUMN IF NOT EXISTS — idempotente y sin query extra."""
         cursor.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {definition}")
 
-    def _migrate_db(self):
-        """Agrega columnas nuevas de forma segura si no existen (migración).
+    def _migrate_db(self) -> bool:
+        """Brings the schema to SCHEMA_VERSION; True when it is there afterwards (spec 002 D1).
 
-        Usa pg_try_advisory_lock (no-bloqueante, nivel sesión) para que solo
-        una instancia ejecute las migraciones a la vez.  Si otra instancia ya
-        tiene el lock, esta retorna inmediatamente sin hacer nada.  El lock
-        se libera explícitamente en el bloque finally con pg_advisory_unlock.
+        Under pg_try_advisory_lock(12345) (non-blocking, session level): another instance holding
+        it means this one skips and reports the step (FR-011). With the lock, a database already
+        at the version issues no DDL (FR-016); otherwise the whole migration and its version row
+        run in one transaction, so a failure commits nothing and names the step (FR-017).
         """
         conn = self.get_connection()
         locked = False
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         try:
-            # ── Advisory lock no-bloqueante ───────────────────────────────────
             cursor.execute("SELECT pg_try_advisory_lock(12345)")
             locked = cursor.fetchone()["pg_try_advisory_lock"]
             if not locked:
                 self._skipped_locked_steps.append("migrate_db")
-                return  # Otra instancia está migrando; salir sin bloquear
-
-            # First, before any change: an old courses.block CHECK stops the migration.
-            self._check_courses_block_constraint(cursor)
-
-            # users
-            self._add_column_if_not_exists(cursor, "users", "role", "TEXT DEFAULT 'student'")
-            self._add_column_if_not_exists(cursor, "users", "approved", "INTEGER DEFAULT 1")
-            self._add_column_if_not_exists(cursor, "users", "active", "INTEGER DEFAULT 1")
-            self._add_column_if_not_exists(cursor, "users", "group_id", "INTEGER")
-            self._add_column_if_not_exists(
-                cursor, "users", "rating_deviation", "REAL DEFAULT 350.0"
-            )
-            self._add_column_if_not_exists(cursor, "users", "education_level", "TEXT")
-            self._add_column_if_not_exists(cursor, "users", "is_test_user", "INTEGER DEFAULT 0")
-            # Grado escolar (solo para education_level = 'semillero'; valores '6'–'11')
-            self._add_column_if_not_exists(cursor, "users", "grade", "TEXT")
-            # ELO actual del estudiante — se actualiza al responder y al validar procedimientos
-            self._add_column_if_not_exists(cursor, "users", "current_elo", "REAL DEFAULT 1000.0")
-            # Correo electrónico — NULL para usuarios existentes, UNIQUE parcial (solo no-NULL)
-            self._add_column_if_not_exists(cursor, "users", "email", "TEXT")
-            # Spec 004 E2: security version checked on every credential, forced change of a
-            # temporary password, who created the account.
-            self._add_column_if_not_exists(
-                cursor, "users", "security_version", "INTEGER NOT NULL DEFAULT 0"
-            )
-            self._add_column_if_not_exists(
-                cursor, "users", "must_change_password", "INTEGER NOT NULL DEFAULT 0"
-            )
-            self._add_column_if_not_exists(cursor, "users", "created_by", "INTEGER")
-            # Spec 004 E2 (FR-020): the name classmates and teachers see; NULL on existing
-            # accounts, which then show their username (N5).
-            self._add_column_if_not_exists(cursor, "users", "display_name", "TEXT")
-            cursor.execute(
-                """
-                CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
-                ON users(email) WHERE email IS NOT NULL
-            """
-            )
-
-            # Asegurar índices si no existen
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)")
-            # Índice compuesto para consultas de intentos por (user_id, topic) y timestamp
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_attempts_user_topic_ts "
-                "ON attempts(user_id, topic, timestamp DESC)"
-            )
-
-            # Migración: vincular grupos a un curso del catálogo (course_id nullable)
-            self._add_column_if_not_exists(cursor, "groups", "course_id", "TEXT")
-
-            # Asegurar tabla de auditoría
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS audit_group_changes (
-                    id SERIAL PRIMARY KEY,
-                    student_id INTEGER NOT NULL,
-                    old_group_id INTEGER,
-                    new_group_id INTEGER,
-                    admin_id INTEGER NOT NULL,
-                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """
-            )
-            # Spec 004 E2: administrative account operations (password reset, teacher creation).
-            # Never a password.
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS audit_account_events (
-                    id SERIAL PRIMARY KEY,
-                    actor_id INTEGER NOT NULL,
-                    user_id INTEGER NOT NULL,
-                    action TEXT NOT NULL,
-                    detail TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """
-            )
-
-            # attempts
-            self._add_column_if_not_exists(cursor, "attempts", "prob_failure", "REAL")
-            self._add_column_if_not_exists(cursor, "attempts", "expected_score", "REAL")
-            self._add_column_if_not_exists(cursor, "attempts", "time_taken", "REAL")
-            self._add_column_if_not_exists(cursor, "attempts", "confidence_score", "REAL")
-            self._add_column_if_not_exists(cursor, "attempts", "error_type", "TEXT")
-            self._add_column_if_not_exists(cursor, "attempts", "rating_deviation", "REAL")
-            # 1 = intento con tiempo válido (3-600s) → actualiza ELO
-            # 0 = adivinanza (<3s) o sesión abandonada (>600s) → no actualiza ELO
-            self._add_column_if_not_exists(cursor, "attempts", "elo_valid", "INTEGER DEFAULT 1")
-            self._add_column_if_not_exists(cursor, "attempts", "elo_before", "REAL")
-            self._add_column_if_not_exists(cursor, "attempts", "request_id", "TEXT")
-            self._add_column_if_not_exists(cursor, "attempts", "request_fingerprint", "TEXT")
-            cursor.execute(
-                "CREATE UNIQUE INDEX IF NOT EXISTS idx_attempts_user_request_id "
-                "ON attempts(user_id, request_id) WHERE request_id IS NOT NULL"
-            )
-
-            # Asegurar tabla items
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS items (
-                    id TEXT PRIMARY KEY,
-                    topic TEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    options TEXT NOT NULL,
-                    correct_option TEXT NOT NULL,
-                    difficulty REAL NOT NULL,
-                    rating_deviation REAL DEFAULT 350.0,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """
-            )
-
-            # Tabla de procedimientos enviados por estudiantes para revisión del docente
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS procedure_submissions (
-                    id SERIAL PRIMARY KEY,
-                    student_id INTEGER NOT NULL,
-                    item_id TEXT NOT NULL,
-                    item_content TEXT NOT NULL,
-                    image_data BYTEA,
-                    mime_type TEXT DEFAULT 'image/jpeg',
-                    status TEXT DEFAULT 'pending',
-                    teacher_feedback TEXT,
-                    feedback_image BYTEA,
-                    feedback_mime_type TEXT,
-                    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    reviewed_at TIMESTAMP
-                )
-            """
-            )
-
-            # Migración de procedure_submissions: columnas añadidas en v2
-            self._add_column_if_not_exists(
-                cursor, "procedure_submissions", "procedure_score", "REAL"
-            )
-            self._add_column_if_not_exists(
-                cursor, "procedure_submissions", "procedure_image_path", "TEXT"
-            )
-            self._add_column_if_not_exists(
-                cursor, "procedure_submissions", "feedback_image_path", "TEXT"
-            )
-            # v3 — flujo formal de validación docente
-            self._add_column_if_not_exists(
-                cursor, "procedure_submissions", "ai_proposed_score", "REAL"
-            )
-            self._add_column_if_not_exists(cursor, "procedure_submissions", "teacher_score", "REAL")
-            self._add_column_if_not_exists(cursor, "procedure_submissions", "final_score", "REAL")
-            # v4 — delta ELO calculado al momento de la validación docente
-            self._add_column_if_not_exists(cursor, "procedure_submissions", "elo_delta", "REAL")
-            # v4b — marca de que elo_delta ya se aplicó al rating canónico
-            self._add_column_if_not_exists(
-                cursor, "procedure_submissions", "elo_applied", "INTEGER DEFAULT 0"
-            )
-            # v5 — retroalimentación textual generada por la IA
-            self._add_column_if_not_exists(cursor, "procedure_submissions", "ai_feedback", "TEXT")
-            # v6 — hash SHA-256 del archivo subido para detección anti-plagio
-            self._add_column_if_not_exists(cursor, "procedure_submissions", "file_hash", "TEXT")
-            # v7 — URL de Supabase Storage (reemplaza BYTEA para nuevos registros)
-            self._add_column_if_not_exists(cursor, "procedure_submissions", "storage_url", "TEXT")
-            # v7b — image_data ya no es obligatorio (NULL cuando se usa Storage)
-            cursor.execute(
-                """
-                ALTER TABLE procedure_submissions
-                ALTER COLUMN image_data DROP NOT NULL
-            """
-            )
-            self._migrate_procedure_block7(cursor)
-
-            # ── LMS: Cursos y Matrículas ─────────────────────────────────────
-
-            # Catálogo de cursos (uno por archivo JSON en items/bank/)
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS courses (
-                    id TEXT PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio', 'Concursos', 'Semillero')),
-                    description TEXT DEFAULT ''
-                )
-            """
-            )
-
-            # Matrículas: relación N-N entre estudiantes y cursos
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS enrollments (
-                    user_id INTEGER NOT NULL,
-                    course_id TEXT NOT NULL,
-                    group_id INTEGER,
-                    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    PRIMARY KEY (user_id, course_id)
-                )
-            """
-            )
-            # Estas tablas se crean durante la migración, no en init_db().
-            # Crear sus índices solo después de que ambas existan permite
-            # inicializar una base PostgreSQL completamente vacía.
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_enrollments_user_id ON enrollments(user_id)"
-            )
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_procedure_submissions_student_id "
-                "ON procedure_submissions(student_id)"
-            )
-
-            # Migración: asociar matrícula a un grupo (nullable)
-            self._add_column_if_not_exists(cursor, "enrollments", "group_id", "INTEGER")
-
-            # Vincular ítems a su curso (migración aditiva)
-            self._add_column_if_not_exists(cursor, "items", "course_id", "TEXT")
-            # T14: campo opcional para imagen/diagrama asociado a la pregunta
-            self._add_column_if_not_exists(cursor, "items", "image_url", "TEXT")
-            # Tags de taxonomía (JSON array): dimensión cognitiva, general y específica
-            self._add_column_if_not_exists(cursor, "items", "tags", "TEXT")
-            # Bloque temático dentro del curso (p.ej. "Constitución Política" en DIAN)
-            self._add_column_if_not_exists(cursor, "items", "block", "TEXT DEFAULT ''")
-
-            # ── Unicidad de nombre de grupo por profesor (case-insensitive) ─
-            self._add_column_if_not_exists(cursor, "groups", "name_normalized", "TEXT")
-            # Rellenar valores existentes que estén NULL
+                return self._schema_version(cursor) >= SCHEMA_VERSION
+            if self._schema_version(cursor) >= SCHEMA_VERSION:
+                return True
             try:
+                self._run_migration(cursor)
                 cursor.execute(
-                    """
-                    UPDATE groups SET name_normalized = LOWER(TRIM(name))
-                    WHERE name_normalized IS NULL
-                """
+                    "INSERT INTO schema_versions (version) VALUES (%s)", (SCHEMA_VERSION,)
                 )
-            except Exception:
+                conn.commit()
+            except (MigrationNeedsRepair, CourseBlockConstraintError):
                 conn.rollback()
-                # Otra instancia ya lo hizo, continuar
-            # Resolver duplicados existentes antes de crear el índice único:
-            # renombrar grupos con sufijo -DUP-{id} para desambiguar
-            cursor.execute(
-                """
-                SELECT id, name, teacher_id, name_normalized
-                FROM groups
-                WHERE (teacher_id, name_normalized) IN (
-                    SELECT teacher_id, name_normalized
-                    FROM groups
-                    GROUP BY teacher_id, name_normalized
-                    HAVING COUNT(*) > 1
-                )
-                ORDER BY teacher_id, name_normalized, id
-            """
-            )
-            dup_rows = cursor.fetchall()
-            # Agrupar por (teacher_id, name_normalized); conservar el primero, renombrar el resto
-            seen = set()
-            for row in dup_rows:
-                row_id = row["id"]
-                row_name = row["name"]
-                row_teacher = row["teacher_id"]
-                row_norm = row["name_normalized"]
-                key = (row_teacher, row_norm)
-                if key not in seen:
-                    seen.add(key)  # el primero se conserva intacto
-                    continue
-                new_name = f"{row_name}-DUP-{row_id}"
-                new_norm = new_name.strip().lower()
-                cursor.execute(
-                    "UPDATE groups SET name = %s, name_normalized = %s WHERE id = %s",
-                    (new_name, new_norm, row_id),
-                )
-            # Índice único: (teacher_id, nombre normalizado)
-            cursor.execute(
-                """
-                CREATE UNIQUE INDEX IF NOT EXISTS idx_groups_teacher_name_unique
-                ON groups(teacher_id, name_normalized)
-            """
-            )
-
-            # Código de invitación por grupo (opcional, generado por el docente)
-            self._add_column_if_not_exists(cursor, "groups", "invite_code", "TEXT")
-            cursor.execute(
-                """
-                CREATE UNIQUE INDEX IF NOT EXISTS idx_groups_invite_code
-                ON groups(invite_code) WHERE invite_code IS NOT NULL
-            """
-            )
-
-            # Spec 001, delivery INV: single-use invitations replace the group's reusable code.
-            # The `invite_code` column above stays (R8); V2 no longer reads or writes it.
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS group_invitations (
-                    id SERIAL PRIMARY KEY,
-                    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
-                    token TEXT UNIQUE NOT NULL,
-                    created_by INTEGER,
-                    created_at TIMESTAMP DEFAULT NOW(),
-                    expires_at TIMESTAMP NOT NULL,
-                    used_by INTEGER,
-                    used_at TIMESTAMP,
-                    revoked_at TIMESTAMP
-                )
-            """
-            )
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_group_invitations_group ON group_invitations(group_id)"
-            )
-
-            # ── Desactivar usuarios con contraseña vacía o nula ────────────
-            cursor.execute(
-                """
-                UPDATE users SET active = 0
-                WHERE (password_hash IS NULL OR TRIM(password_hash) = '')
-                  AND active = 1
-            """
-            )
-
-            # ── Tabla problem_reports (reportes técnicos de usuarios) ─
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS problem_reports (
-                    id SERIAL PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    description TEXT NOT NULL,
-                    status TEXT DEFAULT 'pending',
-                    created_at TIMESTAMP DEFAULT NOW()
-                )
-            """
-            )
-
-            # ── Tabla weekly_rankings ─────────────────────────────────
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS weekly_rankings (
-                    id SERIAL PRIMARY KEY,
-                    week_start DATE NOT NULL,
-                    week_end DATE NOT NULL,
-                    group_id INTEGER NOT NULL,
-                    rank INTEGER NOT NULL,
-                    user_id INTEGER NOT NULL,
-                    username TEXT NOT NULL,
-                    global_elo REAL NOT NULL,
-                    attempts_count INTEGER NOT NULL,
-                    created_at TIMESTAMP DEFAULT NOW()
-                )
-            """
-            )
-            cursor.execute(
-                """
-                CREATE UNIQUE INDEX IF NOT EXISTS idx_weekly_rankings_unique
-                ON weekly_rankings(week_start, group_id, user_id)
-            """
-            )
-            cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_weekly_rankings_week_group
-                ON weekly_rankings(week_start, group_id)
-            """
-            )
-
-            # ── Tabla katia_interactions (registro de interacciones con KatIA) ──
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS katia_interactions (
-                    id SERIAL PRIMARY KEY,
-                    user_id INTEGER NOT NULL REFERENCES users(id),
-                    course_id TEXT,
-                    item_id TEXT,
-                    item_topic TEXT,
-                    student_message TEXT NOT NULL,
-                    katia_response TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """
-            )
-            cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_katia_interactions_user
-                ON katia_interactions(user_id)
-            """
-            )
-
-            # ── Tabla achievements (logros/badges del estudiante) ─────────────
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS achievements (
-                    id SERIAL PRIMARY KEY,
-                    user_id INTEGER NOT NULL REFERENCES users(id),
-                    badge_id TEXT NOT NULL,
-                    earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(user_id, badge_id)
-                )
-            """
-            )
-            cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_achievements_user
-                ON achievements(user_id)
-            """
-            )
-
-            # ── Tabla student_topic_elo (ELO actual por materia, consultable) ──
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS student_topic_elo (
-                    user_id INTEGER NOT NULL REFERENCES users(id),
-                    topic TEXT NOT NULL,
-                    current_elo REAL NOT NULL DEFAULT 1000.0,
-                    rd REAL NOT NULL DEFAULT 350.0,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    PRIMARY KEY (user_id, topic)
-                )
-            """
-            )
-            cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_student_topic_elo_topic
-                ON student_topic_elo(topic)
-            """
-            )
-
-            # ── student_course_topic_elo: the only rating state (spec 001, FR-029) ──
-            # DOUBLE PRECISION, never REAL: REAL is 4-byte in PostgreSQL and would turn
-            # 999.4999999 into 999.5 (FR-028i, research R20).
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS student_course_topic_elo (
-                    user_id INTEGER NOT NULL REFERENCES users(id),
-                    course_id TEXT NOT NULL REFERENCES courses(id),
-                    topic TEXT NOT NULL,
-                    current_elo DOUBLE PRECISION NOT NULL CHECK (current_elo >= 0),
-                    rd DOUBLE PRECISION NOT NULL DEFAULT 350 CHECK (rd >= 30 AND rd <= 350),
-                    origin TEXT NOT NULL CHECK (origin IN ('practice', 'diagnostic',
-                        'legacy_topic_row', 'legacy_course_row', 'procedure')),
-                    approximate BOOLEAN NOT NULL DEFAULT FALSE,
-                    legacy_source_key TEXT,
-                    reconciled_at TIMESTAMP,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    PRIMARY KEY (user_id, course_id, topic)
-                )
-            """
-            )
-            cursor.execute(
-                """
-                CREATE INDEX IF NOT EXISTS idx_student_course_topic_elo_user_course
-                ON student_course_topic_elo(user_id, course_id)
-            """
-            )
-
-            # ── Tabla exam_sessions (historial de exámenes del estudiante) ────
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS exam_sessions (
-                    id SERIAL PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    course_id TEXT NOT NULL,
-                    course_name TEXT NOT NULL DEFAULT '',
-                    n_questions INTEGER NOT NULL,
-                    correct_count INTEGER NOT NULL,
-                    score_pct REAL NOT NULL,
-                    global_elo_after REAL NOT NULL DEFAULT 0,
-                    exam_template_id INTEGER,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """
-            )
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS active_exam_sessions (
-                    id TEXT PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    course_id TEXT NOT NULL,
-                    exam_template_id INTEGER,
-                    item_ids TEXT NOT NULL,
-                    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    expires_at TIMESTAMP NOT NULL,
-                    submitted_at TIMESTAMP,
-                    result_json TEXT
-                )
-                """
-            )
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_active_exam_sessions_user "
-                "ON active_exam_sessions(user_id, submitted_at)"
-            )
-            # v7 — Vincula sesiones históricas con la plantilla usada. Debe
-            # ejecutarse después del CREATE para soportar una base vacía.
-            self._add_column_if_not_exists(cursor, "exam_sessions", "exam_template_id", "INTEGER")
-            # Spec 001 (FR-028b): the overall rating's state at submission — 'rated' or 'pending'.
-            # NULL = recorded before this column: unknown, never backfilled (see contracts/api.md).
-            self._add_column_if_not_exists(
-                cursor,
-                "exam_sessions",
-                "global_elo_status",
-                "TEXT CHECK (global_elo_status IN ('rated', 'pending'))",
-            )
-            # ── Tabla exam_templates (plantillas de examen del docente) ──────
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS exam_templates (
-                    id SERIAL PRIMARY KEY,
-                    teacher_id INTEGER NOT NULL,
-                    course_id TEXT NOT NULL,
-                    title TEXT NOT NULL,
-                    time_limit_min INTEGER NOT NULL DEFAULT 20,
-                    item_ids TEXT NOT NULL DEFAULT '[]',
-                    archived BOOLEAN NOT NULL DEFAULT FALSE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """
-            )
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_exam_templates_course "
-                "ON exam_templates(course_id, archived)"
-            )
-
-            # ── Tabla exam_assignments (asignaciones a grupos + ventana de tiempo) ──
-            # Sin filas para un template => visible a todos los inscritos al curso
-            # (backward-compat con plantillas creadas antes de esta tabla).
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS exam_assignments (
-                    id SERIAL PRIMARY KEY,
-                    template_id INTEGER NOT NULL
-                        REFERENCES exam_templates(id) ON DELETE CASCADE,
-                    group_id INTEGER NOT NULL
-                        REFERENCES groups(id) ON DELETE CASCADE,
-                    starts_at TIMESTAMP NULL,
-                    ends_at TIMESTAMP NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE (template_id, group_id)
-                )
-                """
-            )
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_exam_assignments_template "
-                "ON exam_assignments(template_id)"
-            )
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_exam_assignments_group "
-                "ON exam_assignments(group_id)"
-            )
-
-            # ── Tabla exam_responses (respuesta por pregunta de cada examen) ──
-            # Habilita el análisis de resultados del docente. Evaluativo: NO
-            # afecta ELO ni dificultad del ítem.
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS exam_responses (
-                    id SERIAL PRIMARY KEY,
-                    session_id INTEGER NOT NULL,
-                    template_id INTEGER,
-                    user_id INTEGER NOT NULL,
-                    item_id TEXT NOT NULL,
-                    topic TEXT,
-                    is_correct INTEGER NOT NULL DEFAULT 0,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-                """
-            )
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_exam_responses_template "
-                "ON exam_responses(template_id)"
-            )
-
-            # ── Tabla diagnostics (examen diagnóstico de inicio de materia) ──
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS diagnostics (
-                    id SERIAL PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    course_id TEXT NOT NULL,
-                    initial_elo REAL NOT NULL,
-                    score_pct REAL NOT NULL,
-                    result_json TEXT NOT NULL DEFAULT '{}',
-                    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE (user_id, course_id)
-                )
-                """
-            )
-
-            # Progreso curricular independiente del ELO (nodos de contenido).
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS lesson_progress (
-                    user_id INTEGER NOT NULL,
-                    course_id TEXT NOT NULL,
-                    node_id TEXT NOT NULL,
-                    state TEXT NOT NULL DEFAULT 'available',
-                    objectives_viewed INTEGER NOT NULL DEFAULT 0,
-                    math_convention_viewed INTEGER NOT NULL DEFAULT 0,
-                    viewed_at TIMESTAMP,
-                    completed_at TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    PRIMARY KEY (user_id, course_id, node_id)
-                )
-                """
-            )
-
-            # Respuestas cerradas de lecciones; por diseño no admite texto libre.
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS lesson_interactions (
-                    user_id INTEGER NOT NULL,
-                    course_id TEXT NOT NULL,
-                    node_id TEXT NOT NULL,
-                    interaction_id TEXT NOT NULL,
-                    selected_option TEXT NOT NULL,
-                    is_expected INTEGER,
-                    misconception_tag TEXT,
-                    answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    PRIMARY KEY (user_id, course_id, node_id, interaction_id)
-                )
-                """
-            )
-
-            # ── Tablas PvP (ligas en tiempo real) ────────────────────────────
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS pvp_matches (
-                    id SERIAL PRIMARY KEY,
-                    course_id TEXT NOT NULL,
-                    player1_id INTEGER NOT NULL,
-                    player2_id INTEGER NOT NULL,
-                    item_ids TEXT NOT NULL DEFAULT '[]',
-                    status TEXT NOT NULL DEFAULT 'active',
-                    winner_id INTEGER,
-                    score_p1 INTEGER NOT NULL DEFAULT 0,
-                    score_p2 INTEGER NOT NULL DEFAULT 0,
-                    elo_delta_p1 REAL,
-                    elo_delta_p2 REAL,
-                    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    finished_at TIMESTAMP
-                )
-                """
-            )
-            cursor.execute(
-                """
-                CREATE TABLE IF NOT EXISTS pvp_answers (
-                    id SERIAL PRIMARY KEY,
-                    match_id INTEGER NOT NULL,
-                    user_id INTEGER NOT NULL,
-                    item_id TEXT NOT NULL,
-                    is_correct INTEGER NOT NULL DEFAULT 0,
-                    answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-                """
-            )
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_pvp_matches_players "
-                "ON pvp_matches(player1_id, player2_id)"
-            )
-            # NULL = applied normally; 'no_rated_topics' = applied 0 (spec 001, FR-029c).
-            self._add_column_if_not_exists(cursor, "pvp_matches", "elo_reason_p1", "TEXT")
-            self._add_column_if_not_exists(cursor, "pvp_matches", "elo_reason_p2", "TEXT")
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS idx_pvp_answers_match "
-                "ON pvp_answers(match_id, user_id)"
-            )
-
-            conn.commit()
-
-        except Exception:
-            try:
+                raise
+            except Exception as exc:
                 conn.rollback()
-            except Exception:
-                pass
-            raise
-
+                raise MigrationFailed("migrate_db", exc) from exc
+            return True
         finally:
             if locked:
                 try:
+                    conn.rollback()
                     cursor.execute("SELECT pg_advisory_unlock(12345)")
                     conn.commit()
                 except Exception:
                     pass
             self.put_connection(conn)
+
+    def _schema_version(self, cursor) -> int:
+        """The highest recorded schema version; 0 for a database from before spec 002 D1."""
+        cursor.execute("SELECT to_regclass('schema_versions') IS NOT NULL AS present")
+        if not cursor.fetchone()["present"]:
+            return 0
+        cursor.execute("SELECT COALESCE(MAX(version), 0) AS version FROM schema_versions")
+        return cursor.fetchone()["version"]
+
+    def _run_migration(self, cursor):
+        """Every DDL step of SCHEMA_VERSION, cumulative and idempotent, on the caller's
+        transaction. Data repairs are not here: scripts/repairs/ (spec 002 FR-018)."""
+        # First, before any change: an old courses.block CHECK stops the migration.
+        self._check_courses_block_constraint(cursor)
+        self.init_db(cursor)
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS schema_versions (
+                version INTEGER PRIMARY KEY,
+                applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS bank_syncs (
+                id SERIAL PRIMARY KEY,
+                fingerprint TEXT NOT NULL,
+                synced_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+
+        # users
+        self._add_column_if_not_exists(cursor, "users", "role", "TEXT DEFAULT 'student'")
+        self._add_column_if_not_exists(cursor, "users", "approved", "INTEGER DEFAULT 1")
+        self._add_column_if_not_exists(cursor, "users", "active", "INTEGER DEFAULT 1")
+        self._add_column_if_not_exists(cursor, "users", "group_id", "INTEGER")
+        self._add_column_if_not_exists(cursor, "users", "rating_deviation", "REAL DEFAULT 350.0")
+        self._add_column_if_not_exists(cursor, "users", "education_level", "TEXT")
+        self._add_column_if_not_exists(cursor, "users", "is_test_user", "INTEGER DEFAULT 0")
+        # Grado escolar (solo para education_level = 'semillero'; valores '6'–'11')
+        self._add_column_if_not_exists(cursor, "users", "grade", "TEXT")
+        # ELO actual del estudiante — se actualiza al responder y al validar procedimientos
+        self._add_column_if_not_exists(cursor, "users", "current_elo", "REAL DEFAULT 1000.0")
+        # Correo electrónico — NULL para usuarios existentes, UNIQUE parcial (solo no-NULL)
+        self._add_column_if_not_exists(cursor, "users", "email", "TEXT")
+        # Spec 004 E2: security version checked on every credential, forced change of a
+        # temporary password, who created the account.
+        self._add_column_if_not_exists(
+            cursor, "users", "security_version", "INTEGER NOT NULL DEFAULT 0"
+        )
+        self._add_column_if_not_exists(
+            cursor, "users", "must_change_password", "INTEGER NOT NULL DEFAULT 0"
+        )
+        self._add_column_if_not_exists(cursor, "users", "created_by", "INTEGER")
+        # Spec 004 E2 (FR-020): the name classmates and teachers see; NULL on existing
+        # accounts, which then show their username (N5).
+        self._add_column_if_not_exists(cursor, "users", "display_name", "TEXT")
+        cursor.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
+            ON users(email) WHERE email IS NOT NULL
+        """
+        )
+
+        # Asegurar índices si no existen
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)")
+        # Índice compuesto para consultas de intentos por (user_id, topic) y timestamp
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_attempts_user_topic_ts "
+            "ON attempts(user_id, topic, timestamp DESC)"
+        )
+
+        # Migración: vincular grupos a un curso del catálogo (course_id nullable)
+        self._add_column_if_not_exists(cursor, "groups", "course_id", "TEXT")
+
+        # Asegurar tabla de auditoría
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS audit_group_changes (
+                id SERIAL PRIMARY KEY,
+                student_id INTEGER NOT NULL,
+                old_group_id INTEGER,
+                new_group_id INTEGER,
+                admin_id INTEGER NOT NULL,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+        # Spec 004 E2: administrative account operations (password reset, teacher creation).
+        # Never a password.
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS audit_account_events (
+                id SERIAL PRIMARY KEY,
+                actor_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                action TEXT NOT NULL,
+                detail TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+
+        # attempts
+        self._add_column_if_not_exists(cursor, "attempts", "prob_failure", "REAL")
+        self._add_column_if_not_exists(cursor, "attempts", "expected_score", "REAL")
+        self._add_column_if_not_exists(cursor, "attempts", "time_taken", "REAL")
+        self._add_column_if_not_exists(cursor, "attempts", "confidence_score", "REAL")
+        self._add_column_if_not_exists(cursor, "attempts", "error_type", "TEXT")
+        self._add_column_if_not_exists(cursor, "attempts", "rating_deviation", "REAL")
+        # 1 = intento con tiempo válido (3-600s) → actualiza ELO
+        # 0 = adivinanza (<3s) o sesión abandonada (>600s) → no actualiza ELO
+        self._add_column_if_not_exists(cursor, "attempts", "elo_valid", "INTEGER DEFAULT 1")
+        self._add_column_if_not_exists(cursor, "attempts", "elo_before", "REAL")
+        self._add_column_if_not_exists(cursor, "attempts", "request_id", "TEXT")
+        self._add_column_if_not_exists(cursor, "attempts", "request_fingerprint", "TEXT")
+        cursor.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_attempts_user_request_id "
+            "ON attempts(user_id, request_id) WHERE request_id IS NOT NULL"
+        )
+
+        # Asegurar tabla items
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS items (
+                id TEXT PRIMARY KEY,
+                topic TEXT NOT NULL,
+                content TEXT NOT NULL,
+                options TEXT NOT NULL,
+                correct_option TEXT NOT NULL,
+                difficulty REAL NOT NULL,
+                rating_deviation REAL DEFAULT 350.0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+
+        # Tabla de procedimientos enviados por estudiantes para revisión del docente
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS procedure_submissions (
+                id SERIAL PRIMARY KEY,
+                student_id INTEGER NOT NULL,
+                item_id TEXT NOT NULL,
+                item_content TEXT NOT NULL,
+                image_data BYTEA,
+                mime_type TEXT DEFAULT 'image/jpeg',
+                status TEXT DEFAULT 'pending',
+                teacher_feedback TEXT,
+                feedback_image BYTEA,
+                feedback_mime_type TEXT,
+                submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                reviewed_at TIMESTAMP
+            )
+        """
+        )
+
+        # Migración de procedure_submissions: columnas añadidas en v2
+        self._add_column_if_not_exists(cursor, "procedure_submissions", "procedure_score", "REAL")
+        self._add_column_if_not_exists(
+            cursor, "procedure_submissions", "procedure_image_path", "TEXT"
+        )
+        self._add_column_if_not_exists(
+            cursor, "procedure_submissions", "feedback_image_path", "TEXT"
+        )
+        # v3 — flujo formal de validación docente
+        self._add_column_if_not_exists(cursor, "procedure_submissions", "ai_proposed_score", "REAL")
+        self._add_column_if_not_exists(cursor, "procedure_submissions", "teacher_score", "REAL")
+        self._add_column_if_not_exists(cursor, "procedure_submissions", "final_score", "REAL")
+        # v4 — delta ELO calculado al momento de la validación docente
+        self._add_column_if_not_exists(cursor, "procedure_submissions", "elo_delta", "REAL")
+        # v4b — marca de que elo_delta ya se aplicó al rating canónico
+        self._add_column_if_not_exists(
+            cursor, "procedure_submissions", "elo_applied", "INTEGER DEFAULT 0"
+        )
+        # v5 — retroalimentación textual generada por la IA
+        self._add_column_if_not_exists(cursor, "procedure_submissions", "ai_feedback", "TEXT")
+        # v6 — hash SHA-256 del archivo subido para detección anti-plagio
+        self._add_column_if_not_exists(cursor, "procedure_submissions", "file_hash", "TEXT")
+        # v7 — URL de Supabase Storage (reemplaza BYTEA para nuevos registros)
+        self._add_column_if_not_exists(cursor, "procedure_submissions", "storage_url", "TEXT")
+        # v7b — image_data ya no es obligatorio (NULL cuando se usa Storage)
+        self._make_image_data_nullable(cursor)
+        self._migrate_procedure_block7(cursor)
+
+        # ── LMS: Cursos y Matrículas ─────────────────────────────────────
+
+        # Catálogo de cursos (uno por archivo JSON en items/bank/)
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS courses (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                block TEXT NOT NULL CHECK (block IN ('Universidad', 'Colegio', 'Concursos', 'Semillero')),
+                description TEXT DEFAULT ''
+            )
+        """
+        )
+
+        # Matrículas: relación N-N entre estudiantes y cursos
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS enrollments (
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                group_id INTEGER,
+                enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, course_id)
+            )
+        """
+        )
+        # Estas tablas se crean durante la migración, no en init_db().
+        # Crear sus índices solo después de que ambas existan permite
+        # inicializar una base PostgreSQL completamente vacía.
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_enrollments_user_id ON enrollments(user_id)")
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_procedure_submissions_student_id "
+            "ON procedure_submissions(student_id)"
+        )
+
+        # Migración: asociar matrícula a un grupo (nullable)
+        self._add_column_if_not_exists(cursor, "enrollments", "group_id", "INTEGER")
+
+        # Vincular ítems a su curso (migración aditiva)
+        self._add_column_if_not_exists(cursor, "items", "course_id", "TEXT")
+        # T14: campo opcional para imagen/diagrama asociado a la pregunta
+        self._add_column_if_not_exists(cursor, "items", "image_url", "TEXT")
+        # Tags de taxonomía (JSON array): dimensión cognitiva, general y específica
+        self._add_column_if_not_exists(cursor, "items", "tags", "TEXT")
+        # Bloque temático dentro del curso (p.ej. "Constitución Política" en DIAN)
+        self._add_column_if_not_exists(cursor, "items", "block", "TEXT DEFAULT ''")
+
+        # ── Unicidad de nombre de grupo por profesor (case-insensitive) ─
+        new_column = not self._column_exists(cursor, "groups", "name_normalized")
+        self._add_column_if_not_exists(cursor, "groups", "name_normalized", "TEXT")
+        if new_column:
+            # The new column's first value, set by the migration that adds it — not a repair.
+            cursor.execute("UPDATE groups SET name_normalized = LOWER(TRIM(name))")
+        self._check_group_names(cursor)
+        # Índice único: (teacher_id, nombre normalizado)
+        cursor.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_groups_teacher_name_unique
+            ON groups(teacher_id, name_normalized)
+        """
+        )
+
+        # Código de invitación por grupo (opcional, generado por el docente)
+        self._add_column_if_not_exists(cursor, "groups", "invite_code", "TEXT")
+        cursor.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_groups_invite_code
+            ON groups(invite_code) WHERE invite_code IS NOT NULL
+        """
+        )
+
+        # Spec 001, delivery INV: single-use invitations replace the group's reusable code.
+        # The `invite_code` column above stays (R8); V2 no longer reads or writes it.
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS group_invitations (
+                id SERIAL PRIMARY KEY,
+                group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+                token TEXT UNIQUE NOT NULL,
+                created_by INTEGER,
+                created_at TIMESTAMP DEFAULT NOW(),
+                expires_at TIMESTAMP NOT NULL,
+                used_by INTEGER,
+                used_at TIMESTAMP,
+                revoked_at TIMESTAMP
+            )
+        """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_group_invitations_group ON group_invitations(group_id)"
+        )
+
+        # ── Tabla problem_reports (reportes técnicos de usuarios) ─
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS problem_reports (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                description TEXT NOT NULL,
+                status TEXT DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """
+        )
+
+        # ── Tabla weekly_rankings ─────────────────────────────────
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS weekly_rankings (
+                id SERIAL PRIMARY KEY,
+                week_start DATE NOT NULL,
+                week_end DATE NOT NULL,
+                group_id INTEGER NOT NULL,
+                rank INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                username TEXT NOT NULL,
+                global_elo REAL NOT NULL,
+                attempts_count INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_weekly_rankings_unique
+            ON weekly_rankings(week_start, group_id, user_id)
+        """
+        )
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_weekly_rankings_week_group
+            ON weekly_rankings(week_start, group_id)
+        """
+        )
+
+        # ── Tabla katia_interactions (registro de interacciones con KatIA) ──
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS katia_interactions (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id),
+                course_id TEXT,
+                item_id TEXT,
+                item_topic TEXT,
+                student_message TEXT NOT NULL,
+                katia_response TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_katia_interactions_user
+            ON katia_interactions(user_id)
+        """
+        )
+
+        # ── Tabla achievements (logros/badges del estudiante) ─────────────
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS achievements (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id),
+                badge_id TEXT NOT NULL,
+                earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, badge_id)
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_achievements_user
+            ON achievements(user_id)
+        """
+        )
+
+        # ── Tabla student_topic_elo (ELO actual por materia, consultable) ──
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS student_topic_elo (
+                user_id INTEGER NOT NULL REFERENCES users(id),
+                topic TEXT NOT NULL,
+                current_elo REAL NOT NULL DEFAULT 1000.0,
+                rd REAL NOT NULL DEFAULT 350.0,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, topic)
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_student_topic_elo_topic
+            ON student_topic_elo(topic)
+        """
+        )
+
+        # ── student_course_topic_elo: the only rating state (spec 001, FR-029) ──
+        # DOUBLE PRECISION, never REAL: REAL is 4-byte in PostgreSQL and would turn
+        # 999.4999999 into 999.5 (FR-028i, research R20).
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS student_course_topic_elo (
+                user_id INTEGER NOT NULL REFERENCES users(id),
+                course_id TEXT NOT NULL REFERENCES courses(id),
+                topic TEXT NOT NULL,
+                current_elo DOUBLE PRECISION NOT NULL CHECK (current_elo >= 0),
+                rd DOUBLE PRECISION NOT NULL DEFAULT 350 CHECK (rd >= 30 AND rd <= 350),
+                origin TEXT NOT NULL CHECK (origin IN ('practice', 'diagnostic',
+                    'legacy_topic_row', 'legacy_course_row', 'procedure')),
+                approximate BOOLEAN NOT NULL DEFAULT FALSE,
+                legacy_source_key TEXT,
+                reconciled_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, course_id, topic)
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_student_course_topic_elo_user_course
+            ON student_course_topic_elo(user_id, course_id)
+        """
+        )
+
+        # ── Tabla exam_sessions (historial de exámenes del estudiante) ────
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS exam_sessions (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                course_name TEXT NOT NULL DEFAULT '',
+                n_questions INTEGER NOT NULL,
+                correct_count INTEGER NOT NULL,
+                score_pct REAL NOT NULL,
+                global_elo_after REAL NOT NULL DEFAULT 0,
+                exam_template_id INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS active_exam_sessions (
+                id TEXT PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                exam_template_id INTEGER,
+                item_ids TEXT NOT NULL,
+                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP NOT NULL,
+                submitted_at TIMESTAMP,
+                result_json TEXT
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_active_exam_sessions_user "
+            "ON active_exam_sessions(user_id, submitted_at)"
+        )
+        # v7 — Vincula sesiones históricas con la plantilla usada. Debe
+        # ejecutarse después del CREATE para soportar una base vacía.
+        self._add_column_if_not_exists(cursor, "exam_sessions", "exam_template_id", "INTEGER")
+        # Spec 001 (FR-028b): the overall rating's state at submission — 'rated' or 'pending'.
+        # NULL = recorded before this column: unknown, never backfilled (see contracts/api.md).
+        self._add_column_if_not_exists(
+            cursor,
+            "exam_sessions",
+            "global_elo_status",
+            "TEXT CHECK (global_elo_status IN ('rated', 'pending'))",
+        )
+        # ── Tabla exam_templates (plantillas de examen del docente) ──────
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS exam_templates (
+                id SERIAL PRIMARY KEY,
+                teacher_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                title TEXT NOT NULL,
+                time_limit_min INTEGER NOT NULL DEFAULT 20,
+                item_ids TEXT NOT NULL DEFAULT '[]',
+                archived BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_exam_templates_course "
+            "ON exam_templates(course_id, archived)"
+        )
+
+        # ── Tabla exam_assignments (asignaciones a grupos + ventana de tiempo) ──
+        # Sin filas para un template => visible a todos los inscritos al curso
+        # (backward-compat con plantillas creadas antes de esta tabla).
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS exam_assignments (
+                id SERIAL PRIMARY KEY,
+                template_id INTEGER NOT NULL
+                    REFERENCES exam_templates(id) ON DELETE CASCADE,
+                group_id INTEGER NOT NULL
+                    REFERENCES groups(id) ON DELETE CASCADE,
+                starts_at TIMESTAMP NULL,
+                ends_at TIMESTAMP NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (template_id, group_id)
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_exam_assignments_template "
+            "ON exam_assignments(template_id)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_exam_assignments_group " "ON exam_assignments(group_id)"
+        )
+
+        # ── Tabla exam_responses (respuesta por pregunta de cada examen) ──
+        # Habilita el análisis de resultados del docente. Evaluativo: NO
+        # afecta ELO ni dificultad del ítem.
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS exam_responses (
+                id SERIAL PRIMARY KEY,
+                session_id INTEGER NOT NULL,
+                template_id INTEGER,
+                user_id INTEGER NOT NULL,
+                item_id TEXT NOT NULL,
+                topic TEXT,
+                is_correct INTEGER NOT NULL DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_exam_responses_template "
+            "ON exam_responses(template_id)"
+        )
+
+        # ── Tabla diagnostics (examen diagnóstico de inicio de materia) ──
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS diagnostics (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                initial_elo REAL NOT NULL,
+                score_pct REAL NOT NULL,
+                result_json TEXT NOT NULL DEFAULT '{}',
+                completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (user_id, course_id)
+            )
+            """
+        )
+
+        # Progreso curricular independiente del ELO (nodos de contenido).
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS lesson_progress (
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                node_id TEXT NOT NULL,
+                state TEXT NOT NULL DEFAULT 'available',
+                objectives_viewed INTEGER NOT NULL DEFAULT 0,
+                math_convention_viewed INTEGER NOT NULL DEFAULT 0,
+                viewed_at TIMESTAMP,
+                completed_at TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, course_id, node_id)
+            )
+            """
+        )
+
+        # Respuestas cerradas de lecciones; por diseño no admite texto libre.
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS lesson_interactions (
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                node_id TEXT NOT NULL,
+                interaction_id TEXT NOT NULL,
+                selected_option TEXT NOT NULL,
+                is_expected INTEGER,
+                misconception_tag TEXT,
+                answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, course_id, node_id, interaction_id)
+            )
+            """
+        )
+
+        # ── Tablas PvP (ligas en tiempo real) ────────────────────────────
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS pvp_matches (
+                id SERIAL PRIMARY KEY,
+                course_id TEXT NOT NULL,
+                player1_id INTEGER NOT NULL,
+                player2_id INTEGER NOT NULL,
+                item_ids TEXT NOT NULL DEFAULT '[]',
+                status TEXT NOT NULL DEFAULT 'active',
+                winner_id INTEGER,
+                score_p1 INTEGER NOT NULL DEFAULT 0,
+                score_p2 INTEGER NOT NULL DEFAULT 0,
+                elo_delta_p1 REAL,
+                elo_delta_p2 REAL,
+                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                finished_at TIMESTAMP
+            )
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS pvp_answers (
+                id SERIAL PRIMARY KEY,
+                match_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                item_id TEXT NOT NULL,
+                is_correct INTEGER NOT NULL DEFAULT 0,
+                answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_pvp_matches_players "
+            "ON pvp_matches(player1_id, player2_id)"
+        )
+        # NULL = applied normally; 'no_rated_topics' = applied 0 (spec 001, FR-029c).
+        self._add_column_if_not_exists(cursor, "pvp_matches", "elo_reason_p1", "TEXT")
+        self._add_column_if_not_exists(cursor, "pvp_matches", "elo_reason_p2", "TEXT")
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_pvp_answers_match " "ON pvp_answers(match_id, user_id)"
+        )
 
     def _migrate_procedure_block7(self, cursor):
         """Spec 001 block 7: one current contribution per procedure, its review round and copy
@@ -1459,45 +1494,120 @@ class PostgresRepository:
         # A new database has no courses table yet: this migration creates it below.
         require_course_blocks(" ".join(r["definition"] for r in cursor.fetchall()))
 
-    def _backfill_prob_failure(self):
-        """Rellena prob_failure para intentos históricos que tienen NULL.
-        Reconstruye el ELO por tópico en orden cronológico para cada estudiante."""
+    def _check_group_names(self, cursor):
+        """Read-only: the unique index on (teacher_id, name_normalized) needs every group named
+        and no duplicate. Renaming is a repair the owner runs (spec 002 FR-018), so the migration
+        stops naming it instead."""
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS n FROM groups g
+             WHERE g.name_normalized IS NULL
+                OR EXISTS (SELECT 1 FROM groups o
+                            WHERE o.teacher_id = g.teacher_id
+                              AND o.name_normalized = g.name_normalized AND o.id < g.id)
+        """
+        )
+        pending = cursor.fetchone()["n"]
+        if pending:
+            raise MigrationNeedsRepair(
+                REPAIR_GROUPS, pending, "groups without a normalised name or with a repeated one"
+            )
+
+    def _make_image_data_nullable(self, cursor):
+        """FR-014, the one accepted exception to R8: DROP NOT NULL only while the column is
+        still NOT NULL, recorded by the version row that applies it."""
+        cursor.execute(
+            """
+            SELECT is_nullable FROM information_schema.columns
+             WHERE table_schema = current_schema()
+               AND table_name = 'procedure_submissions' AND column_name = 'image_data'
+        """
+        )
+        row = cursor.fetchone()
+        if row and row["is_nullable"] == "NO":
+            cursor.execute(
+                "ALTER TABLE procedure_submissions ALTER COLUMN image_data DROP NOT NULL"
+            )
+
+    # ── Data repairs: run by the owner through scripts/repairs/, never at start ──
+    # Spec 002 FR-018. Each returns the rows it changes; without apply=True it only counts.
+
+    def repair_users_without_password(self, apply: bool = False) -> int:
+        """Deactivates active users whose password hash is empty (they cannot sign in)."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
+            where = "active = 1 AND (password_hash IS NULL OR TRIM(password_hash) = '')"
+            if not apply:
+                cursor.execute(f"SELECT COUNT(*) AS n FROM users WHERE {where}")
+                return cursor.fetchone()["n"]
+            cursor.execute(f"UPDATE users SET active = 0 WHERE {where}")
+            changed = cursor.rowcount
+            conn.commit()
+            return changed
+        finally:
+            self.put_connection(conn)
 
-            # Obtener todos los estudiantes con intentos sin prob_failure
+    def repair_group_names(self, apply: bool = False) -> int:
+        """Fills groups.name_normalized where it is NULL and renames each repeated
+        (teacher, name) group but the oldest to «<name>-DUP-<id>», as the migration did before
+        spec 002 D1. Names are normalised as create_group does: strip, then lower."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute("SELECT id, name, teacher_id, name_normalized FROM groups ORDER BY id")
+            changes = {}
+            seen = set()
+            for row in cursor.fetchall():
+                key = (row["teacher_id"], row["name_normalized"] or row["name"].strip().lower())
+                if key not in seen:
+                    seen.add(key)
+                    if row["name_normalized"] is None:
+                        changes[row["id"]] = (row["name"], key[1])
+                    continue
+                new_name = f"{row['name']}-DUP-{row['id']}"
+                changes[row["id"]] = (new_name, new_name.strip().lower())
+            if apply:
+                for group_id, (name, normalised) in changes.items():
+                    cursor.execute(
+                        "UPDATE groups SET name = %s, name_normalized = %s WHERE id = %s",
+                        (name, normalised, group_id),
+                    )
+                conn.commit()
+            return len(changes)
+        finally:
+            self.put_connection(conn)
+
+    def repair_prob_failure(self, apply: bool = False) -> int:
+        """Fills attempts.prob_failure where it is NULL, from the rating reconstructed in
+        chronological order for each student and topic (approximate: 1000 before the first)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute("SELECT DISTINCT user_id FROM attempts WHERE prob_failure IS NULL")
             user_ids = [row["user_id"] for row in cursor.fetchall()]
-
+            changed = 0
             for user_id in user_ids:
-                # Traer TODOS los intentos del usuario en orden cronológico
                 cursor.execute(
-                    "SELECT id, topic, difficulty, elo_after FROM attempts "
+                    "SELECT id, topic, difficulty, elo_after, prob_failure FROM attempts "
                     "WHERE user_id = %s ORDER BY timestamp ASC, id ASC",
                     (user_id,),
                 )
-                attempts = cursor.fetchall()
-
-                elo_by_topic = {}  # ELO reconstruido antes de cada intento
-                for attempt in attempts:
-                    attempt_id = attempt["id"]
-                    topic = attempt["topic"]
-                    difficulty = attempt["difficulty"]
-                    elo_after = attempt["elo_after"]
-
-                    elo_before = elo_by_topic.get(topic, 1000.0)
-                    p_success = expected_score(elo_before, difficulty)
-                    prob_failure = 1.0 - p_success
-
-                    cursor.execute(
-                        "UPDATE attempts SET prob_failure = %s WHERE id = %s",
-                        (prob_failure, attempt_id),
-                    )
-                    # Avanzar ELO reconstruido
-                    elo_by_topic[topic] = elo_after
-
-            conn.commit()
+                elo_by_topic = {}  # rating reconstructed before each attempt
+                for attempt in cursor.fetchall():
+                    if attempt["prob_failure"] is None:
+                        elo_before = elo_by_topic.get(attempt["topic"], 1000.0)
+                        prob_failure = 1.0 - expected_score(elo_before, attempt["difficulty"])
+                        changed += 1
+                        if apply:
+                            cursor.execute(
+                                "UPDATE attempts SET prob_failure = %s WHERE id = %s",
+                                (prob_failure, attempt["id"]),
+                            )
+                    elo_by_topic[attempt["topic"]] = attempt["elo_after"]
+            if apply:
+                conn.commit()
+            return changed
         finally:
             self.put_connection(conn)
 
@@ -1629,7 +1739,7 @@ class PostgresRepository:
                         cursor.execute(
                             "UPDATE users SET group_id = COALESCE(group_id, %s), "
                             "education_level = COALESCE(education_level, %s) "
-                            "WHERE id = %s",
+                            "WHERE id = %s AND (group_id IS NULL OR education_level IS NULL)",
                             (primary_gid, edu_level, row["id"]),
                         )
 

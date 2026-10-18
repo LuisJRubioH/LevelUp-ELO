@@ -18,7 +18,7 @@ green throughout.
 
 ## Phase 1 — Setup
 
-- [ ] T001 `tests/integration/statement_recorder.py`: a helper that wraps a repository's
+- [x] T001 `tests/integration/statement_recorder.py`: a helper that wraps a repository's
   connections (both engines) and records each statement with its row count, so a test can count the
   DDL and the rows written by a start
 
@@ -33,44 +33,44 @@ green throughout.
 
 All in `tests/integration/test_spec002_d1_startup.py`, both engines, unless noted.
 
-- [ ] T003 [P] [US1] A second start against a current database issues no DDL and writes no row
+- [x] T003 [P] [US1] A second start against a current database issues no DDL and writes no row
   (US1-AS1, FR-016)
-- [ ] T004 [P] [US1] A database without `schema_versions` migrates once and records version 1; the
+- [x] T004 [P] [US1] A database without `schema_versions` migrates once and records version 1; the
   next start issues no DDL (US1-AS2, FR-015)
-- [ ] T005 [P] [US1] A migration step forced to fail commits nothing — no new column, no version
+- [x] T005 [P] [US1] A migration step forced to fail commits nothing — no new column, no version
   row — and raises naming the step; `scripts/migrate.py` exits 1 (US1-AS3, FR-017)
-- [ ] T006 [P] [US2] A user without a password hash whom the admin reactivated stays active after a
+- [x] T006 [P] [US2] A user without a password hash whom the admin reactivated stays active after a
   start (US2-AS1, FR-018)
-- [ ] T007 [P] [US2] Each repair script reports a count in a dry run, changes rows with `--apply`,
+- [x] T007 [P] [US2] Each repair script reports a count in a dry run, changes rows with `--apply`,
   and reports 0 on a second `--apply` (US2-AS2, FR-018)
-- [ ] T008 [P] [US2] Duplicate group names, or names without their normalised form, stop the
+- [x] T008 [P] [US2] Duplicate group names, or names without their normalised form, stop the
   migration with an error naming `scripts/repairs/rename_duplicate_groups.py`; nothing is committed
   (US2-AS3, FR-017, FR-018)
-- [ ] T009 [P] [US3] PostgreSQL only: the `DROP NOT NULL` is issued only while `image_data` is
+- [x] T009 [P] [US3] PostgreSQL only: the `DROP NOT NULL` is issued only while `image_data` is
   `NOT NULL` (US3-AS1, US3-AS2, FR-014)
-- [ ] T010 [P] An edited bank re-syncs the bank and records its fingerprint, and nothing else runs;
+- [x] T010 [P] An edited bank re-syncs the bank and records its fingerprint, and nothing else runs;
   an unchanged bank is not re-synced (spec § Edge Cases, FR-016)
-- [ ] T011 [P] `tests/unit/infrastructure/test_spec002_schema_version.py`: the digest of the
+- [x] T011 [P] `tests/unit/infrastructure/test_spec002_schema_version.py`: the digest of the
   migration code matches the one recorded with `SCHEMA_VERSION` (FR-015)
 
 ## Phase 4 — Implementation
 
-- [ ] T012 `src/infrastructure/persistence/schema_version.py`: `SCHEMA_VERSION`,
+- [x] T012 `src/infrastructure/persistence/schema_version.py`: `SCHEMA_VERSION`,
   `MIGRATION_SOURCES_DIGEST`, `migration_sources_digest()`, `bank_fingerprint(bank_dir)` (T011)
-- [ ] T013 Both repositories: `schema_versions` and `bank_syncs` (additive, R8); `_bootstrap_schema`
+- [x] T013 Both repositories: `schema_versions` and `bank_syncs` (additive, R8); `_bootstrap_schema`
   reads the version and skips `init_db` and `_migrate_db` when current; `_migrate_db` records the
   version in its own transaction; the bank is synced only when its fingerprint changed (T003, T004,
   T010)
-- [ ] T014 Both repositories: `_migrate_db` all or nothing — PostgreSQL drops the inner
+- [x] T014 Both repositories: `_migrate_db` all or nothing — PostgreSQL drops the inner
   `rollback`; SQLite runs it in one explicit transaction (T005)
-- [ ] T015 Both repositories: the startup repairs leave `_migrate_db` and the bootstrap
+- [x] T015 Both repositories: the startup repairs leave `_migrate_db` and the bootstrap
   (`_backfill_prob_failure` included) and become `repair_*` methods; the migration stops with
   `MigrationNeedsRepair` naming the script when groups need it; `scripts/repairs/*.py` (T006 … T008)
-- [ ] T016 PostgreSQL: the `DROP NOT NULL` behind `information_schema.columns.is_nullable` (T009)
-- [ ] T017 `docs/transfer.md` and AGENTS.md § Database: the bootstrap order, the version, the repair
+- [x] T016 PostgreSQL: the `DROP NOT NULL` behind `information_schema.columns.is_nullable` (T009)
+- [x] T017 `docs/transfer.md` and AGENTS.md § Database: the bootstrap order, the version, the repair
   scripts
 
 ## Phase 5 — Close
 
-- [ ] T018 Traceability: every D1 row filled; D1 `closed`; `check_traceability.py`, the full suite
+- [x] T018 Traceability: every D1 row filled; D1 `closed`; `check_traceability.py`, the full suite
   on both engines, `db_sync_check.py`, black and flake8

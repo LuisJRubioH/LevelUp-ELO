@@ -35,7 +35,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | Delivery | Content | State |
 |---|---|---|
 | **A** | As-is pins: what persistence already guarantees, each requirement tied to a test | in progress |
-| **D1** | Startup: a schema version so a start with nothing to do does nothing; repairs as scripts; the one R8 exception guarded; a failed migration commits nothing | planned |
+| **D1** | Startup: a schema version so a start with nothing to do does nothing; repairs as scripts; the one R8 exception guarded; a failed migration commits nothing | closed |
 | **D2** | Connections and the event loop: warm idle connections, a real liveness check, no repository call blocking an asynchronous handler, one round trip per read | planned |
 | **D3** | Parity checks and documented differences between the engines | planned |
 
@@ -327,14 +327,14 @@ pull request that closes their delivery.
 
 | Requirement / Scenario | Delivery | Test |
 |---|---|---|
-| US1-AS1 | D1 | `PENDING` |
-| US1-AS2 | D1 | `PENDING` |
-| US1-AS3 | D1 | `PENDING` |
-| US2-AS1 | D1 | `PENDING` |
-| US2-AS2 | D1 | `PENDING` |
-| US2-AS3 | D1 | `PENDING` |
-| US3-AS1 | D1 | `PENDING` |
-| US3-AS2 | D1 | `PENDING` |
+| US1-AS1 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_current_database_starts_without_ddl_or_writes` |
+| US1-AS2 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_an_old_database_migrates_once_and_records_the_version` |
+| US1-AS3 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_failing_migration_commits_nothing`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_fresh_database_with_the_lock_held_stops_naming_the_step` |
+| US2-AS1 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_reactivated_user_without_password_stays_active` |
+| US2-AS2 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_repair_scripts_report_and_are_idempotent` |
+| US2-AS3 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_duplicate_groups_stop_the_migration_naming_the_script` |
+| US3-AS1 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_drop_not_null_runs_only_while_needed` |
+| US3-AS2 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_drop_not_null_runs_only_while_needed` |
 | US4-AS1 | D2 | `PENDING` |
 | US4-AS2 | D2 | `PENDING` |
 | US5-AS1 | D2 | `PENDING` |
@@ -353,11 +353,11 @@ pull request that closes their delivery.
 | FR-011 | A | `tests/integration/test_migrate_lock.py::test_migrate_fails_and_blocks_the_web_process_when_a_lock_is_held`<br>`tests/integration/test_migrate_lock.py::test_migrate_succeeds_and_starts_the_web_process_without_contention` |
 | FR-012 | A | `PENDING` |
 | FR-013 | A | `PENDING` |
-| FR-014 | D1 | `PENDING` |
-| FR-015 | D1 | `PENDING` |
-| FR-016 | D1 | `PENDING` |
-| FR-017 | D1 | `PENDING` |
-| FR-018 | D1 | `PENDING` |
+| FR-014 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_drop_not_null_runs_only_while_needed` |
+| FR-015 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_an_old_database_migrates_once_and_records_the_version`<br>`tests/unit/infrastructure/test_spec002_schema_version.py::test_migration_code_changes_raise_the_version` |
+| FR-016 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_current_database_starts_without_ddl_or_writes`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_changed_bank_only_resyncs_the_bank` |
+| FR-017 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_failing_migration_commits_nothing`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_duplicate_groups_stop_the_migration_naming_the_script`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_fresh_database_with_the_lock_held_stops_naming_the_step` |
+| FR-018 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_reactivated_user_without_password_stays_active`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_repair_scripts_report_and_are_idempotent`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_duplicate_groups_stop_the_migration_naming_the_script` |
 | FR-020 | A | `PENDING` |
 | FR-021 | A | `PENDING` |
 | FR-022 | D2 | `PENDING` |

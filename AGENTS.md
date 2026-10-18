@@ -257,7 +257,7 @@ you find is residue: delete it (V1 once failed to start because `app.py` still p
 
 ### R14 — Backfill imports are local to the function
 ```python
-def _backfill_prob_failure(self):
+def repair_prob_failure(self, apply=False):
     from src.domain.elo.model import expected_score  # here, not at module level
 ```
 
@@ -568,9 +568,25 @@ satisfies `DeepString<typeof es>`).
 
 `DATABASE_URL` set → PostgreSQL (Supabase); absent → SQLite (`data/elo_database.db`).
 
-Bootstrap: `init_db()` → `_migrate_db()` → `_seed_admin()` → `_seed_demo_data()` →
-`_backfill_prob_failure()` → `sync_items_from_bank_folder()` → `_seed_test_students()` →
-`_reconcile_legacy_ratings()` → `expire_stale_pvp_matches()`.
+Bootstrap (spec 002 D1): `_migrate_db()` → `_seed_admin()` → `_seed_demo_data()` →
+`_sync_bank_if_changed()` → `_seed_test_students()` → `_reconcile_legacy_ratings()` →
+`expire_stale_pvp_matches()`.
+
+- **Schema version.** `_migrate_db()` reads `MAX(version)` of `schema_versions` under lock 12345
+  (SQLite: `BEGIN IMMEDIATE`). At `SCHEMA_VERSION` (`src/infrastructure/persistence/schema_version.py`)
+  it issues no DDL; below it, `init_db` and the whole cumulative migration run in **one
+  transaction** with the new version row, so a failure commits nothing (`MigrationFailed`
+  names the step). **Any change to the migration code raises `SCHEMA_VERSION` and records the
+  new `MIGRATION_SOURCES_DIGEST`** — `tests/unit/infrastructure/test_spec002_schema_version.py`
+  fails otherwise. If another session holds the lock and the schema is behind, no later step runs
+  (all are reported as skipped).
+- **Item bank.** Synced only when its fingerprint differs from the last row of `bank_syncs`.
+- **No data repair at start** (spec 002 FR-018). `scripts/repairs/` —
+  `deactivate_users_without_password.py`, `rename_duplicate_groups.py`,
+  `backfill_prob_failure.py` — count by default, write with `--apply`, print counts only. A
+  migration that needs one stops with `MigrationNeedsRepair` naming it.
+- The one R8 exception: `procedure_submissions.image_data DROP NOT NULL`, issued only while the
+  column is still `NOT NULL` (PostgreSQL).
 
 PostgreSQL: `pg_try_advisory_lock` (non-blocking), IDs 12345–12349, always released in `finally`.
 Reconciliation uses `pg_try_advisory_xact_lock(12345)` — also non-blocking, released at commit.

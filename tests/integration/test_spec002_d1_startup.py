@@ -355,7 +355,7 @@ def test_spec002_d1_duplicate_groups_stop_the_migration_naming_the_script(databa
     with pytest.raises(MigrationNeedsRepair, match="rename_duplicate_groups.py"):
         database.build()
 
-    assert not database.sql("SELECT 1 FROM groups WHERE name LIKE '%-DUP-%'")
+    assert not database.sql("SELECT 1 FROM groups WHERE name LIKE ?", ("%-DUP-%",))
     assert database.sql("SELECT COUNT(*) FROM groups WHERE name_normalized IS NULL")[0][0] == 1
     assert _versions(database) == []
     assert len(database.sql("SELECT 1 FROM groups WHERE LOWER(TRIM(name)) = ?", (name.lower(),)))
