@@ -89,8 +89,9 @@ data statements issued.
 
 **Acceptance Scenarios**:
 
-1. **US1-AS1** — **Given** a database already at the current schema version, **When** the
-   migration step runs, **Then** it issues no DDL and writes no data, and the web process starts.
+1. **US1-AS1** — **Given** a database already at the current schema version, an unchanged item bank
+   and no PvP match left active, **When** the migration step runs, **Then** it issues no DDL and
+   writes no data, and the web process starts.
 2. **US1-AS2** — **Given** a database at an older version, **When** the migration step runs,
    **Then** it applies the missing steps once, records the new version, and a second run changes
    nothing.
@@ -186,6 +187,8 @@ asynchronous handler stops every other request and socket while it waits.
   start.
 - **SQLite with two processes** (local development): no advisory locks exist; the schema version
   makes the second start a no-op instead of a second full run.
+- **The item bank changed but not the schema** (new or edited items): the start syncs the bank and
+  records its new fingerprint; nothing else runs.
 
 ## Requirements *(mandatory)*
 
@@ -214,9 +217,10 @@ asynchronous handler stops every other request and socket while it waits.
   change with the schema version. *(Today the `ALTER … DROP NOT NULL` runs on every start.)*
 - **FR-015** [CHANGE]: The system shall record the schema version a database is at, in an additive
   table, on both engines.
-- **FR-016** [CHANGE]: When the migration step finds the database at the current schema version,
-  the system shall issue no DDL and write no data. *(Today every start re-runs every step, the item
-  sync and the repairs.)*
+- **FR-016** [CHANGE]: When the migration step finds the database at the current schema version and
+  the item bank unchanged since its last sync, the system shall issue no DDL and write no data,
+  except closing the PvP matches a restart left active (spec 001 FR-027). *(Today every start
+  re-runs every step, the item sync and the repairs.)*
 - **FR-017** [CHANGE]: If any statement of a migration fails, then the system shall commit nothing
   of that migration, stop with an error naming the step, and not start the web process. *(Today a
   failed `UPDATE groups` is rolled back inside `_migrate_db`, which also discards the DDL issued
