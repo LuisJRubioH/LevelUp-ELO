@@ -16,6 +16,9 @@
 #   ops/transfer-verify    scripts/verify_deployment.py against production with the test accounts,
 #                          or with the optional VERIFY_STUDENT / VERIFY_DIAGNOSTIC_STUDENT /
 #                          VERIFY_TEACHER secrets ("user:password"; user names masked in the log).
+#   ops/transfer-b7check   before spec 001 block 7 reaches main (plan-b7.md § Operations):
+#                          read-only counts of graded procedures, of those whose contribution B7
+#                          cannot know, of duplicate (student, item) pairs and of shared files.
 #
 # The repository is public: anyone can read these logs and download the artifacts. Logs carry
 # counts only, connection details are masked, raw command output (which can quote rows) stays in
@@ -27,7 +30,8 @@ name: transfer-ops
 
 on:
   push:
-    branches: [ops/transfer-precheck, ops/transfer-backup, ops/transfer-dbcheck, ops/transfer-verify]
+    branches:
+      [ops/transfer-precheck, ops/transfer-backup, ops/transfer-dbcheck, ops/transfer-verify, ops/transfer-b7check]
 
 permissions:
   contents: read
@@ -510,6 +514,55 @@ jobs:
           SELECT id AS latest_submission, submitted_at::date AS day,
                  storage_url IS NOT NULL AS in_storage, image_data IS NOT NULL AS in_row
             FROM procedure_submissions ORDER BY id DESC LIMIT 5;
+          COMMIT;
+          SQL
+
+  b7check:
+    if: github.ref_name == 'ops/transfer-b7check'
+    runs-on: ubuntu-24.04
+    environment: production-ops
+    timeout-minutes: 10
+    steps:
+      - name: Mask connection details
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          python3 - <<'PY'
+          import os, urllib.parse
+          u = urllib.parse.urlsplit(os.environ.get("MIGRATION_DATABASE_URL", ""))
+          parts = [u.password, u.hostname, u.netloc]
+          if u.username and "." in u.username:
+              parts += [u.username] + u.username.split(".")[1:]
+          for p in filter(None, parts):
+              print(f"::add-mask::{p}")
+          PY
+      - name: Read-only counts for spec 001 block 7 (numbers only)
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          psql "$MIGRATION_DATABASE_URL" -X -v ON_ERROR_STOP=1 <<'SQL'
+          BEGIN TRANSACTION READ ONLY;
+          -- FR-024h, B7-P1: a negative stored delta may have been limited by the floor of 0, so B7
+          -- records its contribution as unknown and a regrade applies nothing until reviewed.
+          SELECT COUNT(*) FILTER (WHERE elo_delta IS NOT NULL) AS graded_procedures,
+                 COUNT(*) FILTER (WHERE elo_delta < 0) AS contribution_unknown
+            FROM procedure_submissions;
+          -- FR-024a: while any pair is duplicated the unique index is not created; merge apart,
+          -- with a backup (B7-P4 as replaced).
+          SELECT COUNT(*) AS duplicate_student_item_pairs FROM (
+            SELECT 1 FROM procedure_submissions GROUP BY student_id, item_id HAVING COUNT(*) > 1
+          ) duplicated;
+          -- FR-024i: files sent by more than one student stay as they are; the earliest sender
+          -- becomes the file's first owner.
+          SELECT COUNT(*) AS files_sent_by_several_students FROM (
+            SELECT 1 FROM procedure_submissions WHERE file_hash IS NOT NULL
+             GROUP BY file_hash HAVING COUNT(DISTINCT student_id) > 1
+          ) shared;
+          -- FR-024j: one student's file kept on two items; B7 records one of them as uploaded.
+          SELECT COUNT(*) AS files_on_two_items_of_one_student FROM (
+            SELECT 1 FROM procedure_submissions WHERE file_hash IS NOT NULL
+             GROUP BY student_id, file_hash HAVING COUNT(*) > 1
+          ) reused;
           COMMIT;
           SQL
 
