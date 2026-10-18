@@ -8,7 +8,7 @@ Endpoints del flujo de práctica del estudiante:
   GET  /student/achievements   → logros/badges desbloqueados
   GET  /student/courses        → catálogo de cursos disponibles
   POST /student/enroll         → matricularse en un curso
-  POST /student/enroll-by-code → acceso especial por código de invitación
+  POST /student/enroll-by-code → invitación de un solo uso de un grupo (spec 001 INV)
   DELETE /student/enroll/{course_id} → darse de baja
   GET  /student/history        → historial de intentos
   POST /student/exam/start     → inicia sesión de examen cronometrado
@@ -354,26 +354,33 @@ def enroll(body: EnrollRequest, user: CurrentUser, repo: RepoDep):
     return {"message": f"Matriculado en {body.course_id} correctamente."}
 
 
+# Spec 001 FR-028r, FR-028s: a refused invitation stays as it was.
+_INVITATION_REFUSALS = {
+    "invalid": (status.HTTP_404_NOT_FOUND, "Código de invitación inválido."),
+    "used": (
+        status.HTTP_409_CONFLICT,
+        "Este código ya fue usado. Pide uno nuevo a tu docente.",
+    ),
+    "expired": (status.HTTP_410_GONE, "Este código venció. Pide uno nuevo a tu docente."),
+    "already_member": (status.HTTP_409_CONFLICT, "Ya estás en este grupo."),
+    "no_course": (status.HTTP_400_BAD_REQUEST, "El grupo no tiene un curso asignado."),
+}
+
+
 @router.post("/enroll-by-code", status_code=status.HTTP_201_CREATED)
 def enroll_by_code(body: EnrollByCodeRequest, user: CurrentUser, repo: RepoDep):
-    """Acceso especial inter-nivel mediante código de invitación del docente."""
-    group = repo.get_group_by_invite_code(body.invite_code)
-    if not group:
+    """Redeem a single-use invitation of a teacher's group (spec 001 FR-028l, FR-028q … FR-028u).
+
+    The first student who redeems it consumes it. The group's reusable code of the old system
+    (`groups.invite_code`) is not read: it is an unknown invitation.
+    """
+    if user["role"] != "student":
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Código de invitación inválido o expirado.",
-        )
-    # Both repositories return the group's id as `group_id` (reading `id` was a 500 for every
-    # valid code).
-    group_id = group["group_id"]
-    course_id = group["course_id"]
-    if not course_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El grupo no tiene un curso asignado.",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo los estudiantes pueden usar un código de invitación.",
         )
     try:
-        _make_service(repo).enroll_by_invitation(user["user_id"], group_id, course_id)
+        result = _make_service(repo).enroll_by_invitation(user["user_id"], body.invite_code)
     except PermissionError:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -382,7 +389,10 @@ def enroll_by_code(body: EnrollByCodeRequest, user: CurrentUser, repo: RepoDep):
                 "Contacta a tu docente o al administrador."
             ),
         )
-    return {"message": "Acceso especial activado correctamente.", "course_id": course_id}
+    if result["status"] in _INVITATION_REFUSALS:
+        code, detail = _INVITATION_REFUSALS[result["status"]]
+        raise HTTPException(status_code=code, detail=detail)
+    return {"message": "Acceso especial activado correctamente.", "course_id": result["course_id"]}
 
 
 @router.delete("/enroll/{course_id}", status_code=status.HTTP_204_NO_CONTENT)

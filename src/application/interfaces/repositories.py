@@ -58,6 +58,7 @@ class IStudentRepository(Protocol):
     def get_available_groups_for_course(self, course_id) -> list: ...
     def enroll_user(self, user_id, course_id, group_id=None): ...
     def get_user_enrollments(self, user_id) -> list: ...  # ensure_enrolled (FR-037)
+    def redeem_group_invitation(self, user_id, token) -> dict: ...  # spec 001 FR-028q
 
 
 @runtime_checkable

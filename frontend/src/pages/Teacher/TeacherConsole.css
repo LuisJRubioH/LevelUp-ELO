@@ -522,6 +522,49 @@ html.light .lue-tc .tc-brand .brand-logo-dark { display: none; }
 .lue-tc .gm-foot .btn-soft, .lue-tc .gm-foot .btn-pri { flex: 1; justify-content: center; }
 .lue-tc .gm-err { color: #f87171; font-size: 12.5px; margin: -8px 0 14px; }
 
+/* Invitaciones de un solo uso (spec 001, delivery INV). Each row carries its state as a left
+   rule — teal while it can still be shared, green once a student used it, amber when it ran
+   out, muted and struck through when revoked — and the token in the pixel face, as the code
+   chip used to show it. New rows spring in from above (Framer Motion in Groups.tsx). */
+.lue-tc .code-chip .cl { font-size: 12px; font-weight: 600; color: var(--dim); }
+.lue-tc .grp-card .code-chip { cursor: inherit; }
+.lue-tc .inv-hint { font-size: 12px; color: var(--mute); line-height: 1.5; margin: -6px 0 14px; }
+.lue-tc .inv-make { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.lue-tc .inv-make input {
+  width: 74px; font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text);
+  background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 10px; padding: 9px 10px;
+  transition: border-color .18s, box-shadow .18s;
+}
+.lue-tc .inv-make input:focus { outline: none; border-color: var(--accent-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 16%, transparent); }
+.lue-tc .inv-make .inv-unit { font-size: 12.5px; color: var(--mute); }
+.lue-tc .inv-make .btn-pri { margin-left: auto; }
+.lue-tc .inv-make .btn-pri:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
+.lue-tc .inv-err { color: var(--color-wrong); font-size: 12.5px; margin: 0 0 12px; }
+.lue-tc .inv-empty { color: var(--mute); font-size: 13px; margin: 0; }
+.lue-tc .inv-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.lue-tc .inv-row {
+  --s: var(--accent-2);
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
+  background: var(--surface-2); border: 1px solid var(--border); border-left: 3px solid var(--s);
+  border-radius: 10px; padding: 10px 12px;
+}
+.lue-tc .inv-row.s-used { --s: var(--color-correct); }
+.lue-tc .inv-row.s-expired { --s: var(--color-partial); }
+.lue-tc .inv-row.s-revoked { --s: var(--mute); }
+.lue-tc .inv-token { font-family: var(--font-pixel); font-size: 10px; letter-spacing: .06em; color: var(--text); font-weight: 400; }
+.lue-tc .inv-row.s-revoked .inv-token, .lue-tc .inv-row.s-expired .inv-token { color: var(--mute); }
+.lue-tc .inv-row.s-revoked .inv-token { text-decoration: line-through; }
+.lue-tc .inv-state { font-size: 12px; color: color-mix(in srgb, var(--s) 70%, var(--text)); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lue-tc .inv-actions { display: inline-flex; gap: 6px; }
+.lue-tc .inv-btn {
+  font-family: var(--font-body); font-size: 11.5px; font-weight: 600; color: var(--accent-2); cursor: pointer;
+  background: transparent; border: 1px solid color-mix(in srgb, var(--accent-2) 40%, transparent); border-radius: 8px; padding: 5px 9px;
+}
+.lue-tc .inv-btn:hover { background: color-mix(in srgb, var(--accent-2) 12%, transparent); }
+.lue-tc .inv-btn.danger { color: var(--color-wrong); border-color: color-mix(in srgb, var(--color-wrong) 40%, transparent); }
+.lue-tc .inv-btn.danger:hover { background: color-mix(in srgb, var(--color-wrong) 12%, transparent); }
+.lue-tc .inv-btn:disabled { opacity: .5; cursor: not-allowed; }
+
 /* ============================================================ PROCEDIMIENTOS */
 .lue-tc .proc-layout { display: grid; grid-template-columns: 360px 1fr; gap: 18px; align-items: start; }
 .lue-tc .proc-queue { display: flex; flex-direction: column; gap: 10px; }
