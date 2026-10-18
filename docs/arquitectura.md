@@ -162,7 +162,9 @@ En despliegue lo aplica `scripts/migrate.py` como proceso aparte y el proceso we
 **Por qué separado.** `_migrate_db()` toma `pg_try_advisory_lock`, que es un lock de **sesión**.
 Sobre el pooler de transacciones de Supabase (puerto 6543) la sesión física no sobrevive al commit,
 así que el lock puede acabar liberándose desde otra sesión y dejar de proteger nada. El script usa
-`MIGRATION_DATABASE_URL` — conexión directa (5432) o pooler de sesión.
+`MIGRATION_DATABASE_URL` — el pooler de sesión (5432). La conexión directa de Supabase también
+sirve para el lock, pero su host solo tiene IPv6 (salvo el complemento IPv4), y ni Render ni los
+runners de GitHub llegan a IPv6.
 
 ### Pool de conexiones
 
@@ -233,7 +235,7 @@ and Supabase for PostgreSQL and Storage.
 | Variable | Para qué |
 |---|---|
 | `DATABASE_URL` | Tráfico normal — pooler de transacciones (6543) |
-| `MIGRATION_DATABASE_URL` | Solo `scripts/migrate.py` — conexión directa (5432) o pooler de sesión |
+| `MIGRATION_DATABASE_URL` | Solo `scripts/migrate.py` — pooler de sesión (5432; la conexión directa solo tiene IPv6) |
 | `RUN_MIGRATIONS` | `0` en el proceso web: el esquema lo aplica el paso previo |
 | `WEB_CONCURRENCY` | `1`, obligatorio — ver § Un solo proceso |
 | `JWT_SECRET_KEY` | ≥32 caracteres, random |
