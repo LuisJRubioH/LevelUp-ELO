@@ -81,8 +81,17 @@ El circuito completo:
    suma 10 puntos, un 0 resta 10, un 50 no mueve nada.
 5. Al estudiante le llega el aviso en el momento.
 
-El sistema calcula una **huella SHA-256** de cada archivo y detecta si el mismo
-estudiante sube dos veces lo mismo.
+Si el estudiante lo **reenvía**, vuelve a tu cola y su nota conserva la
+calificación anterior hasta que califiques otra vez; entonces solo se aplica la
+diferencia (un 80 que recalificas con 30 resta 10, no 4). Al guardar ves el
+efecto real en la nota, que puede ser menor si llegó a 0. Cada calificación queda
+en el historial del procedimiento.
+
+El sistema calcula una **huella SHA-256** de cada archivo:
+- el mismo estudiante no puede subir dos veces el mismo archivo, ni para el mismo
+  ejercicio ni para otro;
+- el archivo de otro estudiante queda calificado con 0 automáticamente y aparece
+  en **Copias detectadas**, debajo de la cola, sin nombrar a quien lo subió primero.
 
 Las imágenes viven en almacenamiento **privado** — se sirven por bytes
 autenticados, nunca por un enlace público que se pueda reenviar.

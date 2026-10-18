@@ -75,7 +75,8 @@ function ScorePill({ score }: { score: number }) {
 export function ValidatedCard({ row, t }: { row: ProcedureSubmissionRow; t: TFunction }) {
   const score = row.final_score ?? row.teacher_score ?? 0;
   const katia = katiaForScore(score, t);
-  const delta = row.elo_delta ?? 0;
+  // Spec 001 FR-024f: the amount the latest grading applied; null when nobody can know it.
+  const delta = row.elo_delta;
   return (
     <article className="sp-card" style={{ padding: 0, overflow: "hidden" }}>
       <div className="flex flex-col sm:flex-row gap-4 p-4">
@@ -108,11 +109,20 @@ export function ValidatedCard({ row, t }: { row: ProcedureSubmissionRow; t: TFun
           <div className="sp-mute flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
             <span>
               {t("feedback.eloLabel")}:{" "}
-              <span className={delta >= 0 ? "text-emerald-400" : "text-rose-400"}>
-                {delta >= 0 ? "+" : ""}
-                {delta.toFixed(1)}
-              </span>
+              {delta == null ? (
+                <span>—</span>
+              ) : (
+                <span className={delta >= 0 ? "text-emerald-400" : "text-rose-400"}>
+                  {delta >= 0 ? "+" : ""}
+                  {delta.toFixed(1)}
+                </span>
+              )}
             </span>
+            {row.is_copy && (
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-rose-900/40 text-rose-300">
+                {t("feedback.copyBadge")}
+              </span>
+            )}
             {row.reviewed_at && (
               <span>{t("feedback.gradedOn", { date: row.reviewed_at.slice(0, 10) })}</span>
             )}

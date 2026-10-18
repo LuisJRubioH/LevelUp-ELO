@@ -191,7 +191,12 @@ def test_spec004_teacher_views_show_name_and_group(repo, client):
     display name (or the username of FR-022) and group, and no username of a named student."""
     room = _classroom(repo)
     hidden = _username(repo, room["named"])
-    repo.save_procedure_submission(room["named"], "item-e2", "c", b"\x89PNG", "image/png", "e2h")
+    # A file nobody sent before: PostgreSQL keeps earlier runs' files, and another student's file
+    # is graded at once as a copy (spec 001 FR-024i), which would empty the queue below.
+    file_hash = "e2h-" + uuid.uuid4().hex
+    repo.save_procedure_submission(
+        room["named"], "item-e2", "c", b"\x89PNG", "image/png", file_hash
+    )
     headers = headers_for(repo, room["teacher"])
 
     dashboard = client.get("/api/teacher/dashboard", headers=headers)

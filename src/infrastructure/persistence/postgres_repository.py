@@ -18,6 +18,17 @@ from src.domain.elo.model import expected_score
 logger = logging.getLogger(__name__)
 
 
+def _procedure_effect(row):
+    """The rating effect a student sees for a procedure (spec 001 FR-024f): the amount its latest
+    grading applied; for one graded before block 7, its stored delta when that cannot have met the
+    floor; None when nobody can know."""
+    if row["applied"] is not None:
+        return float(row["applied"])
+    if row["contribution_origin"] == "legacy_delta":
+        return row["elo_delta"]
+    return None
+
+
 def _timing(func):
     """Decorator que mide y reporta el tiempo de ejecución de cada método."""
 
@@ -471,12 +482,16 @@ class PostgresRepository:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 """
-                SELECT id AS submission_id, item_id, item_content, status,
-                       ai_proposed_score, ai_feedback, teacher_score, final_score,
-                       teacher_feedback, elo_delta, submitted_at, reviewed_at
-                FROM procedure_submissions
-                WHERE student_id = %s
-                ORDER BY submitted_at DESC
+                SELECT ps.id AS submission_id, ps.item_id, ps.item_content, ps.status,
+                       ps.ai_proposed_score, ps.ai_feedback, ps.teacher_score, ps.final_score,
+                       ps.teacher_feedback, ps.elo_delta, ps.submitted_at, ps.reviewed_at,
+                       ps.contribution, ps.contribution_origin, ps.is_copy,
+                       (SELECT g.applied FROM procedure_gradings g
+                         WHERE g.submission_id = ps.id
+                         ORDER BY g.review_round DESC, g.id DESC LIMIT 1) AS applied
+                FROM procedure_submissions ps
+                WHERE ps.student_id = %s
+                ORDER BY ps.submitted_at DESC
                 LIMIT %s
                 """,
                 (student_id, limit),
@@ -492,7 +507,11 @@ class PostgresRepository:
                     "teacher_score": r["teacher_score"],
                     "final_score": r["final_score"],
                     "teacher_feedback": r["teacher_feedback"],
-                    "elo_delta": r["elo_delta"],
+                    # FR-024f: the rating effect is the amount the latest grading applied.
+                    "elo_delta": _procedure_effect(r),
+                    "computed_delta": r["elo_delta"],
+                    "contribution": r["contribution"],
+                    "is_copy": bool(r["is_copy"]),
                     "submitted_at": str(r["submitted_at"]) if r["submitted_at"] else None,
                     "reviewed_at": str(r["reviewed_at"]) if r["reviewed_at"] else None,
                 }
@@ -776,6 +795,7 @@ class PostgresRepository:
                 ALTER COLUMN image_data DROP NOT NULL
             """
             )
+            self._migrate_procedure_block7(cursor)
 
             # ── LMS: Cursos y Matrículas ─────────────────────────────────────
 
@@ -1259,6 +1279,140 @@ class PostgresRepository:
                 except Exception:
                     pass
             self.put_connection(conn)
+
+    def _migrate_procedure_block7(self, cursor):
+        """Spec 001 block 7: one current contribution per procedure, its review round and copy
+        mark; the history of gradings; each file's first sender; each student's uploads.
+        Additive (R8), then the rating-neutral backfill and FR-024a's index where it fits."""
+        for column, definition in (
+            ("contribution", "DOUBLE PRECISION DEFAULT 0"),
+            ("contribution_origin", "TEXT"),
+            ("review_round", "INTEGER NOT NULL DEFAULT 1"),
+            ("is_copy", "INTEGER NOT NULL DEFAULT 0"),
+        ):
+            self._add_column_if_not_exists(cursor, "procedure_submissions", column, definition)
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS procedure_gradings (
+                id SERIAL PRIMARY KEY,
+                submission_id INTEGER NOT NULL,
+                review_round INTEGER NOT NULL,
+                grade DOUBLE PRECISION NOT NULL,
+                computed_delta DOUBLE PRECISION NOT NULL,
+                correction DOUBLE PRECISION,
+                applied DOUBLE PRECISION NOT NULL,
+                contribution_after DOUBLE PRECISION,
+                grader_id INTEGER,
+                reason TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (submission_id, review_round)
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS procedure_files (
+                file_hash TEXT PRIMARY KEY,
+                student_id INTEGER NOT NULL,
+                item_id TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS procedure_uploads (
+                id SERIAL PRIMARY KEY,
+                student_id INTEGER NOT NULL,
+                item_id TEXT NOT NULL,
+                file_hash TEXT NOT NULL,
+                submission_id INTEGER,
+                outcome TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (student_id, file_hash)
+            )
+        """
+        )
+        self._backfill_procedure_contributions(cursor)
+        self._ensure_procedure_pair_index(cursor)
+
+    def _backfill_procedure_contributions(self, cursor=None):
+        """FR-024h, B7-P1: procedures graded before block 7 get their contribution — the stored
+        delta when it is not negative (adding never meets the floor), unknown otherwise — and
+        their files are recorded. No rating is read or written; a second run changes nothing."""
+        if cursor is None:
+            conn = self.get_connection()
+            try:
+                self._backfill_procedure_contributions(conn.cursor(cursor_factory=RealDictCursor))
+                conn.commit()
+            finally:
+                self.put_connection(conn)
+            return
+        cursor.execute(
+            """
+            UPDATE procedure_submissions
+               SET contribution = CASE WHEN elo_delta >= 0 THEN elo_delta ELSE NULL END,
+                   contribution_origin = CASE WHEN elo_delta >= 0 THEN 'legacy_delta'
+                                              ELSE 'legacy_unknown' END
+             WHERE contribution_origin IS NULL AND elo_delta IS NOT NULL
+        """
+        )
+        cursor.execute(
+            """
+            INSERT INTO procedure_files (file_hash, student_id, item_id, created_at)
+            SELECT DISTINCT ON (file_hash) file_hash, student_id, item_id, submitted_at
+              FROM procedure_submissions
+             WHERE file_hash IS NOT NULL
+             ORDER BY file_hash, submitted_at, id
+            ON CONFLICT (file_hash) DO NOTHING
+        """
+        )
+        cursor.execute(
+            """
+            INSERT INTO procedure_uploads
+                (student_id, item_id, file_hash, submission_id, outcome, created_at)
+            SELECT student_id, item_id, file_hash, id, 'accepted', submitted_at
+              FROM procedure_submissions
+             WHERE file_hash IS NOT NULL
+            ON CONFLICT (student_id, file_hash) DO NOTHING
+        """
+        )
+
+    def _ensure_procedure_pair_index(self, cursor=None) -> bool:
+        """FR-024a: one procedure per student and item, as a unique index — created only when
+        no duplicate pair exists. Duplicates are counted in production first and merged apart,
+        with a backup (B7-P4 as replaced); until then the per-student lock prevents new ones."""
+        if cursor is None:
+            conn = self.get_connection()
+            try:
+                created = self._ensure_procedure_pair_index(
+                    conn.cursor(cursor_factory=RealDictCursor)
+                )
+                conn.commit()
+                return created
+            finally:
+                self.put_connection(conn)
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS n FROM (
+                SELECT 1 FROM procedure_submissions
+                 GROUP BY student_id, item_id HAVING COUNT(*) > 1
+            ) duplicated
+        """
+        )
+        duplicates = cursor.fetchone()["n"]
+        if duplicates:
+            logger.warning(
+                "procedure_submissions: %d duplicate (student_id, item_id) pairs — unique index"
+                " not created (spec 001 FR-024a)",
+                duplicates,
+            )
+            return False
+        cursor.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_procedure_submissions_student_item "
+            "ON procedure_submissions(student_id, item_id)"
+        )
+        return True
 
     def _check_courses_block_constraint(self, cursor):
         """Read-only: the courses.block CHECK must accept the four blocks (spec 001 FR-028n).
@@ -4636,13 +4790,28 @@ class PostgresRepository:
     def save_procedure_submission(
         self, student_id, item_id, item_content, image_data, mime_type="image/jpeg", file_hash=None
     ):
-        """Guarda o reemplaza el procedimiento enviado por el estudiante.
-
-        Si Supabase Storage está disponible, sube el archivo al bucket
-        'procedimientos' y almacena la URL.  image_data se guarda como NULL
-        en la BD para nuevos registros (ahorra ~200 KB de BYTEA por fila).
-        Fallback: disco local + BYTEA si Storage no está disponible.
+        """Guarda o reemplaza el procedimiento del estudiante con las reglas del bloque 7 (spec 001):
+        la id del procedimiento, o None si el archivo se rechaza (FR-024j, FR-024k). Una copia de
+        otro estudiante queda calificada con 0 (FR-024i). V1 y los llamadores antiguos entran aquí.
         """
+        from src.domain.elo.model import procedure_grading
+        from src.domain.procedures import classify_upload
+
+        result = self.submit_procedure(
+            student_id,
+            item_id,
+            item_content,
+            image_data,
+            mime_type,
+            file_hash,
+            classify_upload,
+            lambda contribution, rating: procedure_grading(0.0, contribution, rating),
+        )
+        return result["submission_id"]
+
+    def _store_procedure_file(self, student_id, item_id, image_data, mime_type, file_hash):
+        """Sube el archivo a Supabase Storage y prepara la copia BYTEA y el respaldo en disco
+        (R9). Devuelve (bytea_value, img_path, storage_url)."""
         import time as _time
 
         print(
@@ -4694,20 +4863,97 @@ class PostgresRepository:
             f"image_data={'bytes:'+str(len(image_data)) if image_data else 'None'}"
         )
 
+        return bytea_value, img_path, storage_url
+
+    def _procedure_upload_facts(self, cursor, student_id, file_hash):
+        """The item this student already uploaded this file for, and the file's first sender."""
+        cursor.execute(
+            "SELECT item_id FROM procedure_uploads WHERE student_id = %s AND file_hash = %s",
+            (student_id, file_hash),
+        )
+        own = cursor.fetchone()
+        cursor.execute("SELECT student_id FROM procedure_files WHERE file_hash = %s", (file_hash,))
+        first = cursor.fetchone()
+        return (own["item_id"] if own else None), (first["student_id"] if first else None)
+
+    @_timing
+    def submit_procedure(
+        self,
+        student_id,
+        item_id,
+        item_content,
+        image_data,
+        mime_type,
+        file_hash,
+        classify,
+        grade_copy,
+    ):
+        """One student's upload for one item (spec 001 block 7: FR-024a, FR-024c, FR-024i …
+        FR-024k). `classify(student_id, item_id, own_upload_item, first_owner)` and
+        `grade_copy(contribution, rating_before)` are the domain's; this method reads, calls
+        them and persists. A refused file is decided before anything is stored, and decided
+        again under the student's lock (users → procedure, the order answers use).
+
+        Returns {"outcome", "submission_id", "grading"}: `submission_id` is None for a refusal
+        and `grading` is set only for a copy, graded 0 by the system in the same transaction.
+        """
+        from src.domain.procedures import ACCEPT, COPY, REFUSED
+
+        if file_hash:
+            conn = self.get_connection()
+            try:
+                cursor = conn.cursor(cursor_factory=RealDictCursor)
+                outcome = classify(
+                    student_id,
+                    item_id,
+                    *self._procedure_upload_facts(cursor, student_id, file_hash),
+                )
+                conn.rollback()
+            finally:
+                self.put_connection(conn)
+            if outcome in REFUSED:
+                return {"outcome": outcome, "submission_id": None, "grading": None}
+
+        bytea_value, img_path, storage_url = self._store_procedure_file(
+            student_id, item_id, image_data, mime_type, file_hash
+        )
+
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute("SELECT id FROM users WHERE id = %s FOR UPDATE", (student_id,))
+            outcome = ACCEPT
+            if file_hash:
+                # The first sender of a file is claimed, not looked up: of two students sending
+                # the same new file at once, the second waits for the first and sees its row.
+                cursor.execute(
+                    "INSERT INTO procedure_files (file_hash, student_id, item_id)"
+                    " VALUES (%s, %s, %s) ON CONFLICT (file_hash) DO NOTHING",
+                    (file_hash, student_id, item_id),
+                )
+                outcome = classify(
+                    student_id,
+                    item_id,
+                    *self._procedure_upload_facts(cursor, student_id, file_hash),
+                )
+                if outcome in REFUSED:
+                    conn.rollback()
+                    logger.warning("Procedure upload refused under lock after its file was stored")
+                    return {"outcome": outcome, "submission_id": None, "grading": None}
+            is_copy = 1 if outcome == COPY else 0
+
             cursor.execute(
-                "SELECT id FROM procedure_submissions WHERE student_id=%s AND item_id=%s",
+                "SELECT id FROM procedure_submissions WHERE student_id = %s AND item_id = %s"
+                " FOR UPDATE",
                 (student_id, item_id),
             )
-            existing = cursor.fetchone()
-            if existing:
+            if cursor.fetchone():
+                # FR-024c: back to review with its contribution kept; a new review round.
                 cursor.execute(
                     """
                     UPDATE procedure_submissions
                     SET image_data=%s, mime_type=%s, procedure_image_path=%s, file_hash=%s,
-                        storage_url=%s,
+                        storage_url=%s, is_copy=%s, review_round = review_round + 1,
                         status=CASE
                             WHEN ai_proposed_score IS NOT NULL THEN 'PENDING_TEACHER_VALIDATION'
                             ELSE 'pending'
@@ -4717,19 +4963,27 @@ class PostgresRepository:
                         procedure_score=NULL, teacher_score=NULL, final_score=NULL,
                         submitted_at=CURRENT_TIMESTAMP, reviewed_at=NULL
                     WHERE student_id=%s AND item_id=%s
-                    RETURNING id
+                    RETURNING id, review_round, contribution
                 """,
-                    (bytea_value, mime_type, img_path, file_hash, storage_url, student_id, item_id),
+                    (
+                        bytea_value,
+                        mime_type,
+                        img_path,
+                        file_hash,
+                        storage_url,
+                        is_copy,
+                        student_id,
+                        item_id,
+                    ),
                 )
-                submission_id = cursor.fetchone()["id"]
             else:
                 cursor.execute(
                     """
                     INSERT INTO procedure_submissions
                         (student_id, item_id, item_content, image_data, mime_type,
-                         procedure_image_path, file_hash, storage_url)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    RETURNING id
+                         procedure_image_path, file_hash, storage_url, is_copy)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id, review_round, contribution
                 """,
                     (
                         student_id,
@@ -4740,11 +4994,37 @@ class PostgresRepository:
                         img_path,
                         file_hash,
                         storage_url,
+                        is_copy,
                     ),
                 )
-                submission_id = cursor.fetchone()["id"]
+            row = cursor.fetchone()
+            if file_hash:
+                cursor.execute(
+                    "INSERT INTO procedure_uploads"
+                    " (student_id, item_id, file_hash, submission_id, outcome)"
+                    " VALUES (%s, %s, %s, %s, %s)",
+                    (student_id, item_id, file_hash, row["id"], "copy" if is_copy else "accepted"),
+                )
+            grading = None
+            if is_copy:
+                grading = self._apply_procedure_grading(
+                    cursor,
+                    row["id"],
+                    student_id,
+                    item_id,
+                    row["contribution"],
+                    row["review_round"],
+                    0.0,
+                    grade_copy,
+                    None,
+                    "copy",
+                    None,
+                )
             conn.commit()
-            return submission_id
+            return {"outcome": outcome, "submission_id": row["id"], "grading": grading}
+        except Exception:
+            conn.rollback()
+            raise
         finally:
             self.put_connection(conn)
 
@@ -4892,7 +5172,7 @@ class PostgresRepository:
                            ps.item_id, ps.item_content, ps.mime_type,
                            ps.submitted_at, ps.procedure_image_path,
                            ps.status, ps.ai_proposed_score, ps.ai_feedback,
-                           ps.storage_url,
+                           ps.storage_url, ps.review_round,
                            CASE WHEN ps.storage_url IS NULL THEN ps.image_data
                                 ELSE NULL END AS image_data
                     FROM procedure_submissions ps
@@ -4910,7 +5190,7 @@ class PostgresRepository:
                            ps.item_id, ps.item_content, ps.mime_type,
                            ps.submitted_at, ps.procedure_image_path,
                            ps.status, ps.ai_proposed_score, ps.ai_feedback,
-                           ps.storage_url,
+                           ps.storage_url, ps.review_round,
                            CASE WHEN ps.storage_url IS NULL THEN ps.image_data
                                 ELSE NULL END AS image_data
                     FROM procedure_submissions ps
@@ -4935,62 +5215,252 @@ class PostgresRepository:
         feedback: str = "",
         teacher_id: int | None = None,
     ) -> bool:
-        """Valida la calificación de un procedimiento y establece la nota final oficial."""
-        from src.domain.elo.model import procedure_elo_delta
+        """Valida la calificación de un procedimiento pendiente (ronda actual) con las reglas del
+        bloque 7: True solo si esta llamada la registró. Un reintento devuelve False."""
+        from src.domain.elo.model import procedure_grading
 
-        elo_delta = procedure_elo_delta(teacher_score)
+        result = self.grade_procedure_transaction(
+            submission_id,
+            teacher_score,
+            lambda contribution, rating: procedure_grading(teacher_score, contribution, rating),
+            feedback=feedback,
+            teacher_id=teacher_id,
+        )
+        return bool(result and result["created"])
 
+    _PENDING_PROCEDURE = ("pending", "PENDING_TEACHER_VALIDATION")
+
+    @_timing
+    def grade_procedure_transaction(
+        self,
+        submission_id: int,
+        grade: float,
+        compute,
+        feedback: str = "",
+        teacher_id: int | None = None,
+        review_round: int | None = None,
+    ) -> dict | None:
+        """One teacher grading of one review of a procedure (spec 001 FR-024b, FR-024d, FR-024g).
+
+        Locks the student (users → procedure, the order answers use), and returns the grading
+        already recorded for that review unchanged (`created` False) — a retry, or the second of
+        two simultaneous gradings. Otherwise, if the procedure is pending in that review and the
+        teacher owns the student's group (FR-023), `compute(contribution, rating_before)` — the
+        domain's `procedure_grading` — gives the correction and the amount applied, and the
+        rating, the grading and the procedure are written together (`created` True). None when
+        there is nothing to grade.
+        """
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            ownership = ""
-            params = [teacher_score, teacher_score, feedback or None, elo_delta, submission_id]
-            if teacher_id is not None:
-                ownership = """
-                    AND EXISTS (
-                        SELECT 1 FROM users u
-                        JOIN groups g ON g.id = u.group_id
-                        WHERE u.id = procedure_submissions.student_id
-                          AND g.teacher_id = %s
-                    )
-                """
-                params.append(teacher_id)
             cursor.execute(
-                f"""
-                UPDATE procedure_submissions
-                SET teacher_score    = %s,
-                    final_score      = %s,
-                    teacher_feedback = %s,
-                    elo_delta        = %s,
-                    elo_applied      = 1,
-                    status           = 'VALIDATED_BY_TEACHER',
-                    reviewed_at      = CURRENT_TIMESTAMP
-                WHERE id = %s
-                  AND status IN ('pending', 'PENDING_TEACHER_VALIDATION')
-                  {ownership}
-                RETURNING student_id, item_id
-            """,
-                tuple(params),
+                "SELECT student_id FROM procedure_submissions WHERE id = %s", (submission_id,)
+            )
+            found = cursor.fetchone()
+            if not found:
+                conn.rollback()
+                return None
+            student_id = found["student_id"]
+            cursor.execute("SELECT id FROM users WHERE id = %s FOR UPDATE", (student_id,))
+            if teacher_id is not None:
+                cursor.execute(
+                    "SELECT 1 FROM users u JOIN groups g ON g.id = u.group_id"
+                    " WHERE u.id = %s AND g.teacher_id = %s",
+                    (student_id, teacher_id),
+                )
+                if cursor.fetchone() is None:
+                    conn.rollback()
+                    return None
+            cursor.execute(
+                "SELECT item_id, status, review_round, contribution FROM procedure_submissions"
+                " WHERE id = %s FOR UPDATE",
+                (submission_id,),
             )
             row = cursor.fetchone()
-            if row:
-                # El delta se aplica aquí una sola vez; la guarda de status
-                # impide revalidar la misma entrega.
-                cursor.execute(
-                    "SELECT course_id, topic FROM items WHERE id = %s", (row["item_id"],)
-                )
-                item = cursor.fetchone()
-                if item:
-                    self._bump_course_topic_rating(
-                        cursor,
-                        row["student_id"],
-                        item["course_id"],
-                        item["topic"],
-                        elo_delta,
-                        "procedure",
-                    )
+            current_round = row["review_round"] if review_round is None else int(review_round)
+            recorded = self._procedure_grading_rows(cursor, submission_id, current_round)
+            if recorded:
+                conn.rollback()
+                return {**recorded[0], "created": False}
+            if current_round != row["review_round"] or row["status"] not in self._PENDING_PROCEDURE:
+                conn.rollback()
+                return None
+            grading = self._apply_procedure_grading(
+                cursor,
+                submission_id,
+                student_id,
+                row["item_id"],
+                row["contribution"],
+                current_round,
+                grade,
+                compute,
+                teacher_id,
+                "teacher",
+                feedback,
+            )
             conn.commit()
-            return row is not None
+            return {**grading, "created": True}
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def _apply_procedure_grading(
+        self,
+        cursor,
+        submission_id,
+        student_id,
+        item_id,
+        contribution,
+        review_round,
+        grade,
+        compute,
+        grader_id,
+        reason,
+        feedback,
+    ) -> dict:
+        """Inside the caller's transaction: read the item's (course, topic) rating, let the domain
+        compute, then write the rating, the grading row and the procedure (FR-024d, FR-024e).
+        An unknown contribution applies nothing (FR-024h); an item missing from the bank applies
+        nothing either, as grading such an item always did."""
+        cursor.execute("SELECT course_id, topic FROM items WHERE id = %s", (item_id,))
+        item = cursor.fetchone()
+        rating_before = 1000.0  # an absent row starts from 1000, as _bump_course_topic_rating
+        if item:
+            cursor.execute(
+                "SELECT current_elo FROM student_course_topic_elo"
+                " WHERE user_id = %s AND course_id = %s AND topic = %s FOR UPDATE",
+                (student_id, item["course_id"], item["topic"]),
+            )
+            current = cursor.fetchone()
+            if current:
+                rating_before = float(current["current_elo"])
+        known = None if contribution is None else float(contribution)
+        effect = compute(known, rating_before)
+        applied, contribution_after = (
+            (effect.applied, effect.contribution_after) if item else (0.0, known)
+        )
+        if item and not effect.contribution_unknown:
+            self._bump_course_topic_rating(
+                cursor, student_id, item["course_id"], item["topic"], applied, "procedure"
+            )
+        cursor.execute(
+            """
+            INSERT INTO procedure_gradings
+                (submission_id, review_round, grade, computed_delta, correction, applied,
+                 contribution_after, grader_id, reason)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """,
+            (
+                submission_id,
+                review_round,
+                grade,
+                effect.computed_delta,
+                effect.correction,
+                applied,
+                contribution_after,
+                grader_id,
+                reason,
+            ),
+        )
+        cursor.execute(
+            """
+            UPDATE procedure_submissions
+            SET teacher_score = %s, final_score = %s, teacher_feedback = %s,
+                elo_delta = %s, elo_applied = 1, contribution = %s,
+                contribution_origin = CASE WHEN %s THEN contribution_origin ELSE 'grading' END,
+                status = 'VALIDATED_BY_TEACHER', reviewed_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+        """,
+            (
+                grade,
+                grade,
+                feedback or None,
+                effect.computed_delta,
+                contribution_after,
+                effect.contribution_unknown,
+                submission_id,
+            ),
+        )
+        return self._procedure_grading_rows(cursor, submission_id, review_round)[0]
+
+    def _procedure_grading_rows(self, cursor, submission_id, review_round=None) -> list:
+        query = (
+            "SELECT g.submission_id, g.review_round, g.grade, g.computed_delta, g.correction,"
+            " g.applied, g.contribution_after, g.grader_id, g.reason, g.created_at,"
+            " COALESCE(u.display_name, u.username) AS grader_name"
+            " FROM procedure_gradings g LEFT JOIN users u ON u.id = g.grader_id"
+            " WHERE g.submission_id = %s"
+        )
+        params = [submission_id]
+        if review_round is not None:
+            query += " AND g.review_round = %s"
+            params.append(review_round)
+        cursor.execute(query + " ORDER BY g.review_round, g.id", tuple(params))
+        return [
+            {
+                "submission_id": r["submission_id"],
+                "review_round": r["review_round"],
+                "grade": float(r["grade"]),
+                "computed_delta": float(r["computed_delta"]),
+                "correction": None if r["correction"] is None else float(r["correction"]),
+                "applied": float(r["applied"]),
+                "contribution_after": (
+                    None if r["contribution_after"] is None else float(r["contribution_after"])
+                ),
+                "grader_id": r["grader_id"],
+                "grader_name": r["grader_name"],
+                "reason": r["reason"],
+                "created_at": str(r["created_at"]) if r["created_at"] else None,
+            }
+            for r in cursor.fetchall()
+        ]
+
+    @_timing
+    def get_procedure_gradings(self, submission_id: int, teacher_id: int | None = None):
+        """Every grading of a procedure, oldest first (FR-024e, US9-AS8). With `teacher_id`,
+        only for the teacher of the student's group: None otherwise (FR-023)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            if teacher_id is not None:
+                cursor.execute(
+                    "SELECT 1 FROM procedure_submissions ps JOIN users u ON u.id = ps.student_id"
+                    " JOIN groups g ON g.id = u.group_id WHERE ps.id = %s AND g.teacher_id = %s",
+                    (submission_id, teacher_id),
+                )
+                if cursor.fetchone() is None:
+                    return None
+            return self._procedure_grading_rows(cursor, submission_id)
+        finally:
+            self.put_connection(conn)
+
+    @_timing
+    def get_recent_procedure_copies_for_teacher(self, teacher_id: int, days: int = 30) -> list:
+        """Procedures graded 0 automatically as copies (FR-024i) in this teacher's groups during
+        the last `days` days. Never the student who sent the file first."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                """
+                SELECT ps.id AS submission_id, ps.student_id,
+                       COALESCE(u.display_name, u.username) AS student_name,
+                       ps.item_id, ps.item_content, ps.reviewed_at
+                FROM procedure_submissions ps
+                JOIN users u ON u.id = ps.student_id
+                JOIN groups g ON g.id = u.group_id
+                WHERE g.teacher_id = %s AND ps.is_copy = 1
+                  AND ps.reviewed_at >= CURRENT_TIMESTAMP - make_interval(days => %s)
+                ORDER BY ps.reviewed_at DESC
+            """,
+                (teacher_id, int(days)),
+            )
+            return [
+                {**dict(r), "reviewed_at": str(r["reviewed_at"]) if r["reviewed_at"] else None}
+                for r in cursor.fetchall()
+            ]
         finally:
             self.put_connection(conn)
 

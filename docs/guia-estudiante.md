@@ -162,8 +162,13 @@ Qué pasa después:
    igual.
 4. Te llega un aviso en el momento en que te califican.
 
-**No subas dos veces el mismo archivo.** El sistema le saca una huella digital y
-detecta el duplicado.
+**Si lo reenvías**, vuelve a revisión y tu nota conserva lo que te dio la
+calificación anterior hasta que el docente califique otra vez. Entonces solo se
+aplica la diferencia: un procedimiento cuenta una vez, con su última nota.
+
+**No subas dos veces el mismo archivo.** El sistema le saca una huella digital:
+- si ya lo subiste para ese ejercicio, o para otro, se rechaza y no cambia nada;
+- si es el archivo de otro estudiante, queda calificado con 0 y marcado como copia.
 
 ---
 

@@ -105,12 +105,15 @@ copy — never starts a new review or a new 0.
 
 The route `POST /api/student/procedure` keeps reading and validating the file and hashing it. Then:
 
-1. **Read-only classification** (`classify_procedure_upload` in both repositories, then the
-   domain). A refused file answers 409 before anything is uploaded to Storage:
+`StudentService.submit_procedure` calls `submit_procedure` in both repositories with the domain's
+`classify_upload` and the copy's grading:
+
+1. **Read-only classification** (the two facts, then the domain). A refused file answers 409
+   before anything is uploaded to Storage:
    - `refuse_same_item` → «Ya subiste este archivo para este ejercicio.»;
    - `refuse_other_item` → «Este archivo pertenece a otro ejercicio.».
 2. **Storage upload**, as today (the object path holds the hash).
-3. **One transaction** (`record_procedure_upload`): lock the student's `users` row (PostgreSQL
+3. **One transaction** (inside `submit_procedure`): lock the student's `users` row (PostgreSQL
    `FOR UPDATE`; SQLite `BEGIN IMMEDIATE`) — the lock order of answers, so no deadlock — insert the
    `procedure_uploads` row (a conflict means a concurrent upload of the same file: refuse as in
    step 1), claim `procedure_files`, upsert the one procedure of the pair (a resubmission adds 1 to
@@ -119,7 +122,7 @@ The route `POST /api/student/procedure` keeps reading and validating the file an
    `is_copy = 1`.
    - A refusal decided only here (a race between steps 1 and 3) leaves the stored object
      unreferenced; it is logged without the hash or the student.
-4. The response says what happened. For a copy: `status "graded"`, `copy true`, grade 0 and the
+4. The response says what happened. For a copy: `status "graded"`, `is_copy true`, grade 0 and the
    amount applied; the screen shows «Este archivo ya lo había entregado otro estudiante. El
    procedimiento quedó calificado con 0 y marcado como copia.»
 
@@ -145,11 +148,12 @@ compute)` in both repositories:
    feedback, `elo_delta` = computed, `contribution`, `contribution_origin = 'grading'` unless it
    stays unknown, `elo_applied = 1`, status `VALIDATED_BY_TEACHER`).
 
-`validate_procedure_submission(submission_id, teacher_score, feedback, teacher_id)` stays, with
-the same contract, as a thin call to the transaction for the current round, so its callers and
-today's tests keep working. `TeacherService.validate_procedure` supplies the domain computation and
-returns the result. `check_file_hash_duplicate` is removed from both repositories and the protocol,
-replaced by `classify_procedure_upload`.
+`validate_procedure_submission(submission_id, teacher_score, feedback, teacher_id)` and
+`save_procedure_submission(...)` stay, with their contracts, as thin calls to the new methods for
+the current round and with the domain's rules, so V1 (frozen) and today's callers keep working.
+`TeacherService.grade_procedure` refuses a grade outside 0–100 before the repository runs
+(FR-023), supplies the domain computation and returns the result; `validate_procedure` returns its
+amount applied. `check_file_hash_duplicate` stays: V1 calls it.
 
 ### What is shown (FR-024e, FR-024f)
 
@@ -165,8 +169,9 @@ replaced by `classify_procedure_upload`.
   «Calificado 0 automáticamente». The other student is never named: they may belong to another
   teacher's group.
 - **History** (`GET /api/teacher/procedures/{id}/gradings`): every grading of the procedure — grade,
-  computed delta, correction, amount applied, contribution after, who graded (a teacher's name or
-  «Sistema (copia)») and when (US9-AS8). Teachers of the student's group only.
+  computed delta, correction, amount applied, contribution after, who graded (a teacher's name, or
+  none for the system's copy grade) and when (US9-AS8). Teachers of the student's group only:
+  another teacher gets 404 and a student 403 (the teacher routes' role guard).
 
 ### Procedures graded before B7 (FR-024h, B7-P1)
 
@@ -186,8 +191,9 @@ A read-only job in the `transfer-ops` workflow (`ops/transfer-b7check`, Environm
 - files sent by more than one student (they stay as they are; the first sender becomes the file's
   first owner).
 
-Identifiers, if any, go only into an artifact encrypted with `BACKUP_PASSPHRASE`. The owner reads
-the counts before the merge; a duplicate pair is merged apart, with a backup, before or after B7.
+It logs numbers only and keeps no artifact. The owner reads the counts before the merge; a
+duplicate pair is merged apart, with a backup, before or after B7, and the procedures whose
+contribution is unknown are looked up one by one when the owner reviews them.
 
 ## Tests
 
@@ -201,7 +207,7 @@ the counts before the merge; a duplicate pair is merged apart, with a backup, be
   as above, runs twice the same, and skips the index only when a duplicate pair exists; copy,
   same-item and other-item uploads; two students sending one new file at once leave exactly one
   first owner.
-- **API** (`tests/api/test_spec001_b7_procedures.py`): the response, the notification and the
+- **API, both engines** (`tests/integration/test_spec001_b7_api.py`): the response, the notification and the
   student's list report the amount applied; a retried request returns the same body; the copy and
   the two refusals with their messages; the history for the group's teacher only. The existing
   `test_duplicate_file_from_another_student_is_rejected` is flipped to the copy, citing FR-024i.

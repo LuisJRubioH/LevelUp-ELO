@@ -271,7 +271,8 @@ overall ratings are **derived** by `RatingReadService` and never stored. `studen
 |---|---|---|
 | Diagnostic | `set_topic_rating_baseline` → `_set_course_topic_rating` | sets the value; skipped for a topic already practised in that course |
 | Answer with `elo_valid` | `save_answer_transaction` → `_set_course_topic_rating` | sets the item's (course, topic) value |
-| Teacher-validated procedure | `validate_procedure_submission` → `_bump_course_topic_rating` | adds `elo_delta` (floor 0), sets `elo_applied=1` |
+| Teacher-validated procedure | `grade_procedure_transaction` → `_apply_procedure_grading` | applies only the correction `(grade − 50) × 0.2 − contribution` (floor 0) and records the amount applied as the procedure's new contribution, once per review round (spec 001 block 7) |
+| Copied procedure (system) | `submit_procedure` → `_apply_procedure_grading` | another student's file: graded 0 in the upload's transaction, the same correction (FR-024i) |
 | Finished PvP match | `finish_pvp_match` | adds the delta to every rated topic of the course (R19) |
 | Legacy reconciliation | `_reconcile_legacy_ratings` (bootstrap, idempotent) | inserts approximate baselines with provenance |
 
@@ -580,7 +581,8 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `groups` | unique `(teacher_id, name_normalized)`, `invite_code` |
 | `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array) |
 | `attempts` | `elo_before`, `elo_after`, `elo_valid`, `prob_failure`, `expected_score`, `time_taken`, `request_id` |
-| `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta`, `elo_applied`, `file_hash` |
+| `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta` (computed), `elo_applied`, `file_hash`, `contribution` (net amount applied; NULL = unknown, B7-P1), `contribution_origin`, `review_round`, `is_copy`; unique `(student_id, item_id)` when no duplicate exists |
+| `procedure_gradings`, `procedure_files`, `procedure_uploads` | block 7: every grading (unique per review round); each file's first sender; each student's uploads (unique `(student_id, file_hash)`) |
 | `pvp_matches` | `status` (active/finished/abandoned), `course_id`, applied deltas, `elo_reason_p1/p2` |
 | `exam_sessions` | `global_elo_after` + `global_elo_status` (`rated`/`pending`; NULL = before spec 001, unknown) — the overall rating at submission |
 | `katia_interactions`, `problem_reports`, `audit_group_changes`, `diagnostics` | see repositories |

@@ -21,6 +21,7 @@ entry ending in `/` covers everything below it.
 - `src/domain/elo/` — rating formulas, aggregation, ranks, reconciliation
 - `src/domain/selector/` — item selection
 - `src/domain/entities.py` — levels, blocks and the catalogue rule
+- `src/domain/procedures.py` — what an uploaded procedure file is (block 7)
 - `src/application/interfaces/repositories.py`
 - `src/application/services/student_service.py`
 - `src/application/services/rating_read_service.py`
@@ -53,6 +54,8 @@ entry ending in `/` covers everything below it.
 - `frontend/src/pages/Teacher/Groups.tsx`
 - `frontend/src/pages/Teacher/Procedures.tsx` — the rating effect a grade shows (block 7)
 - `frontend/src/pages/Student/Feedback.tsx` — the rating effect a grade shows (block 7)
+- `frontend/src/pages/Student/ProcedureUpload.tsx` — the copy result and the refusals (block 7)
+- `frontend/src/components/Procedure/ProcedureSection.tsx` — the same, from practice (block 7)
 
 ## Deliveries *(this spec is delivered in steps since 2026-10-13)*
 
@@ -63,7 +66,7 @@ request that completes a delivery marks it closed and fills all its rows.
 |---|---|---|
 | **S1** | The rating engine as specified 2026-10-05 … 2026-10-08, with follow-ups F-1 and F-4 | closed |
 | **B5** | Block 5: the diagnostic result shows the current rating (LuisJRubioH/LevelUp-ELO#62) | closed |
-| **B7** | Block 7: procedure resubmission and regrading — one current contribution per procedure | planned |
+| **B7** | Block 7: procedure resubmission and regrading — one current contribution per procedure | closed |
 
 ## Clarifications
 
@@ -1142,18 +1145,18 @@ match the scenarios' text.
 | US8-AS3 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden` |
 | US8-AS4 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_enrolled_students_practise_as_before` |
 | US8-AS5 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it` |
-| US9-AS1 | B7 | `PENDING` |
-| US9-AS2 | B7 | `PENDING` |
-| US9-AS3 | B7 | `PENDING` |
-| US9-AS4 | B7 | `PENDING` |
-| US9-AS5 | B7 | `PENDING` |
-| US9-AS6 | B7 | `PENDING` |
-| US9-AS7 | B7 | `PENDING` |
-| US9-AS8 | B7 | `PENDING` |
-| US9-AS9 | B7 | `PENDING` |
-| US9-AS10 | B7 | `PENDING` |
-| US9-AS11 | B7 | `PENDING` |
-| US9-AS12 | B7 | `PENDING` |
+| US9-AS1 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_regrade_moves_the_rating_by_the_difference_only`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_same_grade_again_moves_nothing` |
+| US9-AS2 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_regrade_moves_the_rating_by_the_difference_only`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_higher_regrade_adds_the_difference` |
+| US9-AS3 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_regrade_moves_the_rating_by_the_difference_only`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_lower_regrade_takes_back_the_difference` |
+| US9-AS4 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_resubmission_returns_to_review_and_keeps_the_effect` |
+| US9-AS5 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_retried_grading_returns_the_same_result_once`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_a_retried_grading_request_returns_the_same_body` |
+| US9-AS6 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_two_simultaneous_gradings_apply_one_correction` |
+| US9-AS7 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_floored_penalty_is_corrected_by_what_was_applied`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_the_floor_is_respected_and_the_applied_amount_counts` |
+| US9-AS8 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_every_grading_is_kept_across_resubmissions`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_history_and_copies_are_for_the_groups_teacher_only` |
+| US9-AS9 | B7 | `tests/integration/test_spec001_b7_api.py::test_spec001_b7_response_notification_and_list_report_the_amount_applied`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_a_floored_grade_reports_what_the_floor_let_through`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › la tarjeta muestra lo aplicado, no el delta calculado, y marca la copia`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › al calificar ve lo aplicado y envía la ronda de revisión; las copias aparecen marcadas` |
+| US9-AS10 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_another_students_file_is_graded_zero_and_marked`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › una copia queda calificada con 0 y lo dice` |
+| US9-AS11 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_own_file_again_is_refused_and_changes_nothing`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_own_file_for_another_item_is_refused`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › un archivo propio repetido se rechaza: «Este archivo pertenece a otro ejercicio.»` |
+| US9-AS12 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_own_file_again_is_refused_and_changes_nothing`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_own_file_for_the_same_item_is_refused`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › un archivo propio repetido se rechaza: «Ya subiste este archivo para este ejercicio.»` |
 | FR-001 | S1 | `tests/unit/domain/test_elo_model.py::TestExpectedScore::test_400_point_advantage_gives_approx_91_percent`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_fr001_both_engine_paths_use_the_same_expected_success` |
 | FR-002 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_rating_delta` |
 | FR-003 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_rd_floor_30_holds_and_scales_the_change`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_next_rd_has_a_floor_of_30` |
@@ -1183,17 +1186,17 @@ match the scenarios' text.
 | FR-022 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_validated_grade_adds_grade_minus_50_times_02`<br>`tests/integration/test_elo_single_source.py::test_a_validated_procedure_delta_is_applied_exactly_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once` |
 | FR-023 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_grade_out_of_range_changes_nothing`<br>`tests/api/test_procedure_grading.py::test_other_teacher_cannot_grade_or_view_submission`<br>`tests/api/test_procedure_grading.py::test_reassignment_between_lookup_and_update_prevents_grading` |
 | FR-024 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_ai_proposed_score_changes_no_rating` |
-| FR-024a | B7 | `PENDING` |
-| FR-024b | B7 | `PENDING` |
-| FR-024c | B7 | `PENDING` |
-| FR-024d | B7 | `PENDING` |
-| FR-024e | B7 | `PENDING` |
-| FR-024f | B7 | `PENDING` |
-| FR-024g | B7 | `PENDING` |
-| FR-024h | B7 | `PENDING` |
-| FR-024i | B7 | `PENDING` |
-| FR-024j | B7 | `PENDING` |
-| FR-024k | B7 | `PENDING` |
+| FR-024a | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_two_first_submissions_at_once_leave_one_procedure`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_the_unique_pair_index_waits_for_duplicates_to_be_merged` |
+| FR-024b | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_regrade_moves_the_rating_by_the_difference_only`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_first_grading_is_todays_delta`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_same_grade_again_moves_nothing`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_higher_regrade_adds_the_difference`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_lower_regrade_takes_back_the_difference` |
+| FR-024c | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_resubmission_returns_to_review_and_keeps_the_effect` |
+| FR-024d | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_regrade_moves_the_rating_by_the_difference_only`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_floored_penalty_is_corrected_by_what_was_applied`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_the_floor_is_respected_and_the_applied_amount_counts`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_the_same_grade_after_a_floored_penalty_applies_the_remainder`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_a_regrade_below_zero_is_floored_again` |
+| FR-024e | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_every_grading_is_kept_across_resubmissions`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_history_and_copies_are_for_the_groups_teacher_only` |
+| FR-024f | B7 | `tests/integration/test_spec001_b7_api.py::test_spec001_b7_response_notification_and_list_report_the_amount_applied`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_a_floored_grade_reports_what_the_floor_let_through`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › la tarjeta muestra lo aplicado, no el delta calculado, y marca la copia`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › al calificar ve lo aplicado y envía la ronda de revisión; las copias aparecen marcadas` |
+| FR-024g | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_retried_grading_returns_the_same_result_once`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_two_simultaneous_gradings_apply_one_correction`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_stale_review_round_is_refused`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_a_retried_grading_request_returns_the_same_body` |
+| FR-024h | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_installing_backfills_contributions_without_moving_a_rating`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_unknown_contribution_applies_nothing_and_stays_unknown` |
+| FR-024i | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_another_students_file_is_graded_zero_and_marked`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_two_students_sending_one_new_file_leave_one_first_owner`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_history_and_copies_are_for_the_groups_teacher_only`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_another_students_file_is_a_copy_for_any_item`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › una copia queda calificada con 0 y lo dice`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › al calificar ve lo aplicado y envía la ronda de revisión; las copias aparecen marcadas` |
+| FR-024j | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_own_file_again_is_refused_and_changes_nothing`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_own_file_for_another_item_is_refused`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_reuploading_an_own_copy_is_refused_not_graded_again`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › un archivo propio repetido se rechaza: «Este archivo pertenece a otro ejercicio.»` |
+| FR-024k | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_own_file_again_is_refused_and_changes_nothing`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_own_file_for_the_same_item_is_refused`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_reuploading_an_own_copy_is_refused_not_graded_again`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › un archivo propio repetido se rechaza: «Ya subiste este archivo para este ejercicio.»` |
 | FR-025 | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_pvp_deltas`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_pvp_equal_ratings_win_and_draw`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_closing_a_match_twice_applies_the_delta_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
 | FR-026 | S1 | `tests/unit/application/test_spec001_service.py::test_spec001_pvp_lobby_rating_is_the_course_rating_read_outside_the_lock` |
 | FR-027 | S1 | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_matches_orphaned_by_a_restart_are_closed`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_a_live_match_is_left_alone`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_spec001_abandonment_starts_after_600_seconds` |

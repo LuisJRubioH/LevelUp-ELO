@@ -59,13 +59,47 @@ class GradeRequest(BaseModel):
     submission_id: int
     teacher_score: float = Field(..., ge=0, le=100)
     teacher_feedback: str | None = None
+    # Spec 001 FR-024g: the review being graded, as the queue gave it; a retry with the same
+    # round returns the recorded result. Absent: the current review.
+    review_round: int | None = Field(default=None, ge=1)
 
 
 class GradeResponse(BaseModel):
     submission_id: int
     teacher_score: float
+    # Spec 001 FR-024f: the amount applied to the rating, never the computed delta.
     elo_delta: float
     status: str
+    computed_delta: float | None = None
+    # None when the contribution of a procedure graded before block 7 is unknown (FR-024h).
+    contribution: float | None = None
+    review_round: int | None = None
+
+
+class ProcedureGradingEntry(BaseModel):
+    """One grading of a procedure (spec 001 FR-024e, US9-AS8)."""
+
+    review_round: int
+    grade: float
+    computed_delta: float
+    correction: float | None
+    applied: float
+    contribution_after: float | None
+    grader_name: str | None  # None: the system, for a copy (FR-024i)
+    reason: str
+    created_at: str | None
+
+
+class ProcedureCopy(BaseModel):
+    """A procedure graded 0 automatically as a copy (spec 001 FR-024i). Never names the
+    student who sent the file first."""
+
+    submission_id: int
+    student_id: int
+    student_name: str
+    item_id: str
+    item_content: str | None
+    reviewed_at: str | None
 
 
 class PendingProcedure(BaseModel):
@@ -79,6 +113,7 @@ class PendingProcedure(BaseModel):
     status: str
     created_at: str
     has_image: bool = False  # True si hay imagen disponible para ver
+    review_round: int = 1  # spec 001 FR-024g: sent back with the grade
 
 
 # ── Reporte por estudiante ────────────────────────────────────────────────────
