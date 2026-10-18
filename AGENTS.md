@@ -680,7 +680,8 @@ Per request: user key > function key > general key, via `settings.get_ai_key("pr
 - **D3** — Teacher dashboard: data first. ELO and radar charts before actions; no big decorative
   icon cards.
 - **D4** — Student views mobile-first (375 px); teacher views desktop-first (1280 px).
-- **D5** — LaTeX always through `react-katex`, never plain text.
+- **D5** — Math always through `MathContent` / `MathText` (`frontend/src/components/Math/`,
+  KaTeX), never plain text (owner, 2026-10-18; spec 003).
 
 Forbidden: purple gradients · nested cards · Inter without hierarchy · low contrast on dark
 backgrounds. Colours are CSS tokens in `frontend/src/index.css`; never hard-code them.
