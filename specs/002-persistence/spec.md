@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-18
 
-**Status**: Draft for the owner's approval. Written from the as-is survey
+**Status**: Approved by the owner, with the recommendations of N1 … N6 (2026-10-18). Written from the as-is survey
 (`docs/sdd/persistence-survey.md`, LuisJRubioH/LevelUp-ELO#12) and the owner's decisions of
 2026-10-18 (its § 7). Nothing in deliveries D1 … D3 is implemented.
 
@@ -295,16 +295,16 @@ asynchronous handler stops every other request and socket while it waits.
 - The orphan count before any foreign key (clarification P4) is an operational step for the owner,
   read-only, like the counts of spec 001 block 7.
 
-## New Decisions and Contradictions (not assumed approved)
+## New Decisions and Contradictions
 
 | # | Finding | Recommendation |
 |---|---|---|
-| N1 | P11: engine differences beyond types — `storage_url` only on PostgreSQL; SQLite's item sync updates a course's name and block, PostgreSQL's only inserts; extra indexes on PostgreSQL. | Make the item sync update name and block on PostgreSQL too (the bank is the source); keep `storage_url` PostgreSQL-only and documented (SQLite has no Storage); add the missing indexes to SQLite. |
-| N2 | P14: the contract declares 27 methods; routers call 98 more directly. | Leave the contract as is in this spec; each spec that touches a router adds the methods it uses. |
-| N3 | P15: database errors read as user errors — a failed password re-hash as «invalid credentials», any integrity error on registration as «username exists», a profile read error as 401/404; advisory-unlock failures swallowed. | Answer a database error as a server error (500, logged without user data); keep the user messages for the user's mistakes only. |
-| N4 | P16: on SQLite, an exception leaks its connection until garbage collection. | Close every SQLite connection in `finally` (development only, low priority). |
-| N5 | P18: a `DATABASE_URL` with `?query` parses into the database name. | Refuse to start with an error naming the problem. |
-| N6 | P21: the procedure upload logs the exercise id as typed. | Log no user-typed text; log ids only. |
+| N1 | P11: engine differences beyond types — `storage_url` only on PostgreSQL; SQLite's item sync updates a course's name and block, PostgreSQL's only inserts; extra indexes on PostgreSQL. | **Approved** (owner, 2026-10-18): Make the item sync update name and block on PostgreSQL too (the bank is the source); keep `storage_url` PostgreSQL-only and documented (SQLite has no Storage); add the missing indexes to SQLite. |
+| N2 | P14: the contract declares 27 methods; routers call 98 more directly. | **Approved** (owner, 2026-10-18): Leave the contract as is in this spec; each spec that touches a router adds the methods it uses. |
+| N3 | P15: database errors read as user errors — a failed password re-hash as «invalid credentials», any integrity error on registration as «username exists», a profile read error as 401/404; advisory-unlock failures swallowed. | **Approved** (owner, 2026-10-18): Answer a database error as a server error (500, logged without user data); keep the user messages for the user's mistakes only. |
+| N4 | P16: on SQLite, an exception leaks its connection until garbage collection. | **Approved** (owner, 2026-10-18): Close every SQLite connection in `finally` (development only, low priority). |
+| N5 | P18: a `DATABASE_URL` with `?query` parses into the database name. | **Approved** (owner, 2026-10-18): Refuse to start with an error naming the problem. |
+| N6 | P21: the procedure upload logs the exercise id as typed. | **Approved** (owner, 2026-10-18): Log no user-typed text; log ids only. |
 
 ## Out of Scope *(mandatory)*
 
