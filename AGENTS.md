@@ -273,7 +273,7 @@ overall ratings are **derived** by `RatingReadService` and never stored. `studen
 | Answer with `elo_valid` | `save_answer_transaction` → `_set_course_topic_rating` | sets the item's (course, topic) value |
 | Teacher-validated procedure | `grade_procedure_transaction` → `_apply_procedure_grading` | applies only the correction `(grade − 50) × 0.2 − contribution` (floor 0) and records the amount applied as the procedure's new contribution, once per review round (spec 001 block 7) |
 | Copied procedure (system) | `submit_procedure` → `_apply_procedure_grading` | another student's file: graded 0 in the upload's transaction, the same correction (FR-024i) |
-| Finished PvP match | `finish_pvp_match` | adds the delta to every rated topic of the course (R19) |
+| Finished PvP match | `finish_pvp_match` | locks both students (id order), then adds the delta to every rated topic of the course (R19) |
 | Legacy reconciliation | `_reconcile_legacy_ratings` (bootstrap, idempotent) | inserts approximate baselines with provenance |
 
 Never rebuild a rating from `attempts`. Repositories return raw rows and ranking participants —
@@ -317,7 +317,8 @@ cross-process wake-up — all three before raising the number. Details:
 
 ### R19 — A PvP result moves every rated topic of the match's course
 `finish_pvp_match` adds each player's delta to all of that player's rated topics in the course
-(atomic, floor 0), so the course rating moves by exactly the delta. A player with no rated topic
+(atomic, floor 0; both students locked first, in id order, so an answer in flight cannot
+overwrite it), so the course rating moves by exactly the delta. A player with no rated topic
 gets 0 with `elo_reason = 'no_rated_topics'`; it returns the applied deltas, and `game_end` reports
 them (`"not_applied"` with 0 if persisting fails). The close is idempotent through
 `AND status='active'`. The lobby reads the course rating outside `_lock` (1000 drives the

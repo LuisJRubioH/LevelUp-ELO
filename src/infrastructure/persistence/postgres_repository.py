@@ -4718,6 +4718,12 @@ class PostgresRepository:
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
+            # Students first, in id order, as every rating writer does (users → …): an answer
+            # between its read and its write holds its student, so the delta waits for it
+            # instead of being overwritten (spec 001 R15; survey 002 P1).
+            cursor.execute(
+                "SELECT id FROM users WHERE id IN (%s, %s) ORDER BY id FOR UPDATE", (p1_id, p2_id)
+            )
             # La guarda de status hace el cierre idempotente: si el timer y el
             # último jugador disparan a la vez, el ELO se aplica una sola vez.
             cursor.execute(
