@@ -8,13 +8,14 @@ Endpoints del flujo de práctica del estudiante:
   GET  /student/achievements   → logros/badges desbloqueados
   GET  /student/courses        → catálogo de cursos disponibles
   POST /student/enroll         → matricularse en un curso
-  POST /student/enroll-by-code → acceso especial por código de invitación
+  POST /student/enroll-by-code → invitación de un solo uso de un grupo (spec 001 INV)
   DELETE /student/enroll/{course_id} → darse de baja
   GET  /student/history        → historial de intentos
   POST /student/exam/start     → inicia sesión de examen cronometrado
   POST /student/exam/submit    → envía respuestas del examen y obtiene resultados
 """
 
+import asyncio
 import hashlib
 import random
 import uuid
@@ -28,6 +29,7 @@ from api.dependencies import (
 from api.rate_limit import limiter
 from api.config import settings
 from api.upload_validation import read_validated_upload
+from api.schemas.auth import DisplayNameRequest
 from api.schemas.student import (
     AnswerRequest,
     AnswerResponse,
@@ -60,6 +62,7 @@ from api.schemas.student import (
 )
 from src.application.services.student_service import StudentService
 from src.domain.elo.model import diagnostic_baseline
+from src.domain.procedures import COPY, REFUSE_OTHER_ITEM, REFUSE_SAME_ITEM
 from src.domain.learning.prealgebra import (
     CLASSIFIER_BASIC_NODE_ID,
     CLASSIFIER_RIGOROUS_NODE_ID,
@@ -310,8 +313,23 @@ def course_blocks(course_id: str, user: CurrentUser, repo: RepoDep):
 
 @router.get("/pvp/history")
 def pvp_history(user: CurrentUser, repo: RepoDep):
-    """Historial de partidas PvP del estudiante autenticado."""
+    """Historial de partidas PvP del estudiante autenticado; el rival, por su nombre visible
+    (spec 004 FR-021)."""
     return repo.get_pvp_history(user["user_id"])
+
+
+@router.put("/display-name")
+def change_display_name(body: DisplayNameRequest, user: CurrentUser, repo: RepoDep):
+    """Spec 004 FR-025: the student changes their own display name, under the name filter
+    (FR-020); the change is recorded. No display name is decided for teachers."""
+    if user["role"] != "student":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Solo los estudiantes tienen nombre visible."
+        )
+    ok, message = repo.set_display_name(user["user_id"], user["user_id"], body.display_name)
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+    return {"display_name": message}
 
 
 @router.post("/enroll", status_code=status.HTTP_201_CREATED)
@@ -327,7 +345,7 @@ def enroll(body: EnrollRequest, user: CurrentUser, repo: RepoDep):
         )
     service = _make_service(repo)
     try:
-        service.enroll_from_catalogue(user["user_id"], body.course_id, body.group_id)
+        service.enroll_from_catalogue(user["user_id"], body.course_id)
     except PermissionError:
         # Spec 001 FR-028m: other levels' courses are reached only through an invitation.
         raise HTTPException(
@@ -336,26 +354,33 @@ def enroll(body: EnrollRequest, user: CurrentUser, repo: RepoDep):
     return {"message": f"Matriculado en {body.course_id} correctamente."}
 
 
+# Spec 001 FR-028r, FR-028s: a refused invitation stays as it was.
+_INVITATION_REFUSALS = {
+    "invalid": (status.HTTP_404_NOT_FOUND, "Código de invitación inválido."),
+    "used": (
+        status.HTTP_409_CONFLICT,
+        "Este código ya fue usado. Pide uno nuevo a tu docente.",
+    ),
+    "expired": (status.HTTP_410_GONE, "Este código venció. Pide uno nuevo a tu docente."),
+    "already_member": (status.HTTP_409_CONFLICT, "Ya estás en este grupo."),
+    "no_course": (status.HTTP_400_BAD_REQUEST, "El grupo no tiene un curso asignado."),
+}
+
+
 @router.post("/enroll-by-code", status_code=status.HTTP_201_CREATED)
 def enroll_by_code(body: EnrollByCodeRequest, user: CurrentUser, repo: RepoDep):
-    """Acceso especial inter-nivel mediante código de invitación del docente."""
-    group = repo.get_group_by_invite_code(body.invite_code)
-    if not group:
+    """Redeem a single-use invitation of a teacher's group (spec 001 FR-028l, FR-028q … FR-028u).
+
+    The first student who redeems it consumes it. The group's reusable code of the old system
+    (`groups.invite_code`) is not read: it is an unknown invitation.
+    """
+    if user["role"] != "student":
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Código de invitación inválido o expirado.",
-        )
-    # Both repositories return the group's id as `group_id` (reading `id` was a 500 for every
-    # valid code).
-    group_id = group["group_id"]
-    course_id = group["course_id"]
-    if not course_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El grupo no tiene un curso asignado.",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo los estudiantes pueden usar un código de invitación.",
         )
     try:
-        _make_service(repo).enroll_by_invitation(user["user_id"], group_id, course_id)
+        result = _make_service(repo).enroll_by_invitation(user["user_id"], body.invite_code)
     except PermissionError:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -364,7 +389,10 @@ def enroll_by_code(body: EnrollByCodeRequest, user: CurrentUser, repo: RepoDep):
                 "Contacta a tu docente o al administrador."
             ),
         )
-    return {"message": "Acceso especial activado correctamente.", "course_id": course_id}
+    if result["status"] in _INVITATION_REFUSALS:
+        code, detail = _INVITATION_REFUSALS[result["status"]]
+        raise HTTPException(status_code=code, detail=detail)
+    return {"message": "Acceso especial activado correctamente.", "course_id": result["course_id"]}
 
 
 @router.delete("/enroll/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -424,7 +452,15 @@ def ranking_response(repo, view: dict, user_id: int) -> dict:
     basis = dict(view["basis"])
     names = {c["id"]: c["name"] for c in repo.get_courses()}
     basis["course_name"] = names.get(basis["course_id"]) if basis["course_id"] else None
-    ranking = [{**e, "global_elo": e["rating"], "rank_pos": e["rank"]} for e in view["entries"]]
+    # Spec 004 FR-021: classmates by `name`; the username of a named student never leaves.
+    ranking = [
+        {
+            **{k: v for k, v in e.items() if k != "username"},
+            "global_elo": e["rating"],
+            "rank_pos": e["rank"],
+        }
+        for e in view["entries"]
+    ]
     my_rank = next((e["rank"] for e in ranking if e["user_id"] == user_id), None)
     return {"basis": basis, "ranking": ranking, "my_rank": my_rank}
 
@@ -474,8 +510,6 @@ async def submit_procedure(
     """
     image_data, mime = await read_validated_upload(file)
     file_hash = hashlib.sha256(image_data).hexdigest()
-    if repo.check_file_hash_duplicate(item_id, user["user_id"], file_hash):
-        raise HTTPException(status_code=409, detail="Este archivo ya fue enviado por otro estudiante.")
 
     ai_proposed_score = None
     ai_feedback = None
@@ -491,18 +525,37 @@ async def submit_procedure(
         ai_proposed_score = review.get("score")
         ai_feedback = review.get("feedback") or ""
 
-    submission_id = repo.save_procedure_submission(
-        student_id=user["user_id"],
-        item_id=item_id,
-        item_content=item_content,
-        image_data=image_data,
-        mime_type=mime,
-        file_hash=file_hash,
+    # La base y el Storage son síncronos: van a un hilo para no frenar el event loop, que en un
+    # solo proceso (R18) atiende a todos los demás (R17).
+    result = await asyncio.to_thread(
+        _make_service(repo).submit_procedure,
+        user["user_id"],
+        item_id,
+        item_content,
+        image_data,
+        mime,
+        file_hash,
     )
+    if result["outcome"] == REFUSE_SAME_ITEM:  # spec 001 FR-024k
+        raise HTTPException(status_code=409, detail="Ya subiste este archivo para este ejercicio.")
+    if result["outcome"] == REFUSE_OTHER_ITEM:  # spec 001 FR-024j
+        raise HTTPException(status_code=409, detail="Este archivo pertenece a otro ejercicio.")
+    submission_id = result["submission_id"]
+    if result["outcome"] == COPY:  # spec 001 FR-024i: graded 0, never sent to the AI or review
+        return ProcedureSubmitResponse(
+            submission_id=submission_id,
+            ai_score=None,
+            ai_feedback=None,
+            status="graded",
+            is_copy=True,
+            teacher_score=result["grading"]["grade"],
+            elo_delta=result["grading"]["applied"],
+        )
 
     if ai_proposed_score is not None:
         try:
-            repo.save_ai_proposed_score(
+            await asyncio.to_thread(
+                repo.save_ai_proposed_score,
                 user["user_id"],
                 item_id,
                 float(ai_proposed_score),
@@ -519,6 +572,17 @@ async def submit_procedure(
     )
 
 
+def _ai_score_in_range(value) -> float | None:
+    """The AI's procedure score kept within 0-100; None when it gave no number."""
+    try:
+        score = float(value)
+    except (TypeError, ValueError):
+        return None
+    if score != score:  # NaN
+        return None
+    return max(0.0, min(100.0, score))
+
+
 @router.get("/ai-status")
 def ai_status():
     """Indica al frontend si el servidor tiene IA configurada (sin revelar keys)."""
@@ -530,6 +594,17 @@ def ai_status():
         return {"available": False, "provider": None}
     provider = settings.system_ai_provider or detect_provider_from_key(procedure_key) or "unknown"
     return {"available": True, "provider": provider}
+
+
+def _pdf_first_page_png(pdf_bytes: bytes) -> bytes:
+    """La primera página de un PDF como PNG a 200 dpi (lo que ve el modelo de visión)."""
+    import fitz  # PyMuPDF
+
+    pdf_doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    try:
+        return pdf_doc[0].get_pixmap(dpi=200).tobytes("png")
+    finally:
+        pdf_doc.close()
 
 
 @router.post("/procedure/analyze")
@@ -566,16 +641,13 @@ async def analyze_procedure(
     image_data = original_data
     file_hash = hashlib.sha256(original_data).hexdigest()
 
+    # La revisión espera segundos (o minutos, con los reintentos del SDK) al proveedor de IA. Todo
+    # lo bloqueante va a un hilo: en un solo proceso (R18), esperar en el event loop congelaba
+    # cualquier otra petición y los sockets de PvP mientras durara (R17).
     if mime == "application/pdf":
         try:
-            import fitz  # PyMuPDF
-
-            pdf_doc = fitz.open(stream=image_data, filetype="pdf")
-            page = pdf_doc[0]
-            pix = page.get_pixmap(dpi=200)
-            image_data = pix.tobytes("png")
+            image_data = await asyncio.to_thread(_pdf_first_page_png, image_data)
             mime = "image/png"
-            pdf_doc.close()
         except Exception as pdf_err:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -588,7 +660,8 @@ async def analyze_procedure(
         )
 
         try:
-            review = review_math_procedure(
+            review = await asyncio.to_thread(
+                review_math_procedure,
                 image_data,
                 mime,
                 api_key=effective_key,
@@ -601,10 +674,12 @@ async def analyze_procedure(
         except Exception as exc:
             raise HTTPException(status_code=500, detail=f"Error al revisar procedimiento: {exc}")
 
+        # Advisory and on a 0-100 scale: a value outside it (or not a number) is not shown as is.
+        review["score_procedimiento"] = _ai_score_in_range(review.get("score_procedimiento"))
         return {
             "item_id": item_id, "provider": "groq", "review": review,
             "analysis_token": create_procedure_review_token(
-                user["user_id"], item_id, file_hash, review.get("score_procedimiento"),
+                user["user_id"], item_id, file_hash, review["score_procedimiento"],
                 review.get("evaluacion_global") or "",
             ),
         }
@@ -613,7 +688,8 @@ async def analyze_procedure(
         from src.infrastructure.external_api.ai_client import analyze_procedure_image
 
         try:
-            result = analyze_procedure_image(
+            result = await asyncio.to_thread(
+                analyze_procedure_image,
                 image_data,
                 mime,
                 question_content=item_content or "",
@@ -705,6 +781,11 @@ def update_profile(body: dict, user: CurrentUser, repo: RepoDep):
 
 
 # ── Modo Examen ───────────────────────────────────────────────────────────────
+
+
+# Seconds a submission may arrive after the time limit shown to the student (network and a
+# browser's slowed timers); after that the session is closed (409).
+EXAM_SUBMIT_GRACE_SECONDS = 30
 
 
 def _build_standard_exam(repo, course_id: str, n: int) -> list[dict]:
@@ -853,7 +934,11 @@ def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
     ]
 
     session_id = uuid.uuid4().hex
-    expires_at = datetime.now(timezone.utc) + timedelta(seconds=time_limit_seconds)
+    # The student sees `time_limit_seconds`; the server accepts the submission a little longer,
+    # because the answers leave the browser when its clock reaches zero and still have to arrive.
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        seconds=time_limit_seconds + EXAM_SUBMIT_GRACE_SECONDS
+    )
     repo.create_active_exam_session(
         session_id=session_id,
         user_id=user["user_id"],
@@ -990,11 +1075,15 @@ def diagnostic_status(course_id: str, user: CurrentUser, repo: RepoDep, redo: bo
     _require_enrolment(StudentService(repository=repo), user["user_id"], course_id)
     existing = repo.get_diagnostic(user["user_id"], course_id)
     if existing and not redo:
+        stored = {
+            **existing["result"],
+            "initial_elo": existing["initial_elo"],
+            "score_pct": existing["score_pct"],
+        }
         return DiagnosticStatusResponse(
             completed=True,
             course_id=course_id,
-            result={**existing["result"], "initial_elo": existing["initial_elo"],
-                    "score_pct": existing["score_pct"]},
+            result=_diagnostic_result_view(repo, user["user_id"], course_id, stored),
         )
 
     items = _build_standard_exam(repo, course_id, _DIAG_N)
@@ -1057,7 +1146,8 @@ def diagnostic_submit(
         elos.append(elo)
         # Un nuevo diagnóstico puede medir progreso, pero nunca reinicia una
         # línea ELO que ya contiene práctica real del alumno.
-        if not repo.has_practice_attempts(user["user_id"], course_id, topic):
+        initialized = not repo.has_practice_attempts(user["user_id"], course_id, topic)
+        if initialized:
             repo.set_topic_rating_baseline(user["user_id"], course_id, topic, elo)
         ratio = t["correct"] / t["total"] if t["total"] else 0.0
         status = "strong" if ratio >= 0.67 else "mid" if ratio >= 0.34 else "gap"
@@ -1069,6 +1159,7 @@ def diagnostic_submit(
                 "ratio": round(ratio, 2),
                 "status": status,
                 "elo": elo,
+                "outcome": "initialized" if initialized else "kept",  # FR-020c
             }
         )
 
@@ -1089,14 +1180,40 @@ def diagnostic_submit(
         user["user_id"], course_id, initial_elo, score_pct, _json.dumps(result_payload)
     )
 
+    view = _diagnostic_result_view(repo, user["user_id"], course_id, result_payload)
     return DiagnosticResultResponse(
         initial_elo=initial_elo,
         score_pct=score_pct,
         league=league,
-        themes=themes,
+        themes=view["themes"],
         correct_total=correct_total,
         answered=answered,
+        course_rating=view["course_rating"],
+        outcome_summary=view["outcome_summary"],
     )
+
+
+def _diagnostic_result_view(repo, user_id: int, course_id: str, result: dict) -> dict:
+    """A diagnostic result as the screen shows it (spec 001 FR-020a–c, FR-031a): the course's
+    current rating as the one figure, and that diagnostic's per-topic breakdown with each topic's
+    initialized/kept mark and the outcome of them all. A result stored before the mark existed
+    has none (`outcome` and `outcome_summary` None)."""
+    themes = [{**theme, "outcome": theme.get("outcome")} for theme in result.get("themes", [])]
+    outcomes = {theme["outcome"] for theme in themes}
+    if not themes or None in outcomes:
+        summary = None
+    elif len(outcomes) == 1:
+        summary = outcomes.pop()  # "initialized" or "kept"
+    else:
+        summary = "mixed"
+    return {
+        **result,
+        "themes": themes,
+        "outcome_summary": summary,
+        "course_rating": StudentService(repository=repo).ratings.course_rating_view(
+            user_id, course_id
+        ),
+    }
 
 
 # ── Mapa de contenido ─────────────────────────────────────────────────────────
@@ -1108,6 +1225,20 @@ _LESSON_EVENTS = {
     "math_convention_viewed",
     "node_completed",
 }
+
+
+# El estado de un nodo sin fila de progreso: lo que devuelve `get_lesson_progress`.
+_NO_PROGRESS = "available"
+
+
+def _lesson_states(repo, user_id: int, course_id: str):
+    """`node_id -> estado guardado` de toda la materia en una sola lectura.
+
+    Cada lectura del repositorio cuesta viajes de red a la base; leer nodo por nodo hacía que el
+    mapa y las lecciones de N3 tardaran segundos en PostgreSQL.
+    """
+    states = repo.get_lesson_states(user_id, course_id)
+    return lambda node_id: states.get(node_id, _NO_PROGRESS)
 
 
 def _ensure_n2_hub_completed_if_cards_opened(repo, user_id: int, course_id: str) -> None:
@@ -1140,11 +1271,8 @@ def _ensure_n3_hub_completed_if_machines_introduced(repo, user_id: int, course_i
         repo.record_lesson_event(user_id, course_id, N3_HUB_NODE_ID, "node_completed")
 
 
-def _all_nodes_completed(repo, user_id: int, course_id: str, node_ids: list[str]) -> bool:
-    return all(
-        repo.get_lesson_progress(user_id, course_id, node_id)["state"] == "completed"
-        for node_id in node_ids
-    )
+def _all_nodes_completed(state_of, node_ids: list[str]) -> bool:
+    return all(state_of(node_id) == "completed" for node_id in node_ids)
 
 
 def _lesson_with_progress(repo, user_id: int, course_id: str, lesson: dict) -> dict:
@@ -1153,14 +1281,14 @@ def _lesson_with_progress(repo, user_id: int, course_id: str, lesson: dict) -> d
         _ensure_n2_hub_completed_if_cards_opened(repo, user_id, course_id)
     if lesson["node_id"] == N3_HUB_NODE_ID or lesson.get("unlock_after") == N3_HUB_NODE_ID:
         _ensure_n3_hub_completed_if_machines_introduced(repo, user_id, course_id)
+    state_of = _lesson_states(repo, user_id, course_id)
     if lesson["node_id"] in {N3_HUB_NODE_ID, *N3_MACHINE_NODE_IDS}:
-        if not _all_nodes_completed(repo, user_id, course_id, N2_OPERATION_NODE_IDS):
+        if not _all_nodes_completed(state_of, N2_OPERATION_NODE_IDS):
             raise HTTPException(status_code=403, detail="Completa el Nivel 2 primero")
 
     unlock_after = lesson.get("unlock_after")
     if unlock_after:
-        prerequisite = repo.get_lesson_progress(user_id, course_id, unlock_after)
-        if prerequisite["state"] != "completed":
+        if state_of(unlock_after) != "completed":
             raise HTTPException(status_code=403, detail="Completa el nodo anterior primero")
 
     progress = repo.get_lesson_progress(user_id, course_id, lesson["node_id"])
@@ -1179,8 +1307,7 @@ def _lesson_with_progress(repo, user_id: int, course_id: str, lesson: dict) -> d
 
     # explored_complex_branch (derivado): el estudiante abrió/completó B09.
     # Gobierna el contenido complejo en cascada (B10–B13).
-    complex_state = repo.get_lesson_progress(user_id, course_id, COMPLEX_NODE_ID)["state"]
-    explored_complex_branch = complex_state in ("viewed", "completed")
+    explored_complex_branch = state_of(COMPLEX_NODE_ID) in ("viewed", "completed")
 
     lesson_payload = {**lesson}
     if lesson["node_id"] == N3_HUB_NODE_ID and lesson.get("content"):
@@ -1188,16 +1315,16 @@ def _lesson_with_progress(repo, user_id: int, course_id: str, lesson: dict) -> d
         machines = []
         previous_completed = True
         for machine in content.get("machines", []):
-            machine_progress = repo.get_lesson_progress(user_id, course_id, machine["node_id"])
+            machine_state = state_of(machine["node_id"])
             state = (
                 "completed"
-                if machine_progress["state"] == "completed"
+                if machine_state == "completed"
                 else "current"
                 if previous_completed
                 else "blocked"
             )
             machines.append({**machine, "state": state})
-            previous_completed = machine_progress["state"] == "completed"
+            previous_completed = machine_state == "completed"
         content["machines"] = machines
         lesson_payload["content"] = content
 
@@ -1344,16 +1471,14 @@ def prealgebra_summary(course_id: str, user: CurrentUser, repo: RepoDep):
     No afecta ELO. MVP: persiste/lee misconceptions de las interacciones y
     propone hasta 4 nodos de repaso. Sin panel docente todavía.
     """
-    explored = repo.get_lesson_progress(
-        user["user_id"], course_id, COMPLEX_NODE_ID
-    )["state"] in ("viewed", "completed")
+    state_of = _lesson_states(repo, user["user_id"], course_id)
+    explored = state_of(COMPLEX_NODE_ID) in ("viewed", "completed")
 
     applicable = [n for n in DIAGNOSTIC_NODE_IDS if n != COMPLEX_NODE_ID or explored]
     completed_nodes = 0
     misconceptions: list[str] = []
     for node_id in applicable:
-        progress = repo.get_lesson_progress(user["user_id"], course_id, node_id)
-        if progress["state"] == "completed":
+        if state_of(node_id) == "completed":
             completed_nodes += 1
         responses = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
         for resp in responses.values():
@@ -1402,7 +1527,8 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
         r["topic"]: {"elo": r["elo"], "rd": r["rd"], "approximate": r["approximate"]}
         for r in repo.get_course_topic_ratings(user["user_id"], course_id=course_id)
     }
-    diagnostic_done = repo.get_diagnostic(user["user_id"], course_id) is not None
+    diagnostic = repo.get_diagnostic(user["user_id"], course_id)
+    diagnostic_done = diagnostic is not None
 
     # agrupar ítems por tópico con sus dificultades
     by_topic: dict[str, list[float]] = {}
@@ -1447,22 +1573,14 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
     curriculum: list[MapNode] = []
     curriculum_completed = True
     if course_id == PREALGEBRA_COURSE_ID:
-        # Una sola lectura por nodo; la ruta y los estados los deriva el dominio
-        # de `unlock_after`. El endpoint ya no sabe de nodos concretos: añadir
-        # uno no se toca aquí.
-        _cache: dict[str, str] = {}
-
-        def _state_of(node_id: str) -> str:
-            if node_id not in _cache:
-                _cache[node_id] = repo.get_lesson_progress(
-                    user["user_id"], course_id, node_id
-                )["state"]
-            return _cache[node_id]
+        # Una sola lectura del progreso (`_lesson_states`). La ruta y los estados los
+        # deriva el dominio de `unlock_after`. El endpoint ya no sabe de nodos concretos:
+        # añadir uno no se toca aquí.
+        _state_of = _lesson_states(repo, user["user_id"], course_id)
 
         # B09 (complejos) solo visible para banda intermedia/avanzada (callejón opcional).
-        _diag = repo.get_diagnostic(user["user_id"], course_id)
         complex_visible = presentation_band(
-            _diag.get("score_pct") if _diag else None
+            diagnostic.get("score_pct") if diagnostic else None
         ) in ("intermedio", "avanzado")
         curriculum = [
             MapNode(**row)

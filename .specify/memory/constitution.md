@@ -25,8 +25,9 @@ Every piece of state and every rule has exactly one owner; everything else deriv
   topic. Course and overall ratings are derived from it and never stored; `student_topic_elo` and
   `users.current_elo` are legacy and not written. `attempts` is a log and MUST NOT be used to
   reconstruct a rating.
-- Each rating writer (diagnostic baseline, valid answer, teacher-validated procedure, finished
-  PvP match) MUST apply its effect exactly once, guarded by persisted state, and all writers
+- Each rating writer (diagnostic baseline, valid answer, teacher-validated procedure, the
+  automatic 0 of a procedure copied from another student, finished PvP match) MUST apply its
+  effect exactly once, guarded by persisted state, and all writers
   MUST use the same canonical rating key for the same practice context (key defined in spec 001).
 - Shared constants (rating formulas, rank tables, thresholds) MUST be defined once in `domain/`
   and consumed, not copied, by other layers. A frontend preview MUST use the backend's numbers.
@@ -161,7 +162,9 @@ spec named in brackets; changing them requires a `[CHANGE]` requirement in that 
 - **Item selection** [spec 001]: target success probability band with progressive widening,
   preferring informative items (`P(1−P)`), unseen before failed-with-cooldown before historical.
 - **Teacher authority** [spec 006]: a teacher's procedure score is the only procedure signal
-  that moves the rating; the AI score is advisory.
+  that moves the rating, with one exception: a file another student already uploaded is graded 0
+  automatically and marked as a copy for the teacher (spec 001 FR-024i). The AI score is
+  advisory.
 - **Learning path** [spec 003]: nodes unlock in a declared order; each node declares its focal
   misconception; misconception tags are `<symptom>_<operation>` and unique per node.
 - **Item bank** [spec 008]: items live in `items/bank/**.json`; `correct_option` matches one
@@ -191,11 +194,23 @@ spec named in brackets; changing them requires a `[CHANGE]` requirement in that 
 - **Fail loudly at startup.** `validate_runtime()` MUST reject production start on missing
   `DATABASE_URL`, weak `JWT_SECRET_KEY`, localhost CORS, in-memory rate limiting, or
   `WEB_CONCURRENCY > 1`. A failed migration stops the service.
-- **Readiness, not liveness.** `/api/health` checks the database and returns 503 when it is down.
+- **Readiness, not liveness.** `/api/health` checks the database and the rate limits. It returns
+  503 when the database is down or the limits cannot be applied (neither the shared store nor its
+  fallback works), and 200 otherwise, stating in the body whether the limits run normally or
+  degraded — without internal addresses or credentials. Monitors MUST read that body state, not
+  only the status code.
 - **No silent swallowing.** `except Exception: pass` is forbidden. A failure in a non-critical
   side effect (badges, notifications) MAY be tolerated only if it is logged and the primary
   operation's result is unaffected.
 - **Transactions roll back** on any exception and re-raise; partial writes are never committed.
+- **Rate-limit store fallback** (the one runtime exception to the shared store). If the shared
+  rate-limit store fails while the API runs, the counters MAY fall back to the process's memory,
+  with the same configured limits and only while a single process serves (`WEB_CONCURRENCY=1`).
+  It is temporary, never a substitute: startup still refuses a production configuration without
+  the shared store. Store calls have configurable connect and operation timeouts; during a
+  sustained outage requests do not wait on the store, its recovery is probed in a controlled way,
+  and returning to it grants no new allowance. Entering and leaving the fallback are logged once
+  each. A restart loses the local counters.
 - **Graceful degradation** applies to optional integrations only (AI, calibrator, storage
   upload falls back to DB bytes) and MUST be visible in logs.
 
@@ -228,9 +243,9 @@ the five prompt gaps.
 6. **Brownfield safety.** Before refactoring an area, characterization tests pin its current
    behaviour and pass against the unchanged code. A refactor that changes a pinned behaviour
    MUST be backed by a `[CHANGE]` requirement and flip the test explicitly.
-7. **Workflow gates.** One branch per spec, one commit per approved Spec Kit step, a docs PR after
-   `/speckit-tasks` + `/speckit-analyze`, and a code PR after `/speckit-converge` reports no gaps.
-   The owner merges.
+7. **Workflow gates.** One branch per spec — per delivery, when the spec declares deliveries —
+   one commit per approved Spec Kit step, a docs PR after `/speckit-tasks` + `/speckit-analyze`,
+   and a code PR after `/speckit-converge` reports no gaps. The owner merges.
 8. **Verification before "done".** For any change: the relevant tests, `db_sync_check.py` if a
    repository changed, `validate_bank.py` if `items/` changed, and `pnpm run build` if `frontend/`
    changed.
@@ -274,7 +289,15 @@ development text written in Spanish is noncompliance.
 - **Compliance — enforced today by CI** (`.github/workflows/ci.yml`): item-bank validation, black +
   flake8, unit tests (including architecture layers and repository contracts) with a **coverage
   floor of 70 % over `src/domain` + `src/application`** (`--cov-fail-under=70`, unit job), integration
-  tests, `db_sync_check.py`, ELO tests against a real PostgreSQL, API tests, frontend build. The
+  tests, `db_sync_check.py`, ELO tests against a real PostgreSQL, API tests, frontend build,
+  Playwright e2e in Chromium with no retries (its tests mock the API, so they verify frontend
+  flows, not backend integration), and FR → test traceability (`scripts/check_traceability.py
+  --run`: every FR and acceptance scenario, recognised whatever its Markdown formatting, has a row
+  whose tests are collected, pass and are not skipped. A spec delivered in steps declares its
+  deliveries and assigns every requirement and scenario to one; `PENDING` is allowed only in rows
+  of a delivery that is not closed, and the pull request that closes a delivery leaves none of its
+  rows `PENDING`. In a spec without deliveries, `PENDING` is rejected on a pull request that
+  changes the spec's code). The coverage
   floor may rise, never fall, without an amendment.
 - **Coverage and traceability are complementary.** Coverage shows code was executed;
   traceability shows each requirement has a test. Neither proves the assertions are adequate: a
@@ -282,12 +305,10 @@ development text written in Spanish is noncompliance.
   to relevant executable tests, and review MUST check that their assertions prove the stated
   behaviour.
 - **Compliance — not yet automated** (enforced by review until its task lands, see
-  `docs/sdd/roadmap.md` § Automation tasks): Playwright e2e (exists in `frontend/e2e/`, not run in
-  CI; its tests mock the API, so they verify frontend flows, not backend integration); FR → test
-  traceability; the Spec Kit gates after clarify, analyze and converge
+  `docs/sdd/roadmap.md` § Automation tasks): the Spec Kit gates after clarify, analyze and converge
   (`.specify/workflows/speckit/workflow.yml` only gates after specify and plan); V1 startup smoke
   check.
 - **Review.** The constitution and its Known Deviations are reviewed at the end of each roadmap
   milestone.
 
-**Version**: 1.0.2 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-08
+**Version**: 1.2.0 | **Ratified**: 2026-10-05 | **Last Amended**: 2026-10-14

@@ -37,14 +37,21 @@ def test_first_practice_uses_diagnostic_rating(api_client, monkeypatch, from_map
     for the whole course. There is no course-average seed any more."""
     from statistics import fmean
 
+    from api.config import settings
     from api.dependencies import decode_token, get_repository
     from src.application.services.rating_read_service import RatingReadService
 
+    monkeypatch.setattr(settings, "public_registration_enabled", True)  # spec 004 FR-002
     repo = get_repository()
     username = f"diagnostic_practice_{int(from_map)}"
     registered = api_client.post(
         "/api/auth/register",
-        json={"username": username, "password": "test-local-123", "role": "student"},
+        json={
+            "username": username,
+            "password": "test-local-123",
+            "role": "student",
+            "display_name": "Primera Práctica",
+        },
     )
     assert registered.status_code == 201
     login = api_client.post(

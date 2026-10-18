@@ -73,6 +73,7 @@
 .lue-dx .pv-hdelta { font-family: var(--font-display); font-weight: 700; min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
 .lue-dx .pv-hdelta.up { color: #34d399; }
 .lue-dx .pv-hdelta.down { color: #f87171; }
+.lue-dx .pv-hdelta.flat { color: var(--mute); }
 
 /* ── Estados de espera ─────────────────────────────────── */
 .lue-dx .pv-center {
@@ -167,6 +168,14 @@
 .lue-dx .pv-elo-delta.down { color: #f87171; }
 .lue-dx .pv-elo-delta.flat { color: var(--gold); }
 .lue-dx .pv-elo-delta .lbl { font-family: var(--font-pixel); font-size: 8px; color: var(--mute); display: block; margin-bottom: 6px; letter-spacing: 0.04em; }
+.lue-dx .pv-reason { margin: -14px auto 24px; max-width: 34ch; font-size: 13.5px; }
+
+/* ── Aviso del lobby: por qué se cerró la conexión ─────── */
+.lue-dx .pv-notice {
+  margin: 0 0 18px; padding: 11px 14px; border-radius: var(--radius-sm);
+  background: var(--surface-2); border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--gold); color: var(--text); font-size: 14px; line-height: 1.45;
+}
 
 /* ── "Terminaste, esperando rival" ─────────────────────── */
 .lue-dx .pv-done-emoji { font-size: 44px; margin-bottom: 4px; }

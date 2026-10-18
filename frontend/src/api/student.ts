@@ -77,7 +77,8 @@ export interface RankingBasis {
 
 export interface RankingEntry {
   user_id: number;
-  username: string;
+  /** Spec 004 FR-021: the display name, else the username of an account without one. */
+  name: string;
   rating: number | null; // backend whole number: render as given
   rank_label: string | null;
   status: "rated" | "pending_diagnostic";
@@ -115,7 +116,16 @@ export interface DiagnosticTheme {
   total: number;
   ratio: number;
   status: "strong" | "mid" | "gap";
+  /** The diagnostic's own value for the topic: a record, never shown (spec 001 FR-020a, FR-020b). */
   elo: number;
+  /** What this diagnostic did to the topic; null for a result stored before the mark (FR-020c). */
+  outcome?: "initialized" | "kept" | null;
+}
+/** The student's current rating in the course (spec 001 FR-020a). */
+export interface DiagnosticCourseRating {
+  display_rating: number | null;
+  rank_label: string | null;
+  status: "rated" | "pending_diagnostic";
 }
 export interface DiagnosticLeague {
   name: string;
@@ -131,6 +141,9 @@ export interface DiagnosticResult {
   correct_total: number;
   answered: number;
   completed?: boolean;
+  course_rating?: DiagnosticCourseRating | null;
+  /** All topics initialized, all kept, or some of each; null when unknown (FR-020c). */
+  outcome_summary?: "initialized" | "kept" | "mixed" | null;
 }
 export interface DiagnosticStatus {
   completed: boolean;
@@ -372,9 +385,25 @@ export interface ProcedureSubmissionRow {
   teacher_score: number | null;
   final_score: number | null;
   teacher_feedback: string | null;
+  /** Spec 001 FR-024f: the amount the latest grading applied (null when nobody can know). */
   elo_delta: number | null;
+  computed_delta?: number | null;
+  contribution?: number | null;
+  /** Spec 001 FR-024i: graded 0 automatically as a copy of another student's file. */
+  is_copy?: boolean;
   submitted_at: string | null;
   reviewed_at: string | null;
+}
+
+/** What `POST /api/student/procedure` answers (spec 001 block 7). */
+export interface ProcedureSubmitResult {
+  submission_id: number;
+  ai_score: number | null;
+  ai_feedback: string | null;
+  status: string;
+  is_copy?: boolean;
+  teacher_score?: number | null;
+  elo_delta?: number | null;
 }
 
 export interface ProcedureStep {
@@ -445,7 +474,7 @@ export const studentApi = {
         draw: boolean;
         my_score: number;
         opp_score: number;
-        elo_delta: number;
+        elo_delta: number | null;
         opponent: string;
         finished_at: string;
       }>
@@ -465,8 +494,12 @@ export const studentApi = {
 
   courses: () => api.get<Course[]>("/api/student/courses"),
 
-  enroll: (course_id: string, group_id?: number) =>
-    api.post<{ message: string }>("/api/student/enroll", { course_id, group_id }),
+  enroll: (course_id: string) =>
+    api.post<{ message: string }>("/api/student/enroll", { course_id }),
+
+  /** Spec 004 FR-025: the student's own display name, under the name filter. */
+  changeDisplayName: (display_name: string) =>
+    api.put<{ display_name: string }>("/api/student/display-name", { display_name }),
 
   enrollByCode: (invite_code: string) =>
     api.post<{ message: string; course_id: string }>("/api/student/enroll-by-code", {

@@ -22,6 +22,19 @@
 - `[path/to/module.py]`
 - `[path/to/package/]`
 
+## Deliveries *(only for a spec delivered in steps)*
+
+<!--
+  Omit this section when the spec ships in one go. Otherwise declare each delivery once;
+  State is `planned`, `in progress` or `closed` (constitution 1.1.0, § Governance). § Traceability
+  then gets a middle Delivery column. PENDING is allowed only in rows of an open delivery; the
+  pull request that completes a delivery marks it closed and fills all its rows.
+-->
+
+| Delivery | Content | State |
+|---|---|---|
+| E1 | [What this step delivers] | planned |
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--
@@ -176,9 +189,12 @@ scenario. Reuse adequate existing tests; create or strengthen tests where covera
 <!--
   Filled in during /speckit-tasks and kept current by /speckit-implement.
   Every FR and every acceptance scenario (US1-AS1, US1-AS2, …) maps to at least one
-  relevant executable test, as a pytest node id or a Playwright test title.
-  - Docs PR: a row MAY say `PENDING` (test not written yet).
-  - Code PR: no `PENDING` rows; every referenced test exists, passes and is not skipped.
+  relevant executable test, as a pytest node id or a Playwright test title. An ID is a
+  requirement whatever its Markdown formatting: removing the bold never exempts it.
+  - Without deliveries: a docs PR MAY say `PENDING`; a code PR has no `PENDING` rows.
+  - With deliveries: the table is `| Requirement / Scenario | Delivery | Test |`; `PENDING`
+    only in rows of an open delivery, never in a closed one.
+  Every referenced test exists, passes and is not skipped.
   A mapping is not proof: review checks the assertions actually prove the behaviour.
   A row without a test is a gap for /speckit-converge.
 -->
