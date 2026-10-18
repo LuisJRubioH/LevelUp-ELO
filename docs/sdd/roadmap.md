@@ -86,6 +86,12 @@ Defects outside the running spec's scope. Each is fixed in its own branch and PR
 | F-7 | **A procedure's exercise id reaches the Storage key and the local file name as typed** (found 2026-10-09 while reviewing uploads). `POST /api/student/procedure` takes `item_id` as free text (the upload page asks for ids such as `taller_3_p5`), and both repositories build `{student_id}/{item_id}/{hash}.{ext}` (Storage, which removes that key before uploading) and `{student_id}_{item_id}_{time}.{ext}` (local fallback) from it, so `/`, `\` and `..` pass through | save a submission with `item_id = "../../999/victim"`: the key sent to Storage is `<id>/../../999/victim/<hash>.png`; without Storage the local write fails with a 500 | test first (`tests/unit/infrastructure/test_storage_paths.py`, `tests/integration/test_procedure_upload_paths.py`, both engines): ordinary ids stay as they are, any other run of characters becomes `_`, the key and the file stay in the student's folder / `data/uploads/procedures`, and the row keeps the id as typed; no behaviour changes for ids made of letters, digits, `_` and `-` | branch `fix/procedure-storage-paths`; worth having before the switch (Storage is production's) |
 | F-8 | **The teacher sees 404 when Storage fails, although the image is in the row** (found by the persistence survey, 2026-10-09, P10). The PostgreSQL teacher queue returns `image_data` only when `storage_url` is NULL (so it does not load every image), so the image endpoint has nothing to fall back to when the Storage download fails; R9 says to fall back to `image_data` | PostgreSQL, Storage down after a submission was uploaded: `GET /api/teacher/procedures/{id}/image` → 404 «Imagen no disponible» | test first (`tests/integration/test_teacher_image_fallback.py`, both engines): the endpoint returns the row's bytes; the queue still leaves them out, and a new repository method `get_submission_image_data` reads them for that one authorised submission | branch `fix/teacher-image-fallback` |
 
+### Follow-ups decided 2026-10-18
+
+| ID | Finding | Acceptance | When |
+|---|---|---|---|
+| F-9 | **A PvP result could be lost to an answer in flight** (survey 002 P1, reproduced 2026-10-09). The answer reads the topic rating and writes an absolute value; a delta committed in between was overwritten. Block 7 made the procedure writer lock the student first; `finish_pvp_match` did not | spec 001 follow-up (owner, 2026-10-18), test first on both engines (`tests/integration/test_spec001_concurrent_rating_writers.py`): a procedure graded and a PvP match finished while an answer is between its read and its write both keep their delta; `finish_pvp_match` locks both students in id order | branch `fix/p1-concurrent-rating-writers`, before the switch |
+
 ## 4. Calendar
 
 | Milestone | Sessions | Done by |
@@ -112,3 +118,12 @@ spec the first time a feature touches them ("spec on touch"), so no area is spec
 - `/speckit-converge` reports no gaps for every in-scope spec.
 - Drift found in surveys is either fixed or recorded as an accepted decision in the spec.
 - From then on, new features run the full cycle starting at `/speckit-specify`.
+
+## 6. Features after the refactor
+
+New behaviour the owner asked for, scheduled once the refactor (the specs above) is done. Each gets
+its own spec through the full cycle.
+
+| Feature | Owner's request | Until then |
+|---|---|---|
+| **Account registration: by the admin and public behind a paywall** (2026-10-18) | Two ways to create accounts: the admin creates them (spec 004 E3 already delivers one by one), and public self-registration becomes available only behind a paywall | Public registration stays open (`PUBLIC_REGISTRATION_ENABLED=true` in Render after the switch, `docs/transfer.md` § 3) |
