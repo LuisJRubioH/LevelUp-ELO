@@ -172,3 +172,24 @@ Each is a real choice; none blocks the transfer (PR #3).
 - **Out:** rating arithmetic and which writer moves which rating (spec 001); identity and access
   rules (spec 004); PvP match lifecycle (spec 007); item bank format and calibration (spec 008);
   V1 beyond keeping it working (frozen).
+
+## 7. Owner decisions (2026-10-18)
+
+The owner read this survey and approved the recommendations; they are the input for
+`/speckit-specify`.
+
+1. **Engine contract:** PostgreSQL (production) is the reference; SQLite is a development engine
+   that must pass the same tests. R1 parity is proven by the two-engine tests, not by identical
+   internals.
+2. **Precision (P2, P3 = F-3):** accepted and documented — the 4-byte `REAL` columns (a drift of
+   about 0.001 points after 10,000 updates, below the whole-number display) and the integer
+   `attempts.difficulty` (up to 0.5 points of history on PostgreSQL). No new columns.
+3. **Foreign keys (P4):** relations stay enforced by code and are documented as such. Before
+   declaring any foreign key, a read-only count of orphans in production.
+4. **`DROP NOT NULL` (P5):** run only while the column is still `NOT NULL` (read
+   `information_schema` first), recorded as the one accepted exception to R8.
+5. **Startup (P6, P7, cold starts):** an additive schema-version table, so that a start with
+   nothing to do does nothing; one-off data repairs move to scripts.
+6. **Lost update (P1):** fixed as a spec 001 follow-up (LuisJRubioH/LevelUp-ELO#79, merged
+   2026-10-18): the PvP writer now locks the students like every other rating writer.
+7. **Pool, async boundary and round trips (P8, P9, P20):** inside spec 002, with measurements.
