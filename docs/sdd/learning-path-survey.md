@@ -132,3 +132,23 @@ None blocks the transfer (PR #3); lessons never move a rating.
   invariants the owner chooses to keep as requirements (decision 7).
 - **Out:** ratings (spec 001 — lessons never move them); practice item selection (spec 001);
   persistence mechanics (spec 002); the item bank (spec 008); visual design beyond D1–D5.
+
+## 7. Owner decisions (2026-10-18)
+
+The owner read this survey and approved the recommendations; they are the input for
+`/speckit-specify`.
+
+1. **Access (L1):** lessons and the map only for students enrolled in the course, as FR-037 does
+   for practice. A teacher may preview the courses of their groups, read only, saving no progress.
+2. **Answer keys (L2):** the grading keys leave the `content` sent to the browser; the server
+   grades.
+3. **Completion (L3):** a node completes on right answers, not on answers present; B01, B13 and the
+   hubs get explicit rules in the spec.
+4. **Learning data (L4, L8):** no free text is stored (the students are minors). The
+   post-diagnostic outcome and an answer history (right or wrong, no free text) are stored for the
+   teacher.
+5. **Unlock rules (L5, L6):** `unlock_after` (data) is the only source; the "all six N2 nodes" and
+   B09 rules move into data, and the map and the API share it.
+6. **D5 (L11):** the rule is amended to name `MathContent` (KaTeX) as the way to render math.
+7. **Scope:** spec 003 owns the engine — access, map, unlock, progress, completion, what the server
+   sends and stores. Content authoring stays in AGENTS V2-R11 … V2-R18 with their existing tests.
