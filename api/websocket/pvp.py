@@ -201,6 +201,10 @@ async def _timer(match: ActiveMatch, repo) -> None:
 async def pvp_ws(websocket: WebSocket, course_id: str):
     from api.dependencies import authenticate_access_token, get_repository
 
+    # Spec 004 FR-085 / N6: a browser socket only from an origin the API serves.
+    if not connections.origin_allowed(websocket):
+        await websocket.close(code=4003, reason="Origen no permitido.")
+        return
     await websocket.accept()
 
     # 1. Autenticación
