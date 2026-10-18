@@ -4,9 +4,11 @@
 `009-student-import-i1`, from spec 004's E3 (`004-identity-e3`, LuisJRubioH/LevelUp-ELO#73), whose
 creation and expiry rules it reuses · **Date**: 2026-10-15
 
-Written before the Google Form's columns are known (N1). The admin maps the file's columns, so
+Written before the Google Form's columns were known (N1). The admin maps the file's columns, so
 almost nothing below depends on them; what does is listed in § Waiting on the form and marked
-`[N1]` in [tasks-i1.md](tasks-i1.md).
+`[N1]` in [tasks-i1.md](tasks-i1.md). **Approved by the owner on 2026-10-18.** The columns arrived
+the same day (spec § Clarifications, 2026-10-18): the grade's values are «Sexto» … «Undécimo»
+(6.º … 11.º); the display-name, level and group mapping wait on N19 … N21.
 
 ## Constitution Check (1.2.0)
 

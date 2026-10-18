@@ -4,10 +4,11 @@
 
 **Created**: 2026-10-14
 
-**Status**: Draft for review — the owner's approved decisions on the initial import, moved from
-spec 004 on 2026-10-14, night, so that spec 004 holds only rules for every account. Nothing is
-implemented. Plan and tasks: [plan-i1.md](plan-i1.md), [tasks-i1.md](tasks-i1.md) (2026-10-15);
-only the parts marked `[N1]` wait on the columns of the Google Form.
+**Status**: Approved by the owner, spec and plan (2026-10-18). The owner's approved decisions on the
+initial import, moved from spec 004 on 2026-10-14, night, so that spec 004 holds only rules for
+every account. Nothing is implemented. Plan and tasks: [plan-i1.md](plan-i1.md),
+[tasks-i1.md](tasks-i1.md) (2026-10-15). The form's columns arrived on 2026-10-18 (N1, session
+below); the questions they raise, N19 … N23, wait on the owner before FR-001 and FR-002 change.
 
 **Input**: The owner's orders of 2026-10-13 on block 4 (enrolment through Google Forms) and the
 answers of 2026-10-14 (N4, N12, N14, N16 and the night session), first recorded in spec 004
@@ -115,6 +116,23 @@ shared views.
 - A row without a display name is an error the admin corrects before confirming: every imported
   account has a name, and no alias exists.
 - The group is required when the admin creates a student, the import included (spec 004 N15).
+
+### Session 2026-10-18 (owner: approval and the form's columns)
+
+- The spec and plan-i1 are approved.
+- N1 is answered by the form's script (`crearFormulario`, «Inscripción – Olimpiadas Municipales de
+  Matemáticas de Chigorodó 2027»). Its questions, in order: «Nombres», «Apellidos», «Tipo de
+  documento» (Tarjeta de identidad, Cédula de ciudadanía, Registro civil, PPT, Otro), «Número de
+  documento» (the form accepts `^[0-9]{5,12}$`), «Institución educativa» (a list plus «Otro»),
+  «Sede» (optional), «Grado que cursas en 2027» (Sexto, Séptimo, Octavo, Noveno, Décimo, Undécimo),
+  «Correo electrónico de contacto», «Nombre completo del acudiente», «Celular del acudiente» and the
+  data-treatment authorization.
+- Read against this spec: the identification is «Número de documento» (P10 holds: the form already
+  takes digits only); the grade is «Grado que cursas en 2027», whose six values are grades 6.º to
+  11.º; there is no level column and no single display-name column. N19 … N23 record what follows.
+- The owner noticed the form lacks the legal representative's authorization for the treatment of
+  the participants' personal data and for the use of their image. That is the school's form, not
+  this system (§ Assumptions); a revised script was handed to the owner on 2026-10-18.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -264,6 +282,11 @@ shared views.
 | N14 | (Spec 004, question D.) Changing the display name of an imported account. | **Decided** (owner, 2026-10-14): only the admin. |
 | N16 | (Spec 004.) Without leading zeros, an `.xlsx` cell typed as a number that holds a whole number loses nothing when read as its digits. The 2026-10-13 text flagged every numeric cell. | **Decided** (owner, 2026-10-14): accepted — a whole number of up to 15 digits is read as its digits; only values the spreadsheet already altered (scientific notation, decimals, more digits than it keeps) are flagged. |
 | N18 | (Plan, 2026-10-15.) The admin links an identification to an existing account (FR-007), but the spec gives no way to remove or correct a link made by mistake. | Let the admin remove a link, recorded; the account's username and credentials never change. |
+| N19 | (Form, 2026-10-18.) The display name is split into «Nombres» and «Apellidos»; FR-001 maps one column. | Let the admin map one or two columns for the display name, joined with one space in the order chosen («Nombres Apellidos»); spec 004's filter and limits apply to the result. |
+| N20 | (Form.) There is no level column; every participant is in grades 6.º to 11.º. | The batch's level is chosen once by the admin; for this olympiad, semillero, so the grade column decides each student's six courses (spec 001 FR-028k). |
+| N21 | (Form.) Each row names an institution («Institución educativa», or «Otro» with free text); FR-001 takes one existing group per batch. | Let the admin map the institution column to existing groups, one per institution, created beforehand; a row whose institution maps to no group («Otro» included) is an error to correct before confirming. «Sede» is not read. |
+| N22 | (Form.) Its texts promise what the system does not do: «Te enviaremos al correo las instrucciones» (the system sends no email; FR-005 makes the identification the username and initial password) and «Las respuestas de las pruebas se califican identificadas con un código, sin el nombre del estudiante» (teachers and classmates see the display name, spec 004 FR-020). | Change the form's texts to what the platform does (done in the revised script); sending the access instructions is the school's step. |
+| N23 | (Form.) It also collects the document type, e-mail, the guardian's name and mobile number and «Sede». | The import reads only the identification, the names, the grade and the institution; nothing else is stored (data minimisation, Law 1581 of 2012). The responses sheet stays the school's, as § Assumptions says. |
 
 ## Out of Scope *(mandatory)*
 
