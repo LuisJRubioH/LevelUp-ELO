@@ -17,9 +17,10 @@
 #                          or with the optional VERIFY_STUDENT / VERIFY_DIAGNOSTIC_STUDENT /
 #                          VERIFY_TEACHER secrets ("user:password"; user names masked in the log).
 #   ops/transfer-b7check   before spec 001 block 7 reaches main (plan-b7.md § Operations):
-#                          read-only counts of graded procedures, of those whose contribution B7
-#                          cannot know, of resubmitted ones still pending, of duplicate (student,
-#                          item) pairs and of shared files.
+#                          read-only counts of graded procedures (all of unknown contribution),
+#                          of resubmitted ones still pending, of those whose delta reached the
+#                          stored rating through later answers, of duplicate (student, item)
+#                          pairs and of shared files.
 #
 # The repository is public: anyone can read these logs and download the artifacts. Logs carry
 # counts only, connection details are masked, raw command output (which can quote rows) stays in
@@ -543,17 +544,28 @@ jobs:
         run: |
           psql "$MIGRATION_DATABASE_URL" -X -v ON_ERROR_STOP=1 <<'SQL'
           BEGIN TRANSACTION READ ONLY;
-          -- FR-024h, B7-P1: a negative stored delta may have been limited by the floor of 0, so B7
-          -- records its contribution as unknown and a regrade applies nothing until reviewed.
-          -- On main a procedure counts in the rating only while validated: one resubmitted and
-          -- still pending keeps its delta, which the stored rating holds or not depending on
-          -- whether the student answered since. B7 takes that delta as its contribution; the owner
-          -- decides before the switch if this count is not 0.
-          SELECT COUNT(*) FILTER (WHERE elo_delta IS NOT NULL) AS graded_procedures,
-                 COUNT(*) FILTER (WHERE elo_delta < 0) AS contribution_unknown,
+          -- FR-024h as amended 2026-10-18 (B7-P1): every procedure graded before B7 gets an unknown
+          -- contribution, and a regrade applies nothing until it is reviewed one by one. On main
+          -- a validated delta is added only when the rating is read; the stored rating, which the
+          -- switch carries, is the last answer's, so a delta reached it only through later answers
+          -- stored under the item's topic (once per such answer).
+          SELECT COUNT(*) FILTER (WHERE elo_delta IS NOT NULL) AS graded_procedures_contribution_unknown,
                  COUNT(*) FILTER (WHERE elo_delta IS NOT NULL
                                     AND status <> 'VALIDATED_BY_TEACHER') AS resubmitted_pending_with_a_delta
             FROM procedure_submissions;
+          -- Validated procedures whose delta reached the stored rating through later answers on
+          -- the item's topic, and how many such answers: the ones to review first.
+          SELECT COUNT(*) AS graded_with_later_answers_on_the_items_topic,
+                 COALESCE(SUM(later_answers), 0) AS later_answers_on_those_topics
+            FROM (
+              SELECT (SELECT COUNT(*) FROM attempts a
+                       WHERE a.user_id = ps.student_id AND a.topic = i.topic
+                         AND a.timestamp > ps.reviewed_at) AS later_answers
+                FROM procedure_submissions ps
+                JOIN items i ON i.id = ps.item_id
+               WHERE ps.elo_delta IS NOT NULL AND ps.status = 'VALIDATED_BY_TEACHER'
+            ) graded
+           WHERE later_answers > 0;
           -- FR-024a: while any pair is duplicated the unique index is not created; merge apart,
           -- with a backup (B7-P4 as replaced).
           SELECT COUNT(*) AS duplicate_student_item_pairs FROM (
