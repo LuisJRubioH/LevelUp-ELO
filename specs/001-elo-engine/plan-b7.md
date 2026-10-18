@@ -200,6 +200,28 @@ It logs numbers only and keeps no artifact. The owner reads the counts before th
 duplicate pair is merged apart, with a backup, before or after B7, and the procedures whose
 contribution is unknown are looked up one by one when the owner reviews them.
 
+### Result (2026-10-18)
+
+Run by the owner's order on the `ops/transfer` commit 03b731e
+([run 39159143062](https://github.com/LuisJRubioH/LevelUp-ELO/actions/runs/39159143062)), approved
+by the owner in `production-ops` (required reviewer, branches `ops/transfer-*`, no administrator
+bypass). The first run (39156678296) read nothing: `MIGRATION_DATABASE_URL` was not yet set.
+
+| Count | Result |
+|---|---|
+| graded procedures (all `legacy_unknown`) | 0 |
+| resubmitted and still pending with a stored delta | 0 |
+| validated with later answers on the item's topic | 0 |
+| duplicate `(student_id, item_id)` pairs | 0 |
+| files sent by more than one student | 0 |
+| one student's file on two items | 0 |
+
+No teacher has graded a procedure in production yet. Installing B7 there leaves no procedure to
+review one by one, creates FR-024a's unique index, and records no file as a copy. The job does not
+count the table's rows, so the owner confirms that the URL is production's before the switch
+(`SELECT COUNT(*) FROM procedure_submissions` in Supabase's SQL editor, matching the procedures
+students have sent).
+
 ## Tests
 
 - **Domain** (`tests/unit/domain/test_spec001_b7_procedures.py`): every worked case above, the
