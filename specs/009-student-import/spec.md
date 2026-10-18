@@ -144,6 +144,9 @@ shared views.
 - Accounts need an e-mail for account and password recovery (N24, open).
 - The teacher who accompanies each student is collected by a separate form — name, institution,
   grades accompanied, contact data — so that the teacher sees their students' progress (N25, open).
+- Later the same day the owner approved the recommendations of N24 and N25: a recovery e-mail per
+  account, read by the import (FR-016, FR-018), with self-service recovery as a later spec 004
+  delivery; and teachers and their groups created by the admin before the import.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -256,11 +259,15 @@ shared views.
   identification linked to another account, then the system shall refuse the creation and change
   nothing.
 - **FR-016** [CHANGE]: The system shall read from the file only the identification, the
-  display-name columns, level and grade, and the institution, and shall store nothing else of it
-  (N23).
+  display-name columns, level and grade, the institution and the recovery e-mail, and shall store
+  nothing else of it (N23, N24).
 - **FR-017** [CHANGE]: When the admin removes the link between an identification and an account
   made by mistake, the system shall record who removed it and when, and shall change neither the
   account's username nor its credentials (N18).
+- **FR-018** [CHANGE]: When the admin maps an e-mail column, the system shall store each row's
+  address as the account's recovery e-mail — one per account, which may repeat across accounts
+  (siblings, a shared family address) and never serves to sign in — and shall leave the account's
+  sign-in e-mail unchanged. A value that is not an e-mail address is an error for that row (N24).
 
 ### Key Entities
 
@@ -308,8 +315,8 @@ shared views.
 | N21 | (Form.) Each row names an institution («Institución educativa», or «Otro» with free text); FR-001 took one existing group per batch. | **Approved, amended** (owner, 2026-10-18): students are classified by institution **and grade**: one group per institution and grade, whose teacher is the one who accompanies those grades at that institution (N25). In a first phase each student competes with classmates of the same institution and grade; only finalists meet the best of other institutions (roadmap § 6, olympiad). A row whose institution and grade map to no group («Otro» included) is an error to correct before confirming; «Sede» is not read (FR-001, FR-002). |
 | N22 | (Form.) Its texts promise what the system does not do: «Te enviaremos al correo las instrucciones» (the system sends no email; FR-005 makes the identification the username and initial password) and «Las respuestas de las pruebas se califican identificadas con un código, sin el nombre del estudiante» (teachers and classmates see the display name, spec 004 FR-020). | **Approved** (owner, 2026-10-18): Change the form's texts to what the platform does (done in the revised script); sending the access instructions is the school's step. |
 | N23 | (Form.) It also collects the document type, e-mail, the guardian's name and mobile number and «Sede». | **Approved** (owner, 2026-10-18): The import reads only the identification, the names, the grade and the institution; nothing else is stored (data minimisation, Law 1581 of 2012). The responses sheet stays the school's, as § Assumptions says. |
-| N24 | (Owner, 2026-10-18.) Accounts need an e-mail for account and password recovery. The form's «Correo electrónico de contacto» can be the student's or the guardian's. Two facts block using it as the account's `users.email`: that column is unique and is also a sign-in identifier (spec 004 FR-006), so siblings or a family sharing one address could not both have it; and the system sends no e-mail today, so self-service recovery does not exist (spec 004 § Out of Scope). | A separate recovery e-mail per account, not unique and never a sign-in identifier, filled by the import from that column (additive column, AGENTS R8); FR-016 would then also read that column. Self-service recovery by e-mail as a new spec 004 delivery, which needs an e-mail-sending service (owner's choice of provider and its cost); until then the admin resets passwords (spec 004 E2). |
-| N25 | (Owner, 2026-10-18.) Each student's teacher comes from a separate form: name, institution, grades accompanied and contact data, so that the teacher sees the progress of their students. | The admin creates each teacher (spec 004 E2) and one group per institution and grade owned by that teacher, before importing students; the teacher sees only their groups (spec 004, the teacher's scope). The teachers' form is the school's, like the students'. |
+| N24 | (Owner, 2026-10-18.) Accounts need an e-mail for account and password recovery. The form's «Correo electrónico de contacto» can be the student's or the guardian's. Two facts block using it as the account's `users.email`: that column is unique and is also a sign-in identifier (spec 004 FR-006), so siblings or a family sharing one address could not both have it; and the system sends no e-mail today, so self-service recovery does not exist (spec 004 § Out of Scope). | **Approved** (owner, 2026-10-18): A separate recovery e-mail per account, not unique and never a sign-in identifier, filled by the import from that column (additive column, AGENTS R8); FR-016 would then also read that column. Self-service recovery by e-mail as a new spec 004 delivery, which needs an e-mail-sending service (owner's choice of provider and its cost); until then the admin resets passwords (spec 004 E2). |
+| N25 | (Owner, 2026-10-18.) Each student's teacher comes from a separate form: name, institution, grades accompanied and contact data, so that the teacher sees the progress of their students. | **Approved** (owner, 2026-10-18): The admin creates each teacher (spec 004 E2) and one group per institution and grade owned by that teacher, before importing students; the teacher sees only their groups (spec 004, the teacher's scope). The teachers' form is the school's, like the students'. |
 
 ## Out of Scope *(mandatory)*
 
@@ -358,3 +365,4 @@ scenario.** Nothing is implemented yet.
 | FR-015 | I1 | `PENDING` |
 | FR-016 | I1 | `PENDING` |
 | FR-017 | I1 | `PENDING` |
+| FR-018 | I1 | `PENDING` |
