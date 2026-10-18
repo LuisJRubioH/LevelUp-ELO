@@ -538,6 +538,10 @@ jobs:
           for p in filter(None, parts):
               print(f"::add-mask::{p}")
           PY
+          [ -n "$MIGRATION_DATABASE_URL" ] || { echo "::error::Secret MIGRATION_DATABASE_URL is missing in environment production-ops"; exit 1; }
+          case "$MIGRATION_DATABASE_URL" in
+            *:6543/*) echo "::error::MIGRATION_DATABASE_URL is the transaction pooler (6543); use the session pooler (5432)"; exit 1;;
+          esac
       - name: Read-only counts for spec 001 block 7 (numbers only)
         env:
           MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
