@@ -61,7 +61,7 @@ wrong):
 |---|---|
 | `ENVIRONMENT` | `production` — turns on the runtime checks below |
 | `DATABASE_URL` | PostgreSQL for web traffic. On Supabase: the **transaction pooler, port 6543** |
-| `MIGRATION_DATABASE_URL` | Only for `scripts/migrate.py`: a **direct connection (5432) or session pooler** — the migration's advisory lock is not reliable on the transaction pooler |
+| `MIGRATION_DATABASE_URL` | Only for `scripts/migrate.py`: the **session pooler (5432)** — the migration's advisory lock is not reliable on the transaction pooler (6543). Supabase's direct connection also takes the lock, but its host has only IPv6 unless the project buys the IPv4 add-on, and neither Render nor GitHub-hosted runners (the `transfer-ops` jobs) reach IPv6 |
 | `RUN_MIGRATIONS` | `0` on the web process; the schema is applied by the separate migration step |
 | `WEB_CONCURRENCY` | `1` (required: PvP lobby and notification rooms live in process memory — AGENTS.md R18) |
 | `JWT_SECRET_KEY` | ≥ 32 random characters (`python -c "import secrets; print(secrets.token_hex(32))"`) |
@@ -247,7 +247,8 @@ the address (§ 3.2), only public registration's per-address limit, which then c
 
 ## 4. Backups (before any migration)
 
-1. **Database:** a full logical dump of the final database over a direct connection:
+1. **Database:** a full logical dump of the final database over the session pooler (5432) — the
+   same URL as `MIGRATION_DATABASE_URL`:
 
    ```bash
    pg_dump --format=custom --no-owner --no-privileges --file=pre-transfer-YYYYMMDD.dump "$MIGRATION_DATABASE_URL"

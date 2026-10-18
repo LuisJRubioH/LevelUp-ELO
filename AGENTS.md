@@ -295,8 +295,9 @@ An invalid attempt is recorded with before = after and moves nothing. With an `I
 
 ### R17 — No migrations or blocking I/O inside the HTTP process
 - In a deployed environment (the final repository): schema bootstrap runs in
-  `scripts/migrate.py` against `MIGRATION_DATABASE_URL` (direct connection, port 5432); the web
-  process runs with `RUN_MIGRATIONS=0`. Local dev and tests keep
+  `scripts/migrate.py` against `MIGRATION_DATABASE_URL` (port 5432: on Supabase the **session
+  pooler**, because the direct host has only IPv6, which Render and GitHub-hosted runners do not
+  reach; never the transaction pooler, 6543); the web process runs with `RUN_MIGRATIONS=0`. Local dev and tests keep
   the in-process bootstrap (default `RUN_MIGRATIONS=1`). A deployed V1 is a web process too: its
   Streamlit secrets carry root-level `RUN_MIGRATIONS = "0"` (docs/transfer.md § 3.1; pinned by
   `tests/integration/test_v1_run_migrations.py`).
