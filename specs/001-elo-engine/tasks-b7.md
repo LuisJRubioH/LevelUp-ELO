@@ -61,7 +61,7 @@ S1) must stay green throughout: a first grading still adds `(grade − 50) × 0.
   resubmitted procedures and one duplicate (student, item) pair: no rating changes; contributions
   backfilled as `legacy_delta` / `legacy_unknown` / 0; the unique index skipped with the log line
   while the duplicate exists and created once it is gone; a second run changes nothing; a
-  `legacy_unknown` procedure regraded applies nothing (FR-024h, FR-024a)
+  `legacy_unknown` procedure regraded applies nothing (FR-024h, FR-024a) — amended by T034
 - [x] T013 A file another student uploaded, for the same item and for another one, makes a procedure
   graded 0 by the system, marked as a copy, −10 on the item's topic (floor 0) (US9-AS10; FR-024i);
   two students uploading one new file in two threads leave exactly one first owner
@@ -148,6 +148,34 @@ first and failed on 262e470, on both engines, then passed with its fix.
 - [x] T033 The teacher's export (V2 `/export/xlsx`, V1's «Delta ELO») showed the computed delta;
   it shows the amount applied, as every screen does (FR-024f) —
   `test_spec001_b7_the_teacher_export_reports_the_amount_applied`
+
+## Phase 4c — Owner answers of 2026-10-18
+
+The owner's answers to the review of LuisJRubioH/LevelUp-ELO#77 (spec § Clarifications, session
+2026-10-18). Each test was written first and failed on d280369 on both engines, except T036's
+second test, a guard that passed before and after (a refused upload must never remove a file in
+use).
+
+- [x] T034 FR-024h as amended: every procedure graded before B7 — validated, or resubmitted and
+  pending — gets an unknown contribution whatever its sign; the student's card shows no effect for
+  it; regrading applies nothing (both repositories' backfill and `_procedure_effect`) —
+  `test_spec001_b7_installing_makes_every_earlier_grading_unknown_without_moving_a_rating`
+- [x] T035 FR-024i, US9-AS13: a copy's 0 and a teacher's 0 are the same grading but for the
+  reason, with a known contribution (−16 from +6) and an unknown one (nothing moves) — no code
+  change — `test_spec001_b7_a_copy_counts_as_a_zero_and_differs_only_in_its_reason`
+- [x] T036 FR-024l, US9-AS14: grading a round a resubmission replaced raises
+  `ReviewRoundSuperseded` in both repositories, the route answers 409 with its message, nothing
+  changes; the teacher's screen reloads the queue and the new file (image cached per round) —
+  `test_spec001_b7_a_round_replaced_by_a_resubmission_is_refused_as_such`,
+  `test_spec001_b7_grading_a_round_the_student_replaced_answers_409`, E2E «si el estudiante
+  reenvió, el docente lo ve y la cola se recarga con el envío nuevo»
+- [x] T037 FR-024j, FR-024k: an upload not recorded removes its local file and its Storage object
+  unless a procedure uses them (`SupabaseStorage.remove_file`) —
+  `test_spec001_b7_a_file_refused_under_the_lock_is_not_left_behind`,
+  `test_spec001_b7_a_refused_upload_never_removes_a_file_in_use`
+- [x] T038 `b7check` on `ops/transfer`: every graded procedure reported as unknown, plus the
+  validated ones whose delta reached the stored rating through later answers on the item's topic,
+  checked on a local PostgreSQL with `main`'s columns; plan-b7.md, the guides
 
 ## Phase 5 — Close
 

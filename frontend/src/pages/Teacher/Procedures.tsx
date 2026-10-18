@@ -11,6 +11,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { teacherApi, type GradeResult, type PendingProcedure } from "../../api/teacher";
+import { ApiError } from "../../api/client";
 import { MathText } from "../../components/Math/MathContent";
 
 const AVAS = [
@@ -29,9 +30,10 @@ const gradeColor = (v: number) => (v >= 91 ? "#34d399" : v >= 60 ? "#fbbf24" : "
 const judgeLabel = (v: number) => (v >= 91 ? "Excelente" : v >= 60 ? "Aceptable" : "Necesita refuerzo");
 
 /* ── visor del envío: foto o PDF, tal como lo subió el estudiante ─────────── */
-function ProcedureImage({ submissionId }: { submissionId: number }) {
+function ProcedureImage({ submissionId, reviewRound }: { submissionId: number; reviewRound?: number }) {
+  // Spec 001 FR-024l: a resubmission is a new file under the same id — cached per review round.
   const { data: file, isLoading, isError } = useQuery({
-    queryKey: ["procedure-image", submissionId],
+    queryKey: ["procedure-image", submissionId, reviewRound ?? 1],
     queryFn: () => teacherApi.procedureImage(submissionId),
     staleTime: Infinity,
   });
@@ -120,6 +122,13 @@ function ProcedureDetail({
       onGraded(result, proc.student_name);
       qc.invalidateQueries({ queryKey: ["teacher-procedures"] });
     },
+    // Spec 001 FR-024l: the student resubmitted while this review was open — the queue reloads
+    // with the new submission and the server's message stays on screen.
+    onError: (error) => {
+      if (error instanceof ApiError && error.status === 409) {
+        qc.invalidateQueries({ queryKey: ["teacher-procedures"] });
+      }
+    },
   });
 
   const gc = gradeColor(score);
@@ -155,7 +164,7 @@ function ProcedureDetail({
 
         <span className="pd-lbl">Procedimiento del estudiante</span>
         {proc.has_image ? (
-          <ProcedureImage submissionId={proc.submission_id} />
+          <ProcedureImage submissionId={proc.submission_id} reviewRound={proc.review_round} />
         ) : (
           <div className="pd-image-box">El estudiante no adjuntó imagen.</div>
         )}

@@ -192,4 +192,69 @@ test.describe("Bloque 7 — lo que ve el docente", () => {
     );
     expect(body.review_round).toBe(2);
   });
+
+  test("si el estudiante reenvió, el docente lo ve y la cola se recarga con el envío nuevo", async ({
+    page,
+  }) => {
+    // Spec 001 FR-024l (US9-AS14): the round on screen was replaced by a resubmission.
+    let round = 1;
+    const gradeBodies: Record<string, unknown>[] = [];
+    const imageRequests: string[] = [];
+    await page.route("**/api/teacher/**", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
+    );
+    await page.route("**/api/teacher/procedures", (route) =>
+      route.fulfill({ json: [{ ...PENDING, has_image: true, review_round: round }] }),
+    );
+    await page.route("**/api/teacher/procedures/7/image", (route) => {
+      imageRequests.push(`round ${round}`);
+      return route.fulfill({ status: 200, contentType: "image/png", body: PNG });
+    });
+    await page.route("**/api/teacher/procedures/grade", async (route) => {
+      const body = route.request().postDataJSON();
+      gradeBodies.push(body);
+      if (body.review_round === 1) {
+        round = 2; // the student resubmitted while the teacher had round 1 open
+        return route.fulfill({
+          status: 409,
+          json: {
+            detail:
+              "El estudiante reenvió este procedimiento; revisa el envío nuevo antes de calificar.",
+          },
+        });
+      }
+      return route.fulfill({
+        json: {
+          submission_id: 7,
+          teacher_score: 80,
+          elo_delta: 6,
+          computed_delta: 6,
+          contribution: 6,
+          review_round: 2,
+          status: "graded",
+        },
+      });
+    });
+    await page.route("**/api/student/exam/pending", (route) => route.fulfill({ json: [] }));
+    await injectAuth(page, MOCK_TEACHER);
+    await page.goto("/teacher/procedures");
+
+    await expect(page.getByAltText("Procedimiento manuscrito del estudiante")).toBeVisible();
+    await page.getByRole("button", { name: "80", exact: true }).click();
+    await page.getByRole("button", { name: /Guardar calificación/ }).click();
+
+    await expect(
+      page.getByText(
+        "El estudiante reenvió este procedimiento; revisa el envío nuevo antes de calificar.",
+      ),
+    ).toBeVisible();
+    // The queue reloads and the new submission's file is fetched, not the cached one.
+    await expect.poll(() => imageRequests).toEqual(["round 1", "round 2"]);
+
+    await page.getByRole("button", { name: /Guardar calificación/ }).click();
+    await expect(page.getByRole("status")).toHaveText(
+      "Calificación guardada · Ana Gómez: efecto en la nota +6",
+    );
+    expect(gradeBodies.map((b) => b.review_round)).toEqual([1, 2]);
+  });
 });

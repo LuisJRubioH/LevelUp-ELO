@@ -87,6 +87,14 @@ diferencia (un 80 que recalificas con 30 resta 10, no 4). Al guardar ves el
 efecto real en la nota, que puede ser menor si llegó a 0. Cada calificación queda
 en el historial del procedimiento.
 
+Si el estudiante lo reenvía mientras lo tienes abierto, al guardar verás «El
+estudiante reenvió este procedimiento; revisa el envío nuevo antes de calificar.»:
+no se guarda nada y la cola se recarga con el archivo nuevo para que lo califiques.
+
+Los procedimientos calificados antes de esta versión no mueven la nota si los
+recalificas: no se sabe cuánto les sumó la calificación anterior. Se revisan uno
+por uno con el administrador.
+
 El sistema calcula una **huella SHA-256** de cada archivo:
 - el mismo estudiante no puede subir dos veces el mismo archivo, ni para el mismo
   ejercicio ni para otro;

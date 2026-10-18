@@ -34,3 +34,12 @@ def classify_upload(
     if first_owner is not None and first_owner != student_id:
         return COPY
     return ACCEPT
+
+
+class ReviewRoundSuperseded(Exception):
+    """A grading names a review that a resubmission replaced (FR-024l): the teacher must see the
+    current submission before grading it."""
+
+    def __init__(self, current_round: int):
+        super().__init__(current_round)
+        self.current_round = current_round

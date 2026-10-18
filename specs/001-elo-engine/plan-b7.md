@@ -79,7 +79,7 @@ copy — never starts a new review or a new 0.
 | Change | Purpose |
 |---|---|
 | `procedure_submissions.contribution` (`DOUBLE PRECISION` / `REAL`, default 0; NULL = unknown) | C, the net amount the procedure's gradings applied (FR-024b) |
-| `procedure_submissions.contribution_origin` (`TEXT`) | `grading`, `legacy_delta` or `legacy_unknown` (FR-024h) |
+| `procedure_submissions.contribution_origin` (`TEXT`) | `grading` or `legacy_unknown` (FR-024h) |
 | `procedure_submissions.review_round` (`INTEGER`, default 1) | Which review a grading belongs to; a resubmission adds 1 (FR-024g) |
 | `procedure_submissions.is_copy` (`INTEGER`, default 0) | The copy mark the teacher sees (FR-024i) |
 | table `procedure_gradings` — `submission_id`, `review_round`, `grade`, `computed_delta`, `correction`, `applied`, `contribution_after` (NULL when unknown), `grader_id` (NULL = the system), `reason` (`teacher` / `copy`), `created_at`; **unique** `(submission_id, review_round)` | The history (FR-024e) and the one-grading-per-review guarantee (FR-024g) |
@@ -87,10 +87,12 @@ copy — never starts a new review or a new 0.
 | table `procedure_uploads` — `student_id`, `item_id`, `file_hash`, `submission_id`, `outcome` (`accepted` / `copy`), `created_at`; **unique** `(student_id, file_hash)` | Each file a student uploaded, kept across resubmissions; the unique pair makes rules FR-024j and FR-024k atomic |
 | unique index `procedure_submissions (student_id, item_id)` | FR-024a, when no duplicate pair exists (below) |
 
-- **Backfill, idempotent and rating-neutral (FR-024h):** a row never graded keeps `contribution 0`;
-  a graded row (a stored `elo_delta`) with `elo_delta ≥ 0` gets `contribution = elo_delta`,
-  `legacy_delta` (adding cannot meet the floor); with `elo_delta < 0` it gets `NULL`,
-  `legacy_unknown` (the floor may have limited it, and no stored value says by how much).
+- **Backfill, idempotent and rating-neutral (FR-024h as amended 2026-10-18):** a row never graded
+  keeps `contribution 0`; a graded row (a stored `elo_delta`), validated or resubmitted and
+  pending, gets `NULL`, `legacy_unknown`, whatever the sign of its delta. On `main` a validated
+  delta is added only when the rating is read; the stored rating that the switch carries is the
+  last answer's, which holds the delta only through later answers stored under the item's topic,
+  once per such answer — so no stored value says what the procedure contributed.
   `procedure_files` takes the earliest row of each `file_hash`; `procedure_uploads` one row per
   current submission with a hash (a pair already taken is skipped). Only rows whose
   `contribution_origin` is still NULL are touched, so a second run changes nothing. No rating is
@@ -175,7 +177,8 @@ amount applied. `check_file_hash_duplicate` stays: V1 calls it.
 
 ### Procedures graded before B7 (FR-024h, B7-P1)
 
-Installing B7 changes no rating. A procedure whose contribution is `legacy_unknown` and is regraded
+Installing B7 changes no rating. Every procedure graded before B7 is `legacy_unknown` (amended
+2026-10-18; until then a non-negative stored delta was taken as the contribution). One that is regraded
 records the grade, applies nothing, and appears in the teacher's history as «Pendiente de revisión:
 no se sabe cuánto aplicó la calificación anterior». The owner reviews those one by one, with the
 count of § Operations; nothing in B7 resolves them automatically.
@@ -185,12 +188,10 @@ count of § Operations; nothing in B7 resolves them automatically.
 A read-only job in the `transfer-ops` workflow (`ops/transfer-b7check`, Environment
 `production-ops`, transactions `READ ONLY`), whose public log holds numbers only:
 
-- graded procedures, and how many have a negative stored delta (they would become
-  `legacy_unknown`);
-- procedures resubmitted and still pending that keep a stored delta: on `main` a procedure counts
-  in the rating only while validated, and the stored rating holds such a delta or not depending on
-  whether the student answered since. B7 takes the delta as the contribution; if this count is not
-  0, the owner decides before the switch (the cautious alternative is `legacy_unknown`);
+- graded procedures, all of which become `legacy_unknown`, and how many of them are resubmitted
+  and still pending;
+- validated procedures whose delta reached the stored rating through later answers on the item's
+  topic, and how many such answers — the ones to review first;
 - duplicate `(student_id, item_id)` pairs (FR-024a's index is not created while any exist);
 - files sent by more than one student (they stay as they are; the first sender becomes the file's
   first owner).
@@ -239,6 +240,27 @@ files, `AGENTS.md` (R15's writer table: the correction and the copy), `docs/guia
    ones and the count reports old ones.
 4. A `legacy_unknown` procedure that is regraded applies nothing until reviewed one by one.
 5. The student's and teacher's wording above.
+
+## Owner answers of 2026-10-18 (after the review of LuisJRubioH/LevelUp-ELO#77)
+
+- **Every earlier grading is unknown** (FR-024h): the backfill above, and `b7check` counts the
+  procedures whose delta reached the stored rating.
+- **A copy is a 0 like any other** (FR-024i): `submit_procedure` already grades it with the
+  domain's `procedure_grading(0, C, R)`, the computation a teacher's 0 uses; only `reason` and
+  `grader_id` differ, so where C is unknown neither moves the rating. No code changes; a test
+  compares the two gradings field by field.
+- **A review a resubmission replaced** (FR-024l): `grade_procedure_transaction`, in both
+  repositories, raises the domain's `ReviewRoundSuperseded(current_round)` when the round asked
+  is older than the procedure's and was never graded (a retry of a graded round still returns its
+  result, FR-024g). `POST /api/teacher/procedures/grade` answers 409 «El estudiante reenvió este
+  procedimiento; revisa el envío nuevo antes de calificar.»; the teacher's screen reloads the
+  queue on that 409, and the procedure's image is cached per review round, so the new file is
+  shown.
+- **A refused upload leaves no file** (FR-024j, FR-024k): when an upload is not recorded —
+  refused under the lock, or failed — `submit_procedure` removes the local file it wrote and, on
+  PostgreSQL, the Storage object (`SupabaseStorage.remove_file`), unless a procedure uses that
+  file: two uploads of one file for one item share its Storage path, and a local file name can
+  repeat within one second.
 
 ## Merge order
 

@@ -3,6 +3,7 @@ import os
 import sqlite3
 import logging
 from src.infrastructure.security.hashing_service import HashingService
+from src.domain.procedures import ReviewRoundSuperseded
 from src.infrastructure.storage.paths import safe_path_component
 
 logger = logging.getLogger(__name__)
@@ -10,12 +11,9 @@ logger = logging.getLogger(__name__)
 
 def _procedure_effect(row):
     """The rating effect a student sees for a procedure (spec 001 FR-024f): the amount its latest
-    grading applied; for one graded before block 7, its stored delta when that cannot have met the
-    floor; None when nobody can know."""
+    grading applied; None when nobody can know, as for one graded before block 7 (FR-024h)."""
     if row["applied"] is not None:
         return float(row["applied"])
-    if row["contribution_origin"] == "legacy_delta":
-        return row["elo_delta"]
     return None
 
 
@@ -366,9 +364,10 @@ class SQLiteRepository:
         self._ensure_procedure_pair_index(cursor)
 
     def _backfill_procedure_contributions(self, cursor=None):
-        """FR-024h, B7-P1: procedures graded before block 7 get their contribution — the stored
-        delta when it is not negative (adding never meets the floor), unknown otherwise — and
-        their files are recorded. No rating is read or written; a second run changes nothing."""
+        """FR-024h, B7-P1 as amended 2026-10-18: every procedure graded before block 7 gets an
+        unknown contribution — on production's data the stored delta does not identify the effect
+        in the rating, whatever its sign — and their files are recorded. No rating is read or
+        written; a second run changes nothing."""
         if cursor is None:
             conn = self.get_connection()
             try:
@@ -380,9 +379,7 @@ class SQLiteRepository:
         cursor.execute(
             """
             UPDATE procedure_submissions
-               SET contribution = CASE WHEN elo_delta >= 0 THEN elo_delta ELSE NULL END,
-                   contribution_origin = CASE WHEN elo_delta >= 0 THEN 'legacy_delta'
-                                              ELSE 'legacy_unknown' END
+               SET contribution = NULL, contribution_origin = 'legacy_unknown'
              WHERE contribution_origin IS NULL AND elo_delta IS NOT NULL
         """
         )
@@ -4226,6 +4223,7 @@ class SQLiteRepository:
             student_id, item_id, image_data, mime_type, file_hash
         )
 
+        recorded = False
         conn = self.get_connection()
         conn.isolation_level = None
         cursor = conn.cursor()
@@ -4331,6 +4329,7 @@ class SQLiteRepository:
                     None,
                 )
             cursor.execute("COMMIT")
+            recorded = True
             return {"outcome": outcome, "submission_id": submission_id, "grading": grading}
         except Exception:
             if conn.in_transaction:
@@ -4338,6 +4337,32 @@ class SQLiteRepository:
             raise
         finally:
             conn.close()
+            if not recorded:
+                try:
+                    self._discard_unused_procedure_file(img_path)
+                except Exception:  # the upload's own result or error stands
+                    logger.warning("Procedure upload not recorded; its file was not checked")
+
+    def _discard_unused_procedure_file(self, img_path):
+        """FR-024j, FR-024k: an upload that was not recorded leaves no file behind — unless a
+        procedure uses it: two uploads of one file in one second share the file name."""
+        if not img_path:
+            return
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT 1 FROM procedure_submissions WHERE procedure_image_path = ? LIMIT 1",
+                (img_path,),
+            )
+            in_use = cursor.fetchone() is not None
+        finally:
+            conn.close()
+        if not in_use:
+            try:
+                os.remove(img_path)
+            except OSError:
+                logger.warning("Procedure upload not recorded; its file could not be removed")
 
     def save_ai_proposed_score(
         self, student_id: int, item_id: str, ai_score: float, ai_feedback: str = None
@@ -4583,7 +4608,8 @@ class SQLiteRepository:
         teacher owns the student's group (FR-023), `compute(contribution, rating_before)` — the
         domain's `procedure_grading` — gives the correction and the amount applied, and the
         rating, the grading and the procedure are written together (`created` True). None when
-        there is nothing to grade.
+        there is nothing to grade; `ReviewRoundSuperseded` when a resubmission replaced the review
+        (FR-024l).
         """
         conn = self.get_connection()
         conn.isolation_level = None
@@ -4614,6 +4640,9 @@ class SQLiteRepository:
             if recorded:
                 cursor.execute("ROLLBACK")
                 return {**recorded[0], "created": False}
+            if current_round < row_round:
+                # FR-024l: a resubmission replaced the review being graded (rolled back below).
+                raise ReviewRoundSuperseded(row_round)
             if current_round != row_round or status not in self._PENDING_PROCEDURE:
                 cursor.execute("ROLLBACK")
                 return None

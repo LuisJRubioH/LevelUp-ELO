@@ -227,3 +227,25 @@ def test_spec001_b7_history_and_copies_are_for_the_groups_teacher_only(repo, cli
         "/api/teacher/procedures/copies", headers=headers_for(repo, outsider)
     )
     assert outsider_copies.json() == []
+
+
+# ── T035: a review the student replaced (US9-AS14; FR-024l) ─────────────────
+
+
+def test_spec001_b7_grading_a_round_the_student_replaced_answers_409(repo, client, notifications):
+    room = _classroom(repo)
+    item = room["items"][0]
+    sid = _upload(client, repo, room["student"], item, _png()).json()["submission_id"]
+    assert _queue_round(client, repo, room["teacher"], sid) == 1
+    _upload(client, repo, room["student"], item, _png())  # resubmitted while round 1 was open
+
+    refused = _grade(client, repo, room["teacher"], sid, 80, 1)
+
+    assert refused.status_code == 409
+    assert refused.json()["detail"] == (
+        "El estudiante reenvió este procedimiento; revisa el envío nuevo antes de calificar."
+    )
+    assert notifications == []
+    assert rating_of(repo, room["student"], room["course"], TOPIC) == 1000.0
+    assert _queue_round(client, repo, room["teacher"], sid) == 2
+    assert _grade(client, repo, room["teacher"], sid, 80, 2).status_code == 200

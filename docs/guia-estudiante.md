@@ -164,7 +164,8 @@ Qué pasa después:
 
 **Si lo reenvías**, vuelve a revisión y tu nota conserva lo que te dio la
 calificación anterior hasta que el docente califique otra vez. Entonces solo se
-aplica la diferencia: un procedimiento cuenta una vez, con su última nota.
+aplica la diferencia: un procedimiento cuenta una vez, con su última nota. En los
+procedimientos calificados antes de esta versión no se muestra el efecto en la nota.
 
 **No subas dos veces el mismo archivo.** El sistema le saca una huella digital:
 - si ya lo subiste para ese ejercicio, o para otro, se rechaza y no cambia nada;

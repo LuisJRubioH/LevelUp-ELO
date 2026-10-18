@@ -40,6 +40,7 @@ from api.schemas.teacher import (
     UserAdminRow,
 )
 from src.application.services.teacher_service import TeacherService
+from src.domain.procedures import ReviewRoundSuperseded
 from api.config import settings
 from api.rate_limit import limiter
 
@@ -264,7 +265,8 @@ def procedure_image(submission_id: int, user: CurrentUser, repo: RepoDep):
 def grade_procedure(body: GradeRequest, user: CurrentUser, repo: RepoDep):
     """Califica un procedimiento y aplica al rating solo la diferencia con su contribución
     anterior (spec 001 bloque 7, FR-024d). Un reintento con la misma `review_round` devuelve el
-    mismo resultado sin aplicar nada (FR-024g)."""
+    mismo resultado sin aplicar nada (FR-024g); una ronda que el estudiante reemplazó al reenviar
+    responde 409 (FR-024l)."""
     # Usar la misma cola autorizada que el panel/visor; no confiar en el ID enviado por el
     # cliente. Fuera de la cola solo se admite el reintento de una ronda ya calificada, que el
     # repositorio comprueba contra el grupo del docente.
@@ -288,6 +290,12 @@ def grade_procedure(body: GradeRequest, user: CurrentUser, repo: RepoDep):
             teacher_id=user["user_id"],
             review_round=body.review_round,
         )
+    except ReviewRoundSuperseded as exc:
+        # FR-024l: the student resubmitted while this review was open; nothing was graded.
+        raise HTTPException(
+            status_code=409,
+            detail="El estudiante reenvió este procedimiento; revisa el envío nuevo antes de calificar.",
+        ) from exc
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

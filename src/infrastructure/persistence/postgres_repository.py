@@ -13,6 +13,7 @@ from src.infrastructure.security.hashing_service import HashingService
 from src.infrastructure.storage.paths import safe_path_component
 from src.infrastructure.storage.supabase_storage import SupabaseStorage
 from src.domain.elo.model import expected_score
+from src.domain.procedures import ReviewRoundSuperseded
 
 
 logger = logging.getLogger(__name__)
@@ -20,12 +21,9 @@ logger = logging.getLogger(__name__)
 
 def _procedure_effect(row):
     """The rating effect a student sees for a procedure (spec 001 FR-024f): the amount its latest
-    grading applied; for one graded before block 7, its stored delta when that cannot have met the
-    floor; None when nobody can know."""
+    grading applied; None when nobody can know, as for one graded before block 7 (FR-024h)."""
     if row["applied"] is not None:
         return float(row["applied"])
-    if row["contribution_origin"] == "legacy_delta":
-        return row["elo_delta"]
     return None
 
 
@@ -1337,9 +1335,10 @@ class PostgresRepository:
         self._ensure_procedure_pair_index(cursor)
 
     def _backfill_procedure_contributions(self, cursor=None):
-        """FR-024h, B7-P1: procedures graded before block 7 get their contribution — the stored
-        delta when it is not negative (adding never meets the floor), unknown otherwise — and
-        their files are recorded. No rating is read or written; a second run changes nothing."""
+        """FR-024h, B7-P1 as amended 2026-10-18: every procedure graded before block 7 gets an
+        unknown contribution — on production's data the stored delta does not identify the effect
+        in the rating, whatever its sign — and their files are recorded. No rating is read or
+        written; a second run changes nothing."""
         if cursor is None:
             conn = self.get_connection()
             try:
@@ -1351,9 +1350,7 @@ class PostgresRepository:
         cursor.execute(
             """
             UPDATE procedure_submissions
-               SET contribution = CASE WHEN elo_delta >= 0 THEN elo_delta ELSE NULL END,
-                   contribution_origin = CASE WHEN elo_delta >= 0 THEN 'legacy_delta'
-                                              ELSE 'legacy_unknown' END
+               SET contribution = NULL, contribution_origin = 'legacy_unknown'
              WHERE contribution_origin IS NULL AND elo_delta IS NOT NULL
         """
         )
@@ -4926,6 +4923,7 @@ class PostgresRepository:
             student_id, item_id, image_data, mime_type, file_hash
         )
 
+        recorded = False
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -5031,12 +5029,46 @@ class PostgresRepository:
                     None,
                 )
             conn.commit()
+            recorded = True
             return {"outcome": outcome, "submission_id": row["id"], "grading": grading}
         except Exception:
             conn.rollback()
             raise
         finally:
             self.put_connection(conn)
+            if not recorded:
+                try:
+                    self._discard_unused_procedure_file(img_path, storage_url)
+                except Exception:  # the upload's own result or error stands
+                    logger.warning("Procedure upload not recorded; its file was not checked")
+
+    def _discard_unused_procedure_file(self, img_path, storage_url):
+        """FR-024j, FR-024k: an upload that was not recorded leaves no file behind, on disk or in
+        Storage — unless a procedure uses it: two uploads of one file for one item share its
+        Storage path."""
+        if not img_path and not storage_url:
+            return
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT"
+                " EXISTS (SELECT 1 FROM procedure_submissions WHERE procedure_image_path = %s)"
+                " AS file_in_use,"
+                " EXISTS (SELECT 1 FROM procedure_submissions WHERE storage_url = %s)"
+                " AS object_in_use",
+                (img_path, storage_url),
+            )
+            in_use = cursor.fetchone()
+        finally:
+            self.put_connection(conn)
+        if img_path and not in_use["file_in_use"]:
+            try:
+                os.remove(img_path)
+            except OSError:
+                logger.warning("Procedure upload not recorded; its file could not be removed")
+        if storage_url and not in_use["object_in_use"]:
+            self._storage.remove_file("procedimientos", storage_url)
 
     @_timing
     def save_ai_proposed_score(
@@ -5262,7 +5294,8 @@ class PostgresRepository:
         teacher owns the student's group (FR-023), `compute(contribution, rating_before)` — the
         domain's `procedure_grading` — gives the correction and the amount applied, and the
         rating, the grading and the procedure are written together (`created` True). None when
-        there is nothing to grade.
+        there is nothing to grade; `ReviewRoundSuperseded` when a resubmission replaced the review
+        (FR-024l).
         """
         conn = self.get_connection()
         try:
@@ -5296,6 +5329,9 @@ class PostgresRepository:
             if recorded:
                 conn.rollback()
                 return {**recorded[0], "created": False}
+            if current_round < row["review_round"]:
+                # FR-024l: a resubmission replaced the review being graded (rolled back below).
+                raise ReviewRoundSuperseded(row["review_round"])
             if current_round != row["review_round"] or row["status"] not in self._PENDING_PROCEDURE:
                 conn.rollback()
                 return None

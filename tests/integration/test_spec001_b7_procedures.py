@@ -7,6 +7,7 @@ unchanged code before the domain imports below existed. Every other test is [CHA
 """
 
 import hashlib
+import os
 import threading
 import uuid
 
@@ -18,6 +19,7 @@ from src.domain.procedures import (
     COPY,
     REFUSE_OTHER_ITEM,
     REFUSE_SAME_ITEM,
+    ReviewRoundSuperseded,
     classify_upload,
 )
 from tests.integration.conftest import (
@@ -303,7 +305,10 @@ def _legacy_row(repo, student, item, elo_delta, status="VALIDATED_BY_TEACHER"):
     )[0][0]
 
 
-def test_spec001_b7_installing_backfills_contributions_without_moving_a_rating(repo):
+def test_spec001_b7_installing_makes_every_earlier_grading_unknown_without_moving_a_rating(repo):
+    """FR-024h as amended 2026-10-18: on production's data the stored delta does not identify the
+    effect in the rating, whatever its sign, so every procedure graded before B7 — validated, or
+    resubmitted and pending — gets an unknown contribution; one never graded keeps 0."""
     _, (item_a, item_b) = _course(repo)
     positive, negative, resubmitted, fresh = (make_student(repo) for _ in range(4))
     course = sql(repo, "SELECT course_id FROM items WHERE id = ?", (item_a,))[0][0]
@@ -323,23 +328,21 @@ def test_spec001_b7_installing_backfills_contributions_without_moving_a_rating(r
     repo._backfill_procedure_contributions()
     repo._backfill_procedure_contributions()  # a second run changes nothing
 
-    assert (_procedure(repo, p)["contribution"], _procedure(repo, p)["origin"]) == (
-        6.0,
-        "legacy_delta",
-    )
-    assert (_procedure(repo, n)["contribution"], _procedure(repo, n)["origin"]) == (
-        None,
-        "legacy_unknown",
-    )
-    assert _procedure(repo, r)["contribution"] == 2.0
+    for graded in (p, n, r):
+        assert (_procedure(repo, graded)["contribution"], _procedure(repo, graded)["origin"]) == (
+            None,
+            "legacy_unknown",
+        )
     assert (_procedure(repo, f)["contribution"], _procedure(repo, f)["origin"]) == (0.0, None)
     assert _ratings(repo, [positive, negative, resubmitted, fresh]) == before
 
-    # FR-024h, B7-P1: an unknown contribution regraded applies nothing until reviewed.
-    sql(repo, "UPDATE procedure_submissions SET status = 'pending' WHERE id = ?", (n,))
-    result = _grade(repo, n, 90.0)
-    assert (result["applied"], result["contribution_after"]) == (0.0, None)
-    assert _procedure(repo, n)["origin"] == "legacy_unknown"
+    # B7-P1: an unknown contribution regraded applies nothing until reviewed, whatever its sign.
+    for graded in (p, n):
+        sql(repo, "UPDATE procedure_submissions SET status = 'pending' WHERE id = ?", (graded,))
+    for graded in (p, n, r):
+        result = _grade(repo, graded, 90.0)
+        assert (result["applied"], result["contribution_after"]) == (0.0, None)
+        assert _procedure(repo, graded)["origin"] == "legacy_unknown"
     assert _ratings(repo, [positive, negative, resubmitted, fresh]) == before
 
 
@@ -520,3 +523,182 @@ def test_spec001_b7_the_teacher_export_reports_the_amount_applied(repo, student)
     rows = [r for r in repo.export_teacher_procedures(teacher) if r["student_id"] == student]
 
     assert [r["elo_delta"] for r in rows] == [-10.0]
+
+
+# ── Owner answers of 2026-10-18 (tasks-b7.md T034–T036): written first ─────────
+
+
+def _same_grading(a, b):
+    """Two gradings equal in everything but who gave them, why, when and for which procedure."""
+    keys = (
+        "review_round",
+        "grade",
+        "computed_delta",
+        "correction",
+        "applied",
+        "contribution_after",
+    )
+    return {k: a[k] for k in keys} == {k: b[k] for k in keys}
+
+
+def test_spec001_b7_a_copy_counts_as_a_zero_and_differs_only_in_its_reason(repo):
+    """FR-024i, US9-AS13: a copy's 0 is a teacher's 0 — the same correction, floor and
+    contribution — with another reason; where the contribution is unknown, neither moves."""
+    _, (item, _) = _course(repo)
+    owner, copier, graded_zero = (make_student(repo) for _ in range(3))
+    course = sql(repo, "SELECT course_id FROM items WHERE id = ?", (item,))[0][0]
+    original = _file("original")
+    assert _submit(repo, owner, item, original)["outcome"] == ACCEPT
+
+    # Known contribution: both graded 80 (+6), then a copy and a teacher's 0 apply −16.
+    for s in (copier, graded_zero):
+        _, submission = _new_procedure(repo, s, item, rating=1000.0)
+        _grade(repo, submission, 80.0)
+    copy = _submit(repo, copier, item, original)
+    resubmitted = _submit(repo, graded_zero, item, _file("own new work"))
+    zero = _grade(repo, resubmitted["submission_id"], 0.0)
+
+    assert copy["outcome"] == COPY
+    assert _same_grading(copy["grading"], zero)
+    assert (copy["grading"]["applied"], copy["grading"]["contribution_after"]) == (-16.0, -10.0)
+    assert (copy["grading"]["reason"], zero["reason"]) == ("copy", "teacher")
+    assert rating_of(repo, copier, course, TOPIC) == rating_of(repo, graded_zero, course, TOPIC)
+
+    # Unknown contribution (graded before B7): neither the copy nor a teacher's 0 moves it.
+    legacy_copier, legacy_zero = (make_student(repo) for _ in range(2))
+    for s in (legacy_copier, legacy_zero):
+        set_rating(repo, s, course, TOPIC, 500.0)
+        _legacy_row(repo, s, item, 6.0)
+    repo._backfill_procedure_contributions()
+    copy = _submit(repo, legacy_copier, item, original)
+    resubmitted = _submit(repo, legacy_zero, item, _file("legacy own new work"))
+    zero = _grade(repo, resubmitted["submission_id"], 0.0)
+
+    assert copy["outcome"] == COPY and _procedure(repo, copy["submission_id"])["copy"]
+    assert _same_grading(copy["grading"], zero)
+    assert (copy["grading"]["applied"], copy["grading"]["contribution_after"]) == (0.0, None)
+    assert rating_of(repo, legacy_copier, course, TOPIC) == 500.0
+    assert rating_of(repo, legacy_zero, course, TOPIC) == 500.0
+
+
+def test_spec001_b7_a_round_replaced_by_a_resubmission_is_refused_as_such(repo, student):
+    """FR-024l, US9-AS14: grading the review a resubmission replaced says so and changes
+    nothing; a retry of a review already graded still returns its result (FR-024g)."""
+    _, (item, _) = _course(repo)
+    course, submission = _new_procedure(repo, student, item)
+    _submit(repo, student, item, _file("sent while the teacher had round 1 open"))
+
+    with pytest.raises(ReviewRoundSuperseded) as refused:
+        _grade(repo, submission, 80.0, review_round=1)
+
+    assert refused.value.current_round == 2
+    assert _procedure(repo, submission)["status"] in ("pending", "PENDING_TEACHER_VALIDATION")
+    assert repo.get_procedure_gradings(submission) == []
+    assert rating_of(repo, student, course, TOPIC) == 1000.0
+
+    graded = _grade(repo, submission, 80.0, review_round=2)
+    _submit(repo, student, item, _file("third"))
+    assert _grade(repo, submission, 80.0, review_round=2) == {**graded, "created": False}
+
+
+class _FakeStorage:
+    """Supabase Storage as the PostgreSQL repository sees it: an upload returns its path."""
+
+    available = True
+
+    def __init__(self):
+        self.objects = set()
+
+    def upload_file(self, bucket, path, data, mime_type="image/jpeg"):
+        self.objects.add(path)
+        return path
+
+    def remove_file(self, bucket, path):
+        self.objects.discard(path)
+        return True
+
+
+def _refused_under_the_lock(outcome):
+    """A classification that accepts the read-only check and refuses under the lock: the race
+    of two uploads of one student's file, made deterministic."""
+    calls = []
+
+    def classify(*args):
+        calls.append(args)
+        return ACCEPT if len(calls) == 1 else outcome
+
+    return classify
+
+
+def _submit_with(repo, student, item_id, content, classify):
+    return repo.submit_procedure(
+        student,
+        item_id,
+        "b7 procedure",
+        content,
+        "image/png",
+        hashlib.sha256(content).hexdigest(),
+        classify,
+        lambda contribution, rating: procedure_grading(0.0, contribution, rating),
+    )
+
+
+def _stored_paths(repo, monkeypatch):
+    """Record what each upload stored: the local file and the Storage path."""
+    stored = []
+    store = repo._store_procedure_file
+
+    def recording(*args):
+        result = store(*args)
+        stored.append((result[1], result[2]))
+        return result
+
+    monkeypatch.setattr(repo, "_store_procedure_file", recording)
+    return stored
+
+
+def test_spec001_b7_a_file_refused_under_the_lock_is_not_left_behind(repo, student, monkeypatch):
+    """FR-024j, FR-024k: a refused upload changes nothing — its file is not left on disk or in
+    Storage."""
+    _, (item_a, item_b) = _course(repo)
+    _new_procedure(repo, student, item_a)
+    if is_postgres(repo):
+        monkeypatch.setattr(repo, "_storage", _FakeStorage())
+    stored = _stored_paths(repo, monkeypatch)
+
+    refused = _submit_with(
+        repo, student, item_b, _file("raced"), _refused_under_the_lock(REFUSE_OTHER_ITEM)
+    )
+
+    assert refused == {"outcome": REFUSE_OTHER_ITEM, "submission_id": None, "grading": None}
+    (img_path, storage_path) = stored[0]
+    assert img_path is None or not os.path.exists(img_path)
+    if is_postgres(repo):
+        assert storage_path and storage_path not in repo._storage.objects
+
+
+def test_spec001_b7_a_refused_upload_never_removes_a_file_in_use(repo, student, monkeypatch):
+    """FR-024k: of two uploads of one file for one item, the refused one may share the stored
+    file of the accepted one; that file stays."""
+    _, (item, _) = _course(repo)
+    content = _file("shared")
+    if is_postgres(repo):
+        monkeypatch.setattr(repo, "_storage", _FakeStorage())
+    stored = _stored_paths(repo, monkeypatch)
+    accepted = _submit(repo, student, item, content)
+    assert accepted["outcome"] == ACCEPT
+    img_path, storage_path = stored[0]
+    if img_path is None:  # PostgreSQL with Storage keeps no local copy
+        assert storage_path in repo._storage.objects
+
+    store = repo._store_procedure_file
+    monkeypatch.setattr(
+        repo, "_store_procedure_file", lambda *a: (store(*a)[0], img_path, storage_path)
+    )
+    refused = _submit_with(repo, student, item, content, _refused_under_the_lock(REFUSE_SAME_ITEM))
+
+    assert refused["outcome"] == REFUSE_SAME_ITEM
+    if img_path is not None:
+        assert os.path.exists(img_path)
+    if is_postgres(repo):
+        assert storage_path in repo._storage.objects
