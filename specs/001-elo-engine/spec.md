@@ -21,6 +21,8 @@ entry ending in `/` covers everything below it.
 - `src/domain/elo/` — rating formulas, aggregation, ranks, reconciliation
 - `src/domain/selector/` — item selection
 - `src/domain/entities.py` — levels, blocks and the catalogue rule
+- `src/domain/invitations.py` — single-use invitations: token, normalisation, states (delivery INV)
+- `src/domain/procedures.py` — what an uploaded procedure file is (block 7)
 - `src/application/interfaces/repositories.py`
 - `src/application/services/student_service.py`
 - `src/application/services/rating_read_service.py`
@@ -33,6 +35,7 @@ entry ending in `/` covers everything below it.
 - `api/routers/meta.py`
 - `api/schemas/auth.py` — registration: Semillero requires a grade
 - `api/schemas/student.py`
+- `api/schemas/teacher.py` — groups and their invitations (delivery INV)
 - `api/websocket/pvp.py`
 - `frontend/src/api/student.ts`
 - `frontend/src/api/teacher.ts`
@@ -51,8 +54,10 @@ entry ending in `/` covers everything below it.
 - `frontend/src/pages/Student/Courses.tsx` — catalogue, invited courses, the grade notice
 - `frontend/src/pages/Teacher/Dashboard.tsx`
 - `frontend/src/pages/Teacher/Groups.tsx`
-- `frontend/src/pages/Teacher/Procedures.tsx` — the rating effect a grade shows (block 7)
+- `frontend/src/pages/Teacher/Procedures.tsx` — the rating effect a grade shows; a review the student replaced (block 7)
 - `frontend/src/pages/Student/Feedback.tsx` — the rating effect a grade shows (block 7)
+- `frontend/src/pages/Student/ProcedureUpload.tsx` — the copy result and the refusals (block 7)
+- `frontend/src/components/Procedure/ProcedureSection.tsx` — the same, from practice (block 7)
 
 ## Deliveries *(this spec is delivered in steps since 2026-10-13)*
 
@@ -63,7 +68,8 @@ request that completes a delivery marks it closed and fills all its rows.
 |---|---|---|
 | **S1** | The rating engine as specified 2026-10-05 … 2026-10-08, with follow-ups F-1 and F-4 | closed |
 | **B5** | Block 5: the diagnostic result shows the current rating (LuisJRubioH/LevelUp-ELO#62) | closed |
-| **B7** | Block 7: procedure resubmission and regrading — one current contribution per procedure | planned |
+| **B7** | Block 7: procedure resubmission and regrading — one current contribution per procedure | closed |
+| **INV** | Single-use invitations: the teacher generates tokens per group; each enrols one student; unused ones expire; reusable group codes stop working | closed |
 
 ## Clarifications
 
@@ -270,6 +276,63 @@ through (rating 3, grade 0: −3 applied, −10 stored). No history of grades is
   authority» and its list of rating writers are amended for it (LuisJRubioH/LevelUp-ELO#71).
 - Production may already hold two procedures for one student and item. A read-only count comes
   before FR-024a's constraint; any merge is prepared apart, with a backup.
+
+### Session 2026-10-15 (owner answers, approved)
+
+Found while reviewing groups: a group has one reusable invitation code (`groups.invite_code`,
+Teacher → Grupos «Generar código»). Whoever holds it joins the group's course — FR-028l lets it open
+a course outside the student's catalogue — so a code forwarded once lets anyone in, and the teacher
+cannot tell who came in with what they sent.
+
+- Q: May one invitation be used by more than one student? → A: no — «hagamos que sean tokens de
+  único uso. Que cuando se lo mando a un estudiante si este lo usa no pueda usarlo nadie más». The
+  first student who redeems an invitation consumes it; anyone else is refused (FR-028q, FR-028r).
+- Q: Who generates them? → A: the teacher, for their own group, several at once, one per student;
+  not the admin («los genera el docente») (FR-028p, FR-028t).
+- Q: Does an unused invitation last forever? → A: no, it expires («vencen sin usarse»). The owner
+  gave no period: 30 days, a server setting (`INVITATION_TTL_DAYS`), is the recommended default
+  (FR-028p).
+- Q: What happens to today's group codes? → A: they stop working when this ships («los actuales
+  se van»). The column is kept (AGENTS R8) and no longer read (FR-028u).
+
+Delivered as delivery INV in one pull request holding the amendment, its implementation, its tests
+and its § Traceability rows.
+
+### Session 2026-10-18 (block 7, owner answers after the review of LuisJRubioH/LevelUp-ELO#77)
+
+Found while reviewing how production's data reaches block 7: on `main` a validated procedure's
+delta is added to the rating only when the rating is read (the last answer's rating plus the sum of
+the validated deltas); the stored rating (`student_topic_elo`) is the last answer's rating, and
+the transfer carries that stored rating, not the procedures. A procedure's delta reaches the
+transferred rating only through a later answer stored under the item's topic, and then once per
+such answer. The stored delta therefore does not identify the effect actually in the rating,
+whatever its sign.
+
+- Q: Which procedures graded before block 7 have a known contribution? → A: none. Every procedure
+  with a stored delta, validated or resubmitted and pending, gets an unknown contribution and
+  keeps its rating unchanged until it is reviewed one by one (FR-024h). This replaces the part of
+  B7-P1 that took a non-negative stored delta as the contribution. The read-only count before the
+  switch also reports the procedures whose item's topic holds answers after their grading.
+- Q: How does a copy's 0 differ from a teacher's 0? → A: only in its reason: it is the same
+  grading, with the same correction, floor and contribution; where the contribution is unknown,
+  neither moves the rating (FR-024i).
+- Q: What does a teacher see when grading a review that a resubmission replaced? → A: a refusal
+  saying the student resubmitted, nothing changes, and the queue reloads with the new submission
+  (FR-024l).
+- Q: May a refused upload leave its file behind? → A: no: a refused upload changes nothing,
+  stored files included, and never removes a file a procedure uses (FR-024j, FR-024k).
+
+### Session 2026-10-18 (survey 002 P1, owner decision)
+
+Survey 002 (P1, `docs/sdd/persistence-survey.md` § 4.1) reproduced on PostgreSQL a rating delta
+lost to a concurrent answer: the answer read 1000, a procedure committed +10, and the answer wrote
+1005. Block 7 already made the procedure writer lock the student before it reads, as the answer
+does; the finished PvP match still did not, and lost its delta the same way.
+
+- Q: Where is it fixed? → A: as a spec 001 follow-up, test first, in its own pull request: it breaks
+  the rule that every rating writer applies its effect exactly once (constitution II; FR-010,
+  FR-024d, FR-029b). `finish_pvp_match` locks both students, in id order, before it writes; SQLite
+  already serialised them.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -491,15 +554,15 @@ compare the overall rating before and after.
    enrol in a universidad course and in a grade-7 semillero course respectively, **Then** both
    requests are rejected and nothing is enrolled; a course of their own catalogue enrols normally.
 4. **US7-AS4** — **Given** a grade-6 semillero student with an overall rating, **When** they join,
-   through its invitation code, a group whose course is a colegio course, **Then** they are
+   through one of its invitations, a group whose course is a colegio course, **Then** they are
    enrolled in it and can practise it; their level and grade stay the same; the course is not in
    their catalogue; and their overall rating is still computed from their grade-6 courses only.
 5. **US7-AS5** — **Given** a semillero student without a grade (an account created before this
    rule), **When** their catalogue and overall rating are shown, **Then** the catalogue is empty
    and the screen shows «Necesitamos registrar tu grado para mostrar tus cursos. Contacta a tu
-   docente o al administrador.», the rating reads "pending diagnostic", a new invitation code is
-   refused until a grade is set, and the courses they are already enrolled in stay listed and
-   open for practice.
+   docente o al administrador.», the rating reads "pending diagnostic", a new invitation is refused,
+   and left unused, until a grade is set, and the courses they are already enrolled in stay listed
+   and open for practice.
 6. **US7-AS6** — **Given** a colegio student enrolled by invitation in a universidad course,
    **When** their courses are listed, **Then** the course appears among their enrolments marked
    as outside the catalogue, is not offered in the catalogue to explore, and opens for practice.
@@ -583,6 +646,60 @@ with the latest grade's delta.
 12. **US9-AS12** — **Given** a file the student already uploaded for this item, **When** they upload
     it again, **Then** it is refused with a message that it was already uploaded, and nothing
     changes.
+13. **US9-AS13** — **Given** a procedure graded before block 7 (contribution unknown), **When** the
+    student uploads another student's file for it, **Then** it is graded 0 and marked as a copy,
+    and the rating does not move — as a teacher's 0 would not.
+14. **US9-AS14** — **Given** a procedure the student resubmitted while the teacher had its earlier
+    submission open, **When** the teacher grades the earlier one, **Then** the grade is refused with
+    a message that the student resubmitted, nothing changes, and the queue shows the new
+    submission.
+
+---
+
+### User Story 10 - An invitation opens the group for one student only (Priority: P1) — delivery INV
+
+A teacher generates invitations for their own group, one per student, and gives each student their
+own. The first student who uses an invitation joins the group's course; nobody can use it
+afterwards. An invitation nobody uses expires, and the teacher can revoke one before it is used.
+
+**Why this priority**: today a group has one reusable code. Anyone who gets it — forwarded by a
+classmate, or kept from another year — joins the group, appears on the teacher's dashboard and in
+the group's ranking, and can open a course outside their catalogue (FR-028l). The teacher must know
+that whoever joined came in with what they sent (owner decision 2026-10-15).
+
+**Independent Test**: on both engines, a teacher generates invitations; students redeem them once,
+twice, after expiry, after revocation, at the same moment and when they cannot join; the old group
+code is tried; another teacher, an admin and a student try to manage them.
+
+**Acceptance Scenarios**:
+
+1. **US10-AS1** — **Given** a teacher's group with a course, **When** the teacher generates 3
+   invitations, **Then** they get three different tokens shown as `XXXXX-XXXXX`, each listed as
+   unused and expiring 30 days after its creation.
+2. **US10-AS2** — **Given** an unused invitation, **When** a student redeems it, typed with or
+   without the hyphen and in any letter case, **Then** they are enrolled in the group's course with
+   the group as FR-028l says, and the teacher sees the invitation used by the student's public name.
+3. **US10-AS3** — **Given** an invitation one student already used, **When** a second student
+   redeems it, **Then** it is refused with «Este código ya fue usado. Pide uno nuevo a tu docente.»
+   and the second student is not enrolled.
+4. **US10-AS4** — **Given** an invitation past its expiry, **When** a student redeems it, **Then** it
+   is refused with «Este código venció. Pide uno nuevo a tu docente.», nothing is enrolled and the
+   teacher sees it expired.
+5. **US10-AS5** — **Given** an invitation the teacher revoked, **When** a student redeems it,
+   **Then** it is refused as invalid and nothing is enrolled.
+6. **US10-AS6** — **Given** a group's reusable code from the old system, **When** a student redeems
+   it, **Then** it is refused as invalid and nothing is enrolled.
+7. **US10-AS7** — **Given** one unused invitation, **When** two students redeem it at the same
+   moment, **Then** exactly one is enrolled, the invitation is used by that one, and the other is
+   told it was used.
+8. **US10-AS8** — **Given** a semillero student without a grade, **When** they redeem an unused
+   invitation, **Then** they are refused and the invitation stays unused for another student.
+9. **US10-AS9** — **Given** a student already enrolled in the group's course with the group,
+   **When** they redeem another invitation of that group, **Then** they are refused with «Ya estás en
+   este grupo.» and that invitation stays unused.
+10. **US10-AS10** — **Given** a teacher's group and its invitations, **When** another teacher, an
+    admin or a student tries to generate, list or revoke them, **Then** it is refused — "not found"
+    for a teacher or an admin, so the group is not revealed — and nothing changes.
 
 ---
 
@@ -639,6 +756,18 @@ with the latest grade's delta.
 - A diagnostic result stored before block 5 → it never recorded which topics it set; the
   figure is the current rating, and its topics carry no initialized/kept mark and no outcome
   message (FR-020c).
+- An invitation typed in lower case, with spaces or without its hyphen → the same invitation
+  (FR-028q).
+- A semillero student without a grade who types an unknown or used invitation → refused for the
+  grade: the grade is checked before the invitation is read (FR-028s).
+- A student enrolled in the group's course from their catalogue, without the group → the invitation
+  is redeemed and the enrolment takes the group (FR-028q).
+- One student redeems two invitations of the same group at the same moment → one enrols them; the
+  other is refused as already a member and stays unused (FR-028s).
+- An invitation of a group whose teacher is deactivated or no longer approved → refused as invalid
+  (FR-028r); that teacher no longer manages its invitations (FR-028t).
+- An invitation used, or revoked, before its expiry → it stays used, or revoked, after the date
+  passes (FR-028t).
 
 ## Requirements *(mandatory)*
 
@@ -769,20 +898,26 @@ is the net amount its gradings actually applied to the rating.
 - **FR-024g** [CHANGE]: If a grading is retried or two gradings of one review arrive at once, then the
   system shall apply one correction and return the same result to each.
 - **FR-024h** [CHANGE]: The system shall change no existing rating when block 7 is installed. The
-  contribution of a procedure graded before it is its stored delta where the floor of 0 cannot have
-  limited it; any other such procedure keeps its rating unchanged until it is reviewed one by one
-  (B7-P1), after a read-only count in production.
+  contribution of every procedure graded before it — validated, or resubmitted and pending — is
+  unknown: grading it records the grade and keeps its rating unchanged until it is reviewed one by
+  one (B7-P1 as amended 2026-10-18), after a read-only count in production.
 - **FR-024i** [CHANGE]: When a student uploads a file that another student already uploaded, for any
   item, the system shall record the procedure as graded 0 and marked as a copy, apply its delta
   `(0 − 50) × 0.2` to the item's topic with the floor of 0 exactly once, as FR-024d does, and
   record the system, not a teacher, as its grader; the teacher sees the procedure marked as a
-  copy. *(Today the same file for the same item from another student is refused with 409 and
+  copy. A copy's 0 is the grading a teacher's 0 would be, with the same correction, floor and
+  contribution, and differs only in its reason: where the contribution is unknown (FR-024h), it
+  changes no rating. *(Today the same file for the same item from another student is refused with 409 and
   nothing else happens; across items nothing is checked.)*
 - **FR-024j** [CHANGE]: When a student uploads a file they already uploaded for another item, the
   system shall refuse it, tell them it belongs to another exercise, and change nothing.
 - **FR-024k** [CHANGE]: When a student uploads for an item the same file they already uploaded for
   it, the system shall refuse it, tell them it was already uploaded, and change nothing — no new
   review and no regrade.
+- **FR-024l** [CHANGE]: If a teacher grades a review that a resubmission has replaced, then the
+  system shall refuse it, tell the teacher that the student resubmitted, and change nothing; the
+  teacher's queue then shows the current submission. *(Today the refusal reads «Procedimiento
+  pendiente no encontrado.» and the screen keeps the earlier image.)*
 
 **PvP result (US5)**
 
@@ -881,16 +1016,17 @@ is the net amount its gradings actually applied to the rating.
   computed by one domain rule. *(Today: a semillero student with a grade is offered no course,
   because the catalogue looks for a block `Semillero g°` that no course has; one without a grade
   is offered all 36 courses and has every grade's courses counted as current.)*
-- **FR-028l** [CHANGE]: When a student joins a group through its invitation code, the system shall
-  enrol them in the group's course even if it is outside their catalogue — provided a semillero
-  student has a grade — and shall change neither the student's level nor their grade; the invited
-  course shall not become part of the catalogue, so it never counts toward the overall rating
-  (FR-028a) while the student keeps access to practise it. When the student's courses are listed,
-  the system shall list such a course among their enrolments, marked as outside the catalogue, and
-  shall not offer it in the catalogue to explore. *(Today: `POST /api/student/enroll-by-code`
+- **FR-028l** [CHANGE]: When a student joins a group through a single-use invitation of the group
+  (FR-028q), the system shall enrol them in the group's course even if it is outside their
+  catalogue — provided a semillero student has a grade — and shall change neither the student's
+  level nor their grade; the invited course shall not become part of the catalogue, so it never
+  counts toward the overall rating (FR-028a) while the student keeps access to practise it. When
+  the student's courses are listed, the system shall list such a course among their enrolments,
+  marked as outside the catalogue, and shall not offer it in the catalogue to explore. *(Today: `POST /api/student/enroll-by-code`
   answers 500 for every valid code on both engines — it reads the group's id under a key the
   repositories do not return; the rule does not check a semillero student's grade; and the course
-  list returns only the catalogue, so a course reached by invitation appears on no screen.)*
+  list returns only the catalogue, so a course reached by invitation appears on no screen.
+  Amended 2026-10-15, delivery INV: until then the group had one reusable invitation code.)*
 - **FR-028m** [CHANGE]: The system shall reject a registration as a semillero student without a
   grade from 6 to 11, and shall reject any enrolment request — other than through an invitation
   (FR-028l) — for a course outside the student's catalogue, on every level. *(Today: both are
@@ -912,6 +1048,47 @@ is the net amount its gradings actually applied to the rating.
   administrador.» in place of the empty catalogue, shall keep listing the courses the student is
   already enrolled in (FR-028l) with their access to practise, and shall offer no way to set the
   grade. *(Today: such a student is offered all 36 semillero courses.)*
+
+**Single-use invitations (delivery INV, User Story 10)**
+
+- **FR-028p** [CHANGE]: When the teacher of a group asks for invitations to it, the system shall
+  create from 1 to 50 at once, each a single-use token of 10 characters drawn at random from
+  `ABCDEFGHJKMNPQRSTUVWXYZ23456789` (no 0, O, 1, I or L), unique among all invitations, shown as
+  `XXXXX-XXXXX`, and expiring a fixed number of days after its creation — a server setting, 30 by
+  default. Only that teacher, while an approved and active teacher, shall create them; another
+  teacher, an admin or a student shall be refused without the answer revealing whether the group
+  exists. *(Today: the teacher generates one reusable code per group, `groups.invite_code`, and
+  generating again replaces it.)*
+- **FR-028q** [CHANGE]: When a student redeems an invitation that is unused, not revoked and not
+  expired, the system shall, as one indivisible step, mark it used by that student at that time and
+  enrol them in the group's course with the group (FR-028l). Of simultaneous redemptions of one
+  invitation exactly one shall succeed; the others are refused as used (FR-028r). The system shall
+  read what the student typed ignoring letter case, spaces and hyphens. *(Today: any number of
+  students join with the same code.)*
+- **FR-028r** [CHANGE]: If a student redeems an invitation that does not exist, was revoked, or
+  belongs to a group whose teacher is no longer an approved, active teacher, then the system shall
+  refuse it with «Código de invitación inválido.» (HTTP 404); one already used, with «Este código ya
+  fue usado. Pide uno nuevo a tu docente.» (409); one past its expiry, with «Este código venció.
+  Pide uno nuevo a tu docente.» (410). A refused redemption changes nothing.
+- **FR-028s** [CHANGE]: If the student cannot join the group — a semillero student without a grade
+  (FR-028l; 403 with today's message), a group without a course (400, «El grupo no tiene un curso
+  asignado.»), a student already enrolled in the group's course with that group (409, «Ya estás en
+  este grupo.»), or an account that is not a student (403) — then the system shall refuse the
+  redemption and leave the invitation unused, so it can still be given to someone else. A semillero
+  student without a grade is refused before the invitation is read.
+- **FR-028t** [CHANGE]: The system shall let the teacher of a group list its invitations, newest
+  first, each with its token, its state — unused, used, expired or revoked — its expiry and, for a
+  used one, when it was used and the student's public name (spec 004 FR-023); and revoke an unused,
+  unexpired one, which is then refused as invalid (FR-028r). A used, expired or revoked invitation
+  cannot be revoked (409). Another teacher or an admin shall be answered "not found" (404) for the
+  group and its invitations, and a student refused (403), with nothing changed. The teacher's screen
+  shall state, from the server setting, that each invitation serves one student and when an unused
+  one expires.
+- **FR-028u** [CHANGE]: The system shall stop accepting a group's reusable invitation code: a code
+  stored in `groups.invite_code` shall be refused like an unknown invitation (FR-028r), and the API
+  shall neither generate it nor return it with a group. The column is kept (AGENTS R8) and V2 no
+  longer reads or writes it; invitations live in a new table, created by an additive, idempotent
+  migration on both engines. *(V1, frozen, keeps its own code screens — § Out of Scope.)*
 - **FR-029** [CHANGE]: The system shall store every rating change — practice answer, diagnostic,
   procedure — under the **course and topic of the item involved**, identified by the course's
   stable identifier and the topic within it. There is one stored rating per student, course and
@@ -1012,6 +1189,8 @@ items of that course, or the student's diagnostic for that course.
 - **Procedure grading record**: one grading of a procedure — grade, computed delta, correction,
   amount applied, contribution after, teacher, time (FR-024e).
 - **PvP match**: two players, scores, status (active / finished / abandoned), changes applied once.
+- **Group invitation**: a single-use token to join one group's course — its group, who created it
+  and when, its expiry, who used it and when, and whether it was revoked (FR-028p … FR-028u).
 - **Rank**: a label derived from a rating (FR-031).
 
 ## Success Criteria *(mandatory)*
@@ -1050,12 +1229,14 @@ items of that course, or the student's diagnostic for that course.
   them.
 - Unused rating code (`calculate_dynamic_k`, `update_elo`, the always-1.0 impact modifier) is
   removed when this area is refactored (constitution VII); it is not behaviour, so no FR covers it.
+- Delivery INV: an unused invitation expires after 30 days, the recommended default; the owner gave
+  no period. Changing it is a server setting (`INVITATION_TTL_DAYS`), not a change of this spec.
 
 ## Pending Owner Decisions (delivery B7)
 
 | # | Question | Recommendation |
 |---|---|---|
-| B7-P1 | Procedures graded before block 7 store the computed delta, and a resubmission erased earlier grades: their contribution cannot always be known. Which baseline does their next regrade use? | First a read-only count in production: graded procedures, and those whose topic rating could have hit 0 at grading. Use the stored delta as the contribution where the floor cannot have applied; leave the rest unchanged until reviewed one by one. **Decided** (owner, 2026-10-14). |
+| B7-P1 | Procedures graded before block 7 store the computed delta, and a resubmission erased earlier grades: their contribution cannot always be known. Which baseline does their next regrade use? | First a read-only count in production: graded procedures, and those whose topic rating could have hit 0 at grading. Use the stored delta as the contribution where the floor cannot have applied; leave the rest unchanged until reviewed one by one. **Decided** (owner, 2026-10-14). **Amended** (owner, 2026-10-18): the stored delta does not identify the effect on production's rating, so every procedure graded before block 7 is unknown (FR-024h). |
 | B7-P2 | After a penalty the floor limited (rating 3, grade 0: −3 applied), may a regrade with the same grade apply the remainder (−7) once the rating allows it? | Yes: FR-024d keeps the contribution equal to the latest grade's delta; "same grade" then means the same contribution, not "no change". **Decided** (owner, 2026-10-14). |
 | B7-P3 | May a teacher regrade a graded procedure without a resubmission? | Not in block 7: a regrade follows a resubmission, as today's review queue does. **Decided** (owner, 2026-10-14): the regrade comes with the new submission. |
 | B7-P4 | If production already holds two procedures for one student and item, how are they merged before FR-024a's constraint? | **Replaced** (owner, 2026-10-14) by the rules for a file already uploaded (FR-024i … FR-024k). The read-only count before the constraint stays, as an operational step. |
@@ -1078,6 +1259,11 @@ items of that course, or the student's diagnostic for that course.
 - New features or screens in V1.
 - Changing a student's grade after registration (promotion) — spec 004 (FR-028c defines what it
   does to ratings).
+- V1's invitation screens (delivery INV). V1 is frozen and is disconnected at the switch
+  (`specs/004-identity/plan-e2.md`); while it runs, its teacher «Generar código» and its student
+  «Código de invitación» tab still write and read `groups.invite_code`, so a reusable code still
+  enrols students there. Changing V1 for it is not one of the two cases the constitution allows
+  (§ Stack); if V1 must stop too, that is a decision for the owner.
 
 ## Traceability *(mandatory)*
 
@@ -1134,26 +1320,38 @@ match the scenarios' text.
 | US7-AS1 | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_semillero_catalogue_by_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_current_courses_are_the_catalogue`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_courses_of_a_grade_7_student` |
 | US7-AS2 | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_register_user_rejects_semillero_without_a_valid_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_api_registration_rejects_semillero_without_a_valid_grade` |
 | US7-AS3 | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_enrol_only_in_the_catalogue` |
-| US7-AS4 | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_invitation_crosses_levels_without_changing_them` |
-| US7-AS5 | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_course_list_is_its_enrolments`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_current_courses_are_the_catalogue`<br>`frontend/e2e/f1-catalogue.spec.ts › Semillero sin grado: aviso, sin catálogo y con sus matrículas abiertas (FR-028o)` |
+| US7-AS4 | INV | `tests/integration/test_spec001_catalogue.py::test_spec001_invitation_crosses_levels_without_changing_them` |
+| US7-AS5 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_a_gradeless_semillero_leaves_the_invitation_unused`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_course_list_is_its_enrolments`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_current_courses_are_the_catalogue`<br>`frontend/e2e/f1-catalogue.spec.ts › Semillero sin grado: aviso, sin catálogo y con sus matrículas abiertas (FR-028o)` |
 | US7-AS6 | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_course_list_marks_invited_courses`<br>`frontend/e2e/f1-catalogue.spec.ts › Un curso por invitación solo aparece en Mis matrículas (FR-028l)` |
 | US8-AS1 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_next_question_outside_enrolment_is_forbidden` |
 | US8-AS2 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_answer_outside_enrolment_changes_nothing` |
 | US8-AS3 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_diagnostic_outside_enrolment_is_forbidden` |
 | US8-AS4 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_enrolled_students_practise_as_before` |
 | US8-AS5 | S1 | `tests/integration/test_spec001_practice_access.py::test_spec001_leaving_a_course_closes_it` |
-| US9-AS1 | B7 | `PENDING` |
-| US9-AS2 | B7 | `PENDING` |
-| US9-AS3 | B7 | `PENDING` |
-| US9-AS4 | B7 | `PENDING` |
-| US9-AS5 | B7 | `PENDING` |
-| US9-AS6 | B7 | `PENDING` |
-| US9-AS7 | B7 | `PENDING` |
-| US9-AS8 | B7 | `PENDING` |
-| US9-AS9 | B7 | `PENDING` |
-| US9-AS10 | B7 | `PENDING` |
-| US9-AS11 | B7 | `PENDING` |
-| US9-AS12 | B7 | `PENDING` |
+| US9-AS1 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_regrade_moves_the_rating_by_the_difference_only`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_same_grade_again_moves_nothing` |
+| US9-AS2 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_regrade_moves_the_rating_by_the_difference_only`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_higher_regrade_adds_the_difference` |
+| US9-AS3 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_regrade_moves_the_rating_by_the_difference_only`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_lower_regrade_takes_back_the_difference` |
+| US9-AS4 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_resubmission_returns_to_review_and_keeps_the_effect` |
+| US9-AS5 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_retried_grading_returns_the_same_result_once`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_a_retried_grading_request_returns_the_same_body` |
+| US9-AS6 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_two_simultaneous_gradings_apply_one_correction` |
+| US9-AS7 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_floored_penalty_is_corrected_by_what_was_applied`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_the_floor_is_respected_and_the_applied_amount_counts` |
+| US9-AS8 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_every_grading_is_kept_across_resubmissions`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_history_and_copies_are_for_the_groups_teacher_only` |
+| US9-AS9 | B7 | `tests/integration/test_spec001_b7_api.py::test_spec001_b7_response_notification_and_list_report_the_amount_applied`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_a_floored_grade_reports_what_the_floor_let_through`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › la tarjeta muestra lo aplicado, no el delta calculado, y marca la copia`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › al calificar ve lo aplicado y envía la ronda de revisión; las copias aparecen marcadas` |
+| US9-AS10 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_another_students_file_is_graded_zero_and_marked`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › una copia queda calificada con 0 y lo dice` |
+| US9-AS11 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_own_file_again_is_refused_and_changes_nothing`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_own_file_for_another_item_is_refused`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › un archivo propio repetido se rechaza: «Este archivo pertenece a otro ejercicio.»` |
+| US9-AS12 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_own_file_again_is_refused_and_changes_nothing`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_own_file_for_the_same_item_is_refused`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › un archivo propio repetido se rechaza: «Ya subiste este archivo para este ejercicio.»` |
+| US9-AS13 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_copy_counts_as_a_zero_and_differs_only_in_its_reason` |
+| US9-AS14 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_round_replaced_by_a_resubmission_is_refused_as_such`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_grading_a_round_the_student_replaced_answers_409`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › si el estudiante reenvió, el docente lo ve y la cola se recarga con el envío nuevo` |
+| US10-AS1 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_teacher_generates_single_use_invitations`<br>`tests/unit/domain/test_spec001_invitations.py::test_spec001_new_token_is_ten_characters_of_the_alphabet`<br>`tests/unit/domain/test_spec001_invitations.py::test_spec001_token_is_shown_in_two_groups_of_five`<br>`frontend/e2e/spec001-invitations.spec.ts › El docente genera invitaciones, ve sus estados, copia y anula (US10-AS1, FR-028t)` |
+| US10-AS2 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_redeeming_an_invitation_enrols_the_student`<br>`tests/unit/domain/test_spec001_invitations.py::test_spec001_redemption_input_is_normalised`<br>`frontend/e2e/spec001-invitations.spec.ts › El estudiante usa un código con o sin guion; uno ya usado muestra el aviso (US10-AS2, US10-AS3)` |
+| US10-AS3 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_a_used_invitation_is_refused`<br>`frontend/e2e/spec001-invitations.spec.ts › El estudiante usa un código con o sin guion; uno ya usado muestra el aviso (US10-AS2, US10-AS3)` |
+| US10-AS4 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_an_expired_invitation_is_refused` |
+| US10-AS5 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_a_revoked_invitation_is_refused`<br>`frontend/e2e/spec001-invitations.spec.ts › El docente genera invitaciones, ve sus estados, copia y anula (US10-AS1, FR-028t)` |
+| US10-AS6 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_the_old_reusable_code_no_longer_enrols` |
+| US10-AS7 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_simultaneous_redemptions_enrol_exactly_one` |
+| US10-AS8 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_a_gradeless_semillero_leaves_the_invitation_unused`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation` |
+| US10-AS9 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_a_member_of_the_group_is_refused_without_consuming` |
+| US10-AS10 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_only_the_groups_teacher_manages_its_invitations`<br>`tests/api/test_teacher_resource_access.py::test_foreign_group_invitations_are_refused`<br>`tests/api/test_teacher.py::TestGroups::test_invitations_require_teacher_role`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_permissions_diagnostic_and_canonical_answer` |
 | FR-001 | S1 | `tests/unit/domain/test_elo_model.py::TestExpectedScore::test_400_point_advantage_gives_approx_91_percent`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_fr001_both_engine_paths_use_the_same_expected_success` |
 | FR-002 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_rating_delta` |
 | FR-003 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_rd_floor_30_holds_and_scales_the_change`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_next_rd_has_a_floor_of_30` |
@@ -1164,7 +1362,7 @@ match the scenarios' text.
 | FR-008 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_response_time_window_is_inclusive`<br>`tests/integration/test_elo_single_source.py::test_an_invalid_attempt_does_not_move_the_rating`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_is_valid_response_time` |
 | FR-008a | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_explicit_zero_seconds_is_invalid`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_is_valid_response_time`<br>`tests/unit/application/test_spec001_service.py::test_spec001_process_answer_reports_validity` |
 | FR-009 | S1 | `tests/api/test_spec001_api.py::test_spec001_invalid_time_reports_and_records_no_change`<br>`tests/unit/application/test_spec001_service.py::test_spec001_process_answer_reports_validity` |
-| FR-010 | S1 | `tests/integration/test_elo_single_source.py::test_concurrent_answers_on_the_same_item_compose_serially` |
+| FR-010 | S1 | `tests/integration/test_elo_single_source.py::test_concurrent_answers_on_the_same_item_compose_serially`<br>`tests/integration/test_spec001_concurrent_rating_writers.py::test_spec001_a_procedure_graded_during_an_answer_keeps_its_delta`<br>`tests/integration/test_spec001_concurrent_rating_writers.py::test_spec001_a_pvp_result_applied_during_an_answer_keeps_its_delta` |
 | FR-011 | S1 | `tests/api/test_student.py::TestAnswer::test_ignores_tampered_item_data`<br>`tests/api/test_student.py::TestAnswer::test_invalid_answer_context_has_no_side_effects` |
 | FR-012 | S1 | `tests/api/test_spec001_answer_pins.py::test_spec001_retry_with_the_same_key_returns_the_stored_result`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_concurrent_answer_retry_has_one_effect` |
 | FR-012a | S1 | `tests/integration/test_spec001_answer_retry.py::test_spec001_retry_returns_the_persisted_attempt_and_applies_once`<br>`tests/integration/test_spec001_answer_retry.py::test_spec001_boundary_values_are_a_real_boundary` |
@@ -1183,17 +1381,18 @@ match the scenarios' text.
 | FR-022 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_validated_grade_adds_grade_minus_50_times_02`<br>`tests/integration/test_elo_single_source.py::test_a_validated_procedure_delta_is_applied_exactly_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once` |
 | FR-023 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_grade_out_of_range_changes_nothing`<br>`tests/api/test_procedure_grading.py::test_other_teacher_cannot_grade_or_view_submission`<br>`tests/api/test_procedure_grading.py::test_reassignment_between_lookup_and_update_prevents_grading` |
 | FR-024 | S1 | `tests/integration/test_spec001_repository_pins.py::test_spec001_ai_proposed_score_changes_no_rating` |
-| FR-024a | B7 | `PENDING` |
-| FR-024b | B7 | `PENDING` |
-| FR-024c | B7 | `PENDING` |
-| FR-024d | B7 | `PENDING` |
-| FR-024e | B7 | `PENDING` |
-| FR-024f | B7 | `PENDING` |
-| FR-024g | B7 | `PENDING` |
-| FR-024h | B7 | `PENDING` |
-| FR-024i | B7 | `PENDING` |
-| FR-024j | B7 | `PENDING` |
-| FR-024k | B7 | `PENDING` |
+| FR-024a | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_two_first_submissions_at_once_leave_one_procedure`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_the_unique_pair_index_waits_for_duplicates_to_be_merged` |
+| FR-024b | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_regrade_moves_the_rating_by_the_difference_only`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_with_a_duplicate_pair_an_upload_changes_one_procedure`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_first_grading_is_todays_delta`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_same_grade_again_moves_nothing`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_higher_regrade_adds_the_difference`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_lower_regrade_takes_back_the_difference` |
+| FR-024c | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_resubmission_returns_to_review_and_keeps_the_effect` |
+| FR-024d | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_regrade_moves_the_rating_by_the_difference_only`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_floored_penalty_is_corrected_by_what_was_applied`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_the_floor_is_respected_and_the_applied_amount_counts`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_the_same_grade_after_a_floored_penalty_applies_the_remainder`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_a_regrade_below_zero_is_floored_again`<br>`tests/integration/test_spec001_concurrent_rating_writers.py::test_spec001_a_procedure_graded_during_an_answer_keeps_its_delta` |
+| FR-024e | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_every_grading_is_kept_across_resubmissions`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_history_and_copies_are_for_the_groups_teacher_only` |
+| FR-024f | B7 | `tests/integration/test_spec001_b7_api.py::test_spec001_b7_response_notification_and_list_report_the_amount_applied`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_the_teacher_export_reports_the_amount_applied`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_a_floored_grade_reports_what_the_floor_let_through`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › la tarjeta muestra lo aplicado, no el delta calculado, y marca la copia`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › al calificar ve lo aplicado y envía la ronda de revisión; las copias aparecen marcadas` |
+| FR-024g | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_retried_grading_returns_the_same_result_once`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_two_simultaneous_gradings_apply_one_correction`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_stale_review_round_is_refused`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_a_retried_grading_request_returns_the_same_body` |
+| FR-024h | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_installing_makes_every_earlier_grading_unknown_without_moving_a_rating`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_unknown_contribution_applies_nothing_and_stays_unknown`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_copy_counts_as_a_zero_and_differs_only_in_its_reason` |
+| FR-024i | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_another_students_file_is_graded_zero_and_marked`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_ai_score_never_reopens_a_graded_procedure_or_a_copy`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_two_students_sending_one_new_file_leave_one_first_owner`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_history_and_copies_are_for_the_groups_teacher_only`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_another_students_file_is_a_copy_for_any_item`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › una copia queda calificada con 0 y lo dice`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › al calificar ve lo aplicado y envía la ronda de revisión; las copias aparecen marcadas`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_copy_counts_as_a_zero_and_differs_only_in_its_reason` |
+| FR-024j | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_own_file_again_is_refused_and_changes_nothing`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_own_file_for_another_item_is_refused`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_reuploading_an_own_copy_is_refused_not_graded_again`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › un archivo propio repetido se rechaza: «Este archivo pertenece a otro ejercicio.»`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_file_refused_under_the_lock_is_not_left_behind`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_refused_upload_never_removes_a_file_in_use` |
+| FR-024k | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_own_file_again_is_refused_and_changes_nothing`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_ai_score_never_reopens_a_graded_procedure_or_a_copy`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_own_file_for_the_same_item_is_refused`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_reuploading_an_own_copy_is_refused_not_graded_again`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › un archivo propio repetido se rechaza: «Ya subiste este archivo para este ejercicio.»`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_file_refused_under_the_lock_is_not_left_behind`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_refused_upload_never_removes_a_file_in_use` |
+| FR-024l | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_round_replaced_by_a_resubmission_is_refused_as_such`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_grading_a_round_the_student_replaced_answers_409`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › si el estudiante reenvió, el docente lo ve y la cola se recarga con el envío nuevo` |
 | FR-025 | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_pvp_deltas`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_pvp_equal_ratings_win_and_draw`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_closing_a_match_twice_applies_the_delta_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
 | FR-026 | S1 | `tests/unit/application/test_spec001_service.py::test_spec001_pvp_lobby_rating_is_the_course_rating_read_outside_the_lock` |
 | FR-027 | S1 | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_matches_orphaned_by_a_restart_are_closed`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_a_live_match_is_left_alone`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_spec001_abandonment_starts_after_600_seconds` |
@@ -1209,13 +1408,19 @@ match the scenarios' text.
 | FR-028i | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_round_for_display_is_half_up`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_average_then_round_once`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_full_precision_until_the_one_rounding`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`tests/integration/test_spec001_answer_retry.py::test_spec001_retry_returns_the_persisted_attempt_and_applies_once`<br>`frontend/e2e/spec001-ratings.spec.ts › La pantalla muestra display_rating tal cual, sin redondear por su cuenta (FR-028i/j)` |
 | FR-028j | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_rating_display_number_and_label_agree`<br>`tests/api/test_spec001_api.py::test_spec001_number_and_label_agree_on_every_surface`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_stored_precision_and_display_agree_on_both_engines`<br>`frontend/e2e/spec001-ratings.spec.ts › Número y rango salen del mismo valor: 999.6 → 1000 «Plata I» (US6-AS9)`<br>`frontend/e2e/spec001-ratings.spec.ts › Panel docente usa display_rating y rank_label de la API (US6-AS3, FR-028j)`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_number_and_rank_come_from_one_display_value`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_views_rank_only_through_the_display_value` |
 | FR-028k | S1 | `tests/unit/domain/test_spec001_catalogue.py::test_spec001_semillero_catalogue_is_the_courses_of_the_grade`<br>`tests/unit/domain/test_spec001_catalogue.py::test_spec001_semillero_without_a_grade_has_no_course`<br>`tests/unit/domain/test_spec001_catalogue.py::test_spec001_other_levels_are_their_block`<br>`tests/unit/domain/test_spec001_catalogue.py::test_spec001_unknown_level_falls_back_to_universidad`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_semillero_catalogue_by_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_current_courses_are_the_catalogue` |
-| FR-028l | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_invitation_crosses_levels_without_changing_them`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_course_list_marks_invited_courses`<br>`frontend/e2e/f1-catalogue.spec.ts › Un curso por invitación solo aparece en Mis matrículas (FR-028l)` |
+| FR-028l | INV | `tests/integration/test_spec001_catalogue.py::test_spec001_invitation_crosses_levels_without_changing_them`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_course_list_marks_invited_courses`<br>`frontend/e2e/f1-catalogue.spec.ts › Un curso por invitación solo aparece en Mis matrículas (FR-028l)`<br>`tests/integration/test_spec001_invitations.py::test_spec001_redeeming_an_invitation_enrols_the_student`<br>`tests/integration/test_enrol_joins_no_group.py::test_an_invitation_still_joins_the_group` |
 | FR-028m | S1 | `tests/unit/domain/test_spec001_catalogue.py::test_spec001_valid_semillero_grades_are_6_to_11`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_register_user_rejects_semillero_without_a_valid_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_api_registration_rejects_semillero_without_a_valid_grade`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_enrol_only_in_the_catalogue` |
 | FR-028n | S1 | `tests/integration/test_spec001_course_block_constraint.py::test_spec001_new_database_accepts_exactly_the_four_blocks`<br>`tests/integration/test_spec001_course_block_constraint.py::test_spec001_constraint_with_extra_values_is_left_as_it_is`<br>`tests/integration/test_spec001_course_block_constraint.py::test_spec001_old_database_stops_the_migration`<br>`tests/integration/test_spec001_course_block_constraint.py::test_spec001_migrate_py_exits_1_on_an_old_database` |
 | FR-028o | S1 | `tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_course_list_is_its_enrolments`<br>`frontend/e2e/f1-catalogue.spec.ts › Semillero sin grado: aviso, sin catálogo y con sus matrículas abiertas (FR-028o)`<br>`frontend/e2e/f1-catalogue.spec.ts › Semillero con grado: sin aviso (FR-028o)` |
+| FR-028p | INV | `tests/unit/domain/test_spec001_invitations.py::test_spec001_token_alphabet_has_no_lookalike_characters`<br>`tests/unit/domain/test_spec001_invitations.py::test_spec001_new_token_is_ten_characters_of_the_alphabet`<br>`tests/unit/domain/test_spec001_invitations.py::test_spec001_new_token_draws_each_character_with_the_given_choice`<br>`tests/unit/domain/test_spec001_invitations.py::test_spec001_token_is_shown_in_two_groups_of_five`<br>`tests/unit/domain/test_spec001_invitations.py::test_spec001_between_one_and_fifty_invitations_at_once`<br>`tests/unit/domain/test_spec001_invitations.py::test_spec001_invitation_count_must_be_a_whole_number`<br>`tests/integration/test_spec001_invitations.py::test_spec001_teacher_generates_single_use_invitations`<br>`tests/integration/test_spec001_invitations.py::test_spec001_one_to_fifty_invitations_at_once`<br>`tests/integration/test_spec001_invitations.py::test_spec001_a_token_collision_is_drawn_again`<br>`tests/integration/test_spec001_invitations.py::test_spec001_only_the_groups_teacher_manages_its_invitations`<br>`tests/api/test_teacher.py::TestGroups::test_generate_list_and_revoke_invitations`<br>`tests/api/test_teacher.py::TestGroups::test_invitation_count_is_validated`<br>`frontend/e2e/teacher-load-errors.spec.ts › grupos: si no se pueden generar invitaciones, se dice` |
+| FR-028q | INV | `tests/unit/domain/test_spec001_invitations.py::test_spec001_redemption_input_is_normalised`<br>`tests/unit/domain/test_spec001_invitations.py::test_spec001_empty_input_normalises_to_nothing`<br>`tests/unit/domain/test_spec001_invitations.py::test_spec001_redemption_refusal`<br>`tests/integration/test_spec001_invitations.py::test_spec001_redeeming_an_invitation_enrols_the_student`<br>`tests/integration/test_spec001_invitations.py::test_spec001_simultaneous_redemptions_enrol_exactly_one`<br>`tests/integration/test_spec001_invitations.py::test_spec001_one_student_redeeming_two_invitations_at_once_uses_one`<br>`tests/integration/test_spec001_invitations.py::test_spec001_repository_redemption_statuses`<br>`frontend/e2e/spec001-invitations.spec.ts › El estudiante usa un código con o sin guion; uno ya usado muestra el aviso (US10-AS2, US10-AS3)` |
+| FR-028r | INV | `tests/unit/domain/test_spec001_invitations.py::test_spec001_redemption_refusal`<br>`tests/integration/test_spec001_invitations.py::test_spec001_a_used_invitation_is_refused`<br>`tests/integration/test_spec001_invitations.py::test_spec001_an_expired_invitation_is_refused`<br>`tests/integration/test_spec001_invitations.py::test_spec001_a_revoked_invitation_is_refused`<br>`tests/integration/test_spec001_invitations.py::test_spec001_repository_redemption_statuses`<br>`frontend/e2e/spec001-invitations.spec.ts › El estudiante usa un código con o sin guion; uno ya usado muestra el aviso (US10-AS2, US10-AS3)` |
+| FR-028s | INV | `tests/unit/domain/test_spec001_invitations.py::test_spec001_redemption_refusal`<br>`tests/integration/test_spec001_invitations.py::test_spec001_a_gradeless_semillero_leaves_the_invitation_unused`<br>`tests/integration/test_spec001_invitations.py::test_spec001_a_member_of_the_group_is_refused_without_consuming`<br>`tests/integration/test_spec001_invitations.py::test_spec001_a_group_without_course_is_refused_without_consuming`<br>`tests/integration/test_spec001_invitations.py::test_spec001_only_a_student_redeems_an_invitation`<br>`tests/integration/test_spec001_invitations.py::test_spec001_one_student_redeeming_two_invitations_at_once_uses_one`<br>`tests/integration/test_spec001_invitations.py::test_spec001_repository_redemption_statuses` |
+| FR-028t | INV | `tests/unit/domain/test_spec001_invitations.py::test_spec001_invitation_status`<br>`tests/integration/test_spec001_invitations.py::test_spec001_teacher_generates_single_use_invitations`<br>`tests/integration/test_spec001_invitations.py::test_spec001_the_teacher_sees_the_public_name_of_who_used_it`<br>`tests/integration/test_spec001_invitations.py::test_spec001_a_revoked_invitation_is_refused`<br>`tests/integration/test_spec001_invitations.py::test_spec001_an_expired_invitation_is_refused`<br>`tests/integration/test_spec001_invitations.py::test_spec001_only_the_groups_teacher_manages_its_invitations`<br>`tests/api/test_teacher.py::TestGroups::test_generate_list_and_revoke_invitations`<br>`tests/api/test_teacher_resource_access.py::test_foreign_group_invitations_are_refused`<br>`frontend/e2e/spec001-invitations.spec.ts › El docente genera invitaciones, ve sus estados, copia y anula (US10-AS1, FR-028t)`<br>`frontend/e2e/teacher-load-errors.spec.ts › grupos: si las invitaciones no cargan, no se muestran como «Aún no hay invitaciones»` |
+| FR-028u | INV | `tests/integration/test_spec001_invitations.py::test_spec001_the_old_reusable_code_no_longer_enrols`<br>`tests/integration/test_spec001_invitations.py::test_spec001_invitations_are_an_additive_migration`<br>`tests/api/test_teacher.py::TestGroups::test_groups_carry_no_reusable_code` |
 | FR-029 | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_answer_writes_only_the_items_course_topic`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_answer_lands_on_the_items_course_and_topic`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_writes_course_topic_baselines`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once` |
 | FR-029a | S1 | `tests/unit/application/test_spec001_service.py::test_spec001_selection_rating_is_topic_or_course`<br>`tests/unit/application/test_spec001_service.py::test_spec001_unrated_course_selects_at_1000_and_ignores_the_diagnostic_average`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_course_rating_of`<br>`tests/unit/application/test_spec001_service.py::test_spec001_pvp_shows_pending_never_the_1000_fallback`<br>`tests/api/test_spec001_api.py::test_spec001_course_map_shows_unrated_topics_as_pending` |
-| FR-029b | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
+| FR-029b | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once`<br>`tests/integration/test_spec001_concurrent_rating_writers.py::test_spec001_a_pvp_result_applied_during_an_answer_keeps_its_delta` |
 | FR-029c | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_player_without_rated_topics_gets_zero`<br>`tests/unit/infrastructure/test_pvp_logic.py::test_spec001_game_end_sends_the_applied_delta_and_reason`<br>`tests/unit/infrastructure/test_pvp_logic.py::test_spec001_game_end_reports_not_applied_when_persistence_fails` |
 | FR-030 | S1 | `tests/api/test_spec001_api.py::test_spec001_preview_equals_the_applied_change`<br>`frontend/e2e/spec001-ratings.spec.ts › Práctica muestra la previsión que envía la API (US6-AS2)`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_stakes_preview_is_the_applied_change` |
 | FR-031 | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_one_rank_scale`<br>`tests/api/test_spec001_api.py::test_spec001_meta_ranks_is_public_and_ascending`<br>`frontend/e2e/spec001-ratings.spec.ts › Inicio lista los rangos de /api/meta/ranks`<br>`tests/api/test_spec001_api.py::test_spec001_meta_ranks_is_cacheable` |
@@ -1267,6 +1472,8 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-028m | `api/schemas/auth.py:22` (`grade` optional for every level); `POST /api/student/enroll` checks only that the course exists |
 | FR-028n | `_migrate_courses_block_check`: `postgres_repository.py:1228` (returns only if the definition contains `'Semillero 6'`, so it drops and re-adds every run), `sqlite_repository.py:915` (probe insert, then rename → create → copy → drop) |
 | FR-028o | `frontend/src/pages/Student/Courses.tsx` shows `courses.noAvailable` for an empty catalogue |
+| FR-028p, FR-028u | Before delivery INV: `generate_group_invite_code` (both repositories) wrote one random 6-character code to `groups.invite_code`, replacing the previous one; `POST /api/teacher/groups/{id}/invite-code`; `GET /api/teacher/groups` returned `invite_code` |
+| FR-028q | Before delivery INV: `enroll_by_code` (`api/routers/student.py`) looked the group up with `get_group_by_invite_code` and enrolled any number of students with the same code |
 | FR-028g | `weekly_rankings` table; `save_weekly_ranking`, `get_ranking_history` ← `teacher_view.py:550, 556` |
 | FR-029 | `student_view.py:385`, `api/routers/student.py:166`, `useStudentSession.ts:74`, `finish_pvp_match`, `validate_procedure_submission`, diagnostic submit |
 | FR-030 | `frontend/src/pages/Student/Practice.tsx:27-33` |

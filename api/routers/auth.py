@@ -12,7 +12,7 @@ Endpoints de autenticación:
 
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, HTTPException, Request, Response, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 
 from api.config import settings
 from api.dependencies import (
@@ -40,7 +40,22 @@ from src.domain.identity import (
     valid_new_password,
 )
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+
+def _same_site_request(request: Request) -> None:
+    """Spec 004 FR-082: a browser sends `Origin` with every state-changing request; one from an
+    origin the API does not serve is refused before anything happens (sign-in, renewal, sign-out
+    or password change on someone else's behalf). Requests without `Origin` (other programs, tests)
+    pass: they carry no browser's cookies to abuse."""
+    if request.method in ("GET", "HEAD", "OPTIONS"):
+        return
+    origin = request.headers.get("origin")
+    if origin is not None and origin.rstrip("/") not in {
+        allowed.rstrip("/") for allowed in settings.cors_origins
+    }:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Origen no permitido.")
+
+
+router = APIRouter(prefix="/auth", tags=["auth"], dependencies=[Depends(_same_site_request)])
 
 _REFRESH_COOKIE = "levelup_refresh"
 
@@ -53,6 +68,17 @@ _WEAK_NEW_PASSWORD = (
 )
 
 
+def _refresh_cookie_scope() -> dict:
+    """Spec 004 FR-081: HttpOnly, Secure, only for the auth paths, SameSite from the setting —
+    the same attributes to set it and to delete it."""
+    return {
+        "httponly": True,
+        "secure": True,
+        "samesite": settings.auth_cookie_samesite,
+        "path": "/api/auth",
+    }
+
+
 def _issue_session(response: Response, user_id: int, account: dict) -> TokenResponse:
     """Access token and refresh cookie for `account` (a `get_user_by_id` row), both bound to its
     current security version (spec 004 FR-027)."""
@@ -63,11 +89,8 @@ def _issue_session(response: Response, user_id: int, account: dict) -> TokenResp
     response.set_cookie(
         key=_REFRESH_COOKIE,
         value=refresh_token,
-        httponly=True,
-        secure=True,
-        samesite="none",  # cross-origin (frontend Vercel ↔ backend Render)
         max_age=settings.refresh_token_expire_days * 86400,
-        path="/api/auth",
+        **_refresh_cookie_scope(),
     )
     return TokenResponse(
         access_token=access_token,
@@ -187,8 +210,9 @@ def refresh_token(
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(response: Response):
-    """Elimina la cookie de refresh token."""
-    response.delete_cookie(key=_REFRESH_COOKIE, path="/api/auth")
+    """Elimina la cookie de refresh token, con los mismos atributos con que se creó (FR-081):
+    sin Secure ni SameSite=None, un navegador no borra una cookie de otro sitio."""
+    response.delete_cookie(key=_REFRESH_COOKIE, **_refresh_cookie_scope())
 
 
 @router.get("/me", response_model=UserProfile)

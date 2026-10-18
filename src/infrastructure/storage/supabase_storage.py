@@ -67,6 +67,17 @@ class SupabaseStorage:
             print(f"[STORAGE UPLOAD ERROR] {exc}")
             return None
 
+    def remove_file(self, bucket: str, path: str) -> bool:
+        """Remove the object at *path*; True when Storage accepted the removal."""
+        if not self.available:
+            return False
+        try:
+            self._client.storage.from_(bucket).remove([path])
+            return True
+        except Exception as exc:
+            print(f"[STORAGE REMOVE ERROR] {exc}")
+            return False
+
     @staticmethod
     def extract_path(storage_url: str, bucket: str) -> str:
         """Extract the storage path from a public URL or return as-is if already a path.

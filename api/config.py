@@ -5,6 +5,7 @@ Configuración centralizada para la API FastAPI vía pydantic-settings.
 Lee variables de entorno o del archivo .env en la raíz del repo.
 """
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,6 +19,10 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 7
+    # Spec 004 E5 (FR-081): SameSite of the renewal cookie. "none" while the frontend calls the API
+    # from another origin (today); "lax" once the API is reached through the frontend's own origin
+    # (Vercel proxy, docs/transfer.md § 3.3). The cookie is always HttpOnly and Secure.
+    auth_cookie_samesite: str = "none"
 
     # ── Base de datos ─────────────────────────────────────────────────────────
     database_url: str = ""  # vacío → SQLite local
@@ -77,6 +82,11 @@ class Settings(BaseSettings):
     rate_limit_storage_probe_interval: float = 10.0  # seconds
     rate_limit_fallback_max_keys: int = 50_000
 
+    # ── Group invitations (spec 001, delivery INV, FR-028p) ───────────────────
+    # Days an unused single-use invitation stays valid. The owner set no period; 30 is the
+    # recommended default (INVITATION_TTL_DAYS).
+    invitation_ttl_days: int = 30
+
     # ── Admin ─────────────────────────────────────────────────────────────────
     admin_user: str = "admin"
     admin_password: str = ""  # solo si se quiere seed automático
@@ -87,6 +97,14 @@ class Settings(BaseSettings):
     # de uno los jugadores de procesos distintos no se emparejan y los eventos
     # solo llegan a los sockets locales. Ver validate_runtime() y AGENTS.md R18.
     web_concurrency: int = 1
+
+    @field_validator("auth_cookie_samesite")
+    @classmethod
+    def _known_samesite(cls, value: str) -> str:
+        value = value.strip().lower()
+        if value not in ("none", "lax", "strict"):
+            raise ValueError("AUTH_COOKIE_SAMESITE debe ser none, lax o strict.")
+        return value
 
     def validate_runtime(self) -> None:
         """Impide arrancar producción con defaults locales o secretos débiles."""

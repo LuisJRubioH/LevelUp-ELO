@@ -385,9 +385,25 @@ export interface ProcedureSubmissionRow {
   teacher_score: number | null;
   final_score: number | null;
   teacher_feedback: string | null;
+  /** Spec 001 FR-024f: the amount the latest grading applied (null when nobody can know). */
   elo_delta: number | null;
+  computed_delta?: number | null;
+  contribution?: number | null;
+  /** Spec 001 FR-024i: graded 0 automatically as a copy of another student's file. */
+  is_copy?: boolean;
   submitted_at: string | null;
   reviewed_at: string | null;
+}
+
+/** What `POST /api/student/procedure` answers (spec 001 block 7). */
+export interface ProcedureSubmitResult {
+  submission_id: number;
+  ai_score: number | null;
+  ai_feedback: string | null;
+  status: string;
+  is_copy?: boolean;
+  teacher_score?: number | null;
+  elo_delta?: number | null;
 }
 
 export interface ProcedureStep {

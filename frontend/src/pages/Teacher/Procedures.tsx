@@ -10,7 +10,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { teacherApi, type PendingProcedure } from "../../api/teacher";
+import { teacherApi, type GradeResult, type PendingProcedure } from "../../api/teacher";
+import { ApiError } from "../../api/client";
 import { MathText } from "../../components/Math/MathContent";
 
 const AVAS = [
@@ -29,9 +30,10 @@ const gradeColor = (v: number) => (v >= 91 ? "#34d399" : v >= 60 ? "#fbbf24" : "
 const judgeLabel = (v: number) => (v >= 91 ? "Excelente" : v >= 60 ? "Aceptable" : "Necesita refuerzo");
 
 /* ── visor del envío: foto o PDF, tal como lo subió el estudiante ─────────── */
-function ProcedureImage({ submissionId }: { submissionId: number }) {
+function ProcedureImage({ submissionId, reviewRound }: { submissionId: number; reviewRound?: number }) {
+  // Spec 001 FR-024l: a resubmission is a new file under the same id — cached per review round.
   const { data: file, isLoading, isError } = useQuery({
-    queryKey: ["procedure-image", submissionId],
+    queryKey: ["procedure-image", submissionId, reviewRound ?? 1],
     queryFn: () => teacherApi.procedureImage(submissionId),
     staleTime: Infinity,
   });
@@ -51,8 +53,57 @@ function ProcedureImage({ submissionId }: { submissionId: number }) {
   return <img className="pd-image" src={file.url} alt="Procedimiento manuscrito del estudiante" />;
 }
 
+/* ── copias detectadas (spec 001 FR-024i) ─────────────────────────────────── */
+// Calificadas con 0 por el sistema: nunca se nombra a quien subió el archivo primero, que
+// puede ser de otro grupo.
+function CopiesPanel() {
+  const { data: copies = [] } = useQuery({
+    queryKey: ["teacher-procedure-copies"],
+    queryFn: () => teacherApi.procedureCopies(),
+    refetchInterval: 60_000,
+  });
+  if (copies.length === 0) return null;
+  return (
+    <section className="panel" aria-labelledby="proc-copies-title" style={{ marginTop: 16 }}>
+      <h2 id="proc-copies-title" style={{ fontSize: 15, marginBottom: 8 }}>
+        Copias detectadas
+      </h2>
+      <p style={{ fontSize: 13, opacity: 0.75, marginBottom: 10 }}>
+        Archivos que otro estudiante ya había entregado. Últimos 30 días.
+      </p>
+      <ul style={{ display: "grid", gap: 8 }}>
+        {copies.map((c) => (
+          <li key={c.submission_id} className="pq-card" style={{ cursor: "default" }}>
+            <div className="pq-top">
+              <span className="av" style={{ background: avaFor(c.student_name) }}>
+                {initials(c.student_name)}
+              </span>
+              <div className="pq-id">
+                <b>{c.student_name}</b>
+                <span>{c.item_id}</span>
+              </div>
+            </div>
+            <div className="pq-foot-row">
+              <span className="pq-status">Calificado 0 automáticamente</span>
+              <span className="pq-when">{c.reviewed_at?.slice(0, 10) ?? ""}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+const signed = (v: number) => (v > 0 ? `+${v}` : v < 0 ? `−${Math.abs(v)}` : "0");
+
 /* ── detalle ─────────────────────────────────────────────────────────────── */
-function ProcedureDetail({ proc }: { proc: PendingProcedure }) {
+function ProcedureDetail({
+  proc,
+  onGraded,
+}: {
+  proc: PendingProcedure;
+  onGraded: (result: GradeResult, studentName: string) => void;
+}) {
   const qc = useQueryClient();
   const [score, setScore] = useState(proc.ai_score != null ? Math.round(proc.ai_score) : 70);
   const [feedback, setFeedback] = useState("");
@@ -64,8 +115,20 @@ function ProcedureDetail({ proc }: { proc: PendingProcedure }) {
   }, [proc.submission_id, proc.ai_score]);
 
   const gradeMutation = useMutation({
-    mutationFn: () => teacherApi.gradeProcedure(proc.submission_id, score, feedback || undefined),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["teacher-procedures"] }),
+    // Spec 001 FR-024g: the review round travels with the grade, so a retry cannot grade twice.
+    mutationFn: () =>
+      teacherApi.gradeProcedure(proc.submission_id, score, feedback || undefined, proc.review_round),
+    onSuccess: (result) => {
+      onGraded(result, proc.student_name);
+      qc.invalidateQueries({ queryKey: ["teacher-procedures"] });
+    },
+    // Spec 001 FR-024l: the student resubmitted while this review was open — the queue reloads
+    // with the new submission and the server's message stays on screen.
+    onError: (error) => {
+      if (error instanceof ApiError && error.status === 409) {
+        qc.invalidateQueries({ queryKey: ["teacher-procedures"] });
+      }
+    },
   });
 
   const gc = gradeColor(score);
@@ -101,7 +164,7 @@ function ProcedureDetail({ proc }: { proc: PendingProcedure }) {
 
         <span className="pd-lbl">Procedimiento del estudiante</span>
         {proc.has_image ? (
-          <ProcedureImage submissionId={proc.submission_id} />
+          <ProcedureImage submissionId={proc.submission_id} reviewRound={proc.review_round} />
         ) : (
           <div className="pd-image-box">El estudiante no adjuntó imagen.</div>
         )}
@@ -202,6 +265,12 @@ function ProcedureDetail({ proc }: { proc: PendingProcedure }) {
 /* ── root ────────────────────────────────────────────────────────────────── */
 export function TeacherProcedures() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  // Spec 001 FR-024f: what the last grading applied to the rating — never the computed delta.
+  const [lastGraded, setLastGraded] = useState<string | null>(null);
+  const onGraded = (result: GradeResult, studentName: string) =>
+    setLastGraded(
+      `Calificación guardada · ${studentName}: efecto en la nota ${signed(result.elo_delta)}`,
+    );
 
   const { data: procedures = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["teacher-procedures"],
@@ -258,6 +327,12 @@ export function TeacherProcedures() {
         </div>
       </div>
 
+      {lastGraded && (
+        <p role="status" className="proc-graded-note" style={{ margin: "0 0 12px", fontSize: 14 }}>
+          {lastGraded}
+        </p>
+      )}
+
       {procedures.length === 0 ? (
         <div className="panel">
           <div className="empty">
@@ -293,7 +368,7 @@ export function TeacherProcedures() {
           </div>
 
           {selected ? (
-            <ProcedureDetail key={selected.submission_id} proc={selected} />
+            <ProcedureDetail key={selected.submission_id} proc={selected} onGraded={onGraded} />
           ) : (
             <div className="proc-detail empty">
               <div>
@@ -304,6 +379,8 @@ export function TeacherProcedures() {
           )}
         </div>
       )}
+
+      <CopiesPanel />
     </>
   );
 }

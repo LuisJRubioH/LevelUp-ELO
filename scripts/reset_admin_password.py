@@ -1,9 +1,10 @@
 """Set a new password for an existing admin account.
 
 ADMIN_USER / ADMIN_PASSWORD only *create* the admin on first start (`_seed_admin` never updates an
-existing admin), and the app has no endpoint to change a password, so changing ADMIN_PASSWORD in
-the host's settings does not change the admin's password. This script does, directly in the
-database, with the app's own Argon2id hashing.
+existing admin), so changing ADMIN_PASSWORD in the host's settings does not change the admin's
+password. An admin who can sign in changes it in the app (`/cambiar-contrasena`, spec 004 E2);
+this script is for the admin who cannot: it sets it directly in the database, with the app's own
+Argon2id hashing.
 
 Usage (run from the repository root, on your own machine, after
 `pip install -r requirements-api.txt`):

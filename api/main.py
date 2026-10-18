@@ -23,6 +23,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.datastructures import MutableHeaders
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
@@ -106,6 +107,32 @@ async def _limits_unavailable_handler(request, exc):
 
 
 app.add_exception_handler(LimitsUnavailable, _limits_unavailable_handler)
+
+# ── Respuestas de autenticación sin caché (spec 004 E5) ───────────────────────
+
+
+class _NoStoreAuthResponses:
+    """Spec 004 FR-082: no cache — browser, proxy or CDN — keeps an authentication response."""
+
+    def __init__(self, asgi_app):
+        self.app = asgi_app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http" or not scope["path"].startswith("/api/auth/"):
+            await self.app(scope, receive, send)
+            return
+
+        async def send_no_store(message):
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                headers["Cache-Control"] = "no-store"
+                headers["Pragma"] = "no-cache"
+            await send(message)
+
+        await self.app(scope, receive, send_no_store)
+
+
+app.add_middleware(_NoStoreAuthResponses)
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(

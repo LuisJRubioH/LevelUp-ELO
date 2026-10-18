@@ -29,6 +29,9 @@ def test_client_cannot_forge_ai_score_but_signed_review_is_accepted(api_client, 
     profile = api_client.get("/api/auth/me", headers=student_headers).json()
     repo = dependencies.get_repository()
     image = png_bytes()
+    # Spec 001 FR-024k: the same file again for the same item is refused, so the signed review
+    # comes with a second, different file.
+    reviewed = png_bytes((21, 81, 141))
     item_id = "verified-ai-" + uuid.uuid4().hex
 
     forged = api_client.post(
@@ -41,13 +44,13 @@ def test_client_cannot_forge_ai_score_but_signed_review_is_accepted(api_client, 
     assert repo.get_student_submission(profile["user_id"], item_id)["ai_proposed_score"] is None
 
     token = dependencies.create_procedure_review_token(
-        profile["user_id"], item_id, hashlib.sha256(image).hexdigest(), 84, "verified"
+        profile["user_id"], item_id, hashlib.sha256(reviewed).hexdigest(), 84, "verified"
     )
     verified = api_client.post(
         "/api/student/procedure",
         headers=student_headers,
         data={"item_id": item_id, "analysis_token": token},
-        files={"file": ("work.png", image, "image/png")},
+        files={"file": ("work.png", reviewed, "image/png")},
     )
     assert verified.status_code == 200
     saved = repo.get_student_submission(profile["user_id"], item_id)
@@ -55,7 +58,8 @@ def test_client_cannot_forge_ai_score_but_signed_review_is_accepted(api_client, 
     assert saved["ai_feedback"] == "verified"
 
 
-def test_duplicate_file_from_another_student_is_rejected(api_client, student_headers):
+def test_duplicate_file_from_another_student_is_graded_zero_as_a_copy(api_client, student_headers):
+    """Spec 001 FR-024i (block 7) flips the earlier 409: another student's file is a copy."""
     import api.dependencies as dependencies
 
     repo = dependencies.get_repository()
@@ -84,4 +88,9 @@ def test_duplicate_file_from_another_student_is_rejected(api_client, student_hea
         data={"item_id": item_id},
         files={"file": ("copy.png", image, "image/png")},
     )
-    assert second.status_code == 409
+    assert second.status_code == 200
+    assert (second.json()["status"], second.json()["is_copy"], second.json()["teacher_score"]) == (
+        "graded",
+        True,
+        0,
+    )
