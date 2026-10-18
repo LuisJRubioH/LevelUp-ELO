@@ -187,6 +187,10 @@ A read-only job in the `transfer-ops` workflow (`ops/transfer-b7check`, Environm
 
 - graded procedures, and how many have a negative stored delta (they would become
   `legacy_unknown`);
+- procedures resubmitted and still pending that keep a stored delta: on `main` a procedure counts
+  in the rating only while validated, and the stored rating holds such a delta or not depending on
+  whether the student answered since. B7 takes the delta as the contribution; if this count is not
+  0, the owner decides before the switch (the cautious alternative is `legacy_unknown`);
 - duplicate `(student_id, item_id)` pairs (FR-024a's index is not created while any exist);
 - files sent by more than one student (they stay as they are; the first sender becomes the file's
   first owner).
