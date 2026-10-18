@@ -130,6 +130,25 @@ server's, and T017 covers it.
   `ops/transfer-b7check` (numbers only, no artifact), tested locally against the simulated
   production and its migrated copy; that branch is pushed only when the owner says so
 
+## Phase 4b — Review follow-ups
+
+An independent review of the implementation (2026-10-18) found three defects. Each test was written
+first and failed on 262e470, on both engines, then passed with its fix.
+
+- [x] T031 V1 records the AI's score after every upload, a copy or a refused file included, and
+  `save_ai_proposed_score` reopened the procedure for review: a copy's automatic 0 then stayed in
+  the queue, and grading it applied nothing. Only a procedure waiting for review takes the score
+  now, in both repositories (FR-024i, FR-024k) —
+  `test_spec001_b7_an_ai_score_never_reopens_a_graded_procedure_or_a_copy`
+- [x] T032 While an old duplicate (student, item) pair holds the unique index back, an upload
+  updated both rows and graded one: the other was left pending with its own contribution, and
+  grading it applied a second correction. The upload now resubmits or grades the first procedure
+  only (FR-024b, FR-024a) —
+  `test_spec001_b7_with_a_duplicate_pair_an_upload_changes_one_procedure`
+- [x] T033 The teacher's export (V2 `/export/xlsx`, V1's «Delta ELO») showed the computed delta;
+  it shows the amount applied, as every screen does (FR-024f) —
+  `test_spec001_b7_the_teacher_export_reports_the_amount_applied`
+
 ## Phase 5 — Close
 
 - [x] T030 Traceability: every B7 row filled with its tests; B7 `closed`; AGENTS.md R15 (the

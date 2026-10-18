@@ -3202,7 +3202,11 @@ class SQLiteRepository:
                 ps.final_score,
                 ps.elo_delta,
                 ps.submitted_at,
-                ps.reviewed_at
+                ps.reviewed_at,
+                ps.contribution_origin,
+                (SELECT pg.applied FROM procedure_gradings pg
+                  WHERE pg.submission_id = ps.id
+                  ORDER BY pg.review_round DESC, pg.id DESC LIMIT 1) AS applied
             FROM procedure_submissions ps
             JOIN users u ON ps.student_id = u.id
             LEFT JOIN groups g ON u.group_id = g.id
@@ -3215,9 +3219,13 @@ class SQLiteRepository:
             _params,
         )
         columns = [col[0] for col in cursor.description]
-        rows = cursor.fetchall()
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
         conn.close()
-        return [dict(zip(columns, row)) for row in rows]
+        for row in rows:
+            # FR-024f: the export's delta is the amount applied, as on every screen.
+            row["elo_delta"] = _procedure_effect(row)
+            del row["contribution_origin"], row["applied"]
+        return rows
 
     # ─── Gestión de SEGURIDAD (Admin) ───────────────────────────────────────────
 
@@ -4241,8 +4249,11 @@ class SQLiteRepository:
                     return {"outcome": outcome, "submission_id": None, "grading": None}
             is_copy = 1 if outcome == COPY else 0
 
+            # ORDER BY id: while an old duplicate pair holds the unique index back (FR-024a),
+            # the upload resubmits one procedure, the first, and never touches the other.
             cursor.execute(
-                "SELECT id FROM procedure_submissions WHERE student_id = ? AND item_id = ?",
+                "SELECT id FROM procedure_submissions WHERE student_id = ? AND item_id = ?"
+                " ORDER BY id LIMIT 1",
                 (student_id, item_id),
             )
             existing = cursor.fetchone()
@@ -4261,9 +4272,9 @@ class SQLiteRepository:
                         feedback_image=NULL, feedback_image_path=NULL,
                         procedure_score=NULL, teacher_score=NULL, final_score=NULL,
                         submitted_at=CURRENT_TIMESTAMP, reviewed_at=NULL
-                    WHERE student_id=? AND item_id=?
+                    WHERE id=?
                 """,
-                    (stored_bytes, mime_type, img_path, file_hash, is_copy, student_id, item_id),
+                    (stored_bytes, mime_type, img_path, file_hash, is_copy, existing[0]),
                 )
                 submission_id = existing[0]
             else:
@@ -4337,7 +4348,9 @@ class SQLiteRepository:
         Solo final_score (validado por el docente vía Task 4) puede afectar analytics.
 
         Si no existe registro previo para student_id+item_id, no hace nada (la imagen
-        debe guardarse primero con save_procedure_submission).
+        debe guardarse primero con save_procedure_submission). Spec 001 block 7: only a procedure
+        waiting for review takes it — never a graded one or a copy (V1 calls this after every
+        upload, a refused file or a copy included).
         """
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -4348,6 +4361,8 @@ class SQLiteRepository:
                 ai_feedback = ?,
                 status = 'PENDING_TEACHER_VALIDATION'
             WHERE student_id = ? AND item_id = ?
+              AND status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+              AND COALESCE(is_copy, 0) = 0
         """,
             (ai_score, ai_feedback, student_id, item_id),
         )

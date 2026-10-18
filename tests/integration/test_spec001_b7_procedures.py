@@ -23,7 +23,9 @@ from src.domain.procedures import (
 from tests.integration.conftest import (
     is_postgres,
     make_course,
+    make_group,
     make_student,
+    make_teacher,
     rating_of,
     set_rating,
     sql,
@@ -442,3 +444,79 @@ def test_spec001_b7_an_own_file_again_is_refused_and_changes_nothing(repo, stude
         "SELECT COUNT(*) FROM procedure_submissions WHERE student_id = ? AND item_id = ?",
         (student, item_b),
     ) == [(0,)]
+
+
+# ── Review follow-ups (tasks-b7.md T031–T033): written first, each failed on 262e470 ──
+
+
+def _ai_score(repo, submission_id):
+    return sql(
+        repo, "SELECT ai_proposed_score FROM procedure_submissions WHERE id = ?", (submission_id,)
+    )[0][0]
+
+
+def test_spec001_b7_an_ai_score_never_reopens_a_graded_procedure_or_a_copy(repo):
+    """FR-024i, FR-024k: V1 records the AI's score after every upload, a copy or a refused file
+    included; only a procedure waiting for review takes it."""
+    _, (item_a, item_b) = _course(repo)
+    owner, copier = make_student(repo), make_student(repo)
+    content = _file("ai score")
+    assert _upload(repo, owner, item_a, content)
+    copy = _upload(repo, copier, item_b, content)  # graded 0 by the system, as a copy
+    graded = _upload(repo, owner, item_b, _file("graded"))
+    assert repo.validate_procedure_submission(graded, teacher_score=80.0)
+    pending = _upload(repo, copier, item_a, _file("pending"))
+    before = [_procedure(repo, copy), _procedure(repo, graded)]
+
+    for student, item in ((copier, item_b), (owner, item_b), (copier, item_a)):
+        repo.save_ai_proposed_score(student, item, 70.0, ai_feedback="sugerencia")
+
+    assert [_procedure(repo, copy), _procedure(repo, graded)] == before
+    assert (_ai_score(repo, copy), _ai_score(repo, graded)) == (None, None)
+    assert _procedure(repo, pending)["status"] == "PENDING_TEACHER_VALIDATION"
+    assert _ai_score(repo, pending) == 70.0
+
+
+def test_spec001_b7_with_a_duplicate_pair_an_upload_changes_one_procedure(repo, student):
+    """FR-024b, FR-024i: while an old duplicate (student, item) pair holds the unique index back
+    (FR-024a), an upload resubmits or grades one procedure, never both."""
+    _, (item, other) = _course(repo)
+    owner = make_student(repo)
+    sql(repo, "DROP INDEX IF EXISTS idx_procedure_submissions_student_item")
+    first = _legacy_row(repo, student, item, 6.0)
+    duplicate = _legacy_row(repo, student, item, 6.0)
+    try:
+        repo._backfill_procedure_contributions()
+        untouched = _procedure(repo, duplicate)
+        content = _file("someone else's work")
+        assert _submit(repo, owner, other, content)["outcome"] == ACCEPT
+
+        result = _submit(repo, student, item, content)
+
+        assert (result["outcome"], result["submission_id"]) == (COPY, first)
+        assert _procedure(repo, first)["copy"]
+        assert _procedure(repo, duplicate) == untouched
+    finally:
+        sql(
+            repo, "DELETE FROM procedure_gradings WHERE submission_id IN (?, ?)", (first, duplicate)
+        )
+        sql(repo, "DELETE FROM procedure_uploads WHERE submission_id IN (?, ?)", (first, duplicate))
+        sql(repo, "DELETE FROM procedure_submissions WHERE id = ?", (duplicate,))
+        assert repo._ensure_procedure_pair_index()
+
+
+def test_spec001_b7_the_teacher_export_reports_the_amount_applied(repo, student):
+    """FR-024f: graded 80 (+6), resubmitted and graded 30 — the export shows the −10 applied,
+    never the computed −4."""
+    _, (item, _) = _course(repo)
+    teacher = make_teacher(repo)
+    group = make_group(repo, teacher)
+    sql(repo, "UPDATE users SET group_id = ? WHERE id = ?", (group, student))
+    _, submission = _new_procedure(repo, student, item)
+    _grade(repo, submission, 80.0)
+    assert _submit(repo, student, item, _file("second"))["outcome"] == ACCEPT
+    _grade(repo, submission, 30.0)
+
+    rows = [r for r in repo.export_teacher_procedures(teacher) if r["student_id"] == student]
+
+    assert [r["elo_delta"] for r in rows] == [-10.0]

@@ -3674,7 +3674,11 @@ class PostgresRepository:
                     ps.final_score,
                     ps.elo_delta,
                     ps.submitted_at,
-                    ps.reviewed_at
+                    ps.reviewed_at,
+                    ps.contribution_origin,
+                    (SELECT pg.applied FROM procedure_gradings pg
+                      WHERE pg.submission_id = ps.id
+                      ORDER BY pg.review_round DESC, pg.id DESC LIMIT 1) AS applied
                 FROM procedure_submissions ps
                 JOIN users u ON ps.student_id = u.id
                 LEFT JOIN groups g ON u.group_id = g.id
@@ -3686,8 +3690,12 @@ class PostgresRepository:
             """,
                 tuple(_params),
             )
-            rows = cursor.fetchall()
-            return [dict(row) for row in rows]
+            rows = [dict(row) for row in cursor.fetchall()]
+            for row in rows:
+                # FR-024f: the export's delta is the amount applied, as on every screen.
+                row["elo_delta"] = _procedure_effect(row)
+                del row["contribution_origin"], row["applied"]
+            return rows
         finally:
             self.put_connection(conn)
 
@@ -4942,12 +4950,15 @@ class PostgresRepository:
                     return {"outcome": outcome, "submission_id": None, "grading": None}
             is_copy = 1 if outcome == COPY else 0
 
+            # ORDER BY id: while an old duplicate pair holds the unique index back (FR-024a),
+            # the upload resubmits one procedure, the first, and never touches the other.
             cursor.execute(
                 "SELECT id FROM procedure_submissions WHERE student_id = %s AND item_id = %s"
-                " FOR UPDATE",
+                " ORDER BY id LIMIT 1 FOR UPDATE",
                 (student_id, item_id),
             )
-            if cursor.fetchone():
+            existing = cursor.fetchone()
+            if existing:
                 # FR-024c: back to review with its contribution kept; a new review round.
                 cursor.execute(
                     """
@@ -4962,7 +4973,7 @@ class PostgresRepository:
                         feedback_image=NULL, feedback_image_path=NULL,
                         procedure_score=NULL, teacher_score=NULL, final_score=NULL,
                         submitted_at=CURRENT_TIMESTAMP, reviewed_at=NULL
-                    WHERE student_id=%s AND item_id=%s
+                    WHERE id=%s
                     RETURNING id, review_round, contribution
                 """,
                     (
@@ -4972,8 +4983,7 @@ class PostgresRepository:
                         file_hash,
                         storage_url,
                         is_copy,
-                        student_id,
-                        item_id,
+                        existing["id"],
                     ),
                 )
             else:
@@ -5032,7 +5042,9 @@ class PostgresRepository:
     def save_ai_proposed_score(
         self, student_id: int, item_id: str, ai_score: float, ai_feedback: str = None
     ):
-        """Guarda la puntuación propuesta por la IA y actualiza el status."""
+        """Guarda la puntuación propuesta por la IA y actualiza el status. Spec 001 block 7:
+        only a procedure waiting for review takes it — never a graded one or a copy (V1 calls
+        this after every upload, a refused file or a copy included)."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -5043,6 +5055,8 @@ class PostgresRepository:
                     ai_feedback = %s,
                     status = 'PENDING_TEACHER_VALIDATION'
                 WHERE student_id = %s AND item_id = %s
+                  AND status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                  AND COALESCE(is_copy, 0) = 0
             """,
                 (ai_score, ai_feedback, student_id, item_id),
             )
