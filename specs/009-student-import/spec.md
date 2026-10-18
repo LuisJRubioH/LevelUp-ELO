@@ -134,6 +134,17 @@ shared views.
   the participants' personal data and for the use of their image. That is the school's form, not
   this system (§ Assumptions); a revised script was handed to the owner on 2026-10-18.
 
+### Session 2026-10-18, later (owner answers)
+
+- N18, N19, N20, N22 and N23 are approved as recommended; N21 is approved with the owner's
+  classification: by institution and grade. A first phase is played among classmates of one
+  institution and grade, and only finalists meet the best of other institutions (an olympiad
+  feature after the refactor, roadmap § 6). Everything stays closed: each teacher reviews the
+  results of their own students.
+- Accounts need an e-mail for account and password recovery (N24, open).
+- The teacher who accompanies each student is collected by a separate form — name, institution,
+  grades accompanied, contact data — so that the teacher sees their students' progress (N25, open).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - The admin imports a class from a Forms export (Priority: P1) — I1
@@ -141,9 +152,10 @@ shared views.
 **Acceptance Scenarios**:
 
 1. **US1-AS1** — **Given** a `.xlsx` or `.csv` up to 5 MB and 500 students, **When** the admin
-   uploads it, maps its columns, chooses an existing group, the last day of access and, unless
-   mapped, level and grade, **Then** a preview lists each row as new, existing, duplicate or error,
-   with its level and grade, and nothing is saved.
+   uploads it, maps its columns (the display name from one or two columns, and each institution
+   and grade to an existing group), chooses the last day of access and, unless mapped, level and
+   grade, **Then** a preview lists each row as new, existing, duplicate or error, with its level,
+   grade and group, and nothing is saved.
 2. **US1-AS2** — **Given** a preview, **When** the admin confirms, **Then** exactly the new rows
    become temporary students with the identification as username and initial password, and the
    result shows how many were created and skipped.
@@ -200,12 +212,15 @@ shared views.
 ### Functional Requirements
 
 - **FR-001** [CHANGE]: When the admin uploads a `.xlsx` or `.csv` of at most 5 MB and 500 students,
-  the system shall list its columns and let the admin map the identification, the display name
-  and, optionally, level and grade, and choose an existing group, the last day of access and the
-  batch's level and grade where not mapped. *(Which columns the form has is to be confirmed: N1.)*
+  the system shall list its columns and let the admin map the identification; the display name
+  from one or two columns, joined with one space in the order the admin chooses (N19);
+  optionally, level and grade; and the institution and grade of each row to an existing group,
+  one group per institution and grade (N21). It shall let the admin choose the last day of access
+  and the batch's level and grade where not mapped (N20).
 - **FR-002** [CHANGE]: Before saving, the system shall show each row as new, existing, duplicate (in
-  the file) or error with its reason, with the level and grade it would get. A row without a
-  display name, or with one spec 004's name filter refuses (spec 004 FR-020), is an error.
+  the file) or error with its reason, with the level, grade and group it would get. A row without a
+  display name, with one spec 004's name filter refuses (spec 004 FR-020), or whose institution and
+  grade map to no group, is an error.
 - **FR-003** [CHANGE]: The system shall save nothing until the admin confirms the preview, and then
   create exactly the rows shown as new through the validations of spec 004 FR-040, spec 004 FR-043
   and spec 004 FR-044, with the credentials of FR-005 instead of a temporary password.
@@ -240,6 +255,12 @@ shared views.
 - **FR-015** [CHANGE]: If the admin creates a student one by one with a username that is an
   identification linked to another account, then the system shall refuse the creation and change
   nothing.
+- **FR-016** [CHANGE]: The system shall read from the file only the identification, the
+  display-name columns, level and grade, and the institution, and shall store nothing else of it
+  (N23).
+- **FR-017** [CHANGE]: When the admin removes the link between an identification and an account
+  made by mistake, the system shall record who removed it and when, and shall change neither the
+  account's username nor its credentials (N18).
 
 ### Key Entities
 
@@ -281,12 +302,14 @@ shared views.
 | N4 | (Spec 004, 2026-10-13.) P10 admits digits only, so identifications with letters (passport, PPT, some foreign documents) cannot be imported. | **Withdrawn** (owner, 2026-10-14): no condition about documents nobody asked for; the import keeps P10. |
 | N14 | (Spec 004, question D.) Changing the display name of an imported account. | **Decided** (owner, 2026-10-14): only the admin. |
 | N16 | (Spec 004.) Without leading zeros, an `.xlsx` cell typed as a number that holds a whole number loses nothing when read as its digits. The 2026-10-13 text flagged every numeric cell. | **Decided** (owner, 2026-10-14): accepted — a whole number of up to 15 digits is read as its digits; only values the spreadsheet already altered (scientific notation, decimals, more digits than it keeps) are flagged. |
-| N18 | (Plan, 2026-10-15.) The admin links an identification to an existing account (FR-007), but the spec gives no way to remove or correct a link made by mistake. | Let the admin remove a link, recorded; the account's username and credentials never change. |
-| N19 | (Form, 2026-10-18.) The display name is split into «Nombres» and «Apellidos»; FR-001 maps one column. | Let the admin map one or two columns for the display name, joined with one space in the order chosen («Nombres Apellidos»); spec 004's filter and limits apply to the result. |
-| N20 | (Form.) There is no level column; every participant is in grades 6.º to 11.º. | The batch's level is chosen once by the admin; for this olympiad, semillero, so the grade column decides each student's six courses (spec 001 FR-028k). |
-| N21 | (Form.) Each row names an institution («Institución educativa», or «Otro» with free text); FR-001 takes one existing group per batch. | Let the admin map the institution column to existing groups, one per institution, created beforehand; a row whose institution maps to no group («Otro» included) is an error to correct before confirming. «Sede» is not read. |
-| N22 | (Form.) Its texts promise what the system does not do: «Te enviaremos al correo las instrucciones» (the system sends no email; FR-005 makes the identification the username and initial password) and «Las respuestas de las pruebas se califican identificadas con un código, sin el nombre del estudiante» (teachers and classmates see the display name, spec 004 FR-020). | Change the form's texts to what the platform does (done in the revised script); sending the access instructions is the school's step. |
-| N23 | (Form.) It also collects the document type, e-mail, the guardian's name and mobile number and «Sede». | The import reads only the identification, the names, the grade and the institution; nothing else is stored (data minimisation, Law 1581 of 2012). The responses sheet stays the school's, as § Assumptions says. |
+| N18 | (Plan, 2026-10-15.) The admin links an identification to an existing account (FR-007), but the spec gives no way to remove or correct a link made by mistake. | **Approved** (owner, 2026-10-18): the admin removes a link, recorded; the account's username and credentials never change (FR-017). |
+| N19 | (Form, 2026-10-18.) The display name is split into «Nombres» and «Apellidos»; FR-001 maps one column. | **Approved** (owner, 2026-10-18): Let the admin map one or two columns for the display name, joined with one space in the order chosen («Nombres Apellidos»); spec 004's filter and limits apply to the result. |
+| N20 | (Form.) There is no level column; every participant is in grades 6.º to 11.º. | **Approved** (owner, 2026-10-18): The batch's level is chosen once by the admin; for this olympiad, semillero, so the grade column decides each student's six courses (spec 001 FR-028k). |
+| N21 | (Form.) Each row names an institution («Institución educativa», or «Otro» with free text); FR-001 took one existing group per batch. | **Approved, amended** (owner, 2026-10-18): students are classified by institution **and grade**: one group per institution and grade, whose teacher is the one who accompanies those grades at that institution (N25). In a first phase each student competes with classmates of the same institution and grade; only finalists meet the best of other institutions (roadmap § 6, olympiad). A row whose institution and grade map to no group («Otro» included) is an error to correct before confirming; «Sede» is not read (FR-001, FR-002). |
+| N22 | (Form.) Its texts promise what the system does not do: «Te enviaremos al correo las instrucciones» (the system sends no email; FR-005 makes the identification the username and initial password) and «Las respuestas de las pruebas se califican identificadas con un código, sin el nombre del estudiante» (teachers and classmates see the display name, spec 004 FR-020). | **Approved** (owner, 2026-10-18): Change the form's texts to what the platform does (done in the revised script); sending the access instructions is the school's step. |
+| N23 | (Form.) It also collects the document type, e-mail, the guardian's name and mobile number and «Sede». | **Approved** (owner, 2026-10-18): The import reads only the identification, the names, the grade and the institution; nothing else is stored (data minimisation, Law 1581 of 2012). The responses sheet stays the school's, as § Assumptions says. |
+| N24 | (Owner, 2026-10-18.) Accounts need an e-mail for account and password recovery. The form's «Correo electrónico de contacto» can be the student's or the guardian's. Two facts block using it as the account's `users.email`: that column is unique and is also a sign-in identifier (spec 004 FR-006), so siblings or a family sharing one address could not both have it; and the system sends no e-mail today, so self-service recovery does not exist (spec 004 § Out of Scope). | A separate recovery e-mail per account, not unique and never a sign-in identifier, filled by the import from that column (additive column, AGENTS R8); FR-016 would then also read that column. Self-service recovery by e-mail as a new spec 004 delivery, which needs an e-mail-sending service (owner's choice of provider and its cost); until then the admin resets passwords (spec 004 E2). |
+| N25 | (Owner, 2026-10-18.) Each student's teacher comes from a separate form: name, institution, grades accompanied and contact data, so that the teacher sees the progress of their students. | The admin creates each teacher (spec 004 E2) and one group per institution and grade owned by that teacher, before importing students; the teacher sees only their groups (spec 004, the teacher's scope). The teachers' form is the school's, like the students'. |
 
 ## Out of Scope *(mandatory)*
 
@@ -333,3 +356,5 @@ scenario.** Nothing is implemented yet.
 | FR-013 | I1 | `PENDING` |
 | FR-014 | I1 | `PENDING` |
 | FR-015 | I1 | `PENDING` |
+| FR-016 | I1 | `PENDING` |
+| FR-017 | I1 | `PENDING` |
