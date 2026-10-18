@@ -393,8 +393,14 @@ def test_postgres_procedure_review_token_and_antiplagiarism(postgres_context):
 
     ctx = postgres_context
     repo = ctx["repo"]
+    from PIL.PngImagePlugin import PngInfo
+
+    # A file nobody sent before: this database keeps earlier runs' files, and another
+    # student's file is a copy (spec 001 FR-024i).
+    meta = PngInfo()
+    meta.add_text("run", uuid.uuid4().hex)
     output = io.BytesIO()
-    Image.new("RGB", (2, 2), (25, 90, 150)).save(output, format="PNG")
+    Image.new("RGB", (2, 2), (25, 90, 150)).save(output, format="PNG", pnginfo=meta)
     image = output.getvalue()
     item_id = "pg-upload-" + uuid.uuid4().hex
     token = dependencies.create_procedure_review_token(
@@ -434,4 +440,6 @@ def test_postgres_procedure_review_token_and_antiplagiarism(postgres_context):
         data={"item_id": item_id},
         files={"file": ("copy.png", image, "image/png")},
     )
-    assert duplicate.status_code == 409
+    # Spec 001 FR-024i (block 7) flips the earlier 409: another student's file is a copy.
+    assert duplicate.status_code == 200
+    assert duplicate.json()["is_copy"] is True

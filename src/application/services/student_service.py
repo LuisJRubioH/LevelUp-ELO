@@ -5,8 +5,10 @@ from src.domain.elo.model import (
     is_valid_response_time,
     item_difficulty_delta,
     next_rd,
+    procedure_grading,
     rating_delta,
 )
+from src.domain.procedures import classify_upload
 from src.domain.selector.item_selector import AdaptiveItemSelector
 from src.domain.entities import (
     LEVEL_SEMILLERO,
@@ -127,6 +129,23 @@ class StudentService:
             )
             return item_data, "ok"
         return None, "empty"
+
+    def submit_procedure(
+        self, student_id, item_id, item_content, image_data, mime_type, file_hash
+    ) -> dict:
+        """Spec 001 block 7: one upload, classified by the domain — a copy of another student's
+        file is graded 0 in the same transaction; the student's own file again is refused
+        (FR-024i … FR-024k). Returns {"outcome", "submission_id", "grading"}."""
+        return self.repository.submit_procedure(
+            student_id,
+            item_id,
+            item_content,
+            image_data,
+            mime_type,
+            file_hash,
+            classify_upload,
+            lambda contribution, rating: procedure_grading(0.0, contribution, rating),
+        )
 
     def process_answer(
         self,

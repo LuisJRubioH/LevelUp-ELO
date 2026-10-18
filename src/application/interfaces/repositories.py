@@ -38,6 +38,19 @@ class IStudentRepository(Protocol):
         request_fingerprint: Optional[str] = None,
     ) -> bool: ...
 
+    # ── Procedimientos (spec 001 bloque 7) ────────────────────────────────────
+    def submit_procedure(
+        self,
+        student_id,
+        item_id,
+        item_content,
+        image_data,
+        mime_type,
+        file_hash,
+        classify: Callable,
+        grade_copy: Callable,
+    ) -> dict: ...
+
     # ── Catálogo y matrícula ──────────────────────────────────────────────────
     def get_education_level(self, user_id): ...
     def get_grade(self, user_id): ...
@@ -64,6 +77,15 @@ class ITeacherRepository(Protocol):
         feedback: str = "",
         teacher_id: Optional[int] = None,
     ) -> bool: ...
+    def grade_procedure_transaction(
+        self,
+        submission_id: int,
+        grade: float,
+        compute: Callable,
+        feedback: str = "",
+        teacher_id: Optional[int] = None,
+        review_round: Optional[int] = None,
+    ) -> Optional[dict]: ...
 
 
 @runtime_checkable

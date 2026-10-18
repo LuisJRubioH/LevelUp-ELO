@@ -290,6 +290,7 @@ const en: TranslationKeys = {
     correctResult: "✅ Correct",
     incorrectResult: "❌ Incorrect",
     sentMessage: "Got it! Your teacher will review your procedure soon. Keep practicing.",
+    copyMessage: "Another student had already submitted this file. The procedure was graded 0 and marked as a copy.",
     uploadAnother: "Upload another procedure",
     other: "Other",
     preview: "Preview",
@@ -598,6 +599,7 @@ const en: TranslationKeys = {
 
   // ── Feedback (procedure history) ───────────────────────────────────────────
   feedback: {
+    copyBadge: "Copy detected",
     title: "Feedback",
     eyebrow: "Your procedures",
     intro: "Your reviewed worked solutions and KatIA's comments.",
@@ -645,6 +647,8 @@ const en: TranslationKeys = {
     eyebrow: "Open-response exercise",
     sentTitle: "Procedure submitted",
     sentMessage: "Got it! Your teacher will review your procedure soon. Keep practicing.",
+    copyTitle: "Procedure graded as a copy",
+    copyMessage: "Another student had already submitted this file. The procedure was graded 0 and marked as a copy.",
     sendAnother: "Send another",
     intro: "Upload the procedure for a development exercise or open question.",
     introHint: 'If you are answering a multiple-choice question, use the "Upload handwritten procedure" button shown below the question in the practice room.',

@@ -87,13 +87,29 @@ export interface PendingProcedure {
   status: string;
   created_at: string;
   has_image: boolean;
+  /** Spec 001 FR-024g: the review being graded, sent back with the grade. */
+  review_round?: number;
 }
 
 export interface GradeResult {
   submission_id: number;
   teacher_score: number;
+  /** Spec 001 FR-024f: the amount applied to the rating, never the computed delta. */
   elo_delta: number;
   status: string;
+  computed_delta?: number | null;
+  contribution?: number | null;
+  review_round?: number | null;
+}
+
+/** Spec 001 FR-024i: a procedure graded 0 automatically as a copy. */
+export interface ProcedureCopy {
+  submission_id: number;
+  student_id: number;
+  student_name: string;
+  item_id: string;
+  item_content: string | null;
+  reviewed_at: string | null;
 }
 
 export interface AdminUser {
@@ -204,12 +220,20 @@ export const teacherApi = {
 
   procedures: () => api.get<PendingProcedure[]>("/api/teacher/procedures"),
 
-  gradeProcedure: (submission_id: number, teacher_score: number, teacher_feedback?: string) =>
+  gradeProcedure: (
+    submission_id: number,
+    teacher_score: number,
+    teacher_feedback?: string,
+    review_round?: number,
+  ) =>
     api.post<GradeResult>("/api/teacher/procedures/grade", {
       submission_id,
       teacher_score,
       teacher_feedback,
+      review_round,
     }),
+
+  procedureCopies: () => api.get<ProcedureCopy[]>("/api/teacher/procedures/copies"),
 
   studentReport: (student_id: number) =>
     api.get<Record<string, unknown>>(`/api/teacher/student/${student_id}`),

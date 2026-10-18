@@ -288,6 +288,7 @@ const es = {
     correctResult: "✅ Correcto",
     incorrectResult: "❌ Incorrecto",
     sentMessage: "Recibido! Tu docente revisará tu procedimiento pronto. Sigue practicando.",
+    copyMessage: "Este archivo ya lo había entregado otro estudiante. El procedimiento quedó calificado con 0 y marcado como copia.",
     uploadAnother: "Subir otro procedimiento",
     other: "Otro",
     preview: "Previsualización",
@@ -600,6 +601,7 @@ const es = {
 
   // ── Retroalimentación (histórico de procedimientos) ────────────────────────
   feedback: {
+    copyBadge: "Copia detectada",
     title: "Retroalimentación",
     eyebrow: "Tus procedimientos",
     intro: "Tus desarrollos revisados y los comentarios de KatIA.",
@@ -647,6 +649,8 @@ const es = {
     eyebrow: "Ejercicio de desarrollo",
     sentTitle: "Procedimiento enviado",
     sentMessage: "Recibido! Tu docente revisará tu procedimiento pronto. Sigue practicando.",
+    copyTitle: "Procedimiento calificado como copia",
+    copyMessage: "Este archivo ya lo había entregado otro estudiante. El procedimiento quedó calificado con 0 y marcado como copia.",
     sendAnother: "Enviar otro",
     intro: "Sube el procedimiento de un ejercicio de desarrollo o pregunta abierta.",
     introHint: 'Si estás respondiendo una pregunta de selección múltiple, usa el botón "Subir procedimiento manuscrito" que aparece debajo de la pregunta en la sala de práctica.',

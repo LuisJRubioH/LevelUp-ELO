@@ -39,12 +39,15 @@ from api.schemas.teacher import (
     InvitationView,
     ItemCatalogEntry,
     PendingProcedure,
+    ProcedureCopy,
+    ProcedureGradingEntry,
     StudentReportResponse,
     StudentAIAnalysisRequest,
     UserAdminRow,
 )
 from src.application.services.teacher_service import TeacherService
 from src.domain.invitations import format_token
+from src.domain.procedures import ReviewRoundSuperseded
 from api.config import settings
 from api.rate_limit import limiter
 
@@ -221,9 +224,37 @@ def pending_procedures(user: CurrentUser, repo: RepoDep):
                 status=row.get("status", "pending"),
                 created_at=str(row.get("submitted_at") or row.get("created_at", "")),
                 has_image=has_image,
+                review_round=row.get("review_round") or 1,
             )
         )
     return result
+
+
+@router.get("/procedures/copies", response_model=list[ProcedureCopy])
+def procedure_copies(user: CurrentUser, repo: RepoDep):
+    """Spec 001 FR-024i: procedures graded 0 automatically as copies in this teacher's groups,
+    last 30 days. Never the student who sent the file first."""
+    return [
+        ProcedureCopy(
+            submission_id=r["submission_id"],
+            student_id=r["student_id"],
+            student_name=r["student_name"] or "",
+            item_id=r["item_id"],
+            item_content=r.get("item_content"),
+            reviewed_at=str(r["reviewed_at"]) if r.get("reviewed_at") else None,
+        )
+        for r in repo.get_recent_procedure_copies_for_teacher(user["user_id"])
+    ]
+
+
+@router.get("/procedures/{submission_id}/gradings", response_model=list[ProcedureGradingEntry])
+def procedure_gradings(submission_id: int, user: CurrentUser, repo: RepoDep):
+    """Spec 001 FR-024e: every grading of a procedure, for the teacher of the student's group."""
+    rows = repo.get_procedure_gradings(submission_id, teacher_id=user["user_id"])
+    if rows is None:
+        raise HTTPException(status_code=404, detail="Procedimiento no encontrado.")
+    fields = ProcedureGradingEntry.model_fields
+    return [ProcedureGradingEntry(**{k: r[k] for k in fields}) for r in rows]
 
 
 @router.get("/procedures/{submission_id}/image")
@@ -269,9 +300,13 @@ def procedure_image(submission_id: int, user: CurrentUser, repo: RepoDep):
 
 @router.post("/procedures/grade", response_model=GradeResponse)
 def grade_procedure(body: GradeRequest, user: CurrentUser, repo: RepoDep):
-    """Califica un procedimiento y aplica el delta ELO al estudiante."""
-    # Usar la misma cola autorizada que el panel/visor; no confiar en el ID
-    # enviado por el cliente ni permitir recalificar entregas ya cerradas.
+    """Califica un procedimiento y aplica al rating solo la diferencia con su contribución
+    anterior (spec 001 bloque 7, FR-024d). Un reintento con la misma `review_round` devuelve el
+    mismo resultado sin aplicar nada (FR-024g); una ronda que el estudiante reemplazó al reenviar
+    responde 409 (FR-024l)."""
+    # Usar la misma cola autorizada que el panel/visor; no confiar en el ID enviado por el
+    # cliente. Fuera de la cola solo se admite el reintento de una ronda ya calificada, que el
+    # repositorio comprueba contra el grupo del docente.
     submission = next(
         (
             row
@@ -280,33 +315,40 @@ def grade_procedure(body: GradeRequest, user: CurrentUser, repo: RepoDep):
         ),
         None,
     )
-    if submission is None:
+    if submission is None and body.review_round is None:
         raise HTTPException(status_code=404, detail="Procedimiento pendiente no encontrado.")
 
     svc = _svc(repo)
     try:
-        elo_delta = svc.validate_procedure(
+        result = svc.grade_procedure(
             submission_id=body.submission_id,
             teacher_score=body.teacher_score,
             feedback=body.teacher_feedback or "",
             teacher_id=user["user_id"],
+            review_round=body.review_round,
         )
+    except ReviewRoundSuperseded as exc:
+        # FR-024l: the student resubmitted while this review was open; nothing was graded.
+        raise HTTPException(
+            status_code=409,
+            detail="El estudiante reenvió este procedimiento; revisa el envío nuevo antes de calificar.",
+        ) from exc
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-    # Notificar al estudiante en tiempo real (WebSocket)
+    # Notificar al estudiante en tiempo real (WebSocket), una sola vez por calificación.
     try:
-        if submission:
-            student_id = submission["student_id"]
+        if submission and result["created"]:
             from api.websocket.notifications import notify_sync
 
             notify_sync(
-                room=f"student_{student_id}",
+                room=f"student_{submission['student_id']}",
                 event="procedure_graded",
                 data={
                     "submission_id": body.submission_id,
-                    "teacher_score": body.teacher_score,
-                    "elo_delta": elo_delta or 0.0,
+                    "teacher_score": result["grade"],
+                    "elo_delta": result["applied"],
+                    "computed_delta": result["computed_delta"],
                     "feedback": body.teacher_feedback or "",
                 },
             )
@@ -315,9 +357,12 @@ def grade_procedure(body: GradeRequest, user: CurrentUser, repo: RepoDep):
 
     return GradeResponse(
         submission_id=body.submission_id,
-        teacher_score=body.teacher_score,
-        elo_delta=elo_delta or 0.0,
+        teacher_score=result["grade"],
+        elo_delta=result["applied"],
         status="graded",
+        computed_delta=result["computed_delta"],
+        contribution=result["contribution_after"],
+        review_round=result["review_round"],
     )
 
 
