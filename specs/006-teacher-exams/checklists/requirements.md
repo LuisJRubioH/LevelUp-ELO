@@ -16,14 +16,14 @@
 
 ## Requirement Completeness
 
-- [ ] Every decision is decided — **N1 … N11 wait for the owner**; the `[CHANGE]` requirements are
-  written as the recommendations and change with the answers
+- [x] Every decision is decided — N1 … N11 approved by the owner on 2026-10-19 as recommended,
+  except the range buttons, which stay and work (FR-043)
 - [x] Requirements are testable — each FR names an observable outcome (a 403 with no session, a 409
   on a second attempt, results over the first submissions, the same students in every sheet, a
   rank shared by a tie)
 - [x] Success criteria are measurable (0 sessions by non-enrolled users, the same student set in
   five places, 0 ranks computed in the browser, 0 procedures without a teacher)
-- [x] All acceptance scenarios are defined — 15 scenarios over 5 stories
+- [x] All acceptance scenarios are defined — 16 scenarios over 5 stories
 - [x] Edge cases are identified — a moved student, a mixed-course assignment, the grace period,
   standard exams
 - [x] Scope is clearly bounded — ratings (001), membership and roles (004), AI (005), storage
@@ -40,4 +40,4 @@
 
 ## Notes
 
-- 2026-10-19: draft for the owner; the item left open is the owner's decisions.
+- 2026-10-19: the owner approved the spec and the plans, with the range buttons kept (FR-043).

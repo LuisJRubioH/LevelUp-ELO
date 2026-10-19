@@ -1,7 +1,7 @@
 # Plan — spec 006, delivery P1: the procedures queue
 
 **Spec**: [spec.md](spec.md) § Deliveries, P1 (US5; FR-050, FR-051) · **Branch**: `006-p1`, from
-`redesign` · **Date**: 2026-10-19 · **Status**: draft for the owner (depends on N9)
+`redesign` · **Date**: 2026-10-19 · **Status**: approved by the owner (2026-10-19)
 
 ## Summary
 

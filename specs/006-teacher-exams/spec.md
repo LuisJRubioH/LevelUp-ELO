@@ -4,10 +4,10 @@
 
 **Created**: 2026-10-19
 
-**Status**: Draft for the owner's approval. Written from the as-is survey
+**Status**: Approved by the owner (2026-10-19), with N1 … N11 as recommended except N10's range
+buttons, which get a use (FR-043). Written from the as-is survey
 (`docs/sdd/teacher-exams-survey.md`, LuisJRubioH/LevelUp-ELO#43), re-verified on 2026-10-19 (its
-§ 7). The decisions N1 … N11 below are the owner's; each carries a recommendation. Delivery A pins
-what already holds; nothing in X1, X2, C1 or P1 is implemented.
+§ 7). Delivery A pins what already holds; nothing in X1, X2, C1 or P1 is implemented.
 
 **Input**: Roadmap M6 (`docs/sdd/roadmap.md`): dashboard metrics, exports, exam mode, procedure
 grading flow.
@@ -42,7 +42,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **A** | As-is pins: what exams and the console already guarantee, each requirement tied to a test that exists today | closed |
 | **X1** | Exam access and attempts: enrolled students only, one graded attempt per template, pending exams shown and dropped once submitted, server-side course name, a rate limit, stale sessions cleaned, a removed item no longer blocks a submission | planned |
 | **X2** | Templates and results: private until assigned, locked once taken, assignment checks the course and commits all groups or none, results of the teacher's own students on their first attempt, per student, with the chosen option kept | planned |
-| **C1** | The console from the server: one student set everywhere (screens, exports, counts), the group summary, ranking and «attention» list computed by the server with competition ranks, teacher routes for teachers only, dead controls removed | planned |
+| **C1** | The console from the server: one student set everywhere (screens, exports, counts), the group summary, ranking and «attention» list computed by the server with competition ranks, the dashboard's 7-day, 30-day and full-history views, teacher routes for teachers only, dead code removed | planned |
 | **P1** | The procedures queue: follows the item's course, active non-test students only, no submission left without a teacher, the grade slider starts empty, the AI feedback shown, a stale AI score cleared on resubmission | planned |
 
 ## Clarifications
@@ -56,7 +56,11 @@ request that completes a delivery marks it closed and fills all its rows.
 - Resubmitted procedures (survey decision 6): spec 001 block 7 — a regrade applies only the
   difference to the last contribution (spec 001 FR-024d), once per review round.
 
-The remaining survey decisions are N1 … N11 below, for the owner.
+### Session 2026-10-19 (owner decisions on the spec)
+
+- Q: N1 … N11? → A: approved as recommended, except the dashboard's range buttons (7d / 30d /
+  Todo): they stay and work — the dashboard's activity figures over the last 7 days, the last 30
+  days, or the whole history since the student registered (FR-043).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -122,6 +126,10 @@ endpoints through the API.
    **When** the teacher opens the dashboard, the metrics, the group counts and each export sheet,
    **Then** every one of them lists the same students.
 3. **US4-AS3** — **Given** an admin, **When** they call a teacher route, **Then** the answer is 403.
+4. **US4-AS4** — **Given** students with attempts 3, 20 and 90 days ago, **When** the teacher
+   picks 7 days, 30 days or «Todo» on the dashboard, **Then** the attempts, accuracy and activity
+   shown count only that window (all of them for «Todo»), and the ratings and ranks stay the
+   current ones.
 
 ### User Story 5 - Every procedure reaches a teacher, graded with care (Priority: P2) — P1
 
@@ -213,6 +221,10 @@ endpoints through the API.
   render them as given (N8).
 - **FR-042** [CHANGE]: The system shall answer 403 to a user who is not a teacher on every teacher
   route, and the screens shall offer no control that does nothing (N10).
+- **FR-043** [CHANGE]: When the teacher picks 7 days, 30 days or the whole history on the
+  dashboard, the system shall compute each student's attempts and accuracy and the activity
+  metrics over that window on the server; ratings and ranks stay the current ones (N10, owner
+  2026-10-19).
 
 **The procedures queue (P1)**
 
@@ -238,7 +250,7 @@ endpoints through the API.
 - **SC-001**: 0 exam sessions created by users who are not enrolled students of the course.
 - **SC-002**: The same students in the dashboard, the metrics, the group counts and the four
   export sheets, for every teacher of the test data.
-- **SC-003**: 0 ranks, means or thresholds computed in the browser (checked by reading the
+- **SC-003**: 0 ranks, means, thresholds or windowed counts computed in the browser (checked by reading the
   screens' code in review and by a test of the server's ranking).
 - **SC-004**: 0 pending procedures without a teacher who can grade them.
 
@@ -262,13 +274,13 @@ endpoints through the API.
 | N7 | After a student moves (T13) | The former teacher keeps the student only while an enrolment through one of their groups remains, and sees only that course's data. |
 | N8 | Ratings in the console (T17) | From the server: group summary, competition ranking and «attention» list (R15); the browser renders them. Test students excluded from rankings. |
 | N9 | The procedures queue and the slider (T15, T16) | Follow the item's course; active non-test students only; the slider starts empty; show the AI feedback; clear the AI score on resubmission. |
-| N10 | Admins on teacher routes and dead controls (T20) | Teacher routes for teachers only (admins use the admin console); remove the inert range buttons, the discarded query and the unused client calls. |
+| N10 | Admins on teacher routes and dead controls (T20) | Teacher routes for teachers only (admins use the admin console); remove the discarded query and the unused client calls. **Owner (2026-10-19): the range buttons stay and work** — 7 days, 30 days, whole history (FR-043). |
 | N11 | Exam smells (T8) | Course name from the server; a per-account limit on exam starts; delete active sessions 24 h after their deadline; a removed item is reported, not a 409 forever. |
 
 **For spec 001 (not decided here):** survey T10 — grading a procedure whose item no longer exists
 records 0 applied (spec 001 FR-024f) but marks the submission `elo_applied = 1` with the computed
-delta. Recommendation: refuse the grade with 409 and keep the procedure pending, as a spec 001
-amendment.
+delta. Approved by the owner (2026-10-19): refuse the grade with 409 and keep the procedure
+pending, written as a spec 001 amendment with its own test-first pull request.
 
 ## Out of Scope *(mandatory)*
 
@@ -298,6 +310,7 @@ closes their delivery.
 | US4-AS1 | C1 | `PENDING` |
 | US4-AS2 | C1 | `PENDING` |
 | US4-AS3 | C1 | `PENDING` |
+| US4-AS4 | C1 | `PENDING` |
 | US5-AS1 | P1 | `PENDING` |
 | US5-AS2 | P1 | `PENDING` |
 | FR-001 | A | `tests/api/test_student.py::TestExamMode::test_exam_start`<br>`tests/api/test_spec001_answer_pins.py::test_spec001_no_response_carries_the_correct_option` |
@@ -324,5 +337,6 @@ closes their delivery.
 | FR-040 | C1 | `PENDING` |
 | FR-041 | C1 | `PENDING` |
 | FR-042 | C1 | `PENDING` |
+| FR-043 | C1 | `PENDING` |
 | FR-050 | P1 | `PENDING` |
 | FR-051 | P1 | `PENDING` |

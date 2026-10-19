@@ -1,8 +1,7 @@
 # Plan — spec 006, delivery X2: templates and results
 
 **Spec**: [spec.md](spec.md) § Deliveries, X2 (US3; FR-030 … FR-033) · **Branch**: `006-x2`, from
-`redesign` after X1 · **Date**: 2026-10-19 · **Status**: draft for the owner (depends on N2, N4,
-N5)
+`redesign` after X1 · **Date**: 2026-10-19 · **Status**: approved by the owner (2026-10-19)
 
 ## Summary
 

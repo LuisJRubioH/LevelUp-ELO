@@ -1,7 +1,7 @@
 # Plan — spec 006, delivery X1: exam access and attempts
 
 **Spec**: [spec.md](spec.md) § Deliveries, X1 (US2; FR-020 … FR-024) · **Branch**: `006-x1`, from
-`redesign` · **Date**: 2026-10-19 · **Status**: draft for the owner (depends on N1, N3, N11)
+`redesign` · **Date**: 2026-10-19 · **Status**: approved by the owner (2026-10-19)
 
 ## Summary
 
