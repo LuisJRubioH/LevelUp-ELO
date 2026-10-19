@@ -195,3 +195,36 @@ None blocks the transfer (PR #3).
   - AI providers and keys (spec 005);
   - Storage and BYTEA mechanics (spec 002);
   - V1 beyond keeping it working.
+
+## 7. Re-verified on 2026-10-19 (`redesign` after spec 001 block 7, spec 004 E1/E2/E6, spec 003)
+
+Every finding was checked again on the current code before spec 006 was written. Numbers are
+current line numbers.
+
+| # | Now | What changed or still holds |
+|---|---|---|
+| T1 | Fixed (#39) | 30 s grace on the server (`stu:810-812`); the client counts from the clock |
+| T2 | Fixed (#41) | Windows validated, stored and returned in UTC |
+| T3 | Partly | An empty `course_id` on `/exam/start` is a 422. Still no enrolment or role check on `/exam/start`, `/exam/templates`, `/exam/pending` (`stu:863-981`); `/exam/templates?course_id=` accepts an empty string |
+| T4 | Holds | A template with no assignment is open to the whole course (P:6984-6988, S:6091-6135) |
+| T5 | Holds | No attempt limit; `/exam/pending` keeps submitted templates and no student screen shows it |
+| T6 | Holds | Results count every session of the template; no per-student results; `exam_responses` keeps no chosen option |
+| T7 | Holds | Edits rewrite the items in place; no course check on assignment; one commit per group |
+| T8 | Partly | A mismatched course or template is now a 400. `course_name` still comes from the client, `total_time_taken` is discarded, a removed item makes the session unsubmittable, `active_exam_sessions` is never cleaned, `/exam/start` has no rate limit |
+| T9 | **Resolved by spec 001 block 7** | A regrade applies only the difference (spec 001 FR-024d), per review round (FR-024l in spec 001) |
+| T10 | Partly | With the item gone, the grading records 0 applied (spec 001 FR-024f), but the submission row still gets `elo_applied = 1` and the computed delta |
+| T11 | Fixed (#40) | — |
+| T12 | Holds, V1 only | V1 is disconnected at the switch and retired (roadmap F-10) |
+| T13 | Holds | Main ∪ enrolment group; attempts, metrics, report and KatIA history not limited to the teacher's courses; pinned for #36 by `test_teacher_student_scope.py` |
+| T14 | Holds | The four XLSX sheets build four different student sets; group rankings include test students |
+| T15 | Partly | PostgreSQL no longer loads stored images in the queue when Storage has them (F-8); no active, test or role filter; follows the main group; a group-less student's procedure can never be graded |
+| T16 | Partly | PDF and formulas fixed. The AI score still starts the slider and stays stale after a resubmission; `ai_feedback` is never shown |
+| T17 | Holds | The browser computes the group mean, histogram, ranking (index positions) and the 1100 «attention» threshold; the server's `ranking_view` (`tch:463-474`) is not used by any screen |
+| T18 | Fixed (#42) | — |
+| T19 | Fixed | `limit` is bounded 1–200 |
+| T20 | Mostly holds | Report and rating-history client calls unused; range buttons inert; a discarded query; an admin passes the teacher check and can edit and assign any template |
+| T21 | — | Historical |
+
+Decision 6 (resubmitted procedures) is answered by spec 001 block 7. Decision 11 (grace period)
+was answered on 2026-10-15. The rest are the decisions of spec 006 (`specs/006-teacher-exams/
+spec.md` § New Decisions).
