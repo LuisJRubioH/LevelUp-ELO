@@ -196,8 +196,12 @@ an identical public API. Checklist:
 - Touched one repository? → edit the other too.
 - Added a table or column? → idempotent additive migration in both (R8).
 - Changed `_COURSE_BLOCK_MAP`? → change it in both.
-- Run `python scripts/db_sync_check.py`. It compares text, signatures and DDL only; behavioural
-  equivalence is proven by tests parametrised over both engines.
+- Run `python scripts/db_sync_check.py`. It compares public signatures (`inspect`) and the
+  tables, columns and indexes every migration method creates (`ast`), and fails on any difference
+  not listed in `src/infrastructure/persistence/engine_differences.py` — or on a listed one that no
+  longer exists. `tests/integration/test_spec002_d3_parity.py` compares what both databases report
+  after a bootstrap (types and seed too). An accepted difference is a decision: add it there, with
+  its reason. Behavioural equivalence is proven by tests parametrised over both engines.
 
 ### R2 — Layers
 ```

@@ -4260,8 +4260,10 @@ class PostgresRepository:
                     for row in cursor.fetchall()
                 }
 
-                cursor.execute("SELECT id FROM courses")
-                existing_course_ids = {row["id"] for row in cursor.fetchall()}
+                cursor.execute("SELECT id, name, block FROM courses")
+                existing_courses = {
+                    row["id"]: (row["name"], row["block"]) for row in cursor.fetchall()
+                }
 
                 # 2. Construir listas de courses/items nuevos y de UPDATEs para existentes
                 new_courses_params = []
@@ -4273,6 +4275,7 @@ class PostgresRepository:
                 # dejaba content/options viejos en prod tras correcciones del banco
                 # (paridad rota con SQLite). Ver bug #14 del QA de mayo 2026.
                 update_static_params = []
+                update_courses_params = []
 
                 for course_id, items_list in courses_data:
                     course_name = self._COURSE_NAME_MAP.get(course_id) or items_list[0].get(
@@ -4280,9 +4283,15 @@ class PostgresRepository:
                     )
                     block = self._COURSE_BLOCK_MAP.get(course_id, "Universidad")
 
-                    if course_id not in existing_course_ids:
+                    if course_id not in existing_courses:
                         new_courses_params.append(
                             (course_id, course_name, block, f"Curso de {course_name}")
+                        )
+                    elif existing_courses[course_id] != (course_name, block):
+                        # The bank is the source: a renamed course, or one moved to another
+                        # block, is renamed or moved here too, as on SQLite (spec 002 N1).
+                        update_courses_params.append(
+                            (course_name, block, f"Curso de {course_name}", course_id)
                         )
 
                     for item in items_list:
@@ -4323,7 +4332,12 @@ class PostgresRepository:
                                 existing_items[item["id"]] = static
 
                 # 3. Si no hay nada que hacer, salir
-                if not new_courses_params and not new_items_params and not update_static_params:
+                if not (
+                    new_courses_params
+                    or update_courses_params
+                    or new_items_params
+                    or update_static_params
+                ):
                     return  # finally blocks devuelven conexión y liberan lock
 
                 # 4. Insertar/actualizar
@@ -4333,6 +4347,13 @@ class PostgresRepository:
                         "INSERT INTO courses (id, name, block, description) "
                         "VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING",
                         new_courses_params,
+                    )
+
+                if update_courses_params:
+                    psycopg2.extras.execute_batch(
+                        cursor,
+                        "UPDATE courses SET name = %s, block = %s, description = %s WHERE id = %s",
+                        update_courses_params,
                     )
 
                 if new_items_params:
@@ -4382,26 +4403,23 @@ class PostgresRepository:
             self.put_connection(conn)
 
     def _seed_test_students(self):
-        """Crea estudiantes de prueba permanentes (inline PostgreSQL version)."""
+        """Crea estudiantes de prueba permanentes (inline PostgreSQL version).
+
+        The student list is the one seed_test_students.py (SQLite) uses, so both engines seed
+        the same students and groups (spec 002 N8).
+        """
         from src.domain.entities import (
             LEVEL_COLEGIO,
+            LEVEL_CONCURSOS,
             LEVEL_UNIVERSIDAD,
             LEVEL_SEMILLERO,
             LEVEL_TO_BLOCK,
             in_catalogue,
         )
-
-        _TEST_PASSWORD = "test1234"
-        _TEST_STUDENTS = [
-            # (username, education_level, grade)
-            ("estudiante_colegio_1", LEVEL_COLEGIO, None),
-            ("estudiante_colegio_2", LEVEL_COLEGIO, None),
-            ("estudiante_colegio_3", LEVEL_COLEGIO, None),
-            ("estudiante_universidad_1", LEVEL_UNIVERSIDAD, None),
-            ("estudiante_universidad_2", LEVEL_UNIVERSIDAD, None),
-            ("estudiante_semillero_1", LEVEL_SEMILLERO, "9"),
-            ("estudiante_semillero_2", LEVEL_SEMILLERO, "11"),
-        ]
+        from src.infrastructure.persistence.seed_test_students import (
+            _TEST_PASSWORD,
+            _TEST_STUDENTS,
+        )
 
         conn = self.get_connection()
         locked = False
@@ -4441,6 +4459,7 @@ class PostgresRepository:
                     LEVEL_COLEGIO: ("Grupo Prueba - Colegio", None),
                     LEVEL_UNIVERSIDAD: ("Grupo Prueba - Universidad", None),
                     LEVEL_SEMILLERO: ("Grupo Prueba - Semillero", None),
+                    LEVEL_CONCURSOS: ("Grupo Prueba - Concursos", None),
                 }
                 for level, (g_name, _) in list(_level_groups.items()):
                     g_norm = g_name.strip().lower()
