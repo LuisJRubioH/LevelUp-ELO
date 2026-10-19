@@ -1,5 +1,6 @@
 """
-Survey 007 V10 (`docs/sdd/pvp-survey.md` § 7): the player who waits in the PvP lobby.
+Survey 007 V10 and V12 (`docs/sdd/pvp-survey.md` § 7): the player who waits in the PvP lobby,
+and a malformed frame during a match.
 
 While a player waits, a task reads their socket to notice a closed tab. Two things went wrong:
 - an answer the client sent right after `game_start`, read by that task before the waiting
@@ -84,3 +85,23 @@ def test_a_message_while_waiting_does_not_leave_the_lobby(repo, live_api):
         starts = [_until(socket, "game_start") for socket in (waiting, joining)]
 
     assert starts[0]["match_id"] == starts[1]["match_id"]
+
+
+def test_a_malformed_message_does_not_end_the_players_match(repo, live_api):
+    """Survey 007 V12: a frame that is not JSON is ignored; the player keeps answering."""
+    from websockets.sync.client import connect
+
+    course_id, first, second = _two_students(repo)
+    url = f"{live_api}/api/ws/pvp/{course_id}"
+
+    with connect(url) as waiting, connect(url) as joining:
+        waiting.send(json.dumps({"token": _token(repo, first)}))
+        _until(waiting, "waiting")
+        joining.send(json.dumps({"token": _token(repo, second)}))
+        _until(waiting, "game_start")
+        item = _until(joining, "game_start")["items"][0]
+
+        joining.send("{not json")
+        joining.send(json.dumps({"type": "answer", "item_id": item["id"], "selected": "A"}))
+
+        assert _until(joining, "answer_result")["item_id"] == item["id"]
