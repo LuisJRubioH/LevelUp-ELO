@@ -138,7 +138,13 @@ def test_welcome_completes_on_view_and_closing_on_answers_right_or_wrong(repo, c
 
     user, headers = _student_before(repo, closing)
     for interaction in prealgebra._LESSONS[closing]["interactions"]:
-        _answer(client, headers, interaction["interaction_id"], _wrong(interaction["interaction_id"]), closing)
+        _answer(
+            client,
+            headers,
+            interaction["interaction_id"],
+            _wrong(interaction["interaction_id"]),
+            closing,
+        )
     response = _complete(client, headers, closing)
     assert response.status_code == 200, response.text
     assert _state(repo, user, closing) == "completed"

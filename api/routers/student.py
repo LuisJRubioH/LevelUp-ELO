@@ -66,7 +66,8 @@ from src.domain.elo.model import diagnostic_baseline
 from src.domain.procedures import COPY, REFUSE_OTHER_ITEM, REFUSE_SAME_ITEM
 from src.domain.learning.path import (
     completes_on_cards,
-    missing_interactions,
+    completion_gaps,
+    completion_refused,
     node_access,
 )
 from src.domain.learning.prealgebra import (
@@ -1267,7 +1268,7 @@ def _complete_hub_if_cards_opened(repo, user_id: int, course_id: str, hub: dict)
     if repo.get_lesson_progress(user_id, course_id, hub["node_id"])["state"] == "completed":
         return
     answered = repo.get_lesson_interactions(user_id, course_id, hub["node_id"])
-    if hub.get("interactions") and not missing_interactions(hub, answered):
+    if hub.get("interactions") and not completion_gaps(hub, answered):
         repo.record_lesson_event(user_id, course_id, hub["node_id"], "node_completed")
 
 
@@ -1370,17 +1371,14 @@ def lesson_event(
         raise HTTPException(status_code=422, detail="Evento de lección inválido")
     _refuse_preview(_path_access(repo, user, course_id))
 
-    _lesson_with_progress(repo, user["user_id"], course_id, lesson)
-    if body.event == "node_completed":
-        # One rule for every node (spec 003 L5): its registered interactions all answered.
-        answered = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
-        if missing_interactions(lesson, answered):
-            detail = (
-                "Completa las interacciones del nodo"
-                if completes_on_cards(lesson)
-                else "Responde las dos preguntas primero"
-            )
-            raise HTTPException(status_code=409, detail=detail)
+    current = _lesson_with_progress(repo, user["user_id"], course_id, lesson)
+    if body.event == "node_completed" and current["state"] != "completed":
+        # One rule for every node (spec 003 L3, FR-030): its `completion` data. A node already
+        # completed stays completed (FR-004), so the check only gates a first completion.
+        answers = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
+        gaps = completion_gaps(lesson, answers)
+        if gaps:
+            raise HTTPException(status_code=409, detail=completion_refused(lesson, gaps))
     repo.record_lesson_event(user["user_id"], course_id, node_id, body.event)
     return LessonDetailResponse(
         **_lesson_with_progress(repo, user["user_id"], course_id, lesson)

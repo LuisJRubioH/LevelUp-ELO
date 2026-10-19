@@ -40,6 +40,8 @@ type Props = {
   onBack: () => void;
   onFinish: () => Promise<void>;
   finishing: boolean;
+  /** The server's refusal (spec 003 L3): which items still need a right answer. */
+  finishRefused?: string;
 };
 
 // Desvanecimiento del ejemplo resuelto según banda de presentación
@@ -131,7 +133,14 @@ export function isElevenBlock(content: any): boolean {
   return content?.kind === "eleven_block_node";
 }
 
-export function ElevenBlockLesson({ lesson, courseId, onBack, onFinish, finishing }: Props) {
+export function ElevenBlockLesson({
+  lesson,
+  courseId,
+  onBack,
+  onFinish,
+  finishing,
+  finishRefused,
+}: Props) {
   const { t } = useTranslation();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const content = lesson.content as any;
@@ -388,6 +397,11 @@ export function ElevenBlockLesson({ lesson, courseId, onBack, onFinish, finishin
               ? t("prealgebra.backToMap")
               : (content.finish_label ?? "Terminar el nodo")}
           </Button>
+          {finishRefused && (
+            <p className="blk-finish-refused" role="alert">
+              {finishRefused}
+            </p>
+          )}
         </MasteryFooter>
       </div>
     </article>
