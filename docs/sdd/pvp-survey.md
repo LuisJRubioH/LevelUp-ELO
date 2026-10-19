@@ -198,3 +198,76 @@ None blocks the transfer (PR #3).
   - rating arithmetic and the PvP rating writer (spec 001; V6's rule is an amendment there);
   - enrolment and roles (spec 004);
   - item content and images (spec 008).
+
+## 7. Re-verification at `redesign @ f2ad4ed` (2026-10-19)
+
+Every finding above was checked again against `f2ad4ed` (spec 006 complete); follow-ups F-5
+(enrolment) and F-9 (both students locked, in id order, on finish) are in the code. Line numbers
+below are at that commit (`pvp` = `api/websocket/pvp.py`, `hook` =
+`frontend/src/hooks/usePvpMatch.ts`, `lg` = `frontend/src/pages/Student/League.tsx`).
+
+**Status of V1–V18**
+
+| # | Status | Today |
+|---|---|---|
+| V1–V4 | Fixed | #46: answers only for the match's items and only while it runs; the close race; a course without items closes with 4404 (`pvp:286`) |
+| V5 | Holds | First come, first served per course; no rating window, repeat-opponent limit or daily cap (`pvp:255-268`) |
+| V6 | Holds | The unrated player is expected at 1000 and gets 0 (`no_rated_topics`); the rated one gets a full delta |
+| V7 | Holds | No per-socket rate, no per-student connection or match limit, uvicorn's default frame size |
+| V8 | Holds | Two courses at once are allowed; the lobby never checks `_matches`, so two matches can run at once and both apply. A second tab in the same course still replaces the first, which waits 300 s (`pvp:261-268, 338`) |
+| V9 | Holds | No reconnect, no forfeit: the absent player loses at 180 s; the player who stayed waits out the 180 s, since an early finish needs both `done`. A player who leaves between being taken from the lobby and `game_start` is still put in the match (Inferred) |
+| V10 | Holds, and worse | Besides a message while waiting counting as a disconnect, **the waiting player's first answer can be lost**: the task that watches the socket while waiting is cancelled only after the wake-up, and an answer that arrives first is read and discarded — no `answer_result` (`pvp:334-366`). **Reproduced** with fault injection (wake-up delayed 0.5 s): first answer lost |
+| V11 | Holds | A failed close stays `active`; see V22 below |
+| V12 | Holds | The server never closes a socket after `game_end`; one malformed frame ends that player's answer loop while the match runs on (`pvp:389-441`) |
+| V13 | Holds | The match payload still has no `image_url` |
+| V14 | Partly | `elo_reason` is now shown (`lg:169-170`). Verdict colours are hard-coded, the copy is outside `i18n/`, the applied delta is rounded in the browser (`Math.round`, not half-up as `round_for_display`), and history has no course label |
+| V15 | Holds | PostgreSQL has no foreign keys on the PvP tables; no unique `(match_id, user_id, item_id)`; `elo_delta_p1/p2` is `REAL` (float4 on PostgreSQL, against `DOUBLE PRECISION` ratings); `test_pvp_repository.py` runs on SQLite only |
+| V16 | Partly | The rival now sees the display name, else the username (spec 004 FR-021, `pvp:223`), and the rating; any enrolled student of the course, across schools and groups, still meets any other |
+| V17 | Holds | `validate_runtime` reads only `WEB_CONCURRENCY`; a `--workers N` flag or a second instance is not detected |
+| V18 | Holds | The endpoint calls `_course_rating` (`pvp:239`); the FR-026 test calls `_lobby_rating` (`pvp:106`), a wrapper over it |
+
+**New findings**
+
+| # | Kind | Finding | Evidence | Checked |
+|---|---|---|---|---|
+| V19 | **Decision** | **Items ignore both ratings.** `random.sample` over the whole course, the same list and order for both players, possibly items one of them just practised; each item's `difficulty` is sent to the client. `correct_option` is not, and answers are judged on the server (V2-R9 holds). | `pvp:272-298` | Verified |
+| V20 | **Risk** | **The clock is the server's, the display the client's.** The client counts `setInterval` ticks from `game_start` (slowed in a background tab, as the exam's T1 was); an answer after the server closed is dropped with no reply; no tiebreak by speed, and practice's time bounds (R16) are not applied. | `pvp:375-386`; `hook:87-96, 128-133` | Verified |
+| V21 | **Decision** | **Test users play real students.** Any active enrolled student may play, `is_test_user` included, so a test account can move a real student's rating (R6 protects test users only from deletion). | `pvp:220-230` | Verified |
+| V22 | **Gap** | **Orphans are expired only at bootstrap, and only after 600 s.** Deployed, bootstrap runs once in `migrate.py` before uvicorn; a match cut off by a restart is younger than 600 s at that restart's bootstrap, so it stays `active` until the next deploy. No periodic sweep, no shutdown drain. | P:347, 5410-5435; S:93, 4691-4714; `api/main.py:53-75` | Verified (timing: Inferred) |
+| V23 | **Smell** | **`pvp_answers` is written and never read.** De-duplication is in memory only; a failed insert is logged and the answer still scores; the close uses in-memory scores. | `pvp:401-410`; P:5336-5346 | Verified |
+| V24 | **Smell** | **The expectation uses ratings read at lobby entry,** up to ~8 min old at close (300 s wait + 180 s match). Every refusal is 4001 "Auth failed" (bad token, wrong role, not enrolled, database error alike). | `pvp:231-242, 150`; `hook:41-45` | Verified |
+| V25 | **Gap** | **History hides what went wrong.** Only `finished` matches are listed (an abandoned or failed one never appears); 20 fixed (the screen shows 5); no course. | `api/routers/student.py:377-381`; P:5451; `lg:248-280` | Verified |
+
+**The intermittent PvP test (V10).** `test_pvp_enrolment.py::test_pvp_matches_and_finishes_a_game_between_enrolled_students[postgres]`
+failed once in a full suite run on 2026-10-19 and passed in isolation.
+- **In isolation:** 40 of 40 runs passed (20 per engine).
+- **Under CPU load** (six busy loops on 4 cores; the four PvP integration files plus
+  `test_spec001_concurrent_rating_writers.py`, both engines): 5 of 30 runs failed.
+- **Where:** every captured failure is the same 15 s timeout at `test_pvp_enrolment.py:122`, on
+  the waiting player's answers, and on PostgreSQL. The database calls logged before it took 0–1 ms,
+  so the pool is not the cause.
+- **Why:** the test has no sleeps or fixed waits. The failure site and the fault injection point
+  to V10's lost first answer, a product race rather than a test bug (Inferred).
+
+**Decisions, updated.** § 5 still stands, with these recommendations and three additions:
+
+1. Fair play (V5): a rating window that widens with waiting time, and a daily cap per pair.
+2. Unrated players (V6): a match with an unrated player rates nobody (spec 001 amendment).
+3. Socket limits (V7): one live socket per student, a frame-size cap and a message rate.
+4. One queue at a time (V8): one lobby slot or match per student across courses; a second tab is
+   refused.
+5. Disconnects (V9): a forfeit after a grace of about 20 s, which also allows a reconnect to
+   resume; the opponent is told.
+6. Who meets whom (V16): decide group or institution scope; the display name stays.
+7. Items (V13, V19): difficulty near both ratings, excluding recently seen items, images
+   included, `difficulty` dropped from the payload.
+8. Teacher view: unchanged.
+9. **New — the clock (V20):** the client counts down to a server `ends_at`, as the exam fix did;
+   ties break on time.
+10. **New — test users (V21):** they play only each other, or unrated.
+11. **New — orphans (V22):** a periodic sweep inside the server, and live matches marked
+    `abandoned` on shutdown; history lists abandoned and failed matches with their reason
+    (V25).
+
+Fixing V10 comes first in any case: it is a bug, and it is what makes the full-match test
+intermittent.
