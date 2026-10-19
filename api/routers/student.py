@@ -22,7 +22,17 @@ import random
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, File, Form, Header, HTTPException, Request, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    File,
+    Form,
+    Header,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
 
 from api.ai_target import (
     GROQ_ONLY,
@@ -34,6 +44,7 @@ from api.ai_target import (
 from api.dependencies import (
     CurrentUser, RepoDep, create_procedure_review_token, decode_token, require_role,
 )
+from api.katia_record import classify_closed
 from api.rate_limit import limiter
 from api.config import settings
 from api.upload_validation import read_validated_upload
@@ -71,6 +82,7 @@ from api.schemas.student import (
 )
 from src.application.services.student_service import StudentService
 from src.domain.elo.model import diagnostic_baseline
+from src.domain.katia.conversation import STALE_AFTER_HOURS, close_outcome
 from src.domain.procedures import COPY, REFUSE_OTHER_ITEM, REFUSE_SAME_ITEM
 from src.domain.learning.public_content import public_content
 from src.domain.learning.path import (
@@ -149,10 +161,20 @@ def _refuse_preview(preview: bool) -> None:
 
 
 @router.post("/next-question", response_model=NextQuestionResponse)
-def next_question(body: NextQuestionRequest, user: CurrentUser, repo: RepoDep):
+def next_question(
+    body: NextQuestionRequest,
+    user: CurrentUser,
+    repo: RepoDep,
+    background_tasks: BackgroundTasks,
+):
     """Selecciona la siguiente pregunta adaptativa (ZDP) para el estudiante."""
     service = _make_service(repo)
     _require_enrolment(service, user["user_id"], body.course_id)
+    # Spec 005 FR-031, FR-032: asking for another item abandons the open KatIA conversations
+    # (their text goes in the same transaction); the 24-hour sweep runs here too.
+    closed = repo.close_katia_conversations(user["user_id"], close_outcome("other_item"))
+    closed += repo.expire_stale_katia_conversations(STALE_AFTER_HOURS)
+    background_tasks.add_task(classify_closed, repo, closed)
     item, status_str = service.get_next_question(
         student_id=user["user_id"],
         course_id=body.course_id,
@@ -189,6 +211,7 @@ def answer(
     body: AnswerRequest,
     user: CurrentUser,
     repo: RepoDep,
+    background_tasks: BackgroundTasks,
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ):
     """Procesa una respuesta: actualiza el rating del (curso, tópico) del ítem de forma atómica.
@@ -243,6 +266,9 @@ def answer(
         if saved:
             return persisted(saved, {"idempotent_replay": True})
 
+    # Spec 005 FR-031: the answer closes the item's KatIA conversation in its own transaction,
+    # which deletes the text; it is read first so the difficulty can be classified afterwards.
+    katia_closing = repo.open_katia_transcripts(user["user_id"], body.item_id)
     is_correct, result = service.process_answer(
         user_id=user["user_id"],
         item_data=item_db,
@@ -252,6 +278,8 @@ def answer(
         request_id=idempotency_key,
         request_fingerprint=fingerprint if idempotency_key else None,
     )
+    if not result.get("idempotent_replay"):
+        background_tasks.add_task(classify_closed, repo, katia_closing)
 
     if idempotency_key:
         saved = repo.get_answer_by_request_id(user["user_id"], idempotency_key)

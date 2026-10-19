@@ -11,14 +11,16 @@ import json
 import logging
 from typing import AsyncGenerator
 
-from fastapi import APIRouter, Form, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
 
 from api.ai_target import TIMED_OUT, UNAVAILABLE, ai_target, require_enrolled_in_item
 from api.dependencies import CurrentUser, RepoDep, require_role
+from api.katia_record import classify_closed
 from api.schemas.student import SocraticRequest
 from api.config import settings
 from api.rate_limit import limiter
+from src.domain.katia.conversation import HISTORY_TURNS, STALE_AFTER_HOURS
 from src.domain.katia.guardrail import GUIDING_QUESTION, check_reply
 from api.upload_validation import read_validated_upload
 
@@ -40,7 +42,13 @@ def _is_provider_error(text: str | None) -> bool:
 
 @router.post("/socratic", dependencies=[require_role("student")])
 @limiter.limit(settings.rate_limit_socratic)
-async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, repo: RepoDep):
+async def socratic(
+    request: Request,
+    body: SocraticRequest,
+    user: CurrentUser,
+    repo: RepoDep,
+    background_tasks: BackgroundTasks,
+):
     """
     Respuesta socrática de KatIA como Server-Sent Events (streaming).
 
@@ -97,6 +105,20 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
     # Spec 005 FR-010 … FR-013: the key's prefix picks the provider, settings the model.
     target = ai_target("katia", effective_key)
 
+    # K3 (FR-030 … FR-032): conversations silent for 24 hours close as «abandonado» and lose
+    # their text; then this message joins the student's open conversation about the item, whose
+    # last turns go to the provider as context.
+    stale = await asyncio.to_thread(repo.expire_stale_katia_conversations, STALE_AFTER_HOURS)
+    background_tasks.add_task(classify_closed, repo, stale)
+    conversation = await asyncio.to_thread(
+        repo.open_katia_conversation,
+        user["user_id"],
+        item_db.get("course_id") or body.course_id,
+        body.item_id,
+        topic,
+        HISTORY_TURNS,
+    )
+
     # The provider answers in one piece; it is called before the stream starts, so a failure is
     # a 502/503 with a fixed message, never a 200 (FR-016, US2-AS3).
     try:
@@ -114,6 +136,7 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
             target.provider,
             body.lang,
             timeout=target.timeout,
+            history=conversation["history"],
         )
     except TimeoutError:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=TIMED_OUT)
@@ -128,20 +151,15 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=_KATIA_UNAVAILABLE)
 
     # FR-022: a reply that names the correct option, announces a solution or runs past three
-    # sentences is replaced by a guiding question, and is not recorded as KatIA's.
-    if check_reply(full_text, correct_answer):
-        await asyncio.to_thread(
-            repo.save_katia_interaction,
-            user["user_id"],
-            body.course_id,
-            body.item_id,
-            topic,
-            body.student_message,
-            full_text,
-        )
-    else:
+    # sentences is replaced by a guiding question, and is not recorded as KatIA's: the turn keeps
+    # only the student's message.
+    if not check_reply(full_text, correct_answer):
         logger.info("KatIA: a reply was replaced by the guiding question")
-        full_text = GUIDING_QUESTION
+        full_text = None
+    await asyncio.to_thread(
+        repo.record_katia_turn, conversation["id"], body.student_message, full_text
+    )
+    full_text = full_text or GUIDING_QUESTION
 
     async def _generate() -> AsyncGenerator[str, None]:
         # Streaming simulado token a token (palabras): el proveedor ya respondió completo.

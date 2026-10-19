@@ -58,7 +58,11 @@ def _saved(message):
         return [
             r[0]
             for r in conn.execute(
-                "SELECT katia_response FROM katia_interactions WHERE student_message = ?",
+                "SELECT k.text FROM katia_messages s JOIN katia_messages k"
+                " ON k.conversation_id = s.conversation_id AND k.role = 'katia'"
+                " AND k.id = (SELECT MIN(id) FROM katia_messages n"
+                " WHERE n.conversation_id = s.conversation_id AND n.id > s.id)"
+                " WHERE s.role = 'student' AND s.text = ?",
                 (message,),
             )
         ]

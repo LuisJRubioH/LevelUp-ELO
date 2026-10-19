@@ -322,14 +322,25 @@ def _attempt_without_prob_failure(database):
     )
 
 
+def _katia_text(database):
+    """Spec 005 N3: a message typed before K3, kept with no expiry."""
+    user = database.sql("SELECT id FROM users WHERE username = 'estudiante1'")[0][0]
+    database.sql(
+        "INSERT INTO katia_interactions (user_id, course_id, item_id, item_topic,"
+        " student_message, katia_response) VALUES (?, 'k3', 'k3_item', 'k3', 'hola', 'Mira el signo.')",
+        (user,),
+    )
+
+
 @pytest.mark.parametrize(
     "script, prepare, expected",
     [
         ("deactivate_users_without_password.py", _user_without_password, 1),
         ("rename_duplicate_groups.py", _duplicate_groups, 2),  # one renamed, one filled
         ("backfill_prob_failure.py", _attempt_without_prob_failure, 1),
+        ("delete_katia_texts.py", _katia_text, 1),  # spec 005 N3
     ],
-    ids=["users", "groups", "prob_failure"],
+    ids=["users", "groups", "prob_failure", "katia_texts"],
 )
 def test_spec002_d1_repair_scripts_report_and_are_idempotent(database, script, prepare, expected):
     """US2-AS2, FR-018: a dry run reports and changes nothing; --apply changes and reports the

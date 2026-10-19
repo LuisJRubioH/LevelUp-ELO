@@ -1,7 +1,7 @@
 """
 When the AI provider fails, KatIA says she could not answer: the provider's error text is not
-streamed as her reply nor saved as her answer in katia_interactions (the teacher reads that
-history and exports it). An unexpected failure shows a generic message, not the exception text.
+streamed as her reply nor saved as her answer in the open conversation (spec 005 K3). An
+unexpected failure shows a generic message, not the exception text.
 The procedure review's AI score is advisory and lives on a 0-100 scale: a value outside it is
 brought into range before it is signed and shown.
 """
@@ -27,7 +27,11 @@ def _saved_replies(student_message):
         return [
             row[0]
             for row in conn.execute(
-                "SELECT katia_response FROM katia_interactions WHERE student_message = ?",
+                "SELECT k.text FROM katia_messages s JOIN katia_messages k"
+                " ON k.conversation_id = s.conversation_id AND k.role = 'katia'"
+                " AND k.id = (SELECT MIN(id) FROM katia_messages n"
+                " WHERE n.conversation_id = s.conversation_id AND n.id > s.id)"
+                " WHERE s.role = 'student' AND s.text = ?",
                 (student_message,),
             )
         ]

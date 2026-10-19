@@ -12,7 +12,17 @@ Endpoints de autenticación:
 
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Cookie,
+    Depends,
+    Header,
+    HTTPException,
+    Request,
+    Response,
+    status,
+)
 
 from api.config import settings
 from api.dependencies import (
@@ -31,8 +41,10 @@ from api.schemas.auth import (
     TokenResponse,
     UserProfile,
 )
+from api.katia_record import classify_closed
 from api.rate_limit import client_ip, limiter, login_allowed, login_limit_key
 from api.websocket.connections import close_user_sync
+from src.domain.katia.conversation import close_outcome
 from src.domain.identity import (
     PASSWORD_MIN_LENGTH,
     display_name_problem,
@@ -209,10 +221,41 @@ def refresh_token(
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-def logout(response: Response):
+def logout(
+    response: Response,
+    repo: RepoDep,
+    background_tasks: BackgroundTasks,
+    authorization: Annotated[str | None, Header()] = None,
+    cookie_token: Annotated[str | None, Cookie(alias=_REFRESH_COOKIE)] = None,
+):
     """Elimina la cookie de refresh token, con los mismos atributos con que se creó (FR-081):
-    sin Secure ni SameSite=None, un navegador no borra una cookie de otro sitio."""
+    sin Secure ni SameSite=None, un navegador no borra una cookie de otro sitio.
+
+    Spec 005 FR-031: ending the session abandons the student's open KatIA conversations. The
+    student is the one of the access token or, when it expired, of the refresh cookie; without
+    either, logging out still succeeds."""
     response.delete_cookie(key=_REFRESH_COOKIE, **_refresh_cookie_scope())
+    user_id = _session_user(authorization, cookie_token)
+    if user_id is not None:
+        closed = repo.close_katia_conversations(user_id, close_outcome("logout"))
+        background_tasks.add_task(classify_closed, repo, closed)
+
+
+def _session_user(authorization: str | None, cookie_token: str | None) -> int | None:
+    """The user of a valid access token or refresh cookie, or None."""
+    candidates = []
+    if authorization and authorization.lower().startswith("bearer "):
+        candidates.append((authorization[7:].strip(), "access"))
+    if cookie_token:
+        candidates.append((cookie_token, "refresh"))
+    for token, kind in candidates:
+        try:
+            payload = decode_token(token)
+        except HTTPException:
+            continue
+        if payload.get("type") == kind and payload.get("sub"):
+            return int(payload["sub"])
+    return None
 
 
 @router.get("/me", response_model=UserProfile)

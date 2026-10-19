@@ -619,7 +619,10 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `lesson_interactions` | the current answer per (student, course, node, interaction): the completion rule reads it (spec 003 L3) |
 | `lesson_answers` | every answer in order, append-only (spec 003 L4, FR-040): `is_expected`, `misconception_tag`; the teacher reads it without `selected_option` (N11) |
 | `lesson_outcomes` | PK `(user_id, course_id, node_id)`: the post-diagnostic outcome `gain`/`flat` the server stores (FR-041) |
-| `katia_interactions`, `problem_reports`, `audit_group_changes`, `diagnostics` | see repositories |
+| `katia_conversations` | spec 005 K3: one per student × item while `open`; on close `outcome` (`superado`/`no_superado`/`abandonado`), `turns`, `difficulty` (N2 list or `sin_clasificar`) — the summary the teacher reads, no text |
+| `katia_messages` | a conversation's text, only while it is open: deleted in the transaction that closes it, at most 24 h after the last message |
+| `katia_interactions` | legacy (written only by frozen V1); deleted by `scripts/repairs/delete_katia_texts.py` after the switch |
+| `problem_reports`, `audit_group_changes`, `diagnostics` | see repositories |
 
 ---
 
