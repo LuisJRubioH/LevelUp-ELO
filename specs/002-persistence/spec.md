@@ -37,7 +37,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **A** | As-is pins: what persistence already guarantees, each requirement tied to a test | in progress |
 | **D1** | Startup: a schema version so a start with nothing to do does nothing; repairs as scripts; the one R8 exception guarded; a failed migration commits nothing | closed |
 | **D2** | Connections and the event loop: warm idle connections, a real liveness check, no repository call blocking an asynchronous handler, one round trip per read | closed |
-| **D3** | Parity checks and documented differences between the engines | planned |
+| **D3** | Parity checks and documented differences between the engines | closed |
 
 ## Clarifications
 
@@ -344,8 +344,8 @@ pull request that closes their delivery.
 | US6-AS2 | A | `tests/integration/test_migrate_lock.py::test_migrate_fails_and_blocks_the_web_process_when_a_lock_is_held` |
 | US6-AS3 | A | `tests/integration/test_v1_run_migrations.py::test_v1_with_run_migrations_0_creates_nothing` |
 | US6-AS4 | A | `tests/integration/test_teacher_image_fallback.py::test_image_falls_back_to_the_row_when_storage_fails` |
-| US7-AS1 | D3 | `PENDING` |
-| US7-AS2 | D3 | `PENDING` |
+| US7-AS1 | D3 | `tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_a_column_added_to_one_engine_fails`<br>`tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_an_index_or_unique_index_on_one_engine_fails` |
+| US7-AS2 | D3 | `tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_a_parameter_after_a_tuple_default_differs_fails` |
 | FR-001 | A | `PENDING` |
 | FR-002 | A | `PENDING` |
 | FR-003 | A | `tests/unit/application/test_repository_contracts.py::test_every_declared_method_exists_in_both_engines`<br>`tests/unit/application/test_repository_contracts.py::test_declared_signatures_match_the_implementation`<br>`tests/unit/application/test_repository_contracts.py::test_everything_the_service_calls_is_declared` |
@@ -368,5 +368,5 @@ pull request that closes their delivery.
 | FR-030 | A | `tests/integration/test_procedure_upload_paths.py::test_storage_key_stays_in_the_students_folder`<br>`tests/unit/infrastructure/test_storage_paths.py::test_no_separator_or_dot_survives` |
 | FR-031 | A | `tests/integration/test_teacher_image_fallback.py::test_image_falls_back_to_the_row_when_storage_fails` |
 | FR-032 | A | `tests/integration/test_procedure_upload_paths.py::test_local_fallback_file_stays_in_the_uploads_folder` |
-| FR-040 | D3 | `PENDING` |
-| FR-041 | D3 | `PENDING` |
+| FR-040 | D3 | `tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_a_column_added_to_one_engine_fails`<br>`tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_an_index_or_unique_index_on_one_engine_fails`<br>`tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_a_stale_accepted_difference_fails`<br>`tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_the_repositories_pass`<br>`tests/integration/test_spec002_d3_parity.py::test_both_engines_build_the_same_schema` |
+| FR-041 | D3 | `tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_a_parameter_after_a_tuple_default_differs_fails`<br>`tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_the_repositories_pass` |

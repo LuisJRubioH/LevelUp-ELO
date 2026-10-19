@@ -601,6 +601,8 @@ class SQLiteRepository:
         # Asegurar índices si no existen
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)")
+        # Spec 002 N1 (schema version 2): the index PostgreSQL has had on attempts(user_id).
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_attempts_user_id ON attempts(user_id)")
         # Índice compuesto para consultas de intentos por (user_id, topic) y timestamp
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_attempts_user_topic_ts "

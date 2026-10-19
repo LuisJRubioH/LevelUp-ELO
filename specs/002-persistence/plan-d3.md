@@ -123,8 +123,12 @@ LuisJRubioH/LevelUp-ELO#82).
 
 - `SCHEMA_VERSION` goes from 1 to 2. The first start after deploy runs the cumulative migration
   once, then records version 2.
-- On PostgreSQL the only effect is the course sync: names and blocks from the bank overwrite those
-  in the database. Today they already match, so no row changes until the bank changes.
+- On PostgreSQL the only data effect is the course sync: the first start that syncs the bank
+  writes the bank's name and block over any course row that differs (all 49 bank courses are in
+  `_COURSE_BLOCK_MAP`; 10 take their name from their first item's topic, as on SQLite). How many
+  production rows differ is not known from here; the rehearsal's report lists `courses` among the
+  tables whose data changed when it happens. *(Corrected while implementing: the first version of
+  this plan said they already match, which was not verified.)*
 
 ## Owner decisions (2026-10-19)
 
