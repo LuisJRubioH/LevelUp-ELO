@@ -15,10 +15,10 @@ import hashlib
 import inspect
 import os
 
-SCHEMA_VERSION = 5  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
+SCHEMA_VERSION = 6  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
 # 4: spec 005 K3 (katia_conversations, katia_messages);
-# 5: spec 006 X2 (exam_responses.selected_option)
-MIGRATION_SOURCES_DIGEST = "1fc644a7eb4f8aa381de928eb620a863240a763a10d30d27b6497621b62523ee"
+# 5: spec 006 X2 (exam_responses.selected_option); 6: spec 004 E3 (users.access_until)
+MIGRATION_SOURCES_DIGEST = "b53bf62dc7606c621f37d305e00b67fcc90182ef5bf6a96ba3c68b6e0028d252"
 
 # Every method that issues DDL, or decides whether the migration may run, on both repositories.
 _MIGRATION_METHODS = (

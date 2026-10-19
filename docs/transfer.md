@@ -369,9 +369,10 @@ The schema version the code expects is `SCHEMA_VERSION` in
 | 3 | spec 003 L4: tables `lesson_answers` (every lesson answer, in order) and `lesson_outcomes` (the post-diagnostic outcome); each row already in `lesson_interactions` is copied once into `lesson_answers` |
 | 4 | spec 005 K3: tables `katia_conversations` (one summary per KatIA conversation) and `katia_messages` (its text, only while it is open); `katia_interactions` stays and is no longer written by V2 |
 | 5 | spec 006 X2: column `exam_responses.selected_option` (the option chosen for each exam item; NULL on rows stored before it) |
+| 6 | spec 004 E3: column `users.access_until` (the last day of access, inclusive, Colombian time; NULL — every existing account — never expires) |
 
 A production database from `main` has no schema version and no lesson tables, so its first
-migration goes straight to version 5 and the L4 copy finds nothing to copy. The rehearsal must run
+migration goes straight to version 6 and the L4 copy finds nothing to copy. The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
 cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
 
