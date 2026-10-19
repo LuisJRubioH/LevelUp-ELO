@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from tests.integration.conftest import headers_for, make_student, sql
+from tests.integration.conftest import enroll, headers_for, make_student, sql
 
 COURSE = "algebra_basica"
 LIMIT_SECONDS = 5 * 60
@@ -54,6 +54,7 @@ def _submit(client, headers, exam):
 @pytest.mark.parametrize("late", [5, 20])
 def test_a_submission_just_after_the_limit_is_graded(repo, client, late):
     student = make_student(repo, "colegio")
+    enroll(repo, student, COURSE)  # exams are for enrolled students (spec 006 FR-020)
     headers = headers_for(repo, student)
     exam = _start(client, headers)
     _as_if_started_ago(repo, exam["session_id"], LIMIT_SECONDS + late)
@@ -66,6 +67,7 @@ def test_a_submission_just_after_the_limit_is_graded(repo, client, late):
 
 def test_a_submission_long_after_the_limit_is_refused(repo, client):
     student = make_student(repo, "colegio")
+    enroll(repo, student, COURSE)  # exams are for enrolled students (spec 006 FR-020)
     headers = headers_for(repo, student)
     exam = _start(client, headers)
     _as_if_started_ago(repo, exam["session_id"], LIMIT_SECONDS + 120)

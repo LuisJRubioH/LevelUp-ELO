@@ -69,6 +69,7 @@ class Settings(BaseSettings):
     # ── Rate limiting (slowapi) ───────────────────────────────────────────────
     rate_limit_socratic: str = "10/minute"  # peticiones IA socrática por usuario
     rate_limit_review: str = "3/minute"  # revisión de procedimientos
+    rate_limit_exam_start: str = "10/minute"  # inicios de examen por cuenta (spec 006 FR-023)
     # Spec 004 E1: login is limited per account and overall, never per address (FR-006 … FR-009);
     # public sign-up, when open, has its own per-address limit (FR-004, decision N2: 20/minute).
     rate_limit_login_account: str = "10/minute"

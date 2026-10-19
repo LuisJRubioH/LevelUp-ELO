@@ -111,11 +111,38 @@ def test_only_enrolled_students_reach_exams(repo, client, who):
         json={"session_id": "x1-none", "answers": []},
     )
 
-    assert [r.status_code for r in (listed, standard, templated, submitted)] == [403] * 4
+    # A student never enrolled has no session of their own: 404, nothing to grade.
+    expected_submit = 404 if who == "not-enrolled" else 403
+    assert [r.status_code for r in (listed, standard, templated)] == [403] * 3
+    assert submitted.status_code == expected_submit
     if user is not None:
         assert _sessions(repo, user) == 0
     if who != "not-enrolled":
         assert client.get("/api/student/exam/pending", headers=headers).status_code == 403
+
+
+def test_a_student_no_longer_enrolled_cannot_submit(repo, client):
+    """FR-020: the course is checked again at submission."""
+    c = _class(repo, client)
+    exam = _start(client, c["headers"], c["course"]).json()
+    sql(
+        repo,
+        "DELETE FROM enrollments WHERE user_id = ? AND course_id = ?",
+        (c["student"], c["course"]),
+    )
+
+    assert _submit(client, c["headers"], exam).status_code == 403
+
+
+def test_a_course_without_items_is_404(repo, client):
+    """FR-005 (spec 006 A): an enrolled course with no items has no exam to build."""
+    course, _ = make_course(repo, [], name="Curso X1 vacío")
+    student = make_student(repo)
+    enroll(repo, student, course)
+
+    response = _start(client, headers_for(repo, student), course)
+
+    assert response.status_code == 404, response.text
 
 
 def test_an_empty_course_is_refused_when_listing(repo, client):

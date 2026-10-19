@@ -5,7 +5,14 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from tests.integration.conftest import headers_for, make_group, make_student, make_teacher, sql
+from tests.integration.conftest import (
+    enroll,
+    headers_for,
+    make_group,
+    make_student,
+    make_teacher,
+    sql,
+)
 
 COURSE = "algebra_basica"
 
@@ -68,6 +75,7 @@ def test_a_window_open_now_shows_the_exam_to_the_group(repo, client):
     headers, group, template = _template_for_a_group(repo, client)
     student = make_student(repo, "colegio")
     sql(repo, "UPDATE users SET group_id = ? WHERE id = ?", (group, student))
+    enroll(repo, student, COURSE, group)  # exams are for enrolled students (spec 006 FR-020)
     now = datetime.now(timezone.utc)
     starts_at = (now - timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
     ends_at = (now + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S.000Z")

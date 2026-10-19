@@ -29,6 +29,7 @@ from fastapi import (
     Form,
     Header,
     HTTPException,
+    Query,
     Request,
     UploadFile,
     status,
@@ -876,11 +877,18 @@ def _items_from_template(repo, template: dict) -> list[dict]:
     return [by_id[i] for i in template["item_ids"] if i in by_id]
 
 
-@router.get("/exam/templates", response_model=list[ExamTemplateSummary])
+# Spec 006 FR-020: exams are for students enrolled in the course, as practice (spec 001 FR-037).
+_EXAM_STUDENTS = [require_role("student")]
+_TAKEN = "Ya presentaste este examen."
+
+
+@router.get(
+    "/exam/templates", response_model=list[ExamTemplateSummary], dependencies=_EXAM_STUDENTS
+)
 def list_exam_templates_for_student(
     repo: RepoDep,
     user: CurrentUser,
-    course_id: str,
+    course_id: str = Query(..., min_length=1),
 ):
     """Plantillas de examen visibles a este estudiante en el curso.
 
@@ -889,6 +897,7 @@ def list_exam_templates_for_student(
     - Y: no tiene asignaciones (legacy/abierta) → visible a todos los inscritos
     -    O: hay una asignación al grupo del estudiante con ventana activa
     """
+    _require_enrolment(_make_service(repo), user["user_id"], course_id)
     templates = repo.list_active_templates_for_student(user_id=user["user_id"], course_id=course_id)
     return [
         ExamTemplateSummary(
@@ -904,18 +913,19 @@ def list_exam_templates_for_student(
     ]
 
 
-@router.get("/exam/pending", response_model=list[PendingExam])
+@router.get("/exam/pending", response_model=list[PendingExam], dependencies=_EXAM_STUDENTS)
 def list_pending_exams(repo: RepoDep, user: CurrentUser):
     """Plantillas pendientes para el estudiante en TODOS sus cursos inscritos.
 
-    Se usa para el badge de notificación en el sidebar.
+    Assigned, open and not yet submitted (spec 006 FR-022); the exam screen lists them.
     """
     rows = repo.list_pending_exams_for_student(user_id=user["user_id"])
     return [PendingExam(**r) for r in rows]
 
 
-@router.post("/exam/start", response_model=ExamStartResponse)
-def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
+@router.post("/exam/start", response_model=ExamStartResponse, dependencies=_EXAM_STUDENTS)
+@limiter.limit(settings.rate_limit_exam_start)
+def exam_start(request: Request, body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
     """
     Inicia una sesión de examen.
 
@@ -927,7 +937,13 @@ def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
 
     En ambos casos, NO afecta el ELO del estudiante.
     """
+    _require_enrolment(_make_service(repo), user["user_id"], body.course_id)
+    # Spec 006 FR-023: sessions a day past their deadline are no longer needed.
+    repo.expire_stale_exam_sessions()
     if body.template_id is not None:
+        # FR-021: a template is graded once; standard exams stay unlimited.
+        if repo.has_submitted_template(user["user_id"], body.template_id):
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_TAKEN)
         visible = repo.list_active_templates_for_student(
             user_id=user["user_id"], course_id=body.course_id
         )
@@ -997,7 +1013,7 @@ def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
     )
 
 
-@router.post("/exam/submit", response_model=ExamSubmitResponse)
+@router.post("/exam/submit", response_model=ExamSubmitResponse, dependencies=_EXAM_STUDENTS)
 def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
     """
     Recibe las respuestas del examen y devuelve la calificación.
@@ -1013,10 +1029,15 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
         raise HTTPException(status_code=404, detail="Sesión de examen no encontrada.")
     if run.get("result") is not None:
         return ExamSubmitResponse(**run["result"])
+    _require_enrolment(_make_service(repo), user["user_id"], run["course_id"])
     if body.course_id and body.course_id != run["course_id"]:
         raise HTTPException(status_code=400, detail="El curso no corresponde a la sesión.")
     if body.template_id is not None and body.template_id != run["template_id"]:
         raise HTTPException(status_code=400, detail="La plantilla no corresponde a la sesión.")
+    if run["template_id"] is not None and repo.has_submitted_template(
+        user["user_id"], run["template_id"]
+    ):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_TAKEN)
 
     expected_ids = run["item_ids"]
     submitted_ids = [answer.item_id for answer in body.answers]
@@ -1035,7 +1056,17 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
     for ans in body.answers:
         item_db = repo.get_item_by_id(ans.item_id)
         if not item_db:
-            raise HTTPException(status_code=409, detail="Una pregunta ya no está disponible.")
+            # FR-024: an item removed after the start is reported and not counted.
+            results.append(
+                {
+                    "item_id": ans.item_id,
+                    "graded": False,
+                    "is_correct": False,
+                    "selected_option": ans.selected_option,
+                    "elo_delta": 0.0,
+                }
+            )
+            continue
         if ans.selected_option and ans.selected_option not in item_db["options"]:
             raise HTTPException(status_code=400, detail="Una opción seleccionada no es válida.")
 
@@ -1046,6 +1077,7 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
         results.append(
             {
                 "item_id": ans.item_id,
+                "graded": True,
                 "is_correct": is_correct,
                 "selected_option": ans.selected_option,
                 "elo_delta": 0.0,  # examen no afecta ELO
@@ -1060,17 +1092,29 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
         )
 
     # Rating global actual (sin modificación): None mientras el diagnóstico está pendiente.
-    score_pct = round(correct_count / len(expected_ids) * 100, 1)
+    graded = len(responses)
+    if graded == 0:
+        raise HTTPException(status_code=409, detail="Ninguna pregunta del examen sigue disponible.")
+    score_pct = round(correct_count / graded * 100, 1)
     global_elo = _make_service(repo).ratings.ratings_view(user["user_id"])["overall"]
     result = {
         "results": results,
         "correct_count": correct_count,
-        "total_questions": len(expected_ids),
+        "total_questions": graded,
         "score_pct": score_pct,
         "global_elo_after": global_elo,
     }
+    # FR-023: the course's own name, not the request's.
+    course_name = next(
+        (
+            e["name"]
+            for e in repo.get_user_enrollments(user["user_id"])
+            if e["id"] == run["course_id"]
+        ),
+        run["course_id"],
+    )
     saved = repo.complete_active_exam_session(
-        body.session_id, user["user_id"], body.course_name, result, responses
+        body.session_id, user["user_id"], course_name, result, responses
     )
     if not saved:
         current = repo.get_active_exam_session(body.session_id, user["user_id"])
@@ -1080,7 +1124,7 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
     return ExamSubmitResponse(**result)
 
 
-@router.get("/exam/history")
+@router.get("/exam/history", dependencies=_EXAM_STUDENTS)
 def exam_history(user: CurrentUser, repo: RepoDep):
     """Historial de intentos de examen del estudiante (últimos 20)."""
     return repo.get_exam_history(user["user_id"], limit=20)
