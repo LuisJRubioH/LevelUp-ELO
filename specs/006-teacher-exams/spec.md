@@ -7,7 +7,7 @@
 **Status**: Approved by the owner (2026-10-19), with N1 … N11 as recommended except N10's range
 buttons, which get a use (FR-043). Written from the as-is survey
 (`docs/sdd/teacher-exams-survey.md`, LuisJRubioH/LevelUp-ELO#43), re-verified on 2026-10-19 (its
-§ 7). Delivery A pins what already holds; nothing in X1, X2, C1 or P1 is implemented.
+§ 7). Delivery A pins what already holds; X1 is implemented; X2, C1 and P1 are not.
 
 **Input**: Roadmap M6 (`docs/sdd/roadmap.md`): dashboard metrics, exports, exam mode, procedure
 grading flow.
@@ -40,7 +40,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | Delivery | Content | State |
 |---|---|---|
 | **A** | As-is pins: what exams and the console already guarantee, each requirement tied to a test that exists today | closed |
-| **X1** | Exam access and attempts: enrolled students only, one graded attempt per template, pending exams shown and dropped once submitted, server-side course name, a rate limit, stale sessions cleaned, a removed item no longer blocks a submission | planned |
+| **X1** | Exam access and attempts: enrolled students only, one graded attempt per template, pending exams shown and dropped once submitted, server-side course name, a rate limit, stale sessions cleaned, a removed item no longer blocks a submission | closed |
 | **X2** | Templates and results: private until assigned, locked once taken, assignment checks the course and commits all groups or none, results of the teacher's own students on their first attempt, per student, with the chosen option kept | planned |
 | **C1** | The console from the server: one student set everywhere (screens, exports, counts), the group summary, ranking and «attention» list computed by the server with competition ranks, the dashboard's 7-day, 30-day and full-history views, teacher routes for teachers only, dead code removed | planned |
 | **P1** | The procedures queue: follows the item's course, active non-test students only, no submission left without a teacher, the grade slider starts empty, the AI feedback shown, a stale AI score cleared on resubmission | planned |
@@ -301,9 +301,9 @@ closes their delivery.
 | US1-AS2 | A | `tests/api/test_spec001_answer_pins.py::test_spec001_no_response_carries_the_correct_option`<br>`tests/api/test_spec001_answer_pins.py::test_spec001_exam_submission_changes_no_rating` |
 | US1-AS3 | A | `tests/api/test_teacher_resource_access.py::test_student_routes_require_current_teacher_relationship` |
 | US1-AS4 | A | `tests/integration/test_teacher_export_cells.py::test_the_workbook_keeps_typed_text_as_text`<br>`tests/integration/test_teacher_export_cells.py::test_the_csv_neutralises_formulas_and_declares_utf8` |
-| US2-AS1 | X1 | `PENDING` |
-| US2-AS2 | X1 | `PENDING` |
-| US2-AS3 | X1 | `PENDING` |
+| US2-AS1 | X1 | `tests/integration/test_spec006_x1_exams.py::test_only_enrolled_students_reach_exams` |
+| US2-AS2 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_template_is_graded_once`<br>`tests/integration/test_spec006_x1_exams.py::test_pending_drops_a_submitted_template` |
+| US2-AS3 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_removed_item_is_reported_not_blocking`<br>`frontend/e2e/spec006-x1-pending.spec.ts › una pregunta retirada del banco se muestra como no calificada` |
 | US3-AS1 | X2 | `PENDING` |
 | US3-AS2 | X2 | `PENDING` |
 | US3-AS3 | X2 | `PENDING` |
@@ -317,7 +317,7 @@ closes their delivery.
 | FR-002 | A | `tests/api/test_student.py::TestExamMode::test_exam_submit_empty` |
 | FR-003 | A | `tests/integration/test_exam_submit_deadline.py::test_a_submission_just_after_the_limit_is_graded`<br>`tests/integration/test_exam_submit_deadline.py::test_a_submission_long_after_the_limit_is_refused`<br>`frontend/e2e/exam-deadline.spec.ts › se envía al vencer el tiempo aunque el navegador haya frenado el temporizador`<br>`frontend/e2e/exam-deadline.spec.ts › un rechazo del servidor no se reintenta y muestra su motivo` |
 | FR-004 | A | `tests/api/test_spec001_answer_pins.py::test_spec001_exam_submission_changes_no_rating` |
-| FR-005 | A | `tests/integration/test_request_bounds.py::test_an_exam_needs_a_course`<br>`tests/api/test_student.py::TestExamMode::test_exam_start_nonexistent_course` |
+| FR-005 | A | `tests/integration/test_request_bounds.py::test_an_exam_needs_a_course`<br>`tests/integration/test_spec006_x1_exams.py::test_a_course_without_items_is_404` |
 | FR-006 | A | `tests/integration/test_exam_assignment_window.py::test_an_invalid_window_is_refused`<br>`tests/integration/test_exam_assignment_window.py::test_a_window_is_read_back_in_utc`<br>`tests/integration/test_exam_assignment_window.py::test_a_window_open_now_shows_the_exam_to_the_group`<br>`tests/api/test_teacher_resource_access.py::test_assignment_must_belong_to_authorized_template` |
 | FR-007 | A | `tests/api/test_teacher_resource_access.py::test_student_routes_require_current_teacher_relationship`<br>`tests/integration/test_teacher_student_scope.py::test_a_student_who_joined_a_second_group_stays_open_to_the_first_teacher` |
 | FR-008 | A | `tests/integration/test_teacher_export_cells.py::test_the_workbook_keeps_typed_text_as_text`<br>`tests/integration/test_teacher_export_cells.py::test_the_csv_neutralises_formulas_and_declares_utf8` |
@@ -325,11 +325,11 @@ closes their delivery.
 | FR-010 | A | `tests/integration/test_teacher_image_fallback.py::test_image_falls_back_to_the_row_when_storage_fails`<br>`frontend/e2e/teacher-procedure-view.spec.ts › un PDF se muestra como documento, no como imagen rota` |
 | FR-011 | A | `tests/integration/test_request_bounds.py::test_the_rating_history_limit_is_bounded` |
 | FR-012 | A | `tests/api/test_procedure_grading.py::test_teacher_can_grade_own_pending_submission`<br>`tests/api/test_procedure_grading.py::test_other_teacher_cannot_grade_or_view_submission` |
-| FR-020 | X1 | `PENDING` |
-| FR-021 | X1 | `PENDING` |
-| FR-022 | X1 | `PENDING` |
-| FR-023 | X1 | `PENDING` |
-| FR-024 | X1 | `PENDING` |
+| FR-020 | X1 | `tests/integration/test_spec006_x1_exams.py::test_only_enrolled_students_reach_exams`<br>`tests/integration/test_spec006_x1_exams.py::test_a_student_no_longer_enrolled_cannot_submit`<br>`tests/integration/test_spec006_x1_exams.py::test_an_empty_course_is_refused_when_listing`<br>`tests/api/test_student.py::TestExamMode::test_exam_start_nonexistent_course` |
+| FR-021 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_template_is_graded_once` |
+| FR-022 | X1 | `tests/integration/test_spec006_x1_exams.py::test_pending_drops_a_submitted_template`<br>`frontend/e2e/spec006-x1-pending.spec.ts › lista los exámenes asignados pendientes y prepara el elegido` |
+| FR-023 | X1 | `tests/integration/test_spec006_x1_exams.py::test_the_course_name_comes_from_the_course`<br>`tests/integration/test_spec006_x1_exams.py::test_exam_starts_are_limited`<br>`tests/integration/test_spec006_x1_exams.py::test_stale_sessions_are_deleted` |
+| FR-024 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_removed_item_is_reported_not_blocking`<br>`frontend/e2e/spec006-x1-pending.spec.ts › una pregunta retirada del banco se muestra como no calificada` |
 | FR-030 | X2 | `PENDING` |
 | FR-031 | X2 | `PENDING` |
 | FR-032 | X2 | `PENDING` |

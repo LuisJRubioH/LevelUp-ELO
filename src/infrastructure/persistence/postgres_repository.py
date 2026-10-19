@@ -346,6 +346,7 @@ class PostgresRepository:
         print("_reconcile_legacy_ratings OK: %d filas" % self._reconcile_legacy_ratings())
         self.expire_stale_pvp_matches()
         self.expire_stale_katia_conversations()
+        self.expire_stale_exam_sessions()
 
     @staticmethod
     def _steps_after_migration() -> list[str]:
@@ -6822,6 +6823,40 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    def has_submitted_template(self, user_id: int, template_id: int) -> bool:
+        """Spec 006 FR-021: whether the student already submitted this template."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT 1 AS found FROM exam_sessions"
+                " WHERE user_id = %s AND exam_template_id = %s LIMIT 1",
+                (user_id, template_id),
+            )
+            return cursor.fetchone() is not None
+        finally:
+            self.put_connection(conn)
+
+    def expire_stale_exam_sessions(self, max_age_hours: int = 24) -> int:
+        """Spec 006 FR-023: deletes the active sessions `max_age_hours` past their deadline,
+        submitted or not (a submitted one is already in `exam_sessions`)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "DELETE FROM active_exam_sessions"
+                " WHERE expires_at < CURRENT_TIMESTAMP - %s * INTERVAL '1 hour'",
+                (max_age_hours,),
+            )
+            deleted = cursor.rowcount
+            conn.commit()
+            return deleted
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
     def get_active_exam_session(self, session_id: str, user_id: int) -> dict | None:
         conn = self.get_connection()
         try:
@@ -7318,10 +7353,13 @@ class PostgresRepository:
                                 WHERE template_id = et.id)
                     OR ea.id IS NOT NULL
                   )
+                  -- Spec 006 FR-021, FR-022: a template is taken once.
+                  AND NOT EXISTS (SELECT 1 FROM exam_sessions es
+                                  WHERE es.user_id = %s AND es.exam_template_id = et.id)
                 GROUP BY et.id
                 ORDER BY et.created_at DESC
                 """,
-                (user_id, course_id),
+                (user_id, course_id, user_id),
             )
             rows = cursor.fetchall()
             return [
@@ -7364,9 +7402,11 @@ class PostgresRepository:
                                 WHERE template_id = et.id)
                     OR ea.id IS NOT NULL
                   )
+                  AND NOT EXISTS (SELECT 1 FROM exam_sessions es
+                                  WHERE es.user_id = %s AND es.exam_template_id = et.id)
                 ORDER BY et.created_at DESC
                 """,
-                (user_id, user_id),
+                (user_id, user_id, user_id),
             )
             rows = cursor.fetchall()
             return [

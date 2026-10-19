@@ -92,6 +92,7 @@ class SQLiteRepository:
         self._reconcile_legacy_ratings()
         self.expire_stale_pvp_matches()
         self.expire_stale_katia_conversations()
+        self.expire_stale_exam_sessions()
 
     def _sync_bank_if_changed(self):
         """Spec 002 FR-016: sync the item bank only when its fingerprint differs from the last
@@ -5677,6 +5678,33 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    def has_submitted_template(self, user_id: int, template_id: int) -> bool:
+        """Spec 006 FR-021: whether the student already submitted this template."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute(
+                "SELECT 1 FROM exam_sessions WHERE user_id = ? AND exam_template_id = ? LIMIT 1",
+                (user_id, template_id),
+            ).fetchone()
+            return row is not None
+        finally:
+            conn.close()
+
+    def expire_stale_exam_sessions(self, max_age_hours: int = 24) -> int:
+        """Spec 006 FR-023: deletes the active sessions `max_age_hours` past their deadline,
+        submitted or not (a submitted one is already in `exam_sessions`)."""
+        conn = self.get_connection()
+        try:
+            deleted = conn.execute(
+                "DELETE FROM active_exam_sessions"
+                " WHERE datetime(expires_at) < datetime('now', ?)",
+                ("-%d hours" % max_age_hours,),
+            ).rowcount
+            conn.commit()
+            return deleted
+        finally:
+            conn.close()
+
     def get_active_exam_session(self, session_id: str, user_id: int) -> dict | None:
         conn = self.get_connection()
         row = conn.execute(
@@ -6440,10 +6468,13 @@ class SQLiteRepository:
                 NOT EXISTS (SELECT 1 FROM exam_assignments WHERE template_id = et.id)
                 OR ea.id IS NOT NULL
               )
+              -- Spec 006 FR-021, FR-022: a template is taken once.
+              AND NOT EXISTS (SELECT 1 FROM exam_sessions es
+                              WHERE es.user_id = ? AND es.exam_template_id = et.id)
             GROUP BY et.id
             ORDER BY et.created_at DESC
             """,
-            (user_id, course_id),
+            (user_id, course_id, user_id),
         )
         rows = cursor.fetchall()
         conn.close()
@@ -6481,9 +6512,11 @@ class SQLiteRepository:
                 NOT EXISTS (SELECT 1 FROM exam_assignments WHERE template_id = et.id)
                 OR ea.id IS NOT NULL
               )
+              AND NOT EXISTS (SELECT 1 FROM exam_sessions es
+                              WHERE es.user_id = ? AND es.exam_template_id = et.id)
             ORDER BY et.created_at DESC
             """,
-            (user_id, user_id),
+            (user_id, user_id, user_id),
         )
         rows = cursor.fetchall()
         conn.close()

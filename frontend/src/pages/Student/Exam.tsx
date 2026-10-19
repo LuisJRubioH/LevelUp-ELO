@@ -31,6 +31,8 @@ interface ExamItem {
 
 interface ExamResult {
   item_id: string;
+  /** Spec 006 FR-024: false for an item removed from the bank after the start. */
+  graded?: boolean;
   is_correct: boolean;
   selected_option: string;
   elo_delta: number;
@@ -139,6 +141,12 @@ function ExamSetup({
     enabled: !!selectedCourse,
   });
 
+  // Spec 006 FR-022: the exams assigned to the student and not yet submitted.
+  const { data: assigned = [] } = useQuery({
+    queryKey: ["exam-pending"],
+    queryFn: () => studentApi.examPending(),
+  });
+
   const enrolled = courses.filter((c) => c.enrolled);
   const activeTemplate = templates.find((t) => t.id === selectedTemplate) ?? null;
 
@@ -194,6 +202,37 @@ function ExamSetup({
             </button>
           </div>
         </div>
+      )}
+
+      {assigned.length > 0 && (
+        <section aria-label={t("exam.assignedTitle")} className="mb-6">
+          <h2 className="text-xs text-slate-400 mb-2">{t("exam.assignedTitle")}</h2>
+          <ul className="space-y-1.5">
+            {assigned.map((a) => (
+              <li key={a.template_id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCourse(a.course_id);
+                    setMode("template");
+                    setSelectedTemplate(a.template_id);
+                  }}
+                  className={[
+                    "w-full text-left rounded-lg border px-3 py-2 text-sm transition-colors",
+                    selectedTemplate === a.template_id
+                      ? "border-violet-500 bg-violet-600/15 text-slate-100"
+                      : "border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700",
+                  ].join(" ")}
+                >
+                  <span className="font-medium">{a.title}</span>
+                  <span className="block text-[11px] text-slate-500">
+                    {a.course_name} · {a.time_limit_min} {t("exam.minutes")}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <div className="space-y-5">
@@ -765,12 +804,20 @@ export function Exam() {
           {results.map((r, i) => (
             <span
               key={r.item_id}
-              title={r.is_correct ? t("exam.questionCorrect", { n: i + 1 }) : t("exam.questionIncorrect", { n: i + 1 })}
+              title={
+                r.graded === false
+                  ? t("exam.questionNotGraded", { n: i + 1 })
+                  : r.is_correct
+                    ? t("exam.questionCorrect", { n: i + 1 })
+                    : t("exam.questionIncorrect", { n: i + 1 })
+              }
               className={[
                 "w-8 h-8 rounded text-xs font-bold flex items-center justify-center border",
-                r.is_correct
-                  ? "bg-emerald-600 text-white border-emerald-400"
-                  : "bg-red-600 text-white border-red-400",
+                r.graded === false
+                  ? "bg-slate-700 text-slate-300 border-slate-500"
+                  : r.is_correct
+                    ? "bg-emerald-600 text-white border-emerald-400"
+                    : "bg-red-600 text-white border-red-400",
               ].join(" ")}
             >
               {i + 1}
@@ -787,12 +834,16 @@ export function Exam() {
                 key={r.item_id}
                 className={[
                   "rounded-xl border p-3.5 flex items-start gap-3",
-                  r.is_correct
-                    ? "border-emerald-700/40 bg-emerald-900/10"
-                    : "border-red-700/40 bg-red-900/10",
+                  r.graded === false
+                    ? "border-slate-600/40 bg-slate-800/40"
+                    : r.is_correct
+                      ? "border-emerald-700/40 bg-emerald-900/10"
+                      : "border-red-700/40 bg-red-900/10",
                 ].join(" ")}
               >
-                <span className="text-base shrink-0 mt-0.5">{r.is_correct ? "✅" : "❌"}</span>
+                <span className="text-base shrink-0 mt-0.5">
+                  {r.graded === false ? "—" : r.is_correct ? "✅" : "❌"}
+                </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] text-slate-500 mb-0.5 uppercase tracking-wide">
                     {t("exam.questionShort")} {i + 1}
@@ -800,6 +851,9 @@ export function Exam() {
                   <p className="text-sm text-slate-300 leading-snug line-clamp-2">
                     {item ? <MathText text={item.content} /> : r.item_id}
                   </p>
+                  {r.graded === false && (
+                    <p className="text-xs text-slate-400 mt-1">{t("exam.notGraded")}</p>
+                  )}
                 </div>
                 {r.elo_delta !== 0 && (
                   <span
