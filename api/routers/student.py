@@ -1088,6 +1088,7 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
                 "item_id": ans.item_id,
                 "topic": item_db.get("topic"),
                 "is_correct": is_correct,
+                "selected_option": ans.selected_option or None,  # spec 006 FR-033
             }
         )
 

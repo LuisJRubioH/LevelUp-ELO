@@ -1185,6 +1185,12 @@ class SQLiteRepository:
         )
         self._create_lesson_history(cursor)
         self._create_katia_conversations(cursor)
+        self._add_exam_selected_option(cursor)
+
+    def _add_exam_selected_option(self, cursor):
+        """Spec 006 X2 (FR-033): the option a student chose for each exam item; NULL on rows
+        stored before X2."""
+        self._add_column_if_not_exists(cursor, "exam_responses", "selected_option", "TEXT")
 
     def _create_katia_conversations(self, cursor):
         """Spec 005 K3: one conversation per student and item, its summary when it closes
@@ -5772,8 +5778,9 @@ class SQLiteRepository:
             if responses:
                 cursor.executemany(
                     """INSERT INTO exam_responses
-                       (session_id, template_id, user_id, item_id, topic, is_correct)
-                       VALUES (?, ?, ?, ?, ?, ?)""",
+                       (session_id, template_id, user_id, item_id, topic, is_correct,
+                        selected_option)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
                     [
                         (
                             history_id,
@@ -5782,6 +5789,7 @@ class SQLiteRepository:
                             r["item_id"],
                             r.get("topic"),
                             1 if r.get("is_correct") else 0,
+                            r.get("selected_option"),
                         )
                         for r in responses
                     ],
@@ -6105,90 +6113,39 @@ class SQLiteRepository:
             conn.close()
         return found is not None
 
-    def get_exam_template_results(self, template_id: int) -> dict:
-        """Análisis agregado de resultados de una plantilla de examen.
-
-        Devuelve métricas por pregunta y por tópico para que el docente
-        identifique la pregunta más acertada, la más fallada y el tema a
-        reforzar. Solo lee exam_responses (no afecta ELO)."""
+    def get_exam_template_responses(self, template_id: int) -> list[dict]:
+        """Spec 006 FR-033: every stored answer to a template, with its submission; the domain
+        keeps the teacher's students and each one's first submission."""
         conn = self.get_connection()
-        cursor = conn.cursor()
-        # resumen de sesiones
-        cursor.execute(
-            """SELECT COUNT(*) AS n_sessions,
-                      COUNT(DISTINCT user_id) AS n_students,
-                      COALESCE(AVG(score_pct), 0) AS avg_score
-               FROM exam_sessions WHERE exam_template_id = ?""",
-            (template_id,),
-        )
-        s = cursor.fetchone()
-        summary = {
-            "n_sessions": s[0] or 0,
-            "n_students": s[1] or 0,
-            "avg_score": round(s[2] or 0, 1),
-        }
-        # por pregunta
-        cursor.execute(
-            """SELECT er.item_id,
-                      COALESCE(i.content, er.item_id) AS content,
-                      er.topic,
-                      COUNT(*) AS total,
-                      SUM(er.is_correct) AS correct
-               FROM exam_responses er
-               LEFT JOIN items i ON i.id = er.item_id
-               WHERE er.template_id = ?
-               GROUP BY er.item_id, i.content, er.topic
-               ORDER BY total DESC""",
-            (template_id,),
-        )
-        questions = []
-        for r in cursor.fetchall():
-            total = r[3] or 0
-            correct = r[4] or 0
-            questions.append(
-                {
-                    "item_id": r[0],
-                    "content": r[1],
-                    "topic": r[2],
-                    "total": total,
-                    "correct": correct,
-                    "accuracy": round(correct / total * 100, 1) if total else 0.0,
-                }
+        try:
+            cursor = conn.execute(
+                """SELECT er.session_id, er.user_id, es.created_at AS submitted_at,
+                          er.item_id, er.topic, COALESCE(i.content, er.item_id) AS content,
+                          er.is_correct, er.selected_option
+                   FROM exam_responses er
+                   JOIN exam_sessions es ON es.id = er.session_id
+                   LEFT JOIN items i ON i.id = er.item_id
+                   WHERE er.template_id = ?
+                   ORDER BY er.session_id, er.id""",
+                (template_id,),
             )
-        # por tópico
-        cursor.execute(
-            """SELECT COALESCE(topic, 'Sin tópico') AS topic,
-                      COUNT(*) AS total, SUM(is_correct) AS correct
-               FROM exam_responses WHERE template_id = ?
-               GROUP BY topic ORDER BY total DESC""",
-            (template_id,),
-        )
-        topics = []
-        for r in cursor.fetchall():
-            total = r[1] or 0
-            correct = r[2] or 0
-            topics.append(
-                {
-                    "topic": r[0],
-                    "total": total,
-                    "correct": correct,
-                    "accuracy": round(correct / total * 100, 1) if total else 0.0,
-                }
-            )
-        conn.close()
+            columns = [c[0] for c in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        finally:
+            conn.close()
 
-        ranked = [q for q in questions if q["total"] > 0]
-        best = max(ranked, key=lambda q: q["accuracy"], default=None)
-        worst = min(ranked, key=lambda q: q["accuracy"], default=None)
-        reinforce = min(topics, key=lambda t: t["accuracy"], default=None) if topics else None
-        return {
-            **summary,
-            "questions": questions,
-            "topics": topics,
-            "best_question": best,
-            "worst_question": worst,
-            "reinforce_topic": reinforce,
-        }
+    def template_has_sessions(self, template_id: int) -> bool:
+        """Spec 006 FR-031: whether any student has started this template."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute(
+                "SELECT 1 FROM active_exam_sessions WHERE exam_template_id = ?"
+                " UNION SELECT 1 FROM exam_sessions WHERE exam_template_id = ? LIMIT 1",
+                (template_id, template_id),
+            ).fetchone()
+            return row is not None
+        finally:
+            conn.close()
 
     def get_exam_history(self, user_id: int, limit: int = 20) -> list[dict]:
         conn = self.get_connection()
@@ -6399,6 +6356,32 @@ class SQLiteRepository:
         conn.close()
         return int(row[0])
 
+    def assign_template_to_groups(
+        self,
+        template_id: int,
+        group_ids: list[int],
+        starts_at: str | None = None,
+        ends_at: str | None = None,
+    ) -> None:
+        """Spec 006 FR-032: assigns the template to every group in one transaction — all or
+        none. Upsert per (template, group)."""
+        conn = self.get_connection()
+        try:
+            for group_id in group_ids:
+                conn.execute(
+                    """INSERT INTO exam_assignments (template_id, group_id, starts_at, ends_at)
+                       VALUES (?, ?, ?, ?)
+                       ON CONFLICT(template_id, group_id) DO UPDATE
+                         SET starts_at = excluded.starts_at, ends_at = excluded.ends_at""",
+                    (template_id, group_id, starts_at, ends_at),
+                )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
     def delete_exam_assignment(self, assignment_id: int, template_id: int | None = None) -> bool:
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -6464,10 +6447,8 @@ class SQLiteRepository:
                AND (ea.ends_at IS NULL OR ea.ends_at >= datetime('now'))
             WHERE et.archived = 0
               AND et.course_id = ?
-              AND (
-                NOT EXISTS (SELECT 1 FROM exam_assignments WHERE template_id = et.id)
-                OR ea.id IS NOT NULL
-              )
+              -- Spec 006 FR-030: a template with no assignment is a draft, seen by no student.
+              AND ea.id IS NOT NULL
               -- Spec 006 FR-021, FR-022: a template is taken once.
               AND NOT EXISTS (SELECT 1 FROM exam_sessions es
                               WHERE es.user_id = ? AND es.exam_template_id = et.id)
@@ -6508,10 +6489,7 @@ class SQLiteRepository:
                AND (ea.starts_at IS NULL OR ea.starts_at <= datetime('now'))
                AND (ea.ends_at IS NULL OR ea.ends_at >= datetime('now'))
             WHERE et.archived = 0
-              AND (
-                NOT EXISTS (SELECT 1 FROM exam_assignments WHERE template_id = et.id)
-                OR ea.id IS NOT NULL
-              )
+              AND ea.id IS NOT NULL
               AND NOT EXISTS (SELECT 1 FROM exam_sessions es
                               WHERE es.user_id = ? AND es.exam_template_id = et.id)
             ORDER BY et.created_at DESC

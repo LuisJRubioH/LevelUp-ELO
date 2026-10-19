@@ -48,6 +48,7 @@ from api.schemas.teacher import (
     UserAdminRow,
 )
 from src.application.services.teacher_service import TeacherService
+from src.domain.exams.results import template_results
 from src.domain.invitations import format_token
 from src.domain.learning.prealgebra import PREALGEBRA_COURSE_ID, path_record
 from src.domain.procedures import ReviewRoundSuperseded
@@ -596,7 +597,15 @@ def export_xlsx(user: CurrentUser, repo: RepoDep):
 # ── Sprint C: Plantillas de examen del docente ───────────────────────────────
 
 
-def _template_to_response(t: dict) -> ExamTemplateResponse:
+_LOCKED = (
+    "Ya hay estudiantes que empezaron este examen: sus preguntas no cambian. "
+    "Duplica la plantilla para cambiarlas."
+)
+
+
+def _template_to_response(t: dict, repo=None) -> ExamTemplateResponse:
+    """With `repo`, also whether the template is assigned (else a draft, spec 006 FR-030) and
+    whether its items are locked (FR-031)."""
     return ExamTemplateResponse(
         id=t["id"],
         teacher_id=t["teacher_id"],
@@ -606,6 +615,8 @@ def _template_to_response(t: dict) -> ExamTemplateResponse:
         item_ids=t["item_ids"],
         archived=t["archived"],
         created_at=t["created_at"],
+        assigned=bool(repo and repo.list_assignments_for_template(t["id"])),
+        locked=bool(repo and repo.template_has_sessions(t["id"])),
     )
 
 
@@ -622,7 +633,7 @@ def list_exam_templates(
         teacher_id=user["user_id"],
         include_archived=include_archived,
     )
-    return [_template_to_response(t) for t in templates]
+    return [_template_to_response(t, repo) for t in templates]
 
 
 @router.post(
@@ -668,6 +679,8 @@ def update_exam_template(
     if template["teacher_id"] != user["user_id"] and user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="No es tu plantilla.")
     if body.item_ids is not None:
+        if body.item_ids != template["item_ids"] and repo.template_has_sessions(template_id):
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_LOCKED)
         if len(body.item_ids) != len(set(body.item_ids)):
             raise HTTPException(status_code=400, detail="La plantilla contiene items duplicados.")
         bank_items = repo.get_items_from_db(course_id=template["course_id"])
@@ -684,7 +697,25 @@ def update_exam_template(
         time_limit_min=body.time_limit_min,
         item_ids=body.item_ids,
     )
-    return _template_to_response(repo.get_exam_template(template_id))
+    return _template_to_response(repo.get_exam_template(template_id), repo)
+
+
+@router.post(
+    "/exam-templates/{template_id}/duplicate",
+    response_model=ExamTemplateResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def duplicate_exam_template(template_id: int, user: CurrentUser, repo: RepoDep):
+    """Spec 006 FR-031: a copy, unassigned and unlocked, to change a template already taken."""
+    template = _ensure_owns_template(repo, template_id, user)
+    copy_id = repo.create_exam_template(
+        teacher_id=user["user_id"],
+        course_id=template["course_id"],
+        title=f"{template['title']} (copia)",
+        time_limit_min=template["time_limit_min"],
+        item_ids=template["item_ids"],
+    )
+    return _template_to_response(repo.get_exam_template(copy_id), repo)
 
 
 @router.delete("/exam-templates/{template_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -771,24 +802,32 @@ def create_template_assignments(
     user: CurrentUser,
     repo: RepoDep,
 ):
-    """Asigna la plantilla a uno o varios grupos. Upsert por (template, group)."""
-    _ensure_owns_template(repo, template_id, user)
-    # Validar que el docente sea dueño de los grupos (o admin)
-    if user.get("role") != "admin":
-        teacher_groups = {g["group_id"] for g in repo.get_groups_by_teacher(user["user_id"])}
-        invalid = [gid for gid in body.group_ids if gid not in teacher_groups]
-        if invalid:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Grupos no autorizados: {invalid}",
-            )
-    for gid in body.group_ids:
-        repo.create_exam_assignment(
-            template_id=template_id,
-            group_id=gid,
-            starts_at=_stored_utc(body.starts_at),
-            ends_at=_stored_utc(body.ends_at),
+    """Asigna la plantilla a uno o varios grupos. Upsert por (template, group).
+
+    Spec 006 FR-032: the groups are the template author's and of the template's course; all of
+    them are assigned in one transaction, or none."""
+    template = _ensure_owns_template(repo, template_id, user)
+    group_courses = {
+        g["group_id"]: g["course_id"] for g in repo.get_groups_by_teacher(template["teacher_id"])
+    }
+    invalid = [gid for gid in body.group_ids if gid not in group_courses]
+    if invalid:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Grupos no autorizados: {invalid}",
         )
+    other_course = [gid for gid in body.group_ids if group_courses[gid] != template["course_id"]]
+    if other_course:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Un examen se asigna solo a grupos de su curso; no se asignó a ninguno.",
+        )
+    repo.assign_template_to_groups(
+        template_id,
+        list(body.group_ids),
+        starts_at=_stored_utc(body.starts_at),
+        ends_at=_stored_utc(body.ends_at),
+    )
     rows = repo.list_assignments_for_template(template_id)
     return [_assignment_response(r) for r in rows]
 
@@ -816,7 +855,11 @@ def exam_template_results(template_id: int, user: CurrentUser, repo: RepoDep):
     pregunta y tema a reforzar. Los exámenes se califican automáticamente; este
     endpoint solo agrega las respuestas ya guardadas (no afecta ELO)."""
     template = _ensure_owns_template(repo, template_id, user)
-    analysis = repo.get_exam_template_results(template_id)
+    # Spec 006 FR-033: the template author's students, each on their first submission.
+    students = {
+        s["user_id"]: s["name"] for s in repo.get_teacher_dashboard_stats(template["teacher_id"])
+    }
+    analysis = template_results(repo.get_exam_template_responses(template_id), students)
     analysis["title"] = template["title"]
     return analysis
 

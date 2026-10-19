@@ -346,6 +346,10 @@ export const teacherApi = {
   archiveExamTemplate: (id: number) =>
     api.delete<void>(`/api/teacher/exam-templates/${id}`),
 
+  /** Spec 006 FR-031: a copy, unassigned and unlocked, of a template already taken. */
+  duplicateExamTemplate: (id: number) =>
+    api.post<ExamTemplate>(`/api/teacher/exam-templates/${id}/duplicate`, {}),
+
   itemsCatalog: (course_id: string) =>
     api.get<ItemCatalogEntry[]>(
       `/api/teacher/items?course_id=${encodeURIComponent(course_id)}`,
@@ -380,6 +384,8 @@ export interface ExamQuestionStat {
   total: number;
   correct: number;
   accuracy: number;
+  /** Spec 006 FR-033: how many students chose each wrong option. */
+  choices?: Record<string, number>;
 }
 export interface ExamTopicStat {
   topic: string;
@@ -387,8 +393,20 @@ export interface ExamTopicStat {
   correct: number;
   accuracy: number;
 }
+/** Spec 006 FR-033: one student's first submission. */
+export interface ExamStudentResult {
+  user_id: number;
+  name: string;
+  submitted_at: string;
+  correct: number;
+  total: number;
+  score_pct: number;
+  answers: { item_id: string; is_correct: boolean; selected_option: string | null }[];
+}
+
 export interface ExamResults {
   title: string;
+  students?: ExamStudentResult[];
   n_sessions: number;
   n_students: number;
   avg_score: number;
@@ -418,6 +436,9 @@ export interface ExamTemplate {
   item_ids: string[];
   archived: boolean;
   created_at: string;
+  /** Spec 006: false = a draft no student sees (FR-030); true = items locked (FR-031). */
+  assigned?: boolean;
+  locked?: boolean;
 }
 
 export interface ItemCatalogEntry {
