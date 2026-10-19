@@ -27,7 +27,7 @@ NOT_ENROLLED = "No estás inscrito en este curso."
 
 
 def _approved_teacher(repo):
-    teacher = _approved_teacher(repo)
+    teacher = make_teacher(repo)
     sql(repo, "UPDATE users SET approved = 1 WHERE id = ?", (teacher,))
     return teacher
 
@@ -85,10 +85,14 @@ def test_an_enrolled_student_walks_the_path_as_today(repo, client):
         json={"interaction_id": "PREALG-N1-B02-Q01", "selected_option": "yes"},
     )
     assert answered.status_code == 200
-    assert client.get(f"/api/student/prealgebra-summary/{COURSE}", headers=headers).status_code == 200
+    assert (
+        client.get(f"/api/student/prealgebra-summary/{COURSE}", headers=headers).status_code == 200
+    )
     course_map = client.get(f"/api/student/map/{COURSE}", headers=headers)
     assert course_map.status_code == 200 and course_map.json()["preview"] is False
-    assert client.get(f"/api/student/lessons/{COURSE}/{FIRST_N2}", headers=headers).status_code == 403
+    assert (
+        client.get(f"/api/student/lessons/{COURSE}/{FIRST_N2}", headers=headers).status_code == 403
+    )
 
 
 @pytest.mark.parametrize("role", ["teacher", "admin"])

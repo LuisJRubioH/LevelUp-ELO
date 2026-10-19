@@ -297,6 +297,8 @@ class CourseMapResponse(BaseModel):
     course_name: str = ""
     diagnostic_done: bool
     nodes: list[MapNode]
+    # Spec 003 L1: a teacher of the course (or an admin) reads the path without progress.
+    preview: bool = False
 
 
 class LessonEventRequest(BaseModel):
@@ -340,6 +342,23 @@ class LessonDetailResponse(BaseModel):
     content: dict | None = None
     unlock_after: str | None = None
     progress: dict
+    # Spec 003 L1: read only — nothing the viewer sends is stored.
+    preview: bool = False
+
+
+class PathReviewNode(BaseModel):
+    node_id: str
+    label_key: str
+
+
+class PathSummaryResponse(BaseModel):
+    """The student's path summary (spec 003 N6)."""
+
+    course_id: str
+    completed_nodes: int
+    total_nodes: int
+    overall_status: str
+    review: list[PathReviewNode]
 
 
 # ── Socrático ─────────────────────────────────────────────────────────────────

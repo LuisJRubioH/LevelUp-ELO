@@ -16,17 +16,24 @@ code first; the delivery A pins stay green.
 
 ## Phase 2 — Implementation
 
-- [ ] T006 `api/routers/student.py`: `_path_access` (student: `ensure_enrolled`; teacher: a group in
+- [x] T006 `api/routers/student.py`: `_path_access` (student: `ensure_enrolled`; teacher: a group in
   the course; admin: preview; else 403) in front of the five endpoints; writes in preview 403; reads
   in preview skip the unlock rules and the hub repairs, which write
-- [ ] T007 `api/schemas/student.py`: `preview` on the lesson and map responses;
+- [x] T007 `api/schemas/student.py`: `preview` on the lesson and map responses;
   `PathSummaryResponse`
-- [ ] T008 Frontend: the map and lesson routes admit teachers; a preview banner; a «Ver ruta» link
+- [x] T008 Frontend: the map and lesson routes admit teachers; a preview banner; a «Ver ruta» link
   for groups whose course has a path
-- [ ] T009 Delivery A pins re-run; any pin that signed in a student not enrolled gets an
+- [x] T009 Delivery A pins re-run; any pin that signed in a student not enrolled gets an
   `enroll(...)` line (listed in the PR)
 
 ## Phase 3 — Close
 
-- [ ] T010 Traceability: US1-AS1 … AS4, FR-010, FR-011 filled; L1 `closed`; full suite on both
+- [x] T010 Traceability: US1-AS1 … AS4, FR-010, FR-011 filled; L1 `closed`; full suite on both
   engines, black, flake8, `check_traceability.py`, `pnpm run build`
+
+## Pins edited (T009)
+
+`test_lessons_two_engines.py`, `test_map_lesson_states.py` and `test_map_matches_lesson_access.py`
+created students who were not enrolled in `algebra_basica`; under L1 every one of their 13 tests
+(× 2 engines) got 403. Each file gained a `_path_student(repo)` helper — `make_student` plus
+`enroll(…, "algebra_basica")` — used where `make_student` was; no assertion changed.

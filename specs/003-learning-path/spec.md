@@ -36,7 +36,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | Delivery | Content | State |
 |---|---|---|
 | **A** | As-is pins: what the path already guarantees, each requirement tied to a test | in progress |
-| **L1** | Access: lessons and the map only for enrolled students; a teacher previews the courses of their groups, read only | planned |
+| **L1** | Access: lessons and the map only for enrolled students; a teacher previews the courses of their groups, read only | closed |
 | **L2** | Answer keys stay on the server | planned |
 | **L3** | A node completes on right answers | planned |
 | **L4** | What the teacher sees: the post-diagnostic outcome and an answer history, no free text | planned |
@@ -267,10 +267,10 @@ request that closes their delivery.
 
 | Requirement / Scenario | Delivery | Test |
 |---|---|---|
-| US1-AS1 | L1 | `PENDING` |
-| US1-AS2 | L1 | `PENDING` |
-| US1-AS3 | L1 | `PENDING` |
-| US1-AS4 | L1 | `PENDING` |
+| US1-AS1 | L1 | `tests/integration/test_spec003_l1_access.py::test_a_student_not_enrolled_is_refused_everywhere` |
+| US1-AS2 | L1 | `tests/integration/test_spec003_l1_access.py::test_an_enrolled_student_walks_the_path_as_today` |
+| US1-AS3 | L1 | `tests/integration/test_spec003_l1_access.py::test_a_teacher_of_the_course_previews_without_storing` |
+| US1-AS4 | L1 | `tests/integration/test_spec003_l1_access.py::test_a_teacher_without_a_group_in_the_course_is_refused` |
 | US2-AS1 | L2 | `PENDING` |
 | US2-AS2 | L2 | `PENDING` |
 | US3-AS1 | L3 | `PENDING` |
@@ -291,8 +291,8 @@ request that closes their delivery.
 | FR-004 | A | `tests/api/test_student.py::test_welcome_lesson_progress_flow` |
 | FR-005 | A | `tests/integration/test_map_matches_lesson_access.py::test_every_lesson_the_map_offers_opens`<br>`tests/unit/domain/test_prealgebra_lessons.py::test_map_states_come_from_unlock_after` |
 | FR-006 | A | `tests/integration/test_sqlite_repository.py::TestLessonProgress::test_structured_lesson_response_roundtrip_has_no_free_text_field` |
-| FR-010 | L1 | `PENDING` |
-| FR-011 | L1 | `PENDING` |
+| FR-010 | L1 | `tests/integration/test_spec003_l1_access.py::test_a_student_not_enrolled_is_refused_everywhere` |
+| FR-011 | L1 | `tests/integration/test_spec003_l1_access.py::test_a_teacher_of_the_course_previews_without_storing`<br>`tests/integration/test_spec003_l1_access.py::test_a_teacher_without_a_group_in_the_course_is_refused` |
 | FR-020 | L2 | `PENDING` |
 | FR-030 | L3 | `PENDING` |
 | FR-040 | L4 | `PENDING` |
