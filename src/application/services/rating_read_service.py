@@ -8,6 +8,7 @@ from collections import defaultdict
 
 from src.application.interfaces.repositories import IRatingReadRepository
 from src.domain.elo.aggregation import course_rating, overall_rating
+from src.domain.elo.console import console_summary
 from src.domain.elo.model import rating_delta
 from src.domain.elo.ranks import RANKS, rank_competition, rating_display
 
@@ -128,6 +129,13 @@ class RatingReadService:
         if group_course:
             return {"kind": "course", "course_id": group_course, "source": "group"}
         return dict(_OVERALL)
+
+    def console_summary(self, students: list[dict]) -> dict:
+        """Spec 006 FR-041: the teacher console's mean, histogram, «attention» list and
+        competition ranking, overall and per group, on the students' current overall ratings.
+        `students`: user_id, accuracy, total_attempts, group_ids."""
+        views = self.ratings_view_bulk([s["user_id"] for s in students])
+        return console_summary([{**s, "rating": views[s["user_id"]]["overall"]} for s in students])
 
     def ranking_view(
         self,

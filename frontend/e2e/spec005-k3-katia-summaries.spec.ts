@@ -15,8 +15,8 @@ test("el panel del estudiante muestra las conversaciones con KatIA del curso, si
   await page.route("**/api/teacher/**", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
   );
-  await json(page, "**/api/teacher/metrics", {});
-  await json(page, "**/api/teacher/dashboard", {
+  await json(page, "**/api/teacher/metrics*", {});
+  await json(page, "**/api/teacher/dashboard*", {
     students: [
       { user_id: 5, name: "sofia", education_level: "colegio", group_id: 1, group_name: "10A", global_elo: 1000, display_rating: 1000, rank_label: "Plata I", overall_status: "rated", total_attempts: 3, accuracy: 0.5, last_activity: "2026-10-19" },
     ],

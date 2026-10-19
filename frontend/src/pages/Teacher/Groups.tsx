@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { RankPill } from "../../components/ELO/RankBadge";
 import {
   teacherApi,
+  type ConsoleFigures,
   type Group,
   type Invitation,
   type StudentSummary,
@@ -22,15 +23,6 @@ import {
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 /** Spec 001: ratings and labels come from the API (display_rating, rank_label) as given. */
 const fmtRating = (v: number | null | undefined) => (v == null ? "Diagnóstico pendiente" : String(v));
-const byRatingDesc = (a: StudentSummary, b: StudentSummary) =>
-  (b.display_rating ?? -1) - (a.display_rating ?? -1);
-const needsAttention = (s: StudentSummary, acc: number) =>
-  acc < 60 || (s.display_rating != null && s.display_rating < 1100);
-/** A group statistic over rated students' display values; null when nobody is rated yet. */
-const meanShown = (xs: StudentSummary[]) => {
-  const v = xs.map((x) => x.display_rating).filter((x): x is number => x != null);
-  return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null;
-};
 const AVAS = [
   "linear-gradient(140deg,#8b5cf6,#6366f1)",
   "linear-gradient(140deg,#2dd4bf,#0ea5e9)",
@@ -47,26 +39,38 @@ const avaFor = (n: string) => AVAS[(n.charCodeAt(0) + n.length) % AVAS.length];
 const accColor = (a: number) => (a >= 80 ? "#34d399" : a >= 65 ? "#fbbf24" : "#f87171");
 const fmtMiles = (n: number) => Math.round(n).toLocaleString("es-CO");
 const toPct = (a: number) => Math.round(a <= 1 ? a * 100 : a);
+const fmtPct = (a: number | null) => (a == null ? "—" : a + "%");
 const GOAL = 75;
 
 interface GroupStats {
   n: number;
-  elo: number | null; // mean of rated members' display values; null if none
-  acc: number;
+  elo: number | null; // the server's mean of rated members' display values; null if none
+  acc: number | null; // percent over members with attempts; null if none
   attn: number;
   attempts: number;
-  members: StudentSummary[];
+  members: (StudentSummary & { rank: number | null })[]; // the server's ranking, in its order
 }
-function statsFor(members: StudentSummary[]): GroupStats {
-  const n = members.length;
-  if (!n) return { n: 0, elo: null, acc: 0, attn: 0, attempts: 0, members: [] };
+const NO_FIGURES: ConsoleFigures = {
+  n: 0,
+  mean: null,
+  accuracy: null,
+  attempts: 0,
+  attention: [],
+  ranking: [],
+  histogram: [],
+};
+/** Spec 006 FR-041: the group's figures as the server computed them; nothing worked out here. */
+function statsFor(figures: ConsoleFigures, students: Map<number, StudentSummary>): GroupStats {
   return {
-    n,
-    elo: meanShown(members),
-    acc: Math.round(members.reduce((s, x) => s + toPct(x.accuracy), 0) / n),
-    attn: members.filter((x) => needsAttention(x, toPct(x.accuracy))).length,
-    attempts: members.reduce((s, x) => s + x.total_attempts, 0),
-    members: [...members].sort(byRatingDesc),
+    n: figures.n,
+    elo: figures.mean,
+    acc: figures.accuracy,
+    attn: figures.attention.length,
+    attempts: figures.attempts,
+    members: figures.ranking.flatMap((r) => {
+      const s = students.get(r.user_id);
+      return s ? [{ ...s, rank: r.rank }] : [];
+    }),
   };
 }
 
@@ -249,15 +253,14 @@ function AvaStack({ members, max = 5 }: { members: StudentSummary[]; max?: numbe
 function GroupCard({
   g,
   color,
-  members,
+  st,
   onOpen,
 }: {
   g: Group;
   color: string;
-  members: StudentSummary[];
+  st: GroupStats;
   onOpen: () => void;
 }) {
-  const st = statsFor(members);
   return (
     <div className="grp-card" style={{ "--c": color } as React.CSSProperties} onClick={onOpen}>
       <div className="gc-top">
@@ -286,14 +289,14 @@ function GroupCard({
           <b>{st.elo ?? "—"}</b>
         </div>
         <div className="gcs">
-          <b>{st.acc}%</b>
+          <b>{fmtPct(st.acc)}</b>
           <span>dominio</span>
         </div>
       </div>
 
       <div className="gc-mastery">
         <div className="gcm-bar">
-          <i style={{ width: st.acc + "%", background: color }} />
+          <i style={{ width: (st.acc ?? 0) + "%", background: color }} />
           <span className="goal" style={{ left: GOAL + "%" }} title={"Objetivo " + GOAL + "%"} />
         </div>
         <div className="gcm-lbl">
@@ -316,15 +319,14 @@ function GroupCard({
 function GroupDrawer({
   g,
   color,
-  members,
+  st,
   onClose,
 }: {
   g: Group;
   color: string;
-  members: StudentSummary[];
+  st: GroupStats;
   onClose: () => void;
 }) {
-  const st = statsFor(members);
   return (
     <div className="grp-backdrop" onClick={onClose}>
       <aside
@@ -364,7 +366,7 @@ function GroupDrawer({
           </div>
           <div className="gds">
             <span className="l">Dominio</span>
-            <b style={{ color: accColor(st.acc) }}>{st.acc}%</b>
+            <b style={{ color: st.acc == null ? undefined : accColor(st.acc) }}>{fmtPct(st.acc)}</b>
           </div>
           <div className="gds">
             <span className="l">Intentos</span>
@@ -386,11 +388,11 @@ function GroupDrawer({
             </p>
           ) : (
             <div className="gd-roster">
-              {st.members.map((s, i) => {
+              {st.members.map((s) => {
                 const acc = toPct(s.accuracy);
                 return (
                   <div className="gdr-row" key={s.user_id}>
-                    <span className="gdr-pos">{i + 1}</span>
+                    <span className="gdr-pos">{s.rank ?? "—"}</span>
                     <span className="av" style={{ background: avaFor(s.name) }}>
                       {initials(s.name)}
                     </span>
@@ -550,8 +552,8 @@ export function TeacherGroups() {
     staleTime: 30_000,
   });
   const { data: dash } = useQuery({
-    queryKey: ["teacher-dashboard"],
-    queryFn: () => teacherApi.dashboard(),
+    queryKey: ["teacher-dashboard", "30"],
+    queryFn: () => teacherApi.dashboard("30"),
     staleTime: 60_000,
   });
   const { data: allCourses = [] } = useQuery({
@@ -560,15 +562,11 @@ export function TeacherGroups() {
     staleTime: 300_000,
   });
 
-  const studentsByGroup = useMemo(() => {
-    const map = new Map<number, StudentSummary[]>();
-    for (const s of dash?.students ?? []) {
-      if (s.group_id == null) continue;
-      if (!map.has(s.group_id)) map.set(s.group_id, []);
-      map.get(s.group_id)!.push(s);
-    }
-    return map;
-  }, [dash]);
+  const byId = useMemo(
+    () => new Map((dash?.students ?? []).map((s) => [s.user_id, s] as const)),
+    [dash]
+  );
+  const statsOf = (g: Group) => statsFor(dash?.summary?.groups?.[String(g.group_id)] ?? NO_FIGURES, byId);
 
   const createMutation = useMutation({
     mutationFn: ({ course_id, name }: { course_id: string; name: string }) =>
@@ -587,10 +585,7 @@ export function TeacherGroups() {
     (g.name + (g.course_id ?? "")).toLowerCase().includes(q.toLowerCase())
   );
   const totalStudents = groups.reduce((s, g) => s + g.student_count, 0);
-  const totalAttn = groups.reduce(
-    (s, g) => s + statsFor(studentsByGroup.get(g.group_id) ?? []).attn,
-    0
-  );
+  const totalAttn = dash?.summary?.attention.length ?? 0; // a student in two groups counts once
   const openGroup = groups.find((g) => g.group_id === openId) ?? null;
   const openIndex = groups.findIndex((g) => g.group_id === openId);
 
@@ -666,7 +661,7 @@ export function TeacherGroups() {
               key={g.group_id}
               g={g}
               color={colorFor(idx)}
-              members={studentsByGroup.get(g.group_id) ?? []}
+              st={statsOf(g)}
               onOpen={() => setOpenId(g.group_id)}
             />
           );
@@ -684,7 +679,7 @@ export function TeacherGroups() {
         <GroupDrawer
           g={openGroup}
           color={colorFor(openIndex)}
-          members={studentsByGroup.get(openGroup.group_id) ?? []}
+          st={statsOf(openGroup)}
           onClose={() => setOpenId(null)}
         />
       )}

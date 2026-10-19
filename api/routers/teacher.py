@@ -16,6 +16,7 @@ Endpoints del panel del docente:
 
 import io
 from datetime import datetime, timezone
+from typing import Literal
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
@@ -58,7 +59,7 @@ from api.rate_limit import limiter
 router = APIRouter(
     prefix="/teacher",
     tags=["teacher"],
-    dependencies=[require_role("teacher", "admin")],
+    dependencies=[require_role("teacher")],  # spec 006 FR-042
 )
 
 
@@ -91,11 +92,20 @@ def _require_teacher_student(repo, student_id: int, user: dict) -> dict:
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
 
+Window = Literal["7", "30", "all"]
+
+
+def _days(window: str) -> int | None:
+    """Spec 006 FR-043: the last 7 or 30 days, or the whole history (None)."""
+    return None if window == "all" else int(window)
+
+
 @router.get("/dashboard")
-def dashboard(user: CurrentUser, repo: RepoDep):
-    """Resumen de grupos, ELO promedio y últimos intentos de los estudiantes."""
+def dashboard(user: CurrentUser, repo: RepoDep, days: Window = "30"):
+    """The teacher's students (spec 006 FR-040) with their attempts in the window (FR-043), their
+    current ratings, the groups and the server's summary (FR-041)."""
     svc = _svc(repo)
-    students = repo.get_teacher_dashboard_stats(user["user_id"])
+    students = repo.get_teacher_dashboard_stats(user["user_id"], days=_days(days))
     views = svc.ratings.ratings_view_bulk([s["user_id"] for s in students])
     for s in students:  # the overall rating as the student sees it (FR-028a, FR-028j)
         view = views[s["user_id"]]
@@ -105,10 +115,22 @@ def dashboard(user: CurrentUser, repo: RepoDep):
             rank_label=view["rank_label"],
             overall_status=view["overall_status"],
         )
-    _, groups = svc.get_dashboard_data(user["user_id"])
+    memberships = repo.get_teacher_student_groups(user["user_id"])
+    summary = svc.ratings.console_summary(
+        [
+            {
+                "user_id": s["user_id"],
+                "accuracy": s["accuracy"],
+                "total_attempts": s["total_attempts"],
+                "group_ids": memberships.get(s["user_id"], []),
+            }
+            for s in students
+        ]
+    )
+    groups = repo.get_groups_by_teacher(user["user_id"])
     # The group's reusable code (V1 still reads it) is not sent: spec 001 FR-028u.
     groups = [{k: v for k, v in g.items() if k != "invite_code"} for g in groups]
-    return {"students": students, "groups": groups}
+    return {"students": students, "groups": groups, "summary": summary}
 
 
 # ── Grupos ────────────────────────────────────────────────────────────────────
@@ -478,9 +500,10 @@ def student_ai_analysis(
 
 
 @router.get("/metrics")
-def teacher_metrics(user: CurrentUser, repo: RepoDep):
-    """Métricas de uso del grupo: tiempo promedio por pregunta, tasa de abandono, temas top, actividad."""
-    return repo.get_teacher_metrics(user["user_id"])
+def teacher_metrics(user: CurrentUser, repo: RepoDep, days: Window = "30"):
+    """Time per question, abandonment, top topics and activity of the teacher's students, in the
+    window (spec 006 FR-040, FR-043)."""
+    return repo.get_teacher_metrics(user["user_id"], days=_days(days))
 
 
 @router.get("/student/{student_id}/ranking")
@@ -676,7 +699,7 @@ def update_exam_template(
     template = repo.get_exam_template(template_id)
     if not template:
         raise HTTPException(status_code=404, detail="Plantilla no encontrada.")
-    if template["teacher_id"] != user["user_id"] and user.get("role") != "admin":
+    if template["teacher_id"] != user["user_id"]:
         raise HTTPException(status_code=403, detail="No es tu plantilla.")
     if body.item_ids is not None:
         if body.item_ids != template["item_ids"] and repo.template_has_sessions(template_id):
@@ -724,7 +747,7 @@ def archive_exam_template(template_id: int, user: CurrentUser, repo: RepoDep):
     template = repo.get_exam_template(template_id)
     if not template:
         raise HTTPException(status_code=404, detail="Plantilla no encontrada.")
-    if template["teacher_id"] != user["user_id"] and user.get("role") != "admin":
+    if template["teacher_id"] != user["user_id"]:
         raise HTTPException(status_code=403, detail="No es tu plantilla.")
     repo.archive_exam_template(template_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -771,11 +794,11 @@ def _assignment_response(row: dict) -> ExamAssignmentResponse:
 
 
 def _ensure_owns_template(repo, template_id: int, user: dict) -> dict:
-    """Carga la plantilla y verifica autoría (o rol admin). Lanza HTTPException."""
+    """Carga la plantilla y verifica autoría. Lanza HTTPException."""
     template = repo.get_exam_template(template_id)
     if not template:
         raise HTTPException(status_code=404, detail="Plantilla no encontrada.")
-    if template["teacher_id"] != user["user_id"] and user.get("role") != "admin":
+    if template["teacher_id"] != user["user_id"]:
         raise HTTPException(status_code=403, detail="No es tu plantilla.")
     return template
 

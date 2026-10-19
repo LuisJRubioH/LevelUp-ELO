@@ -14,7 +14,12 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { RankPill } from "../../components/ELO/RankBadge";
-import { teacherApi, type StudentSummary } from "../../api/teacher";
+import {
+  teacherApi,
+  type ConsoleFigures,
+  type ConsoleWindow,
+  type StudentSummary,
+} from "../../api/teacher";
 import { useSettingsStore } from "../../stores/settingsStore";
 
 /* ── helpers de presentación ─────────────────────────────────────────────── */
@@ -22,13 +27,21 @@ import { useSettingsStore } from "../../stores/settingsStore";
 const fmtRating = (v: number | null | undefined) => (v == null ? "Diagnóstico pendiente" : String(v));
 const byRatingDesc = (a: StudentSummary, b: StudentSummary) =>
   (b.display_rating ?? -1) - (a.display_rating ?? -1);
-const needsAttention = (s: StudentSummary, acc: number) =>
-  acc < 60 || (s.display_rating != null && s.display_rating < 1100);
-/** A group statistic over rated students' display values; null when nobody is rated yet. */
-const meanShown = (xs: StudentSummary[]) => {
-  const v = xs.map((x) => x.display_rating).filter((x): x is number => x != null);
-  return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null;
+/** Spec 006 FR-041: figures, ranks and «attention» come from the server's summary. */
+const NO_FIGURES: ConsoleFigures = {
+  n: 0,
+  mean: null,
+  accuracy: null,
+  attempts: 0,
+  attention: [],
+  ranking: [],
+  histogram: [],
 };
+const WINDOWS: { days: ConsoleWindow; label: string }[] = [
+  { days: "7", label: "7d" },
+  { days: "30", label: "30d" },
+  { days: "all", label: "Todo" },
+];
 const AVAS = [
   "linear-gradient(140deg,#8b5cf6,#6366f1)",
   "linear-gradient(140deg,#2dd4bf,#0ea5e9)",
@@ -76,9 +89,11 @@ function StatCard({
 /* ── vista estudiantes ───────────────────────────────────────────────────── */
 function StudentsView({
   students,
+  attention,
   onSelect,
 }: {
   students: StudentSummary[];
+  attention: Set<number>;
   onSelect: (s: StudentSummary) => void;
 }) {
   const [q, setQ] = useState("");
@@ -133,7 +148,7 @@ function StudentsView({
           {rows.map((s) => {
             const rk = s.rank_label;
             const acc = toPct(s.accuracy);
-            const attn = needsAttention(s, acc);
+            const attn = attention.has(s.user_id);
             return (
               <div className="stu-row" key={s.user_id}>
                 <div className="stu-id">
@@ -177,10 +192,13 @@ function StudentsView({
 }
 
 /* ── vista ranking ───────────────────────────────────────────────────────── */
-function RankingView({ students }: { students: StudentSummary[] }) {
-  const sorted = [...students].sort((a, b) => byRatingDesc(a, b));
-  const top3 = sorted.slice(0, 3);
-  const order = [top3[1], top3[0], top3[2]].filter(Boolean) as StudentSummary[];
+type Ranked = StudentSummary & { rank: number | null };
+
+function RankingView({ ranked }: { ranked: Ranked[] }) {
+  const sorted = ranked; // the server's order: competition ranks, pending last
+  // The podium holds places 1–3 (ties share one); a pending student never stands on it.
+  const top3 = sorted.slice(0, 3).filter((s) => s.rank != null && s.rank <= 3);
+  const order = [top3[1], top3[0], top3[2]].filter(Boolean) as Ranked[];
   const medals = ["🥇", "🥈", "🥉"];
 
   return (
@@ -198,11 +216,10 @@ function RankingView({ students }: { students: StudentSummary[] }) {
         <>
           <div className="podium">
             {order.map((s) => {
-              const realPos = sorted.indexOf(s);
               const rk = s.rank_label;
               return (
-                <div className={"pod " + (realPos === 0 ? "p1" : "")} key={s.user_id}>
-                  <div className="medal">{medals[realPos]}</div>
+                <div className={"pod " + (s.rank === 1 ? "p1" : "")} key={s.user_id}>
+                  <div className="medal">{medals[(s.rank ?? 1) - 1]}</div>
                   <div
                     className="av"
                     style={{
@@ -228,9 +245,9 @@ function RankingView({ students }: { students: StudentSummary[] }) {
             })}
           </div>
           <div className="rank-list">
-            {sorted.slice(3).map((s, i) => (
+            {sorted.slice(top3.length).map((s) => (
               <div className="rank-line" key={s.user_id}>
-                <div className="pos">{i + 4}</div>
+                <div className="pos">{s.rank ?? "—"}</div>
                 <div className="who">
                   <div className="av" style={{ background: avaFor(s.name) }}>{initials(s.name)}</div>
                   <div>
@@ -249,25 +266,22 @@ function RankingView({ students }: { students: StudentSummary[] }) {
 }
 
 /* ── vista métricas ──────────────────────────────────────────────────────── */
-const BUCKETS = [
-  { label: "<1100", lo: 0, hi: 1100 },
-  { label: "1100", lo: 1100, hi: 1300 },
-  { label: "1300", lo: 1300, hi: 1500 },
-  { label: "1500", lo: 1500, hi: 1700 },
-  { label: "1700", lo: 1700, hi: 1900 },
-  { label: "1900+", lo: 1900, hi: 99999 },
-];
-
-function MetricsView({ students }: { students: StudentSummary[] }) {
-  const metricsQ = useQuery({ queryKey: ["teacher-metrics"], queryFn: () => teacherApi.metrics() });
+function MetricsView({
+  students,
+  figures,
+  days,
+}: {
+  students: StudentSummary[];
+  figures: ConsoleFigures;
+  days: ConsoleWindow;
+}) {
+  const metricsQ = useQuery({
+    queryKey: ["teacher-metrics", days],
+    queryFn: () => teacherApi.metrics(days),
+  });
   const m = metricsQ.data;
 
-  const buckets = BUCKETS.map((b) => ({
-    ...b,
-    n: students.filter(
-      (s) => s.display_rating != null && s.display_rating >= b.lo && s.display_rating < b.hi
-    ).length,
-  }));
+  const buckets = figures.histogram.map((b) => ({ label: b.label, n: b.count }));
   const maxN = Math.max(...buckets.map((b) => b.n), 1);
 
   const topics = (m?.topic_stats ?? [])
@@ -275,7 +289,8 @@ function MetricsView({ students }: { students: StudentSummary[] }) {
     .sort((a, b) => toPct(b.accuracy) - toPct(a.accuracy))
     .slice(0, 8);
 
-  const attn = students.filter((s) => needsAttention(s, toPct(s.accuracy)));
+  const flagged = new Set(figures.attention);
+  const attn = students.filter((s) => flagged.has(s.user_id));
 
   // sparkline actividad diaria
   const daily = m?.daily_attempts ?? [];
@@ -525,10 +540,12 @@ function StudentKatiaSection({ studentId, courseId }: { studentId: number; cours
 }
 
 function StudentDrawer({
+  flagged,
   student,
   courseId,
   onClose,
 }: {
+  flagged: boolean;
   student: StudentSummary;
   courseId: string | null;
   onClose: () => void;
@@ -613,7 +630,7 @@ function StudentDrawer({
           <h4>Actividad</h4>
           <p className="sd-ai-hint">
             Última actividad: {fmtLast(student.last_activity)}.{" "}
-            {needsAttention(student, acc)
+            {flagged
               ? "⚠ Este estudiante puede necesitar atención."
               : "Progreso dentro de lo esperado."}
           </p>
@@ -627,32 +644,36 @@ function StudentDrawer({
 export function TeacherDashboard() {
   const [groupId, setGroupId] = useState<number | "all">("all");
   const [tab, setTab] = useState<"estudiantes" | "ranking" | "metricas">("estudiantes");
-  const [range, setRange] = useState("30d");
+  const [days, setDays] = useState<ConsoleWindow>("30");
   const [selected, setSelected] = useState<StudentSummary | null>(null);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["teacher-dashboard"],
-    queryFn: () => teacherApi.dashboard(),
+    queryKey: ["teacher-dashboard", days],
+    queryFn: () => teacherApi.dashboard(days),
     staleTime: 60_000,
+    placeholderData: (previous) => previous, // keep the screen while another window loads
   });
 
   const students = data?.students ?? [];
   const groups = data?.groups ?? [];
+  const summary = data?.summary;
+  // The whole set, or one group's figures; a student in two of the teacher's groups is in both.
+  const figures =
+    (groupId === "all" ? summary : summary?.groups?.[String(groupId)]) ?? NO_FIGURES;
+  const attention = useMemo(() => new Set(summary?.attention ?? []), [summary]);
 
-  const filtered = useMemo(
-    () => (groupId === "all" ? students : students.filter((s) => s.group_id === groupId)),
-    [students, groupId]
-  );
-
-  const stats = useMemo(() => {
-    const n = students.length || 1;
+  const { filtered, ranked } = useMemo(() => {
+    const byId = new Map(students.map((s) => [s.user_id, s] as const));
+    const ranked = figures.ranking.flatMap((r) => {
+      const s = byId.get(r.user_id);
+      return s ? [{ ...s, rank: r.rank }] : [];
+    });
+    const members = new Set(figures.ranking.map((r) => r.user_id));
     return {
-      groups: groups.length,
-      students: students.length,
-      elo: meanShown(students),
-      acc: Math.round(students.reduce((s, x) => s + toPct(x.accuracy), 0) / n),
+      ranked,
+      filtered: groupId === "all" ? students : students.filter((s) => members.has(s.user_id)),
     };
-  }, [students, groups]);
+  }, [students, figures, groupId]);
 
   if (isLoading) {
     return (
@@ -686,9 +707,14 @@ export function TeacherDashboard() {
         </div>
         <div className="head-side">
           <div className="tc-range">
-            {["7d", "30d", "Todo"].map((r) => (
-              <button key={r} className={range === r ? "on" : ""} onClick={() => setRange(r)}>
-                {r}
+            {WINDOWS.map((w) => (
+              <button
+                key={w.days}
+                className={days === w.days ? "on" : ""}
+                aria-pressed={days === w.days}
+                onClick={() => setDays(w.days)}
+              >
+                {w.label}
               </button>
             ))}
           </div>
@@ -696,10 +722,15 @@ export function TeacherDashboard() {
       </div>
 
       <div className="stat-grid">
-        <StatCard ic="👥" color="#8b5cf6" val={stats.groups} lbl="Grupos activos" />
-        <StatCard ic="🎓" color="#2dd4bf" val={stats.students} lbl="Estudiantes" />
-        <StatCard ic="♛" color="#ffd700" val={stats.elo ?? "—"} lbl="ELO promedio" />
-        <StatCard ic="🎯" color="#34d399" val={stats.acc + "%"} lbl="Acierto promedio" />
+        <StatCard ic="👥" color="#8b5cf6" val={groups.length} lbl="Grupos activos" />
+        <StatCard ic="🎓" color="#2dd4bf" val={students.length} lbl="Estudiantes" />
+        <StatCard ic="♛" color="#ffd700" val={summary?.mean ?? "—"} lbl="ELO promedio" />
+        <StatCard
+          ic="🎯"
+          color="#34d399"
+          val={summary?.accuracy == null ? "—" : summary.accuracy + "%"}
+          lbl="Acierto promedio"
+        />
       </div>
 
       <div className="topic-row">
@@ -739,15 +770,16 @@ export function TeacherDashboard() {
       </div>
 
       {tab === "estudiantes" ? (
-        <StudentsView students={filtered} onSelect={setSelected} />
+        <StudentsView students={filtered} attention={attention} onSelect={setSelected} />
       ) : tab === "ranking" ? (
-        <RankingView students={filtered} />
+        <RankingView ranked={ranked} />
       ) : (
-        <MetricsView students={filtered} />
+        <MetricsView students={filtered} figures={figures} days={days} />
       )}
 
       {selected && (
         <StudentDrawer
+          flagged={attention.has(selected.user_id)}
           student={selected}
           courseId={groups.find((g) => g.group_id === selected.group_id)?.course_id ?? null}
           onClose={() => setSelected(null)}

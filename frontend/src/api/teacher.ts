@@ -92,10 +92,28 @@ export interface StudentPath {
   nodes: PathRecordNode[];
 }
 
+/** Spec 006 FR-041: a set's figures, computed by the server; screens render them as given. */
+export interface ConsoleFigures {
+  n: number;
+  mean: number | null; // mean of rated students' display values; null if none
+  accuracy: number | null; // percent, over students with attempts in the window
+  attempts: number;
+  attention: number[]; // user ids
+  ranking: { user_id: number; rank: number | null }[]; // competition ranks, pending last
+  histogram: { label: string; count: number }[];
+}
+
+export interface ConsoleSummary extends ConsoleFigures {
+  groups: Record<string, ConsoleFigures>; // by group id
+}
+
+/** Spec 006 FR-043: the last 7 days, the last 30, or the whole history. */
+export type ConsoleWindow = "7" | "30" | "all";
+
 export interface DashboardData {
-  teacher_id: number;
   groups: Group[];
   students: StudentSummary[];
+  summary: ConsoleSummary;
 }
 
 export interface TopicStat {
@@ -236,7 +254,8 @@ async function _downloadBlob(path: string, filename: string): Promise<void> {
 // ── API Docente ───────────────────────────────────────────────────────────────
 
 export const teacherApi = {
-  dashboard: () => api.get<DashboardData>("/api/teacher/dashboard"),
+  dashboard: (days: ConsoleWindow = "30") =>
+    api.get<DashboardData>(`/api/teacher/dashboard?days=${days}`),
 
   groups: () => api.get<Group[]>("/api/teacher/groups"),
 
@@ -272,12 +291,6 @@ export const teacherApi = {
 
   procedureCopies: () => api.get<ProcedureCopy[]>("/api/teacher/procedures/copies"),
 
-  studentReport: (student_id: number) =>
-    api.get<Record<string, unknown>>(`/api/teacher/student/${student_id}`),
-
-  studentEloHistory: (student_id: number) =>
-    api.get<{ attempts: Record<string, unknown>[] }>(`/api/teacher/student/${student_id}/elo-history`),
-
   /** Spec 003 L4: the student's learning path — states, answer history, outcomes. */
   studentPath: (student_id: number, course_id: string) =>
     api.get<StudentPath>(
@@ -309,7 +322,8 @@ export const teacherApi = {
     return { url: URL.createObjectURL(blob), type: blob.type };
   },
 
-  metrics: () => api.get<TeacherMetrics>("/api/teacher/metrics"),
+  metrics: (days: ConsoleWindow = "30") =>
+    api.get<TeacherMetrics>(`/api/teacher/metrics?days=${days}`),
 
   downloadCsv: () => _downloadBlob("/api/teacher/export/csv", "levelup_intentos.csv"),
 

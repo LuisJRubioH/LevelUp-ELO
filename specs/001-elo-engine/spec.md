@@ -699,7 +699,9 @@ code is tried; another teacher, an admin and a student try to manage them.
    este grupo.» and that invitation stays unused.
 10. **US10-AS10** — **Given** a teacher's group and its invitations, **When** another teacher, an
     admin or a student tries to generate, list or revoke them, **Then** it is refused — "not found"
-    for a teacher or an admin, so the group is not revealed — and nothing changes.
+    for a teacher, so the group is not revealed — and nothing changes. *(Amended by
+    spec 006 FR-042: an admin, like a student, gets 403 on every teacher route, which reveals
+    nothing about the group either.)*
 
 ---
 

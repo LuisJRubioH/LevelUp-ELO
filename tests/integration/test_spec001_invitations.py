@@ -521,9 +521,10 @@ def test_spec001_repository_redemption_statuses(repo):
 
 
 def test_spec001_only_the_groups_teacher_manages_its_invitations(repo, client):
-    """US10-AS10, FR-028p, FR-028t: another teacher and an admin are answered «not found» for the
-    group and its invitations, a student is refused, and nothing changes; the group's teacher
-    stops managing them once no longer an approved, active teacher."""
+    """US10-AS10, FR-028p, FR-028t: another teacher is answered «not found» for the group and its
+    invitations, an admin and a student are refused (403 on every teacher route, spec 006
+    FR-042), and nothing changes; the group's teacher stops managing them once no longer an
+    approved, active teacher."""
     owner, group = _group(repo)
     (token,) = _tokens(repo, owner, group)
     (row,) = repo.get_group_invitations(owner, group)
@@ -536,7 +537,8 @@ def test_spec001_only_the_groups_teacher_manages_its_invitations(repo, client):
         )
         listed = client.get(f"/api/teacher/groups/{group}/invitations", headers=headers)
         revoked = client.delete(f"/api/teacher/invitations/{row['id']}", headers=headers)
-        assert (created.status_code, listed.status_code, revoked.status_code) == (404, 404, 404)
+        refused = 404 if account == other else 403
+        assert (created.status_code, listed.status_code, revoked.status_code) == (refused,) * 3
         assert repo.create_group_invitations(account, group, 1, TTL) is None
         assert repo.get_group_invitations(account, group) is None
         assert repo.revoke_group_invitation(account, row["id"]) == "not_found"

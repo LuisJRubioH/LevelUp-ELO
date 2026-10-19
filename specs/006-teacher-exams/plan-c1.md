@@ -26,10 +26,15 @@ teacher-only routes.
   link each student to the teacher. The dashboard, metrics (`get_teacher_metrics`), group counts
   and the four export sheets filter by it, and course-bound data (attempts, procedures, KatIA,
   enrolments) by those courses (N7).
-- **From the server (FR-041):** `GET /teacher/groups/{id}/summary` returns the mean, the histogram
-  buckets, the ranking (`RatingReadService.ranking_view`, competition ranks, pending last, test
-  students excluded) and the «attention» list (rated below the group's threshold or accuracy below
-  60 %, the threshold a setting). `Dashboard.tsx` and `Groups.tsx` render it.
+- **From the server (FR-041):** `GET /teacher/dashboard` carries a `summary`
+  (`RatingReadService.console_summary` → `src/domain/elo/console.py`): the mean, the histogram
+  buckets, the ranking (competition ranks, pending last; test students are not in the set) and
+  the «attention» list (rated below 1100, or accuracy below 60 % over attempts in the window — a
+  student with no attempts has no accuracy to judge), for the whole set and per group under
+  `summary.groups` (a student in two of the teacher's groups counts in both). The group ranking
+  route (`/teacher/student/{id}/ranking`) leaves test students out. `Dashboard.tsx` and
+  `Groups.tsx` render it. *Implemented this way instead of a separate
+  `/teacher/groups/{id}/summary`: one request serves both screens.*
 - **Teachers only (FR-042):** the teacher router gets `require_role("teacher")`; the discarded
   `get_students_by_teacher` call and the unused client functions go.
 - **Range views (FR-043):** `GET /teacher/dashboard?days=7|30|all` and
@@ -44,8 +49,9 @@ teacher-only routes.
 |---|---|
 | `tests/integration/test_spec006_c1_console.py::test_every_place_lists_the_same_students` (both engines) | US4-AS2, FR-040 |
 | `…::test_a_moved_student_shows_only_the_shared_course` | FR-040 (N7) |
-| `…::test_the_group_ranking_is_competition_ranked` and `…::test_the_summary_comes_from_the_server` | US4-AS1, FR-041 |
+| `…::test_the_summary_comes_from_the_server` and `…::test_the_group_ranking_leaves_out_test_students` | US4-AS1, FR-041 |
+| `tests/unit/domain/test_spec006_console.py` | FR-041 (ranks, mean, attention, histogram, per group) |
 | `…::test_an_admin_gets_403_on_teacher_routes` | US4-AS3, FR-042 |
 | `…::test_the_dashboard_counts_the_chosen_window` (attempts 3, 20, 90 days old; 7, 30, all; both engines) | US4-AS4, FR-043 |
-| `frontend/e2e/spec006-c1-range.spec.ts` (each button asks for its window and shows its numbers) | FR-043 |
-| `frontend/e2e/spec006-c1-group-ranking.spec.ts` (the screen shows the server's places) | FR-041 |
+| `frontend/e2e/spec006-c1-console.spec.ts` › the server's ranking, mean and «attention» | US4-AS1, FR-041 |
+| `frontend/e2e/spec006-c1-console.spec.ts` › each button asks for its window | US4-AS4, FR-043 |
