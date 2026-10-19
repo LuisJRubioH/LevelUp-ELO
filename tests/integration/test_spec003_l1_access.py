@@ -103,7 +103,9 @@ def test_a_teacher_of_the_course_previews_without_storing(repo, client, role):
         viewer = _approved_teacher(repo)
         make_group(repo, viewer, COURSE)
     else:
-        viewer = sql(repo, "SELECT id FROM users WHERE role = 'admin' LIMIT 1")[0][0]
+        # Its own admin: the bootstrap seeds one only when ADMIN_PASSWORD is set.
+        viewer = _approved_teacher(repo)
+        sql(repo, "UPDATE users SET role = 'admin' WHERE id = ?", (viewer,))
     headers = headers_for(repo, viewer)
 
     for node in (WELCOME, FIRST_N2):
