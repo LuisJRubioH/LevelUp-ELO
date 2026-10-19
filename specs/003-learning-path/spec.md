@@ -37,7 +37,7 @@ request that completes a delivery marks it closed and fills all its rows.
 |---|---|---|
 | **A** | As-is pins: what the path already guarantees, each requirement tied to a test | in progress |
 | **L1** | Access: lessons and the map only for enrolled students; a teacher previews the courses of their groups, read only | closed |
-| **L2** | Answer keys stay on the server | planned |
+| **L2** | Answer keys stay on the server | closed |
 | **L3** | A node completes on right answers | closed |
 | **L4** | What the teacher sees: the post-diagnostic outcome and an answer history, no free text | planned |
 | **L5** | Unlock rules from data only; the map and the API share them | closed |
@@ -271,8 +271,8 @@ request that closes their delivery.
 | US1-AS2 | L1 | `tests/integration/test_spec003_l1_access.py::test_an_enrolled_student_walks_the_path_as_today` |
 | US1-AS3 | L1 | `tests/integration/test_spec003_l1_access.py::test_a_teacher_of_the_course_previews_without_storing` |
 | US1-AS4 | L1 | `tests/integration/test_spec003_l1_access.py::test_a_teacher_without_a_group_in_the_course_is_refused` |
-| US2-AS1 | L2 | `PENDING` |
-| US2-AS2 | L2 | `PENDING` |
+| US2-AS1 | L2 | `tests/integration/test_spec003_l2_keys.py::test_no_lesson_response_holds_a_grading_key`<br>`tests/unit/domain/test_spec003_l2_public_content.py::test_projection_keeps_what_the_renderer_reads` |
+| US2-AS2 | L2 | `tests/integration/test_spec003_l2_keys.py::test_feedback_is_unchanged_after_the_keys_leave`<br>`tests/integration/test_spec003_l2_keys.py::test_the_abstraction_question_is_graded_on_the_server_and_never_gates`<br>`frontend/e2e/spec003-l2-lesson.spec.ts › la pregunta de abstracción la califica el servidor, se reintenta y no bloquea el cierre` |
 | US3-AS1 | L3 | `tests/integration/test_spec003_l3_completion.py::test_one_wrong_required_answer_refuses_naming_it`<br>`tests/integration/test_spec003_l3_completion.py::test_the_refusal_lists_every_missing_item_in_order` |
 | US3-AS2 | L3 | `tests/integration/test_spec003_l3_completion.py::test_all_latest_answers_right_completes_and_opens_the_next` |
 | US3-AS3 | L3 | `tests/integration/test_spec003_l3_completion.py::test_a_wrong_answer_corrected_lets_the_node_complete` |
@@ -293,7 +293,7 @@ request that closes their delivery.
 | FR-006 | A | `tests/integration/test_sqlite_repository.py::TestLessonProgress::test_structured_lesson_response_roundtrip_has_no_free_text_field` |
 | FR-010 | L1 | `tests/integration/test_spec003_l1_access.py::test_a_student_not_enrolled_is_refused_everywhere` |
 | FR-011 | L1 | `tests/integration/test_spec003_l1_access.py::test_a_teacher_of_the_course_previews_without_storing`<br>`tests/integration/test_spec003_l1_access.py::test_a_teacher_without_a_group_in_the_course_is_refused` |
-| FR-020 | L2 | `PENDING` |
+| FR-020 | L2 | `tests/integration/test_spec003_l2_keys.py::test_no_lesson_response_holds_a_grading_key`<br>`tests/unit/domain/test_spec003_l2_public_content.py::test_every_content_field_is_classified`<br>`tests/unit/domain/test_spec003_l2_public_content.py::test_projection_keeps_what_the_renderer_reads`<br>`tests/unit/domain/test_spec003_l2_public_content.py::test_the_renderer_fields_are_public`<br>`tests/unit/domain/test_spec003_l2_public_content.py::test_the_projection_does_not_touch_the_catalogue` |
 | FR-030 | L3 | `tests/integration/test_spec003_l3_completion.py::test_one_wrong_required_answer_refuses_naming_it`<br>`tests/unit/domain/test_spec003_l3_completion.py::test_the_default_rule_needs_every_latest_answer_right`<br>`tests/unit/domain/test_spec003_l3_completion.py::test_view_answered_and_cards_rules`<br>`tests/unit/domain/test_spec003_l3_completion.py::test_every_eleven_block_node_completes_on_right_answers`<br>`tests/unit/domain/test_spec003_l3_completion.py::test_diagnostic_items_never_gate`<br>`tests/integration/test_spec003_l3_completion.py::test_welcome_completes_on_view_and_closing_on_answers_right_or_wrong`<br>`tests/integration/test_spec003_l3_completion.py::test_a_node_completed_before_l3_stays_completed` |
 | FR-040 | L4 | `PENDING` |
 | FR-041 | L4 | `PENDING` |

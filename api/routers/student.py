@@ -64,6 +64,7 @@ from api.schemas.student import (
 from src.application.services.student_service import StudentService
 from src.domain.elo.model import diagnostic_baseline
 from src.domain.procedures import COPY, REFUSE_OTHER_ITEM, REFUSE_SAME_ITEM
+from src.domain.learning.public_content import public_content
 from src.domain.learning.path import (
     completes_on_cards,
     completion_gaps,
@@ -1281,6 +1282,8 @@ def _lesson_with_progress(
     the same function the map uses. In preview (spec 003 L1) every node is available and nothing
     is read or repaired for the viewer: the hub repair below writes progress.
     """
+    # Spec 003 L2 (FR-020): the browser receives the allow-listed content, never a grading key.
+    lesson = {**lesson, "content": public_content(lesson.get("content"))}
     if preview:
         return {
             **lesson,
