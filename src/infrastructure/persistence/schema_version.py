@@ -1,0 +1,89 @@
+"""
+Spec 002 D1: the schema version and the item-bank fingerprint (FR-015, FR-016).
+
+A start reads the highest row of `schema_versions`; when it equals `SCHEMA_VERSION` the migration
+issues no DDL. `MIGRATION_SOURCES_DIGEST` is the digest of every method that issues the schema's
+DDL on both engines: `tests/unit/infrastructure/test_spec002_schema_version.py` recomputes it, so
+changing that code without raising `SCHEMA_VERSION` (and recording the new digest) fails.
+
+The item bank is synced only when its fingerprint differs from the last one recorded in
+`bank_syncs`, so a start with an unchanged bank writes no item.
+"""
+
+import glob
+import hashlib
+import inspect
+import os
+
+SCHEMA_VERSION = 1
+MIGRATION_SOURCES_DIGEST = "a4c54cd57ef4809e57487bebe727184eeba793464e9c81b1ca9090e6c4d8fb5a"
+
+# Every method that issues DDL, or decides whether the migration may run, on both repositories.
+_MIGRATION_METHODS = (
+    "init_db",
+    "_add_column_if_not_exists",
+    "_migrate_db",
+    "_run_migration",
+    "_migrate_procedure_block7",
+    "_backfill_procedure_contributions",
+    "_ensure_procedure_pair_index",
+    "_check_courses_block_constraint",
+    "_check_group_names",
+    "_make_image_data_nullable",
+)
+
+REPAIR_GROUPS = "scripts/repairs/rename_duplicate_groups.py"
+
+
+class MigrationFailed(RuntimeError):
+    """A migration step failed; its transaction was rolled back, so nothing of it committed."""
+
+    def __init__(self, step: str, cause: BaseException):
+        super().__init__(
+            f"Migration step '{step}' failed and committed nothing: "
+            f"{type(cause).__name__}: {cause}"
+        )
+        self.step = step
+
+
+class MigrationNeedsRepair(RuntimeError):
+    """The migration needs data only a repair script produces (spec 002 FR-018)."""
+
+    def __init__(self, script: str, rows: int, what: str):
+        super().__init__(
+            f"Migration stopped, nothing committed: {rows} {what}. "
+            f"Run `python {script}` (dry run), then with --apply, and start again."
+        )
+        self.script = script
+
+
+def migration_sources_digest() -> str:
+    """SHA-256 of the source of every migration method of both repositories."""
+    from src.infrastructure.persistence.postgres_repository import PostgresRepository
+    from src.infrastructure.persistence.sqlite_repository import SQLiteRepository
+
+    digest = hashlib.sha256()
+    for cls in (PostgresRepository, SQLiteRepository):
+        for name in _MIGRATION_METHODS:
+            digest.update(f"{cls.__name__}.{name}\n".encode())
+            digest.update(inspect.getsource(getattr(cls, name)).encode())
+    return digest.hexdigest()
+
+
+def bank_files(bank_dir: str) -> list[str]:
+    """The files `sync_items_from_bank_folder` reads, in its order."""
+    files = sorted(glob.glob(os.path.join(bank_dir, "*.json")))
+    return files + sorted(glob.glob(os.path.join(bank_dir, "semillero", "*.json")))
+
+
+def bank_fingerprint(bank_dir: str) -> str | None:
+    """SHA-256 over each bank file's relative path and content; None without a bank."""
+    files = bank_files(bank_dir)
+    if not files:
+        return None
+    digest = hashlib.sha256()
+    for path in files:
+        digest.update(os.path.relpath(path, bank_dir).replace(os.sep, "/").encode() + b"\0")
+        with open(path, "rb") as handle:
+            digest.update(hashlib.sha256(handle.read()).digest())
+    return digest.hexdigest()
