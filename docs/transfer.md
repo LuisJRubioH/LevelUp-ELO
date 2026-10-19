@@ -322,9 +322,14 @@ then restore the application schema; rehearsed locally, the result is identical 
 before the migration:
 
 ```sql
-DROP TABLE IF EXISTS active_exam_sessions, diagnostics, exam_responses, lesson_interactions,
-  lesson_progress, pvp_answers, pvp_matches, student_course_topic_elo CASCADE;
+DROP TABLE IF EXISTS active_exam_sessions, audit_account_events, bank_syncs, diagnostics,
+  exam_responses, group_invitations, lesson_answers, lesson_interactions, lesson_outcomes,
+  lesson_progress, procedure_files, procedure_gradings, procedure_uploads, pvp_answers,
+  pvp_matches, schema_versions, student_course_topic_elo CASCADE;
 ```
+
+These are the 17 tables the redesign creates that `main` does not have (compared on 2026-10-19,
+schema version 3). A spec that adds a table adds it here too.
 
 ```bash
 pg_restore --clean --if-exists --no-owner --no-privileges --schema=public \
@@ -353,6 +358,20 @@ run that script without arguments (it only counts), then with `--apply`, and sta
 changed nothing before stopping. The other two repairs (`deactivate_users_without_password.py`,
 `backfill_prob_failure.py`) are the owner's choice; the start does not need them.
 
+The schema version the code expects is `SCHEMA_VERSION` in
+`src/infrastructure/persistence/schema_version.py`. Today it is **3**:
+
+| Version | Change |
+|---|---|
+| 1 | spec 002 D1: `schema_versions`, `bank_syncs`; the migration runs all-or-nothing |
+| 2 | spec 002 D3: an index on SQLite only (PostgreSQL unchanged) |
+| 3 | spec 003 L4: tables `lesson_answers` (every lesson answer, in order) and `lesson_outcomes` (the post-diagnostic outcome); each row already in `lesson_interactions` is copied once into `lesson_answers` |
+
+A production database from `main` has no schema version and no lesson tables, so its first
+migration goes straight to version 3 and the L4 copy finds nothing to copy. The rehearsal must run
+the **same commit that will be switched**: a rehearsal made before a version change does not
+cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
+
 **Rehearse on the restored copy first** (the scratch database from § 4):
 
 ```bash
@@ -366,6 +385,9 @@ Then check on the scratch database:
 SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2;
 SELECT COUNT(*) FROM student_topic_elo;                        -- equals the count from § 4
 SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- all pre-existing rows
+SELECT MAX(version) FROM schema_versions;                      -- 3: the SCHEMA_VERSION of the commit
+SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions);  -- 0
+SELECT COUNT(*) FROM lesson_outcomes;                          -- 0: written only by new answers
 ```
 
 Every reconciled row must have `approximate = true` and a `legacy_source_key`; the second run must
@@ -384,6 +406,10 @@ redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no 
 ## 6. Verification in the final environment
 
 **Before the switch** (on the final repository's pull request):
+
+- The § 4 backup and the § 5 rehearsal were run on the commit being switched, or on one with the
+  same `SCHEMA_VERSION`. The rehearsal report shows the migration passing twice, and
+  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (3 today).
 
 - Roadmap follow-up **F-4** is merged into the branch being switched: `next-question`, `/answer`
   and the diagnostic serve only courses the student is enrolled in (spec 001 FR-037, FR-037a).
