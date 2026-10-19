@@ -6,7 +6,7 @@
 
 **Status**: Approved by the owner, with N1 … N4 as proposed (2026-10-19). Written from the as-is survey
 (`docs/sdd/ai-survey.md`, LuisJRubioH/LevelUp-ELO#92) and the owner's decisions of 2026-10-19 (its
-§ 7). Deliveries K1, K2 and K3 are implemented; K4 is not.
+§ 7). Deliveries K1 … K4 are implemented.
 
 **Input**: Roadmap M5 (`docs/sdd/roadmap.md`): provider detection, key precedence, KatIA's Socratic
 guardrails, procedure review. AGENTS.md § AI integration and R7 describe this area today; this
@@ -46,7 +46,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **K1** | One key, the right provider: the provider from the key's prefix, one model per function from settings, timeouts, Groq-only review said in the interface, the teacher analysis's real inputs, no exception text to the client | closed |
 | **K2** | KatIA's guardrails and access: no correct answer in the prompt, every reply checked, the statement read from the item, only enrolled students | closed |
 | **K3** | KatIA's record: multi-turn conversations, a summary per conversation for the teacher, no message text kept after it ends | closed |
-| **K4** | Clean-up: V2-only dead code removed, AGENTS.md § AI integration rewritten | planned |
+| **K4** | Clean-up: V2-only dead code removed, AGENTS.md § AI integration rewritten | closed |
 
 ## Clarifications
 
@@ -306,4 +306,4 @@ request that closes their delivery.
 | FR-031 | K3 | `tests/integration/test_spec005_k3_record.py::test_answering_right_or_wrong_closes_as_superado_or_no_superado`<br>`tests/integration/test_spec005_k3_record.py::test_another_item_logout_or_24h_close_as_abandonado`<br>`tests/integration/test_spec005_k3_record.py::test_an_answer_closes_only_that_items_conversation`<br>`tests/integration/test_spec005_k3_record.py::test_an_unclassifiable_difficulty_is_sin_clasificar`<br>`tests/integration/test_spec005_k3_record.py::test_without_a_system_key_the_difficulty_is_sin_clasificar`<br>`tests/unit/domain/test_spec005_close_outcome.py::test_each_way_out_has_its_outcome`<br>`tests/unit/domain/test_spec005_close_outcome.py::test_only_one_exact_label_is_accepted` |
 | FR-032 | K3 | `tests/integration/test_spec005_k3_record.py::test_no_text_remains_after_closing`<br>`tests/integration/test_spec005_k3_record.py::test_another_item_logout_or_24h_close_as_abandonado`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_repair_scripts_report_and_are_idempotent` |
 | FR-033 | K3 | `tests/integration/test_spec005_k3_record.py::test_the_teacher_reads_summaries_and_exports_counts_only`<br>`frontend/e2e/spec005-k3-katia-summaries.spec.ts › el panel del estudiante muestra las conversaciones con KatIA del curso, sin texto` |
-| FR-040 | K4 | `PENDING` |
+| FR-040 | K4 | `tests/api/test_spec005_k4_cleanup.py::test_the_legacy_review_endpoint_is_gone`<br>`tests/api/test_spec005_k4_cleanup.py::test_no_setting_for_student_analysis` |

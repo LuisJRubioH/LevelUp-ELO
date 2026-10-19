@@ -28,7 +28,7 @@ def test_the_legacy_review_endpoint_is_gone(api_client, student_headers):
     )
 
     assert response.status_code == 404
-    paths = {route.path for route in api_client.app.routes}
+    paths = api_client.app.openapi()["paths"]
     assert "/api/ai/review-procedure" not in paths
     assert "/api/student/procedure/analyze" in paths
 

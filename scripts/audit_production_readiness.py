@@ -27,7 +27,6 @@ os.environ.update(
     AI_KEY_KATIA="",
     AI_KEY_PROCEDURE="",
     AI_KEY_TEACHER_ANALYSIS="",
-    AI_KEY_STUDENT_ANALYSIS="",
     SUPABASE_URL="",
     SUPABASE_KEY="",
 )

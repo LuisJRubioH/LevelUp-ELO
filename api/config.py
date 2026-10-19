@@ -37,14 +37,13 @@ class Settings(BaseSettings):
     ]
 
     # ── IA del sistema ─────────────────────────────────────────────────────────
-    # Key general (fallback si no hay key específica por función)
+    # Key general (fallback si no hay key específica por función). El prefijo de la key decide
+    # el proveedor (spec 005 FR-010); no hay variable de proveedor.
     system_ai_api_key: str = ""  # gsk_, sk-ant-, sk-, AIzaSy… — cualquier proveedor
-    system_ai_provider: str = ""  # groq, anthropic, openai, google (auto-detectado si vacío)
 
     # Keys opcionales por función — si vacías, usan system_ai_api_key
     ai_key_katia: str = ""  # chat socrático (KatIA)
     ai_key_procedure: str = ""  # revisión de procedimientos manuscritos
-    ai_key_student_analysis: str = ""  # recomendaciones y análisis para el estudiante
     ai_key_teacher_analysis: str = ""  # análisis en dashboard del docente
 
     # Spec 005 FR-012: one model per function, used with a Groq key (the production provider).
@@ -60,7 +59,6 @@ class Settings(BaseSettings):
         fn_map = {
             "katia": self.ai_key_katia,
             "procedure": self.ai_key_procedure,
-            "student_analysis": self.ai_key_student_analysis,
             "teacher_analysis": self.ai_key_teacher_analysis,
         }
         specific = fn_map.get(function, "").strip()
