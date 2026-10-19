@@ -2,7 +2,11 @@
 A procedure review waits seconds (up to minutes, with the SDK's own retries) on an AI provider.
 The API is one process (AGENTS R18): while that wait runs on the event loop, every other request
 and every PvP socket waits too. R17: blocking work in an `async def` goes through a thread. With
-a provider that takes 1.5 s, the API must keep answering other requests meanwhile.
+a provider that takes 3 s, the API must keep answering other requests meanwhile.
+
+The margin is wide on purpose: a request blocked behind the review would wait about 2.7 s, a
+free one answers in milliseconds, and a shared CI runner can pause a thread for most of a second
+(a 1.5 s provider with a 0.5 s limit failed once that way, 2026-10-19).
 """
 
 import io
@@ -11,7 +15,7 @@ import time
 
 import pytest
 
-SLOW = 1.5
+SLOW = 3.0
 
 
 def _png() -> bytes:
@@ -69,4 +73,4 @@ def test_the_api_answers_while_a_procedure_is_reviewed(
 
     assert health.status_code == 200
     assert review["response"].status_code == 200, review["response"].text
-    assert waited < 0.5, f"another request waited {waited:.2f} s behind the review"
+    assert waited < 1.0, f"another request waited {waited:.2f} s behind the review"
