@@ -326,22 +326,46 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
         waiting.match = match
         waiting.matched.set()
 
+    first_message: str | None = None  # an answer read while the wait was ending (V10)
     if match is None:
         # En espera — el creador setea slot.matched al emparejar.
         # Vigilamos el socket en PARALELO: si el jugador cierra la pestaña mientras
         # espera, receive_text() falla y lo sacamos del lobby (no queda fantasma).
         await _send(websocket, {"type": "waiting"})
         matched_task = asyncio.ensure_future(slot.matched.wait())
-        disconnect_task = asyncio.ensure_future(websocket.receive_text())
-        done, pending = await asyncio.wait(
-            {matched_task, disconnect_task},
-            timeout=300.0,
-            return_when=asyncio.FIRST_COMPLETED,
-        )
+        receive_task: asyncio.Future | None = None
+        deadline = asyncio.get_running_loop().time() + 300.0
+        while True:
+            receive_task = asyncio.ensure_future(websocket.receive_text())
+            remaining = deadline - asyncio.get_running_loop().time()
+            await asyncio.wait(
+                {matched_task, receive_task},
+                timeout=max(remaining, 0.0),
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            # Ask the task, not wait()'s result: the read can complete after wait() returned,
+            # before this coroutine resumed (a loaded loop).
+            if (
+                receive_task.done()
+                and not receive_task.cancelled()
+                and receive_task.exception() is None
+            ):
+                # A message, not a closed tab (survey 007 V10). Once matched, it is this
+                # player's first answer, sent right after game_start: keep it for the answer
+                # loop. Before that it means nothing yet: ignore it and keep waiting.
+                text = receive_task.result()
+                if slot.matched.is_set():
+                    first_message = text
+                    receive_task = None
+                    break
+                continue
+            break
         # Drenar las tareas canceladas: si no esperamos la cancelación del
         # receive_text(), el canal de recepción queda ocupado y el loop de
         # respuestas falla con "cannot call recv while another coroutine is waiting".
-        for t in pending:
+        for t in (matched_task, receive_task):
+            if t is None or t.done():
+                continue
             t.cancel()
             try:
                 await t
@@ -349,11 +373,10 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
                 pass
         # A player who leaves while waiting ends receive_text() with WebSocketDisconnect: read
         # it, or asyncio logs "Task exception was never retrieved" on every such exit (F-5).
-        for t in done:
-            if not t.cancelled():
-                t.exception()
+        if receive_task is not None and receive_task.done() and not receive_task.cancelled():
+            receive_task.exception()
 
-        if matched_task not in done:
+        if not slot.matched.is_set():
             # Desconexión o timeout → limpiar lobby y cerrar
             async with _lock:
                 if _lobby.get(course_id) is slot:
@@ -388,7 +411,10 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
     # 2. Loop de respuestas
     try:
         while True:
-            raw = await websocket.receive_text()
+            if first_message is not None:
+                raw, first_message = first_message, None
+            else:
+                raw = await websocket.receive_text()
             msg = json.loads(raw)
 
             if not isinstance(msg, dict) or msg.get("type") != "answer":
