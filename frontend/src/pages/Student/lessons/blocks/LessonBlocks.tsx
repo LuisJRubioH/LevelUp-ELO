@@ -49,9 +49,7 @@ export type LessonItem = {
   kind: "numeric" | "text_exact" | "single_select" | "multi_select";
   prompt: string;
   expr?: string;
-  answer?: string;
   options?: ItemOption[];
-  expected?: string;
   hints?: { n1: string; n2: string; n3: string };
   tipo?: string;
   confidence?: string;
@@ -59,7 +57,12 @@ export type LessonItem = {
 
 type Restored = Record<string, { selected_option: string; is_expected: boolean | null }>;
 
-export function useLessonItems(courseId: string, nodeId: string, restored: Restored) {
+export function useLessonItems(
+  courseId: string,
+  nodeId: string,
+  restored: Restored,
+  storedOutcome: "gain" | "flat" | null = null,
+) {
   const [answers, setAnswers] = useState<Record<string, string>>(() =>
     Object.fromEntries(Object.entries(restored).map(([id, r]) => [id, r.selected_option])),
   );
@@ -73,6 +76,8 @@ export function useLessonItems(courseId: string, nodeId: string, restored: Resto
     Object.fromEntries(Object.entries(restored).map(([id]) => [id, 1])),
   );
   const [hintLevel, setHintLevel] = useState<Record<string, number>>({});
+  // Spec 003 L4: the post-diagnostic outcome is the server's, not computed here.
+  const [outcome, setOutcome] = useState(storedOutcome);
 
   const mutation = useMutation({
     mutationFn: ({ id, option }: { id: string; option: string }) =>
@@ -82,6 +87,7 @@ export function useLessonItems(courseId: string, nodeId: string, restored: Resto
       setCorrect((c) => ({ ...c, [r.interaction_id]: Boolean(r.is_expected) }));
       setFeedback((c) => ({ ...c, [r.interaction_id]: r.feedback_key }));
       setAttempts((c) => ({ ...c, [r.interaction_id]: (c[r.interaction_id] ?? 0) + 1 }));
+      if (r.outcome) setOutcome(r.outcome);
     },
   });
 
@@ -90,6 +96,7 @@ export function useLessonItems(courseId: string, nodeId: string, restored: Resto
   return {
     fullId,
     pending: mutation.isPending,
+    outcome,
     answerOf: (itemId: string) => answers[fullId(itemId)],
     isCorrect: (itemId: string) => Boolean(correct[fullId(itemId)]),
     feedbackKey: (itemId: string) => feedback[fullId(itemId)],
@@ -168,6 +175,59 @@ function OptionRow({
           <OptionLabel option={option} />
         </button>
       ))}
+    </div>
+  );
+}
+
+/**
+ * multi_select: el motor compara la selección COMPLETA ("a,c") con la esperada,
+ * así que marcar no envía nada; se envía al comprobar. Con OptionRow cada toque
+ * mandaba una sola opción y un ítem con dos o más respuestas nunca quedaba
+ * correcto: el nodo no se podía terminar.
+ */
+function MultiOptionRow({
+  item,
+  engine,
+  disabled,
+}: {
+  item: LessonItem;
+  engine: ItemEngine;
+  disabled: boolean;
+}) {
+  const [chosen, setChosen] = useState<Set<string>>(
+    () => new Set((engine.answerOf(item.id) ?? "").split(",").filter(Boolean)),
+  );
+  const toggle = (optionId: string) =>
+    setChosen((current) => {
+      const next = new Set(current);
+      if (next.has(optionId)) next.delete(optionId);
+      else next.add(optionId);
+      return next;
+    });
+  return (
+    <div className="block-multi">
+      <div className="block-options" role="group" aria-label={item.prompt}>
+        {(item.options ?? []).map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            className={chosen.has(option.id) ? "selected" : ""}
+            disabled={disabled || engine.pending}
+            aria-pressed={chosen.has(option.id)}
+            aria-label={option.text ?? option.id}
+            onClick={() => toggle(option.id)}
+          >
+            <OptionLabel option={option} />
+          </button>
+        ))}
+      </div>
+      <Button
+        variant="secondary"
+        disabled={disabled || chosen.size === 0 || engine.pending}
+        onClick={() => engine.submit(item.id, [...chosen].sort().join(","))}
+      >
+        Comprobar
+      </Button>
     </div>
   );
 }
@@ -282,6 +342,8 @@ export function LessonItemCard({
         {isTrap && item.confidence === "fija" && <ConfidenceSlider itemId={item.id} />}
         {item.kind === "numeric" || item.kind === "text_exact" ? (
           <NumericField item={item} engine={engine} disabled={done} />
+        ) : item.kind === "multi_select" ? (
+          <MultiOptionRow item={item} engine={engine} disabled={done} />
         ) : (
           <OptionRow item={item} engine={engine} disabled={done} />
         )}
@@ -654,7 +716,7 @@ export function BridgeBlock({
       statement: string;
       given_steps: string[];
       presentation?: string;
-      blanks: Array<{ id: string; label: string; answer: string }>;
+      blanks: Array<{ id: string; label: string }>;
     }>;
   };
   engine: ItemEngine;
@@ -762,17 +824,27 @@ export function MethodComparison({
 
 // ─── Bloque 9 · Abstracción + cierre con Pólya ─────────────────────────────
 
+/** Spec 003 N9: the server grades the abstraction question (`<node>-ABSTRACCION`), so the
+ * content no longer says which options are right. It never gates completion. */
+const ABSTRACTION_ID = "ABSTRACCION";
+
 export function AbstractionQuestion({
   question,
+  engine,
+  feedbackText,
 }: {
   question: {
     prompt: string;
     thumbnails: string[];
-    options: Array<{ id: string; text: string; correct: boolean }>;
+    options: Array<{ id: string; text: string }>;
   };
+  engine: ItemEngine;
+  feedbackText: (key: string) => string;
 }) {
-  const [picked, setPicked] = useState<Set<string>>(new Set());
-  const [checked, setChecked] = useState(false);
+  const [picked, setPicked] = useState<Set<string>>(
+    () => new Set((engine.answerOf(ABSTRACTION_ID) ?? "").split(",").filter(Boolean)),
+  );
+  const solved = engine.isCorrect(ABSTRACTION_ID);
   const toggle = (id: string) =>
     setPicked((current) => {
       const next = new Set(current);
@@ -793,24 +865,32 @@ export function AbstractionQuestion({
           <button
             key={option.id}
             type="button"
-            className={[
-              picked.has(option.id) ? "selected" : "",
-              checked ? (option.correct ? "is-ok" : "is-off") : "",
-            ]
+            className={[picked.has(option.id) ? "selected" : "", solved && picked.has(option.id) ? "is-ok" : ""]
               .filter(Boolean)
               .join(" ")}
             aria-pressed={picked.has(option.id)}
-            disabled={checked}
+            disabled={solved}
             onClick={() => toggle(option.id)}
           >
             <MathText text={option.text} />
           </button>
         ))}
       </div>
-      {!checked && (
-        <Button variant="secondary" disabled={picked.size === 0} onClick={() => setChecked(true)}>
+      {!solved && (
+        <Button
+          variant="secondary"
+          disabled={picked.size === 0 || engine.pending}
+          onClick={() => engine.submit(ABSTRACTION_ID, [...picked].sort().join(","))}
+        >
           Comprobar
         </Button>
+      )}
+      {engine.feedbackKey(ABSTRACTION_ID) && (
+        <div className={`block-feedback ${solved ? "is-ok" : "is-retry"}`} role="status">
+          <span className="block-feedback-mark" aria-hidden="true">{solved ? "✓" : "↻"}</span>
+          <span className="sr-only">{solved ? "Correcto. " : "Todavía no. "}</span>
+          <MathText text={feedbackText(engine.feedbackKey(ABSTRACTION_ID))} />
+        </div>
       )}
     </div>
   );
@@ -826,7 +906,6 @@ export function PolyaClosing({
     statement: string;
     prompt?: string;
     polya: { comprender: string; planear: string; ejecutar: string; comprobar: string };
-    answer: string;
     hints?: { n1: string; n2: string; n3: string };
   };
   engine: ItemEngine;

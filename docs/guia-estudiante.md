@@ -10,8 +10,10 @@ Te registras con usuario, correo y contraseña, y eliges tu **nivel**: Colegio,
 Universidad, Semillero o Concursos. El nivel decide qué materias ves — no lo
 cambies a mitad de curso sin avisarle a tu docente.
 
-Si tu docente te dio un **código de invitación**, úsalo al registrarte o desde
-Materias: te mete directo a su grupo, incluso si su grupo es de otro nivel.
+Si tu docente te dio un **código de invitación**, úsalo desde Materias: te mete
+directo a su grupo, incluso si su grupo es de otro nivel. Cada código sirve para
+una sola persona, así que no lo compartas. Si te dice que ya fue usado o que
+venció, pídele uno nuevo a tu docente.
 
 Puedes entrar después con tu usuario **o** con tu correo.
 
@@ -162,8 +164,14 @@ Qué pasa después:
    igual.
 4. Te llega un aviso en el momento en que te califican.
 
-**No subas dos veces el mismo archivo.** El sistema le saca una huella digital y
-detecta el duplicado.
+**Si lo reenvías**, vuelve a revisión y tu nota conserva lo que te dio la
+calificación anterior hasta que el docente califique otra vez. Entonces solo se
+aplica la diferencia: un procedimiento cuenta una vez, con su última nota. En los
+procedimientos calificados antes de esta versión no se muestra el efecto en la nota.
+
+**No subas dos veces el mismo archivo.** El sistema le saca una huella digital:
+- si ya lo subiste para ese ejercicio, o para otro, se rechaza y no cambia nada;
+- si es el archivo de otro estudiante, queda calificado con 0 y marcado como copia.
 
 ---
 

@@ -47,8 +47,11 @@ def resources(api_client, teacher_token):
 def test_student_routes_require_current_teacher_relationship(
     api_client, teacher_headers, resources, monkeypatch, suffix
 ):
+    from api.config import settings
     from src.application.services.teacher_service import TeacherService
 
+    # The analysis is mocked; a key only gets past the "no key configured" answer.
+    monkeypatch.setattr(settings, "system_ai_api_key", "gsk_test_only")
     analysis = Mock(return_value="Análisis local")
     monkeypatch.setattr(TeacherService, "generate_ai_analysis", analysis)
     method = "POST" if suffix == "/ai-analysis" else "GET"
@@ -81,19 +84,35 @@ def test_student_routes_require_current_teacher_relationship(
     )
 
 
-def test_foreign_invite_code_is_not_rotated(api_client, teacher_headers, resources):
+def test_foreign_group_invitations_are_refused(api_client, teacher_headers, resources):
+    """Spec 001 FR-028t: another teacher neither creates, lists nor revokes a group's
+    invitations, and learns nothing about them (404)."""
     repo = resources["repo"]
     group_id = resources["group_id"]
-    before = repo.generate_group_invite_code(group_id)
+    (token,) = repo.create_group_invitations(resources["teacher_id"], group_id, 1, 30)
+    invitation = next(
+        i
+        for i in repo.get_group_invitations(resources["teacher_id"], group_id)
+        if i["token"] == token
+    )
+    other = resources["other_headers"]
     for target in (group_id, 99999999):
-        response = api_client.post(
-            f"/api/teacher/groups/{target}/invite-code", headers=resources["other_headers"]
-        )
-        assert response.status_code == 404
-    assert repo.get_group_by_invite_code(before)["group_id"] == group_id
-    own = api_client.post(f"/api/teacher/groups/{group_id}/invite-code", headers=teacher_headers)
-    assert own.status_code == 200
-    assert own.json()["invite_code"]
+        path = f"/api/teacher/groups/{target}/invitations"
+        assert api_client.post(path, headers=other, json={"count": 1}).status_code == 404
+        assert api_client.get(path, headers=other).status_code == 404
+    revoke = api_client.delete(f"/api/teacher/invitations/{invitation['id']}", headers=other)
+    assert revoke.status_code == 404
+    still = next(
+        i
+        for i in repo.get_group_invitations(resources["teacher_id"], group_id)
+        if i["token"] == token
+    )
+    assert still["status"] == "unused"
+    own = api_client.post(
+        f"/api/teacher/groups/{group_id}/invitations", headers=teacher_headers, json={"count": 1}
+    )
+    assert own.status_code == 201
+    assert own.json()["tokens"]
 
 
 def test_assignment_must_belong_to_authorized_template(api_client, teacher_headers, resources):
@@ -127,3 +146,39 @@ def test_assignment_must_belong_to_authorized_template(api_client, teacher_heade
     )
     assert repo.list_assignments_for_template(own) == []
     assert repo.list_assignments_for_template(foreign) == before
+
+
+def test_ai_analysis_without_a_key_says_so(api_client, teacher_headers, resources, monkeypatch):
+    """No key anywhere → 422 naming the setting, as KatIA and the procedure review answer."""
+    from api.config import settings
+
+    for attr in ("system_ai_api_key", "ai_key_teacher_analysis"):
+        monkeypatch.setattr(settings, attr, "")
+    response = api_client.post(
+        f"/api/teacher/student/{resources['student_id']}/ai-analysis", headers=teacher_headers
+    )
+    assert response.status_code == 422
+    assert "SYSTEM_AI_API_KEY" in response.json()["detail"]
+
+
+@pytest.mark.parametrize("error", [ConnectionError, TimeoutError])
+def test_ai_analysis_with_an_unreachable_model_answers_503(
+    api_client, teacher_headers, resources, monkeypatch, error
+):
+    """ai_client raises these with a user-facing message; they used to surface as a 500."""
+    from api.config import settings
+    from src.application.services.teacher_service import TeacherService
+
+    monkeypatch.setattr(settings, "system_ai_api_key", "gsk_test_only")
+    message = "⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos."
+    monkeypatch.setattr(TeacherService, "generate_ai_analysis", Mock(side_effect=error(message)))
+    response = api_client.post(
+        f"/api/teacher/student/{resources['student_id']}/ai-analysis", headers=teacher_headers
+    )
+    assert response.status_code == 503
+    # Spec 005 FR-016: a fixed message per failure, whatever text the exception carried.
+    expected = {
+        ConnectionError: "La IA no está disponible ahora. Intenta de nuevo en un momento.",
+        TimeoutError: "La IA no respondió a tiempo. Intenta de nuevo.",
+    }[error]
+    assert response.json()["detail"] == expected

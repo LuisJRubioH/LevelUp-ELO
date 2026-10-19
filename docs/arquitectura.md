@@ -148,8 +148,11 @@ SQLite y PostgreSQL mantienen **API pública idéntica**. Cualquier cambio en un
 otro; `python scripts/db_sync_check.py` es obligatorio antes de un commit que toque repositorios.
 
 Ese verificador compara texto, firmas y DDL: **no demuestra equivalencia de resultados**. Para eso
-está `tests/integration/test_elo_single_source.py`, parametrizado sobre los dos motores; el job
-`test-postgres` de CI levanta un PostgreSQL efímero y ejecuta la rama PostgreSQL.
+están los fixtures `repo` y `client` de `tests/integration/conftest.py`: cada test que los usa
+corre sobre SQLite y, si `POSTGRES_TEST_DATABASE_URL` apunta a una base local desechable, también
+sobre PostgreSQL. El job `test-postgres` de CI levanta un PostgreSQL efímero y ejecuta
+`tests/integration/` completo. Los tests de `tests/api/` corren solo sobre SQLite; un endpoint se
+prueba sobre los dos motores con el fixture `client`.
 
 ### Migraciones
 
@@ -162,7 +165,9 @@ En despliegue lo aplica `scripts/migrate.py` como proceso aparte y el proceso we
 **Por qué separado.** `_migrate_db()` toma `pg_try_advisory_lock`, que es un lock de **sesión**.
 Sobre el pooler de transacciones de Supabase (puerto 6543) la sesión física no sobrevive al commit,
 así que el lock puede acabar liberándose desde otra sesión y dejar de proteger nada. El script usa
-`MIGRATION_DATABASE_URL` — conexión directa (5432) o pooler de sesión.
+`MIGRATION_DATABASE_URL` — el pooler de sesión (5432). La conexión directa de Supabase también
+sirve para el lock, pero su host solo tiene IPv6 (salvo el complemento IPv4), y ni Render ni los
+runners de GitHub llegan a IPv6.
 
 ### Pool de conexiones
 
@@ -209,8 +214,15 @@ todos los métodos que usan los routers; cubre el núcleo y ancla el test.
 ## Observabilidad
 
 `/api/health` es **readiness**, no liveness: ejecuta una consulta mínima y devuelve **503** si la
-base no responde. El health check del despliegue apunta ahí, así que una instancia con la
-persistencia caída no recibe tráfico. El arranque no traga el error de inicialización.
+base no responde o si los límites no se pueden aplicar. El health check del despliegue apunta ahí,
+así que una instancia con la persistencia caída no recibe tráfico. El arranque no traga el error de
+inicialización.
+
+Si Redis (el almacén de los límites) falla con el proceso en marcha, los límites se cuentan en
+memoria con los mismos valores y `/api/health` responde **200** con `"limits": "degraded"`; al
+volver, lo contado en memoria se suma a Redis (spec 004 E6; [transfer.md](transfer.md) § 3.2). El
+health check de Render solo mira el código, así que el estado degradado lo ve un monitor que lea el
+cuerpo.
 
 ---
 
@@ -226,7 +238,7 @@ and Supabase for PostgreSQL and Storage.
 | Variable | Para qué |
 |---|---|
 | `DATABASE_URL` | Tráfico normal — pooler de transacciones (6543) |
-| `MIGRATION_DATABASE_URL` | Solo `scripts/migrate.py` — conexión directa (5432) o pooler de sesión |
+| `MIGRATION_DATABASE_URL` | Solo `scripts/migrate.py` — pooler de sesión (5432; la conexión directa solo tiene IPv6) |
 | `RUN_MIGRATIONS` | `0` en el proceso web: el esquema lo aplica el paso previo |
 | `WEB_CONCURRENCY` | `1`, obligatorio — ver § Un solo proceso |
 | `JWT_SECRET_KEY` | ≥32 caracteres, random |

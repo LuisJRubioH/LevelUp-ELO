@@ -18,8 +18,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { authApi } from "../../api/auth";
 import { useAuthStore } from "../../stores/authStore";
 import { useThemeStore } from "../../stores/themeStore";
-import { useSettingsStore, PROVIDER_MODELS } from "../../stores/settingsStore";
-import { clearAccountCaches } from "../../lib/accountCleanup";
+import { useSettingsStore } from "../../stores/settingsStore";
+import { resetClientAccountState } from "../../lib/accountCleanup";
+import { useSideDrawer } from "../../hooks/useSideDrawer";
+import { MobileBar } from "../../components/Layout/MobileBar";
 import "./TeacherConsole.css";
 
 const NAV = [
@@ -42,10 +44,10 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const queryClient = useQueryClient();
   const { theme, toggleTheme } = useThemeStore();
-  const { apiKey, provider, model, setApiKey, setProvider, setModel } = useSettingsStore();
-  const availableModels = PROVIDER_MODELS[provider] ?? [];
+  const { apiKey, setApiKey } = useSettingsStore();
 
   const [aiOpen, setAiOpen] = useState(false);
+  const { open: menuOpen, setOpen: setMenuOpen, closeRef, closeOnLink } = useSideDrawer();
   const lang = i18n.language?.startsWith("en") ? "en" : "es";
 
   const handleLogout = async () => {
@@ -54,9 +56,7 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
     } catch {
       /* ignorar */
     }
-    await clearAccountCaches();
-    queryClient.clear();
-    setApiKey("");
+    await resetClientAccountState(queryClient);
     clearAuth();
     navigate("/login");
   };
@@ -65,7 +65,18 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="lue-tc">
-      <aside className="tc-side">
+      <MobileBar home="/teacher" open={menuOpen} onOpen={() => setMenuOpen(true)} />
+      {menuOpen && <div className="tc-scrim" aria-hidden="true" onClick={() => setMenuOpen(false)} />}
+      <aside id="tc-side" className={"tc-side" + (menuOpen ? " open" : "")} onClick={closeOnLink}>
+        <button
+          ref={closeRef}
+          type="button"
+          className="tc-side-close"
+          aria-label="Cerrar menú"
+          onClick={() => setMenuOpen(false)}
+        >
+          ✕
+        </button>
         <div className="tc-brand">
           <Link to="/teacher" aria-label="Oulad">
             <img className="brand-logo brand-logo-dark" src="/oulad-logo-dark.png" alt="Oulad" />
@@ -96,32 +107,6 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
                 <span>Key</span>
                 <b>{apiKey ? "Tuya" : "Del sistema"}</b>
               </div>
-              <select
-                className="ai-input"
-                value={provider}
-                onChange={(e) => setProvider(e.target.value)}
-                aria-label="Proveedor de IA"
-              >
-                <option value="groq">Groq</option>
-                <option value="anthropic">Anthropic</option>
-                <option value="openai">OpenAI</option>
-                <option value="google">Google Gemini</option>
-              </select>
-              {availableModels.length > 0 && (
-                <select
-                  className="ai-input"
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                  aria-label="Modelo de IA"
-                >
-                  <option value="">Modelo automático</option>
-                  {availableModels.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-              )}
               <input
                 className="ai-input"
                 type="password"
@@ -135,9 +120,9 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
 
         <div className="tc-foot">
           <div className="tc-user">
-            <div className="ava">{initials(user?.username ?? "?")}</div>
+            <div className="ava">{initials(user?.display_name || user?.username || "?")}</div>
             <div className="meta">
-              <b>{user?.username}</b>
+              <b>{user?.display_name || user?.username}</b>
               <span>
                 <span className="role">Docente</span>
                 {user?.education_level ? ` · ${user.education_level}` : ""}
@@ -152,6 +137,10 @@ export function TeacherLayout({ children }: { children: ReactNode }) {
               🌐 {lang.toUpperCase()}
             </button>
           </div>
+          {/* Spec 004 FR-026: el propio usuario cambia su contraseña. */}
+          <button className="tc-logout" onClick={() => navigate("/cambiar-contrasena")}>
+            Cambiar contraseña
+          </button>
           <button className="tc-logout" onClick={handleLogout}>
             Cerrar sesión →
           </button>

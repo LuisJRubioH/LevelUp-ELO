@@ -4,15 +4,26 @@ db_sync_check.py — Verificador de consistencia entre repositorios de LevelUp-E
 
 Uso:
     python scripts/db_sync_check.py
-    python scripts/db_sync_check.py --fix   # intenta corregir diferencias simples
+    python scripts/db_sync_check.py --sqlite PATH --postgres PATH   # otras copias (tests)
 
 Ejecutar desde la raíz del repo.
+
+Spec 002 D3: las secciones 1 (firmas, con inspect) y 3 (esquema, con ast sobre cada método de
+migración) fallan ante cualquier diferencia que no esté aceptada en
+src/infrastructure/persistence/engine_differences.py, y ante una aceptada que ya no exista.
 """
 
+import argparse
 import ast
+import importlib.util
+import inspect
 import re
 import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 # Fix Windows console encoding for Unicode output
 if sys.platform == "win32":
@@ -59,16 +70,6 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def get_public_methods(source: str) -> dict[str, str]:
-    """Retorna {nombre_método: firma_completa} para métodos públicos."""
-    methods = {}
-    for m in re.finditer(r"^\s{4}def ([a-z][^_][^(]*)\(([^)]*)\)", source, re.MULTILINE):
-        name = m.group(1).strip()
-        params = m.group(2).strip()
-        methods[name] = params
-    return methods
-
-
 def get_course_block_map(source: str) -> dict[str, str]:
     """Extrae _COURSE_BLOCK_MAP como diccionario."""
     m = re.search(r"_COURSE_BLOCK_MAP\s*=\s*\{([^}]+)\}", source, re.DOTALL)
@@ -82,34 +83,132 @@ def get_course_block_map(source: str) -> dict[str, str]:
     return pairs
 
 
-def get_migrations(source: str) -> list[str]:
-    """Extrae operaciones DDL del bloque _migrate_db."""
-    lines = []
-    in_migrate = False
-    for line in source.splitlines():
-        if "def _migrate_db" in line:
-            in_migrate = True
-        elif in_migrate and re.match(r"    def ", line):
-            break
-        if in_migrate:
-            if re.search(r"ALTER TABLE|ADD COLUMN|CREATE TABLE|CREATE INDEX", line):
-                # normalizar para comparación
-                clean = re.sub(r"\s+", " ", line.strip())
-                clean = re.sub(r"['\"]", "", clean)
-                lines.append(clean)
-    return lines
+_CONSTRAINT_WORDS = {"PRIMARY", "UNIQUE", "FOREIGN", "CHECK", "CONSTRAINT"}
+_CREATE_TABLE = re.compile(r"CREATE TABLE (?:IF NOT EXISTS )?(\w+)\s*\((.*)\)", re.DOTALL)
+_CREATE_INDEX = re.compile(
+    r"CREATE (UNIQUE )?INDEX (?:IF NOT EXISTS )?(\w+)\s+ON\s+(\w+)\s*\(([^)]*)\)"
+)
+
+
+def _top_level_parts(body: str) -> list[str]:
+    parts, depth, current = [], 0, ""
+    for char in body:
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        if char == "," and depth == 0:
+            parts.append(current)
+            current = ""
+        else:
+            current += char
+    return parts + [current]
+
+
+def _loop_values(method) -> dict:
+    """{name: [values]} for `for a, b in ((..., ...), ...)` loops over literal tuples."""
+    values = {}
+    for node in ast.walk(method):
+        if not isinstance(node, ast.For) or not isinstance(node.iter, (ast.Tuple, ast.List)):
+            continue
+        targets = node.target.elts if isinstance(node.target, ast.Tuple) else [node.target]
+        for position, target in enumerate(targets):
+            if not isinstance(target, ast.Name):
+                continue
+            column = []
+            for element in node.iter.elts:
+                item = element.elts[position] if isinstance(element, ast.Tuple) else element
+                if isinstance(item, ast.Constant):
+                    column.append(item.value)
+            values[target.id] = column
+    return values
+
+
+def static_catalogue(source: str, class_name: str):
+    """Tables, columns and indexes the migration methods of one repository create (spec 002
+    FR-040): read from their code, so no database is needed."""
+    from src.infrastructure.persistence.engine_differences import Catalogue
+    from src.infrastructure.persistence.schema_version import _MIGRATION_METHODS
+
+    tree = ast.parse(source)
+    (cls,) = [n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == class_name]
+    catalogue = Catalogue()
+    index_names = set()
+    for method in cls.body:
+        if not isinstance(method, ast.FunctionDef) or method.name not in _MIGRATION_METHODS:
+            continue
+        loops = _loop_values(method)
+        docstring = ast.get_docstring(method, clean=False)
+        for node in ast.walk(method):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                if node.value == docstring:
+                    continue
+                sql = re.sub(r"\s+", " ", node.value).strip()
+                table = _CREATE_TABLE.search(sql)
+                if table:
+                    catalogue.add_table(table.group(1))
+                    for part in _top_level_parts(table.group(2)):
+                        word = part.strip().split(" ")[0] if part.strip() else ""
+                        if word and word.upper() not in _CONSTRAINT_WORDS:
+                            catalogue.add_column(table.group(1), word)
+                index = _CREATE_INDEX.search(sql)
+                # One index per name: `CREATE INDEX IF NOT EXISTS` twice makes one index.
+                if index and index.group(2) not in index_names:
+                    index_names.add(index.group(2))
+                    columns = [c.strip().split(" ")[0] for c in index.group(4).split(",")]
+                    catalogue.add_index(index.group(3), columns, bool(index.group(1)))
+            elif (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "_add_column_if_not_exists"
+                and len(node.args) >= 3
+            ):
+                tables, columns = (
+                    (
+                        [arg.value]
+                        if isinstance(arg, ast.Constant)
+                        else loops.get(getattr(arg, "id", ""), [])
+                    )
+                    for arg in node.args[1:3]
+                )
+                for table in tables:
+                    for column in columns:
+                        catalogue.add_column(table, column)
+    return catalogue
+
+
+def load_class(path: Path, class_name: str):
+    """Imports a repository module from a path (the real file, or a test's edited copy)."""
+    spec = importlib.util.spec_from_file_location(f"_db_sync_{class_name}", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return getattr(module, class_name)
+
+
+def public_signatures(cls) -> dict:
+    """{method: [(parameter, kind, default)]} for every public method."""
+    return {
+        name: [
+            (p.name, p.kind.name, repr(p.default))
+            for p in inspect.signature(fn).parameters.values()
+        ]
+        for name, fn in inspect.getmembers(cls, inspect.isfunction)
+        if not name.startswith("_")
+    }
 
 
 # ─── Verificaciones ───────────────────────────────────────────────────────────
 
 
-def check_methods(sqlite_src: str, pg_src: str):
+def check_methods(sqlite_path: Path, pg_path: Path):
+    """FR-041: the same public methods with the same parameters (names, kinds, defaults),
+    read with inspect from the imported classes."""
     print(f"\n{BOLD}1. Métodos públicos{RESET}")
-    sqlite_methods = get_public_methods(sqlite_src)
-    pg_methods = get_public_methods(pg_src)
+    sqlite_methods = public_signatures(load_class(sqlite_path, "SQLiteRepository"))
+    pg_methods = public_signatures(load_class(pg_path, "PostgresRepository"))
 
-    # Excluir helpers internos del pool de conexiones (solo en PostgreSQL)
-    _PG_INTERNAL = {"put_connection", "get_connection", "decorator", "wrapper"}
+    # put_connection devuelve la conexión al pool: solo existe en PostgreSQL.
+    _PG_INTERNAL = {"put_connection"}
     only_sqlite = set(sqlite_methods) - set(pg_methods) - _PG_INTERNAL
     only_pg = set(pg_methods) - set(sqlite_methods) - _PG_INTERNAL
     in_both = set(sqlite_methods) & set(pg_methods)
@@ -124,14 +223,11 @@ def check_methods(sqlite_src: str, pg_src: str):
         ),
     )
 
-    # Verificar firmas de métodos compartidos
-    mismatched = []
-    for name in sorted(in_both):
-        s_params = re.sub(r"\s+", " ", sqlite_methods[name])
-        p_params = re.sub(r"\s+", " ", pg_methods[name])
-        if s_params != p_params:
-            mismatched.append(f"{name}(): SQLite({s_params}) vs PG({p_params})")
-
+    mismatched = [
+        f"{name}(): SQLite{sqlite_methods[name]} vs PG{pg_methods[name]}"
+        for name in sorted(in_both)
+        if sqlite_methods[name] != pg_methods[name]
+    ]
     check(
         "Firmas de métodos coinciden",
         not mismatched,
@@ -164,33 +260,19 @@ def check_course_map(sqlite_src: str, pg_src: str):
 
 
 def check_migrations(sqlite_src: str, pg_src: str):
-    print(f"\n{BOLD}3. Migraciones (_migrate_db){RESET}")
-    sqlite_migs = get_migrations(sqlite_src)
-    pg_migs = get_migrations(pg_src)
+    """FR-040: tables, columns and indexes created by every migration method, both engines."""
+    from src.infrastructure.persistence.engine_differences import unexplained
 
+    print(f"\n{BOLD}3. Esquema de las migraciones{RESET}")
+    sqlite = static_catalogue(sqlite_src, "SQLiteRepository")
+    postgres = static_catalogue(pg_src, "PostgresRepository")
+    problems = unexplained(sqlite, postgres, runtime=False)
     check(
-        "Mismo número de operaciones DDL",
-        len(sqlite_migs) == len(pg_migs),
-        f"SQLite: {len(sqlite_migs)} operaciones | PG: {len(pg_migs)} operaciones",
+        f"Mismas tablas, columnas e índices ({len(postgres.tables)} tablas) salvo las "
+        "diferencias aceptadas",
+        not problems,
+        "\n       ".join(problems),
     )
-
-    if len(sqlite_migs) != len(pg_migs):
-        extra_sqlite = [
-            m
-            for m in sqlite_migs
-            if not any(re.sub(r"[\?\%]s", "X", m) in re.sub(r"[\?\%]s", "X", p) for p in pg_migs)
-        ]
-        extra_pg = [
-            m
-            for m in pg_migs
-            if not any(
-                re.sub(r"[\?\%]s", "X", m) in re.sub(r"[\?\%]s", "X", s) for s in sqlite_migs
-            )
-        ]
-        if extra_sqlite:
-            warn("Migraciones en SQLite sin equivalente en PG:", "\n       ".join(extra_sqlite[:3]))
-        if extra_pg:
-            warn("Migraciones en PG sin equivalente en SQLite:", "\n       ".join(extra_pg[:3]))
 
 
 def check_placeholders(sqlite_src: str, pg_src: str):
@@ -281,6 +363,12 @@ def check_idempotent_seeds(sqlite_src: str, pg_src: str):
 
 
 def main():
+    global SQLITE_PATH, POSTGRES_PATH
+    parser = argparse.ArgumentParser(description="Paridad SQLite/PostgreSQL (AGENTS R1).")
+    parser.add_argument("--sqlite", type=Path, default=SQLITE_PATH)
+    parser.add_argument("--postgres", type=Path, default=POSTGRES_PATH)
+    args = parser.parse_args()
+    SQLITE_PATH, POSTGRES_PATH = args.sqlite, args.postgres
     print(f"\n{BOLD}{'═'*55}{RESET}")
     print(f"{BOLD}  DB SYNC CHECK — LevelUp-ELO{RESET}")
     print(f"{BOLD}{'═'*55}{RESET}")
@@ -290,7 +378,7 @@ def main():
     sqlite_src = read(SQLITE_PATH)
     pg_src = read(POSTGRES_PATH)
 
-    check_methods(sqlite_src, pg_src)
+    check_methods(SQLITE_PATH, POSTGRES_PATH)
     check_course_map(sqlite_src, pg_src)
     check_migrations(sqlite_src, pg_src)
     check_placeholders(sqlite_src, pg_src)

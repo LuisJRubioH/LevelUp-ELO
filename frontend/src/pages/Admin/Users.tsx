@@ -8,7 +8,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { adminApi } from "../../api/teacher";
-import type { AdminUser } from "../../api/teacher";
+import type { AdminUser, TemporaryPassword } from "../../api/teacher";
 import { Button } from "../../components/ui/Button";
 
 function RoleBadge({ role }: { role: string }) {
@@ -94,7 +94,102 @@ function PendingTeachersSection() {
   );
 }
 
-function UserRow({ user }: { user: AdminUser }) {
+/** Spec 004 FR-029, FR-031: the temporary password, shown once; never stored by the page. */
+function TemporaryPasswordNotice({
+  issued,
+  onClose,
+}: {
+  issued: TemporaryPassword & { username: string };
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div
+      role="status"
+      data-testid="temporary-password"
+      className="bg-teal-900/20 border border-teal-600/40 rounded-xl p-4 space-y-2"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="text-sm font-semibold text-teal-300">
+          {t("adminUsers.temporaryTitle", { username: issued.username })}
+        </h3>
+        <button onClick={onClose} className="text-xs text-slate-400 hover:text-slate-200">
+          {t("adminUsers.close")}
+        </button>
+      </div>
+      <code className="block font-mono text-lg tracking-wider text-slate-100 select-all">
+        {issued.temporary_password}
+      </code>
+      <p className="text-xs text-slate-400">{t("adminUsers.temporaryHint")}</p>
+    </div>
+  );
+}
+
+function CreateTeacherSection({ onIssued }: { onIssued: (p: TemporaryPassword & { username: string }) => void }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const create = useMutation({
+    mutationFn: () =>
+      adminApi.createTeacher({ username: username.trim(), email: email.trim() || undefined }),
+    onSuccess: (res) => {
+      onIssued({ ...res, username: res.username ?? username.trim() });
+      setUsername("");
+      setEmail("");
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        create.mutate();
+      }}
+      className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3"
+      aria-label={t("adminUsers.createTeacherTitle")}
+    >
+      <div>
+        <h3 className="text-sm font-semibold text-slate-200">{t("adminUsers.createTeacherTitle")}</h3>
+        <p className="text-xs text-slate-500">{t("adminUsers.createTeacherHint")}</p>
+      </div>
+      <div className="flex gap-3 flex-wrap">
+        <input
+          required
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder={t("adminUsers.createTeacherUsername")}
+          aria-label={t("adminUsers.createTeacherUsername")}
+          className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-violet-500"
+        />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder={t("adminUsers.createTeacherEmail")}
+          aria-label={t("adminUsers.createTeacherEmail")}
+          className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-violet-500"
+        />
+        <Button size="sm" type="submit" loading={create.isPending}>
+          {t("adminUsers.createTeacherSubmit")}
+        </Button>
+      </div>
+      {create.isError && (
+        <p role="alert" className="text-xs text-red-400">
+          {(create.error as Error).message}
+        </p>
+      )}
+    </form>
+  );
+}
+
+function UserRow({
+  user,
+  onIssued,
+}: {
+  user: AdminUser;
+  onIssued: (p: TemporaryPassword & { username: string }) => void;
+}) {
   const { t } = useTranslation();
   const qc = useQueryClient();
 
@@ -105,11 +200,65 @@ function UserRow({ user }: { user: AdminUser }) {
     mutationFn: () => (isActive ? adminApi.deactivate(uid) : adminApi.reactivate(uid)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-users"] }),
   });
+  // Spec 004 FR-025: the admin corrects a student's display name, under the same filter.
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(user.display_name ?? "");
+  const nameMutation = useMutation({
+    mutationFn: () => adminApi.setDisplayName(uid, nameDraft),
+    onSuccess: () => {
+      setEditingName(false);
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+  const resetMutation = useMutation({
+    mutationFn: () => adminApi.resetPassword(uid),
+    onSuccess: (res) => {
+      onIssued({ ...res, username: user.username });
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
 
   return (
     <tr className="hover:bg-slate-700/30 transition-colors">
       <td className="px-4 py-3">
         <span className="text-slate-100 text-sm font-medium">{user.username}</span>
+        {user.role === "student" && !editingName ? (
+          <span className="block text-xs text-slate-400">
+            {user.display_name || t("adminUsers.noDisplayName")}
+          </span>
+        ) : null}
+        {editingName ? (
+          <form
+            className="mt-1 flex gap-1 items-center"
+            onSubmit={(e) => {
+              e.preventDefault();
+              nameMutation.mutate();
+            }}
+          >
+            <input
+              aria-label={t("adminUsers.nameLabel")}
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              maxLength={80}
+              required
+              className="bg-slate-900 border border-slate-600 rounded px-2 py-0.5 text-xs text-slate-200 focus:outline-none focus:border-violet-500"
+            />
+            <Button size="sm" type="submit" loading={nameMutation.isPending}>
+              {t("adminUsers.saveName")}
+            </Button>
+            <Button size="sm" variant="secondary" type="button" onClick={() => setEditingName(false)}>
+              {t("adminUsers.cancelName")}
+            </Button>
+          </form>
+        ) : null}
+        {nameMutation.isError ? (
+          <span role="alert" className="block text-[11px] text-red-400">
+            {(nameMutation.error as Error).message}
+          </span>
+        ) : null}
+        {user.must_change_password ? (
+          <span className="block text-[11px] text-amber-400">{t("adminUsers.mustChange")}</span>
+        ) : null}
       </td>
       <td className="px-4 py-3">
         <RoleBadge role={user.role} />
@@ -130,14 +279,42 @@ function UserRow({ user }: { user: AdminUser }) {
         </span>
       </td>
       <td className="px-4 py-3">
-        <Button
-          size="sm"
-          variant={isActive ? "danger" : "secondary"}
-          loading={toggleMutation.isPending}
-          onClick={() => toggleMutation.mutate()}
-        >
-          {isActive ? t("adminUsers.deactivate") : t("adminUsers.activate")}
-        </Button>
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            size="sm"
+            variant={isActive ? "danger" : "secondary"}
+            loading={toggleMutation.isPending}
+            onClick={() => toggleMutation.mutate()}
+          >
+            {isActive ? t("adminUsers.deactivate") : t("adminUsers.activate")}
+          </Button>
+          {user.role === "student" || user.role === "teacher" ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              loading={resetMutation.isPending}
+              onClick={() => {
+                if (window.confirm(t("adminUsers.resetConfirm", { username: user.username }))) {
+                  resetMutation.mutate();
+                }
+              }}
+            >
+              {t("adminUsers.resetPassword")}
+            </Button>
+          ) : null}
+          {user.role === "student" && !editingName ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                setNameDraft(user.display_name ?? "");
+                setEditingName(true);
+              }}
+            >
+              {t("adminUsers.changeName")}
+            </Button>
+          ) : null}
+        </div>
       </td>
     </tr>
   );
@@ -147,6 +324,7 @@ export function AdminUsers() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [issued, setIssued] = useState<(TemporaryPassword & { username: string }) | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -164,7 +342,10 @@ export function AdminUsers() {
 
   const users = data?.users ?? [];
   const filtered = users.filter((u) => {
-    const matchSearch = u.username.toLowerCase().includes(search.toLowerCase());
+    const needle = search.toLowerCase();
+    const matchSearch =
+      u.username.toLowerCase().includes(needle) ||
+      (u.display_name ?? "").toLowerCase().includes(needle);
     const matchRole = roleFilter === "all" || u.role === roleFilter;
     return matchSearch && matchRole;
   });
@@ -178,6 +359,10 @@ export function AdminUsers() {
 
       {/* Docentes pendientes */}
       <PendingTeachersSection />
+
+      {/* Spec 004 E2: contraseña temporal recién emitida y alta de docentes */}
+      {issued ? <TemporaryPasswordNotice issued={issued} onClose={() => setIssued(null)} /> : null}
+      <CreateTeacherSection onIssued={setIssued} />
 
       {/* Filtros */}
       <div className="flex gap-3 flex-wrap">
@@ -222,7 +407,9 @@ export function AdminUsers() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((u, idx) => <UserRow key={(u.user_id ?? u.id ?? idx) as number} user={u} />)
+                filtered.map((u, idx) => (
+                  <UserRow key={(u.user_id ?? u.id ?? idx) as number} user={u} onIssued={setIssued} />
+                ))
               )}
             </tbody>
           </table>

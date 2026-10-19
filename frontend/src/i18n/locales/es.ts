@@ -163,8 +163,8 @@ const es = {
     tabCode: "Código de acceso",
     exploreIntro: "Elige un curso para practicar. Si aún no estás matriculado, inscríbete primero.",
     enrolledIntro: "Gestiona tus matrículas. Puedes darte de baja de un curso en cualquier momento.",
-    codeIntro: "Usa el código de invitación que te compartió tu docente para acceder a un curso de otro nivel educativo.",
-    codePlaceholder: "Ej: ABC123",
+    codeIntro: "Usa el código de invitación que te dio tu docente para unirte a su grupo, aunque el curso sea de otro nivel. Cada código es personal: sirve una sola vez.",
+    codePlaceholder: "Ej: K7M2P-QX9RT",
     accessButton: "Acceder",
     enrolled: "Mis matrículas",
     enroll: "Matricularme",
@@ -288,6 +288,7 @@ const es = {
     correctResult: "✅ Correcto",
     incorrectResult: "❌ Incorrecto",
     sentMessage: "Recibido! Tu docente revisará tu procedimiento pronto. Sigue practicando.",
+    copyMessage: "Este archivo ya lo había entregado otro estudiante. El procedimiento quedó calificado con 0 y marcado como copia.",
     uploadAnother: "Subir otro procedimiento",
     other: "Otro",
     preview: "Previsualización",
@@ -456,6 +457,26 @@ const es = {
     deactivate: "Desactivar",
     activate: "Activar",
     noMatches: "Sin usuarios que coincidan.",
+    // Spec 004 E2 — acceso de las cuentas
+    resetPassword: "Restablecer contraseña",
+    resetConfirm: "¿Restablecer la contraseña de {{username}}? Se cerrarán todas sus sesiones.",
+    temporaryTitle: "Contraseña temporal de {{username}}",
+    temporaryHint:
+      "Entrégala a la persona: se muestra una sola vez. Deberá cambiarla al iniciar sesión.",
+    close: "Cerrar",
+    mustChange: "debe cambiar contraseña",
+    // Spec 004 FR-024, FR-025: el nombre visible de un estudiante, que el admin corrige.
+    noDisplayName: "sin nombre visible",
+    changeName: "Cambiar nombre",
+    nameLabel: "Nombre visible",
+    saveName: "Guardar",
+    cancelName: "Cancelar",
+    createTeacherTitle: "Crear docente",
+    createTeacherHint:
+      "El docente queda aprobado y recibe una contraseña temporal que cambia en su primer acceso.",
+    createTeacherUsername: "Usuario",
+    createTeacherEmail: "Correo (opcional)",
+    createTeacherSubmit: "Crear docente",
   },
 
   // ── Pantallas admin — Reportes ──────────────────────────────────────────────
@@ -487,6 +508,14 @@ const es = {
     colAdmin: "Admin",
     colDate: "Fecha",
     empty: "Sin reasignaciones registradas.",
+    // Spec 004 E2 — operaciones sobre cuentas
+    accountTitle: "Acceso de las cuentas",
+    accountIntro: "Restablecimientos de contraseña y docentes creados. Nunca se guarda la contraseña.",
+    accountEmpty: "Sin operaciones sobre cuentas.",
+    colAccount: "Cuenta",
+    colOperation: "Operación",
+    actionPasswordReset: "Contraseña restablecida",
+    actionTeacherCreated: "Docente creado",
   },
 
   // ── Pantallas admin — Grupos del sistema ────────────────────────────────────
@@ -505,6 +534,7 @@ const es = {
     confirmYes: "Sí, eliminar",
     cancel: "Cancelar",
     delete: "Eliminar",
+    deleteError: "No se pudo eliminar el grupo. Inténtalo de nuevo.",
   },
 
   // ── Pantallas docente — Exámenes (plantillas) ───────────────────────────────
@@ -571,6 +601,7 @@ const es = {
 
   // ── Retroalimentación (histórico de procedimientos) ────────────────────────
   feedback: {
+    copyBadge: "Copia detectada",
     title: "Retroalimentación",
     eyebrow: "Tus procedimientos",
     intro: "Tus desarrollos revisados y los comentarios de KatIA.",
@@ -618,6 +649,8 @@ const es = {
     eyebrow: "Ejercicio de desarrollo",
     sentTitle: "Procedimiento enviado",
     sentMessage: "Recibido! Tu docente revisará tu procedimiento pronto. Sigue practicando.",
+    copyTitle: "Procedimiento calificado como copia",
+    copyMessage: "Este archivo ya lo había entregado otro estudiante. El procedimiento quedó calificado con 0 y marcado como copia.",
     sendAnother: "Enviar otro",
     intro: "Sube el procedimiento de un ejercicio de desarrollo o pregunta abierta.",
     introHint: 'Si estás respondiendo una pregunta de selección múltiple, usa el botón "Subir procedimiento manuscrito" que aparece debajo de la pregunta en la sala de práctica.',
@@ -727,6 +760,9 @@ const es = {
     questionAriaAnswered: "Pregunta {{n}} (respondida)",
     previous: "← Anterior",
     next: "Siguiente →",
+    assignedTitle: "Exámenes asignados",
+    questionNotGraded: "Pregunta {{n}}: no calificada",
+    notGraded: "No calificada: la pregunta se retiró del banco después de empezar.",
     finishExam: "Finalizar examen",
     finishing: "Enviando…",
     confirmTitle: "¿Finalizar examen?",
@@ -743,6 +779,7 @@ const es = {
   prealgebra: {
     loading: "Cargando lección...",
     error: "No pudimos cargar esta lección.",
+    locked: "Esta lección todavía está bloqueada: se abre al terminar la anterior en el mapa.",
     backToMap: "Volver al mapa",
     safeZone: "Zona segura. No afecta tu ELO",
     optionalBranch: "Desvío opcional. No afecta tu ELO",
@@ -900,7 +937,8 @@ const es = {
         },
         footerLabel: "Nivel 1 completado",
         footerBody: "Cerraste el recorrido de conjuntos numéricos. Puedes repasar cuando quieras.",
-        finish: "Volver al mapa",
+        // Distinto de «Volver al mapa» (el botón de al lado), que sale SIN cerrar el nivel.
+        finish: "Terminar el nivel 1",
       },
     },
   },

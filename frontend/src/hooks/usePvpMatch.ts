@@ -7,9 +7,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../stores/authStore";
-
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
-const WS_BASE = API_BASE.replace(/^http/, "ws");
+import { wsBase } from "../api/wsBase";
 
 export type PvpPhase = "idle" | "connecting" | "waiting" | "playing" | "finished";
 
@@ -31,6 +29,28 @@ export interface PvpResult {
   elo_reason?: string | null;
 }
 
+/** The server's verdict on the last answer, shown on that item before the next one appears. */
+export interface PvpFeedback {
+  itemId: string;
+  correct: boolean;
+}
+
+const FEEDBACK_MS = 700;
+
+/** Why the server closed the socket before the match ended (api/websocket/pvp.py). */
+const CLOSE_NOTICES: Record<number, string> = {
+  4001: "No pudimos entrar a la arena. Vuelve a iniciar sesión y revisa que estés inscrito en la materia.",
+  4404: "Esta materia todavía no tiene preguntas para la liga.",
+  4500: "Hubo un problema en el servidor. Intenta de nuevo.",
+};
+
+function closeNotice(code: number, phase: PvpPhase): string {
+  if (CLOSE_NOTICES[code]) return CLOSE_NOTICES[code];
+  if (phase === "playing") return "Se perdió la conexión con la partida.";
+  if (phase === "waiting") return "La búsqueda de rival terminó sin encontrar a nadie. Intenta de nuevo.";
+  return "No pudimos conectar con la arena. Intenta de nuevo.";
+}
+
 export function usePvpMatch(courseId: string | null) {
   const token = useAuthStore((s) => s.accessToken);
   const [phase, setPhase] = useState<PvpPhase>("idle");
@@ -39,13 +59,26 @@ export function usePvpMatch(courseId: string | null) {
   const [myScore, setMyScore] = useState(0);
   const [oppScore, setOppScore] = useState(0);
   // elo = the rival's shown course rating; null = pending diagnostic (spec 001)
-  const [opponent, setOpponent] = useState<{ username: string; elo: number | null } | null>(null);
+  const [opponent, setOpponent] = useState<{ name: string; elo: number | null } | null>(null);
   const [result, setResult] = useState<PvpResult | null>(null);
   const [timeLeft, setTimeLeft] = useState(180);
-  const [lastCorrect, setLastCorrect] = useState<boolean | null>(null);
+  const [feedback, setFeedback] = useState<PvpFeedback | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const ws = useRef<WebSocket | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const feedbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const phaseRef = useRef<PvpPhase>("idle");
+
+  const goTo = (next: PvpPhase) => {
+    phaseRef.current = next;
+    setPhase(next);
+  };
+
+  const clearFeedback = () => {
+    if (feedbackRef.current) clearTimeout(feedbackRef.current);
+    feedbackRef.current = null;
+  };
 
   const stopTimer = () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -64,15 +97,17 @@ export function usePvpMatch(courseId: string | null) {
 
   const connect = useCallback(() => {
     if (!courseId || !token) return;
-    setPhase("connecting");
+    goTo("connecting");
+    clearFeedback();
+    setNotice(null);
     setItems([]);
     setCurrentIndex(0);
     setMyScore(0);
     setOppScore(0);
     setResult(null);
-    setLastCorrect(null);
+    setFeedback(null);
 
-    const socket = new WebSocket(`${WS_BASE}/api/ws/pvp/${courseId}`);
+    const socket = new WebSocket(`${wsBase()}/api/ws/pvp/${courseId}`);
     ws.current = socket;
 
     socket.onopen = () => {
@@ -80,50 +115,67 @@ export function usePvpMatch(courseId: string | null) {
     };
 
     socket.onmessage = (e) => {
-      const msg = JSON.parse(e.data);
+      let msg;
+      try {
+        msg = JSON.parse(e.data);
+      } catch {
+        return;
+      }
       switch (msg.type) {
         case "waiting":
-          setPhase("waiting");
+          goTo("waiting");
           break;
         case "game_start":
           setItems(msg.items);
           setOpponent(msg.opponent);
-          setPhase("playing");
+          goTo("playing");
           startTimer(msg.duration_seconds ?? 180);
           break;
         case "answer_result":
           setMyScore(msg.your_score);
           setOppScore(msg.opp_score);
-          setLastCorrect(msg.is_correct);
-          setCurrentIndex((i) => i + 1);
+          // The verdict stays on the answered item for a moment, then the next item appears.
+          clearFeedback();
+          setFeedback({ itemId: msg.item_id, correct: msg.is_correct });
+          feedbackRef.current = setTimeout(() => {
+            feedbackRef.current = null;
+            setFeedback(null);
+            setCurrentIndex((i) => i + 1);
+          }, FEEDBACK_MS);
           break;
         case "opponent_update":
           setOppScore(msg.opp_score);
           break;
         case "game_end":
           stopTimer();
+          clearFeedback();
           setResult({
             won: msg.won, draw: msg.draw,
             my_score: msg.your_score, opp_score: msg.opp_score,
             elo_delta: msg.elo_delta,
             elo_reason: msg.elo_reason ?? null,
           });
-          setPhase("finished");
+          goTo("finished");
           break;
       }
     };
 
-    // Forma funcional: lee el phase ACTUAL, no el capturado en el closure.
+    // phaseRef lee el phase ACTUAL, no el capturado en el closure.
     // Si el servidor cierra el socket tras game_end, NO debemos volver a "idle"
-    // (eso devolvía al perdedor al lobby tras recibir su resultado).
-    socket.onclose = () => {
+    // (eso devolvía al perdedor al lobby tras recibir su resultado). Un socket que el
+    // estudiante ya dejó (Cancelar, Jugar de nuevo) no cambia nada.
+    socket.onclose = (e) => {
+      if (ws.current !== socket) return;
       stopTimer();
-      setPhase((p) => (p === "finished" ? "finished" : "idle"));
+      clearFeedback();
+      if (phaseRef.current === "finished") return;
+      setNotice(closeNotice(e.code, phaseRef.current));
+      goTo("idle");
     };
 
+    // Un error siempre llega seguido de onclose, que decide qué mostrar.
     socket.onerror = () => {
       stopTimer();
-      setPhase((p) => (p === "finished" ? "finished" : "idle"));
     };
   }, [courseId, token]);
 
@@ -133,12 +185,21 @@ export function usePvpMatch(courseId: string | null) {
 
   const disconnect = useCallback(() => {
     stopTimer();
-    ws.current?.close();
+    clearFeedback();
+    const socket = ws.current;
     ws.current = null;
-    setPhase("idle");
+    socket?.close();
+    setNotice(null);
+    goTo("idle");
   }, []);
 
-  useEffect(() => () => { stopTimer(); ws.current?.close(); }, []);
+  useEffect(() => () => {
+    stopTimer();
+    clearFeedback();
+    const socket = ws.current;
+    ws.current = null;
+    socket?.close();
+  }, []);
 
   const currentItem = items[currentIndex] ?? null;
   const totalItems = items.length;
@@ -147,6 +208,6 @@ export function usePvpMatch(courseId: string | null) {
     phase, connect, disconnect, sendAnswer,
     currentItem, currentIndex, totalItems,
     myScore, oppScore, opponent,
-    result, timeLeft, lastCorrect,
+    result, timeLeft, feedback, notice,
   };
 }

@@ -9,11 +9,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuthStore } from "../../stores/authStore";
+import { authorizedFetch } from "../../api/client";
 import { Button } from "../ui/Button";
 import { MathText } from "../Math/MathContent";
-
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 interface Message {
   role: "student" | "katia";
@@ -26,7 +24,8 @@ interface SocraticChatProps {
   itemContent: string;
   courseId: string;
   apiKey?: string;
-  provider?: string;
+  /** La opción que el estudiante marcó, si marcó una (spec 005 FR-020). */
+  selectedOption?: string | null;
 }
 
 export function SocraticChat({
@@ -34,7 +33,7 @@ export function SocraticChat({
   itemContent,
   courseId,
   apiKey = "",
-  provider = "groq",
+  selectedOption = null,
 }: SocraticChatProps) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.startsWith("en") ? "en" : "es";
@@ -52,7 +51,6 @@ export function SocraticChat({
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { accessToken } = useAuthStore();
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -78,20 +76,17 @@ export function SocraticChat({
       scrollToBottom();
 
       try {
-        const res = await fetch(`${API_BASE}/api/ai/socratic`, {
+        // Como toda petición del API: si el token caducó (15 min), se renueva y se reintenta.
+        const res = await authorizedFetch("/api/ai/socratic", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          credentials: "include",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             item_id: itemId,
             item_content: itemContent,
             student_message: text,
             course_id: courseId,
             api_key: apiKey,
-            provider,
+            selected_option: selectedOption,
             lang,
           }),
         });
@@ -172,7 +167,7 @@ export function SocraticChat({
         inputRef.current?.focus();
       }
     },
-    [input, sending, itemId, itemContent, courseId, apiKey, provider, lang, accessToken, scrollToBottom, t],
+    [input, sending, itemId, itemContent, courseId, apiKey, selectedOption, lang, scrollToBottom, t],
   );
 
   return (

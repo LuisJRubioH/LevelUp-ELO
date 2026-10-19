@@ -178,7 +178,15 @@ function Diagnostic({
 }
 
 /* ── bifurcación / resultado ─────────────────────────────────────────────── */
-const STATUS_LABEL: Record<string, string> = { strong: "Fuerte", mid: "Medio", gap: "Vacío" };
+// Spec 001 FR-020b: the diagnostic's own breakdown — strengths, intermediate, gaps.
+const STATUS_LABEL: Record<string, string> = { strong: "Fortaleza", mid: "Intermedio", gap: "Brecha" };
+// Spec 001 FR-020c: what this diagnostic did to each topic, and the message of the outcome.
+const OUTCOME_LABEL: Record<string, string> = { initialized: "Inicializado", kept: "Conservado" };
+const OUTCOME_MESSAGE: Record<string, string> = {
+  initialized: "Esta es tu valoración inicial.",
+  kept: "Tu valoración se mantiene. Este diagnóstico te ayuda a identificar qué reforzar.",
+  mixed: "Conservamos tu valoración en los temas que ya practicaste y establecimos la inicial en los restantes.",
+};
 
 function CourseHub({
   courseId,
@@ -193,7 +201,10 @@ function CourseHub({
 }) {
   const navigate = useNavigate();
   const startSession = usePracticeStore((s) => s.startSession);
-  const league = result.league;
+  // Spec 001 FR-020a, FR-031a: the one figure is the course's current rating and its rank label,
+  // as the backend gives them — never the diagnostic's own estimate or placement league.
+  const current = result.course_rating;
+  const message = result.outcome_summary ? OUTCOME_MESSAGE[result.outcome_summary] : null;
 
   const practice = () => {
     startSession(courseId);
@@ -207,18 +218,23 @@ function CourseHub({
           <span className="dx-eyebrow">Diagnóstico completado · {courseName}</span>
           <div className="dx-result-head" style={{ marginTop: 12 }}>
             <div className="dx-elo">
-              <div className="ev">{Math.round(result.initial_elo).toLocaleString("es-CO")}</div>
-              <div className="el">ELO INICIAL</div>
+              <div className="ev">
+                {current?.display_rating != null ? current.display_rating.toLocaleString("es-CO") : "—"}
+              </div>
+              <div className="el">
+                {current?.status === "pending_diagnostic" ? "DIAGNÓSTICO PENDIENTE" : "TU ELO EN EL CURSO"}
+              </div>
             </div>
             <div className="dx-result-meta">
-              <span className="dx-league">
-                <span className="ld" style={{ background: league?.color ?? "var(--accent)" }} />
-                {league?.name ?? "—"}
-                <span style={{ color: "var(--mute)", fontWeight: 500, fontSize: 13 }}>· {league?.rank ?? ""}</span>
-              </span>
+              {current?.rank_label && (
+                <span className="dx-league">
+                  <span className="ld" style={{ background: "var(--accent)" }} />
+                  {current.rank_label}
+                </span>
+              )}
+              {message && <p className="dx-outcome-msg">{message}</p>}
               <p>
-                Acertaste {result.correct_total} de {result.answered} respondidas ({result.score_pct}%). Ya fijamos tu
-                punto de partida por tema.
+                Acertaste {result.correct_total} de {result.answered} respondidas ({result.score_pct}%).
               </p>
             </div>
           </div>
@@ -231,10 +247,10 @@ function CourseHub({
                   {t.topic}
                   <span>
                     {t.correct}/{t.total} correctas
+                    {t.outcome && <em className={"dx-outcome " + t.outcome}>{OUTCOME_LABEL[t.outcome]}</em>}
                   </span>
                 </div>
                 <span className={"dx-tag " + t.status}>{STATUS_LABEL[t.status] ?? t.status}</span>
-                <span className="te">{Math.round(t.elo)}</span>
               </div>
             ))}
           </div>

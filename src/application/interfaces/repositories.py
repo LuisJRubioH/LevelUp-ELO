@@ -38,6 +38,19 @@ class IStudentRepository(Protocol):
         request_fingerprint: Optional[str] = None,
     ) -> bool: ...
 
+    # ── Procedimientos (spec 001 bloque 7) ────────────────────────────────────
+    def submit_procedure(
+        self,
+        student_id,
+        item_id,
+        item_content,
+        image_data,
+        mime_type,
+        file_hash,
+        classify: Callable,
+        grade_copy: Callable,
+    ) -> dict: ...
+
     # ── Catálogo y matrícula ──────────────────────────────────────────────────
     def get_education_level(self, user_id): ...
     def get_grade(self, user_id): ...
@@ -45,6 +58,7 @@ class IStudentRepository(Protocol):
     def get_available_groups_for_course(self, course_id) -> list: ...
     def enroll_user(self, user_id, course_id, group_id=None): ...
     def get_user_enrollments(self, user_id) -> list: ...  # ensure_enrolled (FR-037)
+    def redeem_group_invitation(self, user_id, token) -> dict: ...  # spec 001 FR-028q
 
 
 @runtime_checkable
@@ -63,6 +77,15 @@ class ITeacherRepository(Protocol):
         feedback: str = "",
         teacher_id: Optional[int] = None,
     ) -> bool: ...
+    def grade_procedure_transaction(
+        self,
+        submission_id: int,
+        grade: float,
+        compute: Callable,
+        feedback: str = "",
+        teacher_id: Optional[int] = None,
+        review_round: Optional[int] = None,
+    ) -> Optional[dict]: ...
 
 
 @runtime_checkable
@@ -100,10 +123,33 @@ class IAdminRepository(Protocol):
     def get_problem_reports(self, status: Optional[str] = None) -> list: ...
     def mark_problem_resolved(self, report_id: int) -> None: ...
 
+    # Spec 004 E2: administrative account operations, each recorded without the password.
+    def get_accounts_admin(self) -> list: ...
+    def reset_user_password(self, admin_id, user_id, temporary_password): ...
+    def create_teacher_account(self, admin_id, username, temporary_password, email=None): ...
+    def get_account_audit(self, limit=100) -> list: ...
+
+
+@runtime_checkable
+class IAccountRepository(Protocol):
+    """Spec 004 E2: the account's own credentials — password and security version."""
+
+    def get_user_by_id(self, user_id: int): ...
+    def verify_user_password(self, user_id, password) -> bool: ...
+    def set_user_password(self, user_id, password, must_change=False): ...
+
+    # FR-025: the student's own display name, or any student's by the admin; recorded.
+    def set_display_name(self, actor_id, user_id, display_name): ...
+
 
 @runtime_checkable
 class IRepository(
-    IStudentRepository, ITeacherRepository, IRatingReadRepository, IAdminRepository, Protocol
+    IStudentRepository,
+    ITeacherRepository,
+    IRatingReadRepository,
+    IAdminRepository,
+    IAccountRepository,
+    Protocol,
 ):
     """Un repositorio completo — lo que `RepoDep` inyecta en los routers.
 

@@ -314,6 +314,8 @@ html.light .lesson-page {
   min-height: 60dvh;
   display: grid;
   place-items: center;
+  align-content: center;
+  gap: 14px;
   color: var(--mute);
 }
 .lesson-state.error { color: var(--color-wrong); }

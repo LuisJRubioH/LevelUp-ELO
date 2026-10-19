@@ -146,10 +146,10 @@ test.describe("Spec 001 · calificaciones en pantalla", () => {
     await json(page, "**/api/student/group-ranking", {
       basis: { kind: "course", course_id: "calculo", course_name: "Cálculo Diferencial", source: "group" },
       ranking: [
-        { user_id: 4, username: "ana", rating: 1250, rank_label: "Oro I", status: "rated", rank: 1 },
-        { user_id: 1, username: "estudiante1", rating: 1201, rank_label: "Oro I", status: "rated", rank: 2 },
-        { user_id: 7, username: "luis", rating: 1201, rank_label: "Oro I", status: "rated", rank: 2 },
-        { user_id: 9, username: "marta", rating: null, rank_label: null, status: "pending_diagnostic", rank: null },
+        { user_id: 4, name: "ana", rating: 1250, rank_label: "Oro I", status: "rated", rank: 1 },
+        { user_id: 1, name: "estudiante1", rating: 1201, rank_label: "Oro I", status: "rated", rank: 2 },
+        { user_id: 7, name: "luis", rating: 1201, rank_label: "Oro I", status: "rated", rank: 2 },
+        { user_id: 9, name: "marta", rating: null, rank_label: null, status: "pending_diagnostic", rank: null },
       ],
       my_rank: 2,
     });
@@ -168,10 +168,10 @@ test.describe("Spec 001 · calificaciones en pantalla", () => {
     await page.route("**/api/teacher/**", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
     );
-    await json(page, "**/api/teacher/metrics", {});
-    await json(page, "**/api/teacher/dashboard", {
+    await json(page, "**/api/teacher/metrics*", {});
+    await json(page, "**/api/teacher/dashboard*", {
       students: [
-        { user_id: 5, username: "sofia", education_level: "colegio", group_id: 1, group_name: "10A", global_elo: 999.6, display_rating: 1000, rank_label: "Plata I", overall_status: "rated", total_attempts: 12, accuracy: 0.75, last_activity: "2026-10-07" },
+        { user_id: 5, name: "sofia", education_level: "colegio", group_id: 1, group_name: "10A", global_elo: 999.6, display_rating: 1000, rank_label: "Plata I", overall_status: "rated", total_attempts: 12, accuracy: 0.75, last_activity: "2026-10-07" },
       ],
       groups: [],
     });
@@ -197,4 +197,64 @@ test.describe("Spec 001 · calificaciones en pantalla", () => {
     await expect(page.getByText("ELO 1100+", { exact: true })).toBeVisible();
     await expect(page.getByText("ELO 1120+", { exact: true })).toHaveCount(0);
   });
+
+  const DIAGNOSTIC_CASES = [
+    {
+      name: "todos inicializados (US3-AS5)",
+      outcomes: ["initialized", "initialized"],
+      summary: "initialized",
+      message: "Esta es tu valoración inicial.",
+    },
+    {
+      name: "conservados e inicializados (US3-AS6)",
+      outcomes: ["kept", "initialized"],
+      summary: "mixed",
+      message: "Conservamos tu valoración en los temas que ya practicaste y establecimos la inicial en los restantes.",
+    },
+    {
+      name: "todos conservados (US3-AS8)",
+      outcomes: ["kept", "kept"],
+      summary: "kept",
+      message: "Tu valoración se mantiene. Este diagnóstico te ayuda a identificar qué reforzar.",
+    },
+  ] as const;
+
+  for (const c of DIAGNOSTIC_CASES) {
+    test(`Diagnóstico: una sola cifra, la vigente, y el mensaje del resultado — ${c.name} (FR-020a–c, FR-031a)`, async ({ page }) => {
+      await mockStudentApi(page);
+      await json(page, "**/api/student/diagnostic/*", {
+        completed: true,
+        course_id: "calculo",
+        result: {
+          initial_elo: 920, // the diagnostic's own estimate: a record, never shown
+          score_pct: 50,
+          league: { name: "Bronce", min: 0, color: "#cd7f32", rank: "II" },
+          themes: [
+            { topic: "Límites", correct: 0, total: 2, ratio: 0, status: "gap", elo: 920, outcome: c.outcomes[0] },
+            { topic: "Derivadas", correct: 2, total: 2, ratio: 1, status: "strong", elo: 1068, outcome: c.outcomes[1] },
+          ],
+          correct_total: 2,
+          answered: 4,
+          completed: true,
+          course_rating: { display_rating: 1063, rank_label: "Plata I", status: "rated" },
+          outcome_summary: c.summary,
+        },
+      });
+      await injectAuth(page);
+      await page.goto("/student/course/calculo");
+
+      // The figure and the league are the backend's current rating and rank label (FR-020a, FR-031a).
+      await expect(page.locator(".dx-elo .ev")).toHaveText(/^1\.?063$/);
+      await expect(page.locator(".dx-league")).toHaveText("Plata I");
+      await expect(page.getByText(c.message, { exact: true })).toBeVisible();
+      // No other rating figure: not the estimate, not the placement league, none per topic (FR-020b).
+      const hub = page.locator(".dx-hub");
+      await expect(hub).not.toContainText("920");
+      await expect(hub).not.toContainText("1068");
+      await expect(hub).not.toContainText("Bronce");
+      const limites = page.locator(".dx-theme").filter({ hasText: "Límites" });
+      await expect(limites.locator(".dx-tag")).toHaveText("Brecha");
+      await expect(limites.locator(".dx-outcome")).toHaveText(c.outcomes[0] === "kept" ? "Conservado" : "Inicializado");
+    });
+  }
 });

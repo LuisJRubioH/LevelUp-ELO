@@ -106,6 +106,8 @@ def review_math_procedure(
     mime_type: str,
     api_key: str,
     question_content: str = "",
+    model: str | None = None,
+    timeout: float | None = None,
 ) -> dict:
     """Envía la imagen a Groq y retorna la revisión estructurada del procedimiento.
 
@@ -131,7 +133,7 @@ def review_math_procedure(
     from openai import OpenAI
 
     b64 = base64.b64encode(image_bytes).decode("utf-8")
-    client = OpenAI(api_key=api_key, base_url=GROQ_BASE_URL)
+    client = OpenAI(api_key=api_key, base_url=GROQ_BASE_URL, timeout=timeout)
     user_prompt = _build_user_prompt(question_content)
 
     messages = [
@@ -152,14 +154,17 @@ def review_math_procedure(
     for attempt in range(2):
         try:
             response = client.chat.completions.create(
-                model=REVIEW_MODEL,
+                model=model or REVIEW_MODEL,
                 messages=messages,
                 temperature=0.1,
                 max_tokens=2048,
             )
             content = response.choices[0].message.content or ""
         except Exception as exc:
-            raise ConnectionError(f"Error al conectar con Groq: {exc}") from exc
+            # Spec 005 FR-013/FR-016: a timeout is told apart; neither carries the SDK's text.
+            if "timed out" in str(exc).lower() or "timeout" in str(exc).lower():
+                raise TimeoutError("Groq did not answer in time") from exc
+            raise ConnectionError("Groq could not be reached") from exc
 
         try:
             result = _parse_json_response(content)

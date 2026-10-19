@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
+import { ApiError } from "../../api/client";
 import {
   studentApi,
   type LessonDetail,
@@ -56,7 +57,7 @@ export function Lesson() {
   const queryClient = useQueryClient();
   const viewedRef = useRef(false);
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["lesson", courseId, nodeId],
     queryFn: () => studentApi.lesson(courseId, nodeId),
     enabled: Boolean(courseId && nodeId),
@@ -106,7 +107,14 @@ export function Lesson() {
   };
 
   const finish = async () => {
-    if (data?.state !== "completed") await eventMutation.mutateAsync("node_completed");
+    if (data?.state !== "completed") {
+      // Spec 003 L3: a 409 names what is still missing; it is shown, not thrown.
+      try {
+        await eventMutation.mutateAsync("node_completed");
+      } catch {
+        return;
+      }
+    }
     await queryClient.invalidateQueries({ queryKey: ["course-map", courseId] });
     navigate(`/student/course/${courseId}/map`);
   };
@@ -118,6 +126,18 @@ export function Lesson() {
   // tocarla con cada nodo nuevo: el backend ya devuelve 404 para un nodo que no
   // existe, y eso llega como `isError`. Las listas N2/N3/N4 siguen abajo porque
   // eligen renderer, que es otra cosa.
+  // 403 = la lección existe pero aún está bloqueada (se abre en orden). Decirlo
+  // y dar la salida al mapa; «no pudimos cargarla» hacía pensar en una falla.
+  if (isError && (error as { status?: number } | null)?.status === 403) {
+    return (
+      <div className="lesson-state">
+        <p>{t("prealgebra.locked")}</p>
+        <Button variant="secondary" onClick={() => navigate(`/student/course/${courseId}/map`)}>
+          {t("prealgebra.backToMap")}
+        </Button>
+      </div>
+    );
+  }
   if (isError || !data) {
     return <div className="lesson-state error">{t("prealgebra.error")}</div>;
   }
@@ -132,6 +152,11 @@ export function Lesson() {
         onBack={() => navigate(`/student/course/${courseId}/map`)}
         onFinish={finish}
         finishing={eventMutation.isPending}
+        finishRefused={
+          eventMutation.error instanceof ApiError && eventMutation.error.status === 409
+            ? eventMutation.error.detail
+            : undefined
+        }
       />
     );
   }
