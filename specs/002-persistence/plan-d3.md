@@ -1,7 +1,7 @@
 # Plan — spec 002, delivery D3: parity checks and documented differences
 
 **Spec**: [spec.md](spec.md) § Deliveries, D3 (US7; FR-040, FR-041; decision N1) · **Branch**:
-`002-persistence-d3`, from `redesign` · **Date**: 2026-10-19 · **Status**: for the owner's approval
+`002-persistence-d3`, from `redesign` · **Date**: 2026-10-19 · **Status**: approved by the owner (2026-10-19), with N7 and N8 as recommended
 
 ## Summary
 
@@ -126,12 +126,12 @@ LuisJRubioH/LevelUp-ELO#82).
 - On PostgreSQL the only effect is the course sync: names and blocks from the bank overwrite those
   in the database. Today they already match, so no row changes until the bank changes.
 
-## Open points for the owner
+## Owner decisions (2026-10-19)
 
-- **N7 — the duplicate PostgreSQL index on `groups(teacher_id)`.** Recommended: **keep it and
+- **N7 — the duplicate PostgreSQL index on `groups(teacher_id)`.** **Approved: keep it and
   document it**. Dropping it is not additive (R8). It costs a little write time on a small table.
   The alternative is one `DROP INDEX` as a second recorded exception to R8, the way FR-014 is
   recorded.
 - **N8 — the test-student seed differs** (8 against 7 students on a fresh database, local data
-  only). Recommended: **align PostgreSQL to SQLite in D3**, with the parity test comparing the seed
+  only). **Approved: align PostgreSQL to SQLite in D3**, with the parity test comparing the seed
   counts. The alternative is to document it as accepted.
