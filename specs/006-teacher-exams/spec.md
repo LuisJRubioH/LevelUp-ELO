@@ -279,8 +279,9 @@ endpoints through the API.
 
 **For spec 001 (not decided here):** survey T10 — grading a procedure whose item no longer exists
 records 0 applied (spec 001 FR-024f) but marks the submission `elo_applied = 1` with the computed
-delta. Approved by the owner (2026-10-19): refuse the grade with 409 and keep the procedure
-pending, written as a spec 001 amendment with its own test-first pull request.
+delta. Decided by the owner (2026-10-19), after free exercise ids were found to look the same as
+removed items: keep grading every procedure and record what was applied, 0 — done as
+spec 001 FR-024m (delivery PM). The earlier approval of a 409 was withdrawn.
 
 ## Out of Scope *(mandatory)*
 
