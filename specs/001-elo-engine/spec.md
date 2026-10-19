@@ -70,6 +70,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **B5** | Block 5: the diagnostic result shows the current rating (LuisJRubioH/LevelUp-ELO#62) | closed |
 | **B7** | Block 7: procedure resubmission and regrading — one current contribution per procedure | closed |
 | **INV** | Single-use invitations: the teacher generates tokens per group; each enrols one student; unused ones expire; reusable group codes stop working | closed |
+| **PM** | A procedure whose exercise is not in the bank records what was applied (0), not the computed delta (FR-024m, owner 2026-10-19) | closed |
 
 ## Clarifications
 
@@ -333,6 +334,18 @@ does; the finished PvP match still did not, and lost its delta the same way.
   the rule that every rating writer applies its effect exactly once (constitution II; FR-010,
   FR-024d, FR-029b). `finish_pvp_match` locks both students, in id order, before it writes; SQLite
   already serialised them.
+
+### Session 2026-10-19 (survey 006 T10, owner decision)
+
+Grading a procedure whose exercise is not in the bank recorded the grade with 0 applied
+(FR-024f) but marked the procedure `elo_applied = 1` with the computed delta. Uploads accept free
+exercise ids (such as `taller_3_p5`), which the bank never had, so at grading time an exercise
+removed from the bank and a free id look the same.
+
+- Q: What does a teacher's grade do then? → A: it is graded as today — every procedure stays
+  gradable, workshop ids included — and applies nothing; the procedure records what was applied,
+  0, and is not marked as applied. Refusing such grades with 409 was considered and rejected: no
+  free-id procedure could be graded (owner, 2026-10-19).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -653,6 +666,9 @@ with the latest grade's delta.
     submission open, **When** the teacher grades the earlier one, **Then** the grade is refused with
     a message that the student resubmitted, nothing changes, and the queue shows the new
     submission.
+15. **US9-AS15** — **Given** a pending procedure whose exercise is not in the bank (removed after
+    the upload, or a free exercise id), **When** the teacher grades it, **Then** the grade is
+    recorded, no rating changes, and the procedure records 0 as its effect, not marked as applied.
 
 ---
 
@@ -920,6 +936,10 @@ is the net amount its gradings actually applied to the rating.
   system shall refuse it, tell the teacher that the student resubmitted, and change nothing; the
   teacher's queue then shows the current submission. *(Today the refusal reads «Procedimiento
   pendiente no encontrado.» and the screen keeps the earlier image.)*
+- **FR-024m** [CHANGE]: When a procedure whose exercise is not in the bank — removed after the
+  upload, or a free exercise id — is graded, the system shall record the grade, change no rating,
+  and record on the procedure the amount applied, 0, not marked as applied. *(Today it is marked
+  `elo_applied = 1` with the computed delta.)*
 
 **PvP result (US5)**
 
@@ -1344,6 +1364,7 @@ match the scenarios' text.
 | US9-AS12 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_own_file_again_is_refused_and_changes_nothing`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_own_file_for_the_same_item_is_refused`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › un archivo propio repetido se rechaza: «Ya subiste este archivo para este ejercicio.»` |
 | US9-AS13 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_copy_counts_as_a_zero_and_differs_only_in_its_reason` |
 | US9-AS14 | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_round_replaced_by_a_resubmission_is_refused_as_such`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_grading_a_round_the_student_replaced_answers_409`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › si el estudiante reenvió, el docente lo ve y la cola se recarga con el envío nuevo` |
+| US9-AS15 | PM | `tests/integration/test_spec001_missing_item.py::test_spec001_an_exercise_not_in_the_bank_records_what_was_applied` |
 | US10-AS1 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_teacher_generates_single_use_invitations`<br>`tests/unit/domain/test_spec001_invitations.py::test_spec001_new_token_is_ten_characters_of_the_alphabet`<br>`tests/unit/domain/test_spec001_invitations.py::test_spec001_token_is_shown_in_two_groups_of_five`<br>`frontend/e2e/spec001-invitations.spec.ts › El docente genera invitaciones, ve sus estados, copia y anula (US10-AS1, FR-028t)` |
 | US10-AS2 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_redeeming_an_invitation_enrols_the_student`<br>`tests/unit/domain/test_spec001_invitations.py::test_spec001_redemption_input_is_normalised`<br>`frontend/e2e/spec001-invitations.spec.ts › El estudiante usa un código con o sin guion; uno ya usado muestra el aviso (US10-AS2, US10-AS3)` |
 | US10-AS3 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_a_used_invitation_is_refused`<br>`frontend/e2e/spec001-invitations.spec.ts › El estudiante usa un código con o sin guion; uno ya usado muestra el aviso (US10-AS2, US10-AS3)` |
@@ -1395,6 +1416,7 @@ match the scenarios' text.
 | FR-024j | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_own_file_again_is_refused_and_changes_nothing`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_own_file_for_another_item_is_refused`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_reuploading_an_own_copy_is_refused_not_graded_again`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › un archivo propio repetido se rechaza: «Este archivo pertenece a otro ejercicio.»`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_file_refused_under_the_lock_is_not_left_behind`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_refused_upload_never_removes_a_file_in_use` |
 | FR-024k | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_own_file_again_is_refused_and_changes_nothing`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_an_ai_score_never_reopens_a_graded_procedure_or_a_copy`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_upload_answers_copy_and_refusals`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_own_file_for_the_same_item_is_refused`<br>`tests/unit/domain/test_spec001_b7_procedures.py::test_spec001_b7_reuploading_an_own_copy_is_refused_not_graded_again`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › un archivo propio repetido se rechaza: «Ya subiste este archivo para este ejercicio.»`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_file_refused_under_the_lock_is_not_left_behind`<br>`tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_refused_upload_never_removes_a_file_in_use` |
 | FR-024l | B7 | `tests/integration/test_spec001_b7_procedures.py::test_spec001_b7_a_round_replaced_by_a_resubmission_is_refused_as_such`<br>`tests/integration/test_spec001_b7_api.py::test_spec001_b7_grading_a_round_the_student_replaced_answers_409`<br>`frontend/e2e/spec001-b7-procedures.spec.ts › si el estudiante reenvió, el docente lo ve y la cola se recarga con el envío nuevo` |
+| FR-024m | PM | `tests/integration/test_spec001_missing_item.py::test_spec001_an_exercise_not_in_the_bank_records_what_was_applied`<br>`tests/integration/test_spec001_missing_item.py::test_spec001_an_exercise_in_the_bank_is_recorded_as_applied` |
 | FR-025 | S1 | `tests/unit/domain/test_spec001_domain.py::test_spec001_pvp_deltas`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_pvp_equal_ratings_win_and_draw`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_closing_a_match_twice_applies_the_delta_once`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once` |
 | FR-026 | S1 | `tests/unit/application/test_spec001_service.py::test_spec001_pvp_lobby_rating_is_the_course_rating_read_outside_the_lock` |
 | FR-027 | S1 | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_matches_orphaned_by_a_restart_are_closed`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_a_live_match_is_left_alone`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_spec001_abandonment_starts_after_600_seconds` |
