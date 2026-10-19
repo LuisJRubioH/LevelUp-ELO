@@ -616,6 +616,9 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `procedure_gradings`, `procedure_files`, `procedure_uploads` | block 7: every grading (unique per review round); each file's first sender; each student's uploads (unique `(student_id, file_hash)`) |
 | `pvp_matches` | `status` (active/finished/abandoned), `course_id`, applied deltas, `elo_reason_p1/p2` |
 | `exam_sessions` | `global_elo_after` + `global_elo_status` (`rated`/`pending`; NULL = before spec 001, unknown) — the overall rating at submission |
+| `lesson_interactions` | the current answer per (student, course, node, interaction): the completion rule reads it (spec 003 L3) |
+| `lesson_answers` | every answer in order, append-only (spec 003 L4, FR-040): `is_expected`, `misconception_tag`; the teacher reads it without `selected_option` (N11) |
+| `lesson_outcomes` | PK `(user_id, course_id, node_id)`: the post-diagnostic outcome `gain`/`flat` the server stores (FR-041) |
 | `katia_interactions`, `problem_reports`, `audit_group_changes`, `diagnostics` | see repositories |
 
 ---

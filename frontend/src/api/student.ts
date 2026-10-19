@@ -354,7 +354,17 @@ export interface LessonDetail {
         misconception_tag: string | null;
       }
     >;
+    /** Spec 003 L4: the post-diagnostic outcome the server stored, or null. */
+    outcome?: LessonOutcome | null;
   };
+}
+
+/** Spec 003 L4 (FR-041): «gain» when the post-diagnostic beat the opening one, else «flat». */
+export interface LessonOutcome {
+  diagnostic_correct: number;
+  post_correct: number;
+  items: number;
+  outcome: "gain" | "flat";
 }
 
 export interface PrealgebraSummary {
@@ -371,6 +381,8 @@ export interface LessonInteractionResult {
   is_expected: boolean | null;
   misconception_tag: string | null;
   feedback_key: string;
+  /** Spec 003 L4: set when this answer finished the post-diagnostic. */
+  outcome?: "gain" | "flat" | null;
 }
 
 export interface ProcedureSubmissionRow {

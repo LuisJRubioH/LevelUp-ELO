@@ -15,8 +15,8 @@ import hashlib
 import inspect
 import os
 
-SCHEMA_VERSION = 2  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1)
-MIGRATION_SOURCES_DIGEST = "b49d467025855f3346091ff7d64d6112a300d5d8aa1ac3fd2bc6e48dbcb77655"
+SCHEMA_VERSION = 3  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4
+MIGRATION_SOURCES_DIGEST = "455421ccce164c50870b3fe77ef3535f1b334f56dc50fead0788a371679fb226"
 
 # Every method that issues DDL, or decides whether the migration may run, on both repositories.
 _MIGRATION_METHODS = (
@@ -30,6 +30,7 @@ _MIGRATION_METHODS = (
     "_check_courses_block_constraint",
     "_check_group_names",
     "_make_image_data_nullable",
+    "_create_lesson_history",
 )
 
 REPAIR_GROUPS = "scripts/repairs/rename_duplicate_groups.py"

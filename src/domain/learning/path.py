@@ -93,19 +93,80 @@ def completion_rule(lesson: dict) -> str:
     return lesson.get("completion", "correct")
 
 
-def _gap_label(lesson: dict, interaction_id: str, position: int) -> str:
-    """Where the student finds the item, never its text: «Práctica 2», «Cierre», «Pregunta 1»."""
-    if completion_rule(lesson) == "cards":
-        return f"Tarjeta {position}"
+def interaction_label(lesson: dict, interaction_id: str) -> str:
+    """Where the student finds the item, never its text: «Práctica 2», «Cierre», «Diagnóstico 1»,
+    «Pregunta 1». The completion refusal (L3) and the teacher's record (L4, N11) use it."""
     node_id = lesson["node_id"]
     content = lesson.get("content") or {}
-    practice = [f"{node_id}-{item['id']}" for item in content.get("practice") or []]
-    if interaction_id in practice:
-        return f"Práctica {practice.index(interaction_id) + 1}"
+    registered = [i["interaction_id"] for i in lesson.get("interactions", [])]
+    if completion_rule(lesson) == "cards" and interaction_id in registered:
+        return f"Tarjeta {registered.index(interaction_id) + 1}"
+
+    def ids(items):
+        return [f"{node_id}-{item['id']}" for item in items or []]
+
+    blocks = (
+        ("Práctica", ids(content.get("practice"))),
+        ("Diagnóstico", ids((content.get("diagnostic") or {}).get("items"))),
+        ("Post-diagnóstico", ids((content.get("post_diagnostic") or {}).get("items"))),
+        ("Calentamiento", ids((content.get("icebreaker") or {}).get("items"))),
+        (
+            "Puente",
+            ids(
+                blank
+                for item in (content.get("bridge") or {}).get("items", [])
+                for blank in item["blanks"]
+            ),
+        ),
+    )
+    for name, block in blocks:
+        if interaction_id in block:
+            return f"{name} {block.index(interaction_id) + 1}"
     closing = content.get("closing_item")
     if closing and interaction_id == f"{node_id}-{closing['id']}":
         return "Cierre"
-    return f"Pregunta {position}"
+    if interaction_id == f"{node_id}-ABSTRACCION":
+        return "Abstracción"
+    if interaction_id in registered:
+        return f"Pregunta {registered.index(interaction_id) + 1}"
+    return "Pregunta"
+
+
+def _post_ids(lesson: dict) -> list[str]:
+    content = lesson.get("content") or {}
+    items = (content.get("post_diagnostic") or {}).get("items", [])
+    return [f"{lesson['node_id']}-{item['id']}" for item in items]
+
+
+def is_post_diagnostic(lesson: dict, interaction_id: str) -> bool:
+    return interaction_id in _post_ids(lesson)
+
+
+def post_diagnostic_outcome(lesson: dict, latest_answers) -> dict | None:
+    """FR-041: the node's post-diagnostic outcome once every post item has an answer, else None.
+
+    `gain` when the post-diagnostic has more right answers than the opening diagnostic,
+    otherwise `flat` — never «worse» (the rule the lesson screen applied in the browser).
+    """
+    node_id = lesson["node_id"]
+    content = lesson.get("content") or {}
+    post = _post_ids(lesson)
+    if not post or any(i not in latest_answers for i in post):
+        return None
+    diagnostic = [
+        f"{node_id}-{i['id']}" for i in (content.get("diagnostic") or {}).get("items", [])
+    ]
+
+    def right(ids):
+        return sum(1 for i in ids if (latest_answers.get(i) or {}).get("is_expected") is True)
+
+    diagnostic_correct, post_correct = right(diagnostic), right(post)
+    return {
+        "diagnostic_correct": diagnostic_correct,
+        "post_correct": post_correct,
+        "items": len(post),
+        "outcome": "gain" if post_correct > diagnostic_correct else "flat",
+    }
 
 
 def completion_gaps(lesson: dict, latest_answers) -> list[dict]:
@@ -118,7 +179,7 @@ def completion_gaps(lesson: dict, latest_answers) -> list[dict]:
     if rule == "view":
         return []
     gaps = []
-    for position, interaction in enumerate(lesson.get("interactions", []), start=1):
+    for interaction in lesson.get("interactions", []):
         interaction_id = interaction["interaction_id"]
         answer = latest_answers.get(interaction_id)
         missing = answer is None or (rule == "correct" and answer.get("is_expected") is not True)
@@ -126,7 +187,7 @@ def completion_gaps(lesson: dict, latest_answers) -> list[dict]:
             gaps.append(
                 {
                     "interaction_id": interaction_id,
-                    "label": _gap_label(lesson, interaction_id, position),
+                    "label": interaction_label(lesson, interaction_id),
                 }
             )
     return gaps

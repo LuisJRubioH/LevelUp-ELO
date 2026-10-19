@@ -2271,8 +2271,9 @@ def explored_optional_branch(state_of) -> bool:
 
 def path_summary(state_of, responses_of) -> dict:
     """Cierre diagnóstico (B13): progreso y misconceptions del nivel 1, y hasta 4 nodos
-    de repaso en orden de ruta. No afecta ELO. `responses_of(node_id)` devuelve las
-    respuestas guardadas del nodo (`interaction_id -> respuesta`)."""
+    de repaso en orden de ruta. No afecta ELO. `responses_of(node_id)` devuelve todas las
+    respuestas del nodo, en orden (spec 003 L4): un error corregido después sigue contando
+    como algo para repasar."""
     explored = explored_optional_branch(state_of)
     applicable = [
         n
@@ -2284,7 +2285,7 @@ def path_summary(state_of, responses_of) -> dict:
     for node_id in applicable:
         if state_of(node_id) == "completed":
             completed_nodes += 1
-        for resp in responses_of(node_id).values():
+        for resp in responses_of(node_id):
             tag = resp.get("misconception_tag")
             if tag and tag not in misconceptions:
                 misconceptions.append(tag)
@@ -2310,6 +2311,37 @@ def path_summary(state_of, responses_of) -> dict:
         "overall_status": overall_status,
         "review": review,
     }
+
+
+def path_record(states: dict, answers: list[dict], outcomes: dict) -> list[dict]:
+    """Spec 003 L4 (FR-042): what a teacher reads of one student's path, node by node in route
+    order — state, every answer in order (where it is, right or wrong, the tag) and the
+    post-diagnostic outcome. Never the chosen value or the item's text (N11)."""
+    from src.domain.learning.path import interaction_label
+
+    by_node: dict[str, list[dict]] = {}
+    for answer in answers:
+        by_node.setdefault(answer["node_id"], []).append(answer)
+    record = []
+    for node_id, lesson in _LESSONS.items():
+        record.append(
+            {
+                "node_id": node_id,
+                "title": _MAP_PRESENTATION[node_id][0],
+                "state": states.get(node_id),
+                "answers": [
+                    {
+                        "label": interaction_label(lesson, a["interaction_id"]),
+                        "is_expected": a["is_expected"],
+                        "misconception_tag": a["misconception_tag"],
+                        "answered_at": a["answered_at"],
+                    }
+                    for a in by_node.get(node_id, [])
+                ],
+                "outcome": outcomes.get(node_id),
+            }
+        )
+    return record
 
 
 def get_lesson(node_id: str) -> dict | None:

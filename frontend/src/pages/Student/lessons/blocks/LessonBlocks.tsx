@@ -57,7 +57,12 @@ export type LessonItem = {
 
 type Restored = Record<string, { selected_option: string; is_expected: boolean | null }>;
 
-export function useLessonItems(courseId: string, nodeId: string, restored: Restored) {
+export function useLessonItems(
+  courseId: string,
+  nodeId: string,
+  restored: Restored,
+  storedOutcome: "gain" | "flat" | null = null,
+) {
   const [answers, setAnswers] = useState<Record<string, string>>(() =>
     Object.fromEntries(Object.entries(restored).map(([id, r]) => [id, r.selected_option])),
   );
@@ -71,6 +76,8 @@ export function useLessonItems(courseId: string, nodeId: string, restored: Resto
     Object.fromEntries(Object.entries(restored).map(([id]) => [id, 1])),
   );
   const [hintLevel, setHintLevel] = useState<Record<string, number>>({});
+  // Spec 003 L4: the post-diagnostic outcome is the server's, not computed here.
+  const [outcome, setOutcome] = useState(storedOutcome);
 
   const mutation = useMutation({
     mutationFn: ({ id, option }: { id: string; option: string }) =>
@@ -80,6 +87,7 @@ export function useLessonItems(courseId: string, nodeId: string, restored: Resto
       setCorrect((c) => ({ ...c, [r.interaction_id]: Boolean(r.is_expected) }));
       setFeedback((c) => ({ ...c, [r.interaction_id]: r.feedback_key }));
       setAttempts((c) => ({ ...c, [r.interaction_id]: (c[r.interaction_id] ?? 0) + 1 }));
+      if (r.outcome) setOutcome(r.outcome);
     },
   });
 
@@ -88,6 +96,7 @@ export function useLessonItems(courseId: string, nodeId: string, restored: Resto
   return {
     fullId,
     pending: mutation.isPending,
+    outcome,
     answerOf: (itemId: string) => answers[fullId(itemId)],
     isCorrect: (itemId: string) => Boolean(correct[fullId(itemId)]),
     feedbackKey: (itemId: string) => feedback[fullId(itemId)],
