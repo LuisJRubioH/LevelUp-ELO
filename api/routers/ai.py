@@ -14,11 +14,12 @@ from typing import AsyncGenerator
 from fastapi import APIRouter, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
 
-from api.ai_target import TIMED_OUT, UNAVAILABLE, ai_target
-from api.dependencies import CurrentUser, RepoDep
+from api.ai_target import TIMED_OUT, UNAVAILABLE, ai_target, require_enrolled_in_item
+from api.dependencies import CurrentUser, RepoDep, require_role
 from api.schemas.student import SocraticRequest
 from api.config import settings
 from api.rate_limit import limiter
+from src.domain.katia.guardrail import GUIDING_QUESTION, check_reply
 from api.upload_validation import read_validated_upload
 
 router = APIRouter(prefix="/ai", tags=["ai"])
@@ -37,7 +38,7 @@ def _is_provider_error(text: str | None) -> bool:
 # ── Chat socrático (SSE) ──────────────────────────────────────────────────────
 
 
-@router.post("/socratic")
+@router.post("/socratic", dependencies=[require_role("student")])
 @limiter.limit(settings.rate_limit_socratic)
 async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, repo: RepoDep):
     """
@@ -70,6 +71,9 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
             detail=f"Ítem {body.item_id} no encontrado.",
         )
 
+    # Spec 005 FR-021: only a student enrolled in the item's course (403 before any provider).
+    await require_enrolled_in_item(repo, user["user_id"], item_db)
+
     correct_answer = item_db.get("correct_option", "")
     all_options = item_db.get("options", [])
     if isinstance(all_options, str):
@@ -80,9 +84,15 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
         except Exception:
             all_options = []
     topic = item_db.get("topic", body.course_id or "")
+    # FR-020: the statement as stored, never the client's; the option the student chose, if it
+    # is one of the item's.
+    statement = item_db.get("content", "")
+    selected = body.selected_option if body.selected_option in all_options else None
 
-    # Rating global del estudiante (None mientras el diagnóstico está pendiente).
-    student_rating = RatingReadService(repo).ratings_view(user["user_id"])["overall"]
+    # Rating global del estudiante (None mientras el diagnóstico está pendiente), off the loop.
+    student_rating = (
+        await asyncio.to_thread(RatingReadService(repo).ratings_view, user["user_id"])
+    )["overall"]
 
     # Spec 005 FR-010 … FR-013: the key's prefix picks the provider, settings the model.
     target = ai_target("katia", effective_key)
@@ -94,9 +104,9 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
             get_socratic_guidance,
             student_rating,
             topic,
-            body.item_content,
+            statement,
             body.student_message,
-            correct_answer,
+            selected,
             all_options,
             target.base_url,
             target.model,
@@ -117,15 +127,21 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
         logger.warning("KatIA: provider %s failed", target.provider)
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=_KATIA_UNAVAILABLE)
 
-    await asyncio.to_thread(
-        repo.save_katia_interaction,
-        user["user_id"],
-        body.course_id,
-        body.item_id,
-        topic,
-        body.student_message,
-        full_text,
-    )
+    # FR-022: a reply that names the correct option, announces a solution or runs past three
+    # sentences is replaced by a guiding question, and is not recorded as KatIA's.
+    if check_reply(full_text, correct_answer):
+        await asyncio.to_thread(
+            repo.save_katia_interaction,
+            user["user_id"],
+            body.course_id,
+            body.item_id,
+            topic,
+            body.student_message,
+            full_text,
+        )
+    else:
+        logger.info("KatIA: a reply was replaced by the guiding question")
+        full_text = GUIDING_QUESTION
 
     async def _generate() -> AsyncGenerator[str, None]:
         # Streaming simulado token a token (palabras): el proveedor ya respondió completo.

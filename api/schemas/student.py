@@ -370,6 +370,10 @@ class SocraticRequest(BaseModel):
     item_id: str
     item_content: str
     student_message: str = Field(..., min_length=1, max_length=1000)
+    # Spec 005 FR-020: the option the student marked, if any; ignored unless it is one of the
+    # item's options. `item_content` is kept for older clients and not used: the statement is
+    # read from the item.
+    selected_option: str | None = Field(default=None, max_length=500)
     course_id: str | None = None
     api_key: str = Field(
         default="",

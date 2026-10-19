@@ -169,7 +169,14 @@ def select_best_model(models):
 
 
 def _call_ai_api(
-    prompt, model_name, base_url, json_mode=False, api_key=None, provider=None, timeout=None
+    prompt,
+    model_name,
+    base_url,
+    json_mode=False,
+    api_key=None,
+    provider=None,
+    timeout=None,
+    max_tokens=4096,
 ):
     """Llama a cualquier proveedor de IA.
 
@@ -199,7 +206,7 @@ def _call_ai_api(
             client = anthropic.Anthropic(api_key=api_key, timeout=timeout)
             resp = client.messages.create(
                 model=model_name,
-                max_tokens=4096,
+                max_tokens=max_tokens,
                 messages=[{"role": "user", "content": full_prompt}],
             )
             content = resp.content[0].text
@@ -234,7 +241,7 @@ def _call_ai_api(
                 model=model_name,
                 messages=messages,
                 temperature=temperature,
-                max_tokens=4096,
+                max_tokens=max_tokens,
             )
             content = response.choices[0].message.content
             return strip_thinking_tags(content)
@@ -273,7 +280,7 @@ def _call_ai_api(
             "model": model_name,
             "messages": messages,
             "temperature": temperature,
-            "max_tokens": 4096,
+            "max_tokens": max_tokens,
             "stream": False,
         }
         try:
@@ -432,8 +439,8 @@ def get_socratic_guidance(
     student_rating,
     topic,
     content,
-    student_answer,
-    correct_answer,
+    student_message,
+    selected_option,
     all_options,
     base_url="http://localhost:1234/v1",
     model_name="google/gemma-3-4b",
@@ -441,23 +448,27 @@ def get_socratic_guidance(
     provider=None,
     lang="es",
     timeout=None,
+    max_tokens=120,
 ):
-    """Genera una guía socrática adaptativa y altamente alineada para el estudiante.
+    """Genera una guía socrática para el estudiante (spec 005 K2).
 
+    El prompt lleva el enunciado y las opciones tal como están guardados, la opción que marcó el
+    estudiante (o ninguna) y su mensaje — nunca la respuesta correcta (FR-020): KatIA guía sin
+    saberla. El servidor revisa la respuesta antes de mostrarla (FR-022).
     ``lang`` controla el idioma de la respuesta ("es" por defecto; "en" para inglés).
     """
     options_str = "\n".join([f"- {opt}" for opt in all_options])
+    chosen = f'"{selected_option}"' if selected_option else "todavía no ha marcado ninguna"
     lang_rule = (
-        "8. RESPONSE LANGUAGE: Write your ENTIRE reply in English. Keep all math in LaTeX with $...$."
+        "6. RESPONSE LANGUAGE: Write your ENTIRE reply in English. Keep all math in LaTeX with $...$."
         if str(lang).lower().startswith("en")
-        else "8. IDIOMA DE RESPUESTA: Escribe TODA tu respuesta en español. Mantén las matemáticas en LaTeX con $...$."
+        else "6. IDIOMA DE RESPUESTA: Escribe TODA tu respuesta en español. Mantén las matemáticas en LaTeX con $...$."
     )
     prompt = f"""Eres KatIA, una tutora socrática mitad gata, mitad cyborg. Tu personalidad:
 - Usas metáforas felinas y tecnológicas ("mis sensores detectan", "desenredemos este ovillo")
 - Haces referencias a filósofos griegos (Sócrates, Platón, Diógenes, Aristóteles)
-- Eres amigable, motivadora, pero NUNCA revelas la respuesta directa
+- Eres amigable y motivadora
 - Guías con preguntas socráticas que lleven al estudiante a descubrir por sí mismo
-- Tus respuestas son concisas (máx. 3-4 oraciones)
 - Puedes usar onomatopeyas felinas ocasionalmente (miau, purrr, bip)
 - JAMÁS uses emojis. Tu personalidad se expresa solo con palabras.
 
@@ -469,21 +480,25 @@ CONTEXTO DE LA PREGUNTA:
 
 ESTADO DEL ESTUDIANTE:
 - Nivel ELO (Capacidad): {_rating_text(student_rating)}
-- Opción que el estudiante TIENE SELECCIONADA actualmente: "{student_answer}"
-- Respuesta CORRECTA real: "{correct_answer}"
+- Opción que marcó: {chosen}
+- Lo que escribió: "{student_message}"
 
-INSTRUCCIONES CRÍTICAS DE ALINEACIÓN:
-1. Tu respuesta DEBE reconocer explícitamente la opción "{student_answer}" que el alumno ha marcado.
-2. Si "{student_answer}" es la correcta, felicita sutilmente su intuición y haz una pregunta para profundizar en el "por qué" o qué pasaría si cambiamos un parámetro.
-3. Si "{student_answer}" es INCORRECTA, analiza por qué esa opción específica es un distractor común o qué error de lógica implica, y haz una pregunta que lo haga notar sin dar la respuesta correcta.
-4. Prohibido mencionar opciones que el alumno NO ha seleccionado a menos que sea para contrastar.
-5. NUNCA reveles que la respuesta correcta es "{correct_answer}".
-6. Sé breve, motivadora y puramente socrática (guía mediante preguntas).
-7. REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática exclusivamente en LaTeX usando $...$ o $$...$$.
+REGLAS:
+1. No sabes cuál opción es la correcta: nunca afirmes que una opción lo es o no lo es.
+2. Responde en 1 a 3 oraciones, máximo; termina con una pregunta que lo haga pensar.
+3. No resuelvas el ejercicio, no des el resultado ni enumeres pasos.
+4. Si marcó una opción, pregúntale qué lo llevó a ella o qué comprobaría para confirmarla.
+5. REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática exclusivamente en LaTeX usando $...$ o $$...$$.
 {lang_rule}
 """
     return _call_ai_api(
-        prompt, model_name, base_url, api_key=api_key, provider=provider, timeout=timeout
+        prompt,
+        model_name,
+        base_url,
+        api_key=api_key,
+        provider=provider,
+        timeout=timeout,
+        max_tokens=max_tokens,
     )
 
 

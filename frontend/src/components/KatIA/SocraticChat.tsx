@@ -24,6 +24,8 @@ interface SocraticChatProps {
   itemContent: string;
   courseId: string;
   apiKey?: string;
+  /** La opción que el estudiante marcó, si marcó una (spec 005 FR-020). */
+  selectedOption?: string | null;
 }
 
 export function SocraticChat({
@@ -31,6 +33,7 @@ export function SocraticChat({
   itemContent,
   courseId,
   apiKey = "",
+  selectedOption = null,
 }: SocraticChatProps) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.startsWith("en") ? "en" : "es";
@@ -83,6 +86,7 @@ export function SocraticChat({
             student_message: text,
             course_id: courseId,
             api_key: apiKey,
+            selected_option: selectedOption,
             lang,
           }),
         });
@@ -163,7 +167,7 @@ export function SocraticChat({
         inputRef.current?.focus();
       }
     },
-    [input, sending, itemId, itemContent, courseId, apiKey, lang, scrollToBottom, t],
+    [input, sending, itemId, itemContent, courseId, apiKey, selectedOption, lang, scrollToBottom, t],
   );
 
   return (

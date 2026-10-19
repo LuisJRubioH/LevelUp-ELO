@@ -8,6 +8,7 @@ uses that provider's entry in `ai_client.PROVIDERS`. Composition layer: it reads
 infrastructure's provider table.
 """
 
+import asyncio
 from typing import NamedTuple
 
 from fastapi import HTTPException, status
@@ -52,3 +53,17 @@ def ai_target(function: str, key: str) -> AITarget:
     else:
         model = config["model_analysis" if function == "teacher_analysis" else "model_cog"]
     return AITarget(provider, config["base_url"] or "", model, key, TIMEOUTS[function])
+
+
+NOT_ENROLLED = "No estás inscrito en este curso."
+
+
+async def require_enrolled_in_item(repo, user_id: int, item: dict | None) -> None:
+    """Spec 005 FR-021: 403 unless the student is enrolled in the item's course (spec 001
+    FR-037's rule). A procedure may name an exercise outside the bank (a free id, no course):
+    then the student must be enrolled in some course."""
+    enrolments = await asyncio.to_thread(repo.get_user_enrollments, user_id)
+    courses = {e["id"] for e in enrolments}
+    course = (item or {}).get("course_id")
+    if (course and course not in courses) or (not course and not courses):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=NOT_ENROLLED)

@@ -75,10 +75,10 @@ def test_spec005_a_users_key_is_neither_stored_nor_returned(
         "/api/ai/socratic",
         headers=student_headers,
         json={
-            "item_id": "q47",
+            "item_id": "q21",
             "item_content": "Fórmula de integración por partes",
             "student_message": "spec005 key probe",
-            "course_id": "calculo_integral",
+            "course_id": "calculo_diferencial",
             "api_key": USER_KEY,
         },
     )
