@@ -71,6 +71,21 @@ export interface PathRecordNode {
   outcome: { diagnostic_correct: number; post_correct: number; items: number; outcome: "gain" | "flat" } | null;
 }
 
+/** Spec 005 K3: how a KatIA conversation ended (FR-031) and its kind of difficulty (N2). */
+export interface KatiaConversation {
+  id: number;
+  course_id: string | null;
+  course_name: string | null;
+  topic: string | null;
+  item_id: string;
+  turns: number;
+  outcome: "superado" | "no_superado" | "abandonado";
+  difficulty: string | null;
+  misconception_tag: string | null;
+  opened_at: string | null;
+  closed_at: string | null;
+}
+
 export interface StudentPath {
   student_id: number;
   course_id: string;
@@ -269,8 +284,9 @@ export const teacherApi = {
       `/api/teacher/student/${student_id}/path/${encodeURIComponent(course_id)}`,
     ),
 
+  /** Spec 005 FR-033: the student's closed KatIA conversations — summaries, never text. */
   studentKatiaHistory: (student_id: number) =>
-    api.get<{ interactions: Record<string, unknown>[] }>(
+    api.get<{ conversations: KatiaConversation[] }>(
       `/api/teacher/student/${student_id}/katia-history`,
     ),
 

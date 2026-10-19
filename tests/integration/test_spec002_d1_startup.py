@@ -327,7 +327,7 @@ def _katia_text(database):
     user = database.sql("SELECT id FROM users WHERE username = 'estudiante1'")[0][0]
     database.sql(
         "INSERT INTO katia_interactions (user_id, course_id, item_id, item_topic,"
-        " student_message, katia_response) VALUES (?, 'k3', 'k3_item', 'k3', 'hola', '¿Qué?')",
+        " student_message, katia_response) VALUES (?, 'k3', 'k3_item', 'k3', 'hola', 'Mira el signo.')",
         (user,),
     )
 

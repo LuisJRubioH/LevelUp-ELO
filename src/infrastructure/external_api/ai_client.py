@@ -449,8 +449,12 @@ def get_socratic_guidance(
     lang="es",
     timeout=None,
     max_tokens=120,
+    history=None,
 ):
     """Genera una guía socrática para el estudiante (spec 005 K2).
+
+    ``history`` son los turnos anteriores de la conversación abierta sobre este ítem, en orden
+    ([{"role": "student"|"katia", "text"}]); van como contexto (K3, FR-030).
 
     El prompt lleva el enunciado y las opciones tal como están guardados, la opción que marcó el
     estudiante (o ninguna) y su mensaje — nunca la respuesta correcta (FR-020): KatIA guía sin
@@ -459,6 +463,11 @@ def get_socratic_guidance(
     """
     options_str = "\n".join([f"- {opt}" for opt in all_options])
     chosen = f'"{selected_option}"' if selected_option else "todavía no ha marcado ninguna"
+    earlier = "\n".join(
+        f"- {'Estudiante' if turn['role'] == 'student' else 'KatIA'}: {turn['text']}"
+        for turn in (history or [])
+    )
+    conversation = f"\nCONVERSACIÓN HASTA AHORA:\n{earlier}\n" if earlier else ""
     lang_rule = (
         "6. RESPONSE LANGUAGE: Write your ENTIRE reply in English. Keep all math in LaTeX with $...$."
         if str(lang).lower().startswith("en")
@@ -482,7 +491,7 @@ ESTADO DEL ESTUDIANTE:
 - Nivel ELO (Capacidad): {_rating_text(student_rating)}
 - Opción que marcó: {chosen}
 - Lo que escribió: "{student_message}"
-
+{conversation}
 REGLAS:
 1. No sabes cuál opción es la correcta: nunca afirmes que una opción lo es o no lo es.
 2. Responde en 1 a 3 oraciones, máximo; termina con una pregunta que lo haga pensar.

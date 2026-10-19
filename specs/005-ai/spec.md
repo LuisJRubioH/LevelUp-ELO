@@ -6,7 +6,7 @@
 
 **Status**: Approved by the owner, with N1 … N4 as proposed (2026-10-19). Written from the as-is survey
 (`docs/sdd/ai-survey.md`, LuisJRubioH/LevelUp-ELO#92) and the owner's decisions of 2026-10-19 (its
-§ 7). Deliveries K1 and K2 are implemented; K3 and K4 are not.
+§ 7). Deliveries K1, K2 and K3 are implemented; K4 is not.
 
 **Input**: Roadmap M5 (`docs/sdd/roadmap.md`): provider detection, key precedence, KatIA's Socratic
 guardrails, procedure review. AGENTS.md § AI integration and R7 describe this area today; this
@@ -45,7 +45,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **A** | As-is pins: what the AI features already guarantee, each requirement tied to a test | closed |
 | **K1** | One key, the right provider: the provider from the key's prefix, one model per function from settings, timeouts, Groq-only review said in the interface, the teacher analysis's real inputs, no exception text to the client | closed |
 | **K2** | KatIA's guardrails and access: no correct answer in the prompt, every reply checked, the statement read from the item, only enrolled students | closed |
-| **K3** | KatIA's record: multi-turn conversations, a summary per conversation for the teacher, no message text kept after it ends | planned |
+| **K3** | KatIA's record: multi-turn conversations, a summary per conversation for the teacher, no message text kept after it ends | closed |
 | **K4** | Clean-up: V2-only dead code removed, AGENTS.md § AI integration rewritten | planned |
 
 ## Clarifications
@@ -277,9 +277,9 @@ request that closes their delivery.
 | US2-AS1 | K1 | `tests/api/test_spec005_k1_providers.py::test_the_key_prefix_picks_the_provider_for_every_feature` |
 | US2-AS2 | K1 | `tests/api/test_spec005_k1_providers.py::test_review_with_a_non_groq_key_is_refused_before_processing`<br>`frontend/e2e/spec005-k1-keys.spec.ts › con una key que no es de Groq, la revisión dice que usa Groq y no se ofrece` |
 | US2-AS3 | K1 | `tests/api/test_spec005_k1_providers.py::test_a_provider_that_does_not_answer_in_time_is_503`<br>`tests/api/test_spec005_k1_providers.py::test_no_response_carries_exception_text` |
-| US3-AS1 | K3 | `PENDING` |
-| US3-AS2 | K3 | `PENDING` |
-| US3-AS3 | K3 | `PENDING` |
+| US3-AS1 | K3 | `tests/integration/test_spec005_k3_record.py::test_answering_right_or_wrong_closes_as_superado_or_no_superado` |
+| US3-AS2 | K3 | `tests/integration/test_spec005_k3_record.py::test_another_item_logout_or_24h_close_as_abandonado` |
+| US3-AS3 | K3 | `tests/integration/test_spec005_k3_record.py::test_no_text_remains_after_closing` |
 | US4-AS1 | K1 | `tests/api/test_spec005_k1_providers.py::test_teacher_analysis_receives_procedure_stats_and_the_analysis_model` |
 | US5-AS1 | A | `tests/integration/test_spec001_repository_pins.py::test_spec001_ai_proposed_score_changes_no_rating` |
 | US5-AS2 | A | `tests/api/test_ai_errors_and_scores.py::test_a_provider_failure_is_not_katias_reply` |
@@ -302,8 +302,8 @@ request that closes their delivery.
 | FR-021 | K2 | `tests/api/test_spec005_k2_katia.py::test_only_enrolled_students_reach_katia_or_the_review` |
 | FR-022 | K2 | `tests/api/test_spec005_k2_katia.py::test_katia_asks_for_at_most_120_tokens`<br>`tests/api/test_spec005_k2_katia.py::test_a_reply_that_gives_the_answer_is_replaced_and_not_stored`<br>`tests/api/test_spec005_k2_katia.py::test_a_guiding_reply_passes_and_is_stored`<br>`tests/unit/domain/test_spec005_guardrail.py::test_a_reply_that_gives_too_much_is_refused`<br>`tests/unit/domain/test_spec005_guardrail.py::test_a_reply_that_only_guides_passes`<br>`tests/unit/domain/test_spec005_guardrail.py::test_a_short_correct_option_does_not_refuse_every_reply` |
 | FR-023 | K2 | `tests/api/test_spec005_k2_katia.py::test_katia_reads_nothing_on_the_event_loop`<br>`tests/api/test_ai_calls_off_event_loop.py::test_the_api_answers_while_a_procedure_is_reviewed` |
-| FR-030 | K3 | `PENDING` |
-| FR-031 | K3 | `PENDING` |
-| FR-032 | K3 | `PENDING` |
-| FR-033 | K3 | `PENDING` |
+| FR-030 | K3 | `tests/integration/test_spec005_k3_record.py::test_a_conversation_keeps_its_turns_and_sends_them_as_context` |
+| FR-031 | K3 | `tests/integration/test_spec005_k3_record.py::test_answering_right_or_wrong_closes_as_superado_or_no_superado`<br>`tests/integration/test_spec005_k3_record.py::test_another_item_logout_or_24h_close_as_abandonado`<br>`tests/integration/test_spec005_k3_record.py::test_an_answer_closes_only_that_items_conversation`<br>`tests/integration/test_spec005_k3_record.py::test_an_unclassifiable_difficulty_is_sin_clasificar`<br>`tests/integration/test_spec005_k3_record.py::test_without_a_system_key_the_difficulty_is_sin_clasificar`<br>`tests/unit/domain/test_spec005_close_outcome.py::test_each_way_out_has_its_outcome`<br>`tests/unit/domain/test_spec005_close_outcome.py::test_only_one_exact_label_is_accepted` |
+| FR-032 | K3 | `tests/integration/test_spec005_k3_record.py::test_no_text_remains_after_closing`<br>`tests/integration/test_spec005_k3_record.py::test_another_item_logout_or_24h_close_as_abandonado`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_repair_scripts_report_and_are_idempotent` |
+| FR-033 | K3 | `tests/integration/test_spec005_k3_record.py::test_the_teacher_reads_summaries_and_exports_counts_only`<br>`frontend/e2e/spec005-k3-katia-summaries.spec.ts › el panel del estudiante muestra las conversaciones con KatIA del curso, sin texto` |
 | FR-040 | K4 | `PENDING` |

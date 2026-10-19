@@ -410,10 +410,10 @@ def student_elo_history(
 
 @router.get("/student/{student_id}/katia-history")
 def student_katia_history(student_id: int, user: CurrentUser, repo: RepoDep):
-    """Historial de interacciones socrátidas del estudiante con KatIA."""
+    """Spec 005 FR-033: the student's closed KatIA conversations — topic, item, turns, outcome,
+    kind of difficulty and tag; never what was written."""
     _require_teacher_student(repo, student_id, user)
-    rows = repo.get_katia_interactions(student_id)
-    return {"interactions": [dict(r) if not isinstance(r, dict) else r for r in (rows or [])]}
+    return {"conversations": repo.get_katia_conversations(student_id)}
 
 
 @router.post("/student/{student_id}/ai-analysis")
@@ -570,7 +570,8 @@ def export_xlsx(user: CurrentUser, repo: RepoDep):
         "Intentos": repo.export_teacher_student_data(user["user_id"]),
         "Matrículas": repo.export_teacher_enrollments(user["user_id"]),
         "Procedimientos": repo.export_teacher_procedures(user["user_id"]),
-        "KatIA": repo.export_teacher_katia_interactions(user["user_id"]),
+        # Spec 005 FR-033: conversations counted per course, topic and outcome; no text.
+        "KatIA": repo.export_teacher_katia_summary(user["user_id"]),
     }
 
     for sheet_name, rows in datasets.items():

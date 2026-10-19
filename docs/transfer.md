@@ -323,13 +323,13 @@ before the migration:
 
 ```sql
 DROP TABLE IF EXISTS active_exam_sessions, audit_account_events, bank_syncs, diagnostics,
-  exam_responses, group_invitations, lesson_answers, lesson_interactions, lesson_outcomes,
-  lesson_progress, procedure_files, procedure_gradings, procedure_uploads, pvp_answers,
-  pvp_matches, schema_versions, student_course_topic_elo CASCADE;
+  exam_responses, group_invitations, katia_conversations, katia_messages, lesson_answers,
+  lesson_interactions, lesson_outcomes, lesson_progress, procedure_files, procedure_gradings,
+  procedure_uploads, pvp_answers, pvp_matches, schema_versions, student_course_topic_elo CASCADE;
 ```
 
-These are the 17 tables the redesign creates that `main` does not have (compared on 2026-10-19,
-schema version 3). A spec that adds a table adds it here too.
+These are the 19 tables the redesign creates that `main` does not have (compared on 2026-10-19,
+schema version 3, plus spec 005 K3's two at version 4). A spec that adds a table adds it here too.
 
 ```bash
 pg_restore --clean --if-exists --no-owner --no-privileges --schema=public \
@@ -359,16 +359,17 @@ changed nothing before stopping. The other two repairs (`deactivate_users_withou
 `backfill_prob_failure.py`) are the owner's choice; the start does not need them.
 
 The schema version the code expects is `SCHEMA_VERSION` in
-`src/infrastructure/persistence/schema_version.py`. Today it is **3**:
+`src/infrastructure/persistence/schema_version.py`. Today it is **4**:
 
 | Version | Change |
 |---|---|
 | 1 | spec 002 D1: `schema_versions`, `bank_syncs`; the migration runs all-or-nothing |
 | 2 | spec 002 D3: an index on SQLite only (PostgreSQL unchanged) |
 | 3 | spec 003 L4: tables `lesson_answers` (every lesson answer, in order) and `lesson_outcomes` (the post-diagnostic outcome); each row already in `lesson_interactions` is copied once into `lesson_answers` |
+| 4 | spec 005 K3: tables `katia_conversations` (one summary per KatIA conversation) and `katia_messages` (its text, only while it is open); `katia_interactions` stays and is no longer written by V2 |
 
 A production database from `main` has no schema version and no lesson tables, so its first
-migration goes straight to version 3 and the L4 copy finds nothing to copy. The rehearsal must run
+migration goes straight to version 4 and the L4 copy finds nothing to copy. The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
 cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
 
@@ -385,9 +386,10 @@ Then check on the scratch database:
 SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2;
 SELECT COUNT(*) FROM student_topic_elo;                        -- equals the count from § 4
 SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- all pre-existing rows
-SELECT MAX(version) FROM schema_versions;                      -- 3: the SCHEMA_VERSION of the commit
+SELECT MAX(version) FROM schema_versions;                      -- 4: the SCHEMA_VERSION of the commit
 SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions);  -- 0
 SELECT COUNT(*) FROM lesson_outcomes;                          -- 0: written only by new answers
+SELECT COUNT(*) FROM katia_conversations;                      -- 0: written only by new chats
 ```
 
 Every reconciled row must have `approximate = true` and a `legacy_source_key`; the second run must
@@ -409,7 +411,7 @@ redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no 
 
 - The § 4 backup and the § 5 rehearsal were run on the commit being switched, or on one with the
   same `SCHEMA_VERSION`. The rehearsal report shows the migration passing twice, and
-  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (3 today).
+  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (4 today).
 
 - Roadmap follow-up **F-4** is merged into the branch being switched: `next-question`, `/answer`
   and the diagnostic serve only courses the student is enrolled in (spec 001 FR-037, FR-037a).
@@ -452,6 +454,9 @@ refuses any non-local host. Never point tests at the production database.
 5. With a test teacher: the dashboard lists students with display rating and rank label.
 6. The SQL checks from § 5 return the same answers as on the rehearsal copy.
 7. No answer was saved by the old API after the migration (§ 6.1): the query below returns 0.
+8. Once V1 is disconnected (§ 3.1), delete the KatIA messages typed before spec 005 K3 (decision
+   N3): `python scripts/repairs/delete_katia_texts.py` counts them, `--apply` deletes them, and a
+   second `--apply` reports 0. It prints counts only.
 
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer

@@ -368,7 +368,7 @@ class PathSummaryResponse(BaseModel):
 
 class SocraticRequest(BaseModel):
     item_id: str
-    item_content: str
+    item_content: str | None = Field(default=None, deprecated=True)
     student_message: str = Field(..., min_length=1, max_length=1000)
     # Spec 005 FR-020: the option the student marked, if any; ignored unless it is one of the
     # item's options. `item_content` is kept for older clients and not used: the statement is
