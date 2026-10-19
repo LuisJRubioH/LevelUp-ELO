@@ -175,6 +175,8 @@ export interface CourseMap {
   course_name: string;
   diagnostic_done: boolean;
   nodes: MapNode[];
+  /** Spec 003 L1: a teacher's or admin's read-only view. */
+  preview?: boolean;
 }
 
 export type LessonEvent =
@@ -200,6 +202,8 @@ export interface N4PracticeItem {
 }
 
 export interface LessonDetail {
+  /** Spec 003 L1: a teacher's or admin's read-only view. */
+  preview?: boolean;
   node_id: string;
   node_type: string;
   course_id: string;

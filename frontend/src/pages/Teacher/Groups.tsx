@@ -10,6 +10,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { RankPill } from "../../components/ELO/RankBadge";
 import {
   teacherApi,
@@ -344,6 +345,12 @@ function GroupDrawer({
           </div>
           <h2>{g.name}</h2>
           <p className="gd-sub">{g.course_id ?? "Sin curso"}</p>
+          {g.course_id && (
+            // Spec 003 L1: the path the group's students walk, read only.
+            <Link className="gd-path-link" to={`/student/course/${encodeURIComponent(g.course_id)}/map`}>
+              Ver ruta de aprendizaje
+            </Link>
+          )}
         </div>
 
         <div className="gd-stats">

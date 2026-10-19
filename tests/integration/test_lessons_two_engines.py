@@ -6,7 +6,15 @@ would change it.
 """
 
 from src.domain.learning.prealgebra import DIAGNOSTIC_NODE_IDS
-from tests.integration.conftest import make_student, headers_for, sql
+from tests.integration.conftest import enroll, headers_for, make_student, sql
+
+
+def _path_student(repo):
+    """A student enrolled in the path's course (spec 003 L1: the path needs the enrolment)."""
+    user = make_student(repo)
+    enroll(repo, user, "algebra_basica")
+    return user
+
 
 COURSE = "algebra_basica"
 WELCOME = "PREALG-N1-B01-BIENVENIDA"
@@ -23,7 +31,7 @@ def _lesson_url(node_id: str, action: str = "") -> str:
 
 
 def test_progress_without_a_row_reads_as_available(repo):
-    user = make_student(repo)
+    user = _path_student(repo)
 
     assert repo.get_lesson_progress(user, COURSE, WELCOME) == {
         "state": "available",
@@ -36,7 +44,7 @@ def test_progress_without_a_row_reads_as_available(repo):
 
 
 def test_lesson_events_only_move_forward(repo):
-    user = make_student(repo)
+    user = _path_student(repo)
 
     viewed = repo.record_lesson_event(user, COURSE, WELCOME, "node_viewed")
     assert viewed["state"] == "viewed"
@@ -60,7 +68,7 @@ def test_lesson_events_only_move_forward(repo):
 
 
 def test_progress_is_kept_per_student_course_and_node(repo):
-    user, other = make_student(repo), make_student(repo)
+    user, other = _path_student(repo), _path_student(repo)
 
     repo.record_lesson_event(user, COURSE, WELCOME, "node_completed")
 
@@ -71,7 +79,7 @@ def test_progress_is_kept_per_student_course_and_node(repo):
 
 
 def test_interactions_round_trip_on_both_engines(repo):
-    user = make_student(repo)
+    user = _path_student(repo)
 
     repo.save_lesson_interaction(user, COURSE, TRIGGER, "Q-right", "no", True, None)
     repo.save_lesson_interaction(
@@ -104,7 +112,7 @@ def test_interactions_round_trip_on_both_engines(repo):
 
 def test_answering_again_replaces_the_earlier_answer(repo):
     """Survey L8: no history is kept. Decision § 5.4 (keep an answer history) would change it."""
-    user = make_student(repo)
+    user = _path_student(repo)
 
     repo.save_lesson_interaction(user, COURSE, TRIGGER, "Q", "yes", False, "a_misconception")
     repo.save_lesson_interaction(user, COURSE, TRIGGER, "Q", "no", True, None)
@@ -126,7 +134,7 @@ def test_answering_again_replaces_the_earlier_answer(repo):
 
 
 def test_lesson_writes_never_touch_ratings_or_attempts(repo):
-    user = make_student(repo)
+    user = _path_student(repo)
 
     repo.record_lesson_event(user, COURSE, WELCOME, "node_completed")
     repo.save_lesson_interaction(user, COURSE, TRIGGER, "Q", "no", True, None)
@@ -140,7 +148,7 @@ def test_lesson_writes_never_touch_ratings_or_attempts(repo):
 
 
 def test_a_node_completes_only_after_its_questions_are_answered(repo, client):
-    user = make_student(repo)
+    user = _path_student(repo)
     headers = headers_for(repo, user)
     repo.record_lesson_event(user, COURSE, WELCOME, "node_completed")
 
@@ -172,7 +180,7 @@ def test_a_node_completes_only_after_its_questions_are_answered(repo, client):
 
 
 def test_a_locked_node_can_be_neither_read_nor_written(repo, client):
-    user = make_student(repo)
+    user = _path_student(repo)
     headers = headers_for(repo, user)
 
     responses = [
@@ -191,7 +199,7 @@ def test_a_locked_node_can_be_neither_read_nor_written(repo, client):
 
 
 def test_the_complex_numbers_node_opens_from_the_intermediate_band(repo, client):
-    user = make_student(repo)
+    user = _path_student(repo)
     headers = headers_for(repo, user)
     repo.record_lesson_event(user, COURSE, REALS, "node_completed")
 
@@ -225,7 +233,7 @@ def _summary(client, headers):
 
 
 def test_summary_of_a_new_student_leaves_the_optional_node_out(repo, client):
-    user = make_student(repo)
+    user = _path_student(repo)
 
     assert _summary(client, headers_for(repo, user)) == {
         "course_id": COURSE,
@@ -237,14 +245,14 @@ def test_summary_of_a_new_student_leaves_the_optional_node_out(repo, client):
 
 
 def test_summary_counts_the_optional_node_once_it_is_explored(repo, client):
-    user = make_student(repo)
+    user = _path_student(repo)
     repo.record_lesson_event(user, COURSE, COMPLEX, "node_viewed")
 
     assert _summary(client, headers_for(repo, user))["total_nodes"] == len(DIAGNOSTIC_NODE_IDS)
 
 
 def test_summary_is_strong_when_every_node_is_done_without_misconceptions(repo, client):
-    user = make_student(repo)
+    user = _path_student(repo)
     for node_id in DIAGNOSTIC_NODE_IDS:
         if node_id != COMPLEX:
             repo.record_lesson_event(user, COURSE, node_id, "node_completed")
@@ -257,7 +265,7 @@ def test_summary_is_strong_when_every_node_is_done_without_misconceptions(repo, 
 
 
 def test_summary_sends_a_misconception_to_the_node_that_teaches_it(repo, client):
-    user = make_student(repo)
+    user = _path_student(repo)
     node_id = "PREALG-N1-B05-ENTEROS-DEUDA"
     repo.save_lesson_interaction(user, COURSE, node_id, "Q", "x", False, N1_FOCAL[node_id])
 
@@ -268,7 +276,7 @@ def test_summary_sends_a_misconception_to_the_node_that_teaches_it(repo, client)
 
 
 def test_summary_lists_at_most_four_nodes_in_route_order(repo, client):
-    user = make_student(repo)
+    user = _path_student(repo)
     for node_id, tag in reversed(list(N1_FOCAL.items())):
         repo.save_lesson_interaction(user, COURSE, node_id, "Q", "x", False, tag)
 

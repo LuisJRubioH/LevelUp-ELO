@@ -13,7 +13,15 @@ from src.domain.learning.prealgebra import (
     N3_MACHINE_NODE_IDS,
     _LESSONS,
 )
-from tests.integration.conftest import headers_for, make_student
+from tests.integration.conftest import enroll, headers_for, make_student
+
+
+def _path_student(repo):
+    """A student enrolled in the path's course (spec 003 L1: the path needs the enrolment)."""
+    user = make_student(repo)
+    enroll(repo, user, "algebra_basica")
+    return user
+
 
 COURSE = "algebra_basica"
 
@@ -41,7 +49,7 @@ def _complete(repo, user, node_ids):
     ids=["only-E06", "all-but-E06", "all-six"],
 )
 def test_every_lesson_the_map_offers_opens(repo, client, done_in_level_2):
-    user = make_student(repo)
+    user = _path_student(repo)
     level_1_and_hub = [n for n in _ancestors(N3_HUB_NODE_ID) if n not in N2_OPERATION_NODE_IDS]
     _complete(repo, user, level_1_and_hub + list(done_in_level_2))
     headers = headers_for(repo, user)

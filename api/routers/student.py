@@ -50,6 +50,7 @@ from api.schemas.student import (
     ExamTemplateSummary,
     ItemResponse,
     LessonDetailResponse,
+    PathSummaryResponse,
     LessonEventRequest,
     LessonInteractionRequest,
     LessonInteractionResponse,
@@ -109,6 +110,36 @@ def _require_enrolment(service: StudentService, user_id: int, course_id: str) ->
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="No estás inscrito en este curso."
         )
+
+
+_PREVIEW_REFUSED = "Vista previa: no se guarda progreso."
+
+
+def _path_access(repo, user: dict, course_id: str) -> bool:
+    """Who may use a course's learning path (spec 003 L1, FR-010, FR-011, N10).
+
+    False — a student enrolled in the course (spec 001 FR-037's check): they walk it. True — a
+    teacher with a group in the course, or an admin: they read it, and nothing they send is
+    stored. Anyone else: 403, before any read or write.
+    """
+    if user["role"] == "student":
+        _require_enrolment(_make_service(repo), user["user_id"], course_id)
+        return False
+    if user["role"] == "admin":
+        return True
+    if user["role"] == "teacher" and any(
+        group.get("course_id") == course_id
+        for group in repo.get_groups_by_teacher(user["user_id"])
+    ):
+        return True
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN, detail="No estás inscrito en este curso."
+    )
+
+
+def _refuse_preview(preview: bool) -> None:
+    if preview:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=_PREVIEW_REFUSED)
 
 
 # ── Preguntas ──────────────────────────────────────────────────────────────────
@@ -1275,8 +1306,24 @@ def _all_nodes_completed(state_of, node_ids: list[str]) -> bool:
     return all(state_of(node_id) == "completed" for node_id in node_ids)
 
 
-def _lesson_with_progress(repo, user_id: int, course_id: str, lesson: dict) -> dict:
-    """Combina el catálogo con progreso, respetando el desbloqueo secuencial."""
+def _lesson_with_progress(
+    repo, user_id: int, course_id: str, lesson: dict, preview: bool = False
+) -> dict:
+    """Combina el catálogo con progreso, respetando el desbloqueo secuencial.
+
+    In preview (spec 003 L1) every node is available and nothing is read or repaired for the
+    viewer: the hub repairs below write progress.
+    """
+    if preview:
+        return {
+            **lesson,
+            "course_id": course_id,
+            "state": _NO_PROGRESS,
+            "presentation": presentation_band(None),
+            "explored_complex_branch": False,
+            "progress": {"state": _NO_PROGRESS, "responses": {}},
+            "preview": True,
+        }
     if lesson["node_id"] == N2_HUB_NODE_ID or lesson.get("unlock_after") == N2_HUB_NODE_ID:
         _ensure_n2_hub_completed_if_cards_opened(repo, user_id, course_id)
     if lesson["node_id"] == N3_HUB_NODE_ID or lesson.get("unlock_after") == N3_HUB_NODE_ID:
@@ -1347,9 +1394,10 @@ def lesson_detail(course_id: str, node_id: str, user: CurrentUser, repo: RepoDep
     lesson = get_lesson(node_id)
     if course_id != PREALGEBRA_COURSE_ID or lesson is None:
         raise HTTPException(status_code=404, detail="Lección no encontrada")
+    preview = _path_access(repo, user, course_id)
 
     return LessonDetailResponse(
-        **_lesson_with_progress(repo, user["user_id"], course_id, lesson)
+        **_lesson_with_progress(repo, user["user_id"], course_id, lesson, preview)
     )
 
 
@@ -1370,6 +1418,7 @@ def lesson_event(
         raise HTTPException(status_code=404, detail="Lección no encontrada")
     if body.event not in _LESSON_EVENTS:
         raise HTTPException(status_code=422, detail="Evento de lección inválido")
+    _refuse_preview(_path_access(repo, user, course_id))
 
     _lesson_with_progress(repo, user["user_id"], course_id, lesson)
     required_by_node = {
@@ -1424,6 +1473,7 @@ def lesson_interaction(
     lesson = get_lesson(node_id)
     if course_id != PREALGEBRA_COURSE_ID or lesson is None:
         raise HTTPException(status_code=404, detail="Lección no encontrada")
+    _refuse_preview(_path_access(repo, user, course_id))
     _lesson_with_progress(repo, user["user_id"], course_id, lesson)
     result = evaluate_interaction(node_id, body.interaction_id, body.selected_option)
     if result is None:
@@ -1464,13 +1514,17 @@ _NODE_MAP_TITLE = {
 }
 
 
-@router.get("/prealgebra-summary/{course_id}")
+@router.get("/prealgebra-summary/{course_id}", response_model=PathSummaryResponse)
 def prealgebra_summary(course_id: str, user: CurrentUser, repo: RepoDep):
     """Cierre diagnóstico (B13): agrega progreso y misconceptions del nivel.
 
     No afecta ELO. MVP: persiste/lee misconceptions de las interacciones y
     propone hasta 4 nodos de repaso. Sin panel docente todavía.
     """
+    if course_id != PREALGEBRA_COURSE_ID:
+        raise HTTPException(status_code=404, detail="Este curso no tiene ruta de aprendizaje")
+    # One student's progress: a preview has none to summarise (the teacher's view is L4).
+    _refuse_preview(_path_access(repo, user, course_id))
     state_of = _lesson_states(repo, user["user_id"], course_id)
     explored = state_of(COMPLEX_NODE_ID) in ("viewed", "completed")
 
@@ -1521,6 +1575,26 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
     """Mapa de contenido de una materia: un nodo por tópico, ordenados por
     dificultad, con el ELO/estado del estudiante (leído de student_topic_elo,
     incluye el ELO inicial del diagnóstico)."""
+    if _path_access(repo, user, course_id):
+        # Spec 003 L1 preview: every path node available; no rating rows (they are a student's).
+        nodes = (
+            [
+                MapNode(**{**row, "state": "available"})
+                for row in curriculum_map_rows(lambda _node: _NO_PROGRESS)
+            ]
+            if course_id == PREALGEBRA_COURSE_ID
+            else []
+        )
+        course_name = next(
+            (c["name"] for c in repo.get_courses() if c["id"] == course_id), course_id
+        )
+        return CourseMapResponse(
+            course_id=course_id,
+            course_name=course_name,
+            diagnostic_done=False,
+            nodes=nodes,
+            preview=True,
+        )
     items = repo.get_items_from_db(course_id=course_id)
     # This course's topic ratings only (spec 001, FR-029); an unrated topic has no rating.
     elo_map = {

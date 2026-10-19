@@ -14,7 +14,15 @@ from src.domain.learning.prealgebra import (
     curriculum_map_rows,
     get_lesson,
 )
-from tests.integration.conftest import make_student, headers_for
+from tests.integration.conftest import enroll, headers_for, make_student
+
+
+def _path_student(repo):
+    """A student enrolled in the path's course (spec 003 L1: the path needs the enrolment)."""
+    user = make_student(repo)
+    enroll(repo, user, "algebra_basica")
+    return user
+
 
 COURSE = "algebra_basica"
 WELCOME = "PREALG-N1-B01-BIENVENIDA"
@@ -42,7 +50,7 @@ def _count_reads(repo, monkeypatch):
 
 
 def test_lesson_states_are_the_per_node_states_in_one_read(repo):
-    user, other = make_student(repo), make_student(repo)
+    user, other = _path_student(repo), _path_student(repo)
     _progress(repo, user)
     repo.record_lesson_event(other, COURSE, STAIRCASE, "node_completed")
     repo.record_lesson_event(user, "calculo_diferencial", STAIRCASE, "node_completed")
@@ -52,11 +60,11 @@ def test_lesson_states_are_the_per_node_states_in_one_read(repo):
         TRIGGER: "completed",
         STAIRCASE: "viewed",
     }
-    assert repo.get_lesson_states(make_student(repo), COURSE) == {}
+    assert repo.get_lesson_states(_path_student(repo), COURSE) == {}
 
 
 def test_the_map_shows_the_same_states_with_a_bounded_number_of_reads(repo, client, monkeypatch):
-    user = make_student(repo)
+    user = _path_student(repo)
     _progress(repo, user)
     expected = curriculum_map_rows(
         lambda node_id: repo.get_lesson_progress(user, COURSE, node_id)["state"],
@@ -86,7 +94,7 @@ def test_the_map_shows_the_same_states_with_a_bounded_number_of_reads(repo, clie
 
 def test_the_laboratory_shows_each_machine_state_from_one_read(repo, client, monkeypatch):
     """N3: the level-2 check, the prerequisite and the machine states come from one snapshot."""
-    user = make_student(repo)
+    user = _path_student(repo)
     for node_id in N2_OPERATION_NODE_IDS:
         repo.record_lesson_event(user, COURSE, node_id, "node_completed")
     repo.record_lesson_event(user, COURSE, N3_HUB_NODE_ID, "node_completed")
@@ -107,7 +115,7 @@ def test_the_laboratory_shows_each_machine_state_from_one_read(repo, client, mon
 
 def test_a_machine_opens_in_the_request_that_repairs_the_laboratory(repo, client):
     """The snapshot is taken after the hub repair, so the repaired hub unlocks M01 at once."""
-    user = make_student(repo)
+    user = _path_student(repo)
     for node_id in N2_OPERATION_NODE_IDS:
         repo.record_lesson_event(user, COURSE, node_id, "node_completed")
     for interaction in get_lesson(N3_HUB_NODE_ID)["interactions"]:
