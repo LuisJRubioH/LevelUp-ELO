@@ -168,8 +168,8 @@ test.describe("Spec 001 · calificaciones en pantalla", () => {
     await page.route("**/api/teacher/**", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
     );
-    await json(page, "**/api/teacher/metrics", {});
-    await json(page, "**/api/teacher/dashboard", {
+    await json(page, "**/api/teacher/metrics*", {});
+    await json(page, "**/api/teacher/dashboard*", {
       students: [
         { user_id: 5, name: "sofia", education_level: "colegio", group_id: 1, group_name: "10A", global_elo: 999.6, display_rating: 1000, rank_label: "Plata I", overall_status: "rated", total_attempts: 12, accuracy: 0.75, last_activity: "2026-10-07" },
       ],

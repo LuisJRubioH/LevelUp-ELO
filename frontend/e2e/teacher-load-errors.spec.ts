@@ -12,10 +12,10 @@ async function teacherApi(page: Page) {
   await page.route("**/api/teacher/**", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
   );
-  await page.route("**/api/teacher/dashboard", (route) =>
+  await page.route("**/api/teacher/dashboard*", (route) =>
     route.fulfill({ status: 200, json: { students: [], groups: [] } }),
   );
-  await page.route("**/api/teacher/metrics", (route) => route.fulfill({ status: 200, json: {} }));
+  await page.route("**/api/teacher/metrics*", (route) => route.fulfill({ status: 200, json: {} }));
   await page.route("**/api/student/exam/pending", (route) =>
     route.fulfill({ status: 200, json: [] }),
   );
@@ -89,7 +89,7 @@ test.describe("Consola docente — errores de carga", () => {
 
   test("panel: si las métricas no cargan, la pestaña lo dice", async ({ page }) => {
     await teacherApi(page);
-    await page.route("**/api/teacher/metrics", (route) => route.fulfill(REFUSED));
+    await page.route("**/api/teacher/metrics*", (route) => route.fulfill(REFUSED));
 
     await page.goto("/teacher");
     await page.getByRole("button", { name: /Métricas/ }).first().click();

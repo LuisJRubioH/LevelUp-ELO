@@ -2344,21 +2344,18 @@ class SQLiteRepository:
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
-            _filter = ""
-            _params = [teacher_id]
-            if group_id:
-                _filter = "AND u.group_id = ?"
-                _params.append(group_id)
+            _filter = "WHERE group_id = ?" if group_id else ""
+            _params = [teacher_id, teacher_id] + ([group_id] if group_id else [])
             cursor.execute(
                 f"""
+                WITH {self._teacher_links_cte()}
                 SELECT k.course_id, c.name, k.topic, k.outcome, COUNT(*)
                 FROM katia_conversations k
-                JOIN users u ON u.id = k.user_id
-                JOIN groups g ON g.id = u.group_id
                 LEFT JOIN courses c ON c.id = k.course_id
-                WHERE g.teacher_id = ? AND k.status = 'closed'
-                  AND COALESCE(u.is_test_user, 0) = 0
-                  {_filter}
+                -- Spec 006 FR-040: the teacher's set, in the courses that link them.
+                WHERE k.status = 'closed'
+                  AND k.user_id IN (SELECT user_id FROM teacher_links {_filter})
+                  AND {self._linked_course("k.user_id", "k.course_id")}
                 GROUP BY k.course_id, c.name, k.topic, k.outcome
                 ORDER BY k.course_id, k.topic, k.outcome
                 """,
@@ -2701,7 +2698,8 @@ class SQLiteRepository:
             if scope == "group":
                 rows = conn.execute(
                     "SELECT id, username, COALESCE(display_name, username) FROM users"
-                    " WHERE group_id = ? AND role = 'student' AND active = 1 ORDER BY id",
+                    " WHERE group_id = ? AND role = 'student' AND active = 1"
+                    " AND COALESCE(is_test_user, 0) = 0 ORDER BY id",
                     (group_id,),
                 ).fetchall()
                 return [
@@ -3132,18 +3130,18 @@ class SQLiteRepository:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            """
+            f"""
+            WITH {self._teacher_links_cte()}
             SELECT g.id AS group_id, g.name, g.course_id, COALESCE(c.name, '—') AS course_name,
                    g.created_at, COALESCE(c.block, 'Universidad') AS block, g.invite_code,
-                   (SELECT COUNT(*) FROM users u2
-                    WHERE u2.group_id = g.id AND u2.active = 1 AND u2.role = 'student'
-                      AND COALESCE(u2.is_test_user, 0) = 0) AS student_count
+                   (SELECT COUNT(DISTINCT l.user_id) FROM teacher_links l
+                    WHERE l.group_id = g.id) AS student_count
             FROM groups g
             LEFT JOIN courses c ON g.course_id = c.id
             WHERE g.teacher_id = ?
             ORDER BY g.name ASC
         """,
-            (teacher_id,),
+            (teacher_id, teacher_id, teacher_id),
         )
         rows = cursor.fetchall()
         conn.close()
@@ -3572,51 +3570,98 @@ class SQLiteRepository:
             for r in rows
         ]
 
-    def get_teacher_dashboard_stats(self, teacher_id):
-        """Retorna estadísticas consolidadas por estudiante para el dashboard docente.
+    # ── Spec 006 C1: the teacher's student set ───────────────────────────────
 
-        Un estudiante aparece UNA sola vez, sin importar cuántos cursos
-        tenga matriculados. Se usa su grupo primario (users.group_id).
-        Incluye ELO actual, intentos totales, acierto promedio y última actividad.
-        """
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            WITH teacher_student_ids AS (
-                SELECT DISTINCT u.id AS user_id
+    @staticmethod
+    def _teacher_links_cte() -> str:
+        """`teacher_links(user_id, group_id, course_id)`: the active, non-test students of the
+        teacher's groups, by main group or enrolment group, with the course that links each one
+        to the teacher (spec 006 FR-040). Two `teacher_id` parameters."""
+        return """
+            teacher_links AS (
+                SELECT u.id AS user_id, g.id AS group_id, g.course_id AS course_id
                 FROM users u
                 JOIN groups g ON u.group_id = g.id
                 WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
                   AND COALESCE(u.is_test_user, 0) = 0
-
                 UNION
-
-                SELECT DISTINCT e.user_id
+                SELECT u.id, g.id, e.course_id
                 FROM enrollments e
                 JOIN groups g ON e.group_id = g.id
                 JOIN users u ON e.user_id = u.id
                 WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
                   AND COALESCE(u.is_test_user, 0) = 0
-            )
-            SELECT u.id AS user_id, COALESCE(u.display_name, u.username) AS name, u.education_level,
-                   u.group_id, COALESCE(g.name, 'Sin grupo') AS group_name,
-                   COUNT(a.id) AS total_attempts,
-                   CASE WHEN COUNT(a.id) > 0
-                        THEN CAST(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS REAL) / COUNT(a.id)
-                        ELSE 0.0 END AS accuracy,
-                   MAX(a.timestamp) AS last_activity
-            FROM teacher_student_ids ts
-            JOIN users u ON u.id = ts.user_id
-            LEFT JOIN groups g ON u.group_id = g.id
-            LEFT JOIN attempts a ON a.user_id = ts.user_id
-            GROUP BY u.id, u.username, u.display_name, u.education_level, u.group_id, g.name
-            ORDER BY u.username ASC
-        """,
-            (teacher_id, teacher_id),
+            )"""
+
+    @staticmethod
+    def _linked_course(user_col: str, course_col: str) -> str:
+        """The course is one that links the student to the teacher (spec 006 N7)."""
+        return (
+            f"EXISTS (SELECT 1 FROM teacher_links l WHERE l.user_id = {user_col}"
+            f" AND (l.course_id IS NULL OR l.course_id = {course_col}))"
         )
-        rows = cursor.fetchall()
-        conn.close()
+
+    @staticmethod
+    def _since(column: str, days: int | None) -> tuple[str, list]:
+        """Spec 006 FR-043: `column` within the last `days` days; no filter for None."""
+        if days is None:
+            return "", []
+        return f" AND {column} >= datetime('now', ?)", ["-%d days" % days]
+
+    def get_teacher_student_groups(self, teacher_id) -> dict:
+        """Spec 006 FR-040: each student of the teacher's set → the teacher's groups that list
+        them."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.execute(
+                f"WITH {self._teacher_links_cte()}"
+                " SELECT DISTINCT user_id, group_id FROM teacher_links ORDER BY group_id",
+                (teacher_id, teacher_id),
+            )
+            groups: dict = {}
+            for user_id, group_id in cursor.fetchall():
+                groups.setdefault(user_id, []).append(group_id)
+            return groups
+        finally:
+            conn.close()
+
+    def get_teacher_dashboard_stats(self, teacher_id, days: int | None = None):
+        """Spec 006 FR-040, FR-043: one row per student of the teacher's set, with the teacher's
+        group that lists them, and their attempts, accuracy and last activity in the courses that
+        link them to the teacher, within the last `days` days (None = the whole history)."""
+        since, since_params = self._since("a.timestamp", days)
+        linked = self._linked_course(
+            "a.user_id", "(SELECT course_id FROM items WHERE id = a.item_id)"
+        )
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                f"""
+                WITH {self._teacher_links_cte()},
+                students AS (
+                    SELECT user_id, MIN(group_id) AS group_id FROM teacher_links GROUP BY user_id
+                )
+                SELECT u.id AS user_id, COALESCE(u.display_name, u.username) AS name,
+                       u.education_level, s.group_id, COALESCE(g.name, 'Sin grupo') AS group_name,
+                       COUNT(a.id) AS total_attempts,
+                       CASE WHEN COUNT(a.id) > 0
+                            THEN CAST(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS REAL)
+                                 / COUNT(a.id)
+                            ELSE 0.0 END AS accuracy,
+                       MAX(a.timestamp) AS last_activity
+                FROM students s
+                JOIN users u ON u.id = s.user_id
+                LEFT JOIN groups g ON g.id = s.group_id
+                LEFT JOIN attempts a ON a.user_id = s.user_id{since} AND {linked}
+                GROUP BY u.id, u.username, u.display_name, u.education_level, s.group_id, g.name
+                ORDER BY u.username ASC
+                """,
+                [teacher_id, teacher_id, *since_params],
+            )
+            rows = cursor.fetchall()
+        finally:
+            conn.close()
         return [
             {
                 "user_id": r[0],
@@ -3667,107 +3712,82 @@ class SQLiteRepository:
         conn.close()
         return [dict(zip(columns, row)) for row in rows]
 
-    def get_teacher_metrics(self, teacher_id):
-        """Métricas de uso del grupo del docente: tiempo promedio, abandono, temas, actividad diaria."""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cte = """
-            WITH teacher_students AS (
-                SELECT DISTINCT u.id AS user_id
-                FROM users u
-                JOIN groups g ON u.group_id = g.id
-                WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
-                  AND COALESCE(u.is_test_user, 0) = 0
-                UNION
-                SELECT DISTINCT e.user_id
-                FROM enrollments e
-                JOIN groups g ON e.group_id = g.id
-                JOIN users u ON e.user_id = u.id
-                WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
-                  AND COALESCE(u.is_test_user, 0) = 0
-            )
+    def get_teacher_metrics(self, teacher_id, days: int | None = None):
+        """Spec 006 FR-040, FR-043: time, abandonment, topics and activity of the teacher's set,
+        in the courses that link each student to the teacher, within the last `days` days."""
+        since, since_params = self._since("a.timestamp", days)
+        linked = self._linked_course("a.user_id", "i.course_id")
+        base = f"""
+            WITH {self._teacher_links_cte()}
+            SELECT {{columns}}
+            FROM attempts a
+            JOIN items i ON i.id = a.item_id
+            WHERE a.user_id IN (SELECT user_id FROM teacher_links) AND {linked}{since}
+            {{tail}}
         """
-        cursor.execute(
-            cte
-            + """
-            SELECT
-                COUNT(*) AS total_attempts,
-                AVG(CASE WHEN a.time_taken BETWEEN 3 AND 600 THEN a.time_taken END) AS avg_time,
-                CAST(SUM(CASE WHEN a.time_taken IS NOT NULL
-                              AND (a.time_taken < 3 OR a.time_taken > 600) THEN 1 ELSE 0 END)
-                     AS REAL) / NULLIF(COUNT(*), 0) AS abandonment_rate
-            FROM attempts a
-            JOIN teacher_students ts ON a.user_id = ts.user_id
-        """,
-            (teacher_id, teacher_id),
-        )
-        row = cursor.fetchone()
-        totals = {
-            "total_attempts": int(row[0] or 0),
-            "avg_time_seconds": round(float(row[1] or 0), 1),
-            "abandonment_rate": round(float(row[2] or 0), 4),
-        }
-
-        cursor.execute(
-            cte
-            + """
-            SELECT a.topic,
-                   COUNT(*) AS attempts,
-                   CAST(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS REAL) / COUNT(*) AS accuracy,
-                   AVG(CASE WHEN a.time_taken BETWEEN 3 AND 600 THEN a.time_taken END) AS avg_time
-            FROM attempts a
-            JOIN teacher_students ts ON a.user_id = ts.user_id
-            WHERE a.topic IS NOT NULL AND a.topic != ''
-            GROUP BY a.topic
-            ORDER BY attempts DESC
-            LIMIT 10
-        """,
-            (teacher_id, teacher_id),
-        )
-        topic_stats = [
-            {
-                "topic": r[0],
-                "attempts": int(r[1]),
-                "accuracy": round(float(r[2] or 0), 3),
-                "avg_time": round(float(r[3] or 0), 1),
+        params = [teacher_id, teacher_id, *since_params]
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                base.format(
+                    columns="""COUNT(*),
+                        AVG(CASE WHEN a.time_taken BETWEEN 3 AND 600 THEN a.time_taken END),
+                        CAST(SUM(CASE WHEN a.time_taken IS NOT NULL
+                                      AND (a.time_taken < 3 OR a.time_taken > 600)
+                                 THEN 1 ELSE 0 END) AS REAL) / NULLIF(COUNT(*), 0)""",
+                    tail="",
+                ),
+                params,
+            )
+            row = cursor.fetchone()
+            totals = {
+                "total_attempts": int(row[0] or 0),
+                "avg_time_seconds": round(float(row[1] or 0), 1),
+                "abandonment_rate": round(float(row[2] or 0), 4),
             }
-            for r in cursor.fetchall()
-        ]
-
-        cursor.execute(
-            cte
-            + """
-            SELECT strftime('%Y-%m-%d', a.timestamp) AS date, COUNT(*) AS count
-            FROM attempts a
-            JOIN teacher_students ts ON a.user_id = ts.user_id
-            WHERE a.timestamp >= date('now', '-30 days')
-            GROUP BY date
-            ORDER BY date ASC
-        """,
-            (teacher_id, teacher_id),
-        )
-        daily_attempts = [{"date": r[0], "count": int(r[1])} for r in cursor.fetchall()]
-
-        cursor.execute(
-            cte
-            + """
-            SELECT CAST(strftime('%H', a.timestamp) AS INTEGER) AS hour, COUNT(*) AS count
-            FROM attempts a
-            JOIN teacher_students ts ON a.user_id = ts.user_id
-            GROUP BY hour
-            ORDER BY hour ASC
-        """,
-            (teacher_id, teacher_id),
-        )
-        hourly = {r[0]: int(r[1]) for r in cursor.fetchall()}
-        hourly_distribution = [{"hour": h, "count": hourly.get(h, 0)} for h in range(24)]
-
-        conn.close()
+            cursor.execute(
+                base.format(
+                    columns="""a.topic, COUNT(*),
+                        CAST(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS REAL) / COUNT(*),
+                        AVG(CASE WHEN a.time_taken BETWEEN 3 AND 600 THEN a.time_taken END)""",
+                    tail="AND a.topic IS NOT NULL AND a.topic != ''"
+                    " GROUP BY a.topic ORDER BY COUNT(*) DESC LIMIT 10",
+                ),
+                params,
+            )
+            topic_stats = [
+                {
+                    "topic": r[0],
+                    "attempts": int(r[1]),
+                    "accuracy": round(float(r[2] or 0), 3),
+                    "avg_time": round(float(r[3] or 0), 1),
+                }
+                for r in cursor.fetchall()
+            ]
+            cursor.execute(
+                base.format(
+                    columns="strftime('%Y-%m-%d', a.timestamp) AS date, COUNT(*)",
+                    tail="GROUP BY date ORDER BY date ASC",
+                ),
+                params,
+            )
+            daily_attempts = [{"date": r[0], "count": int(r[1])} for r in cursor.fetchall()]
+            cursor.execute(
+                base.format(
+                    columns="CAST(strftime('%H', a.timestamp) AS INTEGER) AS hour, COUNT(*)",
+                    tail="GROUP BY hour ORDER BY hour ASC",
+                ),
+                params,
+            )
+            hourly = {r[0]: int(r[1]) for r in cursor.fetchall()}
+        finally:
+            conn.close()
         return {
             **totals,
             "topic_stats": topic_stats,
             "daily_attempts": daily_attempts,
-            "hourly_distribution": hourly_distribution,
+            "hourly_distribution": [{"hour": h, "count": hourly.get(h, 0)} for h in range(24)],
         }
 
     def export_teacher_student_data(self, teacher_id, group_id=None):
@@ -3781,34 +3801,17 @@ class SQLiteRepository:
 
         conn = self.get_connection()
         cursor = conn.cursor()
-        _gf1 = "AND g.id = ?" if group_id else ""
-        _gf2 = "AND g2.id = ?" if group_id else ""
-        _params = [teacher_id]
-        if group_id:
-            _params.append(group_id)
-        _params.append(teacher_id)
-        if group_id:
+        _params = [teacher_id, teacher_id]
+        _gf = ""
+        if group_id:  # V1 passes a group
+            _gf = "WHERE group_id = ?"
             _params.append(group_id)
 
         cursor.execute(
             f"""
-            WITH teacher_student_ids AS (
-                SELECT DISTINCT u.id AS user_id
-                FROM users u
-                JOIN groups g ON u.group_id = g.id
-                WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
-                  AND COALESCE(u.is_test_user, 0) = 0
-                  {_gf1}
-
-                UNION
-
-                SELECT DISTINCT e.user_id
-                FROM enrollments e
-                JOIN groups g ON e.group_id = g.id
-                JOIN users u ON e.user_id = u.id
-                WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
-                  AND COALESCE(u.is_test_user, 0) = 0
-                  {_gf2}
+            WITH {self._teacher_links_cte()},
+            teacher_student_ids AS (
+                SELECT DISTINCT user_id FROM teacher_links {_gf}
             )
             SELECT
                 u.id AS student_id,
@@ -3846,6 +3849,8 @@ class SQLiteRepository:
             JOIN attempts a ON a.user_id = ts.user_id
             JOIN items i ON a.item_id = i.id
             LEFT JOIN courses c ON i.course_id = c.id
+            -- Spec 006 FR-040 (N7): only the courses that link the student to the teacher.
+            WHERE {self._linked_course("a.user_id", "i.course_id")}
             ORDER BY u.username ASC, a.timestamp ASC
         """,
             tuple(_params),
@@ -3881,10 +3886,11 @@ class SQLiteRepository:
         """Exporta matrículas de los estudiantes del profesor."""
         conn = self.get_connection()
         cursor = conn.cursor()
-        _gf = "AND g.id = ?" if group_id else ""
-        _params = (teacher_id, group_id) if group_id else (teacher_id,)
+        _gf = "WHERE group_id = ?" if group_id else ""
+        _params = [teacher_id, teacher_id] + ([group_id] if group_id else [])
         cursor.execute(
             f"""
+            WITH {self._teacher_links_cte()}
             SELECT
                 u.id AS student_id,
                 COALESCE(u.display_name, u.username) AS name,
@@ -3897,12 +3903,11 @@ class SQLiteRepository:
                 e.enrolled_at
             FROM enrollments e
             JOIN users u ON e.user_id = u.id
-            JOIN groups g ON e.group_id = g.id
+            LEFT JOIN groups g ON e.group_id = g.id
             LEFT JOIN courses c ON e.course_id = c.id
-            WHERE u.active = 1
-              AND COALESCE(u.is_test_user, 0) = 0
-              AND g.teacher_id = ?
-              {_gf}
+            -- Spec 006 FR-040: the teacher's set, in the courses that link them.
+            WHERE e.user_id IN (SELECT user_id FROM teacher_links {_gf})
+              AND {self._linked_course("e.user_id", "e.course_id")}
             ORDER BY u.username ASC, c.name ASC
         """,
             _params,
@@ -3916,10 +3921,11 @@ class SQLiteRepository:
         """Exporta datos de procedimientos de los estudiantes del profesor."""
         conn = self.get_connection()
         cursor = conn.cursor()
-        _gf = "AND g.id = ?" if group_id else ""
-        _params = (teacher_id, group_id) if group_id else (teacher_id,)
+        _gf = "WHERE group_id = ?" if group_id else ""
+        _params = [teacher_id, teacher_id] + ([group_id] if group_id else [])
         cursor.execute(
             f"""
+            WITH {self._teacher_links_cte()}
             SELECT
                 u.id AS student_id,
                 COALESCE(u.display_name, u.username) AS name,
@@ -3940,10 +3946,11 @@ class SQLiteRepository:
             FROM procedure_submissions ps
             JOIN users u ON ps.student_id = u.id
             LEFT JOIN groups g ON u.group_id = g.id
-            WHERE u.active = 1
-              AND COALESCE(u.is_test_user, 0) = 0
-              AND g.teacher_id = ?
-              {_gf}
+            -- Spec 006 FR-040: the teacher's set, in the courses that link them (an
+            -- exercise outside the bank has no course and stays).
+            WHERE ps.student_id IN (SELECT user_id FROM teacher_links {_gf})
+              AND (NOT EXISTS (SELECT 1 FROM items i WHERE i.id = ps.item_id)
+                   OR {self._linked_course("ps.student_id", "(SELECT course_id FROM items WHERE id = ps.item_id)")})
             ORDER BY u.username ASC, ps.submitted_at ASC
         """,
             _params,

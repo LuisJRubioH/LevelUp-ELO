@@ -32,7 +32,7 @@ async function teacherGroups(page: Page, invitations: Invitation[]) {
   await page.route("**/api/teacher/**", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
   );
-  await page.route("**/api/teacher/dashboard", (route) =>
+  await page.route("**/api/teacher/dashboard*", (route) =>
     route.fulfill({ status: 200, json: { students: [], groups: [] } }),
   );
   await page.route("**/api/student/exam/pending", (route) => route.fulfill({ json: [] }));
