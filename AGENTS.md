@@ -407,8 +407,8 @@ expectation of an unrated player but is never shown). Orphaned matches are close
   every irrational has an opposite and a reciprocal, **and they are irrational** — the reciprocal
   of √2 is `\dfrac{1}{\sqrt{2}}=\dfrac{\sqrt{2}}{2}`, i.e. rationalising (explicit hook to the
   future topic). Honest nuance in the 𝕀 row: the inverse exists but the identity 1 ∉ 𝕀, so the
-  full home of inverses is ℝ. Content in `_N3_MACHINE_CONTENT`, rendered in
-  `LevelThreeLesson.tsx`.
+  full home of inverses is ℝ. Each machine is an eleven-block module (`nodes/m01_*.py` …
+  `m05_*.py`, V2-R11); `LevelThreeLesson.tsx` renders only the M00 hub.
 - **V2-R14 — Pre-algebra N4, the Port of the Polis (C01–C06).** Hub `C00` + six named
   destinations, **strictly sequential** unlock after N3. Each node's `CONTENT["destination"]`
   must match `_N4_CARDS[*]["destination"]` (tested): C01 **Corinto**
@@ -467,8 +467,9 @@ expectation of an unrated player but is never shown). Orphaned matches are close
   of Wisdom (Baghdad, 9th c.)**, per `Implementacion/MAPA_NODOS_ALGEBRA8.md`. Same course `algebra_basica`, same
   renderer; chained after `ALG-N1-R04-VARIACION`. Wiring: module in `nodes/pNN_*.py`, list it in
   `NODE_MODULES`, add the row to `_ALG_N2_SEQUENCE` and `_MAP_PRESENTATION`. **Nothing else** —
-  `Lesson.tsx` no longer whitelists node IDs (the backend 404s), and the map test derives its list
-  from `ALG_N1_NODE_IDS + ALG_N2_NODE_IDS`.
+  `Lesson.tsx` sends every eleven-block node to the generic renderer by `content.kind` (it still
+  lists the pre-algebra hub ids for the older renderers), and the map test derives its list from
+  `ALG_N1_NODE_IDS + ALG_N2_NODE_IDS + ALG_N3_NODE_IDS`.
   - **Shared hub `ALG-S00-CASA-DE-LA-SABIDURIA`** (`nodes/s00_hub_bagdad.py`,
     `kind: level_hub_cards`): ALG-N2 and ALG-N3 share one antechamber — the workshop stamps, the
     warehouse opens what was stamped — with **two** cards, one per wing, each with its guide
@@ -526,8 +527,9 @@ expectation of an unrated player but is never shown). Orphaned matches are close
   - **Process habit** (`habito_*`: not checking, not deciding, not simplifying) → has no owner and
     must not have one.
   - `test_a_content_error_seen_in_many_nodes_has_a_node_that_teaches_it` fails if a new content
-    tag is emitted by 3+ nodes with no node declaring it focal. Nine inherited pre-algebra tags are
-    listed as known debt and must not grow.
+    tag is emitted by 3+ nodes with no node declaring it focal. Nine inherited tags (eight from
+    pre-algebra, `confunde_la_operacion_dictada` from algebra) are listed as known debt and must not
+    grow.
   - `test_every_focal_misconception_is_distinct` only catches LITERAL collisions; two nodes
     teaching the same error under different tags must be caught in review.
 
@@ -704,7 +706,8 @@ Per request: user key > function key > general key, via `settings.get_ai_key("pr
 - **D3** — Teacher dashboard: data first. ELO and radar charts before actions; no big decorative
   icon cards.
 - **D4** — Student views mobile-first (375 px); teacher views desktop-first (1280 px).
-- **D5** — LaTeX always through `react-katex`, never plain text.
+- **D5** — Math always through `MathContent` / `MathText` (`frontend/src/components/Math/`,
+  KaTeX), never plain text (owner, 2026-10-18; spec 003).
 
 Forbidden: purple gradients · nested cards · Inter without hierarchy · low contrast on dark
 backgrounds. Colours are CSS tokens in `frontend/src/index.css`; never hard-code them.
