@@ -169,3 +169,65 @@ None blocks the transfer (PR #3).
   - the rating and difficulty update formulas and the selector's targets (spec 001);
   - lesson content and nodes (spec 003);
   - PvP item choice (spec 007).
+
+## 7. Re-verification at `redesign @ f2ad4ed` (2026-10-19)
+
+Every finding above was checked again against `f2ad4ed` (spec 006 complete). Line numbers below
+are at that commit. The bank still has 49 files, 2,031 items and 2,031 unique ids, and
+`validate_bank.py` passes with no warnings.
+
+**Status of B1–B20**
+
+| # | Status | Today |
+|---|---|---|
+| B1–B5 | Fixed | #45, #48, #26, #49 merged |
+| B6 | Holds | The same 32 semillero items are at 500–550 (21 in `aritmetica_semillero_8`). The validator still only warns, and only outside [100, 3000]; it does not require an integer |
+| B7 | Partly | #26 and #48 added the prose-between-`$` check and `test_bank_content` (repeated options, copies share the key), but that test runs in the unit-test job, not in «Banco de preguntas». Still unchecked: R5 control characters (a single `\f` in `\frac` decodes to a form feed and passes: **Reproduced**), empty `topic`, id and `tags` types, image existence, course-map membership. The validator reads every subfolder (`rglob`); the sync reads only the top level and `semillero/` (the sets are equal today) |
+| B8 | Holds | Nothing deletes or retires an item or a course on either engine; a removed item is still served (**Reproduced** on SQLite) |
+| B9 | Holds | The sync's UPDATE leaves `difficulty` and `rating_deviation` alone (S:4252-4269; P says so explicitly). Bank 900 → database 1234.5 → bank edited to 700 → the database keeps 1234.5 (**Reproduced** on SQLite) |
+| B10 | Holds | `topic` and `course_id` are overwritten; later answers write the new (course, topic) row while the old row stays in the course mean (R15) |
+| B11 | Fixed | Spec 002 N1: both engines rename or move a course whose name or block changed (`test_spec002_d3_parity.py`) |
+| B12 | Fixed | The sync now runs only when the bank fingerprint changes (spec 002 D1, `bank_syncs`), and PostgreSQL updates only rows whose static columns changed, with `execute_batch` |
+| B13 | Holds | A block typo in the map fails the `courses` CHECK and aborts the whole sync and the start (**Reproduced**). SQLite's sync still has no `try/finally`: after a failure a second repository in the same process got `database is locked` (**Reproduced** once) |
+| B14 | Holds | `aritmetica` is still mapped with no file; an unmapped course still becomes «Universidad» silently; 10 courses still take their name from their first item's `topic` |
+| B15 | Holds | The model is still gitignored and absent; the API still builds and loads the calibrator per request (`api/routers/student.py:114-118`) |
+| B16 | Fixed | Both scripts set `RUN_MIGRATIONS=0` before opening a repository |
+| B17 | Holds | The cooldown fallback and the "mastery" answer for an empty course are unchanged (`svc:101-115`) |
+| B18 | Partly | The 81 groups of identical statements remain (80 across courses; 15 already differ in difficulty). The other content items were not re-checked |
+| B19 | Holds | DIAN 209 topics for 293 items; EPA8 59 for 60 |
+| B20 | Holds | `sync_items_from_json` and `update_item_rating` still have no callers on either engine; `test_sqlite_repository.py` still writes a bank file without syncing it |
+
+**New findings**
+
+| # | Kind | Finding | Evidence | Checked |
+|---|---|---|---|---|
+| B21 | **Risk** | **The bank fingerprint ignores the course maps.** It hashes bank files only (spec 002 D1), so a change made only to `_COURSE_BLOCK_MAP` or `_COURSE_NAME_MAP` never reaches an existing database until some bank file changes. | `schema_version.py:78-95`; S:97-124; P:359-401 | **Reproduced** (SQLite: a course moved to Colegio in the map stays Universidad) |
+| B22 | **Parity (R1)** | **A duplicate id across files resolves differently.** SQLite keeps the last file's (an INSERT, then an UPDATE of `course_id`); PostgreSQL keeps the first (`ON CONFLICT DO NOTHING`). The validator rejects duplicates, so this needs a bank that bypassed CI. | S:4228-4269; P:4722-4733 | SQLite **Reproduced**; PostgreSQL Verified |
+| B23 | **Docs** | **`items/source/` counts are stale.** README, AGENTS V2-R17 and `Implementacion/CABOS_SUELTOS.md` say 4,656 statements; the files hold 5,725 (Hipertexto 3,132, Caminos 2,533, EPA8 60). V2-R17's "zero method-choice items" was measured on the older set. CI does not run `build_epa8_bank.py --check`. | `AGENTS.md:508`; `README.md:277` | **Measured** |
+| B24 | **Schema** | **`items` has no difficulty CHECK and no index on `course_id`,** which every practice read filters on; PostgreSQL has no FK to `courses` and SQLite never enforces its own. | S:775; P:1040; P:5265-5271 | Verified |
+
+A fresh scan of the bank (control characters, duplicate options, key outside the options, empty
+topic, unmapped course, missing image) found nothing; 111 image paths, all present; 14 items use
+the `image_path` alias.
+
+**Decisions, updated.** § 5 still stands, with these recommendations and two additions:
+
+1. Range (B6): an integer range as an **error**, widened to cover the bank (e.g. 400–2000), and
+   AGENTS corrected — rather than re-rating 32 grade-6–8 items that are genuinely easy.
+2. Validator (B7): every missing check as an error, plus `test_bank_content` and
+   `build_epa8_bank.py --check` in «Banco de preguntas». The bank is clean, so nothing breaks.
+3. Retiring (B8): an explicit `"retired": true` in the JSON with an additive `retired_at` that the
+   selector and exams skip — never a DELETE.
+4. Manual difficulty (B9): an additive `bank_difficulty` column so that a changed bank value wins,
+   plus an audited D\* recalibration script.
+5. Moving or re-keying (B10): forbid an existing id changing course or topic in the validator,
+   against a committed id manifest; a moved item gets a new id.
+6. Calibrator (B15): keep it as an offline report, load it once per process, and remove B20's
+   dead code.
+7. Topics (B19): a minimum number of items per topic, with the rating consequence decided in a
+   spec 001 amendment.
+8. **New — the maps (B14, B21):** one shared catalogue module (block and name; semillero derived
+   from the file name), an unmapped course as an error, and the map included in the sync
+   fingerprint.
+9. **New — `items/source/` (B23):** out of spec 008 except the EPA8 generator as a checked
+   build; the counts fixed in a docs PR once V2-R17's claim is re-measured.
