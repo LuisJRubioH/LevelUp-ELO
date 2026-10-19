@@ -146,13 +146,25 @@ process.** Until that is automated, follow this sequence by hand, one commit per
 
 The traceability gates are checked in CI by `scripts/check_traceability.py` (job "Trazabilidad
 spec → tests"): one row per FR and scenario, every cited test collected, passing and not skipped.
-`PENDING` is accepted on a docs PR and rejected on any PR that is a **code change for the spec**,
-whatever its branch: one that changes a non-document file (not under `specs/` or `docs/`, not
-`.md`) matching the spec's `## Code Scope`, or a test file its § Traceability cites, or any
-non-document file together with the spec's own directory. Every spec declares a non-empty Code
-Scope whose entries each name a tracked file. The check is per spec, not per row: while a spec has
-`PENDING` rows on the base branch, every PR that changes its code fails until the PR that closes
-them lands — so a spec carries one amendment in flight at a time.
+A requirement or scenario is recognised **whatever its Markdown formatting**: any line opening with
+its ID followed by `[`, `:` or a dash defines it, and an ID mentioned anywhere else in the spec
+(outside § Traceability and the appendix) must be defined — another spec's ID is written
+"spec 001 FR-028m". Every spec declares a non-empty Code Scope whose entries each name a tracked
+file. Then one of two rules applies (constitution 1.1.0, § Governance):
+
+- **A spec delivered in steps** declares a `## Deliveries` table with a `Delivery` and a `State`
+  column (`planned`, `in progress`, `closed`), and its § Traceability table has a middle
+  `Delivery` column naming a declared delivery on every row. `PENDING` is accepted in rows of an
+  open delivery on any PR, and rejected in a closed delivery on every PR. The PR that completes a
+  delivery marks it `closed` and fills all its rows; the checker cannot tell which delivery a PR
+  implements, so review checks that step and any change of state.
+- **A spec without deliveries**: `PENDING` is accepted on a docs PR and rejected on any PR that
+  is a **code change for the spec**, whatever its branch: one that changes a non-document file
+  (not under `specs/` or `docs/`, not `.md`) matching the spec's `## Code Scope`, or a test file
+  its § Traceability cites, or any non-document file together with the spec's own directory. The
+  check is per spec, not per row: while such a spec has `PENDING` rows on the base branch, every
+  PR that changes its code fails until the PR that closes them lands — so it carries one
+  amendment in flight at a time.
 
 **First-run review of `/speckit-tasks` (required checkpoint before committing spec 001's
 tasks.md).** The upstream skill still says tests are optional unless requested; the overrides make
@@ -184,8 +196,12 @@ an identical public API. Checklist:
 - Touched one repository? → edit the other too.
 - Added a table or column? → idempotent additive migration in both (R8).
 - Changed `_COURSE_BLOCK_MAP`? → change it in both.
-- Run `python scripts/db_sync_check.py`. It compares text, signatures and DDL only; behavioural
-  equivalence is proven by tests parametrised over both engines.
+- Run `python scripts/db_sync_check.py`. It compares public signatures (`inspect`) and the
+  tables, columns and indexes every migration method creates (`ast`), and fails on any difference
+  not listed in `src/infrastructure/persistence/engine_differences.py` — or on a listed one that no
+  longer exists. `tests/integration/test_spec002_d3_parity.py` compares what both databases report
+  after a bootstrap (types and seed too). An accepted difference is a decision: add it there, with
+  its reason. Behavioural equivalence is proven by tests parametrised over both engines.
 
 ### R2 — Layers
 ```
@@ -203,7 +219,12 @@ Composition points: `api/routers/student.py::_make_service` and `src/interface/s
 
 ### R4 — Connection pool: never `conn.close()`
 Always `self.put_connection(conn)`. Closing destroys the pooled connection and exhausts the pool.
-`ThreadedConnectionPool(1, 5)`; do not raise `maxconn` on the Supabase free tier.
+`ThreadedConnectionPool(DB_POOL_MIN_IDLE, 5)` (default 2 idle; spec 002 D2); do not raise `maxconn`
+on the Supabase free tier. A connection idle past `DB_POOL_PROBE_AFTER_S` (default 30) is probed
+with `SELECT 1` on checkout. A method that only reads carries `@_read_only` (both repositories):
+on PostgreSQL it runs in autocommit — one round trip, no `BEGIN`/`ROLLBACK` — and retries once on
+a closed connection. **Never put it on a method that writes, locks (`FOR UPDATE`) or commits**:
+`test_spec002_d2_read_only_methods_write_nothing` lists the decorated methods.
 
 ### R5 — LaTeX in JSON: double the backslashes
 `\\frac`, `\\sin`, `\\alpha`. An unescaped `\f` is a form feed and breaks parsing.
@@ -245,7 +266,7 @@ you find is residue: delete it (V1 once failed to start because `app.py` still p
 
 ### R14 — Backfill imports are local to the function
 ```python
-def _backfill_prob_failure(self):
+def repair_prob_failure(self, apply=False):
     from src.domain.elo.model import expected_score  # here, not at module level
 ```
 
@@ -259,8 +280,9 @@ overall ratings are **derived** by `RatingReadService` and never stored. `studen
 |---|---|---|
 | Diagnostic | `set_topic_rating_baseline` → `_set_course_topic_rating` | sets the value; skipped for a topic already practised in that course |
 | Answer with `elo_valid` | `save_answer_transaction` → `_set_course_topic_rating` | sets the item's (course, topic) value |
-| Teacher-validated procedure | `validate_procedure_submission` → `_bump_course_topic_rating` | adds `elo_delta` (floor 0), sets `elo_applied=1` |
-| Finished PvP match | `finish_pvp_match` | adds the delta to every rated topic of the course (R19) |
+| Teacher-validated procedure | `grade_procedure_transaction` → `_apply_procedure_grading` | applies only the correction `(grade − 50) × 0.2 − contribution` (floor 0) and records the amount applied as the procedure's new contribution, once per review round (spec 001 block 7) |
+| Copied procedure (system) | `submit_procedure` → `_apply_procedure_grading` | another student's file: graded 0 in the upload's transaction, the same correction (FR-024i) |
+| Finished PvP match | `finish_pvp_match` | locks both students (id order), then adds the delta to every rated topic of the course (R19) |
 | Legacy reconciliation | `_reconcile_legacy_ratings` (bootstrap, idempotent) | inserts approximate baselines with provenance |
 
 Never rebuild a rating from `attempts`. Repositories return raw rows and ranking participants —
@@ -282,8 +304,9 @@ An invalid attempt is recorded with before = after and moves nothing. With an `I
 
 ### R17 — No migrations or blocking I/O inside the HTTP process
 - In a deployed environment (the final repository): schema bootstrap runs in
-  `scripts/migrate.py` against `MIGRATION_DATABASE_URL` (direct connection, port 5432); the web
-  process runs with `RUN_MIGRATIONS=0`. Local dev and tests keep
+  `scripts/migrate.py` against `MIGRATION_DATABASE_URL` (port 5432: on Supabase the **session
+  pooler**, because the direct host has only IPv6, which Render and GitHub-hosted runners do not
+  reach; never the transaction pooler, 6543); the web process runs with `RUN_MIGRATIONS=0`. Local dev and tests keep
   the in-process bootstrap (default `RUN_MIGRATIONS=1`). A deployed V1 is a web process too: its
   Streamlit secrets carry root-level `RUN_MIGRATIONS = "0"` (docs/transfer.md § 3.1; pinned by
   `tests/integration/test_v1_run_migrations.py`).
@@ -304,7 +327,8 @@ cross-process wake-up — all three before raising the number. Details:
 
 ### R19 — A PvP result moves every rated topic of the match's course
 `finish_pvp_match` adds each player's delta to all of that player's rated topics in the course
-(atomic, floor 0), so the course rating moves by exactly the delta. A player with no rated topic
+(atomic, floor 0; both students locked first, in id order, so an answer in flight cannot
+overwrite it), so the course rating moves by exactly the delta. A player with no rated topic
 gets 0 with `elo_reason = 'no_rated_topics'`; it returns the applied deltas, and `game_end` reports
 them (`"not_applied"` with 0 if persisting fails). The close is idempotent through
 `AND status='active'`. The lobby reads the course rating outside `_lock` (1000 drives the
@@ -383,8 +407,8 @@ expectation of an unrated player but is never shown). Orphaned matches are close
   every irrational has an opposite and a reciprocal, **and they are irrational** — the reciprocal
   of √2 is `\dfrac{1}{\sqrt{2}}=\dfrac{\sqrt{2}}{2}`, i.e. rationalising (explicit hook to the
   future topic). Honest nuance in the 𝕀 row: the inverse exists but the identity 1 ∉ 𝕀, so the
-  full home of inverses is ℝ. Content in `_N3_MACHINE_CONTENT`, rendered in
-  `LevelThreeLesson.tsx`.
+  full home of inverses is ℝ. Each machine is an eleven-block module (`nodes/m01_*.py` …
+  `m05_*.py`, V2-R11); `LevelThreeLesson.tsx` renders only the M00 hub.
 - **V2-R14 — Pre-algebra N4, the Port of the Polis (C01–C06).** Hub `C00` + six named
   destinations, **strictly sequential** unlock after N3. Each node's `CONTENT["destination"]`
   must match `_N4_CARDS[*]["destination"]` (tested): C01 **Corinto**
@@ -443,8 +467,9 @@ expectation of an unrated player but is never shown). Orphaned matches are close
   of Wisdom (Baghdad, 9th c.)**, per `Implementacion/MAPA_NODOS_ALGEBRA8.md`. Same course `algebra_basica`, same
   renderer; chained after `ALG-N1-R04-VARIACION`. Wiring: module in `nodes/pNN_*.py`, list it in
   `NODE_MODULES`, add the row to `_ALG_N2_SEQUENCE` and `_MAP_PRESENTATION`. **Nothing else** —
-  `Lesson.tsx` no longer whitelists node IDs (the backend 404s), and the map test derives its list
-  from `ALG_N1_NODE_IDS + ALG_N2_NODE_IDS`.
+  `Lesson.tsx` sends every eleven-block node to the generic renderer by `content.kind` (it still
+  lists the pre-algebra hub ids for the older renderers), and the map test derives its list from
+  `ALG_N1_NODE_IDS + ALG_N2_NODE_IDS + ALG_N3_NODE_IDS`.
   - **Shared hub `ALG-S00-CASA-DE-LA-SABIDURIA`** (`nodes/s00_hub_bagdad.py`,
     `kind: level_hub_cards`): ALG-N2 and ALG-N3 share one antechamber — the workshop stamps, the
     warehouse opens what was stamped — with **two** cards, one per wing, each with its guide
@@ -502,8 +527,9 @@ expectation of an unrated player but is never shown). Orphaned matches are close
   - **Process habit** (`habito_*`: not checking, not deciding, not simplifying) → has no owner and
     must not have one.
   - `test_a_content_error_seen_in_many_nodes_has_a_node_that_teaches_it` fails if a new content
-    tag is emitted by 3+ nodes with no node declaring it focal. Nine inherited pre-algebra tags are
-    listed as known debt and must not grow.
+    tag is emitted by 3+ nodes with no node declaring it focal. Nine inherited tags (eight from
+    pre-algebra, `confunde_la_operacion_dictada` from algebra) are listed as known debt and must not
+    grow.
   - `test_every_focal_misconception_is_distinct` only catches LITERAL collisions; two nodes
     teaching the same error under different tags must be caught in review.
 
@@ -553,8 +579,25 @@ satisfies `DeepString<typeof es>`).
 
 `DATABASE_URL` set → PostgreSQL (Supabase); absent → SQLite (`data/elo_database.db`).
 
-Bootstrap: `init_db()` → `_migrate_db()` → `_seed_admin()` → `_seed_demo_data()` →
-`_backfill_prob_failure()` → `sync_items_from_bank_folder()` → `_seed_test_students()`.
+Bootstrap (spec 002 D1): `_migrate_db()` → `_seed_admin()` → `_seed_demo_data()` →
+`_sync_bank_if_changed()` → `_seed_test_students()` → `_reconcile_legacy_ratings()` →
+`expire_stale_pvp_matches()`.
+
+- **Schema version.** `_migrate_db()` reads `MAX(version)` of `schema_versions` under lock 12345
+  (SQLite: `BEGIN IMMEDIATE`). At `SCHEMA_VERSION` (`src/infrastructure/persistence/schema_version.py`)
+  it issues no DDL; below it, `init_db` and the whole cumulative migration run in **one
+  transaction** with the new version row, so a failure commits nothing (`MigrationFailed`
+  names the step). **Any change to the migration code raises `SCHEMA_VERSION` and records the
+  new `MIGRATION_SOURCES_DIGEST`** — `tests/unit/infrastructure/test_spec002_schema_version.py`
+  fails otherwise. If another session holds the lock and the schema is behind, no later step runs
+  (all are reported as skipped).
+- **Item bank.** Synced only when its fingerprint differs from the last row of `bank_syncs`.
+- **No data repair at start** (spec 002 FR-018). `scripts/repairs/` —
+  `deactivate_users_without_password.py`, `rename_duplicate_groups.py`,
+  `backfill_prob_failure.py` — count by default, write with `--apply`, print counts only. A
+  migration that needs one stops with `MigrationNeedsRepair` naming it.
+- The one R8 exception: `procedure_submissions.image_data DROP NOT NULL`, issued only while the
+  column is still `NOT NULL` (PostgreSQL).
 
 PostgreSQL: `pg_try_advisory_lock` (non-blocking), IDs 12345–12349, always released in `finally`.
 Reconciliation uses `pg_try_advisory_xact_lock(12345)` — also non-blocking, released at commit.
@@ -562,16 +605,24 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 | Table | Key fields |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok) |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username) |
 | `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
 | `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
 | `groups` | unique `(teacher_id, name_normalized)`, `invite_code` |
+| `group_invitations` | single-use invitations (spec 001 delivery INV): `token` UNIQUE (10 chars, stored without the hyphen), `group_id`, `created_by`, `expires_at`, `used_by`/`used_at`, `revoked_at`. V2 no longer reads `groups.invite_code` (only frozen V1 does) |
 | `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array) |
 | `attempts` | `elo_before`, `elo_after`, `elo_valid`, `prob_failure`, `expected_score`, `time_taken`, `request_id` |
-| `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta`, `elo_applied`, `file_hash` |
+| `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta` (computed), `elo_applied`, `file_hash`, `contribution` (net amount applied; NULL = unknown, B7-P1), `contribution_origin`, `review_round`, `is_copy`; unique `(student_id, item_id)` when no duplicate exists |
+| `procedure_gradings`, `procedure_files`, `procedure_uploads` | block 7: every grading (unique per review round); each file's first sender; each student's uploads (unique `(student_id, file_hash)`) |
 | `pvp_matches` | `status` (active/finished/abandoned), `course_id`, applied deltas, `elo_reason_p1/p2` |
 | `exam_sessions` | `global_elo_after` + `global_elo_status` (`rated`/`pending`; NULL = before spec 001, unknown) — the overall rating at submission |
-| `katia_interactions`, `problem_reports`, `audit_group_changes`, `diagnostics` | see repositories |
+| `lesson_interactions` | the current answer per (student, course, node, interaction): the completion rule reads it (spec 003 L3) |
+| `lesson_answers` | every answer in order, append-only (spec 003 L4, FR-040): `is_expected`, `misconception_tag`; the teacher reads it without `selected_option` (N11) |
+| `lesson_outcomes` | PK `(user_id, course_id, node_id)`: the post-diagnostic outcome `gain`/`flat` the server stores (FR-041) |
+| `katia_conversations` | spec 005 K3: one per student × item while `open`; on close `outcome` (`superado`/`no_superado`/`abandonado`), `turns`, `difficulty` (N2 list or `sin_clasificar`) — the summary the teacher reads, no text |
+| `katia_messages` | a conversation's text, only while it is open: deleted in the transaction that closes it, at most 24 h after the last message |
+| `katia_interactions` | legacy (written only by frozen V1); deleted by `scripts/repairs/delete_katia_texts.py` after the switch |
+| `problem_reports`, `audit_group_changes`, `diagnostics` | see repositories |
 
 ---
 
@@ -592,29 +643,53 @@ P*=0.10 → R+382). Items at 0 % success with ≥ 10 attempts: recalibrate or re
 
 ## AI integration
 
-Provider detected by key prefix: `sk-ant-` Anthropic · `gsk_` Groq · `AIzaSy` Gemini · `hf_`
-HuggingFace · `sk-proj-`/`sk-` OpenAI · no prefix → local (Ollama / LM Studio). Every AI feature
-degrades gracefully without a provider.
+Owned by spec 005 (`specs/005-ai/spec.md`); this is the how-to.
+
+**The key's prefix picks the provider** (`api/ai_target.py::ai_target(function, key)`):
+`gsk_` Groq · `sk-ant-` Anthropic · `sk-proj-`/`sk-` OpenAI · `AIzaSy` Gemini · `hf_` HuggingFace.
+Any other key is refused with 422, naming the accepted prefixes: V2 has no local model and no
+provider setting, and the browser sends neither provider nor model (FR-010, FR-011). Every AI
+feature degrades gracefully without a key.
 
 | Env var | Use | Fallback |
 |---|---|---|
 | `SYSTEM_AI_API_KEY` | all AI | — |
-| `AI_KEY_KATIA` | Socratic chat | `SYSTEM_AI_API_KEY` |
+| `AI_KEY_KATIA` | KatIA, and classifying her closed conversations | `SYSTEM_AI_API_KEY` |
 | `AI_KEY_PROCEDURE` | procedure review | `SYSTEM_AI_API_KEY` |
-| `AI_KEY_STUDENT_ANALYSIS` | student analysis | `SYSTEM_AI_API_KEY` |
 | `AI_KEY_TEACHER_ANALYSIS` | teacher analysis | `SYSTEM_AI_API_KEY` |
+| `AI_MODEL_KATIA` / `AI_MODEL_VISION` / `AI_MODEL_ANALYSIS` | one model per function (Groq defaults: `llama-3.1-8b-instant`, `meta-llama/llama-4-scout-17b-16e-instruct`, `llama-3.3-70b-versatile`) | — |
 
-Per request: user key > function key > general key, via `settings.get_ai_key("procedure", user_key)`.
+Per request: user key > function key > general key, via `settings.get_ai_key("procedure",
+user_key)` (FR-006). Timeouts: 30 s for KatIA, 90 s for a review or an analysis; a provider that
+fails or does not answer in time is a 502/503 with a fixed message — never exception text, never a
+200 (FR-013, FR-016).
 
-- **Socratic chat** (`api/routers/ai.py`, SSE): `SOCRATIC_MAX_TOKENS=120`; post-validation rejects
-  replies that reveal the answer or exceed 3 sentences.
-- **Procedure review**: Groq + `meta-llama/llama-4-scout-17b-16e-instruct` (rigorous), other
-  vision providers (generic). Score 0–100 is advisory; only `teacher_score` moves the rating
-  (`(score − 50) × 0.2`).
+- **KatIA** (`POST /api/ai/socratic`, SSE; enrolled students only, 403 otherwise — FR-021): the
+  prompt holds the item's stored statement and options, the option the student marked and their
+  message, **never the correct answer** (FR-020); 120 tokens. Every reply goes through
+  `src/domain/katia/guardrail.py::check_reply` (≤ 3 sentences, no revealing phrase, not the
+  correct option's text); a refused one becomes the fixed guiding question and is not stored
+  (FR-022). Repository reads and the provider call run off the event loop (FR-023).
+- **KatIA's record** (spec 005 K3): one conversation per student × item
+  (`katia_conversations`); its last 6 turns go to the provider. The next answer to the item
+  closes it as `superado`/`no_superado` inside `save_answer_transaction`; `/next-question`,
+  logout or 24 h without a message close it as `abandonado`. Closing deletes its text
+  (`katia_messages`) in the same transaction; a background call (`api/katia_record.py`, function
+  or general key only — R7) records the difficulty from N2's list or `sin_clasificar`. The
+  teacher reads summaries; the export counts per course, topic and outcome. Never store or
+  export message text.
+- **Procedure review** (`POST /api/student/procedure/analyze`; enrolled students only): **Groq
+  only** — another key gets 422 «La revisión con IA usa Groq», and the interface says so before
+  the upload (FR-014). The 0–100 score is advisory; only `teacher_score` moves the rating
+  (`(score − 50) × 0.2`, FR-001).
+- **Teacher analysis** (`POST /api/teacher/student/{id}/ai-analysis`): receives the student's
+  procedure statistics (FR-015).
 - **KatIA assets** (`KatIA/`): always the compressed GIFs (`correcto_compressed.gif`,
   `errores_compressed.gif`); the originals are 69 MB. Predefined messages:
   `get_procedure_comment(score)` ALTA ≥ 91 / MEDIA 60–90 / TUTORIA < 60;
   `get_streak_message(streak)` at 5/10/20.
+- V1 (frozen) keeps its own AI path (streaming, local providers, `katia_interactions`) until
+  roadmap F-10 removes it.
 
 ---
 
@@ -661,7 +736,8 @@ Per request: user key > function key > general key, via `settings.get_ai_key("pr
 - **D3** — Teacher dashboard: data first. ELO and radar charts before actions; no big decorative
   icon cards.
 - **D4** — Student views mobile-first (375 px); teacher views desktop-first (1280 px).
-- **D5** — LaTeX always through `react-katex`, never plain text.
+- **D5** — Math always through `MathContent` / `MathText` (`frontend/src/components/Math/`,
+  KaTeX), never plain text (owner, 2026-10-18; spec 003).
 
 Forbidden: purple gradients · nested cards · Inter without hierarchy · low contrast on dark
 backgrounds. Colours are CSS tokens in `frontend/src/index.css`; never hard-code them.

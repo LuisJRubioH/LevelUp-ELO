@@ -2,8 +2,9 @@
  * pages/Student/StudentLayout.tsx
  * ===============================
  * Shell del panel estudiante (rediseño) — unificado con la Consola Docente:
- * reusa el shell `.lue-tc` (TeacherConsole.css). Sidebar (escritorio) + nav
- * inferior (móvil, mobile-first). El item "Mapa" aparece al entrar a una
+ * reusa el shell `.lue-tc` (TeacherConsole.css). Sidebar (escritorio); en móvil,
+ * nav inferior + barra superior cuyo «Menú» abre la misma sidebar como cajón
+ * (useSideDrawer). El item "Mapa" aparece al entrar a una
  * materia (cuando hay sesión de práctica activa = post-diagnóstico).
  */
 
@@ -15,11 +16,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { authApi } from "../../api/auth";
 import { useAuthStore } from "../../stores/authStore";
 import { useThemeStore } from "../../stores/themeStore";
-import { useSettingsStore, PROVIDER_MODELS } from "../../stores/settingsStore";
+import { useSettingsStore } from "../../stores/settingsStore";
 import { usePracticeStore } from "../../stores/practiceStore";
 import { ReportProblemButton } from "../../components/ReportProblem/ReportProblemButton";
 import { CourseRail } from "../../components/Course/CourseRail";
-import { clearAccountCaches } from "../../lib/accountCleanup";
+import { resetClientAccountState } from "../../lib/accountCleanup";
+import { useSideDrawer } from "../../hooks/useSideDrawer";
+import { MobileBar } from "../../components/Layout/MobileBar";
 import "../Teacher/TeacherConsole.css";
 
 const NAV = [
@@ -42,13 +45,15 @@ export function StudentLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const user = useAuthStore((s) => s.user);
+  // Spec 004 FR-022: the own display name, else the username.
+  const ownName = user?.display_name || user?.username;
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const queryClient = useQueryClient();
   const { theme, toggleTheme } = useThemeStore();
-  const { apiKey, provider, model, setApiKey, setProvider, setModel } = useSettingsStore();
+  const { apiKey, setApiKey } = useSettingsStore();
   const courseId = usePracticeStore((s) => s.courseId);
-  const availableModels = PROVIDER_MODELS[provider] ?? [];
   const [aiOpen, setAiOpen] = useState(false);
+  const { open: menuOpen, setOpen: setMenuOpen, closeRef, closeOnLink } = useSideDrawer();
 
   const lang = i18n.language?.startsWith("en") ? "en" : "es";
   const onMap = location.pathname.includes("/course/");
@@ -66,17 +71,25 @@ export function StudentLayout({ children }: { children: ReactNode }) {
     } catch {
       /* ignorar */
     }
-    await clearAccountCaches();
-    queryClient.clear();
-    setApiKey("");
-    usePracticeStore.getState().resetSession();
+    await resetClientAccountState(queryClient);
     clearAuth();
     navigate("/login");
   };
 
   return (
     <div className="lue-tc">
-      <aside className="tc-side">
+      <MobileBar home="/student" open={menuOpen} onOpen={() => setMenuOpen(true)} />
+      {menuOpen && <div className="tc-scrim" aria-hidden="true" onClick={() => setMenuOpen(false)} />}
+      <aside id="tc-side" className={"tc-side" + (menuOpen ? " open" : "")} onClick={closeOnLink}>
+        <button
+          ref={closeRef}
+          type="button"
+          className="tc-side-close"
+          aria-label="Cerrar menú"
+          onClick={() => setMenuOpen(false)}
+        >
+          ✕
+        </button>
         <div className="tc-brand">
           <Link to="/student" aria-label="Oulad">
             <img className="brand-logo brand-logo-dark" src="/oulad-logo-dark.png" alt="Oulad" />
@@ -113,22 +126,6 @@ export function StudentLayout({ children }: { children: ReactNode }) {
                 <span>Key</span>
                 <b>{apiKey ? "Tuya" : "Del sistema"}</b>
               </div>
-              <select className="ai-input" value={provider} onChange={(e) => setProvider(e.target.value)} aria-label="Proveedor">
-                <option value="groq">Groq</option>
-                <option value="anthropic">Anthropic</option>
-                <option value="openai">OpenAI</option>
-                <option value="google">Google Gemini</option>
-              </select>
-              {availableModels.length > 0 && (
-                <select className="ai-input" value={model} onChange={(e) => setModel(e.target.value)} aria-label="Modelo">
-                  <option value="">Modelo automático</option>
-                  {availableModels.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-              )}
               <input
                 className="ai-input"
                 type="password"
@@ -142,9 +139,9 @@ export function StudentLayout({ children }: { children: ReactNode }) {
 
         <div className="tc-foot">
           <div className="tc-user">
-            <div className="ava">{initials(user?.username ?? "?")}</div>
+            <div className="ava">{initials(ownName ?? "?")}</div>
             <div className="meta">
-              <b>{user?.username}</b>
+              <b>{ownName}</b>
               <span>
                 <span className="role">Estudiante</span>
                 {user?.education_level ? ` · ${user.education_level}` : ""}
@@ -162,6 +159,14 @@ export function StudentLayout({ children }: { children: ReactNode }) {
               🌐 {lang.toUpperCase()}
             </button>
           </div>
+          {/* Spec 004 FR-025: el estudiante cambia su nombre visible. */}
+          <button className="tc-logout" onClick={() => navigate("/mi-nombre")}>
+            Mi nombre
+          </button>
+          {/* Spec 004 FR-026: el propio usuario cambia su contraseña. */}
+          <button className="tc-logout" onClick={() => navigate("/cambiar-contrasena")}>
+            Cambiar contraseña
+          </button>
           <button className="tc-logout" onClick={handleLogout}>
             Cerrar sesión →
           </button>

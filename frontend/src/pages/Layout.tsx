@@ -16,12 +16,12 @@ import { authApi } from "../api/auth";
 import { api } from "../api/client";
 import { studentApi } from "../api/student";
 import { useAuthStore } from "../stores/authStore";
-import { useSettingsStore, PROVIDER_MODELS } from "../stores/settingsStore";
+import { useSettingsStore } from "../stores/settingsStore";
 import { useNotifications } from "../hooks/useNotifications";
 import { ReportProblemButton } from "../components/ReportProblem/ReportProblemButton";
 import { ThemeToggle } from "../components/ui/ThemeToggle";
 import { LanguageToggle } from "../components/ui/LanguageToggle";
-import { clearAccountCaches } from "../lib/accountCleanup";
+import { resetClientAccountState } from "../lib/accountCleanup";
 
 interface NavItem {
   path: string;
@@ -78,9 +78,8 @@ export function Layout({ children }: LayoutProps) {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
   const { user, sessionStartTime, clearAuth } = useAuthStore();
-  const { apiKey, provider, model, setApiKey, setProvider, setModel } = useSettingsStore();
+  const { apiKey, setApiKey } = useSettingsStore();
   const updateUser = useAuthStore((s) => s.updateUser);
-  const availableModels = PROVIDER_MODELS[provider] ?? [];
   const location = useLocation();
   const navigate = useNavigate();
   const [showIAConfig, setShowIAConfig] = useState(false);
@@ -164,9 +163,7 @@ export function Layout({ children }: LayoutProps) {
     } catch {
       /* ignorar */
     }
-    await clearAccountCaches();
-    queryClient.clear();
-    setApiKey("");
+    await resetClientAccountState(queryClient);
     clearAuth();
     navigate("/login");
   };
@@ -186,7 +183,7 @@ Oulad
           )}
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-400 truncate max-w-[80px]">{user?.username}</span>
+          <span className="text-xs text-slate-400 truncate max-w-[80px]">{user?.display_name || user?.username}</span>
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"
@@ -262,34 +259,6 @@ Oulad
           {showIAConfig && (
             <div id="ia-config-panel" className="mt-2 space-y-2">
               <div>
-                <label className="block text-xs text-slate-500 mb-1">{t("layout.provider")}</label>
-                <select
-                  value={provider}
-                  onChange={(e) => setProvider(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-600 rounded text-xs text-slate-300 px-2 py-1 focus:outline-none focus:border-violet-500"
-                >
-                  <option value="groq">Groq</option>
-                  <option value="anthropic">Anthropic</option>
-                  <option value="openai">OpenAI</option>
-                  <option value="google">Google Gemini</option>
-                </select>
-              </div>
-              {availableModels.length > 0 && (
-                <div>
-                  <label className="block text-xs text-slate-500 mb-1">{t("layout.model")}</label>
-                  <select
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-600 rounded text-xs text-slate-300 px-2 py-1 focus:outline-none focus:border-violet-500"
-                  >
-                    <option value="">{t("layout.modelAuto")}</option>
-                    {availableModels.map((m) => (
-                      <option key={m.id} value={m.id}>{m.label}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              <div>
                 <label className="block text-xs text-slate-500 mb-1">{t("layout.apiKey")}</label>
                 <input
                   type="password"
@@ -308,7 +277,7 @@ Oulad
 
         {/* Usuario + timer + logout */}
         <div className="px-4 py-4 border-t border-slate-700">
-          <div className="text-xs text-slate-300 font-medium truncate mb-0.5">{user?.username}</div>
+          <div className="text-xs text-slate-300 font-medium truncate mb-0.5">{user?.display_name || user?.username}</div>
           <div className="text-xs text-slate-600 mb-0.5">{user?.role}</div>
           {user?.education_level && (
             <div className="text-xs text-slate-600 mb-1">
@@ -384,6 +353,13 @@ Oulad
           </div>
           {/* PWA install deshabilitada — la plataforma se usa solo desde
               navegador. Ver guard global en App.tsx (beforeinstallprompt). */}
+          {/* Spec 004 FR-026: el propio usuario cambia su contraseña. */}
+          <button
+            onClick={() => navigate("/cambiar-contrasena")}
+            className="block text-xs text-slate-500 hover:text-slate-300 transition-colors mb-1"
+          >
+            Cambiar contraseña
+          </button>
           <button
             onClick={handleLogout}
             className="text-xs text-slate-500 hover:text-red-400 transition-colors"

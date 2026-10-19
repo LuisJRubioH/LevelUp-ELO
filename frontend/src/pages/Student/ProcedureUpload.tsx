@@ -12,9 +12,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { KatIAAvatar } from "../../components/KatIA/KatIAAvatar";
 import { Button } from "../../components/ui/Button";
-import { studentApi, type ProcedureReview } from "../../api/student";
+import { studentApi, type ProcedureReview, type ProcedureSubmitResult } from "../../api/student";
 import { apiClient } from "../../api/client";
-import { useSettingsStore } from "../../stores/settingsStore";
+import { GROQ_ONLY, isGroqKey, useSettingsStore } from "../../stores/settingsStore";
 import { ValidatedCard, PendingCard, classifyStatus } from "./Feedback";
 import { PageHeader } from "../../components/ui/PageHeader";
 import "./StudentContent.css";
@@ -22,7 +22,7 @@ import "./StudentContent.css";
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 const MAX_SIZE_MB = 10;
 
-type Stage = "idle" | "analyzing" | "result" | "sent";
+type Stage = "idle" | "analyzing" | "result" | "sent" | "copy";
 
 function scoreColor(score: number): string {
   if (score < 40) return "text-rose-400";
@@ -70,7 +70,14 @@ export function ProcedureUpload() {
   const submissions = myProcedures?.submissions ?? [];
 
   const enrolled = (courses ?? []).filter((c) => c.enrolled);
-  const canAnalyze = !!apiKey || (aiStatus?.available ?? false);
+  // Spec 005 FR-014: the review runs on Groq only; another provider's key says why it is off.
+  const reviewKey = apiKey
+    ? isGroqKey(apiKey)
+    : aiStatus?.available
+      ? aiStatus.provider === "groq"
+      : null;
+  const canAnalyze = reviewKey === true;
+  const groqOnly = reviewKey === false;
 
   const handleFile = (f: File) => {
     setError(null);
@@ -131,13 +138,26 @@ export function ProcedureUpload() {
       fd.append("item_content", itemContent);
       fd.append("file", file);
       if (opts?.withAI && analysisToken) fd.append("analysis_token", analysisToken);
-      await apiClient.postForm("/api/student/procedure", fd);
-      setStage("sent");
+      const res = await apiClient.postForm<ProcedureSubmitResult>("/api/student/procedure", fd);
+      // Spec 001 FR-024i: another student's file is graded 0 at once, as a copy.
+      setStage(res?.is_copy ? "copy" : "sent");
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t("procedure.unknownError");
       setError(t("procedure.couldNotSend", { msg }));
     }
   };
+
+  if (stage === "copy") {
+    return (
+      <div className="sp-page">
+        <h2 className="sp-title">{t("procedure.copyTitle")}</h2>
+        <KatIAAvatar state="error" message={t("procedure.copyMessage")} size="md" />
+        <Button variant="secondary" onClick={resetAll} className="w-full">
+          {t("procedure.sendAnother")}
+        </Button>
+      </div>
+    );
+  }
 
   if (stage === "sent") {
     return (
@@ -264,6 +284,11 @@ export function ProcedureUpload() {
             </div>
           )}
 
+          {groqOnly && (
+            <p className="text-xs text-amber-300" role="note">
+              {GROQ_ONLY}
+            </p>
+          )}
           {canAnalyze ? (
             <div className="flex flex-col gap-2">
               <Button

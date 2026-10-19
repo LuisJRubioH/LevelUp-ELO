@@ -2,7 +2,9 @@
  * pages/Student/Exam.tsx
  * =======================
  * Modo examen cronometrado: configuración → N preguntas → timer → resultados.
- * Sin KatIA ni feedback inmediato. ELO se actualiza al enviar todas las respuestas.
+ * Sin KatIA ni feedback inmediato. El examen no mueve el rating (spec 001).
+ * El reloj del examen es el de pared: el navegador frena los temporizadores en una pestaña de
+ * fondo, y el servidor cierra la sesión a su propia hora.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -10,7 +12,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { studentApi } from "../../api/student";
-import { api } from "../../api/client";
+import { api, ApiError } from "../../api/client";
 import { QuestionImage } from "../../components/Question/QuestionImage";
 import { MathText } from "../../components/Math/MathContent";
 import { PageHeader } from "../../components/ui/PageHeader";
@@ -29,6 +31,8 @@ interface ExamItem {
 
 interface ExamResult {
   item_id: string;
+  /** Spec 006 FR-024: false for an item removed from the bank after the start. */
+  graded?: boolean;
   is_correct: boolean;
   selected_option: string;
   elo_delta: number;
@@ -137,6 +141,12 @@ function ExamSetup({
     enabled: !!selectedCourse,
   });
 
+  // Spec 006 FR-022: the exams assigned to the student and not yet submitted.
+  const { data: assigned = [] } = useQuery({
+    queryKey: ["exam-pending"],
+    queryFn: () => studentApi.examPending(),
+  });
+
   const enrolled = courses.filter((c) => c.enrolled);
   const activeTemplate = templates.find((t) => t.id === selectedTemplate) ?? null;
 
@@ -192,6 +202,37 @@ function ExamSetup({
             </button>
           </div>
         </div>
+      )}
+
+      {assigned.length > 0 && (
+        <section aria-label={t("exam.assignedTitle")} className="mb-6">
+          <h2 className="text-xs text-slate-400 mb-2">{t("exam.assignedTitle")}</h2>
+          <ul className="space-y-1.5">
+            {assigned.map((a) => (
+              <li key={a.template_id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCourse(a.course_id);
+                    setMode("template");
+                    setSelectedTemplate(a.template_id);
+                  }}
+                  className={[
+                    "w-full text-left rounded-lg border px-3 py-2 text-sm transition-colors",
+                    selectedTemplate === a.template_id
+                      ? "border-violet-500 bg-violet-600/15 text-slate-100"
+                      : "border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700",
+                  ].join(" ")}
+                >
+                  <span className="font-medium">{a.title}</span>
+                  <span className="block text-[11px] text-slate-500">
+                    {a.course_name} · {a.time_limit_min} {t("exam.minutes")}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <div className="space-y-5">
@@ -495,6 +536,8 @@ export function Exam() {
   useEffect(() => {
     if (phase !== "loading" || !courseId) return;
 
+    // The server starts its clock after this moment, so counting from here never runs late.
+    const requestedAt = Date.now();
     api
       .post<{
         session_id: string;
@@ -513,7 +556,7 @@ export function Exam() {
         setItems(data.items);
         setTimeLeft(data.time_limit_seconds);
         itemStartTime.current = Date.now();
-        startedAtRef.current = Date.now();
+        startedAtRef.current = requestedAt;
         timeLimitSecondsRef.current = data.time_limit_seconds;
         setPhase("answering");
       })
@@ -611,14 +654,18 @@ export function Exam() {
         return;
       } catch (err) {
         lastError = err;
+        // The server refused the submission (expired, already closed, invalid): retrying cannot
+        // change that, and its reason is what the student needs to read.
+        if (err instanceof ApiError && err.status >= 400 && err.status < 500) break;
       }
     }
 
-    // Los 3 intentos fallaron — mantener al estudiante en "answering" con
+    // Los intentos fallaron — mantener al estudiante en "answering" con
     // el banner de error visible. El borrador sigue en localStorage, así
     // que aunque recargue la página puede reintentar.
-    void lastError;
-    setSubmitError(t("exam.submitErrorDetail"));
+    const refused =
+      lastError instanceof ApiError && lastError.status >= 400 && lastError.status < 500;
+    setSubmitError(refused ? (lastError as ApiError).detail : t("exam.submitErrorDetail"));
     setSubmitAttempt(0);
     setPhase("answering");
   }, [items, currentIdx, answers, sessionId, courseId, courseName, templateId, t]);
@@ -632,17 +679,23 @@ export function Exam() {
 
   useEffect(() => {
     if (phase !== "answering") return;
-    const interval = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) {
-          clearInterval(interval);
-          submitRef.current?.();
-          return 0;
-        }
-        return t - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
+    // Each tick reads the wall clock: a background tab may fire this once a minute.
+    const tick = () => {
+      const elapsed = (Date.now() - startedAtRef.current) / 1000;
+      const left = Math.max(0, Math.ceil(timeLimitSecondsRef.current - elapsed));
+      setTimeLeft(left);
+      if (left <= 0) {
+        clearInterval(interval);
+        document.removeEventListener("visibilitychange", tick);
+        submitRef.current?.();
+      }
+    };
+    const interval = setInterval(tick, 1000);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", tick);
+    };
   }, [phase]);
 
   // ── Navegación entre preguntas ─────────────────────────────────────────────
@@ -751,12 +804,20 @@ export function Exam() {
           {results.map((r, i) => (
             <span
               key={r.item_id}
-              title={r.is_correct ? t("exam.questionCorrect", { n: i + 1 }) : t("exam.questionIncorrect", { n: i + 1 })}
+              title={
+                r.graded === false
+                  ? t("exam.questionNotGraded", { n: i + 1 })
+                  : r.is_correct
+                    ? t("exam.questionCorrect", { n: i + 1 })
+                    : t("exam.questionIncorrect", { n: i + 1 })
+              }
               className={[
                 "w-8 h-8 rounded text-xs font-bold flex items-center justify-center border",
-                r.is_correct
-                  ? "bg-emerald-600 text-white border-emerald-400"
-                  : "bg-red-600 text-white border-red-400",
+                r.graded === false
+                  ? "bg-slate-700 text-slate-300 border-slate-500"
+                  : r.is_correct
+                    ? "bg-emerald-600 text-white border-emerald-400"
+                    : "bg-red-600 text-white border-red-400",
               ].join(" ")}
             >
               {i + 1}
@@ -773,12 +834,16 @@ export function Exam() {
                 key={r.item_id}
                 className={[
                   "rounded-xl border p-3.5 flex items-start gap-3",
-                  r.is_correct
-                    ? "border-emerald-700/40 bg-emerald-900/10"
-                    : "border-red-700/40 bg-red-900/10",
+                  r.graded === false
+                    ? "border-slate-600/40 bg-slate-800/40"
+                    : r.is_correct
+                      ? "border-emerald-700/40 bg-emerald-900/10"
+                      : "border-red-700/40 bg-red-900/10",
                 ].join(" ")}
               >
-                <span className="text-base shrink-0 mt-0.5">{r.is_correct ? "✅" : "❌"}</span>
+                <span className="text-base shrink-0 mt-0.5">
+                  {r.graded === false ? "—" : r.is_correct ? "✅" : "❌"}
+                </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] text-slate-500 mb-0.5 uppercase tracking-wide">
                     {t("exam.questionShort")} {i + 1}
@@ -786,6 +851,9 @@ export function Exam() {
                   <p className="text-sm text-slate-300 leading-snug line-clamp-2">
                     {item ? <MathText text={item.content} /> : r.item_id}
                   </p>
+                  {r.graded === false && (
+                    <p className="text-xs text-slate-400 mt-1">{t("exam.notGraded")}</p>
+                  )}
                 </div>
                 {r.elo_delta !== 0 && (
                   <span

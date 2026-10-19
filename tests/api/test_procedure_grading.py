@@ -111,7 +111,9 @@ def test_reassignment_between_lookup_and_update_prevents_grading(
 ):
     repo = submission["repo"]
     ratings = repo.get_course_topic_ratings(submission["student_id"])
-    original = repo.validate_procedure_submission
+    # Block 7 (spec 001): the grading's update runs in grade_procedure_transaction, so the
+    # reassignment lands just before it, as it did before validate_procedure_submission.
+    original = repo.grade_procedure_transaction
 
     def reassign_then_validate(*args, **kwargs):
         conn = repo.get_connection()
@@ -122,7 +124,7 @@ def test_reassignment_between_lookup_and_update_prevents_grading(
             conn.close()
         return original(*args, **kwargs)
 
-    monkeypatch.setattr(repo, "validate_procedure_submission", reassign_then_validate)
+    monkeypatch.setattr(repo, "grade_procedure_transaction", reassign_then_validate)
     response = api_client.post(
         "/api/teacher/procedures/grade",
         headers=teacher_headers,

@@ -13,10 +13,11 @@ type Fmt = "csv" | "xlsx";
 
 const SHEETS = ["Intentos", "Matrículas", "Procedimientos", "KatIA"];
 
+// Columns of the «Intentos» sheet / CSV (export_teacher_student_data).
 const FIELDS: { k: string; d: string }[] = [
-  { k: "elo_before / elo_after", d: "ELO del estudiante antes y después de cada intento." },
+  { k: "elo_after", d: "ELO del estudiante después de cada intento." },
   { k: "time_taken", d: "Segundos que tardó en responder." },
-  { k: "rating_deviation", d: "Incertidumbre del ELO (RD) en ese momento." },
+  { k: "attempt_rd", d: "Incertidumbre del ELO (RD) registrada en el intento." },
   { k: "prob_failure", d: "Probabilidad estimada de fallo de la pregunta." },
   { k: "confidence_score", d: "Confianza declarada por el estudiante." },
 ];

@@ -37,14 +37,21 @@ def test_first_practice_uses_diagnostic_rating(api_client, monkeypatch, from_map
     for the whole course. There is no course-average seed any more."""
     from statistics import fmean
 
+    from api.config import settings
     from api.dependencies import decode_token, get_repository
     from src.application.services.rating_read_service import RatingReadService
 
+    monkeypatch.setattr(settings, "public_registration_enabled", True)  # spec 004 FR-002
     repo = get_repository()
     username = f"diagnostic_practice_{int(from_map)}"
     registered = api_client.post(
         "/api/auth/register",
-        json={"username": username, "password": "test-local-123", "role": "student"},
+        json={
+            "username": username,
+            "password": "test-local-123",
+            "role": "student",
+            "display_name": "Primera Práctica",
+        },
     )
     assert registered.status_code == 201
     login = api_client.post(
@@ -567,13 +574,15 @@ class TestExamMode:
         assert "difficulty" in item
 
     def test_exam_start_nonexistent_course(self, api_client, student_headers):
-        """Examen en curso sin preguntas → 404."""
+        """A course the student is not enrolled in (here, one that does not exist) → 403 before
+        any session (spec 006 FR-020). A course with no items is a 404
+        (test_spec006_x1_exams.py::test_a_course_without_items_is_404)."""
         r = api_client.post(
             "/api/student/exam/start",
             json={"course_id": "curso_xyz_inexistente", "n_questions": 5},
             headers=student_headers,
         )
-        assert r.status_code == 404
+        assert r.status_code == 403
 
     def test_exam_submit(self, api_client, student_headers):
         """POST /student/exam/submit → resultados con score_pct y global_elo_after."""

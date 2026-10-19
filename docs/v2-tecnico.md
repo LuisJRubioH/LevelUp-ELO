@@ -192,7 +192,7 @@ frontend/                         # Frontend React
 | GET | `/student/achievements` | Logros desbloqueados + catálogo completo |
 | GET | `/student/courses` | Catálogo de cursos disponibles por nivel |
 | POST | `/student/enroll` | Matricularse en un curso |
-| POST | `/student/enroll-by-code` | Acceso inter-nivel por código de invitación |
+| POST | `/student/enroll-by-code` | Acceso inter-nivel con una invitación de un solo uso (spec 001 INV) |
 | DELETE | `/student/enroll/{course_id}` | Darse de baja de un curso |
 | POST | `/student/procedure` | Subir procedimiento manuscrito (multipart) |
 | POST | `/student/exam/start` | Inicia examen cronometrado. Acepta `template_id` opcional (Sprint C) |
@@ -214,7 +214,9 @@ frontend/                         # Frontend React
 | GET | `/teacher/dashboard` | Resumen de grupos y estudiantes |
 | GET | `/teacher/groups` | Lista de grupos del docente |
 | POST | `/teacher/groups` | Crear grupo |
-| POST | `/teacher/groups/{id}/invite-code` | Generar código de invitación |
+| POST | `/teacher/groups/{id}/invitations` | Generar de 1 a 50 invitaciones de un solo uso |
+| GET | `/teacher/groups/{id}/invitations` | Invitaciones del grupo y su estado |
+| DELETE | `/teacher/invitations/{id}` | Anular una invitación sin usar |
 | GET | `/teacher/procedures` | Cola de procedimientos pendientes |
 | POST | `/teacher/procedures/grade` | Calificar procedimiento + aplicar ELO |
 | GET | `/teacher/student/{id}` | Reporte detallado del estudiante |

@@ -137,6 +137,31 @@ function ExamResultsDrawer({ template, onClose }: { template: ExamTemplate; onCl
               ))}
             </div>
 
+            {(data.students ?? []).length > 0 && (
+              <div className="gd-section">
+                <h4>Por estudiante</h4>
+                <p className="ex-res-note">Primer intento de cada estudiante tuyo.</p>
+                {(data.students ?? []).map((st) => (
+                  <div className="ex-stu" key={st.user_id}>
+                    <div className="s-head">
+                      <b>{st.name}</b>
+                      <span style={{ color: accColor(st.score_pct) }}>{st.score_pct}%</span>
+                    </div>
+                    <ol className="s-answers">
+                      {st.answers.map((a, i) => (
+                        <li key={a.item_id} className={a.is_correct ? "ok" : "bad"}>
+                          <span aria-hidden="true">{a.is_correct ? "✓" : "✗"}</span>
+                          <span className="sr-only">{a.is_correct ? "Correcta" : "Incorrecta"}</span>
+                          <span className="n">P{i + 1}</span>
+                          <span className="o">{a.selected_option ?? "Sin responder"}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {data.topics.length > 0 && (
               <div className="gd-section">
                 <h4>Por tópico</h4>
@@ -267,6 +292,15 @@ export function TeacherExams() {
     }
   };
 
+  const duplicate = async (tpl: ExamTemplate) => {
+    try {
+      const copy = await teacherApi.duplicateExamTemplate(tpl.id);
+      setTemplates((prev) => [copy, ...prev]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo duplicar el examen.");
+    }
+  };
+
   const openAssign = async (tpl: ExamTemplate) => {
     setAssigningTo(tpl);
     setAssignError("");
@@ -305,6 +339,8 @@ export function TeacherExams() {
         ends_at: assignEndsAt ? new Date(assignEndsAt).toISOString() : null,
       });
       setAssignments(updated);
+      // An assigned template is no longer a draft (spec 006 FR-030).
+      setTemplates((prev) => prev.map((t) => (t.id === assigningTo.id ? { ...t, assigned: true } : t)));
       setAssignGroupIds([]);
       setAssignStartsAt("");
       setAssignEndsAt("");
@@ -426,7 +462,19 @@ export function TeacherExams() {
             <div className="ex-grid">
               {templates.map((tpl) => (
                 <div className="ex-card" key={tpl.id}>
-                  <h3>{tpl.title}</h3>
+                  <h3>
+                    {tpl.title}
+                    {!tpl.assigned && (
+                      <span className="ex-badge draft" title="Sin asignar: ningún estudiante lo ve">
+                        Borrador
+                      </span>
+                    )}
+                    {tpl.locked && (
+                      <span className="ex-badge locked" title="Sus preguntas ya no cambian">
+                        Ya presentado
+                      </span>
+                    )}
+                  </h3>
                   <div className="ex-meta">
                     <span>
                       {tpl.item_ids.length} {tpl.item_ids.length === 1 ? "pregunta" : "preguntas"}
@@ -446,6 +494,11 @@ export function TeacherExams() {
                     <button className="ex-act edit" onClick={() => startEdit(tpl)}>
                       Editar
                     </button>
+                    {tpl.locked && (
+                      <button className="ex-act edit" onClick={() => duplicate(tpl)}>
+                        Duplicar
+                      </button>
+                    )}
                     <button className="ex-act archive" onClick={() => archive(tpl)}>
                       Archivar
                     </button>

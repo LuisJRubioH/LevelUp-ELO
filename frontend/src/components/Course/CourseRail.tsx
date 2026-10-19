@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { studentApi, type MapNode } from "../../api/student";
 import { usePracticeStore } from "../../stores/practiceStore";
+import { useSettingsStore } from "../../stores/settingsStore";
 import { SocraticChat } from "../KatIA/SocraticChat";
 import "./CourseRail.css";
 
@@ -55,6 +56,8 @@ function cleanLabel(label: string, courseName: string): string {
 }
 
 export function CourseRail({ courseId, currentNodeId }: { courseId: string; currentNodeId?: string }) {
+  // La key y el proveedor del estudiante, como en la práctica.
+  const { apiKey } = useSettingsStore();
   const navigate = useNavigate();
   const startSession = usePracticeStore((s) => s.startSession);
   const { t } = useTranslation();
@@ -166,7 +169,12 @@ export function CourseRail({ courseId, currentNodeId }: { courseId: string; curr
               </button>
             </div>
             {anchor ? (
-              <SocraticChat itemId={anchor.id} itemContent={anchor.content} courseId={courseId} />
+              <SocraticChat
+                itemId={anchor.id}
+                itemContent={anchor.content}
+                courseId={courseId}
+                apiKey={apiKey}
+              />
             ) : (
               <p className="rail-chat-loading">
                 {anchorLoading ? t("courseMap.rail.wakingKatia") : t("courseMap.rail.noQuestion")}
