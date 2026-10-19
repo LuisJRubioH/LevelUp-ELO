@@ -11,6 +11,7 @@ from src.domain.invitations import (
     valid_invitation_count,
 )
 from src.infrastructure.security.hashing_service import HashingService
+from src.domain.katia.conversation import close_outcome
 from src.domain.procedures import ReviewRoundSuperseded
 from src.infrastructure.persistence.course_blocks import CourseBlockConstraintError
 from src.infrastructure.persistence.schema_version import (
@@ -90,6 +91,7 @@ class SQLiteRepository:
             self._seed_test_students()
         self._reconcile_legacy_ratings()
         self.expire_stale_pvp_matches()
+        self.expire_stale_katia_conversations()
 
     def _sync_bank_if_changed(self):
         """Spec 002 FR-016: sync the item bank only when its fingerprint differs from the last
@@ -1181,6 +1183,55 @@ class SQLiteRepository:
             "CREATE INDEX IF NOT EXISTS idx_pvp_answers_match " "ON pvp_answers(match_id, user_id)"
         )
         self._create_lesson_history(cursor)
+        self._create_katia_conversations(cursor)
+
+    def _create_katia_conversations(self, cursor):
+        """Spec 005 K3: one conversation per student and item, its summary when it closes
+        (FR-031), and its message text only while it is open (FR-032)."""
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS katia_conversations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                course_id TEXT,
+                item_id TEXT NOT NULL,
+                topic TEXT,
+                opened_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                last_message_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                turns INTEGER NOT NULL DEFAULT 0,
+                status TEXT NOT NULL DEFAULT 'open',
+                outcome TEXT,
+                difficulty TEXT,
+                misconception_tag TEXT,
+                closed_at DATETIME,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_katia_conversations_user_status "
+            "ON katia_conversations(user_id, status)"
+        )
+        cursor.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_katia_conversations_open_item "
+            "ON katia_conversations(user_id, item_id) WHERE status = 'open'"
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS katia_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                conversation_id INTEGER NOT NULL,
+                role TEXT NOT NULL,
+                text TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(conversation_id) REFERENCES katia_conversations(id) ON DELETE CASCADE
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_katia_messages_conversation "
+            "ON katia_messages(conversation_id)"
+        )
 
     def _create_lesson_history(self, cursor):
         """Spec 003 L4: every answer to a lesson interaction, in order (FR-040), and each node's
@@ -1831,6 +1882,15 @@ class SQLiteRepository:
                     attempt_data["rating_deviation"],
                     "practice",
                 )
+            if inserted:
+                # Spec 005 FR-031: the answer closes the item's KatIA conversation, in the same
+                # transaction, so its outcome cannot disagree with the attempt.
+                self._close_katia_conversations(
+                    cursor,
+                    user_id,
+                    close_outcome("answer", bool(attempt_data["is_correct"])),
+                    item_id,
+                )
             conn.commit()
             return inserted
         except Exception:
@@ -2047,6 +2107,273 @@ class SQLiteRepository:
         rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
         conn.close()
         return rows
+
+    # ── KatIA conversations (spec 005 K3) ───────────────────────────────
+
+    def _close_katia_conversations(
+        self, cursor, user_id: int, outcome: str, item_id: str | None = None
+    ) -> list:
+        """Closes the student's open conversations (only `item_id`'s when given) with `outcome`:
+        «sin_clasificar» until the difficulty is classified. Their text is read, then deleted in
+        the caller's transaction (FR-032). Returns [{"id", "messages": [{"role", "text"}]}]."""
+        if item_id is None:
+            cursor.execute(
+                "SELECT id FROM katia_conversations WHERE user_id = ? AND status = 'open'",
+                (user_id,),
+            )
+        else:
+            cursor.execute(
+                "SELECT id FROM katia_conversations"
+                " WHERE user_id = ? AND item_id = ? AND status = 'open'",
+                (user_id, item_id),
+            )
+        closed = []
+        for (conversation_id,) in cursor.fetchall():
+            cursor.execute(
+                "SELECT role, text FROM katia_messages WHERE conversation_id = ? ORDER BY id",
+                (conversation_id,),
+            )
+            messages = [{"role": r[0], "text": r[1]} for r in cursor.fetchall()]
+            cursor.execute(
+                "UPDATE katia_conversations SET status = 'closed', outcome = ?,"
+                " difficulty = 'sin_clasificar', closed_at = CURRENT_TIMESTAMP"
+                " WHERE id = ? AND status = 'open'",
+                (outcome, conversation_id),
+            )
+            cursor.execute(
+                "DELETE FROM katia_messages WHERE conversation_id = ?", (conversation_id,)
+            )
+            closed.append({"id": conversation_id, "messages": messages})
+        return closed
+
+    def open_katia_conversation(
+        self, user_id: int, course_id: str, item_id: str, topic: str, history_turns: int
+    ) -> dict:
+        """The student's open conversation about the item, opened if there is none, with its
+        last `history_turns` turns in order (FR-030). Returns {"id", "history"}."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO katia_conversations (user_id, course_id, item_id, topic)"
+                " VALUES (?, ?, ?, ?)"
+                " ON CONFLICT(user_id, item_id) WHERE status = 'open' DO NOTHING",
+                (user_id, course_id, item_id, topic),
+            )
+            cursor.execute(
+                "SELECT id FROM katia_conversations"
+                " WHERE user_id = ? AND item_id = ? AND status = 'open'",
+                (user_id, item_id),
+            )
+            conversation_id = cursor.fetchone()[0]
+            cursor.execute(
+                "SELECT role, text FROM katia_messages WHERE conversation_id = ?"
+                " ORDER BY id DESC LIMIT ?",
+                (conversation_id, 2 * history_turns),
+            )
+            history = [{"role": r[0], "text": r[1]} for r in reversed(cursor.fetchall())]
+            conn.commit()
+            return {"id": conversation_id, "history": history}
+        finally:
+            conn.close()
+
+    def record_katia_turn(
+        self, conversation_id: int, student_text: str, katia_text: str | None
+    ) -> bool:
+        """Adds a turn to an open conversation: the student's message and KatIA's reply, or no
+        reply when it was replaced (FR-022). False when the conversation closed meanwhile."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE katia_conversations SET turns = turns + 1,"
+                " last_message_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'open'",
+                (conversation_id,),
+            )
+            if cursor.rowcount != 1:
+                conn.rollback()
+                return False
+            cursor.execute(
+                "INSERT INTO katia_messages (conversation_id, role, text) VALUES (?, 'student', ?)",
+                (conversation_id, student_text),
+            )
+            if katia_text is not None:
+                cursor.execute(
+                    "INSERT INTO katia_messages (conversation_id, role, text)"
+                    " VALUES (?, 'katia', ?)",
+                    (conversation_id, katia_text),
+                )
+            conn.commit()
+            return True
+        finally:
+            conn.close()
+
+    def open_katia_transcripts(self, user_id: int, item_id: str) -> list:
+        """The text of the student's open conversation about the item, read before an answer
+        closes it: [{"id", "messages"}]."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id FROM katia_conversations"
+                " WHERE user_id = ? AND item_id = ? AND status = 'open'",
+                (user_id, item_id),
+            )
+            transcripts = []
+            for (conversation_id,) in cursor.fetchall():
+                cursor.execute(
+                    "SELECT role, text FROM katia_messages WHERE conversation_id = ? ORDER BY id",
+                    (conversation_id,),
+                )
+                messages = [{"role": r[0], "text": r[1]} for r in cursor.fetchall()]
+                transcripts.append({"id": conversation_id, "messages": messages})
+            return transcripts
+        finally:
+            conn.close()
+
+    def close_katia_conversations(self, user_id: int, outcome: str) -> list:
+        """Closes every open conversation of the student (another item, the end of the session)
+        and deletes its text. Returns the closed ones with their text: [{"id", "messages"}]."""
+        conn = self.get_connection()
+        conn.isolation_level = None
+        cursor = conn.cursor()
+        try:
+            cursor.execute("BEGIN IMMEDIATE")
+            closed = self._close_katia_conversations(cursor, user_id, outcome)
+            conn.commit()
+            return closed
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def expire_stale_katia_conversations(self, max_age_hours: int = 24) -> list:
+        """Closes as «abandonado» every conversation with no message for `max_age_hours`, and
+        deletes any text left of a closed one (FR-031, FR-032, SC-004). Returns the closed ones
+        with their text: [{"id", "messages"}]."""
+        conn = self.get_connection()
+        conn.isolation_level = None
+        cursor = conn.cursor()
+        try:
+            cursor.execute("BEGIN IMMEDIATE")
+            cursor.execute(
+                "SELECT DISTINCT user_id FROM katia_conversations"
+                " WHERE status = 'open' AND last_message_at < datetime('now', ?)",
+                ("-%d hours" % max_age_hours,),
+            )
+            closed = []
+            for (user_id,) in cursor.fetchall():
+                cursor.execute(
+                    "SELECT item_id FROM katia_conversations WHERE user_id = ?"
+                    " AND status = 'open' AND last_message_at < datetime('now', ?)",
+                    (user_id, "-%d hours" % max_age_hours),
+                )
+                for (item_id,) in cursor.fetchall():
+                    closed += self._close_katia_conversations(
+                        cursor, user_id, "abandonado", item_id
+                    )
+            cursor.execute(
+                "DELETE FROM katia_messages WHERE conversation_id IN"
+                " (SELECT id FROM katia_conversations WHERE status = 'closed')"
+            )
+            conn.commit()
+            return closed
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def set_katia_difficulty(self, conversation_id: int, difficulty: str) -> None:
+        """Records the kind of difficulty of a closed conversation (N2)."""
+        conn = self.get_connection()
+        try:
+            conn.execute(
+                "UPDATE katia_conversations SET difficulty = ? WHERE id = ? AND status = 'closed'",
+                (difficulty, conversation_id),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    def get_katia_conversations(self, user_id: int, limit: int = 200) -> list:
+        """The student's closed conversations, newest first: summaries, never text (FR-033)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT k.id, k.course_id, c.name, k.topic, k.item_id, k.turns, k.outcome,
+                       k.difficulty, k.misconception_tag, k.opened_at, k.closed_at
+                FROM katia_conversations k
+                LEFT JOIN courses c ON c.id = k.course_id
+                WHERE k.user_id = ? AND k.status = 'closed'
+                ORDER BY k.closed_at DESC, k.id DESC
+                LIMIT ?
+                """,
+                (user_id, limit),
+            )
+            keys = (
+                "id",
+                "course_id",
+                "course_name",
+                "topic",
+                "item_id",
+                "turns",
+                "outcome",
+                "difficulty",
+                "misconception_tag",
+                "opened_at",
+                "closed_at",
+            )
+            return [dict(zip(keys, row)) for row in cursor.fetchall()]
+        finally:
+            conn.close()
+
+    def export_teacher_katia_summary(self, teacher_id: int, group_id: int = None) -> list:
+        """Closed conversations of the teacher's students, counted per course, topic and
+        outcome: no student, no text (FR-033)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            _filter = ""
+            _params = [teacher_id]
+            if group_id:
+                _filter = "AND u.group_id = ?"
+                _params.append(group_id)
+            cursor.execute(
+                f"""
+                SELECT k.course_id, c.name, k.topic, k.outcome, COUNT(*)
+                FROM katia_conversations k
+                JOIN users u ON u.id = k.user_id
+                JOIN groups g ON g.id = u.group_id
+                LEFT JOIN courses c ON c.id = k.course_id
+                WHERE g.teacher_id = ? AND k.status = 'closed'
+                  AND COALESCE(u.is_test_user, 0) = 0
+                  {_filter}
+                GROUP BY k.course_id, c.name, k.topic, k.outcome
+                ORDER BY k.course_id, k.topic, k.outcome
+                """,
+                _params,
+            )
+            keys = ("course_id", "course_name", "topic", "outcome", "conversations")
+            return [dict(zip(keys, row)) for row in cursor.fetchall()]
+        finally:
+            conn.close()
+
+    def repair_katia_texts(self, apply: bool = False) -> int:
+        """Spec 005 N3: deletes the messages typed before K3, kept with no expiry in
+        `katia_interactions` (no summary can be rebuilt from them)."""
+        conn = self.get_connection()
+        try:
+            if not apply:
+                return conn.execute("SELECT COUNT(*) FROM katia_interactions").fetchone()[0]
+            changed = conn.execute("DELETE FROM katia_interactions").rowcount
+            conn.commit()
+            return changed
+        finally:
+            conn.close()
 
     # ── KatIA interactions ──────────────────────────────────────────────
 

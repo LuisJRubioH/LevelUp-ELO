@@ -14,7 +14,7 @@ import { KatIAAvatar } from "../KatIA/KatIAAvatar";
 import { Button } from "../ui/Button";
 import { studentApi, type ProcedureReview, type ProcedureSubmitResult } from "../../api/student";
 import { apiClient } from "../../api/client";
-import { useSettingsStore } from "../../stores/settingsStore";
+import { GROQ_ONLY, isGroqKey, useSettingsStore } from "../../stores/settingsStore";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 const MAX_SIZE_MB = 10;
@@ -58,7 +58,14 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
     staleTime: 300_000,
   });
 
-  const canAnalyze = !!apiKey || (aiStatus?.available ?? false);
+  // Spec 005 FR-014: the review runs on Groq only; another provider's key says why it is off.
+  const reviewKey = apiKey
+    ? isGroqKey(apiKey)
+    : aiStatus?.available
+      ? aiStatus.provider === "groq"
+      : null;
+  const canAnalyze = reviewKey === true;
+  const groqOnly = reviewKey === false;
 
   const handleFile = (f: File) => {
     setError(null);
@@ -268,6 +275,11 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
                     <p className="text-xs text-red-400">{error}</p>
                   )}
 
+                  {groqOnly && (
+                    <p className="text-xs text-amber-300" role="note">
+                      {GROQ_ONLY}
+                    </p>
+                  )}
                   {file && (
                     <div className="flex flex-col gap-1.5">
                       {canAnalyze ? (

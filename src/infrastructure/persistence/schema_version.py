@@ -15,8 +15,9 @@ import hashlib
 import inspect
 import os
 
-SCHEMA_VERSION = 3  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4
-MIGRATION_SOURCES_DIGEST = "455421ccce164c50870b3fe77ef3535f1b334f56dc50fead0788a371679fb226"
+SCHEMA_VERSION = 4  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
+# 4: spec 005 K3 (katia_conversations, katia_messages)
+MIGRATION_SOURCES_DIGEST = "ba3009dbb0ccd590dac3f2c37b3f521cd79bc559b0f7d70709cfd4e569e8b768"
 
 # Every method that issues DDL, or decides whether the migration may run, on both repositories.
 _MIGRATION_METHODS = (
@@ -31,6 +32,7 @@ _MIGRATION_METHODS = (
     "_check_group_names",
     "_make_image_data_nullable",
     "_create_lesson_history",
+    "_create_katia_conversations",
 )
 
 REPAIR_GROUPS = "scripts/repairs/rename_duplicate_groups.py"

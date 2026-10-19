@@ -466,6 +466,64 @@ function StudentPathSection({ studentId, courseId }: { studentId: number; course
   );
 }
 
+const OUTCOME_LABEL: Record<string, string> = {
+  superado: "Superado",
+  no_superado: "No superado",
+  abandonado: "Abandonado",
+};
+
+const DIFFICULTY_LABEL: Record<string, string> = {
+  enunciado: "Enunciado",
+  concepto: "Concepto",
+  procedimiento: "Procedimiento",
+  calculo: "Cálculo",
+  opciones: "Opciones",
+  sin_clasificar: "Sin clasificar",
+};
+
+/** Spec 005 FR-033: where the student got with KatIA — one row per closed conversation in the
+ * selected course, data first (D3). Outcome, turns and kind of difficulty; never what was said. */
+function StudentKatiaSection({ studentId, courseId }: { studentId: number; courseId: string }) {
+  const katiaQ = useQuery({
+    queryKey: ["teacher-student-katia", studentId],
+    queryFn: () => teacherApi.studentKatiaHistory(studentId),
+    retry: false,
+  });
+  if (katiaQ.isError) return null;
+  const rows = (katiaQ.data?.conversations ?? []).filter((c) => c.course_id === courseId);
+  return (
+    <div className="sd-section">
+      <h4>Conversaciones con KatIA</h4>
+      {katiaQ.isLoading ? (
+        <p className="sd-ai-hint">Cargando…</p>
+      ) : rows.length === 0 ? (
+        <p className="sd-ai-hint">No ha cerrado conversaciones con KatIA en este curso.</p>
+      ) : (
+        <table className="sd-katia">
+          <thead>
+            <tr>
+              <th scope="col">Tema</th>
+              <th scope="col">Resultado</th>
+              <th scope="col">Turnos</th>
+              <th scope="col">Dificultad</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((c) => (
+              <tr key={c.id}>
+                <td title={c.item_id}>{c.topic ?? c.item_id}</td>
+                <td className={`oc oc-${c.outcome}`}>{OUTCOME_LABEL[c.outcome] ?? c.outcome}</td>
+                <td className="n">{c.turns}</td>
+                <td>{DIFFICULTY_LABEL[c.difficulty ?? "sin_clasificar"] ?? c.difficulty}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
 function StudentDrawer({
   student,
   courseId,
@@ -475,7 +533,7 @@ function StudentDrawer({
   courseId: string | null;
   onClose: () => void;
 }) {
-  const { apiKey, provider } = useSettingsStore();
+  const { apiKey } = useSettingsStore();
   const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
@@ -486,7 +544,7 @@ function StudentDrawer({
     setErr("");
     setLoading(true);
     try {
-      const res = await teacherApi.studentAiAnalysis(student.user_id, apiKey || undefined, provider);
+      const res = await teacherApi.studentAiAnalysis(student.user_id, apiKey || undefined);
       setAnalysis(res.analysis);
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "No se pudo generar el análisis.");
@@ -531,6 +589,7 @@ function StudentDrawer({
         </div>
 
         {courseId && <StudentPathSection studentId={student.user_id} courseId={courseId} />}
+        {courseId && <StudentKatiaSection studentId={student.user_id} courseId={courseId} />}
 
         <div className="sd-section">
           <h4>
