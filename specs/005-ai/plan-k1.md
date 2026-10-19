@@ -1,8 +1,8 @@
 # Plan — spec 005, delivery K1: one key, the right provider
 
 **Spec**: [spec.md](spec.md) § Deliveries, K1 (US2, US4; FR-010 … FR-016) · **Branch**:
-`005-ai-k1`, from `redesign` after A · **Date**: 2026-10-19 · **Status**: draft for the owner's
-approval
+`005-ai-k1`, from `redesign` after A · **Date**: 2026-10-19 · **Status**: approved by the owner
+(2026-10-19)
 
 ## Summary
 

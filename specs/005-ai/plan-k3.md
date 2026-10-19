@@ -1,7 +1,7 @@
 # Plan — spec 005, delivery K3: KatIA's record
 
 **Spec**: [spec.md](spec.md) § Deliveries, K3 (US3; FR-030 … FR-033) · **Branch**: `005-ai-k3`,
-from `redesign` after K2 · **Date**: 2026-10-19 · **Status**: draft for the owner's approval
+from `redesign` after K2 · **Date**: 2026-10-19 · **Status**: approved by the owner (2026-10-19)
 
 ## Summary
 

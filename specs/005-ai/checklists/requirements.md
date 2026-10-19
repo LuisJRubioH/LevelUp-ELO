@@ -16,9 +16,8 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain, and every "Proposed" decision is decided — **N1 … N4
-  wait for the owner** (sentence limit, the kinds of difficulty, the old `katia_interactions`
-  texts, a student's own key)
+- [x] No [NEEDS CLARIFICATION] markers remain, and every "Proposed" decision is decided — N1 … N4
+  approved by the owner as proposed on 2026-10-19
 - [x] Requirements are testable — each FR names an observable outcome (the provider and model a
   provider double receives, a prompt without the answer, a replaced reply not stored, a 403 with no
   provider call, no text left after closing)
@@ -41,5 +40,4 @@
 
 ## Notes
 
-- The one open item is the owner's decision on N1 … N4; the plans assume the proposals and say
-  where each one lands.
+- 2026-10-19: the owner approved the spec, the plans and N1 … N4 as proposed.

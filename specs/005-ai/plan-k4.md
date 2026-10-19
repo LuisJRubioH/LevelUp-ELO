@@ -1,7 +1,7 @@
 # Plan — spec 005, delivery K4: clean-up
 
 **Spec**: [spec.md](spec.md) § Deliveries, K4 (FR-040) · **Branch**: `005-ai-k4`, from `redesign`
-after K3 · **Date**: 2026-10-19 · **Status**: draft for the owner's approval
+after K3 · **Date**: 2026-10-19 · **Status**: approved by the owner (2026-10-19)
 
 ## Design
 

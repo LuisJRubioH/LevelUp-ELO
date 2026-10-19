@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-19
 
-**Status**: Draft for the owner's approval. Written from the as-is survey
+**Status**: Approved by the owner, with N1 … N4 as proposed (2026-10-19). Written from the as-is survey
 (`docs/sdd/ai-survey.md`, LuisJRubioH/LevelUp-ELO#92) and the owner's decisions of 2026-10-19 (its
 § 7). Nothing in deliveries K1 … K4 is implemented.
 
@@ -251,10 +251,10 @@ double that records the prompt and returns chosen replies.
 
 | # | Point | Recommendation |
 |---|---|---|
-| N1 | AGENTS.md says V2 caps KatIA at 120 tokens and rejects replies beyond 3 sentences; the V1 validator allows 5. | **Proposed**: 3, as documented (FR-022). |
-| N2 | The kinds of difficulty for the summary. | **Proposed**: «enunciado» (did not understand the statement), «concepto», «procedimiento», «cálculo», «opciones» (misread the options), plus «sin clasificar»; the model picks one when the conversation closes, never free text. |
-| N3 | `katia_interactions` holds every message typed before K3, with no expiry. | **Proposed**: K3 adds the summary table and stops writing text there; a repair script (`scripts/repairs/`, spec 002 FR-018) deletes the old texts, run by the owner after the switch. No summary can be rebuilt from them (no outcome). |
-| N4 | Whether a student with their own key may still use it. | **Proposed**: yes — the key keeps its precedence (FR-006); only the provider picker goes. |
+| N1 | AGENTS.md says V2 caps KatIA at 120 tokens and rejects replies beyond 3 sentences; the V1 validator allows 5. | **Approved** (owner, 2026-10-19): 3, as documented (FR-022). |
+| N2 | The kinds of difficulty for the summary. | **Approved** (owner, 2026-10-19): «enunciado» (did not understand the statement), «concepto», «procedimiento», «cálculo», «opciones» (misread the options), plus «sin clasificar»; the model picks one when the conversation closes, never free text. |
+| N3 | `katia_interactions` holds every message typed before K3, with no expiry. | **Approved** (owner, 2026-10-19): K3 adds the summary table and stops writing text there; a repair script (`scripts/repairs/`, spec 002 FR-018) deletes the old texts, run by the owner after the switch. No summary can be rebuilt from them (no outcome). |
+| N4 | Whether a student with their own key may still use it. | **Approved** (owner, 2026-10-19): yes — the key keeps its precedence (FR-006); only the provider picker goes. |
 
 ## Out of Scope *(mandatory)*
 

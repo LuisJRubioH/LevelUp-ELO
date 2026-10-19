@@ -1,7 +1,7 @@
 # Plan — spec 005, delivery K2: KatIA's guardrails and access
 
 **Spec**: [spec.md](spec.md) § Deliveries, K2 (US1; FR-020 … FR-023) · **Branch**: `005-ai-k2`,
-from `redesign` after K1 · **Date**: 2026-10-19 · **Status**: draft for the owner's approval
+from `redesign` after K1 · **Date**: 2026-10-19 · **Status**: approved by the owner (2026-10-19)
 
 ## Summary
 
