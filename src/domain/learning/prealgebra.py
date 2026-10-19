@@ -1983,10 +1983,19 @@ for _node_id in N3_NODE_IDS:
     _LESSONS[_node_id]["gates_refused"] = "Completa el Nivel 2 primero"
 # The complex numbers are an optional branch for the intermediate and advanced bands.
 _LESSONS[COMPLEX_NODE_ID]["requires_band"] = ["intermedio", "avanzado"]
+# What «completed» means (spec 003 L3, `path.completion_gaps`).
 for _lesson in _LESSONS.values():
     if _lesson["node_type"].startswith("level_hub"):
         # Spec 003 N3: a hub completes, on the server, once every card is opened.
         _lesson["completion"] = "cards"
+    elif (_lesson.get("content") or {}).get("kind") == "eleven_block_node":
+        # FR-030: the latest answer of every practice item and the closing item is right.
+        _lesson["completion"] = "correct"
+    else:
+        # B02 is a safe-zone prompt (one answer, the second has no right one); B13 is a
+        # diagnostic, which measures and does not gate (N2).
+        _lesson["completion"] = "answered"
+_LESSONS[WELCOME_NODE_ID]["completion"] = "view"  # N1: no question
 
 DIAGNOSTIC_NODE_IDS = [
     NATURALS_NODE_ID,

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
+import { ApiError } from "../../api/client";
 import {
   studentApi,
   type LessonDetail,
@@ -106,7 +107,14 @@ export function Lesson() {
   };
 
   const finish = async () => {
-    if (data?.state !== "completed") await eventMutation.mutateAsync("node_completed");
+    if (data?.state !== "completed") {
+      // Spec 003 L3: a 409 names what is still missing; it is shown, not thrown.
+      try {
+        await eventMutation.mutateAsync("node_completed");
+      } catch {
+        return;
+      }
+    }
     await queryClient.invalidateQueries({ queryKey: ["course-map", courseId] });
     navigate(`/student/course/${courseId}/map`);
   };
@@ -144,6 +152,11 @@ export function Lesson() {
         onBack={() => navigate(`/student/course/${courseId}/map`)}
         onFinish={finish}
         finishing={eventMutation.isPending}
+        finishRefused={
+          eventMutation.error instanceof ApiError && eventMutation.error.status === 409
+            ? eventMutation.error.detail
+            : undefined
+        }
       />
     );
   }

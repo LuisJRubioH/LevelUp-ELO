@@ -3,9 +3,9 @@ Spec 003 L5: the rules of the learning path, read from node data only (FR-050, F
 
 A node is open when its `unlock_after` is completed, every node in its `gates` is completed, and,
 if it declares `requires_band`, the student's diagnostic band is one of them. The map and the API
-both ask `node_access`, so they cannot disagree. Which interactions a node needs answered before
-it completes is its own `interactions` list; a hub (`completion: "cards"`) completes on the server
-once every card is opened.
+both ask `node_access`, so they cannot disagree. When a node completes is its `completion` field
+(L3, `completion_gaps`); a hub (`completion: "cards"`) completes on the server once every card is
+opened.
 
 Pure domain: no I/O. `state_of` is a function node_id -> stored state, supplied by the caller.
 """
@@ -44,15 +44,6 @@ def shown_in_band(lesson: dict, band: str | None) -> bool:
     return band is None or not bands or band in bands
 
 
-def missing_interactions(lesson: dict, answered) -> list[str]:
-    """The node's registered interactions with no answer yet, in the node's order."""
-    return [
-        interaction["interaction_id"]
-        for interaction in lesson.get("interactions", [])
-        if interaction["interaction_id"] not in answered
-    ]
-
-
 def completes_on_cards(lesson: dict) -> bool:
     return lesson.get("completion") == "cards"
 
@@ -81,3 +72,68 @@ def validate_catalogue(lessons: dict) -> None:
 
     for node_id in lessons:
         visit(node_id)
+
+
+# ── Completion (spec 003 L3, FR-030; N1, N2, N3) ─────────────────────────────
+# A node's `completion` field says what «done» means:
+#   view      — opening it is enough (B01: no question, N1);
+#   answered  — every required interaction has an answer, right or wrong (B13, N2; B02, a
+#               safe-zone prompt that is not an eleven-block node);
+#   cards     — every card opened (hubs, N3);
+#   correct   — the latest answer of every required interaction is right (FR-030; the default).
+
+REFUSED_PREFIX = {
+    "correct": "Te falta acertar",
+    "answered": "Te falta responder",
+    "cards": "Te falta abrir",
+}
+
+
+def completion_rule(lesson: dict) -> str:
+    return lesson.get("completion", "correct")
+
+
+def _gap_label(lesson: dict, interaction_id: str, position: int) -> str:
+    """Where the student finds the item, never its text: «Práctica 2», «Cierre», «Pregunta 1»."""
+    if completion_rule(lesson) == "cards":
+        return f"Tarjeta {position}"
+    node_id = lesson["node_id"]
+    content = lesson.get("content") or {}
+    practice = [f"{node_id}-{item['id']}" for item in content.get("practice") or []]
+    if interaction_id in practice:
+        return f"Práctica {practice.index(interaction_id) + 1}"
+    closing = content.get("closing_item")
+    if closing and interaction_id == f"{node_id}-{closing['id']}":
+        return "Cierre"
+    return f"Pregunta {position}"
+
+
+def completion_gaps(lesson: dict, latest_answers) -> list[dict]:
+    """The required interactions that keep the node from completing, in the node's order.
+
+    `latest_answers` maps interaction_id -> the stored current answer ({"is_expected": …}).
+    Each gap is {"interaction_id", "label"}; an empty list means the node may complete.
+    """
+    rule = completion_rule(lesson)
+    if rule == "view":
+        return []
+    gaps = []
+    for position, interaction in enumerate(lesson.get("interactions", []), start=1):
+        interaction_id = interaction["interaction_id"]
+        answer = latest_answers.get(interaction_id)
+        missing = answer is None or (rule == "correct" and answer.get("is_expected") is not True)
+        if missing:
+            gaps.append(
+                {
+                    "interaction_id": interaction_id,
+                    "label": _gap_label(lesson, interaction_id, position),
+                }
+            )
+    return gaps
+
+
+def completion_refused(lesson: dict, gaps: list[dict]) -> str:
+    """«Te falta acertar: Práctica 2 y Cierre.»"""
+    labels = [gap["label"] for gap in gaps]
+    listed = labels[0] if len(labels) == 1 else ", ".join(labels[:-1]) + " y " + labels[-1]
+    return f"{REFUSED_PREFIX[completion_rule(lesson)]}: {listed}."
