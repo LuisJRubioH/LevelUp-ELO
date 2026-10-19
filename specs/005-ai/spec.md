@@ -43,7 +43,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | Delivery | Content | State |
 |---|---|---|
 | **A** | As-is pins: what the AI features already guarantee, each requirement tied to a test | closed |
-| **K1** | One key, the right provider: the provider from the key's prefix, one model per function from settings, timeouts, Groq-only review said in the interface, the teacher analysis's real inputs, no exception text to the client | planned |
+| **K1** | One key, the right provider: the provider from the key's prefix, one model per function from settings, timeouts, Groq-only review said in the interface, the teacher analysis's real inputs, no exception text to the client | closed |
 | **K2** | KatIA's guardrails and access: no correct answer in the prompt, every reply checked, the statement read from the item, only enrolled students | planned |
 | **K3** | KatIA's record: multi-turn conversations, a summary per conversation for the teacher, no message text kept after it ends | planned |
 | **K4** | Clean-up: V2-only dead code removed, AGENTS.md § AI integration rewritten | planned |
@@ -274,13 +274,13 @@ request that closes their delivery.
 | US1-AS1 | K2 | `PENDING` |
 | US1-AS2 | K2 | `PENDING` |
 | US1-AS3 | K2 | `PENDING` |
-| US2-AS1 | K1 | `PENDING` |
-| US2-AS2 | K1 | `PENDING` |
-| US2-AS3 | K1 | `PENDING` |
+| US2-AS1 | K1 | `tests/api/test_spec005_k1_providers.py::test_the_key_prefix_picks_the_provider_for_every_feature` |
+| US2-AS2 | K1 | `tests/api/test_spec005_k1_providers.py::test_review_with_a_non_groq_key_is_refused_before_processing`<br>`frontend/e2e/spec005-k1-keys.spec.ts › con una key que no es de Groq, la revisión dice que usa Groq y no se ofrece` |
+| US2-AS3 | K1 | `tests/api/test_spec005_k1_providers.py::test_a_provider_that_does_not_answer_in_time_is_503`<br>`tests/api/test_spec005_k1_providers.py::test_no_response_carries_exception_text` |
 | US3-AS1 | K3 | `PENDING` |
 | US3-AS2 | K3 | `PENDING` |
 | US3-AS3 | K3 | `PENDING` |
-| US4-AS1 | K1 | `PENDING` |
+| US4-AS1 | K1 | `tests/api/test_spec005_k1_providers.py::test_teacher_analysis_receives_procedure_stats_and_the_analysis_model` |
 | US5-AS1 | A | `tests/integration/test_spec001_repository_pins.py::test_spec001_ai_proposed_score_changes_no_rating` |
 | US5-AS2 | A | `tests/api/test_ai_errors_and_scores.py::test_a_provider_failure_is_not_katias_reply` |
 | US5-AS3 | A | `tests/api/test_rate_limit.py::test_ai_rate_limit_follows_the_account_across_new_tokens` |
@@ -291,13 +291,13 @@ request that closes their delivery.
 | FR-005 | A | `tests/api/test_spec005_a_pins.py::test_spec005_no_table_has_a_key_column`<br>`tests/api/test_spec005_a_pins.py::test_spec005_a_users_key_is_neither_stored_nor_returned`<br>`tests/api/test_spec005_a_pins.py::test_spec005_the_system_key_is_never_returned` |
 | FR-006 | A | `tests/api/test_spec005_a_pins.py::test_spec005_user_key_then_function_key_then_general_key` |
 | FR-007 | A | `tests/api/test_teacher_resource_access.py::test_ai_analysis_without_a_key_says_so` |
-| FR-010 | K1 | `PENDING` |
-| FR-011 | K1 | `PENDING` |
-| FR-012 | K1 | `PENDING` |
-| FR-013 | K1 | `PENDING` |
-| FR-014 | K1 | `PENDING` |
-| FR-015 | K1 | `PENDING` |
-| FR-016 | K1 | `PENDING` |
+| FR-010 | K1 | `tests/api/test_spec005_k1_providers.py::test_the_key_prefix_picks_the_provider_for_every_feature`<br>`tests/api/test_spec005_k1_providers.py::test_a_key_with_no_known_prefix_is_refused_naming_the_providers` |
+| FR-011 | K1 | `tests/api/test_spec005_k1_providers.py::test_the_browser_cannot_choose_provider_or_model`<br>`frontend/e2e/spec005-k1-keys.spec.ts › no hay selector de proveedor ni de modelo` |
+| FR-012 | K1 | `tests/api/test_spec005_k1_providers.py::test_models_come_from_settings` |
+| FR-013 | K1 | `tests/api/test_spec005_k1_providers.py::test_every_provider_call_has_a_timeout`<br>`tests/api/test_spec005_k1_providers.py::test_the_analysis_has_a_timeout_and_the_analysis_model`<br>`tests/api/test_spec005_k1_providers.py::test_a_provider_that_does_not_answer_in_time_is_503` |
+| FR-014 | K1 | `tests/api/test_spec005_k1_providers.py::test_review_with_a_non_groq_key_is_refused_before_processing`<br>`frontend/e2e/spec005-k1-keys.spec.ts › con una key que no es de Groq, la revisión dice que usa Groq y no se ofrece`<br>`frontend/e2e/spec005-k1-keys.spec.ts › con la key del sistema de Groq, la revisión se ofrece` |
+| FR-015 | K1 | `tests/api/test_spec005_k1_providers.py::test_teacher_analysis_receives_procedure_stats_and_the_analysis_model`<br>`tests/api/test_spec005_k1_providers.py::test_the_analysis_has_a_timeout_and_the_analysis_model` |
+| FR-016 | K1 | `tests/api/test_spec005_k1_providers.py::test_no_response_carries_exception_text`<br>`tests/api/test_spec005_k1_providers.py::test_a_provider_error_string_from_the_analysis_is_not_a_200` |
 | FR-020 | K2 | `PENDING` |
 | FR-021 | K2 | `PENDING` |
 | FR-022 | K2 | `PENDING` |

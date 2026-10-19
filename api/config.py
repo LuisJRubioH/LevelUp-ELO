@@ -47,6 +47,12 @@ class Settings(BaseSettings):
     ai_key_student_analysis: str = ""  # recomendaciones y análisis para el estudiante
     ai_key_teacher_analysis: str = ""  # análisis en dashboard del docente
 
+    # Spec 005 FR-012: one model per function, used with a Groq key (the production provider).
+    # Another provider's key uses that provider's entry in ai_client.PROVIDERS.
+    ai_model_katia: str = "llama-3.1-8b-instant"
+    ai_model_vision: str = "meta-llama/llama-4-scout-17b-16e-instruct"
+    ai_model_analysis: str = "llama-3.3-70b-versatile"
+
     def get_ai_key(self, function: str = "", user_key: str = "") -> str:
         """Resuelve la API key por prioridad: usuario > función > general."""
         if user_key.strip():

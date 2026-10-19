@@ -57,7 +57,7 @@ function cleanLabel(label: string, courseName: string): string {
 
 export function CourseRail({ courseId, currentNodeId }: { courseId: string; currentNodeId?: string }) {
   // La key y el proveedor del estudiante, como en la práctica.
-  const { apiKey, provider } = useSettingsStore();
+  const { apiKey } = useSettingsStore();
   const navigate = useNavigate();
   const startSession = usePracticeStore((s) => s.startSession);
   const { t } = useTranslation();
@@ -174,7 +174,6 @@ export function CourseRail({ courseId, currentNodeId }: { courseId: string; curr
                 itemContent={anchor.content}
                 courseId={courseId}
                 apiKey={apiKey}
-                provider={provider}
               />
             ) : (
               <p className="rail-chat-loading">

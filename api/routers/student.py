@@ -17,12 +17,14 @@ Endpoints del flujo de práctica del estudiante:
 
 import asyncio
 import hashlib
+import logging
 import random
 import uuid
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, File, Form, Header, HTTPException, Request, UploadFile, status
 
+from api.ai_target import GROQ_ONLY, TIMED_OUT, UNAVAILABLE, ai_target
 from api.dependencies import (
     CurrentUser, RepoDep, create_procedure_review_token, decode_token,
 )
@@ -82,6 +84,8 @@ from src.domain.learning.prealgebra import (
     path_summary,
     presentation_band,
 )
+
+logger = logging.getLogger("api.student")
 
 router = APIRouter(prefix="/student", tags=["student"])
 
@@ -616,8 +620,8 @@ def ai_status():
     procedure_key = settings.get_ai_key("procedure")
     if not procedure_key:
         return {"available": False, "provider": None}
-    provider = settings.system_ai_provider or detect_provider_from_key(procedure_key) or "unknown"
-    return {"available": True, "provider": provider}
+    # Spec 005 FR-010: the key's prefix is the provider (the interface says when it is not Groq).
+    return {"available": True, "provider": detect_provider_from_key(procedure_key) or "unknown"}
 
 
 def _pdf_first_page_png(pdf_bytes: bytes) -> bytes:
@@ -644,11 +648,10 @@ async def analyze_procedure(
     """Analiza un procedimiento con IA SIN PERSISTIR.
 
     Prioridad de API key: la del estudiante (si la envía) > la del sistema
-    (env SYSTEM_AI_API_KEY). Soporta Groq (revisión rigurosa con Llama 4 Scout)
-    y otros proveedores (revisión genérica con visión).
+    (env SYSTEM_AI_API_KEY). Solo Groq (revisión rigurosa con el modelo de visión; spec 005
+    FR-014).
     """
     from api.config import settings
-    from src.infrastructure.external_api.ai_client import detect_provider_from_key
 
     effective_key = settings.get_ai_key("procedure", api_key)
     if not effective_key:
@@ -657,97 +660,71 @@ async def analyze_procedure(
             detail="No hay API key de IA configurada. Pide al administrador que configure SYSTEM_AI_API_KEY.",
         )
 
-    provider = detect_provider_from_key(effective_key)
-    if settings.system_ai_provider and not api_key.strip():
-        provider = settings.system_ai_provider
+    # Spec 005 FR-010, FR-014: the key's prefix decides; the review runs on Groq only, refused
+    # before the upload is read.
+    target = ai_target("procedure", effective_key)
+    if target.provider != "groq":
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=GROQ_ONLY)
 
     original_data, mime = await read_validated_upload(file)
     image_data = original_data
     file_hash = hashlib.sha256(original_data).hexdigest()
 
-    # La revisión espera segundos (o minutos, con los reintentos del SDK) al proveedor de IA. Todo
-    # lo bloqueante va a un hilo: en un solo proceso (R18), esperar en el event loop congelaba
-    # cualquier otra petición y los sockets de PvP mientras durara (R17).
+    # La revisión espera segundos al proveedor de IA. Todo lo bloqueante va a un hilo: en un solo
+    # proceso (R18), esperar en el event loop congelaba cualquier otra petición (R17).
     if mime == "application/pdf":
         try:
             image_data = await asyncio.to_thread(_pdf_first_page_png, image_data)
             mime = "image/png"
-        except Exception as pdf_err:
+        except Exception:
+            logger.exception("Procedure review: the PDF could not be read")
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"No se pudo procesar el PDF: {pdf_err}",
+                detail="No se pudo leer el PDF. Sube una imagen o un PDF válido.",
             )
 
-    if provider == "groq":
-        from src.infrastructure.external_api.math_procedure_review import (
+    from src.infrastructure.external_api.math_procedure_review import review_math_procedure
+
+    # FR-016: fixed messages; the cause stays in the server log.
+    try:
+        review = await asyncio.to_thread(
             review_math_procedure,
+            image_data,
+            mime,
+            api_key=target.api_key,
+            question_content=item_content or "",
+            model=target.model,
+            timeout=target.timeout,
         )
+    except ValueError:
+        logger.warning("Procedure review: the model's answer was not valid JSON")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="La IA devolvió una revisión que no se pudo leer. Intenta de nuevo.",
+        )
+    except TimeoutError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=TIMED_OUT)
+    except ConnectionError:
+        logger.exception("Procedure review: Groq could not be reached")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=UNAVAILABLE)
+    except Exception:
+        logger.exception("Procedure review failed")
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=UNAVAILABLE)
 
-        try:
-            review = await asyncio.to_thread(
-                review_math_procedure,
-                image_data,
-                mime,
-                api_key=effective_key,
-                question_content=item_content or "",
-            )
-        except ValueError as exc:
-            raise HTTPException(status_code=502, detail=f"Respuesta inválida de la IA: {exc}")
-        except ConnectionError as exc:
-            raise HTTPException(status_code=503, detail=f"Error de red con Groq: {exc}")
-        except Exception as exc:
-            raise HTTPException(status_code=500, detail=f"Error al revisar procedimiento: {exc}")
-
-        # Advisory and on a 0-100 scale: a value outside it (or not a number) is not shown as is.
-        review["score_procedimiento"] = _ai_score_in_range(review.get("score_procedimiento"))
-        return {
-            "item_id": item_id, "provider": "groq", "review": review,
-            "analysis_token": create_procedure_review_token(
-                user["user_id"], item_id, file_hash, review["score_procedimiento"],
-                review.get("evaluacion_global") or "",
-            ),
-        }
-
-    else:
-        from src.infrastructure.external_api.ai_client import analyze_procedure_image
-
-        try:
-            result = await asyncio.to_thread(
-                analyze_procedure_image,
-                image_data,
-                mime,
-                question_content=item_content or "",
-                model_name="",
-                api_key=effective_key,
-                provider=provider,
-            )
-        except Exception as exc:
-            raise HTTPException(status_code=500, detail=f"Error al analizar procedimiento: {exc}")
-
-        if result == "VISION_NOT_SUPPORTED":
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="El modelo configurado no soporta visión. Usa Groq o un modelo con visión.",
-            )
-
-        review = {
-            "score_procedimiento": None,
-            "evaluacion_global": result,
-            "transcripcion": None,
-            "pasos": [],
-            "errores_detectados": [],
-            "saltos_logicos": [],
-            "resultado_correcto": None,
-            "corresponde_a_pregunta": None,
-        }
-        return {
-            "item_id": item_id,
-            "provider": provider or "unknown",
-            "review": review,
-            "analysis_token": create_procedure_review_token(
-                user["user_id"], item_id, file_hash, None, result or "",
-            ),
-        }
+    # Advisory and on a 0-100 scale: a value outside it (or not a number) is not shown as is.
+    review["score_procedimiento"] = _ai_score_in_range(review.get("score_procedimiento"))
+    return {
+        "item_id": item_id,
+        "provider": "groq",
+        "review": review,
+        "analysis_token": create_procedure_review_token(
+            user["user_id"],
+            item_id,
+            file_hash,
+            review["score_procedimiento"],
+            review.get("evaluacion_global") or "",
+        ),
+    }
 
 
 @router.get("/procedures")

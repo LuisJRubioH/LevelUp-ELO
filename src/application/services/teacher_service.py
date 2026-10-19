@@ -125,6 +125,7 @@ class TeacherService:
         model_name=None,
         procedure_stats=None,
         procedure_stats_by_course=None,
+        timeout=None,
     ):
         """Orquesta la generación del análisis pedagógico con IA.
         Requiere un mínimo de 3 intentos para producir un análisis significativo.
@@ -175,6 +176,8 @@ class TeacherService:
             kwargs["base_url"] = base_url
         if model_name:
             kwargs["model_name"] = model_name
+        if timeout:
+            kwargs["timeout"] = timeout
 
         if self._pedagogical_analysis is None:
             return "Análisis con IA no disponible: no se configuró un proveedor."

@@ -109,13 +109,14 @@ _KEY_PREFIXES = [
 
 
 def _proc_quality_label(avg_score: float) -> str:
-    """Convierte un promedio de procedimiento (0-5) en etiqueta cualitativa."""
-    if avg_score < 3.0:
-        return f"Deficiente ({avg_score:.1f}/5.0) — Falta de rigor técnico en el desarrollo"
-    elif avg_score <= 4.0:
-        return f"Regular ({avg_score:.1f}/5.0) — Procedimiento incompleto o poco claro"
+    """Convierte un promedio de procedimiento (0-100, la escala que guardan los repositorios)
+    en etiqueta cualitativa."""
+    if avg_score < 60.0:
+        return f"Deficiente ({avg_score:.1f}/100) — Falta de rigor técnico en el desarrollo"
+    elif avg_score <= 80.0:
+        return f"Regular ({avg_score:.1f}/100) — Procedimiento incompleto o poco claro"
     else:
-        return f"Excelente ({avg_score:.1f}/5.0) — Dominio total del desarrollo"
+        return f"Excelente ({avg_score:.1f}/100) — Dominio total del desarrollo"
 
 
 def detect_provider_from_key(api_key: str):
@@ -167,7 +168,9 @@ def select_best_model(models):
     return models[0]
 
 
-def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, provider=None):
+def _call_ai_api(
+    prompt, model_name, base_url, json_mode=False, api_key=None, provider=None, timeout=None
+):
     """Llama a cualquier proveedor de IA.
 
     Routing:
@@ -193,7 +196,7 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
         try:
             import anthropic
 
-            client = anthropic.Anthropic(api_key=api_key)
+            client = anthropic.Anthropic(api_key=api_key, timeout=timeout)
             resp = client.messages.create(
                 model=model_name,
                 max_tokens=4096,
@@ -208,7 +211,11 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
                 return "ERROR_401: ❌ API Key inválida o expirada para Anthropic. Verifica tu clave en el panel lateral."
             if "429" in err_str or "rate_limit" in err_str.lower():
                 return "ERROR_429: ⏳ Límite de solicitudes alcanzado. Espera un momento antes de continuar."
-            if "timeout" in err_str.lower() or "connection" in err_str.lower():
+            if "timeout" in err_str.lower() or "timed out" in err_str.lower():
+                raise TimeoutError(
+                    "⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos."
+                ) from e
+            if "connection" in err_str.lower():
                 raise ConnectionError(
                     "⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos."
                 ) from e
@@ -222,7 +229,7 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
         try:
             from openai import OpenAI
 
-            client = OpenAI(api_key=api_key, base_url=_base)
+            client = OpenAI(api_key=api_key, base_url=_base, timeout=timeout)
             response = client.chat.completions.create(
                 model=model_name,
                 messages=messages,
@@ -433,6 +440,7 @@ def get_socratic_guidance(
     api_key=None,
     provider=None,
     lang="es",
+    timeout=None,
 ):
     """Genera una guía socrática adaptativa y altamente alineada para el estudiante.
 
@@ -474,7 +482,9 @@ INSTRUCCIONES CRÍTICAS DE ALINEACIÓN:
 7. REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática exclusivamente en LaTeX usando $...$ o $$...$$.
 {lang_rule}
 """
-    return _call_ai_api(prompt, model_name, base_url, api_key=api_key, provider=provider)
+    return _call_ai_api(
+        prompt, model_name, base_url, api_key=api_key, provider=provider, timeout=timeout
+    )
 
 
 def get_socratic_guidance_stream(
@@ -732,6 +742,7 @@ def get_pedagogical_analysis(
     provider=None,
     procedure_stats=None,
     procedure_stats_by_course=None,
+    timeout=None,
 ):
     """Genera un análisis pedagógico detallado para el profesor.
     procedure_stats (opcional): dict con 'count', 'avg_score', 'scores'.
@@ -747,12 +758,12 @@ def get_pedagogical_analysis(
             f"{_pc} procedimiento(s) evaluado(s). Calidad global: {_quality}. "
             f"Notas individuales: {', '.join(f'{s:.1f}' for s in _pscores[:5])}"
         )
-        if _pavg < 3.0:
+        if _pavg < 60.0:
             _proc_instruction = (
                 "Calidad DEFICIENTE. El estudiante carece de rigor tecnico en el desarrollo escrito. "
                 "Exigir que rehaga los ejercicios mostrando todos los pasos intermedios."
             )
-        elif _pavg <= 4.0:
+        elif _pavg <= 80.0:
             _proc_instruction = (
                 "Calidad REGULAR. El procedimiento esta incompleto o poco claro. "
                 "Indicar al estudiante que justifique cada paso y use notacion correcta."
@@ -817,7 +828,9 @@ def get_pedagogical_analysis(
         time_section=_time_section,
         proc_instruction=_proc_instruction,
     )
-    return _call_ai_api(prompt, model_name, base_url, api_key=api_key, provider=provider)
+    return _call_ai_api(
+        prompt, model_name, base_url, api_key=api_key, provider=provider, timeout=timeout
+    )
 
 
 _FALLBACK_RECOMMENDATIONS = [

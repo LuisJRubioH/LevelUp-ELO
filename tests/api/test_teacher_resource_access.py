@@ -176,4 +176,9 @@ def test_ai_analysis_with_an_unreachable_model_answers_503(
         f"/api/teacher/student/{resources['student_id']}/ai-analysis", headers=teacher_headers
     )
     assert response.status_code == 503
-    assert response.json()["detail"] == message
+    # Spec 005 FR-016: a fixed message per failure, whatever text the exception carried.
+    expected = {
+        ConnectionError: "La IA no está disponible ahora. Intenta de nuevo en un momento.",
+        TimeoutError: "La IA no respondió a tiempo. Intenta de nuevo.",
+    }[error]
+    assert response.json()["detail"] == expected

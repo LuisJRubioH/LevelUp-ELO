@@ -31,21 +31,46 @@ def _slow_groq_review(*_args, **_kwargs):
     return {"score_procedimiento": 70, "evaluacion_global": "bien"}
 
 
-def _slow_vision_review(*_args, **_kwargs):
+def _slow_katia(*_args, **_kwargs):
     time.sleep(SLOW)
-    return "bien"
+    return "¿Qué observas?"
 
 
+def _review_request(api_client, headers):
+    return api_client.post(
+        "/api/student/procedure/analyze",
+        headers=headers,
+        data={"item_id": "calc_1", "api_key": "gsk_fake_test_key"},
+        files={"file": ("work.png", _png(), "image/png")},
+    )
+
+
+def _katia_request(api_client, headers):
+    return api_client.post(
+        "/api/ai/socratic",
+        headers=headers,
+        json={
+            "item_id": "q47",
+            "item_content": "x",
+            "student_message": "off-loop probe",
+            "course_id": "calculo_integral",
+            "api_key": "gsk_fake_test_key",
+        },
+    )
+
+
+# Spec 005 K1 removed the generic vision review (Groq only, FR-014); KatIA's provider call now
+# runs before its stream starts, so it is checked here too (FR-023).
 @pytest.mark.parametrize(
-    "api_key, target, fake",
+    "target, fake, send",
     [
-        ("gsk_fake_test_key", "math_procedure_review.review_math_procedure", _slow_groq_review),
-        ("sk-ant-fake-test-key", "ai_client.analyze_procedure_image", _slow_vision_review),
+        ("math_procedure_review.review_math_procedure", _slow_groq_review, _review_request),
+        ("ai_client.get_socratic_guidance", _slow_katia, _katia_request),
     ],
-    ids=["groq-review", "vision-review"],
+    ids=["groq-review", "katia"],
 )
 def test_the_api_answers_while_a_procedure_is_reviewed(
-    api_client, student_headers, monkeypatch, api_key, target, fake
+    api_client, student_headers, monkeypatch, target, fake, send
 ):
     from api.rate_limit import limiter
 
@@ -56,12 +81,7 @@ def test_the_api_answers_while_a_procedure_is_reviewed(
     review = {}
 
     def analyze():
-        review["response"] = api_client.post(
-            "/api/student/procedure/analyze",
-            headers=student_headers,
-            data={"item_id": "calc_1", "api_key": api_key},
-            files={"file": ("work.png", _png(), "image/png")},
-        )
+        review["response"] = send(api_client, student_headers)
 
     worker = threading.Thread(target=analyze)
     worker.start()

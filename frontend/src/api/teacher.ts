@@ -274,10 +274,10 @@ export const teacherApi = {
       `/api/teacher/student/${student_id}/katia-history`,
     ),
 
-  studentAiAnalysis: (student_id: number, api_key?: string, provider = "groq") =>
+  /** Spec 005 FR-010/FR-011: the server picks provider and model from the key. */
+  studentAiAnalysis: (student_id: number, api_key?: string) =>
     api.post<{ analysis: string }>(`/api/teacher/student/${student_id}/ai-analysis`, {
       api_key,
-      provider,
     }),
 
   /** The submitted file as an object URL with its type: a photo, or a PDF as uploaded. */

@@ -375,5 +375,4 @@ class SocraticRequest(BaseModel):
         default="",
         description="API key del proveedor de IA (opcional — usa la del sistema si vacía)",
     )
-    provider: str = Field(default="groq", description="Proveedor: groq, anthropic, openai, etc.")
     lang: str = Field(default="es", description="Idioma de la respuesta de KatIA: 'es' o 'en'.")

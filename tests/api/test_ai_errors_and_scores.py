@@ -81,20 +81,25 @@ def test_a_provider_failure_is_not_katias_reply(
     message = f"failure probe {provider_says[:9]}"
     _reply_with(monkeypatch, provider_says)
 
-    events = _events(_ask(api_client, student_headers, message))
+    response = _ask(api_client, student_headers, message)
 
-    assert [e for e in events if "token" in e] == []
-    assert [e for e in events if "error" in e] != []
+    # Spec 005 FR-016: a 502 with KatIA's fixed message, not a 200 stream.
+    assert response.status_code == 502
+    assert [e for e in _events(response) if "token" in e] == []
+    assert (
+        response.json()["detail"]
+        == "KatIA no pudo responder ahora. Intenta de nuevo en un momento."
+    )
     assert _saved_replies(message) == []
 
 
 def test_an_unexpected_failure_shows_no_internal_detail(api_client, student_headers, monkeypatch):
     _reply_with(monkeypatch, RuntimeError("upstream said: internal-host-10.0.0.7 trace"))
 
-    events = _events(_ask(api_client, student_headers, "exception probe"))
+    response = _ask(api_client, student_headers, "exception probe")
 
-    errors = [e["error"] for e in events if "error" in e]
-    assert errors and all("internal-host" not in error for error in errors)
+    assert response.status_code == 502
+    assert "internal-host" not in response.text
 
 
 def test_a_reply_is_streamed_and_saved(api_client, student_headers, monkeypatch):
