@@ -135,3 +135,31 @@ None blocks the transfer (PR #3): no AI output moves a rating.
 - **Out:** rating effects (spec 001: only the teacher's grade moves a rating); upload storage and
   anti-plagiarism (spec 001 block 7); the teacher's grading flow (spec 006); V1 beyond what V2
   shares (V1 is frozen).
+
+## 7. Owner decisions (2026-10-19)
+
+The owner read this survey and approved the recommendations; they are the input for
+`/speckit-specify`.
+
+1. **KatIA's guardrail (A1, A2):** the correct answer leaves KatIA's prompt, and the server still
+   checks every reply: at most 120 tokens and 3 sentences, none of the revealing phrases, never the
+   correct option's text. A refused reply is replaced by a guiding question and not stored.
+2. **Which provider (A4):** decided by the key's prefix everywhere; the provider picker goes. The
+   server chooses the model per function.
+3. **Procedure review (A5):** Groq only (the vision model, `llama-4-scout`), said in the interface;
+   other providers may come in a later delivery. KatIA and the analyses keep their own Groq models:
+   one provider, one model per function.
+4. **What KatIA stores (A9):** no message text after a conversation ends. A short record per
+   conversation instead: the topic and item, whether the student then solved it, did not, or left
+   without finishing, and the kind of difficulty from a fixed list. Where the student got with the
+   assistant, not what was said.
+5. **Access (A8):** only students enrolled in the item's course, as spec 001 FR-037 does for
+   practice; the statement is read from the item, not from the client.
+6. **Dead code (A11):** V2-only dead code goes with spec 005. V1 retires for good: disconnected at
+   the switch (PR #3, `docs/transfer.md` § 3.1) and never reconnected; its code is removed about two
+   weeks after V2 runs stable in production (roadmap F-10).
+7. **Model ids (A12):** in settings, one per function, with today's models as defaults; every
+   provider call gets an explicit timeout.
+
+Not a decision: the teacher analysis gets the student's procedure statistics (A6) and no response
+carries exception text (A7) — both are defects.
