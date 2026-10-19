@@ -51,7 +51,9 @@ class MessageProxy:
             except OSError:
                 return
             upstream = socket.create_connection(self.target)
-            threading.Thread(target=self._client_to_server, args=(client, upstream), daemon=True).start()
+            threading.Thread(
+                target=self._client_to_server, args=(client, upstream), daemon=True
+            ).start()
             threading.Thread(target=self._pipe, args=(upstream, client), daemon=True).start()
 
     @staticmethod

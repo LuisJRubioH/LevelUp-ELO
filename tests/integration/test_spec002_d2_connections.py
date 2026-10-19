@@ -175,7 +175,7 @@ def test_spec002_d2_idle_connections_survive_a_burst(postgres_repo, monkeypatch)
 
 
 async def _health_while(client_call, app):
-    """Starts `client_call` and measures /api/health while it runs."""
+    """Starts `client_call` and measures GET / while it runs."""
     import httpx
 
     transport = httpx.ASGITransport(app=app)
@@ -184,11 +184,11 @@ async def _health_while(client_call, app):
         # Timed from here: a blocked loop delays the sleep itself, not only the request.
         started = time.monotonic()
         await asyncio.sleep(0.3)
-        response = await client.get("/api/health")
+        response = await client.get("/")  # no database: only the loop can delay it
         elapsed = time.monotonic() - started - 0.3
         slow_response = await slow
         # The slow call reached the repository (the item does not exist): it was not refused
-        # earlier, so its wait really overlapped /api/health.
+        # earlier, so its wait really overlapped GET /.
         assert slow_response.status_code == 404, slow_response.text
         return response.status_code, elapsed
 
@@ -219,7 +219,7 @@ def _app_with(repo):
 
 
 def test_spec002_d2_a_slow_repository_call_does_not_block_other_requests(repo, monkeypatch):
-    """US4-AS1, FR-024, SC-004: KatIA's chat waits 2 s on the repository; /api/health answers
+    """US4-AS1, FR-024, SC-004: KatIA's chat waits 2 s on the repository; GET / answers
     meanwhile."""
     import api.dependencies as deps
     from tests.integration.conftest import headers_for
@@ -238,12 +238,12 @@ def test_spec002_d2_a_slow_repository_call_does_not_block_other_requests(repo, m
     finally:
         deps._repo_instance = previous
     assert status == 200
-    assert elapsed < 1.0, f"/api/health waited {elapsed:.2f} s behind the repository call"
+    assert elapsed < 1.0, f"GET / waited {elapsed:.2f} s behind the repository call"
 
 
 def test_spec002_d2_waiting_for_the_pool_does_not_block_the_loop(postgres_repo, monkeypatch):
     """US4-AS2: with the pool exhausted, an asynchronous handler waits for a connection in a
-    worker thread; /api/health answers meanwhile."""
+    worker thread; GET / answers meanwhile."""
     import api.dependencies as deps
     from tests.integration.conftest import headers_for
 
@@ -272,21 +272,21 @@ def test_spec002_d2_waiting_for_the_pool_does_not_block_the_loop(postgres_repo, 
         deps._repo_instance = previous
         repo._pool.closeall()
     assert status == 200
-    assert elapsed < 1.0, f"/api/health waited {elapsed:.2f} s behind the pool"
+    assert elapsed < 1.0, f"GET / waited {elapsed:.2f} s behind the pool"
 
 
 # ── FR-024: guard ───────────────────────────────────────────────────────────
 
 
 def test_spec002_d2_no_repository_call_in_async_code():
-    """FR-024 (AGENTS R17): no `async def` under api/ calls the repository, get_repository() or
+    """FR-024 (AGENTS R17): no `async def` under api/ calls the repository or
     authenticate_access_token directly; such calls go through asyncio.to_thread or
-    run_in_executor."""
+    run_in_executor. get_repository() is allowed: it returns the instance the lifespan built."""
     import ast
     import pathlib
 
     root = pathlib.Path(__file__).resolve().parents[2] / "api"
-    blocking = {"get_repository", "authenticate_access_token"}
+    blocking = {"authenticate_access_token"}
     offenders = []
     for path in root.rglob("*.py"):
         tree = ast.parse(path.read_text(encoding="utf-8"))
@@ -298,7 +298,13 @@ def test_spec002_d2_no_repository_call_in_async_code():
                     continue
                 f = node.func
                 name = f.attr if isinstance(f, ast.Attribute) else getattr(f, "id", "")
-                owner = f.value.id if isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name) else ""
+                owner = (
+                    f.value.id
+                    if isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name)
+                    else ""
+                )
                 if owner in ("repo", "repository") or name in blocking:
-                    offenders.append(f"{path.relative_to(root.parent)}:{node.lineno} {owner}.{name}".strip("."))
+                    offenders.append(
+                        f"{path.relative_to(root.parent)}:{node.lineno} {owner}.{name}".strip(".")
+                    )
     assert offenders == []

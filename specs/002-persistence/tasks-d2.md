@@ -43,16 +43,29 @@ list on PostgreSQL, with every repository method wrapped, gives these 18 reads:
 
 ## Phase 3 — Implementation
 
-- [ ] T009 Both repositories: `_read_only` decorator (PostgreSQL: autocommit for the checkout and
+- [x] T009 Both repositories: `_read_only` decorator (PostgreSQL: autocommit for the checkout and
   one retry; SQLite: marker only) on the 18 hot reads (T002, T003)
-- [ ] T010 PostgreSQL pool: `minconn = DB_POOL_MIN_IDLE` (default 2, clamped 1…5), the liveness
+- [x] T010 PostgreSQL pool: `minconn = DB_POOL_MIN_IDLE` (default 2, clamped 1…5), the liveness
   probe for connections idle past `DB_POOL_PROBE_AFTER_S` (default 30), `put_connection` resets
   autocommit (T004, T005)
-- [ ] T011 `api/routers/ai.py::socratic` and `api/websocket/notifications.py`: repository calls via
+- [x] T011 `api/routers/ai.py::socratic` and `api/websocket/notifications.py`: repository calls via
   `asyncio.to_thread` (T006 … T008)
-- [ ] T012 `docs/transfer.md` § 3 and AGENTS.md R4/R17: the two variables, the read decorator
+- [x] T012 `docs/transfer.md` § 3 and AGENTS.md R4/R17: the two variables, the read decorator
 
 ## Phase 4 — Close
 
-- [ ] T013 Traceability: every D2 row filled; D2 `closed`; full suite on both engines,
+- [x] T013 Traceability: every D2 row filled; D2 `closed`; full suite on both engines,
   `db_sync_check.py`, black, flake8, `check_traceability.py`; before/after numbers in the PR
+
+## Measured (local PostgreSQL 16, counting proxy; warm pool, second request)
+
+| Endpoint | Queries before | Queries after |
+|---|---|---|
+| `POST /next-question` | 18 (6 BEGIN, 6 ROLLBACK) | 6 |
+| `GET /stats` | 18 | 6 |
+| `GET /map/{course}` | 18 | 6 |
+| `GET /group-ranking` | 21 | 7 |
+| `GET /courses` | 15 | 5 |
+
+Each query is one round trip: at Render↔Supabase latency the hot paths wait a third of what they
+did.
