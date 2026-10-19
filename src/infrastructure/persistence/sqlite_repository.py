@@ -5452,8 +5452,8 @@ class SQLiteRepository:
     ) -> dict:
         """Inside the caller's transaction: read the item's (course, topic) rating, let the domain
         compute, then write the rating, the grading row and the procedure (FR-024d, FR-024e).
-        An unknown contribution applies nothing (FR-024h); an item missing from the bank applies
-        nothing either, as grading such an item always did."""
+        An unknown contribution applies nothing (FR-024h); an exercise not in the bank applies
+        nothing either, and the procedure records 0, not marked as applied (FR-024m)."""
         cursor.execute("SELECT course_id, topic FROM items WHERE id = ?", (item_id,))
         item = cursor.fetchone()
         rating_before = 1000.0  # an absent row starts from 1000, as _bump_course_topic_rating
@@ -5498,7 +5498,7 @@ class SQLiteRepository:
             """
             UPDATE procedure_submissions
             SET teacher_score = ?, final_score = ?, teacher_feedback = ?,
-                elo_delta = ?, elo_applied = 1, contribution = ?,
+                elo_delta = ?, elo_applied = ?, contribution = ?,
                 contribution_origin = CASE WHEN ? THEN contribution_origin ELSE 'grading' END,
                 status = 'VALIDATED_BY_TEACHER', reviewed_at = CURRENT_TIMESTAMP
             WHERE id = ?
@@ -5507,7 +5507,9 @@ class SQLiteRepository:
                 grade,
                 grade,
                 feedback or None,
-                effect.computed_delta,
+                # FR-024m: an exercise not in the bank records what was applied, 0.
+                effect.computed_delta if item else 0.0,
+                1 if item else 0,
                 contribution_after,
                 1 if effect.contribution_unknown else 0,
                 submission_id,

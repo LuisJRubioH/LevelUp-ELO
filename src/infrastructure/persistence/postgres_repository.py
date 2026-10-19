@@ -6236,8 +6236,8 @@ class PostgresRepository:
     ) -> dict:
         """Inside the caller's transaction: read the item's (course, topic) rating, let the domain
         compute, then write the rating, the grading row and the procedure (FR-024d, FR-024e).
-        An unknown contribution applies nothing (FR-024h); an item missing from the bank applies
-        nothing either, as grading such an item always did."""
+        An unknown contribution applies nothing (FR-024h); an exercise not in the bank applies
+        nothing either, and the procedure records 0, not marked as applied (FR-024m)."""
         cursor.execute("SELECT course_id, topic FROM items WHERE id = %s", (item_id,))
         item = cursor.fetchone()
         rating_before = 1000.0  # an absent row starts from 1000, as _bump_course_topic_rating
@@ -6282,7 +6282,7 @@ class PostgresRepository:
             """
             UPDATE procedure_submissions
             SET teacher_score = %s, final_score = %s, teacher_feedback = %s,
-                elo_delta = %s, elo_applied = 1, contribution = %s,
+                elo_delta = %s, elo_applied = %s, contribution = %s,
                 contribution_origin = CASE WHEN %s THEN contribution_origin ELSE 'grading' END,
                 status = 'VALIDATED_BY_TEACHER', reviewed_at = CURRENT_TIMESTAMP
             WHERE id = %s
@@ -6291,7 +6291,9 @@ class PostgresRepository:
                 grade,
                 grade,
                 feedback or None,
-                effect.computed_delta,
+                # FR-024m: an exercise not in the bank records what was applied, 0.
+                effect.computed_delta if item else 0.0,
+                1 if item else 0,
                 contribution_after,
                 effect.contribution_unknown,
                 submission_id,
