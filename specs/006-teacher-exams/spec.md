@@ -7,7 +7,7 @@
 **Status**: Approved by the owner (2026-10-19), with N1 … N11 as recommended except N10's range
 buttons, which get a use (FR-043). Written from the as-is survey
 (`docs/sdd/teacher-exams-survey.md`, LuisJRubioH/LevelUp-ELO#43), re-verified on 2026-10-19 (its
-§ 7). Delivery A pins what already holds; X1, X2 and C1 are implemented; P1 is not.
+§ 7). Delivery A pins what already holds; X1, X2, C1 and P1 are implemented.
 
 **Input**: Roadmap M6 (`docs/sdd/roadmap.md`): dashboard metrics, exports, exam mode, procedure
 grading flow.
@@ -43,7 +43,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **X1** | Exam access and attempts: enrolled students only, one graded attempt per template, pending exams shown and dropped once submitted, server-side course name, a rate limit, stale sessions cleaned, a removed item no longer blocks a submission | closed |
 | **X2** | Templates and results: private until assigned, locked once taken, assignment checks the course and commits all groups or none, results of the teacher's own students on their first attempt, per student, with the chosen option kept | closed |
 | **C1** | The console from the server: one student set everywhere (screens, exports, counts), the group summary, ranking and «attention» list computed by the server with competition ranks, the dashboard's 7-day, 30-day and full-history views, teacher routes for teachers only, dead code removed | closed |
-| **P1** | The procedures queue: follows the item's course, active non-test students only, no submission left without a teacher, the grade slider starts empty, the AI feedback shown, a stale AI score cleared on resubmission | planned |
+| **P1** | The procedures queue: follows the item's course, active non-test students only, no submission left without a teacher, the grade slider starts empty, the AI feedback shown, a stale AI score cleared on resubmission | closed |
 
 ## Clarifications
 
@@ -311,8 +311,8 @@ closes their delivery.
 | US4-AS2 | C1 | `tests/integration/test_spec006_c1_console.py::test_every_place_lists_the_same_students` |
 | US4-AS3 | C1 | `tests/integration/test_spec006_c1_console.py::test_an_admin_gets_403_on_teacher_routes` |
 | US4-AS4 | C1 | `tests/integration/test_spec006_c1_console.py::test_the_dashboard_counts_the_chosen_window`<br>`frontend/e2e/spec006-c1-console.spec.ts › 7d, 30d y Todo piden esa ventana al servidor (US4-AS4, FR-043)` |
-| US5-AS1 | P1 | `PENDING` |
-| US5-AS2 | P1 | `PENDING` |
+| US5-AS1 | P1 | `tests/integration/test_spec006_p1_queue.py::test_the_queue_follows_the_items_course`<br>`tests/integration/test_spec006_p1_queue.py::test_inactive_and_test_students_are_not_queued` |
+| US5-AS2 | P1 | `tests/integration/test_spec006_p1_queue.py::test_a_resubmission_clears_the_ai_score`<br>`frontend/e2e/spec006-p1-grade.spec.ts › la nota empieza vacía y la de la IA se muestra al lado, con su retroalimentación (US5-AS2, FR-051)` |
 | FR-001 | A | `tests/api/test_student.py::TestExamMode::test_exam_start`<br>`tests/api/test_spec001_answer_pins.py::test_spec001_no_response_carries_the_correct_option` |
 | FR-002 | A | `tests/api/test_student.py::TestExamMode::test_exam_submit_empty` |
 | FR-003 | A | `tests/integration/test_exam_submit_deadline.py::test_a_submission_just_after_the_limit_is_graded`<br>`tests/integration/test_exam_submit_deadline.py::test_a_submission_long_after_the_limit_is_refused`<br>`frontend/e2e/exam-deadline.spec.ts › se envía al vencer el tiempo aunque el navegador haya frenado el temporizador`<br>`frontend/e2e/exam-deadline.spec.ts › un rechazo del servidor no se reintenta y muestra su motivo` |
@@ -338,5 +338,5 @@ closes their delivery.
 | FR-041 | C1 | `tests/integration/test_spec006_c1_console.py::test_the_summary_comes_from_the_server`<br>`tests/integration/test_spec006_c1_console.py::test_the_group_ranking_leaves_out_test_students`<br>`tests/unit/domain/test_spec006_console.py::test_ranks_are_competition_ranks_with_pending_last`<br>`tests/unit/domain/test_spec006_console.py::test_mean_accuracy_and_attempts`<br>`tests/unit/domain/test_spec006_console.py::test_attention_needs_a_low_rating_or_low_accuracy_with_attempts`<br>`tests/unit/domain/test_spec006_console.py::test_histogram_counts_rated_students`<br>`tests/unit/domain/test_spec006_console.py::test_each_group_has_its_own_figures`<br>`tests/unit/domain/test_spec006_console.py::test_no_students_is_an_empty_summary`<br>`frontend/e2e/spec006-c1-console.spec.ts › el ranking, el promedio y «atención» son los del servidor (US4-AS1, FR-041)` |
 | FR-042 | C1 | `tests/integration/test_spec006_c1_console.py::test_an_admin_gets_403_on_teacher_routes` |
 | FR-043 | C1 | `tests/integration/test_spec006_c1_console.py::test_the_dashboard_counts_the_chosen_window`<br>`frontend/e2e/spec006-c1-console.spec.ts › 7d, 30d y Todo piden esa ventana al servidor (US4-AS4, FR-043)` |
-| FR-050 | P1 | `PENDING` |
-| FR-051 | P1 | `PENDING` |
+| FR-050 | P1 | `tests/integration/test_spec006_p1_queue.py::test_the_queue_follows_the_items_course`<br>`tests/integration/test_spec006_p1_queue.py::test_inactive_and_test_students_are_not_queued` |
+| FR-051 | P1 | `tests/integration/test_spec006_p1_queue.py::test_a_resubmission_clears_the_ai_score`<br>`frontend/e2e/spec006-p1-grade.spec.ts › la nota empieza vacía y la de la IA se muestra al lado, con su retroalimentación (US5-AS2, FR-051)` |

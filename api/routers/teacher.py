@@ -247,6 +247,7 @@ def pending_procedures(user: CurrentUser, repo: RepoDep):
                 item_id=row.get("item_id", ""),
                 item_content=row.get("item_content"),
                 ai_score=row.get("ai_proposed_score"),
+                ai_feedback=row.get("ai_feedback"),
                 status=row.get("status", "pending"),
                 created_at=str(row.get("submitted_at") or row.get("created_at", "")),
                 has_image=has_image,
