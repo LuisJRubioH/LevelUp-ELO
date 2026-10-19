@@ -42,7 +42,7 @@ request that completes a delivery marks it closed and fills all its rows.
 
 | Delivery | Content | State |
 |---|---|---|
-| **A** | As-is pins: what the AI features already guarantee, each requirement tied to a test | in progress |
+| **A** | As-is pins: what the AI features already guarantee, each requirement tied to a test | closed |
 | **K1** | One key, the right provider: the provider from the key's prefix, one model per function from settings, timeouts, Groq-only review said in the interface, the teacher analysis's real inputs, no exception text to the client | planned |
 | **K2** | KatIA's guardrails and access: no correct answer in the prompt, every reply checked, the statement read from the item, only enrolled students | planned |
 | **K3** | KatIA's record: multi-turn conversations, a summary per conversation for the teacher, no message text kept after it ends | planned |
@@ -288,8 +288,8 @@ request that closes their delivery.
 | FR-002 | A | `tests/api/test_procedure_upload_security.py::test_client_cannot_forge_ai_score_but_signed_review_is_accepted`<br>`tests/api/test_ai_errors_and_scores.py::test_the_ai_score_stays_on_its_0_to_100_scale` |
 | FR-003 | A | `tests/api/test_ai_errors_and_scores.py::test_a_provider_failure_is_not_katias_reply`<br>`tests/api/test_ai_errors_and_scores.py::test_an_unexpected_failure_shows_no_internal_detail` |
 | FR-004 | A | `tests/api/test_rate_limit.py::test_socratic_rate_limit_is_enforced_per_access_token`<br>`tests/api/test_rate_limit.py::test_ai_rate_limit_is_not_shared_between_accounts` |
-| FR-005 | A | `PENDING` |
-| FR-006 | A | `PENDING` |
+| FR-005 | A | `tests/api/test_spec005_a_pins.py::test_spec005_no_table_has_a_key_column`<br>`tests/api/test_spec005_a_pins.py::test_spec005_a_users_key_is_neither_stored_nor_returned`<br>`tests/api/test_spec005_a_pins.py::test_spec005_the_system_key_is_never_returned` |
+| FR-006 | A | `tests/api/test_spec005_a_pins.py::test_spec005_user_key_then_function_key_then_general_key` |
 | FR-007 | A | `tests/api/test_teacher_resource_access.py::test_ai_analysis_without_a_key_says_so` |
 | FR-010 | K1 | `PENDING` |
 | FR-011 | K1 | `PENDING` |
