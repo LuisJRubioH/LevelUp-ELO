@@ -215,7 +215,12 @@ Composition points: `api/routers/student.py::_make_service` and `src/interface/s
 
 ### R4 — Connection pool: never `conn.close()`
 Always `self.put_connection(conn)`. Closing destroys the pooled connection and exhausts the pool.
-`ThreadedConnectionPool(1, 5)`; do not raise `maxconn` on the Supabase free tier.
+`ThreadedConnectionPool(DB_POOL_MIN_IDLE, 5)` (default 2 idle; spec 002 D2); do not raise `maxconn`
+on the Supabase free tier. A connection idle past `DB_POOL_PROBE_AFTER_S` (default 30) is probed
+with `SELECT 1` on checkout. A method that only reads carries `@_read_only` (both repositories):
+on PostgreSQL it runs in autocommit — one round trip, no `BEGIN`/`ROLLBACK` — and retries once on
+a closed connection. **Never put it on a method that writes, locks (`FOR UPDATE`) or commits**:
+`test_spec002_d2_read_only_methods_write_nothing` lists the decorated methods.
 
 ### R5 — LaTeX in JSON: double the backslashes
 `\\frac`, `\\sin`, `\\alpha`. An unescaped `\f` is a form feed and breaks parsing.

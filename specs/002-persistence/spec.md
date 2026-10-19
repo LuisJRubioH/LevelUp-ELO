@@ -36,7 +36,7 @@ request that completes a delivery marks it closed and fills all its rows.
 |---|---|---|
 | **A** | As-is pins: what persistence already guarantees, each requirement tied to a test | in progress |
 | **D1** | Startup: a schema version so a start with nothing to do does nothing; repairs as scripts; the one R8 exception guarded; a failed migration commits nothing | closed |
-| **D2** | Connections and the event loop: warm idle connections, a real liveness check, no repository call blocking an asynchronous handler, one round trip per read | planned |
+| **D2** | Connections and the event loop: warm idle connections, a real liveness check, no repository call blocking an asynchronous handler, one round trip per read | closed |
 | **D3** | Parity checks and documented differences between the engines | planned |
 
 ## Clarifications
@@ -335,11 +335,11 @@ pull request that closes their delivery.
 | US2-AS3 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_duplicate_groups_stop_the_migration_naming_the_script` |
 | US3-AS1 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_drop_not_null_runs_only_while_needed` |
 | US3-AS2 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_drop_not_null_runs_only_while_needed` |
-| US4-AS1 | D2 | `PENDING` |
-| US4-AS2 | D2 | `PENDING` |
-| US5-AS1 | D2 | `PENDING` |
-| US5-AS2 | D2 | `PENDING` |
-| US5-AS3 | D2 | `PENDING` |
+| US4-AS1 | D2 | `tests/integration/test_spec002_d2_connections.py::test_spec002_d2_a_slow_repository_call_does_not_block_other_requests` |
+| US4-AS2 | D2 | `tests/integration/test_spec002_d2_connections.py::test_spec002_d2_waiting_for_the_pool_does_not_block_the_loop` |
+| US5-AS1 | D2 | `tests/integration/test_spec002_d2_connections.py::test_spec002_d2_a_read_costs_one_round_trip` |
+| US5-AS2 | D2 | `tests/integration/test_spec002_d2_connections.py::test_spec002_d2_a_closed_connection_is_replaced` |
+| US5-AS3 | D2 | `tests/integration/test_spec002_d2_connections.py::test_spec002_d2_idle_connections_survive_a_burst` |
 | US6-AS1 | A | `tests/integration/test_spec001_concurrent_rating_writers.py::test_spec001_a_procedure_graded_during_an_answer_keeps_its_delta`<br>`tests/integration/test_spec001_concurrent_rating_writers.py::test_spec001_a_pvp_result_applied_during_an_answer_keeps_its_delta` |
 | US6-AS2 | A | `tests/integration/test_migrate_lock.py::test_migrate_fails_and_blocks_the_web_process_when_a_lock_is_held` |
 | US6-AS3 | A | `tests/integration/test_v1_run_migrations.py::test_v1_with_run_migrations_0_creates_nothing` |
@@ -360,10 +360,10 @@ pull request that closes their delivery.
 | FR-018 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_reactivated_user_without_password_stays_active`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_repair_scripts_report_and_are_idempotent`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_duplicate_groups_stop_the_migration_naming_the_script` |
 | FR-020 | A | `PENDING` |
 | FR-021 | A | `PENDING` |
-| FR-022 | D2 | `PENDING` |
-| FR-023 | D2 | `PENDING` |
-| FR-024 | D2 | `PENDING` |
-| FR-025 | D2 | `PENDING` |
+| FR-022 | D2 | `tests/integration/test_spec002_d2_connections.py::test_spec002_d2_idle_connections_survive_a_burst` |
+| FR-023 | D2 | `tests/integration/test_spec002_d2_connections.py::test_spec002_d2_a_closed_connection_is_replaced` |
+| FR-024 | D2 | `tests/integration/test_spec002_d2_connections.py::test_spec002_d2_a_slow_repository_call_does_not_block_other_requests`<br>`tests/integration/test_spec002_d2_connections.py::test_spec002_d2_waiting_for_the_pool_does_not_block_the_loop`<br>`tests/integration/test_spec002_d2_connections.py::test_spec002_d2_no_repository_call_in_async_code` |
+| FR-025 | D2 | `tests/integration/test_spec002_d2_connections.py::test_spec002_d2_a_read_costs_one_round_trip`<br>`tests/integration/test_spec002_d2_connections.py::test_spec002_d2_read_only_methods_write_nothing` |
 | FR-026 | A | `tests/integration/test_spec001_concurrent_rating_writers.py::test_spec001_a_procedure_graded_during_an_answer_keeps_its_delta`<br>`tests/integration/test_spec001_concurrent_rating_writers.py::test_spec001_a_pvp_result_applied_during_an_answer_keeps_its_delta`<br>`tests/integration/test_elo_single_source.py::test_concurrent_answers_on_the_same_item_compose_serially` |
 | FR-030 | A | `tests/integration/test_procedure_upload_paths.py::test_storage_key_stays_in_the_students_folder`<br>`tests/unit/infrastructure/test_storage_paths.py::test_no_separator_or_dot_survives` |
 | FR-031 | A | `tests/integration/test_teacher_image_fallback.py::test_image_falls_back_to_the_row_when_storage_fails` |

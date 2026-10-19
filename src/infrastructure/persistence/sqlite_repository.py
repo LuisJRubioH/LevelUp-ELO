@@ -34,6 +34,14 @@ def _procedure_effect(row):
 
 
 # TODO: reemplazar SQLite por DB externa (PostgreSQL, etc.) en producción
+def _read_only(func):
+    """Marks a repository method that only reads (spec 002 FR-025). PostgreSQL runs it in
+    autocommit; SQLite has no round trips to save, so here it is only the marker the parity and
+    write-guard tests read."""
+    func._read_only = True
+    return func
+
+
 def _migrations_enabled() -> bool:
     """Indica si este proceso debe crear esquema, seeds y backfills.
 
@@ -1509,6 +1517,7 @@ class SQLiteRepository:
         finally:
             conn.close()
 
+    @_read_only
     def get_user_by_id(self, user_id: int) -> dict | None:
         """Retorna datos básicos de un usuario por su ID."""
         conn = self.get_connection()
@@ -1828,6 +1837,7 @@ class SQLiteRepository:
         finally:
             conn.close()
 
+    @_read_only
     def get_study_streak(self, user_id, course_id=None):
         """Calcula la racha de días consecutivos de estudio del estudiante.
 
@@ -2140,6 +2150,7 @@ class SQLiteRepository:
             for row in rows
         ]
 
+    @_read_only
     def get_total_attempts_count(self, user_id):
         """Retorna el número total de intentos de un estudiante."""
         conn = self.get_connection()
@@ -2203,6 +2214,7 @@ class SQLiteRepository:
         conn.close()
         return results
 
+    @_read_only
     def get_answered_item_ids(self, user_id):
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -2214,11 +2226,13 @@ class SQLiteRepository:
     # ── Spec 001: raw rating rows and ranking participants ───────────────────
     # Raw rows only: no averaging, rounding or ordering by rating (constitution III).
 
+    @_read_only
     def get_course_topic_ratings(self, user_id, course_id=None):
         """Rows of student_course_topic_elo for one student (never the legacy store)."""
         rows = self.get_course_topic_ratings_bulk([user_id], course_id)
         return [{k: v for k, v in r.items() if k != "user_id"} for r in rows]
 
+    @_read_only
     def get_course_topic_ratings_bulk(self, user_ids, course_id=None):
         if not user_ids:
             return []
@@ -2253,6 +2267,7 @@ class SQLiteRepository:
         """Enrolled courses in the catalogue of the student's current level and grade."""
         return self.get_current_context_course_ids_bulk([user_id])[user_id]
 
+    @_read_only
     def get_current_context_course_ids_bulk(self, user_ids):
         from src.domain.entities import in_catalogue
 
@@ -2276,6 +2291,7 @@ class SQLiteRepository:
                 result[user_id].append(course_id)
         return result
 
+    @_read_only
     def get_ranking_participants(
         self,
         scope,
@@ -3839,6 +3855,7 @@ class SQLiteRepository:
 
         seed_test_students(self)
 
+    @_read_only
     def get_available_courses_by_level(self, level: str, grade=None):
         """The catalogue of a level — for semillero, of the grade (spec 001 FR-028k).
 
@@ -3864,6 +3881,7 @@ class SQLiteRepository:
             if in_catalogue(level, grade, r[0], r[2])
         ]
 
+    @_read_only
     def get_courses(self, block=None):
         """Devuelve todos los cursos, opcionalmente filtrados por bloque."""
         conn = self.get_connection()
@@ -3952,6 +3970,7 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    @_read_only
     def get_user_enrollments(self, user_id):
         """Devuelve los cursos en los que está matriculado el usuario.
 
@@ -4033,6 +4052,7 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    @_read_only
     def get_education_level(self, user_id):
         """Retorna el education_level del usuario, o None si no existe."""
         conn = self.get_connection()
@@ -4103,6 +4123,7 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    @_read_only
     def get_items_from_db(self, topic=None, course_id=None, block=None):
         """Obtiene ítems desde la base de datos.
         Prioridad de filtro: course_id [+ block] > topic > sin filtro."""
@@ -5358,6 +5379,7 @@ class SQLiteRepository:
         finally:
             conn.close()
 
+    @_read_only
     def get_diagnostic(self, user_id: int, course_id: str) -> dict | None:
         """Devuelve el diagnóstico de un estudiante en una materia, o None."""
         conn = self.get_connection()
@@ -5381,6 +5403,7 @@ class SQLiteRepository:
             "completed_at": row[3],
         }
 
+    @_read_only
     def get_completed_diagnostic_course_ids(self, user_id: int) -> list:
         """course_ids con diagnóstico completado por el estudiante."""
         conn = self.get_connection()
@@ -5408,6 +5431,7 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    @_read_only
     def get_lesson_progress(self, user_id: int, course_id: str, node_id: str) -> dict:
         """Progreso de un nodo no evaluativo; nunca consulta ni modifica ELO."""
         conn = self.get_connection()
@@ -5437,6 +5461,7 @@ class SQLiteRepository:
             "completed_at": str(row[4]) if row[4] else None,
         }
 
+    @_read_only
     def get_lesson_states(self, user_id: int, course_id: str) -> dict[str, str]:
         """Estado guardado de cada nodo con progreso en la materia, en una sola lectura."""
         conn = self.get_connection()
@@ -5483,6 +5508,7 @@ class SQLiteRepository:
         conn.close()
         return self.get_lesson_progress(user_id, course_id, node_id)
 
+    @_read_only
     def get_lesson_interactions(self, user_id: int, course_id: str, node_id: str) -> dict:
         """Selecciones estructuradas del nodo, indexadas por interacción."""
         conn = self.get_connection()

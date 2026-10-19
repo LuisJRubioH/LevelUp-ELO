@@ -62,6 +62,8 @@ wrong):
 | `ENVIRONMENT` | `production` — turns on the runtime checks below |
 | `DATABASE_URL` | PostgreSQL for web traffic. On Supabase: the **transaction pooler, port 6543** |
 | `MIGRATION_DATABASE_URL` | Only for `scripts/migrate.py`: the **session pooler (5432)** — the migration's advisory lock is not reliable on the transaction pooler (6543). Supabase's direct connection also takes the lock, but its host has only IPv6 unless the project buys the IPv4 add-on, and neither Render nor GitHub-hosted runners (the `transfer-ops` jobs) reach IPv6 |
+| `DB_POOL_MIN_IDLE` | Optional (default `2`, 1–5): idle PostgreSQL connections the API keeps between requests (spec 002 D2). The pool never opens more than 5 |
+| `DB_POOL_PROBE_AFTER_S` | Optional (default `30`): a connection idle longer than this is checked with `SELECT 1` before use |
 | `RUN_MIGRATIONS` | `0` on the web process; the schema is applied by the separate migration step |
 | `WEB_CONCURRENCY` | `1` (required: PvP lobby and notification rooms live in process memory — AGENTS.md R18) |
 | `JWT_SECRET_KEY` | ≥ 32 random characters (`python -c "import secrets; print(secrets.token_hex(32))"`) |

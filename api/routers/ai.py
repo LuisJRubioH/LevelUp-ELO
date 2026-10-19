@@ -6,6 +6,7 @@ Endpoints de IA:
   POST /ai/review-procedure  → revisión de procedimiento manuscrito (multipart)
 """
 
+import asyncio
 import json
 import logging
 from typing import AsyncGenerator
@@ -64,7 +65,8 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
         )
 
     # Obtener datos del ítem desde DB (correct_option nunca viaja al frontend)
-    item_db = repo.get_item_by_id(body.item_id)
+    # A worker thread, not the event loop: the repository is synchronous (spec 002 FR-024).
+    item_db = await asyncio.to_thread(repo.get_item_by_id, body.item_id)
     if not item_db:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

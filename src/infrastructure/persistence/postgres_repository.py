@@ -3,6 +3,7 @@ import os
 import re
 import time
 import functools
+import threading
 import logging
 import psycopg2
 import psycopg2.errors
@@ -81,6 +82,52 @@ def _retry_on_deadlock(max_retries=2, delay=0.05):
         return wrapper
 
     return decorator
+
+
+# Spec 002 FR-025: per-thread depth of @_read_only calls; connections checked out inside one run
+# in autocommit (no BEGIN, no ROLLBACK). `probe` forces the liveness check on the retry.
+_READ_ONLY = threading.local()
+
+
+def _read_only(func):
+    """Marks a repository method that only reads (spec 002 FR-025, FR-023).
+
+    On PostgreSQL its connection runs in autocommit, so the read costs one round trip instead of
+    BEGIN + query + ROLLBACK; and when the first attempt finds the connection closed by the
+    server, it is repeated once on a probed connection — safe because it writes nothing
+    (tests/integration/test_spec002_d2_connections.py checks that). Only for methods whose
+    statements are all reads; a writer keeps its transaction.
+    """
+
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        depth = getattr(_READ_ONLY, "depth", 0)
+        _READ_ONLY.depth = depth + 1
+        try:
+            try:
+                return func(self, *args, **kwargs)
+            except (psycopg2.OperationalError, psycopg2.InterfaceError):
+                if depth:
+                    raise  # the outermost read retries
+                _READ_ONLY.probe = True
+                try:
+                    return func(self, *args, **kwargs)
+                finally:
+                    _READ_ONLY.probe = False
+        finally:
+            _READ_ONLY.depth = depth
+
+    wrapper._read_only = True
+    return wrapper
+
+
+def _env_number(name, default, low, high, cast=int):
+    """A bounded number from the environment; the default when absent or not a number."""
+    try:
+        value = cast(os.environ.get(name, default))
+    except ValueError:
+        value = default
+    return min(max(value, low), high)
 
 
 def _migrations_enabled() -> bool:
@@ -232,9 +279,16 @@ class PostgresRepository:
         _conn_mode = "pooler" if _is_pooler else "directa"
         print(f"[DB] Modo de conexión: {_conn_mode} ({host}:{port})")
         try:
+            # Spec 002 FR-022: psycopg2 keeps at most `minconn` idle connections between
+            # requests (owner decision N1: 2); maxconn stays 5 (R4, Supabase free tier).
             self._pool = psycopg2.pool.ThreadedConnectionPool(
-                minconn=1, maxconn=5, **self._conn_kwargs
+                minconn=_env_number("DB_POOL_MIN_IDLE", 2, 1, 5),
+                maxconn=5,
+                **self._conn_kwargs,
             )
+            # FR-023: a connection idle longer than this is probed before it is handed out.
+            self._probe_after_s = _env_number("DB_POOL_PROBE_AFTER_S", 30.0, 0.0, 3600.0, float)
+            self._returned_at: dict[int, float] = {}
         except psycopg2.OperationalError as exc:
             _hint = (
                 "Usando pooler — verifica que el host sea accesible desde este entorno."
@@ -352,7 +406,9 @@ class PostgresRepository:
         """Obtiene una conexión del pool. Caller debe devolverla con put_connection().
 
         Reintenta durante `timeout` segundos si el pool está agotado (todas las
-        conexiones en uso por otras peticiones concurrentes de FastAPI).
+        conexiones en uso por otras peticiones concurrentes de FastAPI). A connection the
+        server closed is replaced before it is handed out (spec 002 FR-023); inside a
+        @_read_only call it runs in autocommit (FR-025).
         """
         deadline = time.monotonic() + timeout
         sleep_interval = 0.1
@@ -365,13 +421,37 @@ class PostgresRepository:
                 time.sleep(sleep_interval)
                 sleep_interval = min(sleep_interval * 1.5, 1.0)  # backoff hasta 1s
                 continue
-            try:
-                # Verificar que la conexión siga viva; si no, el pool la reemplaza
-                conn.isolation_level
-            except psycopg2.OperationalError:
-                self._pool.putconn(conn, close=True)
-                conn = self._pool.getconn()
-            return conn
+            if self._usable(conn):
+                break
+            self._discard(conn)
+        if getattr(_READ_ONLY, "depth", 0):
+            conn.autocommit = True
+        return conn
+
+    def _usable(self, conn) -> bool:
+        """False for a connection known closed, or one idle past the threshold (or any, on a
+        read's retry) that fails `SELECT 1`."""
+        if conn.closed:
+            return False
+        returned = self._returned_at.get(id(conn))
+        forced = getattr(_READ_ONLY, "probe", False)
+        if not forced and (returned is None or time.monotonic() - returned < self._probe_after_s):
+            return True
+        try:
+            conn.autocommit = True
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT 1")
+            conn.autocommit = False
+            return True
+        except (psycopg2.OperationalError, psycopg2.InterfaceError):
+            return False
+
+    def _discard(self, conn):
+        self._returned_at.pop(id(conn), None)
+        try:
+            self._pool.putconn(conn, close=True)
+        except psycopg2.pool.PoolError:
+            pass
 
     def get_submission_image_data(self, submission_id) -> bytes | None:
         """The bytes kept in the submission row (BYTEA), for when Storage cannot serve them (R9)."""
@@ -409,11 +489,18 @@ class PostgresRepository:
         limpia el estado de error si ocurrió un deadlock o cualquier otra
         excepción que dejó la conexión en estado abortado.
         """
+        if conn.closed:
+            self._discard(conn)
+            return
         try:
-            conn.rollback()
+            if conn.autocommit:
+                conn.autocommit = False  # a @_read_only checkout: no transaction is open
+            else:
+                conn.rollback()
         except Exception:
             pass
-        self._pool.putconn(conn)
+        self._returned_at[id(conn)] = time.monotonic()
+        self._pool.putconn(conn, close=bool(conn.closed))
 
     @_timing
     def init_db(self, cursor=None):
@@ -1856,6 +1943,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_read_only
     def get_user_by_id(self, user_id: int) -> dict | None:
         """Retorna datos básicos de un usuario por su ID."""
         conn = self.get_connection()
@@ -2163,6 +2251,7 @@ class PostgresRepository:
             self.put_connection(conn)
 
     @_timing
+    @_read_only
     def get_study_streak(self, user_id, course_id=None):
         """Calcula la racha de días consecutivos de estudio del estudiante.
 
@@ -2471,6 +2560,7 @@ class PostgresRepository:
             self.put_connection(conn)
 
     @_timing
+    @_read_only
     def get_total_attempts_count(self, user_id):
         """Retorna el número total de intentos de un estudiante."""
         conn = self.get_connection()
@@ -2545,6 +2635,7 @@ class PostgresRepository:
             self.put_connection(conn)
 
     @_timing
+    @_read_only
     def get_answered_item_ids(self, user_id):
         conn = self.get_connection()
         try:
@@ -2559,12 +2650,14 @@ class PostgresRepository:
     # Raw rows only: no averaging, rounding or ordering by rating (constitution III).
 
     @_timing
+    @_read_only
     def get_course_topic_ratings(self, user_id, course_id=None):
         """Rows of student_course_topic_elo for one student (never the legacy store)."""
         rows = self.get_course_topic_ratings_bulk([user_id], course_id)
         return [{k: v for k, v in r.items() if k != "user_id"} for r in rows]
 
     @_timing
+    @_read_only
     def get_course_topic_ratings_bulk(self, user_ids, course_id=None):
         if not user_ids:
             return []
@@ -2602,6 +2695,7 @@ class PostgresRepository:
         return self.get_current_context_course_ids_bulk([user_id])[user_id]
 
     @_timing
+    @_read_only
     def get_current_context_course_ids_bulk(self, user_ids):
         from src.domain.entities import in_catalogue
 
@@ -2627,6 +2721,7 @@ class PostgresRepository:
         return result
 
     @_timing
+    @_read_only
     def get_ranking_participants(
         self,
         scope,
@@ -4425,6 +4520,7 @@ class PostgresRepository:
             self.put_connection(conn)
 
     @_timing
+    @_read_only
     def get_available_courses_by_level(self, level: str, grade=None):
         """The catalogue of a level — for semillero, of the grade (spec 001 FR-028k).
 
@@ -4458,6 +4554,7 @@ class PostgresRepository:
             self.put_connection(conn)
 
     @_timing
+    @_read_only
     def get_courses(self, block=None):
         """Devuelve todos los cursos, opcionalmente filtrados por bloque."""
         conn = self.get_connection()
@@ -4558,6 +4655,7 @@ class PostgresRepository:
             self.put_connection(conn)
 
     @_timing
+    @_read_only
     def get_user_enrollments(self, user_id):
         """Devuelve los cursos en los que está matriculado el usuario."""
         conn = self.get_connection()
@@ -4634,6 +4732,7 @@ class PostgresRepository:
             self.put_connection(conn)
 
     @_timing
+    @_read_only
     def get_education_level(self, user_id):
         """Retorna el education_level del usuario, o None si no existe."""
         conn = self.get_connection()
@@ -4715,6 +4814,7 @@ class PostgresRepository:
             self.put_connection(conn)
 
     @_timing
+    @_read_only
     def get_items_from_db(self, topic=None, course_id=None, block=None):
         """Obtiene ítems desde la base de datos."""
         conn = self.get_connection()
@@ -5956,6 +6056,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_read_only
     def get_diagnostic(self, user_id: int, course_id: str) -> dict | None:
         """Devuelve el diagnóstico de un estudiante en una materia, o None."""
         import json as _json
@@ -5981,6 +6082,7 @@ class PostgresRepository:
             "completed_at": row["completed_at"],
         }
 
+    @_read_only
     def get_completed_diagnostic_course_ids(self, user_id: int) -> list:
         """course_ids con diagnóstico completado por el estudiante."""
         conn = self.get_connection()
@@ -6016,6 +6118,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_read_only
     def get_lesson_progress(self, user_id: int, course_id: str, node_id: str) -> dict:
         """Progreso de un nodo no evaluativo; nunca consulta ni modifica ELO."""
         conn = self.get_connection()
@@ -6047,6 +6150,7 @@ class PostgresRepository:
             "completed_at": str(row["completed_at"]) if row["completed_at"] else None,
         }
 
+    @_read_only
     def get_lesson_states(self, user_id: int, course_id: str) -> dict[str, str]:
         """Estado guardado de cada nodo con progreso en la materia, en una sola lectura."""
         conn = self.get_connection()
@@ -6102,6 +6206,7 @@ class PostgresRepository:
             self.put_connection(conn)
         return self.get_lesson_progress(user_id, course_id, node_id)
 
+    @_read_only
     def get_lesson_interactions(self, user_id: int, course_id: str, node_id: str) -> dict:
         """Selecciones estructuradas del nodo, indexadas por interacción."""
         conn = self.get_connection()
