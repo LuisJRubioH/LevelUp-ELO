@@ -128,7 +128,9 @@ def test_both_engines_build_the_same_schema(tmp_path, postgres_url):
 
     conn = psycopg2.connect(postgres_url, sslmode=_SSLMODE)
     try:
-        problems = unexplained(_sqlite_catalogue(sqlite_path), _postgres_catalogue(conn), runtime=True)
+        problems = unexplained(
+            _sqlite_catalogue(sqlite_path), _postgres_catalogue(conn), runtime=True
+        )
 
         def pg(query):
             with conn.cursor() as cur:
@@ -176,7 +178,9 @@ def test_item_sync_updates_course_name_and_block(engine, tmp_path, monkeypatch, 
         def course_row():
             conn = sqlite3.connect(str(tmp_path / "sync.db"))
             try:
-                return conn.execute("SELECT name, block FROM courses WHERE id = ?", (course,)).fetchone()
+                return conn.execute(
+                    "SELECT name, block FROM courses WHERE id = ?", (course,)
+                ).fetchone()
             finally:
                 conn.close()
 

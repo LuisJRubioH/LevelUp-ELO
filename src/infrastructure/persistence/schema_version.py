@@ -15,8 +15,8 @@ import hashlib
 import inspect
 import os
 
-SCHEMA_VERSION = 1
-MIGRATION_SOURCES_DIGEST = "a4c54cd57ef4809e57487bebe727184eeba793464e9c81b1ca9090e6c4d8fb5a"
+SCHEMA_VERSION = 2  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1)
+MIGRATION_SOURCES_DIGEST = "b49d467025855f3346091ff7d64d6112a300d5d8aa1ac3fd2bc6e48dbcb77655"
 
 # Every method that issues DDL, or decides whether the migration may run, on both repositories.
 _MIGRATION_METHODS = (

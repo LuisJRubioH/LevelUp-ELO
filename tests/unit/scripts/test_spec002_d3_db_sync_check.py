@@ -52,7 +52,9 @@ def _run(sqlite, postgres):
 
 def test_the_repositories_pass():
     """The repositories as they are: every difference between them is an accepted one."""
-    code, output = _run(_PERSISTENCE / "sqlite_repository.py", _PERSISTENCE / "postgres_repository.py")
+    code, output = _run(
+        _PERSISTENCE / "sqlite_repository.py", _PERSISTENCE / "postgres_repository.py"
+    )
     assert code == 0, output
 
 

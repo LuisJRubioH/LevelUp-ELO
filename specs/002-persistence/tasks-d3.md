@@ -10,6 +10,12 @@ FR-041 are `[CHANGE]`: their tests fail on the unchanged code first.
   student list, which `seed_test_students.py` (SQLite) extended. N8 makes PostgreSQL read the same
   list.
 
+- The static check counts indexes by name: PostgreSQL issues
+  `CREATE INDEX IF NOT EXISTS idx_attempts_user_topic_ts` in both `init_db` and `_run_migration`,
+  which makes one index, not two.
+- Rollout: the plan said production course rows already match the bank; that was not verified,
+  and the plan now says so.
+
 ## Phase 1 — Tests first (all fail on the unchanged code)
 
 - [x] T001 [P] `tests/unit/scripts/test_spec002_d3_db_sync_check.py`: a column, an index, a unique
@@ -21,16 +27,16 @@ FR-041 are `[CHANGE]`: their tests fail on the unchanged code first.
 
 ## Phase 2 — Implementation
 
-- [ ] T004 `src/infrastructure/persistence/engine_differences.py`: the accepted differences, the
+- [x] T004 `src/infrastructure/persistence/engine_differences.py`: the accepted differences, the
   `Catalogue` model and `unexplained()` (static and runtime)
-- [ ] T005 `scripts/db_sync_check.py`: `--sqlite/--postgres`; section 1 by `inspect.signature`;
+- [x] T005 `scripts/db_sync_check.py`: `--sqlite/--postgres`; section 1 by `inspect.signature`;
   section 3 by `ast` over `_MIGRATION_METHODS`, failing as errors (T001)
-- [ ] T006 SQLite `idx_attempts_user_id`; `SCHEMA_VERSION = 2` and the new digest (T002)
-- [ ] T007 PostgreSQL course sync updates name and block when they changed (T003)
-- [ ] T008 PostgreSQL `_seed_test_students` reads the shared student list, concursos included (T002)
-- [ ] T009 AGENTS.md R1: what the check covers and where accepted differences live
+- [x] T006 SQLite `idx_attempts_user_id`; `SCHEMA_VERSION = 2` and the new digest (T002)
+- [x] T007 PostgreSQL course sync updates name and block when they changed (T003)
+- [x] T008 PostgreSQL `_seed_test_students` reads the shared student list, concursos included (T002)
+- [x] T009 AGENTS.md R1: what the check covers and where accepted differences live
 
 ## Phase 3 — Close
 
-- [ ] T010 Traceability: US7-AS1, US7-AS2, FR-040, FR-041 filled; D3 `closed`; full suite on both
+- [x] T010 Traceability: US7-AS1, US7-AS2, FR-040, FR-041 filled; D3 `closed`; full suite on both
   engines, `db_sync_check.py`, black, flake8, `check_traceability.py`
