@@ -3,13 +3,21 @@
  * ============================================
  * Portado de docs/redesign/source/teacher-groups.jsx, con datos reales:
  * teacherApi.groups() + dashboard() (roster/ELO por grupo) + allCourses()
- * + createGroup() + generateInviteCode(). Estilos en TeacherConsole.css.
+ * + createGroup() + the group's single-use invitations (spec 001, delivery INV:
+ * invitations() / createInvitations() / revokeInvitation()). Estilos en TeacherConsole.css.
  */
 
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { RankPill } from "../../components/ELO/RankBadge";
-import { teacherApi, type Group, type StudentSummary } from "../../api/teacher";
+import {
+  teacherApi,
+  type Group,
+  type Invitation,
+  type StudentSummary,
+} from "../../api/teacher";
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 /** Spec 001: ratings and labels come from the API (display_rating, rank_label) as given. */
@@ -62,52 +70,158 @@ function statsFor(members: StudentSummary[]): GroupStats {
   };
 }
 
-/* ── code chip ───────────────────────────────────────────────────────────── */
-function CodeChip({
-  code,
-  big,
-  onGenerate,
-  generating,
-}: {
-  code: string | null;
-  big?: boolean;
-  onGenerate: () => void;
-  generating: boolean;
-}) {
-  const [done, setDone] = useState(false);
-  if (!code) {
-    return (
-      <button
-        className={"code-chip" + (big ? " big" : "")}
-        onClick={(e) => {
-          e.stopPropagation();
-          onGenerate();
-        }}
-        disabled={generating}
-        title="Generar código de invitación"
-      >
-        <span className="ic">🔑</span>
-        <span className="cc">{generating ? "Generando…" : "Sin código"}</span>
-        <span className="cp">Generar</span>
-      </button>
-    );
-  }
-  const copy = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      navigator.clipboard.writeText(code);
-    } catch {
-      /* noop */
-    }
-    setDone(true);
-    setTimeout(() => setDone(false), 1400);
-  };
+/* ── invitations (spec 001, delivery INV) ────────────────────────────────── */
+const MAX_INVITATIONS = 50;
+/** "YYYY-MM-DD HH:MM:SS" → "dd/mm/aaaa", read from the text (no time-zone shift). */
+const fmtDay = (stamp: string) => {
+  const [y, m, d] = stamp.slice(0, 10).split("-");
+  return `${d}/${m}/${y}`;
+};
+/** FR-028t: what each state says; a used one names the student by their public name. */
+const invitationState = (i: Invitation) =>
+  i.status === "unused"
+    ? `Sin usar · vence ${fmtDay(i.expires_at)}`
+    : i.status === "used"
+      ? `Usada por ${i.used_by_name ?? "un estudiante"}`
+      : i.status === "expired"
+        ? "Vencida"
+        : "Anulada";
+
+/** The card's hint: invitations live in the group's drawer. */
+function InvitationsChip() {
   return (
-    <button className={"code-chip" + (big ? " big" : "")} onClick={copy} title="Copiar código de invitación">
+    <span className="code-chip" title="Invitaciones de un solo uso">
       <span className="ic">🔑</span>
-      <span className="cc">{code}</span>
-      <span className="cp">{done ? "✓ Copiado" : "Copiar"}</span>
-    </button>
+      <span className="cl">Invitaciones de un solo uso</span>
+      <span className="cp">Gestionar</span>
+    </span>
+  );
+}
+
+function InvitationsPanel({ groupId }: { groupId: number }) {
+  const qc = useQueryClient();
+  const queryKey = ["teacher-invitations", groupId];
+  const { data, isLoading, isError } = useQuery({
+    queryKey,
+    queryFn: () => teacherApi.invitations(groupId),
+  });
+  const [count, setCount] = useState(1);
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState<number | null>(null);
+
+  const refresh = () => qc.invalidateQueries({ queryKey });
+  const create = useMutation({
+    mutationFn: (n: number) => teacherApi.createInvitations(groupId, n),
+    onSuccess: () => {
+      setError("");
+      refresh();
+    },
+    onError: (err: Error) => setError(err.message || "No se pudieron generar las invitaciones."),
+  });
+  const revoke = useMutation({
+    mutationFn: (id: number) => teacherApi.revokeInvitation(id),
+    onSuccess: () => {
+      setError("");
+      refresh();
+    },
+    onError: (err: Error) => {
+      setError(err.message || "No se pudo anular la invitación.");
+      refresh();
+    },
+  });
+
+  const copy = async (i: Invitation) => {
+    try {
+      await navigator.clipboard.writeText(i.token);
+      setCopied(i.id);
+      setTimeout(() => setCopied((c) => (c === i.id ? null : c)), 1400);
+    } catch {
+      setError("No se pudo copiar. Selecciona el código y cópialo a mano.");
+    }
+  };
+
+  const invitations = data?.invitations ?? [];
+  const unused = invitations.filter((i) => i.status === "unused").length;
+  const countOk = Number.isInteger(count) && count >= 1 && count <= MAX_INVITATIONS;
+
+  return (
+    <section className="gd-section gd-inv" aria-label="Invitaciones">
+      <div className="gd-sechead">
+        <h4>
+          Invitaciones <span>· {unused} sin usar</span>
+        </h4>
+      </div>
+      {data && (
+        <p className="inv-hint">
+          Cada código sirve para un solo estudiante y vence a los {data.ttl_days} días si nadie lo
+          usa.
+        </p>
+      )}
+      <div className="inv-make">
+        <input
+          type="number"
+          min={1}
+          max={MAX_INVITATIONS}
+          value={Number.isNaN(count) ? "" : count}
+          onChange={(e) => setCount(e.target.valueAsNumber)}
+          aria-label="Cantidad de invitaciones"
+        />
+        <span className="inv-unit">{count === 1 ? "código" : "códigos"}</span>
+        <button
+          className="btn-pri"
+          onClick={() => create.mutate(count)}
+          disabled={!countOk || create.isPending}
+        >
+          {create.isPending ? "Generando…" : "Generar invitaciones"}
+        </button>
+      </div>
+      {error && (
+        <p className="inv-err" role="alert">
+          {error}
+        </p>
+      )}
+      {isLoading ? (
+        <p className="inv-empty">Cargando invitaciones…</p>
+      ) : isError ? (
+        <p className="inv-err" role="alert">
+          No pudimos cargar las invitaciones. Cierra el grupo y vuelve a abrirlo.
+        </p>
+      ) : invitations.length === 0 ? (
+        <p className="inv-empty">Aún no hay invitaciones para este grupo.</p>
+      ) : (
+        <ul className="inv-list">
+          <AnimatePresence initial={false}>
+            {invitations.map((i) => (
+              <motion.li
+                key={i.id}
+                layout
+                className={"inv-row s-" + i.status}
+                initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 420, damping: 32 }}
+              >
+                <b className="inv-token">{i.token}</b>
+                <span className="inv-state">{invitationState(i)}</span>
+                {i.status === "unused" && (
+                  <span className="inv-actions">
+                    <button className="inv-btn" onClick={() => copy(i)}>
+                      {copied === i.id ? "✓ Copiado" : "Copiar"}
+                    </button>
+                    <button
+                      className="inv-btn danger"
+                      onClick={() => revoke.mutate(i.id)}
+                      disabled={revoke.isPending}
+                    >
+                      Anular
+                    </button>
+                  </span>
+                )}
+              </motion.li>
+            ))}
+          </AnimatePresence>
+        </ul>
+      )}
+    </section>
   );
 }
 
@@ -120,10 +234,10 @@ function AvaStack({ members, max = 5 }: { members: StudentSummary[]; max?: numbe
         <span
           key={s.user_id}
           className="as-ava"
-          style={{ background: avaFor(s.username), zIndex: max - i }}
-          title={s.username}
+          style={{ background: avaFor(s.name), zIndex: max - i }}
+          title={s.name}
         >
-          {initials(s.username)}
+          {initials(s.name)}
         </span>
       ))}
       {rest > 0 ? <span className="as-more">+{rest}</span> : null}
@@ -137,15 +251,11 @@ function GroupCard({
   color,
   members,
   onOpen,
-  onGenerate,
-  generating,
 }: {
   g: Group;
   color: string;
   members: StudentSummary[];
   onOpen: () => void;
-  onGenerate: () => void;
-  generating: boolean;
 }) {
   const st = statsFor(members);
   return (
@@ -165,7 +275,7 @@ function GroupCard({
         ) : null}
       </div>
 
-      <CodeChip code={g.invite_code} onGenerate={onGenerate} generating={generating} />
+      <InvitationsChip />
 
       <div className="gc-stats">
         <div className="gcs">
@@ -208,15 +318,11 @@ function GroupDrawer({
   color,
   members,
   onClose,
-  onGenerate,
-  generating,
 }: {
   g: Group;
   color: string;
   members: StudentSummary[];
   onClose: () => void;
-  onGenerate: () => void;
-  generating: boolean;
 }) {
   const st = statsFor(members);
   return (
@@ -239,7 +345,12 @@ function GroupDrawer({
           </div>
           <h2>{g.name}</h2>
           <p className="gd-sub">{g.course_id ?? "Sin curso"}</p>
-          <CodeChip code={g.invite_code} big onGenerate={onGenerate} generating={generating} />
+          {g.course_id && (
+            // Spec 003 L1: the path the group's students walk, read only.
+            <Link className="gd-path-link" to={`/student/course/${encodeURIComponent(g.course_id)}/map`}>
+              Ver ruta de aprendizaje
+            </Link>
+          )}
         </div>
 
         <div className="gd-stats">
@@ -261,6 +372,8 @@ function GroupDrawer({
           </div>
         </div>
 
+        <InvitationsPanel groupId={g.group_id} />
+
         <div className="gd-section">
           <div className="gd-sechead">
             <h4>
@@ -269,7 +382,7 @@ function GroupDrawer({
           </div>
           {st.members.length === 0 ? (
             <p style={{ color: "var(--mute)", fontSize: 13 }}>
-              Aún no hay estudiantes. Comparte el código de invitación para que se unan.
+              Aún no hay estudiantes. Genera invitaciones y comparte una con cada estudiante.
             </p>
           ) : (
             <div className="gd-roster">
@@ -278,12 +391,12 @@ function GroupDrawer({
                 return (
                   <div className="gdr-row" key={s.user_id}>
                     <span className="gdr-pos">{i + 1}</span>
-                    <span className="av" style={{ background: avaFor(s.username) }}>
-                      {initials(s.username)}
+                    <span className="av" style={{ background: avaFor(s.name) }}>
+                      {initials(s.name)}
                     </span>
                     <div className="gdr-nm">
-                      <b>{s.username}</b>
-                      <span>@{s.username}</span>
+                      <b>{s.name}</b>
+                      <span>{s.total_attempts} intentos</span>
                     </div>
                     <RankPill label={s.rank_label} />
                     <span className="gdr-acc" style={{ color: accColor(acc) }}>
@@ -312,10 +425,6 @@ function GroupDrawer({
               <b>{GOAL}%</b>
             </div>
             <div className="gcf">
-              <span>Código</span>
-              <b className="mono">{g.invite_code ?? "—"}</b>
-            </div>
-            <div className="gcf">
               <span>ID del grupo</span>
               <b className="mono">#{g.group_id}</b>
             </div>
@@ -325,9 +434,6 @@ function GroupDrawer({
         <div className="gd-footer">
           <button className="btn-soft" onClick={onClose}>
             Cerrar
-          </button>
-          <button className="btn-pri" onClick={onGenerate} disabled={generating}>
-            {generating ? "Generando…" : g.invite_code ? "Regenerar código" : "Generar código"}
           </button>
         </div>
       </aside>
@@ -383,7 +489,7 @@ function CreateGroupModal({
             ✕
           </button>
         </div>
-        <p className="gm-sub">Genera un curso nuevo. Los estudiantes se unen con el código de invitación.</p>
+        <p className="gm-sub">Genera un curso nuevo. Los estudiantes se unen con invitaciones de un solo uso.</p>
 
         <label className="gm-field">
           <span>Nombre del grupo</span>
@@ -407,8 +513,8 @@ function CreateGroupModal({
         </label>
 
         <div className="gm-codebox">
-          <span>Código de invitación</span>
-          <b>se genera al crear</b>
+          <span>Invitaciones</span>
+          <b>las generas al abrir el grupo</b>
         </div>
 
         {error && <p className="gm-err">{error}</p>}
@@ -437,9 +543,8 @@ export function TeacherGroups() {
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
   const [q, setQ] = useState("");
-  const [genId, setGenId] = useState<number | null>(null);
 
-  const { data: groups = [], isLoading } = useQuery({
+  const { data: groups = [], isLoading, isError } = useQuery({
     queryKey: ["teacher-groups"],
     queryFn: () => teacherApi.groups(),
     staleTime: 30_000,
@@ -477,16 +582,6 @@ export function TeacherGroups() {
     onError: (err: Error) => setCreateError(err.message),
   });
 
-  const generateCode = async (group_id: number) => {
-    setGenId(group_id);
-    try {
-      await teacherApi.generateInviteCode(group_id);
-      qc.invalidateQueries({ queryKey: ["teacher-groups"] });
-    } finally {
-      setGenId(null);
-    }
-  };
-
   const colorFor = (i: number) => COLORS[i % COLORS.length];
   const filtered = groups.filter((g) =>
     (g.name + (g.course_id ?? "")).toLowerCase().includes(q.toLowerCase())
@@ -509,6 +604,18 @@ export function TeacherGroups() {
       </div>
     );
   }
+  // A failed load is not «0 grupos».
+  if (isError) {
+    return (
+      <div className="tc-soon">
+        <div className="box" role="alert">
+          <div className="em-ic">⚠️</div>
+          <h2>No pudimos cargar tus grupos</h2>
+          <p>Revisa tu conexión e inténtalo de nuevo.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -516,7 +623,7 @@ export function TeacherGroups() {
         <div className="ttl">
           <h1>Grupos</h1>
           <p>
-            Tus cursos activos en el motor ELO. Abre un grupo para ver su roster, código de invitación y
+            Tus cursos activos en el motor ELO. Abre un grupo para ver su roster, sus invitaciones y su
             configuración.
           </p>
         </div>
@@ -561,8 +668,6 @@ export function TeacherGroups() {
               color={colorFor(idx)}
               members={studentsByGroup.get(g.group_id) ?? []}
               onOpen={() => setOpenId(g.group_id)}
-              onGenerate={() => generateCode(g.group_id)}
-              generating={genId === g.group_id}
             />
           );
         })}
@@ -570,7 +675,7 @@ export function TeacherGroups() {
           <button className="grp-card add" onClick={() => setCreating(true)}>
             <span className="ag-plus">＋</span>
             <b>Crear grupo</b>
-            <span>Nuevo curso con su propio código de invitación</span>
+            <span>Nuevo curso; cada estudiante entra con su propia invitación</span>
           </button>
         )}
       </div>
@@ -581,8 +686,6 @@ export function TeacherGroups() {
           color={colorFor(openIndex)}
           members={studentsByGroup.get(openGroup.group_id) ?? []}
           onClose={() => setOpenId(null)}
-          onGenerate={() => generateCode(openGroup.group_id)}
-          generating={genId === openGroup.group_id}
         />
       )}
 

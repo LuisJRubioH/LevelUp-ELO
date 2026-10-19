@@ -377,3 +377,181 @@ def test_the_repository_specs_pass_the_static_checks():
         assert spec.defined and len(spec.rows) == len(spec.defined)
         assert ct.static_errors(spec, reject_pending=False) == []
         assert ct.scope_errors(spec, tracked) == []
+
+
+# ── Constitution 1.1.0 (decision P13): format-independent definitions and deliveries ─────────
+
+
+@pytest.mark.parametrize(
+    "line, req",
+    [
+        ("- FR-002 [CHANGE]: The system shall log.", "FR-002"),
+        ("- *FR-002* [CHANGE]: The system shall log.", "FR-002"),
+        ("- `FR-002` [CHANGE]: The system shall log.", "FR-002"),
+        ("* __FR-002__ [CHANGE]: The system shall log.", "FR-002"),
+        ("FR-002: The system shall log.", "FR-002"),
+        ("### FR-002 — The system shall log", "FR-002"),
+        ("| FR-002 | The system shall log. |", "FR-002"),
+        ("3. US1-AS3 — Given a student, When they log in, Then it logs.", "US1-AS3"),
+        ("3. *US1-AS3*: Given a student, When they log in, Then it logs.", "US1-AS3"),
+    ],
+)
+def test_a_requirement_needs_a_row_whatever_its_formatting(line, req):
+    """Removing the bold (or using any other Markdown shape) never takes a requirement out of
+    the check: it is recognised as a definition and must have its own row."""
+    text = SPEC.replace("## Traceability", f"{line}\n\n## Traceability")
+    assert req in ct.parse_spec(text).defined
+    errors = errors_of(text)
+    assert any(f"{req} has no row" in error for error in errors), errors
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "FR-002 The system shall log.",  # no punctuation after the ID
+        "The system shall log, as FR-002 says.",
+        "> FR-002 [CHANGE]: The system shall log.",  # a quote is not a definition
+    ],
+)
+def test_an_id_mentioned_but_never_defined_fails(line):
+    """A requirement written in a shape the checker does not read as a definition is still
+    caught: its ID is mentioned and defined nowhere."""
+    errors = errors_of(SPEC.replace("## Traceability", f"{line}\n\n## Traceability"))
+    assert any("FR-002 is mentioned" in error and "defined nowhere" in error for error in errors)
+
+
+def test_other_specs_ids_and_evidence_tables_are_not_mentions():
+    """Another spec's ID, qualified by its number, and the appendix's evidence rows are
+    references, not this spec's requirements."""
+    text = SPEC.replace(
+        "## Traceability",
+        "- The catalogue rule stays as spec 001 FR-028m and spec 001, FR-028l state.\n\n"
+        "## Traceability",
+    ).replace("| FR-001 | read at `src/x.py:1` |", "| FR-777 | read at `src/x.py:1` |")
+    assert errors_of(text) == []
+    assert "FR-028m" not in ct.parse_spec(text).mentioned
+
+
+def test_ids_mentioned_in_prose_count_once_defined():
+    """Mentions of defined IDs — ranges, lists, wrapped lines — are fine and never definitions."""
+    text = SPEC.replace(
+        "## Requirements *(mandatory)*",
+        "## Clarifications\n\n- Q: Why? → A: see FR-001 and FR-001a, and\n"
+        "  FR-001 … FR-001a again (US1-AS1 … AS2).\n\n## Requirements *(mandatory)*",
+    )
+    spec = ct.parse_spec(text)
+    assert sorted(spec.defined) == ["FR-001", "FR-001a", "US1-AS1", "US1-AS2"]
+    assert all(len(lines) == 1 for lines in spec.defined.values())
+    assert errors_of(text) == []
+
+
+SPEC_D = """# Feature Specification: Delivered in steps
+
+## Code Scope *(mandatory)*
+
+- `scripts/check_traceability.py`
+
+## Deliveries *(mandatory for this spec)*
+
+| Delivery | Content | State |
+|---|---|---|
+| **E1** | Closed sign-up | closed |
+| **E2** | Display name | in progress |
+| **E3** | Import | planned |
+
+## Requirements *(mandatory)*
+
+- **FR-001** [CHANGE]: The system shall refuse self-registration.
+- **FR-002** [CHANGE]: The system shall show the display name.
+- **FR-003** [CHANGE]: The system shall import a class.
+
+## Traceability *(mandatory)*
+
+| Requirement / Scenario | Delivery | Test |
+|---|---|---|
+| FR-001 | E1 | `tests/unit/scripts/test_check_traceability.py::test_scope_matches` |
+| FR-002 | E2 | `PENDING` |
+| FR-003 | E3 | `PENDING` |
+"""
+
+
+def errors_d(text=SPEC_D, reject_pending=False):
+    return ct.static_errors(ct.parse_spec(text, "spec.md"), reject_pending)
+
+
+def test_deliveries_are_parsed():
+    spec = ct.parse_spec(SPEC_D)
+    assert spec.has_deliveries and spec.delivery_column
+    assert {name: state for name, (state, _) in spec.deliveries.items()} == {
+        "E1": "closed",
+        "E2": "in progress",
+        "E3": "planned",
+    }
+    assert [(row.req, row.delivery) for row in spec.rows] == [
+        ("FR-001", "E1"),
+        ("FR-002", "E2"),
+        ("FR-003", "E3"),
+    ]
+    assert ct.open_deliveries(spec) == {"E2", "E3"}
+
+
+def test_pending_in_open_deliveries_is_allowed_even_on_a_code_change():
+    """A requirement planned for E3 may stay PENDING while E2 is delivered (decision P13)."""
+    assert errors_d() == []
+    assert errors_d(reject_pending=True) == []
+
+
+@pytest.mark.parametrize("reject_pending", [False, True])
+def test_pending_in_a_closed_delivery_always_fails(reject_pending):
+    """No requirement of a closed delivery may stay PENDING — not on a docs PR either."""
+    text = SPEC_D.replace(
+        "| **E2** | Display name | in progress |", "| **E2** | Display name | closed |"
+    )
+    errors = errors_d(text, reject_pending)
+    assert len(errors) == 1, errors
+    assert errors[0].endswith("FR-002 is PENDING in closed delivery E2"), errors
+
+
+@pytest.mark.parametrize(
+    "edit, expected",
+    [
+        (("| FR-003 | E3 |", "| FR-003 | E9 |"), "FR-003 names no declared delivery: 'E9'"),
+        (("| FR-003 | E3 |", "| FR-003 |  |"), "FR-003 names no declared delivery: ''"),
+        (("| planned |", "| someday |"), "delivery E3 has state 'someday'"),
+        (("| **E3** | Import |", "| **E2** | Import |"), "delivery E2 is declared twice"),
+        (("| Delivery | Content | State |", "| Step | Content | Status |"), "has no table with"),
+        (
+            ("| Requirement / Scenario | Delivery | Test |", "| Requirement / Scenario | Test |"),
+            "needs a Delivery column",
+        ),
+        (("| FR-001 | E1 | `tests", "| FR-001 | `tests"), "row 'FR-001' is not"),
+    ],
+)
+def test_delivery_errors(edit, expected):
+    old, new = edit
+    assert old in SPEC_D
+    errors = errors_d(SPEC_D.replace(old, new))
+    assert any(expected in error for error in errors), errors
+
+
+def test_a_delivery_column_needs_declared_deliveries():
+    text = SPEC_D.replace("## Deliveries *(mandatory for this spec)*", "## Steps")
+    errors = errors_d(text)
+    assert any("has a Delivery column but no '## Deliveries'" in error for error in errors)
+
+
+def test_main_applies_the_delivery_rule_end_to_end(tmp_path, capsys):
+    """Through main(): a code PR passes while only open deliveries are PENDING, and fails once
+    a delivery with a PENDING row is marked closed."""
+    spec_path = tmp_path / "spec.md"
+    spec_path.write_text(SPEC_D, encoding="utf-8")
+    code_pr = tmp_path / "code.txt"
+    code_pr.write_text("scripts/check_traceability.py\n", encoding="utf-8")
+
+    assert ct.main(["--changed-files", str(code_pr), str(spec_path)]) == 0
+    out = capsys.readouterr().out
+    assert "PENDING 2 (by delivery: E2 1, E3 1; deliveries E1 closed" in out
+
+    spec_path.write_text(SPEC_D.replace("| planned |", "| closed |"), encoding="utf-8")
+    assert ct.main(["--changed-files", str(code_pr), str(spec_path)]) == 1
+    assert "FR-003 is PENDING in closed delivery E3" in capsys.readouterr().out

@@ -24,6 +24,40 @@ def procedure_elo_delta(score: float) -> float:
     return round((score - 50.0) * 0.2, 4)
 
 
+@dataclass(frozen=True)
+class ProcedureGrading:
+    """The effect of one grading of a procedure (spec 001 block 7, FR-024b, FR-024d).
+
+    `correction` and `contribution_after` are None when the procedure's previous contribution
+    is unknown (graded before block 7 with a penalty the floor may have limited, FR-024h):
+    then nothing is applied until it is reviewed one by one (B7-P1).
+    """
+
+    computed_delta: float
+    correction: float | None
+    applied: float
+    contribution_after: float | None
+
+    @property
+    def contribution_unknown(self) -> bool:
+        return self.contribution_after is None
+
+
+def procedure_grading(
+    grade: float, contribution: float | None, rating_before: float
+) -> ProcedureGrading:
+    """A grading applies only the difference from the procedure's current contribution C:
+    correction = (grade − 50) × 0.2 − C, limited by the floor of 0 (FR-024d). The amount actually
+    applied, A, is what the contribution grows by, so a later regrade corrects from what the
+    rating really received (US9-AS7, B7-P2)."""
+    computed = procedure_elo_delta(grade)
+    if contribution is None:
+        return ProcedureGrading(computed, None, 0.0, None)
+    correction = round(computed - contribution, 4)
+    applied = round(max(correction, -rating_before), 4)
+    return ProcedureGrading(computed, correction, applied, round(contribution + applied, 4))
+
+
 @dataclass
 class Item:
     difficulty: float

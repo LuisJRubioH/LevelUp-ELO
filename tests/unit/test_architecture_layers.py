@@ -104,3 +104,19 @@ def test_spec001_no_rating_aggregation_in_repositories_or_routers():
             if module in imported:
                 offenders.append(f"{path.name}: imports {module}")
     assert not offenders, "\n".join(offenders)
+
+
+def test_spec003_router_names_no_path_node():
+    """Spec 003 FR-050, US5-AS3: which node opens, which node gates which, which band a node
+    needs and what completes a hub are node data, read by one domain function — the router names
+    no node of the path."""
+    router = _SRC.parent / "api" / "routers" / "student.py"
+    tree = ast.parse(router.read_text(encoding="utf-8"))
+    named = sorted(
+        {
+            node.id
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Name) and re.search(r"_NODE_IDS?$", node.id)
+        }
+    )
+    assert named == []

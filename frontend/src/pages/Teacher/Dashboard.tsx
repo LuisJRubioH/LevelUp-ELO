@@ -84,13 +84,13 @@ function StudentsView({
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"elo" | "acc" | "name">("elo");
   const rows = useMemo(() => {
-    let r = students.filter((s) => s.username.toLowerCase().includes(q.toLowerCase()));
+    let r = students.filter((s) => s.name.toLowerCase().includes(q.toLowerCase()));
     r = [...r].sort((a, b) =>
       sort === "elo"
         ? byRatingDesc(a, b)
         : sort === "acc"
         ? toPct(b.accuracy) - toPct(a.accuracy)
-        : a.username.localeCompare(b.username)
+        : a.name.localeCompare(b.name)
     );
     return r;
   }, [students, q, sort]);
@@ -137,10 +137,10 @@ function StudentsView({
             return (
               <div className="stu-row" key={s.user_id}>
                 <div className="stu-id">
-                  <div className="av" style={{ background: avaFor(s.username) }}>{initials(s.username)}</div>
+                  <div className="av" style={{ background: avaFor(s.name) }}>{initials(s.name)}</div>
                   <div className="nm">
-                    <b>{s.username}</b>
-                    <span>@{s.username}</span>
+                    <b>{s.name}</b>
+                    <span>{s.education_level ?? ""}</span>
                   </div>
                 </div>
                 <div className="stu-group">
@@ -215,12 +215,12 @@ function RankingView({ students }: { students: StudentSummary[] }) {
                       color: "#fff",
                       fontFamily: "var(--font-display)",
                       fontWeight: 700,
-                      background: avaFor(s.username),
+                      background: avaFor(s.name),
                     }}
                   >
-                    {initials(s.username)}
+                    {initials(s.name)}
                   </div>
-                  <div className="pname">{s.username}</div>
+                  <div className="pname">{s.name}</div>
                   <div className="pelo">{fmtRating(s.display_rating)}</div>
                   <RankPill label={rk} />
                 </div>
@@ -232,9 +232,9 @@ function RankingView({ students }: { students: StudentSummary[] }) {
               <div className="rank-line" key={s.user_id}>
                 <div className="pos">{i + 4}</div>
                 <div className="who">
-                  <div className="av" style={{ background: avaFor(s.username) }}>{initials(s.username)}</div>
+                  <div className="av" style={{ background: avaFor(s.name) }}>{initials(s.name)}</div>
                   <div>
-                    <b>{s.username}</b>{" "}
+                    <b>{s.name}</b>{" "}
                     <span style={{ color: "var(--mute)", fontSize: 12 }}>· {s.group_name ?? "Sin grupo"}</span>
                   </div>
                 </div>
@@ -293,6 +293,12 @@ function MetricsView({ students }: { students: StudentSummary[] }) {
 
   return (
     <div className="metrics-grid">
+      {metricsQ.isError && (
+        // Without this the cards below read «Sin datos…» as if nothing had been practised.
+        <p className="gm-err" role="alert" style={{ gridColumn: "1 / -1", margin: 0 }}>
+          No pudimos cargar las métricas de actividad y tópicos. Inténtalo de nuevo más tarde.
+        </p>
+      )}
       <div className="metric-card">
         <h4>Dominio por tópico</h4>
         <div className="mc-sub">Acierto promedio de los estudiantes en cada curso</div>
@@ -370,9 +376,9 @@ function MetricsView({ students }: { students: StudentSummary[] }) {
         ) : (
           attn.map((s) => (
             <div className="attn-row" key={s.user_id}>
-              <div className="av" style={{ background: avaFor(s.username) }}>{initials(s.username)}</div>
+              <div className="av" style={{ background: avaFor(s.name) }}>{initials(s.name)}</div>
               <div className="ab">
-                <b>{s.username}</b>
+                <b>{s.name}</b>
                 <span>
                   ELO {fmtRating(s.display_rating)} · {toPct(s.accuracy)}% acierto
                 </span>
@@ -387,7 +393,88 @@ function MetricsView({ students }: { students: StudentSummary[] }) {
 }
 
 /* ── drawer de perfil de estudiante ──────────────────────────────────────── */
-function StudentDrawer({ student, onClose }: { student: StudentSummary; onClose: () => void }) {
+const STATE_LABEL: Record<string, string> = {
+  completed: "Completado",
+  current: "En curso",
+  in_progress: "En curso",
+  available: "Abierto",
+};
+
+/** Spec 003 L4 (FR-042): the student's path, data first (D3) — one row per node with activity,
+ * the answer history unfolded on demand. Right or wrong and the tag; never the value (N11). */
+function StudentPathSection({ studentId, courseId }: { studentId: number; courseId: string }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const pathQ = useQuery({
+    queryKey: ["teacher-student-path", studentId, courseId],
+    queryFn: () => teacherApi.studentPath(studentId, courseId),
+    retry: false,
+  });
+  if (pathQ.isError) return null; // the course has no learning path
+  const nodes = (pathQ.data?.nodes ?? []).filter((n) => n.state || n.answers.length > 0);
+  return (
+    <div className="sd-section">
+      <h4>Ruta de aprendizaje</h4>
+      {pathQ.isLoading ? (
+        <p className="sd-ai-hint">Cargando…</p>
+      ) : nodes.length === 0 ? (
+        <p className="sd-ai-hint">Todavía no ha empezado la ruta.</p>
+      ) : (
+        <ul className="sd-path">
+          {nodes.map((n) => {
+            const right = n.answers.filter((a) => a.is_expected === true).length;
+            const expanded = open === n.node_id;
+            return (
+              <li key={n.node_id} className={expanded ? "is-open" : undefined}>
+                <button
+                  type="button"
+                  className="sd-path-row"
+                  aria-expanded={expanded}
+                  disabled={n.answers.length === 0}
+                  onClick={() => setOpen(expanded ? null : n.node_id)}
+                >
+                  <span className="t">{n.title}</span>
+                  <span className={`st st-${n.state ?? "none"}`}>{STATE_LABEL[n.state ?? ""] ?? "Sin empezar"}</span>
+                  <span className="n">
+                    {right}/{n.answers.length}
+                  </span>
+                  {n.outcome && (
+                    <span className={`oc oc-${n.outcome.outcome}`}>
+                      {n.outcome.outcome === "gain" ? "Avance" : "Sin avance"} · {n.outcome.diagnostic_correct}→
+                      {n.outcome.post_correct}/{n.outcome.items}
+                    </span>
+                  )}
+                </button>
+                {expanded && (
+                  <ol className="sd-path-answers">
+                    {n.answers.map((a, i) => (
+                      <li key={i} className={a.is_expected ? "ok" : "bad"}>
+                        <span aria-hidden="true">{a.is_expected ? "✓" : "✗"}</span>
+                        <span className="sr-only">{a.is_expected ? "Correcta" : "Incorrecta"}</span>
+                        <span className="l">{a.label}</span>
+                        <time>{a.answered_at.slice(0, 16)}</time>
+                        {a.misconception_tag && <code>{a.misconception_tag}</code>}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function StudentDrawer({
+  student,
+  courseId,
+  onClose,
+}: {
+  student: StudentSummary;
+  courseId: string | null;
+  onClose: () => void;
+}) {
   const { apiKey, provider } = useSettingsStore();
   const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
@@ -411,13 +498,13 @@ function StudentDrawer({ student, onClose }: { student: StudentSummary; onClose:
   return (
     <>
       <div className="stu-backdrop" onClick={onClose} />
-      <aside className="stu-drawer" role="dialog" aria-label={`Perfil de ${student.username}`}>
+      <aside className="stu-drawer" role="dialog" aria-label={`Perfil de ${student.name}`}>
         <div className="sd-head">
           <div className="sd-htop">
             <div className="sd-who">
-              <div className="av" style={{ background: avaFor(student.username) }}>{initials(student.username)}</div>
+              <div className="av" style={{ background: avaFor(student.name) }}>{initials(student.name)}</div>
               <div className="nm">
-                <b>{student.username}</b>
+                <b>{student.name}</b>
                 <span>{student.group_name ?? "Sin grupo"}</span>
               </div>
             </div>
@@ -443,6 +530,8 @@ function StudentDrawer({ student, onClose }: { student: StudentSummary; onClose:
           </div>
         </div>
 
+        {courseId && <StudentPathSection studentId={student.user_id} courseId={courseId} />}
+
         <div className="sd-section">
           <h4>
             Análisis pedagógico con IA
@@ -455,7 +544,7 @@ function StudentDrawer({ student, onClose }: { student: StudentSummary; onClose:
             <div className="sd-ai-out">{analysis}</div>
           ) : (
             <p className="sd-ai-hint">
-              Genera un resumen del desempeño de {student.username} y recomendaciones pedagógicas a partir de su
+              Genera un resumen del desempeño de {student.name} y recomendaciones pedagógicas a partir de su
               actividad reciente. Usa la API de IA configurada en la barra lateral.
             </p>
           )}
@@ -598,7 +687,13 @@ export function TeacherDashboard() {
         <MetricsView students={filtered} />
       )}
 
-      {selected && <StudentDrawer student={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <StudentDrawer
+          student={selected}
+          courseId={groups.find((g) => g.group_id === selected.group_id)?.course_id ?? null}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </>
   );
 }

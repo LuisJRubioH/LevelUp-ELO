@@ -6,7 +6,9 @@ Endpoints de IA:
   POST /ai/review-procedure  → revisión de procedimiento manuscrito (multipart)
 """
 
+import asyncio
 import json
+import logging
 from typing import AsyncGenerator
 
 from fastapi import APIRouter, Form, HTTPException, Request, UploadFile, status
@@ -19,6 +21,16 @@ from api.rate_limit import limiter
 from api.upload_validation import read_validated_upload
 
 router = APIRouter(prefix="/ai", tags=["ai"])
+logger = logging.getLogger("api.ai")
+
+# `_call_ai_api` reports a provider failure as text ("ERROR_401: …", "❌ Error …"), not as an
+# exception. That text is not KatIA speaking: it is neither streamed as her reply nor saved.
+_PROVIDER_ERROR_PREFIXES = ("ERROR_", "❌")
+_KATIA_UNAVAILABLE = "KatIA no pudo responder ahora. Intenta de nuevo en un momento."
+
+
+def _is_provider_error(text: str | None) -> bool:
+    return not (text or "").strip() or text.lstrip().startswith(_PROVIDER_ERROR_PREFIXES)
 
 
 # ── Chat socrático (SSE) ──────────────────────────────────────────────────────
@@ -53,7 +65,8 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
         )
 
     # Obtener datos del ítem desde DB (correct_option nunca viaja al frontend)
-    item_db = repo.get_item_by_id(body.item_id)
+    # A worker thread, not the event loop: the repository is synchronous (spec 002 FR-024).
+    item_db = await asyncio.to_thread(repo.get_item_by_id, body.item_id)
     if not item_db:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -106,6 +119,11 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
                 ),
             )
 
+            if _is_provider_error(full_text):
+                logger.warning("KatIA: provider %s failed: %s", provider, (full_text or "")[:120])
+                yield f"data: {json.dumps({'error': _KATIA_UNAVAILABLE})}\n\n"
+                return
+
             # Simular streaming token a token (dividir en palabras)
             words = (full_text or "").split(" ")
             for i, word in enumerate(words):
@@ -128,8 +146,10 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
 
             yield f"data: {json.dumps({'done': True, 'full_text': full_text})}\n\n"
 
-        except Exception as exc:
-            yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+        except Exception:
+            # The detail stays in the server log; the student gets a plain message.
+            logger.exception("KatIA: socratic reply failed")
+            yield f"data: {json.dumps({'error': _KATIA_UNAVAILABLE})}\n\n"
 
     return StreamingResponse(
         _generate(),

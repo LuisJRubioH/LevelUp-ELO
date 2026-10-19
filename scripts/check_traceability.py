@@ -4,14 +4,27 @@ and is not skipped (roadmap A-2; constitution § Governance, "Coverage and trace
 
 For each specs/*/spec.md:
 
-1. Definitions. Each functional requirement (a list item opening with **FR-nnn**) and each
-   acceptance scenario (a numbered item opening with **USn-ASm**) is defined once.
+1. Definitions, whatever their Markdown formatting. A functional requirement (FR-nnn) or an
+   acceptance scenario (USn-ASm) is defined by a line that opens with its ID — as a list item,
+   numbered item, heading, paragraph or table cell, bold, italic, code or plain — followed by
+   `[`, `:`, a dash or the end of the cell. Each is defined once. Every ID mentioned elsewhere in
+   the spec (outside § Traceability and the appendix) must be defined, unless it names another
+   spec's ID ("spec 001 FR-028m"): a requirement written in an unrecognised shape fails instead
+   of escaping the check.
 2. § Traceability. One row per defined ID: no row for an undefined ID, no repeated row, no empty
    cell. Each reference is backticked and is a pytest node id (`path::test` or
    `path::Class::test`; without parameters it covers every parametrised case), a Playwright test
    (`frontend/e2e/file.spec.ts › title`, the title with or without its describe blocks), or
    `PENDING`.
-3. `PENDING` is allowed except on a code change for the spec, whatever the pull request's branch.
+2a. Deliveries (constitution § Governance, 1.1.0). A spec delivered in steps has a
+   **## Deliveries** section whose table has a `Delivery` and a `State` column (`planned`,
+   `in progress` or `closed`), and its § Traceability table has a middle `Delivery` column naming
+   a declared delivery on every row. `PENDING` is then allowed only in rows of a delivery that is
+   not closed — on any pull request — and never in a closed one: the pull request that closes a
+   delivery fills all its rows. The checker cannot tell which delivery a pull request implements;
+   marking a delivery closed is part of the pull request that completes it, and review checks it.
+3. In a spec without deliveries, `PENDING` is allowed except on a code change for the spec,
+   whatever the pull request's branch.
    A changed path makes the pull request a code change for a spec when it is code (not under
    specs/ or docs/, not a .md file) and
    a. matches an entry of the spec's **## Code Scope** section (a path; ending in `/`, everything
@@ -53,8 +66,17 @@ E2E_DIR = "frontend/e2e/"
 PW_SEP = " › "
 DOC_DIRS = ("specs/", "docs/")
 
-_FR_DEF = re.compile(r"^\s*-\s+\*\*(FR-\d+[a-z]?)\*\*")
-_AS_DEF = re.compile(r"^\s*\d+\.\s+\*\*(US\d+-AS\d+)\*\*")
+_ID_PATTERN = r"(FR-\d+[a-z]?|US\d+-AS\d+)"
+# A definition: a line opening with the ID, whatever the list, heading, table or emphasis marks.
+_DEF = re.compile(
+    r"^\s*(?:#{1,6}\s+|[-*+]\s+|\d+[.)]\s+|\|\s*)?[*_`~]*"
+    + _ID_PATTERN
+    + r"[*_`~]*\s*(?:\[|:|—|–|\||-\s)"
+)
+_MENTION = re.compile(r"(?<![\w-])" + _ID_PATTERN + r"(?!\w)")
+_OTHER_SPEC = re.compile(r"spec\s+\d{3}\W{0,3}\s*$", re.IGNORECASE)
+_EXEMPT_SECTIONS = ("## Traceability", "## Appendix")
+STATES = ("planned", "in progress", "closed")
 _SCOPE_ENTRY = re.compile(r"^\s*-\s+`([^`]+)`")
 _ID = re.compile(r"^(FR-\d+[a-z]?|US\d+-AS\d+)$")
 _TICKED = re.compile(r"`([^`]*)`")
@@ -75,6 +97,7 @@ class Row:
     line: int
     refs: list = field(default_factory=list)
     bad: list = field(default_factory=list)  # texts that are not a reference
+    delivery: str | None = None  # with deliveries: the delivery this row belongs to
 
 
 @dataclass
@@ -86,6 +109,11 @@ class Spec:
     malformed_rows: list = field(default_factory=list)  # (line, first cell)
     has_scope: bool = False
     scope: list = field(default_factory=list)  # (line, entry) of ## Code Scope
+    mentioned: dict = field(default_factory=dict)  # id -> lines where it is mentioned
+    deliveries: dict = field(default_factory=dict)  # name -> (state, line)
+    has_deliveries: bool = False
+    delivery_column: bool = False  # the § Traceability table has a Delivery column
+    delivery_errors: list = field(default_factory=list)
 
 
 # ── 1-2. Parsing ────────────────────────────────────────────────────────────
@@ -129,38 +157,81 @@ def parse_cell(cell):
     return refs, bad
 
 
+def _plain(cell):
+    """A table cell without Markdown emphasis or code marks, lower-cased."""
+    return re.sub(r"[*_`~]", "", cell).strip()
+
+
+def _cells(line):
+    return [c.strip() for c in line.strip().strip("|").split("|")]
+
+
 def parse_spec(text, path="spec.md"):
     spec = Spec(path=path)
-    in_trace = in_scope = False
+    section = ""
+    delivery_header = None  # column indices of the ## Deliveries table
+    trace_columns = 2
     for number, line in enumerate(text.splitlines(), start=1):
         if line.startswith("## "):
+            section = line
             in_trace = line.startswith("## Traceability")
-            in_scope = line.startswith("## Code Scope")
             spec.has_section = spec.has_section or in_trace
-            spec.has_scope = spec.has_scope or in_scope
+            spec.has_scope = spec.has_scope or line.startswith("## Code Scope")
+            spec.has_deliveries = spec.has_deliveries or line.startswith("## Deliveries")
             continue
-        if in_scope:
+        if section.startswith("## Code Scope"):
             entry = _SCOPE_ENTRY.match(line)
             if entry:
                 spec.scope.append((number, entry.group(1).strip()))
             continue
-        if not in_trace:
-            for pattern in (_FR_DEF, _AS_DEF):
-                match = pattern.match(line)
-                if match:
-                    spec.defined.setdefault(match.group(1), []).append(number)
+        if section.startswith("## Deliveries") and line.startswith("|"):
+            cells = [_plain(c) for c in _cells(line)]
+            if delivery_header is None:
+                names = [c.lower() for c in cells]
+                if "delivery" in names and "state" in names:
+                    delivery_header = (names.index("delivery"), names.index("state"))
+                continue
+            if set("".join(cells)) <= {"-", ":", " "}:
+                continue
+            name, state = cells[delivery_header[0]], cells[delivery_header[1]].lower()
+            if name in spec.deliveries:
+                spec.delivery_errors.append(f"{path}:{number}: delivery {name} is declared twice")
+            elif state not in STATES:
+                spec.delivery_errors.append(
+                    f"{path}:{number}: delivery {name} has state '{state}', not one of {STATES}"
+                )
+            spec.deliveries.setdefault(name, (state, number))
+            continue
+        if not section.startswith("## Traceability"):
+            if section.startswith(_EXEMPT_SECTIONS):
+                continue
+            match = _DEF.match(line)
+            if match:
+                spec.defined.setdefault(match.group(1), []).append(number)
+            for mention in _MENTION.finditer(line):
+                if not _OTHER_SPEC.search(line[: mention.start()]):
+                    spec.mentioned.setdefault(mention.group(1), []).append(number)
             continue
         if not line.startswith("|"):
             continue
-        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        cells = _cells(line)
         first = cells[0]
-        if first == "Requirement / Scenario" or set(first) <= {"-", ":", " "}:
+        if first == "Requirement / Scenario":
+            spec.delivery_column = len(cells) == 3 and _plain(cells[1]).lower() == "delivery"
+            trace_columns = 3 if spec.delivery_column else 2
             continue
-        if not _ID.match(first) or len(cells) != 2:
+        if set(first) <= {"-", ":", " "}:
+            continue
+        if not _ID.match(first) or len(cells) != trace_columns:
             spec.malformed_rows.append((number, first))
             continue
-        refs, bad = parse_cell(cells[1])
-        spec.rows.append(Row(first, number, refs, bad))
+        refs, bad = parse_cell(cells[-1])
+        delivery = _plain(cells[1]) if spec.delivery_column else None
+        spec.rows.append(Row(first, number, refs, bad, delivery))
+    if spec.has_deliveries and delivery_header is None:
+        spec.delivery_errors.append(
+            f"{path}: '## Deliveries' has no table with 'Delivery' and 'State' columns"
+        )
     return spec
 
 
@@ -222,13 +293,30 @@ def scope_errors(spec, tracked_files):
     ]
 
 
+def open_deliveries(spec):
+    return {name for name, (state, _) in spec.deliveries.items() if state != "closed"}
+
+
 def static_errors(spec, reject_pending):
+    """`reject_pending`: the pull request is a code change for this spec. It only matters for a
+    spec without deliveries; with deliveries, PENDING depends on the row's delivery."""
     errors = []
     if not spec.has_section:
         return [f"{spec.path}: no '## Traceability' section"]
+    errors += spec.delivery_errors
+    if spec.has_deliveries and not spec.delivery_column:
+        errors.append(f"{spec.path}: '## Deliveries' needs a Delivery column in § Traceability")
+    if spec.delivery_column and not spec.has_deliveries:
+        errors.append(f"{spec.path}: § Traceability has a Delivery column but no '## Deliveries'")
     for req, lines in sorted(spec.defined.items()):
         if len(lines) > 1:
             errors.append(f"{spec.path}: {req} is defined {len(lines)} times (lines {lines})")
+    for req, lines in sorted(spec.mentioned.items()):
+        if req not in spec.defined:
+            errors.append(
+                f"{spec.path}: {req} is mentioned (lines {lines}) but defined nowhere: a"
+                " requirement or scenario opens a line with its ID followed by `[`, `:` or a dash"
+            )
     for line, first in spec.malformed_rows:
         errors.append(f"{spec.path}:{line}: row '{first}' is not 'FR-… or USn-ASm | references'")
     seen = {}
@@ -243,7 +331,13 @@ def static_errors(spec, reject_pending):
             errors.append(f"{where}: not a backticked test reference: {text}")
         if not row.refs and not row.bad:
             errors.append(f"{where} has no test")
-        if reject_pending and any(r.kind == "pending" for r in row.refs):
+        pending = any(r.kind == "pending" for r in row.refs)
+        if spec.delivery_column:
+            if row.delivery not in spec.deliveries:
+                errors.append(f"{where} names no declared delivery: '{row.delivery}'")
+            elif pending and row.delivery not in open_deliveries(spec):
+                errors.append(f"{where} is PENDING in closed delivery {row.delivery}")
+        elif reject_pending and pending:
             errors.append(f"{where} is PENDING on a code change for this spec")
     for req in sorted(set(spec.defined) - set(seen)):
         errors.append(f"{spec.path}: {req} has no row in § Traceability")
@@ -411,8 +505,19 @@ def main(argv=None):
         spec = parse_spec((ROOT / path).read_text(encoding="utf-8"), path)
         reasons = code_changes(spec, changed)
         errors += scope_errors(spec, tracked) + static_errors(spec, bool(reasons))
-        pending = [row.req for row in spec.rows if any(r.kind == "pending" for r in row.refs)]
-        verdict = "rejected: code change for this spec" if reasons else "allowed"
+        pending = [row for row in spec.rows if any(r.kind == "pending" for r in row.refs)]
+        if spec.delivery_column:
+            counts = {}
+            for row in pending:
+                counts[row.delivery] = counts.get(row.delivery, 0) + 1
+            states = ", ".join(f"{n} {st}" for n, (st, _) in spec.deliveries.items())
+            verdict = (
+                "by delivery: "
+                + (", ".join(f"{d} {c}" for d, c in sorted(counts.items())) or "none")
+                + f"; deliveries {states}"
+            )
+        else:
+            verdict = "rejected: code change for this spec" if reasons else "allowed"
         print(
             f"{path}: {len(spec.defined)} requirements and scenarios, {len(spec.rows)} rows,"
             f" PENDING {len(pending)} ({verdict})"

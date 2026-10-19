@@ -20,10 +20,15 @@ la que está pensada para celular.
 
 Un estudiante sin grupo no aparece en tu dashboard. Dos formas de que entre:
 
-**Código de invitación** (lo normal). Creas el grupo, generas su código y lo
-repartes. El estudiante lo pega al registrarse o desde Materias. **El código
-funciona entre niveles**: puedes meter a un estudiante de Universidad en un grupo
-de Colegio si tiene sentido para tu curso.
+**Invitaciones de un solo uso** (lo normal). Creas el grupo y, en su panel,
+generas tantas invitaciones como estudiantes vayas a recibir (hasta 50 a la vez).
+Le das una a cada estudiante, que la pega en Materias: la primera persona que la
+usa entra al grupo y nadie más puede volver a usarla. Las que nadie usa vencen a
+los 30 días, y puedes anular una antes de que la usen. La lista te dice cuáles
+siguen sin usar, quién usó cada una, cuáles vencieron y cuáles anulaste. **La
+invitación funciona entre niveles**: puedes meter a un estudiante de Universidad
+en un grupo de Colegio si tiene sentido para tu curso. Los códigos reutilizables
+de antes ya no sirven.
 
 **Reasignación por el administrador.** Si alguien entró al grupo equivocado, el
 admin lo mueve. Queda **auditado** — quién, cuándo y de dónde a dónde.
@@ -81,8 +86,25 @@ El circuito completo:
    suma 10 puntos, un 0 resta 10, un 50 no mueve nada.
 5. Al estudiante le llega el aviso en el momento.
 
-El sistema calcula una **huella SHA-256** de cada archivo y detecta si el mismo
-estudiante sube dos veces lo mismo.
+Si el estudiante lo **reenvía**, vuelve a tu cola y su nota conserva la
+calificación anterior hasta que califiques otra vez; entonces solo se aplica la
+diferencia (un 80 que recalificas con 30 resta 10, no 4). Al guardar ves el
+efecto real en la nota, que puede ser menor si llegó a 0. Cada calificación queda
+en el historial del procedimiento.
+
+Si el estudiante lo reenvía mientras lo tienes abierto, al guardar verás «El
+estudiante reenvió este procedimiento; revisa el envío nuevo antes de calificar.»:
+no se guarda nada y la cola se recarga con el archivo nuevo para que lo califiques.
+
+Los procedimientos calificados antes de esta versión no mueven la nota si los
+recalificas: no se sabe cuánto les sumó la calificación anterior. Se revisan uno
+por uno con el administrador.
+
+El sistema calcula una **huella SHA-256** de cada archivo:
+- el mismo estudiante no puede subir dos veces el mismo archivo, ni para el mismo
+  ejercicio ni para otro;
+- el archivo de otro estudiante queda calificado con 0 automáticamente y aparece
+  en **Copias detectadas**, debajo de la cola, sin nombrar a quien lo subió primero.
 
 Las imágenes viven en almacenamiento **privado** — se sirven por bytes
 autenticados, nunca por un enlace público que se pueda reenviar.

@@ -24,6 +24,11 @@ export const test = base.extend<{ unmockedApi: string[] }>({
         (url) => url.pathname.startsWith("/api/"),
         (ws) => ws.close({ code: 1011, reason: "not mocked in e2e" }),
       );
+      // The login screen always asks whether public sign-up is open (spec 004 FR-003). Its
+      // server default — closed — answers here; a test that needs it open routes it again.
+      await page.route("**/api/auth/registration", (route) =>
+        route.fulfill({ status: 200, json: { enabled: false } }),
+      );
       await use(unmocked);
       // Unload the app while the routes above are still installed: at teardown Playwright
       // removes routes before closing the page, and a request fired in between would reach the

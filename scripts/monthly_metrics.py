@@ -19,6 +19,9 @@ from sklearn.metrics import roc_auc_score, log_loss
 
 
 def cargar_repo():
+    # Un reporte solo lee. Sin esto, abrir el repositorio migra y siembra (cuentas demo fuera de
+    # ENVIRONMENT=production) la base a la que apunte DATABASE_URL.
+    os.environ["RUN_MIGRATIONS"] = "0"
     db_url = os.environ.get("DATABASE_URL")
     if db_url:
         from src.infrastructure.persistence.postgres_repository import PostgresRepository

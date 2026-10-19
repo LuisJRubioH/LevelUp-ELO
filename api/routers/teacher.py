@@ -5,7 +5,9 @@ Endpoints del panel del docente:
   GET  /teacher/dashboard         → resumen de grupos y estudiantes
   GET  /teacher/groups            → grupos del docente
   POST /teacher/groups            → crear grupo
-  POST /teacher/groups/{id}/invite-code → generar código de invitación
+  POST /teacher/groups/{id}/invitations → invitaciones de un solo uso (spec 001 INV)
+  GET  /teacher/groups/{id}/invitations → invitaciones del grupo y su estado
+  DELETE /teacher/invitations/{id}      → anular una invitación sin usar
   GET  /teacher/procedures        → cola de procedimientos pendientes
   POST /teacher/procedures/grade  → calificar procedimiento
   GET  /teacher/student/{id}      → reporte detallado de un estudiante
@@ -13,8 +15,9 @@ Endpoints del panel del docente:
 """
 
 import io
+from datetime import datetime, timezone
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
 
 from api.dependencies import CurrentUser, RepoDep, require_role
@@ -22,6 +25,8 @@ from api.schemas.teacher import (
     ApproveTeacherRequest,
     ChangeGroupRequest,
     CreateGroupRequest,
+    CreateInvitationsRequest,
+    CreatedInvitationsResponse,
     ExamAssignmentCreateRequest,
     ExamAssignmentResponse,
     ExamTemplateCreateRequest,
@@ -30,13 +35,21 @@ from api.schemas.teacher import (
     GradeRequest,
     GradeResponse,
     GroupResponse,
+    InvitationsResponse,
+    InvitationView,
     ItemCatalogEntry,
     PendingProcedure,
+    ProcedureCopy,
+    ProcedureGradingEntry,
+    StudentPathResponse,
     StudentReportResponse,
     StudentAIAnalysisRequest,
     UserAdminRow,
 )
 from src.application.services.teacher_service import TeacherService
+from src.domain.invitations import format_token
+from src.domain.learning.prealgebra import PREALGEBRA_COURSE_ID, path_record
+from src.domain.procedures import ReviewRoundSuperseded
 from api.config import settings
 from api.rate_limit import limiter
 
@@ -54,19 +67,23 @@ def _svc(repo) -> TeacherService:
     return TeacherService(repository=repo, pedagogical_analysis=get_pedagogical_analysis)
 
 
-def _require_teacher_group(repo, group_id: int, user: dict) -> None:
-    """Aplica el mismo alcance de grupos que el dashboard del usuario."""
-    groups = repo.get_groups_by_teacher(user["user_id"])
-    if not any(group["group_id"] == group_id for group in groups):
-        raise HTTPException(status_code=404, detail="Grupo no encontrado.")
-
-
 def _require_teacher_student(repo, student_id: int, user: dict) -> dict:
+    """The student as this teacher sees them, with `group_id` set to the teacher's group.
+
+    Same students as the dashboard: those whose main group is the teacher's, and those enrolled
+    through one of the teacher's groups (joining a second group by code replaces the main one).
+    """
     student = repo.get_user_by_id(student_id)
-    if not student or student.get("role") != "student" or not student.get("group_id"):
+    if not student or student.get("role") != "student":
         raise HTTPException(status_code=404, detail="Estudiante no encontrado.")
-    _require_teacher_group(repo, student["group_id"], user)
-    return student
+    own = {group["group_id"] for group in repo.get_groups_by_teacher(user["user_id"])}
+    candidates = [student.get("group_id")] + [
+        enrolment.get("group_id") for enrolment in repo.get_user_enrollments(student_id)
+    ]
+    group_id = next((group for group in candidates if group in own), None)
+    if group_id is None:
+        raise HTTPException(status_code=404, detail="Estudiante no encontrado.")
+    return {**student, "group_id": group_id}
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -87,6 +104,8 @@ def dashboard(user: CurrentUser, repo: RepoDep):
             overall_status=view["overall_status"],
         )
     _, groups = svc.get_dashboard_data(user["user_id"])
+    # The group's reusable code (V1 still reads it) is not sent: spec 001 FR-028u.
+    groups = [{k: v for k, v in g.items() if k != "invite_code"} for g in groups]
     return {"students": students, "groups": groups}
 
 
@@ -106,7 +125,6 @@ def get_groups(user: CurrentUser, repo: RepoDep):
                 "id": r[0],
                 "name": r[1],
                 "course_id": r[2] if len(r) > 2 else None,
-                "invite_code": r[3] if len(r) > 3 else None,
                 "student_count": r[4] if len(r) > 4 else 0,
             }
         )
@@ -115,7 +133,6 @@ def get_groups(user: CurrentUser, repo: RepoDep):
                 group_id=row.get("group_id") or row.get("id"),  # both keys present
                 name=row["name"],
                 course_id=row.get("course_id"),
-                invite_code=row.get("invite_code"),
                 student_count=row.get("student_count", 0),
             )
         )
@@ -133,17 +150,54 @@ def create_group(body: CreateGroupRequest, user: CurrentUser, repo: RepoDep):
         group_id=group_id,
         name=body.group_name,
         course_id=body.course_id,
-        invite_code=None,
         student_count=0,
     )
 
 
-@router.post("/groups/{group_id}/invite-code")
-def generate_invite_code(group_id: int, user: CurrentUser, repo: RepoDep):
-    """Genera o renueva el código de invitación del grupo."""
-    _require_teacher_group(repo, group_id, user)
-    code = repo.generate_group_invite_code(group_id)
-    return {"invite_code": code}
+# ── Invitaciones de un solo uso (spec 001, delivery INV) ──────────────────────
+# The repository answers None / "not_found" for a group or an invitation that is not this
+# teacher's (an admin has none): 404, revealing nothing about it (FR-028p, FR-028t).
+
+
+@router.post(
+    "/groups/{group_id}/invitations",
+    status_code=status.HTTP_201_CREATED,
+    response_model=CreatedInvitationsResponse,
+)
+def create_invitations(
+    group_id: int, body: CreateInvitationsRequest, user: CurrentUser, repo: RepoDep
+):
+    """FR-028p: 1–50 single-use invitations to the teacher's own group."""
+    ttl_days = settings.invitation_ttl_days
+    tokens = repo.create_group_invitations(user["user_id"], group_id, body.count, ttl_days)
+    if tokens is None:
+        raise HTTPException(status_code=404, detail="Grupo no encontrado.")
+    return CreatedInvitationsResponse(tokens=[format_token(t) for t in tokens], ttl_days=ttl_days)
+
+
+@router.get("/groups/{group_id}/invitations", response_model=InvitationsResponse)
+def list_invitations(group_id: int, user: CurrentUser, repo: RepoDep):
+    """FR-028t: the group's invitations, newest first, with their state."""
+    rows = repo.get_group_invitations(user["user_id"], group_id)
+    if rows is None:
+        raise HTTPException(status_code=404, detail="Grupo no encontrado.")
+    return InvitationsResponse(
+        ttl_days=settings.invitation_ttl_days,
+        invitations=[InvitationView(**{**r, "token": format_token(r["token"])}) for r in rows],
+    )
+
+
+@router.delete("/invitations/{invitation_id}", status_code=status.HTTP_204_NO_CONTENT)
+def revoke_invitation(invitation_id: int, user: CurrentUser, repo: RepoDep):
+    """FR-028t: revoke an unused, unexpired invitation of the teacher's own group."""
+    outcome = repo.revoke_group_invitation(user["user_id"], invitation_id)
+    if outcome == "not_found":
+        raise HTTPException(status_code=404, detail="Invitación no encontrada.")
+    if outcome != "revoked":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Solo se puede anular una invitación sin usar y vigente.",
+        )
 
 
 # ── Procedimientos ────────────────────────────────────────────────────────────
@@ -165,16 +219,44 @@ def pending_procedures(user: CurrentUser, repo: RepoDep):
             PendingProcedure(
                 submission_id=row.get("id", 0),
                 student_id=row.get("student_id") or row.get("user_id", 0),
-                student_username=row.get("student_name") or row.get("username", ""),
+                student_name=row.get("student_name") or "",
                 item_id=row.get("item_id", ""),
                 item_content=row.get("item_content"),
                 ai_score=row.get("ai_proposed_score"),
                 status=row.get("status", "pending"),
                 created_at=str(row.get("submitted_at") or row.get("created_at", "")),
                 has_image=has_image,
+                review_round=row.get("review_round") or 1,
             )
         )
     return result
+
+
+@router.get("/procedures/copies", response_model=list[ProcedureCopy])
+def procedure_copies(user: CurrentUser, repo: RepoDep):
+    """Spec 001 FR-024i: procedures graded 0 automatically as copies in this teacher's groups,
+    last 30 days. Never the student who sent the file first."""
+    return [
+        ProcedureCopy(
+            submission_id=r["submission_id"],
+            student_id=r["student_id"],
+            student_name=r["student_name"] or "",
+            item_id=r["item_id"],
+            item_content=r.get("item_content"),
+            reviewed_at=str(r["reviewed_at"]) if r.get("reviewed_at") else None,
+        )
+        for r in repo.get_recent_procedure_copies_for_teacher(user["user_id"])
+    ]
+
+
+@router.get("/procedures/{submission_id}/gradings", response_model=list[ProcedureGradingEntry])
+def procedure_gradings(submission_id: int, user: CurrentUser, repo: RepoDep):
+    """Spec 001 FR-024e: every grading of a procedure, for the teacher of the student's group."""
+    rows = repo.get_procedure_gradings(submission_id, teacher_id=user["user_id"])
+    if rows is None:
+        raise HTTPException(status_code=404, detail="Procedimiento no encontrado.")
+    fields = ProcedureGradingEntry.model_fields
+    return [ProcedureGradingEntry(**{k: r[k] for k in fields}) for r in rows]
 
 
 @router.get("/procedures/{submission_id}/image")
@@ -207,9 +289,10 @@ def procedure_image(submission_id: int, user: CurrentUser, repo: RepoDep):
         except Exception:
             pass
 
-    # Fallback a BYTEA en DB
+    # Fallback a BYTEA en DB. The queue leaves image_data out when the row has a storage_url
+    # (so it does not load every image); read it for this one submission if Storage failed.
     if not image_bytes:
-        image_bytes = row.get("image_data")
+        image_bytes = row.get("image_data") or repo.get_submission_image_data(submission_id)
 
     if not image_bytes:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Imagen no disponible.")
@@ -219,9 +302,13 @@ def procedure_image(submission_id: int, user: CurrentUser, repo: RepoDep):
 
 @router.post("/procedures/grade", response_model=GradeResponse)
 def grade_procedure(body: GradeRequest, user: CurrentUser, repo: RepoDep):
-    """Califica un procedimiento y aplica el delta ELO al estudiante."""
-    # Usar la misma cola autorizada que el panel/visor; no confiar en el ID
-    # enviado por el cliente ni permitir recalificar entregas ya cerradas.
+    """Califica un procedimiento y aplica al rating solo la diferencia con su contribución
+    anterior (spec 001 bloque 7, FR-024d). Un reintento con la misma `review_round` devuelve el
+    mismo resultado sin aplicar nada (FR-024g); una ronda que el estudiante reemplazó al reenviar
+    responde 409 (FR-024l)."""
+    # Usar la misma cola autorizada que el panel/visor; no confiar en el ID enviado por el
+    # cliente. Fuera de la cola solo se admite el reintento de una ronda ya calificada, que el
+    # repositorio comprueba contra el grupo del docente.
     submission = next(
         (
             row
@@ -230,33 +317,40 @@ def grade_procedure(body: GradeRequest, user: CurrentUser, repo: RepoDep):
         ),
         None,
     )
-    if submission is None:
+    if submission is None and body.review_round is None:
         raise HTTPException(status_code=404, detail="Procedimiento pendiente no encontrado.")
 
     svc = _svc(repo)
     try:
-        elo_delta = svc.validate_procedure(
+        result = svc.grade_procedure(
             submission_id=body.submission_id,
             teacher_score=body.teacher_score,
             feedback=body.teacher_feedback or "",
             teacher_id=user["user_id"],
+            review_round=body.review_round,
         )
+    except ReviewRoundSuperseded as exc:
+        # FR-024l: the student resubmitted while this review was open; nothing was graded.
+        raise HTTPException(
+            status_code=409,
+            detail="El estudiante reenvió este procedimiento; revisa el envío nuevo antes de calificar.",
+        ) from exc
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-    # Notificar al estudiante en tiempo real (WebSocket)
+    # Notificar al estudiante en tiempo real (WebSocket), una sola vez por calificación.
     try:
-        if submission:
-            student_id = submission["student_id"]
+        if submission and result["created"]:
             from api.websocket.notifications import notify_sync
 
             notify_sync(
-                room=f"student_{student_id}",
+                room=f"student_{submission['student_id']}",
                 event="procedure_graded",
                 data={
                     "submission_id": body.submission_id,
-                    "teacher_score": body.teacher_score,
-                    "elo_delta": elo_delta or 0.0,
+                    "teacher_score": result["grade"],
+                    "elo_delta": result["applied"],
+                    "computed_delta": result["computed_delta"],
                     "feedback": body.teacher_feedback or "",
                 },
             )
@@ -265,9 +359,12 @@ def grade_procedure(body: GradeRequest, user: CurrentUser, repo: RepoDep):
 
     return GradeResponse(
         submission_id=body.submission_id,
-        teacher_score=body.teacher_score,
-        elo_delta=elo_delta or 0.0,
+        teacher_score=result["grade"],
+        elo_delta=result["applied"],
         status="graded",
+        computed_delta=result["computed_delta"],
+        contribution=result["contribution_after"],
+        review_round=result["review_round"],
     )
 
 
@@ -282,8 +379,28 @@ def student_report(student_id: int, user: CurrentUser, repo: RepoDep):
     return svc.get_student_dashboard(student_id)
 
 
+@router.get("/student/{student_id}/path/{course_id}", response_model=StudentPathResponse)
+def student_path(student_id: int, course_id: str, user: CurrentUser, repo: RepoDep):
+    """Spec 003 L4 (FR-042): the student's learning path — state, every answer in order and the
+    post-diagnostic outcomes. Right or wrong and the tag; never the chosen value (N11)."""
+    _require_teacher_student(repo, student_id, user)
+    if course_id != PREALGEBRA_COURSE_ID:
+        raise HTTPException(status_code=404, detail="Este curso no tiene ruta de aprendizaje")
+    return {
+        "student_id": student_id,
+        "course_id": course_id,
+        "nodes": path_record(
+            repo.get_lesson_states(student_id, course_id),
+            repo.get_lesson_answers(student_id, course_id),
+            repo.get_lesson_outcomes(student_id, course_id),
+        ),
+    }
+
+
 @router.get("/student/{student_id}/elo-history")
-def student_elo_history(student_id: int, user: CurrentUser, repo: RepoDep, limit: int = 20):
+def student_elo_history(
+    student_id: int, user: CurrentUser, repo: RepoDep, limit: int = Query(20, ge=1, le=200)
+):
     """Historial de ELO del estudiante para el gráfico temporal."""
     _require_teacher_student(repo, student_id, user)
     attempts = repo.get_latest_attempts(student_id, limit=limit)
@@ -313,14 +430,27 @@ def student_ai_analysis(
 
     svc = _svc(repo)
     effective_key = settings.get_ai_key("teacher_analysis", body.api_key)
+    # Igual que KatIA y la revisión de procedimientos: sin key no hay proveedor. Antes
+    # caía al servidor local (localhost:1234), su ConnectionError llegaba como 500 sin
+    # cabeceras CORS y el navegador lo mostraba como un error de red.
+    if not effective_key:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="No hay API key de IA configurada. Pide al administrador que configure "
+            "SYSTEM_AI_API_KEY.",
+        )
     global_elo = svc.ratings.ratings_view(student_id)["overall"]
 
-    analysis = svc.generate_ai_analysis(
-        student_id=student_id,
-        global_elo=global_elo,
-        api_key=effective_key,
-        provider=body.provider,
-    )
+    try:
+        analysis = svc.generate_ai_analysis(
+            student_id=student_id,
+            global_elo=global_elo,
+            api_key=effective_key,
+            provider=body.provider,
+        )
+    except (ConnectionError, TimeoutError) as exc:
+        # ai_client los lanza con un mensaje ya pensado para el usuario.
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
     return {"analysis": analysis}
 
 
@@ -346,6 +476,31 @@ def student_group_ranking(student_id: int, user: CurrentUser, repo: RepoDep):
 
 # ── Exportación ───────────────────────────────────────────────────────────────
 
+# Exported cells hold text students typed (usernames, KatIA messages). A spreadsheet runs a cell
+# that starts like a formula, so text starting with one of these is written as text (OWASP CSV
+# injection); in the workbook only "=" makes a formula.
+_FORMULA_STARTS = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_cell(value):
+    """Text that would start a formula gets a leading apostrophe, which Excel shows as text."""
+    if isinstance(value, str) and value.startswith(_FORMULA_STARTS):
+        return "'" + value
+    return value
+
+
+def _append_xlsx_row(ws, values) -> None:
+    """Append a row as data: characters a workbook cannot hold are dropped, and text starting
+    with "=" is stored as text instead of a formula."""
+    from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+
+    ws.append(
+        [ILLEGAL_CHARACTERS_RE.sub("", v) if isinstance(v, str) else v for v in values]
+    )
+    for cell in ws[ws.max_row]:
+        if cell.data_type == "f":
+            cell.data_type = "s"
+
 
 @router.get("/export/csv")
 def export_csv(user: CurrentUser, repo: RepoDep):
@@ -360,15 +515,17 @@ def export_csv(user: CurrentUser, repo: RepoDep):
         )
 
     output = io.StringIO()
+    # The byte-order mark tells Excel the file is UTF-8, so accents read correctly.
+    output.write("\ufeff")
     keys = list(rows[0].keys()) if isinstance(rows[0], dict) else []
     writer = csv.DictWriter(output, fieldnames=keys)
     writer.writeheader()
-    writer.writerows([dict(r) for r in rows])
+    writer.writerows([{k: _csv_cell(v) for k, v in dict(r).items()} for r in rows])
 
     output.seek(0)
     return StreamingResponse(
         iter([output.getvalue()]),
-        media_type="text/csv",
+        media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": "attachment; filename=levelup_data.csv"},
     )
 
@@ -400,7 +557,7 @@ def export_xlsx(user: CurrentUser, repo: RepoDep):
             headers = list(rows[0].keys()) if isinstance(rows[0], dict) else []
             ws.append(headers)
             for row in rows:
-                ws.append(list(dict(row).values()))
+                _append_xlsx_row(ws, list(dict(row).values()))
 
     buf = io.BytesIO()
     wb.save(buf)
@@ -522,6 +679,43 @@ def archive_exam_template(template_id: int, user: CurrentUser, repo: RepoDep):
 # ── Asignación de plantillas a grupos + ventana de tiempo ────────────────────
 
 
+def _as_utc(value: datetime) -> datetime:
+    """A time with no zone is UTC."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def _stored_utc(value: datetime | None) -> str | None:
+    """A window bound as naive UTC text: what both engines compare with their own clock
+    (`datetime('now')` on SQLite, `NOW()` on PostgreSQL)."""
+    return None if value is None else _as_utc(value).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _utc_iso(value) -> str | None:
+    """A stored time (naive UTC, or ISO text from older rows) as ISO 8601 with its zone, so a
+    browser reads it as UTC and shows it in the teacher's time."""
+    if value in (None, ""):
+        return None
+    if not isinstance(value, datetime):
+        try:
+            value = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except ValueError:
+            return str(value)
+    return _as_utc(value).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _assignment_response(row: dict) -> ExamAssignmentResponse:
+    return ExamAssignmentResponse(
+        **{
+            **row,
+            "starts_at": _utc_iso(row.get("starts_at")),
+            "ends_at": _utc_iso(row.get("ends_at")),
+            "created_at": _utc_iso(row.get("created_at")) or "",
+        }
+    )
+
+
 def _ensure_owns_template(repo, template_id: int, user: dict) -> dict:
     """Carga la plantilla y verifica autoría (o rol admin). Lanza HTTPException."""
     template = repo.get_exam_template(template_id)
@@ -540,7 +734,7 @@ def list_template_assignments(template_id: int, user: CurrentUser, repo: RepoDep
     """Lista a qué grupos está asignada esta plantilla y sus ventanas de tiempo."""
     _ensure_owns_template(repo, template_id, user)
     rows = repo.list_assignments_for_template(template_id)
-    return [ExamAssignmentResponse(**r) for r in rows]
+    return [_assignment_response(r) for r in rows]
 
 
 @router.post(
@@ -569,11 +763,11 @@ def create_template_assignments(
         repo.create_exam_assignment(
             template_id=template_id,
             group_id=gid,
-            starts_at=body.starts_at,
-            ends_at=body.ends_at,
+            starts_at=_stored_utc(body.starts_at),
+            ends_at=_stored_utc(body.ends_at),
         )
     rows = repo.list_assignments_for_template(template_id)
-    return [ExamAssignmentResponse(**r) for r in rows]
+    return [_assignment_response(r) for r in rows]
 
 
 @router.delete(

@@ -165,8 +165,8 @@ const en: TranslationKeys = {
     tabCode: "Access code",
     exploreIntro: "Pick a course to practice. If you're not enrolled yet, enroll first.",
     enrolledIntro: "Manage your enrollments. You can drop a course any time.",
-    codeIntro: "Use the invitation code your teacher gave you to access a course from another education level.",
-    codePlaceholder: "e.g. ABC123",
+    codeIntro: "Use the invitation code your teacher gave you to join their group, even if the course is from another level. Each code is personal: it works only once.",
+    codePlaceholder: "e.g. K7M2P-QX9RT",
     accessButton: "Join",
     enrolled: "My enrollments",
     enroll: "Enroll",
@@ -290,6 +290,7 @@ const en: TranslationKeys = {
     correctResult: "✅ Correct",
     incorrectResult: "❌ Incorrect",
     sentMessage: "Got it! Your teacher will review your procedure soon. Keep practicing.",
+    copyMessage: "Another student had already submitted this file. The procedure was graded 0 and marked as a copy.",
     uploadAnother: "Upload another procedure",
     other: "Other",
     preview: "Preview",
@@ -458,6 +459,23 @@ const en: TranslationKeys = {
     deactivate: "Deactivate",
     activate: "Activate",
     noMatches: "No matching users.",
+    resetPassword: "Reset password",
+    resetConfirm: "Reset {{username}}'s password? All of their sessions will end.",
+    temporaryTitle: "Temporary password for {{username}}",
+    temporaryHint: "Give it to the person: it is shown only once. They must change it when they sign in.",
+    close: "Close",
+    mustChange: "must change password",
+    noDisplayName: "no display name",
+    changeName: "Change name",
+    nameLabel: "Display name",
+    saveName: "Save",
+    cancelName: "Cancel",
+    createTeacherTitle: "Create teacher",
+    createTeacherHint:
+      "The teacher is approved and gets a temporary password to change at first sign-in.",
+    createTeacherUsername: "Username",
+    createTeacherEmail: "Email (optional)",
+    createTeacherSubmit: "Create teacher",
   },
 
   // ── Admin — Reports ─────────────────────────────────────────────────────────
@@ -489,6 +507,13 @@ const en: TranslationKeys = {
     colAdmin: "Admin",
     colDate: "Date",
     empty: "No reassignments recorded.",
+    accountTitle: "Account access",
+    accountIntro: "Password resets and teachers created. The password is never stored.",
+    accountEmpty: "No account operations.",
+    colAccount: "Account",
+    colOperation: "Operation",
+    actionPasswordReset: "Password reset",
+    actionTeacherCreated: "Teacher created",
   },
 
   // ── Admin — System groups ───────────────────────────────────────────────────
@@ -507,6 +532,7 @@ const en: TranslationKeys = {
     confirmYes: "Yes, delete",
     cancel: "Cancel",
     delete: "Delete",
+    deleteError: "The group could not be deleted. Please try again.",
   },
 
   // ── Teacher — Exams (templates) ─────────────────────────────────────────────
@@ -573,6 +599,7 @@ const en: TranslationKeys = {
 
   // ── Feedback (procedure history) ───────────────────────────────────────────
   feedback: {
+    copyBadge: "Copy detected",
     title: "Feedback",
     eyebrow: "Your procedures",
     intro: "Your reviewed worked solutions and KatIA's comments.",
@@ -620,6 +647,8 @@ const en: TranslationKeys = {
     eyebrow: "Open-response exercise",
     sentTitle: "Procedure submitted",
     sentMessage: "Got it! Your teacher will review your procedure soon. Keep practicing.",
+    copyTitle: "Procedure graded as a copy",
+    copyMessage: "Another student had already submitted this file. The procedure was graded 0 and marked as a copy.",
     sendAnother: "Send another",
     intro: "Upload the procedure for a development exercise or open question.",
     introHint: 'If you are answering a multiple-choice question, use the "Upload handwritten procedure" button shown below the question in the practice room.',
@@ -745,6 +774,7 @@ const en: TranslationKeys = {
   prealgebra: {
     loading: "Loading lesson...",
     error: "We couldn't load this lesson.",
+    locked: "This lesson is still locked: it opens when you finish the previous one on the map.",
     backToMap: "Back to map",
     safeZone: "Safe zone. Your ELO will not change",
     optionalBranch: "Optional detour. Your ELO will not change",
@@ -902,7 +932,7 @@ const en: TranslationKeys = {
         },
         footerLabel: "Level 1 complete",
         footerBody: "You closed the number-sets journey. You can review anytime.",
-        finish: "Back to map",
+        finish: "Finish level 1",
       },
     },
   },
