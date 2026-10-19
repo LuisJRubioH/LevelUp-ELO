@@ -416,12 +416,10 @@ redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no 
   same `SCHEMA_VERSION`. The rehearsal report shows the migration passing twice, and
   `SELECT MAX(version) FROM schema_versions` returns that version on the copy (5 today).
 
-- Roadmap follow-up **F-4** is merged into the branch being switched: `next-question`, `/answer`
-  and the diagnostic serve only courses the student is enrolled in (spec 001 FR-037, FR-037a).
-  Today any course is served.
-- Roadmap follow-up **F-5** is merged into the branch being switched: PvP lets enrolled students
-  in. Without it the redesign's PvP refuses every student (`docs/sdd/roadmap.md` § Follow-ups).
-- Roadmap follow-up **F-1** is merged into the branch being switched (decided 2026-10-09):
+- Roadmap follow-ups **F-4** (PR #9: `next-question`, `/answer` and the diagnostic serve only
+  courses the student is enrolled in, spec 001 FR-037, FR-037a) and **F-5** (PR #8: PvP lets
+  enrolled students in) are merged into `redesign` (checked 2026-10-19).
+- Roadmap follow-up **F-1** is merged into `redesign` (PRs #6, #10; decided 2026-10-09):
   Semillero students see the six courses of their grade and invitation codes work. Its read-only
   production checks (spec 001 task T084; `docs/sdd/f1-semillero-survey.md` § 3 step 1 and § 4.3
   step 1) are done by the owner first, with the counts recorded:
