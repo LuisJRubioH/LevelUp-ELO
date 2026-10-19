@@ -1974,6 +1974,23 @@ for _node_module in NODE_MODULES:
         ],
         required=False,
     )
+    # Spec 003 N9: the abstraction question is graded on the server, never gates completion,
+    # and its `correct` flags leave the content the browser receives.
+    _abstraction = _content.get("abstraction_question")
+    if _abstraction:
+        _register_mixed_interactions(
+            _node_id,
+            _slug,
+            [
+                {
+                    "id": "ABSTRACCION",
+                    "kind": "multi_select",
+                    "valid_options": [option["id"] for option in _abstraction["options"]],
+                    "expected": [o["id"] for o in _abstraction["options"] if o["correct"]],
+                }
+            ],
+            required=False,
+        )
 
 # ── Unlock and completion rules as node data (spec 003 L5, FR-050) ──────────
 # `src/domain/learning/path.py` reads them; no endpoint names a node.

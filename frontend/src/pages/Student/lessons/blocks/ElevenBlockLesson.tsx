@@ -51,7 +51,6 @@ type ClosingItem = {
   statement: string;
   prompt?: string;
   polya: { comprender: string; planear: string; ejecutar: string; comprobar: string };
-  answer: string;
   hints?: { n1: string; n2: string; n3: string };
 };
 
@@ -362,7 +361,11 @@ export function ElevenBlockLesson({
           )}
 
           {content.abstraction_question && (
-            <AbstractionQuestion question={content.abstraction_question} />
+            <AbstractionQuestion
+              question={content.abstraction_question}
+              engine={engine}
+              feedbackText={feedbackText}
+            />
           )}
 
           {closingItem && (

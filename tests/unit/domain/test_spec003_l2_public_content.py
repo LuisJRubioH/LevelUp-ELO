@@ -43,7 +43,7 @@ def _paths(value, path="", found=None):
     if isinstance(value, dict):
         for key, child in value.items():
             found[f"{path}.{key}"] += 1
-            if not any(f"{path}.{key}" == opaque for opaque in OPAQUE_PATHS):
+            if f"{path}.{key}" not in OPAQUE_PATHS and key not in GRADING_KEYS:
                 _paths(child, f"{path}.{key}", found)
     elif isinstance(value, (list, tuple)):
         for child in value:

@@ -192,7 +192,6 @@ export interface N4PracticeItem {
   kind: "numeric" | "single_select" | "multi_select";
   prompt: string;
   expr?: string;
-  answer?: string;
   options?: Array<{ id: string; text: string }>;
   valid_options?: string[];
   story?: string;
@@ -325,12 +324,6 @@ export interface LessonDetail {
       image_slot?: boolean;
       image?: string;
       trap?: boolean;
-    }>;
-    situations?: Array<{ id: string; prompt: string; expr: string; answer: string; set_label?: string }>;
-    operation_groups?: Array<{
-      id: string;
-      katia_after: string;
-      ops: Array<{ id: string; expr: string; answer: string }>;
     }>;
     practice?: N4PracticeItem[];
     feedback?: Record<string, string>;
