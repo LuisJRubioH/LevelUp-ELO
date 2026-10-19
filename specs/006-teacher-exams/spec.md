@@ -7,7 +7,7 @@
 **Status**: Approved by the owner (2026-10-19), with N1 … N11 as recommended except N10's range
 buttons, which get a use (FR-043). Written from the as-is survey
 (`docs/sdd/teacher-exams-survey.md`, LuisJRubioH/LevelUp-ELO#43), re-verified on 2026-10-19 (its
-§ 7). Delivery A pins what already holds; X1 is implemented; X2, C1 and P1 are not.
+§ 7). Delivery A pins what already holds; X1 and X2 are implemented; C1 and P1 are not.
 
 **Input**: Roadmap M6 (`docs/sdd/roadmap.md`): dashboard metrics, exports, exam mode, procedure
 grading flow.
@@ -41,7 +41,7 @@ request that completes a delivery marks it closed and fills all its rows.
 |---|---|---|
 | **A** | As-is pins: what exams and the console already guarantee, each requirement tied to a test that exists today | closed |
 | **X1** | Exam access and attempts: enrolled students only, one graded attempt per template, pending exams shown and dropped once submitted, server-side course name, a rate limit, stale sessions cleaned, a removed item no longer blocks a submission | closed |
-| **X2** | Templates and results: private until assigned, locked once taken, assignment checks the course and commits all groups or none, results of the teacher's own students on their first attempt, per student, with the chosen option kept | planned |
+| **X2** | Templates and results: private until assigned, locked once taken, assignment checks the course and commits all groups or none, results of the teacher's own students on their first attempt, per student, with the chosen option kept | closed |
 | **C1** | The console from the server: one student set everywhere (screens, exports, counts), the group summary, ranking and «attention» list computed by the server with competition ranks, the dashboard's 7-day, 30-day and full-history views, teacher routes for teachers only, dead code removed | planned |
 | **P1** | The procedures queue: follows the item's course, active non-test students only, no submission left without a teacher, the grade slider starts empty, the AI feedback shown, a stale AI score cleared on resubmission | planned |
 
@@ -304,9 +304,9 @@ closes their delivery.
 | US2-AS1 | X1 | `tests/integration/test_spec006_x1_exams.py::test_only_enrolled_students_reach_exams` |
 | US2-AS2 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_template_is_graded_once`<br>`tests/integration/test_spec006_x1_exams.py::test_pending_drops_a_submitted_template` |
 | US2-AS3 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_removed_item_is_reported_not_blocking`<br>`frontend/e2e/spec006-x1-pending.spec.ts › una pregunta retirada del banco se muestra como no calificada` |
-| US3-AS1 | X2 | `PENDING` |
-| US3-AS2 | X2 | `PENDING` |
-| US3-AS3 | X2 | `PENDING` |
+| US3-AS1 | X2 | `tests/integration/test_spec006_x2_templates.py::test_results_count_my_students_first_submission`<br>`frontend/e2e/spec006-x2-templates.spec.ts › los resultados muestran a cada estudiante con la opción que eligió` |
+| US3-AS2 | X2 | `tests/integration/test_spec006_x2_templates.py::test_a_started_template_cannot_change_its_items` |
+| US3-AS3 | X2 | `tests/integration/test_spec006_x2_templates.py::test_an_unassigned_template_is_a_draft` |
 | US4-AS1 | C1 | `PENDING` |
 | US4-AS2 | C1 | `PENDING` |
 | US4-AS3 | C1 | `PENDING` |
@@ -330,10 +330,10 @@ closes their delivery.
 | FR-022 | X1 | `tests/integration/test_spec006_x1_exams.py::test_pending_drops_a_submitted_template`<br>`frontend/e2e/spec006-x1-pending.spec.ts › lista los exámenes asignados pendientes y prepara el elegido` |
 | FR-023 | X1 | `tests/integration/test_spec006_x1_exams.py::test_the_course_name_comes_from_the_course`<br>`tests/integration/test_spec006_x1_exams.py::test_exam_starts_are_limited`<br>`tests/integration/test_spec006_x1_exams.py::test_stale_sessions_are_deleted` |
 | FR-024 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_removed_item_is_reported_not_blocking`<br>`frontend/e2e/spec006-x1-pending.spec.ts › una pregunta retirada del banco se muestra como no calificada` |
-| FR-030 | X2 | `PENDING` |
-| FR-031 | X2 | `PENDING` |
-| FR-032 | X2 | `PENDING` |
-| FR-033 | X2 | `PENDING` |
+| FR-030 | X2 | `tests/integration/test_spec006_x2_templates.py::test_an_unassigned_template_is_a_draft`<br>`frontend/e2e/spec006-x2-templates.spec.ts › un examen sin asignar es borrador y uno ya presentado se duplica para cambiarlo` |
+| FR-031 | X2 | `tests/integration/test_spec006_x2_templates.py::test_a_started_template_cannot_change_its_items`<br>`frontend/e2e/spec006-x2-templates.spec.ts › un examen sin asignar es borrador y uno ya presentado se duplica para cambiarlo` |
+| FR-032 | X2 | `tests/integration/test_spec006_x2_templates.py::test_an_assignment_is_one_course_and_all_or_nothing` |
+| FR-033 | X2 | `tests/integration/test_spec006_x2_templates.py::test_results_count_my_students_first_submission`<br>`tests/unit/domain/test_spec006_exam_results.py::test_only_my_students_first_submission_count`<br>`tests/unit/domain/test_spec006_exam_results.py::test_each_student_keeps_the_option_chosen`<br>`tests/unit/domain/test_spec006_exam_results.py::test_per_item_counts_the_wrong_options`<br>`tests/unit/domain/test_spec006_exam_results.py::test_per_topic_and_the_topic_to_reinforce`<br>`tests/unit/domain/test_spec006_exam_results.py::test_no_submission_is_an_empty_result` |
 | FR-040 | C1 | `PENDING` |
 | FR-041 | C1 | `PENDING` |
 | FR-042 | C1 | `PENDING` |

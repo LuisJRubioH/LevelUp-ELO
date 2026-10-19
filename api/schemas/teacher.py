@@ -205,6 +205,10 @@ class ExamTemplateResponse(BaseModel):
     item_ids: list[str]
     archived: bool
     created_at: str
+    # Spec 006 X2: a template with no assignment is a draft (FR-030); once a student has started
+    # it, its items are locked (FR-031).
+    assigned: bool = False
+    locked: bool = False
 
 
 class ExamAssignmentCreateRequest(BaseModel):

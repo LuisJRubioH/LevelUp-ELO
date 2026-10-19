@@ -1433,6 +1433,12 @@ class PostgresRepository:
         )
         self._create_lesson_history(cursor)
         self._create_katia_conversations(cursor)
+        self._add_exam_selected_option(cursor)
+
+    def _add_exam_selected_option(self, cursor):
+        """Spec 006 X2 (FR-033): the option a student chose for each exam item; NULL on rows
+        stored before X2."""
+        self._add_column_if_not_exists(cursor, "exam_responses", "selected_option", "TEXT")
 
     def _create_katia_conversations(self, cursor):
         """Spec 005 K3: one conversation per student and item, its summary when it closes
@@ -6928,8 +6934,9 @@ class PostgresRepository:
                     psycopg2.extras.execute_batch(
                         cursor,
                         """INSERT INTO exam_responses
-                           (session_id, template_id, user_id, item_id, topic, is_correct)
-                           VALUES (%s, %s, %s, %s, %s, %s)""",
+                           (session_id, template_id, user_id, item_id, topic, is_correct,
+                            selected_option)
+                           VALUES (%s, %s, %s, %s, %s, %s, %s)""",
                         [
                             (
                                 history_id,
@@ -6938,6 +6945,7 @@ class PostgresRepository:
                                 r["item_id"],
                                 r.get("topic"),
                                 1 if r.get("is_correct") else 0,
+                                r.get("selected_option"),
                             )
                             for r in responses
                         ],
@@ -6978,85 +6986,45 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    def get_exam_template_results(self, template_id: int) -> dict:
-        """Análisis agregado de resultados de una plantilla (ver SQLite)."""
+    def get_exam_template_responses(self, template_id: int) -> list[dict]:
+        """Spec 006 FR-033: every stored answer to a template, with its submission; the domain
+        keeps the teacher's students and each one's first submission."""
         conn = self.get_connection()
         try:
-            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-                cursor.execute(
-                    """SELECT COUNT(*) AS n_sessions,
-                              COUNT(DISTINCT user_id) AS n_students,
-                              COALESCE(AVG(score_pct), 0) AS avg_score
-                       FROM exam_sessions WHERE exam_template_id = %s""",
-                    (template_id,),
-                )
-                s = cursor.fetchone()
-                summary = {
-                    "n_sessions": s["n_sessions"] or 0,
-                    "n_students": s["n_students"] or 0,
-                    "avg_score": round(float(s["avg_score"] or 0), 1),
-                }
-                cursor.execute(
-                    """SELECT er.item_id,
-                              COALESCE(i.content, er.item_id) AS content,
-                              er.topic,
-                              COUNT(*) AS total,
-                              SUM(er.is_correct) AS correct
-                       FROM exam_responses er
-                       LEFT JOIN items i ON i.id = er.item_id
-                       WHERE er.template_id = %s
-                       GROUP BY er.item_id, i.content, er.topic
-                       ORDER BY total DESC""",
-                    (template_id,),
-                )
-                questions = []
-                for r in cursor.fetchall():
-                    total = r["total"] or 0
-                    correct = r["correct"] or 0
-                    questions.append(
-                        {
-                            "item_id": r["item_id"],
-                            "content": r["content"],
-                            "topic": r["topic"],
-                            "total": total,
-                            "correct": correct,
-                            "accuracy": round(correct / total * 100, 1) if total else 0.0,
-                        }
-                    )
-                cursor.execute(
-                    """SELECT COALESCE(topic, 'Sin tópico') AS topic,
-                              COUNT(*) AS total, SUM(is_correct) AS correct
-                       FROM exam_responses WHERE template_id = %s
-                       GROUP BY topic ORDER BY total DESC""",
-                    (template_id,),
-                )
-                topics = []
-                for r in cursor.fetchall():
-                    total = r["total"] or 0
-                    correct = r["correct"] or 0
-                    topics.append(
-                        {
-                            "topic": r["topic"],
-                            "total": total,
-                            "correct": correct,
-                            "accuracy": round(correct / total * 100, 1) if total else 0.0,
-                        }
-                    )
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                """SELECT er.session_id, er.user_id, es.created_at AS submitted_at,
+                          er.item_id, er.topic, COALESCE(i.content, er.item_id) AS content,
+                          er.is_correct, er.selected_option
+                   FROM exam_responses er
+                   JOIN exam_sessions es ON es.id = er.session_id
+                   LEFT JOIN items i ON i.id = er.item_id
+                   WHERE er.template_id = %s
+                   ORDER BY er.session_id, er.id""",
+                (template_id,),
+            )
+            rows = []
+            for row in cursor.fetchall():
+                r = dict(row)
+                r["submitted_at"] = str(r["submitted_at"])[:19]
+                rows.append(r)
+            return rows
         finally:
             self.put_connection(conn)
 
-        ranked = [q for q in questions if q["total"] > 0]
-        best = max(ranked, key=lambda q: q["accuracy"], default=None)
-        worst = min(ranked, key=lambda q: q["accuracy"], default=None)
-        reinforce = min(topics, key=lambda t: t["accuracy"], default=None) if topics else None
-        return {
-            **summary,
-            "questions": questions,
-            "topics": topics,
-            "best_question": best,
-            "worst_question": worst,
-            "reinforce_topic": reinforce,
-        }
+    def template_has_sessions(self, template_id: int) -> bool:
+        """Spec 006 FR-031: whether any student has started this template."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT 1 AS found FROM active_exam_sessions WHERE exam_template_id = %s"
+                " UNION SELECT 1 FROM exam_sessions WHERE exam_template_id = %s LIMIT 1",
+                (template_id, template_id),
+            )
+            return cursor.fetchone() is not None
+        finally:
+            self.put_connection(conn)
 
     def get_exam_history(self, user_id: int, limit: int = 20) -> list[dict]:
         conn = self.get_connection()
@@ -7266,6 +7234,33 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    def assign_template_to_groups(
+        self,
+        template_id: int,
+        group_ids: list[int],
+        starts_at: str | None = None,
+        ends_at: str | None = None,
+    ) -> None:
+        """Spec 006 FR-032: assigns the template to every group in one transaction — all or
+        none. Upsert per (template, group)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            for group_id in group_ids:
+                cursor.execute(
+                    """INSERT INTO exam_assignments (template_id, group_id, starts_at, ends_at)
+                       VALUES (%s, %s, %s, %s)
+                       ON CONFLICT (template_id, group_id) DO UPDATE
+                         SET starts_at = EXCLUDED.starts_at, ends_at = EXCLUDED.ends_at""",
+                    (template_id, group_id, starts_at, ends_at),
+                )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
     def delete_exam_assignment(self, assignment_id: int, template_id: int | None = None) -> bool:
         conn = self.get_connection()
         try:
@@ -7348,11 +7343,9 @@ class PostgresRepository:
                    AND (ea.ends_at IS NULL OR ea.ends_at >= NOW())
                 WHERE et.archived = FALSE
                   AND et.course_id = %s
-                  AND (
-                    NOT EXISTS (SELECT 1 FROM exam_assignments
-                                WHERE template_id = et.id)
-                    OR ea.id IS NOT NULL
-                  )
+                  -- Spec 006 FR-030: a template with no assignment is a draft, seen by no
+                  -- student.
+                  AND ea.id IS NOT NULL
                   -- Spec 006 FR-021, FR-022: a template is taken once.
                   AND NOT EXISTS (SELECT 1 FROM exam_sessions es
                                   WHERE es.user_id = %s AND es.exam_template_id = et.id)
@@ -7397,11 +7390,7 @@ class PostgresRepository:
                    AND (ea.starts_at IS NULL OR ea.starts_at <= NOW())
                    AND (ea.ends_at IS NULL OR ea.ends_at >= NOW())
                 WHERE et.archived = FALSE
-                  AND (
-                    NOT EXISTS (SELECT 1 FROM exam_assignments
-                                WHERE template_id = et.id)
-                    OR ea.id IS NOT NULL
-                  )
+                  AND ea.id IS NOT NULL
                   AND NOT EXISTS (SELECT 1 FROM exam_sessions es
                                   WHERE es.user_id = %s AND es.exam_template_id = et.id)
                 ORDER BY et.created_at DESC
