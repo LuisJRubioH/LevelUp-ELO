@@ -1,5 +1,5 @@
 from src.application.services.rating_read_service import RatingReadService
-from src.domain.elo.model import procedure_elo_delta
+from src.domain.elo.model import procedure_elo_delta, procedure_grading
 
 
 class TeacherService:
@@ -86,20 +86,34 @@ class TeacherService:
 
         teacher_score (0.0-100.0) se copia a final_score; el status pasa a
         VALIDATED_BY_TEACHER. Desde ese momento, solo final_score puede usarse
-        en analytics y ELO (nunca ai_proposed_score).
+        en analytics y ELO (nunca ai_proposed_score). Devuelve lo que se aplicó al
+        rating (spec 001 FR-024f), no el delta calculado.
         """
-        delta = procedure_elo_delta(teacher_score)
-        if teacher_id is None:
-            updated = self.repository.validate_procedure_submission(
-                submission_id, teacher_score, feedback
-            )
-        else:
-            updated = self.repository.validate_procedure_submission(
-                submission_id, teacher_score, feedback, teacher_id=teacher_id
-            )
-        if updated is False:
+        return self.grade_procedure(submission_id, teacher_score, feedback, teacher_id)["applied"]
+
+    def grade_procedure(
+        self,
+        submission_id: int,
+        teacher_score: float,
+        feedback: str = "",
+        teacher_id: int | None = None,
+        review_round: int | None = None,
+    ) -> dict:
+        """Spec 001 block 7: one grading of one review (FR-024b, FR-024d, FR-024g). The
+        repository locks and persists; the domain computes the correction and the floor. A
+        retried grading returns the recorded result with `created` False."""
+        procedure_elo_delta(teacher_score)  # FR-023: a grade outside 0–100 stops here
+        result = self.repository.grade_procedure_transaction(
+            submission_id,
+            teacher_score,
+            lambda contribution, rating: procedure_grading(teacher_score, contribution, rating),
+            feedback=feedback,
+            teacher_id=teacher_id,
+            review_round=review_round,
+        )
+        if result is None:
             raise LookupError("Procedimiento pendiente no encontrado.")
-        return delta
+        return result
 
     def generate_ai_analysis(
         self,
@@ -111,6 +125,7 @@ class TeacherService:
         model_name=None,
         procedure_stats=None,
         procedure_stats_by_course=None,
+        timeout=None,
     ):
         """Orquesta la generación del análisis pedagógico con IA.
         Requiere un mínimo de 3 intentos para producir un análisis significativo.
@@ -161,6 +176,8 @@ class TeacherService:
             kwargs["base_url"] = base_url
         if model_name:
             kwargs["model_name"] = model_name
+        if timeout:
+            kwargs["timeout"] = timeout
 
         if self._pedagogical_analysis is None:
             return "Análisis con IA no disponible: no se configuró un proveedor."

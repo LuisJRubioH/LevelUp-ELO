@@ -175,6 +175,8 @@ export interface CourseMap {
   course_name: string;
   diagnostic_done: boolean;
   nodes: MapNode[];
+  /** Spec 003 L1: a teacher's or admin's read-only view. */
+  preview?: boolean;
 }
 
 export type LessonEvent =
@@ -190,7 +192,6 @@ export interface N4PracticeItem {
   kind: "numeric" | "single_select" | "multi_select";
   prompt: string;
   expr?: string;
-  answer?: string;
   options?: Array<{ id: string; text: string }>;
   valid_options?: string[];
   story?: string;
@@ -200,6 +201,8 @@ export interface N4PracticeItem {
 }
 
 export interface LessonDetail {
+  /** Spec 003 L1: a teacher's or admin's read-only view. */
+  preview?: boolean;
   node_id: string;
   node_type: string;
   course_id: string;
@@ -322,12 +325,6 @@ export interface LessonDetail {
       image?: string;
       trap?: boolean;
     }>;
-    situations?: Array<{ id: string; prompt: string; expr: string; answer: string; set_label?: string }>;
-    operation_groups?: Array<{
-      id: string;
-      katia_after: string;
-      ops: Array<{ id: string; expr: string; answer: string }>;
-    }>;
     practice?: N4PracticeItem[];
     feedback?: Record<string, string>;
     formalization?:
@@ -357,7 +354,17 @@ export interface LessonDetail {
         misconception_tag: string | null;
       }
     >;
+    /** Spec 003 L4: the post-diagnostic outcome the server stored, or null. */
+    outcome?: LessonOutcome | null;
   };
+}
+
+/** Spec 003 L4 (FR-041): «gain» when the post-diagnostic beat the opening one, else «flat». */
+export interface LessonOutcome {
+  diagnostic_correct: number;
+  post_correct: number;
+  items: number;
+  outcome: "gain" | "flat";
 }
 
 export interface PrealgebraSummary {
@@ -374,6 +381,8 @@ export interface LessonInteractionResult {
   is_expected: boolean | null;
   misconception_tag: string | null;
   feedback_key: string;
+  /** Spec 003 L4: set when this answer finished the post-diagnostic. */
+  outcome?: "gain" | "flat" | null;
 }
 
 export interface ProcedureSubmissionRow {
@@ -385,9 +394,25 @@ export interface ProcedureSubmissionRow {
   teacher_score: number | null;
   final_score: number | null;
   teacher_feedback: string | null;
+  /** Spec 001 FR-024f: the amount the latest grading applied (null when nobody can know). */
   elo_delta: number | null;
+  computed_delta?: number | null;
+  contribution?: number | null;
+  /** Spec 001 FR-024i: graded 0 automatically as a copy of another student's file. */
+  is_copy?: boolean;
   submitted_at: string | null;
   reviewed_at: string | null;
+}
+
+/** What `POST /api/student/procedure` answers (spec 001 block 7). */
+export interface ProcedureSubmitResult {
+  submission_id: number;
+  ai_score: number | null;
+  ai_feedback: string | null;
+  status: string;
+  is_copy?: boolean;
+  teacher_score?: number | null;
+  elo_delta?: number | null;
 }
 
 export interface ProcedureStep {

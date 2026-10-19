@@ -13,7 +13,17 @@ Endpoints de autenticación:
 from datetime import datetime, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, HTTPException, Request, Response, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Cookie,
+    Depends,
+    Header,
+    HTTPException,
+    Request,
+    Response,
+    status,
+)
 
 from api.config import settings
 from api.dependencies import (
@@ -32,8 +42,10 @@ from api.schemas.auth import (
     TokenResponse,
     UserProfile,
 )
+from api.katia_record import classify_closed
 from api.rate_limit import client_ip, limiter, login_allowed, login_limit_key
 from api.websocket.connections import close_user_sync
+from src.domain.katia.conversation import close_outcome
 from src.domain.identity import (
     ACCESS_EXPIRED_MESSAGE,
     PASSWORD_MIN_LENGTH,
@@ -43,7 +55,22 @@ from src.domain.identity import (
     valid_new_password,
 )
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+
+def _same_site_request(request: Request) -> None:
+    """Spec 004 FR-082: a browser sends `Origin` with every state-changing request; one from an
+    origin the API does not serve is refused before anything happens (sign-in, renewal, sign-out
+    or password change on someone else's behalf). Requests without `Origin` (other programs, tests)
+    pass: they carry no browser's cookies to abuse."""
+    if request.method in ("GET", "HEAD", "OPTIONS"):
+        return
+    origin = request.headers.get("origin")
+    if origin is not None and origin.rstrip("/") not in {
+        allowed.rstrip("/") for allowed in settings.cors_origins
+    }:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Origen no permitido.")
+
+
+router = APIRouter(prefix="/auth", tags=["auth"], dependencies=[Depends(_same_site_request)])
 
 _REFRESH_COOKIE = "levelup_refresh"
 
@@ -56,6 +83,17 @@ _WEAK_NEW_PASSWORD = (
 )
 
 
+def _refresh_cookie_scope() -> dict:
+    """Spec 004 FR-081: HttpOnly, Secure, only for the auth paths, SameSite from the setting —
+    the same attributes to set it and to delete it."""
+    return {
+        "httponly": True,
+        "secure": True,
+        "samesite": settings.auth_cookie_samesite,
+        "path": "/api/auth",
+    }
+
+
 def _issue_session(response: Response, user_id: int, account: dict) -> TokenResponse:
     """Access token and refresh cookie for `account` (a `get_user_by_id` row), both bound to its
     current security version (spec 004 FR-027)."""
@@ -66,11 +104,8 @@ def _issue_session(response: Response, user_id: int, account: dict) -> TokenResp
     response.set_cookie(
         key=_REFRESH_COOKIE,
         value=refresh_token,
-        httponly=True,
-        secure=True,
-        samesite="none",  # cross-origin (frontend Vercel ↔ backend Render)
         max_age=settings.refresh_token_expire_days * 86400,
-        path="/api/auth",
+        **_refresh_cookie_scope(),
     )
     return TokenResponse(
         access_token=access_token,
@@ -197,9 +232,41 @@ def refresh_token(
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-def logout(response: Response):
-    """Elimina la cookie de refresh token."""
-    response.delete_cookie(key=_REFRESH_COOKIE, path="/api/auth")
+def logout(
+    response: Response,
+    repo: RepoDep,
+    background_tasks: BackgroundTasks,
+    authorization: Annotated[str | None, Header()] = None,
+    cookie_token: Annotated[str | None, Cookie(alias=_REFRESH_COOKIE)] = None,
+):
+    """Elimina la cookie de refresh token, con los mismos atributos con que se creó (FR-081):
+    sin Secure ni SameSite=None, un navegador no borra una cookie de otro sitio.
+
+    Spec 005 FR-031: ending the session abandons the student's open KatIA conversations. The
+    student is the one of the access token or, when it expired, of the refresh cookie; without
+    either, logging out still succeeds."""
+    response.delete_cookie(key=_REFRESH_COOKIE, **_refresh_cookie_scope())
+    user_id = _session_user(authorization, cookie_token)
+    if user_id is not None:
+        closed = repo.close_katia_conversations(user_id, close_outcome("logout"))
+        background_tasks.add_task(classify_closed, repo, closed)
+
+
+def _session_user(authorization: str | None, cookie_token: str | None) -> int | None:
+    """The user of a valid access token or refresh cookie, or None."""
+    candidates = []
+    if authorization and authorization.lower().startswith("bearer "):
+        candidates.append((authorization[7:].strip(), "access"))
+    if cookie_token:
+        candidates.append((cookie_token, "refresh"))
+    for token, kind in candidates:
+        try:
+            payload = decode_token(token)
+        except HTTPException:
+            continue
+        if payload.get("type") == kind and payload.get("sub"):
+            return int(payload["sub"])
+    return None
 
 
 @router.get("/me", response_model=UserProfile)

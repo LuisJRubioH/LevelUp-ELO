@@ -27,7 +27,6 @@ os.environ.update(
     AI_KEY_KATIA="",
     AI_KEY_PROCEDURE="",
     AI_KEY_TEACHER_ANALYSIS="",
-    AI_KEY_STUDENT_ANALYSIS="",
     SUPABASE_URL="",
     SUPABASE_KEY="",
 )
@@ -245,22 +244,33 @@ def run():
                 all(code in (403, 404) for code in denied) and all(code == 200 for code in allowed),
                 {"foreign_http": denied, "owner_http": allowed},
             )
-            original_code = repo.generate_group_invite_code(group_id)
-            response = client.post(
-                f"/api/teacher/groups/{group_id}/invite-code", headers=other_headers
-            )
-            code_unchanged = repo.get_group_by_invite_code(original_code) is not None
+            # Spec 001 FR-028p, FR-028t: single-use invitations; another teacher can neither
+            # create nor revoke them.
+            invitations_path = f"/api/teacher/groups/{group_id}/invitations"
             owner_response = client.post(
-                f"/api/teacher/groups/{group_id}/invite-code", headers=teacher_headers
+                invitations_path, headers=teacher_headers, json={"count": 1}
+            )
+            invitation = client.get(invitations_path, headers=teacher_headers).json()[
+                "invitations"
+            ][0]
+            response = client.post(invitations_path, headers=other_headers, json={"count": 1})
+            revoke_response = client.delete(
+                f"/api/teacher/invitations/{invitation['id']}", headers=other_headers
+            )
+            invitation_unchanged = any(
+                i["id"] == invitation["id"] and i["status"] == "unused"
+                for i in client.get(invitations_path, headers=teacher_headers).json()["invitations"]
             )
             record(
                 "foreign_group_invite_denied",
                 response.status_code in (403, 404)
-                and code_unchanged
-                and owner_response.status_code == 200,
+                and revoke_response.status_code in (403, 404)
+                and invitation_unchanged
+                and owner_response.status_code == 201,
                 {
                     "foreign_http": response.status_code,
-                    "unchanged_after_rejection": code_unchanged,
+                    "foreign_revoke_http": revoke_response.status_code,
+                    "unchanged_after_rejection": invitation_unchanged,
                     "owner_http": owner_response.status_code,
                 },
             )

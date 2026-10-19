@@ -104,11 +104,17 @@ export function Courses() {
         <div className="sp-card space-y-4">
           <p className="sp-dim text-sm">{t("courses.codeIntro")}</p>
           <div className="flex gap-3">
+            {/* Spec 001 FR-028q: with or without the hyphen; the API ignores case, spaces and
+                hyphens and answers each refusal with its own message (FR-028r). */}
             <input
               type="text"
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value.trim().toUpperCase())}
               placeholder={t("courses.codePlaceholder")}
+              aria-label={t("courses.enrollByCode")}
+              autoComplete="off"
+              autoCapitalize="characters"
+              spellCheck={false}
               className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-500"
             />
             <Button

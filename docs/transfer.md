@@ -61,19 +61,22 @@ wrong):
 |---|---|
 | `ENVIRONMENT` | `production` — turns on the runtime checks below |
 | `DATABASE_URL` | PostgreSQL for web traffic. On Supabase: the **transaction pooler, port 6543** |
-| `MIGRATION_DATABASE_URL` | Only for `scripts/migrate.py`: a **direct connection (5432) or session pooler** — the migration's advisory lock is not reliable on the transaction pooler |
+| `MIGRATION_DATABASE_URL` | Only for `scripts/migrate.py`: the **session pooler (5432)** — the migration's advisory lock is not reliable on the transaction pooler (6543). Supabase's direct connection also takes the lock, but its host has only IPv6 unless the project buys the IPv4 add-on, and neither Render nor GitHub-hosted runners (the `transfer-ops` jobs) reach IPv6 |
+| `DB_POOL_MIN_IDLE` | Optional (default `2`, 1–5): idle PostgreSQL connections the API keeps between requests (spec 002 D2). The pool never opens more than 5 |
+| `DB_POOL_PROBE_AFTER_S` | Optional (default `30`): a connection idle longer than this is checked with `SELECT 1` before use |
 | `RUN_MIGRATIONS` | `0` on the web process; the schema is applied by the separate migration step |
 | `WEB_CONCURRENCY` | `1` (required: PvP lobby and notification rooms live in process memory — AGENTS.md R18) |
 | `JWT_SECRET_KEY` | ≥ 32 random characters (`python -c "import secrets; print(secrets.token_hex(32))"`) |
 | `CORS_ORIGINS` | JSON list with the frontend's exact origin; no `localhost` in production |
 | `RATE_LIMIT_STORAGE_URI` | shared Redis/Valkey URI; `memory://` is refused in production |
-| `PUBLIC_REGISTRATION_ENABLED` | unset (closed). **Production today lets anyone register; after the merge nobody can** until it is set to `true` — accounts come from the administrator (spec 004 FR-005) |
+| `PUBLIC_REGISTRATION_ENABLED` | **`true`** (owner, 2026-10-18): new users keep registering themselves after the merge, as production does today. Unset means closed — then accounts come only from the administrator (spec 004 FR-005). Registration by the admin and public registration behind a paywall are a feature planned after the refactor (`docs/sdd/roadmap.md` § 6) |
 | `RATE_LIMIT_LOGIN_ACCOUNT`, `RATE_LIMIT_LOGIN_GLOBAL`, `RATE_LIMIT_REGISTER` | optional; defaults `10/minute` per account, `300/minute` for all logins, `20/minute` per address for public registration (spec 004 E1). `RATE_LIMIT_AUTH` no longer exists |
 | `RATE_LIMIT_ADMIN_CREATIONS` | optional; default `30/minute` — students one admin creates one by one (spec 004 E3, FR-045) |
 | `RATE_LIMIT_STORAGE_CONNECT_TIMEOUT`, `RATE_LIMIT_STORAGE_TIMEOUT`, `RATE_LIMIT_STORAGE_PROBE_INTERVAL`, `RATE_LIMIT_FALLBACK_MAX_KEYS` | optional; defaults 0.5 s, 0.5 s, 10 s and 50 000 — the fallback when the limit store fails (§ 3.2, spec 004 E6) |
+| `AUTH_COOKIE_SAMESITE` | `none` (default) while the page calls the API from another origin; `lax` after the switch of § 3.3 (spec 004 E5) |
 | `SUPABASE_URL`, `SUPABASE_KEY` | Storage for the **private** bucket `procedimientos` (images are served as bytes, never by public URL) |
 | `ADMIN_USER`, `ADMIN_PASSWORD` | seed of the administrator account (only created if the password is set) |
-| `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_STUDENT_ANALYSIS`, `AI_KEY_TEACHER_ANALYSIS` |
+| `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_TEACHER_ANALYSIS`; the key's prefix picks the provider, and `AI_MODEL_KATIA` / `AI_MODEL_VISION` / `AI_MODEL_ANALYSIS` override the Groq models. `SYSTEM_AI_PROVIDER` and `AI_KEY_STUDENT_ANALYSIS` are no longer read (spec 005 K4): remove them from the host |
 | `DATABASE_SSLMODE`, `LOG_LEVEL` | optional |
 
 Both database URLs take the form `postgresql://user:password@host:port/database` and nothing more.
@@ -84,7 +87,7 @@ and still stop `migrate.py`. Write the password as is, and prefer one of letters
 every reader takes the same way; SSL comes from `DATABASE_SSLMODE` (default `require`). The
 `transfer-ops` precheck and backup connect with the app's own parser first and stop if it cannot.
 
-Frontend (build time): `VITE_API_URL` = the API's public origin. **Never** put a secret in a
+Frontend (build time): `VITE_API_URL` = the API's public origin (empty after the switch of § 3.3, with `VITE_WS_URL` = the API's `wss://` origin). **Never** put a secret in a
 `VITE_*` variable — Vite bundles them into the JavaScript every visitor downloads.
 
 Order when the hosts are new: database → API (needs `DATABASE_URL`) → frontend (needs the API URL
@@ -210,9 +213,45 @@ Nothing in this section changes a host's settings or the start command; the owne
   address signs in without sharing a limit. Only public registration counts per address, so if it
   is opened (`PUBLIC_REGISTRATION_ENABLED`), its 20 per minute may be shared by everyone.
 
+### 3.3 Session renewal through the frontend's origin (Safari) — prepared, not active
+
+Safari blocks third-party cookies, and today the renewal cookie comes from the API's origin while
+the page lives on the frontend's: on Safari the session can end when the 15-minute access token
+expires. Spec 004 E5 prepares the fix; it changes nothing until the owner switches it on.
+
+Already in the code, whatever the switch:
+
+- `frontend/vercel.json` forwards `/api/*` from the frontend's origin to the API (unused while
+  `VITE_API_URL` points at the API).
+- Authentication responses carry `Cache-Control: no-store`; a state-changing authentication request
+  with an `Origin` the API does not serve (`CORS_ORIGINS`) is refused; logout deletes the cookie
+  with the same attributes it was set with; a browser WebSocket from another origin is refused.
+
+The switch, outside class hours:
+
+1. **Vercel** (frontend): set `VITE_API_URL` to an empty value and `VITE_WS_URL` to
+   `wss://levelup-elo.onrender.com` (WebSockets cannot go through the proxy), then redeploy.
+   The renewal cookie still works with `SameSite=None` on the same origin, so nothing breaks yet.
+   Everyone signs in once more: the old cookie belonged to the API's domain, the new one to the
+   frontend's.
+2. **Render** (API): set `AUTH_COOKIE_SAMESITE=lax`, then redeploy. From now on the cookie is
+   first-party.
+3. Check, labelling each result *real device* or *automated*: on Safari for iPhone, iPad and
+   desktop, and on Chrome — sign in; wait past 15 minutes (or delete the access token from
+   localStorage) and keep working; reload; sign out and confirm a reload asks to sign in; change
+   the password in one browser and confirm the other is signed out; open the KatIA chat and
+   confirm the answer streams word by word through the proxy (spec 004 N6).
+
+To undo: `AUTH_COOKIE_SAMESITE=none` on Render first, then `VITE_API_URL` back to the API's origin
+on Vercel. The order matters: with `lax` and a cross-origin page, renewal fails everywhere.
+
+Behind the proxy the API sees Vercel's addresses, not the browser's; sign-in limits do not depend on
+the address (§ 3.2), only public registration's per-address limit, which then counts Vercel's.
+
 ## 4. Backups (before any migration)
 
-1. **Database:** a full logical dump of the final database over a direct connection:
+1. **Database:** a full logical dump of the final database over the session pooler (5432) — the
+   same URL as `MIGRATION_DATABASE_URL`:
 
    ```bash
    pg_dump --format=custom --no-owner --no-privileges --file=pre-transfer-YYYYMMDD.dump "$MIGRATION_DATABASE_URL"
@@ -284,9 +323,14 @@ then restore the application schema; rehearsed locally, the result is identical 
 before the migration:
 
 ```sql
-DROP TABLE IF EXISTS active_exam_sessions, diagnostics, exam_responses, lesson_interactions,
-  lesson_progress, pvp_answers, pvp_matches, student_course_topic_elo CASCADE;
+DROP TABLE IF EXISTS active_exam_sessions, audit_account_events, bank_syncs, diagnostics,
+  exam_responses, group_invitations, katia_conversations, katia_messages, lesson_answers,
+  lesson_interactions, lesson_outcomes, lesson_progress, procedure_files, procedure_gradings,
+  procedure_uploads, pvp_answers, pvp_matches, schema_versions, student_course_topic_elo CASCADE;
 ```
+
+These are the 19 tables the redesign creates that `main` does not have (compared on 2026-10-19,
+schema version 3, plus spec 005 K3's two at version 4). A spec that adds a table adds it here too.
 
 ```bash
 pg_restore --clean --if-exists --no-owner --no-privileges --schema=public \
@@ -307,6 +351,30 @@ EXISTS`, never `DROP` or a type change), and `scripts/migrate.py` is idempotent.
 
 After it, nothing writes `student_topic_elo` or `users.current_elo`.
 
+Spec 002 D1 adds the tables `schema_versions` and `bank_syncs`. The first start of this code on a
+database applies the whole migration once, in one transaction, and records version 1; every later
+start with the version current and the item bank unchanged issues no DDL and writes no data. The
+start no longer repairs data: if `migrate.py` stops with «Run `python scripts/repairs/….py`»,
+run that script without arguments (it only counts), then with `--apply`, and start again — it
+changed nothing before stopping. The other two repairs (`deactivate_users_without_password.py`,
+`backfill_prob_failure.py`) are the owner's choice; the start does not need them.
+
+The schema version the code expects is `SCHEMA_VERSION` in
+`src/infrastructure/persistence/schema_version.py`. Today it is **5**:
+
+| Version | Change |
+|---|---|
+| 1 | spec 002 D1: `schema_versions`, `bank_syncs`; the migration runs all-or-nothing |
+| 2 | spec 002 D3: an index on SQLite only (PostgreSQL unchanged) |
+| 3 | spec 003 L4: tables `lesson_answers` (every lesson answer, in order) and `lesson_outcomes` (the post-diagnostic outcome); each row already in `lesson_interactions` is copied once into `lesson_answers` |
+| 4 | spec 005 K3: tables `katia_conversations` (one summary per KatIA conversation) and `katia_messages` (its text, only while it is open); `katia_interactions` stays and is no longer written by V2 |
+| 5 | spec 006 X2: column `exam_responses.selected_option` (the option chosen for each exam item; NULL on rows stored before it) |
+
+A production database from `main` has no schema version and no lesson tables, so its first
+migration goes straight to version 5 and the L4 copy finds nothing to copy. The rehearsal must run
+the **same commit that will be switched**: a rehearsal made before a version change does not
+cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
+
 **Rehearse on the restored copy first** (the scratch database from § 4):
 
 ```bash
@@ -320,6 +388,10 @@ Then check on the scratch database:
 SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2;
 SELECT COUNT(*) FROM student_topic_elo;                        -- equals the count from § 4
 SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- all pre-existing rows
+SELECT MAX(version) FROM schema_versions;                      -- 5: the SCHEMA_VERSION of the commit
+SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions);  -- 0
+SELECT COUNT(*) FROM lesson_outcomes;                          -- 0: written only by new answers
+SELECT COUNT(*) FROM katia_conversations;                      -- 0: written only by new chats
 ```
 
 Every reconciled row must have `approximate = true` and a `legacy_source_key`; the second run must
@@ -338,6 +410,10 @@ redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no 
 ## 6. Verification in the final environment
 
 **Before the switch** (on the final repository's pull request):
+
+- The § 4 backup and the § 5 rehearsal were run on the commit being switched, or on one with the
+  same `SCHEMA_VERSION`. The rehearsal report shows the migration passing twice, and
+  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (5 today).
 
 - Roadmap follow-up **F-4** is merged into the branch being switched: `next-question`, `/answer`
   and the diagnostic serve only courses the student is enrolled in (spec 001 FR-037, FR-037a).
@@ -380,6 +456,9 @@ refuses any non-local host. Never point tests at the production database.
 5. With a test teacher: the dashboard lists students with display rating and rank label.
 6. The SQL checks from § 5 return the same answers as on the rehearsal copy.
 7. No answer was saved by the old API after the migration (§ 6.1): the query below returns 0.
+8. Once V1 is disconnected (§ 3.1), delete the KatIA messages typed before spec 005 K3 (decision
+   N3): `python scripts/repairs/delete_katia_texts.py` counts them, `--apply` deletes them, and a
+   second `--apply` reports 0. It prints counts only.
 
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer

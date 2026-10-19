@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ACCESS_EXPIRED_CLOSE_CODE, rememberAccessExpired } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
+import { wsBase } from "../api/wsBase";
 
 export type NotificationEvent = {
   type: string;
@@ -37,14 +38,8 @@ export function useNotifications({ room, onEvent, enabled = true }: UseNotificat
   const connect = useCallback(() => {
     if (!accessToken || !enabled) return;
 
-    // En producción (Vercel + Render separados) VITE_API_URL = "https://levelup-elo.onrender.com"
-    // → wsBase = "wss://levelup-elo.onrender.com"
-    // En dev (proxy Vite a localhost:8000), VITE_API_URL="" → usa el mismo host
-    const apiBase = import.meta.env.VITE_API_URL as string | undefined;
-    const wsBase = apiBase
-      ? apiBase.replace(/^https/, "wss").replace(/^http(?!s)/, "ws")
-      : `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`;
-    const wsUrl = `${wsBase}/api/ws/notifications/${room}`;
+    // VITE_WS_URL, si no VITE_API_URL, si no el mismo host (spec 004 E5, N6): ver api/wsBase.ts.
+    const wsUrl = `${wsBase()}/api/ws/notifications/${room}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 

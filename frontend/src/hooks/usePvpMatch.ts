@@ -8,9 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ACCESS_EXPIRED, ACCESS_EXPIRED_CLOSE_CODE, rememberAccessExpired } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
-
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
-const WS_BASE = API_BASE.replace(/^http/, "ws");
+import { wsBase } from "../api/wsBase";
 
 export type PvpPhase = "idle" | "connecting" | "waiting" | "playing" | "finished";
 
@@ -114,7 +112,7 @@ export function usePvpMatch(courseId: string | null) {
     setResult(null);
     setFeedback(null);
 
-    const socket = new WebSocket(`${WS_BASE}/api/ws/pvp/${courseId}`);
+    const socket = new WebSocket(`${wsBase()}/api/ws/pvp/${courseId}`);
     ws.current = socket;
 
     socket.onopen = () => {

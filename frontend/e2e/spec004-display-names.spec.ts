@@ -70,8 +70,8 @@ test.describe("Spec 004 · nombres visibles", () => {
     await page.route("**/api/teacher/**", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
     );
-    await json(page, "**/api/teacher/metrics", {});
-    await json(page, "**/api/teacher/dashboard", {
+    await json(page, "**/api/teacher/metrics*", {});
+    await json(page, "**/api/teacher/dashboard*", {
       students: [
         {
           user_id: 5, name: "Sofía Vélez", education_level: "colegio", group_id: 1, group_name: "10A",

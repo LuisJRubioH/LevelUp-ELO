@@ -236,9 +236,17 @@ def test_spec001_old_database_stops_the_migration(database):
     assert "f1-semillero-survey.md § 4.3" in str(stopped.value)
     assert database.state() == before
     if database.engine == "sqlite":
-        # The old rebuild renamed courses first, leaving foreign keys on "_courses_old".
-        assert "courses" in database.foreign_key_targets()
+        # The old rebuild renamed courses first, leaving foreign keys on "_courses_old". Since
+        # spec 002 FR-017 the stopped migration commits nothing, init_db's tables included.
         assert "_courses_old" not in database.foreign_key_targets()
+        conn = sqlite3.connect(database.path)
+        try:
+            tables = {
+                r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            }
+        finally:
+            conn.close()
+        assert tables == {"courses"}
     assert not database.accepts("Semillero")
 
 

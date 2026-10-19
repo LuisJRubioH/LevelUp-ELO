@@ -5,7 +5,8 @@ import { injectAuth, mockStudentApi } from "./helpers/auth";
 /**
  * KatIA's chat is a request like any other: when the 15-minute access token has expired, the
  * session is renewed and the question goes through (it showed «Token inválido o expirado»). On
- * the course map it uses the student's own AI key and provider, as practice does.
+ * the course map it uses the student's own AI key, as practice does; the server picks the provider
+ * from it (spec 005 FR-011: the browser sends none).
  */
 
 const SSE = [
@@ -57,6 +58,22 @@ test.describe("KatIA", () => {
     ]);
   });
 
+  test("envía la opción que el estudiante marcó (spec 005 FR-020)", async ({ page }) => {
+    await mockStudentApi(page);
+    const calls = await katia(page, false);
+    await injectAuth(page);
+    await page.goto("/student/courses");
+    await page.getByRole("button", { name: /Practicar/ }).first().click();
+    await page.getByRole("button", { name: /Ir a practicar/ }).click();
+    await page.getByRole("button", { name: "Opción B", exact: true }).click();
+    await page.getByRole("button", { name: /Pregúntale a KatIA/ }).click();
+
+    await ask(page);
+
+    await expect(page.getByText("¿Qué observas?")).toBeVisible();
+    expect(calls[0].postDataJSON().selected_option).toBe("4");
+  });
+
   test("en el mapa usa la key y el proveedor del estudiante", async ({ page }) => {
     await mockStudentApi(page);
     await page.route("**/api/student/map/*", (route) =>
@@ -86,6 +103,7 @@ test.describe("KatIA", () => {
 
     await expect(page.getByText("¿Qué observas?")).toBeVisible();
     const body = calls[0].postDataJSON();
-    expect([body.api_key, body.provider]).toEqual(["sk-ant-student-key", "anthropic"]);
+    expect(body.api_key).toBe("sk-ant-student-key");
+    expect(body.provider).toBeUndefined();
   });
 });

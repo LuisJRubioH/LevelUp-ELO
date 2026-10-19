@@ -1,7 +1,7 @@
 """
 When the AI provider fails, KatIA says she could not answer: the provider's error text is not
-streamed as her reply nor saved as her answer in katia_interactions (the teacher reads that
-history and exports it). An unexpected failure shows a generic message, not the exception text.
+streamed as her reply nor saved as her answer in the open conversation (spec 005 K3). An
+unexpected failure shows a generic message, not the exception text.
 The procedure review's AI score is advisory and lives on a 0-100 scale: a value outside it is
 brought into range before it is signed and shown.
 """
@@ -13,7 +13,7 @@ import sqlite3
 
 import pytest
 
-ITEM = "q47"  # calculo_integral, in the bank the API syncs at start
+ITEM = "q21"  # calculo_diferencial, where estudiante1 is enrolled (K2)
 
 
 def _events(response):
@@ -27,7 +27,11 @@ def _saved_replies(student_message):
         return [
             row[0]
             for row in conn.execute(
-                "SELECT katia_response FROM katia_interactions WHERE student_message = ?",
+                "SELECT k.text FROM katia_messages s JOIN katia_messages k"
+                " ON k.conversation_id = s.conversation_id AND k.role = 'katia'"
+                " AND k.id = (SELECT MIN(id) FROM katia_messages n"
+                " WHERE n.conversation_id = s.conversation_id AND n.id > s.id)"
+                " WHERE s.role = 'student' AND s.text = ?",
                 (student_message,),
             )
         ]
@@ -41,7 +45,7 @@ def _ask(api_client, headers, message):
             "item_id": ITEM,
             "item_content": "Fórmula de integración por partes",
             "student_message": message,
-            "course_id": "calculo_integral",
+            "course_id": "calculo_diferencial",
             "api_key": "gsk_fake_test_key",
         },
     )
@@ -81,20 +85,25 @@ def test_a_provider_failure_is_not_katias_reply(
     message = f"failure probe {provider_says[:9]}"
     _reply_with(monkeypatch, provider_says)
 
-    events = _events(_ask(api_client, student_headers, message))
+    response = _ask(api_client, student_headers, message)
 
-    assert [e for e in events if "token" in e] == []
-    assert [e for e in events if "error" in e] != []
+    # Spec 005 FR-016: a 502 with KatIA's fixed message, not a 200 stream.
+    assert response.status_code == 502
+    assert [e for e in _events(response) if "token" in e] == []
+    assert (
+        response.json()["detail"]
+        == "KatIA no pudo responder ahora. Intenta de nuevo en un momento."
+    )
     assert _saved_replies(message) == []
 
 
 def test_an_unexpected_failure_shows_no_internal_detail(api_client, student_headers, monkeypatch):
     _reply_with(monkeypatch, RuntimeError("upstream said: internal-host-10.0.0.7 trace"))
 
-    events = _events(_ask(api_client, student_headers, "exception probe"))
+    response = _ask(api_client, student_headers, "exception probe")
 
-    errors = [e["error"] for e in events if "error" in e]
-    assert errors and all("internal-host" not in error for error in errors)
+    assert response.status_code == 502
+    assert "internal-host" not in response.text
 
 
 def test_a_reply_is_streamed_and_saved(api_client, student_headers, monkeypatch):

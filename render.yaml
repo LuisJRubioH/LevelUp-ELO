@@ -45,8 +45,9 @@ services:
       - key: DATABASE_URL
         sync: false  # Valor secreto — pegar en el dashboard de Render
 
-      # Solo para preDeployCommand: conexión DIRECTA (puerto 5432) o pooler de
-      # sesión, donde el advisory lock de _migrate_db() sí protege.
+      # Solo para scripts/migrate.py (Start Command): pooler de SESIÓN (puerto
+      # 5432), donde el advisory lock de _migrate_db() sí protege. La conexión
+      # directa de Supabase solo tiene IPv6, que Render no alcanza.
       - key: MIGRATION_DATABASE_URL
         sync: false
 
