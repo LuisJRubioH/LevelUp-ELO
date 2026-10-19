@@ -12,6 +12,14 @@ from src.domain.invitations import (
 )
 from src.infrastructure.security.hashing_service import HashingService
 from src.domain.procedures import ReviewRoundSuperseded
+from src.infrastructure.persistence.course_blocks import CourseBlockConstraintError
+from src.infrastructure.persistence.schema_version import (
+    REPAIR_GROUPS,
+    SCHEMA_VERSION,
+    MigrationFailed,
+    MigrationNeedsRepair,
+    bank_fingerprint,
+)
 from src.infrastructure.storage.paths import safe_path_component
 
 logger = logging.getLogger(__name__)
@@ -41,6 +49,8 @@ def _migrations_enabled() -> bool:
 
 
 class SQLiteRepository:
+    # The item bank the start syncs (spec 002 FR-016); a test points it at a copy.
+    BANK_DIR = os.path.join("items", "bank")
     # Ruta fija — garantiza que todos los datos persistan entre ejecuciones.
     _DEFAULT_DB_PATH = os.path.join("data", "elo_database.db")
 
@@ -63,17 +73,43 @@ class SQLiteRepository:
         Por eso esto corre una sola vez y por conexión directa o pooler de
         sesión — ver scripts/migrate.py y el startCommand de render.yaml.
         """
-        self.init_db()
-        self._migrate_db()
+        self._migrate_db()  # BEGIN IMMEDIATE waits for another process: never skipped
         self._seed_admin()
         if os.environ.get("ENVIRONMENT", "development").lower() != "production":
             self._seed_demo_data()
-        self._backfill_prob_failure()
-        self.sync_items_from_bank_folder()
+        self._sync_bank_if_changed()
         if os.environ.get("ENVIRONMENT", "development").lower() != "production":
             self._seed_test_students()
         self._reconcile_legacy_ratings()
         self.expire_stale_pvp_matches()
+
+    def _sync_bank_if_changed(self):
+        """Spec 002 FR-016: sync the item bank only when its fingerprint differs from the last
+        one recorded, then record it; an unchanged bank writes nothing."""
+        fingerprint = bank_fingerprint(self.BANK_DIR)
+        if fingerprint is None:
+            return
+        conn = self.get_connection()
+        try:
+            last = conn.execute(
+                "SELECT fingerprint FROM bank_syncs ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+        finally:
+            conn.close()
+        if last and last[0] == fingerprint:
+            return
+        self.sync_items_from_bank_folder(self.BANK_DIR)
+        conn = self.get_connection()
+        try:
+            conn.execute(
+                "INSERT INTO bank_syncs (fingerprint) SELECT ? WHERE NOT EXISTS ("
+                "SELECT 1 FROM bank_syncs WHERE fingerprint = ?"
+                " AND id = (SELECT MAX(id) FROM bank_syncs))",
+                (fingerprint, fingerprint),
+            )
+            conn.commit()
+        finally:
+            conn.close()
 
     def bootstrap_skipped_steps(self) -> list[str]:
         """Bootstrap steps skipped because another session held their advisory lock (R17)."""
@@ -82,9 +118,16 @@ class SQLiteRepository:
     def get_connection(self, timeout: float = 30.0):
         return sqlite3.connect(self.db_name, timeout=timeout)
 
-    def init_db(self):
-        conn = self.get_connection()
-        cursor = conn.cursor()
+    def init_db(self, cursor=None):
+        """Base tables. With the migration's cursor, inside its transaction (spec 002 FR-017)."""
+        if cursor is None:
+            conn = self.get_connection()
+            try:
+                self.init_db(conn.cursor())
+                conn.commit()
+            finally:
+                conn.close()
+            return
 
         # Tabla de grupos
         cursor.execute(
@@ -169,9 +212,6 @@ class SQLiteRepository:
             )
         """
         )
-
-        conn.commit()
-        conn.close()
 
     def get_student_procedure_scores(self, student_id):
         """Retorna notas de procedimientos validados, normalizadas a escala 0-100.
@@ -450,16 +490,70 @@ class SQLiteRepository:
         if not self._column_exists(cursor, table, column):
             cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
-    def _migrate_db(self):
-        """Agrega columnas nuevas de forma segura si no existen (migración)."""
+    def _migrate_db(self) -> bool:
+        """Brings the schema to SCHEMA_VERSION; True when it is there afterwards (spec 002 D1).
+
+        BEGIN IMMEDIATE serialises two processes, the role PostgreSQL's advisory lock plays. A
+        database already at the version issues no DDL (FR-016); otherwise the whole migration and
+        its version row run in that one transaction — SQLite's DDL is transactional — so a
+        failure commits nothing and names the step (FR-017).
+        """
         conn = self.get_connection()
+        conn.isolation_level = None  # explicit BEGIN/COMMIT: no implicit commit around DDL
         cursor = conn.cursor()
         try:
-            # First, before any change: an old courses.block CHECK stops the migration.
-            self._check_courses_block_constraint(cursor)
-        except Exception:
+            cursor.execute("BEGIN IMMEDIATE")
+            if self._schema_version(cursor) >= SCHEMA_VERSION:
+                cursor.execute("COMMIT")
+                return True
+            try:
+                self._run_migration(cursor)
+                cursor.execute(
+                    "INSERT INTO schema_versions (version) VALUES (?)", (SCHEMA_VERSION,)
+                )
+                cursor.execute("COMMIT")
+            except (MigrationNeedsRepair, CourseBlockConstraintError):
+                cursor.execute("ROLLBACK")
+                raise
+            except Exception as exc:
+                cursor.execute("ROLLBACK")
+                raise MigrationFailed("migrate_db", exc) from exc
+            return True
+        finally:
             conn.close()
-            raise
+
+    def _schema_version(self, cursor) -> int:
+        """The highest recorded schema version; 0 for a database from before spec 002 D1."""
+        present = cursor.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'schema_versions'"
+        ).fetchone()
+        if not present:
+            return 0
+        return cursor.execute("SELECT COALESCE(MAX(version), 0) FROM schema_versions").fetchone()[0]
+
+    def _run_migration(self, cursor):
+        """Every DDL step of SCHEMA_VERSION, cumulative and idempotent, on the caller's
+        transaction. Data repairs are not here: scripts/repairs/ (spec 002 FR-018)."""
+        # First, before any change: an old courses.block CHECK stops the migration.
+        self._check_courses_block_constraint(cursor)
+        self.init_db(cursor)
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS schema_versions (
+                version INTEGER PRIMARY KEY,
+                applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS bank_syncs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                fingerprint TEXT NOT NULL,
+                synced_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
 
         # users
         self._add_column_if_not_exists(cursor, "users", "role", "TEXT DEFAULT 'student'")
@@ -619,8 +713,8 @@ class SQLiteRepository:
         self._add_column_if_not_exists(cursor, "procedure_submissions", "ai_feedback", "TEXT")
         # v6 — hash SHA-256 del archivo subido para detección anti-plagio (T7)
         self._add_column_if_not_exists(cursor, "procedure_submissions", "file_hash", "TEXT")
-        # v7b — PostgreSQL runs ALTER TABLE procedure_submissions … DROP NOT NULL on image_data
-        # (NULL when the file lives in Storage); SQLite always keeps the bytes: no step here.
+        # v7b — image_data ya no es obligatorio (NULL cuando se usa Storage)
+        self._make_image_data_nullable(cursor)
         self._migrate_procedure_block7(cursor)
 
         # ── LMS: Cursos y Matrículas ─────────────────────────────────────────────
@@ -673,45 +767,13 @@ class SQLiteRepository:
         # Bloque temático dentro del curso (p.ej. "Constitución Política" en DIAN)
         self._add_column_if_not_exists(cursor, "items", "block", "TEXT DEFAULT ''")
 
-        # ── Unicidad de nombre de grupo por profesor (case-insensitive) ────
-        # Columna auxiliar para el índice único normalizado
+        # ── Unicidad de nombre de grupo por profesor (case-insensitive) ─
+        new_column = not self._column_exists(cursor, "groups", "name_normalized")
         self._add_column_if_not_exists(cursor, "groups", "name_normalized", "TEXT")
-        # Rellenar valores existentes que estén NULL
-        cursor.execute(
-            """
-            UPDATE groups SET name_normalized = LOWER(TRIM(name))
-            WHERE name_normalized IS NULL
-        """
-        )
-        # Resolver duplicados existentes antes de crear el índice único:
-        # renombrar grupos con sufijo -DUP-{id} para desambiguar
-        cursor.execute(
-            """
-            SELECT id, name, teacher_id, name_normalized
-            FROM groups
-            WHERE (teacher_id, name_normalized) IN (
-                SELECT teacher_id, name_normalized
-                FROM groups
-                GROUP BY teacher_id, name_normalized
-                HAVING COUNT(*) > 1
-            )
-            ORDER BY teacher_id, name_normalized, id
-        """
-        )
-        dup_rows = cursor.fetchall()
-        # Agrupar por (teacher_id, name_normalized); conservar el primero, renombrar el resto
-        seen = set()
-        for row_id, row_name, row_teacher, row_norm in dup_rows:
-            key = (row_teacher, row_norm)
-            if key not in seen:
-                seen.add(key)  # el primero se conserva intacto
-                continue
-            new_name = f"{row_name}-DUP-{row_id}"
-            new_norm = new_name.strip().lower()
-            cursor.execute(
-                "UPDATE groups SET name = ?, name_normalized = ? WHERE id = ?",
-                (new_name, new_norm, row_id),
-            )
+        if new_column:
+            # The new column's first value, set by the migration that adds it — not a repair.
+            cursor.execute("UPDATE groups SET name_normalized = LOWER(TRIM(name))")
+        self._check_group_names(cursor)
         # Índice único: (teacher_id, nombre normalizado)
         cursor.execute(
             """
@@ -749,17 +811,6 @@ class SQLiteRepository:
         )
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_group_invitations_group ON group_invitations(group_id)"
-        )
-
-        # ── Desactivar usuarios con contraseña vacía o nula ────────────────
-        # Conserva sus datos históricos pero impide login hasta que un admin
-        # los reactive y se les asigne una contraseña válida.
-        cursor.execute(
-            """
-            UPDATE users SET active = 0
-            WHERE (password_hash IS NULL OR TRIM(password_hash) = '')
-              AND active = 1
-        """
         )
 
         # ── Tabla problem_reports (reportes técnicos de usuarios) ────
@@ -1120,9 +1171,6 @@ class SQLiteRepository:
             "CREATE INDEX IF NOT EXISTS idx_pvp_answers_match " "ON pvp_answers(match_id, user_id)"
         )
 
-        conn.commit()
-        conn.close()
-
     def _check_courses_block_constraint(self, cursor):
         """Read-only: the courses.block CHECK must accept the four blocks (spec 001 FR-028n).
 
@@ -1138,41 +1186,110 @@ class SQLiteRepository:
         # A new database has no courses table yet: this migration creates it below.
         require_course_blocks(row[0] if row else "")
 
-    def _backfill_prob_failure(self):
-        """Rellena prob_failure para intentos históricos que tienen NULL.
-        Reconstruye el ELO por tópico en orden cronológico para cada estudiante."""
+    def _check_group_names(self, cursor):
+        """Read-only: the unique index on (teacher_id, name_normalized) needs every group named
+        and no duplicate. Renaming is a repair the owner runs (spec 002 FR-018), so the migration
+        stops naming it instead."""
+        pending = cursor.execute(
+            """
+            SELECT COUNT(*) FROM groups g
+             WHERE g.name_normalized IS NULL
+                OR EXISTS (SELECT 1 FROM groups o
+                            WHERE o.teacher_id = g.teacher_id
+                              AND o.name_normalized = g.name_normalized AND o.id < g.id)
+        """
+        ).fetchone()[0]
+        if pending:
+            raise MigrationNeedsRepair(
+                REPAIR_GROUPS, pending, "groups without a normalised name or with a repeated one"
+            )
+
+    def _make_image_data_nullable(self, cursor):
+        """FR-014 is PostgreSQL's: SQLite's image_data was created nullable, so no statement."""
+
+    # ── Data repairs: run by the owner through scripts/repairs/, never at start ──
+    # Spec 002 FR-018. Each returns the rows it changes; without apply=True it only counts.
+
+    def repair_users_without_password(self, apply: bool = False) -> int:
+        """Deactivates active users whose password hash is empty (they cannot sign in)."""
+        conn = self.get_connection()
+        try:
+            where = "active = 1 AND (password_hash IS NULL OR TRIM(password_hash) = '')"
+            if not apply:
+                return conn.execute(f"SELECT COUNT(*) FROM users WHERE {where}").fetchone()[0]
+            changed = conn.execute(f"UPDATE users SET active = 0 WHERE {where}").rowcount
+            conn.commit()
+            return changed
+        finally:
+            conn.close()
+
+    def repair_group_names(self, apply: bool = False) -> int:
+        """Fills groups.name_normalized where it is NULL and renames each repeated
+        (teacher, name) group but the oldest to «<name>-DUP-<id>», as the migration did before
+        spec 002 D1. Names are normalised as create_group does: strip, then lower."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                "SELECT id, name, teacher_id, name_normalized FROM groups ORDER BY id"
+            ).fetchall()
+            changes = {}
+            seen = set()
+            for group_id, name, teacher_id, normalised in rows:
+                key = (teacher_id, normalised or name.strip().lower())
+                if key not in seen:
+                    seen.add(key)
+                    if normalised is None:
+                        changes[group_id] = (name, key[1])
+                    continue
+                new_name = f"{name}-DUP-{group_id}"
+                changes[group_id] = (new_name, new_name.strip().lower())
+            if apply:
+                for group_id, (name, normalised) in changes.items():
+                    conn.execute(
+                        "UPDATE groups SET name = ?, name_normalized = ? WHERE id = ?",
+                        (name, normalised, group_id),
+                    )
+                conn.commit()
+            return len(changes)
+        finally:
+            conn.close()
+
+    def repair_prob_failure(self, apply: bool = False) -> int:
+        """Fills attempts.prob_failure where it is NULL, from the rating reconstructed in
+        chronological order for each student and topic (approximate: 1000 before the first)."""
         from src.domain.elo.model import expected_score
 
         conn = self.get_connection()
-        cursor = conn.cursor()
-
-        # Obtener todos los estudiantes con intentos sin prob_failure
-        cursor.execute("SELECT DISTINCT user_id FROM attempts WHERE prob_failure IS NULL")
-        user_ids = [row[0] for row in cursor.fetchall()]
-
-        for user_id in user_ids:
-            # Traer TODOS los intentos del usuario en orden cronológico
-            cursor.execute(
-                "SELECT id, topic, difficulty, elo_after FROM attempts "
-                "WHERE user_id = ? ORDER BY timestamp ASC, id ASC",
-                (user_id,),
-            )
-            attempts = cursor.fetchall()
-
-            elo_by_topic = {}  # ELO reconstruido antes de cada intento
-            for attempt_id, topic, difficulty, elo_after in attempts:
-                elo_before = elo_by_topic.get(topic, 1000.0)
-                p_success = expected_score(elo_before, difficulty)
-                prob_failure = 1.0 - p_success
-
-                cursor.execute(
-                    "UPDATE attempts SET prob_failure = ? WHERE id = ?", (prob_failure, attempt_id)
-                )
-                # Avanzar ELO reconstruido
-                elo_by_topic[topic] = elo_after
-
-        conn.commit()
-        conn.close()
+        try:
+            user_ids = [
+                row[0]
+                for row in conn.execute(
+                    "SELECT DISTINCT user_id FROM attempts WHERE prob_failure IS NULL"
+                ).fetchall()
+            ]
+            changed = 0
+            for user_id in user_ids:
+                attempts = conn.execute(
+                    "SELECT id, topic, difficulty, elo_after, prob_failure FROM attempts "
+                    "WHERE user_id = ? ORDER BY timestamp ASC, id ASC",
+                    (user_id,),
+                ).fetchall()
+                elo_by_topic = {}  # rating reconstructed before each attempt
+                for attempt_id, topic, difficulty, elo_after, prob_failure in attempts:
+                    if prob_failure is None:
+                        elo_before = elo_by_topic.get(topic, 1000.0)
+                        changed += 1
+                        if apply:
+                            conn.execute(
+                                "UPDATE attempts SET prob_failure = ? WHERE id = ?",
+                                (1.0 - expected_score(elo_before, difficulty), attempt_id),
+                            )
+                    elo_by_topic[topic] = elo_after
+            if apply:
+                conn.commit()
+            return changed
+        finally:
+            conn.close()
 
     def _seed_admin(self):
         """Crea el usuario admin desde variables de entorno si no existe.
@@ -1287,7 +1404,7 @@ class SQLiteRepository:
                 cursor.execute(
                     "UPDATE users SET group_id = COALESCE(group_id, ?), "
                     "education_level = COALESCE(education_level, ?) "
-                    "WHERE id = ?",
+                    "WHERE id = ? AND (group_id IS NULL OR education_level IS NULL)",
                     (primary_gid, edu_level, row[0]),
                 )
 
