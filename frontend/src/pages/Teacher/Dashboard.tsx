@@ -475,7 +475,7 @@ function StudentDrawer({
   courseId: string | null;
   onClose: () => void;
 }) {
-  const { apiKey, provider } = useSettingsStore();
+  const { apiKey } = useSettingsStore();
   const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
@@ -486,7 +486,7 @@ function StudentDrawer({
     setErr("");
     setLoading(true);
     try {
-      const res = await teacherApi.studentAiAnalysis(student.user_id, apiKey || undefined, provider);
+      const res = await teacherApi.studentAiAnalysis(student.user_id, apiKey || undefined);
       setAnalysis(res.analysis);
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "No se pudo generar el análisis.");

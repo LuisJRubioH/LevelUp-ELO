@@ -32,7 +32,7 @@ export function Practice() {
   const { courseId, resetSession, setPhase } = usePracticeStore();
   const { currentItem, lastAnswer, phase, isLoading, sessionQuestionsCount, loadNextQuestion, submitAnswer } =
     useStudentSession();
-  const { apiKey, provider } = useSettingsStore();
+  const { apiKey } = useSettingsStore();
 
   // Opción seleccionada por el estudiante (antes de enviar)
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -256,7 +256,6 @@ export function Practice() {
           itemContent={currentItem.content}
           courseId={courseId ?? ""}
           apiKey={apiKey}
-          provider={provider}
         />
       )}
 
@@ -356,7 +355,6 @@ export function Practice() {
               itemContent={currentItem.content}
               courseId={courseId ?? ""}
               apiKey={apiKey}
-              provider={provider}
             />
           )}
         </div>

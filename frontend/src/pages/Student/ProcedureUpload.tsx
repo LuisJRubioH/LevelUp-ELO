@@ -14,7 +14,7 @@ import { KatIAAvatar } from "../../components/KatIA/KatIAAvatar";
 import { Button } from "../../components/ui/Button";
 import { studentApi, type ProcedureReview, type ProcedureSubmitResult } from "../../api/student";
 import { apiClient } from "../../api/client";
-import { useSettingsStore } from "../../stores/settingsStore";
+import { GROQ_ONLY, isGroqKey, useSettingsStore } from "../../stores/settingsStore";
 import { ValidatedCard, PendingCard, classifyStatus } from "./Feedback";
 import { PageHeader } from "../../components/ui/PageHeader";
 import "./StudentContent.css";
@@ -70,7 +70,14 @@ export function ProcedureUpload() {
   const submissions = myProcedures?.submissions ?? [];
 
   const enrolled = (courses ?? []).filter((c) => c.enrolled);
-  const canAnalyze = !!apiKey || (aiStatus?.available ?? false);
+  // Spec 005 FR-014: the review runs on Groq only; another provider's key says why it is off.
+  const reviewKey = apiKey
+    ? isGroqKey(apiKey)
+    : aiStatus?.available
+      ? aiStatus.provider === "groq"
+      : null;
+  const canAnalyze = reviewKey === true;
+  const groqOnly = reviewKey === false;
 
   const handleFile = (f: File) => {
     setError(null);
@@ -277,6 +284,11 @@ export function ProcedureUpload() {
             </div>
           )}
 
+          {groqOnly && (
+            <p className="text-xs text-amber-300" role="note">
+              {GROQ_ONLY}
+            </p>
+          )}
           {canAnalyze ? (
             <div className="flex flex-col gap-2">
               <Button

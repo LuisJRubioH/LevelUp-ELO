@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
 
+from api.ai_target import TIMED_OUT, UNAVAILABLE, ai_target
 from api.dependencies import CurrentUser, RepoDep, require_role
 from api.schemas.teacher import (
     ApproveTeacherRequest,
@@ -439,18 +440,39 @@ def student_ai_analysis(
             detail="No hay API key de IA configurada. Pide al administrador que configure "
             "SYSTEM_AI_API_KEY.",
         )
+    # Spec 005 FR-010 … FR-013: the key's prefix picks the provider, settings the model.
+    target = ai_target("teacher_analysis", effective_key)
     global_elo = svc.ratings.ratings_view(student_id)["overall"]
+    # FR-015: the student's graded procedures (0-100), overall and per course.
+    scores = [row["score"] for row in repo.get_student_procedure_scores(student_id)]
+    procedure_stats = (
+        {"count": len(scores), "avg_score": sum(scores) / len(scores), "scores": scores}
+        if scores
+        else None
+    )
 
     try:
         analysis = svc.generate_ai_analysis(
             student_id=student_id,
             global_elo=global_elo,
-            api_key=effective_key,
-            provider=body.provider,
+            api_key=target.api_key,
+            provider=target.provider,
+            base_url=target.base_url,
+            model_name=target.model,
+            timeout=target.timeout,
+            procedure_stats=procedure_stats,
+            procedure_stats_by_course=repo.get_procedure_stats_by_course(student_id),
         )
-    except (ConnectionError, TimeoutError) as exc:
-        # ai_client los lanza con un mensaje ya pensado para el usuario.
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
+    except TimeoutError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=TIMED_OUT)
+    except ConnectionError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=UNAVAILABLE)
+    # FR-016: a provider's error text («ERROR_401: …», «❌ …») is not an analysis.
+    if not (analysis or "").strip() or analysis.lstrip().startswith(("ERROR_", "❌")):
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="La IA no pudo generar el análisis. Intenta de nuevo.",
+        )
     return {"analysis": analysis}
 
 

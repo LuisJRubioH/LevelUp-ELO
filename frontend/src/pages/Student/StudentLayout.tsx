@@ -16,7 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { authApi } from "../../api/auth";
 import { useAuthStore } from "../../stores/authStore";
 import { useThemeStore } from "../../stores/themeStore";
-import { useSettingsStore, PROVIDER_MODELS } from "../../stores/settingsStore";
+import { useSettingsStore } from "../../stores/settingsStore";
 import { usePracticeStore } from "../../stores/practiceStore";
 import { ReportProblemButton } from "../../components/ReportProblem/ReportProblemButton";
 import { CourseRail } from "../../components/Course/CourseRail";
@@ -50,9 +50,8 @@ export function StudentLayout({ children }: { children: ReactNode }) {
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const queryClient = useQueryClient();
   const { theme, toggleTheme } = useThemeStore();
-  const { apiKey, provider, model, setApiKey, setProvider, setModel } = useSettingsStore();
+  const { apiKey, setApiKey } = useSettingsStore();
   const courseId = usePracticeStore((s) => s.courseId);
-  const availableModels = PROVIDER_MODELS[provider] ?? [];
   const [aiOpen, setAiOpen] = useState(false);
   const { open: menuOpen, setOpen: setMenuOpen, closeRef, closeOnLink } = useSideDrawer();
 
@@ -127,22 +126,6 @@ export function StudentLayout({ children }: { children: ReactNode }) {
                 <span>Key</span>
                 <b>{apiKey ? "Tuya" : "Del sistema"}</b>
               </div>
-              <select className="ai-input" value={provider} onChange={(e) => setProvider(e.target.value)} aria-label="Proveedor">
-                <option value="groq">Groq</option>
-                <option value="anthropic">Anthropic</option>
-                <option value="openai">OpenAI</option>
-                <option value="google">Google Gemini</option>
-              </select>
-              {availableModels.length > 0 && (
-                <select className="ai-input" value={model} onChange={(e) => setModel(e.target.value)} aria-label="Modelo">
-                  <option value="">Modelo automático</option>
-                  {availableModels.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-              )}
               <input
                 className="ai-input"
                 type="password"

@@ -69,7 +69,6 @@ class StudentSummary(BaseModel):
 
 class StudentAIAnalysisRequest(BaseModel):
     api_key: str = ""
-    provider: str = "groq"
     # Campos para filtros cascada (opcionales para compatibilidad)
     group_id: int | None = None
     group_name: str | None = None

@@ -14,6 +14,7 @@ from typing import AsyncGenerator
 from fastapi import APIRouter, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
 
+from api.ai_target import TIMED_OUT, UNAVAILABLE, ai_target
 from api.dependencies import CurrentUser, RepoDep
 from api.schemas.student import SocraticRequest
 from api.config import settings
@@ -50,11 +51,7 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
     """
     from api.config import settings
     from src.application.services.rating_read_service import RatingReadService
-    from src.infrastructure.external_api.ai_client import (
-        detect_provider_from_key,
-        get_socratic_guidance,
-        PROVIDERS,
-    )
+    from src.infrastructure.external_api.ai_client import get_socratic_guidance
 
     effective_key = settings.get_ai_key("katia", body.api_key or "")
 
@@ -87,69 +84,56 @@ async def socratic(request: Request, body: SocraticRequest, user: CurrentUser, r
     # Rating global del estudiante (None mientras el diagnóstico está pendiente).
     student_rating = RatingReadService(repo).ratings_view(user["user_id"])["overall"]
 
-    # Resolver proveedor y modelo
-    provider = body.provider or ""
-    if not provider and effective_key:
-        provider = detect_provider_from_key(effective_key) or "groq"
-    prov_cfg = PROVIDERS.get(provider, PROVIDERS.get("groq", {}))
-    base_url = prov_cfg.get("base_url", "") or ""
-    model_name = prov_cfg.get("model_cog", "") or ""
+    # Spec 005 FR-010 … FR-013: the key's prefix picks the provider, settings the model.
+    target = ai_target("katia", effective_key)
+
+    # The provider answers in one piece; it is called before the stream starts, so a failure is
+    # a 502/503 with a fixed message, never a 200 (FR-016, US2-AS3).
+    try:
+        full_text = await asyncio.to_thread(
+            get_socratic_guidance,
+            student_rating,
+            topic,
+            body.item_content,
+            body.student_message,
+            correct_answer,
+            all_options,
+            target.base_url,
+            target.model,
+            target.api_key,
+            target.provider,
+            body.lang,
+            timeout=target.timeout,
+        )
+    except TimeoutError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=TIMED_OUT)
+    except ConnectionError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=UNAVAILABLE)
+    except Exception:
+        # The detail stays in the server log; the student gets a plain message.
+        logger.exception("KatIA: socratic reply failed")
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=_KATIA_UNAVAILABLE)
+    if _is_provider_error(full_text):
+        logger.warning("KatIA: provider %s failed", target.provider)
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=_KATIA_UNAVAILABLE)
+
+    await asyncio.to_thread(
+        repo.save_katia_interaction,
+        user["user_id"],
+        body.course_id,
+        body.item_id,
+        topic,
+        body.student_message,
+        full_text,
+    )
 
     async def _generate() -> AsyncGenerator[str, None]:
-        try:
-            import asyncio
-            from functools import partial
-
-            loop = asyncio.get_event_loop()
-            full_text = await loop.run_in_executor(
-                None,
-                partial(
-                    get_socratic_guidance,
-                    student_rating,
-                    topic,
-                    body.item_content,
-                    body.student_message,
-                    correct_answer,
-                    all_options,
-                    base_url,
-                    model_name,
-                    effective_key,
-                    provider,
-                    body.lang,
-                ),
-            )
-
-            if _is_provider_error(full_text):
-                logger.warning("KatIA: provider %s failed: %s", provider, (full_text or "")[:120])
-                yield f"data: {json.dumps({'error': _KATIA_UNAVAILABLE})}\n\n"
-                return
-
-            # Simular streaming token a token (dividir en palabras)
-            words = (full_text or "").split(" ")
-            for i, word in enumerate(words):
-                chunk = word + (" " if i < len(words) - 1 else "")
-                yield f"data: {json.dumps({'token': chunk})}\n\n"
-
-            # Guardar interacción en DB
-            await loop.run_in_executor(
-                None,
-                partial(
-                    repo.save_katia_interaction,
-                    user["user_id"],
-                    body.course_id,
-                    body.item_id,
-                    topic,
-                    body.student_message,
-                    full_text or "",
-                ),
-            )
-
-            yield f"data: {json.dumps({'done': True, 'full_text': full_text})}\n\n"
-
-        except Exception:
-            # The detail stays in the server log; the student gets a plain message.
-            logger.exception("KatIA: socratic reply failed")
-            yield f"data: {json.dumps({'error': _KATIA_UNAVAILABLE})}\n\n"
+        # Streaming simulado token a token (palabras): el proveedor ya respondió completo.
+        words = full_text.split(" ")
+        for i, word in enumerate(words):
+            chunk = word + (" " if i < len(words) - 1 else "")
+            yield f"data: {json.dumps({'token': chunk})}\n\n"
+        yield f"data: {json.dumps({'done': True, 'full_text': full_text})}\n\n"
 
     return StreamingResponse(
         _generate(),
@@ -196,7 +180,7 @@ async def review_procedure(
         result = review_math_procedure(contents, mime, effective_key)
         return result
     except Exception as exc:
+        logger.exception("Legacy procedure review failed")
         raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Error en la revisión de IA: {exc}",
+            status_code=status.HTTP_502_BAD_GATEWAY, detail=UNAVAILABLE
         ) from exc
