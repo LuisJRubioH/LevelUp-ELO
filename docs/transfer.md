@@ -75,7 +75,7 @@ wrong):
 | `AUTH_COOKIE_SAMESITE` | `none` (default) while the page calls the API from another origin; `lax` after the switch of § 3.3 (spec 004 E5) |
 | `SUPABASE_URL`, `SUPABASE_KEY` | Storage for the **private** bucket `procedimientos` (images are served as bytes, never by public URL) |
 | `ADMIN_USER`, `ADMIN_PASSWORD` | seed of the administrator account (only created if the password is set) |
-| `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_STUDENT_ANALYSIS`, `AI_KEY_TEACHER_ANALYSIS` |
+| `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_TEACHER_ANALYSIS`; the key's prefix picks the provider, and `AI_MODEL_KATIA` / `AI_MODEL_VISION` / `AI_MODEL_ANALYSIS` override the Groq models. `SYSTEM_AI_PROVIDER` and `AI_KEY_STUDENT_ANALYSIS` are no longer read (spec 005 K4): remove them from the host |
 | `DATABASE_SSLMODE`, `LOG_LEVEL` | optional |
 
 Both database URLs take the form `postgresql://user:password@host:port/database` and nothing more.

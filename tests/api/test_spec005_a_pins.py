@@ -32,7 +32,7 @@ def test_spec005_user_key_then_function_key_then_general_key():
     assert s.get_ai_key("katia", "   ") == "katia"
     assert s.get_ai_key("procedure") == "procedure"
     assert s.get_ai_key("teacher_analysis") == "teacher"
-    assert s.get_ai_key("student_analysis") == "general"  # no key of its own
+    assert s.get_ai_key("student_analysis") == "general"  # no key of its own (K4)
     assert s.get_ai_key("unknown") == "general"
     assert _settings().get_ai_key("katia") == ""
 

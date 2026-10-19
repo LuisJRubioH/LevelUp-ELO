@@ -3,7 +3,9 @@ api/routers/ai.py
 =================
 Endpoints de IA:
   POST /ai/socratic          → respuesta socrática (SSE streaming)
-  POST /ai/review-procedure  → revisión de procedimiento manuscrito (multipart)
+
+La revisión de procedimientos es POST /student/procedure/analyze (spec 005 K4 retiró el antiguo
+/ai/review-procedure).
 """
 
 import asyncio
@@ -11,7 +13,7 @@ import json
 import logging
 from typing import AsyncGenerator
 
-from fastapi import APIRouter, BackgroundTasks, Form, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 
 from api.ai_target import TIMED_OUT, UNAVAILABLE, ai_target, require_enrolled_in_item
@@ -22,7 +24,6 @@ from api.config import settings
 from api.rate_limit import limiter
 from src.domain.katia.conversation import HISTORY_TURNS, STALE_AFTER_HOURS
 from src.domain.katia.guardrail import GUIDING_QUESTION, check_reply
-from api.upload_validation import read_validated_upload
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 logger = logging.getLogger("api.ai")
@@ -177,44 +178,3 @@ async def socratic(
             "X-Accel-Buffering": "no",  # deshabilita buffering en nginx
         },
     )
-
-
-# ── Revisión de procedimientos ────────────────────────────────────────────────
-
-
-@router.post("/review-procedure")
-@limiter.limit(settings.rate_limit_review)
-async def review_procedure(
-    request: Request,
-    file: UploadFile,
-    item_id: str = Form(...),
-    api_key: str = Form(default=""),
-    user: CurrentUser = None,
-    repo: RepoDep = None,
-):
-    """
-    Revisa un procedimiento manuscrito con IA (Groq + Llama 4 Scout).
-
-    La API key se resuelve por prioridad: usuario > AI_KEY_PROCEDURE > SYSTEM_AI_API_KEY.
-    """
-    from api.config import settings
-
-    effective_key = settings.get_ai_key("procedure", api_key)
-    if not effective_key:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="No hay API key de IA configurada.",
-        )
-
-    contents, mime = await read_validated_upload(file)
-
-    try:
-        from src.infrastructure.external_api.math_procedure_review import review_math_procedure
-
-        result = review_math_procedure(contents, mime, effective_key)
-        return result
-    except Exception as exc:
-        logger.exception("Legacy procedure review failed")
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY, detail=UNAVAILABLE
-        ) from exc

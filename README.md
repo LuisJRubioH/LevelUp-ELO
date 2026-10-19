@@ -336,8 +336,8 @@ importar `src.*`. Sin `DATABASE_URL` usa SQLite y crea la base con datos demo.
 | `JWT_SECRET_KEY` | Firma de los JWT | V2 |
 | `CORS_ORIGINS` | Orígenes permitidos | V2 |
 | `SYSTEM_AI_API_KEY` | Key de IA del sistema | V2 |
-| `SYSTEM_AI_PROVIDER` | Proveedor explícito; autodetectado si falta | No |
-| `AI_KEY_KATIA` / `_PROCEDURE` / `_STUDENT_ANALYSIS` / `_TEACHER_ANALYSIS` | Key por función; caen a `SYSTEM_AI_API_KEY` | No |
+| `AI_KEY_KATIA` / `_PROCEDURE` / `_TEACHER_ANALYSIS` | Key por función; caen a `SYSTEM_AI_API_KEY`. El prefijo de la key decide el proveedor | No |
+| `AI_MODEL_KATIA` / `_VISION` / `_ANALYSIS` | Modelo por función (por defecto, los de Groq) | No |
 | `VITE_API_URL` | URL del backend, en el frontend | V2 |
 
 Prioridad por request: key del usuario > key de función > key general
