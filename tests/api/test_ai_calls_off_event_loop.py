@@ -50,10 +50,10 @@ def _katia_request(api_client, headers):
         "/api/ai/socratic",
         headers=headers,
         json={
-            "item_id": "q47",
+            "item_id": "q21",
             "item_content": "x",
             "student_message": "off-loop probe",
-            "course_id": "calculo_integral",
+            "course_id": "calculo_diferencial",
             "api_key": "gsk_fake_test_key",
         },
     )

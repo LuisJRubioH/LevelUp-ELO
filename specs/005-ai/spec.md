@@ -6,7 +6,7 @@
 
 **Status**: Approved by the owner, with N1 … N4 as proposed (2026-10-19). Written from the as-is survey
 (`docs/sdd/ai-survey.md`, LuisJRubioH/LevelUp-ELO#92) and the owner's decisions of 2026-10-19 (its
-§ 7). Nothing in deliveries K1 … K4 is implemented.
+§ 7). Deliveries K1 and K2 are implemented; K3 and K4 are not.
 
 **Input**: Roadmap M5 (`docs/sdd/roadmap.md`): provider detection, key precedence, KatIA's Socratic
 guardrails, procedure review. AGENTS.md § AI integration and R7 describe this area today; this
@@ -44,7 +44,7 @@ request that completes a delivery marks it closed and fills all its rows.
 |---|---|---|
 | **A** | As-is pins: what the AI features already guarantee, each requirement tied to a test | closed |
 | **K1** | One key, the right provider: the provider from the key's prefix, one model per function from settings, timeouts, Groq-only review said in the interface, the teacher analysis's real inputs, no exception text to the client | closed |
-| **K2** | KatIA's guardrails and access: no correct answer in the prompt, every reply checked, the statement read from the item, only enrolled students | planned |
+| **K2** | KatIA's guardrails and access: no correct answer in the prompt, every reply checked, the statement read from the item, only enrolled students | closed |
 | **K3** | KatIA's record: multi-turn conversations, a summary per conversation for the teacher, no message text kept after it ends | planned |
 | **K4** | Clean-up: V2-only dead code removed, AGENTS.md § AI integration rewritten | planned |
 
@@ -271,9 +271,9 @@ request that closes their delivery.
 
 | Requirement / Scenario | Delivery | Test |
 |---|---|---|
-| US1-AS1 | K2 | `PENDING` |
-| US1-AS2 | K2 | `PENDING` |
-| US1-AS3 | K2 | `PENDING` |
+| US1-AS1 | K2 | `tests/api/test_spec005_k2_katia.py::test_the_prompt_never_holds_the_correct_answer` |
+| US1-AS2 | K2 | `tests/api/test_spec005_k2_katia.py::test_a_reply_that_gives_the_answer_is_replaced_and_not_stored` |
+| US1-AS3 | K2 | `tests/api/test_spec005_k2_katia.py::test_only_enrolled_students_reach_katia_or_the_review` |
 | US2-AS1 | K1 | `tests/api/test_spec005_k1_providers.py::test_the_key_prefix_picks_the_provider_for_every_feature` |
 | US2-AS2 | K1 | `tests/api/test_spec005_k1_providers.py::test_review_with_a_non_groq_key_is_refused_before_processing`<br>`frontend/e2e/spec005-k1-keys.spec.ts › con una key que no es de Groq, la revisión dice que usa Groq y no se ofrece` |
 | US2-AS3 | K1 | `tests/api/test_spec005_k1_providers.py::test_a_provider_that_does_not_answer_in_time_is_503`<br>`tests/api/test_spec005_k1_providers.py::test_no_response_carries_exception_text` |
@@ -298,10 +298,10 @@ request that closes their delivery.
 | FR-014 | K1 | `tests/api/test_spec005_k1_providers.py::test_review_with_a_non_groq_key_is_refused_before_processing`<br>`frontend/e2e/spec005-k1-keys.spec.ts › con una key que no es de Groq, la revisión dice que usa Groq y no se ofrece`<br>`frontend/e2e/spec005-k1-keys.spec.ts › con la key del sistema de Groq, la revisión se ofrece` |
 | FR-015 | K1 | `tests/api/test_spec005_k1_providers.py::test_teacher_analysis_receives_procedure_stats_and_the_analysis_model`<br>`tests/api/test_spec005_k1_providers.py::test_the_analysis_has_a_timeout_and_the_analysis_model` |
 | FR-016 | K1 | `tests/api/test_spec005_k1_providers.py::test_no_response_carries_exception_text`<br>`tests/api/test_spec005_k1_providers.py::test_a_provider_error_string_from_the_analysis_is_not_a_200` |
-| FR-020 | K2 | `PENDING` |
-| FR-021 | K2 | `PENDING` |
-| FR-022 | K2 | `PENDING` |
-| FR-023 | K2 | `PENDING` |
+| FR-020 | K2 | `tests/api/test_spec005_k2_katia.py::test_the_prompt_never_holds_the_correct_answer`<br>`tests/api/test_spec005_k2_katia.py::test_the_statement_comes_from_the_item_not_the_client`<br>`frontend/e2e/katia-chat.spec.ts › envía la opción que el estudiante marcó (spec 005 FR-020)` |
+| FR-021 | K2 | `tests/api/test_spec005_k2_katia.py::test_only_enrolled_students_reach_katia_or_the_review` |
+| FR-022 | K2 | `tests/api/test_spec005_k2_katia.py::test_katia_asks_for_at_most_120_tokens`<br>`tests/api/test_spec005_k2_katia.py::test_a_reply_that_gives_the_answer_is_replaced_and_not_stored`<br>`tests/api/test_spec005_k2_katia.py::test_a_guiding_reply_passes_and_is_stored`<br>`tests/unit/domain/test_spec005_guardrail.py::test_a_reply_that_gives_too_much_is_refused`<br>`tests/unit/domain/test_spec005_guardrail.py::test_a_reply_that_only_guides_passes`<br>`tests/unit/domain/test_spec005_guardrail.py::test_a_short_correct_option_does_not_refuse_every_reply` |
+| FR-023 | K2 | `tests/api/test_spec005_k2_katia.py::test_katia_reads_nothing_on_the_event_loop`<br>`tests/api/test_ai_calls_off_event_loop.py::test_the_api_answers_while_a_procedure_is_reviewed` |
 | FR-030 | K3 | `PENDING` |
 | FR-031 | K3 | `PENDING` |
 | FR-032 | K3 | `PENDING` |

@@ -100,7 +100,10 @@ def test_the_prompt_never_holds_the_correct_answer(api_client, student_headers, 
         # again, and nothing marks it as the answer.
         shown = item["content"].count(correct) + sum(o.count(correct) for o in item["options"])
         assert prompt.count(correct) == shown, block
-        assert "CORRECTA" not in prompt.upper().replace("INCORRECTA", ""), block
+        rest = prompt.replace(item["content"], "")
+        for option in item["options"]:
+            rest = rest.replace(option, "")
+        assert "RESPUESTA CORRECTA" not in rest.upper(), block  # today's marker
 
 
 def test_the_statement_comes_from_the_item_not_the_client(api_client, student_headers, monkeypatch):

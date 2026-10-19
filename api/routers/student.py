@@ -24,9 +24,15 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, File, Form, Header, HTTPException, Request, UploadFile, status
 
-from api.ai_target import GROQ_ONLY, TIMED_OUT, UNAVAILABLE, ai_target
+from api.ai_target import (
+    GROQ_ONLY,
+    TIMED_OUT,
+    UNAVAILABLE,
+    ai_target,
+    require_enrolled_in_item,
+)
 from api.dependencies import (
-    CurrentUser, RepoDep, create_procedure_review_token, decode_token,
+    CurrentUser, RepoDep, create_procedure_review_token, decode_token, require_role,
 )
 from api.rate_limit import limiter
 from api.config import settings
@@ -635,11 +641,12 @@ def _pdf_first_page_png(pdf_bytes: bytes) -> bytes:
         pdf_doc.close()
 
 
-@router.post("/procedure/analyze")
+@router.post("/procedure/analyze", dependencies=[require_role("student")])
 @limiter.limit(settings.rate_limit_review)
 async def analyze_procedure(
     request: Request,
     user: CurrentUser,
+    repo: RepoDep,
     item_id: str = Form(...),
     item_content: str = Form(default=""),
     api_key: str = Form(default=""),
@@ -659,6 +666,10 @@ async def analyze_procedure(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="No hay API key de IA configurada. Pide al administrador que configure SYSTEM_AI_API_KEY.",
         )
+
+    # Spec 005 FR-021: only a student enrolled in the exercise's course (403 before any provider).
+    item = await asyncio.to_thread(repo.get_item_by_id, item_id)
+    await require_enrolled_in_item(repo, user["user_id"], item)
 
     # Spec 005 FR-010, FR-014: the key's prefix decides; the review runs on Groq only, refused
     # before the upload is read.

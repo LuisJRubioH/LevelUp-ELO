@@ -14,7 +14,7 @@ from unittest.mock import Mock
 
 import pytest
 
-ITEM = "q47"  # calculo_integral, in the bank the API syncs at start
+ITEM = "q21"  # calculo_diferencial, where estudiante1 is enrolled (K2)
 UNKNOWN = "Clave no reconocida"
 GROQ_ONLY = "La revisión con IA usa Groq"
 
@@ -71,7 +71,7 @@ def _katia(api_client, headers, key, **extra):
             "item_id": ITEM,
             "item_content": "Fórmula de integración por partes",
             "student_message": "spec005 k1 probe",
-            "course_id": "calculo_integral",
+            "course_id": "calculo_diferencial",
             "api_key": key,
             **extra,
         },

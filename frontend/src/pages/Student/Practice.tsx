@@ -256,6 +256,7 @@ export function Practice() {
           itemContent={currentItem.content}
           courseId={courseId ?? ""}
           apiKey={apiKey}
+          selectedOption={selectedOption}
         />
       )}
 
@@ -355,6 +356,7 @@ export function Practice() {
               itemContent={currentItem.content}
               courseId={courseId ?? ""}
               apiKey={apiKey}
+              selectedOption={selectedOption}
             />
           )}
         </div>
