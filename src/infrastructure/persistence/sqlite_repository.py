@@ -3602,6 +3602,28 @@ class SQLiteRepository:
         )
 
     @staticmethod
+    def _procedure_reaches_teacher() -> str:
+        """Spec 006 FR-050: the procedure `ps` (student `u`, bank item `i`, LEFT JOINed) is one
+        the teacher reviews — the student is in the teacher's set and linked through the item's
+        course (by enrolment or main group); an id with no bank item follows the main group."""
+        return (
+            "EXISTS (SELECT 1 FROM teacher_links l WHERE l.user_id = ps.student_id AND ("
+            "(i.id IS NOT NULL AND (l.course_id IS NULL OR l.course_id = i.course_id))"
+            " OR (i.id IS NULL AND l.group_id = u.group_id)))"
+        )
+
+    def _procedure_for_teacher(self, cursor, submission_id, teacher_id) -> bool:
+        """Spec 006 FR-050: the teacher reviews this procedure (same rule as the queue)."""
+        cursor.execute(
+            f"WITH {self._teacher_links_cte()}"
+            " SELECT 1 FROM procedure_submissions ps JOIN users u ON u.id = ps.student_id"
+            f" LEFT JOIN items i ON i.id = ps.item_id WHERE ps.id = ?"
+            f" AND {self._procedure_reaches_teacher()}",
+            (teacher_id, teacher_id, submission_id),
+        )
+        return cursor.fetchone() is not None
+
+    @staticmethod
     def _since(column: str, days: int | None) -> tuple[str, list]:
         """Spec 006 FR-043: `column` within the last `days` days; no filter for None."""
         if days is None:
@@ -5013,10 +5035,8 @@ class SQLiteRepository:
                     UPDATE procedure_submissions
                     SET image_data=?, mime_type=?, procedure_image_path=?, file_hash=?,
                         is_copy=?, review_round = review_round + 1,
-                        status=CASE
-                            WHEN ai_proposed_score IS NOT NULL THEN 'PENDING_TEACHER_VALIDATION'
-                            ELSE 'pending'
-                        END,
+                        status='pending',
+                        ai_proposed_score=NULL, ai_feedback=NULL,  -- spec 006 FR-051
                         teacher_feedback=NULL,
                         feedback_image=NULL, feedback_image_path=NULL,
                         procedure_score=NULL, teacher_score=NULL, final_score=NULL,
@@ -5265,14 +5285,15 @@ class SQLiteRepository:
             )
         else:
             cursor.execute(
-                """
+                f"""
+                WITH {self._teacher_links_cte()}
                 SELECT COUNT(*) FROM procedure_submissions ps
                 JOIN users u ON ps.student_id = u.id
-                JOIN groups g ON u.group_id = g.id
-                WHERE g.teacher_id = ?
-                  AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                LEFT JOIN items i ON i.id = ps.item_id
+                WHERE ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                  AND {self._procedure_reaches_teacher()}
             """,
-                (teacher_id,),
+                (teacher_id, teacher_id),
             )
         count = cursor.fetchone()[0]
         conn.close()
@@ -5301,19 +5322,20 @@ class SQLiteRepository:
             )
         else:
             cursor.execute(
-                """
+                f"""
+                WITH {self._teacher_links_cte()}
                 SELECT ps.id, ps.student_id, COALESCE(u.display_name, u.username) AS student_name,
                        ps.item_id, ps.item_content, ps.image_data, ps.mime_type,
                        ps.submitted_at, ps.procedure_image_path,
                        ps.status, ps.ai_proposed_score, ps.ai_feedback, ps.review_round
                 FROM procedure_submissions ps
                 JOIN users u ON ps.student_id = u.id
-                JOIN groups g ON u.group_id = g.id
-                WHERE g.teacher_id = ?
-                  AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                LEFT JOIN items i ON i.id = ps.item_id
+                WHERE ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                  AND {self._procedure_reaches_teacher()}
                 ORDER BY ps.submitted_at DESC
             """,
-                (teacher_id,),
+                (teacher_id, teacher_id),
             )
         cols = [c[0] for c in cursor.description]
         rows = [dict(zip(cols, r)) for r in cursor.fetchall()]
@@ -5378,12 +5400,7 @@ class SQLiteRepository:
                 return None
             student_id, item_id, status, row_round, contribution = row
             if teacher_id is not None:
-                cursor.execute(
-                    "SELECT 1 FROM users u JOIN groups g ON g.id = u.group_id"
-                    " WHERE u.id = ? AND g.teacher_id = ?",
-                    (student_id, teacher_id),
-                )
-                if cursor.fetchone() is None:
+                if not self._procedure_for_teacher(cursor, submission_id, teacher_id):
                     cursor.execute("ROLLBACK")
                     return None
             current_round = row_round if review_round is None else int(review_round)
@@ -5530,41 +5547,37 @@ class SQLiteRepository:
 
     def get_procedure_gradings(self, submission_id: int, teacher_id: int | None = None):
         """Every grading of a procedure, oldest first (FR-024e, US9-AS8). With `teacher_id`,
-        only for the teacher of the student's group: None otherwise (FR-023)."""
+        only for a teacher who reviews it (spec 006 FR-050): None otherwise."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
             if teacher_id is not None:
-                cursor.execute(
-                    "SELECT 1 FROM procedure_submissions ps JOIN users u ON u.id = ps.student_id"
-                    " JOIN groups g ON g.id = u.group_id WHERE ps.id = ? AND g.teacher_id = ?",
-                    (submission_id, teacher_id),
-                )
-                if cursor.fetchone() is None:
+                if not self._procedure_for_teacher(cursor, submission_id, teacher_id):
                     return None
             return self._procedure_grading_rows(cursor, submission_id)
         finally:
             conn.close()
 
     def get_recent_procedure_copies_for_teacher(self, teacher_id: int, days: int = 30) -> list:
-        """Procedures graded 0 automatically as copies (FR-024i) in this teacher's groups during
-        the last `days` days. Never the student who sent the file first."""
+        """Procedures graded 0 automatically as copies (FR-024i) that the teacher reviews (spec
+        006 FR-050), during the last `days` days. Never the student who sent the file first."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
             cursor.execute(
-                """
+                f"""
+                WITH {self._teacher_links_cte()}
                 SELECT ps.id AS submission_id, ps.student_id,
                        COALESCE(u.display_name, u.username) AS student_name,
                        ps.item_id, ps.item_content, ps.reviewed_at
                 FROM procedure_submissions ps
                 JOIN users u ON u.id = ps.student_id
-                JOIN groups g ON g.id = u.group_id
-                WHERE g.teacher_id = ? AND ps.is_copy = 1
+                LEFT JOIN items i ON i.id = ps.item_id
+                WHERE ps.is_copy = 1 AND {self._procedure_reaches_teacher()}
                   AND ps.reviewed_at >= datetime('now', ?)
                 ORDER BY ps.reviewed_at DESC
             """,
-                (teacher_id, f"-{int(days)} days"),
+                (teacher_id, teacher_id, f"-{int(days)} days"),
             )
             cols = [c[0] for c in cursor.description]
             return [dict(zip(cols, r)) for r in cursor.fetchall()]

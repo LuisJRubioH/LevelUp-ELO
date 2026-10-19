@@ -644,6 +644,7 @@ html.light .lue-tc .tc-brand .brand-logo-dark { display: none; }
 .lue-tc .av-head b { font-family: var(--font-display); font-weight: 600; font-size: 13.5px; }
 .lue-tc .av-score { margin-left: auto; font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--accent-2); }
 .lue-tc .ai-verdict p { font-size: 12.5px; color: var(--mute); line-height: 1.5; }
+.lue-tc .ai-verdict .av-feedback { color: var(--text); font-size: 13px; margin-bottom: 6px; white-space: pre-line; }
 
 /* grade panel */
 .lue-tc .grade-panel { border: 1px solid color-mix(in srgb, var(--gc, var(--accent)) 32%, var(--border)); background: color-mix(in srgb, var(--gc, var(--accent)) 6%, var(--surface)); border-radius: 14px; padding: 16px 18px; }
@@ -664,6 +665,9 @@ html.light .lue-tc .tc-brand .brand-logo-dark { display: none; }
 .lue-tc .gp-slider-row input[type=range] { flex: 1; -webkit-appearance: none; appearance: none; height: 7px; border-radius: 4px; background: linear-gradient(90deg, var(--gc, var(--accent)) calc(var(--pct,0)*1%), var(--surface-3) calc(var(--pct,0)*1%)); cursor: pointer; }
 .lue-tc .gp-slider-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 3px solid var(--gc, var(--accent)); box-shadow: 0 3px 8px -2px rgba(0,0,0,.5); cursor: pointer; }
 .lue-tc .gp-slider-row input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border: 3px solid var(--gc, var(--accent)); border-radius: 50%; background: #fff; cursor: pointer; }
+/* Spec 006 FR-051: no grade yet — the thumb waits, faded, until the teacher picks one. */
+.lue-tc .gp-slider-row input[type=range].unset::-webkit-slider-thumb { opacity: .35; }
+.lue-tc .gp-slider-row input[type=range].unset::-moz-range-thumb { opacity: .35; }
 .lue-tc .gp-presets { display: flex; gap: 7px; margin-top: 14px; flex-wrap: wrap; }
 .lue-tc .gp-chip { cursor: pointer; font-family: var(--font-display); font-weight: 700; font-size: 12px; color: var(--mute); background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 7px; padding: 5px 12px; transition: all .14s; }
 .lue-tc .gp-chip:hover { color: var(--text); }

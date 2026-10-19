@@ -139,6 +139,8 @@ export interface PendingProcedure {
   item_id: string;
   item_content: string | null;
   ai_score: number | null;
+  /** Spec 006 FR-051: the AI's comment, shown beside its score. */
+  ai_feedback?: string | null;
   status: string;
   created_at: string;
   has_image: boolean;

@@ -139,6 +139,7 @@ class PendingProcedure(BaseModel):
     item_id: str
     item_content: str | None
     ai_score: float | None
+    ai_feedback: str | None = None  # spec 006 FR-051: shown beside the AI score
     status: str
     created_at: str
     has_image: bool = False  # True si hay imagen disponible para ver
