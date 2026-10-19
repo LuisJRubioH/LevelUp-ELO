@@ -64,30 +64,19 @@ from api.schemas.student import (
 from src.application.services.student_service import StudentService
 from src.domain.elo.model import diagnostic_baseline
 from src.domain.procedures import COPY, REFUSE_OTHER_ITEM, REFUSE_SAME_ITEM
+from src.domain.learning.path import (
+    completes_on_cards,
+    missing_interactions,
+    node_access,
+)
 from src.domain.learning.prealgebra import (
-    CLASSIFIER_BASIC_NODE_ID,
-    CLASSIFIER_RIGOROUS_NODE_ID,
-    COMPLEX_NODE_ID,
-    DETECTIVE_NODE_ID,
-    DIAGNOSTIC_NODE_IDS,
-    INTEGERS_NODE_ID,
-    IRRATIONALS_NODE_ID,
-    N2_HUB_NODE_ID,
-    N2_OPERATION_NODE_IDS,
-    N3_HUB_NODE_ID,
-    N3_MACHINE_NODE_IDS,
-    NATURALS_NODE_ID,
     PREALGEBRA_COURSE_ID,
-    RATIONALS_NODE_ID,
-    REALS_NODE_ID,
-    STAIRCASE_NODE_ID,
-    TRIGGER_NODE_ID,
-    evaluate_interaction,
-    get_lesson,
-    presentation_band,
     curriculum_map_rows,
-    recommended_node_for_misconception,
-    route_position,
+    evaluate_interaction,
+    explored_optional_branch,
+    get_lesson,
+    path_summary,
+    presentation_band,
 )
 
 router = APIRouter(prefix="/student", tags=["student"])
@@ -1272,38 +1261,14 @@ def _lesson_states(repo, user_id: int, course_id: str):
     return lambda node_id: states.get(node_id, _NO_PROGRESS)
 
 
-def _ensure_n2_hub_completed_if_cards_opened(repo, user_id: int, course_id: str) -> None:
-    """Repara estados previos: 6 carteles abiertos => hub N2 completado."""
-    progress = repo.get_lesson_progress(user_id, course_id, N2_HUB_NODE_ID)
-    if progress["state"] == "completed":
+def _complete_hub_if_cards_opened(repo, user_id: int, course_id: str, hub: dict) -> None:
+    """Spec 003 N3: a hub (`completion: "cards"`) completes once every card is opened. Also
+    repairs progress recorded before the rule ran on the server for every hub."""
+    if repo.get_lesson_progress(user_id, course_id, hub["node_id"])["state"] == "completed":
         return
-
-    hub = get_lesson(N2_HUB_NODE_ID)
-    if not hub:
-        return
-    required = {interaction["interaction_id"] for interaction in hub.get("interactions", [])}
-    responses = repo.get_lesson_interactions(user_id, course_id, N2_HUB_NODE_ID)
-    if required and required.issubset(responses):
-        repo.record_lesson_event(user_id, course_id, N2_HUB_NODE_ID, "node_completed")
-
-
-def _ensure_n3_hub_completed_if_machines_introduced(repo, user_id: int, course_id: str) -> None:
-    """Repara estados previos: 5 máquinas introducidas => hub N3 completado."""
-    progress = repo.get_lesson_progress(user_id, course_id, N3_HUB_NODE_ID)
-    if progress["state"] == "completed":
-        return
-
-    hub = get_lesson(N3_HUB_NODE_ID)
-    if not hub:
-        return
-    required = {interaction["interaction_id"] for interaction in hub.get("interactions", [])}
-    responses = repo.get_lesson_interactions(user_id, course_id, N3_HUB_NODE_ID)
-    if required and required.issubset(responses):
-        repo.record_lesson_event(user_id, course_id, N3_HUB_NODE_ID, "node_completed")
-
-
-def _all_nodes_completed(state_of, node_ids: list[str]) -> bool:
-    return all(state_of(node_id) == "completed" for node_id in node_ids)
+    answered = repo.get_lesson_interactions(user_id, course_id, hub["node_id"])
+    if hub.get("interactions") and not missing_interactions(hub, answered):
+        repo.record_lesson_event(user_id, course_id, hub["node_id"], "node_completed")
 
 
 def _lesson_with_progress(
@@ -1311,8 +1276,9 @@ def _lesson_with_progress(
 ) -> dict:
     """Combina el catálogo con progreso, respetando el desbloqueo secuencial.
 
-    In preview (spec 003 L1) every node is available and nothing is read or repaired for the
-    viewer: the hub repairs below write progress.
+    Whether the node is open is decided by `node_access` (spec 003 L5) over the node's own data,
+    the same function the map uses. In preview (spec 003 L1) every node is available and nothing
+    is read or repaired for the viewer: the hub repair below writes progress.
     """
     if preview:
         return {
@@ -1324,44 +1290,28 @@ def _lesson_with_progress(
             "progress": {"state": _NO_PROGRESS, "responses": {}},
             "preview": True,
         }
-    if lesson["node_id"] == N2_HUB_NODE_ID or lesson.get("unlock_after") == N2_HUB_NODE_ID:
-        _ensure_n2_hub_completed_if_cards_opened(repo, user_id, course_id)
-    if lesson["node_id"] == N3_HUB_NODE_ID or lesson.get("unlock_after") == N3_HUB_NODE_ID:
-        _ensure_n3_hub_completed_if_machines_introduced(repo, user_id, course_id)
+    for node in (lesson, get_lesson(lesson["unlock_after"]) if lesson.get("unlock_after") else None):
+        if node and completes_on_cards(node):
+            _complete_hub_if_cards_opened(repo, user_id, course_id, node)
     state_of = _lesson_states(repo, user_id, course_id)
-    if lesson["node_id"] in {N3_HUB_NODE_ID, *N3_MACHINE_NODE_IDS}:
-        if not _all_nodes_completed(state_of, N2_OPERATION_NODE_IDS):
-            raise HTTPException(status_code=403, detail="Completa el Nivel 2 primero")
-
-    unlock_after = lesson.get("unlock_after")
-    if unlock_after:
-        if state_of(unlock_after) != "completed":
-            raise HTTPException(status_code=403, detail="Completa el nodo anterior primero")
+    diagnostic = repo.get_diagnostic(user_id, course_id)
+    presentation = presentation_band(diagnostic.get("score_pct") if diagnostic else None)
+    refused = node_access(lesson, state_of, presentation)
+    if refused:
+        raise HTTPException(status_code=403, detail=refused)
 
     progress = repo.get_lesson_progress(user_id, course_id, lesson["node_id"])
     progress["responses"] = repo.get_lesson_interactions(
         user_id, course_id, lesson["node_id"]
     )
-    diagnostic = repo.get_diagnostic(user_id, course_id)
-    presentation = presentation_band(diagnostic.get("score_pct") if diagnostic else None)
-
-    # Complejos (B09) es callejón opcional: solo banda intermedia/avanzada.
-    if lesson["node_id"] == COMPLEX_NODE_ID and presentation == "basico":
-        raise HTTPException(
-            status_code=403,
-            detail="Nodo opcional disponible solo para banda intermedia o avanzada",
-        )
-
-    # explored_complex_branch (derivado): el estudiante abrió/completó B09.
-    # Gobierna el contenido complejo en cascada (B10–B13).
-    explored_complex_branch = state_of(COMPLEX_NODE_ID) in ("viewed", "completed")
 
     lesson_payload = {**lesson}
-    if lesson["node_id"] == N3_HUB_NODE_ID and lesson.get("content"):
+    if (lesson.get("content") or {}).get("machines"):
+        # A hub that shows its nodes in order: each machine completed, current or blocked.
         content = {**lesson["content"]}
         machines = []
         previous_completed = True
-        for machine in content.get("machines", []):
+        for machine in content["machines"]:
             machine_state = state_of(machine["node_id"])
             state = (
                 "completed"
@@ -1380,7 +1330,7 @@ def _lesson_with_progress(
         "course_id": course_id,
         "state": progress["state"],
         "presentation": presentation,
-        "explored_complex_branch": explored_complex_branch,
+        "explored_complex_branch": explored_optional_branch(state_of),
         "progress": progress,
     }
 
@@ -1421,37 +1371,16 @@ def lesson_event(
     _refuse_preview(_path_access(repo, user, course_id))
 
     _lesson_with_progress(repo, user["user_id"], course_id, lesson)
-    required_by_node = {
-        TRIGGER_NODE_ID: {"PREALG-N1-B02-Q01", "PREALG-N1-B02-Q02"},
-        STAIRCASE_NODE_ID: {"PREALG-N1-B03-Q01"},
-        # Los nodos reconstruidos a 11 bloques no se listan: sus interacciones
-        # son data-driven y se derivan del propio nodo (igual que N2/N3/N4).
-    }
-    if body.event == "node_completed" and (lesson.get("content") or {}).get(
-        "kind"
-    ) == "eleven_block_node":
-        required_by_node[node_id] = {
-            interaction["interaction_id"] for interaction in lesson.get("interactions", [])
-        }
-    if body.event == "node_completed" and node_id in required_by_node:
-        responses = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
-        required = required_by_node[node_id]
-        if not required.issubset(responses):
-            raise HTTPException(status_code=409, detail="Responde las dos preguntas primero")
-    if body.event == "node_completed" and (
-        node_id == N2_HUB_NODE_ID or node_id in N2_OPERATION_NODE_IDS
-    ):
-        responses = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
-        required = {interaction["interaction_id"] for interaction in lesson.get("interactions", [])}
-        if not required.issubset(responses):
-            raise HTTPException(status_code=409, detail="Completa las interacciones del nodo")
-    if body.event == "node_completed" and (
-        node_id == N3_HUB_NODE_ID or node_id in N3_MACHINE_NODE_IDS
-    ):
-        responses = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
-        required = {interaction["interaction_id"] for interaction in lesson.get("interactions", [])}
-        if not required.issubset(responses):
-            raise HTTPException(status_code=409, detail="Completa las interacciones del nodo")
+    if body.event == "node_completed":
+        # One rule for every node (spec 003 L5): its registered interactions all answered.
+        answered = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
+        if missing_interactions(lesson, answered):
+            detail = (
+                "Completa las interacciones del nodo"
+                if completes_on_cards(lesson)
+                else "Responde las dos preguntas primero"
+            )
+            raise HTTPException(status_code=409, detail=detail)
     repo.record_lesson_event(user["user_id"], course_id, node_id, body.event)
     return LessonDetailResponse(
         **_lesson_with_progress(repo, user["user_id"], course_id, lesson)
@@ -1488,30 +1417,9 @@ def lesson_interaction(
         result["is_expected"],
         result["misconception_tag"],
     )
-    if node_id == N2_HUB_NODE_ID:
-        responses = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
-        required = {interaction["interaction_id"] for interaction in lesson.get("interactions", [])}
-        if required and required.issubset(responses):
-            repo.record_lesson_event(user["user_id"], course_id, node_id, "node_completed")
-    if node_id == N3_HUB_NODE_ID:
-        responses = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
-        required = {interaction["interaction_id"] for interaction in lesson.get("interactions", [])}
-        if required and required.issubset(responses):
-            repo.record_lesson_event(user["user_id"], course_id, node_id, "node_completed")
+    if completes_on_cards(lesson):
+        _complete_hub_if_cards_opened(repo, user["user_id"], course_id, lesson)
     return LessonInteractionResponse(**result)
-
-
-_NODE_MAP_TITLE = {
-    NATURALS_NODE_ID: "prealgebra.n1.b04.mapTitle",
-    INTEGERS_NODE_ID: "prealgebra.n1.b05.mapTitle",
-    RATIONALS_NODE_ID: "prealgebra.n1.b06.mapTitle",
-    IRRATIONALS_NODE_ID: "prealgebra.n1.b07.mapTitle",
-    REALS_NODE_ID: "prealgebra.n1.b08.mapTitle",
-    COMPLEX_NODE_ID: "prealgebra.n1.b09.mapTitle",
-    CLASSIFIER_BASIC_NODE_ID: "prealgebra.n1.b10.mapTitle",
-    CLASSIFIER_RIGOROUS_NODE_ID: "prealgebra.n1.b11.mapTitle",
-    DETECTIVE_NODE_ID: "prealgebra.n1.b12.mapTitle",
-}
 
 
 @router.get("/prealgebra-summary/{course_id}", response_model=PathSummaryResponse)
@@ -1526,48 +1434,11 @@ def prealgebra_summary(course_id: str, user: CurrentUser, repo: RepoDep):
     # One student's progress: a preview has none to summarise (the teacher's view is L4).
     _refuse_preview(_path_access(repo, user, course_id))
     state_of = _lesson_states(repo, user["user_id"], course_id)
-    explored = state_of(COMPLEX_NODE_ID) in ("viewed", "completed")
-
-    applicable = [n for n in DIAGNOSTIC_NODE_IDS if n != COMPLEX_NODE_ID or explored]
-    completed_nodes = 0
-    misconceptions: list[str] = []
-    for node_id in applicable:
-        if state_of(node_id) == "completed":
-            completed_nodes += 1
-        responses = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
-        for resp in responses.values():
-            tag = resp.get("misconception_tag")
-            if tag and tag not in misconceptions:
-                misconceptions.append(tag)
-
-    # Ruta de repaso: nodos recomendados (máx 4), únicos, en orden de ruta.
-    review_nodes: list[str] = []
-    for tag in misconceptions:
-        node = recommended_node_for_misconception(tag)
-        if node and node in _NODE_MAP_TITLE and node not in review_nodes:
-            review_nodes.append(node)
-    # Por posición en la ruta, no por índice en la lista de un nivel: desde que
-    # el enrutado cubre N2-N4 y Álgebra, `DIAGNOSTIC_NODE_IDS.index` reventaría.
-    review_nodes.sort(key=route_position)
-    review = [
-        {"node_id": n, "label_key": _NODE_MAP_TITLE[n]}
-        for n in review_nodes[:4]
-    ]
-
-    if not misconceptions and completed_nodes == len(applicable):
-        overall_status = "strong"
-    elif len(review) >= 3:
-        overall_status = "attention"
-    else:
-        overall_status = "review"
-
-    return {
-        "course_id": course_id,
-        "completed_nodes": completed_nodes,
-        "total_nodes": len(applicable),
-        "overall_status": overall_status,
-        "review": review,
-    }
+    summary = path_summary(
+        state_of,
+        lambda node_id: repo.get_lesson_interactions(user["user_id"], course_id, node_id),
+    )
+    return {"course_id": course_id, **summary}
 
 
 @router.get("/map/{course_id}", response_model=CourseMapResponse)
@@ -1645,30 +1516,18 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
     raw = raw[:30]  # tope de nodos para no saturar el mapa
 
     curriculum: list[MapNode] = []
-    curriculum_completed = True
     if course_id == PREALGEBRA_COURSE_ID:
-        # Una sola lectura del progreso (`_lesson_states`). La ruta y los estados los
-        # deriva el dominio de `unlock_after`. El endpoint ya no sabe de nodos concretos:
-        # añadir uno no se toca aquí.
+        # Una sola lectura del progreso (`_lesson_states`). La ruta, sus estados y qué nodos
+        # se muestran los decide el dominio con `node_access` sobre los datos de cada nodo
+        # (spec 003 L5): el endpoint no sabe de nodos concretos.
         _state_of = _lesson_states(repo, user["user_id"], course_id)
-
-        # B09 (complejos) solo visible para banda intermedia/avanzada (callejón opcional).
-        complex_visible = presentation_band(
-            diagnostic.get("score_pct") if diagnostic else None
-        ) in ("intermedio", "avanzado")
-        curriculum = [
-            MapNode(**row)
-            for row in curriculum_map_rows(_state_of, complex_visible=complex_visible)
-        ]
-        curriculum_completed = _state_of(REALS_NODE_ID) == "completed"
+        band = presentation_band(diagnostic.get("score_pct") if diagnostic else None)
+        curriculum = [MapNode(**row) for row in curriculum_map_rows(_state_of, band=band)]
 
     # estado: dominado (>=umbral) = completed; el PRIMER nodo no dominado =
-    # current (dónde reforzar); el resto = available (no se bloquea: es refuerzo).
-    current_idx = (
-        next((i for i, n in enumerate(raw) if not _mastered(n["elo"])), None)
-        if curriculum_completed
-        else None
-    )
+    # current (dónde reforzar); el resto = available. La práctica no depende de la
+    # ruta (spec 001; spec 003 N4), así que la ruta no bloquea estos temas.
+    current_idx = next((i for i, n in enumerate(raw) if not _mastered(n["elo"])), None)
     nodes = curriculum + [
         MapNode(
             topic=n["topic"],
@@ -1678,9 +1537,7 @@ def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
             approximate=elo_map.get(n["topic"], {}).get("approximate", False),
             item_count=n["item_count"],
             state=(
-                "blocked"
-                if not curriculum_completed
-                else "completed"
+                "completed"
                 if _mastered(n["elo"])
                 else "current"
                 if i == current_idx

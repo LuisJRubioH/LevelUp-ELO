@@ -40,7 +40,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **L2** | Answer keys stay on the server | planned |
 | **L3** | A node completes on right answers | planned |
 | **L4** | What the teacher sees: the post-diagnostic outcome and an answer history, no free text | planned |
-| **L5** | Unlock rules from data only; the map and the API share them | planned |
+| **L5** | Unlock rules from data only; the map and the API share them | closed |
 
 ## Clarifications
 
@@ -279,9 +279,9 @@ request that closes their delivery.
 | US4-AS1 | L4 | `PENDING` |
 | US4-AS2 | L4 | `PENDING` |
 | US4-AS3 | L4 | `PENDING` |
-| US5-AS1 | L5 | `PENDING` |
-| US5-AS2 | L5 | `PENDING` |
-| US5-AS3 | L5 | `PENDING` |
+| US5-AS1 | L5 | `tests/unit/domain/test_spec003_l5_path.py::test_catalogue_has_one_root_no_dangling_reference_no_cycle` |
+| US5-AS2 | L5 | `tests/integration/test_spec003_l5_map_api.py::test_map_and_api_agree_over_every_node_and_progress_set` |
+| US5-AS3 | L5 | `tests/unit/domain/test_spec003_l5_path.py::test_gates_and_bands_come_from_node_data`<br>`tests/unit/domain/test_spec003_l5_path.py::test_the_catalogue_declares_the_old_special_cases_as_data`<br>`tests/unit/test_architecture_layers.py::test_spec003_router_names_no_path_node` |
 | US6-AS1 | A | `tests/integration/test_sqlite_repository.py::TestLessonProgress::test_lesson_events_are_idempotent_and_do_not_change_elo` |
 | US6-AS2 | A | `tests/api/test_student.py::test_level_two_map_and_hub_are_locked_until_level_one_is_completed` |
 | US6-AS3 | A | `tests/integration/test_map_matches_lesson_access.py::test_every_lesson_the_map_offers_opens` |
@@ -298,5 +298,5 @@ request that closes their delivery.
 | FR-040 | L4 | `PENDING` |
 | FR-041 | L4 | `PENDING` |
 | FR-042 | L4 | `PENDING` |
-| FR-050 | L5 | `PENDING` |
-| FR-051 | L5 | `PENDING` |
+| FR-050 | L5 | `tests/integration/test_spec003_l5_map_api.py::test_map_and_api_agree_over_every_node_and_progress_set`<br>`tests/unit/test_architecture_layers.py::test_spec003_router_names_no_path_node` |
+| FR-051 | L5 | `tests/unit/domain/test_spec003_l5_path.py::test_catalogue_has_one_root_no_dangling_reference_no_cycle` |

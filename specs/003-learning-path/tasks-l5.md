@@ -27,16 +27,24 @@
 
 ## Phase 2 — Implementation
 
-- [ ] T004 `src/domain/learning/path.py`: `node_access`, `missing_interactions`,
+- [x] T004 `src/domain/learning/path.py`: `node_access`, `missing_interactions`,
   `validate_catalogue` (run at import), `CatalogueError`
-- [ ] T005 Catalogue data in `prealgebra.py`: `gates` on the N3 nodes (replaces `LEVEL_GATES`),
+- [x] T005 Catalogue data in `prealgebra.py`: `gates` on the N3 nodes (replaces `LEVEL_GATES`),
   `requires_band` on B09, `completion: "cards"` on the five hubs; `curriculum_map_rows` and the
   summary read them
-- [ ] T006 `api/routers/student.py`: every rule through the domain; no path node id left; hubs
+- [x] T006 `api/routers/student.py`: every rule through the domain; no path node id left; hubs
   complete generically; practice topics not blocked
-- [ ] T007 Existing pins re-run unchanged
+- [x] T007 Existing pins re-run unchanged
 
 ## Phase 3 — Close
 
-- [ ] T008 Traceability: US5-AS1 … AS3, FR-050, FR-051 filled; L5 `closed`; full suite on both
+- [x] T008 Traceability: US5-AS1 … AS3, FR-050, FR-051 filled; L5 `closed`; full suite on both
   engines, black, flake8, `check_traceability.py`
+
+## Also moved, so the router names no node
+
+- The path summary (B13) and its review labels: `prealgebra.path_summary(state_of, responses_of)`.
+- `explored_complex_branch` reads any `optional_extension` node, not B09's id.
+- The laboratory's machine states apply to any node whose content lists `machines`.
+- `curriculum_map_rows` takes `band` (`complex_visible=False` still means the basic band, so the
+  existing callers and pins are unchanged).

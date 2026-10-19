@@ -65,7 +65,9 @@ def test_map_and_api_agree_over_every_node_and_progress_set(repo, client, progre
     assert disagreements == []
 
 
-HUBS = [n for n, lesson in prealgebra._LESSONS.items() if lesson["node_type"].startswith("level_hub")]
+HUBS = [
+    n for n, lesson in prealgebra._LESSONS.items() if lesson["node_type"].startswith("level_hub")
+]
 
 
 @pytest.mark.parametrize("hub", HUBS)
@@ -95,7 +97,9 @@ def test_every_hub_completes_when_its_cards_are_opened(repo, client, hub):
 def test_practice_topics_are_not_blocked_by_the_path(repo, client):
     """N4: practice ignores the path (spec 001), so the map does not block its topics."""
     user = _student_with(repo, [])
-    nodes = client.get(f"/api/student/map/{COURSE}", headers=headers_for(repo, user)).json()["nodes"]
+    nodes = client.get(f"/api/student/map/{COURSE}", headers=headers_for(repo, user)).json()[
+        "nodes"
+    ]
     topics = [n for n in nodes if not n.get("node_id")]
     assert topics, "the course has practice topics"
     assert all(n["state"] != "blocked" for n in topics)
