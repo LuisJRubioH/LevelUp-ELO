@@ -35,7 +35,7 @@ request that completes a delivery marks it closed and fills all its rows.
 
 | Delivery | Content | State |
 |---|---|---|
-| **A** | As-is pins: what the path already guarantees, each requirement tied to a test | in progress |
+| **A** | As-is pins: what the path already guarantees, each requirement tied to a test | closed |
 | **L1** | Access: lessons and the map only for enrolled students; a teacher previews the courses of their groups, read only | closed |
 | **L2** | Answer keys stay on the server | planned |
 | **L3** | A node completes on right answers | closed |

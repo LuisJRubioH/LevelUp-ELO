@@ -34,7 +34,7 @@ request that completes a delivery marks it closed and fills all its rows.
 
 | Delivery | Content | State |
 |---|---|---|
-| **A** | As-is pins: what persistence already guarantees, each requirement tied to a test | in progress |
+| **A** | As-is pins: what persistence already guarantees, each requirement tied to a test | closed |
 | **D1** | Startup: a schema version so a start with nothing to do does nothing; repairs as scripts; the one R8 exception guarded; a failed migration commits nothing | closed |
 | **D2** | Connections and the event loop: warm idle connections, a real liveness check, no repository call blocking an asynchronous handler, one round trip per read | closed |
 | **D3** | Parity checks and documented differences between the engines | closed |
@@ -346,20 +346,20 @@ pull request that closes their delivery.
 | US6-AS4 | A | `tests/integration/test_teacher_image_fallback.py::test_image_falls_back_to_the_row_when_storage_fails` |
 | US7-AS1 | D3 | `tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_a_column_added_to_one_engine_fails`<br>`tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_an_index_or_unique_index_on_one_engine_fails` |
 | US7-AS2 | D3 | `tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_a_parameter_after_a_tuple_default_differs_fails` |
-| FR-001 | A | `PENDING` |
-| FR-002 | A | `PENDING` |
+| FR-001 | A | `tests/integration/test_spec002_a_pins.py::test_spec002_engine_follows_database_url` |
+| FR-002 | A | `tests/integration/test_spec002_a_pins.py::test_spec002_one_repository_per_process` |
 | FR-003 | A | `tests/unit/application/test_repository_contracts.py::test_every_declared_method_exists_in_both_engines`<br>`tests/unit/application/test_repository_contracts.py::test_declared_signatures_match_the_implementation`<br>`tests/unit/application/test_repository_contracts.py::test_everything_the_service_calls_is_declared` |
 | FR-010 | A | `tests/integration/test_v1_run_migrations.py::test_v1_with_run_migrations_0_creates_nothing` |
 | FR-011 | A | `tests/integration/test_migrate_lock.py::test_migrate_fails_and_blocks_the_web_process_when_a_lock_is_held`<br>`tests/integration/test_migrate_lock.py::test_migrate_succeeds_and_starts_the_web_process_without_contention` |
-| FR-012 | A | `PENDING` |
-| FR-013 | A | `PENDING` |
+| FR-012 | A | `tests/integration/test_spec002_a_pins.py::test_spec002_production_seeds_no_demo_or_test_accounts`<br>`tests/api/test_production_config.py::test_production_database_does_not_seed_demo_or_test_accounts` |
+| FR-013 | A | `tests/integration/test_spec002_a_pins.py::test_spec002_migration_code_only_adds`<br>`tests/integration/test_spec002_a_pins.py::test_spec002_migration_runs_twice_without_change` |
 | FR-014 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_drop_not_null_runs_only_while_needed` |
 | FR-015 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_an_old_database_migrates_once_and_records_the_version`<br>`tests/unit/infrastructure/test_spec002_schema_version.py::test_migration_code_changes_raise_the_version` |
 | FR-016 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_current_database_starts_without_ddl_or_writes`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_changed_bank_only_resyncs_the_bank` |
 | FR-017 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_failing_migration_commits_nothing`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_duplicate_groups_stop_the_migration_naming_the_script`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_fresh_database_with_the_lock_held_stops_naming_the_step` |
 | FR-018 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_reactivated_user_without_password_stays_active`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_repair_scripts_report_and_are_idempotent`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_duplicate_groups_stop_the_migration_naming_the_script` |
-| FR-020 | A | `PENDING` |
-| FR-021 | A | `PENDING` |
+| FR-020 | A | `tests/integration/test_spec002_a_pins.py::test_spec002_at_most_five_postgresql_connections` |
+| FR-021 | A | `tests/integration/test_spec002_a_pins.py::test_spec002_every_postgresql_connection_goes_back_to_the_pool` |
 | FR-022 | D2 | `tests/integration/test_spec002_d2_connections.py::test_spec002_d2_idle_connections_survive_a_burst` |
 | FR-023 | D2 | `tests/integration/test_spec002_d2_connections.py::test_spec002_d2_a_closed_connection_is_replaced` |
 | FR-024 | D2 | `tests/integration/test_spec002_d2_connections.py::test_spec002_d2_a_slow_repository_call_does_not_block_other_requests`<br>`tests/integration/test_spec002_d2_connections.py::test_spec002_d2_waiting_for_the_pool_does_not_block_the_loop`<br>`tests/integration/test_spec002_d2_connections.py::test_spec002_d2_no_repository_call_in_async_code` |
