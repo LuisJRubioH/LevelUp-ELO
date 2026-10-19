@@ -55,6 +55,28 @@ export interface StudentSummary {
   education_level?: string | null;
 }
 
+/** Spec 003 L4 (FR-042): one answer — where, right or wrong, the tag; never the value (N11). */
+export interface PathAnswer {
+  label: string;
+  is_expected: boolean | null;
+  misconception_tag: string | null;
+  answered_at: string;
+}
+
+export interface PathRecordNode {
+  node_id: string;
+  title: string;
+  state: string | null;
+  answers: PathAnswer[];
+  outcome: { diagnostic_correct: number; post_correct: number; items: number; outcome: "gain" | "flat" } | null;
+}
+
+export interface StudentPath {
+  student_id: number;
+  course_id: string;
+  nodes: PathRecordNode[];
+}
+
 export interface DashboardData {
   teacher_id: number;
   groups: Group[];
@@ -240,6 +262,12 @@ export const teacherApi = {
 
   studentEloHistory: (student_id: number) =>
     api.get<{ attempts: Record<string, unknown>[] }>(`/api/teacher/student/${student_id}/elo-history`),
+
+  /** Spec 003 L4: the student's learning path — states, answer history, outcomes. */
+  studentPath: (student_id: number, course_id: string) =>
+    api.get<StudentPath>(
+      `/api/teacher/student/${student_id}/path/${encodeURIComponent(course_id)}`,
+    ),
 
   studentKatiaHistory: (student_id: number) =>
     api.get<{ interactions: Record<string, unknown>[] }>(

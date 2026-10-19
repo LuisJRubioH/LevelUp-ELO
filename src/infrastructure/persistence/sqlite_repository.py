@@ -1180,6 +1180,64 @@ class SQLiteRepository:
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_pvp_answers_match " "ON pvp_answers(match_id, user_id)"
         )
+        self._create_lesson_history(cursor)
+
+    def _create_lesson_history(self, cursor):
+        """Spec 003 L4: every answer to a lesson interaction, in order (FR-040), and each node's
+        post-diagnostic outcome (FR-041). `lesson_interactions` stays the current answer."""
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS lesson_answers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                node_id TEXT NOT NULL,
+                interaction_id TEXT NOT NULL,
+                selected_option TEXT NOT NULL,
+                is_expected INTEGER,
+                misconception_tag TEXT,
+                answered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_lesson_answers_user_node "
+            "ON lesson_answers(user_id, course_id, node_id)"
+        )
+        # History before L4 starts with the last answer known: each one copied once.
+        cursor.execute(
+            """
+            INSERT INTO lesson_answers
+                (user_id, course_id, node_id, interaction_id, selected_option,
+                 is_expected, misconception_tag, answered_at)
+            SELECT li.user_id, li.course_id, li.node_id, li.interaction_id, li.selected_option,
+                   li.is_expected, li.misconception_tag, li.answered_at
+            FROM lesson_interactions li
+            WHERE NOT EXISTS (
+                SELECT 1 FROM lesson_answers a
+                WHERE a.user_id = li.user_id AND a.course_id = li.course_id
+                  AND a.node_id = li.node_id AND a.interaction_id = li.interaction_id
+            )
+            ORDER BY li.answered_at
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS lesson_outcomes (
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                node_id TEXT NOT NULL,
+                diagnostic_correct INTEGER NOT NULL,
+                post_correct INTEGER NOT NULL,
+                items INTEGER NOT NULL,
+                outcome TEXT NOT NULL,
+                recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, course_id, node_id),
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """
+        )
 
     def _check_courses_block_constraint(self, cursor):
         """Read-only: the courses.block CHECK must accept the four blocks (spec 001 FR-028n).
@@ -5566,8 +5624,102 @@ class SQLiteRepository:
                 misconception_tag,
             ),
         )
+        # Spec 003 L4 (FR-040): the history keeps every answer, in the same transaction.
+        cursor.execute(
+            """INSERT INTO lesson_answers
+               (user_id, course_id, node_id, interaction_id, selected_option,
+                is_expected, misconception_tag)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
+                user_id,
+                course_id,
+                node_id,
+                interaction_id,
+                selected_option,
+                None if is_expected is None else int(is_expected),
+                misconception_tag,
+            ),
+        )
         conn.commit()
         conn.close()
+
+    @_read_only
+    def get_lesson_answers(self, user_id: int, course_id: str) -> list[dict]:
+        """Spec 003 L4: every answer of the student in the course, oldest first. The chosen
+        value is not returned: the teacher reads right or wrong and the tag (N11)."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                """SELECT node_id, interaction_id, is_expected, misconception_tag, answered_at
+                   FROM lesson_answers
+                   WHERE user_id = ? AND course_id = ?
+                   ORDER BY id""",
+                (user_id, course_id),
+            ).fetchall()
+        finally:
+            conn.close()
+        return [
+            {
+                "node_id": row[0],
+                "interaction_id": row[1],
+                "is_expected": None if row[2] is None else bool(row[2]),
+                "misconception_tag": row[3],
+                "answered_at": str(row[4]),
+            }
+            for row in rows
+        ]
+
+    def save_lesson_outcome(
+        self,
+        user_id: int,
+        course_id: str,
+        node_id: str,
+        diagnostic_correct: int,
+        post_correct: int,
+        items: int,
+        outcome: str,
+    ) -> None:
+        """Spec 003 L4 (FR-041): the node's post-diagnostic outcome, the latest one."""
+        conn = self.get_connection()
+        try:
+            conn.execute(
+                """INSERT INTO lesson_outcomes
+                   (user_id, course_id, node_id, diagnostic_correct, post_correct, items,
+                    outcome, recorded_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                   ON CONFLICT(user_id, course_id, node_id) DO UPDATE SET
+                       diagnostic_correct = excluded.diagnostic_correct,
+                       post_correct = excluded.post_correct,
+                       items = excluded.items,
+                       outcome = excluded.outcome,
+                       recorded_at = CURRENT_TIMESTAMP""",
+                (user_id, course_id, node_id, diagnostic_correct, post_correct, items, outcome),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    @_read_only
+    def get_lesson_outcomes(self, user_id: int, course_id: str) -> dict:
+        """Spec 003 L4: each node's stored post-diagnostic outcome, by node."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                """SELECT node_id, diagnostic_correct, post_correct, items, outcome
+                   FROM lesson_outcomes WHERE user_id = ? AND course_id = ?""",
+                (user_id, course_id),
+            ).fetchall()
+        finally:
+            conn.close()
+        return {
+            row[0]: {
+                "diagnostic_correct": row[1],
+                "post_correct": row[2],
+                "items": row[3],
+                "outcome": row[4],
+            }
+            for row in rows
+        }
 
     def set_topic_rating_baseline(
         self, user_id: int, course_id: str, topic: str, elo: float, rd: float = 350.0

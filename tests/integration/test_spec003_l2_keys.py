@@ -131,7 +131,8 @@ def test_feedback_is_unchanged_after_the_keys_leave(repo, client, kind):
             json={"interaction_id": interaction_id, "selected_option": option},
         )
         assert response.status_code == 200, response.text
-        assert response.json() == prealgebra.evaluate_interaction(node_id, interaction_id, option)
+        graded = {k: v for k, v in response.json().items() if k != "outcome"}  # L4's field
+        assert graded == prealgebra.evaluate_interaction(node_id, interaction_id, option)
     assert response.json()["is_expected"] is True
 
 

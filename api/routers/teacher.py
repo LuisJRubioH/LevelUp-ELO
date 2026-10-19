@@ -41,12 +41,14 @@ from api.schemas.teacher import (
     PendingProcedure,
     ProcedureCopy,
     ProcedureGradingEntry,
+    StudentPathResponse,
     StudentReportResponse,
     StudentAIAnalysisRequest,
     UserAdminRow,
 )
 from src.application.services.teacher_service import TeacherService
 from src.domain.invitations import format_token
+from src.domain.learning.prealgebra import PREALGEBRA_COURSE_ID, path_record
 from src.domain.procedures import ReviewRoundSuperseded
 from api.config import settings
 from api.rate_limit import limiter
@@ -375,6 +377,24 @@ def student_report(student_id: int, user: CurrentUser, repo: RepoDep):
     _require_teacher_student(repo, student_id, user)
     svc = _svc(repo)
     return svc.get_student_dashboard(student_id)
+
+
+@router.get("/student/{student_id}/path/{course_id}", response_model=StudentPathResponse)
+def student_path(student_id: int, course_id: str, user: CurrentUser, repo: RepoDep):
+    """Spec 003 L4 (FR-042): the student's learning path — state, every answer in order and the
+    post-diagnostic outcomes. Right or wrong and the tag; never the chosen value (N11)."""
+    _require_teacher_student(repo, student_id, user)
+    if course_id != PREALGEBRA_COURSE_ID:
+        raise HTTPException(status_code=404, detail="Este curso no tiene ruta de aprendizaje")
+    return {
+        "student_id": student_id,
+        "course_id": course_id,
+        "nodes": path_record(
+            repo.get_lesson_states(student_id, course_id),
+            repo.get_lesson_answers(student_id, course_id),
+            repo.get_lesson_outcomes(student_id, course_id),
+        ),
+    }
 
 
 @router.get("/student/{student_id}/elo-history")

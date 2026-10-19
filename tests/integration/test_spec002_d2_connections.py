@@ -42,6 +42,9 @@ HOT_READS = {
     "get_lesson_states": lambda uid: (uid, "algebra_basica"),
     "get_lesson_progress": lambda uid: (uid, "algebra_basica", "D2-NODE"),
     "get_lesson_interactions": lambda uid: (uid, "algebra_basica", "D2-NODE"),
+    # Spec 003 L4: every lesson load reads the stored outcome; the summary reads the history.
+    "get_lesson_outcomes": lambda uid: (uid, "algebra_basica"),
+    "get_lesson_answers": lambda uid: (uid, "algebra_basica"),
     "get_ranking_participants": lambda uid: ("global",),
     "get_available_courses_by_level": lambda uid: ("colegio",),
     "get_completed_diagnostic_course_ids": lambda uid: (uid,),

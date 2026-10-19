@@ -39,7 +39,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **L1** | Access: lessons and the map only for enrolled students; a teacher previews the courses of their groups, read only | closed |
 | **L2** | Answer keys stay on the server | closed |
 | **L3** | A node completes on right answers | closed |
-| **L4** | What the teacher sees: the post-diagnostic outcome and an answer history, no free text | planned |
+| **L4** | What the teacher sees: the post-diagnostic outcome and an answer history, no free text | closed |
 | **L5** | Unlock rules from data only; the map and the API share them | closed |
 
 ## Clarifications
@@ -276,9 +276,9 @@ request that closes their delivery.
 | US3-AS1 | L3 | `tests/integration/test_spec003_l3_completion.py::test_one_wrong_required_answer_refuses_naming_it`<br>`tests/integration/test_spec003_l3_completion.py::test_the_refusal_lists_every_missing_item_in_order` |
 | US3-AS2 | L3 | `tests/integration/test_spec003_l3_completion.py::test_all_latest_answers_right_completes_and_opens_the_next` |
 | US3-AS3 | L3 | `tests/integration/test_spec003_l3_completion.py::test_a_wrong_answer_corrected_lets_the_node_complete` |
-| US4-AS1 | L4 | `PENDING` |
-| US4-AS2 | L4 | `PENDING` |
-| US4-AS3 | L4 | `PENDING` |
+| US4-AS1 | L4 | `tests/integration/test_spec003_l4_record.py::test_wrong_then_right_are_both_kept_in_order`<br>`frontend/e2e/spec003-l4-teacher-path.spec.ts › el panel del estudiante muestra la ruta: historial en orden y resultado del post-diagnóstico` |
+| US4-AS2 | L4 | `tests/integration/test_spec003_l4_record.py::test_post_diagnostic_outcome_is_stored_and_shown_to_the_teacher` |
+| US4-AS3 | L4 | `tests/integration/test_spec003_l4_record.py::test_no_answer_row_holds_free_text` |
 | US5-AS1 | L5 | `tests/unit/domain/test_spec003_l5_path.py::test_catalogue_has_one_root_no_dangling_reference_no_cycle` |
 | US5-AS2 | L5 | `tests/integration/test_spec003_l5_map_api.py::test_map_and_api_agree_over_every_node_and_progress_set` |
 | US5-AS3 | L5 | `tests/unit/domain/test_spec003_l5_path.py::test_gates_and_bands_come_from_node_data`<br>`tests/unit/domain/test_spec003_l5_path.py::test_the_catalogue_declares_the_old_special_cases_as_data`<br>`tests/unit/test_architecture_layers.py::test_spec003_router_names_no_path_node` |
@@ -295,8 +295,8 @@ request that closes their delivery.
 | FR-011 | L1 | `tests/integration/test_spec003_l1_access.py::test_a_teacher_of_the_course_previews_without_storing`<br>`tests/integration/test_spec003_l1_access.py::test_a_teacher_without_a_group_in_the_course_is_refused` |
 | FR-020 | L2 | `tests/integration/test_spec003_l2_keys.py::test_no_lesson_response_holds_a_grading_key`<br>`tests/unit/domain/test_spec003_l2_public_content.py::test_every_content_field_is_classified`<br>`tests/unit/domain/test_spec003_l2_public_content.py::test_projection_keeps_what_the_renderer_reads`<br>`tests/unit/domain/test_spec003_l2_public_content.py::test_the_renderer_fields_are_public`<br>`tests/unit/domain/test_spec003_l2_public_content.py::test_the_projection_does_not_touch_the_catalogue` |
 | FR-030 | L3 | `tests/integration/test_spec003_l3_completion.py::test_one_wrong_required_answer_refuses_naming_it`<br>`tests/unit/domain/test_spec003_l3_completion.py::test_the_default_rule_needs_every_latest_answer_right`<br>`tests/unit/domain/test_spec003_l3_completion.py::test_view_answered_and_cards_rules`<br>`tests/unit/domain/test_spec003_l3_completion.py::test_every_eleven_block_node_completes_on_right_answers`<br>`tests/unit/domain/test_spec003_l3_completion.py::test_diagnostic_items_never_gate`<br>`tests/integration/test_spec003_l3_completion.py::test_welcome_completes_on_view_and_closing_on_answers_right_or_wrong`<br>`tests/integration/test_spec003_l3_completion.py::test_a_node_completed_before_l3_stays_completed` |
-| FR-040 | L4 | `PENDING` |
-| FR-041 | L4 | `PENDING` |
-| FR-042 | L4 | `PENDING` |
+| FR-040 | L4 | `tests/integration/test_spec003_l4_record.py::test_wrong_then_right_are_both_kept_in_order`<br>`tests/integration/test_spec003_l4_record.py::test_the_migration_copies_each_last_answer_once` |
+| FR-041 | L4 | `tests/integration/test_spec003_l4_record.py::test_post_diagnostic_outcome_is_stored_and_shown_to_the_teacher`<br>`tests/integration/test_spec003_l4_record.py::test_an_outcome_never_reads_worse`<br>`tests/unit/domain/test_spec003_l4_record.py::test_the_outcome_waits_for_every_post_item_and_is_gain_or_flat` |
+| FR-042 | L4 | `tests/integration/test_spec003_l4_record.py::test_only_the_students_teacher_reads_the_path`<br>`tests/unit/domain/test_spec003_l4_record.py::test_every_interaction_of_the_catalogue_has_a_label`<br>`frontend/e2e/spec003-l4-teacher-path.spec.ts › el panel del estudiante muestra la ruta: historial en orden y resultado del post-diagnóstico` |
 | FR-050 | L5 | `tests/integration/test_spec003_l5_map_api.py::test_map_and_api_agree_over_every_node_and_progress_set`<br>`tests/unit/test_architecture_layers.py::test_spec003_router_names_no_path_node` |
 | FR-051 | L5 | `tests/unit/domain/test_spec003_l5_path.py::test_catalogue_has_one_root_no_dangling_reference_no_cycle` |

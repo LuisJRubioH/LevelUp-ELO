@@ -1428,6 +1428,62 @@ class PostgresRepository:
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_pvp_answers_match " "ON pvp_answers(match_id, user_id)"
         )
+        self._create_lesson_history(cursor)
+
+    def _create_lesson_history(self, cursor):
+        """Spec 003 L4: every answer to a lesson interaction, in order (FR-040), and each node's
+        post-diagnostic outcome (FR-041). `lesson_interactions` stays the current answer."""
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS lesson_answers (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                node_id TEXT NOT NULL,
+                interaction_id TEXT NOT NULL,
+                selected_option TEXT NOT NULL,
+                is_expected INTEGER,
+                misconception_tag TEXT,
+                answered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_lesson_answers_user_node "
+            "ON lesson_answers(user_id, course_id, node_id)"
+        )
+        # History before L4 starts with the last answer known: each one copied once.
+        cursor.execute(
+            """
+            INSERT INTO lesson_answers
+                (user_id, course_id, node_id, interaction_id, selected_option,
+                 is_expected, misconception_tag, answered_at)
+            SELECT li.user_id, li.course_id, li.node_id, li.interaction_id, li.selected_option,
+                   li.is_expected, li.misconception_tag, li.answered_at
+            FROM lesson_interactions li
+            WHERE NOT EXISTS (
+                SELECT 1 FROM lesson_answers a
+                WHERE a.user_id = li.user_id AND a.course_id = li.course_id
+                  AND a.node_id = li.node_id AND a.interaction_id = li.interaction_id
+            )
+            ORDER BY li.answered_at
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS lesson_outcomes (
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                node_id TEXT NOT NULL,
+                diagnostic_correct INTEGER NOT NULL,
+                post_correct INTEGER NOT NULL,
+                items INTEGER NOT NULL,
+                outcome TEXT NOT NULL,
+                recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, course_id, node_id)
+            )
+            """
+        )
 
     def _migrate_procedure_block7(self, cursor):
         """Spec 001 block 7: one current contribution per procedure, its review round and copy
@@ -6286,9 +6342,108 @@ class PostgresRepository:
                         misconception_tag,
                     ),
                 )
+                # Spec 003 L4 (FR-040): the history keeps every answer, in the same transaction.
+                cursor.execute(
+                    """INSERT INTO lesson_answers
+                       (user_id, course_id, node_id, interaction_id, selected_option,
+                        is_expected, misconception_tag)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                    (
+                        user_id,
+                        course_id,
+                        node_id,
+                        interaction_id,
+                        selected_option,
+                        None if is_expected is None else int(is_expected),
+                        misconception_tag,
+                    ),
+                )
             conn.commit()
         finally:
             self.put_connection(conn)
+
+    @_read_only
+    def get_lesson_answers(self, user_id: int, course_id: str) -> list[dict]:
+        """Spec 003 L4: every answer of the student in the course, oldest first. The chosen
+        value is not returned: the teacher reads right or wrong and the tag (N11)."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """SELECT node_id, interaction_id, is_expected, misconception_tag, answered_at
+                       FROM lesson_answers
+                       WHERE user_id = %s AND course_id = %s
+                       ORDER BY id""",
+                    (user_id, course_id),
+                )
+                rows = cursor.fetchall()
+        finally:
+            self.put_connection(conn)
+        return [
+            {
+                "node_id": row["node_id"],
+                "interaction_id": row["interaction_id"],
+                "is_expected": None if row["is_expected"] is None else bool(row["is_expected"]),
+                "misconception_tag": row["misconception_tag"],
+                "answered_at": str(row["answered_at"]),
+            }
+            for row in rows
+        ]
+
+    def save_lesson_outcome(
+        self,
+        user_id: int,
+        course_id: str,
+        node_id: str,
+        diagnostic_correct: int,
+        post_correct: int,
+        items: int,
+        outcome: str,
+    ) -> None:
+        """Spec 003 L4 (FR-041): the node's post-diagnostic outcome, the latest one."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """INSERT INTO lesson_outcomes
+                       (user_id, course_id, node_id, diagnostic_correct, post_correct, items,
+                        outcome, recorded_at)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                       ON CONFLICT(user_id, course_id, node_id) DO UPDATE SET
+                           diagnostic_correct = EXCLUDED.diagnostic_correct,
+                           post_correct = EXCLUDED.post_correct,
+                           items = EXCLUDED.items,
+                           outcome = EXCLUDED.outcome,
+                           recorded_at = CURRENT_TIMESTAMP""",
+                    (user_id, course_id, node_id, diagnostic_correct, post_correct, items, outcome),
+                )
+            conn.commit()
+        finally:
+            self.put_connection(conn)
+
+    @_read_only
+    def get_lesson_outcomes(self, user_id: int, course_id: str) -> dict:
+        """Spec 003 L4: each node's stored post-diagnostic outcome, by node."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """SELECT node_id, diagnostic_correct, post_correct, items, outcome
+                       FROM lesson_outcomes WHERE user_id = %s AND course_id = %s""",
+                    (user_id, course_id),
+                )
+                rows = cursor.fetchall()
+        finally:
+            self.put_connection(conn)
+        return {
+            row["node_id"]: {
+                "diagnostic_correct": row["diagnostic_correct"],
+                "post_correct": row["post_correct"],
+                "items": row["items"],
+                "outcome": row["outcome"],
+            }
+            for row in rows
+        }
 
     def set_topic_rating_baseline(
         self, user_id: int, course_id: str, topic: str, elo: float, rd: float = 350.0

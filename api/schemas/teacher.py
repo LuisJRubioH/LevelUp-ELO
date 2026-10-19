@@ -251,3 +251,36 @@ class ItemCatalogEntry(BaseModel):
     difficulty: float
     topic: str
     tags: list[str] = []
+
+
+# ── Spec 003 L4: a student's learning path, read only ───────────────────────
+
+
+class PathAnswer(BaseModel):
+    """One answer as the teacher reads it: where, right or wrong, the tag (N11: no value)."""
+
+    label: str
+    is_expected: bool | None = None
+    misconception_tag: str | None = None
+    answered_at: str
+
+
+class PathOutcome(BaseModel):
+    diagnostic_correct: int
+    post_correct: int
+    items: int
+    outcome: str  # gain | flat
+
+
+class PathRecordNode(BaseModel):
+    node_id: str
+    title: str
+    state: str | None = None  # None = not started
+    answers: list[PathAnswer]
+    outcome: PathOutcome | None = None
+
+
+class StudentPathResponse(BaseModel):
+    student_id: int
+    course_id: str
+    nodes: list[PathRecordNode]

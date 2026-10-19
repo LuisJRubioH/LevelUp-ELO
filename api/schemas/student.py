@@ -321,6 +321,8 @@ class LessonInteractionResponse(BaseModel):
     is_expected: bool | None = None
     misconception_tag: str | None = None
     feedback_key: str
+    # Spec 003 L4: «gain» or «flat» when this answer finished the post-diagnostic.
+    outcome: str | None = None
 
 
 class LessonDetailResponse(BaseModel):

@@ -393,7 +393,88 @@ function MetricsView({ students }: { students: StudentSummary[] }) {
 }
 
 /* ── drawer de perfil de estudiante ──────────────────────────────────────── */
-function StudentDrawer({ student, onClose }: { student: StudentSummary; onClose: () => void }) {
+const STATE_LABEL: Record<string, string> = {
+  completed: "Completado",
+  current: "En curso",
+  in_progress: "En curso",
+  available: "Abierto",
+};
+
+/** Spec 003 L4 (FR-042): the student's path, data first (D3) — one row per node with activity,
+ * the answer history unfolded on demand. Right or wrong and the tag; never the value (N11). */
+function StudentPathSection({ studentId, courseId }: { studentId: number; courseId: string }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const pathQ = useQuery({
+    queryKey: ["teacher-student-path", studentId, courseId],
+    queryFn: () => teacherApi.studentPath(studentId, courseId),
+    retry: false,
+  });
+  if (pathQ.isError) return null; // the course has no learning path
+  const nodes = (pathQ.data?.nodes ?? []).filter((n) => n.state || n.answers.length > 0);
+  return (
+    <div className="sd-section">
+      <h4>Ruta de aprendizaje</h4>
+      {pathQ.isLoading ? (
+        <p className="sd-ai-hint">Cargando…</p>
+      ) : nodes.length === 0 ? (
+        <p className="sd-ai-hint">Todavía no ha empezado la ruta.</p>
+      ) : (
+        <ul className="sd-path">
+          {nodes.map((n) => {
+            const right = n.answers.filter((a) => a.is_expected === true).length;
+            const expanded = open === n.node_id;
+            return (
+              <li key={n.node_id} className={expanded ? "is-open" : undefined}>
+                <button
+                  type="button"
+                  className="sd-path-row"
+                  aria-expanded={expanded}
+                  disabled={n.answers.length === 0}
+                  onClick={() => setOpen(expanded ? null : n.node_id)}
+                >
+                  <span className="t">{n.title}</span>
+                  <span className={`st st-${n.state ?? "none"}`}>{STATE_LABEL[n.state ?? ""] ?? "Sin empezar"}</span>
+                  <span className="n">
+                    {right}/{n.answers.length}
+                  </span>
+                  {n.outcome && (
+                    <span className={`oc oc-${n.outcome.outcome}`}>
+                      {n.outcome.outcome === "gain" ? "Avance" : "Sin avance"} · {n.outcome.diagnostic_correct}→
+                      {n.outcome.post_correct}/{n.outcome.items}
+                    </span>
+                  )}
+                </button>
+                {expanded && (
+                  <ol className="sd-path-answers">
+                    {n.answers.map((a, i) => (
+                      <li key={i} className={a.is_expected ? "ok" : "bad"}>
+                        <span aria-hidden="true">{a.is_expected ? "✓" : "✗"}</span>
+                        <span className="sr-only">{a.is_expected ? "Correcta" : "Incorrecta"}</span>
+                        <span className="l">{a.label}</span>
+                        <time>{a.answered_at.slice(0, 16)}</time>
+                        {a.misconception_tag && <code>{a.misconception_tag}</code>}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function StudentDrawer({
+  student,
+  courseId,
+  onClose,
+}: {
+  student: StudentSummary;
+  courseId: string | null;
+  onClose: () => void;
+}) {
   const { apiKey, provider } = useSettingsStore();
   const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
@@ -448,6 +529,8 @@ function StudentDrawer({ student, onClose }: { student: StudentSummary; onClose:
             <b>{student.total_attempts}</b>
           </div>
         </div>
+
+        {courseId && <StudentPathSection studentId={student.user_id} courseId={courseId} />}
 
         <div className="sd-section">
           <h4>
@@ -604,7 +687,13 @@ export function TeacherDashboard() {
         <MetricsView students={filtered} />
       )}
 
-      {selected && <StudentDrawer student={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <StudentDrawer
+          student={selected}
+          courseId={groups.find((g) => g.group_id === selected.group_id)?.course_id ?? null}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </>
   );
 }

@@ -69,6 +69,8 @@ from src.domain.learning.path import (
     completes_on_cards,
     completion_gaps,
     completion_refused,
+    is_post_diagnostic,
+    post_diagnostic_outcome,
     node_access,
 )
 from src.domain.learning.prealgebra import (
@@ -1308,6 +1310,8 @@ def _lesson_with_progress(
     progress["responses"] = repo.get_lesson_interactions(
         user_id, course_id, lesson["node_id"]
     )
+    # Spec 003 L4: the post-diagnostic outcome as the server stored it, or None.
+    progress["outcome"] = repo.get_lesson_outcomes(user_id, course_id).get(lesson["node_id"])
 
     lesson_payload = {**lesson}
     if (lesson.get("content") or {}).get("machines"):
@@ -1420,7 +1424,14 @@ def lesson_interaction(
     )
     if completes_on_cards(lesson):
         _complete_hub_if_cards_opened(repo, user["user_id"], course_id, lesson)
-    return LessonInteractionResponse(**result)
+    # Spec 003 L4 (FR-041): the answer that finishes the post-diagnostic stores its outcome.
+    outcome = None
+    if is_post_diagnostic(lesson, result["interaction_id"]):
+        answers = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
+        outcome = post_diagnostic_outcome(lesson, answers)
+        if outcome:
+            repo.save_lesson_outcome(user["user_id"], course_id, node_id, **outcome)
+    return LessonInteractionResponse(**result, outcome=outcome["outcome"] if outcome else None)
 
 
 @router.get("/prealgebra-summary/{course_id}", response_model=PathSummaryResponse)
@@ -1435,9 +1446,9 @@ def prealgebra_summary(course_id: str, user: CurrentUser, repo: RepoDep):
     # One student's progress: a preview has none to summarise (the teacher's view is L4).
     _refuse_preview(_path_access(repo, user, course_id))
     state_of = _lesson_states(repo, user["user_id"], course_id)
+    history = repo.get_lesson_answers(user["user_id"], course_id)
     summary = path_summary(
-        state_of,
-        lambda node_id: repo.get_lesson_interactions(user["user_id"], course_id, node_id),
+        state_of, lambda node_id: [a for a in history if a["node_id"] == node_id]
     )
     return {"course_id": course_id, **summary}
 
