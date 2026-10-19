@@ -2,7 +2,7 @@
 
 **Spec**: [spec.md](spec.md) § Deliveries, D2 (US4, US5; FR-022 … FR-025; SC-003, SC-004) ·
 **Branch**: `002-persistence-d2`, from `redesign` after D1 (LuisJRubioH/LevelUp-ELO#81) ·
-**Date**: 2026-10-19 · **Status**: for the owner's approval
+**Date**: 2026-10-19 · **Status**: approved by the owner (2026-10-19), with N1 and N2 as recommended
 
 ## Summary
 
@@ -105,10 +105,10 @@ D2 fixes all three. It also adds a liveness check that detects a connection the 
 - No schema change: `SCHEMA_VERSION` stays where D1 left it, and the digest test stays green.
 - One optional environment variable on Render, `DB_POOL_MIN_IDLE`, which defaults to 2.
 
-## Open points for the owner
+## Owner decisions (2026-10-19)
 
-- **N1 — `DB_POOL_MIN_IDLE` default.** Recommended **2**: one more idle connection than today. 3
+- **N1 — `DB_POOL_MIN_IDLE` default.** **Approved: 2**: one more idle connection than today. 3
   helps bursts more but holds 3 of Supabase's connections all day.
-- **N2 — Scope of `@_read_only`.** Recommended: the reads behind the student's hot paths first
+- **N2 — Scope of `@_read_only`.** **Approved:** the reads behind the student's hot paths first
   (`/next-question`, `/stats`, map, lesson, ranking), then the rest in the same PR only if the
   write-guard test covers them. The alternative is every read at once.
