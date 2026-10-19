@@ -1,7 +1,7 @@
 # Plan — spec 003, delivery L1: access
 
 **Spec**: [spec.md](spec.md) § Deliveries, L1 (US1; FR-010, FR-011; N6) · **Branch**:
-`003-learning-path-l1`, from `redesign` · **Date**: 2026-10-19 · **Status**: for the owner's approval
+`003-learning-path-l1`, from `redesign` · **Date**: 2026-10-19 · **Status**: approved by the owner (2026-10-19)
 
 ## Summary
 
@@ -73,7 +73,7 @@ Some existing lesson tests may sign in a student not enrolled in `algebra_basica
 run against L1 first. Where one fails for that reason alone, it gets an `enroll(...)` line, the only
 change allowed to a pin, and the PR lists every such edit.
 
-## Owner decisions (open)
+## Owner decisions (2026-10-19)
 
-- **N10 — admins.** Recommended: an admin previews like a teacher of every course, read-only. The
+- **N10 — admins.** **Approved** — an admin previews like a teacher of every course, read-only. The
   alternative is to refuse them.

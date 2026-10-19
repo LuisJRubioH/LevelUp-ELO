@@ -100,8 +100,9 @@ records an event and opens the map.
 **Acceptance Scenarios**:
 
 1. **US2-AS1** — **Given** any node, **When** a student opens it, **Then** the response holds no
-   answer key: no `answer`, `expected`, `accepted`, `valid_options`, `trap_options`,
-   `misconception_by_option`, closing answer or bridge blank.
+   answer key: no `answer`, `expected`, `accepted`, `trap_options`,
+   `misconception_by_option`, closing answer or bridge blank (`valid_options`, the list of choices,
+   stays: N7).
 2. **US2-AS2** — **Given** an answer sent, **When** the server grades it, **Then** the student
    still gets the same feedback as today.
 
@@ -246,6 +247,11 @@ records an event and opens the map.
 | N4 | L9: the map shows practice-topic nodes blocked until B08, but practice ignores the path. | **Approved** (owner, 2026-10-18): Keep practice independent of the path (spec 001) and drop the block from the map. |
 | N5 | L7: three renderers are unreachable (`LevelTwoOperation`, `LevelThreeMachine`, `LevelFourConcept`), the only place showing «Resultado esperado: {answer}». | **Approved** (owner, 2026-10-18): Remove them with L2. |
 | N6 | L10: the summary endpoint has no response model and does not check the course. | **Approved** (owner, 2026-10-18): Give it one and validate the course with L1. |
+| N7 | `valid_options` is the list of choices a multiple-answer item shows, not a key (plan-l2). | **Approved** (owner, 2026-10-19): Keep it; US2-AS1 amended. |
+| N8 | Worked-example `solution` and `correct_version` are teaching content the student is meant to see. | **Approved** (owner, 2026-10-19): Keep them in the content; FR-020 covers grading keys. |
+| N9 | The abstraction question is graded in the browser (`options[].correct`, 52 nodes). | **Approved** (owner, 2026-10-19): A server-graded interaction with `required=False`; its key leaves the content. |
+| N10 | Admins and the path (L1). | **Approved** (owner, 2026-10-19): An admin previews every course like a teacher, read only. |
+| N11 | What the teacher sees of an answer (L4). | **Approved** (owner, 2026-10-19): Right or wrong and the misconception tag, never the chosen value. |
 
 ## Out of Scope *(mandatory)*
 

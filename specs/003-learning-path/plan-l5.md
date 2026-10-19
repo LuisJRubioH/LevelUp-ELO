@@ -1,8 +1,7 @@
 # Plan — spec 003, delivery L5: unlock rules from data only
 
 **Spec**: [spec.md](spec.md) § Deliveries, L5 (US5; FR-050, FR-051; N3, N4) · **Branch**:
-`003-learning-path-l5`, from `redesign` after L1 · **Date**: 2026-10-19 · **Status**: for the
-owner's approval
+`003-learning-path-l5`, from `redesign` after L1 · **Date**: 2026-10-19 · **Status**: approved by the owner (2026-10-19)
 
 ## Summary
 

@@ -1,8 +1,7 @@
 # Plan — spec 003, delivery L3: a node completes on right answers
 
 **Spec**: [spec.md](spec.md) § Deliveries, L3 (US3; FR-030; N1, N2) · **Branch**:
-`003-learning-path-l3`, from `redesign` after L5 · **Date**: 2026-10-19 · **Status**: for the
-owner's approval
+`003-learning-path-l3`, from `redesign` after L5 · **Date**: 2026-10-19 · **Status**: approved by the owner (2026-10-19)
 
 ## Summary
 

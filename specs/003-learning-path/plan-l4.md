@@ -1,8 +1,8 @@
 # Plan — spec 003, delivery L4: what the teacher sees
 
 **Spec**: [spec.md](spec.md) § Deliveries, L4 (US4; FR-040 … FR-042) · **Branch**:
-`003-learning-path-l4`, from `redesign` after L1 and L3 · **Date**: 2026-10-19 · **Status**: for
-the owner's approval
+`003-learning-path-l4`, from `redesign` after L1 and L3 · **Date**: 2026-10-19 · **Status**:
+approved by the owner (2026-10-19)
 
 ## Summary
 
@@ -66,8 +66,8 @@ de avance») is computed in the browser and never stored. No teacher screen show
 | `…::test_the_migration_copies_each_last_answer_once` | history before L4 |
 | D3's parity tests and D1's digest test | the schema change is on both engines and versioned |
 
-## Owner decisions (open)
+## Owner decisions (2026-10-19)
 
-- **N11 — the teacher sees right/wrong and the tag, not the chosen value.** Recommended: **as
+- **N11 — the teacher sees right/wrong and the tag, not the chosen value.** **Approved** — **as
   stated**. The value adds little for a teacher, and it is the closest thing to the student's own
   writing. The alternative is to show the chosen option's text.

@@ -1,7 +1,7 @@
 # Plan — spec 003, delivery L2: answer keys stay on the server
 
 **Spec**: [spec.md](spec.md) § Deliveries, L2 (US2; FR-020; N5) · **Branch**:
-`003-learning-path-l2`, from `redesign` · **Date**: 2026-10-19 · **Status**: for the owner's approval
+`003-learning-path-l2`, from `redesign` · **Date**: 2026-10-19 · **Status**: approved by the owner (2026-10-19)
 
 ## Summary
 
@@ -58,17 +58,17 @@ content holds; this was measured over the 60 nodes of the catalogue on 2026-10-1
 | `frontend/e2e/spec003-l2-lesson.spec.ts`: an eleven-block lesson is walked end to end with the stripped content | the student's path still works |
 | `pnpm run build` | the removed renderers and types compile away |
 
-## Owner decisions (open)
+## Owner decisions (2026-10-19)
 
-- **N7 — `valid_options` is the list of choices, not a key.** Recommended: **keep it** and amend
+- **N7 — `valid_options` is the list of choices, not a key.** **Approved** — **keep it** and amend
   US2-AS1, which names it among the keys, to drop it. Removing it would leave multiple-answer items
   with nothing to choose from.
 - **N8 — worked-example `solution` and `correct_version`.** They are teaching content: an example
   the student reads, and the right version the trap card shows after the student commits. They are
-  not keys of a graded interaction. Recommended: **keep them in the content** (FR-020 covers
+  not keys of a graded interaction. **Approved** — **keep them in the content** (FR-020 covers
   grading keys). The alternative is to serve them from the server after the attempt, which is more
   work for content the student is meant to see.
 - **N9 — the abstraction question is graded in the browser** (`options[].correct`; 199 options in
-  52 nodes). Recommended: **make it a server-graded interaction with `required=False`**, so it never
+  52 nodes). **Approved** — **make it a server-graded interaction with `required=False`**, so it never
   gates completion and its key leaves the content like the others. The alternative is to drop the
   right/wrong colouring and keep it as an ungraded question.
