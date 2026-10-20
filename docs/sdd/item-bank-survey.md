@@ -247,3 +247,10 @@ counts (#114), B20 dead code (#116) and B15 calibrator once per process (#117).
 | D5 | B14 — course catalogue | **One shared catalogue module** (block and name per course) read by both repositories and the validator; semillero block and grade from the file name; every course named explicitly. |
 | D6 | B23 — EPA8 | **`build_epa8_bank.py --check` in the «Banco de preguntas» job.** |
 | — | B19 — topics too fine | **Deferred** by the owner, to be discussed: the cause is the topic label (DIAN 293 items in 209 topics, EPA8 60 in 59), not missing content; the owner sees another way to fix it. Note: any regrouping must come before D4 forbids topic changes. |
+
+### Second round (2026-10-20, on the spec 008 draft)
+
+N1 (manifest at `items/id_manifest.json`), N2 (difficulty changes audited in a database table on
+both engines) and N3 (a retired item returns by removing the mark, still bound to its course and
+topic) are **approved**. B19 stays deferred: the owner is discussing keeping the fine label as a
+study subtopic while ratings use a coarser topic.
