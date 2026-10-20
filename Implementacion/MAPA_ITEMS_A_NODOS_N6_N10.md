@@ -127,7 +127,11 @@ nodos, `signo_perdido_en_la_resta_de_polinomios`, `signo_perdido_al_distribuir`,
 
 ## 5 · Lo que el libro NO ofrece · MEDIDO 2026-08-13
 
-Conteo sobre los **4 656 enunciados** de Hipertexto, Caminos y EPA8:
+Conteo sobre los **4 656 enunciados** de Hipertexto, Caminos y EPA8 que había ese día.
+*Re-verificado el 2026-10-20 sobre los 5 725 actuales (se sumaron 1 069 de Caminos U6–U10):
+una búsqueda de enunciados que pidan elegir método o controlar sin calcular sigue dando
+**cero** en ambos tipos; sus 3 coincidencias son de parámetro / condición. Las demás filas no
+se volvieron a contar.*
 
 | Tipo de ítem | Ítems | % |
 |---|---:|---:|
