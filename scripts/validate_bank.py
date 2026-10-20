@@ -22,8 +22,13 @@ Qué verifica:
     - Ningún carácter de control (R5): `"\\frac"` escrito con una sola barra en el JSON se lee
       como salto de página + "rac"
     - `topic` es texto no vacío
+    - `id` es texto no vacío; `tags`, si está, es una lista de textos no vacíos
+    - La imagen (`image_url` o `image_path`), si está, existe en el repositorio
+    - Cada archivo es un curso de `_COURSE_BLOCK_MAP` (en ambos repositorios): un curso sin
+      mapa caía en silencio en «Universidad»
 """
 
+import ast
 import json
 import re
 import sys
@@ -80,6 +85,29 @@ def control_characters(text: str) -> list:
     return found
 
 
+_ROOT = Path(__file__).resolve().parents[1]
+_REPOSITORIES = (
+    _ROOT / "src" / "infrastructure" / "persistence" / "sqlite_repository.py",
+    _ROOT / "src" / "infrastructure" / "persistence" / "postgres_repository.py",
+)
+
+
+def course_block_maps() -> list:
+    """`_COURSE_BLOCK_MAP` of each repository, read from its source (no import: the CI job that
+    runs this script installs nothing)."""
+    maps = []
+    for path in _REPOSITORIES:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        found = [
+            ast.literal_eval(node.value)
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Assign)
+            and any(getattr(t, "id", None) == "_COURSE_BLOCK_MAP" for t in node.targets)
+        ]
+        maps.append(found[0] if found else {})
+    return maps
+
+
 # ── Estado global del validador ────────────────────────────────────────────────
 errors: list = []
 warnings: list = []
@@ -125,9 +153,23 @@ def validate_item(item: dict, source_file: str) -> None:
             f"mínimo requerido: {MIN_OPTIONS}"
         )
 
-    # 5. ID no vacío
-    if not str(item.get("id", "")).strip():
-        errors.append(f"{prefix}: 'id' está vacío o es solo espacios")
+    # 5. ID: texto no vacío (un número chocaría con su texto al guardarse)
+    if not isinstance(item["id"], str) or not item["id"].strip():
+        errors.append(f"{prefix}: 'id' debe ser un texto no vacío, es {item['id']!r}")
+
+    # 5b. tags, si está: lista de textos no vacíos
+    if "tags" in item:
+        tags = item["tags"]
+        if not isinstance(tags, list) or not all(isinstance(t, str) and t.strip() for t in tags):
+            errors.append(f"{prefix}: 'tags' debe ser una lista de textos no vacíos: {tags!r}")
+
+    # 5c. La imagen, si está, existe (ruta relativa a la raíz del repositorio)
+    image = item.get("image_url") or item.get("image_path")
+    if image is not None:
+        if not isinstance(image, str) or not image.strip():
+            errors.append(f"{prefix}: la imagen debe ser una ruta de texto, es {image!r}")
+        elif not image.startswith(("http://", "https://")) and not Path(image).is_file():
+            errors.append(f"{prefix}: la imagen '{image}' no existe")
 
     # 6. Content no vacío
     if not str(item.get("content", "")).strip():
@@ -214,6 +256,16 @@ def main() -> None:
             if "id" in item:
                 all_items.append((str(item["id"]), json_file.name))
         total_items += len(items)
+
+    # ── Cada archivo es un curso mapeado, en ambos repositorios (R1) ─────────
+    block_maps = course_block_maps()
+    for json_file in json_files:
+        course_id = json_file.stem
+        if not all(course_id in m for m in block_maps):
+            errors.append(
+                f"[{json_file.name}]: el curso '{course_id}' no está en _COURSE_BLOCK_MAP de "
+                "ambos repositorios (sin mapa caería en «Universidad»)"
+            )
 
     # ── Verificar IDs duplicados globales ────────────────────────────────────
     seen_ids = {}

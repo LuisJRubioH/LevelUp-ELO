@@ -52,8 +52,9 @@ def test_the_bank_has_no_prose_read_as_math():
 # ── Survey 008 B7 (`docs/sdd/item-bank-survey.md` § 7): R5 and the required `topic` ──────────
 
 
-def _run(tmp_path, item):
-    """Runs the validator, as CI does, on a bank with one file holding `item`."""
+def _run(tmp_path, item, course="geometria"):
+    """Runs the validator, as CI does, on a bank with one file holding `item`. The file is named
+    after a mapped course unless `course` says otherwise."""
     import json
     import subprocess
 
@@ -67,7 +68,7 @@ def _run(tmp_path, item):
         "options": ["$1$", "$2$"],
         "correct_option": "$1$",
     }
-    (bank / "b7.json").write_text(json.dumps([{**good, **item}]), encoding="utf-8")
+    (bank / f"{course}.json").write_text(json.dumps([{**good, **item}]), encoding="utf-8")
     return subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "validate_bank.py")],
         cwd=tmp_path,
@@ -112,3 +113,64 @@ def test_an_empty_or_non_text_topic_is_an_error(tmp_path, topic):
 
     assert result.returncode == 1
     assert "'topic'" in result.stdout
+
+
+# ── Survey 008 B7, decision 2 (owner, 2026-10-20): the rest of the checks, as errors ──────────
+
+
+@pytest.mark.parametrize("item_id", [17, "", "   ", None])
+def test_an_id_that_is_not_text_is_an_error(tmp_path, item_id):
+    """`id` is globally unique text: a number would collide with "17" once stored."""
+    result = _run(tmp_path, {"id": item_id})
+
+    assert result.returncode == 1
+    assert "'id'" in result.stdout
+
+
+@pytest.mark.parametrize("tags", ["algebra", ["algebra", 3], ["algebra", ""], {"a": 1}])
+def test_tags_must_be_a_list_of_text(tmp_path, tags):
+    result = _run(tmp_path, {"tags": tags})
+
+    assert result.returncode == 1
+    assert "'tags'" in result.stdout
+
+
+def test_a_list_of_text_tags_passes(tmp_path):
+    result = _run(tmp_path, {"tags": ["algebra", "fracciones"]})
+
+    assert result.returncode == 0, result.stdout
+
+
+@pytest.mark.parametrize("field", ["image_url", "image_path"])
+def test_an_image_that_does_not_exist_is_an_error(tmp_path, field):
+    result = _run(tmp_path, {field: "items/assets/no_existe.svg"})
+
+    assert result.returncode == 1
+    assert "no existe" in result.stdout
+
+
+def test_an_image_that_exists_passes(tmp_path):
+    image = tmp_path / "items" / "assets" / "figura.svg"
+    image.parent.mkdir(parents=True)
+    image.write_text("<svg/>", encoding="utf-8")
+
+    result = _run(tmp_path, {"image_url": "items/assets/figura.svg"})
+
+    assert result.returncode == 0, result.stdout
+
+
+def test_a_course_missing_from_the_course_map_is_an_error(tmp_path):
+    """A file whose course is not in `_COURSE_BLOCK_MAP` used to land in «Universidad» silently."""
+    result = _run(tmp_path, {}, course="curso_sin_mapa")
+
+    assert result.returncode == 1
+    assert "curso_sin_mapa" in result.stdout and "_COURSE_BLOCK_MAP" in result.stdout
+
+
+def test_the_course_map_is_read_from_both_repositories():
+    from validate_bank import course_block_maps
+
+    sqlite_map, postgres_map = course_block_maps()
+
+    assert sqlite_map == postgres_map  # R1
+    assert sqlite_map["geometria"] == "Colegio"
