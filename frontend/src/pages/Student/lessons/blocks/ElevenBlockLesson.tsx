@@ -40,6 +40,8 @@ type Props = {
   onBack: () => void;
   onFinish: () => Promise<void>;
   finishing: boolean;
+  /** The server's refusal (spec 003 L3): which items still need a right answer. */
+  finishRefused?: string;
 };
 
 // Desvanecimiento del ejemplo resuelto según banda de presentación
@@ -49,7 +51,6 @@ type ClosingItem = {
   statement: string;
   prompt?: string;
   polya: { comprender: string; planear: string; ejecutar: string; comprobar: string };
-  answer: string;
   hints?: { n1: string; n2: string; n3: string };
 };
 
@@ -131,11 +132,23 @@ export function isElevenBlock(content: any): boolean {
   return content?.kind === "eleven_block_node";
 }
 
-export function ElevenBlockLesson({ lesson, courseId, onBack, onFinish, finishing }: Props) {
+export function ElevenBlockLesson({
+  lesson,
+  courseId,
+  onBack,
+  onFinish,
+  finishing,
+  finishRefused,
+}: Props) {
   const { t } = useTranslation();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const content = lesson.content as any;
-  const engine = useLessonItems(courseId, lesson.node_id, lesson.progress.responses);
+  const engine = useLessonItems(
+    courseId,
+    lesson.node_id,
+    lesson.progress.responses,
+    lesson.progress.outcome?.outcome ?? null,
+  );
   const [attempted, setAttempted] = useState(false);
 
   const feedbackText = useMemo(
@@ -173,15 +186,13 @@ export function ElevenBlockLesson({ lesson, courseId, onBack, onFinish, finishin
   const usedHints = practice.some((item) => engine.hintLevelOf(item.id) > 0);
   const masteryState = !allResolved ? "repasar" : usedHints ? "consolidacion" : "sin_ayuda";
 
-  // Post-diagnóstico: solo "avance" / "sin evidencia de avance". Nunca "empeoró".
   const diagnosticItems: LessonItem[] = content.diagnostic?.items ?? [];
-  const diagnosticScore = diagnosticItems.filter((i) => engine.isCorrect(i.id)).length;
   const postItems: LessonItem[] = content.post_diagnostic?.items ?? [];
-  const postAnswered = postItems.length > 0 && postItems.every((i) => engine.answered(i.id));
-  const postScore = postItems.filter((i) => engine.isCorrect(i.id)).length;
-  const postOutcome = !postAnswered
+  // Post-diagnóstico: solo "avance" / "sin evidencia de avance". Nunca "empeoró". El
+  // servidor lo calcula y lo guarda (spec 003 L4, FR-041); aquí solo se muestra.
+  const postOutcome = !engine.outcome
     ? null
-    : postScore > diagnosticScore
+    : engine.outcome === "gain"
       ? (content.post_diagnostic.outcome_gain ?? "Avance: hoy resolviste más que al entrar.")
       : (content.post_diagnostic.outcome_flat ??
         "Sin evidencia de avance todavía. KatIA va a retomar contigo lo que quedó suelto.");
@@ -353,7 +364,11 @@ export function ElevenBlockLesson({ lesson, courseId, onBack, onFinish, finishin
           )}
 
           {content.abstraction_question && (
-            <AbstractionQuestion question={content.abstraction_question} />
+            <AbstractionQuestion
+              question={content.abstraction_question}
+              engine={engine}
+              feedbackText={feedbackText}
+            />
           )}
 
           {closingItem && (
@@ -388,6 +403,11 @@ export function ElevenBlockLesson({ lesson, courseId, onBack, onFinish, finishin
               ? t("prealgebra.backToMap")
               : (content.finish_label ?? "Terminar el nodo")}
           </Button>
+          {finishRefused && (
+            <p className="blk-finish-refused" role="alert">
+              {finishRefused}
+            </p>
+          )}
         </MasteryFooter>
       </div>
     </article>

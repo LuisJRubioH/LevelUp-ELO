@@ -175,6 +175,8 @@ export interface CourseMap {
   course_name: string;
   diagnostic_done: boolean;
   nodes: MapNode[];
+  /** Spec 003 L1: a teacher's or admin's read-only view. */
+  preview?: boolean;
 }
 
 export type LessonEvent =
@@ -190,7 +192,6 @@ export interface N4PracticeItem {
   kind: "numeric" | "single_select" | "multi_select";
   prompt: string;
   expr?: string;
-  answer?: string;
   options?: Array<{ id: string; text: string }>;
   valid_options?: string[];
   story?: string;
@@ -200,6 +201,8 @@ export interface N4PracticeItem {
 }
 
 export interface LessonDetail {
+  /** Spec 003 L1: a teacher's or admin's read-only view. */
+  preview?: boolean;
   node_id: string;
   node_type: string;
   course_id: string;
@@ -322,12 +325,6 @@ export interface LessonDetail {
       image?: string;
       trap?: boolean;
     }>;
-    situations?: Array<{ id: string; prompt: string; expr: string; answer: string; set_label?: string }>;
-    operation_groups?: Array<{
-      id: string;
-      katia_after: string;
-      ops: Array<{ id: string; expr: string; answer: string }>;
-    }>;
     practice?: N4PracticeItem[];
     feedback?: Record<string, string>;
     formalization?:
@@ -357,7 +354,17 @@ export interface LessonDetail {
         misconception_tag: string | null;
       }
     >;
+    /** Spec 003 L4: the post-diagnostic outcome the server stored, or null. */
+    outcome?: LessonOutcome | null;
   };
+}
+
+/** Spec 003 L4 (FR-041): «gain» when the post-diagnostic beat the opening one, else «flat». */
+export interface LessonOutcome {
+  diagnostic_correct: number;
+  post_correct: number;
+  items: number;
+  outcome: "gain" | "flat";
 }
 
 export interface PrealgebraSummary {
@@ -374,6 +381,8 @@ export interface LessonInteractionResult {
   is_expected: boolean | null;
   misconception_tag: string | null;
   feedback_key: string;
+  /** Spec 003 L4: set when this answer finished the post-diagnostic. */
+  outcome?: "gain" | "flat" | null;
 }
 
 export interface ProcedureSubmissionRow {
@@ -475,6 +484,8 @@ export const studentApi = {
         my_score: number;
         opp_score: number;
         elo_delta: number | null;
+        /** The number to show, rounded on the server (survey 007 V14); null when none recorded. */
+        elo_delta_display: number | null;
         opponent: string;
         finished_at: string;
       }>

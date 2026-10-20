@@ -62,7 +62,6 @@ N3_NODE_IDS = [N3_HUB_NODE_ID, *N3_MACHINE_NODE_IDS]
 # Prerrequisitos además de `unlock_after`: el laboratorio de N3 cuelga de E06, pero él y sus
 # máquinas piden los seis edificios de N2 completos. Es la regla que la API aplica al abrir la
 # lección (`_lesson_with_progress`); el mapa la usa para no ofrecer lo que la API rechaza.
-LEVEL_GATES: dict[str, list[str]] = {node_id: N2_OPERATION_NODE_IDS for node_id in N3_NODE_IDS}
 
 N4_HUB_NODE_ID = "PREALG-N4-C00-PUERTO-DE-LA-POLIS"
 N4_DIVISIBILITY_NODE_ID = "PREALG-N4-C01-DIVISIBILIDAD"
@@ -1975,6 +1974,45 @@ for _node_module in NODE_MODULES:
         ],
         required=False,
     )
+    # Spec 003 N9: the abstraction question is graded on the server, never gates completion,
+    # and its `correct` flags leave the content the browser receives.
+    _abstraction = _content.get("abstraction_question")
+    if _abstraction:
+        _register_mixed_interactions(
+            _node_id,
+            _slug,
+            [
+                {
+                    "id": "ABSTRACCION",
+                    "kind": "multi_select",
+                    "valid_options": [option["id"] for option in _abstraction["options"]],
+                    "expected": [o["id"] for o in _abstraction["options"] if o["correct"]],
+                }
+            ],
+            required=False,
+        )
+
+# ── Unlock and completion rules as node data (spec 003 L5, FR-050) ──────────
+# `src/domain/learning/path.py` reads them; no endpoint names a node.
+for _node_id in N3_NODE_IDS:
+    # The laboratory and its machines open once the whole city (N2) is done.
+    _LESSONS[_node_id]["gates"] = list(N2_OPERATION_NODE_IDS)
+    _LESSONS[_node_id]["gates_refused"] = "Completa el Nivel 2 primero"
+# The complex numbers are an optional branch for the intermediate and advanced bands.
+_LESSONS[COMPLEX_NODE_ID]["requires_band"] = ["intermedio", "avanzado"]
+# What «completed» means (spec 003 L3, `path.completion_gaps`).
+for _lesson in _LESSONS.values():
+    if _lesson["node_type"].startswith("level_hub"):
+        # Spec 003 N3: a hub completes, on the server, once every card is opened.
+        _lesson["completion"] = "cards"
+    elif (_lesson.get("content") or {}).get("kind") == "eleven_block_node":
+        # FR-030: the latest answer of every practice item and the closing item is right.
+        _lesson["completion"] = "correct"
+    else:
+        # B02 is a safe-zone prompt (one answer, the second has no right one); B13 is a
+        # diagnostic, which measures and does not gate (N2).
+        _lesson["completion"] = "answered"
+_LESSONS[WELCOME_NODE_ID]["completion"] = "view"  # N1: no question
 
 DIAGNOSTIC_NODE_IDS = [
     NATURALS_NODE_ID,
@@ -2060,29 +2098,32 @@ _MAP_PRESENTATION: dict[str, tuple[str, int, str | None]] = {
 }
 
 
-def curriculum_map_rows(state_of, *, complex_visible: bool = True) -> list[dict]:
+def curriculum_map_rows(
+    state_of, *, band: str | None = None, complex_visible: bool = True
+) -> list[dict]:
     """Los nodos del currículo para el mapa, con su estado.
 
     `state_of` es una función `node_id -> estado guardado`; el que llama decide
     de dónde sale (repositorio, caché, test). Aquí no se toca la base.
 
-    El estado se deriva de `unlock_after`, que ya declara la ruta entera, más
-    las puertas de nivel (`LEVEL_GATES`): un nodo se abre cuando sus
-    prerrequisitos están completos, y de los abiertos sin completar el primero
-    de la ruta es `current` y el resto `available`. Los desvíos opcionales —los
-    complejos— nunca son `current`: están disponibles, pero no son el siguiente
-    paso de nadie.
+    Un nodo está abierto cuando `node_access` (spec 003 L5) lo abre: la misma
+    función que consulta la API, sobre `unlock_after`, `gates` y
+    `requires_band` del propio nodo. De los abiertos sin completar, el primero
+    de la ruta es `current` y el resto `available`. Los desvíos opcionales
+    nunca son `current`. Un nodo que pide una banda que el estudiante no tiene
+    no se muestra (`band`; `complex_visible=False` equivale a la banda básica).
     """
+    from src.domain.learning.path import node_access, shown_in_band
+
+    if band is None and not complex_visible:
+        band = "basico"
     rows: list[dict] = []
     current_taken = False
     for node_id, lesson in _LESSONS.items():
-        if node_id == COMPLEX_NODE_ID and not complex_visible:
+        if not shown_in_band(lesson, band):
             continue
         label, item_count, label_key = _MAP_PRESENTATION[node_id]
-        prerequisite = lesson.get("unlock_after")
-        required = ([prerequisite] if prerequisite else []) + LEVEL_GATES.get(node_id, [])
-        unlocked = all(state_of(needed) == "completed" for needed in required)
-        if not unlocked:
+        if node_access(lesson, state_of, band or "avanzado") is not None:
             state = "blocked"
         elif state_of(node_id) == "completed":
             state = "completed"
@@ -2202,6 +2243,105 @@ def recommended_node_for_misconception(tag: str) -> str | None:
     if "implicacion" in t or "todo_complejo_es_real" in t:
         return DETECTIVE_NODE_ID
     return _NODE_BY_EMITTED_TAG.get(tag)
+
+
+# Etiqueta de repaso de cada nodo que el cierre (B13) puede recomendar.
+_REVIEW_LABEL_KEY = {
+    NATURALS_NODE_ID: "prealgebra.n1.b04.mapTitle",
+    INTEGERS_NODE_ID: "prealgebra.n1.b05.mapTitle",
+    RATIONALS_NODE_ID: "prealgebra.n1.b06.mapTitle",
+    IRRATIONALS_NODE_ID: "prealgebra.n1.b07.mapTitle",
+    REALS_NODE_ID: "prealgebra.n1.b08.mapTitle",
+    COMPLEX_NODE_ID: "prealgebra.n1.b09.mapTitle",
+    CLASSIFIER_BASIC_NODE_ID: "prealgebra.n1.b10.mapTitle",
+    CLASSIFIER_RIGOROUS_NODE_ID: "prealgebra.n1.b11.mapTitle",
+    DETECTIVE_NODE_ID: "prealgebra.n1.b12.mapTitle",
+}
+
+
+def explored_optional_branch(state_of) -> bool:
+    """El estudiante abrió o completó un desvío opcional (B09): gobierna el contenido
+    complejo en cascada (B10–B13)."""
+    return any(
+        state_of(node_id) in ("viewed", "completed")
+        for node_id, lesson in _LESSONS.items()
+        if lesson["node_type"] == "optional_extension"
+    )
+
+
+def path_summary(state_of, responses_of) -> dict:
+    """Cierre diagnóstico (B13): progreso y misconceptions del nivel 1, y hasta 4 nodos
+    de repaso en orden de ruta. No afecta ELO. `responses_of(node_id)` devuelve todas las
+    respuestas del nodo, en orden (spec 003 L4): un error corregido después sigue contando
+    como algo para repasar."""
+    explored = explored_optional_branch(state_of)
+    applicable = [
+        n
+        for n in DIAGNOSTIC_NODE_IDS
+        if _LESSONS[n]["node_type"] != "optional_extension" or explored
+    ]
+    completed_nodes = 0
+    misconceptions: list[str] = []
+    for node_id in applicable:
+        if state_of(node_id) == "completed":
+            completed_nodes += 1
+        for resp in responses_of(node_id):
+            tag = resp.get("misconception_tag")
+            if tag and tag not in misconceptions:
+                misconceptions.append(tag)
+
+    review_nodes: list[str] = []
+    for tag in misconceptions:
+        node = recommended_node_for_misconception(tag)
+        if node and node in _REVIEW_LABEL_KEY and node not in review_nodes:
+            review_nodes.append(node)
+    # Por posición en la ruta, no por índice en la lista de un nivel.
+    review_nodes.sort(key=route_position)
+    review = [{"node_id": n, "label_key": _REVIEW_LABEL_KEY[n]} for n in review_nodes[:4]]
+
+    if not misconceptions and completed_nodes == len(applicable):
+        overall_status = "strong"
+    elif len(review) >= 3:
+        overall_status = "attention"
+    else:
+        overall_status = "review"
+    return {
+        "completed_nodes": completed_nodes,
+        "total_nodes": len(applicable),
+        "overall_status": overall_status,
+        "review": review,
+    }
+
+
+def path_record(states: dict, answers: list[dict], outcomes: dict) -> list[dict]:
+    """Spec 003 L4 (FR-042): what a teacher reads of one student's path, node by node in route
+    order — state, every answer in order (where it is, right or wrong, the tag) and the
+    post-diagnostic outcome. Never the chosen value or the item's text (N11)."""
+    from src.domain.learning.path import interaction_label
+
+    by_node: dict[str, list[dict]] = {}
+    for answer in answers:
+        by_node.setdefault(answer["node_id"], []).append(answer)
+    record = []
+    for node_id, lesson in _LESSONS.items():
+        record.append(
+            {
+                "node_id": node_id,
+                "title": _MAP_PRESENTATION[node_id][0],
+                "state": states.get(node_id),
+                "answers": [
+                    {
+                        "label": interaction_label(lesson, a["interaction_id"]),
+                        "is_expected": a["is_expected"],
+                        "misconception_tag": a["misconception_tag"],
+                        "answered_at": a["answered_at"],
+                    }
+                    for a in by_node.get(node_id, [])
+                ],
+                "outcome": outcomes.get(node_id),
+            }
+        )
+    return record
 
 
 def get_lesson(node_id: str) -> dict | None:
@@ -2360,3 +2500,13 @@ def presentation_band(score_pct: float | None) -> str:
     if score >= 50.0:
         return "intermedio"
     return "basico"
+
+
+# FR-051: a catalogue that cannot be walked fails at import, not on a student's request.
+def _validate_at_import() -> None:
+    from src.domain.learning.path import validate_catalogue
+
+    validate_catalogue(_LESSONS)
+
+
+_validate_at_import()

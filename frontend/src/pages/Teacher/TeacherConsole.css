@@ -383,6 +383,36 @@ html.light .lue-tc .tc-brand .brand-logo-dark { display: none; }
 .lue-tc .sd-ai-btn:disabled { opacity: .6; cursor: default; }
 .lue-tc .sd-ai-out { font-size: 13.5px; line-height: 1.6; color: var(--dim); white-space: pre-wrap; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
 .lue-tc .sd-ai-hint { font-size: 12.5px; color: var(--mute); line-height: 1.5; }
+/* Spec 003 L4: the student's learning path — one dense row per node, history on demand. */
+.lue-tc .sd-path { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.lue-tc .sd-path-row {
+  width: 100%; display: grid; grid-template-columns: 1fr auto 44px; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid transparent;
+  background: var(--surface-2); color: var(--text); font: inherit; font-size: 12.5px; text-align: left; cursor: pointer;
+}
+.lue-tc .sd-path-row:disabled { cursor: default; }
+.lue-tc .sd-path li.is-open > .sd-path-row { border-color: var(--border-strong); }
+.lue-tc .sd-path-row .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lue-tc .sd-path-row .st { font-size: 11px; color: var(--dim); }
+.lue-tc .sd-path-row .st-completed { color: var(--accent-2); }
+.lue-tc .sd-path-row .n { font-variant-numeric: tabular-nums; color: var(--dim); text-align: right; }
+.lue-tc .sd-path-row .oc { grid-column: 1 / -1; font-size: 11px; font-weight: 600; }
+.lue-tc .sd-path-row .oc-gain { color: var(--color-correct); }
+.lue-tc .sd-path-row .oc-flat { color: var(--mute); }
+.lue-tc .sd-path-answers { margin: 4px 0 8px; padding: 0 10px; list-style: none; display: grid; gap: 4px; font-size: 12px; }
+.lue-tc .sd-path-answers li { display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: baseline; color: var(--dim); }
+.lue-tc .sd-path-answers li.ok > span:first-child { color: var(--color-correct); }
+.lue-tc .sd-path-answers li.bad > span:first-child { color: var(--color-wrong); }
+.lue-tc .sd-path-answers code { grid-column: 2 / -1; font-size: 11px; color: var(--mute); }
+.lue-tc .sd-path-answers time { font-size: 11px; color: var(--mute); font-variant-numeric: tabular-nums; }
+.lue-tc .sd-katia { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.lue-tc .sd-katia th { text-align: left; font-size: 11px; font-weight: 600; color: var(--mute); padding: 0 8px 6px 0; }
+.lue-tc .sd-katia td { padding: 6px 8px 6px 0; border-top: 1px solid var(--border); color: var(--text); }
+.lue-tc .sd-katia td.n { font-variant-numeric: tabular-nums; color: var(--dim); text-align: right; }
+.lue-tc .sd-katia .oc { font-weight: 600; }
+.lue-tc .sd-katia .oc-superado { color: var(--color-correct); }
+.lue-tc .sd-katia .oc-no_superado { color: var(--color-wrong); }
+.lue-tc .sd-katia .oc-abandonado { color: var(--mute); }
 .lue-tc .sd-topic { display: grid; grid-template-columns: 130px 1fr 52px; align-items: center; gap: 12px; margin-bottom: 11px; }
 .lue-tc .sd-topic:last-child { margin-bottom: 0; }
 .lue-tc .sd-topic .tl { font-size: 12.5px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -614,6 +644,7 @@ html.light .lue-tc .tc-brand .brand-logo-dark { display: none; }
 .lue-tc .av-head b { font-family: var(--font-display); font-weight: 600; font-size: 13.5px; }
 .lue-tc .av-score { margin-left: auto; font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--accent-2); }
 .lue-tc .ai-verdict p { font-size: 12.5px; color: var(--mute); line-height: 1.5; }
+.lue-tc .ai-verdict .av-feedback { color: var(--text); font-size: 13px; margin-bottom: 6px; white-space: pre-line; }
 
 /* grade panel */
 .lue-tc .grade-panel { border: 1px solid color-mix(in srgb, var(--gc, var(--accent)) 32%, var(--border)); background: color-mix(in srgb, var(--gc, var(--accent)) 6%, var(--surface)); border-radius: 14px; padding: 16px 18px; }
@@ -634,6 +665,9 @@ html.light .lue-tc .tc-brand .brand-logo-dark { display: none; }
 .lue-tc .gp-slider-row input[type=range] { flex: 1; -webkit-appearance: none; appearance: none; height: 7px; border-radius: 4px; background: linear-gradient(90deg, var(--gc, var(--accent)) calc(var(--pct,0)*1%), var(--surface-3) calc(var(--pct,0)*1%)); cursor: pointer; }
 .lue-tc .gp-slider-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 3px solid var(--gc, var(--accent)); box-shadow: 0 3px 8px -2px rgba(0,0,0,.5); cursor: pointer; }
 .lue-tc .gp-slider-row input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border: 3px solid var(--gc, var(--accent)); border-radius: 50%; background: #fff; cursor: pointer; }
+/* Spec 006 FR-051: no grade yet — the thumb waits, faded, until the teacher picks one. */
+.lue-tc .gp-slider-row input[type=range].unset::-webkit-slider-thumb { opacity: .35; }
+.lue-tc .gp-slider-row input[type=range].unset::-moz-range-thumb { opacity: .35; }
 .lue-tc .gp-presets { display: flex; gap: 7px; margin-top: 14px; flex-wrap: wrap; }
 .lue-tc .gp-chip { cursor: pointer; font-family: var(--font-display); font-weight: 700; font-size: 12px; color: var(--mute); background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 7px; padding: 5px 12px; transition: all .14s; }
 .lue-tc .gp-chip:hover { color: var(--text); }
@@ -695,6 +729,17 @@ html.light .lue-tc .tc-brand .brand-logo-dark { display: none; }
 .lue-tc .ex-card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--accent); opacity: .85; }
 .lue-tc .ex-card:hover { transform: translateY(-2px); border-color: var(--border-strong); }
 .lue-tc .ex-card h3 { font-family: var(--font-display); font-weight: 700; font-size: 16px; letter-spacing: -.01em; line-height: 1.25; margin: 0; }
+.lue-tc .ex-badge { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; vertical-align: middle; border: 1px solid currentColor; }
+.lue-tc .ex-badge.draft { color: var(--mute); }
+.lue-tc .ex-badge.locked { color: var(--accent-2); }
+.lue-tc .ex-res-note { font-size: 12px; color: var(--mute); margin: 0 0 8px; }
+.lue-tc .ex-stu { padding: 8px 0; border-top: 1px solid var(--border); }
+.lue-tc .ex-stu .s-head { display: flex; justify-content: space-between; font-size: 13px; }
+.lue-tc .ex-stu .s-answers { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; color: var(--dim); }
+.lue-tc .ex-stu .s-answers li { display: inline-flex; gap: 4px; align-items: baseline; }
+.lue-tc .ex-stu .s-answers li.ok > span:first-child { color: var(--color-correct); }
+.lue-tc .ex-stu .s-answers li.bad > span:first-child { color: var(--color-wrong); }
+.lue-tc .ex-stu .s-answers .n { color: var(--mute); }
 .lue-tc .ex-meta { display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--mute); flex-wrap: wrap; }
 .lue-tc .ex-meta i { width: 3px; height: 3px; border-radius: 50%; background: var(--border-strong); }
 .lue-tc .ex-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }

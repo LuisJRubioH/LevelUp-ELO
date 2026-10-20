@@ -274,7 +274,7 @@ errores y el catálogo completo— en
 
 ### Extracción de libros
 
-`items/source/` tiene **4.656 enunciados** extraídos de tres libros (Hipertexto,
+`items/source/` tiene **5.725 enunciados** extraídos de tres libros (Hipertexto,
 Caminos, EPA8) con enunciado, respuesta y dificultad ya en escala ELO. **Todavía
 no alimentan el banco**: les faltan los distractores, que es justo lo que ningún
 libro trae. Ver [CABOS_SUELTOS](Implementacion/CABOS_SUELTOS.md) §D4.
@@ -336,8 +336,8 @@ importar `src.*`. Sin `DATABASE_URL` usa SQLite y crea la base con datos demo.
 | `JWT_SECRET_KEY` | Firma de los JWT | V2 |
 | `CORS_ORIGINS` | Orígenes permitidos | V2 |
 | `SYSTEM_AI_API_KEY` | Key de IA del sistema | V2 |
-| `SYSTEM_AI_PROVIDER` | Proveedor explícito; autodetectado si falta | No |
-| `AI_KEY_KATIA` / `_PROCEDURE` / `_STUDENT_ANALYSIS` / `_TEACHER_ANALYSIS` | Key por función; caen a `SYSTEM_AI_API_KEY` | No |
+| `AI_KEY_KATIA` / `_PROCEDURE` / `_TEACHER_ANALYSIS` | Key por función; caen a `SYSTEM_AI_API_KEY`. El prefijo de la key decide el proveedor | No |
+| `AI_MODEL_KATIA` / `_VISION` / `_ANALYSIS` | Modelo por función (por defecto, los de Groq) | No |
 | `VITE_API_URL` | URL del backend, en el frontend | V2 |
 
 Prioridad por request: key del usuario > key de función > key general
@@ -445,7 +445,7 @@ Lo grande, con el detalle en
   escritos; los PNG de N2 todavía dibujan la versión descartada y los de Kemet no
   existen. Efecto conocido: el hub de Kemet pide un PNG que no está → 404 en cada
   carga.
-- **Los 4.656 ítems extraídos no alimentan el banco** — les faltan distractores.
+- **Los 5.725 ítems extraídos no alimentan el banco** — les faltan distractores.
 - **Accesibilidad:** el código está corregido; falta la revisión con lector de
   pantalla real y la medición de contraste.
 - **Calibración del piloto:** los 7 ítems de práctica por nodo son una convención,

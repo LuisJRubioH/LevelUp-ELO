@@ -182,3 +182,13 @@ textarea {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Spec 003 L1: a teacher's read-only view of a learning path. Amber, the "partial" token: it is
+   neither the student's path nor an error. */
+.path-preview-banner {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  border-left: 3px solid var(--color-partial);
+  background: color-mix(in srgb, var(--color-partial) 12%, transparent);
+  font-size: 0.9rem;
+}

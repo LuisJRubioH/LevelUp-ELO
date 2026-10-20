@@ -297,6 +297,8 @@ class CourseMapResponse(BaseModel):
     course_name: str = ""
     diagnostic_done: bool
     nodes: list[MapNode]
+    # Spec 003 L1: a teacher of the course (or an admin) reads the path without progress.
+    preview: bool = False
 
 
 class LessonEventRequest(BaseModel):
@@ -319,6 +321,8 @@ class LessonInteractionResponse(BaseModel):
     is_expected: bool | None = None
     misconception_tag: str | None = None
     feedback_key: str
+    # Spec 003 L4: «gain» or «flat» when this answer finished the post-diagnostic.
+    outcome: str | None = None
 
 
 class LessonDetailResponse(BaseModel):
@@ -340,6 +344,23 @@ class LessonDetailResponse(BaseModel):
     content: dict | None = None
     unlock_after: str | None = None
     progress: dict
+    # Spec 003 L1: read only — nothing the viewer sends is stored.
+    preview: bool = False
+
+
+class PathReviewNode(BaseModel):
+    node_id: str
+    label_key: str
+
+
+class PathSummaryResponse(BaseModel):
+    """The student's path summary (spec 003 N6)."""
+
+    course_id: str
+    completed_nodes: int
+    total_nodes: int
+    overall_status: str
+    review: list[PathReviewNode]
 
 
 # ── Socrático ─────────────────────────────────────────────────────────────────
@@ -347,12 +368,15 @@ class LessonDetailResponse(BaseModel):
 
 class SocraticRequest(BaseModel):
     item_id: str
-    item_content: str
+    item_content: str | None = Field(default=None, deprecated=True)
     student_message: str = Field(..., min_length=1, max_length=1000)
+    # Spec 005 FR-020: the option the student marked, if any; ignored unless it is one of the
+    # item's options. `item_content` is kept for older clients and not used: the statement is
+    # read from the item.
+    selected_option: str | None = Field(default=None, max_length=500)
     course_id: str | None = None
     api_key: str = Field(
         default="",
         description="API key del proveedor de IA (opcional — usa la del sistema si vacía)",
     )
-    provider: str = Field(default="groq", description="Proveedor: groq, anthropic, openai, etc.")
     lang: str = Field(default="es", description="Idioma de la respuesta de KatIA: 'es' o 'en'.")

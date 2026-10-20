@@ -69,7 +69,6 @@ class StudentSummary(BaseModel):
 
 class StudentAIAnalysisRequest(BaseModel):
     api_key: str = ""
-    provider: str = "groq"
     # Campos para filtros cascada (opcionales para compatibilidad)
     group_id: int | None = None
     group_name: str | None = None
@@ -140,6 +139,7 @@ class PendingProcedure(BaseModel):
     item_id: str
     item_content: str | None
     ai_score: float | None
+    ai_feedback: str | None = None  # spec 006 FR-051: shown beside the AI score
     status: str
     created_at: str
     has_image: bool = False  # True si hay imagen disponible para ver
@@ -206,6 +206,10 @@ class ExamTemplateResponse(BaseModel):
     item_ids: list[str]
     archived: bool
     created_at: str
+    # Spec 006 X2: a template with no assignment is a draft (FR-030); once a student has started
+    # it, its items are locked (FR-031).
+    assigned: bool = False
+    locked: bool = False
 
 
 class ExamAssignmentCreateRequest(BaseModel):
@@ -251,3 +255,36 @@ class ItemCatalogEntry(BaseModel):
     difficulty: float
     topic: str
     tags: list[str] = []
+
+
+# ── Spec 003 L4: a student's learning path, read only ───────────────────────
+
+
+class PathAnswer(BaseModel):
+    """One answer as the teacher reads it: where, right or wrong, the tag (N11: no value)."""
+
+    label: str
+    is_expected: bool | None = None
+    misconception_tag: str | None = None
+    answered_at: str
+
+
+class PathOutcome(BaseModel):
+    diagnostic_correct: int
+    post_correct: int
+    items: int
+    outcome: str  # gain | flat
+
+
+class PathRecordNode(BaseModel):
+    node_id: str
+    title: str
+    state: str | None = None  # None = not started
+    answers: list[PathAnswer]
+    outcome: PathOutcome | None = None
+
+
+class StudentPathResponse(BaseModel):
+    student_id: int
+    course_id: str
+    nodes: list[PathRecordNode]

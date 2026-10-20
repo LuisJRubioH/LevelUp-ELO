@@ -22,7 +22,7 @@ from api.websocket import connections
 from starlette.websockets import WebSocketState
 
 from src.domain.elo.model import pvp_deltas
-from src.domain.elo.ranks import rating_display
+from src.domain.elo.ranks import rating_display, round_for_display
 from src.domain.identity import public_name
 
 logger = logging.getLogger("api.pvp")
@@ -76,6 +76,26 @@ _lobby: dict[str, LobbySlot] = {}  # course_id → LobbySlot en espera
 _matches: dict[int, ActiveMatch] = {}  # match_id → ActiveMatch
 _lock = asyncio.Lock()
 
+# Survey 007 V22: how often the API closes orphaned matches (owner decision, 2026-10-20).
+ORPHAN_SWEEP_EVERY_S = 300
+
+
+async def sweep_orphaned_matches(repo, every_seconds: float = ORPHAN_SWEEP_EVERY_S) -> None:
+    """Close orphaned matches periodically, for as long as the API runs (survey 007 V22).
+
+    A match whose process died (a restart, a crash) stays `active`; bootstrap closes it only at
+    the next deploy. `expire_stale_pvp_matches` closes those active for more than 600 s as
+    `abandoned`, with no rating change; a real match lasts 180 s, so a live one is never
+    touched. It runs in a thread (R17). A failed pass is logged and the sweep goes on. Stopping
+    the API cancels this task only: it never closes a match.
+    """
+    while True:
+        await asyncio.sleep(every_seconds)
+        try:
+            await asyncio.to_thread(repo.expire_stale_pvp_matches)
+        except Exception as exc:
+            logger.warning("PvP orphan sweep failed: %s", type(exc).__name__)
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -103,10 +123,20 @@ def _slot_ratings(course_rating: float | None) -> tuple[float, int | None]:
     return expectation, rating_display(course_rating)["display_rating"]
 
 
-async def _lobby_rating(repo, user_id: int, course_id: str) -> float:
-    """The player's course rating for the match expectation (FR-026); 1000 when unrated."""
-    rating = await _course_rating(repo, user_id, course_id)
-    return 1000.0 if rating is None else rating
+def _game_end(my_score: int, opp_score: int, *, won: bool, draw: bool, applied: tuple) -> dict:
+    """One player's `game_end`: the applied delta and, for the screen, the number to show — half
+    up on the value (spec 001 FR-028j), never rounded in the browser (survey 007 V14)."""
+    delta, reason = applied
+    return {
+        "type": "game_end",
+        "your_score": my_score,
+        "opp_score": opp_score,
+        "won": won,
+        "draw": draw,
+        "elo_delta": delta,
+        "elo_delta_display": None if delta is None else round_for_display(delta),
+        "elo_reason": reason,
+    }
 
 
 def _judge_answer(match: ActiveMatch, user_id: int, msg: dict) -> tuple[str, bool] | None:
@@ -165,12 +195,10 @@ async def _close_match(match: ActiveMatch, repo) -> None:
     if not applied:
         applied = {"p1": (0.0, "not_applied"), "p2": (0.0, "not_applied")}
 
-    result_p1 = {"type": "game_end", "your_score": s1, "opp_score": s2,
-                 "won": winner_id == match.p1.user_id, "draw": winner_id is None,
-                 "elo_delta": applied["p1"][0], "elo_reason": applied["p1"][1]}
-    result_p2 = {"type": "game_end", "your_score": s2, "opp_score": s1,
-                 "won": winner_id == match.p2.user_id, "draw": winner_id is None,
-                 "elo_delta": applied["p2"][0], "elo_reason": applied["p2"][1]}
+    draw = winner_id is None
+    won_p1, won_p2 = winner_id == match.p1.user_id, winner_id == match.p2.user_id
+    result_p1 = _game_end(s1, s2, won=won_p1, draw=draw, applied=applied["p1"])
+    result_p2 = _game_end(s2, s1, won=won_p2, draw=draw, applied=applied["p2"])
 
     await asyncio.gather(
         _send(match.p1.ws, result_p1),
@@ -326,22 +354,46 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
         waiting.match = match
         waiting.matched.set()
 
+    first_message: str | None = None  # an answer read while the wait was ending (V10)
     if match is None:
         # En espera — el creador setea slot.matched al emparejar.
         # Vigilamos el socket en PARALELO: si el jugador cierra la pestaña mientras
         # espera, receive_text() falla y lo sacamos del lobby (no queda fantasma).
         await _send(websocket, {"type": "waiting"})
         matched_task = asyncio.ensure_future(slot.matched.wait())
-        disconnect_task = asyncio.ensure_future(websocket.receive_text())
-        done, pending = await asyncio.wait(
-            {matched_task, disconnect_task},
-            timeout=300.0,
-            return_when=asyncio.FIRST_COMPLETED,
-        )
+        receive_task: asyncio.Future | None = None
+        deadline = asyncio.get_running_loop().time() + 300.0
+        while True:
+            receive_task = asyncio.ensure_future(websocket.receive_text())
+            remaining = deadline - asyncio.get_running_loop().time()
+            await asyncio.wait(
+                {matched_task, receive_task},
+                timeout=max(remaining, 0.0),
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            # Ask the task, not wait()'s result: the read can complete after wait() returned,
+            # before this coroutine resumed (a loaded loop).
+            if (
+                receive_task.done()
+                and not receive_task.cancelled()
+                and receive_task.exception() is None
+            ):
+                # A message, not a closed tab (survey 007 V10). Once matched, it is this
+                # player's first answer, sent right after game_start: keep it for the answer
+                # loop. Before that it means nothing yet: ignore it and keep waiting.
+                text = receive_task.result()
+                if slot.matched.is_set():
+                    first_message = text
+                    receive_task = None
+                    break
+                continue
+            break
         # Drenar las tareas canceladas: si no esperamos la cancelación del
         # receive_text(), el canal de recepción queda ocupado y el loop de
         # respuestas falla con "cannot call recv while another coroutine is waiting".
-        for t in pending:
+        for t in (matched_task, receive_task):
+            if t is None or t.done():
+                continue
             t.cancel()
             try:
                 await t
@@ -349,11 +401,10 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
                 pass
         # A player who leaves while waiting ends receive_text() with WebSocketDisconnect: read
         # it, or asyncio logs "Task exception was never retrieved" on every such exit (F-5).
-        for t in done:
-            if not t.cancelled():
-                t.exception()
+        if receive_task is not None and receive_task.done() and not receive_task.cancelled():
+            receive_task.exception()
 
-        if matched_task not in done:
+        if not slot.matched.is_set():
             # Desconexión o timeout → limpiar lobby y cerrar
             async with _lock:
                 if _lobby.get(course_id) is slot:
@@ -388,9 +439,14 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
     # 2. Loop de respuestas
     try:
         while True:
-            raw = await websocket.receive_text()
-            msg = json.loads(raw)
-
+            if first_message is not None:
+                raw, first_message = first_message, None
+            else:
+                raw = await websocket.receive_text()
+            try:
+                msg = json.loads(raw)
+            except ValueError:
+                continue  # a malformed frame is ignored, like any message that is not an answer
             if not isinstance(msg, dict) or msg.get("type") != "answer":
                 continue
 

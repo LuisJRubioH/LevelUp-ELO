@@ -115,15 +115,17 @@ const queryClient = new QueryClient({
 
 function RequireRole({
   role,
+  also = [],
   children,
 }: {
   role: string;
+  also?: string[];
   children: React.ReactNode;
 }) {
   const user = useAuthStore((s) => s.user);
   const mustChangePassword = useAuthStore((s) => s.mustChangePassword);
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role !== role && user.role !== "admin") {
+  if (user.role !== role && !also.includes(user.role) && user.role !== "admin") {
     return <Navigate to="/login" replace />;
   }
   // Spec 004 FR-030: a temporary password is changed before anything else.
@@ -141,6 +143,28 @@ function StudentRoute({ children }: { children: React.ReactNode }) {
   return (
     <RequireRole role="student">
       <StudentLayout>{children}</StudentLayout>
+    </RequireRole>
+  );
+}
+
+/**
+ * The course map and its lessons (spec 003 L1). A student walks them; a teacher of a group in the
+ * course, or an admin, previews them read only — the API refuses whatever they send, and the
+ * banner says so before they try.
+ */
+function PathRoute({ children }: { children: React.ReactNode }) {
+  const role = useAuthStore((s) => s.user?.role);
+  const Shell = role === "teacher" ? TeacherLayout : StudentLayout;
+  return (
+    <RequireRole role="student" also={["teacher"]}>
+      <Shell>
+        {role !== "student" && (
+          <p className="path-preview-banner" role="status">
+            Vista previa: puedes recorrer todos los nodos, pero nada de lo que respondas se guarda.
+          </p>
+        )}
+        {children}
+      </Shell>
     </RequireRole>
   );
 }
@@ -214,11 +238,11 @@ export default function App() {
               />
               <Route
                 path="/student/course/:courseId/map"
-                element={<StudentRoute><CourseMap /></StudentRoute>}
+                element={<PathRoute><CourseMap /></PathRoute>}
               />
               <Route
                 path="/student/course/:courseId/lesson/:nodeId"
-                element={<StudentRoute><Lesson /></StudentRoute>}
+                element={<PathRoute><Lesson /></PathRoute>}
               />
               <Route
                 path="/student/league"

@@ -55,10 +55,65 @@ export interface StudentSummary {
   education_level?: string | null;
 }
 
+/** Spec 003 L4 (FR-042): one answer — where, right or wrong, the tag; never the value (N11). */
+export interface PathAnswer {
+  label: string;
+  is_expected: boolean | null;
+  misconception_tag: string | null;
+  answered_at: string;
+}
+
+export interface PathRecordNode {
+  node_id: string;
+  title: string;
+  state: string | null;
+  answers: PathAnswer[];
+  outcome: { diagnostic_correct: number; post_correct: number; items: number; outcome: "gain" | "flat" } | null;
+}
+
+/** Spec 005 K3: how a KatIA conversation ended (FR-031) and its kind of difficulty (N2). */
+export interface KatiaConversation {
+  id: number;
+  course_id: string | null;
+  course_name: string | null;
+  topic: string | null;
+  item_id: string;
+  turns: number;
+  outcome: "superado" | "no_superado" | "abandonado";
+  difficulty: string | null;
+  misconception_tag: string | null;
+  opened_at: string | null;
+  closed_at: string | null;
+}
+
+export interface StudentPath {
+  student_id: number;
+  course_id: string;
+  nodes: PathRecordNode[];
+}
+
+/** Spec 006 FR-041: a set's figures, computed by the server; screens render them as given. */
+export interface ConsoleFigures {
+  n: number;
+  mean: number | null; // mean of rated students' display values; null if none
+  accuracy: number | null; // percent, over students with attempts in the window
+  attempts: number;
+  attention: number[]; // user ids
+  ranking: { user_id: number; rank: number | null }[]; // competition ranks, pending last
+  histogram: { label: string; count: number }[];
+}
+
+export interface ConsoleSummary extends ConsoleFigures {
+  groups: Record<string, ConsoleFigures>; // by group id
+}
+
+/** Spec 006 FR-043: the last 7 days, the last 30, or the whole history. */
+export type ConsoleWindow = "7" | "30" | "all";
+
 export interface DashboardData {
-  teacher_id: number;
   groups: Group[];
   students: StudentSummary[];
+  summary: ConsoleSummary;
 }
 
 export interface TopicStat {
@@ -84,6 +139,8 @@ export interface PendingProcedure {
   item_id: string;
   item_content: string | null;
   ai_score: number | null;
+  /** Spec 006 FR-051: the AI's comment, shown beside its score. */
+  ai_feedback?: string | null;
   status: string;
   created_at: string;
   has_image: boolean;
@@ -199,7 +256,8 @@ async function _downloadBlob(path: string, filename: string): Promise<void> {
 // ── API Docente ───────────────────────────────────────────────────────────────
 
 export const teacherApi = {
-  dashboard: () => api.get<DashboardData>("/api/teacher/dashboard"),
+  dashboard: (days: ConsoleWindow = "30") =>
+    api.get<DashboardData>(`/api/teacher/dashboard?days=${days}`),
 
   groups: () => api.get<Group[]>("/api/teacher/groups"),
 
@@ -235,21 +293,22 @@ export const teacherApi = {
 
   procedureCopies: () => api.get<ProcedureCopy[]>("/api/teacher/procedures/copies"),
 
-  studentReport: (student_id: number) =>
-    api.get<Record<string, unknown>>(`/api/teacher/student/${student_id}`),
+  /** Spec 003 L4: the student's learning path — states, answer history, outcomes. */
+  studentPath: (student_id: number, course_id: string) =>
+    api.get<StudentPath>(
+      `/api/teacher/student/${student_id}/path/${encodeURIComponent(course_id)}`,
+    ),
 
-  studentEloHistory: (student_id: number) =>
-    api.get<{ attempts: Record<string, unknown>[] }>(`/api/teacher/student/${student_id}/elo-history`),
-
+  /** Spec 005 FR-033: the student's closed KatIA conversations — summaries, never text. */
   studentKatiaHistory: (student_id: number) =>
-    api.get<{ interactions: Record<string, unknown>[] }>(
+    api.get<{ conversations: KatiaConversation[] }>(
       `/api/teacher/student/${student_id}/katia-history`,
     ),
 
-  studentAiAnalysis: (student_id: number, api_key?: string, provider = "groq") =>
+  /** Spec 005 FR-010/FR-011: the server picks provider and model from the key. */
+  studentAiAnalysis: (student_id: number, api_key?: string) =>
     api.post<{ analysis: string }>(`/api/teacher/student/${student_id}/ai-analysis`, {
       api_key,
-      provider,
     }),
 
   /** The submitted file as an object URL with its type: a photo, or a PDF as uploaded. */
@@ -265,7 +324,8 @@ export const teacherApi = {
     return { url: URL.createObjectURL(blob), type: blob.type };
   },
 
-  metrics: () => api.get<TeacherMetrics>("/api/teacher/metrics"),
+  metrics: (days: ConsoleWindow = "30") =>
+    api.get<TeacherMetrics>(`/api/teacher/metrics?days=${days}`),
 
   downloadCsv: () => _downloadBlob("/api/teacher/export/csv", "levelup_intentos.csv"),
 
@@ -302,6 +362,10 @@ export const teacherApi = {
   archiveExamTemplate: (id: number) =>
     api.delete<void>(`/api/teacher/exam-templates/${id}`),
 
+  /** Spec 006 FR-031: a copy, unassigned and unlocked, of a template already taken. */
+  duplicateExamTemplate: (id: number) =>
+    api.post<ExamTemplate>(`/api/teacher/exam-templates/${id}/duplicate`, {}),
+
   itemsCatalog: (course_id: string) =>
     api.get<ItemCatalogEntry[]>(
       `/api/teacher/items?course_id=${encodeURIComponent(course_id)}`,
@@ -336,6 +400,8 @@ export interface ExamQuestionStat {
   total: number;
   correct: number;
   accuracy: number;
+  /** Spec 006 FR-033: how many students chose each wrong option. */
+  choices?: Record<string, number>;
 }
 export interface ExamTopicStat {
   topic: string;
@@ -343,8 +409,20 @@ export interface ExamTopicStat {
   correct: number;
   accuracy: number;
 }
+/** Spec 006 FR-033: one student's first submission. */
+export interface ExamStudentResult {
+  user_id: number;
+  name: string;
+  submitted_at: string;
+  correct: number;
+  total: number;
+  score_pct: number;
+  answers: { item_id: string; is_correct: boolean; selected_option: string | null }[];
+}
+
 export interface ExamResults {
   title: string;
+  students?: ExamStudentResult[];
   n_sessions: number;
   n_students: number;
   avg_score: number;
@@ -374,6 +452,9 @@ export interface ExamTemplate {
   item_ids: string[];
   archived: boolean;
   created_at: string;
+  /** Spec 006: false = a draft no student sees (FR-030); true = items locked (FR-031). */
+  assigned?: boolean;
+  locked?: boolean;
 }
 
 export interface ItemCatalogEntry {

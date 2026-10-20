@@ -37,15 +37,20 @@ class Settings(BaseSettings):
     ]
 
     # ── IA del sistema ─────────────────────────────────────────────────────────
-    # Key general (fallback si no hay key específica por función)
+    # Key general (fallback si no hay key específica por función). El prefijo de la key decide
+    # el proveedor (spec 005 FR-010); no hay variable de proveedor.
     system_ai_api_key: str = ""  # gsk_, sk-ant-, sk-, AIzaSy… — cualquier proveedor
-    system_ai_provider: str = ""  # groq, anthropic, openai, google (auto-detectado si vacío)
 
     # Keys opcionales por función — si vacías, usan system_ai_api_key
     ai_key_katia: str = ""  # chat socrático (KatIA)
     ai_key_procedure: str = ""  # revisión de procedimientos manuscritos
-    ai_key_student_analysis: str = ""  # recomendaciones y análisis para el estudiante
     ai_key_teacher_analysis: str = ""  # análisis en dashboard del docente
+
+    # Spec 005 FR-012: one model per function, used with a Groq key (the production provider).
+    # Another provider's key uses that provider's entry in ai_client.PROVIDERS.
+    ai_model_katia: str = "llama-3.1-8b-instant"
+    ai_model_vision: str = "meta-llama/llama-4-scout-17b-16e-instruct"
+    ai_model_analysis: str = "llama-3.3-70b-versatile"
 
     def get_ai_key(self, function: str = "", user_key: str = "") -> str:
         """Resuelve la API key por prioridad: usuario > función > general."""
@@ -54,7 +59,6 @@ class Settings(BaseSettings):
         fn_map = {
             "katia": self.ai_key_katia,
             "procedure": self.ai_key_procedure,
-            "student_analysis": self.ai_key_student_analysis,
             "teacher_analysis": self.ai_key_teacher_analysis,
         }
         specific = fn_map.get(function, "").strip()
@@ -65,6 +69,7 @@ class Settings(BaseSettings):
     # ── Rate limiting (slowapi) ───────────────────────────────────────────────
     rate_limit_socratic: str = "10/minute"  # peticiones IA socrática por usuario
     rate_limit_review: str = "3/minute"  # revisión de procedimientos
+    rate_limit_exam_start: str = "10/minute"  # inicios de examen por cuenta (spec 006 FR-023)
     # Spec 004 E1: login is limited per account and overall, never per address (FR-006 … FR-009);
     # public sign-up, when open, has its own per-address limit (FR-004, decision N2: 20/minute).
     rate_limit_login_account: str = "10/minute"

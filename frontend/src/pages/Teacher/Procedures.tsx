@@ -105,19 +105,20 @@ function ProcedureDetail({
   onGraded: (result: GradeResult, studentName: string) => void;
 }) {
   const qc = useQueryClient();
-  const [score, setScore] = useState(proc.ai_score != null ? Math.round(proc.ai_score) : 70);
+  // Spec 006 FR-051: the grade starts empty; the AI score is shown beside it, never pre-filled.
+  const [score, setScore] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
 
-  // resetear al cambiar de envío
+  // resetear al cambiar de envío (o de ronda de revisión)
   useEffect(() => {
-    setScore(proc.ai_score != null ? Math.round(proc.ai_score) : 70);
+    setScore(null);
     setFeedback("");
-  }, [proc.submission_id, proc.ai_score]);
+  }, [proc.submission_id, proc.review_round]);
 
   const gradeMutation = useMutation({
     // Spec 001 FR-024g: the review round travels with the grade, so a retry cannot grade twice.
     mutationFn: () =>
-      teacherApi.gradeProcedure(proc.submission_id, score, feedback || undefined, proc.review_round),
+      teacherApi.gradeProcedure(proc.submission_id, score ?? 0, feedback || undefined, proc.review_round),
     onSuccess: (result) => {
       onGraded(result, proc.student_name);
       qc.invalidateQueries({ queryKey: ["teacher-procedures"] });
@@ -131,7 +132,8 @@ function ProcedureDetail({
     },
   });
 
-  const gc = gradeColor(score);
+  const gc = score == null ? "var(--mute)" : gradeColor(score);
+  const nudge = (step: number) => setScore((s) => Math.min(100, Math.max(0, (s ?? 50) + step)));
   const presets = [0, 60, 80, 100];
 
   return (
@@ -176,6 +178,7 @@ function ProcedureDetail({
               <b>Revisión de KatIA</b>
               <span className="av-score">{Math.round(proc.ai_score)}</span>
             </div>
+            {proc.ai_feedback && <p className="av-feedback">{proc.ai_feedback}</p>}
             <p>
               Puntaje sugerido por la IA. Es solo orientativo —{" "}
               <strong>no afecta el ELO</strong>; la nota oficial es la que tú asignes.
@@ -185,7 +188,7 @@ function ProcedureDetail({
 
         <div
           className="grade-panel"
-          style={{ ["--gc"]: gc, ["--pct"]: score } as React.CSSProperties}
+          style={{ ["--gc"]: gc, ["--pct"]: score ?? 0 } as React.CSSProperties}
         >
           <div className="gp-head">
             <h4>Calificación</h4>
@@ -193,19 +196,19 @@ function ProcedureDetail({
           <div className="gp-main">
             <div className="gp-dial">
               <div className="gp-num">
-                <b>{score}</b>
+                <b>{score ?? "—"}</b>
                 <span>/ 100</span>
               </div>
             </div>
             <div className="gp-ctrl">
               <div className="gp-judge" style={{ color: gc }}>
-                {judgeLabel(score)}
+                {score == null ? "Elige una calificación" : judgeLabel(score)}
               </div>
               <div className="gp-slider-row">
                 <button
                   className="gp-step"
-                  onClick={() => setScore((s) => Math.max(0, s - 1))}
-                  disabled={score <= 0}
+                  onClick={() => nudge(-1)}
+                  disabled={score === 0}
                   aria-label="Bajar"
                 >
                   −
@@ -215,14 +218,15 @@ function ProcedureDetail({
                   min={0}
                   max={100}
                   step={1}
-                  value={score}
+                  value={score ?? 50}
+                  className={score == null ? "unset" : undefined}
                   onChange={(e) => setScore(Number(e.target.value))}
                   aria-label="Calificación"
                 />
                 <button
                   className="gp-step"
-                  onClick={() => setScore((s) => Math.min(100, s + 1))}
-                  disabled={score >= 100}
+                  onClick={() => nudge(1)}
+                  disabled={score === 100}
                   aria-label="Subir"
                 >
                   ＋
@@ -253,8 +257,16 @@ function ProcedureDetail({
           </p>
         )}
         <div className="pd-btns">
-          <button className="btn-approve" onClick={() => gradeMutation.mutate()} disabled={gradeMutation.isPending}>
-            {gradeMutation.isPending ? "Guardando…" : `Guardar calificación · ${score}`}
+          <button
+            className="btn-approve"
+            onClick={() => gradeMutation.mutate()}
+            disabled={score == null || gradeMutation.isPending}
+          >
+            {gradeMutation.isPending
+              ? "Guardando…"
+              : score == null
+                ? "Guardar calificación"
+                : `Guardar calificación · ${score}`}
           </button>
         </div>
       </div>

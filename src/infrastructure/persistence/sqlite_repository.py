@@ -11,7 +11,16 @@ from src.domain.invitations import (
     valid_invitation_count,
 )
 from src.infrastructure.security.hashing_service import HashingService
+from src.domain.katia.conversation import close_outcome
 from src.domain.procedures import ReviewRoundSuperseded
+from src.infrastructure.persistence.course_blocks import CourseBlockConstraintError
+from src.infrastructure.persistence.schema_version import (
+    REPAIR_GROUPS,
+    SCHEMA_VERSION,
+    MigrationFailed,
+    MigrationNeedsRepair,
+    bank_fingerprint,
+)
 from src.infrastructure.storage.paths import safe_path_component
 
 logger = logging.getLogger(__name__)
@@ -26,6 +35,14 @@ def _procedure_effect(row):
 
 
 # TODO: reemplazar SQLite por DB externa (PostgreSQL, etc.) en producción
+def _read_only(func):
+    """Marks a repository method that only reads (spec 002 FR-025). PostgreSQL runs it in
+    autocommit; SQLite has no round trips to save, so here it is only the marker the parity and
+    write-guard tests read."""
+    func._read_only = True
+    return func
+
+
 def _migrations_enabled() -> bool:
     """Indica si este proceso debe crear esquema, seeds y backfills.
 
@@ -41,6 +58,8 @@ def _migrations_enabled() -> bool:
 
 
 class SQLiteRepository:
+    # The item bank the start syncs (spec 002 FR-016); a test points it at a copy.
+    BANK_DIR = os.path.join("items", "bank")
     # Ruta fija — garantiza que todos los datos persistan entre ejecuciones.
     _DEFAULT_DB_PATH = os.path.join("data", "elo_database.db")
 
@@ -63,17 +82,47 @@ class SQLiteRepository:
         Por eso esto corre una sola vez y por conexión directa o pooler de
         sesión — ver scripts/migrate.py y el startCommand de render.yaml.
         """
-        self.init_db()
-        self._migrate_db()
+        self._migrate_db()  # BEGIN IMMEDIATE waits for another process: never skipped
         self._seed_admin()
         if os.environ.get("ENVIRONMENT", "development").lower() != "production":
             self._seed_demo_data()
-        self._backfill_prob_failure()
-        self.sync_items_from_bank_folder()
+        self._sync_bank_if_changed()
         if os.environ.get("ENVIRONMENT", "development").lower() != "production":
             self._seed_test_students()
         self._reconcile_legacy_ratings()
         self.expire_stale_pvp_matches()
+        self.expire_stale_katia_conversations()
+        self.expire_stale_exam_sessions()
+
+    def _sync_bank_if_changed(self):
+        """Spec 002 FR-016: sync the item bank only when its fingerprint differs from the last
+        one recorded, then record it; an unchanged bank writes nothing."""
+        fingerprint = bank_fingerprint(
+            self.BANK_DIR, {"block": self._COURSE_BLOCK_MAP, "name": self._COURSE_NAME_MAP}
+        )
+        if fingerprint is None:
+            return
+        conn = self.get_connection()
+        try:
+            last = conn.execute(
+                "SELECT fingerprint FROM bank_syncs ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+        finally:
+            conn.close()
+        if last and last[0] == fingerprint:
+            return
+        self.sync_items_from_bank_folder(self.BANK_DIR)
+        conn = self.get_connection()
+        try:
+            conn.execute(
+                "INSERT INTO bank_syncs (fingerprint) SELECT ? WHERE NOT EXISTS ("
+                "SELECT 1 FROM bank_syncs WHERE fingerprint = ?"
+                " AND id = (SELECT MAX(id) FROM bank_syncs))",
+                (fingerprint, fingerprint),
+            )
+            conn.commit()
+        finally:
+            conn.close()
 
     def bootstrap_skipped_steps(self) -> list[str]:
         """Bootstrap steps skipped because another session held their advisory lock (R17)."""
@@ -82,9 +131,16 @@ class SQLiteRepository:
     def get_connection(self, timeout: float = 30.0):
         return sqlite3.connect(self.db_name, timeout=timeout)
 
-    def init_db(self):
-        conn = self.get_connection()
-        cursor = conn.cursor()
+    def init_db(self, cursor=None):
+        """Base tables. With the migration's cursor, inside its transaction (spec 002 FR-017)."""
+        if cursor is None:
+            conn = self.get_connection()
+            try:
+                self.init_db(conn.cursor())
+                conn.commit()
+            finally:
+                conn.close()
+            return
 
         # Tabla de grupos
         cursor.execute(
@@ -169,9 +225,6 @@ class SQLiteRepository:
             )
         """
         )
-
-        conn.commit()
-        conn.close()
 
     def get_student_procedure_scores(self, student_id):
         """Retorna notas de procedimientos validados, normalizadas a escala 0-100.
@@ -450,16 +503,70 @@ class SQLiteRepository:
         if not self._column_exists(cursor, table, column):
             cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
-    def _migrate_db(self):
-        """Agrega columnas nuevas de forma segura si no existen (migración)."""
+    def _migrate_db(self) -> bool:
+        """Brings the schema to SCHEMA_VERSION; True when it is there afterwards (spec 002 D1).
+
+        BEGIN IMMEDIATE serialises two processes, the role PostgreSQL's advisory lock plays. A
+        database already at the version issues no DDL (FR-016); otherwise the whole migration and
+        its version row run in that one transaction — SQLite's DDL is transactional — so a
+        failure commits nothing and names the step (FR-017).
+        """
         conn = self.get_connection()
+        conn.isolation_level = None  # explicit BEGIN/COMMIT: no implicit commit around DDL
         cursor = conn.cursor()
         try:
-            # First, before any change: an old courses.block CHECK stops the migration.
-            self._check_courses_block_constraint(cursor)
-        except Exception:
+            cursor.execute("BEGIN IMMEDIATE")
+            if self._schema_version(cursor) >= SCHEMA_VERSION:
+                cursor.execute("COMMIT")
+                return True
+            try:
+                self._run_migration(cursor)
+                cursor.execute(
+                    "INSERT INTO schema_versions (version) VALUES (?)", (SCHEMA_VERSION,)
+                )
+                cursor.execute("COMMIT")
+            except (MigrationNeedsRepair, CourseBlockConstraintError):
+                cursor.execute("ROLLBACK")
+                raise
+            except Exception as exc:
+                cursor.execute("ROLLBACK")
+                raise MigrationFailed("migrate_db", exc) from exc
+            return True
+        finally:
             conn.close()
-            raise
+
+    def _schema_version(self, cursor) -> int:
+        """The highest recorded schema version; 0 for a database from before spec 002 D1."""
+        present = cursor.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'schema_versions'"
+        ).fetchone()
+        if not present:
+            return 0
+        return cursor.execute("SELECT COALESCE(MAX(version), 0) FROM schema_versions").fetchone()[0]
+
+    def _run_migration(self, cursor):
+        """Every DDL step of SCHEMA_VERSION, cumulative and idempotent, on the caller's
+        transaction. Data repairs are not here: scripts/repairs/ (spec 002 FR-018)."""
+        # First, before any change: an old courses.block CHECK stops the migration.
+        self._check_courses_block_constraint(cursor)
+        self.init_db(cursor)
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS schema_versions (
+                version INTEGER PRIMARY KEY,
+                applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS bank_syncs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                fingerprint TEXT NOT NULL,
+                synced_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )
 
         # users
         self._add_column_if_not_exists(cursor, "users", "role", "TEXT DEFAULT 'student'")
@@ -499,6 +606,8 @@ class SQLiteRepository:
         # Asegurar índices si no existen
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_groups_teacher ON groups(teacher_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_id)")
+        # Spec 002 N1 (schema version 2): the index PostgreSQL has had on attempts(user_id).
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_attempts_user_id ON attempts(user_id)")
         # Índice compuesto para consultas de intentos por (user_id, topic) y timestamp
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_attempts_user_topic_ts "
@@ -619,8 +728,8 @@ class SQLiteRepository:
         self._add_column_if_not_exists(cursor, "procedure_submissions", "ai_feedback", "TEXT")
         # v6 — hash SHA-256 del archivo subido para detección anti-plagio (T7)
         self._add_column_if_not_exists(cursor, "procedure_submissions", "file_hash", "TEXT")
-        # v7b — PostgreSQL runs ALTER TABLE procedure_submissions … DROP NOT NULL on image_data
-        # (NULL when the file lives in Storage); SQLite always keeps the bytes: no step here.
+        # v7b — image_data ya no es obligatorio (NULL cuando se usa Storage)
+        self._make_image_data_nullable(cursor)
         self._migrate_procedure_block7(cursor)
 
         # ── LMS: Cursos y Matrículas ─────────────────────────────────────────────
@@ -673,45 +782,13 @@ class SQLiteRepository:
         # Bloque temático dentro del curso (p.ej. "Constitución Política" en DIAN)
         self._add_column_if_not_exists(cursor, "items", "block", "TEXT DEFAULT ''")
 
-        # ── Unicidad de nombre de grupo por profesor (case-insensitive) ────
-        # Columna auxiliar para el índice único normalizado
+        # ── Unicidad de nombre de grupo por profesor (case-insensitive) ─
+        new_column = not self._column_exists(cursor, "groups", "name_normalized")
         self._add_column_if_not_exists(cursor, "groups", "name_normalized", "TEXT")
-        # Rellenar valores existentes que estén NULL
-        cursor.execute(
-            """
-            UPDATE groups SET name_normalized = LOWER(TRIM(name))
-            WHERE name_normalized IS NULL
-        """
-        )
-        # Resolver duplicados existentes antes de crear el índice único:
-        # renombrar grupos con sufijo -DUP-{id} para desambiguar
-        cursor.execute(
-            """
-            SELECT id, name, teacher_id, name_normalized
-            FROM groups
-            WHERE (teacher_id, name_normalized) IN (
-                SELECT teacher_id, name_normalized
-                FROM groups
-                GROUP BY teacher_id, name_normalized
-                HAVING COUNT(*) > 1
-            )
-            ORDER BY teacher_id, name_normalized, id
-        """
-        )
-        dup_rows = cursor.fetchall()
-        # Agrupar por (teacher_id, name_normalized); conservar el primero, renombrar el resto
-        seen = set()
-        for row_id, row_name, row_teacher, row_norm in dup_rows:
-            key = (row_teacher, row_norm)
-            if key not in seen:
-                seen.add(key)  # el primero se conserva intacto
-                continue
-            new_name = f"{row_name}-DUP-{row_id}"
-            new_norm = new_name.strip().lower()
-            cursor.execute(
-                "UPDATE groups SET name = ?, name_normalized = ? WHERE id = ?",
-                (new_name, new_norm, row_id),
-            )
+        if new_column:
+            # The new column's first value, set by the migration that adds it — not a repair.
+            cursor.execute("UPDATE groups SET name_normalized = LOWER(TRIM(name))")
+        self._check_group_names(cursor)
         # Índice único: (teacher_id, nombre normalizado)
         cursor.execute(
             """
@@ -749,17 +826,6 @@ class SQLiteRepository:
         )
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_group_invitations_group ON group_invitations(group_id)"
-        )
-
-        # ── Desactivar usuarios con contraseña vacía o nula ────────────────
-        # Conserva sus datos históricos pero impide login hasta que un admin
-        # los reactive y se les asigne una contraseña válida.
-        cursor.execute(
-            """
-            UPDATE users SET active = 0
-            WHERE (password_hash IS NULL OR TRIM(password_hash) = '')
-              AND active = 1
-        """
         )
 
         # ── Tabla problem_reports (reportes técnicos de usuarios) ────
@@ -1119,9 +1185,119 @@ class SQLiteRepository:
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_pvp_answers_match " "ON pvp_answers(match_id, user_id)"
         )
+        self._create_lesson_history(cursor)
+        self._create_katia_conversations(cursor)
+        self._add_exam_selected_option(cursor)
 
-        conn.commit()
-        conn.close()
+    def _add_exam_selected_option(self, cursor):
+        """Spec 006 X2 (FR-033): the option a student chose for each exam item; NULL on rows
+        stored before X2."""
+        self._add_column_if_not_exists(cursor, "exam_responses", "selected_option", "TEXT")
+
+    def _create_katia_conversations(self, cursor):
+        """Spec 005 K3: one conversation per student and item, its summary when it closes
+        (FR-031), and its message text only while it is open (FR-032)."""
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS katia_conversations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                course_id TEXT,
+                item_id TEXT NOT NULL,
+                topic TEXT,
+                opened_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                last_message_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                turns INTEGER NOT NULL DEFAULT 0,
+                status TEXT NOT NULL DEFAULT 'open',
+                outcome TEXT,
+                difficulty TEXT,
+                misconception_tag TEXT,
+                closed_at DATETIME,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_katia_conversations_user_status "
+            "ON katia_conversations(user_id, status)"
+        )
+        cursor.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_katia_conversations_open_item "
+            "ON katia_conversations(user_id, item_id) WHERE status = 'open'"
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS katia_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                conversation_id INTEGER NOT NULL,
+                role TEXT NOT NULL,
+                text TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(conversation_id) REFERENCES katia_conversations(id) ON DELETE CASCADE
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_katia_messages_conversation "
+            "ON katia_messages(conversation_id)"
+        )
+
+    def _create_lesson_history(self, cursor):
+        """Spec 003 L4: every answer to a lesson interaction, in order (FR-040), and each node's
+        post-diagnostic outcome (FR-041). `lesson_interactions` stays the current answer."""
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS lesson_answers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                node_id TEXT NOT NULL,
+                interaction_id TEXT NOT NULL,
+                selected_option TEXT NOT NULL,
+                is_expected INTEGER,
+                misconception_tag TEXT,
+                answered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_lesson_answers_user_node "
+            "ON lesson_answers(user_id, course_id, node_id)"
+        )
+        # History before L4 starts with the last answer known: each one copied once.
+        cursor.execute(
+            """
+            INSERT INTO lesson_answers
+                (user_id, course_id, node_id, interaction_id, selected_option,
+                 is_expected, misconception_tag, answered_at)
+            SELECT li.user_id, li.course_id, li.node_id, li.interaction_id, li.selected_option,
+                   li.is_expected, li.misconception_tag, li.answered_at
+            FROM lesson_interactions li
+            WHERE NOT EXISTS (
+                SELECT 1 FROM lesson_answers a
+                WHERE a.user_id = li.user_id AND a.course_id = li.course_id
+                  AND a.node_id = li.node_id AND a.interaction_id = li.interaction_id
+            )
+            ORDER BY li.answered_at
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS lesson_outcomes (
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                node_id TEXT NOT NULL,
+                diagnostic_correct INTEGER NOT NULL,
+                post_correct INTEGER NOT NULL,
+                items INTEGER NOT NULL,
+                outcome TEXT NOT NULL,
+                recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, course_id, node_id),
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+            """
+        )
 
     def _check_courses_block_constraint(self, cursor):
         """Read-only: the courses.block CHECK must accept the four blocks (spec 001 FR-028n).
@@ -1138,41 +1314,110 @@ class SQLiteRepository:
         # A new database has no courses table yet: this migration creates it below.
         require_course_blocks(row[0] if row else "")
 
-    def _backfill_prob_failure(self):
-        """Rellena prob_failure para intentos históricos que tienen NULL.
-        Reconstruye el ELO por tópico en orden cronológico para cada estudiante."""
+    def _check_group_names(self, cursor):
+        """Read-only: the unique index on (teacher_id, name_normalized) needs every group named
+        and no duplicate. Renaming is a repair the owner runs (spec 002 FR-018), so the migration
+        stops naming it instead."""
+        pending = cursor.execute(
+            """
+            SELECT COUNT(*) FROM groups g
+             WHERE g.name_normalized IS NULL
+                OR EXISTS (SELECT 1 FROM groups o
+                            WHERE o.teacher_id = g.teacher_id
+                              AND o.name_normalized = g.name_normalized AND o.id < g.id)
+        """
+        ).fetchone()[0]
+        if pending:
+            raise MigrationNeedsRepair(
+                REPAIR_GROUPS, pending, "groups without a normalised name or with a repeated one"
+            )
+
+    def _make_image_data_nullable(self, cursor):
+        """FR-014 is PostgreSQL's: SQLite's image_data was created nullable, so no statement."""
+
+    # ── Data repairs: run by the owner through scripts/repairs/, never at start ──
+    # Spec 002 FR-018. Each returns the rows it changes; without apply=True it only counts.
+
+    def repair_users_without_password(self, apply: bool = False) -> int:
+        """Deactivates active users whose password hash is empty (they cannot sign in)."""
+        conn = self.get_connection()
+        try:
+            where = "active = 1 AND (password_hash IS NULL OR TRIM(password_hash) = '')"
+            if not apply:
+                return conn.execute(f"SELECT COUNT(*) FROM users WHERE {where}").fetchone()[0]
+            changed = conn.execute(f"UPDATE users SET active = 0 WHERE {where}").rowcount
+            conn.commit()
+            return changed
+        finally:
+            conn.close()
+
+    def repair_group_names(self, apply: bool = False) -> int:
+        """Fills groups.name_normalized where it is NULL and renames each repeated
+        (teacher, name) group but the oldest to «<name>-DUP-<id>», as the migration did before
+        spec 002 D1. Names are normalised as create_group does: strip, then lower."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                "SELECT id, name, teacher_id, name_normalized FROM groups ORDER BY id"
+            ).fetchall()
+            changes = {}
+            seen = set()
+            for group_id, name, teacher_id, normalised in rows:
+                key = (teacher_id, normalised or name.strip().lower())
+                if key not in seen:
+                    seen.add(key)
+                    if normalised is None:
+                        changes[group_id] = (name, key[1])
+                    continue
+                new_name = f"{name}-DUP-{group_id}"
+                changes[group_id] = (new_name, new_name.strip().lower())
+            if apply:
+                for group_id, (name, normalised) in changes.items():
+                    conn.execute(
+                        "UPDATE groups SET name = ?, name_normalized = ? WHERE id = ?",
+                        (name, normalised, group_id),
+                    )
+                conn.commit()
+            return len(changes)
+        finally:
+            conn.close()
+
+    def repair_prob_failure(self, apply: bool = False) -> int:
+        """Fills attempts.prob_failure where it is NULL, from the rating reconstructed in
+        chronological order for each student and topic (approximate: 1000 before the first)."""
         from src.domain.elo.model import expected_score
 
         conn = self.get_connection()
-        cursor = conn.cursor()
-
-        # Obtener todos los estudiantes con intentos sin prob_failure
-        cursor.execute("SELECT DISTINCT user_id FROM attempts WHERE prob_failure IS NULL")
-        user_ids = [row[0] for row in cursor.fetchall()]
-
-        for user_id in user_ids:
-            # Traer TODOS los intentos del usuario en orden cronológico
-            cursor.execute(
-                "SELECT id, topic, difficulty, elo_after FROM attempts "
-                "WHERE user_id = ? ORDER BY timestamp ASC, id ASC",
-                (user_id,),
-            )
-            attempts = cursor.fetchall()
-
-            elo_by_topic = {}  # ELO reconstruido antes de cada intento
-            for attempt_id, topic, difficulty, elo_after in attempts:
-                elo_before = elo_by_topic.get(topic, 1000.0)
-                p_success = expected_score(elo_before, difficulty)
-                prob_failure = 1.0 - p_success
-
-                cursor.execute(
-                    "UPDATE attempts SET prob_failure = ? WHERE id = ?", (prob_failure, attempt_id)
-                )
-                # Avanzar ELO reconstruido
-                elo_by_topic[topic] = elo_after
-
-        conn.commit()
-        conn.close()
+        try:
+            user_ids = [
+                row[0]
+                for row in conn.execute(
+                    "SELECT DISTINCT user_id FROM attempts WHERE prob_failure IS NULL"
+                ).fetchall()
+            ]
+            changed = 0
+            for user_id in user_ids:
+                attempts = conn.execute(
+                    "SELECT id, topic, difficulty, elo_after, prob_failure FROM attempts "
+                    "WHERE user_id = ? ORDER BY timestamp ASC, id ASC",
+                    (user_id,),
+                ).fetchall()
+                elo_by_topic = {}  # rating reconstructed before each attempt
+                for attempt_id, topic, difficulty, elo_after, prob_failure in attempts:
+                    if prob_failure is None:
+                        elo_before = elo_by_topic.get(topic, 1000.0)
+                        changed += 1
+                        if apply:
+                            conn.execute(
+                                "UPDATE attempts SET prob_failure = ? WHERE id = ?",
+                                (1.0 - expected_score(elo_before, difficulty), attempt_id),
+                            )
+                    elo_by_topic[topic] = elo_after
+            if apply:
+                conn.commit()
+            return changed
+        finally:
+            conn.close()
 
     def _seed_admin(self):
         """Crea el usuario admin desde variables de entorno si no existe.
@@ -1287,7 +1532,7 @@ class SQLiteRepository:
                 cursor.execute(
                     "UPDATE users SET group_id = COALESCE(group_id, ?), "
                     "education_level = COALESCE(education_level, ?) "
-                    "WHERE id = ?",
+                    "WHERE id = ? AND (group_id IS NULL OR education_level IS NULL)",
                     (primary_gid, edu_level, row[0]),
                 )
 
@@ -1392,6 +1637,7 @@ class SQLiteRepository:
         finally:
             conn.close()
 
+    @_read_only
     def get_user_by_id(self, user_id: int) -> dict | None:
         """Retorna datos básicos de un usuario por su ID."""
         conn = self.get_connection()
@@ -1645,6 +1891,15 @@ class SQLiteRepository:
                     attempt_data["rating_deviation"],
                     "practice",
                 )
+            if inserted:
+                # Spec 005 FR-031: the answer closes the item's KatIA conversation, in the same
+                # transaction, so its outcome cannot disagree with the attempt.
+                self._close_katia_conversations(
+                    cursor,
+                    user_id,
+                    close_outcome("answer", bool(attempt_data["is_correct"])),
+                    item_id,
+                )
             conn.commit()
             return inserted
         except Exception:
@@ -1711,6 +1966,7 @@ class SQLiteRepository:
         finally:
             conn.close()
 
+    @_read_only
     def get_study_streak(self, user_id, course_id=None):
         """Calcula la racha de días consecutivos de estudio del estudiante.
 
@@ -1860,6 +2116,270 @@ class SQLiteRepository:
         rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
         conn.close()
         return rows
+
+    # ── KatIA conversations (spec 005 K3) ───────────────────────────────
+
+    def _close_katia_conversations(
+        self, cursor, user_id: int, outcome: str, item_id: str | None = None
+    ) -> list:
+        """Closes the student's open conversations (only `item_id`'s when given) with `outcome`:
+        «sin_clasificar» until the difficulty is classified. Their text is read, then deleted in
+        the caller's transaction (FR-032). Returns [{"id", "messages": [{"role", "text"}]}]."""
+        if item_id is None:
+            cursor.execute(
+                "SELECT id FROM katia_conversations WHERE user_id = ? AND status = 'open'",
+                (user_id,),
+            )
+        else:
+            cursor.execute(
+                "SELECT id FROM katia_conversations"
+                " WHERE user_id = ? AND item_id = ? AND status = 'open'",
+                (user_id, item_id),
+            )
+        closed = []
+        for (conversation_id,) in cursor.fetchall():
+            cursor.execute(
+                "SELECT role, text FROM katia_messages WHERE conversation_id = ? ORDER BY id",
+                (conversation_id,),
+            )
+            messages = [{"role": r[0], "text": r[1]} for r in cursor.fetchall()]
+            cursor.execute(
+                "UPDATE katia_conversations SET status = 'closed', outcome = ?,"
+                " difficulty = 'sin_clasificar', closed_at = CURRENT_TIMESTAMP"
+                " WHERE id = ? AND status = 'open'",
+                (outcome, conversation_id),
+            )
+            cursor.execute(
+                "DELETE FROM katia_messages WHERE conversation_id = ?", (conversation_id,)
+            )
+            closed.append({"id": conversation_id, "messages": messages})
+        return closed
+
+    def open_katia_conversation(
+        self, user_id: int, course_id: str, item_id: str, topic: str, history_turns: int
+    ) -> dict:
+        """The student's open conversation about the item, opened if there is none, with its
+        last `history_turns` turns in order (FR-030). Returns {"id", "history"}."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO katia_conversations (user_id, course_id, item_id, topic)"
+                " VALUES (?, ?, ?, ?)"
+                " ON CONFLICT(user_id, item_id) WHERE status = 'open' DO NOTHING",
+                (user_id, course_id, item_id, topic),
+            )
+            cursor.execute(
+                "SELECT id FROM katia_conversations"
+                " WHERE user_id = ? AND item_id = ? AND status = 'open'",
+                (user_id, item_id),
+            )
+            conversation_id = cursor.fetchone()[0]
+            cursor.execute(
+                "SELECT role, text FROM katia_messages WHERE conversation_id = ?"
+                " ORDER BY id DESC LIMIT ?",
+                (conversation_id, 2 * history_turns),
+            )
+            history = [{"role": r[0], "text": r[1]} for r in reversed(cursor.fetchall())]
+            conn.commit()
+            return {"id": conversation_id, "history": history}
+        finally:
+            conn.close()
+
+    def record_katia_turn(
+        self, conversation_id: int, student_text: str, katia_text: str | None
+    ) -> bool:
+        """Adds a turn to an open conversation: the student's message and KatIA's reply, or no
+        reply when it was replaced (FR-022). False when the conversation closed meanwhile."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE katia_conversations SET turns = turns + 1,"
+                " last_message_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'open'",
+                (conversation_id,),
+            )
+            if cursor.rowcount != 1:
+                conn.rollback()
+                return False
+            cursor.execute(
+                "INSERT INTO katia_messages (conversation_id, role, text) VALUES (?, 'student', ?)",
+                (conversation_id, student_text),
+            )
+            if katia_text is not None:
+                cursor.execute(
+                    "INSERT INTO katia_messages (conversation_id, role, text)"
+                    " VALUES (?, 'katia', ?)",
+                    (conversation_id, katia_text),
+                )
+            conn.commit()
+            return True
+        finally:
+            conn.close()
+
+    def open_katia_transcripts(self, user_id: int, item_id: str) -> list:
+        """The text of the student's open conversation about the item, read before an answer
+        closes it: [{"id", "messages"}]."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id FROM katia_conversations"
+                " WHERE user_id = ? AND item_id = ? AND status = 'open'",
+                (user_id, item_id),
+            )
+            transcripts = []
+            for (conversation_id,) in cursor.fetchall():
+                cursor.execute(
+                    "SELECT role, text FROM katia_messages WHERE conversation_id = ? ORDER BY id",
+                    (conversation_id,),
+                )
+                messages = [{"role": r[0], "text": r[1]} for r in cursor.fetchall()]
+                transcripts.append({"id": conversation_id, "messages": messages})
+            return transcripts
+        finally:
+            conn.close()
+
+    def close_katia_conversations(self, user_id: int, outcome: str) -> list:
+        """Closes every open conversation of the student (another item, the end of the session)
+        and deletes its text. Returns the closed ones with their text: [{"id", "messages"}]."""
+        conn = self.get_connection()
+        conn.isolation_level = None
+        cursor = conn.cursor()
+        try:
+            cursor.execute("BEGIN IMMEDIATE")
+            closed = self._close_katia_conversations(cursor, user_id, outcome)
+            conn.commit()
+            return closed
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def expire_stale_katia_conversations(self, max_age_hours: int = 24) -> list:
+        """Closes as «abandonado» every conversation with no message for `max_age_hours`, and
+        deletes any text left of a closed one (FR-031, FR-032, SC-004). Returns the closed ones
+        with their text: [{"id", "messages"}]."""
+        conn = self.get_connection()
+        conn.isolation_level = None
+        cursor = conn.cursor()
+        try:
+            cursor.execute("BEGIN IMMEDIATE")
+            cursor.execute(
+                "SELECT DISTINCT user_id FROM katia_conversations"
+                " WHERE status = 'open' AND last_message_at < datetime('now', ?)",
+                ("-%d hours" % max_age_hours,),
+            )
+            closed = []
+            for (user_id,) in cursor.fetchall():
+                cursor.execute(
+                    "SELECT item_id FROM katia_conversations WHERE user_id = ?"
+                    " AND status = 'open' AND last_message_at < datetime('now', ?)",
+                    (user_id, "-%d hours" % max_age_hours),
+                )
+                for (item_id,) in cursor.fetchall():
+                    closed += self._close_katia_conversations(
+                        cursor, user_id, "abandonado", item_id
+                    )
+            cursor.execute(
+                "DELETE FROM katia_messages WHERE conversation_id IN"
+                " (SELECT id FROM katia_conversations WHERE status = 'closed')"
+            )
+            conn.commit()
+            return closed
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def set_katia_difficulty(self, conversation_id: int, difficulty: str) -> None:
+        """Records the kind of difficulty of a closed conversation (N2)."""
+        conn = self.get_connection()
+        try:
+            conn.execute(
+                "UPDATE katia_conversations SET difficulty = ? WHERE id = ? AND status = 'closed'",
+                (difficulty, conversation_id),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    def get_katia_conversations(self, user_id: int, limit: int = 200) -> list:
+        """The student's closed conversations, newest first: summaries, never text (FR-033)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT k.id, k.course_id, c.name, k.topic, k.item_id, k.turns, k.outcome,
+                       k.difficulty, k.misconception_tag, k.opened_at, k.closed_at
+                FROM katia_conversations k
+                LEFT JOIN courses c ON c.id = k.course_id
+                WHERE k.user_id = ? AND k.status = 'closed'
+                ORDER BY k.closed_at DESC, k.id DESC
+                LIMIT ?
+                """,
+                (user_id, limit),
+            )
+            keys = (
+                "id",
+                "course_id",
+                "course_name",
+                "topic",
+                "item_id",
+                "turns",
+                "outcome",
+                "difficulty",
+                "misconception_tag",
+                "opened_at",
+                "closed_at",
+            )
+            return [dict(zip(keys, row)) for row in cursor.fetchall()]
+        finally:
+            conn.close()
+
+    def export_teacher_katia_summary(self, teacher_id: int, group_id: int = None) -> list:
+        """Closed conversations of the teacher's students, counted per course, topic and
+        outcome: no student, no text (FR-033)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            _filter = "WHERE group_id = ?" if group_id else ""
+            _params = [teacher_id, teacher_id] + ([group_id] if group_id else [])
+            cursor.execute(
+                f"""
+                WITH {self._teacher_links_cte()}
+                SELECT k.course_id, c.name, k.topic, k.outcome, COUNT(*)
+                FROM katia_conversations k
+                LEFT JOIN courses c ON c.id = k.course_id
+                -- Spec 006 FR-040: the teacher's set, in the courses that link them.
+                WHERE k.status = 'closed'
+                  AND k.user_id IN (SELECT user_id FROM teacher_links {_filter})
+                  AND {self._linked_course("k.user_id", "k.course_id")}
+                GROUP BY k.course_id, c.name, k.topic, k.outcome
+                ORDER BY k.course_id, k.topic, k.outcome
+                """,
+                _params,
+            )
+            keys = ("course_id", "course_name", "topic", "outcome", "conversations")
+            return [dict(zip(keys, row)) for row in cursor.fetchall()]
+        finally:
+            conn.close()
+
+    def repair_katia_texts(self, apply: bool = False) -> int:
+        """Spec 005 N3: deletes the messages typed before K3, kept with no expiry in
+        `katia_interactions` (no summary can be rebuilt from them)."""
+        conn = self.get_connection()
+        try:
+            if not apply:
+                return conn.execute("SELECT COUNT(*) FROM katia_interactions").fetchone()[0]
+            changed = conn.execute("DELETE FROM katia_interactions").rowcount
+            conn.commit()
+            return changed
+        finally:
+            conn.close()
 
     # ── KatIA interactions ──────────────────────────────────────────────
 
@@ -2023,6 +2543,7 @@ class SQLiteRepository:
             for row in rows
         ]
 
+    @_read_only
     def get_total_attempts_count(self, user_id):
         """Retorna el número total de intentos de un estudiante."""
         conn = self.get_connection()
@@ -2086,6 +2607,7 @@ class SQLiteRepository:
         conn.close()
         return results
 
+    @_read_only
     def get_answered_item_ids(self, user_id):
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -2097,11 +2619,13 @@ class SQLiteRepository:
     # ── Spec 001: raw rating rows and ranking participants ───────────────────
     # Raw rows only: no averaging, rounding or ordering by rating (constitution III).
 
+    @_read_only
     def get_course_topic_ratings(self, user_id, course_id=None):
         """Rows of student_course_topic_elo for one student (never the legacy store)."""
         rows = self.get_course_topic_ratings_bulk([user_id], course_id)
         return [{k: v for k, v in r.items() if k != "user_id"} for r in rows]
 
+    @_read_only
     def get_course_topic_ratings_bulk(self, user_ids, course_id=None):
         if not user_ids:
             return []
@@ -2136,6 +2660,7 @@ class SQLiteRepository:
         """Enrolled courses in the catalogue of the student's current level and grade."""
         return self.get_current_context_course_ids_bulk([user_id])[user_id]
 
+    @_read_only
     def get_current_context_course_ids_bulk(self, user_ids):
         from src.domain.entities import in_catalogue
 
@@ -2159,6 +2684,7 @@ class SQLiteRepository:
                 result[user_id].append(course_id)
         return result
 
+    @_read_only
     def get_ranking_participants(
         self,
         scope,
@@ -2174,7 +2700,8 @@ class SQLiteRepository:
             if scope == "group":
                 rows = conn.execute(
                     "SELECT id, username, COALESCE(display_name, username) FROM users"
-                    " WHERE group_id = ? AND role = 'student' AND active = 1 ORDER BY id",
+                    " WHERE group_id = ? AND role = 'student' AND active = 1"
+                    " AND COALESCE(is_test_user, 0) = 0 ORDER BY id",
                     (group_id,),
                 ).fetchall()
                 return [
@@ -2605,18 +3132,18 @@ class SQLiteRepository:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            """
+            f"""
+            WITH {self._teacher_links_cte()}
             SELECT g.id AS group_id, g.name, g.course_id, COALESCE(c.name, '—') AS course_name,
                    g.created_at, COALESCE(c.block, 'Universidad') AS block, g.invite_code,
-                   (SELECT COUNT(*) FROM users u2
-                    WHERE u2.group_id = g.id AND u2.active = 1 AND u2.role = 'student'
-                      AND COALESCE(u2.is_test_user, 0) = 0) AS student_count
+                   (SELECT COUNT(DISTINCT l.user_id) FROM teacher_links l
+                    WHERE l.group_id = g.id) AS student_count
             FROM groups g
             LEFT JOIN courses c ON g.course_id = c.id
             WHERE g.teacher_id = ?
             ORDER BY g.name ASC
         """,
-            (teacher_id,),
+            (teacher_id, teacher_id, teacher_id),
         )
         rows = cursor.fetchall()
         conn.close()
@@ -3045,51 +3572,120 @@ class SQLiteRepository:
             for r in rows
         ]
 
-    def get_teacher_dashboard_stats(self, teacher_id):
-        """Retorna estadísticas consolidadas por estudiante para el dashboard docente.
+    # ── Spec 006 C1: the teacher's student set ───────────────────────────────
 
-        Un estudiante aparece UNA sola vez, sin importar cuántos cursos
-        tenga matriculados. Se usa su grupo primario (users.group_id).
-        Incluye ELO actual, intentos totales, acierto promedio y última actividad.
-        """
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            WITH teacher_student_ids AS (
-                SELECT DISTINCT u.id AS user_id
+    @staticmethod
+    def _teacher_links_cte() -> str:
+        """`teacher_links(user_id, group_id, course_id)`: the active, non-test students of the
+        teacher's groups, by main group or enrolment group, with the course that links each one
+        to the teacher (spec 006 FR-040). Two `teacher_id` parameters."""
+        return """
+            teacher_links AS (
+                SELECT u.id AS user_id, g.id AS group_id, g.course_id AS course_id
                 FROM users u
                 JOIN groups g ON u.group_id = g.id
                 WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
                   AND COALESCE(u.is_test_user, 0) = 0
-
                 UNION
-
-                SELECT DISTINCT e.user_id
+                SELECT u.id, g.id, e.course_id
                 FROM enrollments e
                 JOIN groups g ON e.group_id = g.id
                 JOIN users u ON e.user_id = u.id
                 WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
                   AND COALESCE(u.is_test_user, 0) = 0
-            )
-            SELECT u.id AS user_id, COALESCE(u.display_name, u.username) AS name, u.education_level,
-                   u.group_id, COALESCE(g.name, 'Sin grupo') AS group_name,
-                   COUNT(a.id) AS total_attempts,
-                   CASE WHEN COUNT(a.id) > 0
-                        THEN CAST(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS REAL) / COUNT(a.id)
-                        ELSE 0.0 END AS accuracy,
-                   MAX(a.timestamp) AS last_activity
-            FROM teacher_student_ids ts
-            JOIN users u ON u.id = ts.user_id
-            LEFT JOIN groups g ON u.group_id = g.id
-            LEFT JOIN attempts a ON a.user_id = ts.user_id
-            GROUP BY u.id, u.username, u.display_name, u.education_level, u.group_id, g.name
-            ORDER BY u.username ASC
-        """,
-            (teacher_id, teacher_id),
+            )"""
+
+    @staticmethod
+    def _linked_course(user_col: str, course_col: str) -> str:
+        """The course is one that links the student to the teacher (spec 006 N7)."""
+        return (
+            f"EXISTS (SELECT 1 FROM teacher_links l WHERE l.user_id = {user_col}"
+            f" AND (l.course_id IS NULL OR l.course_id = {course_col}))"
         )
-        rows = cursor.fetchall()
-        conn.close()
+
+    @staticmethod
+    def _procedure_reaches_teacher() -> str:
+        """Spec 006 FR-050: the procedure `ps` (student `u`, bank item `i`, LEFT JOINed) is one
+        the teacher reviews — the student is in the teacher's set and linked through the item's
+        course (by enrolment or main group); an id with no bank item follows the main group."""
+        return (
+            "EXISTS (SELECT 1 FROM teacher_links l WHERE l.user_id = ps.student_id AND ("
+            "(i.id IS NOT NULL AND (l.course_id IS NULL OR l.course_id = i.course_id))"
+            " OR (i.id IS NULL AND l.group_id = u.group_id)))"
+        )
+
+    def _procedure_for_teacher(self, cursor, submission_id, teacher_id) -> bool:
+        """Spec 006 FR-050: the teacher reviews this procedure (same rule as the queue)."""
+        cursor.execute(
+            f"WITH {self._teacher_links_cte()}"
+            " SELECT 1 FROM procedure_submissions ps JOIN users u ON u.id = ps.student_id"
+            f" LEFT JOIN items i ON i.id = ps.item_id WHERE ps.id = ?"
+            f" AND {self._procedure_reaches_teacher()}",
+            (teacher_id, teacher_id, submission_id),
+        )
+        return cursor.fetchone() is not None
+
+    @staticmethod
+    def _since(column: str, days: int | None) -> tuple[str, list]:
+        """Spec 006 FR-043: `column` within the last `days` days; no filter for None."""
+        if days is None:
+            return "", []
+        return f" AND {column} >= datetime('now', ?)", ["-%d days" % days]
+
+    def get_teacher_student_groups(self, teacher_id) -> dict:
+        """Spec 006 FR-040: each student of the teacher's set → the teacher's groups that list
+        them."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.execute(
+                f"WITH {self._teacher_links_cte()}"
+                " SELECT DISTINCT user_id, group_id FROM teacher_links ORDER BY group_id",
+                (teacher_id, teacher_id),
+            )
+            groups: dict = {}
+            for user_id, group_id in cursor.fetchall():
+                groups.setdefault(user_id, []).append(group_id)
+            return groups
+        finally:
+            conn.close()
+
+    def get_teacher_dashboard_stats(self, teacher_id, days: int | None = None):
+        """Spec 006 FR-040, FR-043: one row per student of the teacher's set, with the teacher's
+        group that lists them, and their attempts, accuracy and last activity in the courses that
+        link them to the teacher, within the last `days` days (None = the whole history)."""
+        since, since_params = self._since("a.timestamp", days)
+        linked = self._linked_course(
+            "a.user_id", "(SELECT course_id FROM items WHERE id = a.item_id)"
+        )
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                f"""
+                WITH {self._teacher_links_cte()},
+                students AS (
+                    SELECT user_id, MIN(group_id) AS group_id FROM teacher_links GROUP BY user_id
+                )
+                SELECT u.id AS user_id, COALESCE(u.display_name, u.username) AS name,
+                       u.education_level, s.group_id, COALESCE(g.name, 'Sin grupo') AS group_name,
+                       COUNT(a.id) AS total_attempts,
+                       CASE WHEN COUNT(a.id) > 0
+                            THEN CAST(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS REAL)
+                                 / COUNT(a.id)
+                            ELSE 0.0 END AS accuracy,
+                       MAX(a.timestamp) AS last_activity
+                FROM students s
+                JOIN users u ON u.id = s.user_id
+                LEFT JOIN groups g ON g.id = s.group_id
+                LEFT JOIN attempts a ON a.user_id = s.user_id{since} AND {linked}
+                GROUP BY u.id, u.username, u.display_name, u.education_level, s.group_id, g.name
+                ORDER BY u.username ASC
+                """,
+                [teacher_id, teacher_id, *since_params],
+            )
+            rows = cursor.fetchall()
+        finally:
+            conn.close()
         return [
             {
                 "user_id": r[0],
@@ -3140,107 +3736,82 @@ class SQLiteRepository:
         conn.close()
         return [dict(zip(columns, row)) for row in rows]
 
-    def get_teacher_metrics(self, teacher_id):
-        """Métricas de uso del grupo del docente: tiempo promedio, abandono, temas, actividad diaria."""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        cte = """
-            WITH teacher_students AS (
-                SELECT DISTINCT u.id AS user_id
-                FROM users u
-                JOIN groups g ON u.group_id = g.id
-                WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
-                  AND COALESCE(u.is_test_user, 0) = 0
-                UNION
-                SELECT DISTINCT e.user_id
-                FROM enrollments e
-                JOIN groups g ON e.group_id = g.id
-                JOIN users u ON e.user_id = u.id
-                WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
-                  AND COALESCE(u.is_test_user, 0) = 0
-            )
+    def get_teacher_metrics(self, teacher_id, days: int | None = None):
+        """Spec 006 FR-040, FR-043: time, abandonment, topics and activity of the teacher's set,
+        in the courses that link each student to the teacher, within the last `days` days."""
+        since, since_params = self._since("a.timestamp", days)
+        linked = self._linked_course("a.user_id", "i.course_id")
+        base = f"""
+            WITH {self._teacher_links_cte()}
+            SELECT {{columns}}
+            FROM attempts a
+            JOIN items i ON i.id = a.item_id
+            WHERE a.user_id IN (SELECT user_id FROM teacher_links) AND {linked}{since}
+            {{tail}}
         """
-        cursor.execute(
-            cte
-            + """
-            SELECT
-                COUNT(*) AS total_attempts,
-                AVG(CASE WHEN a.time_taken BETWEEN 3 AND 600 THEN a.time_taken END) AS avg_time,
-                CAST(SUM(CASE WHEN a.time_taken IS NOT NULL
-                              AND (a.time_taken < 3 OR a.time_taken > 600) THEN 1 ELSE 0 END)
-                     AS REAL) / NULLIF(COUNT(*), 0) AS abandonment_rate
-            FROM attempts a
-            JOIN teacher_students ts ON a.user_id = ts.user_id
-        """,
-            (teacher_id, teacher_id),
-        )
-        row = cursor.fetchone()
-        totals = {
-            "total_attempts": int(row[0] or 0),
-            "avg_time_seconds": round(float(row[1] or 0), 1),
-            "abandonment_rate": round(float(row[2] or 0), 4),
-        }
-
-        cursor.execute(
-            cte
-            + """
-            SELECT a.topic,
-                   COUNT(*) AS attempts,
-                   CAST(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS REAL) / COUNT(*) AS accuracy,
-                   AVG(CASE WHEN a.time_taken BETWEEN 3 AND 600 THEN a.time_taken END) AS avg_time
-            FROM attempts a
-            JOIN teacher_students ts ON a.user_id = ts.user_id
-            WHERE a.topic IS NOT NULL AND a.topic != ''
-            GROUP BY a.topic
-            ORDER BY attempts DESC
-            LIMIT 10
-        """,
-            (teacher_id, teacher_id),
-        )
-        topic_stats = [
-            {
-                "topic": r[0],
-                "attempts": int(r[1]),
-                "accuracy": round(float(r[2] or 0), 3),
-                "avg_time": round(float(r[3] or 0), 1),
+        params = [teacher_id, teacher_id, *since_params]
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                base.format(
+                    columns="""COUNT(*),
+                        AVG(CASE WHEN a.time_taken BETWEEN 3 AND 600 THEN a.time_taken END),
+                        CAST(SUM(CASE WHEN a.time_taken IS NOT NULL
+                                      AND (a.time_taken < 3 OR a.time_taken > 600)
+                                 THEN 1 ELSE 0 END) AS REAL) / NULLIF(COUNT(*), 0)""",
+                    tail="",
+                ),
+                params,
+            )
+            row = cursor.fetchone()
+            totals = {
+                "total_attempts": int(row[0] or 0),
+                "avg_time_seconds": round(float(row[1] or 0), 1),
+                "abandonment_rate": round(float(row[2] or 0), 4),
             }
-            for r in cursor.fetchall()
-        ]
-
-        cursor.execute(
-            cte
-            + """
-            SELECT strftime('%Y-%m-%d', a.timestamp) AS date, COUNT(*) AS count
-            FROM attempts a
-            JOIN teacher_students ts ON a.user_id = ts.user_id
-            WHERE a.timestamp >= date('now', '-30 days')
-            GROUP BY date
-            ORDER BY date ASC
-        """,
-            (teacher_id, teacher_id),
-        )
-        daily_attempts = [{"date": r[0], "count": int(r[1])} for r in cursor.fetchall()]
-
-        cursor.execute(
-            cte
-            + """
-            SELECT CAST(strftime('%H', a.timestamp) AS INTEGER) AS hour, COUNT(*) AS count
-            FROM attempts a
-            JOIN teacher_students ts ON a.user_id = ts.user_id
-            GROUP BY hour
-            ORDER BY hour ASC
-        """,
-            (teacher_id, teacher_id),
-        )
-        hourly = {r[0]: int(r[1]) for r in cursor.fetchall()}
-        hourly_distribution = [{"hour": h, "count": hourly.get(h, 0)} for h in range(24)]
-
-        conn.close()
+            cursor.execute(
+                base.format(
+                    columns="""a.topic, COUNT(*),
+                        CAST(SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS REAL) / COUNT(*),
+                        AVG(CASE WHEN a.time_taken BETWEEN 3 AND 600 THEN a.time_taken END)""",
+                    tail="AND a.topic IS NOT NULL AND a.topic != ''"
+                    " GROUP BY a.topic ORDER BY COUNT(*) DESC LIMIT 10",
+                ),
+                params,
+            )
+            topic_stats = [
+                {
+                    "topic": r[0],
+                    "attempts": int(r[1]),
+                    "accuracy": round(float(r[2] or 0), 3),
+                    "avg_time": round(float(r[3] or 0), 1),
+                }
+                for r in cursor.fetchall()
+            ]
+            cursor.execute(
+                base.format(
+                    columns="strftime('%Y-%m-%d', a.timestamp) AS date, COUNT(*)",
+                    tail="GROUP BY date ORDER BY date ASC",
+                ),
+                params,
+            )
+            daily_attempts = [{"date": r[0], "count": int(r[1])} for r in cursor.fetchall()]
+            cursor.execute(
+                base.format(
+                    columns="CAST(strftime('%H', a.timestamp) AS INTEGER) AS hour, COUNT(*)",
+                    tail="GROUP BY hour ORDER BY hour ASC",
+                ),
+                params,
+            )
+            hourly = {r[0]: int(r[1]) for r in cursor.fetchall()}
+        finally:
+            conn.close()
         return {
             **totals,
             "topic_stats": topic_stats,
             "daily_attempts": daily_attempts,
-            "hourly_distribution": hourly_distribution,
+            "hourly_distribution": [{"hour": h, "count": hourly.get(h, 0)} for h in range(24)],
         }
 
     def export_teacher_student_data(self, teacher_id, group_id=None):
@@ -3254,34 +3825,17 @@ class SQLiteRepository:
 
         conn = self.get_connection()
         cursor = conn.cursor()
-        _gf1 = "AND g.id = ?" if group_id else ""
-        _gf2 = "AND g2.id = ?" if group_id else ""
-        _params = [teacher_id]
-        if group_id:
-            _params.append(group_id)
-        _params.append(teacher_id)
-        if group_id:
+        _params = [teacher_id, teacher_id]
+        _gf = ""
+        if group_id:  # V1 passes a group
+            _gf = "WHERE group_id = ?"
             _params.append(group_id)
 
         cursor.execute(
             f"""
-            WITH teacher_student_ids AS (
-                SELECT DISTINCT u.id AS user_id
-                FROM users u
-                JOIN groups g ON u.group_id = g.id
-                WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
-                  AND COALESCE(u.is_test_user, 0) = 0
-                  {_gf1}
-
-                UNION
-
-                SELECT DISTINCT e.user_id
-                FROM enrollments e
-                JOIN groups g ON e.group_id = g.id
-                JOIN users u ON e.user_id = u.id
-                WHERE g.teacher_id = ? AND u.active = 1 AND u.role = 'student'
-                  AND COALESCE(u.is_test_user, 0) = 0
-                  {_gf2}
+            WITH {self._teacher_links_cte()},
+            teacher_student_ids AS (
+                SELECT DISTINCT user_id FROM teacher_links {_gf}
             )
             SELECT
                 u.id AS student_id,
@@ -3319,6 +3873,8 @@ class SQLiteRepository:
             JOIN attempts a ON a.user_id = ts.user_id
             JOIN items i ON a.item_id = i.id
             LEFT JOIN courses c ON i.course_id = c.id
+            -- Spec 006 FR-040 (N7): only the courses that link the student to the teacher.
+            WHERE {self._linked_course("a.user_id", "i.course_id")}
             ORDER BY u.username ASC, a.timestamp ASC
         """,
             tuple(_params),
@@ -3354,10 +3910,11 @@ class SQLiteRepository:
         """Exporta matrículas de los estudiantes del profesor."""
         conn = self.get_connection()
         cursor = conn.cursor()
-        _gf = "AND g.id = ?" if group_id else ""
-        _params = (teacher_id, group_id) if group_id else (teacher_id,)
+        _gf = "WHERE group_id = ?" if group_id else ""
+        _params = [teacher_id, teacher_id] + ([group_id] if group_id else [])
         cursor.execute(
             f"""
+            WITH {self._teacher_links_cte()}
             SELECT
                 u.id AS student_id,
                 COALESCE(u.display_name, u.username) AS name,
@@ -3370,12 +3927,11 @@ class SQLiteRepository:
                 e.enrolled_at
             FROM enrollments e
             JOIN users u ON e.user_id = u.id
-            JOIN groups g ON e.group_id = g.id
+            LEFT JOIN groups g ON e.group_id = g.id
             LEFT JOIN courses c ON e.course_id = c.id
-            WHERE u.active = 1
-              AND COALESCE(u.is_test_user, 0) = 0
-              AND g.teacher_id = ?
-              {_gf}
+            -- Spec 006 FR-040: the teacher's set, in the courses that link them.
+            WHERE e.user_id IN (SELECT user_id FROM teacher_links {_gf})
+              AND {self._linked_course("e.user_id", "e.course_id")}
             ORDER BY u.username ASC, c.name ASC
         """,
             _params,
@@ -3389,10 +3945,11 @@ class SQLiteRepository:
         """Exporta datos de procedimientos de los estudiantes del profesor."""
         conn = self.get_connection()
         cursor = conn.cursor()
-        _gf = "AND g.id = ?" if group_id else ""
-        _params = (teacher_id, group_id) if group_id else (teacher_id,)
+        _gf = "WHERE group_id = ?" if group_id else ""
+        _params = [teacher_id, teacher_id] + ([group_id] if group_id else [])
         cursor.execute(
             f"""
+            WITH {self._teacher_links_cte()}
             SELECT
                 u.id AS student_id,
                 COALESCE(u.display_name, u.username) AS name,
@@ -3413,10 +3970,11 @@ class SQLiteRepository:
             FROM procedure_submissions ps
             JOIN users u ON ps.student_id = u.id
             LEFT JOIN groups g ON u.group_id = g.id
-            WHERE u.active = 1
-              AND COALESCE(u.is_test_user, 0) = 0
-              AND g.teacher_id = ?
-              {_gf}
+            -- Spec 006 FR-040: the teacher's set, in the courses that link them (an
+            -- exercise outside the bank has no course and stays).
+            WHERE ps.student_id IN (SELECT user_id FROM teacher_links {_gf})
+              AND (NOT EXISTS (SELECT 1 FROM items i WHERE i.id = ps.item_id)
+                   OR {self._linked_course("ps.student_id", "(SELECT course_id FROM items WHERE id = ps.item_id)")})
             ORDER BY u.username ASC, ps.submitted_at ASC
         """,
             _params,
@@ -3616,105 +4174,112 @@ class SQLiteRepository:
 
         conn = self.get_connection()
         cursor = conn.cursor()
+        # Survey 008 B13: a failure rolls back and releases the database; it used to leave this
+        # connection open with its write lock, and the next writer got «database is locked».
+        try:
 
-        for filepath in json_files:
-            # course_id = nombre del archivo sin extensión (ej: 'algebra_lineal')
-            course_id = os.path.splitext(os.path.basename(filepath))[0]
-            _fname = os.path.basename(filepath)
+            for filepath in json_files:
+                # course_id = nombre del archivo sin extensión (ej: 'algebra_lineal')
+                course_id = os.path.splitext(os.path.basename(filepath))[0]
+                _fname = os.path.basename(filepath)
 
-            try:
-                with open(filepath, "r", encoding="utf-8") as f:
-                    items_list = json.load(f)
-            except UnicodeDecodeError as e:
-                logger.error(
-                    "Error de encoding en '%s': %s. "
-                    "Asegúrate de que el archivo sea UTF-8 sin BOM. "
-                    "Ejecuta: python scripts/validate_bank.py",
-                    _fname,
-                    e,
-                )
-                continue
-            except json.JSONDecodeError as e:
-                logger.error(
-                    "JSON inválido en '%s': %s. " "Verifica la sintaxis con un linter JSON.",
-                    _fname,
-                    e,
-                )
-                continue
-            except FileNotFoundError:
-                logger.warning("Archivo no encontrado: '%s'. Ignorando.", filepath)
-                continue
-
-            if not items_list:
-                continue
-
-            # Nombre legible: usar mapa explícito o el topic del primer ítem
-            course_name = self._COURSE_NAME_MAP.get(course_id) or items_list[0].get(
-                "topic", course_id
-            )
-            block = self._COURSE_BLOCK_MAP.get(course_id, "Universidad")
-
-            # Upsert del curso: insertar si no existe, actualizar nombre/bloque si cambiaron
-            cursor.execute("SELECT id, name, block FROM courses WHERE id = ?", (course_id,))
-            _existing = cursor.fetchone()
-            if not _existing:
-                cursor.execute(
-                    "INSERT INTO courses (id, name, block, description) VALUES (?, ?, ?, ?)",
-                    (course_id, course_name, block, f"Curso de {course_name}"),
-                )
-            elif _existing[1] != course_name or _existing[2] != block:
-                # Actualizar si el nombre o bloque cambiaron (por reconfiguración)
-                cursor.execute(
-                    "UPDATE courses SET name = ?, block = ?, description = ? WHERE id = ?",
-                    (course_name, block, f"Curso de {course_name}", course_id),
-                )
-
-            # Sincronizar cada ítem vinculándolo al curso
-            for item in items_list:
-                cursor.execute("SELECT id FROM items WHERE id = ?", (item["id"],))
-                if not cursor.fetchone():
-                    cursor.execute(
-                        """
-                        INSERT INTO items
-                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block)
-                        VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?, ?, ?)
-                    """,
-                        (
-                            item["id"],
-                            item["topic"],
-                            item["content"],
-                            json.dumps(item["options"]),
-                            item["correct_option"],
-                            item["difficulty"],
-                            course_id,
-                            item.get("image_url") or item.get("image_path"),
-                            json.dumps(item.get("tags") or []),
-                            item.get("block", ""),
-                        ),
+                try:
+                    with open(filepath, "r", encoding="utf-8") as f:
+                        items_list = json.load(f)
+                except UnicodeDecodeError as e:
+                    logger.error(
+                        "Error de encoding en '%s': %s. "
+                        "Asegúrate de que el archivo sea UTF-8 sin BOM. "
+                        "Ejecuta: python scripts/validate_bank.py",
+                        _fname,
+                        e,
                     )
-                else:
-                    # Actualizar contenido/metadatos sin tocar el rating ELO
+                    continue
+                except json.JSONDecodeError as e:
+                    logger.error(
+                        "JSON inválido en '%s': %s. " "Verifica la sintaxis con un linter JSON.",
+                        _fname,
+                        e,
+                    )
+                    continue
+                except FileNotFoundError:
+                    logger.warning("Archivo no encontrado: '%s'. Ignorando.", filepath)
+                    continue
+
+                if not items_list:
+                    continue
+
+                # Nombre legible: usar mapa explícito o el topic del primer ítem
+                course_name = self._COURSE_NAME_MAP.get(course_id) or items_list[0].get(
+                    "topic", course_id
+                )
+                block = self._COURSE_BLOCK_MAP.get(course_id, "Universidad")
+
+                # Upsert del curso: insertar si no existe, actualizar nombre/bloque si cambiaron
+                cursor.execute("SELECT id, name, block FROM courses WHERE id = ?", (course_id,))
+                _existing = cursor.fetchone()
+                if not _existing:
                     cursor.execute(
-                        """
-                        UPDATE items
-                        SET content = ?, options = ?, correct_option = ?, topic = ?, course_id = ?, image_url = ?, tags = ?, block = ?
-                        WHERE id = ?
-                    """,
-                        (
-                            item["content"],
-                            json.dumps(item["options"]),
-                            item["correct_option"],
-                            item["topic"],
-                            course_id,
-                            item.get("image_url") or item.get("image_path"),
-                            json.dumps(item.get("tags") or []),
-                            item.get("block", ""),
-                            item["id"],
-                        ),
+                        "INSERT INTO courses (id, name, block, description) VALUES (?, ?, ?, ?)",
+                        (course_id, course_name, block, f"Curso de {course_name}"),
+                    )
+                elif _existing[1] != course_name or _existing[2] != block:
+                    # Actualizar si el nombre o bloque cambiaron (por reconfiguración)
+                    cursor.execute(
+                        "UPDATE courses SET name = ?, block = ?, description = ? WHERE id = ?",
+                        (course_name, block, f"Curso de {course_name}", course_id),
                     )
 
-        conn.commit()
-        conn.close()
+                # Sincronizar cada ítem vinculándolo al curso
+                for item in items_list:
+                    cursor.execute("SELECT id FROM items WHERE id = ?", (item["id"],))
+                    if not cursor.fetchone():
+                        cursor.execute(
+                            """
+                            INSERT INTO items
+                                (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block)
+                            VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?, ?, ?)
+                        """,
+                            (
+                                item["id"],
+                                item["topic"],
+                                item["content"],
+                                json.dumps(item["options"]),
+                                item["correct_option"],
+                                item["difficulty"],
+                                course_id,
+                                item.get("image_url") or item.get("image_path"),
+                                json.dumps(item.get("tags") or []),
+                                item.get("block", ""),
+                            ),
+                        )
+                    else:
+                        # Actualizar contenido/metadatos sin tocar el rating ELO
+                        cursor.execute(
+                            """
+                            UPDATE items
+                            SET content = ?, options = ?, correct_option = ?, topic = ?, course_id = ?, image_url = ?, tags = ?, block = ?
+                            WHERE id = ?
+                        """,
+                            (
+                                item["content"],
+                                json.dumps(item["options"]),
+                                item["correct_option"],
+                                item["topic"],
+                                course_id,
+                                item.get("image_url") or item.get("image_path"),
+                                json.dumps(item.get("tags") or []),
+                                item.get("block", ""),
+                                item["id"],
+                            ),
+                        )
+
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
     def _seed_test_students(self):
         """Crea estudiantes de prueba permanentes (delegado a módulo externo)."""
@@ -3722,6 +4287,7 @@ class SQLiteRepository:
 
         seed_test_students(self)
 
+    @_read_only
     def get_available_courses_by_level(self, level: str, grade=None):
         """The catalogue of a level — for semillero, of the grade (spec 001 FR-028k).
 
@@ -3747,6 +4313,7 @@ class SQLiteRepository:
             if in_catalogue(level, grade, r[0], r[2])
         ]
 
+    @_read_only
     def get_courses(self, block=None):
         """Devuelve todos los cursos, opcionalmente filtrados por bloque."""
         conn = self.get_connection()
@@ -3835,6 +4402,7 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    @_read_only
     def get_user_enrollments(self, user_id):
         """Devuelve los cursos en los que está matriculado el usuario.
 
@@ -3916,6 +4484,7 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    @_read_only
     def get_education_level(self, user_id):
         """Retorna el education_level del usuario, o None si no existe."""
         conn = self.get_connection()
@@ -3944,48 +4513,7 @@ class SQLiteRepository:
 
     # ─── Gestión de ÍTEMS (ELO Dinámico) ────────────────────────────────────────
 
-    def sync_items_from_json(self, items_list):
-        """Sincroniza el banco de preguntas JSON con la DB. No sobreescribe ratings actuales."""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        import json
-
-        for item in items_list:
-            cursor.execute("SELECT id FROM items WHERE id = ?", (item["id"],))
-            if not cursor.fetchone():
-                cursor.execute(
-                    """
-                    INSERT INTO items (id, topic, content, options, correct_option, difficulty, rating_deviation)
-                    VALUES (?, ?, ?, ?, ?, ?, 350.0)
-                """,
-                    (
-                        item["id"],
-                        item["topic"],
-                        item["content"],
-                        json.dumps(item["options"]),
-                        item["correct_option"],
-                        item["difficulty"],
-                    ),
-                )
-            else:
-                # Actualizar contenido y opciones para refrescar LaTeX sin perder el rating
-                cursor.execute(
-                    """
-                    UPDATE items
-                    SET content = ?, options = ?, correct_option = ?, topic = ?
-                    WHERE id = ?
-                """,
-                    (
-                        item["content"],
-                        json.dumps(item["options"]),
-                        item["correct_option"],
-                        item["topic"],
-                        item["id"],
-                    ),
-                )
-        conn.commit()
-        conn.close()
-
+    @_read_only
     def get_items_from_db(self, topic=None, course_id=None, block=None):
         """Obtiene ítems desde la base de datos.
         Prioridad de filtro: course_id [+ block] > topic > sin filtro."""
@@ -4251,41 +4779,6 @@ class SQLiteRepository:
         finally:
             conn.close()
 
-    def update_item_rating(self, item_id, student_rating, actual_score, k_item=32.0):
-        """
-        Actualiza la dificultad (rating) del ítem de forma simétrica.
-        Si el alumno gana (acierta), el ítem pierde (baja dificultad).
-        """
-        conn = self.get_connection()
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT difficulty, rating_deviation FROM items WHERE id = ?", (item_id,))
-        res = cursor.fetchone()
-        if not res:
-            conn.close()
-            return
-
-        current_diff, current_rd = res
-
-        # Lógica ELO inversa para el ítem
-        # El resultado para el ítem es (1 - actual_score)
-        item_score = 1.0 - actual_score
-
-        # Probabilidad de que el ítem 'gane' (que el alumno falle)
-        # expected_score(rating_estudiante, rating_item) es prob acierto alumno
-        # prob fallo alumno = 1 - prob acierto
-        from src.domain.elo.model import expected_score
-
-        p_student_wins = expected_score(student_rating, current_diff)
-        p_item_wins = 1.0 - p_student_wins
-
-        delta = k_item * (item_score - p_item_wins)
-        new_diff = current_diff + delta
-
-        cursor.execute("UPDATE items SET difficulty = ? WHERE id = ?", (new_diff, item_id))
-        conn.commit()
-        conn.close()
-
     def create_session(self, user_id):
         import secrets
         from datetime import datetime, timedelta, timezone
@@ -4474,10 +4967,8 @@ class SQLiteRepository:
                     UPDATE procedure_submissions
                     SET image_data=?, mime_type=?, procedure_image_path=?, file_hash=?,
                         is_copy=?, review_round = review_round + 1,
-                        status=CASE
-                            WHEN ai_proposed_score IS NOT NULL THEN 'PENDING_TEACHER_VALIDATION'
-                            ELSE 'pending'
-                        END,
+                        status='pending',
+                        ai_proposed_score=NULL, ai_feedback=NULL,  -- spec 006 FR-051
                         teacher_feedback=NULL,
                         feedback_image=NULL, feedback_image_path=NULL,
                         procedure_score=NULL, teacher_score=NULL, final_score=NULL,
@@ -4726,14 +5217,15 @@ class SQLiteRepository:
             )
         else:
             cursor.execute(
-                """
+                f"""
+                WITH {self._teacher_links_cte()}
                 SELECT COUNT(*) FROM procedure_submissions ps
                 JOIN users u ON ps.student_id = u.id
-                JOIN groups g ON u.group_id = g.id
-                WHERE g.teacher_id = ?
-                  AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                LEFT JOIN items i ON i.id = ps.item_id
+                WHERE ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                  AND {self._procedure_reaches_teacher()}
             """,
-                (teacher_id,),
+                (teacher_id, teacher_id),
             )
         count = cursor.fetchone()[0]
         conn.close()
@@ -4762,19 +5254,20 @@ class SQLiteRepository:
             )
         else:
             cursor.execute(
-                """
+                f"""
+                WITH {self._teacher_links_cte()}
                 SELECT ps.id, ps.student_id, COALESCE(u.display_name, u.username) AS student_name,
                        ps.item_id, ps.item_content, ps.image_data, ps.mime_type,
                        ps.submitted_at, ps.procedure_image_path,
                        ps.status, ps.ai_proposed_score, ps.ai_feedback, ps.review_round
                 FROM procedure_submissions ps
                 JOIN users u ON ps.student_id = u.id
-                JOIN groups g ON u.group_id = g.id
-                WHERE g.teacher_id = ?
-                  AND ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                LEFT JOIN items i ON i.id = ps.item_id
+                WHERE ps.status IN ('pending', 'PENDING_TEACHER_VALIDATION')
+                  AND {self._procedure_reaches_teacher()}
                 ORDER BY ps.submitted_at DESC
             """,
-                (teacher_id,),
+                (teacher_id, teacher_id),
             )
         cols = [c[0] for c in cursor.description]
         rows = [dict(zip(cols, r)) for r in cursor.fetchall()]
@@ -4839,12 +5332,7 @@ class SQLiteRepository:
                 return None
             student_id, item_id, status, row_round, contribution = row
             if teacher_id is not None:
-                cursor.execute(
-                    "SELECT 1 FROM users u JOIN groups g ON g.id = u.group_id"
-                    " WHERE u.id = ? AND g.teacher_id = ?",
-                    (student_id, teacher_id),
-                )
-                if cursor.fetchone() is None:
+                if not self._procedure_for_teacher(cursor, submission_id, teacher_id):
                     cursor.execute("ROLLBACK")
                     return None
             current_round = row_round if review_round is None else int(review_round)
@@ -4896,8 +5384,8 @@ class SQLiteRepository:
     ) -> dict:
         """Inside the caller's transaction: read the item's (course, topic) rating, let the domain
         compute, then write the rating, the grading row and the procedure (FR-024d, FR-024e).
-        An unknown contribution applies nothing (FR-024h); an item missing from the bank applies
-        nothing either, as grading such an item always did."""
+        An unknown contribution applies nothing (FR-024h); an exercise not in the bank applies
+        nothing either, and the procedure records 0, not marked as applied (FR-024m)."""
         cursor.execute("SELECT course_id, topic FROM items WHERE id = ?", (item_id,))
         item = cursor.fetchone()
         rating_before = 1000.0  # an absent row starts from 1000, as _bump_course_topic_rating
@@ -4942,7 +5430,7 @@ class SQLiteRepository:
             """
             UPDATE procedure_submissions
             SET teacher_score = ?, final_score = ?, teacher_feedback = ?,
-                elo_delta = ?, elo_applied = 1, contribution = ?,
+                elo_delta = ?, elo_applied = ?, contribution = ?,
                 contribution_origin = CASE WHEN ? THEN contribution_origin ELSE 'grading' END,
                 status = 'VALIDATED_BY_TEACHER', reviewed_at = CURRENT_TIMESTAMP
             WHERE id = ?
@@ -4951,7 +5439,9 @@ class SQLiteRepository:
                 grade,
                 grade,
                 feedback or None,
-                effect.computed_delta,
+                # FR-024m: an exercise not in the bank records what was applied, 0.
+                effect.computed_delta if item else 0.0,
+                1 if item else 0,
                 contribution_after,
                 1 if effect.contribution_unknown else 0,
                 submission_id,
@@ -4991,41 +5481,37 @@ class SQLiteRepository:
 
     def get_procedure_gradings(self, submission_id: int, teacher_id: int | None = None):
         """Every grading of a procedure, oldest first (FR-024e, US9-AS8). With `teacher_id`,
-        only for the teacher of the student's group: None otherwise (FR-023)."""
+        only for a teacher who reviews it (spec 006 FR-050): None otherwise."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
             if teacher_id is not None:
-                cursor.execute(
-                    "SELECT 1 FROM procedure_submissions ps JOIN users u ON u.id = ps.student_id"
-                    " JOIN groups g ON g.id = u.group_id WHERE ps.id = ? AND g.teacher_id = ?",
-                    (submission_id, teacher_id),
-                )
-                if cursor.fetchone() is None:
+                if not self._procedure_for_teacher(cursor, submission_id, teacher_id):
                     return None
             return self._procedure_grading_rows(cursor, submission_id)
         finally:
             conn.close()
 
     def get_recent_procedure_copies_for_teacher(self, teacher_id: int, days: int = 30) -> list:
-        """Procedures graded 0 automatically as copies (FR-024i) in this teacher's groups during
-        the last `days` days. Never the student who sent the file first."""
+        """Procedures graded 0 automatically as copies (FR-024i) that the teacher reviews (spec
+        006 FR-050), during the last `days` days. Never the student who sent the file first."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
             cursor.execute(
-                """
+                f"""
+                WITH {self._teacher_links_cte()}
                 SELECT ps.id AS submission_id, ps.student_id,
                        COALESCE(u.display_name, u.username) AS student_name,
                        ps.item_id, ps.item_content, ps.reviewed_at
                 FROM procedure_submissions ps
                 JOIN users u ON u.id = ps.student_id
-                JOIN groups g ON g.id = u.group_id
-                WHERE g.teacher_id = ? AND ps.is_copy = 1
+                LEFT JOIN items i ON i.id = ps.item_id
+                WHERE ps.is_copy = 1 AND {self._procedure_reaches_teacher()}
                   AND ps.reviewed_at >= datetime('now', ?)
                 ORDER BY ps.reviewed_at DESC
             """,
-                (teacher_id, f"-{int(days)} days"),
+                (teacher_id, teacher_id, f"-{int(days)} days"),
             )
             cols = [c[0] for c in cursor.description]
             return [dict(zip(cols, r)) for r in cursor.fetchall()]
@@ -5152,6 +5638,33 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    def has_submitted_template(self, user_id: int, template_id: int) -> bool:
+        """Spec 006 FR-021: whether the student already submitted this template."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute(
+                "SELECT 1 FROM exam_sessions WHERE user_id = ? AND exam_template_id = ? LIMIT 1",
+                (user_id, template_id),
+            ).fetchone()
+            return row is not None
+        finally:
+            conn.close()
+
+    def expire_stale_exam_sessions(self, max_age_hours: int = 24) -> int:
+        """Spec 006 FR-023: deletes the active sessions `max_age_hours` past their deadline,
+        submitted or not (a submitted one is already in `exam_sessions`)."""
+        conn = self.get_connection()
+        try:
+            deleted = conn.execute(
+                "DELETE FROM active_exam_sessions"
+                " WHERE datetime(expires_at) < datetime('now', ?)",
+                ("-%d hours" % max_age_hours,),
+            ).rowcount
+            conn.commit()
+            return deleted
+        finally:
+            conn.close()
+
     def get_active_exam_session(self, session_id: str, user_id: int) -> dict | None:
         conn = self.get_connection()
         row = conn.execute(
@@ -5219,8 +5732,9 @@ class SQLiteRepository:
             if responses:
                 cursor.executemany(
                     """INSERT INTO exam_responses
-                       (session_id, template_id, user_id, item_id, topic, is_correct)
-                       VALUES (?, ?, ?, ?, ?, ?)""",
+                       (session_id, template_id, user_id, item_id, topic, is_correct,
+                        selected_option)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
                     [
                         (
                             history_id,
@@ -5229,6 +5743,7 @@ class SQLiteRepository:
                             r["item_id"],
                             r.get("topic"),
                             1 if r.get("is_correct") else 0,
+                            r.get("selected_option"),
                         )
                         for r in responses
                     ],
@@ -5241,6 +5756,7 @@ class SQLiteRepository:
         finally:
             conn.close()
 
+    @_read_only
     def get_diagnostic(self, user_id: int, course_id: str) -> dict | None:
         """Devuelve el diagnóstico de un estudiante en una materia, o None."""
         conn = self.get_connection()
@@ -5264,6 +5780,7 @@ class SQLiteRepository:
             "completed_at": row[3],
         }
 
+    @_read_only
     def get_completed_diagnostic_course_ids(self, user_id: int) -> list:
         """course_ids con diagnóstico completado por el estudiante."""
         conn = self.get_connection()
@@ -5291,6 +5808,7 @@ class SQLiteRepository:
         conn.commit()
         conn.close()
 
+    @_read_only
     def get_lesson_progress(self, user_id: int, course_id: str, node_id: str) -> dict:
         """Progreso de un nodo no evaluativo; nunca consulta ni modifica ELO."""
         conn = self.get_connection()
@@ -5320,6 +5838,7 @@ class SQLiteRepository:
             "completed_at": str(row[4]) if row[4] else None,
         }
 
+    @_read_only
     def get_lesson_states(self, user_id: int, course_id: str) -> dict[str, str]:
         """Estado guardado de cada nodo con progreso en la materia, en una sola lectura."""
         conn = self.get_connection()
@@ -5366,6 +5885,7 @@ class SQLiteRepository:
         conn.close()
         return self.get_lesson_progress(user_id, course_id, node_id)
 
+    @_read_only
     def get_lesson_interactions(self, user_id: int, course_id: str, node_id: str) -> dict:
         """Selecciones estructuradas del nodo, indexadas por interacción."""
         conn = self.get_connection()
@@ -5421,8 +5941,102 @@ class SQLiteRepository:
                 misconception_tag,
             ),
         )
+        # Spec 003 L4 (FR-040): the history keeps every answer, in the same transaction.
+        cursor.execute(
+            """INSERT INTO lesson_answers
+               (user_id, course_id, node_id, interaction_id, selected_option,
+                is_expected, misconception_tag)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
+                user_id,
+                course_id,
+                node_id,
+                interaction_id,
+                selected_option,
+                None if is_expected is None else int(is_expected),
+                misconception_tag,
+            ),
+        )
         conn.commit()
         conn.close()
+
+    @_read_only
+    def get_lesson_answers(self, user_id: int, course_id: str) -> list[dict]:
+        """Spec 003 L4: every answer of the student in the course, oldest first. The chosen
+        value is not returned: the teacher reads right or wrong and the tag (N11)."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                """SELECT node_id, interaction_id, is_expected, misconception_tag, answered_at
+                   FROM lesson_answers
+                   WHERE user_id = ? AND course_id = ?
+                   ORDER BY id""",
+                (user_id, course_id),
+            ).fetchall()
+        finally:
+            conn.close()
+        return [
+            {
+                "node_id": row[0],
+                "interaction_id": row[1],
+                "is_expected": None if row[2] is None else bool(row[2]),
+                "misconception_tag": row[3],
+                "answered_at": str(row[4]),
+            }
+            for row in rows
+        ]
+
+    def save_lesson_outcome(
+        self,
+        user_id: int,
+        course_id: str,
+        node_id: str,
+        diagnostic_correct: int,
+        post_correct: int,
+        items: int,
+        outcome: str,
+    ) -> None:
+        """Spec 003 L4 (FR-041): the node's post-diagnostic outcome, the latest one."""
+        conn = self.get_connection()
+        try:
+            conn.execute(
+                """INSERT INTO lesson_outcomes
+                   (user_id, course_id, node_id, diagnostic_correct, post_correct, items,
+                    outcome, recorded_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                   ON CONFLICT(user_id, course_id, node_id) DO UPDATE SET
+                       diagnostic_correct = excluded.diagnostic_correct,
+                       post_correct = excluded.post_correct,
+                       items = excluded.items,
+                       outcome = excluded.outcome,
+                       recorded_at = CURRENT_TIMESTAMP""",
+                (user_id, course_id, node_id, diagnostic_correct, post_correct, items, outcome),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    @_read_only
+    def get_lesson_outcomes(self, user_id: int, course_id: str) -> dict:
+        """Spec 003 L4: each node's stored post-diagnostic outcome, by node."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                """SELECT node_id, diagnostic_correct, post_correct, items, outcome
+                   FROM lesson_outcomes WHERE user_id = ? AND course_id = ?""",
+                (user_id, course_id),
+            ).fetchall()
+        finally:
+            conn.close()
+        return {
+            row[0]: {
+                "diagnostic_correct": row[1],
+                "post_correct": row[2],
+                "items": row[3],
+                "outcome": row[4],
+            }
+            for row in rows
+        }
 
     def set_topic_rating_baseline(
         self, user_id: int, course_id: str, topic: str, elo: float, rd: float = 350.0
@@ -5453,90 +6067,39 @@ class SQLiteRepository:
             conn.close()
         return found is not None
 
-    def get_exam_template_results(self, template_id: int) -> dict:
-        """Análisis agregado de resultados de una plantilla de examen.
-
-        Devuelve métricas por pregunta y por tópico para que el docente
-        identifique la pregunta más acertada, la más fallada y el tema a
-        reforzar. Solo lee exam_responses (no afecta ELO)."""
+    def get_exam_template_responses(self, template_id: int) -> list[dict]:
+        """Spec 006 FR-033: every stored answer to a template, with its submission; the domain
+        keeps the teacher's students and each one's first submission."""
         conn = self.get_connection()
-        cursor = conn.cursor()
-        # resumen de sesiones
-        cursor.execute(
-            """SELECT COUNT(*) AS n_sessions,
-                      COUNT(DISTINCT user_id) AS n_students,
-                      COALESCE(AVG(score_pct), 0) AS avg_score
-               FROM exam_sessions WHERE exam_template_id = ?""",
-            (template_id,),
-        )
-        s = cursor.fetchone()
-        summary = {
-            "n_sessions": s[0] or 0,
-            "n_students": s[1] or 0,
-            "avg_score": round(s[2] or 0, 1),
-        }
-        # por pregunta
-        cursor.execute(
-            """SELECT er.item_id,
-                      COALESCE(i.content, er.item_id) AS content,
-                      er.topic,
-                      COUNT(*) AS total,
-                      SUM(er.is_correct) AS correct
-               FROM exam_responses er
-               LEFT JOIN items i ON i.id = er.item_id
-               WHERE er.template_id = ?
-               GROUP BY er.item_id, i.content, er.topic
-               ORDER BY total DESC""",
-            (template_id,),
-        )
-        questions = []
-        for r in cursor.fetchall():
-            total = r[3] or 0
-            correct = r[4] or 0
-            questions.append(
-                {
-                    "item_id": r[0],
-                    "content": r[1],
-                    "topic": r[2],
-                    "total": total,
-                    "correct": correct,
-                    "accuracy": round(correct / total * 100, 1) if total else 0.0,
-                }
+        try:
+            cursor = conn.execute(
+                """SELECT er.session_id, er.user_id, es.created_at AS submitted_at,
+                          er.item_id, er.topic, COALESCE(i.content, er.item_id) AS content,
+                          er.is_correct, er.selected_option
+                   FROM exam_responses er
+                   JOIN exam_sessions es ON es.id = er.session_id
+                   LEFT JOIN items i ON i.id = er.item_id
+                   WHERE er.template_id = ?
+                   ORDER BY er.session_id, er.id""",
+                (template_id,),
             )
-        # por tópico
-        cursor.execute(
-            """SELECT COALESCE(topic, 'Sin tópico') AS topic,
-                      COUNT(*) AS total, SUM(is_correct) AS correct
-               FROM exam_responses WHERE template_id = ?
-               GROUP BY topic ORDER BY total DESC""",
-            (template_id,),
-        )
-        topics = []
-        for r in cursor.fetchall():
-            total = r[1] or 0
-            correct = r[2] or 0
-            topics.append(
-                {
-                    "topic": r[0],
-                    "total": total,
-                    "correct": correct,
-                    "accuracy": round(correct / total * 100, 1) if total else 0.0,
-                }
-            )
-        conn.close()
+            columns = [c[0] for c in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        finally:
+            conn.close()
 
-        ranked = [q for q in questions if q["total"] > 0]
-        best = max(ranked, key=lambda q: q["accuracy"], default=None)
-        worst = min(ranked, key=lambda q: q["accuracy"], default=None)
-        reinforce = min(topics, key=lambda t: t["accuracy"], default=None) if topics else None
-        return {
-            **summary,
-            "questions": questions,
-            "topics": topics,
-            "best_question": best,
-            "worst_question": worst,
-            "reinforce_topic": reinforce,
-        }
+    def template_has_sessions(self, template_id: int) -> bool:
+        """Spec 006 FR-031: whether any student has started this template."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute(
+                "SELECT 1 FROM active_exam_sessions WHERE exam_template_id = ?"
+                " UNION SELECT 1 FROM exam_sessions WHERE exam_template_id = ? LIMIT 1",
+                (template_id, template_id),
+            ).fetchone()
+            return row is not None
+        finally:
+            conn.close()
 
     def get_exam_history(self, user_id: int, limit: int = 20) -> list[dict]:
         conn = self.get_connection()
@@ -5747,6 +6310,32 @@ class SQLiteRepository:
         conn.close()
         return int(row[0])
 
+    def assign_template_to_groups(
+        self,
+        template_id: int,
+        group_ids: list[int],
+        starts_at: str | None = None,
+        ends_at: str | None = None,
+    ) -> None:
+        """Spec 006 FR-032: assigns the template to every group in one transaction — all or
+        none. Upsert per (template, group)."""
+        conn = self.get_connection()
+        try:
+            for group_id in group_ids:
+                conn.execute(
+                    """INSERT INTO exam_assignments (template_id, group_id, starts_at, ends_at)
+                       VALUES (?, ?, ?, ?)
+                       ON CONFLICT(template_id, group_id) DO UPDATE
+                         SET starts_at = excluded.starts_at, ends_at = excluded.ends_at""",
+                    (template_id, group_id, starts_at, ends_at),
+                )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
     def delete_exam_assignment(self, assignment_id: int, template_id: int | None = None) -> bool:
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -5812,14 +6401,15 @@ class SQLiteRepository:
                AND (ea.ends_at IS NULL OR ea.ends_at >= datetime('now'))
             WHERE et.archived = 0
               AND et.course_id = ?
-              AND (
-                NOT EXISTS (SELECT 1 FROM exam_assignments WHERE template_id = et.id)
-                OR ea.id IS NOT NULL
-              )
+              -- Spec 006 FR-030: a template with no assignment is a draft, seen by no student.
+              AND ea.id IS NOT NULL
+              -- Spec 006 FR-021, FR-022: a template is taken once.
+              AND NOT EXISTS (SELECT 1 FROM exam_sessions es
+                              WHERE es.user_id = ? AND es.exam_template_id = et.id)
             GROUP BY et.id
             ORDER BY et.created_at DESC
             """,
-            (user_id, course_id),
+            (user_id, course_id, user_id),
         )
         rows = cursor.fetchall()
         conn.close()
@@ -5853,13 +6443,12 @@ class SQLiteRepository:
                AND (ea.starts_at IS NULL OR ea.starts_at <= datetime('now'))
                AND (ea.ends_at IS NULL OR ea.ends_at >= datetime('now'))
             WHERE et.archived = 0
-              AND (
-                NOT EXISTS (SELECT 1 FROM exam_assignments WHERE template_id = et.id)
-                OR ea.id IS NOT NULL
-              )
+              AND ea.id IS NOT NULL
+              AND NOT EXISTS (SELECT 1 FROM exam_sessions es
+                              WHERE es.user_id = ? AND es.exam_template_id = et.id)
             ORDER BY et.created_at DESC
             """,
-            (user_id, user_id),
+            (user_id, user_id, user_id),
         )
         rows = cursor.fetchall()
         conn.close()

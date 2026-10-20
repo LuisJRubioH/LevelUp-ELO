@@ -62,6 +62,8 @@ wrong):
 | `ENVIRONMENT` | `production` — turns on the runtime checks below |
 | `DATABASE_URL` | PostgreSQL for web traffic. On Supabase: the **transaction pooler, port 6543** |
 | `MIGRATION_DATABASE_URL` | Only for `scripts/migrate.py`: the **session pooler (5432)** — the migration's advisory lock is not reliable on the transaction pooler (6543). Supabase's direct connection also takes the lock, but its host has only IPv6 unless the project buys the IPv4 add-on, and neither Render nor GitHub-hosted runners (the `transfer-ops` jobs) reach IPv6 |
+| `DB_POOL_MIN_IDLE` | Optional (default `2`, 1–5): idle PostgreSQL connections the API keeps between requests (spec 002 D2). The pool never opens more than 5 |
+| `DB_POOL_PROBE_AFTER_S` | Optional (default `30`): a connection idle longer than this is checked with `SELECT 1` before use |
 | `RUN_MIGRATIONS` | `0` on the web process; the schema is applied by the separate migration step |
 | `WEB_CONCURRENCY` | `1` (required: PvP lobby and notification rooms live in process memory — AGENTS.md R18) |
 | `JWT_SECRET_KEY` | ≥ 32 random characters (`python -c "import secrets; print(secrets.token_hex(32))"`) |
@@ -73,7 +75,7 @@ wrong):
 | `AUTH_COOKIE_SAMESITE` | `none` (default) while the page calls the API from another origin; `lax` after the switch of § 3.3 (spec 004 E5) |
 | `SUPABASE_URL`, `SUPABASE_KEY` | Storage for the **private** bucket `procedimientos` (images are served as bytes, never by public URL) |
 | `ADMIN_USER`, `ADMIN_PASSWORD` | seed of the administrator account (only created if the password is set) |
-| `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_STUDENT_ANALYSIS`, `AI_KEY_TEACHER_ANALYSIS` |
+| `SYSTEM_AI_API_KEY` | optional; without it AI features degrade gracefully. Optional per-feature keys: `AI_KEY_KATIA`, `AI_KEY_PROCEDURE`, `AI_KEY_TEACHER_ANALYSIS`; the key's prefix picks the provider, and `AI_MODEL_KATIA` / `AI_MODEL_VISION` / `AI_MODEL_ANALYSIS` override the Groq models. `SYSTEM_AI_PROVIDER` and `AI_KEY_STUDENT_ANALYSIS` are no longer read (spec 005 K4): remove them from the host |
 | `DATABASE_SSLMODE`, `LOG_LEVEL` | optional |
 
 Both database URLs take the form `postgresql://user:password@host:port/database` and nothing more.
@@ -320,9 +322,14 @@ then restore the application schema; rehearsed locally, the result is identical 
 before the migration:
 
 ```sql
-DROP TABLE IF EXISTS active_exam_sessions, diagnostics, exam_responses, lesson_interactions,
-  lesson_progress, pvp_answers, pvp_matches, student_course_topic_elo CASCADE;
+DROP TABLE IF EXISTS active_exam_sessions, audit_account_events, bank_syncs, diagnostics,
+  exam_responses, group_invitations, katia_conversations, katia_messages, lesson_answers,
+  lesson_interactions, lesson_outcomes, lesson_progress, procedure_files, procedure_gradings,
+  procedure_uploads, pvp_answers, pvp_matches, schema_versions, student_course_topic_elo CASCADE;
 ```
+
+These are the 19 tables the redesign creates that `main` does not have (compared on 2026-10-19,
+schema version 3, plus spec 005 K3's two at version 4). A spec that adds a table adds it here too.
 
 ```bash
 pg_restore --clean --if-exists --no-owner --no-privileges --schema=public \
@@ -343,6 +350,30 @@ EXISTS`, never `DROP` or a type change), and `scripts/migrate.py` is idempotent.
 
 After it, nothing writes `student_topic_elo` or `users.current_elo`.
 
+Spec 002 D1 adds the tables `schema_versions` and `bank_syncs`. The first start of this code on a
+database applies the whole migration once, in one transaction, and records version 1; every later
+start with the version current and the item bank unchanged issues no DDL and writes no data. The
+start no longer repairs data: if `migrate.py` stops with «Run `python scripts/repairs/….py`»,
+run that script without arguments (it only counts), then with `--apply`, and start again — it
+changed nothing before stopping. The other two repairs (`deactivate_users_without_password.py`,
+`backfill_prob_failure.py`) are the owner's choice; the start does not need them.
+
+The schema version the code expects is `SCHEMA_VERSION` in
+`src/infrastructure/persistence/schema_version.py`. Today it is **5**:
+
+| Version | Change |
+|---|---|
+| 1 | spec 002 D1: `schema_versions`, `bank_syncs`; the migration runs all-or-nothing |
+| 2 | spec 002 D3: an index on SQLite only (PostgreSQL unchanged) |
+| 3 | spec 003 L4: tables `lesson_answers` (every lesson answer, in order) and `lesson_outcomes` (the post-diagnostic outcome); each row already in `lesson_interactions` is copied once into `lesson_answers` |
+| 4 | spec 005 K3: tables `katia_conversations` (one summary per KatIA conversation) and `katia_messages` (its text, only while it is open); `katia_interactions` stays and is no longer written by V2 |
+| 5 | spec 006 X2: column `exam_responses.selected_option` (the option chosen for each exam item; NULL on rows stored before it) |
+
+A production database from `main` has no schema version and no lesson tables, so its first
+migration goes straight to version 5 and the L4 copy finds nothing to copy. The rehearsal must run
+the **same commit that will be switched**: a rehearsal made before a version change does not
+cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
+
 **Rehearse on the restored copy first** (the scratch database from § 4):
 
 ```bash
@@ -356,6 +387,10 @@ Then check on the scratch database:
 SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2;
 SELECT COUNT(*) FROM student_topic_elo;                        -- equals the count from § 4
 SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- all pre-existing rows
+SELECT MAX(version) FROM schema_versions;                      -- 5: the SCHEMA_VERSION of the commit
+SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions);  -- 0
+SELECT COUNT(*) FROM lesson_outcomes;                          -- 0: written only by new answers
+SELECT COUNT(*) FROM katia_conversations;                      -- 0: written only by new chats
 ```
 
 Every reconciled row must have `approximate = true` and a `legacy_source_key`; the second run must
@@ -375,12 +410,14 @@ redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no 
 
 **Before the switch** (on the final repository's pull request):
 
-- Roadmap follow-up **F-4** is merged into the branch being switched: `next-question`, `/answer`
-  and the diagnostic serve only courses the student is enrolled in (spec 001 FR-037, FR-037a).
-  Today any course is served.
-- Roadmap follow-up **F-5** is merged into the branch being switched: PvP lets enrolled students
-  in. Without it the redesign's PvP refuses every student (`docs/sdd/roadmap.md` § Follow-ups).
-- Roadmap follow-up **F-1** is merged into the branch being switched (decided 2026-10-09):
+- The § 4 backup and the § 5 rehearsal were run on the commit being switched, or on one with the
+  same `SCHEMA_VERSION`. The rehearsal report shows the migration passing twice, and
+  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (5 today).
+
+- Roadmap follow-ups **F-4** (PR #9: `next-question`, `/answer` and the diagnostic serve only
+  courses the student is enrolled in, spec 001 FR-037, FR-037a) and **F-5** (PR #8: PvP lets
+  enrolled students in) are merged into `redesign` (checked 2026-10-19).
+- Roadmap follow-up **F-1** is merged into `redesign` (PRs #6, #10; decided 2026-10-09):
   Semillero students see the six courses of their grade and invitation codes work. Its read-only
   production checks (spec 001 task T084; `docs/sdd/f1-semillero-survey.md` § 3 step 1 and § 4.3
   step 1) are done by the owner first, with the counts recorded:
@@ -416,6 +453,9 @@ refuses any non-local host. Never point tests at the production database.
 5. With a test teacher: the dashboard lists students with display rating and rank label.
 6. The SQL checks from § 5 return the same answers as on the rehearsal copy.
 7. No answer was saved by the old API after the migration (§ 6.1): the query below returns 0.
+8. Once V1 is disconnected (§ 3.1), delete the KatIA messages typed before spec 005 K3 (decision
+   N3): `python scripts/repairs/delete_katia_texts.py` counts them, `--apply` deletes them, and a
+   second `--apply` reports 0. It prints counts only.
 
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer

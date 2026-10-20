@@ -65,14 +65,14 @@
   font-weight: 700;
   font-size: 11px;
 }
-.lue-dx .pv-tag.win { color: #34d399; }
-.lue-dx .pv-tag.loss { color: #f87171; }
+.lue-dx .pv-tag.win { color: var(--color-correct); }
+.lue-dx .pv-tag.loss { color: var(--color-wrong); }
 .lue-dx .pv-tag.draw { color: var(--gold); }
 .lue-dx .pv-hopp { color: var(--text); }
 .lue-dx .pv-hscore { color: var(--mute); font-variant-numeric: tabular-nums; }
 .lue-dx .pv-hdelta { font-family: var(--font-display); font-weight: 700; min-width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
-.lue-dx .pv-hdelta.up { color: #34d399; }
-.lue-dx .pv-hdelta.down { color: #f87171; }
+.lue-dx .pv-hdelta.up { color: var(--color-correct); }
+.lue-dx .pv-hdelta.down { color: var(--color-wrong); }
 .lue-dx .pv-hdelta.flat { color: var(--mute); }
 
 /* ── Estados de espera ─────────────────────────────────── */
@@ -118,9 +118,9 @@
   font-size: 18px;
   font-variant-numeric: tabular-nums;
 }
-.lue-dx .pv-scorepill .me { color: #34d399; }
+.lue-dx .pv-scorepill .me { color: var(--color-correct); }
 .lue-dx .pv-scorepill .vs { color: var(--mute); font-size: 11px; font-weight: 600; }
-.lue-dx .pv-scorepill .opp { color: #f87171; }
+.lue-dx .pv-scorepill .opp { color: var(--color-wrong); }
 .lue-dx .pv-timer {
   font-family: var(--font-display);
   font-weight: 700;
@@ -129,7 +129,7 @@
   font-variant-numeric: tabular-nums;
   display: inline-flex; align-items: center; gap: 6px;
 }
-.lue-dx .pv-timer.warn { color: #f87171; animation: pv-pulse 1s ease-in-out infinite; }
+.lue-dx .pv-timer.warn { color: var(--color-wrong); animation: pv-pulse 1s ease-in-out infinite; }
 @keyframes pv-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 .lue-dx .pv-counter { font-family: var(--font-pixel); font-size: 9px; color: var(--mute); }
 
@@ -146,8 +146,8 @@
   letter-spacing: -0.02em;
   margin: 0 0 18px;
 }
-.lue-dx .pv-result-title.win { color: #34d399; }
-.lue-dx .pv-result-title.loss { color: #f87171; }
+.lue-dx .pv-result-title.win { color: var(--color-correct); }
+.lue-dx .pv-result-title.loss { color: var(--color-wrong); }
 .lue-dx .pv-result-title.draw { color: var(--gold); }
 .lue-dx .pv-board {
   display: flex; align-items: center; justify-content: center; gap: 28px;
@@ -164,8 +164,8 @@
   font-family: var(--font-display); font-weight: 800; font-size: 22px;
   margin: 0 0 26px; font-variant-numeric: tabular-nums;
 }
-.lue-dx .pv-elo-delta.up { color: #34d399; }
-.lue-dx .pv-elo-delta.down { color: #f87171; }
+.lue-dx .pv-elo-delta.up { color: var(--color-correct); }
+.lue-dx .pv-elo-delta.down { color: var(--color-wrong); }
 .lue-dx .pv-elo-delta.flat { color: var(--gold); }
 .lue-dx .pv-elo-delta .lbl { font-family: var(--font-pixel); font-size: 8px; color: var(--mute); display: block; margin-bottom: 6px; letter-spacing: 0.04em; }
 .lue-dx .pv-reason { margin: -14px auto 24px; max-width: 34ch; font-size: 13.5px; }
@@ -183,4 +183,14 @@
 @media (max-width: 480px) {
   .lue-dx .pv-board { gap: 18px; }
   .lue-dx .pv-board-num { font-size: 36px; }
+}
+
+/* The server's verdict on the chosen option (survey 007 V14): the shared tokens, not literals. */
+.lue-dx .dx-opt.ok {
+  border-color: var(--color-correct);
+  background: color-mix(in srgb, var(--color-correct) 14%, transparent);
+}
+.lue-dx .dx-opt.bad {
+  border-color: var(--color-wrong);
+  background: color-mix(in srgb, var(--color-wrong) 14%, transparent);
 }

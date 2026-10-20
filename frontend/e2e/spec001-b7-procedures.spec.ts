@@ -251,6 +251,9 @@ test.describe("Bloque 7 — lo que ve el docente", () => {
     // The queue reloads and the new submission's file is fetched, not the cached one.
     await expect.poll(() => imageRequests).toEqual(["round 1", "round 2"]);
 
+    // Spec 006 FR-051: a new review round starts with no grade; the teacher grades it again.
+    await expect(page.getByRole("button", { name: /Guardar calificación/ })).toBeDisabled();
+    await page.getByRole("button", { name: "80", exact: true }).click();
     await page.getByRole("button", { name: /Guardar calificación/ }).click();
     await expect(page.getByRole("status")).toHaveText(
       "Calificación guardada · Ana Gómez: efecto en la nota +6",

@@ -16,10 +16,12 @@ Endpoints del panel del docente:
 
 import io
 from datetime import datetime, timezone
+from typing import Literal
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
 
+from api.ai_target import TIMED_OUT, UNAVAILABLE, ai_target
 from api.dependencies import CurrentUser, RepoDep, require_role
 from api.schemas.teacher import (
     ApproveTeacherRequest,
@@ -41,12 +43,15 @@ from api.schemas.teacher import (
     PendingProcedure,
     ProcedureCopy,
     ProcedureGradingEntry,
+    StudentPathResponse,
     StudentReportResponse,
     StudentAIAnalysisRequest,
     UserAdminRow,
 )
 from src.application.services.teacher_service import TeacherService
+from src.domain.exams.results import template_results
 from src.domain.invitations import format_token
+from src.domain.learning.prealgebra import PREALGEBRA_COURSE_ID, path_record
 from src.domain.procedures import ReviewRoundSuperseded
 from api.config import settings
 from api.rate_limit import limiter
@@ -54,7 +59,7 @@ from api.rate_limit import limiter
 router = APIRouter(
     prefix="/teacher",
     tags=["teacher"],
-    dependencies=[require_role("teacher", "admin")],
+    dependencies=[require_role("teacher")],  # spec 006 FR-042
 )
 
 
@@ -87,11 +92,20 @@ def _require_teacher_student(repo, student_id: int, user: dict) -> dict:
 # ── Dashboard ─────────────────────────────────────────────────────────────────
 
 
+Window = Literal["7", "30", "all"]
+
+
+def _days(window: str) -> int | None:
+    """Spec 006 FR-043: the last 7 or 30 days, or the whole history (None)."""
+    return None if window == "all" else int(window)
+
+
 @router.get("/dashboard")
-def dashboard(user: CurrentUser, repo: RepoDep):
-    """Resumen de grupos, ELO promedio y últimos intentos de los estudiantes."""
+def dashboard(user: CurrentUser, repo: RepoDep, days: Window = "30"):
+    """The teacher's students (spec 006 FR-040) with their attempts in the window (FR-043), their
+    current ratings, the groups and the server's summary (FR-041)."""
     svc = _svc(repo)
-    students = repo.get_teacher_dashboard_stats(user["user_id"])
+    students = repo.get_teacher_dashboard_stats(user["user_id"], days=_days(days))
     views = svc.ratings.ratings_view_bulk([s["user_id"] for s in students])
     for s in students:  # the overall rating as the student sees it (FR-028a, FR-028j)
         view = views[s["user_id"]]
@@ -101,10 +115,22 @@ def dashboard(user: CurrentUser, repo: RepoDep):
             rank_label=view["rank_label"],
             overall_status=view["overall_status"],
         )
-    _, groups = svc.get_dashboard_data(user["user_id"])
+    memberships = repo.get_teacher_student_groups(user["user_id"])
+    summary = svc.ratings.console_summary(
+        [
+            {
+                "user_id": s["user_id"],
+                "accuracy": s["accuracy"],
+                "total_attempts": s["total_attempts"],
+                "group_ids": memberships.get(s["user_id"], []),
+            }
+            for s in students
+        ]
+    )
+    groups = repo.get_groups_by_teacher(user["user_id"])
     # The group's reusable code (V1 still reads it) is not sent: spec 001 FR-028u.
     groups = [{k: v for k, v in g.items() if k != "invite_code"} for g in groups]
-    return {"students": students, "groups": groups}
+    return {"students": students, "groups": groups, "summary": summary}
 
 
 # ── Grupos ────────────────────────────────────────────────────────────────────
@@ -221,6 +247,7 @@ def pending_procedures(user: CurrentUser, repo: RepoDep):
                 item_id=row.get("item_id", ""),
                 item_content=row.get("item_content"),
                 ai_score=row.get("ai_proposed_score"),
+                ai_feedback=row.get("ai_feedback"),
                 status=row.get("status", "pending"),
                 created_at=str(row.get("submitted_at") or row.get("created_at", "")),
                 has_image=has_image,
@@ -377,6 +404,24 @@ def student_report(student_id: int, user: CurrentUser, repo: RepoDep):
     return svc.get_student_dashboard(student_id)
 
 
+@router.get("/student/{student_id}/path/{course_id}", response_model=StudentPathResponse)
+def student_path(student_id: int, course_id: str, user: CurrentUser, repo: RepoDep):
+    """Spec 003 L4 (FR-042): the student's learning path — state, every answer in order and the
+    post-diagnostic outcomes. Right or wrong and the tag; never the chosen value (N11)."""
+    _require_teacher_student(repo, student_id, user)
+    if course_id != PREALGEBRA_COURSE_ID:
+        raise HTTPException(status_code=404, detail="Este curso no tiene ruta de aprendizaje")
+    return {
+        "student_id": student_id,
+        "course_id": course_id,
+        "nodes": path_record(
+            repo.get_lesson_states(student_id, course_id),
+            repo.get_lesson_answers(student_id, course_id),
+            repo.get_lesson_outcomes(student_id, course_id),
+        ),
+    }
+
+
 @router.get("/student/{student_id}/elo-history")
 def student_elo_history(
     student_id: int, user: CurrentUser, repo: RepoDep, limit: int = Query(20, ge=1, le=200)
@@ -389,10 +434,10 @@ def student_elo_history(
 
 @router.get("/student/{student_id}/katia-history")
 def student_katia_history(student_id: int, user: CurrentUser, repo: RepoDep):
-    """Historial de interacciones socrátidas del estudiante con KatIA."""
+    """Spec 005 FR-033: the student's closed KatIA conversations — topic, item, turns, outcome,
+    kind of difficulty and tag; never what was written."""
     _require_teacher_student(repo, student_id, user)
-    rows = repo.get_katia_interactions(student_id)
-    return {"interactions": [dict(r) if not isinstance(r, dict) else r for r in (rows or [])]}
+    return {"conversations": repo.get_katia_conversations(student_id)}
 
 
 @router.post("/student/{student_id}/ai-analysis")
@@ -419,25 +464,47 @@ def student_ai_analysis(
             detail="No hay API key de IA configurada. Pide al administrador que configure "
             "SYSTEM_AI_API_KEY.",
         )
+    # Spec 005 FR-010 … FR-013: the key's prefix picks the provider, settings the model.
+    target = ai_target("teacher_analysis", effective_key)
     global_elo = svc.ratings.ratings_view(student_id)["overall"]
+    # FR-015: the student's graded procedures (0-100), overall and per course.
+    scores = [row["score"] for row in repo.get_student_procedure_scores(student_id)]
+    procedure_stats = (
+        {"count": len(scores), "avg_score": sum(scores) / len(scores), "scores": scores}
+        if scores
+        else None
+    )
 
     try:
         analysis = svc.generate_ai_analysis(
             student_id=student_id,
             global_elo=global_elo,
-            api_key=effective_key,
-            provider=body.provider,
+            api_key=target.api_key,
+            provider=target.provider,
+            base_url=target.base_url,
+            model_name=target.model,
+            timeout=target.timeout,
+            procedure_stats=procedure_stats,
+            procedure_stats_by_course=repo.get_procedure_stats_by_course(student_id),
         )
-    except (ConnectionError, TimeoutError) as exc:
-        # ai_client los lanza con un mensaje ya pensado para el usuario.
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
+    except TimeoutError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=TIMED_OUT)
+    except ConnectionError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=UNAVAILABLE)
+    # FR-016: a provider's error text («ERROR_401: …», «❌ …») is not an analysis.
+    if not (analysis or "").strip() or analysis.lstrip().startswith(("ERROR_", "❌")):
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="La IA no pudo generar el análisis. Intenta de nuevo.",
+        )
     return {"analysis": analysis}
 
 
 @router.get("/metrics")
-def teacher_metrics(user: CurrentUser, repo: RepoDep):
-    """Métricas de uso del grupo: tiempo promedio por pregunta, tasa de abandono, temas top, actividad."""
-    return repo.get_teacher_metrics(user["user_id"])
+def teacher_metrics(user: CurrentUser, repo: RepoDep, days: Window = "30"):
+    """Time per question, abandonment, top topics and activity of the teacher's students, in the
+    window (spec 006 FR-040, FR-043)."""
+    return repo.get_teacher_metrics(user["user_id"], days=_days(days))
 
 
 @router.get("/student/{student_id}/ranking")
@@ -528,7 +595,8 @@ def export_xlsx(user: CurrentUser, repo: RepoDep):
         "Intentos": repo.export_teacher_student_data(user["user_id"]),
         "Matrículas": repo.export_teacher_enrollments(user["user_id"]),
         "Procedimientos": repo.export_teacher_procedures(user["user_id"]),
-        "KatIA": repo.export_teacher_katia_interactions(user["user_id"]),
+        # Spec 005 FR-033: conversations counted per course, topic and outcome; no text.
+        "KatIA": repo.export_teacher_katia_summary(user["user_id"]),
     }
 
     for sheet_name, rows in datasets.items():
@@ -553,7 +621,15 @@ def export_xlsx(user: CurrentUser, repo: RepoDep):
 # ── Sprint C: Plantillas de examen del docente ───────────────────────────────
 
 
-def _template_to_response(t: dict) -> ExamTemplateResponse:
+_LOCKED = (
+    "Ya hay estudiantes que empezaron este examen: sus preguntas no cambian. "
+    "Duplica la plantilla para cambiarlas."
+)
+
+
+def _template_to_response(t: dict, repo=None) -> ExamTemplateResponse:
+    """With `repo`, also whether the template is assigned (else a draft, spec 006 FR-030) and
+    whether its items are locked (FR-031)."""
     return ExamTemplateResponse(
         id=t["id"],
         teacher_id=t["teacher_id"],
@@ -563,6 +639,8 @@ def _template_to_response(t: dict) -> ExamTemplateResponse:
         item_ids=t["item_ids"],
         archived=t["archived"],
         created_at=t["created_at"],
+        assigned=bool(repo and repo.list_assignments_for_template(t["id"])),
+        locked=bool(repo and repo.template_has_sessions(t["id"])),
     )
 
 
@@ -579,7 +657,7 @@ def list_exam_templates(
         teacher_id=user["user_id"],
         include_archived=include_archived,
     )
-    return [_template_to_response(t) for t in templates]
+    return [_template_to_response(t, repo) for t in templates]
 
 
 @router.post(
@@ -622,9 +700,11 @@ def update_exam_template(
     template = repo.get_exam_template(template_id)
     if not template:
         raise HTTPException(status_code=404, detail="Plantilla no encontrada.")
-    if template["teacher_id"] != user["user_id"] and user.get("role") != "admin":
+    if template["teacher_id"] != user["user_id"]:
         raise HTTPException(status_code=403, detail="No es tu plantilla.")
     if body.item_ids is not None:
+        if body.item_ids != template["item_ids"] and repo.template_has_sessions(template_id):
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_LOCKED)
         if len(body.item_ids) != len(set(body.item_ids)):
             raise HTTPException(status_code=400, detail="La plantilla contiene items duplicados.")
         bank_items = repo.get_items_from_db(course_id=template["course_id"])
@@ -641,7 +721,25 @@ def update_exam_template(
         time_limit_min=body.time_limit_min,
         item_ids=body.item_ids,
     )
-    return _template_to_response(repo.get_exam_template(template_id))
+    return _template_to_response(repo.get_exam_template(template_id), repo)
+
+
+@router.post(
+    "/exam-templates/{template_id}/duplicate",
+    response_model=ExamTemplateResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def duplicate_exam_template(template_id: int, user: CurrentUser, repo: RepoDep):
+    """Spec 006 FR-031: a copy, unassigned and unlocked, to change a template already taken."""
+    template = _ensure_owns_template(repo, template_id, user)
+    copy_id = repo.create_exam_template(
+        teacher_id=user["user_id"],
+        course_id=template["course_id"],
+        title=f"{template['title']} (copia)",
+        time_limit_min=template["time_limit_min"],
+        item_ids=template["item_ids"],
+    )
+    return _template_to_response(repo.get_exam_template(copy_id), repo)
 
 
 @router.delete("/exam-templates/{template_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -650,7 +748,7 @@ def archive_exam_template(template_id: int, user: CurrentUser, repo: RepoDep):
     template = repo.get_exam_template(template_id)
     if not template:
         raise HTTPException(status_code=404, detail="Plantilla no encontrada.")
-    if template["teacher_id"] != user["user_id"] and user.get("role") != "admin":
+    if template["teacher_id"] != user["user_id"]:
         raise HTTPException(status_code=403, detail="No es tu plantilla.")
     repo.archive_exam_template(template_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -697,11 +795,11 @@ def _assignment_response(row: dict) -> ExamAssignmentResponse:
 
 
 def _ensure_owns_template(repo, template_id: int, user: dict) -> dict:
-    """Carga la plantilla y verifica autoría (o rol admin). Lanza HTTPException."""
+    """Carga la plantilla y verifica autoría. Lanza HTTPException."""
     template = repo.get_exam_template(template_id)
     if not template:
         raise HTTPException(status_code=404, detail="Plantilla no encontrada.")
-    if template["teacher_id"] != user["user_id"] and user.get("role") != "admin":
+    if template["teacher_id"] != user["user_id"]:
         raise HTTPException(status_code=403, detail="No es tu plantilla.")
     return template
 
@@ -728,24 +826,32 @@ def create_template_assignments(
     user: CurrentUser,
     repo: RepoDep,
 ):
-    """Asigna la plantilla a uno o varios grupos. Upsert por (template, group)."""
-    _ensure_owns_template(repo, template_id, user)
-    # Validar que el docente sea dueño de los grupos (o admin)
-    if user.get("role") != "admin":
-        teacher_groups = {g["group_id"] for g in repo.get_groups_by_teacher(user["user_id"])}
-        invalid = [gid for gid in body.group_ids if gid not in teacher_groups]
-        if invalid:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Grupos no autorizados: {invalid}",
-            )
-    for gid in body.group_ids:
-        repo.create_exam_assignment(
-            template_id=template_id,
-            group_id=gid,
-            starts_at=_stored_utc(body.starts_at),
-            ends_at=_stored_utc(body.ends_at),
+    """Asigna la plantilla a uno o varios grupos. Upsert por (template, group).
+
+    Spec 006 FR-032: the groups are the template author's and of the template's course; all of
+    them are assigned in one transaction, or none."""
+    template = _ensure_owns_template(repo, template_id, user)
+    group_courses = {
+        g["group_id"]: g["course_id"] for g in repo.get_groups_by_teacher(template["teacher_id"])
+    }
+    invalid = [gid for gid in body.group_ids if gid not in group_courses]
+    if invalid:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Grupos no autorizados: {invalid}",
         )
+    other_course = [gid for gid in body.group_ids if group_courses[gid] != template["course_id"]]
+    if other_course:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Un examen se asigna solo a grupos de su curso; no se asignó a ninguno.",
+        )
+    repo.assign_template_to_groups(
+        template_id,
+        list(body.group_ids),
+        starts_at=_stored_utc(body.starts_at),
+        ends_at=_stored_utc(body.ends_at),
+    )
     rows = repo.list_assignments_for_template(template_id)
     return [_assignment_response(r) for r in rows]
 
@@ -773,7 +879,11 @@ def exam_template_results(template_id: int, user: CurrentUser, repo: RepoDep):
     pregunta y tema a reforzar. Los exámenes se califican automáticamente; este
     endpoint solo agrega las respuestas ya guardadas (no afecta ELO)."""
     template = _ensure_owns_template(repo, template_id, user)
-    analysis = repo.get_exam_template_results(template_id)
+    # Spec 006 FR-033: the template author's students, each on their first submission.
+    students = {
+        s["user_id"]: s["name"] for s in repo.get_teacher_dashboard_stats(template["teacher_id"])
+    }
+    analysis = template_results(repo.get_exam_template_responses(template_id), students)
     analysis["title"] = template["title"]
     return analysis
 
