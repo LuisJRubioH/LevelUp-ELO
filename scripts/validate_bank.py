@@ -19,6 +19,9 @@ Qué verifica:
     - IDs únicos en todo el banco (sin duplicados entre archivos)
     - Ningún texto entre dos `$` que no sea matemática (dos montos en pesos en la misma frase
       convierten lo de en medio en una fórmula)
+    - Ningún carácter de control (R5): `"\\frac"` escrito con una sola barra en el JSON se lee
+      como salto de página + "rac"
+    - `topic` es texto no vacío
 """
 
 import json
@@ -52,6 +55,28 @@ def prose_read_as_math(text: str) -> list:
         body = token.strip("$")
         if "\\" not in body and "{" not in body and len(_WORD.findall(body)) >= 2:
             found.append(token)
+    return found
+
+
+_DOLLAR = re.compile(r"(?<!\\)\$")
+
+
+def control_characters(text: str) -> list:
+    """R5: what a LaTeX command written with ONE backslash in the JSON decodes to.
+
+    `\\f`, `\\b`, `\\t`, `\\r` («\\frac», «\\beta», «\\theta», «\\right») become control
+    characters, which the bank never needs. A newline is Markdown (lists, tables), so it is an
+    error only when it cuts a formula in two («$a \\neq b$»): the line before it then holds an odd
+    number of `$`.
+    """
+    found = [repr(ch) for ch in text if ch != "\n" and (ord(ch) < 32 or 127 <= ord(ch) < 160)]
+    lines = text.split("\n")
+    if len(lines) > 1:
+        found += [
+            "'\\n' dentro de una fórmula"
+            for line in lines
+            if len(_DOLLAR.findall(line.replace("$$", ""))) % 2
+        ][:1]
     return found
 
 
@@ -108,9 +133,18 @@ def validate_item(item: dict, source_file: str) -> None:
     if not str(item.get("content", "")).strip():
         errors.append(f"{prefix}: 'content' está vacío")
 
-    # 7. Nada de prosa entre dos `$`: se vería como una fórmula ilegible
+    # 7. `topic` nombra la fila del rating (R15): texto no vacío
+    if not isinstance(item["topic"], str) or not item["topic"].strip():
+        errors.append(f"{prefix}: 'topic' debe ser un texto no vacío, es {item['topic']!r}")
+
+    # 8. Ni caracteres de control (R5) ni prosa entre dos `$` (se vería como una fórmula ilegible)
     texts = [item["content"]] + (item["options"] if isinstance(item["options"], list) else [])
     for text in (t for t in texts if isinstance(t, str)):
+        for char in control_characters(text):
+            errors.append(
+                f"{prefix}: carácter de control {char} en {text[:40]!r}; en el JSON el LaTeX lleva "
+                "dos barras (R5: \\\\frac, \\\\beta)"
+            )
         for token in prose_read_as_math(text):
             errors.append(
                 f"{prefix}: {token[:60]!r} se muestra como fórmula; escribe los montos sin $ "
