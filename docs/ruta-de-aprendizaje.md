@@ -353,7 +353,7 @@ Dos hilos deliberados: **«cierto ≠ terminado»** (G01 lo instala, G02 lo
 reengancha, G05 lo cierra sobre la cadena entera) y el contraste **G02 ↔ G04**
 —la suma de cuadrados no se factoriza, la de cubos sí.
 
-**G05 existe para llenar un hueco medido, no por simetría.** Sobre los 4.656
+**G05 existe para llenar un hueco medido, no por simetría.** Sobre los 5.725
 enunciados extraídos de los libros hay **cero** ítems de decisión de método,
 y es estructural: el índice del libro ya responde qué método toca, así que el
 estudiante nunca elige. Conteo en
@@ -376,7 +376,7 @@ afectan a quien escriba un nodo:
   escritos en [Implementacion/image-prompts/](../Implementacion/image-prompts/);
   los PNG de N2 todavía dibujan puestos de mercado (descartado) y los de Kemet
   no existen.
-- **Los 4.656 ítems extraídos de los libros no alimentan los nodos.** Aportaron
+- **Los 5.725 ítems extraídos de los libros no alimentan los nodos.** Aportaron
   lo caro —enunciado, respuesta, dificultad calibrada— y falta lo que ningún
   libro trae: los distractores.
 

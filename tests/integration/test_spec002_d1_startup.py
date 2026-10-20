@@ -432,3 +432,22 @@ def test_spec002_d1_a_changed_bank_only_resyncs_the_bank(database, tmp_path, mon
     database.build()
     assert recorded.writes() == []
     assert recorded.matching(r"^\s*UPDATE\s+items") == []
+
+
+def test_spec002_d1_a_changed_course_map_resyncs_the_bank(database, tmp_path, monkeypatch):
+    """FR-016, survey 008 B21: the sync applies the bank files AND the course maps (block and
+    name), so a change to a map alone is a changed bank: the next start moves the course."""
+    bank = tmp_path / "bank"
+    shutil.copytree(_ROOT / "items" / "bank", bank)
+    cls = database.repository_class
+    monkeypatch.setattr(cls, "BANK_DIR", str(bank), raising=False)
+    database.build()
+    assert database.sql("SELECT block FROM courses WHERE id = ?", ("geometria",)) == [("Colegio",)]
+
+    monkeypatch.setitem(cls._COURSE_BLOCK_MAP, "geometria", "Universidad")
+    monkeypatch.setitem(cls._COURSE_NAME_MAP, "geometria", "Geometría B21")
+    database.build()
+
+    assert database.sql("SELECT name, block FROM courses WHERE id = ?", ("geometria",)) == [
+        ("Geometría B21", "Universidad")
+    ]

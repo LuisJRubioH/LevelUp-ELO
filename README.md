@@ -274,7 +274,7 @@ errores y el catálogo completo— en
 
 ### Extracción de libros
 
-`items/source/` tiene **4.656 enunciados** extraídos de tres libros (Hipertexto,
+`items/source/` tiene **5.725 enunciados** extraídos de tres libros (Hipertexto,
 Caminos, EPA8) con enunciado, respuesta y dificultad ya en escala ELO. **Todavía
 no alimentan el banco**: les faltan los distractores, que es justo lo que ningún
 libro trae. Ver [CABOS_SUELTOS](Implementacion/CABOS_SUELTOS.md) §D4.
@@ -445,7 +445,7 @@ Lo grande, con el detalle en
   escritos; los PNG de N2 todavía dibujan la versión descartada y los de Kemet no
   existen. Efecto conocido: el hub de Kemet pide un PNG que no está → 404 en cada
   carga.
-- **Los 4.656 ítems extraídos no alimentan el banco** — les faltan distractores.
+- **Los 5.725 ítems extraídos no alimentan el banco** — les faltan distractores.
 - **Accesibilidad:** el código está corregido; falta la revisión con lector de
   pantalla real y la medición de contraste.
 - **Calibración del piloto:** los 7 ítems de práctica por nodo son una convención,

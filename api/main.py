@@ -75,12 +75,18 @@ async def lifespan(app: FastAPI):
     from api.websocket.expiry import run_sweeper
 
     sweeper = asyncio.create_task(run_sweeper(get_repository))
+    # Survey 007 V22: close orphaned PvP matches while the API runs, not only at deploy.
+    from api.websocket import pvp as _pvp
+
+    sweep = asyncio.create_task(_pvp.sweep_orphaned_matches(repo), name="pvp-orphan-sweep")
 
     yield
 
-    sweeper.cancel()
+    # Only the background tasks stop: no match is closed at shutdown (owner decision, 2026-10-20).
+    for task in (sweeper, sweep):
+        task.cancel()
     try:
-        await sweeper
+        await asyncio.gather(sweeper, sweep)
     except asyncio.CancelledError:
         pass
     logger.info("=== LevelUp-ELO API detenida ===")

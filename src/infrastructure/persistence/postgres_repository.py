@@ -364,7 +364,9 @@ class PostgresRepository:
     def _sync_bank_if_changed(self):
         """Spec 002 FR-016: sync the item bank only when its fingerprint differs from the last
         one recorded, then record it; an unchanged bank writes nothing."""
-        fingerprint = bank_fingerprint(self.BANK_DIR)
+        fingerprint = bank_fingerprint(
+            self.BANK_DIR, {"block": self._COURSE_BLOCK_MAP, "name": self._COURSE_NAME_MAP}
+        )
         if fingerprint is None:
             return
         conn = self.get_connection()
@@ -4867,6 +4869,16 @@ class PostgresRepository:
                         tags_json = json.dumps(item.get("tags") or [])
                         options_json = json.dumps(item["options"])
                         item_block = item.get("block", "")
+                        static = (
+                            item["content"],
+                            options_json,
+                            item["correct_option"],
+                            item["topic"],
+                            course_id,
+                            img,
+                            tags_json,
+                            item_block,
+                        )
                         if item["id"] not in existing_items:
                             new_items_params.append(
                                 (
@@ -4882,19 +4894,12 @@ class PostgresRepository:
                                     item_block,
                                 )
                             )
+                            # Survey 008 B22: a later file with the same id updates it, as on
+                            # SQLite — the insert's ON CONFLICT DO NOTHING would keep the first.
+                            existing_items[item["id"]] = static
                         else:
                             # Ítem ya existe → re-sincronizar metadatos estáticos, solo si
                             # cambiaron: un arranque sin cambios en el banco no reescribe filas.
-                            static = (
-                                item["content"],
-                                options_json,
-                                item["correct_option"],
-                                item["topic"],
-                                course_id,
-                                img,
-                                tags_json,
-                                item_block,
-                            )
                             if existing_items[item["id"]] != static:
                                 update_static_params.append(static + (item["id"],))
                                 existing_items[item["id"]] = static
@@ -5357,50 +5362,6 @@ class PostgresRepository:
     # ─── Gestión de ÍTEMS (ELO Dinámico) ────────────────────────────────────────
 
     @_timing
-    def sync_items_from_json(self, items_list):
-        """Sincroniza el banco de preguntas JSON con la DB. No sobreescribe ratings actuales."""
-        conn = self.get_connection()
-        try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-            import json
-
-            for item in items_list:
-                cursor.execute("SELECT id FROM items WHERE id = %s", (item["id"],))
-                if not cursor.fetchone():
-                    cursor.execute(
-                        """
-                        INSERT INTO items (id, topic, content, options, correct_option, difficulty, rating_deviation)
-                        VALUES (%s, %s, %s, %s, %s, %s, 350.0)
-                    """,
-                        (
-                            item["id"],
-                            item["topic"],
-                            item["content"],
-                            json.dumps(item["options"]),
-                            item["correct_option"],
-                            item["difficulty"],
-                        ),
-                    )
-                else:
-                    cursor.execute(
-                        """
-                        UPDATE items
-                        SET content = %s, options = %s, correct_option = %s, topic = %s
-                        WHERE id = %s
-                    """,
-                        (
-                            item["content"],
-                            json.dumps(item["options"]),
-                            item["correct_option"],
-                            item["topic"],
-                            item["id"],
-                        ),
-                    )
-            conn.commit()
-        finally:
-            self.put_connection(conn)
-
-    @_timing
     @_read_only
     def get_items_from_db(self, topic=None, course_id=None, block=None):
         """Obtiene ítems desde la base de datos."""
@@ -5714,37 +5675,6 @@ class PostgresRepository:
             )
             conn.commit()
             return cursor.rowcount > 0
-        finally:
-            self.put_connection(conn)
-
-    @_timing
-    def update_item_rating(self, item_id, student_rating, actual_score, k_item=32.0):
-        """Actualiza la dificultad (rating) del ítem de forma simétrica."""
-        conn = self.get_connection()
-        try:
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
-
-            cursor.execute(
-                "SELECT difficulty, rating_deviation FROM items WHERE id = %s", (item_id,)
-            )
-            res = cursor.fetchone()
-            if not res:
-                return
-
-            current_diff = res["difficulty"]
-            current_rd = res["rating_deviation"]
-
-            # Lógica ELO inversa para el ítem
-            item_score = 1.0 - actual_score
-
-            p_student_wins = expected_score(student_rating, current_diff)
-            p_item_wins = 1.0 - p_student_wins
-
-            delta = k_item * (item_score - p_item_wins)
-            new_diff = current_diff + delta
-
-            cursor.execute("UPDATE items SET difficulty = %s WHERE id = %s", (new_diff, item_id))
-            conn.commit()
         finally:
             self.put_connection(conn)
 

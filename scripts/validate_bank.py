@@ -19,8 +19,16 @@ Qué verifica:
     - IDs únicos en todo el banco (sin duplicados entre archivos)
     - Ningún texto entre dos `$` que no sea matemática (dos montos en pesos en la misma frase
       convierten lo de en medio en una fórmula)
+    - Ningún carácter de control (R5): `"\\frac"` escrito con una sola barra en el JSON se lee
+      como salto de página + "rac"
+    - `topic` es texto no vacío
+    - `id` es texto no vacío; `tags`, si está, es una lista de textos no vacíos
+    - La imagen (`image_url` o `image_path`), si está, existe en el repositorio
+    - Cada archivo es un curso de `_COURSE_BLOCK_MAP` (en ambos repositorios): un curso sin
+      mapa caía en silencio en «Universidad»
 """
 
+import ast
 import json
 import re
 import sys
@@ -53,6 +61,51 @@ def prose_read_as_math(text: str) -> list:
         if "\\" not in body and "{" not in body and len(_WORD.findall(body)) >= 2:
             found.append(token)
     return found
+
+
+_DOLLAR = re.compile(r"(?<!\\)\$")
+
+
+def control_characters(text: str) -> list:
+    """R5: what a LaTeX command written with ONE backslash in the JSON decodes to.
+
+    `\\f`, `\\b`, `\\t`, `\\r` («\\frac», «\\beta», «\\theta», «\\right») become control
+    characters, which the bank never needs. A newline is Markdown (lists, tables), so it is an
+    error only when it cuts a formula in two («$a \\neq b$»): the line before it then holds an odd
+    number of `$`.
+    """
+    found = [repr(ch) for ch in text if ch != "\n" and (ord(ch) < 32 or 127 <= ord(ch) < 160)]
+    lines = text.split("\n")
+    if len(lines) > 1:
+        found += [
+            "'\\n' dentro de una fórmula"
+            for line in lines
+            if len(_DOLLAR.findall(line.replace("$$", ""))) % 2
+        ][:1]
+    return found
+
+
+_ROOT = Path(__file__).resolve().parents[1]
+_REPOSITORIES = (
+    _ROOT / "src" / "infrastructure" / "persistence" / "sqlite_repository.py",
+    _ROOT / "src" / "infrastructure" / "persistence" / "postgres_repository.py",
+)
+
+
+def course_block_maps() -> list:
+    """`_COURSE_BLOCK_MAP` of each repository, read from its source (no import: the CI job that
+    runs this script installs nothing)."""
+    maps = []
+    for path in _REPOSITORIES:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        found = [
+            ast.literal_eval(node.value)
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Assign)
+            and any(getattr(t, "id", None) == "_COURSE_BLOCK_MAP" for t in node.targets)
+        ]
+        maps.append(found[0] if found else {})
+    return maps
 
 
 # ── Estado global del validador ────────────────────────────────────────────────
@@ -100,17 +153,40 @@ def validate_item(item: dict, source_file: str) -> None:
             f"mínimo requerido: {MIN_OPTIONS}"
         )
 
-    # 5. ID no vacío
-    if not str(item.get("id", "")).strip():
-        errors.append(f"{prefix}: 'id' está vacío o es solo espacios")
+    # 5. ID: texto no vacío (un número chocaría con su texto al guardarse)
+    if not isinstance(item["id"], str) or not item["id"].strip():
+        errors.append(f"{prefix}: 'id' debe ser un texto no vacío, es {item['id']!r}")
+
+    # 5b. tags, si está: lista de textos no vacíos
+    if "tags" in item:
+        tags = item["tags"]
+        if not isinstance(tags, list) or not all(isinstance(t, str) and t.strip() for t in tags):
+            errors.append(f"{prefix}: 'tags' debe ser una lista de textos no vacíos: {tags!r}")
+
+    # 5c. La imagen, si está, existe (ruta relativa a la raíz del repositorio)
+    image = item.get("image_url") or item.get("image_path")
+    if image is not None:
+        if not isinstance(image, str) or not image.strip():
+            errors.append(f"{prefix}: la imagen debe ser una ruta de texto, es {image!r}")
+        elif not image.startswith(("http://", "https://")) and not Path(image).is_file():
+            errors.append(f"{prefix}: la imagen '{image}' no existe")
 
     # 6. Content no vacío
     if not str(item.get("content", "")).strip():
         errors.append(f"{prefix}: 'content' está vacío")
 
-    # 7. Nada de prosa entre dos `$`: se vería como una fórmula ilegible
+    # 7. `topic` nombra la fila del rating (R15): texto no vacío
+    if not isinstance(item["topic"], str) or not item["topic"].strip():
+        errors.append(f"{prefix}: 'topic' debe ser un texto no vacío, es {item['topic']!r}")
+
+    # 8. Ni caracteres de control (R5) ni prosa entre dos `$` (se vería como una fórmula ilegible)
     texts = [item["content"]] + (item["options"] if isinstance(item["options"], list) else [])
     for text in (t for t in texts if isinstance(t, str)):
+        for char in control_characters(text):
+            errors.append(
+                f"{prefix}: carácter de control {char} en {text[:40]!r}; en el JSON el LaTeX lleva "
+                "dos barras (R5: \\\\frac, \\\\beta)"
+            )
         for token in prose_read_as_math(text):
             errors.append(
                 f"{prefix}: {token[:60]!r} se muestra como fórmula; escribe los montos sin $ "
@@ -180,6 +256,16 @@ def main() -> None:
             if "id" in item:
                 all_items.append((str(item["id"]), json_file.name))
         total_items += len(items)
+
+    # ── Cada archivo es un curso mapeado, en ambos repositorios (R1) ─────────
+    block_maps = course_block_maps()
+    for json_file in json_files:
+        course_id = json_file.stem
+        if not all(course_id in m for m in block_maps):
+            errors.append(
+                f"[{json_file.name}]: el curso '{course_id}' no está en _COURSE_BLOCK_MAP de "
+                "ambos repositorios (sin mapa caería en «Universidad»)"
+            )
 
     # ── Verificar IDs duplicados globales ────────────────────────────────────
     seen_ids = {}

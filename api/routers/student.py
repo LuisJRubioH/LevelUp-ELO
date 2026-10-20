@@ -16,6 +16,7 @@ Endpoints del flujo de práctica del estudiante:
 """
 
 import asyncio
+import functools
 import hashlib
 import logging
 import random
@@ -81,6 +82,7 @@ from api.schemas.student import (
     StudentStatsResponse,
     TopicELO,
 )
+from src.application.services.rating_read_service import RatingReadService
 from src.application.services.student_service import StudentService
 from src.domain.elo.model import diagnostic_baseline
 from src.domain.katia.conversation import STALE_AFTER_HOURS, close_outcome
@@ -109,13 +111,20 @@ logger = logging.getLogger("api.student")
 router = APIRouter(prefix="/student", tags=["student"])
 
 
-def _make_service(repo) -> StudentService:
-    """Composición: la capa de entrada es la que conoce infrastructure (R2)."""
+@functools.lru_cache(maxsize=1)
+def _calibrator():
+    """One calibrator per process (survey 008 B15): its model is read from disk once, not on
+    every request. Read-only after loading, so requests share it."""
     from src.infrastructure.ml.calibration import IsotonicCalibrator
 
     calibrator = IsotonicCalibrator()
     calibrator.load()  # False si no hay modelo entrenado — se usa p_raw
-    return StudentService(repository=repo, calibrator=calibrator)
+    return calibrator
+
+
+def _make_service(repo) -> StudentService:
+    """Composición: la capa de entrada es la que conoce infrastructure (R2)."""
+    return StudentService(repository=repo, calibrator=_calibrator())
 
 
 def _require_enrolment(service: StudentService, user_id: int, course_id: str) -> None:
@@ -377,8 +386,8 @@ def course_blocks(course_id: str, user: CurrentUser, repo: RepoDep):
 @router.get("/pvp/history")
 def pvp_history(user: CurrentUser, repo: RepoDep):
     """Historial de partidas PvP del estudiante autenticado; el rival, por su nombre visible
-    (spec 004 FR-021)."""
-    return repo.get_pvp_history(user["user_id"])
+    (spec 004 FR-021), y el delta a mostrar, redondeado en el servidor (estudio 007 V14)."""
+    return RatingReadService(repo).pvp_history(user["user_id"])
 
 
 @router.put("/display-name")

@@ -334,9 +334,11 @@ gets 0 with `elo_reason = 'no_rated_topics'`; it returns the applied deltas, and
 them (`"not_applied"` with 0 if persisting fails). The close is idempotent through
 `AND status='active'`. The lobby reads the course rating outside `_lock` (1000 drives the
 expectation of an unrated player but is never shown). Orphaned matches are closed as `abandoned`
-(no rating change) by `expire_stale_pvp_matches()`; a match whose player's account expires, by
-`pvp.abandon_matches_of` → `abandon_pvp_match` — no rating change, both players told why, under the
-same `match.finished` guard as the normal close, so it ends once (spec 004 FR-051, FR-052).
+(no rating change) by `expire_stale_pvp_matches()`: at bootstrap and, while the API runs, every
+5 minutes (`sweep_orphaned_matches`, survey 007 V22). Shutdown only stops the sweep; it never
+closes a match. A match whose player's account expires is closed by `pvp.abandon_matches_of` →
+`abandon_pvp_match` — no rating change, both players told why, under the same `match.finished`
+guard as the normal close, so it ends once (spec 004 FR-051, FR-052).
 
 ---
 
@@ -508,8 +510,9 @@ same `match.finished` guard as the normal close, so it ends once (spec 004 FR-05
   muesca) · **G04 la bodega de los toneles** (`suma_de_cubos_es_cubo_de_binomio`; tonel, duela,
   aro, arqueo) · **G05 la sala de expedición** (`se_queda_en_el_primer_caso`; guía de carga,
   precinto, remesa, ruta).
-  - **G05 fills a measured gap**: among the **4,656 statements** in `items/source/` there are
-    **ZERO method-choice items and ZERO check-without-computing items** — structurally, because
+  - **G05 fills a measured gap**: among the **5,725 statements** in `items/source/` there are
+    **ZERO method-choice items and ZERO check-without-computing items** (measured on 4,656 in
+    2026-08, re-checked on 5,725 in 2026-10) — structurally, because
     the textbook index already tells the student which method applies. Its practice is entirely
     of the missing types, based on the 46 items of `u5_factorizacion_completa_p127`.
   - **The level's thread is "correct ≠ finished"**: G01 installs it (multiplying back does NOT
@@ -594,7 +597,8 @@ Bootstrap (spec 002 D1): `_migrate_db()` → `_seed_admin()` → `_seed_demo_dat
   new `MIGRATION_SOURCES_DIGEST`** — `tests/unit/infrastructure/test_spec002_schema_version.py`
   fails otherwise. If another session holds the lock and the schema is behind, no later step runs
   (all are reported as skipped).
-- **Item bank.** Synced only when its fingerprint differs from the last row of `bank_syncs`.
+- **Item bank.** Synced only when its fingerprint (the bank files and both course maps) differs
+  from the last row of `bank_syncs`.
 - **No data repair at start** (spec 002 FR-018). `scripts/repairs/` —
   `deactivate_users_without_password.py`, `rename_duplicate_groups.py`,
   `backfill_prob_failure.py` — count by default, write with `--apply`, print counts only. A

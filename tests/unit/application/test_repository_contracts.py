@@ -128,3 +128,12 @@ def test_repositories_satisfy_the_protocols_at_runtime(repo_cls):
     for protocol in PROTOCOLS:
         assert isinstance(fake, protocol)
         assert all(hasattr(repo_cls, m) for m in _protocol_methods(protocol))
+
+
+@pytest.mark.parametrize("repo_cls", REPOS, ids=lambda c: c.__name__)
+@pytest.mark.parametrize("name", ["sync_items_from_json", "update_item_rating"])
+def test_retired_methods_stay_gone(repo_cls, name):
+    """Survey 008 B20: two methods with no caller on either engine — an old bank loader
+    (`sync_items_from_bank_folder` replaced it) and an old item-difficulty update (now inside
+    `save_answer_transaction`). Calling one would bypass the current logic; they are removed."""
+    assert not hasattr(repo_cls, name)

@@ -84,8 +84,9 @@ antigua, y tampoco aparece en el contenido.)
 
 ### D4 — Los ítems de Hipertexto no alimentan los nodos ni el banco
 
-Era el propósito de la extracción. **4 656 ítems** en `items/source/` (3 132 Hipertexto,
-1 464 Caminos, 60 EPA8), ninguno en uso: la práctica de los 43 nodos está escrita a mano y
+Era el propósito de la extracción. **5 725 ítems** en `items/source/` (3 132 Hipertexto,
+2 533 Caminos, 60 EPA8; eran 4 656 hasta que se extrajeron las unidades 6–10 de Caminos),
+ninguno en uso: la práctica de los 43 nodos está escrita a mano y
 `items/bank/` no los tiene.
 
 El hueco **no es de formato**. Medido el 2026-08-13:
