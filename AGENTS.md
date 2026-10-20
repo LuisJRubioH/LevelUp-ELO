@@ -505,8 +505,9 @@ expectation of an unrated player but is never shown). Orphaned matches are close
   muesca) · **G04 la bodega de los toneles** (`suma_de_cubos_es_cubo_de_binomio`; tonel, duela,
   aro, arqueo) · **G05 la sala de expedición** (`se_queda_en_el_primer_caso`; guía de carga,
   precinto, remesa, ruta).
-  - **G05 fills a measured gap**: among the **4,656 statements** in `items/source/` there are
-    **ZERO method-choice items and ZERO check-without-computing items** — structurally, because
+  - **G05 fills a measured gap**: among the **5,725 statements** in `items/source/` there are
+    **ZERO method-choice items and ZERO check-without-computing items** (measured on 4,656 in
+    2026-08, re-checked on 5,725 in 2026-10) — structurally, because
     the textbook index already tells the student which method applies. Its practice is entirely
     of the missing types, based on the 46 items of `u5_factorizacion_completa_p127`.
   - **The level's thread is "correct ≠ finished"**: G01 installs it (multiplying back does NOT
