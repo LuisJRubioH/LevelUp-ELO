@@ -54,7 +54,7 @@ that catches more than one worker by any route on the same host.
 - **Persisting abuse closes the socket:** `PVP_ABUSE_LIMIT` dropped frames (default **10**) within
   10 s → close **4429** «Demasiados mensajes. Vuelve a entrar a la Liga.». In a match this is the
   player leaving; the existing 180 s / abandonment rules apply (F changes them later).
-- **Server backstop (recommended, decision O-L1):** start uvicorn with `--ws-max-size 65536` in
+- **Server backstop (decided: O-L1):** start uvicorn with `--ws-max-size 65536` in
   `render.yaml`. Without it uvicorn buffers frames up to 16 MB before the application can drop
   them. The backstop affects every WebSocket (notifications too), so it is set well above 4 KB;
   a frame over it is closed by uvicorn with 1009, before the app sees it.
@@ -66,7 +66,7 @@ that catches more than one worker by any route on the same host.
 - Today `settings.validate_runtime()` refuses `WEB_CONCURRENCY > 1` only. `uvicorn --workers N`
   and gunicorn workers spawn N processes that each run the lifespan, and none of them sees a
   variable.
-- **Detection (recommended, decision O-L2):** in the lifespan, in production, take an exclusive,
+- **Detection (decided: O-L2):** in the lifespan, in production, take an exclusive,
   non-blocking `fcntl.flock` on a fixed file (`PVP_SINGLE_PROCESS_LOCK`, default
   `/tmp/oulad-api.lock`), held for the life of the process. A second worker on the same host fails
   to take it and refuses to start with the R18 message. The lock dies with the process, so a
@@ -118,10 +118,10 @@ All the existing PvP tests stay green; `test_pvp_waiting_player.py` and
   filesystem would refuse to start, with a clear message rather than silently.
 - **A second machine** is not detected (above, decision O-L2).
 
-## Decisions for the owner
+## Decisions (owner, 2026-10-20)
 
-- **O-L1:** add uvicorn's server cap `--ws-max-size 65536` in `render.yaml`? Recommended: yes.
-- **O-L2:** detect extra workers with a host file lock (recommended) rather than a PostgreSQL
-  advisory lock that would also catch a second instance but holds one of the five connections?
-- **O-L3:** close codes **4409** (second tab) and **4429** (abuse)? Delivery G's FR-024 table will
-  list them with the other refusals.
+- **O-L1 — yes:** `render.yaml` starts uvicorn with `--ws-max-size 65536` as the server cap.
+- **O-L2 — host file lock:** extra workers are detected with an exclusive host file lock, not a
+  PostgreSQL advisory lock; a second machine stays out of reach and is documented.
+- **O-L3 — yes:** close codes **4409** (second tab) and **4429** (abuse); delivery G's FR-024
+  table lists them with the other refusals.
