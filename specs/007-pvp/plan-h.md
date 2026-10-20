@@ -1,12 +1,12 @@
 # Plan — spec 007, delivery H: the match history and a close that fails
 
 **Spec**: [spec.md](spec.md) § Deliveries, H (US6; FR-060, FR-061) · **Branch**: `007-h`, from
-`redesign` · **Date**: 2026-10-20 · **Status**: draft for the owner's approval
+`redesign` · **Date**: 2026-10-20 · **Status**: approved (owner, 2026-10-20)
 
 ## Summary
 
 Today the history lists only matches with `status = 'finished'`, up to 20 rows, while the screen
-shows 5; an abandoned match (orphan sweep, and soon E3's expired account) never appears, and a
+shows 5 and no more can be reached; an abandoned match (orphan sweep, and soon E3's expired account) never appears, and a
 match whose close fails to persist stays `active` until the sweep closes it ten minutes later as a
 plain `abandoned` row, still invisible. Delivery H lists every closed match with its subject and
 reason, sends only the rows the screen shows, and retries a failing close before recording it as
@@ -33,8 +33,11 @@ reason, sends only the rows the screen shows, and retries a failing close before
   subject's name. Each row adds `status`, `course_name` and `reason`: the student's own
   `elo_reason_p1/p2` (`no_rated_topics`, `not_saved`, `orphaned`, E3's `account_expired`; NULL for
   an ordinary finished match or an abandoned row from before H).
-- **Rows sent = rows shown**: `PVP_HISTORY_ROWS = 5`, used by the endpoint; the screen stops
-  slicing and renders what it receives.
+- **Rows sent = rows shown, all reachable (decided: O-H1)**: the endpoint returns one page —
+  `PVP_HISTORY_PAGE = 5` rows, newest first — as `{"matches": [...], "has_more": bool}`, and takes
+  `before=<match_id>` (the last row shown) for the next page (keyset, so a match closed meanwhile
+  never shifts a page). The repository reads `PVP_HISTORY_PAGE + 1` rows to know `has_more`. The
+  screen shows the first page and a «Ver más» button while `has_more`, appending each page.
 - The orphan sweep (`expire_stale_pvp_matches`, both repositories) now also writes
   `elo_delta_* = 0` and `elo_reason_* = 'orphaned'`, so its rows say why.
 - **Screen** (`League.tsx` `HistoryPanel`): each row shows the subject; an abandoned row shows a
@@ -61,13 +64,13 @@ reason, sends only the rows the screen shows, and retries a failing close before
 | Test | Proves | Where |
 |---|---|---|
 | `test_spec007_history_lists_finished_abandoned_and_not_saved` | FR-060, US6-AS1: three closed matches appear with subject and reason; an active one does not | `tests/integration/test_spec007_h_history.py` (both engines) |
-| `test_spec007_history_sends_only_the_rows_shown` | FR-060: seven closed matches → the newest 5 | same file |
+| `test_spec007_history_pages_of_five_reach_every_match` | FR-060: seven closed matches → the newest 5 with `has_more`, then `before=` the fifth → the last 2 without it | same file |
 | `test_spec007_the_sweep_records_why` | FR-060: an orphan closed by the sweep carries `orphaned` and 0 | same file |
 | `test_spec007_a_failing_close_is_retried_then_recorded_not_saved` | FR-061, US6-AS2: `finish_pvp_match` fails every time → 4 tries, row `abandoned`/`not_saved`, no rating changes, in both players' history | same file (uvicorn, a real match) |
 | `test_spec007_a_close_that_succeeds_on_retry_finishes_normally` | FR-061: fails once, then succeeds → `finished` with the applied deltas | same file |
 | `test_spec007_abandon_is_idempotent_and_skips_a_finished_match` | FR-061 | same file |
-| `/api/student/pvp/history` returns at most 5 rows with `status`, `course_name`, `reason` | FR-060 | `tests/api/test_pvp.py` |
-| e2e «el historial muestra partidas abandonadas y no guardadas con su materia» | US6-AS1 on screen | `frontend/e2e/league.spec.ts` |
+| `/api/student/pvp/history` returns `{matches, has_more}`, at most 5 rows with `status`, `course_name`, `reason`, and honours `before` | FR-060 | `tests/api/test_pvp.py` |
+| e2e «el historial muestra partidas abandonadas y no guardadas con su materia» and «ver más carga la página siguiente» | US6-AS1 on screen | `frontend/e2e/league.spec.ts` |
 
 Delivery A's pins stay green, including spec 001's `not_applied` test. **Traceability rows to
 fill:** FR-060, FR-061, US6-AS1, US6-AS2 (delivery H → closed).
@@ -80,10 +83,10 @@ fill:** FR-060, FR-061, US6-AS1, US6-AS2 (delivery H → closed).
 - **Conflict with E3 (#73)** on `abandon_pvp_match` and on the history's abandoned rows: same
   storage pattern, resolved at merge.
 
-## Decisions for the owner
+## Decisions (owner, 2026-10-20)
 
-- **O-H1 — rows shown: 5?** The screen shows 5 today. **Recommended: 5**, the server sends exactly
-  those.
-- **O-H2 — retry timing: 0.5 s, 1 s, 2 s?** Three retries within 3.5 s. **Recommended: yes.**
-- **O-H3 — `game_end` keeps `not_applied`** (spec 001's pinned wording) while the history shows
-  `not_saved`. **Recommended: yes** — renaming it would amend spec 001 for no visible gain.
+- **O-H1 — every match, five at a time:** the server sends the 5 rows shown; «Ver más» loads the
+  next 5 (`before=`), until `has_more` is false.
+- **O-H2 — yes:** three retries at 0.5 s, 1 s and 2 s.
+- **O-H3 — yes:** `game_end` keeps `not_applied` (spec 001 FR-029c); the history shows
+  `not_saved`.
