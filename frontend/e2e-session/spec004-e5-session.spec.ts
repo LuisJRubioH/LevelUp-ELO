@@ -26,6 +26,19 @@ async function expireAccessToken(page: Page) {
   }, STORE);
 }
 
+/** Below 1024 px logout lives in the top bar's "Menú" drawer (iPhone, iPad); above, in the sidebar. */
+async function signOut(page: Page) {
+  const menu = page.getByRole("button", { name: "Menú" });
+  const logout = page.getByRole("button", { name: /Cerrar sesión/ }).first();
+  await expect(menu.or(logout).first()).toBeVisible();
+  if (await menu.isVisible()) {
+    await menu.click();
+    await page.locator("#tc-side").getByRole("button", { name: /Cerrar sesión/ }).click();
+  } else {
+    await logout.click();
+  }
+}
+
 async function storedAccessToken(page: Page): Promise<string | null> {
   return page.evaluate(
     (key) => JSON.parse(localStorage.getItem(key) ?? "{}").state?.accessToken ?? null,
@@ -67,7 +80,7 @@ test.describe("Spec 004 E5 · sesión en el navegador real", () => {
   }) => {
     await signIn(page, "estudiante1", "demo1234");
 
-    await page.getByRole("button", { name: /Cerrar sesión/ }).first().click();
+    await signOut(page);
     await expect(page).toHaveURL(/\/login$/);
     await page.reload();
     await expect(page).toHaveURL(/\/login$/);
