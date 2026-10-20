@@ -359,7 +359,9 @@ class PostgresRepository:
     def _sync_bank_if_changed(self):
         """Spec 002 FR-016: sync the item bank only when its fingerprint differs from the last
         one recorded, then record it; an unchanged bank writes nothing."""
-        fingerprint = bank_fingerprint(self.BANK_DIR)
+        fingerprint = bank_fingerprint(
+            self.BANK_DIR, {"block": self._COURSE_BLOCK_MAP, "name": self._COURSE_NAME_MAP}
+        )
         if fingerprint is None:
             return
         conn = self.get_connection()

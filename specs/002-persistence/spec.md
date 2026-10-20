@@ -188,7 +188,9 @@ asynchronous handler stops every other request and socket while it waits.
 - **SQLite with two processes** (local development): no advisory locks exist; the schema version
   makes the second start a no-op instead of a second full run.
 - **The item bank changed but not the schema** (new or edited items): the start syncs the bank and
-  records its new fingerprint; nothing else runs.
+  records its new fingerprint; nothing else runs. The bank is what the sync applies: its files
+  **and the course maps** (block and name per course), so a change to a map alone also resyncs
+  (survey 008 B21, 2026-10-20).
 
 ## Requirements *(mandatory)*
 
@@ -355,7 +357,7 @@ pull request that closes their delivery.
 | FR-013 | A | `tests/integration/test_spec002_a_pins.py::test_spec002_migration_code_only_adds`<br>`tests/integration/test_spec002_a_pins.py::test_spec002_migration_runs_twice_without_change` |
 | FR-014 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_drop_not_null_runs_only_while_needed` |
 | FR-015 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_an_old_database_migrates_once_and_records_the_version`<br>`tests/unit/infrastructure/test_spec002_schema_version.py::test_migration_code_changes_raise_the_version` |
-| FR-016 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_current_database_starts_without_ddl_or_writes`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_changed_bank_only_resyncs_the_bank` |
+| FR-016 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_current_database_starts_without_ddl_or_writes`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_changed_bank_only_resyncs_the_bank`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_changed_course_map_resyncs_the_bank` |
 | FR-017 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_failing_migration_commits_nothing`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_duplicate_groups_stop_the_migration_naming_the_script`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_fresh_database_with_the_lock_held_stops_naming_the_step` |
 | FR-018 | D1 | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_reactivated_user_without_password_stays_active`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_repair_scripts_report_and_are_idempotent`<br>`tests/integration/test_spec002_d1_startup.py::test_spec002_d1_duplicate_groups_stop_the_migration_naming_the_script` |
 | FR-020 | A | `tests/integration/test_spec002_a_pins.py::test_spec002_at_most_five_postgresql_connections` |

@@ -13,6 +13,7 @@ The item bank is synced only when its fingerprint differs from the last one reco
 import glob
 import hashlib
 import inspect
+import json
 import os
 
 SCHEMA_VERSION = 5  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
@@ -81,12 +82,15 @@ def bank_files(bank_dir: str) -> list[str]:
     return files + sorted(glob.glob(os.path.join(bank_dir, "semillero", "*.json")))
 
 
-def bank_fingerprint(bank_dir: str) -> str | None:
-    """SHA-256 over each bank file's relative path and content; None without a bank."""
+def bank_fingerprint(bank_dir: str, course_maps: dict | None = None) -> str | None:
+    """SHA-256 over each bank file's relative path and content, and over the course maps the sync
+    applies with them (block and name: survey 008 B21); None without a bank."""
     files = bank_files(bank_dir)
     if not files:
         return None
     digest = hashlib.sha256()
+    if course_maps:
+        digest.update(json.dumps(course_maps, sort_keys=True, ensure_ascii=False).encode() + b"\0")
     for path in files:
         digest.update(os.path.relpath(path, bank_dir).replace(os.sep, "/").encode() + b"\0")
         with open(path, "rb") as handle:
