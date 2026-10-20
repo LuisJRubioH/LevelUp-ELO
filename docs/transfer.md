@@ -240,6 +240,10 @@ The switch, outside class hours:
    localStorage) and keep working; reload; sign out and confirm a reload asks to sign in; change
    the password in one browser and confirm the other is signed out; open the KatIA chat and
    confirm the answer streams word by word through the proxy (spec 004 N6).
+   The automated half already runs on every pull request: CI job "Sesión en Safari (WebKit)"
+   (`frontend/playwright.session.config.ts`) covers sign-in, renewal, reload, sign-out and the
+   password change in WebKit as Safari desktop, iPhone and iPad. Without an iPhone, a remote
+   real-device service (BrowserStack, LambdaTest) counts as *real device*.
 
 To undo: `AUTH_COOKIE_SAMESITE=none` on Render first, then `VITE_API_URL` back to the API's origin
 on Vercel. The order matters: with `lax` and a cross-origin page, renewal fails everywhere.
