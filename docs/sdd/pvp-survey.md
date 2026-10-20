@@ -271,3 +271,26 @@ failed once in a full suite run on 2026-10-19 and passed in isolation.
 
 Fixing V10 comes first in any case: it is a bug, and it is what makes the full-match test
 intermittent.
+
+## 8. Owner decisions (2026-10-20)
+
+Taken by the owner on 2026-10-20; spec 007 starts from them. Already delivered as fixes on
+`redesign`: V10 (#106), V12 (#107), V15 (#112, tests on both engines), V18 (#115), V22 sweep
+(#119) and V14 (#120).
+
+| # | Finding | Decision |
+|---|---|---|
+| D1 | V6 — unrated player | **An unrated player cannot enter the League** for that subject: the screen asks for the subject's diagnostic first. (Not «the match rates nobody».) |
+| D2 | V21 — test users | **Test users play only each other** (`is_test_user` pairs with `is_test_user`). |
+| D3 | V16 — who meets whom | **Same institution only.** |
+| D4 | V9 — disconnects | **20 s grace, then forfeit**: a player who returns within 20 s resumes the match; otherwise loses by abandonment and the opponent wins at once. |
+| D5 | V5 — fair matching | **Rating window + daily cap**: match within ±150, widening while waiting; at most 3 rated matches per day against the same opponent. |
+| D6 | V8 — one queue | **One lobby slot or match per student across all subjects**; a second tab is refused with a notice. |
+| D7 | V13, V19 — items | **Near both ratings**: difficulty around the two players' mean, no item seen in the last week, images included, `difficulty` no longer sent to the browser. |
+| D8 | V20 — clock | **Server clock + speed tiebreak**: the client counts down to a server `ends_at`; with equal scores the faster player wins. |
+| D9 | V7 — socket limits | **All three**: one live socket per student, frames up to 4 KB, at most 5 messages per second. |
+| D10 | V25 — history | **Every match with its reason and subject** (finished, abandoned, not saved), and only as many as the screen shows. |
+| D11 | V22 — orphans | **Periodic sweep only** (delivered in #119); live matches are **not** closed at shutdown, so nobody loses a game in progress. |
+
+Open: the exact numbers in D5 (±150, 3 per day), D4 (20 s) and D9 (4 KB, 5/s) are the
+recommended starting values; the spec may tune them with the owner.
