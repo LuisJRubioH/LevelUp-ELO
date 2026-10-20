@@ -91,8 +91,13 @@ def _until(socket, kind, limit=40):
     raise AssertionError(f"no {kind} in {limit} messages")
 
 
+# A person's pace: the League takes at most 5 messages per second (spec 007 FR-051).
+ANSWER_PACE_S = 0.25
+
+
 def _answer_all(socket, items):
     for item in items:
+        time.sleep(ANSWER_PACE_S)
         socket.send(json.dumps({"type": "answer", "item_id": item["id"], "selected": "A"}))
         assert _until(socket, "answer_result")["item_id"] == item["id"]
 

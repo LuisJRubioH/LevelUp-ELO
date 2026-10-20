@@ -969,6 +969,17 @@ const en: TranslationKeys = {
     historyTitle: "Recent matches",
     historyWon: "Won",
     historyLost: "Lost",
+    closeNotices: {
+      authFailed:
+        "We could not enter the arena. Sign in again and check that you are enrolled in the subject.",
+      noItems: "This subject has no league questions yet.",
+      secondTab: "You already have the League open in another tab. Close it to play here.",
+      tooManyMessages: "Too many messages. Enter the League again.",
+      serverError: "There was a problem on the server. Try again.",
+      lostMatch: "The connection to the match was lost.",
+      noRival: "The search for a rival ended without finding anyone. Try again.",
+      cannotConnect: "We could not connect to the arena. Try again.",
+    },
     reasons: {
       no_rated_topics:
         "Your ELO did not change: you have no rating in this subject yet. Take its diagnostic so matches count.",

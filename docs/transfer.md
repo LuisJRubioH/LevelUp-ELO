@@ -240,6 +240,10 @@ The switch, outside class hours:
    localStorage) and keep working; reload; sign out and confirm a reload asks to sign in; change
    the password in one browser and confirm the other is signed out; open the KatIA chat and
    confirm the answer streams word by word through the proxy (spec 004 N6).
+   The automated half already runs on every pull request: CI job "Sesión en Safari (WebKit)"
+   (`frontend/playwright.session.config.ts`) covers sign-in, renewal, reload, sign-out and the
+   password change in WebKit as Safari desktop, iPhone and iPad. Without an iPhone, a remote
+   real-device service (BrowserStack, LambdaTest) counts as *real device*.
 
 To undo: `AUTH_COOKIE_SAMESITE=none` on Render first, then `VITE_API_URL` back to the API's origin
 on Vercel. The order matters: with `lax` and a cross-origin page, renewal fails everywhere.
@@ -450,7 +454,9 @@ refuses any non-local host. Never point tests at the production database.
 4. With a test student: stats shows a rating with its rank, or "Diagnóstico pendiente" — never a
    bare 1000; answering a practice question changes the topic rating by the previewed amount;
    reconciled topics show "aproximado"/≈; exam history loads.
-5. With a test teacher: the dashboard lists students with display rating and rank label.
+5. With a test teacher: the dashboard loads. It lists only active, non-test students, with
+   display rating and rank label (spec 006 FR-040), so it is empty while the teacher's groups hold
+   only the seeded test students.
 6. The SQL checks from § 5 return the same answers as on the rehearsal copy.
 7. No answer was saved by the old API after the migration (§ 6.1): the query below returns 0.
 8. Once V1 is disconnected (§ 3.1), delete the KatIA messages typed before spec 005 K3 (decision
@@ -460,8 +466,14 @@ refuses any non-local host. Never point tests at the production database.
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer
 whose rating change equals the preview, the course map, every lesson image served by the frontend,
-and a procedure uploaded, seen by the teacher with the same image bytes and graded. Run it from a
-checkout of the deployed commit (it reads the lesson content to list the images).
+and a procedure upload. Run it from a checkout of the deployed commit (it reads the lesson content
+to list the images).
+
+Teachers review active, non-test students only (spec 006 FR-050). With the default test student,
+the procedure must appear in the student's list, stay out of the teacher's queue and be refused
+when graded (404). Setting `VERIFY_STUDENT` to a non-test student of the teacher's group checks
+instead that the teacher sees it with the same image bytes and that grading it moves that
+student's rating; a test account there fails the queue check.
 
 The image check passes even without Storage: when the upload or the download fails, the API serves
 the copy kept in the row (R9). The database says which path was used: the verify submission (its id

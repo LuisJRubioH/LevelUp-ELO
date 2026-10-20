@@ -321,7 +321,12 @@ An invalid attempt is recorded with before = after and moves nothing. With an `I
 ### R18 — The backend is a single process, and checked
 PvP `_lobby` / `_matches` (`api/websocket/pvp.py`) and notification `_rooms` live in process
 memory. `settings.validate_runtime()` refuses to start in production with `WEB_CONCURRENCY > 1`;
-`render.yaml` sets `"1"`. Scaling needs shared matchmaking, pub/sub event fan-out and
+`render.yaml` sets `"1"`. In production every process also takes an exclusive host file lock
+(`PVP_SINGLE_PROCESS_LOCK`, `api/single_process.py`, spec 007 FR-052), so a second worker started
+by `--workers` or gunicorn refuses to start; a second machine is not detected — `render.yaml` runs
+one instance. One live League socket per student (4409); 4 KB frames, 5 per second, ten drops in
+10 s close with 4429 (`api/websocket/limits.py`, FR-050/051); uvicorn runs with
+`--ws-max-size 65536`. Scaling needs shared matchmaking, pub/sub event fan-out and
 cross-process wake-up — all three before raising the number. Details:
 [`docs/arquitectura.md` § Límites conocidos](docs/arquitectura.md).
 

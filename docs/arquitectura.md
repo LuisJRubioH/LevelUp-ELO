@@ -342,7 +342,7 @@ Lo que **no** está resuelto, a propósito y con el criterio para cerrarlo.
 
 | Límite | Estado | Qué haría falta |
 |---|---|---|
-| **Una sola instancia** | Declarado y forzado (`WEB_CONCURRENCY=1`) | Matchmaking atómico sobre almacén compartido (el Redis del rate limiting ya está), pub/sub para eventos, y el despertar entre procesos que hoy es un `asyncio.Event` local. Criterio: dos instancias con usuarios en cada una deben emparejarse y recibir sus eventos. |
+| **Una sola instancia** | Declarado y forzado: `WEB_CONCURRENCY=1` y, en producción, un candado de archivo del servidor que impide un segundo worker (`api/single_process.py`, spec 007 FR-052). Una segunda máquina no se detecta: `render.yaml` declara una instancia | Matchmaking atómico sobre almacén compartido (el Redis del rate limiting ya está), pub/sub para eventos, y el despertar entre procesos que hoy es un `asyncio.Event` local. Criterio: dos instancias con usuarios en cada una deben emparejarse y recibir sus eventos. |
 | **Equivalencia PostgreSQL** | Cubierta en CI, no en local | El job `test-postgres` corre la rama PostgreSQL de las pruebas de ELO. Localmente hace falta Docker. |
 | **Router de estudiante de ~1.500 líneas** | Sin tocar | La auditoría dice que el tamaño no es un defecto por sí solo. Extraer diagnóstico y examen a casos de uso cuando haya que cambiarlos, no antes. |
 | **Capacidad** | Medida — ver § Capacidad | Objetivo acordado: 20–30 estudiantes concurrentes. El cuello es la instancia, no el código. |

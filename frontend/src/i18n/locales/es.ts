@@ -972,6 +972,17 @@ const es = {
     historyTitle: "Últimas partidas",
     historyWon: "Ganada",
     historyLost: "Perdida",
+    closeNotices: {
+      authFailed:
+        "No pudimos entrar a la arena. Vuelve a iniciar sesión y revisa que estés inscrito en la materia.",
+      noItems: "Esta materia todavía no tiene preguntas para la liga.",
+      secondTab: "Ya tienes la Liga abierta en otra pestaña. Ciérrala para jugar aquí.",
+      tooManyMessages: "Demasiados mensajes. Vuelve a entrar a la Liga.",
+      serverError: "Hubo un problema en el servidor. Intenta de nuevo.",
+      lostMatch: "Se perdió la conexión con la partida.",
+      noRival: "La búsqueda de rival terminó sin encontrar a nadie. Intenta de nuevo.",
+      cannotConnect: "No pudimos conectar con la arena. Intenta de nuevo.",
+    },
     reasons: {
       no_rated_topics:
         "Tu ELO no cambió: aún no tienes nota en esta materia. Haz su diagnóstico para que las partidas cuenten.",

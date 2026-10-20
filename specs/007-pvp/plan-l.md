@@ -1,7 +1,7 @@
 # Plan — spec 007, delivery L: socket and process limits
 
 **Spec**: [spec.md](spec.md) § Deliveries, L (US5; FR-050, FR-051, FR-052) · **Branch**: `007-l`,
-from `redesign` · **Date**: 2026-10-20 · **Status**: draft for the owner's approval
+from `redesign` · **Date**: 2026-10-20 · **Status**: approved (owner, 2026-10-20); implemented
 
 ## Summary
 
