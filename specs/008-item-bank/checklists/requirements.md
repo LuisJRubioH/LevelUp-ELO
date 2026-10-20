@@ -18,7 +18,7 @@
 
 - [x] The survey's decisions are decided — D1 … D6 by the owner on 2026-10-20; B19 explicitly
   deferred and out of scope
-- [ ] N1 … N3 approved by the owner (manifest location, audit table, un-retiring)
+- [x] N1 … N3 approved by the owner on 2026-10-20 (manifest location, audit table, un-retiring)
 - [x] Requirements are testable — each FR names an observable outcome (a failing validator run, an
   item not served, a difficulty value after a sync, counts without writes)
 - [x] Success criteria are measurable (0 retired items served, 0 out-of-range difficulties, 1
@@ -42,3 +42,4 @@
 ## Notes
 
 - 2026-10-20: drafted for the owner's approval; N1 … N3 open.
+- 2026-10-20 (second round): N1 … N3 approved; FR-033 added for un-retiring.

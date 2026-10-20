@@ -57,6 +57,15 @@ request that completes a delivery marks it closed and fills all its rows.
 - Q: EPA8 (B23)? → A: `build_epa8_bank.py --check` in the bank job (D6).
 - Q: Topics too fine (B19)? → A: deferred by the owner, to be discussed (Out of Scope).
 
+### Session 2026-10-20, second round (owner decisions on the draft)
+
+- Q: Where does the id manifest live (N1)? → A: `items/id_manifest.json`, outside `items/bank/`,
+  so the sync never reads it as a course (FR-011).
+- Q: What does «audited» mean (N2)? → A: every recalibration change is recorded in an additive
+  database table on both engines, not a log file, so the record survives deploys (FR-032).
+- Q: Can a retired item come back (N3)? → A: yes, by removing the mark; it stays bound to its
+  course and topic through the manifest (FR-033).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - What already holds keeps holding (Priority: P1) — A
@@ -169,9 +178,10 @@ practice, exam and PvP item reads are checked.
 
 - **FR-010** [CHANGE]: If an item's difficulty is not an integer between 400 and 2000 inclusive,
   then the validator shall fail; AGENTS § Item bank shall state that range (D1).
-- **FR-011** [CHANGE]: If an id in the committed id manifest appears in the bank with another course
-  or topic, then the validator shall fail naming the id and both values; a new id shall be added to
-  the manifest by a script, never by hand (D4).
+- **FR-011** [CHANGE]: If an id in the committed id manifest (`items/id_manifest.json`, outside
+  `items/bank/`) appears in the bank with another course or topic, then the validator shall fail
+  naming the id and both values; a new id shall be added to the manifest by a script, never by
+  hand (D4, N1).
 - **FR-012** [CHANGE]: The «Banco de preguntas» CI job shall run `build_epa8_bank.py --check` and
   fail when the EPA8 bank differs from its generator's output (D6).
 
@@ -193,14 +203,21 @@ practice, exam and PvP item reads are checked.
   unchanged, the sync shall keep the calibrated difficulty (D3).
 - **FR-032** [CHANGE]: The system shall offer a recalibration script that prints counts by default,
   writes only with `--apply`, and records every change with the item, the previous and new
-  difficulty, the source and the time (D3).
+  difficulty, the source and the time in an additive database table on both engines, not a log
+  file (D3, N2).
+- **FR-033** [CHANGE]: When a retired item's mark is removed (or set to `false`), the sync shall
+  clear its retirement and serve it again; the manifest keeps it bound to its course and topic
+  (D2, N3).
 
 ### Key Entities
 
 - **Bank item**: one entry of `items/bank/**.json`; its course is its file name.
 - **Course catalogue**: block and display name per course (C).
 - **Id manifest**: the committed record of each id's course and topic (V).
-- **Retired item**: a row kept for history and no longer served (L).
+- **Retired item**: a row kept for history and no longer served; it can return by removing the mark
+  (L).
+- **Difficulty change record**: one row per recalibration change — item, previous and new
+  difficulty, source, time (L).
 
 ## Success Criteria *(mandatory)*
 
@@ -220,11 +237,13 @@ practice, exam and PvP item reads are checked.
 
 ## New Decisions and Contradictions
 
-| # | Point | Recommendation |
+Decided by the owner on 2026-10-20 (second round); see § Clarifications.
+
+| # | Point | Decision |
 |---|---|---|
-| N1 | Where the id manifest lives | `items/id_manifest.json`, outside `items/bank/` so the sync never reads it as a course. |
-| N2 | What «audited» means for the recalibration script (FR-032) | An additive table of difficulty changes on both engines, not a log file, so the record survives deploys. |
-| N3 | Un-retiring an item | Allowed by removing the mark; the manifest keeps it pinned to its course and topic. |
+| N1 | Where the id manifest lives | `items/id_manifest.json`, outside `items/bank/` so the sync never reads it as a course (FR-011). |
+| N2 | What «audited» means for the recalibration script | An additive table of difficulty changes on both engines, not a log file, so the record survives deploys (FR-032). |
+| N3 | Un-retiring an item | Allowed by removing the mark; the manifest keeps it pinned to its course and topic (FR-033). |
 
 ## Out of Scope *(mandatory)*
 
@@ -270,3 +289,4 @@ closes their delivery.
 | FR-030 | L | PENDING |
 | FR-031 | L | PENDING |
 | FR-032 | L | PENDING |
+| FR-033 | L | PENDING |
