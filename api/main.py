@@ -71,8 +71,19 @@ async def lifespan(app: FastAPI):
         logger.exception("No se pudo preparar el arranque: %s", exc)
         raise
 
+    # Survey 007 V22: close orphaned PvP matches while the API runs, not only at deploy.
+    from api.websocket import pvp as _pvp
+
+    sweep = asyncio.create_task(_pvp.sweep_orphaned_matches(repo), name="pvp-orphan-sweep")
+
     yield
 
+    # Only the sweep stops: no match is closed at shutdown (owner decision, 2026-10-20).
+    sweep.cancel()
+    try:
+        await sweep
+    except asyncio.CancelledError:
+        pass
     logger.info("=== LevelUp-ELO API detenida ===")
 
 

@@ -76,6 +76,26 @@ _lobby: dict[str, LobbySlot] = {}  # course_id → LobbySlot en espera
 _matches: dict[int, ActiveMatch] = {}  # match_id → ActiveMatch
 _lock = asyncio.Lock()
 
+# Survey 007 V22: how often the API closes orphaned matches (owner decision, 2026-10-20).
+ORPHAN_SWEEP_EVERY_S = 300
+
+
+async def sweep_orphaned_matches(repo, every_seconds: float = ORPHAN_SWEEP_EVERY_S) -> None:
+    """Close orphaned matches periodically, for as long as the API runs (survey 007 V22).
+
+    A match whose process died (a restart, a crash) stays `active`; bootstrap closes it only at
+    the next deploy. `expire_stale_pvp_matches` closes those active for more than 600 s as
+    `abandoned`, with no rating change; a real match lasts 180 s, so a live one is never
+    touched. It runs in a thread (R17). A failed pass is logged and the sweep goes on. Stopping
+    the API cancels this task only: it never closes a match.
+    """
+    while True:
+        await asyncio.sleep(every_seconds)
+        try:
+            await asyncio.to_thread(repo.expire_stale_pvp_matches)
+        except Exception as exc:
+            logger.warning("PvP orphan sweep failed: %s", type(exc).__name__)
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
