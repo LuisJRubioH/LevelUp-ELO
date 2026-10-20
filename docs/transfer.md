@@ -244,6 +244,9 @@ The switch, outside class hours:
    (`frontend/playwright.session.config.ts`) covers sign-in, renewal, reload, sign-out and the
    password change in WebKit as Safari desktop, iPhone and iPad. Without an iPhone, a remote
    real-device service (BrowserStack, LambdaTest) counts as *real device*.
+   **Owner decision (2026-10-20):** with no Apple device at hand, switch it on with the automated
+   check and watch for students on iPhone or iPad who report being signed out; undo below if any
+   does (spec 004 `plan-e5.md`).
 
 To undo: `AUTH_COOKIE_SAMESITE=none` on Render first, then `VITE_API_URL` back to the API's origin
 on Vercel. The order matters: with `lax` and a cross-origin page, renewal fails everywhere.

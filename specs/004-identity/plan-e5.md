@@ -45,3 +45,11 @@ as after the switch, in WebKit as Safari desktop, iPhone and iPad, and in Chromi
 "Sesión en Safari (WebKit)"). Its results are labelled *automated*. They do not close US9-AS5:
 WebKit on Linux does not apply Safari's tracking prevention, which is what E5 addresses, so the
 check on a real device (the owner's, or a remote real-device service) stays the reference.
+
+## Decision (owner, 2026-10-20): switch on with the automated check
+
+There is no Apple device to test on. The owner decided to turn the switch on (`docs/transfer.md`
+§ 3.3) at the production switch, relying on the automated WebKit check, and to watch for reports
+from students on iPhone or iPad whose session ends; the switch is undone in minutes (§ 3.3, «To
+undo»). US9-AS5 stays `PENDING` — no real device has run it — and E5 stays `in progress` until one
+does or until US9-AS5 is amended to accept the automated check.
