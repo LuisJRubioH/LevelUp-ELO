@@ -433,6 +433,56 @@ jobs:
           echo "ACCOUNTS: $ROWS semillero students without a valid grade (listed only in the encrypted artifact)"
           echo "ROWS=$ROWS" >> "$GITHUB_ENV"
 
+      - name: DIAN ratings keyed by a topic that spec 008 T regroups (docs/transfer.md § 6)
+        # With spec 008 T in the commit, the first migration regroups DIAN's topics before it
+        # reconciles the legacy ratings: one keyed by the course is reconciled onto the new topics,
+        # one keyed by an old topic label is not. Counts only.
+        if: always() && steps.check.outcome == 'success'
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          MAP=scripts/repairs/topic_regrouping_008t.json
+          if [ ! -f "$MAP" ]; then
+            echo "DIAN TOPIC KEYS: skipped — this commit does not carry spec 008 T"; exit 0
+          fi
+          python3 - "$MAP" <<'PY'
+          import json, os, sys
+          import psycopg2
+          moved = sorted(json.load(open(sys.argv[1], encoding="utf-8")).get("DIAN", {}))
+          conn = psycopg2.connect(os.environ["MIGRATION_DATABASE_URL"])
+          conn.set_session(readonly=True)
+          cur = conn.cursor()
+          # A legacy row the reconciliation uses today: keyed by the topic, with an attempt on
+          # DIAN recorded under that key (spec 001 FR-034, source a).
+          cur.execute(
+              """
+              WITH keyed AS (
+                SELECT l.user_id FROM student_topic_elo l
+                 WHERE l.topic = ANY(%s)
+                   AND EXISTS (SELECT 1 FROM attempts a JOIN items i ON i.id = a.item_id
+                                WHERE a.user_id = l.user_id AND i.course_id = 'DIAN'
+                                  AND a.topic = l.topic)),
+              by_course AS (
+                SELECT DISTINCT user_id FROM student_topic_elo
+                 WHERE topic IN ('DIAN', (SELECT name FROM courses WHERE id = 'DIAN')))
+              SELECT (SELECT COUNT(*) FROM keyed),
+                     (SELECT COUNT(DISTINCT user_id) FROM keyed),
+                     (SELECT COUNT(DISTINCT k.user_id) FROM keyed k JOIN users u ON u.id = k.user_id
+                       WHERE u.is_test_user = 1),
+                     (SELECT COUNT(DISTINCT k.user_id) FROM keyed k JOIN by_course USING (user_id))
+              """,
+              (moved,),
+          )
+          rows, students, tests, by_course = cur.fetchone()
+          conn.close()
+          print(f"DIAN TOPIC KEYS: {rows} legacy ratings of {students} students ({tests} test users)"
+                f" keyed by a topic T regroups; {by_course} of those students also have a DIAN"
+                " course rating, which T reconciles onto the new topics instead")
+          if rows:
+              print("::warning::DIAN TOPIC KEYS: with spec 008 T in the switched commit these"
+                    " ratings are not reconciled (docs/transfer.md § 6)")
+          PY
+
       - name: The app reads MIGRATION_DATABASE_URL as migrate.py will (read only)
         # pg_dump/psql read a ?query part and decode %XX; the app's own parser does neither.
         # Runs after the counts so that T084 reports them either way; a failure fails the job.
