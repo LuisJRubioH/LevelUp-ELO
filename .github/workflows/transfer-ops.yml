@@ -503,6 +503,14 @@ jobs:
            WHERE origin LIKE 'legacy\_%' AND (approximate IS NOT TRUE OR legacy_source_key IS NULL OR reconciled_at IS NULL);
           SELECT COUNT(*) AS student_topic_elo FROM student_topic_elo;
           SELECT COUNT(*) AS exam_sessions_unknown_status FROM exam_sessions WHERE global_elo_status IS NULL;
+          -- The SCHEMA_VERSION of the deployed commit (5 at redesign 74c8e3d).
+          SELECT MAX(version) AS schema_version FROM schema_versions;
+          -- 0 right after the migration (spec 003 L4 copies every lesson interaction once).
+          SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions)
+                 AS lesson_answers_minus_interactions;
+          -- Written only by new answers and new chats: 0 right after the migration.
+          SELECT (SELECT COUNT(*) FROM lesson_outcomes) AS lesson_outcomes,
+                 (SELECT COUNT(*) FROM katia_conversations) AS katia_conversations;
           SELECT COUNT(*) AS users, COUNT(*) FILTER (WHERE role = 'admin') AS admins FROM users;
           -- Answers the OLD API saved after the migration, while Render still routed to it: the old
           -- code leaves elo_before NULL and moved only the legacy table, so the new rating did not
