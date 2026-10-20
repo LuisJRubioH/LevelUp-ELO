@@ -4172,105 +4172,112 @@ class SQLiteRepository:
 
         conn = self.get_connection()
         cursor = conn.cursor()
+        # Survey 008 B13: a failure rolls back and releases the database; it used to leave this
+        # connection open with its write lock, and the next writer got «database is locked».
+        try:
 
-        for filepath in json_files:
-            # course_id = nombre del archivo sin extensión (ej: 'algebra_lineal')
-            course_id = os.path.splitext(os.path.basename(filepath))[0]
-            _fname = os.path.basename(filepath)
+            for filepath in json_files:
+                # course_id = nombre del archivo sin extensión (ej: 'algebra_lineal')
+                course_id = os.path.splitext(os.path.basename(filepath))[0]
+                _fname = os.path.basename(filepath)
 
-            try:
-                with open(filepath, "r", encoding="utf-8") as f:
-                    items_list = json.load(f)
-            except UnicodeDecodeError as e:
-                logger.error(
-                    "Error de encoding en '%s': %s. "
-                    "Asegúrate de que el archivo sea UTF-8 sin BOM. "
-                    "Ejecuta: python scripts/validate_bank.py",
-                    _fname,
-                    e,
-                )
-                continue
-            except json.JSONDecodeError as e:
-                logger.error(
-                    "JSON inválido en '%s': %s. " "Verifica la sintaxis con un linter JSON.",
-                    _fname,
-                    e,
-                )
-                continue
-            except FileNotFoundError:
-                logger.warning("Archivo no encontrado: '%s'. Ignorando.", filepath)
-                continue
-
-            if not items_list:
-                continue
-
-            # Nombre legible: usar mapa explícito o el topic del primer ítem
-            course_name = self._COURSE_NAME_MAP.get(course_id) or items_list[0].get(
-                "topic", course_id
-            )
-            block = self._COURSE_BLOCK_MAP.get(course_id, "Universidad")
-
-            # Upsert del curso: insertar si no existe, actualizar nombre/bloque si cambiaron
-            cursor.execute("SELECT id, name, block FROM courses WHERE id = ?", (course_id,))
-            _existing = cursor.fetchone()
-            if not _existing:
-                cursor.execute(
-                    "INSERT INTO courses (id, name, block, description) VALUES (?, ?, ?, ?)",
-                    (course_id, course_name, block, f"Curso de {course_name}"),
-                )
-            elif _existing[1] != course_name or _existing[2] != block:
-                # Actualizar si el nombre o bloque cambiaron (por reconfiguración)
-                cursor.execute(
-                    "UPDATE courses SET name = ?, block = ?, description = ? WHERE id = ?",
-                    (course_name, block, f"Curso de {course_name}", course_id),
-                )
-
-            # Sincronizar cada ítem vinculándolo al curso
-            for item in items_list:
-                cursor.execute("SELECT id FROM items WHERE id = ?", (item["id"],))
-                if not cursor.fetchone():
-                    cursor.execute(
-                        """
-                        INSERT INTO items
-                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block)
-                        VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?, ?, ?)
-                    """,
-                        (
-                            item["id"],
-                            item["topic"],
-                            item["content"],
-                            json.dumps(item["options"]),
-                            item["correct_option"],
-                            item["difficulty"],
-                            course_id,
-                            item.get("image_url") or item.get("image_path"),
-                            json.dumps(item.get("tags") or []),
-                            item.get("block", ""),
-                        ),
+                try:
+                    with open(filepath, "r", encoding="utf-8") as f:
+                        items_list = json.load(f)
+                except UnicodeDecodeError as e:
+                    logger.error(
+                        "Error de encoding en '%s': %s. "
+                        "Asegúrate de que el archivo sea UTF-8 sin BOM. "
+                        "Ejecuta: python scripts/validate_bank.py",
+                        _fname,
+                        e,
                     )
-                else:
-                    # Actualizar contenido/metadatos sin tocar el rating ELO
+                    continue
+                except json.JSONDecodeError as e:
+                    logger.error(
+                        "JSON inválido en '%s': %s. " "Verifica la sintaxis con un linter JSON.",
+                        _fname,
+                        e,
+                    )
+                    continue
+                except FileNotFoundError:
+                    logger.warning("Archivo no encontrado: '%s'. Ignorando.", filepath)
+                    continue
+
+                if not items_list:
+                    continue
+
+                # Nombre legible: usar mapa explícito o el topic del primer ítem
+                course_name = self._COURSE_NAME_MAP.get(course_id) or items_list[0].get(
+                    "topic", course_id
+                )
+                block = self._COURSE_BLOCK_MAP.get(course_id, "Universidad")
+
+                # Upsert del curso: insertar si no existe, actualizar nombre/bloque si cambiaron
+                cursor.execute("SELECT id, name, block FROM courses WHERE id = ?", (course_id,))
+                _existing = cursor.fetchone()
+                if not _existing:
                     cursor.execute(
-                        """
-                        UPDATE items
-                        SET content = ?, options = ?, correct_option = ?, topic = ?, course_id = ?, image_url = ?, tags = ?, block = ?
-                        WHERE id = ?
-                    """,
-                        (
-                            item["content"],
-                            json.dumps(item["options"]),
-                            item["correct_option"],
-                            item["topic"],
-                            course_id,
-                            item.get("image_url") or item.get("image_path"),
-                            json.dumps(item.get("tags") or []),
-                            item.get("block", ""),
-                            item["id"],
-                        ),
+                        "INSERT INTO courses (id, name, block, description) VALUES (?, ?, ?, ?)",
+                        (course_id, course_name, block, f"Curso de {course_name}"),
+                    )
+                elif _existing[1] != course_name or _existing[2] != block:
+                    # Actualizar si el nombre o bloque cambiaron (por reconfiguración)
+                    cursor.execute(
+                        "UPDATE courses SET name = ?, block = ?, description = ? WHERE id = ?",
+                        (course_name, block, f"Curso de {course_name}", course_id),
                     )
 
-        conn.commit()
-        conn.close()
+                # Sincronizar cada ítem vinculándolo al curso
+                for item in items_list:
+                    cursor.execute("SELECT id FROM items WHERE id = ?", (item["id"],))
+                    if not cursor.fetchone():
+                        cursor.execute(
+                            """
+                            INSERT INTO items
+                                (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block)
+                            VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?, ?, ?)
+                        """,
+                            (
+                                item["id"],
+                                item["topic"],
+                                item["content"],
+                                json.dumps(item["options"]),
+                                item["correct_option"],
+                                item["difficulty"],
+                                course_id,
+                                item.get("image_url") or item.get("image_path"),
+                                json.dumps(item.get("tags") or []),
+                                item.get("block", ""),
+                            ),
+                        )
+                    else:
+                        # Actualizar contenido/metadatos sin tocar el rating ELO
+                        cursor.execute(
+                            """
+                            UPDATE items
+                            SET content = ?, options = ?, correct_option = ?, topic = ?, course_id = ?, image_url = ?, tags = ?, block = ?
+                            WHERE id = ?
+                        """,
+                            (
+                                item["content"],
+                                json.dumps(item["options"]),
+                                item["correct_option"],
+                                item["topic"],
+                                course_id,
+                                item.get("image_url") or item.get("image_path"),
+                                json.dumps(item.get("tags") or []),
+                                item.get("block", ""),
+                                item["id"],
+                            ),
+                        )
+
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
     def _seed_test_students(self):
         """Crea estudiantes de prueba permanentes (delegado a módulo externo)."""
