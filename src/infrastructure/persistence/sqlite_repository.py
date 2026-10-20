@@ -4513,48 +4513,6 @@ class SQLiteRepository:
 
     # ─── Gestión de ÍTEMS (ELO Dinámico) ────────────────────────────────────────
 
-    def sync_items_from_json(self, items_list):
-        """Sincroniza el banco de preguntas JSON con la DB. No sobreescribe ratings actuales."""
-        conn = self.get_connection()
-        cursor = conn.cursor()
-        import json
-
-        for item in items_list:
-            cursor.execute("SELECT id FROM items WHERE id = ?", (item["id"],))
-            if not cursor.fetchone():
-                cursor.execute(
-                    """
-                    INSERT INTO items (id, topic, content, options, correct_option, difficulty, rating_deviation)
-                    VALUES (?, ?, ?, ?, ?, ?, 350.0)
-                """,
-                    (
-                        item["id"],
-                        item["topic"],
-                        item["content"],
-                        json.dumps(item["options"]),
-                        item["correct_option"],
-                        item["difficulty"],
-                    ),
-                )
-            else:
-                # Actualizar contenido y opciones para refrescar LaTeX sin perder el rating
-                cursor.execute(
-                    """
-                    UPDATE items
-                    SET content = ?, options = ?, correct_option = ?, topic = ?
-                    WHERE id = ?
-                """,
-                    (
-                        item["content"],
-                        json.dumps(item["options"]),
-                        item["correct_option"],
-                        item["topic"],
-                        item["id"],
-                    ),
-                )
-        conn.commit()
-        conn.close()
-
     @_read_only
     def get_items_from_db(self, topic=None, course_id=None, block=None):
         """Obtiene ítems desde la base de datos.
@@ -4820,41 +4778,6 @@ class SQLiteRepository:
             return cursor.rowcount > 0
         finally:
             conn.close()
-
-    def update_item_rating(self, item_id, student_rating, actual_score, k_item=32.0):
-        """
-        Actualiza la dificultad (rating) del ítem de forma simétrica.
-        Si el alumno gana (acierta), el ítem pierde (baja dificultad).
-        """
-        conn = self.get_connection()
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT difficulty, rating_deviation FROM items WHERE id = ?", (item_id,))
-        res = cursor.fetchone()
-        if not res:
-            conn.close()
-            return
-
-        current_diff, current_rd = res
-
-        # Lógica ELO inversa para el ítem
-        # El resultado para el ítem es (1 - actual_score)
-        item_score = 1.0 - actual_score
-
-        # Probabilidad de que el ítem 'gane' (que el alumno falle)
-        # expected_score(rating_estudiante, rating_item) es prob acierto alumno
-        # prob fallo alumno = 1 - prob acierto
-        from src.domain.elo.model import expected_score
-
-        p_student_wins = expected_score(student_rating, current_diff)
-        p_item_wins = 1.0 - p_student_wins
-
-        delta = k_item * (item_score - p_item_wins)
-        new_diff = current_diff + delta
-
-        cursor.execute("UPDATE items SET difficulty = ? WHERE id = ?", (new_diff, item_id))
-        conn.commit()
-        conn.close()
 
     def create_session(self, user_id):
         import secrets
