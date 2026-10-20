@@ -164,8 +164,13 @@ def test_spec001_pvp_lobby_rating_is_the_course_rating_read_outside_the_lock():
 
     repo = Repo()
 
-    assert asyncio.run(pvp._lobby_rating(repo, 1, "C")) == 1100.0
-    assert asyncio.run(pvp._lobby_rating(repo, 1, "E")) == 1000.0
+    # The functions the endpoint calls (survey 007 V18: the test used to call a wrapper the
+    # endpoint never used): the course mean drives the expectation and is shown; an unrated
+    # player is expected at 1000 and shown as pending (None), never as 1000.
+    rated = asyncio.run(pvp._course_rating(repo, 1, "C"))
+    unrated = asyncio.run(pvp._course_rating(repo, 1, "E"))
+    assert pvp._slot_ratings(rated) == (1100.0, 1100)
+    assert pvp._slot_ratings(unrated) == (1000.0, None)
     assert repo.lock_seen == [False, False]
 
 
