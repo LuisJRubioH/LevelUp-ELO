@@ -32,12 +32,8 @@ function EloCount({ value }: { value: number }) {
   return <>{n >= 0 ? `+${n}` : n}</>;
 }
 
-/** Why a finished match left the rating where it was (spec 001, FR-029c). */
-const ELO_REASONS: Record<string, string> = {
-  no_rated_topics:
-    "Tu ELO no cambió: aún no tienes nota en esta materia. Haz su diagnóstico para que las partidas cuenten.",
-  not_applied: "Tu ELO no cambió: no pudimos guardar el resultado de esta partida.",
-};
+/** Why a finished match left the rating where it was (spec 001, FR-029c): keys of `league.reasons`. */
+const ELO_REASONS = new Set(["no_rated_topics", "not_applied"]);
 
 export function League() {
   const { t } = useTranslation();
@@ -86,20 +82,21 @@ export function League() {
           {/* ── Lobby ─────────────────────────────────────── */}
           {phase === "idle" && (
             <>
-              <span className="dx-eyebrow">Liga · 1 contra 1</span>
-              <h1 className="pv-title">⚔️ Arena PvP</h1>
+              <span className="dx-eyebrow">{t("league.eyebrow")}</span>
+              <h1 className="pv-title">{t("league.title")}</h1>
               <p className="pv-sub">
-                Reta a otro estudiante en una carrera de 10 preguntas. Cada acierto suma un punto;
-                el <b style={{ color: "var(--text)" }}>ELO se mueve por el resultado final</b>.
+                {t("league.introBefore")}
+                <b style={{ color: "var(--text)" }}>{t("league.introStrong")}</b>
+                {t("league.introAfter")}
               </p>
 
-              <label className="pv-field-label">Elige una materia</label>
+              <label className="pv-field-label">{t("league.pickCourse")}</label>
               <select
                 className="pv-select"
                 value={selectedCourse}
                 onChange={(e) => setSelectedCourse(e.target.value)}
               >
-                <option value="">— selecciona —</option>
+                <option value="">{t("league.pickPlaceholder")}</option>
                 {enrolled.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -108,7 +105,7 @@ export function League() {
               {notice && <p className="pv-notice" role="alert">{notice}</p>}
 
               <button className="dx-btn pv-cta" disabled={!selectedCourse} onClick={connect}>
-                Buscar rival →
+                {t("league.findOpponent")}
               </button>
 
               <HistoryPanel userId={user?.user_id} />
@@ -117,18 +114,18 @@ export function League() {
 
           {/* ── Conectando ────────────────────────────────── */}
           {phase === "connecting" && (
-            <div className="pv-center"><p className="pv-sub">Conectando a la arena…</p></div>
+            <div className="pv-center"><p className="pv-sub">{t("league.connecting")}</p></div>
           )}
 
           {/* ── Esperando rival ───────────────────────────── */}
           {phase === "waiting" && (
             <div className="pv-center">
               <div className="pv-radar" />
-              <h2 className="pv-title" style={{ justifyContent: "center" }}>Buscando rival…</h2>
+              <h2 className="pv-title" style={{ justifyContent: "center" }}>{t("league.searching")}</h2>
               <p className="pv-sub" style={{ marginBottom: 8 }}>
-                Esperando que otro estudiante entre a la misma materia.
+                {t("league.searchingHint")}
               </p>
-              <button className="dx-link" onClick={disconnect}>Cancelar</button>
+              <button className="dx-link" onClick={disconnect}>{t("league.cancel")}</button>
             </div>
           )}
 
@@ -149,27 +146,28 @@ export function League() {
                 {result.draw ? "🤝" : result.won ? "🏆" : "💔"}
               </motion.div>
               <h2 className={"pv-result-title " + (result.draw ? "draw" : result.won ? "win" : "loss")}>
-                {result.draw ? "Empate" : result.won ? "¡Ganaste!" : "Perdiste"}
+                {result.draw ? t("league.draw") : result.won ? t("league.won") : t("league.lost")}
               </h2>
               <div className="pv-board">
                 <div className="pv-board-col">
                   <span className="pv-board-num">{result.my_score}</span>
-                  <span className="pv-board-lbl">Tú</span>
+                  <span className="pv-board-lbl">{t("league.you")}</span>
                 </div>
-                <span className="pv-board-vs">vs</span>
+                <span className="pv-board-vs">{t("league.vs")}</span>
                 <div className="pv-board-col">
                   <span className="pv-board-num">{result.opp_score}</span>
-                  <span className="pv-board-lbl">{opponent?.name ?? "Rival"}</span>
+                  <span className="pv-board-lbl">{opponent?.name ?? t("league.opponent")}</span>
                 </div>
               </div>
-              <p className={"pv-elo-delta " + (result.elo_delta > 0 ? "up" : result.elo_delta < 0 ? "down" : "flat")}>
-                <span className="lbl">Tu ELO</span>
-                <EloCount value={result.elo_delta} />
+              <p className={"pv-elo-delta " + (result.elo_delta_display > 0 ? "up" : result.elo_delta_display < 0 ? "down" : "flat")}>
+                <span className="lbl">{t("league.yourElo")}</span>
+                {/* The server's rounded number (survey 007 V14): never rounded here. */}
+                <EloCount value={result.elo_delta_display} />
               </p>
-              {result.elo_reason && ELO_REASONS[result.elo_reason] && (
-                <p className="pv-sub pv-reason">{ELO_REASONS[result.elo_reason]}</p>
+              {result.elo_reason && ELO_REASONS.has(result.elo_reason) && (
+                <p className="pv-sub pv-reason">{t(`league.reasons.${result.elo_reason}`)}</p>
               )}
-              <button className="dx-btn pv-cta" onClick={disconnect}>Jugar de nuevo</button>
+              <button className="dx-btn pv-cta" onClick={disconnect}>{t("league.playAgain")}</button>
             </motion.div>
           )}
 
@@ -191,8 +189,8 @@ export function League() {
               </div>
 
               <p className="pv-opp-line">
-                vs <b>{opponent?.name ?? "Rival"}</b> ·{" "}
-                {opponent?.elo == null ? t("rating.pending") : `ELO ${opponent.elo}`}
+                {t("league.vs")} <b>{opponent?.name ?? t("league.opponent")}</b> ·{" "}
+                {opponent?.elo == null ? t("rating.pending") : `${t("league.eloShort")} ${opponent.elo}`}
               </p>
 
               {currentItem ? (
@@ -210,11 +208,6 @@ export function League() {
                           className={cls}
                           onClick={() => handleAnswer(opt)}
                           disabled={!!picked || timeLeft === 0}
-                          style={judged ? {
-                            borderColor: judged.correct ? "#34d399" : "#f87171",
-                            background: judged.correct ? "color-mix(in srgb, #34d399 14%, transparent)"
-                                                       : "color-mix(in srgb, #f87171 14%, transparent)",
-                          } : undefined}
                         >
                           <span className="dx-key">{KEYS[i] ?? i + 1}</span>
                           <span><MathText text={opt} /></span>
@@ -227,14 +220,14 @@ export function League() {
                 <div className="pv-center">
                   <div className="pv-done-emoji">✅</div>
                   <h2 className="pv-title" style={{ justifyContent: "center" }}>
-                    Terminaste tus {totalItems} preguntas
+                    {t("league.doneTitle", { count: totalItems })}
                   </h2>
                   <p className="pv-sub">
-                    Acertaste {myScore}. Esperando a que el rival termine o se acabe el tiempo…
+                    {t("league.doneHint", { score: myScore })}
                   </p>
                 </div>
               ) : (
-                <div className="pv-center"><p className="pv-sub">Cargando preguntas…</p></div>
+                <div className="pv-center"><p className="pv-sub">{t("league.loading")}</p></div>
               )}
             </>
           )}
@@ -246,6 +239,7 @@ export function League() {
 }
 
 function HistoryPanel({ userId }: { userId?: number }) {
+  const { t } = useTranslation();
   const { data } = useQuery({
     queryKey: ["pvp-history", userId],
     queryFn: () => studentApi.pvpHistory(),
@@ -257,17 +251,17 @@ function HistoryPanel({ userId }: { userId?: number }) {
 
   return (
     <div className="pv-history">
-      <p className="pv-history-h">Últimas partidas</p>
+      <p className="pv-history-h">{t("league.historyTitle")}</p>
       {data.slice(0, 5).map((m, i) => {
         const cls = m.draw ? "draw" : m.won ? "win" : "loss";
-        const label = m.draw ? "Empate" : m.won ? "Ganada" : "Perdida";
-        // Whole points, as the result screen shows them; a match with no recorded change shows «—».
-        const delta = m.elo_delta == null ? null : Math.round(m.elo_delta);
+        const label = m.draw ? t("league.draw") : m.won ? t("league.historyWon") : t("league.historyLost");
+        // The server's rounded number (survey 007 V14); a match with no recorded change shows «—».
+        const delta = m.elo_delta_display;
         const deltaCls = delta == null || delta === 0 ? "flat" : delta > 0 ? "up" : "down";
         return (
           <div key={i} className="pv-hrow">
             <span className={"pv-tag " + cls}>{label}</span>
-            <span className="pv-hopp">vs {m.opponent}</span>
+            <span className="pv-hopp">{t("league.vs")} {m.opponent}</span>
             <span className="pv-hscore">{m.my_score}–{m.opp_score}</span>
             <span className={"pv-hdelta " + deltaCls}>
               {delta == null ? "—" : delta >= 0 ? `+${delta}` : delta}

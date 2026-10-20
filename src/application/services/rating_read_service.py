@@ -10,7 +10,7 @@ from src.application.interfaces.repositories import IRatingReadRepository
 from src.domain.elo.aggregation import course_rating, overall_rating
 from src.domain.elo.console import console_summary
 from src.domain.elo.model import rating_delta
-from src.domain.elo.ranks import RANKS, rank_competition, rating_display
+from src.domain.elo.ranks import RANKS, rank_competition, rating_display, round_for_display
 
 _OVERALL = {"kind": "overall", "course_id": None, "source": "overall"}
 
@@ -173,6 +173,19 @@ class RatingReadService:
         for entry in entries:
             entry["status"] = "pending_diagnostic" if entry["rank"] is None else "rated"
         return {"basis": basis, "entries": entries if limit is None else entries[:limit]}
+
+    def pvp_history(self, user_id: int) -> list[dict]:
+        """The student's finished matches, each with the number to show for its applied delta —
+        half up on the value (FR-028j), so no screen rounds it (survey 007 V14)."""
+        return [
+            {
+                **row,
+                "elo_delta_display": (
+                    None if row.get("elo_delta") is None else round_for_display(row["elo_delta"])
+                ),
+            }
+            for row in self.repository.get_pvp_history(user_id)
+        ]
 
     def ranking_rank(self, user_id: int, scope: str, **kwargs) -> int | None:
         """The rank on the student's own entry of the unlimited list (FR-028f, FR-028h)."""
