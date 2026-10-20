@@ -96,7 +96,7 @@ test.describe("Liga PvP", () => {
   test("un ELO sin cambio dice por qué", async ({ page }) => {
     await openLeague(
       page,
-      match({ your_score: 2, opp_score: 0, won: true, draw: false, elo_delta: 0, elo_reason: "no_rated_topics" }),
+      match({ your_score: 2, opp_score: 0, won: true, draw: false, elo_delta: 0, elo_delta_display: 0, elo_reason: "no_rated_topics" }),
     );
     await startMatch(page);
     await option(page, "4").click();
@@ -117,14 +117,17 @@ test.describe("Liga PvP", () => {
     await expect(page.getByRole("button", { name: "Buscar rival →" })).toBeVisible();
   });
 
-  test("el historial muestra cambios enteros y uno sin aplicar", async ({ page }) => {
+  test("el historial muestra el número del servidor, sin redondear en el navegador", async ({ page }) => {
+    // Survey 007 V14: -2.5 shows as -3 (half up on the value, as the server rounds it), where
+    // Math.round in the browser gave -2.
     const row = { won: true, draw: false, my_score: 6, opp_score: 4, opponent: "rival", finished_at: "2026-10-10 12:00" };
     await openLeague(page, () => {}, [
-      { ...row, elo_delta: 11.52 },
-      { ...row, elo_delta: null },
+      { ...row, elo_delta: 11.52, elo_delta_display: 12 },
+      { ...row, won: false, elo_delta: -2.5, elo_delta_display: -3 },
+      { ...row, elo_delta: null, elo_delta_display: null },
     ]);
 
     const deltas = page.locator(".pv-hdelta");
-    await expect(deltas).toHaveText(["+12", "—"]);
+    await expect(deltas).toHaveText(["+12", "-3", "—"]);
   });
 });

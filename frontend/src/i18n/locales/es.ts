@@ -943,6 +943,42 @@ const es = {
     },
   },
 
+  // ── Liga PvP (estudio 007 V14) ───────────────────────────────────────────
+  league: {
+    eyebrow: "Liga · 1 contra 1",
+    title: "⚔️ Arena PvP",
+    introBefore: "Reta a otro estudiante en una carrera de 10 preguntas. Cada acierto suma un punto; el ",
+    introStrong: "ELO se mueve por el resultado final",
+    introAfter: ".",
+    pickCourse: "Elige una materia",
+    pickPlaceholder: "— selecciona —",
+    findOpponent: "Buscar rival →",
+    connecting: "Conectando a la arena…",
+    searching: "Buscando rival…",
+    searchingHint: "Esperando que otro estudiante entre a la misma materia.",
+    cancel: "Cancelar",
+    draw: "Empate",
+    won: "¡Ganaste!",
+    lost: "Perdiste",
+    you: "Tú",
+    opponent: "Rival",
+    vs: "vs",
+    yourElo: "Tu ELO",
+    playAgain: "Jugar de nuevo",
+    eloShort: "ELO",
+    doneTitle: "Terminaste tus {{count}} preguntas",
+    doneHint: "Acertaste {{score}}. Esperando a que el rival termine o se acabe el tiempo…",
+    loading: "Cargando preguntas…",
+    historyTitle: "Últimas partidas",
+    historyWon: "Ganada",
+    historyLost: "Perdida",
+    reasons: {
+      no_rated_topics:
+        "Tu ELO no cambió: aún no tienes nota en esta materia. Haz su diagnóstico para que las partidas cuenten.",
+      not_applied: "Tu ELO no cambió: no pudimos guardar el resultado de esta partida.",
+    },
+  },
+
   // ── Ratings (spec 001) ────────────────────────────────────────────────────
   rating: {
     pending: "Diagnóstico pendiente",

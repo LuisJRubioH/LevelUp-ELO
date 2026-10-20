@@ -22,7 +22,7 @@ from api.websocket import connections
 from starlette.websockets import WebSocketState
 
 from src.domain.elo.model import pvp_deltas
-from src.domain.elo.ranks import rating_display
+from src.domain.elo.ranks import rating_display, round_for_display
 from src.domain.identity import public_name
 
 logger = logging.getLogger("api.pvp")
@@ -103,6 +103,22 @@ def _slot_ratings(course_rating: float | None) -> tuple[float, int | None]:
     return expectation, rating_display(course_rating)["display_rating"]
 
 
+def _game_end(my_score: int, opp_score: int, *, won: bool, draw: bool, applied: tuple) -> dict:
+    """One player's `game_end`: the applied delta and, for the screen, the number to show — half
+    up on the value (spec 001 FR-028j), never rounded in the browser (survey 007 V14)."""
+    delta, reason = applied
+    return {
+        "type": "game_end",
+        "your_score": my_score,
+        "opp_score": opp_score,
+        "won": won,
+        "draw": draw,
+        "elo_delta": delta,
+        "elo_delta_display": None if delta is None else round_for_display(delta),
+        "elo_reason": reason,
+    }
+
+
 def _judge_answer(match: ActiveMatch, user_id: int, msg: dict) -> tuple[str, bool] | None:
     """(item_id, is_correct) for an answer that counts; None for one to ignore: the match is over,
     the item is not one of this match's or was already answered, or the choice is not text."""
@@ -159,12 +175,10 @@ async def _close_match(match: ActiveMatch, repo) -> None:
     if not applied:
         applied = {"p1": (0.0, "not_applied"), "p2": (0.0, "not_applied")}
 
-    result_p1 = {"type": "game_end", "your_score": s1, "opp_score": s2,
-                 "won": winner_id == match.p1.user_id, "draw": winner_id is None,
-                 "elo_delta": applied["p1"][0], "elo_reason": applied["p1"][1]}
-    result_p2 = {"type": "game_end", "your_score": s2, "opp_score": s1,
-                 "won": winner_id == match.p2.user_id, "draw": winner_id is None,
-                 "elo_delta": applied["p2"][0], "elo_reason": applied["p2"][1]}
+    draw = winner_id is None
+    won_p1, won_p2 = winner_id == match.p1.user_id, winner_id == match.p2.user_id
+    result_p1 = _game_end(s1, s2, won=won_p1, draw=draw, applied=applied["p1"])
+    result_p2 = _game_end(s2, s1, won=won_p2, draw=draw, applied=applied["p2"])
 
     await asyncio.gather(
         _send(match.p1.ws, result_p1),

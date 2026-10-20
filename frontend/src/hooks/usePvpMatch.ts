@@ -25,6 +25,8 @@ export interface PvpResult {
   my_score: number;
   opp_score: number;
   elo_delta: number;
+  /** The number to show for the applied delta, rounded on the server (survey 007 V14). */
+  elo_delta_display: number;
   /** null = applied; 'no_rated_topics' | 'not_applied' = 0 applied (spec 001). */
   elo_reason?: string | null;
 }
@@ -153,6 +155,7 @@ export function usePvpMatch(courseId: string | null) {
             won: msg.won, draw: msg.draw,
             my_score: msg.your_score, opp_score: msg.opp_score,
             elo_delta: msg.elo_delta,
+            elo_delta_display: msg.elo_delta_display ?? 0,
             elo_reason: msg.elo_reason ?? null,
           });
           goTo("finished");

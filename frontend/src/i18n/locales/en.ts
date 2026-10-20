@@ -940,6 +940,42 @@ const en: TranslationKeys = {
     },
   },
 
+  // ── PvP League (survey 007 V14) ───────────────────────────────────────────
+  league: {
+    eyebrow: "League · 1 vs 1",
+    title: "⚔️ PvP Arena",
+    introBefore: "Challenge another student to a 10-question race. Each right answer scores a point; ",
+    introStrong: "your ELO moves with the final result",
+    introAfter: ".",
+    pickCourse: "Choose a subject",
+    pickPlaceholder: "— select —",
+    findOpponent: "Find an opponent →",
+    connecting: "Connecting to the arena…",
+    searching: "Looking for an opponent…",
+    searchingHint: "Waiting for another student to join the same subject.",
+    cancel: "Cancel",
+    draw: "Draw",
+    won: "You won!",
+    lost: "You lost",
+    you: "You",
+    opponent: "Opponent",
+    vs: "vs",
+    yourElo: "Your ELO",
+    playAgain: "Play again",
+    eloShort: "ELO",
+    doneTitle: "You finished your {{count}} questions",
+    doneHint: "You got {{score}} right. Waiting for your opponent to finish or for time to run out…",
+    loading: "Loading questions…",
+    historyTitle: "Recent matches",
+    historyWon: "Won",
+    historyLost: "Lost",
+    reasons: {
+      no_rated_topics:
+        "Your ELO did not change: you have no rating in this subject yet. Take its diagnostic so matches count.",
+      not_applied: "Your ELO did not change: we could not save this match's result.",
+    },
+  },
+
   // ── Ratings (spec 001) ────────────────────────────────────────────────────
   rating: {
     pending: "Pending diagnostic",

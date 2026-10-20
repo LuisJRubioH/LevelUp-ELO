@@ -484,6 +484,8 @@ export const studentApi = {
         my_score: number;
         opp_score: number;
         elo_delta: number | null;
+        /** The number to show, rounded on the server (survey 007 V14); null when none recorded. */
+        elo_delta_display: number | null;
         opponent: string;
         finished_at: string;
       }>
