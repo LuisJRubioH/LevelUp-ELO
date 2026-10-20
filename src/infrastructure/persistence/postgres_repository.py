@@ -4718,6 +4718,16 @@ class PostgresRepository:
                         tags_json = json.dumps(item.get("tags") or [])
                         options_json = json.dumps(item["options"])
                         item_block = item.get("block", "")
+                        static = (
+                            item["content"],
+                            options_json,
+                            item["correct_option"],
+                            item["topic"],
+                            course_id,
+                            img,
+                            tags_json,
+                            item_block,
+                        )
                         if item["id"] not in existing_items:
                             new_items_params.append(
                                 (
@@ -4733,19 +4743,12 @@ class PostgresRepository:
                                     item_block,
                                 )
                             )
+                            # Survey 008 B22: a later file with the same id updates it, as on
+                            # SQLite — the insert's ON CONFLICT DO NOTHING would keep the first.
+                            existing_items[item["id"]] = static
                         else:
                             # Ítem ya existe → re-sincronizar metadatos estáticos, solo si
                             # cambiaron: un arranque sin cambios en el banco no reescribe filas.
-                            static = (
-                                item["content"],
-                                options_json,
-                                item["correct_option"],
-                                item["topic"],
-                                course_id,
-                                img,
-                                tags_json,
-                                item_block,
-                            )
                             if existing_items[item["id"]] != static:
                                 update_static_params.append(static + (item["id"],))
                                 existing_items[item["id"]] = static
