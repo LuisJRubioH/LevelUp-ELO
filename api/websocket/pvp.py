@@ -415,8 +415,10 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
                 raw, first_message = first_message, None
             else:
                 raw = await websocket.receive_text()
-            msg = json.loads(raw)
-
+            try:
+                msg = json.loads(raw)
+            except ValueError:
+                continue  # a malformed frame is ignored, like any message that is not an answer
             if not isinstance(msg, dict) or msg.get("type") != "answer":
                 continue
 
