@@ -1,22 +1,20 @@
 """
 tests/integration/test_pvp_repository.py
 =========================================
-Pruebas de integración de los métodos PvP del SQLiteRepository contra una DB
-temporal: create_pvp_match → save_pvp_answer → finish_pvp_match → get_pvp_history.
+Pruebas de integración de los métodos PvP de los repositorios, en ambos motores (survey 007 V15;
+el fixture `repo` de conftest corre cada prueba en SQLite y en PostgreSQL):
+create_pvp_match → save_pvp_answer → finish_pvp_match → get_pvp_history.
 También cubre get_course_blocks.
+
+PostgreSQL persiste entre pruebas: los jugadores tienen nombres únicos y las pruebas de
+abandono cierran primero las partidas huérfanas que dejaron corridas anteriores.
 """
 
 import pytest
-from src.infrastructure.persistence.sqlite_repository import SQLiteRepository
-from tests.integration.conftest import rating_of, set_rating
+
+from tests.integration.conftest import is_postgres, make_student, rating_of, set_rating, sql
 
 COURSE, TOPIC = "calculo_diferencial", "Límites"
-
-
-@pytest.fixture
-def repo(tmp_path) -> SQLiteRepository:
-    db_path = str(tmp_path / "test_pvp.db")
-    return SQLiteRepository(db_name=db_path)
 
 
 def _two_players(repo, rated=True):
@@ -25,14 +23,34 @@ def _two_players(repo, rated=True):
     Spec 001 (FR-029b/c): a match moves every rated topic of its course, so each player gets
     one rated topic (COURSE, TOPIC) = 1000 unless `rated=False`.
     """
-    repo.register_user("jugador_a", "password123", "student", education_level="universidad")
-    repo.register_user("jugador_b", "password123", "student", education_level="universidad")
-    a = repo.login_user("jugador_a", "password123")[0]
-    b = repo.login_user("jugador_b", "password123")[0]
+    a, b = make_student(repo, "universidad"), make_student(repo, "universidad")
     if rated:
         set_rating(repo, a, COURSE, TOPIC, 1000.0)
         set_rating(repo, b, COURSE, TOPIC, 1000.0)
     return a, b
+
+
+def _username(repo, user_id):
+    return sql(repo, "SELECT username FROM users WHERE id = ?", (user_id,))[0][0]
+
+
+def _status(repo, match_id):
+    return sql(repo, "SELECT status FROM pvp_matches WHERE id = ?", (match_id,))[0][0]
+
+
+def _started_ago(repo, match_id, seconds):
+    """Moves the match's start `seconds` into the past, in each engine's clock."""
+    if is_postgres(repo):
+        statement = (
+            "UPDATE pvp_matches SET started_at = NOW() - make_interval(secs => ?) WHERE id = ?"
+        )
+        sql(repo, statement, (seconds, match_id))
+    else:
+        sql(
+            repo,
+            "UPDATE pvp_matches SET started_at = datetime('now', ?) WHERE id = ?",
+            ("-%d seconds" % seconds, match_id),
+        )
 
 
 class TestPvpMatchLifecycle:
@@ -69,7 +87,7 @@ class TestPvpMatchLifecycle:
         assert m["my_score"] == 2
         assert m["opp_score"] == 0
         assert m["elo_delta"] == 12.0
-        assert m["opponent"] == "jugador_b"
+        assert m["opponent"] == _username(repo, b)
 
     def test_history_perspective_is_per_user(self, repo):
         """El historial del perdedor refleja SU perspectiva (su score, su delta)."""
@@ -92,7 +110,7 @@ class TestPvpMatchLifecycle:
         assert m["my_score"] == 1  # b es player2 → su score es score_p2
         assert m["opp_score"] == 5
         assert m["elo_delta"] == -12.0
-        assert m["opponent"] == "jugador_a"
+        assert m["opponent"] == _username(repo, a)
 
     def test_finish_updates_current_elo(self, repo):
         """Spec 001: the course's topic rating moves, not users.current_elo (FR-028, FR-029b)."""
@@ -183,46 +201,31 @@ class TestPvpStateSurvivesTheProcess:
     def test_matches_orphaned_by_a_restart_are_closed(self, repo):
         """El cronómetro vive en el proceso: un reinicio deja la fila 'active' para siempre."""
         a, b = _two_players(repo, rated=False)
+        repo.expire_stale_pvp_matches()  # orphans left by earlier runs (PostgreSQL persists)
         mid = repo.create_pvp_match("calculo_diferencial", a, b, ["i1"])
-
-        conn = repo.get_connection()
-        conn.execute(
-            "UPDATE pvp_matches SET started_at = datetime('now', '-2 hours') WHERE id = ?",
-            (mid,),
-        )
-        conn.commit()
-        conn.close()
+        _started_ago(repo, mid, 2 * 3600)
 
         assert repo.expire_stale_pvp_matches() == 1
 
-        conn = repo.get_connection()
-        status = conn.execute("SELECT status FROM pvp_matches WHERE id = ?", (mid,)).fetchone()[0]
-        conn.close()
-        assert status == "abandoned"
+        assert _status(repo, mid) == "abandoned"
         # Nadie ganó: el ELO no se toca.
         assert repo.get_course_topic_ratings(a) == []
 
     def test_a_live_match_is_left_alone(self, repo):
         a, b = _two_players(repo)
+        repo.expire_stale_pvp_matches()
         mid = repo.create_pvp_match("calculo_diferencial", a, b, ["i1"])
         assert repo.expire_stale_pvp_matches() == 0
 
-        conn = repo.get_connection()
-        status = conn.execute("SELECT status FROM pvp_matches WHERE id = ?", (mid,)).fetchone()[0]
-        conn.close()
-        assert status == "active"
+        assert _status(repo, mid) == "active"
 
     @pytest.mark.parametrize("age_seconds,expired", [(590, 0), (610, 1)])
     def test_spec001_abandonment_starts_after_600_seconds(self, repo, age_seconds, expired):
         """FR-027 boundary (spec 001, T070): only matches active for more than 600 s close."""
         a, b = _two_players(repo, rated=False)
+        repo.expire_stale_pvp_matches()
         mid = repo.create_pvp_match("calculo_diferencial", a, b, ["i1"])
-        conn = repo.get_connection()
-        conn.execute(
-            "UPDATE pvp_matches SET started_at = datetime('now', ?) WHERE id = ?",
-            ("-%d seconds" % age_seconds, mid),
-        )
-        conn.commit()
-        conn.close()
+        _started_ago(repo, mid, age_seconds)
 
         assert repo.expire_stale_pvp_matches() == expired
+        assert _status(repo, mid) == ("abandoned" if expired else "active")
