@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from api.websocket import connections
+from api.websocket.limits import SocketLimits
 from starlette.websockets import WebSocketState
 
 from src.domain.elo.model import pvp_deltas
@@ -75,6 +76,11 @@ class ActiveMatch:
 _lobby: dict[str, LobbySlot] = {}  # course_id → LobbySlot en espera
 _matches: dict[int, ActiveMatch] = {}  # match_id → ActiveMatch
 _lock = asyncio.Lock()
+# Spec 007 FR-050: the one live League socket of each student (any course, any phase).
+_league_sockets: dict[int, WebSocket] = {}
+
+SECOND_TAB_CODE = 4409  # FR-050: the student already has the League open
+TOO_MANY_MESSAGES_CODE = 4429  # FR-051: dropped frames kept coming
 
 # Survey 007 V22: how often the API closes orphaned matches (owner decision, 2026-10-20).
 ORPHAN_SWEEP_EVERY_S = 300
@@ -98,6 +104,35 @@ async def sweep_orphaned_matches(repo, every_seconds: float = ORPHAN_SWEEP_EVERY
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+class _TooManyMessages(Exception):
+    """The socket kept sending frames that were dropped; it has been closed with 4429."""
+
+
+def _socket_limits() -> SocketLimits:
+    from api.config import settings
+
+    return SocketLimits(
+        max_frame_bytes=settings.pvp_max_frame_bytes,
+        per_second=settings.pvp_max_messages_per_second,
+        abuse_limit=settings.pvp_abuse_limit,
+    )
+
+
+async def _receive(ws: WebSocket, limits: SocketLimits) -> str:
+    """The next frame the limits accept (spec 007 FR-051). A frame over the size or beyond the
+    rate is dropped unparsed, with no reply; when drops persist the socket is closed with 4429."""
+    while True:
+        raw = await ws.receive_text()
+        if limits.accept(len(raw.encode("utf-8"))):
+            return raw
+        if limits.abusive():
+            try:
+                await ws.close(code=TOO_MANY_MESSAGES_CODE, reason="Demasiados mensajes.")
+            except Exception:
+                pass
+            raise _TooManyMessages()
+
 
 async def _send(ws: WebSocket, msg: dict) -> bool:
     try:
@@ -234,10 +269,11 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
         await websocket.close(code=4003, reason="Origen no permitido.")
         return
     await websocket.accept()
+    limits = _socket_limits()  # every frame of this socket, the token's included (FR-051)
 
     # 1. Autenticación
     try:
-        raw = await asyncio.wait_for(websocket.receive_text(), timeout=10.0)
+        raw = await asyncio.wait_for(_receive(websocket, limits), timeout=10.0)
         msg = json.loads(raw)
         repo = get_repository()
         # El repositorio es síncrono: cada llamada va a un hilo para no
@@ -256,10 +292,39 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
         }
         if course_id not in enrollments:
             raise ValueError("El estudiante no está inscrito en el curso")
-    except Exception as exc:
-        await websocket.close(code=4001, reason="Auth failed")
-        logger.warning("PvP auth failed: %s", exc)
+    except _TooManyMessages:
         return
+    except Exception as exc:
+        try:
+            await websocket.close(code=4001, reason="Auth failed")
+        except Exception:
+            pass
+        logger.warning("PvP auth failed: %s", type(exc).__name__)
+        return
+
+    # Spec 007 FR-050: one live League socket per student. No await between the check and the
+    # claim, so two sockets of one student cannot both pass.
+    current = _league_sockets.get(user_id)
+    if current is not None and current.client_state == WebSocketState.CONNECTED:
+        try:
+            await websocket.close(
+                code=SECOND_TAB_CODE, reason="Ya tienes la Liga abierta en otra pestaña."
+            )
+        except Exception:
+            pass
+        return
+    _league_sockets[user_id] = websocket
+    try:
+        await _play(websocket, repo, limits, user_id, name, course_id)
+    finally:
+        if _league_sockets.get(user_id) is websocket:
+            del _league_sockets[user_id]
+
+
+async def _play(
+    websocket: WebSocket, repo, limits: SocketLimits, user_id: int, name: str, course_id: str
+) -> None:
+    """The League socket of an authenticated, enrolled student: lobby, match and answers."""
 
     # Rating de la partida: el del curso (FR-026), leído fuera de _lock (AGENTS R17).
     # La expectativa usa 1000 si no hay rating; al rival se le muestra el valor o "pendiente".
@@ -364,7 +429,7 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
         receive_task: asyncio.Future | None = None
         deadline = asyncio.get_running_loop().time() + 300.0
         while True:
-            receive_task = asyncio.ensure_future(websocket.receive_text())
+            receive_task = asyncio.ensure_future(_receive(websocket, limits))
             remaining = deadline - asyncio.get_running_loop().time()
             await asyncio.wait(
                 {matched_task, receive_task},
@@ -442,7 +507,7 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
             if first_message is not None:
                 raw, first_message = first_message, None
             else:
-                raw = await websocket.receive_text()
+                raw = await _receive(websocket, limits)
             try:
                 msg = json.loads(raw)
             except ValueError:
@@ -488,6 +553,8 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
                 await _finish_early(match, timer_task, repo)
                 break
 
+    except _TooManyMessages:
+        logger.info("PvP closed for too many messages: user=%s match=%s", user_id, match.match_id)
     except WebSocketDisconnect:
         logger.info("PvP disconnect: user=%s match=%s", user_id, match.match_id)
         # ponytail: NO cancelamos el timer aquí — si un jugador cae, el timer

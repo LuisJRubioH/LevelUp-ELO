@@ -57,6 +57,13 @@ async def lifespan(app: FastAPI):
     logger.info("=== LevelUp-ELO API v%s iniciando ===", settings.app_version)
     try:
         settings.validate_runtime()
+        if settings.environment.lower() == "production":
+            # Spec 007 FR-052: a second worker on this host stops here (R18).
+            from api.single_process import hold_single_process_lock
+
+            app.state.single_process_lock = hold_single_process_lock(
+                settings.pvp_single_process_lock
+            )
         from api.dependencies import get_repository
 
         from api.websocket.notifications import bind_event_loop
@@ -84,6 +91,10 @@ async def lifespan(app: FastAPI):
         await sweep
     except asyncio.CancelledError:
         pass
+    lock = getattr(app.state, "single_process_lock", None)
+    if lock is not None:
+        lock.close()  # releases the host lock (spec 007 FR-052)
+        app.state.single_process_lock = None
     logger.info("=== LevelUp-ELO API detenida ===")
 
 
