@@ -969,6 +969,14 @@ const en: TranslationKeys = {
     historyTitle: "Recent matches",
     historyWon: "Won",
     historyLost: "Lost",
+    historyAbandoned: "Abandoned",
+    historyMore: "Show more",
+    historyReasons: {
+      not_saved: "the result could not be saved",
+      orphaned: "closed before it ended",
+      account_expired: "the account expired",
+      unknown: "no result",
+    },
     closeNotices: {
       authFailed:
         "We could not enter the arena. Sign in again and check that you are enrolled in the subject.",

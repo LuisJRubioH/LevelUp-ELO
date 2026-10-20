@@ -337,7 +337,9 @@ overwrite it), so the course rating moves by exactly the delta. A player with no
 gets 0 with `elo_reason = 'no_rated_topics'`; it returns the applied deltas, and `game_end` reports
 them (`"not_applied"` with 0 if persisting fails). The close is idempotent through
 `AND status='active'`. The lobby reads the course rating outside `_lock` (1000 drives the
-expectation of an unrated player but is never shown). Orphaned matches are closed as `abandoned`
+expectation of an unrated player but is never shown). A close that fails to persist is retried 3 times (0.5, 1,
+2 s), then closed as `abandoned` with reason `not_saved` (`abandon_pvp_match`, spec 007 FR-061).
+Orphaned matches are closed as `abandoned` with reason `orphaned`
 (no rating change) by `expire_stale_pvp_matches()`: at bootstrap and, while the API runs, every
 5 minutes (`sweep_orphaned_matches`, survey 007 V22). Shutdown only stops the sweep; it never
 closes a match.

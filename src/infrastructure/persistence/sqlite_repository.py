@@ -4667,7 +4667,8 @@ class SQLiteRepository:
         cursor = conn.cursor()
         cursor.execute(
             """
-            UPDATE pvp_matches SET status='abandoned', finished_at=CURRENT_TIMESTAMP
+            UPDATE pvp_matches SET status='abandoned', finished_at=CURRENT_TIMESTAMP,
+                elo_delta_p1=0, elo_reason_p1='orphaned', elo_delta_p2=0, elo_reason_p2='orphaned'
             WHERE status='active'
               AND started_at < datetime('now', ?)
             """,
@@ -4680,28 +4681,52 @@ class SQLiteRepository:
             logger.info("Partidas PvP huérfanas cerradas: %d", closed)
         return closed
 
-    def get_pvp_history(self, user_id: int, limit: int = 20) -> list[dict]:
-        import json
-
+    def abandon_pvp_match(self, match_id: int, reason: str) -> bool:
+        """Spec 007 FR-061: close a match that is still active as abandoned with `reason`,
+        changing no rating (both deltas 0). False when it was no longer active."""
         conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT m.id, m.course_id, m.winner_id, m.score_p1, m.score_p2,
-                   m.elo_delta_p1, m.elo_delta_p2, m.started_at, m.finished_at,
-                   m.player1_id, m.player2_id,
-                   COALESCE(u1.display_name, u1.username) AS p1_name,
-                   COALESCE(u2.display_name, u2.username) AS p2_name
-            FROM pvp_matches m
-            JOIN users u1 ON u1.id = m.player1_id
-            JOIN users u2 ON u2.id = m.player2_id
-            WHERE (m.player1_id = ? OR m.player2_id = ?) AND m.status = 'finished'
-            ORDER BY m.finished_at DESC LIMIT ?
-            """,
-            (user_id, user_id, limit),
-        )
-        rows = cursor.fetchall()
-        conn.close()
+        try:
+            changed = conn.execute(
+                """UPDATE pvp_matches SET status='abandoned', finished_at=CURRENT_TIMESTAMP,
+                       elo_delta_p1=0, elo_reason_p1=?, elo_delta_p2=0, elo_reason_p2=?
+                   WHERE id = ? AND status='active'""",
+                (reason, reason, match_id),
+            ).rowcount
+            conn.commit()
+            return changed == 1
+        finally:
+            conn.close()
+
+    def get_pvp_history(
+        self, user_id: int, limit: int = 20, before: int | None = None
+    ) -> list[dict]:
+        """Spec 007 FR-060: the student's closed matches — finished or abandoned, never active —
+        newest first (by close, then id), each with its subject and the student's own reason.
+        `before` (a match id) returns the ones after it in that order."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                """
+                SELECT m.id, m.course_id, m.winner_id, m.score_p1, m.score_p2,
+                       m.elo_delta_p1, m.elo_delta_p2, m.started_at, m.finished_at,
+                       m.player1_id, m.player2_id,
+                       COALESCE(u1.display_name, u1.username) AS p1_name,
+                       COALESCE(u2.display_name, u2.username) AS p2_name,
+                       m.status, c.name, m.elo_reason_p1, m.elo_reason_p2
+                FROM pvp_matches m
+                JOIN users u1 ON u1.id = m.player1_id
+                JOIN users u2 ON u2.id = m.player2_id
+                LEFT JOIN courses c ON c.id = m.course_id
+                WHERE (m.player1_id = ? OR m.player2_id = ?)
+                  AND m.status IN ('finished', 'abandoned')
+                  AND (? IS NULL OR (m.finished_at, m.id) <
+                       (SELECT finished_at, id FROM pvp_matches WHERE id = ?))
+                ORDER BY m.finished_at DESC, m.id DESC LIMIT ?
+                """,
+                (user_id, user_id, before, before, limit),
+            ).fetchall()
+        finally:
+            conn.close()
         results = []
         for r in rows:
             is_p1 = r[9] == user_id
@@ -4709,6 +4734,9 @@ class SQLiteRepository:
                 {
                     "match_id": r[0],
                     "course_id": r[1],
+                    "course_name": r[14] or r[1],
+                    "status": r[13],
+                    "reason": r[15] if is_p1 else r[16],
                     "won": r[2] == user_id,
                     "draw": r[2] is None,
                     "my_score": r[3] if is_p1 else r[4],
