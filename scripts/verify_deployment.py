@@ -2,7 +2,8 @@
 scripts/verify_deployment.py — end-to-end checks of a deployment with the test accounts.
 
 docs/transfer.md § 6 ("after the switch") as one command. It writes through the test accounts
-only: a diagnostic, one practice answer and one procedure (uploaded, then graded by the teacher).
+only: a diagnostic, one practice answer and one procedure (uploaded; graded by the teacher only
+when VERIFY_STUDENT names a non-test student, see below).
 
     python scripts/verify_deployment.py --api-url https://levelup-elo.onrender.com \\
         --frontend-url https://luislevelupelo.vercel.app --report verify-YYYYMMDD.txt
@@ -10,6 +11,9 @@ only: a diagnostic, one practice answer and one procedure (uploaded, then graded
 Accounts default to the seeded test users documented in AGENTS.md; override with
 VERIFY_STUDENT, VERIFY_DIAGNOSTIC_STUDENT and VERIFY_TEACHER as "user:password".
 The practice/procedure student must belong to a group of the teacher.
+Teachers review active, non-test students only (spec 006 FR-050): with the default test student
+the procedure must stay out of the teacher's queue; a VERIFY_STUDENT that is not a test account
+gets it reviewed and graded end to end.
 Exit code 0 only if every check passes (warnings do not fail).
 """
 
@@ -50,6 +54,13 @@ def _account(var, default):
     # An unset CI secret arrives as an empty variable: it means "use the default".
     user, _, password = (os.environ.get(var) or default).partition(":")
     return user, password
+
+
+def reviews_procedure(env) -> bool:
+    """The teacher reviews the procedure student: a VERIFY_STUDENT is taken to be a real student
+    of the teacher's group; the default is a seeded test account, which spec 006 FR-050 keeps out
+    of every teacher's queue."""
+    return bool((env.get("VERIFY_STUDENT") or "").strip())
 
 
 def matches_preview(delta: float, preview: float) -> bool:
@@ -331,10 +342,38 @@ def main():
         return finish(r, args)
     sid = sub.json()["submission_id"]
     queue = c.get("/api/teacher/procedures", headers=ht).json()
+    queued = any(p["submission_id"] == sid for p in queue)
+    if not reviews_procedure(os.environ):
+        mine = c.get("/api/student/procedures", headers=hs).json().get("submissions", [])
+        r.check(
+            any(p.get("submission_id") == sid for p in mine),
+            "the student's procedure list shows it",
+            f"submission {sid}",
+        )
+        r.check(
+            not queued,
+            "a test account's procedure stays out of the teacher's queue (spec 006 FR-050)",
+            f"submission {sid}",
+        )
+        grade = c.post(
+            "/api/teacher/procedures/grade",
+            headers=ht,
+            json={
+                "submission_id": sid,
+                "teacher_score": 80,
+                "teacher_feedback": "verify_deployment",
+            },
+        )
+        r.check(grade.status_code == 404, "the teacher cannot grade it", grade.status_code)
+        r.log(
+            f"  [INFO] submission {sid}: its storage_url in the database says whether Storage took"
+            " it; set VERIFY_STUDENT to a non-test student of the teacher's group to grade it"
+        )
+        return finish(r, args)
     r.check(
-        any(p["submission_id"] == sid for p in queue),
+        queued,
         "teacher sees it in the queue",
-        f"submission {sid}",
+        f"submission {sid} (VERIFY_STUDENT must be a non-test student of the teacher's group)",
     )
     img = c.get(f"/api/teacher/procedures/{sid}/image", headers=ht)
     r.check(
