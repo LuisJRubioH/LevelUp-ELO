@@ -55,6 +55,7 @@ analyze → implement. If it contradicts a principle, `/speckit-constitution` fi
 | 006 | Teacher console & exams | dashboard metrics, exports, exam mode, procedure grading flow | 5 |
 | 007 | PvP leagues | lobby, match lifecycle, single-process constraint (ELO effect lives in 001) | 4 |
 | 008 | Item bank | JSON schema, validation, course→block map, calibration | 4 |
+| 009 | Initial student import | the owner's first load of students from a Google Forms export: mapping, preview, the identification as credentials, re-import, linking, who sees the identification; reuses spec 004's account rules (moved out of spec 004, 2026-10-14) | 2 |
 
 Not specs (covered by the constitution): frontend design system, code style, CI.
 
