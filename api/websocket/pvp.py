@@ -103,12 +103,6 @@ def _slot_ratings(course_rating: float | None) -> tuple[float, int | None]:
     return expectation, rating_display(course_rating)["display_rating"]
 
 
-async def _lobby_rating(repo, user_id: int, course_id: str) -> float:
-    """The player's course rating for the match expectation (FR-026); 1000 when unrated."""
-    rating = await _course_rating(repo, user_id, course_id)
-    return 1000.0 if rating is None else rating
-
-
 def _judge_answer(match: ActiveMatch, user_id: int, msg: dict) -> tuple[str, bool] | None:
     """(item_id, is_correct) for an answer that counts; None for one to ignore: the match is over,
     the item is not one of this match's or was already answered, or the choice is not text."""
