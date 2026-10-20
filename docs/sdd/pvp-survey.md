@@ -294,3 +294,16 @@ Taken by the owner on 2026-10-20; spec 007 starts from them. Already delivered a
 
 Open: the exact numbers in D5 (±150, 3 per day), D4 (20 s) and D9 (4 KB, 5/s) are the
 recommended starting values; the spec may tune them with the owner.
+
+### Second round (2026-10-20, on the spec 007 draft)
+
+| # | Point | Decision |
+|---|---|---|
+| O1 | The institution | **First-class, designed now**: the owner will run olympiads where students classify within their institution and the final keeps one per grade per institution. Institution and grade per student are owned by spec 009 (N21) and must exist before spec 007 delivery G; no interim boundary. |
+| O2 | The numbers | Accepted as starting values (±150 widening, 3 per day, 20 s, 4 KB, 5/s). |
+| O3 | Speed tiebreak | On equal scores the lower total answer time wins; equal to the second is a draw. |
+| — | Spec 001 amendment for D1 | **Approved**: spec 001 FR-029c is amended in the PR of spec 007 delivery G. |
+| V11 | A close that fails to persist | Retry 3 times within a few seconds, then close as `abandoned` with reason `not_saved`, shown in the history. |
+| V17 | More than one worker | In production the API refuses to start with more than one worker by any route (`--workers`, `WEB_CONCURRENCY`); documented as one instance. |
+| V23 | `pvp_answers` | Feeds the student's and the teacher's statistics; the score stays in memory. |
+| V24 | Refusals and the expectation | A distinct close code and message per refusal reason; the expectation rating is read again when the match is formed. |
