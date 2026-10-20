@@ -99,7 +99,8 @@ run gives the owner the real numbers before anything is written.
 default, writes with `--apply`, prints counts only — spec 002 FR-018, `scripts/repairs/_repair.py`):
 - per student and course, the ratings of the fine topics of one coarse topic are combined into the
   coarse topic as their **mean**, with RD the **mean of their RDs** (never below 30), `origin =
-  'merged'`, `approximate = 1` and the old keys recorded as provenance (`legacy_source_key`,
+  'legacy_topic_row'` (implementation: the column's CHECK lists no `'merged'`, and changing a
+  CHECK is not additive, R8; `legacy_source_key` names the merge), `approximate = 1` and the old keys recorded as provenance (`legacy_source_key`,
   `reconciled_at`), as spec 001's legacy reconciliation records it;
 - a coarse topic the student already has a row for is **never touched** (as reconciliation's
   FR-033);

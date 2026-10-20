@@ -104,8 +104,9 @@ def _repository_calls(service_path: pathlib.Path) -> set[str]:
         ("application/services/student_service.py", IStudentRepository),
         ("application/services/teacher_service.py", ITeacherRepository),
         ("application/services/rating_read_service.py", IRatingReadRepository),
+        ("application/services/study_report_service.py", IStudentRepository),
     ],
-    ids=["student", "teacher", "rating_read"],
+    ids=["student", "teacher", "rating_read", "study_report"],
 )
 def test_everything_the_service_calls_is_declared(service_file, protocol):
     used = _repository_calls(_SRC / service_file)

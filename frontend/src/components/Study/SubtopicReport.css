@@ -1,0 +1,10 @@
+/* Spec 008 FR-042: the study report per subtopic. Tokens only (index.css). */
+.sr-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.sr-head { display: flex; justify-content: space-between; gap: 0.75rem; align-items: baseline; }
+.sr-name { font-weight: 600; color: var(--text); }
+.sr-count { font-variant-numeric: tabular-nums; font-size: 0.8rem; color: var(--mute); white-space: nowrap; }
+.sr-meta { font-size: 0.75rem; color: var(--mute); margin-top: 0.1rem; }
+.sr-bar { height: 4px; border-radius: 2px; background: var(--surface-2); margin-top: 0.35rem; overflow: hidden; }
+.sr-bar > span { display: block; height: 100%; border-radius: 2px; }
+.sr-empty { font-size: 0.85rem; color: var(--mute); }
+.sr-hint { font-size: 0.8rem; color: var(--mute); margin: -0.25rem 0 0.75rem; }

@@ -39,7 +39,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | Delivery | Content | State |
 |---|---|---|
 | **A** | As-is pins: the validator's checks, the bank content tests, a failed sync releasing the database, duplicate ids resolved alike on both engines, a map change resyncing, the calibrator loaded once, the retired repository methods staying gone | closed |
-| **T** | Topics and subtopics (B19): the coarse topic carries the rating, the fine label becomes `subtopic` (additive `items.subtopic` column, both engines, `SCHEMA_VERSION` bump); DIAN and EPA8 regrouped once; a warning for a topic with fewer than 5 items. Lands **before** V commits the id manifest | planned |
+| **T** | Topics and subtopics (B19): the coarse topic carries the rating, the fine label becomes `subtopic` (additive `items.subtopic` column, both engines, `SCHEMA_VERSION` bump); DIAN and EPA8 regrouped once; a warning for a topic with fewer than 5 items. Lands **before** V commits the id manifest | closed |
 | **V** | Validator rules: an integer difficulty in 400–2000 (D1), no existing id changing course or topic against a committed id manifest (D4), the EPA8 bank checked against its generator in CI (D6) | planned |
 | **C** | One course catalogue: block and name of every course in one module that both repositories and the validator read; semillero block and grade from the file name (D5) | planned |
 | **L** | An item's life: `"retired": true` takes an item out of practice, exams and PvP without deleting it (D2); a difficulty edited in the bank wins over the calibrated one, an untouched one keeps it, and an audited recalibration script (D3). Additive migrations on both engines and a `SCHEMA_VERSION` bump (AGENTS § Database) | planned |
@@ -318,10 +318,10 @@ closes their delivery.
 | US1-AS1 | A | `tests/unit/scripts/test_validate_bank.py::test_an_unescaped_backslash_in_latex_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_an_empty_or_non_text_topic_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_an_id_that_is_not_text_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_tags_must_be_a_list_of_text`<br>`tests/unit/scripts/test_validate_bank.py::test_an_image_that_does_not_exist_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_a_course_missing_from_the_course_map_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_a_well_formed_item_passes` |
 | US1-AS2 | A | `tests/integration/test_sqlite_bank_sync_failure.py::test_a_failed_bank_sync_releases_the_database` |
 | US1-AS3 | A | `tests/integration/test_bank_duplicate_id.py::test_a_new_duplicate_id_keeps_the_last_files_item`<br>`tests/integration/test_bank_duplicate_id.py::test_an_existing_duplicate_id_keeps_the_last_files_item` |
-| US5-AS1 | T | PENDING |
-| US5-AS2 | T | PENDING |
-| US5-AS3 | T | PENDING |
-| US5-AS4 | T | PENDING |
+| US5-AS1 | T | `tests/unit/infrastructure/test_bank_content.py::test_dian_and_epa8_are_regrouped`<br>`tests/integration/test_spec008_t_topics.py::test_spec008_the_sync_stores_the_subtopic` |
+| US5-AS2 | T | `tests/integration/test_spec008_t_topics.py::test_spec008_two_answers_in_one_coarse_topic_move_one_rating` |
+| US5-AS3 | T | `tests/integration/test_spec008_t_topics.py::test_spec008_the_subtopic_report_counts_across_courses`<br>`tests/integration/test_spec008_t_topics.py::test_spec008_stats_and_teacher_view_carry_the_report`<br>`frontend/e2e/stats.spec.ts › muestra el reporte por subtema, del más débil al más firme (spec 008 US5-AS3)` |
+| US5-AS4 | T | `tests/unit/scripts/test_validate_bank.py::test_a_small_topic_warns_and_passes` |
 | US2-AS1 | V | PENDING |
 | US2-AS2 | V | PENDING |
 | US2-AS3 | V | PENDING |
@@ -337,10 +337,10 @@ closes their delivery.
 | FR-005 | A | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_changed_course_map_resyncs_the_bank` |
 | FR-006 | A | `tests/api/test_calibrator_once.py::test_the_calibrator_is_loaded_once_per_process`<br>`tests/api/test_calibrator_once.py::test_without_a_model_the_shared_calibrator_returns_the_raw_value` |
 | FR-007 | A | `tests/unit/application/test_repository_contracts.py::test_retired_methods_stay_gone` |
-| FR-040 | T | PENDING |
-| FR-041 | T | PENDING |
-| FR-042 | T | PENDING |
-| FR-043 | T | PENDING |
+| FR-040 | T | `tests/unit/scripts/test_validate_bank.py::test_subtopic_must_be_text`<br>`tests/integration/test_spec008_t_topics.py::test_spec008_the_sync_stores_the_subtopic`<br>`tests/integration/test_spec008_t_topics.py::test_spec008_two_answers_in_one_coarse_topic_move_one_rating` |
+| FR-041 | T | `tests/unit/infrastructure/test_bank_content.py::test_dian_and_epa8_are_regrouped`<br>`tests/integration/test_spec008_t_merge.py::test_spec008_the_repair_script_reads_the_committed_regrouping` |
+| FR-042 | T | `tests/integration/test_spec008_t_topics.py::test_spec008_the_subtopic_report_counts_across_courses`<br>`tests/integration/test_spec008_t_topics.py::test_spec008_stats_and_teacher_view_carry_the_report` |
+| FR-043 | T | `tests/unit/scripts/test_validate_bank.py::test_a_small_topic_warns_and_passes` |
 | FR-010 | V | PENDING |
 | FR-011 | V | PENDING |
 | FR-012 | V | PENDING |

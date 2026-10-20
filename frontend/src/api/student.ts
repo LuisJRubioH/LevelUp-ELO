@@ -55,6 +55,17 @@ export interface CourseRating {
   topics: TopicELO[];
 }
 
+/** Spec 008 FR-042: one subtopic of the study report — results, never a rating. */
+export interface SubtopicResult {
+  course_id: string;
+  course_name: string;
+  topic: string;
+  subtopic: string;
+  attempts: number;
+  correct: number;
+  share_correct: number;
+}
+
 /** Spec 001: render display_rating + rank_label as given; null = pending diagnostic. */
 export interface StudentStats {
   user_id: number;
@@ -66,6 +77,7 @@ export interface StudentStats {
   total_attempts: number;
   study_streak: number;
   rank_label: string | null;
+  subtopics?: SubtopicResult[]; // spec 008 FR-042, weakest first
 }
 
 export interface RankingBasis {

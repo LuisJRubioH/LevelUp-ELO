@@ -363,7 +363,7 @@ changed nothing before stopping. The other two repairs (`deactivate_users_withou
 `backfill_prob_failure.py`) are the owner's choice; the start does not need them.
 
 The schema version the code expects is `SCHEMA_VERSION` in
-`src/infrastructure/persistence/schema_version.py`. Today it is **5**:
+`src/infrastructure/persistence/schema_version.py`. Today it is **6**:
 
 | Version | Change |
 |---|---|
@@ -372,9 +372,10 @@ The schema version the code expects is `SCHEMA_VERSION` in
 | 3 | spec 003 L4: tables `lesson_answers` (every lesson answer, in order) and `lesson_outcomes` (the post-diagnostic outcome); each row already in `lesson_interactions` is copied once into `lesson_answers` |
 | 4 | spec 005 K3: tables `katia_conversations` (one summary per KatIA conversation) and `katia_messages` (its text, only while it is open); `katia_interactions` stays and is no longer written by V2 |
 | 5 | spec 006 X2: column `exam_responses.selected_option` (the option chosen for each exam item; NULL on rows stored before it) |
+| 6 | spec 008 T: column `items.subtopic` (study only, never a rating) and table `student_course_topic_elo_archive` (fine-topic ratings merged by `scripts/repairs/merge_fine_topic_ratings.py`) |
 
 A production database from `main` has no schema version and no lesson tables, so its first
-migration goes straight to version 5 and the L4 copy finds nothing to copy. The rehearsal must run
+migration goes straight to version 6 and the L4 copy finds nothing to copy. The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
 cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
 
@@ -391,7 +392,7 @@ Then check on the scratch database:
 SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2;
 SELECT COUNT(*) FROM student_topic_elo;                        -- equals the count from § 4
 SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- all pre-existing rows
-SELECT MAX(version) FROM schema_versions;                      -- 5: the SCHEMA_VERSION of the commit
+SELECT MAX(version) FROM schema_versions;                      -- 6: the SCHEMA_VERSION of the commit
 SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions);  -- 0
 SELECT COUNT(*) FROM lesson_outcomes;                          -- 0: written only by new answers
 SELECT COUNT(*) FROM katia_conversations;                      -- 0: written only by new chats
@@ -462,6 +463,10 @@ refuses any non-local host. Never point tests at the production database.
 8. Once V1 is disconnected (§ 3.1), delete the KatIA messages typed before spec 005 K3 (decision
    N3): `python scripts/repairs/delete_katia_texts.py` counts them, `--apply` deletes them, and a
    second `--apply` reports 0. It prints counts only.
+9. Merge the ratings stored on DIAN's and EPA8's old fine topics into their coarse topic (spec
+   008 T, rule A): `python scripts/repairs/merge_fine_topic_ratings.py` counts them, `--apply`
+   merges and archives them, and a second `--apply` reports 0. It prints counts only. Until it
+   runs, a student's course rating on those courses still counts the old fine rows.
 
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer
