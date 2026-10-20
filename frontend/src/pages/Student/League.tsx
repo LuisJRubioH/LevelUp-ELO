@@ -102,7 +102,7 @@ export function League() {
                 ))}
               </select>
 
-              {notice && <p className="pv-notice" role="alert">{notice}</p>}
+              {notice && <p className="pv-notice" role="alert">{t(notice)}</p>}
 
               <button className="dx-btn pv-cta" disabled={!selectedCourse} onClick={connect}>
                 {t("league.findOpponent")}

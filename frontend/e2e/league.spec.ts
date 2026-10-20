@@ -117,6 +117,25 @@ test.describe("Liga PvP", () => {
     await expect(page.getByRole("button", { name: "Buscar rival →" })).toBeVisible();
   });
 
+  test("una segunda pestaña dice por qué (spec 007 US5-AS1)", async ({ page }) => {
+    await openLeague(page, (ws, msg) => {
+      if ("token" in msg) ws.close({ code: 4409, reason: "Second tab" });
+    });
+    await startMatch(page);
+
+    await expect(page.getByRole("alert")).toContainText("Ya tienes la Liga abierta en otra pestaña");
+    await expect(page.getByRole("button", { name: "Buscar rival →" })).toBeVisible();
+  });
+
+  test("demasiados mensajes cierran la conexión con su motivo (spec 007 US5-AS2)", async ({ page }) => {
+    await openLeague(page, (ws, msg) => {
+      if ("token" in msg) ws.close({ code: 4429, reason: "Too many messages" });
+    });
+    await startMatch(page);
+
+    await expect(page.getByRole("alert")).toContainText("Demasiados mensajes");
+  });
+
   test("el historial muestra el número del servidor, sin redondear en el navegador", async ({ page }) => {
     // Survey 007 V14: -2.5 shows as -3 (half up on the value, as the server rounds it), where
     // Math.round in the browser gave -2.
