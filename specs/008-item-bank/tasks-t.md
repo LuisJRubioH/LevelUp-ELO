@@ -1,6 +1,6 @@
 # Tasks — spec 008, delivery T (topics and subtopics)
 
-**Plan**: [plan-t.md](plan-t.md) (draft, pending the owner's approval and the merge-rule decision).
+**Plan**: [plan-t.md](plan-t.md) (merge rule A approved by the owner, 2026-10-20).
 FR-040 … FR-043 are `[CHANGE]`; there is no `[AS-IS]` requirement in T, so no characterization
 phase. Delivery A's pins (validator, bank content, sync) must stay green throughout.
 

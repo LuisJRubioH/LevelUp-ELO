@@ -1,7 +1,7 @@
 # Plan — spec 008, delivery T: topics and subtopics (B19)
 
 **Spec**: [spec.md](spec.md) § Deliveries, T (US5; FR-040 … FR-043) · **Branch**: `008-t`, from
-`redesign` · **Date**: 2026-10-20 · **Status**: draft for the owner's approval
+`redesign` · **Date**: 2026-10-20 · **Status**: approved; merge rule A (owner, 2026-10-20)
 
 ## Summary
 
@@ -84,7 +84,7 @@ may edit it in this plan's review; it is applied as a one-time bank edit (no cod
   (`GET /api/teacher/student/{id}` gains the same), with the teacher scope rules spec 006 already
   applies. The screens list subtopics with attempts and share correct, weakest first.
 
-## The decision the owner confirms: ratings stored on the old fine topics
+## Decision (owner, 2026-10-20): ratings stored on the old fine topics — rule A
 
 After the regrouping, `student_course_topic_elo` rows keyed by an old fine topic (e.g. «Pensamiento
 aleatorio — porcentaje sobre un total») no longer match any item, and — since a course rating is
@@ -95,7 +95,7 @@ keep counting in the course rating forever.
 EPA8 rating). Production is not measured by an agent: the repair script's default (count-only)
 run gives the owner the real numbers before anything is written.
 
-**Recommended (A):** a repair script `scripts/repairs/merge_fine_topic_ratings.py` (counts by
+**Approved (A), owner 2026-10-20:** a repair script `scripts/repairs/merge_fine_topic_ratings.py` (counts by
 default, writes with `--apply`, prints counts only — spec 002 FR-018, `scripts/repairs/_repair.py`):
 - per student and course, the ratings of the fine topics of one coarse topic are combined into the
   coarse topic as their **mean**, with RD the **mean of their RDs** (never below 30), `origin =
@@ -110,9 +110,9 @@ default, writes with `--apply`, prints counts only — spec 002 FR-018, `scripts
 Note: spec 001's legacy reconciliation chooses one source row and **never averages** (its
 FR-035), because there the rows were alternative records of the same thing. Here they are records
 of different, smaller parts of one topic, so a mean is the faithful summary; the owner confirms
-this departure.
+this departure (approved with A).
 
-**Alternative (B):** archive and remove the fine rows without merging: the coarse topic starts
+**Not chosen (B):** archive and remove the fine rows without merging: the coarse topic starts
 unrated («diagnóstico pendiente») and is set by the student's next diagnostic or answers.
 
 ## Tests (written first)
