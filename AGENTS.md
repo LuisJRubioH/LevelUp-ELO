@@ -591,7 +591,8 @@ Bootstrap (spec 002 D1): `_migrate_db()` → `_seed_admin()` → `_seed_demo_dat
   new `MIGRATION_SOURCES_DIGEST`** — `tests/unit/infrastructure/test_spec002_schema_version.py`
   fails otherwise. If another session holds the lock and the schema is behind, no later step runs
   (all are reported as skipped).
-- **Item bank.** Synced only when its fingerprint differs from the last row of `bank_syncs`.
+- **Item bank.** Synced only when its fingerprint (the bank files and both course maps) differs
+  from the last row of `bank_syncs`.
 - **No data repair at start** (spec 002 FR-018). `scripts/repairs/` —
   `deactivate_users_without_password.py`, `rename_duplicate_groups.py`,
   `backfill_prob_failure.py` — count by default, write with `--apply`, print counts only. A
