@@ -254,3 +254,9 @@ N1 (manifest at `items/id_manifest.json`), N2 (difficulty changes audited in a d
 both engines) and N3 (a retired item returns by removing the mark, still bound to its course and
 topic) are **approved**. B19 stays deferred: the owner is discussing keeping the fine label as a
 study subtopic while ratings use a coarser topic.
+
+### Third round (2026-10-20): B19 decided
+
+| # | Finding | Decision |
+|---|---|---|
+| D7 | B19 — topics too fine | **The coarse topic carries the rating; the fine label becomes a subtopic** («era un problema de escritura», owner). EPA8: topic = the «Pensamiento …» area (text before « — »), e.g. P01 «Pensamiento aleatorio — porcentaje sobre un total» → topic «Pensamiento aleatorio», subtopic «porcentaje sobre un total»; DIAN: the text before « - », e.g. «Constitución Política». `subtopic` is an optional bank field in an additive `items.subtopic` column, used for per-subtopic study reports across courses, never for a rating. The regrouping lands once, before the id manifest (D4) freezes topics. A topic with fewer than 5 items gets a validator warning. Ratings already stored on the old fine topics: to confirm in the plan (recommended: their mean into the coarse topic, marked approximate with provenance, never rebuilt from attempts). Spec 008 delivery T. |
