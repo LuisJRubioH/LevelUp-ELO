@@ -108,24 +108,27 @@ Defects outside the running spec's scope. Each is fixed in its own branch and PR
 | M7 Spec 007 PvP | S39–S42 | Fri 2026-12-04 |
 | M8 Spec 008 Item bank | S43–S46 | **Fri 2026-12-11** (full scope) |
 
-### State on 2026-10-19
+### State on 2026-10-20
 
 | Milestone | State |
 |---|---|
 | M0 | done |
-| M1 Spec 001 | all deliveries closed (S1, B5, B7, INV); F-9 done (PR #79) |
+| M1 Spec 001 | all deliveries closed (S1, B5, B7, INV, PM — FR-024m, PR #105); F-9 done (PR #79) |
 | M2 Spec 002 | all deliveries closed (A, D1, D2, D3) |
 | M3 Spec 003 | all deliveries closed (A, L1 … L5) |
-| M4 Spec 004 | E1, E2, E6 closed; E3 in review (PR #73); E5 in progress — its last 3 rows need E3 (an expired account) and the owner's check on Safari (iPhone, iPad, desktop) |
-| M5 Spec 005 | spec and plans in PR #92; A in PR #93; K1 … K4 in PRs #94 … #97 (merge in that order) |
-| M6 Spec 006 | survey in PR #43; spec next |
-| M7 Spec 007, M8 Spec 008 | surveys in PRs #47 and #50 |
+| M4 Spec 004 | E1, E2, E6 closed; E3 closed in PR #73 (conflict resolved 2026-10-19; schema version 6), merged once E2 is in production; E5 in progress — its last 3 rows need the owner's check on Safari (iPhone, iPad, desktop) |
+| M5 Spec 005 | all deliveries closed (A, K1 … K4) |
+| M6 Spec 006 | all deliveries closed (A, X1, X2, C1, P1) |
+| M7 Spec 007 | survey re-verified at `f2ad4ed` (PR #47, § 7), with the owner's decisions pending; two bugs fixed ahead of the spec: a lost first answer of the waiting player (V10, PR #106) and a malformed frame ending a match (V12, PR #107) |
+| M8 Spec 008 | survey re-verified at `f2ad4ed` (PR #50, § 7), with the owner's decisions pending; a failed SQLite bank sync no longer locks the database (B13, PR #108) |
+| Spec 009 | spec in PR #72 (initial student import), for the owner's reading |
 
 **What the production switch (PR #3) still needs**, all the owner's (`docs/transfer.md`):
 
-1. Merge the open spec 005 PRs (and E3, if it goes in before the switch).
-2. The backup (§ 4) and the migration rehearsal (§ 5) on the commit that will be switched; each
-   change of `SCHEMA_VERSION` asks for a new rehearsal.
+1. Merge the open PRs that go in before the switch.
+2. The backup (§ 4) and the migration rehearsal (§ 5) on the commit that will be switched. The
+   schema is at version 5 on `redesign` and 6 with E3 (PR #73); each change of `SCHEMA_VERSION`
+   asks for a new rehearsal.
 3. F-1's read-only production checks (§ 6 «Before the switch»).
 4. The host settings (§ 3), V1 disconnected (§ 3.1), then the checks of § 6 «After the switch».
 
