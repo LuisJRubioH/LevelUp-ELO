@@ -8,7 +8,8 @@
 (`docs/sdd/item-bank-survey.md`, LuisJRubioH/LevelUp-ELO#50), re-verified on 2026-10-19 (its § 7),
 with the owner's decisions of 2026-10-20 (its § 8, D1 … D6). Delivery A pins what already holds:
 the fixes B7, B13, B15, B20, B21 and B22 merged on 2026-10-20 (#108, #110, #111, #113, #116,
-#117, #118). B19 is deferred by the owner.
+#117, #118). B19 (topics too fine) was decided in a third round: a coarse topic carries the
+rating, the fine label becomes a subtopic.
 
 **Input**: Roadmap M8 (`docs/sdd/roadmap.md`): the item bank — its validation, its sync into both
 databases, the course catalogue, and the life of an item.
@@ -38,6 +39,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | Delivery | Content | State |
 |---|---|---|
 | **A** | As-is pins: the validator's checks, the bank content tests, a failed sync releasing the database, duplicate ids resolved alike on both engines, a map change resyncing, the calibrator loaded once, the retired repository methods staying gone | closed |
+| **T** | Topics and subtopics (B19): the coarse topic carries the rating, the fine label becomes `subtopic` (additive `items.subtopic` column, both engines, `SCHEMA_VERSION` bump); DIAN and EPA8 regrouped once; a warning for a topic with fewer than 5 items. Lands **before** V commits the id manifest | planned |
 | **V** | Validator rules: an integer difficulty in 400–2000 (D1), no existing id changing course or topic against a committed id manifest (D4), the EPA8 bank checked against its generator in CI (D6) | planned |
 | **C** | One course catalogue: block and name of every course in one module that both repositories and the validator read; semillero block and grade from the file name (D5) | planned |
 | **L** | An item's life: `"retired": true` takes an item out of practice, exams and PvP without deleting it (D2); a difficulty edited in the bank wins over the calibrated one, an untouched one keeps it, and an audited recalibration script (D3). Additive migrations on both engines and a `SCHEMA_VERSION` bump (AGENTS § Database) | planned |
@@ -55,7 +57,7 @@ request that completes a delivery marks it closed and fills all its rows.
   and the old one is retired (D4).
 - Q: The course maps (B14)? → A: one shared catalogue module; every course named explicitly (D5).
 - Q: EPA8 (B23)? → A: `build_epa8_bank.py --check` in the bank job (D6).
-- Q: Topics too fine (B19)? → A: deferred by the owner, to be discussed (Out of Scope).
+- Q: Topics too fine (B19)? → A: deferred at first; decided in the third round below.
 
 ### Session 2026-10-20, second round (owner decisions on the draft)
 
@@ -65,6 +67,16 @@ request that completes a delivery marks it closed and fills all its rows.
   database table on both engines, not a log file, so the record survives deploys (FR-032).
 - Q: Can a retired item come back (N3)? → A: yes, by removing the mark; it stays bound to its
   course and topic through the manifest (FR-033).
+
+### Session 2026-10-20, third round (B19)
+
+- Q: DIAN has 293 items in 209 topics and EPA8 60 in 59, so most topics carry one item and a
+  rating that one answer sets. What carries the rating? → A: the coarse topic (EPA8: the five
+  «Pensamiento …» areas; DIAN: «Constitución Política» and its peers); the fine label is kept as a
+  subtopic for study reports — «it was a writing problem» (owner). FR-040 … FR-043.
+- Q: What happens to ratings already stored on the old fine topics? → **To confirm in the plan**
+  (Assumptions): recommended, each student's fine-topic ratings of one coarse topic are combined
+  into it as their mean, marked `approximate` with provenance, never rebuilt from attempts.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -137,6 +149,28 @@ practice, exam and PvP item reads are checked.
    **Then** it prints counts and writes nothing; with `--apply`, every change is recorded with the
    item, the previous and new difficulty, the source and the time.
 
+### User Story 5 - The rating counts a topic, the study report sees the subtopic (Priority: P1) — T
+
+**Why this priority**: with one item per topic, one lucky answer fixes a topic's rating for good,
+the course rating weighs areas by how many fine labels they have, and the teacher reads 59 rows of
+one answer each. The fine label is still wanted, for study.
+
+**Independent Test**: both engines sync the regrouped EPA8 bank; practice, ratings and the study
+report are checked.
+
+**Acceptance Scenarios**:
+
+1. **US5-AS1** — **Given** EPA8 item P01, today «Pensamiento aleatorio — porcentaje sobre un
+   total», **When** the regrouped bank is synced, **Then** its `topic` is «Pensamiento aleatorio»
+   and its `subtopic` is «porcentaje sobre un total», and EPA8 has five topics.
+2. **US5-AS2** — **Given** a student who answers P01 and P05 (both «Pensamiento aleatorio»),
+   **When** the ratings are read, **Then** both answers move the one rating of «Pensamiento
+   aleatorio», and no rating is keyed by a subtopic.
+3. **US5-AS3** — **Given** a student's answers on items of subtopic «porcentaje sobre un total»,
+   **When** the study report is read, **Then** it shows the results per subtopic, across courses.
+4. **US5-AS4** — **Given** a topic with fewer than 5 items, **When** the validator runs, **Then**
+   it warns, naming the topic, and does not fail.
+
 ### Edge Cases
 
 - **An exam already started with an item retired since**: the item is graded as it was served;
@@ -146,8 +180,9 @@ practice, exam and PvP item reads are checked.
 - **An edited difficulty equal to the calibrated value**: nothing changes.
 - **A moved item** (D4): the old id is retired, the new id is added to the manifest; ratings on the
   old (course, topic) stay where they are (spec 001 R15).
-- **Regrouping topics (B19)** must happen before the manifest freezes topics (D4), or as a
-  one-time, reviewed manifest update.
+- **Regrouping topics (B19)** happens once, in delivery T, before V commits the id manifest;
+  after that the manifest forbids topic changes (FR-011).
+- **An item with no subtopic**: allowed; it simply does not appear in the per-subtopic report.
 
 ## Requirements *(mandatory)*
 
@@ -173,6 +208,19 @@ practice, exam and PvP item reads are checked.
   raw probability when no model exists.
 - **FR-007** [AS-IS]: The repositories shall offer no item loader or item-difficulty update besides
   the bank sync and the answer transaction.
+
+**Topics and subtopics (T)**
+
+- **FR-040** [CHANGE]: The system shall key ratings by an item's `topic` only; an item may carry an
+  optional `subtopic` (text), stored in an additive `items.subtopic` column on both engines, which
+  shall never key a rating (B19).
+- **FR-041** [CHANGE]: The DIAN and EPA8 banks shall be regrouped once so that `topic` is the coarse
+  topic — the text before « — » (EPA8) or « - » (DIAN) — and `subtopic` the rest; the regrouping
+  shall land before the id manifest is committed (FR-011) (B19).
+- **FR-042** [CHANGE]: The system shall offer a study report of a student's results per subtopic,
+  across courses (B19).
+- **FR-043** [CHANGE]: When a topic has fewer than 5 items, the validator shall warn, naming the
+  topic, without failing (B19).
 
 **Validator rules (V)**
 
@@ -216,6 +264,7 @@ practice, exam and PvP item reads are checked.
 - **Id manifest**: the committed record of each id's course and topic (V).
 - **Retired item**: a row kept for history and no longer served; it can return by removing the mark
   (L).
+- **Subtopic**: the fine label of an item, for study reports only (T).
 - **Difficulty change record**: one row per recalibration change — item, previous and new
   difficulty, source, time (L).
 
@@ -234,6 +283,11 @@ practice, exam and PvP item reads are checked.
 - The sync runs only when the bank fingerprint changes (spec 002 FR-016).
 - The item bank's content (statements, keys, distractors) is authored outside this spec; this spec
   sets its rules.
+- **To confirm in the plan of delivery T** (B19): ratings already stored on the old fine topics.
+  Recommended: each student's ratings on the fine topics of one coarse topic are combined into the
+  coarse topic as their mean, marked `approximate` with their provenance — as spec 001's legacy
+  reconciliation does — and never rebuilt from attempts (AGENTS R15). The owner confirms this before
+  T is implemented.
 
 ## New Decisions and Contradictions
 
@@ -244,12 +298,10 @@ Decided by the owner on 2026-10-20 (second round); see § Clarifications.
 | N1 | Where the id manifest lives | `items/id_manifest.json`, outside `items/bank/` so the sync never reads it as a course (FR-011). |
 | N2 | What «audited» means for the recalibration script | An additive table of difficulty changes on both engines, not a log file, so the record survives deploys (FR-032). |
 | N3 | Un-retiring an item | Allowed by removing the mark; the manifest keeps it pinned to its course and topic (FR-033). |
+| B19 | Topics too fine | The coarse topic carries the rating; the fine label becomes `subtopic`, for study reports (FR-040 … FR-043). Migration of stored fine-topic ratings: to confirm in the plan. |
 
 ## Out of Scope *(mandatory)*
 
-- **B19 — topics too fine** (DIAN 293 items in 209 topics, EPA8 60 in 59): deferred by the owner,
-  to be discussed. Any regrouping must come before the id manifest freezes topics (FR-011), or as
-  a one-time, reviewed manifest update.
 - The rating arithmetic and the item-difficulty update after an answer — spec 001.
 - The schema-version mechanics and the bank fingerprint itself — spec 002.
 - Exams and the teacher's templates — spec 006, beyond not serving a retired item.
@@ -266,6 +318,10 @@ closes their delivery.
 | US1-AS1 | A | `tests/unit/scripts/test_validate_bank.py::test_an_unescaped_backslash_in_latex_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_an_empty_or_non_text_topic_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_an_id_that_is_not_text_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_tags_must_be_a_list_of_text`<br>`tests/unit/scripts/test_validate_bank.py::test_an_image_that_does_not_exist_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_a_course_missing_from_the_course_map_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_a_well_formed_item_passes` |
 | US1-AS2 | A | `tests/integration/test_sqlite_bank_sync_failure.py::test_a_failed_bank_sync_releases_the_database` |
 | US1-AS3 | A | `tests/integration/test_bank_duplicate_id.py::test_a_new_duplicate_id_keeps_the_last_files_item`<br>`tests/integration/test_bank_duplicate_id.py::test_an_existing_duplicate_id_keeps_the_last_files_item` |
+| US5-AS1 | T | PENDING |
+| US5-AS2 | T | PENDING |
+| US5-AS3 | T | PENDING |
+| US5-AS4 | T | PENDING |
 | US2-AS1 | V | PENDING |
 | US2-AS2 | V | PENDING |
 | US2-AS3 | V | PENDING |
@@ -281,6 +337,10 @@ closes their delivery.
 | FR-005 | A | `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_changed_course_map_resyncs_the_bank` |
 | FR-006 | A | `tests/api/test_calibrator_once.py::test_the_calibrator_is_loaded_once_per_process`<br>`tests/api/test_calibrator_once.py::test_without_a_model_the_shared_calibrator_returns_the_raw_value` |
 | FR-007 | A | `tests/unit/application/test_repository_contracts.py::test_retired_methods_stay_gone` |
+| FR-040 | T | PENDING |
+| FR-041 | T | PENDING |
+| FR-042 | T | PENDING |
+| FR-043 | T | PENDING |
 | FR-010 | V | PENDING |
 | FR-011 | V | PENDING |
 | FR-012 | V | PENDING |

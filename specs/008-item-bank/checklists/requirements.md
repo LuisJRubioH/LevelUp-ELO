@@ -16,20 +16,21 @@
 
 ## Requirement Completeness
 
-- [x] The survey's decisions are decided — D1 … D6 by the owner on 2026-10-20; B19 explicitly
-  deferred and out of scope
+- [x] The survey's decisions are decided — D1 … D6 by the owner on 2026-10-20; B19 decided in a
+  third round (coarse topic for the rating, subtopic for study); the migration of stored
+  fine-topic ratings is an assumption to confirm in the plan of T
 - [x] N1 … N3 approved by the owner on 2026-10-20 (manifest location, audit table, un-retiring)
 - [x] Requirements are testable — each FR names an observable outcome (a failing validator run, an
   item not served, a difficulty value after a sync, counts without writes)
 - [x] Success criteria are measurable (0 retired items served, 0 out-of-range difficulties, 1
   catalogue, 0 moved ids)
-- [x] All acceptance scenarios are defined — 11 scenarios over 4 stories
+- [x] All acceptance scenarios are defined — 15 scenarios over 5 stories
 - [x] Edge cases are identified — an exam started before a retirement, un-retiring, an edit equal
-  to the calibration, a moved item, regrouping topics before the manifest
+  to the calibration, a moved item, regrouping topics before the manifest, an item with no subtopic
 - [x] Scope is clearly bounded — ratings (001), persistence mechanics (002), exams (006),
-  `items/source/` (survey § 8), B19 (deferred)
-- [x] Dependencies and assumptions identified — spec 002 FR-016 owns the fingerprint; L needs
-  additive migrations and a `SCHEMA_VERSION` bump
+  `items/source/` (survey § 8)
+- [x] Dependencies and assumptions identified — spec 002 FR-016 owns the fingerprint; T and L need
+  additive migrations and a `SCHEMA_VERSION` bump; T lands before V commits the id manifest
 
 ## Feature Readiness
 
