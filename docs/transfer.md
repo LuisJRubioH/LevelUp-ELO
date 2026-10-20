@@ -66,6 +66,8 @@ wrong):
 | `DB_POOL_PROBE_AFTER_S` | Optional (default `30`): a connection idle longer than this is checked with `SELECT 1` before use |
 | `RUN_MIGRATIONS` | `0` on the web process; the schema is applied by the separate migration step |
 | `WEB_CONCURRENCY` | `1` (required: PvP lobby and notification rooms live in process memory — AGENTS.md R18) |
+| `PVP_SINGLE_PROCESS_LOCK` | optional (default `/tmp/oulad-api.lock`): the host file each production process locks for its whole life, so a second worker refuses to start (spec 007 FR-052) |
+| `PVP_MAX_FRAME_BYTES`, `PVP_MAX_MESSAGES_PER_SECOND`, `PVP_ABUSE_LIMIT` | optional; defaults 4096, 5 and 10: a League frame over the size or beyond the rate is dropped unread, and that many drops within 10 s close the socket with 4429 (spec 007 FR-051). Uvicorn's own cap is the start command's `--ws-max-size` (§ 2) |
 | `JWT_SECRET_KEY` | ≥ 32 random characters (`python -c "import secrets; print(secrets.token_hex(32))"`) |
 | `CORS_ORIGINS` | JSON list with the frontend's exact origin; no `localhost` in production |
 | `RATE_LIMIT_STORAGE_URI` | shared Redis/Valkey URI; `memory://` is refused in production |
