@@ -36,3 +36,12 @@ Checks on Safari (iPhone, iPad, desktop) and Chrome, each labelled real device o
 ## Not in E5 yet
 
 FR-084 and US9-AS4 for expired accounts (E3); US9-AS5 on real Safari devices (owner).
+
+## Automated check on Safari's engine (2026-10-20)
+
+`frontend/playwright.session.config.ts` runs US9-AS1 … AS4 (`frontend/e2e-session/`) against the
+real API on SQLite, with the page and the API on one HTTPS origin and `AUTH_COOKIE_SAMESITE=lax`,
+as after the switch, in WebKit as Safari desktop, iPhone and iPad, and in Chromium (CI job
+"Sesión en Safari (WebKit)"). Its results are labelled *automated*. They do not close US9-AS5:
+WebKit on Linux does not apply Safari's tracking prevention, which is what E5 addresses, so the
+check on a real device (the owner's, or a remote real-device service) stays the reference.

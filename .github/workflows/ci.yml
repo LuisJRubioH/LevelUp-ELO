@@ -286,6 +286,57 @@ jobs:
             frontend/test-results/
           retention-days: 14
 
+  # ── Job 9b: Sesión en Safari (WebKit) — spec 004 E5, US9-AS5 automatizado ──
+  # US9-AS1 … AS4 against the real API (SQLite), page and API on one HTTPS origin and the cookie
+  # as after the switch (docs/transfer.md § 3.3), in WebKit as Safari desktop, iPhone and iPad,
+  # and in Chromium. Automated, not a real device: WebKit on Linux has no tracking prevention.
+  session-webkit:
+    name: "Sesión en Safari (WebKit)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Instalar dependencias de la API
+        run: pip install -r requirements-api.txt
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Configurar pnpm desde packageManager
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - name: Instalar dependencias desde lockfile
+        run: pnpm install --frozen-lockfile
+        working-directory: frontend
+
+      - name: Install WebKit and Chromium for the pinned Playwright version
+        run: pnpm exec playwright install --with-deps webkit chromium
+        working-directory: frontend
+
+      - name: Playwright (frontend/e2e-session)
+        run: pnpm exec playwright test -c playwright.session.config.ts
+        working-directory: frontend
+
+      - name: Upload report, traces and screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-session-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 14
+
   # ── Job 10: Trazabilidad spec → tests (roadmap A-2) ──────────────────
   # scripts/check_traceability.py: every FR and acceptance scenario of specs/*/spec.md has a row
   # whose tests are collected, pass and are not skipped (PostgreSQL branch included, so the
