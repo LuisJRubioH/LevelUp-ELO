@@ -16,6 +16,7 @@ Endpoints del flujo de práctica del estudiante:
 """
 
 import asyncio
+import functools
 import hashlib
 import logging
 import random
@@ -109,13 +110,20 @@ logger = logging.getLogger("api.student")
 router = APIRouter(prefix="/student", tags=["student"])
 
 
-def _make_service(repo) -> StudentService:
-    """Composición: la capa de entrada es la que conoce infrastructure (R2)."""
+@functools.lru_cache(maxsize=1)
+def _calibrator():
+    """One calibrator per process (survey 008 B15): its model is read from disk once, not on
+    every request. Read-only after loading, so requests share it."""
     from src.infrastructure.ml.calibration import IsotonicCalibrator
 
     calibrator = IsotonicCalibrator()
     calibrator.load()  # False si no hay modelo entrenado — se usa p_raw
-    return StudentService(repository=repo, calibrator=calibrator)
+    return calibrator
+
+
+def _make_service(repo) -> StudentService:
+    """Composición: la capa de entrada es la que conoce infrastructure (R2)."""
+    return StudentService(repository=repo, calibrator=_calibrator())
 
 
 def _require_enrolment(service: StudentService, user_id: int, course_id: str) -> None:
