@@ -231,3 +231,19 @@ the `image_path` alias.
    fingerprint.
 9. **New — `items/source/` (B23):** out of spec 008 except the EPA8 generator as a checked
    build; the counts fixed in a docs PR once V2-R17's claim is re-measured.
+
+## 8. Owner decisions (2026-10-20)
+
+Taken by the owner on 2026-10-20; spec 008 starts from them. Already delivered on `redesign`:
+B13 (#108), B7 validator (#110, #118), B21 maps in the fingerprint (#111), B22 (#113), B23
+counts (#114), B20 dead code (#116) and B15 calibrator once per process (#117).
+
+| # | Finding | Decision |
+|---|---|---|
+| D1 | B6 — difficulty range | **An integer in 400–2000, as an error**; AGENTS corrected. The 32 easy semillero items are not re-rated. |
+| D2 | B8 — retiring | **`"retired": true` in the bank JSON**: an additive `retired_at`; practice and exams skip it; never a DELETE (history needs the row). |
+| D3 | B9 — manual difficulty | **A changed bank value wins**: an edit of `difficulty` in the JSON reaches the database; an untouched one keeps the usage calibration. An audited D\* recalibration script. |
+| D4 | B10 — moving an item | **Forbidden**: the validator rejects an existing id changing course or topic (against a committed id manifest); a moved item gets a new id and the old one is retired. |
+| D5 | B14 — course catalogue | **One shared catalogue module** (block and name per course) read by both repositories and the validator; semillero block and grade from the file name; every course named explicitly. |
+| D6 | B23 — EPA8 | **`build_epa8_bank.py --check` in the «Banco de preguntas» job.** |
+| — | B19 — topics too fine | **Deferred** by the owner, to be discussed: the cause is the topic label (DIAN 293 items in 209 topics, EPA8 60 in 59), not missing content; the owner sees another way to fix it. Note: any regrouping must come before D4 forbids topic changes. |
