@@ -38,11 +38,12 @@ request that completes a delivery marks it closed and fills all its rows.
 | Delivery | Content | State |
 |---|---|---|
 | **A** | As-is pins: who may play, what an answer and a close may do, the waiting player, a malformed frame, the rating effect, the shown delta, the orphan sweep — each tied to a test that exists today | closed |
-| **G** | Who may enter: a rating in the subject (D1), test users only with test users (D2), the same institution (D3), one queue or match per student (D6) | planned |
-| **M** | Fair matches: a rating window that widens while waiting and a daily cap per pair (D5); items near both ratings, unseen for a week, with images, without their difficulty (D7) | planned |
+| **G** | Who may enter: a rating in the subject (D1), test users only with test users (D2), the same institution (D3), one queue or match per student (D6), a distinct reason for every refusal (V24) | planned |
+| **M** | Fair matches: a rating window that widens while waiting and a daily cap per pair (D5); items near both ratings, unseen for a week, with images, without their difficulty (D7); the expectation read when the match is formed (V24) | planned |
 | **F** | The match flow: the server's clock and a speed tiebreak (D8); a 20 s grace to come back, then a forfeit (D4) | planned |
-| **L** | Socket limits: one live socket per student, a frame size and a message rate (D9) | planned |
-| **H** | History: every match with its outcome reason and subject, as many as the screen shows (D10) | planned |
+| **L** | Socket and process limits: one live socket per student, a frame size and a message rate (D9); one worker in production by any route (V17) | planned |
+| **H** | History: every match with its outcome reason and subject, as many as the screen shows (D10); a close that fails is retried, then recorded as not saved (V11) | planned |
+| **S** | Statistics: the League's answers feed the student's and the teacher's statistics (V23) | planned |
 
 ## Clarifications
 
@@ -67,17 +68,28 @@ request that completes a delivery marks it closed and fills all its rows.
   subject, and only as many as shown (D10).
 - Q: Orphans (V22)? → A: a periodic sweep; nothing is closed at shutdown (D11, delivered in #119).
 
-### Open for the owner (before the plans)
+### Session 2026-10-20, second round (owner decisions on the draft)
 
-- **O1 — The institution (D3).** The data has no institution: spec 009 maps a student's
-  institution and grade to a group (spec 009 N21). Recommendation: the institution is a property of
-  the group, recorded when spec 009 creates groups, and a student's institution is that of their
-  main group; until it exists, delivery G uses the main group's teacher as the institution boundary.
-- **O2 — The numbers.** ±150, the widening step, 3 per day, 20 s, 4 KB and 5 per second are the
-  recommended starting values; the plans may tune them with the owner.
-- **O3 — Speed tiebreak (D8).** Recommendation: on equal correct answers, the lower total time
-  between `game_start` and each counted answer wins; a draw remains only on equal time to the
-  second.
+- Q: The institution (O1)? → A: a first-class concept, designed now: the owner will run olympiads in
+  which students first classify within their institution and the final keeps one student per
+  grade per institution. Every student has an institution and a grade (owned by spec 009, owner
+  decision N21 «por institución y grado»), and the League's «same institution» reads the
+  student's institution. No interim boundary (the main group's teacher is not used).
+- Q: The numbers (O2)? → A: ±150, the widening step, 3 per day, 20 s, 4 KB and 5 per second are
+  accepted as starting values; the plans may tune them with the owner.
+- Q: Speed tiebreak (O3)? → A: on equal correct answers, the lower total time between
+  `game_start` and each counted answer wins; a draw remains only on equal time to the second.
+- Q: Spec 001 amendment for D1? → A: approved; it ships with delivery G (see § Dependencies).
+- Q: A close that fails to persist (V11)? → A: retried 3 times within a few seconds, then the match
+  is closed as abandoned with reason `not_saved`, visible in the history.
+- Q: More than one worker (V17)? → A: in production the API refuses to start with more than one
+  worker by any route (`--workers`, `WEB_CONCURRENCY`); the deployment is documented as one
+  instance.
+- Q: `pvp_answers` (V23)? → A: it feeds the student's and the teacher's statistics (which items
+  are missed in the League); the score stays in memory.
+- Q: Refusals and the expectation (V24)? → A: each refusal gets its own close code and message
+  (session expired, not enrolled, no access, server error…), and the expectation rating is read
+  again when the match is formed, not at lobby entry.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -122,6 +134,8 @@ connect to the lobby.
    the lobby matches, **Then** they never meet.
 4. **US2-AS4** — **Given** a student already waiting or playing in any subject, **When** a second
    tab connects, **Then** it is refused with a notice and the first stays as it was.
+5. **US2-AS5** — **Given** a connection refused for an expired session, for not being enrolled or
+   for a server error, **When** the screen receives the close, **Then** each shows its own reason.
 
 ### User Story 3 - Matches are even (Priority: P2) — M
 
@@ -164,6 +178,23 @@ connect to the lobby.
 1. **US6-AS1** — **Given** a finished, an abandoned and an unsaved match, **When** the student
    opens the history, **Then** all three appear with their subject and reason, and only as many
    rows as the screen shows are sent.
+2. **US6-AS2** — **Given** a match whose result cannot be saved, **When** the retries fail,
+   **Then** it is closed as abandoned with reason `not_saved`, no rating changes, and it appears
+   in both players' history with that reason.
+
+### User Story 7 - The League's answers count for study (Priority: P3) — S
+
+**Why this priority**: every League answer is written and never read; it is evidence of what a
+student misses, lost to the student and the teacher.
+
+**Independent Test**: a student plays a match and misses an item; their statistics and their
+teacher's view count that miss.
+
+**Acceptance Scenarios**:
+
+1. **US7-AS1** — **Given** a finished match, **When** the student or their teacher opens the
+   statistics, **Then** the League's answers are counted per item and topic, marked as League
+   answers.
 
 ### Edge Cases
 
@@ -216,9 +247,13 @@ connect to the lobby.
 - **FR-020** [CHANGE]: If a student has no rating in the subject, then the system shall not queue
   them, and the screen shall send them to the subject's diagnostic (D1).
 - **FR-021** [CHANGE]: The system shall match a test user only with a test user (D2).
-- **FR-022** [CHANGE]: The system shall match only students of the same institution (D3, O1).
+- **FR-022** [CHANGE]: The system shall match only students of the same institution, read from the
+  student's institution as recorded by spec 009 (D3, O1).
 - **FR-023** [CHANGE]: While a student is waiting or playing in any subject, the system shall refuse
   another League socket of theirs with a notice and leave the first unchanged (D6).
+- **FR-024** [CHANGE]: When the system refuses a League connection, it shall close it with a code
+  and message that name the reason — session expired, not enrolled, no access to the subject,
+  server error — instead of one code for every refusal (V24).
 
 **Fair matches (M)**
 
@@ -230,6 +265,8 @@ connect to the lobby.
 - **FR-032** [CHANGE]: The system shall choose a match's items near the mean of the two ratings,
   none seen by either player in the last 7 days when enough remain, each with its image, and shall
   send no item difficulty to the browser (D7).
+- **FR-033** [CHANGE]: When a match is formed, the system shall read both players' course ratings
+  again for the expectation, not reuse the ratings read when they entered the lobby (V24).
 
 **The match flow (F)**
 
@@ -246,12 +283,23 @@ connect to the lobby.
 - **FR-050** [CHANGE]: The system shall keep at most one live League socket per student (D9).
 - **FR-051** [CHANGE]: The system shall not process a frame over 4 KB nor more than 5 messages per
   second from a socket, and shall close a socket that persists (D9, O2).
+- **FR-052** [CHANGE]: If the API is started in production with more than one worker by any route
+  (`--workers`, `WEB_CONCURRENCY`), then it shall refuse to start (V17; AGENTS.md R18).
 
 **History (H)**
 
 - **FR-060** [CHANGE]: The system shall list a student's matches whatever their outcome — finished,
   abandoned, not saved — each with its subject and reason, and send only as many as the screen
   shows (D10).
+- **FR-061** [CHANGE]: If persisting a finished match fails, then the system shall retry it 3 times
+  within a few seconds and, if it still fails, close the match as abandoned with reason
+  `not_saved`, changing no rating (V11).
+
+**Statistics (S)**
+
+- **FR-070** [CHANGE]: The system shall count the League's answers (`pvp_answers`) in the student's
+  and the teacher's statistics per item and topic, marked as League answers; the match score keeps
+  being computed in memory (V23).
 
 ### Key Entities
 
@@ -259,6 +307,8 @@ connect to the lobby.
 - **Match**: two players, a subject, items, a server end time, scores and answer times; its close
   applies each player's delta once.
 - **Pair count**: rated matches per pair of students per day (M).
+- **Institution and grade**: every student's institution and grade, owned by spec 009; the League
+  reads the institution (G), and a future olympiad reads both.
 
 ## Success Criteria *(mandatory)*
 
@@ -272,23 +322,31 @@ connect to the lobby.
 
 ## Assumptions
 
-- **Spec 001 amendment needed for D1.** Today an unrated player may play, is expected at 1000 and
-  gets 0 applied with `no_rated_topics` (spec 001 FR-029c; AGENTS.md R19). FR-020 keeps unrated
-  players out of the League, so spec 001 FR-029c must be amended with the owner before delivery G
-  ships; this spec does not edit spec 001.
 - The rating formulas (`pvp_deltas`, the floor, the display rounding) belong to spec 001.
-- The institution comes from spec 009's groups (O1).
 - The backend stays a single process (AGENTS.md R18): the lobby, the grace (F) and the limits (L)
   live in memory.
+
+## Dependencies
+
+- **Spec 001 amendment (approved by the owner, 2026-10-20).** Today an unrated player may play, is
+  expected at 1000 and gets 0 applied with `no_rated_topics` (spec 001 FR-029c; AGENTS.md R19).
+  FR-020 keeps unrated players out of the League. The pull request of delivery G amends
+  spec 001 FR-029c to say: «A student with no rating in the subject does not enter the League (spec 007
+  FR-020); `no_rated_topics` remains only for a player whose rated topics disappear during a
+  match». This spec does not edit spec 001 on its own.
+- **Institution and grade (spec 009, owner decision N21).** Every student has an institution and a
+  grade, stable over a season. They must exist before delivery G ships; FR-022 has no fallback.
+- **Olympiads (future spec, roadmap).** Students classify first within their institution and the
+  final keeps one per grade per institution. That feature is not part of this spec, but its needs —
+  institution and grade per student, stable over a season — constrain FR-022 and the data it reads.
 
 ## Out of Scope *(mandatory)*
 
 - The rating formulas and their display rule — spec 001.
 - Enrolment, roles, display names and the name filter — spec 004.
 - The item bank's contents and difficulty calibration — spec 008.
-- Survey V11 (a failed close is retried by the sweep only), V17 (`--workers` not detected), V23
-  (`pvp_answers` written and never read) and V24 (one 4001 for every refusal): not decided by the
-  owner; left for a later amendment.
+- The olympiad itself (phases by institution and grade, finalists) — a separate future spec.
+- Creating institutions and assigning students to them — spec 009.
 - Running more than one backend process (AGENTS.md R18).
 - A teacher view of PvP.
 
@@ -307,6 +365,7 @@ closes their delivery.
 | US2-AS2 | G | PENDING |
 | US2-AS3 | G | PENDING |
 | US2-AS4 | G | PENDING |
+| US2-AS5 | G | PENDING |
 | US3-AS1 | M | PENDING |
 | US3-AS2 | M | PENDING |
 | US3-AS3 | M | PENDING |
@@ -316,6 +375,8 @@ closes their delivery.
 | US5-AS1 | L | PENDING |
 | US5-AS2 | L | PENDING |
 | US6-AS1 | H | PENDING |
+| US6-AS2 | H | PENDING |
+| US7-AS1 | S | PENDING |
 | FR-001 | A | `tests/integration/test_pvp_enrolment.py::test_pvp_admits_an_enrolled_student`<br>`tests/integration/test_pvp_enrolment.py::test_pvp_still_refuses_a_student_not_enrolled` |
 | FR-002 | A | `tests/integration/test_pvp_enrolment.py::test_pvp_matches_and_finishes_a_game_between_enrolled_students`<br>`tests/integration/test_pvp_repository.py::TestPvpMatchLifecycle::test_create_returns_match_id` |
 | FR-003 | A | `tests/integration/test_pvp_answer_integrity.py::test_an_answer_outside_the_match_scores_nothing`<br>`tests/integration/test_pvp_answer_integrity.py::test_an_answer_after_the_match_ended_is_ignored` |
@@ -332,12 +393,17 @@ closes their delivery.
 | FR-021 | G | PENDING |
 | FR-022 | G | PENDING |
 | FR-023 | G | PENDING |
+| FR-024 | G | PENDING |
 | FR-030 | M | PENDING |
 | FR-031 | M | PENDING |
 | FR-032 | M | PENDING |
+| FR-033 | M | PENDING |
 | FR-040 | F | PENDING |
 | FR-041 | F | PENDING |
 | FR-042 | F | PENDING |
 | FR-050 | L | PENDING |
 | FR-051 | L | PENDING |
+| FR-052 | L | PENDING |
 | FR-060 | H | PENDING |
+| FR-061 | H | PENDING |
+| FR-070 | S | PENDING |
