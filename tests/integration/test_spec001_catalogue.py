@@ -134,8 +134,12 @@ def test_spec001_courses_of_a_grade_7_student(repo, client):
     ],
 )
 def test_spec001_enrol_only_in_the_catalogue(repo, client, level, grade, outside, inside):
-    """US7-AS3: outside the catalogue → 403, nothing enrolled; inside → 201."""
+    """US7-AS3: outside the catalogue → 403, nothing enrolled; inside → 201. The student's group
+    has no course, so its teacher reviews every course (delivery TCH, FR-028v)."""
     student = make_student(repo, level, grade)
+    teacher = make_teacher(repo)
+    sql(repo, "UPDATE users SET approved = 1 WHERE id = ?", (teacher,))
+    sql(repo, "UPDATE users SET group_id = ? WHERE id = ?", (make_group(repo, teacher), student))
     headers = headers_for(repo, student)
 
     refused = client.post("/api/student/enroll", headers=headers, json={"course_id": outside})

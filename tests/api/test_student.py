@@ -60,10 +60,9 @@ def test_first_practice_uses_diagnostic_rating(api_client, monkeypatch, from_map
     token = login.json()["access_token"]
     headers = {"Authorization": "Bearer " + token}
     user_id = int(decode_token(token)["sub"])
-    enrolled = api_client.post(
-        "/api/student/enroll", headers=headers, json={"course_id": _COURSE_UNIV}
-    )
-    assert enrolled.status_code == 201  # practice needs an enrolment (spec 001 FR-037)
+    # Practice needs an enrolment (spec 001 FR-037). A student who registered publicly has no
+    # group, so the catalogue refuses them (FR-028v): enrol directly, as an invitation would.
+    repo.enroll_user(user_id, _COURSE_UNIV)
     items = repo.get_items_from_db(course_id=_COURSE_UNIV)[:10]
     diagnostic = api_client.post(
         f"/api/student/diagnostic/{_COURSE_UNIV}/submit",
