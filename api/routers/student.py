@@ -384,7 +384,12 @@ def course_blocks(course_id: str, user: CurrentUser, repo: RepoDep):
 
 
 @router.get("/pvp/history")
-def pvp_history(user: CurrentUser, repo: RepoDep, before: int | None = Query(None)):
+def pvp_history(
+    user: CurrentUser,
+    repo: RepoDep,
+    # A match id: PostgreSQL INTEGER, so anything outside 1 … 2³¹−1 is refused here (422).
+    before: int | None = Query(None, ge=1, le=2_147_483_647),
+):
     """Historial de partidas PvP del estudiante autenticado, de a 5 (spec 007 FR-060): terminadas
     y abandonadas, con su materia y su motivo; `before` pide las siguientes. El rival, por su
     nombre visible (spec 004 FR-021), y el delta a mostrar, redondeado en el servidor (V14)."""
