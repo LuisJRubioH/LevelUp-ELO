@@ -1,6 +1,6 @@
 # Tasks — spec 007, delivery F (the server's clock, a speed tiebreak and a 20 s grace)
 
-**Plan**: [plan-f.md](plan-f.md) (draft; owner decisions O-F1 … O-F9 open). FR-040, FR-041 and
+**Plan**: [plan-f.md](plan-f.md) (approved; owner decisions O-F1 … O-F9 answered 2026-10-21). FR-040, FR-041 and
 FR-042 are `[CHANGE]`; delivery F touches the match loop, the timer and the close pinned by delivery
 A (FR-002, FR-003, FR-005, FR-007), the one-socket rule of delivery L (FR-050) and the close retries
 of delivery H (FR-061).
@@ -14,7 +14,7 @@ of delivery H (FR-061).
 
 ## Phase 0: Owner decisions (Blocking)
 
-- [ ] T000 The owner answers O-F1 … O-F9 (plan-f § Decisions); record each answer in plan-f and
+- [x] T000 The owner answers O-F1 … O-F9 (plan-f § Decisions); record each answer in plan-f and
   set its status to approved. Tests T014–T017 and T019 are written to the decided option; a test
   for an option the owner rejects is dropped or rewritten before Phase 3.
 
@@ -79,7 +79,7 @@ grace and `MATCH_DURATION` shortened with `monkeypatch`).
 - [ ] T015 [P] [US4] `[CHANGE]` `test_spec007_a_reconnect_takes_over_a_half_open_socket` for FR-042
   with FR-050 (L's open ~40 s block; O-F1) in the same file, asserting both halves: with `resume`
   admitted at once and the old socket closed 4411; without `resume` still 4409 — **fails** before
-  T024; if O-F1 (b) is approved, also `test_spec007_a_waiting_player_reconnects_without_waiting_for_the_ping`
+  T024; under O-F1 (b), also `test_spec007_a_waiting_player_reconnects_without_waiting_for_the_ping`
 - [ ] T016 [P] [US4] `[CHANGE]` the decided edge cases for FR-042 in the same file:
   `test_spec007_a_player_who_finished_and_leaves_does_not_forfeit` (O-F4),
   `test_spec007_both_players_away_abandons_without_rating` (O-F5),
@@ -108,7 +108,7 @@ grace and `MATCH_DURATION` shortened with `monkeypatch`).
 - [ ] T023 [US4] FR-042 / O-F3: `finish_pvp_match(…, reason=None)` in both repositories, identical
   signature; `python scripts/db_sync_check.py` (T017 green; A's close pins green)
 - [ ] T024 [US4] FR-042 / O-F1: the `resume` token per player (with `game_start`, and with
-  `waiting` if O-F1 (b)); a first frame `{token, resume}` that matches takes over the slot — old
+  `waiting`, O-F1 (b)); a first frame `{token, resume}` that matches takes over the slot — old
   socket closed 4411, `_league_sockets` rebound — before L's 4409 check; `game_resume` sent;
   `opponent_back` to the opponent; the timer task and early finish move onto `ActiveMatch`
   (T014 resume test, T015 green; US5-AS1 pin green)
@@ -123,7 +123,7 @@ grace and `MATCH_DURATION` shortened with `monkeypatch`).
   `opponent_away` / `opponent_back` notice; `game_end` `forfeit` / `tiebreak` result copy;
   `CLOSE_NOTICES` 4410, 4411; `league.historyReasons.forfeit` shown on a finished row; every string
   in `es` and `en`; `resume` kept in `sessionStorage` (T018, T019 green; `pnpm run build`)
-- [ ] T028 [US4] Only if the owner approves O-F8: `--ws-ping-interval 10 --ws-ping-timeout 10` in
+- [ ] T028 [US4] O-F8 (approved): `--ws-ping-interval 10 --ws-ping-timeout 10` in
   `render.yaml`'s `startCommand`
 - [ ] T029 [US4] Docs: AGENTS.md R18 names the grace as in-memory state lost on restart, and the
   4410 / 4411 codes next to 4409 / 4429; `docs/arquitectura.md` § Límites conocidos likewise
@@ -136,7 +136,7 @@ pins still green.
 ## Phase N: Traceability & Verification
 
 - [ ] T090 Fill § Traceability rows FR-040, FR-041, FR-042, US4-AS1, US4-AS2, US4-AS3 with the
-  tests above; mark delivery F `closed`; if O-F9 adds `src/domain/pvp/outcome.py`, add it to the
+  tests above; mark delivery F `closed`; add `src/domain/pvp/outcome.py` (O-F9) to the
   spec's § Code Scope in the same PR
 - [ ] T091 Review assertion adequacy: the resume test checks the *same* match continues (match id,
   answered items, scores) *and* the opponent was told both ways; the forfeit test checks the
@@ -156,7 +156,7 @@ pins still green.
   T090–T093.
 - T020 depends on T010, T011; T021 on T012 and T020; T022 on T013; T023 on T017; T024 on T014
   (resume) and T015; T025 on T014 (forfeit), T016, T023 and T024; T026 on T024; T027 on T018,
-  T019 and T020–T026; T028 only after the owner's answer to O-F8.
+  T019 and T020–T026; T028 per O-F8.
 
 ### Parallel Opportunities
 

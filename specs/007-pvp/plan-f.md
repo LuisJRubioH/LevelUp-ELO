@@ -1,8 +1,8 @@
 # Plan — spec 007, delivery F: the server's clock, a speed tiebreak and a 20 s grace
 
 **Spec**: [spec.md](spec.md) § Deliveries, F (US4; FR-040, FR-041, FR-042) · **Branch**: `007-f`,
-from `redesign` · **Date**: 2026-10-21 · **Status**: draft for the owner's approval (decisions
-O-F1 … O-F9 open)
+from `redesign` · **Date**: 2026-10-21 · **Status**: approved (owner, 2026-10-21: O-F1 … O-F9 as
+recommended)
 
 ## Summary
 
@@ -170,10 +170,10 @@ screen (2 s) in `usePvpMatch.ts`. Tests shorten the grace and `MATCH_DURATION` w
 | `test_spec007_a_player_who_does_not_return_loses_by_abandonment` | FR-042, US4-AS3: no reconnect → the opponent gets `game_end {won: true, forfeit: true}` right after the grace, well before `ends_at`; the row is `finished`, winner the opponent, reason `forfeit`, deltas applied once | same file |
 | `test_spec007_a_reconnect_after_the_grace_finds_the_match_over` | FR-042, spec § Edge Cases: `resume` for a closed match → close 4410; a new entry then queues normally | same file |
 | `test_spec007_a_reconnect_takes_over_a_half_open_socket` | FR-042 with FR-050 (L's open issue): the old socket left open server-side, a new one with `resume` → admitted at once, the old one closed 4411; a new one **without** `resume` → still 4409 | same file |
-| `test_spec007_a_waiting_player_reconnects_without_waiting_for_the_ping` | O-F1 (b): a half-open waiting socket replaced by the same tab's reconnect; the lobby keeps one slot | same file (only if O-F1 (b) is approved) |
-| `test_spec007_a_player_who_finished_and_leaves_does_not_forfeit` | O-F4 (as decided) | same file |
-| `test_spec007_both_players_away_abandons_without_rating` | O-F5 (as decided): no rating moves; history reason `both_left` | same file |
-| `test_spec007_the_grace_does_not_extend_the_match` | O-F6 (as decided): a drop 1 s before `ends_at` → the match closes at `ends_at` by score | same file |
+| `test_spec007_a_waiting_player_reconnects_without_waiting_for_the_ping` | O-F1 (b): a half-open waiting socket replaced by the same tab's reconnect; the lobby keeps one slot | same file (O-F1 (b)) |
+| `test_spec007_a_player_who_finished_and_leaves_does_not_forfeit` | O-F4 | same file |
+| `test_spec007_both_players_away_abandons_without_rating` | O-F5: no rating moves; history reason `both_left` | same file |
+| `test_spec007_the_grace_does_not_extend_the_match` | O-F6: a drop 1 s before `ends_at` → the match closes at `ends_at` by score | same file |
 | `test_spec007_finish_with_a_reason_keeps_no_rated_topics` | O-F3: `finish_pvp_match(…, reason="forfeit")` writes `forfeit` where applied, `no_rated_topics` where not; idempotent | `tests/integration/test_pvp_repository.py` (both engines) |
 | e2e «una caída reconecta y retoma la partida», «el rival abandona y ganas al instante», «volver tarde dice que la partida terminó» | US4-AS3 on screen (mocked socket) | `frontend/e2e/league.spec.ts` |
 
@@ -199,52 +199,24 @@ closed).
 - **H's retries** add up to 3.5 s before a forfeit's `game_end` reaches the opponent when the
   database fails; the test allows it.
 
-## Decisions (open — for the owner)
+## Decisions (owner, 2026-10-21)
 
-- **O-F1 — How a reconnect is told apart from a second tab.**
-  *Recommended:* a per-player `resume` token sent with `waiting` (b) and `game_start`, kept in the
-  tab's `sessionStorage`; a socket presenting it takes over and the old one is closed with 4411; a
-  socket without it meets L's 4409 as today. Ends the ~40 s block in the match and in the lobby.
-  *Alternatives:* (a) the token only with `game_start` — the block ends in a match but remains in
-  the lobby; (c) no token: the newest socket of a student who is in a match always takes over —
-  simpler, but a second tab would steal a running match, contradicting US5-AS1 as written.
-- **O-F2 — Does a forfeit move the rating?**
-  *Recommended:* yes, as a full loss for the player who left and a full win for the opponent
-  (`pvp_deltas` with outcome 0 / 1), whatever the score at that moment — otherwise leaving would be
-  a free way to avoid a losing match. *Alternative:* close it as `abandoned` with no rating change
-  (then a losing player can always escape; the opponent's «wins at once» would be in name only).
-- **O-F3 — Where the forfeit is recorded.**
-  *Recommended:* no schema change — `status='finished'`, `winner_id` = the opponent, and
-  `elo_reason_*` = `forfeit` for both through `finish_pvp_match(…, reason=)`; `no_rated_topics`
-  keeps precedence; the history shows «por abandono». *Alternative:* a new additive column
-  `pvp_matches.end_reason` (`time`, `all_answered`, `forfeit`, …), which separates *why the match
-  ended* from *what happened to the rating*, at the cost of a migration and a `SCHEMA_VERSION` bump.
-- **O-F4 — A player who answered every item, then drops.**
-  *Recommended:* no forfeit — they have nothing left to do; the match ends when the opponent
-  finishes or at `ends_at`, by score and time, and their `game_end` is waiting for them if they
-  resume. *Alternative:* the same grace and forfeit as any other drop (simpler rule, but punishes a
-  student who finished and closed the tab).
-- **O-F5 — Both players away.**
-  *Recommended:* if, when a grace ends, the other player is also away, the match closes as
-  `abandoned` with reason `both_left` and no rating change (nobody stayed to win).
-  *Alternative:* the first whose grace ends loses (a rated result between two absent players).
-- **O-F6 — The clock during a grace.**
-  *Recommended:* it keeps running and the grace never extends `ends_at`; if `ends_at` comes during a
-  grace, the match closes normally by score and time. *Alternative:* pause the match clock while a
-  player is away (fairer to the one who dropped, but lets a player stall a match they are losing).
-- **O-F7 — What «total answer time» counts** (FR-041; O3 says "each counted answer").
-  *Recommended:* the correct answers only — the time it took to earn the score that tied — summed
-  from `game_start`, compared in whole seconds. *Alternatives:* (a) every judged answer, right or
-  wrong (a player who answered fewer items would win by answering less); (b) the time of the last
-  correct answer (one number, the moment the player reached their score).
-- **O-F8 — Faster drop detection.**
-  *Recommended:* start uvicorn with `--ws-ping-interval 10 --ws-ping-timeout 10` in `render.yaml`, so
-  a silently vanished player forfeits within ~40 s instead of ~60 s; it applies to every socket
-  (notifications too) and costs one small ping every 10 s per socket. *Alternative:* keep uvicorn's
-  20 s / 20 s; the returning player is not affected under O-F1, only the forfeit is later.
-- **O-F9 — Where the winner rule lives.**
-  *Recommended:* a pure function `match_outcome(score_p1, score_p2, elapsed_p1, elapsed_p2)` in a new
-  `src/domain/pvp/outcome.py` (constitution III: business logic in `domain/`), with the code PR adding
-  that file to spec 007's § Code Scope. *Alternative:* a private pure helper in
-  `api/websocket/pvp.py`, next to `_judge_answer` (no Code Scope change; the rule stays in the
-  composition layer, as the answer judgement does today).
+The owner approved the recommended option of each decision.
+
+- **O-F1 — (b):** a per-player `resume` token, sent with `waiting` and `game_start` and kept in the
+  tab's `sessionStorage`. A socket presenting it takes over and the old one is closed with 4411; a
+  socket without it meets L's 4409 as today. This ends the ~40 s block in the match and in the lobby.
+- **O-F2 — yes:** a forfeit is a full loss for the player who left and a full win for the opponent
+  (`pvp_deltas` with outcome 0 / 1), whatever the score at that moment.
+- **O-F3 — no schema change:** `status='finished'`, `winner_id` = the opponent, and `elo_reason_*` =
+  `forfeit` for both through `finish_pvp_match(…, reason=)`; `no_rated_topics` keeps precedence; the
+  history shows «por abandono».
+- **O-F4 — no forfeit** for a player who answered every item and then drops: the match ends when the
+  opponent finishes or at `ends_at`, by score and time.
+- **O-F5 — `abandoned`, reason `both_left`,** with no rating change, when both players are away as a
+  grace ends.
+- **O-F6 — the clock keeps running;** the grace never extends `ends_at`.
+- **O-F7 — the correct answers only,** summed from `game_start`, compared in whole seconds.
+- **O-F8 — yes:** uvicorn starts with `--ws-ping-interval 10 --ws-ping-timeout 10` in `render.yaml`.
+- **O-F9 — the domain:** a pure function `match_outcome(score_p1, score_p2, elapsed_p1, elapsed_p2)`
+  in a new `src/domain/pvp/outcome.py`; the code PR adds that file to spec 007's § Code Scope.
