@@ -126,9 +126,10 @@ Defects outside the running spec's scope. Each is fixed in its own branch and PR
 
 **What the production switch (PR #3) still needs**, all the owner's (`docs/transfer.md`):
 
-1. Merge the open PRs that go in before the switch.
+1. Merge the open PRs that go in before the switch; spec 008 T (PR #131) is one of them (owner,
+   2026-10-21; `specs/008-item-bank/plan-t.md` § Risks and rollout).
 2. The backup (§ 4) and the migration rehearsal (§ 5) on the commit that will be switched. The
-   schema is at version 5 on `redesign` and 6 with E3 (PR #73); each change of `SCHEMA_VERSION`
+   schema is at version 6 on `redesign` (spec 008 T) and 7 with E3 (PR #73); each change of `SCHEMA_VERSION`
    asks for a new rehearsal.
 3. F-1's read-only production checks (§ 6 «Before the switch»).
 4. The host settings (§ 3), V1 disconnected (§ 3.1), then the checks of § 6 «After the switch».

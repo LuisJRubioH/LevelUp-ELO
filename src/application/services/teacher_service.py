@@ -1,4 +1,5 @@
 from src.application.services.rating_read_service import RatingReadService
+from src.application.services.study_report_service import StudyReportService
 from src.domain.elo.model import procedure_elo_delta, procedure_grading
 
 
@@ -72,6 +73,8 @@ class TeacherService:
                 ),
             },
             "procedure_stats_by_course": self.repository.get_procedure_stats_by_course(student_id),
+            # Spec 008 FR-042: results per subtopic across the student's courses (study only)
+            "subtopics": StudyReportService(self.repository).subtopic_report(student_id),
             "attempts": attempts,
         }
 

@@ -1000,6 +1000,14 @@ const es = {
     approximateHint: "Punto de partida estimado a partir de datos anteriores; no es tu historial exacto.",
   },
 
+  // ── Reporte por subtema (spec 008 FR-042) ────────────────────────────────
+  subtopics: {
+    title: "Por subtema",
+    hint: "Tus respuestas por subtema en todos tus cursos, de lo más débil a lo más firme. Es para estudiar: no cambia tu ELO.",
+    empty: "Aún no hay respuestas en preguntas con subtema.",
+    correctOf: "{{correct}} de {{attempts}}",
+  },
+
   theme: {
     light: "Modo claro",
     dark: "Modo oscuro",

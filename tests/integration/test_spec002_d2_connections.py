@@ -49,6 +49,8 @@ HOT_READS = {
     "get_available_courses_by_level": lambda uid: ("colegio",),
     "get_completed_diagnostic_course_ids": lambda uid: (uid,),
     "get_education_level": lambda uid: (uid,),
+    # Spec 008 FR-042: /stats reads the student's results per subtopic.
+    "get_subtopic_attempts": lambda uid: (uid,),
 }
 
 

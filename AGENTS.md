@@ -617,6 +617,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username) |
 | `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
 | `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
+| `student_course_topic_elo_archive` | spec 008 T: fine-topic ratings merged into their coarse topic by `scripts/repairs/merge_fine_topic_ratings.py` (rule A), with `merged_into` |
 | `groups` | unique `(teacher_id, name_normalized)`, `invite_code` |
 | `group_invitations` | single-use invitations (spec 001 delivery INV): `token` UNIQUE (10 chars, stored without the hyphen), `group_id`, `created_by`, `expires_at`, `used_by`/`used_at`, `revoked_at`. V2 no longer reads `groups.invite_code` (only frozen V1 does) |
 | `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array) |
@@ -640,6 +641,8 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 Items live in `items/bank/*.json` and `items/bank/semillero/*.json`; `course_id` = file name
 without extension. Required fields: `id` (globally unique) · `content` (LaTeX in `$…$`, R5) ·
 `difficulty` (int, 600–1800) · `topic` · `options` (list) · `correct_option`.
+Optional `subtopic` (text, spec 008 T): the fine label, for the study report only — `topic`
+alone keys a rating. A topic with fewer than 5 items in its course warns (FR-043).
 
 New course: create `items/bank/my_course.json` → add `'my_course': '<Block>'` to
 `_COURSE_BLOCK_MAP` in **both** repositories → `python scripts/validate_bank.py` → restart.
