@@ -266,3 +266,6 @@ The owner approved the recommended option of each decision.
   index.
 - **O-S8 — a failed answer write stays as today:** logged, the answer still scores, and it is
   missing from the statistics.
+- **Out of Scope amended (owner, 2026-10-21):** spec 007's «A teacher view of PvP» becomes «A
+  teacher view of the League's matches (results, opponents)», since FR-070 brings the League's
+  answers to the teacher. The S code PR makes that edit in `spec.md`.

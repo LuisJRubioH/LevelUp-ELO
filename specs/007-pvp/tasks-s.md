@@ -129,7 +129,8 @@ match and misses an item; their statistics and their teacher's view count that m
 
 ## Phase N: Traceability & Verification
 
-- [ ] T090 Fill § Traceability rows FR-070 and US7-AS1; add `src/domain/pvp/answer_stats.py`,
+- [ ] T090 Amend spec 007 § Out of Scope: «A teacher view of PvP» → «A teacher view of the
+  League's matches (results, opponents)» (owner, 2026-10-21). Fill § Traceability rows FR-070 and US7-AS1; add `src/domain/pvp/answer_stats.py`,
   `src/application/services/study_report_service.py`, `api/routers/teacher.py`,
   `frontend/src/pages/Student/Stats.tsx`, `frontend/src/pages/Teacher/Dashboard.tsx`,
   `frontend/src/pages/Teacher/Export.tsx`, `frontend/src/components/Study/LeagueReport.tsx` to
