@@ -90,3 +90,6 @@ fill:** FR-060, FR-061, US6-AS1, US6-AS2 (delivery H → closed).
 - **O-H2 — yes:** three retries at 0.5 s, 1 s and 2 s.
 - **O-H3 — yes:** `game_end` keeps `not_applied` (spec 001 FR-029c); the history shows
   `not_saved`.
+- **H goes in before the production switch (owner, 2026-10-21).** It changes no schema, so the
+  switch's migration and its rehearsal are unchanged; the history's paged response ships with
+  the screen that reads it.
