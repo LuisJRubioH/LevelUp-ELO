@@ -25,6 +25,32 @@ from tests.integration.test_pvp_enrolment import (  # noqa: F401 — live_api is
 SILENCE_S = 1.0  # how long "no reply" is waited for
 
 
+@pytest.fixture
+def clock(monkeypatch):
+    """The sockets' limits read a clock the test moves (spec 007 FR-051).
+
+    The bucket refills while the server works through a burst, so with the real clock a server
+    slower than one answer per 1/rate seconds refills a token before it reads the last frame of
+    the burst. Here time passes only when the test says so: `clock[0] += seconds`.
+    """
+    from api.config import settings
+    from api.websocket import pvp
+    from api.websocket.limits import SocketLimits
+
+    now = [0.0]
+    monkeypatch.setattr(
+        pvp,
+        "_socket_limits",
+        lambda: SocketLimits(
+            max_frame_bytes=settings.pvp_max_frame_bytes,
+            per_second=settings.pvp_max_messages_per_second,
+            abuse_limit=settings.pvp_abuse_limit,
+            clock=lambda: now[0],
+        ),
+    )
+    return now
+
+
 def _match(repo, live_api, connect):
     """Two enrolled students in one ten-item match: (waiting socket, joining socket, items)."""
     course_id, _ = make_course(repo, ["Fracciones", "Decimales"], items_per_topic=5)
@@ -125,14 +151,15 @@ def test_spec007_an_oversized_frame_is_dropped(repo, live_api):
         assert _until(joining, "answer_result")["item_id"] == items[1]["id"]
 
 
-def test_spec007_a_burst_beyond_the_rate_is_dropped(repo, live_api):
+def test_spec007_a_burst_beyond_the_rate_is_dropped(repo, live_api, clock):
     """FR-051, US5-AS2: of six answers sent at once, five are judged and the sixth gets no reply;
-    a second later answers are judged again."""
+    a second later answers are judged again. No time passes during the burst (`clock`), however
+    long the server takes to judge it."""
     from websockets.sync.client import connect
 
     waiting, joining, items = _match(repo, live_api, connect)
     with waiting, joining:
-        time.sleep(1.1)  # a full bucket: the token frame was spent at sign-in
+        clock[0] += 1.1  # a full bucket: the token frame was spent at sign-in
         for item in items[:6]:
             joining.send(_answer(item))
 
@@ -140,7 +167,7 @@ def test_spec007_a_burst_beyond_the_rate_is_dropped(repo, live_api):
         assert judged == [item["id"] for item in items[:5]]
         assert _silent(joining)
 
-        time.sleep(1.1)
+        clock[0] += 1.1
         joining.send(_answer(items[6]))
         assert _until(joining, "answer_result")["item_id"] == items[6]["id"]
 
