@@ -766,7 +766,7 @@ in the teacher's queue.
    and nothing is enrolled; a student whose group has that course as its own, with an approved,
    active teacher, is enrolled with the group.
 3. **US11-AS3** — **Given** the courses screen, **When** it lists a catalogue course the student
-   is not enrolled in, **Then** it offers «Inscribirme» only where the student's group's teacher
+   is not enrolled in, **Then** it offers «Matricularme» only where the student's group's teacher
    reviews that course, and for any other says «Con invitación de tu docente» and leads to the
    invitation tab.
 
@@ -1189,9 +1189,9 @@ is the net amount its gradings actually applied to the rating.
   group, so a procedure in a course other than the group's own reaches no teacher.)*
 - **FR-028w** [CHANGE]: When the student's courses are listed, the system shall state for each one
   whether a catalogue enrolment would be accepted by FR-028v, and the courses screen shall offer
-  «Inscribirme» only for those; for any other catalogue course the student is not enrolled in, it
+  «Matricularme» only for those; for any other catalogue course the student is not enrolled in, it
   shall say «Con invitación de tu docente» and lead to the invitation tab. A refused enrolment
-  shall be shown with the server's message. *(Today: every catalogue course offers «Inscribirme»,
+  shall be shown with the server's message. *(Today: every catalogue course offers «Matricularme»,
   and a refused enrolment shows nothing.)*
 
 - **FR-029** [CHANGE]: The system shall store every rating change — practice answer, diagnostic,
@@ -1588,7 +1588,7 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-028l | `enroll_by_code` (`api/routers/student.py:311`) reads `group["id"]` while `get_group_by_invite_code` returns `group_id` (500 on both engines), and has no grade check; `GET /api/student/courses` returns only `get_available_courses` |
 | FR-028m | `api/schemas/auth.py:22` (`grade` optional for every level); `POST /api/student/enroll` checks only that the course exists |
 | FR-028v | `StudentService.enroll_from_catalogue` (`src/application/services/student_service.py`) calls `enroll_user(user_id, course_id)` with no group; `_procedure_reaches_teacher` (both repositories) links a procedure to a teacher only through a group with no course or with the item's course |
-| FR-028w | `CourseResponse` (`api/schemas/student.py`) has no field for it; `Courses.tsx` offers «Inscribirme» for every catalogue course and its enrol mutation has no `onError` |
+| FR-028w | `CourseResponse` (`api/schemas/student.py`) has no field for it; `Courses.tsx` offers «Matricularme» for every catalogue course and its enrol mutation has no `onError` |
 | FR-028n | `_migrate_courses_block_check`: `postgres_repository.py:1228` (returns only if the definition contains `'Semillero 6'`, so it drops and re-adds every run), `sqlite_repository.py:915` (probe insert, then rename → create → copy → drop) |
 | FR-028o | `frontend/src/pages/Student/Courses.tsx` shows `courses.noAvailable` for an empty catalogue |
 | FR-028p, FR-028u | Before delivery INV: `generate_group_invite_code` (both repositories) wrote one random 6-character code to `groups.invite_code`, replacing the previous one; `POST /api/teacher/groups/{id}/invite-code`; `GET /api/teacher/groups` returned `invite_code` |

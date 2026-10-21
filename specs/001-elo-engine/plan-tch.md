@@ -51,7 +51,7 @@ course the teacher of the student's group reviews, and records the enrolment wit
   bool` (default `False`) — true for a catalogue course the student may enrol in now (FR-028w).
   `EnrollRequest`'s docstring says a group sent is still ignored.
 - **Screen** (`frontend/src/pages/Student/Courses.tsx`, `frontend/src/api/student.ts`, i18n `es`
-  and `en`): in «Explorar», a course not enrolled shows «Inscribirme» when `enrollable`, otherwise
+  and `en`): in «Explorar», a course not enrolled shows «Matricularme» when `enrollable`, otherwise
   «Con invitación de tu docente» and a button that opens the «Código» tab; a refused enrolment
   shows the server's message (today the mutation has no `onError`).
 - **Deployment check** (`scripts/verify_deployment.py`): the diagnostic step enrols only in a
@@ -77,7 +77,7 @@ course the teacher of the student's group reviews, and records the enrolment wit
 | `tests/unit/domain/test_spec001_catalogue.py::test_spec001_catalogue_enrolment_needs_the_groups_teacher` | FR-028v: the rule's cases, no I/O |
 | `tests/integration/test_spec001_enrolment_teacher.py` (both engines, through the API) | US11-AS1, US11-AS2, FR-028v: enrolled with the group and the procedure in the teacher's queue; refusals change nothing; the group's own course; a group sent is ignored; already enrolled keeps its group |
 | the same file: `…::test_spec001_the_course_list_says_which_courses_enrol` | FR-028w: `enrollable` per course |
-| `frontend/e2e/spec001-enrolment-teacher.spec.ts` (mocked API) | US11-AS3, FR-028w: «Inscribirme» only where `enrollable`, the invitation hint and its button, the refusal message |
+| `frontend/e2e/spec001-enrolment-teacher.spec.ts` (mocked API) | US11-AS3, FR-028w: «Matricularme» only where `enrollable`, the invitation hint and its button, the refusal message |
 | earlier tests moved, coverage kept: `tests/integration/test_enrol_joins_no_group.py`, `tests/integration/test_spec001_catalogue.py`, `tests/api/test_student.py` | FR-028m, delivery INV |
 
 ## Risks and rollout

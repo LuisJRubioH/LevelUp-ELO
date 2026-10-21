@@ -21,7 +21,7 @@ then pass with the implementation.
   `tests/integration/test_enrol_joins_no_group.py::test_catalogue_enrolment_ignores_a_group_id`
 - [ ] T005 Both engines: `GET /api/student/courses` marks `enrollable` per course — true only for a
   catalogue course the rule accepts (FR-028w)
-- [ ] T006 Screen — `frontend/e2e/spec001-enrolment-teacher.spec.ts` (mocked API): «Inscribirme»
+- [ ] T006 Screen — `frontend/e2e/spec001-enrolment-teacher.spec.ts` (mocked API): «Matricularme»
   only where `enrollable`; «Con invitación de tu docente» and its button to the «Código» tab
   otherwise; a refused enrolment shows the server's message (US11-AS3, FR-028w)
 - [ ] T007 Earlier tests moved to the rule, coverage kept: `tests/integration/test_spec001_catalogue.py`
