@@ -84,6 +84,7 @@ from api.schemas.student import (
 )
 from src.application.services.rating_read_service import RatingReadService
 from src.application.services.student_service import StudentService
+from src.application.services.study_report_service import StudyReportService
 from src.domain.elo.model import diagnostic_baseline
 from src.domain.katia.conversation import STALE_AFTER_HOURS, close_outcome
 from src.domain.procedures import COPY, REFUSE_OTHER_ITEM, REFUSE_SAME_ITEM
@@ -340,6 +341,7 @@ def stats(user: CurrentUser, repo: RepoDep):
         topic_elos=[t for c in courses if c.current_context for t in c.topics],
         total_attempts=repo.get_total_attempts_count(user["user_id"]),
         study_streak=repo.get_study_streak(user["user_id"]),
+        subtopics=StudyReportService(repo).subtopic_report(user["user_id"]),
     )
 
 

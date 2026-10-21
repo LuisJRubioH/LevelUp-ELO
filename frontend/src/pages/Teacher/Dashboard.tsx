@@ -12,6 +12,8 @@
  */
 
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { SubtopicReport } from "../../components/Study/SubtopicReport";
 import { useQuery } from "@tanstack/react-query";
 import { RankPill } from "../../components/ELO/RankBadge";
 import {
@@ -415,6 +417,23 @@ const STATE_LABEL: Record<string, string> = {
   available: "Abierto",
 };
 
+/** Spec 008 FR-042: the student's results per subtopic, across courses, weakest first. */
+function StudentSubtopicSection({ studentId }: { studentId: number }) {
+  const { t } = useTranslation();
+  const q = useQuery({
+    queryKey: ["teacher-student-subtopics", studentId],
+    queryFn: () => teacherApi.studentSubtopics(studentId),
+    retry: false,
+  });
+  if (q.isError || !q.data?.subtopics?.length) return null;
+  return (
+    <div className="sd-section">
+      <h4>{t("subtopics.title")}</h4>
+      <SubtopicReport rows={q.data.subtopics} />
+    </div>
+  );
+}
+
 /** Spec 003 L4 (FR-042): the student's path, data first (D3) — one row per node with activity,
  * the answer history unfolded on demand. Right or wrong and the tag; never the value (N11). */
 function StudentPathSection({ studentId, courseId }: { studentId: number; courseId: string }) {
@@ -606,6 +625,7 @@ function StudentDrawer({
         </div>
 
         {courseId && <StudentPathSection studentId={student.user_id} courseId={courseId} />}
+        <StudentSubtopicSection studentId={student.user_id} />
         {courseId && <StudentKatiaSection studentId={student.user_id} courseId={courseId} />}
 
         <div className="sd-section">

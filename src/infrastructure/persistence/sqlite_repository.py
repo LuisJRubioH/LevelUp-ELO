@@ -1188,11 +1188,38 @@ class SQLiteRepository:
         self._create_lesson_history(cursor)
         self._create_katia_conversations(cursor)
         self._add_exam_selected_option(cursor)
+        self._add_item_subtopics(cursor)
 
     def _add_exam_selected_option(self, cursor):
         """Spec 006 X2 (FR-033): the option a student chose for each exam item; NULL on rows
         stored before X2."""
         self._add_column_if_not_exists(cursor, "exam_responses", "selected_option", "TEXT")
+
+    def _add_item_subtopics(self, cursor):
+        """Spec 008 T (FR-040): an item's optional `subtopic`, for study only — it never keys a
+        rating. The archive keeps the fine-topic ratings the repair merges (plan-t.md, rule A);
+        `approximate` is an integer on both engines there."""
+        self._add_column_if_not_exists(cursor, "items", "subtopic", "TEXT")
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS student_course_topic_elo_archive (
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                topic TEXT NOT NULL,
+                current_elo REAL NOT NULL,
+                rd REAL NOT NULL,
+                origin TEXT NOT NULL,
+                approximate INTEGER NOT NULL DEFAULT 0,
+                legacy_source_key TEXT,
+                reconciled_at TIMESTAMP,
+                created_at TIMESTAMP,
+                updated_at TIMESTAMP,
+                merged_into TEXT NOT NULL,
+                archived_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, course_id, topic)
+            )
+            """
+        )
 
     def _create_katia_conversations(self, cursor):
         """Spec 005 K3: one conversation per student and item, its summary when it closes
@@ -1337,6 +1364,109 @@ class SQLiteRepository:
 
     # ── Data repairs: run by the owner through scripts/repairs/, never at start ──
     # Spec 002 FR-018. Each returns the rows it changes; without apply=True it only counts.
+
+    @_read_only
+    def get_subtopic_attempts(self, user_id) -> list:
+        """Spec 008 FR-042: per (course, topic, subtopic) of the student's valid attempts, how
+        many and how many right — raw counts for the study report; nothing here keys a rating."""
+        conn = self.get_connection()
+        try:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                """
+            SELECT i.course_id, c.name AS course_name, i.topic, i.subtopic,
+                   COUNT(*) AS attempts,
+                   SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS correct
+            FROM attempts a
+            JOIN items i ON i.id = a.item_id
+            LEFT JOIN courses c ON c.id = i.course_id
+            WHERE a.user_id = ? AND COALESCE(a.elo_valid, 1) = 1 AND i.subtopic IS NOT NULL
+            GROUP BY i.course_id, c.name, i.topic, i.subtopic
+                """,
+                (user_id,),
+            ).fetchall()
+            return [dict(row) for row in rows]
+        finally:
+            conn.close()
+
+    def merge_fine_topic_ratings(self, regrouping: dict, apply: bool = False) -> int:
+        """Spec 008 T, rule A (owner, 2026-10-20): per student and course, the stored ratings of
+        the old fine topics of one coarse topic become one coarse row — the mean rating, the
+        mean RD (within 30–350), approximate, the fine keys as provenance — unless the student
+        already has that coarse row, which is never touched. Every fine row is copied to
+        `student_course_topic_elo_archive` and removed from the live store; attempts are never
+        touched. `regrouping` is {course_id: {old_topic: new_topic}}. Returns the fine rows
+        found; writes only with `apply`."""
+        from src.domain.elo.regrouping import plan_topic_merge
+
+        conn = self.get_connection()
+        try:
+            conn.row_factory = sqlite3.Row
+            fine = []
+            for course_id, mapping in regrouping.items():
+                if not mapping:
+                    continue
+                marks = ",".join("?" * len(mapping))
+                fine += [
+                    dict(row)
+                    for row in conn.execute(
+                        "SELECT user_id, course_id, topic, current_elo, rd"
+                        f" FROM student_course_topic_elo WHERE course_id = ? AND topic IN ({marks})",
+                        (course_id, *mapping),
+                    ).fetchall()
+                ]
+            if not apply or not fine:
+                return len(fine)
+            conn.execute("BEGIN IMMEDIATE")
+            users = sorted({row["user_id"] for row in fine})
+            marks = ",".join("?" * len(users))
+            existing = {
+                (r["user_id"], r["course_id"], r["topic"])
+                for r in conn.execute(
+                    "SELECT user_id, course_id, topic FROM student_course_topic_elo"
+                    f" WHERE user_id IN ({marks})",
+                    users,
+                ).fetchall()
+            }
+            for row in plan_topic_merge(fine, regrouping, existing):
+                conn.execute(
+                    """INSERT INTO student_course_topic_elo
+                        (user_id, course_id, topic, current_elo, rd, origin, approximate,
+                         legacy_source_key, reconciled_at)
+                    VALUES (?, ?, ?, ?, ?, 'legacy_topic_row', 1, ?, CURRENT_TIMESTAMP)""",
+                    (
+                        row["user_id"],
+                        row["course_id"],
+                        row["topic"],
+                        row["rating"],
+                        row["rd"],
+                        row["source"],
+                    ),
+                )
+            for row in fine:
+                coarse = regrouping[row["course_id"]][row["topic"]]
+                conn.execute(
+                    """INSERT OR IGNORE INTO student_course_topic_elo_archive
+                        (user_id, course_id, topic, current_elo, rd, origin, approximate,
+                         legacy_source_key, reconciled_at, created_at, updated_at, merged_into)
+                    SELECT user_id, course_id, topic, current_elo, rd, origin, approximate,
+                           legacy_source_key, reconciled_at, created_at, updated_at, ?
+                    FROM student_course_topic_elo
+                    WHERE user_id = ? AND course_id = ? AND topic = ?""",
+                    (coarse, row["user_id"], row["course_id"], row["topic"]),
+                )
+                conn.execute(
+                    "DELETE FROM student_course_topic_elo"
+                    " WHERE user_id = ? AND course_id = ? AND topic = ?",
+                    (row["user_id"], row["course_id"], row["topic"]),
+                )
+            conn.commit()
+            return len(fine)
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
     def repair_users_without_password(self, apply: bool = False) -> int:
         """Deactivates active users whose password hash is empty (they cannot sign in)."""
@@ -4237,8 +4367,8 @@ class SQLiteRepository:
                         cursor.execute(
                             """
                             INSERT INTO items
-                                (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block)
-                            VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?, ?, ?)
+                                (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block, subtopic)
+                            VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?, ?, ?, ?)
                         """,
                             (
                                 item["id"],
@@ -4251,6 +4381,7 @@ class SQLiteRepository:
                                 item.get("image_url") or item.get("image_path"),
                                 json.dumps(item.get("tags") or []),
                                 item.get("block", ""),
+                                item.get("subtopic"),
                             ),
                         )
                     else:
@@ -4258,7 +4389,7 @@ class SQLiteRepository:
                         cursor.execute(
                             """
                             UPDATE items
-                            SET content = ?, options = ?, correct_option = ?, topic = ?, course_id = ?, image_url = ?, tags = ?, block = ?
+                            SET content = ?, options = ?, correct_option = ?, topic = ?, course_id = ?, image_url = ?, tags = ?, block = ?, subtopic = ?
                             WHERE id = ?
                         """,
                             (
@@ -4270,6 +4401,7 @@ class SQLiteRepository:
                                 item.get("image_url") or item.get("image_path"),
                                 json.dumps(item.get("tags") or []),
                                 item.get("block", ""),
+                                item.get("subtopic"),
                                 item["id"],
                             ),
                         )

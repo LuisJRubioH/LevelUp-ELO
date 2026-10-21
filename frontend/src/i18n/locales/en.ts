@@ -997,6 +997,14 @@ const en: TranslationKeys = {
     approximateHint: "Starting point estimated from earlier data; not your exact history.",
   },
 
+  // ── Results per subtopic (spec 008 FR-042) ───────────────────────────────
+  subtopics: {
+    title: "By subtopic",
+    hint: "Your answers per subtopic across all your courses, weakest first. It is for study: it does not change your ELO.",
+    empty: "No answers yet on questions with a subtopic.",
+    correctOf: "{{correct}} of {{attempts}}",
+  },
+
   theme: {
     light: "Light mode",
     dark: "Dark mode",

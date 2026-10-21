@@ -21,7 +21,8 @@ Qué verifica:
       convierten lo de en medio en una fórmula)
     - Ningún carácter de control (R5): `"\\frac"` escrito con una sola barra en el JSON se lee
       como salto de página + "rac"
-    - `topic` es texto no vacío
+    - `topic` es texto no vacío; `subtopic`, si está, también (spec 008 FR-040)
+    - Un tema con menos de 5 ítems en su curso da un aviso, no un error (FR-043)
     - `id` es texto no vacío; `tags`, si está, es una lista de textos no vacíos
     - La imagen (`image_url` o `image_path`), si está, existe en el repositorio
     - Cada archivo es un curso de `_COURSE_BLOCK_MAP` (en ambos repositorios): un curso sin
@@ -32,6 +33,7 @@ import ast
 import json
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 
 # ── Configuración ──────────────────────────────────────────────────────────────
@@ -39,6 +41,7 @@ BANK_DIR = Path("items/bank")
 REQUIRED_FIELDS = {"id", "content", "difficulty", "topic", "options", "correct_option"}
 DIFFICULTY_RANGE = (100, 3000)
 MIN_OPTIONS = 2
+SMALL_TOPIC = 5  # spec 008 FR-043: a topic with fewer items warns
 
 # The frontend's MathText split (frontend/src/components/Math/MathContent.tsx): what it renders as
 # math. V1's st.markdown also reads $…$ as math.
@@ -179,6 +182,13 @@ def validate_item(item: dict, source_file: str) -> None:
     if not isinstance(item["topic"], str) or not item["topic"].strip():
         errors.append(f"{prefix}: 'topic' debe ser un texto no vacío, es {item['topic']!r}")
 
+    # 7b. `subtopic`, si está: texto no vacío; solo para estudio, nunca la fila del rating
+    #     (spec 008 FR-040)
+    if "subtopic" in item and (
+        not isinstance(item["subtopic"], str) or not item["subtopic"].strip()
+    ):
+        errors.append(f"{prefix}: 'subtopic' debe ser un texto no vacío, es {item['subtopic']!r}")
+
     # 8. Ni caracteres de control (R5) ni prosa entre dos `$` (se vería como una fórmula ilegible)
     texts = [item["content"]] + (item["options"] if isinstance(item["options"], list) else [])
     for text in (t for t in texts if isinstance(t, str)):
@@ -256,6 +266,20 @@ def main() -> None:
             if "id" in item:
                 all_items.append((str(item["id"]), json_file.name))
         total_items += len(items)
+
+    # ── Un tema con menos de 5 ítems: aviso, no error (spec 008 FR-043) ──────
+    for json_file in json_files:
+        topics = Counter(
+            item["topic"]
+            for item in validate_file(json_file)
+            if isinstance(item.get("topic"), str) and item["topic"].strip()
+        )
+        for topic, count in sorted(topics.items()):
+            if count < SMALL_TOPIC:
+                warnings.append(
+                    f"[{json_file.name}]: el tema '{topic}' tiene {count} ítem(s); con menos de "
+                    f"{SMALL_TOPIC} su rating descansa en pocas respuestas (FR-043)"
+                )
 
     # ── Cada archivo es un curso mapeado, en ambos repositorios (R1) ─────────
     block_maps = course_block_maps()

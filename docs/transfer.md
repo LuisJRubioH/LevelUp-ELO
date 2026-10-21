@@ -332,11 +332,13 @@ before the migration:
 DROP TABLE IF EXISTS active_exam_sessions, audit_account_events, bank_syncs, diagnostics,
   exam_responses, group_invitations, katia_conversations, katia_messages, lesson_answers,
   lesson_interactions, lesson_outcomes, lesson_progress, procedure_files, procedure_gradings,
-  procedure_uploads, pvp_answers, pvp_matches, schema_versions, student_course_topic_elo CASCADE;
+  procedure_uploads, pvp_answers, pvp_matches, schema_versions, student_course_topic_elo,
+  student_course_topic_elo_archive CASCADE;
 ```
 
-These are the 19 tables the redesign creates that `main` does not have (compared on 2026-10-19,
-schema version 3, plus spec 005 K3's two at version 4). A spec that adds a table adds it here too.
+These are the 20 tables the redesign creates that `main` does not have (compared on 2026-10-19,
+schema version 3, plus spec 005 K3's two at version 4 and spec 008 T's archive at version 6). A
+spec that adds a table adds it here too.
 
 ```bash
 pg_restore --clean --if-exists --no-owner --no-privileges --schema=public \
@@ -366,7 +368,7 @@ changed nothing before stopping. The other two repairs (`deactivate_users_withou
 `backfill_prob_failure.py`) are the owner's choice; the start does not need them.
 
 The schema version the code expects is `SCHEMA_VERSION` in
-`src/infrastructure/persistence/schema_version.py`. Today it is **5**:
+`src/infrastructure/persistence/schema_version.py`. Today it is **6**:
 
 | Version | Change |
 |---|---|
@@ -375,9 +377,10 @@ The schema version the code expects is `SCHEMA_VERSION` in
 | 3 | spec 003 L4: tables `lesson_answers` (every lesson answer, in order) and `lesson_outcomes` (the post-diagnostic outcome); each row already in `lesson_interactions` is copied once into `lesson_answers` |
 | 4 | spec 005 K3: tables `katia_conversations` (one summary per KatIA conversation) and `katia_messages` (its text, only while it is open); `katia_interactions` stays and is no longer written by V2 |
 | 5 | spec 006 X2: column `exam_responses.selected_option` (the option chosen for each exam item; NULL on rows stored before it) |
+| 6 | spec 008 T: column `items.subtopic` (study only, never a rating) and table `student_course_topic_elo_archive` (fine-topic ratings merged by `scripts/repairs/merge_fine_topic_ratings.py`) |
 
 A production database from `main` has no schema version and no lesson tables, so its first
-migration goes straight to version 5 and the L4 copy finds nothing to copy. The rehearsal must run
+migration goes straight to version 6 and the L4 copy finds nothing to copy. The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
 cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
 
@@ -394,7 +397,7 @@ Then check on the scratch database:
 SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2;
 SELECT COUNT(*) FROM student_topic_elo;                        -- equals the count from § 4
 SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- all pre-existing rows
-SELECT MAX(version) FROM schema_versions;                      -- 5: the SCHEMA_VERSION of the commit
+SELECT MAX(version) FROM schema_versions;                      -- 6: the SCHEMA_VERSION of the commit
 SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions);  -- 0
 SELECT COUNT(*) FROM lesson_outcomes;                          -- 0: written only by new answers
 SELECT COUNT(*) FROM katia_conversations;                      -- 0: written only by new chats
@@ -419,7 +422,12 @@ redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no 
 
 - The § 4 backup and the § 5 rehearsal were run on the commit being switched, or on one with the
   same `SCHEMA_VERSION`. The rehearsal report shows the migration passing twice, and
-  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (5 today).
+  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (6 today).
+- **Spec 008 T** regroups DIAN's topics, and the first migration applies the bank before it
+  reconciles the legacy ratings. A legacy DIAN rating keyed by the course (V1 keys by its name,
+  V2 on `main` by its id) is reconciled onto the new topics; one keyed by an old topic label is
+  not, and that student starts DIAN with no rating. The `precheck` job counts those rows (read
+  only, counts only); with 0, nothing is lost.
 
 - Roadmap follow-ups **F-4** (PR #9: `next-question`, `/answer` and the diagnostic serve only
   courses the student is enrolled in, spec 001 FR-037, FR-037a) and **F-5** (PR #8: PvP lets
@@ -465,6 +473,14 @@ refuses any non-local host. Never point tests at the production database.
 8. Once V1 is disconnected (§ 3.1), delete the KatIA messages typed before spec 005 K3 (decision
    N3): `python scripts/repairs/delete_katia_texts.py` counts them, `--apply` deletes them, and a
    second `--apply` reports 0. It prints counts only.
+9. Merge the ratings stored on DIAN's and EPA8's old fine topics into their coarse topic (spec
+   008 T, rule A): `python scripts/repairs/merge_fine_topic_ratings.py` counts them, `--apply`
+   merges and archives them, and a second `--apply` reports 0. It prints counts only. Until it
+   runs, a student's course rating on those courses still counts the old fine rows. At the switch
+   from `main` it counts 0: the reconciliation already writes the coarse topics. On a database
+   that already holds fine-topic ratings, a coarse row created before the repair runs — by the
+   deploy's own reconciliation from a legacy course rating, or at 1000 by an answer — is kept, and
+   the fine rows are archived without being merged.
 
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer

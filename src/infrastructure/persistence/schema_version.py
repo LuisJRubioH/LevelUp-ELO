@@ -16,10 +16,11 @@ import inspect
 import json
 import os
 
-SCHEMA_VERSION = 5  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
+SCHEMA_VERSION = 6  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
 # 4: spec 005 K3 (katia_conversations, katia_messages);
-# 5: spec 006 X2 (exam_responses.selected_option)
-MIGRATION_SOURCES_DIGEST = "1fc644a7eb4f8aa381de928eb620a863240a763a10d30d27b6497621b62523ee"
+# 5: spec 006 X2 (exam_responses.selected_option);
+# 6: spec 008 T (items.subtopic, student_course_topic_elo_archive)
+MIGRATION_SOURCES_DIGEST = "288b4e275a6051a6df679408b4784a5a00c8ea152c2ce8a8960490a63432a0c0"
 
 # Every method that issues DDL, or decides whether the migration may run, on both repositories.
 _MIGRATION_METHODS = (
@@ -36,6 +37,7 @@ _MIGRATION_METHODS = (
     "_create_lesson_history",
     "_create_katia_conversations",
     "_add_exam_selected_option",
+    "_add_item_subtopics",
 )
 
 REPAIR_GROUPS = "scripts/repairs/rename_duplicate_groups.py"

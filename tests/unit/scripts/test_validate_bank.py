@@ -174,3 +174,30 @@ def test_the_course_map_is_read_from_both_repositories():
 
     assert sqlite_map == postgres_map  # R1
     assert sqlite_map["geometria"] == "Colegio"
+
+
+# ── Spec 008 delivery T (B19): `subtopic` and small topics ────────────────────────────────────
+
+
+@pytest.mark.parametrize("subtopic", ["", "   ", 3, ["fracciones"]])
+def test_subtopic_must_be_text(tmp_path, subtopic):
+    """FR-040: `subtopic` is optional; when present it is non-empty text, like `topic`."""
+    result = _run(tmp_path, {"subtopic": subtopic})
+
+    assert result.returncode == 1
+    assert "'subtopic'" in result.stdout
+
+
+def test_a_text_subtopic_passes(tmp_path):
+    result = _run(tmp_path, {"subtopic": "suma de fracciones"})
+
+    assert result.returncode == 0, result.stdout
+
+
+def test_a_small_topic_warns_and_passes(tmp_path):
+    """FR-043, US5-AS4: a topic with fewer than 5 items warns, naming it, and does not fail."""
+    result = _run(tmp_path, {})
+
+    assert result.returncode == 0, result.stdout
+    warning = [line for line in result.stdout.splitlines() if "tema 'Fracciones'" in line]
+    assert warning and "menos de 5" in warning[0]
