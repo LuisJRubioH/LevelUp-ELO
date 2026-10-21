@@ -483,6 +483,42 @@ jobs:
                     " ratings are not reconciled (docs/transfer.md § 6)")
           PY
 
+      - name: Exam templates without an assignment (spec 006 FR-030, docs/transfer.md § 6)
+        # On main such a template is shown to every student enrolled in its course; from the
+        # switch it is a draft until its teacher assigns it (owner, 2026-10-21: counted, not
+        # converted). Counts only.
+        if: always() && steps.check.outcome == 'success'
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import psycopg2
+          conn = psycopg2.connect(os.environ["MIGRATION_DATABASE_URL"])
+          conn.set_session(readonly=True)
+          cur = conn.cursor()
+          cur.execute("SELECT to_regclass('public.exam_templates') IS NOT NULL")
+          if not cur.fetchone()[0]:
+              print("EXAM TEMPLATES WITHOUT ASSIGNMENT: 0 (no exam_templates table)")
+          else:
+              cur.execute(
+                  """
+                  SELECT COUNT(*) FILTER (WHERE NOT EXISTS (
+                             SELECT 1 FROM exam_assignments ea WHERE ea.template_id = et.id)),
+                         COUNT(*)
+                    FROM exam_templates et
+                   WHERE et.archived = FALSE
+                  """
+              )
+              drafts, active = cur.fetchone()
+              print(f"EXAM TEMPLATES WITHOUT ASSIGNMENT: {drafts} of {active} active templates"
+                    " become drafts at the switch (spec 006 FR-030)")
+              if drafts:
+                  print("::warning::EXAM TEMPLATES WITHOUT ASSIGNMENT: their students stop seeing"
+                        " them until the teacher assigns them (docs/transfer.md § 6)")
+          conn.close()
+          PY
+
       - name: The app reads MIGRATION_DATABASE_URL as migrate.py will (read only)
         # pg_dump/psql read a ?query part and decode %XX; the app's own parser does neither.
         # Runs after the counts so that T084 reports them either way; a failure fails the job.
