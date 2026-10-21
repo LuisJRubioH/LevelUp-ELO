@@ -53,3 +53,10 @@ class TestPvpHistory:
     def test_history_requires_auth(self, api_client):
         r = api_client.get("/api/student/pvp/history")
         assert r.status_code == 401
+
+    @pytest.mark.parametrize("before", [0, -1, 2_147_483_648, 10**20])
+    def test_a_cursor_outside_the_match_ids_is_refused(self, api_client, student_headers, before):
+        """Spec 007 FR-060: `before` is a match id (PostgreSQL INTEGER). Outside 1 … 2³¹−1 it
+        is refused with 422 instead of reaching the query (PostgreSQL: integer out of range)."""
+        r = api_client.get(f"/api/student/pvp/history?before={before}", headers=student_headers)
+        assert r.status_code == 422
