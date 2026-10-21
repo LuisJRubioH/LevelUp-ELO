@@ -134,7 +134,7 @@ def test_spec007_a_closed_league_socket_frees_the_student(repo, live_api):
 
     with connect(url) as again:
         again.send(json.dumps({"token": _token(repo, student)}))
-        assert _until(again, "waiting") == {"type": "waiting"}
+        assert _until(again, "waiting")["type"] == "waiting"  # spec 007 F: + resume
 
 
 def test_spec007_an_oversized_frame_is_dropped(repo, live_api):
@@ -197,4 +197,4 @@ def test_spec007_an_oversized_sign_in_frame_is_dropped(repo, live_api):
         socket.send(json.dumps({"token": _token(repo, student), "pad": "x" * 5000}))
         assert _silent(socket)
         socket.send(json.dumps({"token": _token(repo, student)}))
-        assert _until(socket, "waiting") == {"type": "waiting"}
+        assert _until(socket, "waiting")["type"] == "waiting"  # spec 007 F: + resume

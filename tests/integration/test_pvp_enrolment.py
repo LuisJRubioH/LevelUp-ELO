@@ -47,7 +47,7 @@ def test_pvp_admits_an_enrolled_student(repo, client, caplog):
 
     with client.websocket_connect(f"/api/ws/pvp/{course_id}") as socket:
         socket.send_json({"token": _token(repo, student)})
-        assert socket.receive_json() == {"type": "waiting"}
+        assert socket.receive_json()["type"] == "waiting"  # spec 007 F: + resume token
     gc.collect()
 
     assert not [r for r in caplog.records if "never retrieved" in r.getMessage()]
@@ -116,7 +116,7 @@ def test_pvp_matches_and_finishes_a_game_between_enrolled_students(repo, live_ap
 
     with connect(url) as waiting, connect(url) as joining:
         waiting.send(json.dumps({"token": _token(repo, first)}))
-        assert _until(waiting, "waiting") == {"type": "waiting"}
+        assert _until(waiting, "waiting")["type"] == "waiting"  # spec 007 F: + resume
         joining.send(json.dumps({"token": _token(repo, second)}))
         starts = [_until(socket, "game_start") for socket in (waiting, joining)]
         assert starts[0]["match_id"] == starts[1]["match_id"]

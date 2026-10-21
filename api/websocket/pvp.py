@@ -83,6 +83,8 @@ _league_sockets: dict[int, WebSocket] = {}
 
 SECOND_TAB_CODE = 4409  # FR-050: the student already has the League open
 TOO_MANY_MESSAGES_CODE = 4429  # FR-051: dropped frames kept coming
+MATCH_ENDED_CODE = 4410  # FR-042: a resume names a match that is already over
+RESUMED_ELSEWHERE_CODE = 4411  # FR-042: another socket of the student took the match over
 
 # Survey 007 V22: how often the API closes orphaned matches (owner decision, 2026-10-20).
 ORPHAN_SWEEP_EVERY_S = 300

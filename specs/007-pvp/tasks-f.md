@@ -22,7 +22,7 @@ of delivery H (FR-061).
 
 ## Phase 1: Setup
 
-- [ ] T001 Add the setting `pvp_reconnect_grace_s` (20, `PVP_RECONNECT_GRACE_S`) to `api/config.py`
+- [x] T001 Add the setting `pvp_reconnect_grace_s` (20, `PVP_RECONNECT_GRACE_S`) to `api/config.py`
   and the constants `MATCH_ENDED_CODE = 4410`, `RESUMED_ELSEWHERE_CODE = 4411` to
   `api/websocket/pvp.py`; no behaviour yet.
 
@@ -30,7 +30,7 @@ of delivery H (FR-061).
 
 ## Phase 2: Pin Current Behaviour (Blocking)
 
-- [ ] T002 Run against the unchanged code and record the green run here; they must stay green
+- [x] T002 Run against the unchanged code and record the green run here; they must stay green
   through every task below:
   - delivery A: `tests/unit/infrastructure/test_pvp_logic.py` (incl. `TestFinishMatch::test_draw_marks_both_draw_true`,
     `test_double_finish_is_guarded`, `test_finishing_early_leaves_a_timer_that_is_already_closing`,
@@ -44,7 +44,11 @@ of delivery H (FR-061).
   - spec 001: `test_spec001_game_end_reports_not_applied_when_persistence_fails`;
   - `frontend/e2e/league.spec.ts`.
 
-- [ ] T003 If spec 004 E3 (#73) is in `redesign` when F starts: add its PvP tests to T002's pins
+  **Recorded 2026-10-21** on `redesign` at 9177907 (unchanged code), both engines: the Python
+  pins above — 102 passed; `frontend/e2e/league.spec.ts` — 8 passed.
+
+- [x] T003 *(not applicable: #73 is not in `redesign` — no `api/websocket/expiry.py`, no
+  `abandon_matches_of`; the PR that lands second adds the test)* If spec 004 E3 (#73) is in `redesign` when F starts: add its PvP tests to T002's pins
   (`tests/integration/test_spec004_e3_accounts.py`, the abandon and 4403 cases;
   `frontend/e2e/spec004-e3-accounts.spec.ts`, «una partida cerrada por un vencimiento…») and write
   `test_spec007_an_expired_account_mid_match_abandons_without_forfeit` in
