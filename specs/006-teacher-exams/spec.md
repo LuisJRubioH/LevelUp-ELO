@@ -258,6 +258,8 @@ endpoints through the API.
 
 - Exams never move a rating (spec 001 FR-032, out of this spec).
 - Group membership, roles and invitations belong to spec 004; this spec only uses its rule.
+- A course enrolled from the catalogue has its group's teacher (spec 001 FR-028v, delivery TCH), so
+  FR-050 finds a teacher for its procedures; enrolments without a group made before it are kept.
 - The grade's rating effect belongs to spec 001 block 7.
 - V1 is disconnected at the switch and retired (roadmap F-10); survey finding T12 is V1's only.
 
