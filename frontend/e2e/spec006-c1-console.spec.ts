@@ -5,6 +5,7 @@ import { injectAuth, MOCK_TEACHER } from "./helpers/auth";
 /**
  * Spec 006 C1 (FR-041, FR-043): the teacher console renders the server's summary — ranks, mean,
  * «attention» — as given, and the 7d / 30d / Todo buttons ask the server for that window.
+ * Delivery RV (FR-041c): each set shows the rating it was ranked on and names its basis.
  */
 
 const student = (user_id: number, name: string, display_rating: number | null, accuracy: number) => ({
@@ -13,10 +14,8 @@ const student = (user_id: number, name: string, display_rating: number | null, a
   education_level: "colegio",
   group_id: 1,
   group_name: "10A",
-  global_elo: display_rating,
-  display_rating,
+  display_rating, // the «Todos» rating (FR-041c)
   rank_label: display_rating == null ? null : "Oro I",
-  overall_status: display_rating == null ? "pending_diagnostic" : "rated",
   total_attempts: 4,
   accuracy,
   last_activity: "2026-10-19",
@@ -29,11 +28,12 @@ const FIGURES = {
   attempts: 12,
   attention: [7], // only the server decides who needs attention
   ranking: [
-    { user_id: 5, rank: 1 },
-    { user_id: 6, rank: 1 },
-    { user_id: 7, rank: null },
+    { user_id: 5, rank: 1, display_rating: 1200, rank_label: "Oro I" },
+    { user_id: 6, rank: 1, display_rating: 1200, rank_label: "Oro I" },
+    { user_id: 7, rank: null, display_rating: null, rank_label: null },
   ],
   histogram: [{ label: "1100", count: 2 }],
+  basis: { kind: "linked_courses" },
 };
 
 const DASHBOARD = {
@@ -42,11 +42,11 @@ const DASHBOARD = {
     student(6, "Bea", 1200, 0.2),
     student(7, "Caro", null, 0.95),
   ],
-  groups: [{ group_id: 1, name: "10A", course_id: "calculo", student_count: 3 }],
+  groups: [{ group_id: 1, name: "10A", course_id: "calculo", course_name: "Cálculo", student_count: 3 }],
   summary: { ...FIGURES, groups: { "1": FIGURES } },
 };
 
-async function mockConsole(page: Page) {
+async function mockConsole(page: Page, dashboard: object = DASHBOARD) {
   const asked: string[] = [];
   await page.route("**/api/teacher/**", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: "[]" }),
@@ -58,7 +58,7 @@ async function mockConsole(page: Page) {
   });
   await page.route("**/api/teacher/dashboard*", (route) => {
     asked.push(route.request().url());
-    return route.fulfill({ json: DASHBOARD });
+    return route.fulfill({ json: dashboard });
   });
   await page.route("**/api/student/exam/pending", (route) => route.fulfill({ json: [] }));
   await injectAuth(page, MOCK_TEACHER);
@@ -101,5 +101,57 @@ test.describe("Consola docente — cifras del servidor y ventanas", () => {
     await expect.poll(() => windows(asked, "/dashboard").at(-1)).toBe("all");
     await expect.poll(() => windows(asked, "/metrics").at(-1)).toBe("all");
     expect(windows(asked, "/dashboard")[0]).toBe("30");
+  });
+
+  test("cada grupo se ordena por su curso y «Todos» por la media de sus cursos contigo (US4-AS5, FR-041c)", async ({
+    page,
+  }) => {
+    // Ana leads on the courses she shares with the teacher; Bea leads on the group's course.
+    const place = (user_id: number, rank: number, display_rating: number, rank_label: string) => ({
+      user_id,
+      rank,
+      display_rating,
+      rank_label,
+    });
+    const figures = (ranking: object[], basis: object) => ({
+      n: 2,
+      mean: 1300,
+      accuracy: 80,
+      attempts: 8,
+      attention: [],
+      ranking,
+      histogram: [],
+      basis,
+    });
+    await mockConsole(page, {
+      students: [student(5, "Ana", 1500, 0.8), student(6, "Bea", 1200, 0.8)],
+      groups: DASHBOARD.groups,
+      summary: {
+        ...figures([place(5, 1, 1500, "Diamante II"), place(6, 2, 1200, "Oro I")], { kind: "linked_courses" }),
+        groups: {
+          "1": figures([place(6, 1, 1350, "Platino II"), place(5, 2, 1000, "Plata I")], {
+            kind: "course",
+            course_id: "calculo",
+            course_name: "Cálculo",
+          }),
+        },
+      },
+    });
+    await page.goto("/teacher");
+
+    await page.getByRole("button", { name: /Ranking/ }).click();
+    await expect(page.getByText("Por la media de sus cursos contigo")).toBeVisible();
+    await expect(page.locator(".pod.p1")).toContainText("Ana");
+    await expect(page.locator(".pod.p1")).toContainText("1500");
+
+    await page.locator(".topic-chip").filter({ hasText: "10A" }).click();
+    await expect(page.getByText("Por ELO de Cálculo")).toBeVisible();
+    await expect(page.locator(".pod.p1")).toContainText("Bea");
+    await expect(page.locator(".pod.p1")).toContainText("1350");
+    await expect(page.locator(".pod").filter({ hasText: "Ana" })).toContainText("1000");
+
+    await page.getByRole("button", { name: /Estudiantes/ }).click();
+    await expect(page.locator(".stu-row").filter({ hasText: "Ana" })).toContainText("1000");
+    await expect(page.locator(".stu-row").filter({ hasText: "Ana" })).not.toContainText("1500");
   });
 });

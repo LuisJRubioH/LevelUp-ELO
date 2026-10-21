@@ -208,6 +208,88 @@ def test_the_group_ranking_leaves_out_test_students(repo, client):
     assert [e["user_id"] for e in ranking["ranking"]] == [real]
 
 
+# ── FR-041a … c: each set ranked on its basis (delivery RV) ──────────────────
+
+
+def _rated(repo, user, ratings):
+    """Seed one topic per course: {course: rating}."""
+    for course, (topic, value) in ratings.items():
+        set_rating(repo, user, course, topic, value)
+
+
+def test_a_group_ranks_on_its_course(repo, client):
+    """US4-AS5, FR-041a: a course-X group is ranked on course X, not on the overall rating,
+    and each place carries the number it was ranked on."""
+    x, _ = make_course(repo, ["rv_x"])
+    y, _ = make_course(repo, ["rv_y"])
+    teacher, headers = _teacher(repo)
+    group = make_group(repo, teacher, x)
+    a, b = _student(repo, group), _student(repo, group)
+    for user in (a, b):
+        enroll(repo, user, x, group)
+        enroll(repo, user, y)
+    _rated(repo, a, {x: ("rv_x", 1300.0), y: ("rv_y", 900.0)})  # overall 1100
+    _rated(repo, b, {x: ("rv_x", 1200.0), y: ("rv_y", 1800.0)})  # overall 1500
+
+    figures = client.get("/api/teacher/dashboard", headers=headers).json()["summary"]["groups"][
+        str(group)
+    ]
+
+    assert [(e["user_id"], e["rank"], e["display_rating"]) for e in figures["ranking"]] == [
+        (a, 1, 1300),
+        (b, 2, 1200),
+    ]
+    assert figures["mean"] == 1250
+    assert figures["basis"]["kind"] == "course" and figures["basis"]["course_id"] == x
+
+
+def test_all_groups_rank_on_the_courses_linked_to_the_teacher(repo, client):
+    """US4-AS5, FR-041a … c: «Todos» ranks each student on the courses that link them to the
+    teacher — the overall rating when a link names no course; a group without a course ranks a
+    student it holds only by an enrolment on that course. The rows carry those ratings and no
+    other."""
+    x, _ = make_course(repo, ["rv_x"])
+    y, _ = make_course(repo, ["rv_y"])
+    teacher, headers = _teacher(repo)
+    other, _ = _teacher(repo)
+    group_x = make_group(repo, teacher, x)
+    open_group = make_group(repo, teacher)  # no course: the teacher reviews every course
+    elsewhere = make_group(repo, other, y)
+    # a: enrolled in X through the teacher's group, then joined another teacher's group for Y.
+    a = _student(repo)
+    enroll(repo, a, x, group_x)
+    enroll(repo, a, y, elsewhere)
+    _rated(repo, a, {x: ("rv_x", 1200.0), y: ("rv_y", 1800.0)})  # overall 1500
+    # c: main group is the teacher's group without a course.
+    c = _student(repo, open_group)
+    enroll(repo, c, x)
+    enroll(repo, c, y)
+    _rated(repo, c, {x: ("rv_x", 1000.0), y: ("rv_y", 1600.0)})  # overall 1300
+    # d: enrolled in X through the group without a course, main group elsewhere.
+    d = _student(repo)
+    enroll(repo, d, x, open_group)
+    enroll(repo, d, y, elsewhere)
+    _rated(repo, d, {x: ("rv_x", 1100.0), y: ("rv_y", 1900.0)})  # overall 1500
+
+    dashboard = client.get("/api/teacher/dashboard", headers=headers).json()
+    summary = dashboard["summary"]
+
+    def places(figures):
+        return [(e["user_id"], e["rank"], e["display_rating"]) for e in figures["ranking"]]
+
+    assert places(summary) == [(c, 1, 1300), (a, 2, 1200), (d, 3, 1100)]
+    assert summary["basis"] == {"kind": "linked_courses"}
+    assert places(summary["groups"][str(open_group)]) == [(c, 1, 1300), (d, 2, 1100)]
+    assert summary["groups"][str(open_group)]["basis"] == {"kind": "linked_courses"}
+    assert places(summary["groups"][str(group_x)]) == [(a, 1, 1200)]
+    rows = {s["user_id"]: s for s in dashboard["students"]}
+    assert {u: rows[u]["display_rating"] for u in (a, c, d)} == {a: 1200, c: 1300, d: 1100}
+    assert rows[a]["rank_label"] == next(e for e in summary["ranking"] if e["user_id"] == a)[
+        "rank_label"
+    ]
+    assert not {"global_elo", "overall_status"} & set(rows[a])
+
+
 # ── FR-042: teacher routes for teachers ──────────────────────────────────────
 
 
