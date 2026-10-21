@@ -43,7 +43,7 @@ The order matters: back up and rehearse first, then migrate, then start the new 
 
 | Part | Runtime | Install | Build / run |
 |---|---|---|---|
-| API (FastAPI) | Python **3.11** (`.python-version` = 3.11.9; CI uses 3.11) | `pip install -r requirements-api.txt` (constrained by `requirements-security.txt`) | `python scripts/migrate.py && uvicorn api.main:app --host 0.0.0.0 --port $PORT` |
+| API (FastAPI) | Python **3.11** (`.python-version` = 3.11.9; CI uses 3.11) | `pip install -r requirements-api.txt` (constrained by `requirements-security.txt`) | `python scripts/migrate.py && uvicorn api.main:app --host 0.0.0.0 --port $PORT --ws-max-size 65536` (as in `render.yaml`: the server cap on a socket frame, spec 007 decision O-L1) |
 | Frontend (React SPA) | Node **≥ 22.13**, pnpm **11.19.0** (`packageManager`) | `pnpm install --frozen-lockfile` in `frontend/` | `pnpm run build` (= `tsc -b && vite build`) → static files in `frontend/dist/` |
 | V1 Streamlit (frozen) | Python 3.11 | `pip install -r requirements.txt` | only if V1 is deployed at all |
 
@@ -66,6 +66,8 @@ wrong):
 | `DB_POOL_PROBE_AFTER_S` | Optional (default `30`): a connection idle longer than this is checked with `SELECT 1` before use |
 | `RUN_MIGRATIONS` | `0` on the web process; the schema is applied by the separate migration step |
 | `WEB_CONCURRENCY` | `1` (required: PvP lobby and notification rooms live in process memory — AGENTS.md R18) |
+| `PVP_SINGLE_PROCESS_LOCK` | optional (default `/tmp/oulad-api.lock`): the host file each production process locks for its whole life, so a second worker refuses to start (spec 007 FR-052) |
+| `PVP_MAX_FRAME_BYTES`, `PVP_MAX_MESSAGES_PER_SECOND`, `PVP_ABUSE_LIMIT` | optional; defaults 4096, 5 and 10: a League frame over the size or beyond the rate is dropped unread, and that many drops within 10 s close the socket with 4429 (spec 007 FR-051). Uvicorn's own cap is the start command's `--ws-max-size` (§ 2) |
 | `JWT_SECRET_KEY` | ≥ 32 random characters (`python -c "import secrets; print(secrets.token_hex(32))"`) |
 | `CORS_ORIGINS` | JSON list with the frontend's exact origin; no `localhost` in production |
 | `RATE_LIMIT_STORAGE_URI` | shared Redis/Valkey URI; `memory://` is refused in production |
@@ -241,6 +243,13 @@ The switch, outside class hours:
    localStorage) and keep working; reload; sign out and confirm a reload asks to sign in; change
    the password in one browser and confirm the other is signed out; open the KatIA chat and
    confirm the answer streams word by word through the proxy (spec 004 N6).
+   The automated half already runs on every pull request: CI job "Sesión en Safari (WebKit)"
+   (`frontend/playwright.session.config.ts`) covers sign-in, renewal, reload, sign-out and the
+   password change in WebKit as Safari desktop, iPhone and iPad. Without an iPhone, a remote
+   real-device service (BrowserStack, LambdaTest) counts as *real device*.
+   **Owner decision (2026-10-20):** with no Apple device at hand, switch it on with the automated
+   check and watch for students on iPhone or iPad who report being signed out; undo below if any
+   does (spec 004 `plan-e5.md`).
 
 To undo: `AUTH_COOKIE_SAMESITE=none` on Render first, then `VITE_API_URL` back to the API's origin
 on Vercel. The order matters: with `lax` and a cross-origin page, renewal fails everywhere.
@@ -326,11 +335,13 @@ before the migration:
 DROP TABLE IF EXISTS active_exam_sessions, audit_account_events, bank_syncs, diagnostics,
   exam_responses, group_invitations, katia_conversations, katia_messages, lesson_answers,
   lesson_interactions, lesson_outcomes, lesson_progress, procedure_files, procedure_gradings,
-  procedure_uploads, pvp_answers, pvp_matches, schema_versions, student_course_topic_elo CASCADE;
+  procedure_uploads, pvp_answers, pvp_matches, schema_versions, student_course_topic_elo,
+  student_course_topic_elo_archive CASCADE;
 ```
 
-These are the 19 tables the redesign creates that `main` does not have (compared on 2026-10-19,
-schema version 3, plus spec 005 K3's two at version 4). A spec that adds a table adds it here too.
+These are the 20 tables the redesign creates that `main` does not have (compared on 2026-10-19,
+schema version 3, plus spec 005 K3's two at version 4 and spec 008 T's archive at version 6). A
+spec that adds a table adds it here too.
 
 ```bash
 pg_restore --clean --if-exists --no-owner --no-privileges --schema=public \
@@ -360,7 +371,7 @@ changed nothing before stopping. The other two repairs (`deactivate_users_withou
 `backfill_prob_failure.py`) are the owner's choice; the start does not need them.
 
 The schema version the code expects is `SCHEMA_VERSION` in
-`src/infrastructure/persistence/schema_version.py`. Today it is **5**:
+`src/infrastructure/persistence/schema_version.py`. Today it is **7**:
 
 | Version | Change |
 |---|---|
@@ -369,10 +380,11 @@ The schema version the code expects is `SCHEMA_VERSION` in
 | 3 | spec 003 L4: tables `lesson_answers` (every lesson answer, in order) and `lesson_outcomes` (the post-diagnostic outcome); each row already in `lesson_interactions` is copied once into `lesson_answers` |
 | 4 | spec 005 K3: tables `katia_conversations` (one summary per KatIA conversation) and `katia_messages` (its text, only while it is open); `katia_interactions` stays and is no longer written by V2 |
 | 5 | spec 006 X2: column `exam_responses.selected_option` (the option chosen for each exam item; NULL on rows stored before it) |
-| 6 | spec 004 E3: column `users.access_until` (the last day of access, inclusive, Colombian time; NULL — every existing account — never expires) |
+| 6 | spec 008 T: column `items.subtopic` (study only, never a rating) and table `student_course_topic_elo_archive` (fine-topic ratings merged by `scripts/repairs/merge_fine_topic_ratings.py`) |
+| 7 | spec 004 E3: column `users.access_until` (the last day of access, inclusive, Colombian time; NULL — every existing account — never expires) |
 
 A production database from `main` has no schema version and no lesson tables, so its first
-migration goes straight to version 6 and the L4 copy finds nothing to copy. The rehearsal must run
+migration goes straight to version 7 and the L4 copy finds nothing to copy. The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
 cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
 
@@ -389,7 +401,7 @@ Then check on the scratch database:
 SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2;
 SELECT COUNT(*) FROM student_topic_elo;                        -- equals the count from § 4
 SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- all pre-existing rows
-SELECT MAX(version) FROM schema_versions;                      -- 5: the SCHEMA_VERSION of the commit
+SELECT MAX(version) FROM schema_versions;                      -- 7: the SCHEMA_VERSION of the commit
 SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions);  -- 0
 SELECT COUNT(*) FROM lesson_outcomes;                          -- 0: written only by new answers
 SELECT COUNT(*) FROM katia_conversations;                      -- 0: written only by new chats
@@ -414,7 +426,12 @@ redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no 
 
 - The § 4 backup and the § 5 rehearsal were run on the commit being switched, or on one with the
   same `SCHEMA_VERSION`. The rehearsal report shows the migration passing twice, and
-  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (5 today).
+  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (7 today).
+- **Spec 008 T** regroups DIAN's topics, and the first migration applies the bank before it
+  reconciles the legacy ratings. A legacy DIAN rating keyed by the course (V1 keys by its name,
+  V2 on `main` by its id) is reconciled onto the new topics; one keyed by an old topic label is
+  not, and that student starts DIAN with no rating. The `precheck` job counts those rows (read
+  only, counts only); with 0, nothing is lost.
 
 - Roadmap follow-ups **F-4** (PR #9: `next-question`, `/answer` and the diagnostic serve only
   courses the student is enrolled in, spec 001 FR-037, FR-037a) and **F-5** (PR #8: PvP lets
@@ -452,18 +469,34 @@ refuses any non-local host. Never point tests at the production database.
 4. With a test student: stats shows a rating with its rank, or "Diagnóstico pendiente" — never a
    bare 1000; answering a practice question changes the topic rating by the previewed amount;
    reconciled topics show "aproximado"/≈; exam history loads.
-5. With a test teacher: the dashboard lists students with display rating and rank label.
+5. With a test teacher: the dashboard loads. It lists only active, non-test students, with
+   display rating and rank label (spec 006 FR-040), so it is empty while the teacher's groups hold
+   only the seeded test students.
 6. The SQL checks from § 5 return the same answers as on the rehearsal copy.
 7. No answer was saved by the old API after the migration (§ 6.1): the query below returns 0.
 8. Once V1 is disconnected (§ 3.1), delete the KatIA messages typed before spec 005 K3 (decision
    N3): `python scripts/repairs/delete_katia_texts.py` counts them, `--apply` deletes them, and a
    second `--apply` reports 0. It prints counts only.
+9. Merge the ratings stored on DIAN's and EPA8's old fine topics into their coarse topic (spec
+   008 T, rule A): `python scripts/repairs/merge_fine_topic_ratings.py` counts them, `--apply`
+   merges and archives them, and a second `--apply` reports 0. It prints counts only. Until it
+   runs, a student's course rating on those courses still counts the old fine rows. At the switch
+   from `main` it counts 0: the reconciliation already writes the coarse topics. On a database
+   that already holds fine-topic ratings, a coarse row created before the repair runs — by the
+   deploy's own reconciliation from a legacy course rating, or at 1000 by an answer — is kept, and
+   the fine rows are archived without being merged.
 
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer
 whose rating change equals the preview, the course map, every lesson image served by the frontend,
-and a procedure uploaded, seen by the teacher with the same image bytes and graded. Run it from a
-checkout of the deployed commit (it reads the lesson content to list the images).
+and a procedure upload. Run it from a checkout of the deployed commit (it reads the lesson content
+to list the images).
+
+Teachers review active, non-test students only (spec 006 FR-050). With the default test student,
+the procedure must appear in the student's list, stay out of the teacher's queue and be refused
+when graded (404). Setting `VERIFY_STUDENT` to a non-test student of the teacher's group checks
+instead that the teacher sees it with the same image bytes and that grading it moves that
+student's rating; a test account there fails the queue check.
 
 The image check passes even without Storage: when the upload or the download fails, the API serves
 the copy kept in the row (R9). The database says which path was used: the verify submission (its id

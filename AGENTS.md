@@ -321,8 +321,14 @@ An invalid attempt is recorded with before = after and moves nothing. With an `I
 ### R18 — The backend is a single process, and checked
 PvP `_lobby` / `_matches` (`api/websocket/pvp.py`), notification `_rooms` and each account's open
 sockets (`api/websocket/connections.py`, closed on revocation and by the expiry sweep of
-`api/websocket/expiry.py`, spec 004 E3) live in process memory. `settings.validate_runtime()` refuses to start in production with `WEB_CONCURRENCY > 1`;
-`render.yaml` sets `"1"`. Scaling needs shared matchmaking, pub/sub event fan-out and
+`api/websocket/expiry.py`, spec 004 E3) live in process memory. `settings.validate_runtime()`
+refuses to start in production with `WEB_CONCURRENCY > 1`;
+`render.yaml` sets `"1"`. In production every process also takes an exclusive host file lock
+(`PVP_SINGLE_PROCESS_LOCK`, `api/single_process.py`, spec 007 FR-052), so a second worker started
+by `--workers` or gunicorn refuses to start; a second machine is not detected — `render.yaml` runs
+one instance. One live League socket per student (4409); 4 KB frames, 5 per second, ten drops in
+10 s close with 4429 (`api/websocket/limits.py`, FR-050/051); uvicorn runs with
+`--ws-max-size 65536`. Scaling needs shared matchmaking, pub/sub event fan-out and
 cross-process wake-up — all three before raising the number. Details:
 [`docs/arquitectura.md` § Límites conocidos](docs/arquitectura.md).
 
@@ -333,7 +339,9 @@ overwrite it), so the course rating moves by exactly the delta. A player with no
 gets 0 with `elo_reason = 'no_rated_topics'`; it returns the applied deltas, and `game_end` reports
 them (`"not_applied"` with 0 if persisting fails). The close is idempotent through
 `AND status='active'`. The lobby reads the course rating outside `_lock` (1000 drives the
-expectation of an unrated player but is never shown). Orphaned matches are closed as `abandoned`
+expectation of an unrated player but is never shown). A close that fails to persist is retried 3 times (0.5, 1,
+2 s), then closed as `abandoned` with reason `not_saved` (`abandon_pvp_match`, spec 007 FR-061).
+Orphaned matches are closed as `abandoned` with reason `orphaned`
 (no rating change) by `expire_stale_pvp_matches()`: at bootstrap and, while the API runs, every
 5 minutes (`sweep_orphaned_matches`, survey 007 V22). Shutdown only stops the sweep; it never
 closes a match. A match whose player's account expires is closed by `pvp.abandon_matches_of` →
@@ -615,6 +623,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username), `access_until` (spec 004 E3: last day of access, inclusive, Colombian time; NULL never expires) |
 | `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
 | `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
+| `student_course_topic_elo_archive` | spec 008 T: fine-topic ratings merged into their coarse topic by `scripts/repairs/merge_fine_topic_ratings.py` (rule A), with `merged_into` |
 | `groups` | unique `(teacher_id, name_normalized)`, `invite_code` |
 | `group_invitations` | single-use invitations (spec 001 delivery INV): `token` UNIQUE (10 chars, stored without the hyphen), `group_id`, `created_by`, `expires_at`, `used_by`/`used_at`, `revoked_at`. V2 no longer reads `groups.invite_code` (only frozen V1 does) |
 | `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array) |
@@ -638,6 +647,8 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 Items live in `items/bank/*.json` and `items/bank/semillero/*.json`; `course_id` = file name
 without extension. Required fields: `id` (globally unique) · `content` (LaTeX in `$…$`, R5) ·
 `difficulty` (int, 600–1800) · `topic` · `options` (list) · `correct_option`.
+Optional `subtopic` (text, spec 008 T): the fine label, for the study report only — `topic`
+alone keys a rating. A topic with fewer than 5 items in its course warns (FR-043).
 
 New course: create `items/bank/my_course.json` → add `'my_course': '<Block>'` to
 `_COURSE_BLOCK_MAP` in **both** repositories → `python scripts/validate_bank.py` → restart.

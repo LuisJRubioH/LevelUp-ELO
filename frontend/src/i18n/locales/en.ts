@@ -1002,6 +1002,27 @@ const en: TranslationKeys = {
       account_expired:
         "The match ended with no winner because one of the accounts reached the end of its access period. No ELO changed and your answers were saved.",
     },
+    historyAbandoned: "Abandoned",
+    historyMore: "Show more",
+    historyReasons: {
+      not_saved: "the result could not be saved",
+      orphaned: "closed before it ended",
+      account_expired: "the account expired",
+      unknown: "no result",
+    },
+    closeNotices: {
+      authFailed:
+        "We could not enter the arena. Sign in again and check that you are enrolled in the subject.",
+      noItems: "This subject has no league questions yet.",
+      secondTab: "You already have the League open in another tab. Close it to play here.",
+      tooManyMessages: "Too many messages. Enter the League again.",
+      serverError: "There was a problem on the server. Try again.",
+      lostMatch: "The connection to the match was lost.",
+      noRival: "The search for a rival ended without finding anyone. Try again.",
+      cannotConnect: "We could not connect to the arena. Try again.",
+      accessExpired:
+        "Your account's access period has ended. Your progress is saved. Contact the administrator if you need more access.",
+    },
     reasons: {
       no_rated_topics:
         "Your ELO did not change: you have no rating in this subject yet. Take its diagnostic so matches count.",
@@ -1017,6 +1038,14 @@ const en: TranslationKeys = {
     basisOverall: "overall rating",
     approximate: "approximate",
     approximateHint: "Starting point estimated from earlier data; not your exact history.",
+  },
+
+  // ── Results per subtopic (spec 008 FR-042) ───────────────────────────────
+  subtopics: {
+    title: "By subtopic",
+    hint: "Your answers per subtopic across all your courses, weakest first. It is for study: it does not change your ELO.",
+    empty: "No answers yet on questions with a subtopic.",
+    correctOf: "{{correct}} of {{attempts}}",
   },
 
   theme: {

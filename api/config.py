@@ -104,6 +104,16 @@ class Settings(BaseSettings):
     # de uno los jugadores de procesos distintos no se emparejan y los eventos
     # solo llegan a los sockets locales. Ver validate_runtime() y AGENTS.md R18.
     web_concurrency: int = 1
+    # Spec 007 FR-052 (decision O-L2): in production every process takes this host file lock
+    # for its whole life; a second worker cannot, and refuses to start (R18).
+    pvp_single_process_lock: str = "/tmp/oulad-api.lock"
+
+    # ── Límites del socket de la Liga (spec 007 FR-051, O2) ───────────────────
+    # A frame over the size, or beyond the rate (a bucket of N refilled at N per second), is
+    # dropped unparsed; PVP_ABUSE_LIMIT drops within 10 s close the socket with 4429.
+    pvp_max_frame_bytes: int = 4096
+    pvp_max_messages_per_second: int = 5
+    pvp_abuse_limit: int = 10
 
     @field_validator("auth_cookie_samesite")
     @classmethod

@@ -36,6 +36,24 @@ def cargar() -> list[dict]:
     return items
 
 
+def proyectar(item: dict) -> dict:
+    """El ítem en el formato del banco. El tema del fuente («Pensamiento aleatorio — porcentaje
+    sobre un total») se parte: lo de antes de « — » es el `topic`, que lleva el rating, y el resto
+    el `subtopic`, solo para estudio (spec 008 FR-040, FR-041)."""
+    destino = {}
+    for campo in CAMPOS_BANCO:
+        if campo not in item:
+            continue
+        if campo == "topic":
+            tema, _, subtema = item["topic"].partition(" — ")
+            destino["topic"] = tema
+            if subtema:
+                destino["subtopic"] = subtema
+        else:
+            destino[campo] = item[campo]
+    return destino
+
+
 def revisar(items: list[dict]) -> list[str]:
     problemas: list[str] = []
     vistos: set[str] = set()
@@ -78,7 +96,7 @@ def main() -> int:
     if args.check:
         return 0
 
-    banco = [{k: item[k] for k in CAMPOS_BANCO if k in item} for item in items]
+    banco = [proyectar(item) for item in items]
     # image_url sí lo consume el ingestor; se conserva cuando existe.
     for destino, origen in zip(banco, items):
         if origen.get("image_url"):

@@ -164,7 +164,7 @@ test.describe("Spec 004 · estudiantes creados uno a uno y último día de acces
     page,
   }) => {
     await mockStudentApi(page);
-    await json(page, "**/api/student/pvp/history", []);
+    await json(page, "**/api/student/pvp/history", { matches: [], has_more: false });
     await page.routeWebSocket("**/api/ws/pvp/**", (ws) => {
       ws.onMessage((raw) => {
         if (!("token" in JSON.parse(String(raw)))) return;

@@ -1191,11 +1191,38 @@ class SQLiteRepository:
         self._create_lesson_history(cursor)
         self._create_katia_conversations(cursor)
         self._add_exam_selected_option(cursor)
+        self._add_item_subtopics(cursor)
 
     def _add_exam_selected_option(self, cursor):
         """Spec 006 X2 (FR-033): the option a student chose for each exam item; NULL on rows
         stored before X2."""
         self._add_column_if_not_exists(cursor, "exam_responses", "selected_option", "TEXT")
+
+    def _add_item_subtopics(self, cursor):
+        """Spec 008 T (FR-040): an item's optional `subtopic`, for study only — it never keys a
+        rating. The archive keeps the fine-topic ratings the repair merges (plan-t.md, rule A);
+        `approximate` is an integer on both engines there."""
+        self._add_column_if_not_exists(cursor, "items", "subtopic", "TEXT")
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS student_course_topic_elo_archive (
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                topic TEXT NOT NULL,
+                current_elo REAL NOT NULL,
+                rd REAL NOT NULL,
+                origin TEXT NOT NULL,
+                approximate INTEGER NOT NULL DEFAULT 0,
+                legacy_source_key TEXT,
+                reconciled_at TIMESTAMP,
+                created_at TIMESTAMP,
+                updated_at TIMESTAMP,
+                merged_into TEXT NOT NULL,
+                archived_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, course_id, topic)
+            )
+            """
+        )
 
     def _create_katia_conversations(self, cursor):
         """Spec 005 K3: one conversation per student and item, its summary when it closes
@@ -1340,6 +1367,109 @@ class SQLiteRepository:
 
     # ── Data repairs: run by the owner through scripts/repairs/, never at start ──
     # Spec 002 FR-018. Each returns the rows it changes; without apply=True it only counts.
+
+    @_read_only
+    def get_subtopic_attempts(self, user_id) -> list:
+        """Spec 008 FR-042: per (course, topic, subtopic) of the student's valid attempts, how
+        many and how many right — raw counts for the study report; nothing here keys a rating."""
+        conn = self.get_connection()
+        try:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                """
+            SELECT i.course_id, c.name AS course_name, i.topic, i.subtopic,
+                   COUNT(*) AS attempts,
+                   SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS correct
+            FROM attempts a
+            JOIN items i ON i.id = a.item_id
+            LEFT JOIN courses c ON c.id = i.course_id
+            WHERE a.user_id = ? AND COALESCE(a.elo_valid, 1) = 1 AND i.subtopic IS NOT NULL
+            GROUP BY i.course_id, c.name, i.topic, i.subtopic
+                """,
+                (user_id,),
+            ).fetchall()
+            return [dict(row) for row in rows]
+        finally:
+            conn.close()
+
+    def merge_fine_topic_ratings(self, regrouping: dict, apply: bool = False) -> int:
+        """Spec 008 T, rule A (owner, 2026-10-20): per student and course, the stored ratings of
+        the old fine topics of one coarse topic become one coarse row — the mean rating, the
+        mean RD (within 30–350), approximate, the fine keys as provenance — unless the student
+        already has that coarse row, which is never touched. Every fine row is copied to
+        `student_course_topic_elo_archive` and removed from the live store; attempts are never
+        touched. `regrouping` is {course_id: {old_topic: new_topic}}. Returns the fine rows
+        found; writes only with `apply`."""
+        from src.domain.elo.regrouping import plan_topic_merge
+
+        conn = self.get_connection()
+        try:
+            conn.row_factory = sqlite3.Row
+            fine = []
+            for course_id, mapping in regrouping.items():
+                if not mapping:
+                    continue
+                marks = ",".join("?" * len(mapping))
+                fine += [
+                    dict(row)
+                    for row in conn.execute(
+                        "SELECT user_id, course_id, topic, current_elo, rd"
+                        f" FROM student_course_topic_elo WHERE course_id = ? AND topic IN ({marks})",
+                        (course_id, *mapping),
+                    ).fetchall()
+                ]
+            if not apply or not fine:
+                return len(fine)
+            conn.execute("BEGIN IMMEDIATE")
+            users = sorted({row["user_id"] for row in fine})
+            marks = ",".join("?" * len(users))
+            existing = {
+                (r["user_id"], r["course_id"], r["topic"])
+                for r in conn.execute(
+                    "SELECT user_id, course_id, topic FROM student_course_topic_elo"
+                    f" WHERE user_id IN ({marks})",
+                    users,
+                ).fetchall()
+            }
+            for row in plan_topic_merge(fine, regrouping, existing):
+                conn.execute(
+                    """INSERT INTO student_course_topic_elo
+                        (user_id, course_id, topic, current_elo, rd, origin, approximate,
+                         legacy_source_key, reconciled_at)
+                    VALUES (?, ?, ?, ?, ?, 'legacy_topic_row', 1, ?, CURRENT_TIMESTAMP)""",
+                    (
+                        row["user_id"],
+                        row["course_id"],
+                        row["topic"],
+                        row["rating"],
+                        row["rd"],
+                        row["source"],
+                    ),
+                )
+            for row in fine:
+                coarse = regrouping[row["course_id"]][row["topic"]]
+                conn.execute(
+                    """INSERT OR IGNORE INTO student_course_topic_elo_archive
+                        (user_id, course_id, topic, current_elo, rd, origin, approximate,
+                         legacy_source_key, reconciled_at, created_at, updated_at, merged_into)
+                    SELECT user_id, course_id, topic, current_elo, rd, origin, approximate,
+                           legacy_source_key, reconciled_at, created_at, updated_at, ?
+                    FROM student_course_topic_elo
+                    WHERE user_id = ? AND course_id = ? AND topic = ?""",
+                    (coarse, row["user_id"], row["course_id"], row["topic"]),
+                )
+                conn.execute(
+                    "DELETE FROM student_course_topic_elo"
+                    " WHERE user_id = ? AND course_id = ? AND topic = ?",
+                    (row["user_id"], row["course_id"], row["topic"]),
+                )
+            conn.commit()
+            return len(fine)
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
     def repair_users_without_password(self, apply: bool = False) -> int:
         """Deactivates active users whose password hash is empty (they cannot sign in)."""
@@ -4380,8 +4510,8 @@ class SQLiteRepository:
                         cursor.execute(
                             """
                             INSERT INTO items
-                                (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block)
-                            VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?, ?, ?)
+                                (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block, subtopic)
+                            VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?, ?, ?, ?)
                         """,
                             (
                                 item["id"],
@@ -4394,6 +4524,7 @@ class SQLiteRepository:
                                 item.get("image_url") or item.get("image_path"),
                                 json.dumps(item.get("tags") or []),
                                 item.get("block", ""),
+                                item.get("subtopic"),
                             ),
                         )
                     else:
@@ -4401,7 +4532,7 @@ class SQLiteRepository:
                         cursor.execute(
                             """
                             UPDATE items
-                            SET content = ?, options = ?, correct_option = ?, topic = ?, course_id = ?, image_url = ?, tags = ?, block = ?
+                            SET content = ?, options = ?, correct_option = ?, topic = ?, course_id = ?, image_url = ?, tags = ?, block = ?, subtopic = ?
                             WHERE id = ?
                         """,
                             (
@@ -4413,6 +4544,7 @@ class SQLiteRepository:
                                 item.get("image_url") or item.get("image_path"),
                                 json.dumps(item.get("tags") or []),
                                 item.get("block", ""),
+                                item.get("subtopic"),
                                 item["id"],
                             ),
                         )
@@ -4798,23 +4930,6 @@ class SQLiteRepository:
         finally:
             conn.close()
 
-    def abandon_pvp_match(self, match_id: int, reason: str = "account_expired") -> bool:
-        """Spec 004 FR-051, FR-052: close an active match as abandoned, with no rating change for
-        either player; its saved answers stay. True only for the call that closed it: once
-        closed — abandoned or finished — nothing changes."""
-        conn = self.get_connection()
-        try:
-            cursor = conn.execute(
-                """UPDATE pvp_matches SET status='abandoned', finished_at=CURRENT_TIMESTAMP,
-                   elo_delta_p1=0, elo_reason_p1=?, elo_delta_p2=0, elo_reason_p2=?
-                   WHERE id=? AND status='active'""",
-                (reason, reason, match_id),
-            )
-            conn.commit()
-            return cursor.rowcount == 1
-        finally:
-            conn.close()
-
     def expire_stale_pvp_matches(self, max_age_seconds: int = 600) -> int:
         """Cierra partidas que quedaron 'active' sin que nadie las terminara.
 
@@ -4827,7 +4942,8 @@ class SQLiteRepository:
         cursor = conn.cursor()
         cursor.execute(
             """
-            UPDATE pvp_matches SET status='abandoned', finished_at=CURRENT_TIMESTAMP
+            UPDATE pvp_matches SET status='abandoned', finished_at=CURRENT_TIMESTAMP,
+                elo_delta_p1=0, elo_reason_p1='orphaned', elo_delta_p2=0, elo_reason_p2='orphaned'
             WHERE status='active'
               AND started_at < datetime('now', ?)
             """,
@@ -4840,28 +4956,53 @@ class SQLiteRepository:
             logger.info("Partidas PvP huérfanas cerradas: %d", closed)
         return closed
 
-    def get_pvp_history(self, user_id: int, limit: int = 20) -> list[dict]:
-        import json
-
+    def abandon_pvp_match(self, match_id: int, reason: str) -> bool:
+        """Spec 007 FR-061 and spec 004 FR-051/052: close a match that is still active as
+        abandoned with `reason` (`not_saved`, `account_expired`), changing no rating (both deltas
+        0); its saved answers stay. False when it was no longer active."""
         conn = self.get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT m.id, m.course_id, m.winner_id, m.score_p1, m.score_p2,
-                   m.elo_delta_p1, m.elo_delta_p2, m.started_at, m.finished_at,
-                   m.player1_id, m.player2_id,
-                   COALESCE(u1.display_name, u1.username) AS p1_name,
-                   COALESCE(u2.display_name, u2.username) AS p2_name
-            FROM pvp_matches m
-            JOIN users u1 ON u1.id = m.player1_id
-            JOIN users u2 ON u2.id = m.player2_id
-            WHERE (m.player1_id = ? OR m.player2_id = ?) AND m.status = 'finished'
-            ORDER BY m.finished_at DESC LIMIT ?
-            """,
-            (user_id, user_id, limit),
-        )
-        rows = cursor.fetchall()
-        conn.close()
+        try:
+            changed = conn.execute(
+                """UPDATE pvp_matches SET status='abandoned', finished_at=CURRENT_TIMESTAMP,
+                       elo_delta_p1=0, elo_reason_p1=?, elo_delta_p2=0, elo_reason_p2=?
+                   WHERE id = ? AND status='active'""",
+                (reason, reason, match_id),
+            ).rowcount
+            conn.commit()
+            return changed == 1
+        finally:
+            conn.close()
+
+    def get_pvp_history(
+        self, user_id: int, limit: int = 20, before: int | None = None
+    ) -> list[dict]:
+        """Spec 007 FR-060: the student's closed matches — finished or abandoned, never active —
+        newest first (by close, then id), each with its subject and the student's own reason.
+        `before` (a match id) returns the ones after it in that order."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                """
+                SELECT m.id, m.course_id, m.winner_id, m.score_p1, m.score_p2,
+                       m.elo_delta_p1, m.elo_delta_p2, m.started_at, m.finished_at,
+                       m.player1_id, m.player2_id,
+                       COALESCE(u1.display_name, u1.username) AS p1_name,
+                       COALESCE(u2.display_name, u2.username) AS p2_name,
+                       m.status, c.name, m.elo_reason_p1, m.elo_reason_p2
+                FROM pvp_matches m
+                JOIN users u1 ON u1.id = m.player1_id
+                JOIN users u2 ON u2.id = m.player2_id
+                LEFT JOIN courses c ON c.id = m.course_id
+                WHERE (m.player1_id = ? OR m.player2_id = ?)
+                  AND m.status IN ('finished', 'abandoned')
+                  AND (? IS NULL OR (m.finished_at, m.id) <
+                       (SELECT finished_at, id FROM pvp_matches WHERE id = ?))
+                ORDER BY m.finished_at DESC, m.id DESC LIMIT ?
+                """,
+                (user_id, user_id, before, before, limit),
+            ).fetchall()
+        finally:
+            conn.close()
         results = []
         for r in rows:
             is_p1 = r[9] == user_id
@@ -4869,6 +5010,9 @@ class SQLiteRepository:
                 {
                     "match_id": r[0],
                     "course_id": r[1],
+                    "course_name": r[14] or r[1],
+                    "status": r[13],
+                    "reason": r[15] if is_p1 else r[16],
                     "won": r[2] == user_id,
                     "draw": r[2] is None,
                     "my_score": r[3] if is_p1 else r[4],

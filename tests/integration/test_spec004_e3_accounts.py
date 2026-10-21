@@ -173,8 +173,8 @@ def test_spec004_a_match_is_abandoned_once_and_moves_no_rating(repo):
         set_rating(repo, player, course_id, "Fracciones", 1100.0)
     match = repo.create_pvp_match(course_id, a, b, ["i1"])
 
-    assert repo.abandon_pvp_match(match) is True
-    assert repo.abandon_pvp_match(match) is False
+    assert repo.abandon_pvp_match(match, "account_expired") is True
+    assert repo.abandon_pvp_match(match, "account_expired") is False
     closed = repo.finish_pvp_match(
         match_id=match, winner_id=a, score_p1=1, score_p2=0,
         elo_delta_p1=12.0, elo_delta_p2=-12.0, p1_id=a, p2_id=b,
@@ -194,7 +194,7 @@ def test_spec004_a_match_is_abandoned_once_and_moves_no_rating(repo):
         match_id=other, winner_id=None, score_p1=0, score_p2=0,
         elo_delta_p1=0.0, elo_delta_p2=0.0, p1_id=a, p2_id=b,
     )  # fmt: skip
-    assert repo.abandon_pvp_match(other) is False
+    assert repo.abandon_pvp_match(other, "account_expired") is False
 
 
 # ── API: creation (US6) ──────────────────────────────────────────────────────────────────────

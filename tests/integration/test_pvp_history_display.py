@@ -27,5 +27,5 @@ def test_the_history_sends_the_shown_delta(repo, client):
     response = client.get("/api/student/pvp/history", headers=headers_for(repo, a))
 
     assert response.status_code == 200, response.text
-    row = response.json()[0]
+    row = response.json()["matches"][0]
     assert (row["elo_delta"], row["elo_delta_display"]) == (-2.5, -3)

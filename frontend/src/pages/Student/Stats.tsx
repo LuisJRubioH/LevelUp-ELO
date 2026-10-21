@@ -5,6 +5,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import { SubtopicReport } from "../../components/Study/SubtopicReport";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { studentApi } from "../../api/student";
@@ -261,6 +262,15 @@ export function Stats() {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Spec 008 FR-042: results per subtopic, across courses — for study, not a rating */}
+      {stats.subtopics && stats.subtopics.length > 0 && (
+        <div className="sp-card">
+          <h3>{t("subtopics.title")}</h3>
+          <p className="sr-hint">{t("subtopics.hint")}</p>
+          <SubtopicReport rows={stats.subtopics} />
         </div>
       )}
 

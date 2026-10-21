@@ -42,7 +42,7 @@ test.describe("Spec 004 · nombres visibles", () => {
 
   test("en la liga, el rival aparece por su nombre (spec 004 US3-AS2, FR-021)", async ({ page }) => {
     await mockStudentApi(page);
-    await json(page, "**/api/student/pvp/history", []);
+    await json(page, "**/api/student/pvp/history", { matches: [], has_more: false });
     await page.routeWebSocket("**/api/ws/pvp/**", (ws) => {
       ws.onMessage((raw) => {
         if ("token" in JSON.parse(String(raw))) {

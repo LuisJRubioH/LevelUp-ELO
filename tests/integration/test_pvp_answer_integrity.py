@@ -5,13 +5,20 @@ match needs both players on one event loop; see test_pvp_enrolment.py).
 """
 
 import json
+import time
 
 import pytest
 from websockets.exceptions import ConnectionClosed
 
 from api.websocket import pvp
 from tests.integration.conftest import enroll, make_course, make_student, sql
-from tests.integration.test_pvp_enrolment import _course, _token, _until, live_api  # noqa: F401
+from tests.integration.test_pvp_enrolment import (  # noqa: F401 — live_api is a fixture
+    ANSWER_PACE_S,
+    _course,
+    _token,
+    _until,
+    live_api,
+)
 
 
 def _matched(repo, live_api, course_id):  # noqa: F811
@@ -49,6 +56,7 @@ def test_an_answer_outside_the_match_scores_nothing(repo, live_api):  # noqa: F8
             waiting.send(json.dumps({"type": "answer", **stray}))
         for socket in (waiting, joining):
             for item in items:
+                time.sleep(ANSWER_PACE_S)  # a person's pace (spec 007 FR-051)
                 socket.send(json.dumps({"type": "answer", "item_id": item["id"], "selected": "B"}))
                 result = _until(socket, "answer_result")
                 assert (result["item_id"], result["is_correct"]) == (item["id"], False)

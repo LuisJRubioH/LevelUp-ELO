@@ -107,6 +107,18 @@ class CourseRatingView(BaseModel):
     topics: list[TopicELO]
 
 
+class SubtopicResult(BaseModel):
+    """Spec 008 FR-042: one subtopic of the study report — never a rating."""
+
+    course_id: str
+    course_name: str
+    topic: str
+    subtopic: str
+    attempts: int
+    correct: int
+    share_correct: float
+
+
 class StudentStatsResponse(BaseModel):
     user_id: int
     global_elo: float | None  # None while the diagnostic is pending (FR-028b)
@@ -117,6 +129,7 @@ class StudentStatsResponse(BaseModel):
     total_attempts: int
     study_streak: int
     rank_label: str | None = None
+    subtopics: list[SubtopicResult] = []  # spec 008 FR-042, weakest first
 
 
 # ── Cursos y matrículas ───────────────────────────────────────────────────────

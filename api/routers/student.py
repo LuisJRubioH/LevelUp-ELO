@@ -84,6 +84,7 @@ from api.schemas.student import (
 )
 from src.application.services.rating_read_service import RatingReadService
 from src.application.services.student_service import StudentService
+from src.application.services.study_report_service import StudyReportService
 from src.domain.elo.model import diagnostic_baseline
 from src.domain.katia.conversation import STALE_AFTER_HOURS, close_outcome
 from src.domain.procedures import COPY, REFUSE_OTHER_ITEM, REFUSE_SAME_ITEM
@@ -340,6 +341,7 @@ def stats(user: CurrentUser, repo: RepoDep):
         topic_elos=[t for c in courses if c.current_context for t in c.topics],
         total_attempts=repo.get_total_attempts_count(user["user_id"]),
         study_streak=repo.get_study_streak(user["user_id"]),
+        subtopics=StudyReportService(repo).subtopic_report(user["user_id"]),
     )
 
 
@@ -384,10 +386,16 @@ def course_blocks(course_id: str, user: CurrentUser, repo: RepoDep):
 
 
 @router.get("/pvp/history")
-def pvp_history(user: CurrentUser, repo: RepoDep):
-    """Historial de partidas PvP del estudiante autenticado; el rival, por su nombre visible
-    (spec 004 FR-021), y el delta a mostrar, redondeado en el servidor (estudio 007 V14)."""
-    return RatingReadService(repo).pvp_history(user["user_id"])
+def pvp_history(
+    user: CurrentUser,
+    repo: RepoDep,
+    # A match id: PostgreSQL INTEGER, so anything outside 1 … 2³¹−1 is refused here (422).
+    before: int | None = Query(None, ge=1, le=2_147_483_647),
+):
+    """Historial de partidas PvP del estudiante autenticado, de a 5 (spec 007 FR-060): terminadas
+    y abandonadas, con su materia y su motivo; `before` pide las siguientes. El rival, por su
+    nombre visible (spec 004 FR-021), y el delta a mostrar, redondeado en el servidor (V14)."""
+    return RatingReadService(repo).pvp_history(user["user_id"], before)
 
 
 @router.put("/display-name")

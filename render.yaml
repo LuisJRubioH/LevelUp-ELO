@@ -20,7 +20,7 @@ services:
     ## preDeployCommand sería el sitio natural, pero Render no lo ofrece en
     ## instancias free. Al pasar a un plan de pago, mover esta primera mitad allí:
     ##   preDeployCommand: python scripts/migrate.py
-    startCommand: python scripts/migrate.py && uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    startCommand: python scripts/migrate.py && uvicorn api.main:app --host 0.0.0.0 --port $PORT --ws-max-size 65536
     healthCheckPath: /api/health
     autoDeploy: true
 

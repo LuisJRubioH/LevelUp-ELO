@@ -55,7 +55,37 @@ export interface CourseRating {
   topics: TopicELO[];
 }
 
+/** Spec 008 FR-042: one subtopic of the study report — results, never a rating. */
+export interface SubtopicResult {
+  course_id: string;
+  course_name: string;
+  topic: string;
+  subtopic: string;
+  attempts: number;
+  correct: number;
+  share_correct: number;
+}
+
 /** Spec 001: render display_rating + rank_label as given; null = pending diagnostic. */
+/** Spec 007 FR-060: a closed League match, finished or abandoned, with subject and reason. */
+export interface PvpHistoryRow {
+  match_id: number;
+  course_id: string;
+  course_name: string;
+  status: "finished" | "abandoned";
+  /** The student's own reason: no_rated_topics, not_saved, orphaned, account_expired… or null. */
+  reason: string | null;
+  won: boolean;
+  draw: boolean;
+  my_score: number;
+  opp_score: number;
+  elo_delta: number | null;
+  /** The number to show, rounded on the server (survey 007 V14); null when none recorded. */
+  elo_delta_display: number | null;
+  opponent: string;
+  finished_at: string;
+}
+
 export interface StudentStats {
   user_id: number;
   global_elo: number | null;
@@ -66,6 +96,7 @@ export interface StudentStats {
   total_attempts: number;
   study_streak: number;
   rank_label: string | null;
+  subtopics?: SubtopicResult[]; // spec 008 FR-042, weakest first
 }
 
 export interface RankingBasis {
@@ -476,20 +507,11 @@ export const studentApi = {
   courseBlocks: (course_id: string) =>
     api.get<{ block: string; item_count: number }[]>(`/api/student/blocks/${course_id}`),
 
-  pvpHistory: () =>
-    api.get<
-      Array<{
-        won: boolean;
-        draw: boolean;
-        my_score: number;
-        opp_score: number;
-        elo_delta: number | null;
-        /** The number to show, rounded on the server (survey 007 V14); null when none recorded. */
-        elo_delta_display: number | null;
-        opponent: string;
-        finished_at: string;
-      }>
-    >("/api/student/pvp/history"),
+  /** Spec 007 FR-060: one page of five closed matches; `before` = the last match shown. */
+  pvpHistory: (before?: number) =>
+    api.get<{ matches: PvpHistoryRow[]; has_more: boolean }>(
+      `/api/student/pvp/history${before ? `?before=${before}` : ""}`,
+    ),
 
   answer: (body: {
     item_id: string;

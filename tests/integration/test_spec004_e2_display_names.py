@@ -182,7 +182,7 @@ def test_spec004_pvp_history_shows_the_rival_by_name(repo, client):
     r = client.get("/api/student/pvp/history", headers=headers_for(repo, room["viewer"]))
 
     assert r.status_code == 200
-    assert r.json()[0]["opponent"] == room["display"]
+    assert r.json()["matches"][0]["opponent"] == room["display"]
     assert _username(repo, room["named"]) not in r.text
 
 

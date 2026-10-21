@@ -1444,11 +1444,38 @@ class PostgresRepository:
         self._create_lesson_history(cursor)
         self._create_katia_conversations(cursor)
         self._add_exam_selected_option(cursor)
+        self._add_item_subtopics(cursor)
 
     def _add_exam_selected_option(self, cursor):
         """Spec 006 X2 (FR-033): the option a student chose for each exam item; NULL on rows
         stored before X2."""
         self._add_column_if_not_exists(cursor, "exam_responses", "selected_option", "TEXT")
+
+    def _add_item_subtopics(self, cursor):
+        """Spec 008 T (FR-040): an item's optional `subtopic`, for study only — it never keys a
+        rating. The archive keeps the fine-topic ratings the repair merges (plan-t.md, rule A);
+        `approximate` is an integer on both engines there."""
+        self._add_column_if_not_exists(cursor, "items", "subtopic", "TEXT")
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS student_course_topic_elo_archive (
+                user_id INTEGER NOT NULL,
+                course_id TEXT NOT NULL,
+                topic TEXT NOT NULL,
+                current_elo DOUBLE PRECISION NOT NULL,
+                rd DOUBLE PRECISION NOT NULL,
+                origin TEXT NOT NULL,
+                approximate INTEGER NOT NULL DEFAULT 0,
+                legacy_source_key TEXT,
+                reconciled_at TIMESTAMP,
+                created_at TIMESTAMP,
+                updated_at TIMESTAMP,
+                merged_into TEXT NOT NULL,
+                archived_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, course_id, topic)
+            )
+            """
+        )
 
     def _create_katia_conversations(self, cursor):
         """Spec 005 K3: one conversation per student and item, its summary when it closes
@@ -1741,6 +1768,103 @@ class PostgresRepository:
 
     # ── Data repairs: run by the owner through scripts/repairs/, never at start ──
     # Spec 002 FR-018. Each returns the rows it changes; without apply=True it only counts.
+
+    @_read_only
+    def get_subtopic_attempts(self, user_id) -> list:
+        """Spec 008 FR-042: per (course, topic, subtopic) of the student's valid attempts, how
+        many and how many right — raw counts for the study report; nothing here keys a rating."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                """
+            SELECT i.course_id, c.name AS course_name, i.topic, i.subtopic,
+                   COUNT(*) AS attempts,
+                   SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) AS correct
+            FROM attempts a
+            JOIN items i ON i.id = a.item_id
+            LEFT JOIN courses c ON c.id = i.course_id
+            WHERE a.user_id = %s AND COALESCE(a.elo_valid, 1) = 1 AND i.subtopic IS NOT NULL
+            GROUP BY i.course_id, c.name, i.topic, i.subtopic
+                """,
+                (user_id,),
+            )
+            return [dict(row) for row in cursor.fetchall()]
+        finally:
+            self.put_connection(conn)
+
+    def merge_fine_topic_ratings(self, regrouping: dict, apply: bool = False) -> int:
+        """Spec 008 T, rule A (owner, 2026-10-20): per student and course, the stored ratings of
+        the old fine topics of one coarse topic become one coarse row — the mean rating, the
+        mean RD (within 30–350), approximate, the fine keys as provenance — unless the student
+        already has that coarse row, which is never touched. Every fine row is copied to
+        `student_course_topic_elo_archive` and removed from the live store; attempts are never
+        touched. `regrouping` is {course_id: {old_topic: new_topic}}. Returns the fine rows
+        found; writes only with `apply`."""
+        from src.domain.elo.regrouping import plan_topic_merge
+
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            fine = []
+            for course_id, mapping in regrouping.items():
+                if not mapping:
+                    continue
+                cursor.execute(
+                    "SELECT user_id, course_id, topic, current_elo, rd FROM student_course_topic_elo"
+                    " WHERE course_id = %s AND topic = ANY(%s)",
+                    (course_id, list(mapping)),
+                )
+                fine += [dict(row) for row in cursor.fetchall()]
+            if not apply or not fine:
+                return len(fine)
+            cursor.execute(
+                "SELECT user_id, course_id, topic FROM student_course_topic_elo"
+                " WHERE user_id = ANY(%s)",
+                (sorted({row["user_id"] for row in fine}),),
+            )
+            existing = {(r["user_id"], r["course_id"], r["topic"]) for r in cursor.fetchall()}
+            for row in plan_topic_merge(fine, regrouping, existing):
+                cursor.execute(
+                    """INSERT INTO student_course_topic_elo
+                        (user_id, course_id, topic, current_elo, rd, origin, approximate,
+                         legacy_source_key, reconciled_at)
+                    VALUES (%s, %s, %s, %s, %s, 'legacy_topic_row', TRUE, %s, NOW())""",
+                    (
+                        row["user_id"],
+                        row["course_id"],
+                        row["topic"],
+                        row["rating"],
+                        row["rd"],
+                        row["source"],
+                    ),
+                )
+            for row in fine:
+                coarse = regrouping[row["course_id"]][row["topic"]]
+                cursor.execute(
+                    """INSERT INTO student_course_topic_elo_archive
+                        (user_id, course_id, topic, current_elo, rd, origin, approximate,
+                         legacy_source_key, reconciled_at, created_at, updated_at, merged_into)
+                    SELECT user_id, course_id, topic, current_elo, rd, origin,
+                           CASE WHEN approximate THEN 1 ELSE 0 END, legacy_source_key,
+                           reconciled_at, created_at, updated_at, %s
+                    FROM student_course_topic_elo
+                    WHERE user_id = %s AND course_id = %s AND topic = %s
+                    ON CONFLICT DO NOTHING""",
+                    (coarse, row["user_id"], row["course_id"], row["topic"]),
+                )
+                cursor.execute(
+                    "DELETE FROM student_course_topic_elo"
+                    " WHERE user_id = %s AND course_id = %s AND topic = %s",
+                    (row["user_id"], row["course_id"], row["topic"]),
+                )
+            conn.commit()
+            return len(fine)
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
 
     def repair_users_without_password(self, apply: bool = False) -> int:
         """Deactivates active users whose password hash is empty (they cannot sign in)."""
@@ -4814,7 +4938,7 @@ class PostgresRepository:
                 # 1. Ítems existentes y sus columnas estáticas, en una sola query
                 cursor.execute(
                     "SELECT id, content, options, correct_option, topic, course_id, "
-                    "image_url, tags, block FROM items"
+                    "image_url, tags, block, subtopic FROM items"
                 )
                 existing_items = {
                     row["id"]: (
@@ -4826,6 +4950,7 @@ class PostgresRepository:
                         row["image_url"],
                         row["tags"],
                         row["block"],
+                        row["subtopic"],
                     )
                     for row in cursor.fetchall()
                 }
@@ -4878,6 +5003,7 @@ class PostgresRepository:
                             img,
                             tags_json,
                             item_block,
+                            item.get("subtopic"),
                         )
                         if item["id"] not in existing_items:
                             new_items_params.append(
@@ -4892,6 +5018,7 @@ class PostgresRepository:
                                     img,
                                     tags_json,
                                     item_block,
+                                    item.get("subtopic"),
                                 )
                             )
                             # Survey 008 B22: a later file with the same id updates it, as on
@@ -4934,8 +5061,8 @@ class PostgresRepository:
                         cursor,
                         """
                         INSERT INTO items
-                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block)
-                        VALUES (%s, %s, %s, %s, %s, %s, 350.0, %s, %s, %s, %s)
+                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block, subtopic)
+                        VALUES (%s, %s, %s, %s, %s, %s, 350.0, %s, %s, %s, %s, %s)
                         ON CONFLICT (id) DO NOTHING
                     """,
                         new_items_params,
@@ -4953,7 +5080,8 @@ class PostgresRepository:
                             course_id = %s,
                             image_url = %s,
                             tags = %s,
-                            block = %s
+                            block = %s,
+                            subtopic = %s
                         WHERE id = %s
                         """,
                         update_static_params,
@@ -5517,28 +5645,6 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    def abandon_pvp_match(self, match_id: int, reason: str = "account_expired") -> bool:
-        """Spec 004 FR-051, FR-052: close an active match as abandoned, with no rating change for
-        either player; its saved answers stay. True only for the call that closed it: once
-        closed — abandoned or finished — nothing changes."""
-        conn = self.get_connection()
-        try:
-            cursor = conn.cursor()
-            cursor.execute(
-                """UPDATE pvp_matches SET status='abandoned', finished_at=NOW(),
-                   elo_delta_p1=0, elo_reason_p1=%s, elo_delta_p2=0, elo_reason_p2=%s
-                   WHERE id=%s AND status='active'""",
-                (reason, reason, match_id),
-            )
-            closed = cursor.rowcount == 1
-            conn.commit()
-            return closed
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            self.put_connection(conn)
-
     def expire_stale_pvp_matches(self, max_age_seconds: int = 600) -> int:
         """Cierra partidas que quedaron 'active' sin que nadie las terminara.
 
@@ -5552,7 +5658,9 @@ class PostgresRepository:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                UPDATE pvp_matches SET status='abandoned', finished_at=NOW()
+                UPDATE pvp_matches SET status='abandoned', finished_at=NOW(),
+                    elo_delta_p1=0, elo_reason_p1='orphaned',
+                    elo_delta_p2=0, elo_reason_p2='orphaned'
                 WHERE status='active'
                   AND started_at < NOW() - make_interval(secs => %s)
                 """,
@@ -5566,7 +5674,34 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    def get_pvp_history(self, user_id: int, limit: int = 20) -> list[dict]:
+    def abandon_pvp_match(self, match_id: int, reason: str) -> bool:
+        """Spec 007 FR-061 and spec 004 FR-051/052: close a match that is still active as
+        abandoned with `reason` (`not_saved`, `account_expired`), changing no rating (both deltas
+        0); its saved answers stay. False when it was no longer active."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                """UPDATE pvp_matches SET status='abandoned', finished_at=NOW(),
+                       elo_delta_p1=0, elo_reason_p1=%s, elo_delta_p2=0, elo_reason_p2=%s
+                   WHERE id = %s AND status='active'""",
+                (reason, reason, match_id),
+            )
+            changed = cursor.rowcount
+            conn.commit()
+            return changed == 1
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def get_pvp_history(
+        self, user_id: int, limit: int = 20, before: int | None = None
+    ) -> list[dict]:
+        """Spec 007 FR-060: the student's closed matches — finished or abandoned, never active —
+        newest first (by close, then id), each with its subject and the student's own reason.
+        `before` (a match id) returns the ones after it in that order."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -5574,16 +5709,21 @@ class PostgresRepository:
                 """
                 SELECT m.id, m.course_id, m.winner_id, m.score_p1, m.score_p2,
                        m.elo_delta_p1, m.elo_delta_p2, m.finished_at,
-                       m.player1_id, m.player2_id,
+                       m.player1_id, m.player2_id, m.status,
+                       m.elo_reason_p1, m.elo_reason_p2, c.name AS course_name,
                        COALESCE(u1.display_name, u1.username) AS p1_name,
                        COALESCE(u2.display_name, u2.username) AS p2_name
                 FROM pvp_matches m
                 JOIN users u1 ON u1.id = m.player1_id
                 JOIN users u2 ON u2.id = m.player2_id
-                WHERE (m.player1_id = %s OR m.player2_id = %s) AND m.status = 'finished'
-                ORDER BY m.finished_at DESC LIMIT %s
+                LEFT JOIN courses c ON c.id = m.course_id
+                WHERE (m.player1_id = %s OR m.player2_id = %s)
+                  AND m.status IN ('finished', 'abandoned')
+                  AND (%s::INTEGER IS NULL OR (m.finished_at, m.id) <
+                       (SELECT finished_at, id FROM pvp_matches WHERE id = %s))
+                ORDER BY m.finished_at DESC, m.id DESC LIMIT %s
                 """,
-                (user_id, user_id, limit),
+                (user_id, user_id, before, before, limit),
             )
             results = []
             for r in cursor.fetchall():
@@ -5592,6 +5732,9 @@ class PostgresRepository:
                     {
                         "match_id": r["id"],
                         "course_id": r["course_id"],
+                        "course_name": r["course_name"] or r["course_id"],
+                        "status": r["status"],
+                        "reason": r["elo_reason_p1"] if is_p1 else r["elo_reason_p2"],
                         "won": r["winner_id"] == user_id,
                         "draw": r["winner_id"] is None,
                         "my_score": r["score_p1"] if is_p1 else r["score_p2"],

@@ -5,6 +5,7 @@
  */
 
 import { api } from "./client";
+import type { SubtopicResult } from "./student";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
@@ -318,6 +319,9 @@ export const teacherApi = {
       `/api/teacher/student/${student_id}/katia-history`,
     ),
 
+  /** Spec 008 FR-042: the student's results per subtopic (from the student report). */
+  studentSubtopics: (student_id: number) =>
+    api.get<{ subtopics: SubtopicResult[] }>(`/api/teacher/student/${student_id}`),
   /** Spec 005 FR-010/FR-011: the server picks provider and model from the key. */
   studentAiAnalysis: (student_id: number, api_key?: string) =>
     api.post<{ analysis: string }>(`/api/teacher/student/${student_id}/ai-analysis`, {

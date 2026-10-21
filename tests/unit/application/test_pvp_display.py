@@ -25,10 +25,10 @@ def test_game_end_carries_the_shown_delta(applied, shown):
 
 def test_pvp_history_carries_the_shown_delta():
     class Repo:
-        def get_pvp_history(self, user_id, limit=20):
+        def get_pvp_history(self, user_id, limit=20, before=None):
             return [{"elo_delta": d, "won": True} for d in (-2.5, 2.5, None)]
 
-    rows = RatingReadService(Repo()).pvp_history(7)
+    rows = RatingReadService(Repo()).pvp_history(7)["matches"]
 
     assert [(r["elo_delta"], r["elo_delta_display"]) for r in rows] == [
         (-2.5, -3),

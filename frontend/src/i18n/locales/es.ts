@@ -1005,6 +1005,27 @@ const es = {
       account_expired:
         "La partida terminó sin ganador porque el período de acceso de una de las cuentas terminó. Ningún ELO cambió y tus respuestas quedaron guardadas.",
     },
+    historyAbandoned: "Abandonada",
+    historyMore: "Ver más",
+    historyReasons: {
+      not_saved: "no se pudo guardar el resultado",
+      orphaned: "se cerró sin terminar",
+      account_expired: "la cuenta venció",
+      unknown: "sin resultado",
+    },
+    closeNotices: {
+      authFailed:
+        "No pudimos entrar a la arena. Vuelve a iniciar sesión y revisa que estés inscrito en la materia.",
+      noItems: "Esta materia todavía no tiene preguntas para la liga.",
+      secondTab: "Ya tienes la Liga abierta en otra pestaña. Ciérrala para jugar aquí.",
+      tooManyMessages: "Demasiados mensajes. Vuelve a entrar a la Liga.",
+      serverError: "Hubo un problema en el servidor. Intenta de nuevo.",
+      lostMatch: "Se perdió la conexión con la partida.",
+      noRival: "La búsqueda de rival terminó sin encontrar a nadie. Intenta de nuevo.",
+      cannotConnect: "No pudimos conectar con la arena. Intenta de nuevo.",
+      accessExpired:
+        "El período de acceso de tu cuenta terminó. Tu progreso está guardado. Contacta al administrador si necesitas ampliar el acceso.",
+    },
     reasons: {
       no_rated_topics:
         "Tu ELO no cambió: aún no tienes nota en esta materia. Haz su diagnóstico para que las partidas cuenten.",
@@ -1020,6 +1041,14 @@ const es = {
     basisOverall: "rating global",
     approximate: "aproximado",
     approximateHint: "Punto de partida estimado a partir de datos anteriores; no es tu historial exacto.",
+  },
+
+  // ── Reporte por subtema (spec 008 FR-042) ────────────────────────────────
+  subtopics: {
+    title: "Por subtema",
+    hint: "Tus respuestas por subtema en todos tus cursos, de lo más débil a lo más firme. Es para estudiar: no cambia tu ELO.",
+    empty: "Aún no hay respuestas en preguntas con subtema.",
+    correctOf: "{{correct}} de {{attempts}}",
   },
 
   theme: {

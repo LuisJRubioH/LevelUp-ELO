@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ACCESS_EXPIRED, ACCESS_EXPIRED_CLOSE_CODE, rememberAccessExpired } from "../api/client";
+import { ACCESS_EXPIRED_CLOSE_CODE, rememberAccessExpired } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
 import { wsBase } from "../api/wsBase";
 
@@ -44,18 +44,21 @@ export interface PvpFeedback {
 const FEEDBACK_MS = 700;
 
 /** Why the server closed the socket before the match ended (api/websocket/pvp.py). */
+/** Why the server closed the League socket: a key under `league.closeNotices` (i18n). */
 const CLOSE_NOTICES: Record<number, string> = {
-  4001: "No pudimos entrar a la arena. Vuelve a iniciar sesión y revisa que estés inscrito en la materia.",
-  4404: "Esta materia todavía no tiene preguntas para la liga.",
-  4500: "Hubo un problema en el servidor. Intenta de nuevo.",
-  [ACCESS_EXPIRED_CLOSE_CODE]: ACCESS_EXPIRED,
+  4001: "authFailed",
+  4404: "noItems",
+  [ACCESS_EXPIRED_CLOSE_CODE]: "accessExpired", // spec 004 FR-047
+  4409: "secondTab", // spec 007 FR-050
+  4429: "tooManyMessages", // spec 007 FR-051
+  4500: "serverError",
 };
 
 function closeNotice(code: number, phase: PvpPhase): string {
-  if (CLOSE_NOTICES[code]) return CLOSE_NOTICES[code];
-  if (phase === "playing") return "Se perdió la conexión con la partida.";
-  if (phase === "waiting") return "La búsqueda de rival terminó sin encontrar a nadie. Intenta de nuevo.";
-  return "No pudimos conectar con la arena. Intenta de nuevo.";
+  const key =
+    CLOSE_NOTICES[code] ??
+    (phase === "playing" ? "lostMatch" : phase === "waiting" ? "noRival" : "cannotConnect");
+  return `league.closeNotices.${key}`;
 }
 
 export function usePvpMatch(courseId: string | null) {
