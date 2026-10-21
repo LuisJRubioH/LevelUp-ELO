@@ -329,11 +329,13 @@ before the migration:
 DROP TABLE IF EXISTS active_exam_sessions, audit_account_events, bank_syncs, diagnostics,
   exam_responses, group_invitations, katia_conversations, katia_messages, lesson_answers,
   lesson_interactions, lesson_outcomes, lesson_progress, procedure_files, procedure_gradings,
-  procedure_uploads, pvp_answers, pvp_matches, schema_versions, student_course_topic_elo CASCADE;
+  procedure_uploads, pvp_answers, pvp_matches, schema_versions, student_course_topic_elo,
+  student_course_topic_elo_archive CASCADE;
 ```
 
-These are the 19 tables the redesign creates that `main` does not have (compared on 2026-10-19,
-schema version 3, plus spec 005 K3's two at version 4). A spec that adds a table adds it here too.
+These are the 20 tables the redesign creates that `main` does not have (compared on 2026-10-19,
+schema version 3, plus spec 005 K3's two at version 4 and spec 008 T's archive at version 6). A
+spec that adds a table adds it here too.
 
 ```bash
 pg_restore --clean --if-exists --no-owner --no-privileges --schema=public \
@@ -417,7 +419,12 @@ redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no 
 
 - The § 4 backup and the § 5 rehearsal were run on the commit being switched, or on one with the
   same `SCHEMA_VERSION`. The rehearsal report shows the migration passing twice, and
-  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (5 today).
+  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (6 today).
+- **Spec 008 T** regroups DIAN's topics, and the first migration applies the bank before it
+  reconciles the legacy ratings. A legacy DIAN rating keyed by the course (V1 keys by its name,
+  V2 on `main` by its id) is reconciled onto the new topics; one keyed by an old topic label is
+  not, and that student starts DIAN with no rating. The `precheck` job counts those rows (read
+  only, counts only); with 0, nothing is lost.
 
 - Roadmap follow-ups **F-4** (PR #9: `next-question`, `/answer` and the diagnostic serve only
   courses the student is enrolled in, spec 001 FR-037, FR-037a) and **F-5** (PR #8: PvP lets
@@ -466,7 +473,11 @@ refuses any non-local host. Never point tests at the production database.
 9. Merge the ratings stored on DIAN's and EPA8's old fine topics into their coarse topic (spec
    008 T, rule A): `python scripts/repairs/merge_fine_topic_ratings.py` counts them, `--apply`
    merges and archives them, and a second `--apply` reports 0. It prints counts only. Until it
-   runs, a student's course rating on those courses still counts the old fine rows.
+   runs, a student's course rating on those courses still counts the old fine rows. At the switch
+   from `main` it counts 0: the reconciliation already writes the coarse topics. On a database
+   that already holds fine-topic ratings, a coarse row created before the repair runs — by the
+   deploy's own reconciliation from a legacy course rating, or at 1000 by an answer — is kept, and
+   the fine rows are archived without being merged.
 
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer

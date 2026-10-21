@@ -139,3 +139,9 @@ closes T.
   carries T, as an owner-approved step: first the count-only run, then `--apply`.
 - **Until the repair runs**, an existing student's course rating on DIAN/EPA8 still includes the
   old fine rows; new answers already go to the coarse topics.
+- **T goes in before the production switch (owner, 2026-10-21).** The switch's first migration
+  applies the regrouped bank before it reconciles the legacy ratings, so production never holds a
+  fine-topic rating and the repair counts 0 there. Deployed after the switch instead, the deploy's
+  own reconciliation would create each coarse topic from a legacy course rating and the repair
+  would archive the fine rows unmerged. One cost: a legacy DIAN rating keyed by an old topic label
+  is not reconciled; the switch's precheck counts those (`docs/transfer.md` § 6).
