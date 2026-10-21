@@ -60,6 +60,21 @@ def in_catalogue(level: Optional[str], grade, course_id: str, block: str) -> boo
     return True
 
 
+def catalogue_enrolment_group(group: Optional[dict], course_id: str) -> Optional[int]:
+    """The group a catalogue enrolment in `course_id` is recorded with, or None to refuse it.
+
+    Spec 001 FR-028v (delivery TCH): no enrolment without a teacher. `group` is the student's own
+    group as `{"group_id", "course_id", "teacher_ok"}`, or None when they have none. Its teacher
+    reviews the course when that teacher is approved and active (`teacher_ok`) and the group has
+    no course or has this one (spec 006 FR-050).
+    """
+    if not group or not group["teacher_ok"]:
+        return None
+    if group["course_id"] not in (None, course_id):
+        return None
+    return group["group_id"]
+
+
 @dataclass
 class Student:
     """Representa a un estudiante con su nivel académico.

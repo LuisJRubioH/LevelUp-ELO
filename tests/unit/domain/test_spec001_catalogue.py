@@ -55,3 +55,33 @@ def test_spec001_valid_semillero_grades_are_6_to_11():
         assert valid_semillero_grade(grade)
     for grade in [None, "", "5", "12", "6°", " 7", 5]:
         assert not valid_semillero_grade(grade)
+
+
+# ── FR-028v (delivery TCH): no enrolment without a teacher ──────────────────
+
+
+@pytest.mark.parametrize(
+    "group, expected",
+    [
+        (None, None),
+        ({"group_id": 7, "course_id": None, "teacher_ok": True}, 7),
+        ({"group_id": 7, "course_id": "algebra_basica", "teacher_ok": True}, 7),
+        ({"group_id": 7, "course_id": "geometria_basica", "teacher_ok": True}, None),
+        ({"group_id": 7, "course_id": None, "teacher_ok": False}, None),
+        ({"group_id": 7, "course_id": "algebra_basica", "teacher_ok": False}, None),
+    ],
+    ids=[
+        "no group",
+        "group without a course",
+        "the group's own course",
+        "a group with another course",
+        "teacher not approved or not active",
+        "own course, teacher not approved or not active",
+    ],
+)
+def test_spec001_catalogue_enrolment_needs_the_groups_teacher(group, expected):
+    """FR-028v: the group a catalogue enrolment is recorded with — the student's own, when its
+    approved, active teacher reviews the course — or None, which refuses it."""
+    from src.domain.entities import catalogue_enrolment_group
+
+    assert catalogue_enrolment_group(group, "algebra_basica") == expected

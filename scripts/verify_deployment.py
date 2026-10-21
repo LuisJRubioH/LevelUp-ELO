@@ -203,9 +203,12 @@ def main():
     r.log(f"== 3. Diagnostic ({diag_student})")
     courses = c.get("/api/student/courses", headers=hd).json()
     # The diagnostic needs an enrolment (spec 001 FR-037): the enrolled courses first, then one
-    # catalogue course without a diagnostic, enrolled here.
+    # catalogue course without a diagnostic that the student's group's teacher reviews, enrolled
+    # here (FR-028v: the catalogue enrols no other).
     candidates = [x for x in courses if x.get("enrolled")] + [
-        x for x in courses if not x.get("enrolled") and not x.get("diagnostic_done")
+        x
+        for x in courses
+        if not x.get("enrolled") and x.get("enrollable") and not x.get("diagnostic_done")
     ][:1]
     pending = None
     for course in candidates:
@@ -283,7 +286,10 @@ def main():
         )
 
     r.log(f"== 5. Map and lesson images ({LESSON_COURSE})")
-    c.post("/api/student/enroll", headers=hs, json={"course_id": LESSON_COURSE})
+    own = {x["id"]: x for x in c.get("/api/student/courses", headers=hs).json()}
+    lesson_course = own.get(LESSON_COURSE, {})
+    if not lesson_course.get("enrolled") and lesson_course.get("enrollable"):
+        c.post("/api/student/enroll", headers=hs, json={"course_id": LESSON_COURSE})
     mp = c.get(f"/api/student/map/{LESSON_COURSE}", headers=hs)
     nodes = mp.json().get("nodes", []) if mp.status_code == 200 else []
     r.check(mp.status_code == 200 and nodes, "GET map", f"{len(nodes)} nodes")
