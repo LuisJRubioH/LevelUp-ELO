@@ -977,6 +977,7 @@ const en: TranslationKeys = {
       not_saved: "the result could not be saved",
       orphaned: "closed before it ended",
       account_expired: "the account expired",
+      forfeit: "by abandonment",
       unknown: "no result",
     },
     closeNotices: {
@@ -989,7 +990,14 @@ const en: TranslationKeys = {
       lostMatch: "The connection to the match was lost.",
       noRival: "The search for a rival ended without finding anyone. Try again.",
       cannotConnect: "We could not connect to the arena. Try again.",
+      matchOver: "The match is over: you did not come back in time and it counted as abandoned.",
+      resumedElsewhere: "Your match continued on another connection.",
     },
+    reconnecting: "Reconnecting… ({{seconds}} s)",
+    opponentAway: "Your rival disconnected; they have {{seconds}} s to come back.",
+    opponentForfeited: "Your rival abandoned the match.",
+    wonBySpeed: "You won on speed: same correct answers, less time.",
+    lostBySpeed: "You lost on speed: same correct answers, more time.",
     reasons: {
       no_rated_topics:
         "Your ELO did not change: you have no rating in this subject yet. Take its diagnostic so matches count.",

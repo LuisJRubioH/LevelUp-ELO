@@ -29,6 +29,8 @@ rating, flood the server or lose a match because a tab slept.
   history, orphan expiry (shared)
 - `frontend/src/pages/Student/League.tsx`, `frontend/src/pages/Student/League.css`
 - `frontend/src/hooks/usePvpMatch.ts`
+- `src/domain/pvp/outcome.py` — the winner rule: score, then total answer time (delivery F,
+  O-F9)
 
 ## Deliveries *(this spec is delivered in steps)*
 
@@ -40,7 +42,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **A** | As-is pins: who may play, what an answer and a close may do, the waiting player, a malformed frame, the rating effect, the shown delta, the orphan sweep — each tied to a test that exists today | closed |
 | **G** | Who may enter: a rating in the subject (D1), test users only with test users (D2), the same institution (D3), one queue or match per student (D6), a distinct reason for every refusal (V24) | planned |
 | **M** | Fair matches: a rating window that widens while waiting and a daily cap per pair (D5); items near both ratings, unseen for a week, with images, without their difficulty (D7); the expectation read when the match is formed (V24) | planned |
-| **F** | The match flow: the server's clock and a speed tiebreak (D8); a 20 s grace to come back, then a forfeit (D4) | planned |
+| **F** | The match flow: the server's clock and a speed tiebreak (D8); a 20 s grace to come back, then a forfeit (D4) | closed |
 | **L** | Socket and process limits: one live socket per student, a frame size and a message rate (D9); one worker in production by any route (V17) | closed |
 | **H** | History: every match with its outcome reason and subject, as many as the screen shows (D10); a close that fails is retried, then recorded as not saved (V11) | closed |
 | **S** | Statistics: the League's answers feed the student's and the teacher's statistics (V23) | planned |
@@ -369,9 +371,9 @@ closes their delivery.
 | US3-AS1 | M | PENDING |
 | US3-AS2 | M | PENDING |
 | US3-AS3 | M | PENDING |
-| US4-AS1 | F | PENDING |
-| US4-AS2 | F | PENDING |
-| US4-AS3 | F | PENDING |
+| US4-AS1 | F | `tests/integration/test_spec007_f_match_flow.py::test_spec007_the_server_closes_at_its_end_time_whatever_the_client_does`<br>`frontend/e2e/league.spec.ts › la cuenta atrás sigue la hora del servidor aunque la pestaña duerma (spec 007 US4-AS1)` |
+| US4-AS2 | F | `tests/unit/domain/test_spec007_f_outcome.py::test_spec007_equal_scores_the_faster_player_wins`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_tied_match_is_won_by_speed`<br>`frontend/e2e/league.spec.ts › un empate se decide por velocidad (spec 007 US4-AS2)` |
+| US4-AS3 | F | `tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_returns_within_the_grace_resumes_the_match`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_does_not_return_loses_by_abandonment`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_reconnect_after_the_grace_finds_the_match_over`<br>`frontend/e2e/league.spec.ts › una caída reconecta y retoma la partida (spec 007 US4-AS3)`<br>`frontend/e2e/league.spec.ts › el rival abandona y ganas al instante (spec 007 US4-AS3)`<br>`frontend/e2e/league.spec.ts › volver tarde dice que la partida terminó (spec 007 US4-AS3)` |
 | US5-AS1 | L | `tests/integration/test_pvp_limits.py::test_spec007_a_second_league_socket_is_refused`<br>`tests/integration/test_pvp_limits.py::test_spec007_a_closed_league_socket_frees_the_student`<br>`frontend/e2e/league.spec.ts › una segunda pestaña dice por qué (spec 007 US5-AS1)` |
 | US5-AS2 | L | `tests/integration/test_pvp_limits.py::test_spec007_an_oversized_frame_is_dropped`<br>`tests/integration/test_pvp_limits.py::test_spec007_a_burst_beyond_the_rate_is_dropped`<br>`tests/integration/test_pvp_limits.py::test_spec007_persisting_abuse_closes_the_socket`<br>`frontend/e2e/league.spec.ts › demasiados mensajes cierran la conexión con su motivo (spec 007 US5-AS2)` |
 | US6-AS1 | H | `tests/integration/test_spec007_h_history.py::test_spec007_history_lists_finished_abandoned_and_not_saved`<br>`tests/integration/test_spec007_h_history.py::test_spec007_history_pages_of_five_reach_every_match`<br>`frontend/e2e/league.spec.ts › el historial muestra partidas abandonadas y no guardadas con su materia (spec 007 US6-AS1)` |
@@ -398,9 +400,9 @@ closes their delivery.
 | FR-031 | M | PENDING |
 | FR-032 | M | PENDING |
 | FR-033 | M | PENDING |
-| FR-040 | F | PENDING |
-| FR-041 | F | PENDING |
-| FR-042 | F | PENDING |
+| FR-040 | F | `tests/integration/test_spec007_f_match_flow.py::test_spec007_game_start_carries_the_servers_end_time`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_the_server_closes_at_its_end_time_whatever_the_client_does`<br>`tests/unit/infrastructure/test_pvp_logic.py::test_spec007_an_answer_read_after_the_end_time_is_not_judged`<br>`frontend/e2e/league.spec.ts › la cuenta atrás sigue la hora del servidor aunque la pestaña duerma (spec 007 US4-AS1)` |
+| FR-041 | F | `tests/unit/domain/test_spec007_f_outcome.py::test_spec007_equal_scores_the_faster_player_wins`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_tied_match_is_won_by_speed`<br>`frontend/e2e/league.spec.ts › un empate se decide por velocidad (spec 007 US4-AS2)` |
+| FR-042 | F | `tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_returns_within_the_grace_resumes_the_match`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_does_not_return_loses_by_abandonment`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_reconnect_after_the_grace_finds_the_match_over`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_reconnect_takes_over_a_half_open_socket`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_waiting_player_reconnects_without_waiting_for_the_ping`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_finished_and_leaves_does_not_forfeit`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_both_players_away_abandons_without_rating`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_the_grace_does_not_extend_the_match`<br>`tests/integration/test_pvp_repository.py::test_spec007_finish_with_a_reason_keeps_no_rated_topics`<br>`frontend/e2e/league.spec.ts › una partida perdida por abandono lo dice en el historial (spec 007 FR-042)` |
 | FR-050 | L | `tests/integration/test_pvp_limits.py::test_spec007_a_second_league_socket_is_refused`<br>`tests/integration/test_pvp_limits.py::test_spec007_a_closed_league_socket_frees_the_student` |
 | FR-051 | L | `tests/integration/test_pvp_limits.py::test_spec007_an_oversized_frame_is_dropped`<br>`tests/integration/test_pvp_limits.py::test_spec007_a_burst_beyond_the_rate_is_dropped`<br>`tests/integration/test_pvp_limits.py::test_spec007_persisting_abuse_closes_the_socket`<br>`tests/integration/test_pvp_limits.py::test_spec007_an_oversized_sign_in_frame_is_dropped`<br>`tests/unit/api/test_pvp_limits.py::test_spec007_socket_limits_accept_up_to_the_rate_then_drop`<br>`tests/unit/api/test_pvp_limits.py::test_spec007_socket_limits_abuse_is_ten_drops_within_ten_seconds` |
 | FR-052 | L | `tests/api/test_single_worker.py::test_spec007_a_second_worker_refuses_to_start`<br>`tests/api/test_single_worker.py::test_spec007_a_single_worker_starts_and_a_restart_is_not_blocked`<br>`tests/api/test_single_worker.py::test_spec007_web_concurrency_is_still_refused` |

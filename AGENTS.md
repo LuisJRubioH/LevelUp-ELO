@@ -326,7 +326,10 @@ memory. `settings.validate_runtime()` refuses to start in production with `WEB_C
 by `--workers` or gunicorn refuses to start; a second machine is not detected — `render.yaml` runs
 one instance. One live League socket per student (4409); 4 KB frames, 5 per second, ten drops in
 10 s close with 4429 (`api/websocket/limits.py`, FR-050/051); uvicorn runs with
-`--ws-max-size 65536`. Scaling needs shared matchmaking, pub/sub event fan-out and
+`--ws-max-size 65536 --ws-ping-interval 10 --ws-ping-timeout 10`. The reconnect grace
+(`PVP_RECONNECT_GRACE_S`, 20 s) and each player's `resume` token are process memory too, lost on a
+restart (spec 007 FR-042): a socket presenting its token takes its place back and the old one is
+closed with 4411; a token for a match already over gets 4410; without a token, 4409 as before. Scaling needs shared matchmaking, pub/sub event fan-out and
 cross-process wake-up — all three before raising the number. Details:
 [`docs/arquitectura.md` § Límites conocidos](docs/arquitectura.md).
 
@@ -336,7 +339,12 @@ cross-process wake-up — all three before raising the number. Details:
 overwrite it), so the course rating moves by exactly the delta. A player with no rated topic
 gets 0 with `elo_reason = 'no_rated_topics'`; it returns the applied deltas, and `game_end` reports
 them (`"not_applied"` with 0 if persisting fails). The close is idempotent through
-`AND status='active'`. The lobby reads the course rating outside `_lock` (1000 drives the
+`AND status='active'`. The winner (spec 007 F) is `src/domain/pvp/outcome.py::match_outcome`: the
+score, then the lower total answer time in whole seconds (`tiebreak`). A player whose socket drops
+has 20 s to resume; otherwise the match closes as their full loss with reason `forfeit` for both
+(`finish_pvp_match(…, reason=)`; `no_rated_topics` keeps precedence), or as `abandoned` /
+`both_left` with no rating change if both are away; a player who answered every item never forfeits;
+the end time (`ends_at`) never moves. The lobby reads the course rating outside `_lock` (1000 drives the
 expectation of an unrated player but is never shown). A close that fails to persist is retried 3 times (0.5, 1,
 2 s), then closed as `abandoned` with reason `not_saved` (`abandon_pvp_match`, spec 007 FR-061).
 Orphaned matches are closed as `abandoned` with reason `orphaned`
@@ -560,6 +568,7 @@ Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectur
 - `elo/uncertainty.py` — `RatingModel`: `ΔR = 32 × (RD/350) × (result − P)`; RD starts at 350,
   ×0.95 per answer, floor 30.
 - `elo/vector_elo.py` — `VectorRating` (rating + RD per key; V1 display container).
+- `pvp/outcome.py` — `match_outcome`: the League's winner rule (score, then time; spec 007 FR-041).
 - `selector/item_selector.py` — `AdaptiveItemSelector`: pre-filter `D ∈ [R−250, R+250]`, target
   `P ∈ [0.40, 0.75]` widened ±0.05 per step (max 10), random pick among candidates within 95 % of
   the best `P(1−P)`.

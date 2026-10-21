@@ -41,7 +41,7 @@ export const PASSWORD_CHANGE_REQUIRED = "Debes cambiar tu contraseña temporal a
 
 let refreshPromise: Promise<string | null> | null = null;
 
-async function refreshAccessToken(): Promise<string | null> {
+export async function refreshAccessToken(): Promise<string | null> {
   if (refreshPromise) return refreshPromise;
   refreshPromise = (async () => {
     const { useAuthStore } = await import("../stores/authStore");
