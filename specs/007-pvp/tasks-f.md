@@ -44,6 +44,15 @@ of delivery H (FR-061).
   - spec 001: `test_spec001_game_end_reports_not_applied_when_persistence_fails`;
   - `frontend/e2e/league.spec.ts`.
 
+- [ ] T003 If spec 004 E3 (#73) is in `redesign` when F starts: add its PvP tests to T002's pins
+  (`tests/integration/test_spec004_e3_accounts.py`, the abandon and 4403 cases;
+  `frontend/e2e/spec004-e3-accounts.spec.ts`, «una partida cerrada por un vencimiento…») and write
+  `test_spec007_an_expired_account_mid_match_abandons_without_forfeit` in
+  `tests/integration/test_spec007_f_match_flow.py`: an account that expires mid-match closes it as
+  `abandoned` / `account_expired` with no rating change and 4403, and no grace or forfeit follows.
+  It passes on E3's code before T025 and must stay green after it (plan-f § An expired account
+  mid-match). If #73 lands after F, the PR that lands second adds this test.
+
 **Checkpoint**: the match loop, the close and the one-socket rule pinned — F can change them.
 
 ---
@@ -152,10 +161,10 @@ pins still green.
 
 ## Dependencies & Execution Order
 
-- T000 (owner decisions) → T001 → T002 (pins green) → T010–T019 written and failing → T020–T029 →
+- T000 (owner decisions) → T001 → T002, T003 (pins green) → T010–T019 written and failing → T020–T029 →
   T090–T093.
 - T020 depends on T010, T011; T021 on T012 and T020; T022 on T013; T023 on T017; T024 on T014
-  (resume) and T015; T025 on T014 (forfeit), T016, T023 and T024; T026 on T024; T027 on T018,
+  (resume) and T015; T025 on T014 (forfeit), T016, T023, T024 and T003; T026 on T024; T027 on T018,
   T019 and T020–T026; T028 per O-F8.
 
 ### Parallel Opportunities

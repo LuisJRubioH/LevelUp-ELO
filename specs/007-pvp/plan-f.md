@@ -139,6 +139,23 @@ in the lobby: a waiting player who drops leaves the queue as today (FR-005 pins 
 `game_start` cannot be sent is treated as having dropped at the start: the grace applies from
 `started`.
 
+### An expired account mid-match (spec 004 E3, PR #73)
+
+E3 (FR-051/052) closes a match whose player's access ends: `api/websocket/expiry.py` calls
+`pvp.abandon_matches_of(user_id, repo)`, which closes it as `abandoned` with reason
+`account_expired`, moves no rating and closes the socket with **4403**. F keeps that path apart from
+the forfeit:
+
+- an expiry is **not** a `forfeit`: no rating moves for either player, whatever the score;
+- 4403 is a 4xxx code, so the screen does not try to reconnect (only an unexpected drop does);
+- no grace starts: the match is already marked finished and leaves `_matches` before the socket
+  closes, so the grace path never sees it.
+
+`test_spec007_an_expired_account_mid_match_abandons_without_forfeit` pins it (T003). Order: if #73
+is in `redesign` when F is implemented, F is built on it; otherwise whichever lands second resolves
+the overlap in `_finish_match`, `_abandon_match`, `_persist_close` and `CLOSE_NOTICES` (E3 adds
+4403; F adds 4410 and 4411). F changes no schema; the next free version is 8 (#73 holds 7).
+
 ### Repositories
 
 - `finish_pvp_match(…, reason: str | None = None)` (both repositories, identical signature): when
