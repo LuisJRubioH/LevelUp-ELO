@@ -1,8 +1,8 @@
 # Plan — spec 007, delivery M: fair matches
 
 **Spec**: [spec.md](spec.md) § Deliveries, M (US3; FR-030, FR-031, FR-032, FR-033) · **Branch**:
-`007-m`, from `redesign` · **Date**: 2026-10-21 · **Status**: draft for the owner's approval
-(decisions O-M1 … O-M11 open)
+`007-m`, from `redesign` · **Date**: 2026-10-21 · **Status**: approved (owner, 2026-10-21:
+O-M1 … O-M11 as recommended)
 
 ## Summary
 
@@ -26,7 +26,7 @@ difficulty; and reads both ratings again when the match is formed.
 | Layers (III, R2) | the business rules are pure functions with no I/O in a new `src/domain/pvp/matchmaking.py` (window, opponent choice, the Colombian day, the cap) and `src/domain/pvp/match_items.py` (item choice, a seeded `random.Random` passed in); the lobby, the timer and the I/O stay in `api/websocket/pvp.py`; the code PR adds both files to spec 007's § Code Scope, beside F's `src/domain/pvp/outcome.py` (O-F9) |
 | Raw rows (R15) | the two new repository reads return raw rows — the pair's matches since a time, the item ids a player saw since a time — and the domain counts, filters and chooses; no repository averages, rounds or orders by rating |
 | Dual database (IV, R1) | every new or changed repository method lands in both repositories with an identical signature; `db_sync_check.py`; integration tests on both engines (`live_api`) |
-| Schema (R8) | **no schema change** under the recommended O-M5: an unrated match is a `finished` row with both deltas 0 and reason `daily_cap` in the existing `elo_reason_p1/p2`, as H's `not_saved` and F's `forfeit` are; "seen" reads existing tables and indexes (`idx_attempts_user_id`, `idx_pvp_matches_players`). The alternative under O-M5 is SCHEMA_VERSION **8** (E3 in #73 holds 7) |
+| Schema (R8) | **no schema change** under the recommended O-M5: an unrated match is a `finished` row with both deltas 0 and reason `daily_cap` in the existing `elo_reason_p1/p2`, as H's `not_saved` and F's `forfeit` are; "seen" reads existing tables and indexes (`idx_attempts_user_id`, `idx_pvp_matches_players`). |
 | Integrity of measurement (V; R15, R19) | an over-cap match changes no rating row; a rated one still goes through `finish_pvp_match` (atomic, floor 0, idempotent) and H's retries; the expectation is the course rating read when the match is formed (FR-033); nothing is rebuilt from attempts |
 | Security (VI, V2-R9) | `game_start` loses `difficulty` and keeps leaving out `correct_option`; the window and the opponent's exact rating are never sent (the opponent keeps seeing `shown_elo`, FR-008) |
 | Async (R17) | the pairing decision under `_lock` is pure and does no I/O; the rating re-read, the pair count, the "seen" read and the item read run in threads after the pair has left the queue, never under `_lock` |
@@ -42,7 +42,7 @@ waiting in a course, in arrival order. A `LobbySlot` gains `rating` (the course 
 lobby entry, as today, for the window only) and `joined_at` (`loop.time()` at entry).
 
 **The window (O-M1).** A pure function `window(waited_s, start, step, every_s, ceiling)`:
-`min(ceiling, start + step × floor(waited_s / every_s))`. Recommended: **±150** at entry, **+50
+`min(ceiling, start + step × floor(waited_s / every_s))`. Decided (O-M1): **±150** at entry, **+50
 every 20 s**, ceiling **±450** (reached after 120 s). The lobby's 300 s wait limit is unchanged.
 
 **Who may meet (O-M2).** Two slots are eligible when `|R_a − R_b| ≤ max(window_a, window_b)`: the
@@ -80,7 +80,7 @@ their expectation today (FR-008, spec 001 FR-029a) — never shown.
 
 ### FR-031 — at most 3 rated matches per pair per day (US3-AS2)
 
-**The day (O-M4).** Recommended: the calendar day in Colombia — from 00:00 to 24:00 in Bogotá,
+**The day (O-M4).** Decided: the calendar day in Colombia — from 00:00 to 24:00 in Bogotá,
 i.e. from 05:00 UTC. A pure `pair_day_start(now_utc)` returns that instant in UTC with a fixed
 offset of −5 h. The repository compares it with `finished_at` (UTC in both engines: SQLite
 `CURRENT_TIMESTAMP`, PostgreSQL `NOW()` on Supabase's UTC sessions); the code passes it as a
@@ -95,9 +95,8 @@ order, finished since `since` (index `idx_pvp_matches_players`). The pure
 False when the count has reached the cap. The match being formed is not yet a row; one student
 holds at most one League socket (L), so two matches of the same pair cannot be formed at once.
 
-**Does the cap change who meets whom (O-M7).** Recommended: no. The pairing under `_lock` cannot
-read the database, and the spec says the over-cap match is played, not refused. The alternative
-keeps an in-memory count per pair and day and prefers another eligible opponent.
+**Does the cap change who meets whom (O-M7: no).** The pairing under `_lock` cannot read the
+database, and the spec says the over-cap match is played, not refused.
 
 **An unrated match.** `ActiveMatch` gains `rated: bool`. When False:
 - `game_start` carries `rated: false` and `unrated_reason: "daily_cap"` to both players (how the
@@ -116,7 +115,7 @@ lands first, M adds `reason` with F's semantics.
 
 ### FR-032 — the items (US3-AS3)
 
-**Seen (O-M9).** Recommended: an item is seen by a player when, in the last 7 × 24 h, the player
+**Seen (O-M9).** Decided: an item is seen by a player when, in the last 7 × 24 h, the player
 answered it in practice (`attempts.timestamp`), answered it in an exam
 (`exam_responses.created_at`), or was served it in a League match (`pvp_matches.item_ids`, the
 player in `player1_id`/`player2_id`, `started_at`). One raw read per match,
@@ -197,7 +196,6 @@ test's process). `render.yaml` needs no change: the defaults are the production 
   `daily_cap`, no rating change) and the Architecture map (`domain/pvp/`).
 - `docs/sdd/roadmap.md` — only the M7 progress note, if the owner tracks deliveries there.
 - `render.yaml` — **no change** under the recommended options.
-- `src/infrastructure/persistence/schema_version.py` — **only** under O-M5's alternative
   (SCHEMA_VERSION 8 and a new `MIGRATION_SOURCES_DIGEST`).
 - Not touched: `docs/transfer.md`, any `ops/*` branch.
 
@@ -241,42 +239,28 @@ through settings for that test and says so — it never edits a pinned assertion
   functions; whichever lands second merges (above).
 - **Before G, unrated players** still play, expected and placed at 1000 (O-M10).
 
-## Decisions (owner) — open
+## Decisions (owner, 2026-10-21)
 
-Each has a recommended option; none is decided by this plan.
+The owner approved the recommended option of each decision.
 
-- **O-M1 — the window's numbers.** Recommended: ±150 at entry, +50 every 20 s, ceiling ±450 (at
-  120 s); the 300 s lobby limit unchanged. Alternatives: (b) no ceiling — +50 every 20 s until the
-  300 s limit (±850); (c) a finer step, +25 every 10 s, same ceiling.
-- **O-M2 — whose window.** Recommended: eligible when the gap is within the **larger** of the two
-  windows (the long waiter admits a newcomer). Alternative: within the **smaller** (both must
-  accept) — a lone waiter then only meets another long waiter.
-- **O-M3 — which eligible opponent.** Recommended: the smallest rating gap, ties by the longest
-  wait. Alternative: the longest wait among the eligible (first come, first served inside the
-  window).
-- **O-M4 — "a day".** Recommended: the calendar day in Colombia (00:00–24:00 Bogotá = from 05:00
-  UTC, fixed UTC−5). Alternative: a rolling 24 h before the match.
-- **O-M5 — how an over-cap match is recorded.** Recommended, no schema change: `finished`, deltas 0,
-  reason `daily_cap` for both; the cap counts finished rows without that reason (forfeits count,
-  abandoned rows do not). Alternative: SCHEMA_VERSION 8 adds `pvp_matches.rated BOOLEAN NOT NULL
-  DEFAULT TRUE` (both repositories, R8, new digest) and the cap counts `rated` rows — clearer
-  queries, at the cost of a migration and a rehearsal before production.
-- **O-M6 — how both are told before the start.** Recommended: `game_start` carries `rated: false`
-  and `unrated_reason: "daily_cap"`; the screen shows «Esta partida no cuenta para tu ELO: ya
-  jugaron 3 partidas hoy» above the first item and keeps it in the match header — both see it before
-  any answer. Alternative: a `match_found {rated, unrated_reason}` frame and a 3 s pre-start screen
-  with the notice, the match clock (F's `ends_at`) starting after it.
-- **O-M7 — does the cap change pairing.** Recommended: no; the pair meets and plays unrated.
-  Alternative: an in-memory count per pair and day, and the lobby prefers another eligible opponent.
-- **O-M8 — the item band.** Recommended: unseen items within ±200 of the mean, widened by 100 until
-  10, then 10 at random; fewer than 10 unseen in the course → fill with seen ones, nearest first.
-  Alternative: `AdaptiveItemSelector` ten times on the mean rating (P ∈ [0.40, 0.75] — skewed below
-  the mean: D from R−191 to R+70).
-- **O-M9 — "seen in the last week".** Recommended: answered in practice or in an exam, or served in
-  a League match, by either player in the last 7 × 24 h. Alternative: answered only (`attempts`,
-  `exam_responses`, `pvp_answers`) — an item shown in a League match but not answered stays
-  eligible.
-- **O-M10 — before G ships.** Recommended: M does not wait for G; an unrated player is placed and
-  expected at 1000, never shown, until G keeps them out. Alternative: M waits for G (and spec 009).
-- **O-M11 — a resumed waiter (with F).** Recommended: F's lobby resume keeps the slot's position and
-  `joined_at`, so the earned window is kept. Alternative: a resume restarts the wait at ±150.
+- **O-M1 — the window:** ±150 at entry, +50 every 20 s, ceiling ±450 (at 120 s); the 300 s lobby
+  limit unchanged.
+- **O-M2 — the larger window:** two players are eligible when their gap is within the larger of the
+  two windows (the long waiter admits a newcomer).
+- **O-M3 — the nearest opponent:** the smallest rating gap among the eligible, ties by the longest
+  wait.
+- **O-M4 — the calendar day in Colombia:** 00:00–24:00 Bogotá (from 05:00 UTC, fixed UTC−5).
+- **O-M5 — no schema change:** an over-cap match is `finished`, deltas 0, reason `daily_cap` for
+  both; the cap counts finished rows without that reason (forfeits count, abandoned rows do not).
+- **O-M6 — told in `game_start`:** `rated: false` and `unrated_reason: "daily_cap"`; the screen shows
+  «Esta partida no cuenta para tu ELO: ya jugaron 3 partidas hoy» above the first item and keeps it
+  in the match header.
+- **O-M7 — the cap does not change pairing:** the pair meets and plays unrated.
+- **O-M8 — the item band:** unseen items within ±200 of the mean, widened by 100 until 10, then 10
+  at random; fewer than 10 unseen in the course → fill with seen ones, nearest first.
+- **O-M9 — "seen":** answered in practice or in an exam, or served in a League match, by either
+  player in the last 7 × 24 h.
+- **O-M10 — M does not wait for G:** an unrated player is placed and expected at 1000, never shown,
+  until G keeps them out.
+- **O-M11 — a resumed waiter keeps the slot:** F's lobby resume keeps the slot's position and
+  `joined_at`, so the earned window is kept.

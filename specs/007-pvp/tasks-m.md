@@ -1,6 +1,6 @@
 # Tasks — spec 007, delivery M (fair matches)
 
-**Plan**: [plan-m.md](plan-m.md) (draft; owner decisions O-M1 … O-M11 open). FR-030, FR-031,
+**Plan**: [plan-m.md](plan-m.md) (approved; owner decisions O-M1 … O-M11 answered 2026-10-21). FR-030, FR-031,
 FR-032 and FR-033 are `[CHANGE]`; delivery M touches the lobby, the match's items, the expectation
 and the close pinned by delivery A (FR-002, FR-004, FR-005, FR-007, FR-008, FR-011) and the close
 retries of delivery H (FR-061).
@@ -14,11 +14,10 @@ retries of delivery H (FR-061).
 
 ## Phase 0: Owner decisions (Blocking)
 
-- [ ] T000 The owner answers O-M1 … O-M11 (plan-m § Decisions); record each answer in plan-m and
-  set its status to approved. The numbers in the tests below (±150, +50 every 20 s, ±450, 3 per
-  day, 05:00 UTC, ±200 / +100) are the recommended ones; a test written for an option the owner
-  rejects is rewritten to the decided option before Phase 3. If O-M5 takes the schema
-  alternative, add T026 (below) and SCHEMA_VERSION 8.
+- [x] T000 The owner answers O-M1 … O-M11 (plan-m § Decisions); record each answer in plan-m and
+  set its status to approved. Done 2026-10-21: every recommended option was approved, so the
+  numbers in the tests below (±150, +50 every 20 s, ±450, 3 per day, 05:00 UTC, ±200 / +100)
+  stand, and there is no schema change (O-M5).
 
 ---
 
@@ -118,9 +117,6 @@ when the match is formed.
   `ActiveMatch.rated`; `game_start` carries `rated` / `unrated_reason`; the close of an unrated match
   calls `finish_pvp_match(…, rated=False, reason="daily_cap")` and `game_end` reports 0 with
   `daily_cap` (T015 green; H's pins green)
-- [ ] T026 [US3] Only if O-M5 takes the schema alternative: `pvp_matches.rated` in both
-  repositories (R8), SCHEMA_VERSION 8 and the new `MIGRATION_SOURCES_DIGEST`
-  (`test_spec002_schema_version.py`), `test_spec002_d3_parity.py` green; the cap reads `rated`
 - [ ] T027 [US3] FR-032: `_form_match` reads the seen ids in a thread and chooses with
   `choose_match_items`; the safe items are `{id, content, options, topic, image_url}` in
   `game_start` (and F's `game_resume`) (T016 green; FR-002, FR-004 pins green)
@@ -157,8 +153,8 @@ when the match is formed.
 
 - T000 → T001 → T002 (pins green) → T010–T018 written and failing → T020–T031 → T090–T093.
 - T020 depends on T010; T021 on T011; T022 on T012; T023 on T013; T024 on T014 and T020; T025 on
-  T015, T021 and T023; T026 only under O-M5's alternative, before T025; T027 on T016, T022 and T023;
-  T028 on T017 and T024; T029 on T018; T030 after T023 (and T026).
+  T015, T021 and T023; T027 on T016, T022 and T023;
+  T028 on T017 and T024; T029 on T018; T030 after T023.
 
 ### Parallel Opportunities
 
