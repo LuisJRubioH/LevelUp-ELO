@@ -175,6 +175,8 @@ const es = {
     noAvailable: "No hay cursos disponibles para tu nivel.",
     gradeRequired: "Necesitamos registrar tu grado para mostrar tus cursos. Contacta a tu docente o al administrador.",
     byInvitation: "Acceso por invitación",
+    needsInvitation: "Con invitación de tu docente",
+    useCode: "Usar un código",
     codeActivated: "Acceso especial activado para {{course}}",
     enrollByCode: "Acceder con código",
     join: "Unirse",

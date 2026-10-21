@@ -71,6 +71,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **B7** | Block 7: procedure resubmission and regrading — one current contribution per procedure | closed |
 | **INV** | Single-use invitations: the teacher generates tokens per group; each enrols one student; unused ones expire; reusable group codes stop working | closed |
 | **PM** | A procedure whose exercise is not in the bank records what was applied (0), not the computed delta (FR-024m, owner 2026-10-19) | closed |
+| **TCH** | No enrolment without a teacher: the catalogue enrols only in a course the teacher of the student's group reviews, recorded with that group (FR-028v, FR-028w, owner 2026-10-21) | closed |
 
 ## Clarifications
 
@@ -346,6 +347,25 @@ removed from the bank and a free id look the same.
   gradable, workshop ids included — and applies nothing; the procedure records what was applied,
   0, and is not marked as applied. Refusing such grades with 409 was considered and rejected: no
   free-id procedure could be graded (owner, 2026-10-19).
+
+### Session 2026-10-21 (owner decision, before the production switch — delivery TCH)
+
+A course taken from the catalogue is enrolled with no group (delivery INV: the catalogue joins no
+group). Spec 006 FR-050 shows a procedure to the teacher whose group links the student to the
+item's course, so a procedure in such a course reaches the teacher of the student's group only when
+that group has no course; otherwise it reaches no teacher. On `main` the teacher of a student's
+group sees every procedure of that student, so the redesign would open this gap at the switch.
+
+- Q: Who reviews the procedures of a course taken from the catalogue? → A: no student enrols in a
+  course without a teacher. The catalogue enrols only in a course the teacher of the student's
+  group reviews — a group with no course, or the group's own course — and the enrolment is
+  recorded with that group; any other course is reached through a teacher's invitation (FR-028v,
+  FR-028w; owner, 2026-10-21).
+- Q: What happens to the enrolments without a teacher that already exist? → A: nothing: they are
+  kept as they are. Production holds only demo accounts, so no repair is needed (owner,
+  2026-10-21).
+- Q: Before or after the production switch? → A: before, because the gap comes with the redesign
+  (owner, 2026-10-21).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -719,6 +739,37 @@ code is tried; another teacher, an admin and a student try to manage them.
     spec 006 FR-042: an admin, like a student, gets 403 on every teacher route, which reveals
     nothing about the group either.)*
 
+### User Story 11 - Every course I enrol in has a teacher (Priority: P1) — delivery TCH
+
+A student enrols from their catalogue only in a course their group's teacher reviews, so a
+procedure they upload in it always reaches that teacher. For any other course they ask their
+teacher for an invitation.
+
+**Why this priority**: a course taken from the catalogue today has no teacher when the student's
+group has its own course: the procedures uploaded in it reach nobody (spec 006 FR-050), so their
+rating effect never comes. The owner decided on 2026-10-21 that no student enrols in a course
+without a teacher, before the production switch.
+
+**Independent Test**: on both engines, students with a group without a course, a group with a
+course, no group, and a group whose teacher is deactivated or not approved enrol from their
+catalogue; the courses list and screen are read; a procedure in the enrolled course is looked for
+in the teacher's queue.
+
+**Acceptance Scenarios**:
+
+1. **US11-AS1** — **Given** a student whose group has no course and an approved, active teacher,
+   **When** they enrol in a course of their catalogue, **Then** they are enrolled with that group,
+   stay in the same group, and a procedure they upload in that course is in that teacher's queue.
+2. **US11-AS2** — **Given** a student with no group, or whose group has another course, or whose
+   group's teacher is deactivated or not approved, **When** they ask to enrol in a course of their
+   catalogue, **Then** they are refused with «Pide a tu docente una invitación para este curso.»
+   and nothing is enrolled; a student whose group has that course as its own, with an approved,
+   active teacher, is enrolled with the group.
+3. **US11-AS3** — **Given** the courses screen, **When** it lists a catalogue course the student
+   is not enrolled in, **Then** it offers «Matricularme» only where the student's group's teacher
+   reviews that course, and for any other says «Con invitación de tu docente» and leads to the
+   invitation tab.
+
 ---
 
 ### Edge Cases
@@ -786,6 +837,19 @@ code is tried; another teacher, an admin and a student try to manage them.
   (FR-028r); that teacher no longer manages its invitations (FR-028t).
 - An invitation used, or revoked, before its expiry → it stays used, or revoked, after the date
   passes (FR-028t).
+
+- A catalogue enrolment request that names a group → the group is ignored; the student is
+  enrolled with their own group or refused (FR-028v), and never joins another group.
+- A student already enrolled in the course, through an invitation or before this rule → the request
+  changes nothing: the enrolment keeps its group (FR-028v).
+- A student who later moves to another group keeps the enrolment with the old group, so the old
+  group's teacher keeps that course's procedures (spec 006 N7).
+- A student who left their group's course enrols in it again from the catalogue, while it is in
+  their catalogue (FR-028v); a course reached only by invitation needs a new invitation.
+- A student who registered publicly has no group → every catalogue course says «Con invitación de
+  tu docente»; they enrol only through an invitation (FR-028v, FR-028w).
+- Enrolments without a group made before this rule → kept as they are (owner, 2026-10-21:
+  production holds only demo accounts).
 
 ## Requirements *(mandatory)*
 
@@ -1111,6 +1175,25 @@ is the net amount its gradings actually applied to the rating.
   shall neither generate it nor return it with a group. The column is kept (AGENTS R8) and V2 no
   longer reads or writes it; invitations live in a new table, created by an additive, idempotent
   migration on both engines. *(V1, frozen, keeps its own code screens — § Out of Scope.)*
+**Enrolment with a teacher (delivery TCH, User Story 11)**
+
+- **FR-028v** [CHANGE]: When a student asks to enrol in a course of their catalogue (FR-028m), the
+  system shall enrol them only if the teacher of their group reviews that course — the student has
+  a group, its teacher is an approved, active teacher, and the group has no course or has that
+  course — and shall record the enrolment with that group, without changing the student's group,
+  so that the course's procedures reach that teacher (spec 006 FR-050). Otherwise the system shall
+  refuse with «Pide a tu docente una invitación para este curso.» (HTTP 403) and change nothing; a
+  teacher's invitation (FR-028l) stays the way into any other course. A group named in the request
+  shall be ignored, and a request for a course the student is already enrolled in shall change
+  nothing. *(Today: the catalogue enrols any student in any course of their catalogue with no
+  group, so a procedure in a course other than the group's own reaches no teacher.)*
+- **FR-028w** [CHANGE]: When the student's courses are listed, the system shall state for each one
+  whether a catalogue enrolment would be accepted by FR-028v, and the courses screen shall offer
+  «Matricularme» only for those; for any other catalogue course the student is not enrolled in, it
+  shall say «Con invitación de tu docente» and lead to the invitation tab. A refused enrolment
+  shall be shown with the server's message. *(Today: every catalogue course offers «Matricularme»,
+  and a refused enrolment shows nothing.)*
+
 - **FR-029** [CHANGE]: The system shall store every rating change — practice answer, diagnostic,
   procedure — under the **course and topic of the item involved**, identified by the course's
   stable identifier and the topic within it. There is one stored rating per student, course and
@@ -1237,6 +1320,8 @@ items of that course, or the student's diagnostic for that course.
   legacy rows contribute to any rating, average or rank shown.
 - **SC-008**: Running the reconciliation a second time changes 0 ratings; no student's existing
   topic rating changes because of it.
+- **SC-009**: After delivery TCH, 0 enrolments are created from the catalogue without a group
+  whose approved, active teacher reviews the course.
 
 ## Assumptions
 
@@ -1286,6 +1371,9 @@ items of that course, or the student's diagnostic for that course.
   «Código de invitación» tab still write and read `groups.invite_code`, so a reusable code still
   enrols students there. Changing V1 for it is not one of the two cases the constitution allows
   (§ Stack); if V1 must stop too, that is a decision for the owner.
+
+- A repair of the enrolments without a group made before delivery TCH: production holds only
+  demo accounts (owner, 2026-10-21).
 
 ## Traceability *(mandatory)*
 
@@ -1375,6 +1463,9 @@ match the scenarios' text.
 | US10-AS8 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_a_gradeless_semillero_leaves_the_invitation_unused`<br>`tests/integration/test_spec001_catalogue.py::test_spec001_gradeless_semillero_keeps_enrolments_but_no_new_invitation` |
 | US10-AS9 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_a_member_of_the_group_is_refused_without_consuming` |
 | US10-AS10 | INV | `tests/integration/test_spec001_invitations.py::test_spec001_only_the_groups_teacher_manages_its_invitations`<br>`tests/api/test_teacher_resource_access.py::test_foreign_group_invitations_are_refused`<br>`tests/api/test_teacher.py::TestGroups::test_invitations_require_teacher_role`<br>`tests/integration/test_postgres_production_guards.py::test_postgres_permissions_diagnostic_and_canonical_answer` |
+| US11-AS1 | TCH | `tests/integration/test_spec001_enrolment_teacher.py::test_spec001_a_group_without_a_course_enrols_with_its_teacher` |
+| US11-AS2 | TCH | `tests/integration/test_spec001_enrolment_teacher.py::test_spec001_enrolment_without_the_groups_teacher_is_refused`<br>`tests/integration/test_spec001_enrolment_teacher.py::test_spec001_the_groups_own_course_enrols_from_the_catalogue` |
+| US11-AS3 | TCH | `frontend/e2e/spec001-enrolment-teacher.spec.ts › Matricularme solo donde el docente del grupo revisa el curso; si no, la invitación (US11-AS3, FR-028w)` |
 | FR-001 | S1 | `tests/unit/domain/test_elo_model.py::TestExpectedScore::test_400_point_advantage_gives_approx_91_percent`<br>`tests/unit/domain/test_spec001_engine_pins.py::test_spec001_fr001_both_engine_paths_use_the_same_expected_success` |
 | FR-002 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_new_topic_answer_from_defaults`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_rating_delta` |
 | FR-003 | S1 | `tests/unit/domain/test_spec001_engine_pins.py::test_spec001_rd_floor_30_holds_and_scales_the_change`<br>`tests/unit/domain/test_spec001_domain.py::test_spec001_next_rd_has_a_floor_of_30` |
@@ -1442,6 +1533,8 @@ match the scenarios' text.
 | FR-028s | INV | `tests/unit/domain/test_spec001_invitations.py::test_spec001_redemption_refusal`<br>`tests/integration/test_spec001_invitations.py::test_spec001_a_gradeless_semillero_leaves_the_invitation_unused`<br>`tests/integration/test_spec001_invitations.py::test_spec001_a_member_of_the_group_is_refused_without_consuming`<br>`tests/integration/test_spec001_invitations.py::test_spec001_a_group_without_course_is_refused_without_consuming`<br>`tests/integration/test_spec001_invitations.py::test_spec001_only_a_student_redeems_an_invitation`<br>`tests/integration/test_spec001_invitations.py::test_spec001_one_student_redeeming_two_invitations_at_once_uses_one`<br>`tests/integration/test_spec001_invitations.py::test_spec001_repository_redemption_statuses` |
 | FR-028t | INV | `tests/unit/domain/test_spec001_invitations.py::test_spec001_invitation_status`<br>`tests/integration/test_spec001_invitations.py::test_spec001_teacher_generates_single_use_invitations`<br>`tests/integration/test_spec001_invitations.py::test_spec001_the_teacher_sees_the_public_name_of_who_used_it`<br>`tests/integration/test_spec001_invitations.py::test_spec001_a_revoked_invitation_is_refused`<br>`tests/integration/test_spec001_invitations.py::test_spec001_an_expired_invitation_is_refused`<br>`tests/integration/test_spec001_invitations.py::test_spec001_only_the_groups_teacher_manages_its_invitations`<br>`tests/api/test_teacher.py::TestGroups::test_generate_list_and_revoke_invitations`<br>`tests/api/test_teacher_resource_access.py::test_foreign_group_invitations_are_refused`<br>`frontend/e2e/spec001-invitations.spec.ts › El docente genera invitaciones, ve sus estados, copia y anula (US10-AS1, FR-028t)`<br>`frontend/e2e/teacher-load-errors.spec.ts › grupos: si las invitaciones no cargan, no se muestran como «Aún no hay invitaciones»` |
 | FR-028u | INV | `tests/integration/test_spec001_invitations.py::test_spec001_the_old_reusable_code_no_longer_enrols`<br>`tests/integration/test_spec001_invitations.py::test_spec001_invitations_are_an_additive_migration`<br>`tests/api/test_teacher.py::TestGroups::test_groups_carry_no_reusable_code` |
+| FR-028v | TCH | `tests/unit/domain/test_spec001_catalogue.py::test_spec001_catalogue_enrolment_needs_the_groups_teacher`<br>`tests/integration/test_spec001_enrolment_teacher.py::test_spec001_a_group_without_a_course_enrols_with_its_teacher`<br>`tests/integration/test_spec001_enrolment_teacher.py::test_spec001_enrolment_without_the_groups_teacher_is_refused`<br>`tests/integration/test_spec001_enrolment_teacher.py::test_spec001_the_groups_own_course_enrols_from_the_catalogue`<br>`tests/integration/test_spec001_enrolment_teacher.py::test_spec001_a_course_already_enrolled_keeps_its_group`<br>`tests/integration/test_enrol_joins_no_group.py::test_catalogue_enrolment_ignores_a_group_id` |
+| FR-028w | TCH | `tests/integration/test_spec001_enrolment_teacher.py::test_spec001_the_course_list_says_which_courses_enrol`<br>`frontend/e2e/spec001-enrolment-teacher.spec.ts › Matricularme solo donde el docente del grupo revisa el curso; si no, la invitación (US11-AS3, FR-028w)`<br>`frontend/e2e/spec001-enrolment-teacher.spec.ts › Una matrícula rechazada muestra el mensaje del servidor (FR-028w)` |
 | FR-029 | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_answer_writes_only_the_items_course_topic`<br>`tests/unit/interface/test_spec001_v1_compat.py::test_spec001_v1_answer_lands_on_the_items_course_and_topic`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_diagnostic_writes_course_topic_baselines`<br>`tests/integration/test_spec001_course_topic_store.py::test_spec001_procedure_grade_bumps_the_items_course_topic_once` |
 | FR-029a | S1 | `tests/unit/application/test_spec001_service.py::test_spec001_selection_rating_is_topic_or_course`<br>`tests/unit/application/test_spec001_service.py::test_spec001_unrated_course_selects_at_1000_and_ignores_the_diagnostic_average`<br>`tests/unit/application/test_spec001_rating_read_service.py::test_spec001_course_rating_of`<br>`tests/unit/application/test_spec001_service.py::test_spec001_pvp_shows_pending_never_the_1000_fallback`<br>`tests/api/test_spec001_api.py::test_spec001_course_map_shows_unrated_topics_as_pending` |
 | FR-029b | S1 | `tests/integration/test_spec001_course_topic_store.py::test_spec001_pvp_delta_reaches_every_rated_topic_once`<br>`tests/integration/test_spec001_concurrent_rating_writers.py::test_spec001_a_pvp_result_applied_during_an_answer_keeps_its_delta` |
@@ -1494,6 +1587,8 @@ Brownfield exception to "no implementation detail": where the current behaviour 
 | FR-028k | `get_available_courses_by_level` (both repos) filters on block `Semillero {grade}°`, which no course has; without a grade it returns every `Semillero` course; `student_view.py` `_student_block` (V1) |
 | FR-028l | `enroll_by_code` (`api/routers/student.py:311`) reads `group["id"]` while `get_group_by_invite_code` returns `group_id` (500 on both engines), and has no grade check; `GET /api/student/courses` returns only `get_available_courses` |
 | FR-028m | `api/schemas/auth.py:22` (`grade` optional for every level); `POST /api/student/enroll` checks only that the course exists |
+| FR-028v | `StudentService.enroll_from_catalogue` (`src/application/services/student_service.py`) calls `enroll_user(user_id, course_id)` with no group; `_procedure_reaches_teacher` (both repositories) links a procedure to a teacher only through a group with no course or with the item's course |
+| FR-028w | `CourseResponse` (`api/schemas/student.py`) has no field for it; `Courses.tsx` offers «Matricularme» for every catalogue course and its enrol mutation has no `onError` |
 | FR-028n | `_migrate_courses_block_check`: `postgres_repository.py:1228` (returns only if the definition contains `'Semillero 6'`, so it drops and re-adds every run), `sqlite_repository.py:915` (probe insert, then rename → create → copy → drop) |
 | FR-028o | `frontend/src/pages/Student/Courses.tsx` shows `courses.noAvailable` for an empty catalogue |
 | FR-028p, FR-028u | Before delivery INV: `generate_group_invite_code` (both repositories) wrote one random 6-character code to `groups.invite_code`, replacing the previous one; `POST /api/teacher/groups/{id}/invite-code`; `GET /api/teacher/groups` returned `invite_code` |
