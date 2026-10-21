@@ -1,7 +1,7 @@
 # Plan — spec 007, delivery S: the League's answers in the statistics
 
 **Spec**: [spec.md](spec.md) § Deliveries, S (US7; FR-070) · **Branch**: `007-s`, from `redesign`
-· **Date**: 2026-10-21 · **Status**: draft for the owner's approval (decisions O-S1 … O-S8 open)
+· **Date**: 2026-10-21 · **Status**: approved (owner, 2026-10-21: O-S1 … O-S8 as recommended)
 
 ## Summary
 
@@ -30,7 +30,7 @@ sheets) and spec 008 T (the subtopic report) — they are `attempts` figures.
 | Layers (III, R2) | the counting rules (per topic, per item, most missed first, the share) are pure functions with no I/O in a new `src/domain/pvp/answer_stats.py`, beside F's `outcome.py` (O-F9) and M's `matchmaking.py` / `match_items.py`; the application service calls the repository and the domain; the routers only compose; the code PR adds the file to spec 007 § Code Scope |
 | Raw rows (R15) | the new reads return one raw row per answer (`match_id`, `course_id`, `item_id`, `topic`, `is_correct`, `answered_at`, and `user_id` on the teacher's read); no `COUNT`, average, rounding or order by result in SQL — the domain counts. No rating value is read or written |
 | Dual database (IV, R1) | each new read lands in both repositories with an identical signature and `@_read_only` (R4); `db_sync_check.py`; integration tests on both engines; the D2 read-only list and `HOT_READS` gain them |
-| Schema (R8) | **no schema change** under the recommended O-S7: `pvp_answers` already holds what S counts, and the reads reach it through `pvp_matches` (`idx_pvp_matches_players`) and `idx_pvp_answers_match (match_id, user_id)`. The alternative (an index on `user_id`, the chosen option) is SCHEMA_VERSION 8 — E3 (#73) holds 7 |
+| Schema (R8) | **no schema change** under O-S7: `pvp_answers` already holds what S counts, and the reads reach it through `pvp_matches` (`idx_pvp_matches_players`) and `idx_pvp_answers_match (match_id, user_id)`. |
 | Integrity of measurement (V; R15, R16, R19) | League answers never enter `attempts`, so they never reach a rating, the item-difficulty update, the selector's history, the ranking's eligibility or the streak; the close still applies the delta from the in-memory score (FR-007); nothing is rebuilt from `attempts` or `pvp_answers` |
 | Security (VI, V2-R9) | a student reads only their own answers, never the opponent's; a teacher reads only their students (spec 006 FR-040, `_require_teacher_student`) and, under O-S5, only in the courses that link them; no `correct_option`, no item `difficulty` (FR-032's rule) and no opponent identity reach either screen |
 | Async (R17) | the reads are REST endpoints (`def`, threadpool); nothing is added to the socket path, `_lock` or the close |
@@ -241,45 +241,28 @@ spec 005 K3's export test (the «KatIA» sheet) and `tests/api/test_spec001_api.
 - **Before F / M land**, S works on today's matches (finished or abandoned): it reads no column
   F or M add.
 
-## Decisions (open — the owner answers each before the tests are written)
+## Decisions (owner, 2026-10-21)
 
-- **O-S1 — Where the League's answers appear.** (a) **Recommended:** in their own section — the
-  student's Stats card «En la Liga», the teacher's student panel section and an export sheet —
-  and nowhere else: every `attempts` figure (attempts, accuracy, streak, activity, achievements,
-  subtopic report, dashboard, «attention», metrics, ranking eligibility, AI analysis) stays as
-  it is. (b) Also add them to the per-topic/subtopic report with a `source` split (practice /
-  League). (c) Also add them to the dashboard's attempts and accuracy — changes spec 006
-  FR-041/043's figures and the «attention» list; not recommended.
-- **O-S2 — Which matches' answers count.** (a) **Recommended:** every stored answer of a closed
-  match, whatever its outcome — finished, forfeit (F), `daily_cap` (M), abandoned (`not_saved`,
-  `orphaned`, `account_expired`): the answer was judged and is study evidence; the rating outcome
-  is spec 001's business. Active matches are never read. (b) Only `status = 'finished'` (the
-  scenario's literal "a finished match"), so a match a restart or a failed save abandoned shows
-  nothing.
-- **O-S3 — What "per item" shows on the screens.** (a) **Recommended:** per topic (answers,
-  correct, share) plus the **5** most-missed items — the statement rendered with `MathContent`,
-  «falló n de m» — on both screens; never the key, never the difficulty. (b) Per topic only on
-  the screens; per item only in the export. (c) Every answered item, paged.
-- **O-S4 — The export.** (a) **Recommended:** a fifth XLSX sheet «Liga», one row per student ×
-  course × topic × item with answers and correct (the student named as in «Intentos»); the CSV
-  unchanged. (b) An aggregated sheet without the student (per course × topic × item), as the
-  «KatIA» sheet is. (c) No export in S.
-- **O-S5 — The teacher's courses and window.** (a) **Recommended:** only matches in the courses
-  that link the student to the teacher (spec 006 FR-040, as every export sheet), over the whole
-  history (as the subtopic report and the KatIA record in the same panel). (b) Also honour the
-  dashboard's 7 / 30 / all window (FR-043) in the panel and the sheet. (c) Every course of the
-  student.
-- **O-S6 — The endpoints.** (a) **Recommended:** two new read endpoints,
-  `GET /api/student/league/stats` and `GET /api/teacher/student/{id}/league` (the KatIA-history
-  pattern): `StudentStatsResponse` and `get_student_dashboard`, which spec 001, 006 and 008 pin,
-  stay untouched. (b) A `league` field in `/api/student/stats` and in
-  `/api/teacher/student/{id}` — one request less per screen, two shared responses changed.
-- **O-S7 — Schema.** (a) **Recommended: no schema change** — read through `pvp_matches` and the
-  existing `(match_id, user_id)` index; no chosen option, no answer time. (b) SCHEMA_VERSION 8
-  with an index `idx_pvp_answers_user (user_id)` only (both engines, additive, R8; a new
-  `MIGRATION_SOURCES_DIGEST`; lands after E3's 7). (c) (b) plus a nullable `selected_option` on
-  `pvp_answers`, written from S on, so the teacher sees the chosen distractor as exams do (spec
-  006 X2 FR-033); older rows NULL; touches `save_pvp_answer` and `api/websocket/pvp.py`.
-- **O-S8 — A failed answer write.** (a) **Recommended:** unchanged — logged, the answer still
-  scores, and it is missing from the statistics (the screens say "answers recorded"). (b) Retry
-  the insert once in the same thread before logging — touches the socket path pinned by A.
+The owner approved the recommended option of each decision.
+
+- **O-S1 — their own section:** the student's Stats card «En la Liga», the teacher's student panel
+  section and an export sheet, and nowhere else; every `attempts` figure (attempts, accuracy,
+  streak, activity, achievements, subtopic report, dashboard, «attention», metrics, ranking
+  eligibility, AI analysis) stays as it is.
+- **O-S2 — every closed match:** every stored answer of a closed match counts, whatever its outcome
+  — finished, forfeit (F), `daily_cap` (M), abandoned (`not_saved`, `orphaned`, `account_expired`).
+  Active matches are never read.
+- **O-S3 — per topic and the 5 most-missed items:** per topic (answers, correct, share) plus the 5
+  most-missed items — the statement rendered with `MathContent`, «falló n de m» — on both screens;
+  never the key, never the difficulty.
+- **O-S4 — a fifth XLSX sheet «Liga»:** one row per student × course × topic × item with answers and
+  correct (the student named as in «Intentos»); the CSV unchanged.
+- **O-S5 — the linking courses, whole history:** only matches in the courses that link the student
+  to the teacher (spec 006 FR-040), over the whole history.
+- **O-S6 — two new read endpoints:** `GET /api/student/league/stats` and
+  `GET /api/teacher/student/{id}/league`; `StudentStatsResponse` and `get_student_dashboard` stay
+  untouched.
+- **O-S7 — no schema change:** read through `pvp_matches` and the existing `(match_id, user_id)`
+  index.
+- **O-S8 — a failed answer write stays as today:** logged, the answer still scores, and it is
+  missing from the statistics.

@@ -1,6 +1,6 @@
 # Tasks — spec 007, delivery S (the League's answers in the statistics)
 
-**Plan**: [plan-s.md](plan-s.md) (draft for the owner's approval; decisions O-S1 … O-S8 open).
+**Plan**: [plan-s.md](plan-s.md) (approved; owner decisions O-S1 … O-S8 answered 2026-10-21).
 FR-070 is `[CHANGE]`; delivery S changes no `[AS-IS]` requirement of spec 007 and does not touch
 the socket path pinned by delivery A, but it must leave the `attempts` figures of spec 001, spec
 006 C1 and spec 008 T as they are.
@@ -14,12 +14,9 @@ the socket path pinned by delivery A, but it must leave the `attempts` figures o
 
 ## Phase 0: Owner decisions (Blocking)
 
-- [ ] T000 The owner answers O-S1 … O-S8 (plan-s § Decisions); record each answer in plan-s and
-  set its status to approved. The tests below are written for the recommended options; an answer
-  that differs changes the named tests before they are written (O-S2 (b) flips
-  `test_spec007_answers_of_every_closed_match_count`; O-S3/O-S4/O-S5/O-S6 change the shapes, the
-  sheet and the endpoints; O-S7 (b)/(c) adds T005 and SCHEMA_VERSION 8 after E3's 7; O-S8 (b)
-  adds a socket-path task and a delivery A re-run).
+- [x] T000 The owner answers O-S1 … O-S8 (plan-s § Decisions); record each answer in plan-s and
+  set its status to approved. Done 2026-10-21: every recommended option was approved, so the tests
+  below stand as written and there is no schema change (O-S7).
 
 ---
 
