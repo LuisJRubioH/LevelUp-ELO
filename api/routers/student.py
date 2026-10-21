@@ -386,10 +386,11 @@ def course_blocks(course_id: str, user: CurrentUser, repo: RepoDep):
 
 
 @router.get("/pvp/history")
-def pvp_history(user: CurrentUser, repo: RepoDep):
-    """Historial de partidas PvP del estudiante autenticado; el rival, por su nombre visible
-    (spec 004 FR-021), y el delta a mostrar, redondeado en el servidor (estudio 007 V14)."""
-    return RatingReadService(repo).pvp_history(user["user_id"])
+def pvp_history(user: CurrentUser, repo: RepoDep, before: int | None = Query(None)):
+    """Historial de partidas PvP del estudiante autenticado, de a 5 (spec 007 FR-060): terminadas
+    y abandonadas, con su materia y su motivo; `before` pide las siguientes. El rival, por su
+    nombre visible (spec 004 FR-021), y el delta a mostrar, redondeado en el servidor (V14)."""
+    return RatingReadService(repo).pvp_history(user["user_id"], before)
 
 
 @router.put("/display-name")

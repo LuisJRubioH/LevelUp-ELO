@@ -42,7 +42,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **M** | Fair matches: a rating window that widens while waiting and a daily cap per pair (D5); items near both ratings, unseen for a week, with images, without their difficulty (D7); the expectation read when the match is formed (V24) | planned |
 | **F** | The match flow: the server's clock and a speed tiebreak (D8); a 20 s grace to come back, then a forfeit (D4) | planned |
 | **L** | Socket and process limits: one live socket per student, a frame size and a message rate (D9); one worker in production by any route (V17) | closed |
-| **H** | History: every match with its outcome reason and subject, as many as the screen shows (D10); a close that fails is retried, then recorded as not saved (V11) | planned |
+| **H** | History: every match with its outcome reason and subject, as many as the screen shows (D10); a close that fails is retried, then recorded as not saved (V11) | closed |
 | **S** | Statistics: the League's answers feed the student's and the teacher's statistics (V23) | planned |
 
 ## Clarifications
@@ -374,8 +374,8 @@ closes their delivery.
 | US4-AS3 | F | PENDING |
 | US5-AS1 | L | `tests/integration/test_pvp_limits.py::test_spec007_a_second_league_socket_is_refused`<br>`tests/integration/test_pvp_limits.py::test_spec007_a_closed_league_socket_frees_the_student`<br>`frontend/e2e/league.spec.ts › una segunda pestaña dice por qué (spec 007 US5-AS1)` |
 | US5-AS2 | L | `tests/integration/test_pvp_limits.py::test_spec007_an_oversized_frame_is_dropped`<br>`tests/integration/test_pvp_limits.py::test_spec007_a_burst_beyond_the_rate_is_dropped`<br>`tests/integration/test_pvp_limits.py::test_spec007_persisting_abuse_closes_the_socket`<br>`frontend/e2e/league.spec.ts › demasiados mensajes cierran la conexión con su motivo (spec 007 US5-AS2)` |
-| US6-AS1 | H | PENDING |
-| US6-AS2 | H | PENDING |
+| US6-AS1 | H | `tests/integration/test_spec007_h_history.py::test_spec007_history_lists_finished_abandoned_and_not_saved`<br>`tests/integration/test_spec007_h_history.py::test_spec007_history_pages_of_five_reach_every_match`<br>`frontend/e2e/league.spec.ts › el historial muestra partidas abandonadas y no guardadas con su materia (spec 007 US6-AS1)` |
+| US6-AS2 | H | `tests/integration/test_spec007_h_history.py::test_spec007_a_failing_close_is_retried_then_recorded_not_saved` |
 | US7-AS1 | S | PENDING |
 | FR-001 | A | `tests/integration/test_pvp_enrolment.py::test_pvp_admits_an_enrolled_student`<br>`tests/integration/test_pvp_enrolment.py::test_pvp_still_refuses_a_student_not_enrolled` |
 | FR-002 | A | `tests/integration/test_pvp_enrolment.py::test_pvp_matches_and_finishes_a_game_between_enrolled_students`<br>`tests/integration/test_pvp_repository.py::TestPvpMatchLifecycle::test_create_returns_match_id` |
@@ -404,6 +404,6 @@ closes their delivery.
 | FR-050 | L | `tests/integration/test_pvp_limits.py::test_spec007_a_second_league_socket_is_refused`<br>`tests/integration/test_pvp_limits.py::test_spec007_a_closed_league_socket_frees_the_student` |
 | FR-051 | L | `tests/integration/test_pvp_limits.py::test_spec007_an_oversized_frame_is_dropped`<br>`tests/integration/test_pvp_limits.py::test_spec007_a_burst_beyond_the_rate_is_dropped`<br>`tests/integration/test_pvp_limits.py::test_spec007_persisting_abuse_closes_the_socket`<br>`tests/integration/test_pvp_limits.py::test_spec007_an_oversized_sign_in_frame_is_dropped`<br>`tests/unit/api/test_pvp_limits.py::test_spec007_socket_limits_accept_up_to_the_rate_then_drop`<br>`tests/unit/api/test_pvp_limits.py::test_spec007_socket_limits_abuse_is_ten_drops_within_ten_seconds` |
 | FR-052 | L | `tests/api/test_single_worker.py::test_spec007_a_second_worker_refuses_to_start`<br>`tests/api/test_single_worker.py::test_spec007_a_single_worker_starts_and_a_restart_is_not_blocked`<br>`tests/api/test_single_worker.py::test_spec007_web_concurrency_is_still_refused` |
-| FR-060 | H | PENDING |
-| FR-061 | H | PENDING |
+| FR-060 | H | `tests/integration/test_spec007_h_history.py::test_spec007_history_lists_finished_abandoned_and_not_saved`<br>`tests/integration/test_spec007_h_history.py::test_spec007_history_pages_of_five_reach_every_match`<br>`tests/integration/test_spec007_h_history.py::test_spec007_the_sweep_records_why`<br>`frontend/e2e/league.spec.ts › ver más carga la página siguiente del historial (spec 007 FR-060)` |
+| FR-061 | H | `tests/integration/test_spec007_h_history.py::test_spec007_a_failing_close_is_retried_then_recorded_not_saved`<br>`tests/integration/test_spec007_h_history.py::test_spec007_a_close_that_succeeds_on_retry_finishes_normally`<br>`tests/integration/test_spec007_h_history.py::test_spec007_abandon_is_idempotent_and_skips_a_finished_match` |
 | FR-070 | S | PENDING |

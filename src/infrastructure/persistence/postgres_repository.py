@@ -5509,7 +5509,9 @@ class PostgresRepository:
             cursor = conn.cursor()
             cursor.execute(
                 """
-                UPDATE pvp_matches SET status='abandoned', finished_at=NOW()
+                UPDATE pvp_matches SET status='abandoned', finished_at=NOW(),
+                    elo_delta_p1=0, elo_reason_p1='orphaned',
+                    elo_delta_p2=0, elo_reason_p2='orphaned'
                 WHERE status='active'
                   AND started_at < NOW() - make_interval(secs => %s)
                 """,
@@ -5523,7 +5525,33 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    def get_pvp_history(self, user_id: int, limit: int = 20) -> list[dict]:
+    def abandon_pvp_match(self, match_id: int, reason: str) -> bool:
+        """Spec 007 FR-061: close a match that is still active as abandoned with `reason`,
+        changing no rating (both deltas 0). False when it was no longer active."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                """UPDATE pvp_matches SET status='abandoned', finished_at=NOW(),
+                       elo_delta_p1=0, elo_reason_p1=%s, elo_delta_p2=0, elo_reason_p2=%s
+                   WHERE id = %s AND status='active'""",
+                (reason, reason, match_id),
+            )
+            changed = cursor.rowcount
+            conn.commit()
+            return changed == 1
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def get_pvp_history(
+        self, user_id: int, limit: int = 20, before: int | None = None
+    ) -> list[dict]:
+        """Spec 007 FR-060: the student's closed matches — finished or abandoned, never active —
+        newest first (by close, then id), each with its subject and the student's own reason.
+        `before` (a match id) returns the ones after it in that order."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -5531,16 +5559,21 @@ class PostgresRepository:
                 """
                 SELECT m.id, m.course_id, m.winner_id, m.score_p1, m.score_p2,
                        m.elo_delta_p1, m.elo_delta_p2, m.finished_at,
-                       m.player1_id, m.player2_id,
+                       m.player1_id, m.player2_id, m.status,
+                       m.elo_reason_p1, m.elo_reason_p2, c.name AS course_name,
                        COALESCE(u1.display_name, u1.username) AS p1_name,
                        COALESCE(u2.display_name, u2.username) AS p2_name
                 FROM pvp_matches m
                 JOIN users u1 ON u1.id = m.player1_id
                 JOIN users u2 ON u2.id = m.player2_id
-                WHERE (m.player1_id = %s OR m.player2_id = %s) AND m.status = 'finished'
-                ORDER BY m.finished_at DESC LIMIT %s
+                LEFT JOIN courses c ON c.id = m.course_id
+                WHERE (m.player1_id = %s OR m.player2_id = %s)
+                  AND m.status IN ('finished', 'abandoned')
+                  AND (%s::INTEGER IS NULL OR (m.finished_at, m.id) <
+                       (SELECT finished_at, id FROM pvp_matches WHERE id = %s))
+                ORDER BY m.finished_at DESC, m.id DESC LIMIT %s
                 """,
-                (user_id, user_id, limit),
+                (user_id, user_id, before, before, limit),
             )
             results = []
             for r in cursor.fetchall():
@@ -5549,6 +5582,9 @@ class PostgresRepository:
                     {
                         "match_id": r["id"],
                         "course_id": r["course_id"],
+                        "course_name": r["course_name"] or r["course_id"],
+                        "status": r["status"],
+                        "reason": r["elo_reason_p1"] if is_p1 else r["elo_reason_p2"],
                         "won": r["winner_id"] == user_id,
                         "draw": r["winner_id"] is None,
                         "my_score": r["score_p1"] if is_p1 else r["score_p2"],
