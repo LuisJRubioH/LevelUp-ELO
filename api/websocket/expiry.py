@@ -49,13 +49,13 @@ async def sweep_expired_accounts(repo, now: datetime | None = None) -> list[int]
     return expired
 
 
-async def run_sweeper(get_repo, interval: float = SWEEP_SECONDS) -> None:
-    """Started with the app: one sweep per `interval` seconds until cancelled at shutdown. A sweep
-    that fails is logged and the next one tries again."""
+async def run_sweeper(repo, interval: float = SWEEP_SECONDS) -> None:
+    """Started with the app, on the repository the app opened: one sweep per `interval` seconds
+    until cancelled at shutdown. A sweep that fails is logged and the next one tries again."""
     while True:
         await asyncio.sleep(interval)
         try:
-            await sweep_expired_accounts(get_repo())
+            await sweep_expired_accounts(repo)
         except asyncio.CancelledError:
             raise
         except Exception as exc:

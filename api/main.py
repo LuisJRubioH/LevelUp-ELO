@@ -81,7 +81,9 @@ async def lifespan(app: FastAPI):
     # Spec 004 FR-047: the sockets of an account whose last day of access ended are closed.
     from api.websocket.expiry import run_sweeper
 
-    sweeper = asyncio.create_task(run_sweeper(get_repository))
+    # The repository opened above, like the orphan sweep below: resolving it again on every
+    # pass could build a second one (R12) whenever the singleton is unset.
+    sweeper = asyncio.create_task(run_sweeper(repo))
     # Survey 007 V22: close orphaned PvP matches while the API runs, not only at deploy.
     from api.websocket import pvp as _pvp
 
