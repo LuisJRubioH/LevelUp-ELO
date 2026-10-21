@@ -919,9 +919,9 @@ def list_exam_templates_for_student(
     """Plantillas de examen visibles a este estudiante en el curso.
 
     Filtrado por:
-    - Plantilla NO archivada del curso indicado
-    - Y: no tiene asignaciones (legacy/abierta) → visible a todos los inscritos
-    -    O: hay una asignación al grupo del estudiante con ventana activa
+    - Plantilla NO archivada del curso indicado, aún no presentada (spec 006 FR-021)
+    - Con una asignación de ventana abierta a su grupo principal o al grupo de su matrícula en
+      el curso (FR-022a); una plantilla sin asignación es un borrador (FR-030)
     """
     _require_enrolment(_make_service(repo), user["user_id"], course_id)
     templates = repo.list_active_templates_for_student(user_id=user["user_id"], course_id=course_id)

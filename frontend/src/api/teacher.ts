@@ -44,10 +44,10 @@ export interface StudentSummary {
   user_id: number;
   /** Spec 004 FR-023: the display name, else the username of an account without one. */
   name: string;
-  global_elo: number | null; // null = pending diagnostic (spec 001)
-  display_rating: number | null; // what screens show (FR-028j)
+  /** Spec 006 FR-041c: the «Todos» rating (the courses that link the student to the teacher),
+   * as screens show it (spec 001 FR-028j); null = pending diagnostic. No other rating is sent. */
+  display_rating: number | null;
   rank_label: string | null;
-  overall_status: "rated" | "pending_diagnostic";
   total_attempts: number;
   accuracy: number;
   last_activity: string | null;
@@ -93,6 +93,20 @@ export interface StudentPath {
   nodes: PathRecordNode[];
 }
 
+/** Spec 006 FR-041a/b: what a set is ranked on — a course, or the courses that link each student
+ * to the teacher. */
+export type ConsoleBasis =
+  | { kind: "course"; course_id: string; course_name: string }
+  | { kind: "linked_courses" };
+
+/** Spec 006 FR-041c: a place, with the rating and label it was ranked on. */
+export interface ConsolePlace {
+  user_id: number;
+  rank: number | null;
+  display_rating: number | null;
+  rank_label: string | null;
+}
+
 /** Spec 006 FR-041: a set's figures, computed by the server; screens render them as given. */
 export interface ConsoleFigures {
   n: number;
@@ -100,8 +114,9 @@ export interface ConsoleFigures {
   accuracy: number | null; // percent, over students with attempts in the window
   attempts: number;
   attention: number[]; // user ids
-  ranking: { user_id: number; rank: number | null }[]; // competition ranks, pending last
+  ranking: ConsolePlace[]; // competition ranks, pending last
   histogram: { label: string; count: number }[];
+  basis: ConsoleBasis;
 }
 
 export interface ConsoleSummary extends ConsoleFigures {

@@ -7,8 +7,8 @@
 **Status**: Approved by the owner (2026-10-19), with N1 … N11 as recommended except N10's range
 buttons, which get a use (FR-043). Written from the as-is survey
 (`docs/sdd/teacher-exams-survey.md`, LuisJRubioH/LevelUp-ELO#43), re-verified on 2026-10-19 (its
-§ 7). Delivery A pins what already holds; X1, X2, C1 and P1 are implemented. Delivery RV
-(2026-10-21) fixes three findings of the 2026-10-20 review before the switch.
+§ 7). Delivery A pins what already holds; X1, X2, C1, P1 and RV are implemented. RV
+(2026-10-21) fixed three findings of the 2026-10-20 review before the switch.
 
 **Input**: Roadmap M6 (`docs/sdd/roadmap.md`): dashboard metrics, exports, exam mode, procedure
 grading flow.
@@ -47,7 +47,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **X2** | Templates and results: private until assigned, locked once taken, assignment checks the course and commits all groups or none, results of the teacher's own students on their first attempt, per student, with the chosen option kept | closed |
 | **C1** | The console from the server: one student set everywhere (screens, exports, counts), the group summary, ranking and «attention» list computed by the server with competition ranks, the dashboard's 7-day, 30-day and full-history views, teacher routes for teachers only, dead code removed | closed |
 | **P1** | The procedures queue: follows the item's course, active non-test students only, no submission left without a teacher, the grade slider starts empty, the AI feedback shown, a stale AI score cleared on resubmission | closed |
-| **RV** | Review fixes before the switch (owner, 2026-10-21): a student sees the exams of every group that links them to the course; the console ranks a group on its course and «Todos» on the courses that link each student to the teacher, and shows the rating it ranked on | planned |
+| **RV** | Review fixes before the switch (owner, 2026-10-21): a student sees the exams of every group that links them to the course; the console ranks a group on its course and «Todos» on the courses that link each student to the teacher, and shows the rating it ranked on | closed |
 
 ## Clarifications
 
@@ -360,7 +360,7 @@ closes their delivery.
 | US2-AS1 | X1 | `tests/integration/test_spec006_x1_exams.py::test_only_enrolled_students_reach_exams` |
 | US2-AS2 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_template_is_graded_once`<br>`tests/integration/test_spec006_x1_exams.py::test_pending_drops_a_submitted_template` |
 | US2-AS3 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_removed_item_is_reported_not_blocking`<br>`frontend/e2e/spec006-x1-pending.spec.ts › una pregunta retirada del banco se muestra como no calificada` |
-| US2-AS4 | RV | PENDING |
+| US2-AS4 | RV | `tests/integration/test_spec006_x1_exams.py::test_a_second_group_keeps_the_first_groups_exams` |
 | US3-AS1 | X2 | `tests/integration/test_spec006_x2_templates.py::test_results_count_my_students_first_submission`<br>`frontend/e2e/spec006-x2-templates.spec.ts › los resultados muestran a cada estudiante con la opción que eligió` |
 | US3-AS2 | X2 | `tests/integration/test_spec006_x2_templates.py::test_a_started_template_cannot_change_its_items` |
 | US3-AS3 | X2 | `tests/integration/test_spec006_x2_templates.py::test_an_unassigned_template_is_a_draft` |
@@ -368,7 +368,7 @@ closes their delivery.
 | US4-AS2 | C1 | `tests/integration/test_spec006_c1_console.py::test_every_place_lists_the_same_students` |
 | US4-AS3 | C1 | `tests/integration/test_spec006_c1_console.py::test_an_admin_gets_403_on_teacher_routes` |
 | US4-AS4 | C1 | `tests/integration/test_spec006_c1_console.py::test_the_dashboard_counts_the_chosen_window`<br>`frontend/e2e/spec006-c1-console.spec.ts › 7d, 30d y Todo piden esa ventana al servidor (US4-AS4, FR-043)` |
-| US4-AS5 | RV | PENDING |
+| US4-AS5 | RV | `tests/integration/test_spec006_c1_console.py::test_a_group_ranks_on_its_course`<br>`tests/integration/test_spec006_c1_console.py::test_all_groups_rank_on_the_courses_linked_to_the_teacher`<br>`frontend/e2e/spec006-c1-console.spec.ts › cada grupo se ordena por su curso y «Todos» por la media de sus cursos contigo (US4-AS5, FR-041c)` |
 | US5-AS1 | P1 | `tests/integration/test_spec006_p1_queue.py::test_the_queue_follows_the_items_course`<br>`tests/integration/test_spec006_p1_queue.py::test_inactive_and_test_students_are_not_queued` |
 | US5-AS2 | P1 | `tests/integration/test_spec006_p1_queue.py::test_a_resubmission_clears_the_ai_score`<br>`frontend/e2e/spec006-p1-grade.spec.ts › la nota empieza vacía y la de la IA se muestra al lado, con su retroalimentación (US5-AS2, FR-051)` |
 | FR-001 | A | `tests/api/test_student.py::TestExamMode::test_exam_start`<br>`tests/api/test_spec001_answer_pins.py::test_spec001_no_response_carries_the_correct_option` |
@@ -386,7 +386,7 @@ closes their delivery.
 | FR-020 | X1 | `tests/integration/test_spec006_x1_exams.py::test_only_enrolled_students_reach_exams`<br>`tests/integration/test_spec006_x1_exams.py::test_a_student_no_longer_enrolled_cannot_submit`<br>`tests/integration/test_spec006_x1_exams.py::test_an_empty_course_is_refused_when_listing`<br>`tests/api/test_student.py::TestExamMode::test_exam_start_nonexistent_course` |
 | FR-021 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_template_is_graded_once` |
 | FR-022 | X1 | `tests/integration/test_spec006_x1_exams.py::test_pending_drops_a_submitted_template`<br>`frontend/e2e/spec006-x1-pending.spec.ts › lista los exámenes asignados pendientes y prepara el elegido` |
-| FR-022a | RV | PENDING |
+| FR-022a | RV | `tests/integration/test_spec006_x1_exams.py::test_a_second_group_keeps_the_first_groups_exams` |
 | FR-023 | X1 | `tests/integration/test_spec006_x1_exams.py::test_the_course_name_comes_from_the_course`<br>`tests/integration/test_spec006_x1_exams.py::test_exam_starts_are_limited`<br>`tests/integration/test_spec006_x1_exams.py::test_stale_sessions_are_deleted` |
 | FR-024 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_removed_item_is_reported_not_blocking`<br>`frontend/e2e/spec006-x1-pending.spec.ts › una pregunta retirada del banco se muestra como no calificada` |
 | FR-030 | X2 | `tests/integration/test_spec006_x2_templates.py::test_an_unassigned_template_is_a_draft`<br>`frontend/e2e/spec006-x2-templates.spec.ts › un examen sin asignar es borrador y uno ya presentado se duplica para cambiarlo` |
@@ -395,9 +395,9 @@ closes their delivery.
 | FR-033 | X2 | `tests/integration/test_spec006_x2_templates.py::test_results_count_my_students_first_submission`<br>`tests/unit/domain/test_spec006_exam_results.py::test_only_my_students_first_submission_count`<br>`tests/unit/domain/test_spec006_exam_results.py::test_each_student_keeps_the_option_chosen`<br>`tests/unit/domain/test_spec006_exam_results.py::test_per_item_counts_the_wrong_options`<br>`tests/unit/domain/test_spec006_exam_results.py::test_per_topic_and_the_topic_to_reinforce`<br>`tests/unit/domain/test_spec006_exam_results.py::test_no_submission_is_an_empty_result` |
 | FR-040 | C1 | `tests/integration/test_spec006_c1_console.py::test_every_place_lists_the_same_students`<br>`tests/integration/test_spec006_c1_console.py::test_a_moved_student_shows_only_the_shared_course` |
 | FR-041 | C1 | `tests/integration/test_spec006_c1_console.py::test_the_summary_comes_from_the_server`<br>`tests/integration/test_spec006_c1_console.py::test_the_group_ranking_leaves_out_test_students`<br>`tests/unit/domain/test_spec006_console.py::test_ranks_are_competition_ranks_with_pending_last`<br>`tests/unit/domain/test_spec006_console.py::test_mean_accuracy_and_attempts`<br>`tests/unit/domain/test_spec006_console.py::test_attention_needs_a_low_rating_or_low_accuracy_with_attempts`<br>`tests/unit/domain/test_spec006_console.py::test_histogram_counts_rated_students`<br>`tests/unit/domain/test_spec006_console.py::test_each_group_has_its_own_figures`<br>`tests/unit/domain/test_spec006_console.py::test_no_students_is_an_empty_summary`<br>`frontend/e2e/spec006-c1-console.spec.ts › el ranking, el promedio y «atención» son los del servidor (US4-AS1, FR-041)` |
-| FR-041a | RV | PENDING |
-| FR-041b | RV | PENDING |
-| FR-041c | RV | PENDING |
+| FR-041a | RV | `tests/integration/test_spec006_c1_console.py::test_a_group_ranks_on_its_course`<br>`tests/integration/test_spec006_c1_console.py::test_all_groups_rank_on_the_courses_linked_to_the_teacher`<br>`tests/unit/domain/test_spec006_console.py::test_each_set_ranks_on_its_basis` |
+| FR-041b | RV | `tests/integration/test_spec006_c1_console.py::test_all_groups_rank_on_the_courses_linked_to_the_teacher`<br>`tests/unit/domain/test_spec006_console.py::test_the_linked_rating` |
+| FR-041c | RV | `tests/integration/test_spec006_c1_console.py::test_all_groups_rank_on_the_courses_linked_to_the_teacher`<br>`tests/unit/domain/test_spec006_console.py::test_each_set_ranks_on_its_basis`<br>`frontend/e2e/spec006-c1-console.spec.ts › cada grupo se ordena por su curso y «Todos» por la media de sus cursos contigo (US4-AS5, FR-041c)` |
 | FR-042 | C1 | `tests/integration/test_spec006_c1_console.py::test_an_admin_gets_403_on_teacher_routes` |
 | FR-043 | C1 | `tests/integration/test_spec006_c1_console.py::test_the_dashboard_counts_the_chosen_window`<br>`frontend/e2e/spec006-c1-console.spec.ts › 7d, 30d y Todo piden esa ventana al servidor (US4-AS4, FR-043)` |
 | FR-050 | P1 | `tests/integration/test_spec006_p1_queue.py::test_the_queue_follows_the_items_course`<br>`tests/integration/test_spec006_p1_queue.py::test_inactive_and_test_students_are_not_queued` |

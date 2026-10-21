@@ -4301,21 +4301,22 @@ class PostgresRepository:
         return f" AND {column} >= NOW() - %s * INTERVAL '1 day'", [days]
 
     @_timing
-    def get_teacher_student_groups(self, teacher_id) -> dict:
-        """Spec 006 FR-040: each student of the teacher's set → the teacher's groups that list
-        them."""
+    def get_teacher_student_links(self, teacher_id) -> list[dict]:
+        """Spec 006 FR-040, FR-041a/b: each link of the teacher's set — student, the teacher's
+        group that lists them and the course that link names (None: the group has no course)."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 f"WITH {self._teacher_links_cte()}"
-                " SELECT DISTINCT user_id, group_id FROM teacher_links ORDER BY group_id",
+                " SELECT DISTINCT user_id, group_id, course_id FROM teacher_links"
+                " ORDER BY user_id, group_id",
                 (teacher_id, teacher_id),
             )
-            groups: dict = {}
-            for r in cursor.fetchall():
-                groups.setdefault(r["user_id"], []).append(r["group_id"])
-            return groups
+            return [
+                {"user_id": r["user_id"], "group_id": r["group_id"], "course_id": r["course_id"]}
+                for r in cursor.fetchall()
+            ]
         finally:
             self.put_connection(conn)
 
@@ -7462,9 +7463,9 @@ class PostgresRepository:
         """Plantillas activas visibles a un estudiante en un curso.
 
         Lógica de visibilidad:
-        - Plantilla NO archivada y del curso indicado
-        - Y: no tiene assignments (legacy/abierta) → visible a todos los inscritos
-        -    O: tiene un assignment al grupo del estudiante con ventana activa
+        - Plantilla NO archivada y del curso indicado, aún no presentada (FR-021)
+        - Con una asignación de ventana abierta a su grupo principal o al grupo de su matrícula
+          en el curso (spec 006 FR-022a); sin asignación es un borrador (FR-030)
         """
         conn = self.get_connection()
         try:
@@ -7477,7 +7478,13 @@ class PostgresRepository:
                 FROM exam_templates et
                 LEFT JOIN exam_assignments ea
                     ON ea.template_id = et.id
-                   AND ea.group_id = (SELECT group_id FROM users WHERE id = %s)
+                   AND ea.group_id IN (
+                       -- Spec 006 FR-022a: the main group or the course's enrolment group.
+                       SELECT group_id FROM users WHERE id = %s
+                       UNION
+                       SELECT group_id FROM enrollments
+                       WHERE user_id = %s AND course_id = et.course_id
+                   )
                    AND (ea.starts_at IS NULL OR ea.starts_at <= NOW())
                    AND (ea.ends_at IS NULL OR ea.ends_at >= NOW())
                 WHERE et.archived = FALSE
@@ -7491,7 +7498,7 @@ class PostgresRepository:
                 GROUP BY et.id
                 ORDER BY et.created_at DESC
                 """,
-                (user_id, course_id, user_id),
+                (user_id, user_id, course_id, user_id),
             )
             rows = cursor.fetchall()
             return [
@@ -7510,8 +7517,8 @@ class PostgresRepository:
             self.put_connection(conn)
 
     def list_pending_exams_for_student(self, user_id: int) -> list[dict]:
-        """Resumen de todas las plantillas pendientes (todos los cursos inscritos)
-        para mostrar el badge de notificación en el sidebar."""
+        """Resumen de todas las plantillas pendientes (todos los cursos inscritos), con la misma
+        regla de grupos que `list_active_templates_for_student` (spec 006 FR-022, FR-022a)."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -7525,7 +7532,13 @@ class PostgresRepository:
                 JOIN courses c ON c.id = et.course_id
                 LEFT JOIN exam_assignments ea
                     ON ea.template_id = et.id
-                   AND ea.group_id = (SELECT group_id FROM users WHERE id = %s)
+                   AND ea.group_id IN (
+                       -- Spec 006 FR-022a: the main group or the course's enrolment group.
+                       SELECT group_id FROM users WHERE id = %s
+                       UNION
+                       SELECT group_id FROM enrollments
+                       WHERE user_id = %s AND course_id = et.course_id
+                   )
                    AND (ea.starts_at IS NULL OR ea.starts_at <= NOW())
                    AND (ea.ends_at IS NULL OR ea.ends_at >= NOW())
                 WHERE et.archived = FALSE
@@ -7534,7 +7547,7 @@ class PostgresRepository:
                                   WHERE es.user_id = %s AND es.exam_template_id = et.id)
                 ORDER BY et.created_at DESC
                 """,
-                (user_id, user_id, user_id),
+                (user_id, user_id, user_id, user_id),
             )
             rows = cursor.fetchall()
             return [

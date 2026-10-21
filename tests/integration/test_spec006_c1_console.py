@@ -284,9 +284,10 @@ def test_all_groups_rank_on_the_courses_linked_to_the_teacher(repo, client):
     assert places(summary["groups"][str(group_x)]) == [(a, 1, 1200)]
     rows = {s["user_id"]: s for s in dashboard["students"]}
     assert {u: rows[u]["display_rating"] for u in (a, c, d)} == {a: 1200, c: 1300, d: 1100}
-    assert rows[a]["rank_label"] == next(e for e in summary["ranking"] if e["user_id"] == a)[
-        "rank_label"
-    ]
+    assert (
+        rows[a]["rank_label"]
+        == next(e for e in summary["ranking"] if e["user_id"] == a)["rank_label"]
+    )
     assert not {"global_elo", "overall_status"} & set(rows[a])
 
 
