@@ -20,6 +20,10 @@ def rank_scale() -> list[dict]:
     return [{"label": label, "min": float(minimum)} for minimum, label in RANKS]
 
 
+# Spec 007 FR-060 (O-H1): the League history shows five matches at a time.
+PVP_HISTORY_PAGE = 5
+
+
 class RatingReadService:
     def __init__(self, repository: IRatingReadRepository):
         self.repository = repository
@@ -174,18 +178,26 @@ class RatingReadService:
             entry["status"] = "pending_diagnostic" if entry["rank"] is None else "rated"
         return {"basis": basis, "entries": entries if limit is None else entries[:limit]}
 
-    def pvp_history(self, user_id: int) -> list[dict]:
-        """The student's finished matches, each with the number to show for its applied delta —
-        half up on the value (FR-028j), so no screen rounds it (survey 007 V14)."""
-        return [
-            {
-                **row,
-                "elo_delta_display": (
-                    None if row.get("elo_delta") is None else round_for_display(row["elo_delta"])
-                ),
-            }
-            for row in self.repository.get_pvp_history(user_id)
-        ]
+    def pvp_history(self, user_id: int, before: int | None = None) -> dict:
+        """One page of the student's closed matches (spec 007 FR-060, O-H1): the
+        `PVP_HISTORY_PAGE` rows the screen shows and whether more follow; `before` (the last
+        match shown) asks for the next page. Each row carries the number to show for its applied
+        delta — half up on the value (FR-028j), so no screen rounds it (survey 007 V14)."""
+        rows = self.repository.get_pvp_history(user_id, PVP_HISTORY_PAGE + 1, before)
+        return {
+            "matches": [
+                {
+                    **row,
+                    "elo_delta_display": (
+                        None
+                        if row.get("elo_delta") is None
+                        else round_for_display(row["elo_delta"])
+                    ),
+                }
+                for row in rows[:PVP_HISTORY_PAGE]
+            ],
+            "has_more": len(rows) > PVP_HISTORY_PAGE,
+        }
 
     def ranking_rank(self, user_id: int, scope: str, **kwargs) -> int | None:
         """The rank on the student's own entry of the unlimited list (FR-028f, FR-028h)."""

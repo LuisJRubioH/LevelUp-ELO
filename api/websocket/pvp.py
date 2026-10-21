@@ -32,6 +32,8 @@ pvp_router = APIRouter(prefix="/ws", tags=["pvp"])
 
 MATCH_ITEMS = 10
 MATCH_DURATION = 180  # segundos
+# Spec 007 FR-061 (O-H2): after a failed close, wait this long before each of the 3 retries.
+CLOSE_RETRY_DELAYS = (0.5, 1.0, 2.0)
 
 
 # ── Estado en memoria por proceso ────────────────────────────────────────────
@@ -214,18 +216,7 @@ async def _close_match(match: ActiveMatch, repo) -> None:
         winner_id, outcome_p1 = None, 0.5
     d1, d2 = pvp_deltas(match.p1.elo, match.p2.elo, outcome_p1)
 
-    applied = None
-    try:
-        applied = await asyncio.to_thread(
-            repo.finish_pvp_match,
-            match_id=match.match_id,
-            winner_id=winner_id,
-            score_p1=s1, score_p2=s2,
-            elo_delta_p1=d1, elo_delta_p2=d2,
-            p1_id=match.p1.user_id, p2_id=match.p2.user_id,
-        )
-    except Exception as e:
-        logger.error("finish_pvp_match error: %s", e)
+    applied = await _persist_close(match, repo, winner_id, s1, s2, d1, d2)
     # Report what was applied, never the computed delta (spec 001, FR-029c).
     if not applied:
         applied = {"p1": (0.0, "not_applied"), "p2": (0.0, "not_applied")}
@@ -240,6 +231,32 @@ async def _close_match(match: ActiveMatch, repo) -> None:
         _send(match.p2.ws, result_p2),
         return_exceptions=True,
     )
+
+
+async def _persist_close(match, repo, winner_id, s1, s2, d1, d2):
+    """Spec 007 FR-061 (O-H2): persist the close — the first try and a retry after each of
+    `CLOSE_RETRY_DELAYS`. If every try fails, the match is closed as abandoned `not_saved`, with
+    no rating change, and None is returned (`game_end` then says `not_applied`). If even that
+    write fails, the row stays active and the orphan sweep closes it later."""
+    for attempt, delay in enumerate((0.0, *CLOSE_RETRY_DELAYS)):
+        if delay:
+            await asyncio.sleep(delay)
+        try:
+            return await asyncio.to_thread(
+                repo.finish_pvp_match,
+                match_id=match.match_id,
+                winner_id=winner_id,
+                score_p1=s1, score_p2=s2,
+                elo_delta_p1=d1, elo_delta_p2=d2,
+                p1_id=match.p1.user_id, p2_id=match.p2.user_id,
+            )
+        except Exception as e:
+            logger.error("finish_pvp_match try %d failed: %s", attempt + 1, type(e).__name__)
+    try:
+        await asyncio.to_thread(repo.abandon_pvp_match, match.match_id, "not_saved")
+    except Exception as e:
+        logger.error("abandon_pvp_match failed: %s", type(e).__name__)
+    return None
 
 
 async def _finish_early(match: ActiveMatch, timer_task: asyncio.Task | None, repo) -> None:

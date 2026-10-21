@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, animate } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { MathText } from "../../components/Math/MathContent";
@@ -240,28 +240,48 @@ export function League() {
 
 function HistoryPanel({ userId }: { userId?: number }) {
   const { t } = useTranslation();
-  const { data } = useQuery({
+  // Spec 007 FR-060 (O-H1): five at a time; «Ver más» asks for the five after the last shown.
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ["pvp-history", userId],
-    queryFn: () => studentApi.pvpHistory(),
+    queryFn: ({ pageParam }) => studentApi.pvpHistory(pageParam),
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (last) =>
+      last.has_more ? last.matches[last.matches.length - 1]?.match_id : undefined,
     enabled: !!userId,
     staleTime: 30_000,
   });
-
-  if (!data?.length) return null;
+  const rows = data?.pages.flatMap((p) => p.matches) ?? [];
+  if (!rows.length) return null;
 
   return (
     <div className="pv-history">
       <p className="pv-history-h">{t("league.historyTitle")}</p>
-      {data.slice(0, 5).map((m, i) => {
-        const cls = m.draw ? "draw" : m.won ? "win" : "loss";
-        const label = m.draw ? t("league.draw") : m.won ? t("league.historyWon") : t("league.historyLost");
+      {rows.map((m) => {
+        const abandoned = m.status === "abandoned";
+        const cls = abandoned ? "void" : m.draw ? "draw" : m.won ? "win" : "loss";
+        const label = abandoned
+          ? t("league.historyAbandoned")
+          : m.draw
+            ? t("league.draw")
+            : m.won
+              ? t("league.historyWon")
+              : t("league.historyLost");
         // The server's rounded number (survey 007 V14); a match with no recorded change shows «—».
-        const delta = m.elo_delta_display;
+        const delta = abandoned ? null : m.elo_delta_display;
         const deltaCls = delta == null || delta === 0 ? "flat" : delta > 0 ? "up" : "down";
         return (
-          <div key={i} className="pv-hrow">
+          <div key={m.match_id} className="pv-hrow">
             <span className={"pv-tag " + cls}>{label}</span>
-            <span className="pv-hopp">{t("league.vs")} {m.opponent}</span>
+            <span className="pv-hopp">
+              {t("league.vs")} {m.opponent}
+              <span className="pv-hsub">
+                {m.course_name}
+                {abandoned &&
+                  ` · ${t(`league.historyReasons.${m.reason ?? "unknown"}`, {
+                    defaultValue: t("league.historyReasons.unknown"),
+                  })}`}
+              </span>
+            </span>
             <span className="pv-hscore">{m.my_score}–{m.opp_score}</span>
             <span className={"pv-hdelta " + deltaCls}>
               {delta == null ? "—" : delta >= 0 ? `+${delta}` : delta}
@@ -269,6 +289,16 @@ function HistoryPanel({ userId }: { userId?: number }) {
           </div>
         );
       })}
+      {hasNextPage && (
+        <button
+          type="button"
+          className="pv-more"
+          onClick={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+        >
+          {t("league.historyMore")}
+        </button>
+      )}
     </div>
   );
 }

@@ -15,12 +15,16 @@ const ITEMS = [
 const KEY: Record<string, string> = { i1: "4", i2: "6" };
 
 type Server = (ws: WebSocketRoute, message: Record<string, unknown>) => void;
+type Row = { match_id: number };
 
 async function openLeague(page: Page, server: Server, history: object[] = []) {
   await mockStudentApi(page);
-  await page.route("**/api/student/pvp/history", (route) =>
-    route.fulfill({ status: 200, json: history }),
-  );
+  // Spec 007 FR-060: one page of five; `before` asks for the next one.
+  await page.route("**/api/student/pvp/history**", (route) => {
+    const before = Number(new URL(route.request().url()).searchParams.get("before") ?? 0);
+    const rest = before ? history.slice(history.findIndex((r) => (r as Row).match_id === before) + 1) : history;
+    return route.fulfill({ status: 200, json: { matches: rest.slice(0, 5), has_more: rest.length > 5 } });
+  });
   await page.routeWebSocket("**/api/ws/pvp/**", (ws) => {
     ws.onMessage((raw) => server(ws, JSON.parse(String(raw))));
   });
@@ -32,6 +36,20 @@ async function startMatch(page: Page) {
   await page.locator("select.pv-select").selectOption("calculo");
   await page.getByRole("button", { name: "Buscar rival →" }).click();
 }
+
+/** A finished match in the history (spec 007 FR-060 shape). */
+const ROW = {
+  status: "finished",
+  reason: null,
+  course_id: "calculo",
+  course_name: "Cálculo",
+  won: true,
+  draw: false,
+  my_score: 6,
+  opp_score: 4,
+  opponent: "rival",
+  finished_at: "2026-10-10 12:00",
+};
 
 const START = {
   type: "game_start",
@@ -139,14 +157,41 @@ test.describe("Liga PvP", () => {
   test("el historial muestra el número del servidor, sin redondear en el navegador", async ({ page }) => {
     // Survey 007 V14: -2.5 shows as -3 (half up on the value, as the server rounds it), where
     // Math.round in the browser gave -2.
-    const row = { won: true, draw: false, my_score: 6, opp_score: 4, opponent: "rival", finished_at: "2026-10-10 12:00" };
     await openLeague(page, () => {}, [
-      { ...row, elo_delta: 11.52, elo_delta_display: 12 },
-      { ...row, won: false, elo_delta: -2.5, elo_delta_display: -3 },
-      { ...row, elo_delta: null, elo_delta_display: null },
+      { ...ROW, match_id: 3, elo_delta: 11.52, elo_delta_display: 12 },
+      { ...ROW, match_id: 2, won: false, elo_delta: -2.5, elo_delta_display: -3 },
+      { ...ROW, match_id: 1, elo_delta: null, elo_delta_display: null },
     ]);
 
     const deltas = page.locator(".pv-hdelta");
     await expect(deltas).toHaveText(["+12", "-3", "—"]);
+  });
+
+  test("el historial muestra partidas abandonadas y no guardadas con su materia (spec 007 US6-AS1)", async ({ page }) => {
+    await openLeague(page, () => {}, [
+      { ...ROW, match_id: 3, elo_delta: 8, elo_delta_display: 8 },
+      { ...ROW, match_id: 2, status: "abandoned", reason: "not_saved", elo_delta: 0, elo_delta_display: 0 },
+      { ...ROW, match_id: 1, status: "abandoned", reason: "orphaned", course_name: "Álgebra", elo_delta: 0, elo_delta_display: 0 },
+    ]);
+
+    const rows = page.locator(".pv-hrow");
+    await expect(rows).toHaveCount(3);
+    await expect(rows.nth(0)).toContainText("Cálculo");
+    await expect(rows.nth(1)).toContainText("Abandonada");
+    await expect(rows.nth(1)).toContainText("no se pudo guardar el resultado");
+    await expect(rows.nth(1).locator(".pv-hdelta")).toHaveText("—");
+    await expect(rows.nth(2)).toContainText("Álgebra · se cerró sin terminar");
+  });
+
+  test("ver más carga la página siguiente del historial (spec 007 FR-060)", async ({ page }) => {
+    const seven = [7, 6, 5, 4, 3, 2, 1].map((id) => ({ ...ROW, match_id: id, opponent: `rival ${id}`, elo_delta: 1, elo_delta_display: 1 }));
+    await openLeague(page, () => {}, seven);
+
+    await expect(page.locator(".pv-hrow")).toHaveCount(5);
+    await page.getByRole("button", { name: "Ver más" }).click();
+
+    await expect(page.locator(".pv-hrow")).toHaveCount(7);
+    await expect(page.locator(".pv-hrow").last()).toContainText("rival 1");
+    await expect(page.getByRole("button", { name: "Ver más" })).toHaveCount(0);
   });
 });

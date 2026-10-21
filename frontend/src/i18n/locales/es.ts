@@ -972,6 +972,14 @@ const es = {
     historyTitle: "Últimas partidas",
     historyWon: "Ganada",
     historyLost: "Perdida",
+    historyAbandoned: "Abandonada",
+    historyMore: "Ver más",
+    historyReasons: {
+      not_saved: "no se pudo guardar el resultado",
+      orphaned: "se cerró sin terminar",
+      account_expired: "la cuenta venció",
+      unknown: "sin resultado",
+    },
     closeNotices: {
       authFailed:
         "No pudimos entrar a la arena. Vuelve a iniciar sesión y revisa que estés inscrito en la materia.",
