@@ -2878,6 +2878,28 @@ class SQLiteRepository:
             conn.close()
         return row[0] if row else None
 
+    def get_student_group(self, user_id) -> dict | None:
+        """Spec 001 FR-028v: the student's own group — `group_id`, its `course_id` and whether its
+        teacher is an approved, active teacher (`teacher_ok`) — or None without one."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute(
+                """
+                SELECT g.id AS group_id, g.course_id,
+                       (t.role = 'teacher' AND t.active = 1 AND t.approved = 1) AS teacher_ok
+                FROM users s
+                JOIN groups g ON g.id = s.group_id
+                JOIN users t ON t.id = g.teacher_id
+                WHERE s.id = ?
+            """,
+                (user_id,),
+            ).fetchone()
+        finally:
+            conn.close()
+        if row is None:
+            return None
+        return {"group_id": row[0], "course_id": row[1], "teacher_ok": bool(row[2])}
+
     def _reconcile_legacy_ratings(self) -> int:
         """One-time, idempotent: approximate baselines from legacy rows (spec 001, research R10).
 

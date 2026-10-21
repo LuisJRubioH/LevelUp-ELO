@@ -144,11 +144,15 @@ class CourseResponse(BaseModel):
     diagnostic_done: bool = False
     # False for a course the student reached by invitation outside their catalogue (FR-028l).
     in_catalogue: bool = True
+    # True for a catalogue course the teacher of the student's group reviews: `POST /enroll`
+    # accepts it (spec 001 FR-028v, FR-028w). Any other needs an invitation.
+    enrollable: bool = False
 
 
 class EnrollRequest(BaseModel):
-    """Catalogue enrolment. It joins no group: a group is joined only through its invitation code
-    (`EnrollByCodeRequest`), so a `group_id` sent here is ignored."""
+    """Catalogue enrolment, recorded with the student's own group (spec 001 FR-028v). It joins no
+    other group: a group is joined only through its invitation code (`EnrollByCodeRequest`), so a
+    `group_id` sent here is ignored."""
 
     course_id: str
 

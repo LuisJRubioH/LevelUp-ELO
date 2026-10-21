@@ -177,6 +177,8 @@ const en: TranslationKeys = {
     noAvailable: "No courses available for your level.",
     gradeRequired: "We need to record your grade to show your courses. Contact your teacher or the administrator.",
     byInvitation: "Invitation access",
+    needsInvitation: "With your teacher's invitation",
+    useCode: "Use a code",
     codeActivated: "Special access activated for {{course}}",
     enrollByCode: "Join with code",
     join: "Join",

@@ -33,9 +33,13 @@ export function Courses() {
     queryFn: () => studentApi.courses(),
   });
 
+  // Spec 001 FR-028w: a refused enrolment says why, with the server's message.
+  const [enrollError, setEnrollError] = useState<string | null>(null);
   const enrollMutation = useMutation({
     mutationFn: (courseId: string) => studentApi.enroll(courseId),
+    onMutate: () => setEnrollError(null),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["courses"] }),
+    onError: (err: Error) => setEnrollError(err.message),
   });
 
   const unenrollMutation = useMutation({
@@ -139,6 +143,11 @@ export function Courses() {
           {tab === "explore" && (
             <p className="sp-dim text-sm mb-4">{t("courses.exploreIntro")}</p>
           )}
+          {tab === "explore" && enrollError && (
+            <p role="alert" className="text-sm mb-4" style={{ color: "var(--color-wrong)" }}>
+              {enrollError}
+            </p>
+          )}
           {tab === "enrolled" && (
             <p className="sp-dim text-sm mb-4">{t("courses.enrolledIntro")}</p>
           )}
@@ -188,7 +197,7 @@ export function Courses() {
                           >
                             {t("courses.practice")}
                           </Button>
-                        ) : (
+                        ) : c.enrollable ? (
                           <Button
                             size="sm"
                             onClick={() => enrollMutation.mutate(c.id)}
@@ -197,6 +206,16 @@ export function Courses() {
                           >
                             {t("courses.enroll")}
                           </Button>
+                        ) : (
+                          // Spec 001 FR-028v/w: no teacher of the student's group reviews it.
+                          <div className="flex w-full items-center justify-between gap-2">
+                            <span className="text-[12px]" style={{ color: "var(--color-partial)" }}>
+                              {t("courses.needsInvitation")}
+                            </span>
+                            <Button variant="ghost" size="sm" onClick={() => setTab("code")}>
+                              {t("courses.useCode")}
+                            </Button>
+                          </div>
                         )}
                       </div>
                     )}

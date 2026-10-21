@@ -83,7 +83,7 @@ from api.schemas.student import (
     TopicELO,
 )
 from src.application.services.rating_read_service import RatingReadService
-from src.application.services.student_service import StudentService
+from src.application.services.student_service import NoTeacherForCourse, StudentService
 from src.application.services.study_report_service import StudyReportService
 from src.domain.elo.model import diagnostic_baseline
 from src.domain.katia.conversation import STALE_AFTER_HOURS, close_outcome
@@ -354,10 +354,12 @@ def courses(user: CurrentUser, repo: RepoDep):
 
     Spec 001 FR-028k, FR-028l: a course reached by invitation is listed as enrolled with
     `in_catalogue: false`; a semillero student without a grade has no catalogue, so only their
-    enrolments are listed (FR-028o).
+    enrolments are listed (FR-028o). `enrollable` marks the catalogue courses the teacher of the
+    student's group reviews (FR-028v, FR-028w).
     """
     service = _make_service(repo)
     available = service.get_available_courses(user["user_id"])
+    allowed = service.catalogue_enrolment_allowed(user["user_id"])
     enrolments = {e["id"]: e for e in repo.get_user_enrollments(user["user_id"])}
     diag_done = set(repo.get_completed_diagnostic_course_ids(user["user_id"]))
     catalogue_ids = {c["id"] for c in available}
@@ -374,6 +376,7 @@ def courses(user: CurrentUser, repo: RepoDep):
             group_id=(enrolments.get(c["id"]) or {}).get("group_id"),
             diagnostic_done=c["id"] in diag_done,
             in_catalogue=in_catalogue,
+            enrollable=in_catalogue and c["id"] in allowed,
         )
         for c, in_catalogue in listed
     ]
@@ -426,6 +429,12 @@ def enroll(body: EnrollRequest, user: CurrentUser, repo: RepoDep):
     service = _make_service(repo)
     try:
         service.enroll_from_catalogue(user["user_id"], body.course_id)
+    except NoTeacherForCourse:
+        # Spec 001 FR-028v (delivery TCH): no enrolment without a teacher.
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Pide a tu docente una invitación para este curso.",
+        )
     except PermissionError:
         # Spec 001 FR-028m: other levels' courses are reached only through an invitation.
         raise HTTPException(
