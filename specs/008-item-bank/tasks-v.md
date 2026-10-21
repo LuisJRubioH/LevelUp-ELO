@@ -1,17 +1,18 @@
 # Tasks — spec 008, delivery V (validator rules)
 
-**Plan**: [plan-v.md](plan-v.md) · **Status**: draft for the owner's approval (decisions O-V1 …
-O-V9 open). FR-010, FR-011 and FR-012 are `[CHANGE]`; US2-AS1 … AS3 are their scenarios. V has no
+**Plan**: [plan-v.md](plan-v.md) · **Status**: approved (owner decisions O-V1 …
+O-V9 answered 2026-10-21, each as recommended). FR-010, FR-011 and FR-012 are `[CHANGE]`; US2-AS1 … AS3 are their scenarios. V has no
 `[AS-IS]` requirement of its own, but it touches the validator delivery A pinned (FR-001), so
 Phase 1 re-runs those pins on the unchanged code before anything changes.
 
 ## Phase 0 — Owner decisions (blocking)
 
-- [ ] T000 The owner decides O-V1 … O-V9 (plan-v.md § Owner decisions) and the plan's status
+- [x] T000 The owner decides O-V1 … O-V9 (plan-v.md § Owner decisions) and the plan's status
   becomes approved. **No task below starts before this.** A decision that differs from the
   recommendation is written into plan-v.md first and the affected tasks are adjusted in the same
   commit (e.g. O-V6 «warning» turns T005's case into a warning assertion; O-V7 «rename mode» adds a
-  test and a script option to T006/T011).
+  test and a script option to T006/T011). Done 2026-10-21: every recommended option was approved,
+  so the tasks below stand as written.
 
 ## Phase 1 — Pins green on the unchanged code (blocking)
 

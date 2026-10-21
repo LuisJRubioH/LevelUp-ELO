@@ -1,8 +1,8 @@
 # Plan — spec 008, delivery V: validator rules (D1, D4, D6)
 
 **Spec**: [spec.md](spec.md) § Deliveries, V (US2; FR-010, FR-011, FR-012) · **Branch**: `008-v`,
-from `redesign` · **Date**: 2026-10-21 · **Status**: draft for the owner's approval (decisions
-O-V1 … O-V9 open)
+from `redesign` · **Date**: 2026-10-21 · **Status**: approved (owner, 2026-10-21:
+O-V1 … O-V9 as recommended)
 
 ## Summary
 
@@ -154,9 +154,9 @@ the validator in it; after V a bank without a manifest fails (O-V8), so `_run` a
 manifest for its temporary bank (by calling `appended_manifest`). That is a fixture change, not an
 assertion change; every delivery A row keeps its assertions (T007).
 
-## Owner decisions (open)
+## Owner decisions (owner, 2026-10-21: the recommended option of each)
 
-| # | Question | Recommended | Alternatives |
+| # | Question | Decided (owner, 2026-10-21) | Alternatives (rejected) |
 |---|---|---|---|
 | **O-V1** | What is «an integer»? | Only a JSON integer: `900.0`, `"900"` and `true` fail. The bank has 0 of them (2,031 `int`), so nothing breaks, and the sync stores what the JSON says | Accept an integral float (`900.0`) as an integer; or also accept numeric strings |
 | **O-V2** | Where do the rules live? | `src/domain/bank/rules.py` (pure, standard library), imported by `validate_bank.py` and `build_epa8_bank.py`; delivery C's catalogue module can sit beside it | Keep them in `scripts/validate_bank.py` (as `prose_read_as_math` is) and have the generator import from there |
