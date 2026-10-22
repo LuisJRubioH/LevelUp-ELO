@@ -1003,6 +1003,17 @@ const en: TranslationKeys = {
         "Your ELO did not change: you have no rating in this subject yet. Take its diagnostic so matches count.",
       not_applied: "Your ELO did not change: we could not save this match's result.",
     },
+    // Spec 007 FR-070: the League's answers on the statistics — for study, never a rating.
+    stats: {
+      title: "In the League",
+      hint: "Your answers in League matches, by topic. It is for study: it does not change your ELO or your practice attempts.",
+      teacherHint: "Their answers in League matches, in the courses they share with you. They do not count in their attempts or their ELO.",
+      topicsLabel: "In the League, by topic",
+      correctOf: "{{correct}} of {{answers}}",
+      missedTitle: "What you miss most in the League",
+      missedTitleTeacher: "What they miss most in the League",
+      missedOf: "missed {{missed}} of {{answers}}",
+    },
   },
 
   // ── Ratings (spec 001) ────────────────────────────────────────────────────

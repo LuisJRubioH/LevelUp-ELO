@@ -137,6 +137,11 @@ export async function mockStudentApi(page: Page) {
     });
   });
 
+  // Spec 007 FR-070: no League answers yet (the Stats card stays hidden).
+  await page.route("**/api/student/league/stats", async (route) => {
+    await route.fulfill({ json: { answers: 0, correct: 0, topics: [], items: [] } });
+  });
+
   await page.route("**/api/student/history", async (route) => {
     await route.fulfill({
       status: 200,

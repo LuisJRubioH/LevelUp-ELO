@@ -75,7 +75,7 @@ def test_spec007_league_answers_are_raw_rows_of_closed_matches(repo):
 
     rows = repo.get_league_answers(a)
 
-    assert _answered(rows) == [(finished, d1, True), (finished, f1, False)]
+    assert _answered(rows) == sorted([(finished, f1, False), (finished, d1, True)])
     by_item = {r["item_id"]: r for r in rows}
     assert by_item[f1]["course_id"] == course_id
     assert by_item[f1]["course_name"] == "Aritmética S"
